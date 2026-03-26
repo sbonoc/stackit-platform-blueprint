@@ -1,0 +1,10 @@
+cluster:
+  name: blueprint-local
+opencost:
+  enabled: false
+alloy-metrics:
+  enabled: true
+alloy-logs:
+  enabled: true
+alloy-singleton:
+  enabled: true

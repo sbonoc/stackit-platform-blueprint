@@ -1,0 +1,25 @@
+schemaVersion: v1
+appVersionContract:
+  appVersionEnv: APP_VERSION
+  appBuildIdEnv: APP_BUILD_ID
+  appReleaseEnv: APP_RELEASE
+runtimePinnedVersions:
+  python: 3.13.9
+  node: 24.8.0
+  nginx: 1.29.2
+frameworkPinnedVersions:
+  fastapi: 0.117.1
+  pydantic: 2.11.10
+  vue: 3.5.31
+  pinia: 3.0.3
+observabilityRuntimeContract:
+  enabled: false
+  otel:
+    endpoint: ""
+    protocol: ""
+    tracesEnabled: false
+    metricsEnabled: false
+    logsEnabled: false
+  faro:
+    enabled: false
+    collectPath: ""
