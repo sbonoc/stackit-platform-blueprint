@@ -9,3 +9,5 @@ dist/
 artifacts/
 docs/build/
 docs/.docusaurus/
+**/.terraform/
+infra/cloud/stackit/terraform/**/.terraform.lock.hcl
