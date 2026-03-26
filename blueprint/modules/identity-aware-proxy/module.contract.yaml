@@ -12,6 +12,7 @@ spec:
   paths:
     terraform: infra/cloud/stackit/terraform/modules/identity-aware-proxy
     helm: infra/local/helm/identity-aware-proxy/values.yaml
+    gitops: infra/gitops/argocd/optional/${ENV}/identity-aware-proxy.yaml
     docs: docs/platform/modules/identity-aware-proxy/README.md
     tests: tests/infra/modules/identity-aware-proxy
 

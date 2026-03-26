@@ -366,49 +366,50 @@ render_makefile() {
   targets_kms="$(makefile_module_target_block kms)"
   targets_identity_aware_proxy="$(makefile_module_target_block identity-aware-proxy)"
 
-  local rendered_makefile
-  rendered_makefile="$({
-    render_bootstrap_template_content \
-      "blueprint" \
-      "make/blueprint.generated.mk.tmpl" \
-      "PHONY_OBSERVABILITY=$phony_observability" \
-      "PHONY_WORKFLOWS=$phony_workflows" \
-      "PHONY_LANGFUSE=$phony_langfuse" \
-      "PHONY_POSTGRES=$phony_postgres" \
-      "PHONY_NEO4J=$phony_neo4j" \
-      "PHONY_OBJECT_STORAGE=$phony_object_storage" \
-      "PHONY_RABBITMQ=$phony_rabbitmq" \
-      "PHONY_DNS=$phony_dns" \
-      "PHONY_PUBLIC_ENDPOINTS=$phony_public_endpoints" \
-      "PHONY_SECRETS_MANAGER=$phony_secrets_manager" \
-      "PHONY_KMS=$phony_kms" \
-      "PHONY_IDENTITY_AWARE_PROXY=$phony_identity_aware_proxy" \
-      "TARGETS_OBSERVABILITY=$targets_observability" \
-      "TARGETS_WORKFLOWS=$targets_workflows" \
-      "TARGETS_LANGFUSE=$targets_langfuse" \
-      "TARGETS_POSTGRES=$targets_postgres" \
-      "TARGETS_NEO4J=$targets_neo4j" \
-      "TARGETS_OBJECT_STORAGE=$targets_object_storage" \
-      "TARGETS_RABBITMQ=$targets_rabbitmq" \
-      "TARGETS_DNS=$targets_dns" \
-      "TARGETS_PUBLIC_ENDPOINTS=$targets_public_endpoints" \
-      "TARGETS_SECRETS_MANAGER=$targets_secrets_manager" \
-      "TARGETS_KMS=$targets_kms" \
-      "TARGETS_IDENTITY_AWARE_PROXY=$targets_identity_aware_proxy"
-  })"
-
   local output_path="$ROOT_DIR/make/blueprint.generated.mk"
   ensure_dir "$(dirname "$output_path")"
+  local rendered_tmp
+  rendered_tmp="$(mktemp)"
 
-  local current_makefile=""
-  if [[ -f "$output_path" ]]; then
-    current_makefile="$(cat "$output_path")"
-  fi
+  render_bootstrap_template_content \
+    "blueprint" \
+    "make/blueprint.generated.mk.tmpl" \
+    "PHONY_OBSERVABILITY=$phony_observability" \
+    "PHONY_WORKFLOWS=$phony_workflows" \
+    "PHONY_LANGFUSE=$phony_langfuse" \
+    "PHONY_POSTGRES=$phony_postgres" \
+    "PHONY_NEO4J=$phony_neo4j" \
+    "PHONY_OBJECT_STORAGE=$phony_object_storage" \
+    "PHONY_RABBITMQ=$phony_rabbitmq" \
+    "PHONY_DNS=$phony_dns" \
+    "PHONY_PUBLIC_ENDPOINTS=$phony_public_endpoints" \
+    "PHONY_SECRETS_MANAGER=$phony_secrets_manager" \
+    "PHONY_KMS=$phony_kms" \
+    "PHONY_IDENTITY_AWARE_PROXY=$phony_identity_aware_proxy" \
+    "TARGETS_OBSERVABILITY=$targets_observability" \
+    "TARGETS_WORKFLOWS=$targets_workflows" \
+    "TARGETS_LANGFUSE=$targets_langfuse" \
+    "TARGETS_POSTGRES=$targets_postgres" \
+    "TARGETS_NEO4J=$targets_neo4j" \
+    "TARGETS_OBJECT_STORAGE=$targets_object_storage" \
+    "TARGETS_RABBITMQ=$targets_rabbitmq" \
+    "TARGETS_DNS=$targets_dns" \
+    "TARGETS_PUBLIC_ENDPOINTS=$targets_public_endpoints" \
+    "TARGETS_SECRETS_MANAGER=$targets_secrets_manager" \
+    "TARGETS_KMS=$targets_kms" \
+    "TARGETS_IDENTITY_AWARE_PROXY=$targets_identity_aware_proxy" \
+    >"$rendered_tmp"
 
-  if [[ "$current_makefile" != "$rendered_makefile" ]]; then
-    printf '%s' "$rendered_makefile" >"$output_path"
+  # Normalize generated output to end with exactly one newline and no trailing blank lines.
+  local rendered_content
+  rendered_content="$(cat "$rendered_tmp")"
+  printf '%s\n' "$rendered_content" >"$rendered_tmp"
+
+  if [[ ! -f "$output_path" ]] || ! cmp -s "$output_path" "$rendered_tmp"; then
+    mv "$rendered_tmp" "$output_path"
     log_info "updated make/blueprint.generated.mk from template based on enabled modules"
   else
+    rm -f "$rendered_tmp"
     log_info "make/blueprint.generated.mk already up to date for enabled module set"
   fi
 }

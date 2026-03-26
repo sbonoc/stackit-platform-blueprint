@@ -12,6 +12,7 @@ spec:
   paths:
     terraform: infra/cloud/stackit/terraform/modules/public-endpoints
     helm: infra/local/helm/public-endpoints/values.yaml
+    gitops: infra/gitops/argocd/optional/${ENV}/public-endpoints.yaml
     docs: docs/platform/modules/public-endpoints/README.md
     tests: tests/infra/modules/public-endpoints
 

@@ -676,14 +676,29 @@ def _validate_bootstrap_template_sync(repo_root: Path) -> list[str]:
                 "tests/infra/modules/observability/README.md",
                 "infra/local/crossplane/kustomization.yaml",
                 "infra/local/crossplane/namespace.yaml",
+                "infra/local/helm/core/argocd.values.yaml",
+                "infra/local/helm/core/external-secrets.values.yaml",
+                "infra/local/helm/core/crossplane.values.yaml",
                 "infra/local/helm/observability/grafana.values.yaml",
                 "infra/local/helm/observability/otel-collector.values.yaml",
                 "infra/gitops/argocd/base/kustomization.yaml",
                 "infra/gitops/argocd/base/namespace.yaml",
+                "infra/gitops/argocd/environments/dev/kustomization.yaml",
+                "infra/gitops/argocd/environments/dev/platform-config.yaml",
+                "infra/gitops/argocd/overlays/local/kustomization.yaml",
+                "infra/gitops/platform/base/kustomization.yaml",
+                "infra/gitops/platform/base/namespaces.yaml",
+                "infra/gitops/platform/environments/local/kustomization.yaml",
+                "infra/gitops/platform/environments/local/runtime-contract-configmap.yaml",
+                "infra/gitops/platform/environments/dev/kustomization.yaml",
+                "infra/gitops/platform/environments/dev/runtime-contract-configmap.yaml",
             ),
         ),
     )
 
+    # These ArgoCD files are intentionally rewritten by blueprint-init-repo to
+    # inject repository identity (repoURL). They are validated by placeholder/
+    # identity checks, not by strict byte-for-byte template sync.
     for template_root, synced_files in template_sync_contract:
         for rel_path in synced_files:
             target_path = repo_root / rel_path

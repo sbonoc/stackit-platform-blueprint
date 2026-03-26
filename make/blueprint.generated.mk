@@ -4,10 +4,10 @@ SHELL := /bin/bash
 .PHONY: help \
   blueprint-init-repo blueprint-init-repo-interactive blueprint-check-placeholders blueprint-template-smoke blueprint-release-notes blueprint-migrate blueprint-bootstrap blueprint-render-makefile blueprint-clean-generated blueprint-render-module-wrapper-skeletons \
   quality-hooks-run \
-  infra-prereqs infra-help-reference infra-bootstrap infra-validate infra-smoke infra-provision infra-deploy infra-provision-deploy \
+  infra-prereqs infra-help-reference infra-bootstrap infra-destroy-disabled-modules infra-validate infra-smoke infra-provision infra-deploy infra-provision-deploy \
   infra-stackit-bootstrap-preflight infra-stackit-bootstrap-plan infra-stackit-bootstrap-apply infra-stackit-bootstrap-destroy \
   infra-stackit-foundation-preflight infra-stackit-foundation-plan infra-stackit-foundation-apply infra-stackit-foundation-destroy \
-  infra-stackit-foundation-fetch-kubeconfig infra-stackit-foundation-refresh-kubeconfig \
+  infra-stackit-foundation-fetch-kubeconfig infra-stackit-foundation-refresh-kubeconfig infra-stackit-foundation-seed-runtime-secret \
   infra-stackit-ci-github-setup infra-stackit-destroy-all \
   infra-stackit-runtime-prerequisites infra-stackit-runtime-inventory infra-stackit-runtime-deploy \
   infra-stackit-smoke-foundation infra-stackit-smoke-runtime infra-stackit-provision-deploy \
@@ -61,6 +61,9 @@ infra-help-reference: ## Show full Make targets and variable defaults reference
 infra-bootstrap: ## Bootstrap infra-only tooling/scaffolding
 	@scripts/bin/infra/bootstrap.sh
 
+infra-destroy-disabled-modules: ## Destroy resources for currently disabled optional modules
+	@scripts/bin/infra/destroy_disabled_modules.sh
+
 infra-validate: ## Validate infra contracts and manifests
 	@scripts/bin/infra/validate.sh
 
@@ -105,6 +108,9 @@ infra-stackit-foundation-fetch-kubeconfig: ## Fetch STACKIT foundation kubeconfi
 
 infra-stackit-foundation-refresh-kubeconfig: ## Refresh STACKIT foundation kubeconfig credentials and write local kubeconfig
 	@scripts/bin/infra/stackit_foundation_refresh_kubeconfig.sh
+
+infra-stackit-foundation-seed-runtime-secret: ## Seed runtime Kubernetes secret from STACKIT foundation outputs
+	@scripts/bin/infra/stackit_foundation_seed_runtime_secret.sh
 
 infra-stackit-ci-github-setup: ## Create GitHub environments/secrets required for STACKIT CI delivery
 	@scripts/bin/infra/stackit_github_ci_setup.sh

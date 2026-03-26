@@ -64,6 +64,52 @@ validate_non_empty() {
   [[ -n "$value" ]]
 }
 
+validate_stackit_region() {
+  local value="$1"
+  [[ "$value" =~ ^[a-z0-9-]+$ ]]
+}
+
+validate_stackit_slug() {
+  local value="$1"
+  [[ "$value" =~ ^[a-z0-9][a-z0-9-]*$ ]]
+}
+
+validate_stackit_key_prefix() {
+  local value="$1"
+  [[ "$value" =~ ^[a-zA-Z0-9._/-]+$ ]] || return 1
+  [[ "$value" != /* ]] || return 1
+  [[ "$value" != */ ]]
+}
+
+validate_stackit_bucket() {
+  local value="$1"
+  [[ "$value" =~ ^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$ ]]
+}
+
+normalize_slug_component() {
+  local raw="$1"
+  local normalized
+  normalized="$(printf '%s' "$raw" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//; s/-+/-/g')"
+  if [[ -z "$normalized" ]]; then
+    normalized="blueprint"
+  fi
+  printf '%s\n' "$normalized"
+}
+
+normalize_bucket_name() {
+  local raw="$1"
+  local normalized
+  normalized="$(printf '%s' "$raw" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9.-]+/-/g; s/^-+//; s/-+$//; s/-+/-/g')"
+  if [[ -z "$normalized" ]]; then
+    normalized="stackit-tf-state"
+  fi
+  if [[ "${#normalized}" -gt 63 ]]; then
+    normalized="${normalized:0:63}"
+    normalized="${normalized%-}"
+  fi
+  printf '%s\n' "$normalized"
+}
+
 prompt_with_default() {
   local prompt="$1"
   local default_value="$2"
@@ -132,6 +178,21 @@ blueprint_default_branch="$(prompt_with_default "Default branch" "main" validate
 blueprint_docs_title="$(prompt_with_default "Docs title" "$blueprint_repo_name" validate_non_empty)"
 blueprint_docs_tagline="$(prompt_with_default "Docs tagline" "Reusable local+STACKIT platform blueprint" validate_non_empty)"
 
+default_stackit_tenant="$(normalize_slug_component "$blueprint_github_org")"
+default_stackit_platform="$(normalize_slug_component "${blueprint_repo_name%-blueprint}")"
+if [[ "$default_stackit_platform" == "blueprint" ]]; then
+  default_stackit_platform="$(normalize_slug_component "$blueprint_repo_name")"
+fi
+default_stackit_project_id="${default_stackit_tenant}-${default_stackit_platform}"
+default_stackit_bucket="$(normalize_bucket_name "${default_stackit_tenant}-${default_stackit_platform}-tf-state")"
+
+blueprint_stackit_region="$(prompt_with_default "STACKIT region" "eu01" validate_stackit_region)"
+blueprint_stackit_tenant_slug="$(prompt_with_default "STACKIT tenant slug" "$default_stackit_tenant" validate_stackit_slug)"
+blueprint_stackit_platform_slug="$(prompt_with_default "STACKIT platform slug" "$default_stackit_platform" validate_stackit_slug)"
+blueprint_stackit_project_id="$(prompt_with_default "STACKIT project id" "$default_stackit_project_id" validate_non_empty)"
+blueprint_stackit_tfstate_bucket="$(prompt_with_default "STACKIT TF state bucket" "$default_stackit_bucket" validate_stackit_bucket)"
+blueprint_stackit_tfstate_key_prefix="$(prompt_with_default "STACKIT TF state key prefix" "terraform/state" validate_stackit_key_prefix)"
+
 printf '\nResolved values\n'
 printf '  BLUEPRINT_REPO_NAME=%s\n' "$blueprint_repo_name"
 printf '  BLUEPRINT_GITHUB_ORG=%s\n' "$blueprint_github_org"
@@ -139,6 +200,12 @@ printf '  BLUEPRINT_GITHUB_REPO=%s\n' "$blueprint_github_repo"
 printf '  BLUEPRINT_DEFAULT_BRANCH=%s\n' "$blueprint_default_branch"
 printf '  BLUEPRINT_DOCS_TITLE=%s\n' "$blueprint_docs_title"
 printf '  BLUEPRINT_DOCS_TAGLINE=%s\n' "$blueprint_docs_tagline"
+printf '  BLUEPRINT_STACKIT_REGION=%s\n' "$blueprint_stackit_region"
+printf '  BLUEPRINT_STACKIT_TENANT_SLUG=%s\n' "$blueprint_stackit_tenant_slug"
+printf '  BLUEPRINT_STACKIT_PLATFORM_SLUG=%s\n' "$blueprint_stackit_platform_slug"
+printf '  BLUEPRINT_STACKIT_PROJECT_ID=%s\n' "$blueprint_stackit_project_id"
+printf '  BLUEPRINT_STACKIT_TFSTATE_BUCKET=%s\n' "$blueprint_stackit_tfstate_bucket"
+printf '  BLUEPRINT_STACKIT_TFSTATE_KEY_PREFIX=%s\n' "$blueprint_stackit_tfstate_key_prefix"
 if [[ "$dry_run" == "true" ]]; then
   printf '  BLUEPRINT_INIT_DRY_RUN=true\n'
 fi
@@ -158,6 +225,12 @@ run_cmd env \
   BLUEPRINT_DEFAULT_BRANCH="$blueprint_default_branch" \
   BLUEPRINT_DOCS_TITLE="$blueprint_docs_title" \
   BLUEPRINT_DOCS_TAGLINE="$blueprint_docs_tagline" \
+  BLUEPRINT_STACKIT_REGION="$blueprint_stackit_region" \
+  BLUEPRINT_STACKIT_TENANT_SLUG="$blueprint_stackit_tenant_slug" \
+  BLUEPRINT_STACKIT_PLATFORM_SLUG="$blueprint_stackit_platform_slug" \
+  BLUEPRINT_STACKIT_PROJECT_ID="$blueprint_stackit_project_id" \
+  BLUEPRINT_STACKIT_TFSTATE_BUCKET="$blueprint_stackit_tfstate_bucket" \
+  BLUEPRINT_STACKIT_TFSTATE_KEY_PREFIX="$blueprint_stackit_tfstate_key_prefix" \
   BLUEPRINT_INIT_DRY_RUN="$dry_run" \
   "$ROOT_DIR/scripts/bin/blueprint/init_repo.sh"
 

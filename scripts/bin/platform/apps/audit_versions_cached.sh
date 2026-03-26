@@ -46,6 +46,10 @@ set_default_env APPS_AUDIT_CACHE_FILE "${XDG_CACHE_HOME:-$HOME/.cache}/stackit-p
 APPS_AUDIT_CACHE_ENABLED="$(normalize_bool "$APPS_AUDIT_CACHE_ENABLED")"
 APPS_AUDIT_CACHE_FORCE="$(normalize_bool "$APPS_AUDIT_CACHE_FORCE")"
 
+log_info "apps-audit-versions cache wrapper enabled=$APPS_AUDIT_CACHE_ENABLED force=$APPS_AUDIT_CACHE_FORCE ttl_seconds=$APPS_AUDIT_CACHE_TTL_SECONDS"
+log_metric "audit_cache_wrapper_invocation" "1" \
+  "audit=apps-audit-versions enabled=$APPS_AUDIT_CACHE_ENABLED force=$APPS_AUDIT_CACHE_FORCE"
+
 fingerprint_files=(
   "scripts/bin/platform/apps/audit_versions.sh"
   "scripts/lib/platform/apps/versions.sh"

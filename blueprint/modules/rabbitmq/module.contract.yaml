@@ -12,6 +12,7 @@ spec:
   paths:
     terraform: infra/cloud/stackit/terraform/modules/rabbitmq
     helm: infra/local/helm/rabbitmq/values.yaml
+    gitops: infra/gitops/argocd/optional/${ENV}/rabbitmq.yaml
     docs: docs/platform/modules/rabbitmq/README.md
     tests: tests/infra/modules/rabbitmq
 

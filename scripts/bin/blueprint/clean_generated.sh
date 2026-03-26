@@ -12,7 +12,7 @@ Usage: clean_generated.sh
 
 Removes generated runtime/build/cache artifacts without touching tracked source files:
 - artifacts/* state snapshots
-- Python test caches (__pycache__, .pytest_cache)
+- Python caches across repository (__pycache__, *.pyc, .pytest_cache)
 - Docusaurus build/runtime caches (docs/build, docs/.docusaurus, docs/node_modules)
 USAGE
 }
@@ -45,7 +45,15 @@ remove_path_if_exists "$ROOT_DIR/docs/node_modules"
 
 while IFS= read -r cache_dir; do
   remove_path_if_exists "$cache_dir"
-done < <(find "$ROOT_DIR/tests" -type d -name '__pycache__' | sort)
+done < <(find "$ROOT_DIR" -type d -name '__pycache__' \
+  -not -path "$ROOT_DIR/.git/*" \
+  -not -path "$ROOT_DIR/.venv/*" | sort)
+
+while IFS= read -r py_cache_file; do
+  remove_path_if_exists "$py_cache_file"
+done < <(find "$ROOT_DIR" -type f \( -name '*.pyc' -o -name '*.pyo' \) \
+  -not -path "$ROOT_DIR/.git/*" \
+  -not -path "$ROOT_DIR/.venv/*" | sort)
 
 log_metric "blueprint_clean_generated_removed_path_count" "$removed_count"
 log_info "blueprint clean-generated complete removed_paths=$removed_count"

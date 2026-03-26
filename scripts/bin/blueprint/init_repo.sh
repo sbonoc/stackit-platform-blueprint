@@ -19,6 +19,12 @@ Environment variables:
   BLUEPRINT_DEFAULT_BRANCH   Default branch name (default: main).
   BLUEPRINT_DOCS_TITLE       Docusaurus docs title (default: BLUEPRINT_REPO_NAME).
   BLUEPRINT_DOCS_TAGLINE     Docusaurus docs tagline.
+  BLUEPRINT_STACKIT_REGION              STACKIT region for bootstrap/foundation contracts.
+  BLUEPRINT_STACKIT_TENANT_SLUG         Tenant slug used in STACKIT naming contracts.
+  BLUEPRINT_STACKIT_PLATFORM_SLUG       Platform slug used in STACKIT naming contracts.
+  BLUEPRINT_STACKIT_PROJECT_ID          STACKIT project identifier for foundation contracts.
+  BLUEPRINT_STACKIT_TFSTATE_BUCKET      STACKIT Object Storage bucket for Terraform state backend.
+  BLUEPRINT_STACKIT_TFSTATE_KEY_PREFIX  Terraform state key prefix (default: terraform/state).
 
 Optional:
   BLUEPRINT_INIT_SKIP_VALIDATE=true to skip contract validation after initialization.
@@ -69,6 +75,30 @@ infer_github_repo_from_remote() {
   return 1
 }
 
+normalize_slug_component() {
+  local raw="$1"
+  local normalized
+  normalized="$(printf '%s' "$raw" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//; s/-+/-/g')"
+  if [[ -z "$normalized" ]]; then
+    normalized="blueprint"
+  fi
+  printf '%s\n' "$normalized"
+}
+
+normalize_bucket_name() {
+  local raw="$1"
+  local normalized
+  normalized="$(printf '%s' "$raw" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9.-]+/-/g; s/^-+//; s/-+$//; s/-+/-/g')"
+  if [[ -z "$normalized" ]]; then
+    normalized="stackit-tf-state"
+  fi
+  if [[ "${#normalized}" -gt 63 ]]; then
+    normalized="${normalized:0:63}"
+    normalized="${normalized%-}"
+  fi
+  printf '%s\n' "$normalized"
+}
+
 set_default_env BLUEPRINT_REPO_NAME "$(basename "$ROOT_DIR")"
 
 if [[ -z "${BLUEPRINT_GITHUB_ORG:-}" ]]; then
@@ -90,6 +120,17 @@ fi
 set_default_env BLUEPRINT_DEFAULT_BRANCH "main"
 set_default_env BLUEPRINT_DOCS_TITLE "$BLUEPRINT_REPO_NAME"
 set_default_env BLUEPRINT_DOCS_TAGLINE "Reusable local+STACKIT platform blueprint"
+set_default_env BLUEPRINT_STACKIT_REGION "${STACKIT_REGION:-eu01}"
+set_default_env BLUEPRINT_STACKIT_TENANT_SLUG "$(normalize_slug_component "$BLUEPRINT_GITHUB_ORG")"
+set_default_env BLUEPRINT_STACKIT_PLATFORM_SLUG "$(normalize_slug_component "${BLUEPRINT_REPO_NAME%-blueprint}")"
+if [[ "${BLUEPRINT_STACKIT_PLATFORM_SLUG}" == "blueprint" ]]; then
+  export BLUEPRINT_STACKIT_PLATFORM_SLUG="$(normalize_slug_component "$BLUEPRINT_REPO_NAME")"
+fi
+set_default_env BLUEPRINT_STACKIT_PROJECT_ID "${STACKIT_PROJECT_ID:-${BLUEPRINT_STACKIT_TENANT_SLUG}-${BLUEPRINT_STACKIT_PLATFORM_SLUG}}"
+set_default_env BLUEPRINT_STACKIT_TFSTATE_KEY_PREFIX "terraform/state"
+set_default_env \
+  BLUEPRINT_STACKIT_TFSTATE_BUCKET \
+  "$(normalize_bucket_name "${BLUEPRINT_STACKIT_TENANT_SLUG}-${BLUEPRINT_STACKIT_PLATFORM_SLUG}-tf-state")"
 set_default_env BLUEPRINT_INIT_SKIP_VALIDATE "false"
 set_default_env BLUEPRINT_INIT_DRY_RUN "false"
 
@@ -105,6 +146,12 @@ init_repo_args=(
   --default-branch "$BLUEPRINT_DEFAULT_BRANCH"
   --docs-title "$BLUEPRINT_DOCS_TITLE"
   --docs-tagline "$BLUEPRINT_DOCS_TAGLINE"
+  --stackit-region "$BLUEPRINT_STACKIT_REGION"
+  --stackit-tenant-slug "$BLUEPRINT_STACKIT_TENANT_SLUG"
+  --stackit-platform-slug "$BLUEPRINT_STACKIT_PLATFORM_SLUG"
+  --stackit-project-id "$BLUEPRINT_STACKIT_PROJECT_ID"
+  --stackit-tfstate-bucket "$BLUEPRINT_STACKIT_TFSTATE_BUCKET"
+  --stackit-tfstate-key-prefix "$BLUEPRINT_STACKIT_TFSTATE_KEY_PREFIX"
 )
 
 if [[ "${BLUEPRINT_INIT_DRY_RUN}" == "true" ]]; then

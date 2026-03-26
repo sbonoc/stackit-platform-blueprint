@@ -29,6 +29,12 @@ spec:
         - BLUEPRINT_GITHUB_ORG
         - BLUEPRINT_GITHUB_REPO
         - BLUEPRINT_DEFAULT_BRANCH
+        - BLUEPRINT_STACKIT_REGION
+        - BLUEPRINT_STACKIT_TENANT_SLUG
+        - BLUEPRINT_STACKIT_PLATFORM_SLUG
+        - BLUEPRINT_STACKIT_PROJECT_ID
+        - BLUEPRINT_STACKIT_TFSTATE_BUCKET
+        - BLUEPRINT_STACKIT_TFSTATE_KEY_PREFIX
     required_files:
       - .github/workflows/template_release.yml
       - .gitignore
@@ -48,6 +54,11 @@ spec:
       - scripts/bin/blueprint/render_module_wrapper_skeletons.sh
       - scripts/bin/blueprint/render_makefile.sh
       - scripts/bin/blueprint/validate_contract.py
+      - scripts/bin/infra/destroy_disabled_modules.sh
+      - scripts/bin/infra/local_crossplane_bootstrap.sh
+      - scripts/bin/infra/core_runtime_bootstrap.sh
+      - scripts/bin/infra/core_runtime_smoke.sh
+      - scripts/bin/infra/stackit_foundation_seed_runtime_secret.sh
       - scripts/lib/blueprint/contract_schema.py
       - scripts/lib/blueprint/bootstrap_templates.sh
       - scripts/lib/blueprint/generate_module_wrapper_skeletons.py
@@ -56,6 +67,56 @@ spec:
       - scripts/templates/blueprint/bootstrap/make/platform.mk
       - scripts/templates/blueprint/bootstrap/make/platform/.gitkeep
       - scripts/lib/infra/stackit_github_ci_contract.json
+      - infra/cloud/stackit/terraform/bootstrap/versions.tf
+      - infra/cloud/stackit/terraform/bootstrap/providers.tf
+      - infra/cloud/stackit/terraform/bootstrap/variables.tf
+      - infra/cloud/stackit/terraform/bootstrap/main.tf
+      - infra/cloud/stackit/terraform/bootstrap/outputs.tf
+      - infra/cloud/stackit/terraform/bootstrap/env/dev.tfvars
+      - infra/cloud/stackit/terraform/bootstrap/state-backend/dev.hcl
+      - infra/cloud/stackit/terraform/foundation/versions.tf
+      - infra/cloud/stackit/terraform/foundation/providers.tf
+      - infra/cloud/stackit/terraform/foundation/variables.tf
+      - infra/cloud/stackit/terraform/foundation/locals.tf
+      - infra/cloud/stackit/terraform/foundation/main.tf
+      - infra/cloud/stackit/terraform/foundation/outputs.tf
+      - infra/cloud/stackit/terraform/foundation/env/dev.tfvars
+      - infra/cloud/stackit/terraform/foundation/state-backend/dev.hcl
+      - infra/gitops/argocd/root/kustomization.yaml
+      - infra/gitops/argocd/root/applicationset-platform-environments.yaml
+      - infra/gitops/argocd/environments/dev/kustomization.yaml
+      - infra/gitops/argocd/environments/dev/platform-config.yaml
+      - infra/gitops/argocd/environments/dev/platform-application.yaml
+      - infra/gitops/argocd/overlays/local/kustomization.yaml
+      - infra/gitops/argocd/overlays/local/appproject.yaml
+      - infra/gitops/argocd/overlays/local/application-platform-local.yaml
+      - infra/gitops/platform/base/kustomization.yaml
+      - infra/gitops/platform/base/namespaces.yaml
+      - infra/gitops/platform/environments/local/kustomization.yaml
+      - infra/gitops/platform/environments/local/runtime-contract-configmap.yaml
+      - infra/gitops/platform/environments/dev/kustomization.yaml
+      - infra/gitops/platform/environments/dev/runtime-contract-configmap.yaml
+      - infra/gitops/argocd/overlays/dev/appproject.yaml
+      - infra/gitops/argocd/overlays/dev/applicationset-platform-environments.yaml
+      - infra/local/helm/core/argocd.values.yaml
+      - infra/local/helm/core/external-secrets.values.yaml
+      - infra/local/helm/core/crossplane.values.yaml
+      - scripts/templates/infra/bootstrap/infra/cloud/stackit/terraform/bootstrap/versions.tf
+      - scripts/templates/infra/bootstrap/infra/cloud/stackit/terraform/foundation/versions.tf
+      - scripts/templates/infra/bootstrap/infra/gitops/argocd/root/kustomization.yaml
+      - scripts/templates/infra/bootstrap/infra/gitops/argocd/root/applicationset-platform-environments.yaml
+      - scripts/templates/infra/bootstrap/infra/gitops/argocd/environments/dev/platform-application.yaml
+      - scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/local/appproject.yaml
+      - scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/local/application-platform-local.yaml
+      - scripts/templates/infra/bootstrap/infra/gitops/platform/base/kustomization.yaml
+      - scripts/templates/infra/bootstrap/infra/gitops/platform/base/namespaces.yaml
+      - scripts/templates/infra/bootstrap/infra/gitops/platform/environments/local/kustomization.yaml
+      - scripts/templates/infra/bootstrap/infra/gitops/platform/environments/local/runtime-contract-configmap.yaml
+      - scripts/templates/infra/bootstrap/infra/gitops/platform/environments/dev/kustomization.yaml
+      - scripts/templates/infra/bootstrap/infra/gitops/platform/environments/dev/runtime-contract-configmap.yaml
+      - scripts/templates/infra/bootstrap/infra/local/helm/core/argocd.values.yaml
+      - scripts/templates/infra/bootstrap/infra/local/helm/core/external-secrets.values.yaml
+      - scripts/templates/infra/bootstrap/infra/local/helm/core/crossplane.values.yaml
       - blueprint/repo.init.example.env
       - docs/README.md
       - docs/blueprint/README.md
@@ -105,9 +166,16 @@ spec:
       - scripts/bin/platform/
       - scripts/lib/platform/
       - infra/cloud/stackit/terraform/
+      - infra/cloud/stackit/terraform/bootstrap/
+      - infra/cloud/stackit/terraform/foundation/
       - infra/local/crossplane/
       - infra/local/helm/
       - infra/gitops/argocd/
+      - infra/gitops/argocd/root/
+      - infra/gitops/argocd/environments/
+      - infra/gitops/platform/
+      - infra/gitops/platform/base/
+      - infra/gitops/platform/environments/
       - make/
       - make/platform/
       - apps/
@@ -351,6 +419,7 @@ spec:
       - infra-prereqs
       - infra-help-reference
       - infra-bootstrap
+      - infra-destroy-disabled-modules
       - infra-validate
       - infra-smoke
       - infra-provision
@@ -366,6 +435,7 @@ spec:
       - infra-stackit-foundation-destroy
       - infra-stackit-foundation-fetch-kubeconfig
       - infra-stackit-foundation-refresh-kubeconfig
+      - infra-stackit-foundation-seed-runtime-secret
       - infra-stackit-ci-github-setup
       - infra-stackit-destroy-all
       - infra-stackit-runtime-prerequisites
@@ -451,6 +521,7 @@ spec:
     root: blueprint/modules
     disabled_scaffold_policy:
       mode: prune_on_bootstrap
+      destroy_before_prune_command: make infra-destroy-disabled-modules
       command: make infra-bootstrap
     modules:
       observability:
@@ -580,10 +651,12 @@ spec:
         paths_required_when_enabled:
           - terraform_path
           - helm_path
+          - gitops_path
           - tests_path
         contract_path: blueprint/modules/rabbitmq/module.contract.yaml
         terraform_path: infra/cloud/stackit/terraform/modules/rabbitmq
         helm_path: infra/local/helm/rabbitmq/values.yaml
+        gitops_path: infra/gitops/argocd/optional/${ENV}/rabbitmq.yaml
         docs_path: docs/platform/modules/rabbitmq/README.md
         tests_path: tests/infra/modules/rabbitmq
         make_targets_mode: conditional
@@ -616,10 +689,12 @@ spec:
         paths_required_when_enabled:
           - terraform_path
           - helm_path
+          - gitops_path
           - tests_path
         contract_path: blueprint/modules/public-endpoints/module.contract.yaml
         terraform_path: infra/cloud/stackit/terraform/modules/public-endpoints
         helm_path: infra/local/helm/public-endpoints/values.yaml
+        gitops_path: infra/gitops/argocd/optional/${ENV}/public-endpoints.yaml
         docs_path: docs/platform/modules/public-endpoints/README.md
         tests_path: tests/infra/modules/public-endpoints
         make_targets_mode: conditional
@@ -669,6 +744,7 @@ spec:
         paths_required_when_enabled:
           - terraform_path
           - helm_path
+          - gitops_path
           - tests_path
         dependencies:
           required_core_capabilities:
@@ -681,6 +757,7 @@ spec:
         contract_path: blueprint/modules/identity-aware-proxy/module.contract.yaml
         terraform_path: infra/cloud/stackit/terraform/modules/identity-aware-proxy
         helm_path: infra/local/helm/identity-aware-proxy/values.yaml
+        gitops_path: infra/gitops/argocd/optional/${ENV}/identity-aware-proxy.yaml
         docs_path: docs/platform/modules/identity-aware-proxy/README.md
         tests_path: tests/infra/modules/identity-aware-proxy
         make_targets_mode: conditional
