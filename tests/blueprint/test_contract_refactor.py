@@ -192,10 +192,23 @@ class RefactorContractsTests(unittest.TestCase):
                 "scripts/lib/blueprint/bootstrap_templates.sh",
                 "scripts/lib/blueprint/contract_schema.py",
                 "scripts/lib/blueprint/generate_module_wrapper_skeletons.py",
+                "scripts/lib/docs/generate_contract_docs.py",
+                "scripts/lib/infra/k8s_wait.sh",
+                "scripts/lib/quality/semver.sh",
+                "scripts/lib/quality/test_pyramid_contract.json",
+                "scripts/lib/shell/bootstrap.sh",
+                "scripts/lib/shell/exec.sh",
+                "scripts/lib/shell/logging.sh",
+                "scripts/lib/shell/utils.sh",
                 "scripts/bin/blueprint/clean_generated.sh",
                 "scripts/bin/blueprint/init_repo_interactive.sh",
                 "scripts/bin/blueprint/render_module_wrapper_skeletons.sh",
                 "scripts/bin/infra/destroy_disabled_modules.sh",
+                "scripts/bin/quality/check_test_pyramid.py",
+                "scripts/bin/quality/lint_docs.py",
+                "scripts/bin/quality/render_core_targets_doc.py",
+                "docs/reference/generated/contract_metadata.generated.md",
+                "docs/reference/generated/core_targets.generated.md",
                 "tests/__init__.py",
                 "tests/blueprint/__init__.py",
                 "tests/infra/__init__.py",
@@ -227,6 +240,20 @@ class RefactorContractsTests(unittest.TestCase):
             }
             .issubset(required_paths)
         )
+        blueprint_managed_roots = set(_extract_yaml_list(contract_lines, "blueprint_managed_roots"))
+        self.assertTrue(
+            {
+                "scripts/bin/blueprint/",
+                "scripts/bin/docs/",
+                "scripts/bin/infra/",
+                "scripts/bin/quality/",
+                "scripts/lib/blueprint/",
+                "scripts/lib/docs/",
+                "scripts/lib/infra/",
+                "scripts/lib/quality/",
+                "scripts/lib/shell/",
+            }.issubset(blueprint_managed_roots)
+        )
 
         required_targets = set(_extract_yaml_list(contract_lines, "required_targets"))
         self.assertTrue(
@@ -241,6 +268,12 @@ class RefactorContractsTests(unittest.TestCase):
                 "blueprint-clean-generated",
                 "blueprint-render-makefile",
                 "blueprint-render-module-wrapper-skeletons",
+                "quality-docs-lint",
+                "quality-docs-sync-core-targets",
+                "quality-docs-check-core-targets-sync",
+                "quality-docs-sync-contract-metadata",
+                "quality-docs-check-contract-metadata-sync",
+                "quality-test-pyramid",
                 "infra-prereqs",
                 "infra-help-reference",
                 "infra-destroy-disabled-modules",
@@ -359,7 +392,7 @@ class RefactorContractsTests(unittest.TestCase):
         docs_contract = _extract_yaml_section(contract_lines, "docs_contract")
         platform_docs = _extract_yaml_section(docs_contract, "platform_docs")
         bootstrap = _read("scripts/bin/blueprint/bootstrap.sh")
-        bootstrap_lib = _read("scripts/lib/bootstrap.sh")
+        bootstrap_lib = _read("scripts/lib/shell/bootstrap.sh")
         validate_py = _read("scripts/bin/blueprint/validate_contract.py")
 
         self.assertEqual(_extract_yaml_scalar(platform_docs, "seed_mode"), "create_if_missing")
@@ -376,7 +409,7 @@ class RefactorContractsTests(unittest.TestCase):
         make_contract = _extract_yaml_section(contract_lines, "make_contract")
         ownership = _extract_yaml_section(make_contract, "ownership")
         bootstrap = _read("scripts/bin/blueprint/bootstrap.sh")
-        bootstrap_lib = _read("scripts/lib/bootstrap.sh")
+        bootstrap_lib = _read("scripts/lib/shell/bootstrap.sh")
         validate_py = _read("scripts/bin/blueprint/validate_contract.py")
 
         self.assertEqual(_extract_yaml_scalar(ownership, "platform_seed_mode"), "create_if_missing")
@@ -390,7 +423,10 @@ class RefactorContractsTests(unittest.TestCase):
     def test_docs_readme_points_to_command_discovery(self) -> None:
         docs_readme = _read("docs/README.md")
         self.assertIn("make quality-hooks-run", docs_readme)
+        self.assertIn("make quality-docs-lint", docs_readme)
+        self.assertIn("make quality-test-pyramid", docs_readme)
         self.assertIn("make docs-run", docs_readme)
+        self.assertIn("make infra-status-json", docs_readme)
         self.assertIn("make blueprint-bootstrap", docs_readme)
         self.assertIn("make blueprint-render-module-wrapper-skeletons", docs_readme)
         self.assertIn("make blueprint-clean-generated", docs_readme)
@@ -400,6 +436,21 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn("materializes/prunes optional-module infra scaffolding", docs_readme)
         self.assertIn("[Blueprint Docs](blueprint/README.md)", docs_readme)
         self.assertIn("[Platform Docs](platform/README.md)", docs_readme)
+        self.assertIn("[Core Make Targets (Generated)](reference/generated/core_targets.generated.md)", docs_readme)
+
+    def test_consumer_quickstart_mentions_status_snapshot_and_no_duplicate_smoke(self) -> None:
+        quickstart = _read("docs/platform/consumer/quickstart.md")
+        self.assertIn("make infra-provision-deploy", quickstart)
+        self.assertIn("make infra-status-json", quickstart)
+        self.assertIn("artifacts/infra/infra_status_snapshot.json", quickstart)
+        self.assertNotIn("make infra-smoke", quickstart)
+
+    def test_quality_hooks_run_covers_docs_sync_checks_and_test_pyramid(self) -> None:
+        hooks_run = _read("scripts/bin/quality/hooks_run.sh")
+        self.assertIn("quality-docs-lint", hooks_run)
+        self.assertIn("quality-docs-check-core-targets-sync", hooks_run)
+        self.assertIn("quality-docs-check-contract-metadata-sync", hooks_run)
+        self.assertIn("quality-test-pyramid", hooks_run)
 
     def test_clean_generated_prunes_repo_wide_python_caches(self) -> None:
         clean_generated = _read("scripts/bin/blueprint/clean_generated.sh")
@@ -422,6 +473,7 @@ class RefactorContractsTests(unittest.TestCase):
 
         self.assertIn("MODULE_WRAPPER_STUB_EXIT_CODE=64", generator)
         self.assertIn("optional_module_wrapper_stub_invocation", generator)
+        self.assertIn('scripts/lib/shell/bootstrap.sh', generator)
         self.assertNotIn("TODO: implement module-specific logic for this action.", workflows_apply_template)
         self.assertIn("status=not_implemented", workflows_apply_template)
         self.assertIn("module wrapper not implemented", workflows_apply_template)

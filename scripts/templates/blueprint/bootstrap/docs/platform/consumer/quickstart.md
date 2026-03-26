@@ -49,8 +49,13 @@ make blueprint-template-smoke
 ## 5) Continue with Delivery Flow
 ```bash
 make infra-provision-deploy
-make infra-smoke
+make infra-status-json
 ```
+
+`make infra-provision-deploy` already runs the canonical smoke stage and writes
+`artifacts/infra/smoke_result.json` plus `artifacts/infra/smoke_diagnostics.json`.
+`make infra-status-json` captures the latest consolidated snapshot at
+`artifacts/infra/infra_status_snapshot.json`.
 
 ## 6) STACKIT MVP Provision/Deploy (Optional)
 For managed STACKIT execution (`BLUEPRINT_PROFILE=stackit-dev|stackit-stage|stackit-prod`), export:

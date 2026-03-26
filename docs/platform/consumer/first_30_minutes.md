@@ -43,9 +43,11 @@ make infra-smoke
 
 Expected outcome:
 - Contract, structure, and docs/template sync checks pass.
-- Baseline infra smoke artifacts are written under `artifacts/infra/` and app/docs smoke artifacts under `artifacts/apps/` and `artifacts/docs/`.
+- Baseline infra smoke artifacts are written under `artifacts/infra/`, including `smoke_result.json` and `smoke_diagnostics.json`.
+- App/docs smoke artifacts are written under `artifacts/apps/` and `artifacts/docs/`.
 
 ## 4) Next Steps (5 min)
+- Run `make infra-status-json` to capture the latest machine-readable runtime snapshot at `artifacts/infra/infra_status_snapshot.json`.
 - Review [Quickstart](quickstart.md) for full flow.
 - Review [Troubleshooting](troubleshooting.md) if any command fails.
 - Review [Upgrade Runbook](upgrade_runbook.md) before applying template upgrades later.

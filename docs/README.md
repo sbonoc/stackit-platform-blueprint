@@ -75,10 +75,18 @@ Common baseline flow:
 
 Quality and docs flow:
 - `make quality-hooks-run`
+- `make quality-docs-lint`
+- `make quality-test-pyramid`
 - `make docs-install`
 - `make docs-run`
 - `make docs-build`
 - `make docs-smoke`
+
+Operational diagnostics:
+- `make infra-status-json`
+- `artifacts/infra/smoke_result.json`
+- `artifacts/infra/smoke_diagnostics.json`
+- `artifacts/infra/infra_status_snapshot.json`
 
 ## Optional Module Targets (Materialized Conditionally)
 `make blueprint-render-makefile` (or `make blueprint-bootstrap`) renders `make/blueprint.generated.mk` from template and only materializes targets for enabled modules.
@@ -92,5 +100,6 @@ To inspect the currently materialized optional-module targets for your active fl
 - `apps/catalog/manifest.yaml` is the canonical app-layer manifest.
 - `apps/catalog/versions.lock` stores pinned app/runtime versions.
 
-## Generated Contract Reference
+## Generated References
 - [Contract Metadata (Generated)](reference/generated/contract_metadata.generated.md)
+- [Core Make Targets (Generated)](reference/generated/core_targets.generated.md)

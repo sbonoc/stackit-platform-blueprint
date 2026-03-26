@@ -1,6 +1,12 @@
 # Decisions Log
 
 ## 2026-03-26 (Template Baseline)
+- Blueprint-managed second-wave Make/script hardening is now part of the baseline operating contract.
+  - Added canonical quality targets for docs lint/sync (`quality-docs-lint`, `quality-docs-{sync,check}-core-targets`, `quality-docs-{sync,check}-contract-metadata`) and structural test-pyramid enforcement (`quality-test-pyramid`).
+  - Namespaced shared helper ownership under `scripts/lib/shell/**` and `scripts/lib/quality/**`, while keeping root shim entrypoints delegating to the new canonical libraries.
+  - `docs-build` now refreshes tracked generated references (`docs/reference/generated/core_targets.generated.md`, `docs/reference/generated/contract_metadata.generated.md`), and infra smoke/status flows emit machine-readable diagnostics artifacts (`artifacts/infra/smoke_result.json`, `artifacts/infra/smoke_diagnostics.json`).
+  - Rationale: keep Make/docs/contracts synchronized, reduce shared-shell helper drift, and improve CI/operator diagnostics without expanding platform-owned surfaces.
+
 - Execution-ready E2E hardening is the active top-priority lane and is now complete in baseline.
   - Fixed template consumer onboarding drift by excluding init-mutated ArgoCD identity files from strict bootstrap byte-sync validation (`infra/gitops/argocd/environments/dev/platform-application.yaml`, local overlay `appproject.yaml`, and `application-platform-local.yaml`), while keeping identity correctness enforced by `blueprint-check-placeholders`.
   - Rationale: keep template governance strict for static assets without breaking deterministic GitHub-template initialization.

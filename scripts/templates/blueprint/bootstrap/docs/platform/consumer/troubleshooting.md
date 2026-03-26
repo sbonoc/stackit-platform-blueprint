@@ -65,6 +65,18 @@ Common first-day issues for generated repositories.
   - `BLUEPRINT_STACKIT_TFSTATE_BUCKET`
   - `BLUEPRINT_STACKIT_TFSTATE_KEY_PREFIX`
 
+## STACKIT foundation preflight fails on SKE permission probe
+- In execution mode (`DRY_RUN=false`), foundation preflight now probes SKE API access before Terraform apply.
+- If you see `service account lacks SKE permissions`, ensure the identity behind `STACKIT_SERVICE_ACCOUNT_KEY` can:
+  - enable/read SKE service in the project and region
+  - list/read SKE clusters in the project
+- Re-run preflight after updating IAM:
+  ```bash
+  make infra-stackit-foundation-preflight
+  ```
+- Check the state artifact for probe outcome:
+  - `artifacts/infra/stackit_foundation_preflight.env` (`ske_access_probe=passed` expected in execute mode)
+
 ## STACKIT apply/fetch kubeconfig fails with missing credentials
 - In execution mode (`DRY_RUN=false`), always export:
   - `STACKIT_PROJECT_ID`
