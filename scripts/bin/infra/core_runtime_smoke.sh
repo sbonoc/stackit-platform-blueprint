@@ -2,8 +2,9 @@
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-source "$ROOT_DIR/scripts/lib/bootstrap.sh"
+source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
 source "$ROOT_DIR/scripts/lib/infra/profile.sh"
+source "$ROOT_DIR/scripts/lib/infra/k8s_wait.sh"
 source "$ROOT_DIR/scripts/lib/infra/state.sh"
 source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
 
@@ -33,6 +34,11 @@ if ! grep -q '^argocd_chart=' "$runtime_state"; then
 fi
 if ! grep -q '^external_secrets_chart=' "$runtime_state"; then
   log_fatal "external_secrets_chart missing from core runtime state: $runtime_state"
+fi
+
+if [[ "$(tooling_execution_mode)" == "execute" ]] && command -v kubectl >/dev/null 2>&1; then
+  wait_for_deployment_if_present "argocd" "argocd-server" "$(k8s_timeout_kubectl normal)"
+  wait_for_deployment_if_present "external-secrets" "external-secrets" "$(k8s_timeout_kubectl normal)"
 fi
 
 state_file="$(

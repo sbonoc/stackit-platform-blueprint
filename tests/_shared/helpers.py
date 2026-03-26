@@ -133,6 +133,10 @@ def run_render_and_infra_bootstrap(env_overrides: dict[str, str]) -> subprocess.
     return run_make("infra-bootstrap", env_overrides)
 
 
+def restore_default_generated_state() -> subprocess.CompletedProcess[str]:
+    return run_make("blueprint-render-makefile", module_flags_env())
+
+
 def prune_optional_scaffolding() -> None:
     for relative in OPTIONAL_SCAFFOLD_FILES:
         path = REPO_ROOT / relative

@@ -2,7 +2,7 @@
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-source "$ROOT_DIR/scripts/lib/bootstrap.sh"
+source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
 source "$ROOT_DIR/scripts/lib/quality/audit_cache.sh"
 
 start_script_metric_trap "infra_audit_version_cached"
@@ -54,7 +54,7 @@ fingerprint_files=(
   "scripts/bin/infra/audit_version.sh"
   "scripts/lib/infra/versions.sh"
   "scripts/lib/infra/versions.baseline.sh"
-  "scripts/lib/semver.sh"
+  "scripts/lib/quality/semver.sh"
 )
 
 audit_cache_run \

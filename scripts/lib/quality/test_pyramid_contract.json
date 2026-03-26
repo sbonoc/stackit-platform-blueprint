@@ -1,0 +1,37 @@
+{
+  "title": "Blueprint Test Pyramid Contract",
+  "description": "Canonical scope classification and thresholds for repository tests.",
+  "thresholds": {
+    "unit_min_exclusive": 0.6,
+    "integration_max_inclusive": 0.3,
+    "e2e_max_inclusive": 0.1
+  },
+  "classifications": [
+    {
+      "scope": "unit",
+      "patterns": [
+        "tests/blueprint/test_contract_refactor.py",
+        "tests/blueprint/test_quality_contracts.py",
+        "tests/docs/test_docs_lint.py",
+        "tests/infra/test_stackit_layers.py",
+        "tests/infra/test_tooling_contracts.py"
+      ]
+    },
+    {
+      "scope": "integration",
+      "patterns": [
+        "tests/blueprint/test_upgrade.py",
+        "tests/docs/test_docs_generation.py",
+        "tests/infra/test_core_runtime_bootstrap.py",
+        "tests/infra/test_optional_modules.py",
+        "tests/infra/test_smoke_status_diagnostics.py"
+      ]
+    },
+    {
+      "scope": "e2e",
+      "patterns": [
+        "tests/e2e/test_vertical_slice.py"
+      ]
+    }
+  ]
+}

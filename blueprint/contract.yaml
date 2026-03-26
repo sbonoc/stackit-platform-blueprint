@@ -59,9 +59,20 @@ spec:
       - scripts/bin/infra/core_runtime_bootstrap.sh
       - scripts/bin/infra/core_runtime_smoke.sh
       - scripts/bin/infra/stackit_foundation_seed_runtime_secret.sh
+      - scripts/bin/quality/check_test_pyramid.py
+      - scripts/bin/quality/lint_docs.py
+      - scripts/bin/quality/render_core_targets_doc.py
       - scripts/lib/blueprint/contract_schema.py
       - scripts/lib/blueprint/bootstrap_templates.sh
       - scripts/lib/blueprint/generate_module_wrapper_skeletons.py
+      - scripts/lib/docs/generate_contract_docs.py
+      - scripts/lib/infra/k8s_wait.sh
+      - scripts/lib/quality/semver.sh
+      - scripts/lib/quality/test_pyramid_contract.json
+      - scripts/lib/shell/bootstrap.sh
+      - scripts/lib/shell/exec.sh
+      - scripts/lib/shell/logging.sh
+      - scripts/lib/shell/utils.sh
       - scripts/templates/blueprint/bootstrap/Makefile
       - scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl
       - scripts/templates/blueprint/bootstrap/make/platform.mk
@@ -124,6 +135,8 @@ spec:
       - docs/blueprint/architecture/execution_model.md
       - docs/blueprint/governance/template_release_policy.md
       - docs/blueprint/governance/ownership_matrix.md
+      - docs/reference/generated/contract_metadata.generated.md
+      - docs/reference/generated/core_targets.generated.md
       - docs/platform/README.md
       - docs/platform/consumer/first_30_minutes.md
       - docs/platform/consumer/quickstart.md
@@ -205,10 +218,14 @@ spec:
   script_contract:
     blueprint_managed_roots:
       - scripts/bin/blueprint/
+      - scripts/bin/docs/
       - scripts/lib/blueprint/
+      - scripts/lib/docs/
+      - scripts/lib/infra/
+      - scripts/lib/quality/
+      - scripts/lib/shell/
       - scripts/bin/infra/
       - scripts/bin/quality/
-      - scripts/bin/docs/
     platform_editable_roots:
       - scripts/bin/platform/
       - scripts/lib/platform/
@@ -416,6 +433,12 @@ spec:
       - blueprint-render-makefile
       - blueprint-render-module-wrapper-skeletons
       - quality-hooks-run
+      - quality-docs-lint
+      - quality-docs-sync-core-targets
+      - quality-docs-check-core-targets-sync
+      - quality-docs-sync-contract-metadata
+      - quality-docs-check-contract-metadata-sync
+      - quality-test-pyramid
       - infra-prereqs
       - infra-help-reference
       - infra-bootstrap

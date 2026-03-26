@@ -2,7 +2,7 @@
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-source "$ROOT_DIR/scripts/lib/bootstrap.sh"
+source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
 
 start_script_metric_trap "infra_help_reference"
 
@@ -37,7 +37,20 @@ for makefile in "${makefiles[@]}"; do
 done
 
 printf 'Usage: make <target>\n\n'
-printf 'Targets\n'
+printf 'Primary Workflows\n'
+printf '  make quality-hooks-run        # canonical local quality gate\n'
+printf '  make blueprint-bootstrap      # refresh blueprint-managed templates/docs/make surface\n'
+printf '  make infra-bootstrap          # bootstrap infra scaffolding and prune disabled module scope\n'
+printf '  make infra-smoke              # run canonical infra smoke chain and write diagnostics artifacts\n'
+printf '  make docs-build               # regenerate tracked docs metadata and build the docs site\n'
+printf '  make apps-bootstrap           # bootstrap platform app build/deploy prerequisites\n'
+
+printf '\nTarget Naming Convention\n'
+printf '  <namespace>-<action> for public operational entrypoints (for example infra-smoke, docs-build)\n'
+printf '  quality-docs-* for tracked docs sync/lint workflows\n'
+printf '  no alias targets; use the canonical names surfaced by make help\n'
+
+printf '\nTargets\n'
 awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z0-9_.-]+:.*## / {printf "  %-44s %s\n", $1, $2}' "${resolved_makefiles[@]}"
 
 printf '\nVariables (?= defaults)\n'

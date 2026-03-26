@@ -2,7 +2,7 @@
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-source "$ROOT_DIR/scripts/lib/bootstrap.sh"
+source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
 
 start_script_metric_trap "quality_hooks_run"
 
@@ -13,6 +13,9 @@ Usage: hooks_run.sh
 Runs local quality gates:
 - pre-commit (if available)
 - shellcheck (required)
+- docs lint
+- generated docs sync checks
+- test pyramid
 - infra validation
 - infra version audit
 EOF
@@ -39,6 +42,10 @@ if [[ "${#shell_scripts[@]}" -gt 0 ]]; then
   run_cmd shellcheck --severity=error --exclude=SC1090,SC1091 "${shell_scripts[@]}"
 fi
 
+run_cmd make -C "$ROOT_DIR" quality-docs-lint
+run_cmd make -C "$ROOT_DIR" quality-docs-check-core-targets-sync
+run_cmd make -C "$ROOT_DIR" quality-docs-check-contract-metadata-sync
+run_cmd make -C "$ROOT_DIR" quality-test-pyramid
 run_cmd make -C "$ROOT_DIR" infra-validate
 run_cmd make -C "$ROOT_DIR" infra-audit-version
 run_cmd make -C "$ROOT_DIR" apps-audit-versions

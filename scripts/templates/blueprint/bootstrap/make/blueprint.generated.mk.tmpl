@@ -3,7 +3,7 @@ SHELL := /bin/bash
 
 .PHONY: help \
   blueprint-init-repo blueprint-init-repo-interactive blueprint-check-placeholders blueprint-template-smoke blueprint-release-notes blueprint-migrate blueprint-bootstrap blueprint-render-makefile blueprint-clean-generated blueprint-render-module-wrapper-skeletons \
-  quality-hooks-run \
+  quality-hooks-run quality-docs-lint quality-docs-sync-core-targets quality-docs-check-core-targets-sync quality-docs-sync-contract-metadata quality-docs-check-contract-metadata-sync quality-test-pyramid \
   infra-prereqs infra-help-reference infra-bootstrap infra-destroy-disabled-modules infra-validate infra-smoke infra-provision infra-deploy infra-provision-deploy \
   infra-stackit-bootstrap-preflight infra-stackit-bootstrap-plan infra-stackit-bootstrap-apply infra-stackit-bootstrap-destroy \
   infra-stackit-foundation-preflight infra-stackit-foundation-plan infra-stackit-foundation-apply infra-stackit-foundation-destroy \
@@ -51,6 +51,31 @@ blueprint-render-module-wrapper-skeletons: ## Render optional-module wrapper ske
 
 quality-hooks-run: ## Run pre-commit hooks and quality gates
 	@scripts/bin/quality/hooks_run.sh
+
+quality-docs-lint: ## Lint markdown docs, governance links, and make target references
+	@python3 scripts/bin/quality/lint_docs.py
+
+quality-docs-sync-core-targets: ## Regenerate tracked core Make targets reference doc
+	@python3 scripts/bin/quality/render_core_targets_doc.py
+
+quality-docs-check-core-targets-sync: ## Fail when tracked core Make targets doc is out of date
+	@python3 scripts/bin/quality/render_core_targets_doc.py --check
+
+quality-docs-sync-contract-metadata: ## Regenerate tracked contract metadata reference doc
+	@python3 scripts/lib/docs/generate_contract_docs.py \
+		--contract blueprint/contract.yaml \
+		--modules-dir blueprint/modules \
+		--output docs/reference/generated/contract_metadata.generated.md
+
+quality-docs-check-contract-metadata-sync: ## Fail when tracked contract metadata doc is out of date
+	@python3 scripts/lib/docs/generate_contract_docs.py \
+		--contract blueprint/contract.yaml \
+		--modules-dir blueprint/modules \
+		--output docs/reference/generated/contract_metadata.generated.md \
+		--check
+
+quality-test-pyramid: ## Enforce repository test-pyramid ratios from canonical classification contract
+	@python3 scripts/bin/quality/check_test_pyramid.py
 
 infra-prereqs: ## Verify local prerequisites and optionally auto-install missing tools
 	@scripts/bin/infra/prereqs.sh

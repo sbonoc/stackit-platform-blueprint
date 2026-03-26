@@ -33,7 +33,7 @@ def _render_template(module_id: str, enable_flag: str, action_key: str, make_tar
         "set -euo pipefail\n"
         "SCRIPT_DIR=\"$(cd \"$(dirname \"${BASH_SOURCE[0]}\")\" && pwd)\"\n"
         "ROOT_DIR=\"$(cd \"$SCRIPT_DIR/../../..\" && pwd)\"\n"
-        "source \"$ROOT_DIR/scripts/lib/bootstrap.sh\"\n"
+        "source \"$ROOT_DIR/scripts/lib/shell/bootstrap.sh\"\n"
         "source \"$ROOT_DIR/scripts/lib/infra/state.sh\"\n"
         "\n"
         f"start_script_metric_trap \"infra_{script_basename}\"\n"

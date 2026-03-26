@@ -2,9 +2,10 @@
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-source "$ROOT_DIR/scripts/lib/bootstrap.sh"
+source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
 source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 source "$ROOT_DIR/scripts/lib/infra/state.sh"
+source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
 
 start_script_metric_trap "infra_status_json"
 
@@ -34,6 +35,8 @@ export STATUS_PROFILE="$BLUEPRINT_PROFILE"
 export STATUS_STACK="$(active_stack)"
 export STATUS_ENVIRONMENT="$(profile_environment)"
 export STATUS_ENABLED_MODULES="$(enabled_modules_csv)"
+export STATUS_TOOLING_MODE="$(tooling_execution_mode)"
+export STATUS_OBSERVABILITY_ENABLED="$OBSERVABILITY_ENABLED_NORMALIZED"
 export STATUS_PROVISION_PRESENT="$(state_flag provision)"
 export STATUS_DEPLOY_PRESENT="$(state_flag deploy)"
 export STATUS_SMOKE_PRESENT="$(state_flag smoke)"
@@ -41,18 +44,44 @@ export STATUS_STACKIT_BOOTSTRAP_APPLY_PRESENT="$(state_flag stackit_bootstrap_ap
 export STATUS_STACKIT_FOUNDATION_APPLY_PRESENT="$(state_flag stackit_foundation_apply)"
 export STATUS_STACKIT_RUNTIME_DEPLOY_PRESENT="$(state_flag stackit_runtime_deploy)"
 export STATUS_STACKIT_SMOKE_RUNTIME_PRESENT="$(state_flag stackit_smoke_runtime)"
+export STATUS_KUBECTL_CONTEXT="$(
+  if command -v kubectl >/dev/null 2>&1; then
+    kubectl config current-context 2>/dev/null || true
+  fi
+)"
+export STATUS_SMOKE_RESULT_PATH="$ROOT_DIR/artifacts/infra/smoke_result.json"
+export STATUS_SMOKE_DIAGNOSTICS_PATH="$ROOT_DIR/artifacts/infra/smoke_diagnostics.json"
 
 json_payload="$(
   python3 - <<'PY'
 import json
 import os
+from pathlib import Path
 
 modules = [value for value in os.environ.get("STATUS_ENABLED_MODULES", "").split(",") if value]
+smoke_result_path = Path(os.environ.get("STATUS_SMOKE_RESULT_PATH", ""))
+smoke_diagnostics_path = Path(os.environ.get("STATUS_SMOKE_DIAGNOSTICS_PATH", ""))
+latest_smoke = {
+    "resultPath": str(smoke_result_path) if smoke_result_path else "",
+    "diagnosticsPath": str(smoke_diagnostics_path) if smoke_diagnostics_path else "",
+    "resultPresent": smoke_result_path.is_file(),
+    "diagnosticsPresent": smoke_diagnostics_path.is_file(),
+    "status": "",
+}
+# Keep the latest-smoke shape stable even when the most recent run failed before
+# writing both artifacts; callers can rely on presence flags instead of guessing.
+if smoke_result_path.is_file():
+    result_payload = json.loads(smoke_result_path.read_text(encoding="utf-8"))
+    latest_smoke["status"] = str(result_payload.get("status", ""))
 payload = {
     "profile": os.environ.get("STATUS_PROFILE", ""),
     "stack": os.environ.get("STATUS_STACK", ""),
     "environment": os.environ.get("STATUS_ENVIRONMENT", ""),
+    "toolingMode": os.environ.get("STATUS_TOOLING_MODE", ""),
+    "observabilityEnabled": os.environ.get("STATUS_OBSERVABILITY_ENABLED", "false") == "true",
     "enabledModules": modules,
+    "kubectlContext": os.environ.get("STATUS_KUBECTL_CONTEXT", "") or None,
+    "latestSmoke": latest_smoke,
     "artifacts": {
         "provision": os.environ.get("STATUS_PROVISION_PRESENT", "false") == "true",
         "deploy": os.environ.get("STATUS_DEPLOY_PRESENT", "false") == "true",
@@ -77,6 +106,8 @@ state_file="$(
     "profile=$BLUEPRINT_PROFILE" \
     "stack=$(active_stack)" \
     "environment=$(profile_environment)" \
+    "tooling_mode=$(tooling_execution_mode)" \
+    "observability_enabled=$OBSERVABILITY_ENABLED_NORMALIZED" \
     "enabled_modules=$(enabled_modules_csv)" \
     "snapshot_path=$snapshot_path" \
     "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")"

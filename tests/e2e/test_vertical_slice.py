@@ -1,7 +1,13 @@
 from __future__ import annotations
 
 import unittest
-from tests._shared.helpers import REPO_ROOT, module_flags_env, run, run_blueprint_and_infra_bootstrap
+from tests._shared.helpers import (
+    REPO_ROOT,
+    module_flags_env,
+    restore_default_generated_state,
+    run,
+    run_blueprint_and_infra_bootstrap,
+)
 
 
 class VerticalSliceTests(unittest.TestCase):
@@ -13,6 +19,10 @@ class VerticalSliceTests(unittest.TestCase):
             0,
             msg=baseline_bootstrap.stdout + baseline_bootstrap.stderr,
         )
+
+    def tearDown(self) -> None:
+        reset = restore_default_generated_state()
+        self.assertEqual(reset.returncode, 0, msg=reset.stdout + reset.stderr)
 
     def test_help_lists_vertical_slice_targets(self) -> None:
         result = run(["make", "help"])
@@ -49,6 +59,10 @@ class VerticalSliceTests(unittest.TestCase):
         self.assertIn("infra-status", result.stdout)
         self.assertIn("infra-status-json", result.stdout)
         self.assertIn("quality-hooks-run", result.stdout)
+        self.assertIn("quality-docs-lint", result.stdout)
+        self.assertIn("quality-docs-check-core-targets-sync", result.stdout)
+        self.assertIn("quality-docs-check-contract-metadata-sync", result.stdout)
+        self.assertIn("quality-test-pyramid", result.stdout)
         self.assertIn("apps-publish-ghcr", result.stdout)
         self.assertIn("backend-test-unit", result.stdout)
         self.assertIn("touchpoints-test-unit", result.stdout)
