@@ -38,6 +38,7 @@ state_file="$(
     "backend_file=$backend_file" \
     "var_file=$var_file" \
     "tfstate_credential_source=${STACKIT_TFSTATE_CREDENTIAL_SOURCE:-unknown}" \
+    "ske_access_probe=${STACKIT_FOUNDATION_SKE_ACCESS_PROBE:-unknown}" \
     "tooling_mode=$(tooling_execution_mode)" \
     "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 )"

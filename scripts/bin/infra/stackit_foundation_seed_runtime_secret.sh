@@ -48,7 +48,9 @@ if tooling_is_execution_enabled; then
 
   outputs_json_file="$(mktemp)"
   secret_env_file="$(mktemp)"
-  trap 'rm -f "$outputs_json_file" "$secret_env_file"' EXIT
+  namespace_manifest_file="$(mktemp)"
+  secret_manifest_file="$(mktemp)"
+  trap 'rm -f "$outputs_json_file" "$secret_env_file" "$namespace_manifest_file" "$secret_manifest_file"' EXIT
 
   run_cmd_capture terraform -chdir="$foundation_dir" output -json >"$outputs_json_file"
 
@@ -114,10 +116,13 @@ PY
     log_warn "no foundation runtime outputs resolved; creating metadata-only secret payload"
   fi
 
-  run_cmd kubectl create namespace "$STACKIT_RUNTIME_CONTRACT_SECRET_NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
-  run_cmd kubectl -n "$STACKIT_RUNTIME_CONTRACT_SECRET_NAMESPACE" create secret generic "$STACKIT_RUNTIME_CONTRACT_SECRET_NAME" \
+  run_cmd_capture kubectl create namespace "$STACKIT_RUNTIME_CONTRACT_SECRET_NAMESPACE" --dry-run=client -o yaml >"$namespace_manifest_file"
+  run_cmd kubectl apply -f "$namespace_manifest_file"
+
+  run_cmd_capture kubectl -n "$STACKIT_RUNTIME_CONTRACT_SECRET_NAMESPACE" create secret generic "$STACKIT_RUNTIME_CONTRACT_SECRET_NAME" \
     --from-env-file="$secret_env_file" \
-    --dry-run=client -o yaml | kubectl apply -f -
+    --dry-run=client -o yaml >"$secret_manifest_file"
+  run_cmd kubectl apply -f "$secret_manifest_file"
 
   seed_mode="kubectl-apply"
 fi

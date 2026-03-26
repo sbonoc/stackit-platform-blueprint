@@ -46,6 +46,7 @@ class StackitLayerContractTests(unittest.TestCase):
             foundation_state,
         )
         self.assertIn("tfstate_credential_source=dry-run-placeholder", foundation_state)
+        self.assertIn("ske_access_probe=skipped_dry_run", foundation_state)
 
 
 if __name__ == "__main__":

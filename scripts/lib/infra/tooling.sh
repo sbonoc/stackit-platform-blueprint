@@ -78,10 +78,30 @@ terraform_backend_init() {
   if tooling_is_execution_enabled; then
     require_command terraform
     require_env_vars STACKIT_TFSTATE_ACCESS_KEY_ID STACKIT_TFSTATE_SECRET_ACCESS_KEY
-    run_cmd terraform -chdir="$terraform_dir" init -reconfigure -input=false -no-color \
+    local tf_init_cmd=(
+      terraform
+      -chdir="$terraform_dir"
+      init
+      -reconfigure
+      -input=false
+      -no-color
       "-backend-config=$backend_file" \
       "-backend-config=access_key=$STACKIT_TFSTATE_ACCESS_KEY_ID" \
       "-backend-config=secret_key=$STACKIT_TFSTATE_SECRET_ACCESS_KEY"
+    )
+    local tf_init_log_cmd=(
+      terraform
+      -chdir="$terraform_dir"
+      init
+      -reconfigure
+      -input=false
+      -no-color
+      "-backend-config=$backend_file"
+      "-backend-config=access_key=***"
+      "-backend-config=secret_key=***"
+    )
+    printf '+ %s\n' "${tf_init_log_cmd[*]}"
+    "${tf_init_cmd[@]}"
     return 0
   fi
 
@@ -130,7 +150,25 @@ run_terraform_action_with_backend() {
     if [[ -n "${STACKIT_REGION:-}" ]]; then
       tf_init_cmd+=("-backend-config=region=$STACKIT_REGION")
     fi
-    run_cmd "${tf_init_cmd[@]}"
+    local tf_init_log_cmd=(
+      terraform
+      -chdir="$terraform_dir"
+      init
+      -reconfigure
+      -input=false
+      -no-color
+      "-backend-config=$backend_file"
+      "-backend-config=access_key=***"
+      "-backend-config=secret_key=***"
+    )
+    if [[ -n "${STACKIT_TFSTATE_BUCKET:-}" ]]; then
+      tf_init_log_cmd+=("-backend-config=bucket=$STACKIT_TFSTATE_BUCKET")
+    fi
+    if [[ -n "${STACKIT_REGION:-}" ]]; then
+      tf_init_log_cmd+=("-backend-config=region=$STACKIT_REGION")
+    fi
+    printf '+ %s\n' "${tf_init_log_cmd[*]}"
+    "${tf_init_cmd[@]}"
 
     local tf_cmd=(terraform -chdir="$terraform_dir")
     case "$action" in
