@@ -5,6 +5,7 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
 source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 source "$ROOT_DIR/scripts/lib/infra/stack_paths.sh"
+source "$ROOT_DIR/scripts/lib/infra/module_execution.sh"
 source "$ROOT_DIR/scripts/lib/infra/state.sh"
 source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
 source "$ROOT_DIR/scripts/lib/infra/public_endpoints.sh"
@@ -17,26 +18,25 @@ if ! is_module_enabled public-endpoints; then
 fi
 
 public_endpoints_init_env
-provision_driver="none"
-provision_path="none"
-if is_stackit_profile; then
-  provision_driver="argocd_optional_manifest"
-  provision_path="$(argocd_optional_manifest "public-endpoints")"
-  if [[ ! -f "$provision_path" ]]; then
-    log_fatal "missing public-endpoints optional manifest: $provision_path (run make infra-bootstrap)"
-  fi
-elif is_local_profile; then
-  provision_driver="helm"
-  provision_path="$(local_module_helm_values_file "public-endpoints")"
+resolve_optional_module_execution "public-endpoints" "plan"
+provision_driver="$OPTIONAL_MODULE_EXECUTION_DRIVER"
+provision_path="$OPTIONAL_MODULE_EXECUTION_PATH"
+case "$provision_driver" in
+argocd_optional_manifest)
+  optional_module_require_manifest_present "public-endpoints" "$provision_path"
+  ;;
+helm)
   run_helm_template \
     "$PUBLIC_ENDPOINTS_HELM_RELEASE" \
     "$PUBLIC_ENDPOINTS_NAMESPACE" \
     "$PUBLIC_ENDPOINTS_HELM_CHART" \
     "$PUBLIC_ENDPOINTS_HELM_CHART_VERSION" \
     "$provision_path"
-else
-  log_fatal "unsupported BLUEPRINT_PROFILE=$BLUEPRINT_PROFILE"
-fi
+  ;;
+*)
+  optional_module_unexpected_driver "public-endpoints" "plan"
+  ;;
+esac
 
 state_file="$(write_state_file "public_endpoints_plan" \
   "profile=$BLUEPRINT_PROFILE" \

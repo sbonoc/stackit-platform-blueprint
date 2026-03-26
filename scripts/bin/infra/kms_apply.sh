@@ -5,6 +5,7 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
 source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 source "$ROOT_DIR/scripts/lib/infra/stack_paths.sh"
+source "$ROOT_DIR/scripts/lib/infra/module_execution.sh"
 source "$ROOT_DIR/scripts/lib/infra/state.sh"
 source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
 source "$ROOT_DIR/scripts/lib/infra/kms.sh"
@@ -21,18 +22,17 @@ if ! state_file_exists kms_plan; then
   log_fatal "missing kms plan artifact; run infra-kms-plan first"
 fi
 
-provision_driver="none"
-provision_path="none"
-if is_stackit_profile; then
-  provision_driver="external_automation_contract"
-  provision_path="stackit-kms-external"
-  log_warn "kms module has no Terraform provider coverage in STACKIT MVP; apply is an external-automation contract"
-elif is_local_profile; then
-  provision_driver="noop"
-  log_warn "kms module has no managed local counterpart; apply is a contract no-op"
-else
-  log_fatal "unsupported BLUEPRINT_PROFILE=$BLUEPRINT_PROFILE"
-fi
+resolve_optional_module_execution "kms" "apply"
+provision_driver="$OPTIONAL_MODULE_EXECUTION_DRIVER"
+provision_path="$OPTIONAL_MODULE_EXECUTION_PATH"
+case "$provision_driver" in
+external_automation_contract | noop)
+  optional_module_log_execution_note
+  ;;
+*)
+  optional_module_unexpected_driver "kms" "apply"
+  ;;
+esac
 
 state_file="$(write_state_file "kms_runtime" \
   "profile=$BLUEPRINT_PROFILE" \

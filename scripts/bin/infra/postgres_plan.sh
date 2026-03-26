@@ -5,6 +5,7 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
 source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 source "$ROOT_DIR/scripts/lib/infra/stack_paths.sh"
+source "$ROOT_DIR/scripts/lib/infra/module_execution.sh"
 source "$ROOT_DIR/scripts/lib/infra/state.sh"
 source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
 source "$ROOT_DIR/scripts/lib/infra/postgres.sh"
@@ -17,26 +18,25 @@ if ! is_module_enabled postgres; then
 fi
 
 postgres_init_env
-provision_driver="none"
-provision_path="none"
-if is_stackit_profile; then
-  provision_driver="foundation_contract"
-  provision_path="$(stackit_terraform_layer_dir foundation)"
-  if ! state_file_exists stackit_foundation_plan && ! state_file_exists stackit_foundation_apply; then
-    log_warn "STACKIT foundation plan/apply state not found; run infra-stackit-foundation-plan for full terraform diff"
-  fi
-elif is_local_profile; then
-  provision_driver="helm"
-  provision_path="$(local_module_helm_values_file "postgres")"
+resolve_optional_module_execution "postgres" "plan"
+provision_driver="$OPTIONAL_MODULE_EXECUTION_DRIVER"
+provision_path="$OPTIONAL_MODULE_EXECUTION_PATH"
+case "$provision_driver" in
+foundation_contract)
+  optional_module_warn_missing_foundation_diff "postgres"
+  ;;
+helm)
   run_helm_template \
     "$POSTGRES_HELM_RELEASE" \
     "$POSTGRES_NAMESPACE" \
     "$POSTGRES_HELM_CHART" \
     "$POSTGRES_HELM_CHART_VERSION" \
     "$provision_path"
-else
-  log_fatal "unsupported BLUEPRINT_PROFILE=$BLUEPRINT_PROFILE"
-fi
+  ;;
+*)
+  optional_module_unexpected_driver "postgres" "plan"
+  ;;
+esac
 
 state_file="$(write_state_file "postgres_plan" \
   "profile=$BLUEPRINT_PROFILE" \

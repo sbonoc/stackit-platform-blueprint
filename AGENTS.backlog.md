@@ -41,6 +41,7 @@
 - [x] Template scaffold roots are split by ownership: `scripts/templates/blueprint/bootstrap` (blueprint docs/make/hygiene seeds) vs `scripts/templates/infra/bootstrap` (infra/dags/tests scaffolding).
 - [x] Documentation IA is role-oriented with explicit consumer/maintainer tracks and first-day onboarding (`docs/platform/consumer/first_30_minutes.md`, ownership matrix).
 - [x] Blueprint-managed second-wave Make/script hardening is in place: docs drift gates, generated core-targets/contract metadata sync, test-pyramid enforcement, namespaced shell/quality helpers, and machine-readable infra smoke/status diagnostics.
+- [x] Optional-module wrappers resolve provider-backed/fallback/external execution modes through a shared infra library, keeping driver selection consistent across scripts.
 
 ## Top Priority - Execution-Ready E2E (Current)
 - [x] Fix GitHub-template onboarding smoke drift by excluding init-mutated ArgoCD identity files from strict byte-sync validation while keeping identity checks enforced (`blueprint-template-smoke` green).
@@ -70,7 +71,7 @@
 - [x] Add blueprint-managed quality/docs drift guardrails and deterministic smoke/status artifacts without expanding platform-owned surfaces.
 - [ ] Add golden conformance matrix across profile/module combinations for newly generated repos.
 - [ ] Expand Terraform provider-backed coverage for currently fallback-only optional modules (`workflows`, `langfuse`, `neo4j`, `rabbitmq`, `public-endpoints`, `kms`, `identity-aware-proxy`) as STACKIT provider/resources mature.
-- [ ] Refactor optional-module wrappers onto a shared execution-mode library (provider-backed/fallback/external) to remove duplicated branch logic across scripts.
+- [x] Refactor optional-module wrappers onto a shared execution-mode library (provider-backed/fallback/external) to remove duplicated branch logic across scripts.
 - [ ] Replace generic optional ConfigMap manifests with module-specific ArgoCD applications/charts for fallback modules (`rabbitmq`, `public-endpoints`, `identity-aware-proxy`) to reach production-grade runtime delivery.
 
 ## P2 - v1.2 Scale

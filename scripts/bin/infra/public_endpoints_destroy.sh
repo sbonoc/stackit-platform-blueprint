@@ -5,6 +5,7 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
 source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 source "$ROOT_DIR/scripts/lib/infra/stack_paths.sh"
+source "$ROOT_DIR/scripts/lib/infra/module_execution.sh"
 source "$ROOT_DIR/scripts/lib/infra/state.sh"
 source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
 source "$ROOT_DIR/scripts/lib/infra/public_endpoints.sh"
@@ -12,19 +13,21 @@ source "$ROOT_DIR/scripts/lib/infra/public_endpoints.sh"
 start_script_metric_trap "infra_public_endpoints_destroy"
 
 public_endpoints_init_env
-destroy_driver="none"
-destroy_path="none"
-if is_stackit_profile; then
-  destroy_driver="argocd_optional_manifest"
-  destroy_path="$(argocd_optional_manifest "public-endpoints")"
+resolve_optional_module_execution "public-endpoints" "destroy"
+destroy_driver="$OPTIONAL_MODULE_EXECUTION_DRIVER"
+destroy_path="$OPTIONAL_MODULE_EXECUTION_PATH"
+case "$destroy_driver" in
+argocd_optional_manifest)
   run_manifest_delete "$destroy_path"
-elif is_local_profile; then
-  destroy_driver="helm"
+  ;;
+helm)
   destroy_path="$PUBLIC_ENDPOINTS_HELM_RELEASE@$PUBLIC_ENDPOINTS_NAMESPACE"
   run_helm_uninstall "$PUBLIC_ENDPOINTS_HELM_RELEASE" "$PUBLIC_ENDPOINTS_NAMESPACE"
-else
-  log_fatal "unsupported BLUEPRINT_PROFILE=$BLUEPRINT_PROFILE"
-fi
+  ;;
+*)
+  optional_module_unexpected_driver "public-endpoints" "destroy"
+  ;;
+esac
 
 remove_state_files_by_prefix "public_endpoints_"
 state_file="$(write_state_file "public_endpoints_destroy" \

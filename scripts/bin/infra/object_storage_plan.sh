@@ -5,6 +5,7 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
 source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 source "$ROOT_DIR/scripts/lib/infra/stack_paths.sh"
+source "$ROOT_DIR/scripts/lib/infra/module_execution.sh"
 source "$ROOT_DIR/scripts/lib/infra/state.sh"
 source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
 source "$ROOT_DIR/scripts/lib/infra/object_storage.sh"
@@ -17,26 +18,25 @@ if ! is_module_enabled object-storage; then
 fi
 
 object_storage_init_env
-provision_driver="none"
-provision_path="none"
-if is_stackit_profile; then
-  provision_driver="foundation_contract"
-  provision_path="$(stackit_terraform_layer_dir foundation)"
-  if ! state_file_exists stackit_foundation_plan && ! state_file_exists stackit_foundation_apply; then
-    log_warn "STACKIT foundation plan/apply state not found; run infra-stackit-foundation-plan for full terraform diff"
-  fi
-elif is_local_profile; then
-  provision_driver="helm"
-  provision_path="$(local_module_helm_values_file "object-storage")"
+resolve_optional_module_execution "object-storage" "plan"
+provision_driver="$OPTIONAL_MODULE_EXECUTION_DRIVER"
+provision_path="$OPTIONAL_MODULE_EXECUTION_PATH"
+case "$provision_driver" in
+foundation_contract)
+  optional_module_warn_missing_foundation_diff "object-storage"
+  ;;
+helm)
   run_helm_template \
     "$OBJECT_STORAGE_HELM_RELEASE" \
     "$OBJECT_STORAGE_NAMESPACE" \
     "$OBJECT_STORAGE_HELM_CHART" \
     "$OBJECT_STORAGE_HELM_CHART_VERSION" \
     "$provision_path"
-else
-  log_fatal "unsupported BLUEPRINT_PROFILE=$BLUEPRINT_PROFILE"
-fi
+  ;;
+*)
+  optional_module_unexpected_driver "object-storage" "plan"
+  ;;
+esac
 
 state_file="$(write_state_file "object_storage_plan" \
   "profile=$BLUEPRINT_PROFILE" \

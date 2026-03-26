@@ -5,6 +5,7 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
 source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 source "$ROOT_DIR/scripts/lib/infra/stack_paths.sh"
+source "$ROOT_DIR/scripts/lib/infra/module_execution.sh"
 source "$ROOT_DIR/scripts/lib/infra/state.sh"
 source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
 source "$ROOT_DIR/scripts/lib/infra/observability.sh"
@@ -12,22 +13,22 @@ source "$ROOT_DIR/scripts/lib/infra/observability.sh"
 start_script_metric_trap "infra_observability_destroy"
 
 observability_init_env
-destroy_driver="none"
-destroy_path="none"
-if is_stackit_profile; then
-  destroy_driver="foundation_reconcile_apply"
-  destroy_path="$(stackit_terraform_layer_dir foundation)"
-  run_cmd env OBSERVABILITY_ENABLED=false "$ROOT_DIR/scripts/bin/infra/stackit_foundation_preflight.sh"
-  run_cmd env OBSERVABILITY_ENABLED=false "$ROOT_DIR/scripts/bin/infra/stackit_foundation_apply.sh"
-elif is_local_profile; then
-  destroy_driver="argocd_manifest_plus_helm"
-  destroy_path="$(argocd_optional_manifest "observability")"
+resolve_optional_module_execution "observability" "destroy"
+destroy_driver="$OPTIONAL_MODULE_EXECUTION_DRIVER"
+destroy_path="$OPTIONAL_MODULE_EXECUTION_PATH"
+case "$destroy_driver" in
+foundation_reconcile_apply)
+  optional_module_destroy_foundation_contract "observability"
+  ;;
+argocd_manifest_plus_helm)
   run_manifest_delete "$destroy_path"
   run_helm_uninstall "blueprint-otel-collector" "$OBSERVABILITY_NAMESPACE"
   run_helm_uninstall "blueprint-observability" "$OBSERVABILITY_NAMESPACE"
-else
-  log_fatal "unsupported BLUEPRINT_PROFILE=$BLUEPRINT_PROFILE"
-fi
+  ;;
+*)
+  optional_module_unexpected_driver "observability" "destroy"
+  ;;
+esac
 
 remove_state_files_by_prefix "observability_"
 state_file="$(

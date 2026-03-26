@@ -5,6 +5,7 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
 source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 source "$ROOT_DIR/scripts/lib/infra/stack_paths.sh"
+source "$ROOT_DIR/scripts/lib/infra/module_execution.sh"
 source "$ROOT_DIR/scripts/lib/infra/state.sh"
 source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
 source "$ROOT_DIR/scripts/lib/infra/object_storage.sh"
@@ -12,20 +13,21 @@ source "$ROOT_DIR/scripts/lib/infra/object_storage.sh"
 start_script_metric_trap "infra_object_storage_destroy"
 
 object_storage_init_env
-destroy_driver="none"
-destroy_path="none"
-if is_stackit_profile; then
-  destroy_driver="foundation_reconcile_apply"
-  destroy_path="$(stackit_terraform_layer_dir foundation)"
-  run_cmd env OBJECT_STORAGE_ENABLED=false "$ROOT_DIR/scripts/bin/infra/stackit_foundation_preflight.sh"
-  run_cmd env OBJECT_STORAGE_ENABLED=false "$ROOT_DIR/scripts/bin/infra/stackit_foundation_apply.sh"
-elif is_local_profile; then
-  destroy_driver="helm"
+resolve_optional_module_execution "object-storage" "destroy"
+destroy_driver="$OPTIONAL_MODULE_EXECUTION_DRIVER"
+destroy_path="$OPTIONAL_MODULE_EXECUTION_PATH"
+case "$destroy_driver" in
+foundation_reconcile_apply)
+  optional_module_destroy_foundation_contract "object-storage"
+  ;;
+helm)
   destroy_path="$OBJECT_STORAGE_HELM_RELEASE@$OBJECT_STORAGE_NAMESPACE"
   run_helm_uninstall "$OBJECT_STORAGE_HELM_RELEASE" "$OBJECT_STORAGE_NAMESPACE"
-else
-  log_fatal "unsupported BLUEPRINT_PROFILE=$BLUEPRINT_PROFILE"
-fi
+  ;;
+*)
+  optional_module_unexpected_driver "object-storage" "destroy"
+  ;;
+esac
 
 remove_state_files_by_prefix "object_storage_"
 state_file="$(write_state_file "object_storage_destroy" \

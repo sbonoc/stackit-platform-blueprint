@@ -5,6 +5,7 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
 source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 source "$ROOT_DIR/scripts/lib/infra/stack_paths.sh"
+source "$ROOT_DIR/scripts/lib/infra/module_execution.sh"
 source "$ROOT_DIR/scripts/lib/infra/state.sh"
 source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
 source "$ROOT_DIR/scripts/lib/infra/neo4j.sh"
@@ -17,11 +18,17 @@ if ! is_module_enabled neo4j; then
 fi
 
 neo4j_init_env
-provision_driver="argocd_optional_manifest"
-provision_path="$(argocd_optional_manifest "neo4j")"
-if [[ ! -f "$provision_path" ]]; then
-  log_fatal "missing Neo4j optional manifest: $provision_path"
-fi
+resolve_optional_module_execution "neo4j" "plan"
+provision_driver="$OPTIONAL_MODULE_EXECUTION_DRIVER"
+provision_path="$OPTIONAL_MODULE_EXECUTION_PATH"
+case "$provision_driver" in
+argocd_optional_manifest)
+  optional_module_require_manifest_present "neo4j" "$provision_path"
+  ;;
+*)
+  optional_module_unexpected_driver "neo4j" "plan"
+  ;;
+esac
 
 state_file="$(write_state_file "neo4j_plan" \
   "profile=$BLUEPRINT_PROFILE" \

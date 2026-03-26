@@ -5,20 +5,30 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
 source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 source "$ROOT_DIR/scripts/lib/infra/stack_paths.sh"
+source "$ROOT_DIR/scripts/lib/infra/module_execution.sh"
 source "$ROOT_DIR/scripts/lib/infra/state.sh"
 source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
 
 start_script_metric_trap "infra_langfuse_destroy"
 
-destroy_path="$(argocd_optional_manifest "langfuse")"
-run_manifest_delete "$destroy_path"
+resolve_optional_module_execution "langfuse" "destroy"
+destroy_driver="$OPTIONAL_MODULE_EXECUTION_DRIVER"
+destroy_path="$OPTIONAL_MODULE_EXECUTION_PATH"
+case "$destroy_driver" in
+argocd_optional_manifest)
+  run_manifest_delete "$destroy_path"
+  ;;
+*)
+  optional_module_unexpected_driver "langfuse" "destroy"
+  ;;
+esac
 
 remove_state_files_by_prefix "langfuse_"
 state_file="$(write_state_file "langfuse_destroy" \
   "profile=$BLUEPRINT_PROFILE" \
   "stack=$(active_stack)" \
   "tooling_mode=$(tooling_execution_mode)" \
-  "destroy_driver=argocd_optional_manifest" \
+  "destroy_driver=$destroy_driver" \
   "destroy_path=$destroy_path" \
   "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")")"
 

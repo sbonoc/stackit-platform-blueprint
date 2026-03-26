@@ -5,6 +5,7 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
 source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 source "$ROOT_DIR/scripts/lib/infra/stack_paths.sh"
+source "$ROOT_DIR/scripts/lib/infra/module_execution.sh"
 source "$ROOT_DIR/scripts/lib/infra/state.sh"
 source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
 source "$ROOT_DIR/scripts/lib/infra/secrets_manager.sh"
@@ -12,19 +13,20 @@ source "$ROOT_DIR/scripts/lib/infra/secrets_manager.sh"
 start_script_metric_trap "infra_secrets_manager_destroy"
 
 secrets_manager_init_env
-destroy_driver="none"
-destroy_path="none"
-if is_stackit_profile; then
-  destroy_driver="foundation_reconcile_apply"
-  destroy_path="$(stackit_terraform_layer_dir foundation)"
-  run_cmd env SECRETS_MANAGER_ENABLED=false "$ROOT_DIR/scripts/bin/infra/stackit_foundation_preflight.sh"
-  run_cmd env SECRETS_MANAGER_ENABLED=false "$ROOT_DIR/scripts/bin/infra/stackit_foundation_apply.sh"
-elif is_local_profile; then
-  destroy_driver="noop"
-  log_warn "secrets-manager module has no managed local counterpart; destroy is a contract no-op"
-else
-  log_fatal "unsupported BLUEPRINT_PROFILE=$BLUEPRINT_PROFILE"
-fi
+resolve_optional_module_execution "secrets-manager" "destroy"
+destroy_driver="$OPTIONAL_MODULE_EXECUTION_DRIVER"
+destroy_path="$OPTIONAL_MODULE_EXECUTION_PATH"
+case "$destroy_driver" in
+foundation_reconcile_apply)
+  optional_module_destroy_foundation_contract "secrets-manager"
+  ;;
+noop)
+  optional_module_log_execution_note
+  ;;
+*)
+  optional_module_unexpected_driver "secrets-manager" "destroy"
+  ;;
+esac
 
 remove_state_files_by_prefix "secrets_manager_"
 state_file="$(write_state_file "secrets_manager_destroy" \

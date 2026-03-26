@@ -1,5 +1,11 @@
 # Decisions Log
 
+## 2026-03-27
+- Optional-module wrappers now resolve execution modes through a shared infra library.
+  - Added `scripts/lib/infra/module_execution.sh` to centralize provider-backed, fallback, and external-contract driver selection for optional modules, including consistent path resolution and `optional_module_execution_mode_total` metrics.
+  - Optional-module plan/apply/destroy wrappers now keep module-specific actions/state outputs but delegate stack/profile branching to the shared resolver.
+  - Rationale: remove duplicated branch logic across wrappers, reduce drift as module coverage grows, and keep execution semantics consistent across stackit/local profiles.
+
 ## 2026-03-26 (Template Baseline)
 - Blueprint-managed second-wave Make/script hardening is now part of the baseline operating contract.
   - Added canonical quality targets for docs lint/sync (`quality-docs-lint`, `quality-docs-{sync,check}-core-targets`, `quality-docs-{sync,check}-contract-metadata`) and structural test-pyramid enforcement (`quality-test-pyramid`).

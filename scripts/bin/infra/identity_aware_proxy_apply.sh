@@ -5,6 +5,7 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
 source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 source "$ROOT_DIR/scripts/lib/infra/stack_paths.sh"
+source "$ROOT_DIR/scripts/lib/infra/module_execution.sh"
 source "$ROOT_DIR/scripts/lib/infra/state.sh"
 source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
 source "$ROOT_DIR/scripts/lib/infra/identity_aware_proxy.sh"
@@ -21,24 +22,25 @@ if ! state_file_exists identity_aware_proxy_plan; then
   log_fatal "missing identity-aware-proxy plan artifact; run infra-identity-aware-proxy-plan first"
 fi
 
-provision_driver="none"
-provision_path="none"
-if is_stackit_profile; then
-  provision_driver="argocd_optional_manifest"
-  provision_path="$(argocd_optional_manifest "identity-aware-proxy")"
+resolve_optional_module_execution "identity-aware-proxy" "apply"
+provision_driver="$OPTIONAL_MODULE_EXECUTION_DRIVER"
+provision_path="$OPTIONAL_MODULE_EXECUTION_PATH"
+case "$provision_driver" in
+argocd_optional_manifest)
   run_manifest_apply "$provision_path"
-elif is_local_profile; then
-  provision_driver="helm"
-  provision_path="$(local_module_helm_values_file "identity-aware-proxy")"
+  ;;
+helm)
   run_helm_upgrade_install \
     "$IAP_HELM_RELEASE" \
     "$IAP_NAMESPACE" \
     "$IAP_HELM_CHART" \
     "$IAP_HELM_CHART_VERSION" \
     "$provision_path"
-else
-  log_fatal "unsupported BLUEPRINT_PROFILE=$BLUEPRINT_PROFILE"
-fi
+  ;;
+*)
+  optional_module_unexpected_driver "identity-aware-proxy" "apply"
+  ;;
+esac
 
 state_file="$(write_state_file "identity_aware_proxy_runtime" \
   "profile=$BLUEPRINT_PROFILE" \

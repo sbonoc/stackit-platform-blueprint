@@ -194,6 +194,7 @@ class RefactorContractsTests(unittest.TestCase):
                 "scripts/lib/blueprint/generate_module_wrapper_skeletons.py",
                 "scripts/lib/docs/generate_contract_docs.py",
                 "scripts/lib/infra/k8s_wait.sh",
+                "scripts/lib/infra/module_execution.sh",
                 "scripts/lib/quality/semver.sh",
                 "scripts/lib/quality/test_pyramid_contract.json",
                 "scripts/lib/shell/bootstrap.sh",
@@ -579,17 +580,18 @@ class RefactorContractsTests(unittest.TestCase):
         neo4j_destroy = _read("scripts/bin/infra/neo4j_destroy.sh")
         postgres_destroy = _read("scripts/bin/infra/postgres_destroy.sh")
         observability_destroy = _read("scripts/bin/infra/observability_destroy.sh")
+        module_execution = _read("scripts/lib/infra/module_execution.sh")
         tooling = _read("scripts/lib/infra/tooling.sh")
 
         self.assertIn("run_manifest_delete()", tooling)
         self.assertIn("run_helm_uninstall()", tooling)
-        self.assertIn("run_manifest_delete", langfuse_destroy)
-        self.assertIn("run_manifest_delete", neo4j_destroy)
-        self.assertIn("foundation_reconcile_apply", postgres_destroy)
-        self.assertIn("stackit_foundation_apply.sh", postgres_destroy)
+        self.assertIn("resolve_optional_module_execution", langfuse_destroy)
+        self.assertIn("resolve_optional_module_execution", neo4j_destroy)
+        self.assertIn("optional_module_destroy_foundation_contract", module_execution)
+        self.assertIn("stackit_foundation_apply.sh", module_execution)
+        self.assertIn('optional_module_destroy_foundation_contract "postgres"', postgres_destroy)
         self.assertIn("run_helm_uninstall", postgres_destroy)
-        self.assertIn("foundation_reconcile_apply", observability_destroy)
-        self.assertIn("stackit_foundation_apply.sh", observability_destroy)
+        self.assertIn('resolve_optional_module_execution "observability" "destroy"', observability_destroy)
         self.assertIn("run_manifest_delete", observability_destroy)
         self.assertIn("run_helm_uninstall", observability_destroy)
 

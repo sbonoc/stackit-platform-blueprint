@@ -5,27 +5,29 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
 source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 source "$ROOT_DIR/scripts/lib/infra/stack_paths.sh"
+source "$ROOT_DIR/scripts/lib/infra/module_execution.sh"
 source "$ROOT_DIR/scripts/lib/infra/state.sh"
 source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
 
 start_script_metric_trap "infra_postgres_destroy"
 
-destroy_driver="none"
-destroy_path="none"
-if is_stackit_profile; then
-  destroy_driver="foundation_reconcile_apply"
-  destroy_path="$(stackit_terraform_layer_dir foundation)"
-  run_cmd env POSTGRES_ENABLED=false "$ROOT_DIR/scripts/bin/infra/stackit_foundation_preflight.sh"
-  run_cmd env POSTGRES_ENABLED=false "$ROOT_DIR/scripts/bin/infra/stackit_foundation_apply.sh"
-elif is_local_profile; then
+resolve_optional_module_execution "postgres" "destroy"
+destroy_driver="$OPTIONAL_MODULE_EXECUTION_DRIVER"
+destroy_path="$OPTIONAL_MODULE_EXECUTION_PATH"
+case "$destroy_driver" in
+foundation_reconcile_apply)
+  optional_module_destroy_foundation_contract "postgres"
+  ;;
+helm)
   set_default_env POSTGRES_NAMESPACE "data"
   set_default_env POSTGRES_HELM_RELEASE "blueprint-postgres"
-  destroy_driver="helm"
   destroy_path="${POSTGRES_HELM_RELEASE}@${POSTGRES_NAMESPACE}"
   run_helm_uninstall "$POSTGRES_HELM_RELEASE" "$POSTGRES_NAMESPACE"
-else
-  log_fatal "unsupported BLUEPRINT_PROFILE=$BLUEPRINT_PROFILE"
-fi
+  ;;
+*)
+  optional_module_unexpected_driver "postgres" "destroy"
+  ;;
+esac
 
 remove_state_files_by_prefix "postgres_"
 state_file="$(write_state_file "postgres_destroy" \

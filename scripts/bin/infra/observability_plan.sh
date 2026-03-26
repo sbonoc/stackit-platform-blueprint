@@ -5,6 +5,7 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
 source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 source "$ROOT_DIR/scripts/lib/infra/stack_paths.sh"
+source "$ROOT_DIR/scripts/lib/infra/module_execution.sh"
 source "$ROOT_DIR/scripts/lib/infra/state.sh"
 source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
 source "$ROOT_DIR/scripts/lib/infra/versions.sh"
@@ -18,18 +19,15 @@ if ! is_module_enabled observability; then
 fi
 
 observability_init_env
-provision_driver="none"
-provision_path="none"
+resolve_optional_module_execution "observability" "plan"
+provision_driver="$OPTIONAL_MODULE_EXECUTION_DRIVER"
+provision_path="$OPTIONAL_MODULE_EXECUTION_PATH"
 
-if is_stackit_profile; then
-  provision_driver="foundation_contract"
-  provision_path="$(stackit_terraform_layer_dir foundation)"
-  if ! state_file_exists stackit_foundation_plan && ! state_file_exists stackit_foundation_apply; then
-    log_warn "STACKIT foundation plan/apply state not found; run infra-stackit-foundation-plan for full terraform diff"
-  fi
-elif is_local_profile; then
-  provision_driver="crossplane_plus_helm"
-  provision_path="$(local_crossplane_kustomize_dir)"
+case "$provision_driver" in
+foundation_contract)
+  optional_module_warn_missing_foundation_diff "observability"
+  ;;
+crossplane_plus_helm)
   run_helm_template \
     "blueprint-observability" \
     "$OBSERVABILITY_NAMESPACE" \
@@ -42,9 +40,11 @@ elif is_local_profile; then
     "open-telemetry/opentelemetry-collector" \
     "$OTEL_COLLECTOR_CHART_VERSION" \
     "$(local_otel_collector_values_file)"
-else
-  log_fatal "unsupported BLUEPRINT_PROFILE=$BLUEPRINT_PROFILE"
-fi
+  ;;
+*)
+  optional_module_unexpected_driver "observability" "plan"
+  ;;
+esac
 
 state_file="$(
   write_state_file "observability_plan" \

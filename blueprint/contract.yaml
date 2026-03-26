@@ -67,6 +67,7 @@ spec:
       - scripts/lib/blueprint/generate_module_wrapper_skeletons.py
       - scripts/lib/docs/generate_contract_docs.py
       - scripts/lib/infra/k8s_wait.sh
+      - scripts/lib/infra/module_execution.sh
       - scripts/lib/quality/semver.sh
       - scripts/lib/quality/test_pyramid_contract.json
       - scripts/lib/shell/bootstrap.sh

@@ -5,6 +5,7 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
 source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 source "$ROOT_DIR/scripts/lib/infra/stack_paths.sh"
+source "$ROOT_DIR/scripts/lib/infra/module_execution.sh"
 source "$ROOT_DIR/scripts/lib/infra/state.sh"
 source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
 source "$ROOT_DIR/scripts/lib/infra/langfuse.sh"
@@ -21,9 +22,17 @@ if ! state_file_exists langfuse_plan; then
   log_fatal "missing langfuse plan artifact; run infra-langfuse-plan first"
 fi
 
-provision_driver="argocd_optional_manifest"
-provision_path="$(argocd_optional_manifest "langfuse")"
-run_manifest_apply "$provision_path"
+resolve_optional_module_execution "langfuse" "apply"
+provision_driver="$OPTIONAL_MODULE_EXECUTION_DRIVER"
+provision_path="$OPTIONAL_MODULE_EXECUTION_PATH"
+case "$provision_driver" in
+argocd_optional_manifest)
+  run_manifest_apply "$provision_path"
+  ;;
+*)
+  optional_module_unexpected_driver "langfuse" "apply"
+  ;;
+esac
 
 state_file="$(write_state_file "langfuse_apply" \
   "profile=$BLUEPRINT_PROFILE" \
