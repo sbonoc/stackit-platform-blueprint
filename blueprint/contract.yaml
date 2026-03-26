@@ -1,0 +1,507 @@
+apiVersion: blueprint.contract/v1alpha1
+kind: PlatformBlueprintContract
+metadata:
+  name: stackit-k8s-reusable-blueprint
+  version: 1.0.0
+spec:
+  repository:
+    default_branch: main
+    branch_naming:
+      model: github-flow
+      purpose_prefixes:
+        - feature/
+        - fix/
+        - hotfix/
+        - chore/
+        - docs/
+        - refactor/
+        - test/
+        - ci/
+    template_bootstrap:
+      model: github-template
+      template_version: 1.0.0
+      minimum_supported_upgrade_from: 1.0.0
+      init_command: make blueprint-init-repo
+      upgrade_command: make blueprint-migrate
+      example_env_file: blueprint/repo.init.example.env
+      required_inputs:
+        - BLUEPRINT_REPO_NAME
+        - BLUEPRINT_GITHUB_ORG
+        - BLUEPRINT_GITHUB_REPO
+        - BLUEPRINT_DEFAULT_BRANCH
+    required_files:
+      - .github/workflows/template_release.yml
+      - .gitignore
+      - .dockerignore
+      - .editorconfig
+      - .pre-commit-config.yaml
+      - AGENTS.md
+      - AGENTS.backlog.md
+      - AGENTS.decisions.md
+      - Makefile
+      - make/blueprint.generated.mk
+      - make/platform.mk
+      - make/platform/.gitkeep
+      - scripts/bin/blueprint/bootstrap.sh
+      - scripts/bin/blueprint/clean_generated.sh
+      - scripts/bin/blueprint/init_repo_interactive.sh
+      - scripts/bin/blueprint/render_module_wrapper_skeletons.sh
+      - scripts/bin/blueprint/render_makefile.sh
+      - scripts/bin/blueprint/validate_contract.py
+      - scripts/lib/blueprint/contract_schema.py
+      - scripts/lib/blueprint/bootstrap_templates.sh
+      - scripts/lib/blueprint/generate_module_wrapper_skeletons.py
+      - scripts/templates/blueprint/bootstrap/Makefile
+      - scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl
+      - scripts/templates/blueprint/bootstrap/make/platform.mk
+      - scripts/templates/blueprint/bootstrap/make/platform/.gitkeep
+      - scripts/lib/infra/stackit_github_ci_contract.json
+      - blueprint/repo.init.example.env
+      - docs/README.md
+      - docs/blueprint/README.md
+      - docs/blueprint/architecture/system_overview.md
+      - docs/blueprint/architecture/execution_model.md
+      - docs/blueprint/governance/template_release_policy.md
+      - docs/blueprint/governance/ownership_matrix.md
+      - docs/platform/README.md
+      - docs/platform/consumer/first_30_minutes.md
+      - docs/platform/consumer/quickstart.md
+      - docs/platform/consumer/troubleshooting.md
+      - docs/platform/consumer/upgrade_runbook.md
+      - docs/platform/modules/observability/README.md
+      - docs/platform/modules/workflows/README.md
+      - docs/platform/modules/langfuse/README.md
+      - docs/platform/modules/postgres/README.md
+      - docs/platform/modules/neo4j/README.md
+      - tests/__init__.py
+      - tests/blueprint/__init__.py
+      - tests/infra/__init__.py
+      - tests/docs/__init__.py
+      - tests/e2e/__init__.py
+      - tests/_shared/__init__.py
+      - tests/_shared/helpers.py
+
+  governance:
+    canonical_policy_source: AGENTS.md
+    no_aliases_or_shims:
+      aliases_forbidden: true
+      backward_compatibility_shims_forbidden: true
+      canonical_variable_per_concern: true
+      canonical_target_per_concern: true
+    decision_traceability_required: true
+    backlog_update_required_on_scope_change: true
+
+  structure:
+    required_paths:
+      - scripts/bin/
+      - scripts/lib/
+      - scripts/bin/platform/
+      - scripts/lib/platform/
+      - infra/cloud/stackit/terraform/
+      - infra/local/crossplane/
+      - infra/local/helm/
+      - infra/gitops/argocd/
+      - make/
+      - make/platform/
+      - apps/
+      - tests/
+      - tests/blueprint/
+      - tests/infra/
+      - tests/docs/
+      - tests/e2e/
+      - tests/_shared/
+      - docs/
+      - docs/blueprint/
+      - docs/platform/
+      - blueprint/modules/
+    canonical_entrypoints:
+      makefile: Makefile
+      blueprint_makefile: make/blueprint.generated.mk
+      platform_makefile: make/platform.mk
+      scripts_bin_root: scripts/bin
+      scripts_lib_root: scripts/lib
+      platform_scripts_bin_root: scripts/bin/platform
+      platform_scripts_lib_root: scripts/lib/platform
+      terraform_root: infra/cloud/stackit/terraform
+      crossplane_root: infra/local/crossplane
+      local_helm_root: infra/local/helm
+      argocd_root: infra/gitops/argocd
+      dags_root: dags
+  script_contract:
+    blueprint_managed_roots:
+      - scripts/bin/blueprint/
+      - scripts/lib/blueprint/
+      - scripts/bin/infra/
+      - scripts/bin/quality/
+      - scripts/bin/docs/
+    platform_editable_roots:
+      - scripts/bin/platform/
+      - scripts/lib/platform/
+
+  profiles:
+    default: local-full
+    supported:
+      - local-full
+      - local-lite
+      - stackit-dev
+      - stackit-stage
+      - stackit-prod
+    profile_contract:
+      local-full:
+        description: "Local KinD stack with optional modules available."
+      local-lite:
+        description: "Local KinD stack without heavy optional services by default."
+      stackit-dev:
+        description: "Managed STACKIT deployment for dev."
+      stackit-stage:
+        description: "Managed STACKIT deployment for stage."
+      stackit-prod:
+        description: "Managed STACKIT deployment for prod."
+
+  architecture:
+    ddd_clean_architecture_required: true
+    logical_boundaries:
+      - domain
+      - application
+      - infrastructure
+      - presentation
+    dependency_rule: "Outer layers may depend on inner; inner layers never depend on outer."
+    airflow_dag_layout:
+      dag_entrypoints_root: dags/
+      shared_bootstrap_file: dags/_bootstrap.py
+      forbid_dag_entrypoints_under: apps/**
+      airflowignore_must_restrict_parser_scope: true
+
+  stack_contract:
+    local:
+      kubernetes: kind
+      provisioning: crossplane
+      deployment: argocd
+      secrets: external-secrets-operator
+      observability:
+        optional_module_id: observability
+        default_enabled: false
+        allowed_installers:
+          - helm
+          - crossplane-provider-helm
+    stackit:
+      provisioning: terraform
+      deployment: argocd
+      secrets: stackit-secrets-manager-plus-eso
+      authn_authz: keycloak
+      observability:
+        optional_module_id: observability
+        default_enabled: false
+        managed_service: stackit-observability
+
+  toggles:
+    OBSERVABILITY_ENABLED:
+      type: boolean
+      default: false
+      required: true
+      description: "Canonical optional-module switch for observability stack and OTEL runtime wiring."
+    WORKFLOWS_ENABLED:
+      type: boolean
+      default: false
+      required: false
+      description: "Optional-module switch for STACKIT Workflows (Managed Airflow) provisioning/deployment."
+    LANGFUSE_ENABLED:
+      type: boolean
+      default: false
+      required: false
+      description: "Optional-module switch for Langfuse provisioning/deployment."
+    POSTGRES_ENABLED:
+      type: boolean
+      default: false
+      required: false
+      description: "Optional-module switch for Postgres provisioning/deployment."
+    NEO4J_ENABLED:
+      type: boolean
+      default: false
+      required: false
+      description: "Optional-module switch for Neo4j provisioning/deployment."
+
+  tech_preferences:
+    frontend:
+      required:
+        - vue_latest_stable
+        - vue_router_latest_stable
+        - pinia
+        - onyx_design_system
+    backend:
+      allowed_primary_stacks:
+        - go_plus_gin
+        - kotlin_plus_ktor
+        - python_plus_fastapi_pydantic_v2
+    workflows:
+      required:
+        - apache_airflow_taskflow
+    testing:
+      required:
+        - unit_tests
+        - integration_tests
+        - contract_tests_pact
+        - e2e_tests
+      preferred_frameworks:
+        - vitest
+        - playwright
+        - pact
+        - pytest
+
+  docs_contract:
+    source_format: markdown
+    site_generator: docusaurus
+    must_support_mermaid: true
+    required_diagrams:
+      - docs/blueprint/architecture/system_overview.md
+    docs_storytelling_required: true
+    edit_link_enabled: true
+    blueprint_docs:
+      root: docs/blueprint
+      sync_policy: strict_template_sync
+    platform_docs:
+      root: docs/platform
+      seed_mode: create_if_missing
+      bootstrap_command: make blueprint-bootstrap
+      template_root: scripts/templates/blueprint/bootstrap/docs/platform
+      required_seed_files:
+        - docs/platform/consumer/first_30_minutes.md
+        - docs/platform/README.md
+        - docs/platform/consumer/quickstart.md
+        - docs/platform/consumer/troubleshooting.md
+        - docs/platform/consumer/upgrade_runbook.md
+        - docs/platform/modules/observability/README.md
+        - docs/platform/modules/workflows/README.md
+        - docs/platform/modules/langfuse/README.md
+        - docs/platform/modules/postgres/README.md
+        - docs/platform/modules/neo4j/README.md
+
+  make_contract:
+    required_namespaces:
+      - blueprint-
+      - quality-
+      - infra-
+      - apps-
+      - backend-
+      - touchpoints-
+      - test-
+      - docs-
+    required_targets:
+      - help
+      - blueprint-init-repo
+      - blueprint-init-repo-interactive
+      - blueprint-check-placeholders
+      - blueprint-template-smoke
+      - blueprint-release-notes
+      - blueprint-migrate
+      - blueprint-bootstrap
+      - blueprint-clean-generated
+      - blueprint-render-makefile
+      - blueprint-render-module-wrapper-skeletons
+      - quality-hooks-run
+      - infra-prereqs
+      - infra-help-reference
+      - infra-bootstrap
+      - infra-validate
+      - infra-smoke
+      - infra-provision
+      - infra-deploy
+      - infra-provision-deploy
+      - infra-stackit-bootstrap-preflight
+      - infra-stackit-bootstrap-plan
+      - infra-stackit-bootstrap-apply
+      - infra-stackit-bootstrap-destroy
+      - infra-stackit-foundation-preflight
+      - infra-stackit-foundation-plan
+      - infra-stackit-foundation-apply
+      - infra-stackit-foundation-destroy
+      - infra-stackit-foundation-fetch-kubeconfig
+      - infra-stackit-foundation-refresh-kubeconfig
+      - infra-stackit-ci-github-setup
+      - infra-stackit-destroy-all
+      - infra-stackit-runtime-prerequisites
+      - infra-stackit-runtime-inventory
+      - infra-stackit-runtime-deploy
+      - infra-stackit-smoke-foundation
+      - infra-stackit-smoke-runtime
+      - infra-stackit-provision-deploy
+      - infra-argocd-topology-render
+      - infra-argocd-topology-validate
+      - infra-doctor
+      - infra-context
+      - infra-status
+      - infra-status-json
+      - infra-audit-version
+      - infra-audit-version-cached
+      - apps-bootstrap
+      - apps-smoke
+      - apps-audit-versions
+      - apps-audit-versions-cached
+      - apps-publish-ghcr
+      - backend-test-unit
+      - backend-test-integration
+      - backend-test-contracts
+      - backend-test-e2e
+      - touchpoints-test-unit
+      - touchpoints-test-integration
+      - touchpoints-test-contracts
+      - touchpoints-test-e2e
+      - test-unit-all
+      - test-integration-all
+      - test-contracts-all
+      - test-e2e-all-local
+      - docs-install
+      - docs-run
+      - docs-build
+      - docs-smoke
+    ownership:
+      root_loader_file: Makefile
+      blueprint_generated_file: make/blueprint.generated.mk
+      platform_editable_file: make/platform.mk
+      platform_editable_include_dir: make/platform
+      platform_seed_mode: create_if_missing
+    optional_target_materialization:
+      mode: conditional
+      source_template: scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl
+      output_file: make/blueprint.generated.mk
+      materialization_command: make blueprint-render-makefile
+
+  versioning:
+    latest_stable_required: true
+    pin_all_versions: true
+    semver_drift_policy:
+      patch_drift: fail
+      minor_drift: warn
+      major_drift: fail
+      non_semver: warn
+
+  security_contract:
+    secret_management:
+      - no_plaintext_secrets_in_git
+      - use_eso_for_k8s_secret_materialization
+    logging:
+      structured_logs_required: true
+      pii_or_secret_leakage_forbidden: true
+    oidc:
+      keycloak_supported: true
+
+  observability_contract:
+    required_telemetry_types:
+      - metrics
+      - logs
+      - traces
+    required_signal_propagation:
+      - trace_id_end_to_end
+    required_runtime_checks:
+      - collector_health
+      - metrics_ingestion
+      - logs_ingestion
+      - traces_ingestion
+
+  optional_modules:
+    root: blueprint/modules
+    disabled_scaffold_policy:
+      mode: prune_on_bootstrap
+      command: make infra-bootstrap
+    modules:
+      observability:
+        enabled_by_default: false
+        enable_flag: OBSERVABILITY_ENABLED
+        contract_path: blueprint/modules/observability/module.contract.yaml
+        terraform_path: infra/cloud/stackit/terraform/modules/observability
+        helm_path: infra/local/helm/observability
+        gitops_path: infra/gitops/argocd/optional/${ENV}/observability.yaml
+        docs_path: docs/platform/modules/observability/README.md
+        tests_path: tests/infra/modules/observability
+        make_targets_mode: conditional
+        make_targets:
+          - infra-observability-plan
+          - infra-observability-apply
+          - infra-observability-deploy
+          - infra-observability-smoke
+          - infra-observability-destroy
+      workflows:
+        enabled_by_default: false
+        enable_flag: WORKFLOWS_ENABLED
+        scaffolding_mode: conditional
+        paths_required_when_enabled:
+          - dags_path
+          - terraform_path
+          - gitops_path
+          - tests_path
+        contract_path: blueprint/modules/workflows/module.contract.yaml
+        dags_path: dags/
+        terraform_path: infra/cloud/stackit/terraform/modules/workflows
+        gitops_path: infra/gitops/argocd/optional/${ENV}/workflows.yaml
+        docs_path: docs/platform/modules/workflows/README.md
+        tests_path: tests/infra/modules/workflows
+        make_targets_mode: conditional
+        make_targets:
+          - infra-stackit-workflows-plan
+          - infra-stackit-workflows-apply
+          - infra-stackit-workflows-reconcile
+          - infra-stackit-workflows-dag-deploy
+          - infra-stackit-workflows-dag-parse-smoke
+          - infra-stackit-workflows-smoke
+          - infra-stackit-workflows-destroy
+      langfuse:
+        enabled_by_default: false
+        enable_flag: LANGFUSE_ENABLED
+        scaffolding_mode: conditional
+        paths_required_when_enabled:
+          - terraform_path
+          - gitops_path
+          - tests_path
+        contract_path: blueprint/modules/langfuse/module.contract.yaml
+        terraform_path: infra/cloud/stackit/terraform/modules/langfuse
+        gitops_path: infra/gitops/argocd/optional/${ENV}/langfuse.yaml
+        docs_path: docs/platform/modules/langfuse/README.md
+        tests_path: tests/infra/modules/langfuse
+        make_targets_mode: conditional
+        make_targets:
+          - infra-langfuse-plan
+          - infra-langfuse-apply
+          - infra-langfuse-deploy
+          - infra-langfuse-smoke
+          - infra-langfuse-destroy
+      postgres:
+        enabled_by_default: false
+        enable_flag: POSTGRES_ENABLED
+        scaffolding_mode: conditional
+        paths_required_when_enabled:
+          - terraform_path
+          - helm_path
+          - tests_path
+        contract_path: blueprint/modules/postgres/module.contract.yaml
+        terraform_path: infra/cloud/stackit/terraform/modules/postgres
+        helm_path: infra/local/helm/postgres/values.yaml
+        docs_path: docs/platform/modules/postgres/README.md
+        tests_path: tests/infra/modules/postgres
+        make_targets_mode: conditional
+        make_targets:
+          - infra-postgres-plan
+          - infra-postgres-apply
+          - infra-postgres-smoke
+          - infra-postgres-destroy
+      neo4j:
+        enabled_by_default: false
+        enable_flag: NEO4J_ENABLED
+        scaffolding_mode: conditional
+        paths_required_when_enabled:
+          - terraform_path
+          - helm_path
+          - gitops_path
+          - tests_path
+        contract_path: blueprint/modules/neo4j/module.contract.yaml
+        terraform_path: infra/cloud/stackit/terraform/modules/neo4j
+        helm_path: infra/local/helm/neo4j/values.yaml
+        gitops_path: infra/gitops/argocd/optional/${ENV}/neo4j.yaml
+        docs_path: docs/platform/modules/neo4j/README.md
+        tests_path: tests/infra/modules/neo4j
+        make_targets_mode: conditional
+        make_targets:
+          - infra-neo4j-plan
+          - infra-neo4j-apply
+          - infra-neo4j-deploy
+          - infra-neo4j-smoke
+          - infra-neo4j-destroy

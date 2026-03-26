@@ -1,0 +1,77 @@
+apiVersion: blueprint.module.contract/v1alpha1
+kind: OptionalModuleContract
+metadata:
+  name: langfuse
+  version: 1.0.0
+spec:
+  module_id: langfuse
+  purpose: "Deploy Langfuse with OIDC authentication and LLM observability wiring."
+  enabled_by_default: false
+  enable_flag: LANGFUSE_ENABLED
+
+  paths:
+    terraform: infra/cloud/stackit/terraform/modules/langfuse
+    helm: infra/local/helm/langfuse/values.yaml
+    gitops: infra/gitops/argocd/optional/${ENV}/langfuse.yaml
+    docs: docs/platform/modules/langfuse/README.md
+    tests: tests/infra/modules/langfuse
+
+  dependencies:
+    required_core_capabilities:
+      - argocd_available
+      - keycloak_available
+      - object_storage_or_s3_compatible
+      - postgres_available
+      - redis_available
+
+  inputs:
+    required_env:
+      - LANGFUSE_PUBLIC_DOMAIN
+      - LANGFUSE_OIDC_ISSUER_URL
+      - LANGFUSE_OIDC_CLIENT_ID
+      - LANGFUSE_OIDC_CLIENT_SECRET
+      - LANGFUSE_DATABASE_URL
+      - LANGFUSE_SALT
+      - LANGFUSE_ENCRYPTION_KEY
+      - LANGFUSE_NEXTAUTH_SECRET
+    optional_env:
+      - LANGFUSE_SMTP_URL
+      - LANGFUSE_RETENTION_DAYS
+      - LANGFUSE_BASE_PATH
+    domain_template_example: "dhe-langfuse-${ENV}.runs.onstackit.cloud"
+
+  oidc_contract:
+    mode: app_level_oidc
+    required_claims:
+      - sub
+      - email
+      - preferred_username
+    role_mapping_required: true
+
+  outputs:
+    produced:
+      - LANGFUSE_PUBLIC_URL
+      - LANGFUSE_HEALTH_STATUS
+
+  make_targets:
+    plan: infra-langfuse-plan
+    apply: infra-langfuse-apply
+    deploy: infra-langfuse-deploy
+    smoke: infra-langfuse-smoke
+    destroy: infra-langfuse-destroy
+
+  smoke_checks:
+    - "Langfuse web pod healthy"
+    - "OIDC login succeeds"
+    - "Traces are ingested with non-empty input/output fields"
+
+  failure_modes:
+    - code: LANGFUSE_OIDC_PROVIDER_MISMATCH
+      symptom: "Please sign in with the same provider"
+      likely_root_cause: "account/provider mismatch or wrong OIDC wiring"
+    - code: LANGFUSE_DB_UNAVAILABLE
+      symptom: "startup/crashloop due DB connection"
+      likely_root_cause: "invalid DSN, ACL, or DB unavailable"
+
+  cleanup_contract:
+    destroy_target: infra-langfuse-destroy

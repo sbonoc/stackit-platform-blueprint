@@ -1,0 +1,30 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-merge-conflict
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-yaml
+      - id: check-added-large-files
+  - repo: local
+    hooks:
+      - id: bash-syntax
+        name: bash syntax check
+        language: system
+        entry: bash -n
+        files: \.sh$
+      - id: infra-audit-version-cached
+        name: infra audit version cached (pre-push)
+        language: system
+        entry: make infra-audit-version-cached
+        pass_filenames: false
+        stages: [pre-push]
+        always_run: true
+      - id: apps-audit-versions-cached
+        name: apps audit versions cached (pre-push)
+        language: system
+        entry: make apps-audit-versions-cached
+        pass_filenames: false
+        stages: [pre-push]
+        always_run: true

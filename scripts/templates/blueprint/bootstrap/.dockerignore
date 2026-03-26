@@ -1,0 +1,10 @@
+.git
+.gitignore
+.github
+.venv
+__pycache__
+.pytest_cache
+node_modules
+artifacts
+docs/build
+docs/.docusaurus

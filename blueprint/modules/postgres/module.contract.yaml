@@ -1,0 +1,72 @@
+apiVersion: blueprint.module.contract/v1alpha1
+kind: OptionalModuleContract
+metadata:
+  name: postgres
+  version: 1.0.0
+spec:
+  module_id: postgres
+  purpose: "Provision PostgreSQL and expose canonical DSN/credentials for runtime consumers."
+  enabled_by_default: false
+  enable_flag: POSTGRES_ENABLED
+
+  paths:
+    terraform: infra/cloud/stackit/terraform/modules/postgres
+    helm: infra/local/helm/postgres/values.yaml
+    docs: docs/platform/modules/postgres/README.md
+    tests: tests/infra/modules/postgres
+
+  dependencies:
+    required_core_capabilities:
+      - stackit_project_access
+      - ske_cluster_or_local_k8s
+
+  inputs:
+    required_env:
+      - POSTGRES_INSTANCE_NAME
+      - POSTGRES_DB_NAME
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+    optional_env:
+      - POSTGRES_VERSION
+      - POSTGRES_PORT
+      - POSTGRES_EXTRA_ALLOWED_CIDRS
+      - POSTGRES_CONNECT_TIMEOUT_SECONDS
+    defaults:
+      POSTGRES_PORT: 5432
+      POSTGRES_CONNECT_TIMEOUT_SECONDS: 30
+
+  network_acl_contract:
+    auto_align_with_ske_egress_ranges: true
+    merge_mode: "ske_egress_plus_explicit_extras"
+    forbid_default_open_world: true
+
+  outputs:
+    produced:
+      - POSTGRES_HOST
+      - POSTGRES_PORT
+      - POSTGRES_DB
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_DSN
+
+  make_targets:
+    plan: infra-postgres-plan
+    apply: infra-postgres-apply
+    smoke: infra-postgres-smoke
+    destroy: infra-postgres-destroy
+
+  smoke_checks:
+    - "TCP connectivity to postgres endpoint"
+    - "Authentication with provisioned user"
+    - "Read/write sanity query"
+
+  failure_modes:
+    - code: POSTGRES_409_OWNER_MISSING
+      symptom: "owner user does not exist"
+      likely_root_cause: "database/user creation order mismatch"
+    - code: POSTGRES_TIMEOUT
+      symptom: "connection timeout expired"
+      likely_root_cause: "ACL not aligned or endpoint unreachable"
+
+  cleanup_contract:
+    destroy_target: infra-postgres-destroy

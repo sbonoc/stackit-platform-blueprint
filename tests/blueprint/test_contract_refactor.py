@@ -1,0 +1,827 @@
+from __future__ import annotations
+
+from pathlib import Path
+import re
+import subprocess
+import sys
+import tempfile
+import unittest
+
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+
+
+def _read(path: str) -> str:
+    return (REPO_ROOT / path).read_text(encoding="utf-8")
+
+
+def _line_indent(line: str) -> int:
+    return len(line) - len(line.lstrip(" "))
+
+
+def _strip_yaml_scalar(value: str) -> str:
+    return value.strip().strip('"').strip("'")
+
+
+def _extract_yaml_section(lines: list[str], marker: str) -> list[str]:
+    marker_index = -1
+    marker_indent = -1
+    for idx, line in enumerate(lines):
+        if line.strip() == f"{marker}:":
+            marker_index = idx
+            marker_indent = _line_indent(line)
+            break
+
+    if marker_index == -1:
+        return []
+
+    section: list[str] = []
+    for line in lines[marker_index + 1 :]:
+        if not line.strip():
+            continue
+        if _line_indent(line) <= marker_indent:
+            break
+        section.append(line)
+    return section
+
+
+def _extract_yaml_scalar(lines: list[str], key: str) -> str:
+    pattern = re.compile(rf"^\s*{re.escape(key)}:\s*(.+?)\s*$")
+    for line in lines:
+        match = pattern.match(line)
+        if match:
+            return _strip_yaml_scalar(match.group(1))
+    return ""
+
+
+def _extract_yaml_list(lines: list[str], marker: str) -> list[str]:
+    section = _extract_yaml_section(lines, marker)
+    values: list[str] = []
+    for line in section:
+        stripped = line.strip()
+        if stripped.startswith("- "):
+            values.append(_strip_yaml_scalar(stripped[2:]))
+    return values
+
+
+def _make_targets() -> set[str]:
+    targets: set[str] = set()
+    pattern = re.compile(r"^([A-Za-z0-9_.-]+):")
+    makefiles = [REPO_ROOT / "Makefile"]
+    make_root = REPO_ROOT / "make"
+    if make_root.is_dir():
+        makefiles.extend(sorted(path for path in make_root.rglob("*.mk") if path.is_file()))
+    for makefile in makefiles:
+        for line in makefile.read_text(encoding="utf-8").splitlines():
+            match = pattern.match(line)
+            if not match:
+                continue
+            target = match.group(1)
+            if target == ".PHONY":
+                continue
+            targets.add(target)
+    return targets
+
+
+class RefactorContractsTests(unittest.TestCase):
+    def _contract_lines(self) -> list[str]:
+        return _read("blueprint/contract.yaml").splitlines()
+
+    def test_quality_hooks_require_shellcheck(self) -> None:
+        hooks = _read("scripts/bin/quality/hooks_run.sh")
+        self.assertIn("require_command shellcheck", hooks)
+        self.assertIn("--severity=error", hooks)
+        self.assertNotIn("shellcheck not installed; skipping", hooks)
+
+    def test_pre_commit_hooks_include_cached_audits_and_shell_syntax(self) -> None:
+        pre_commit = _read(".pre-commit-config.yaml")
+        template_pre_commit = _read("scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml")
+
+        self.assertIn("- id: check-yaml", pre_commit)
+        self.assertIn("- id: check-added-large-files", pre_commit)
+        self.assertIn("- id: bash-syntax", pre_commit)
+        self.assertIn("entry: bash -n", pre_commit)
+        self.assertIn("files: \\.sh$", pre_commit)
+        self.assertIn("- id: infra-audit-version-cached", pre_commit)
+        self.assertIn("- id: apps-audit-versions-cached", pre_commit)
+        self.assertGreaterEqual(pre_commit.count("stages: [pre-push]"), 2)
+        self.assertIn("pass_filenames: false", pre_commit)
+        self.assertIn("always_run: true", pre_commit)
+        self.assertEqual(pre_commit, template_pre_commit)
+
+    def test_validate_command_is_contract_driven(self) -> None:
+        validate_sh = _read("scripts/bin/infra/validate.sh")
+        self.assertIn("scripts/bin/blueprint/validate_contract.py", validate_sh)
+        self.assertIn("--contract-path \"$ROOT_DIR/blueprint/contract.yaml\"", validate_sh)
+
+    def test_contract_template_bootstrap_metadata_is_canonical(self) -> None:
+        contract_lines = self._contract_lines()
+        repository_section = _extract_yaml_section(contract_lines, "repository")
+        self.assertTrue(repository_section, msg="repository section is required in blueprint/contract.yaml")
+
+        branch_naming_section = _extract_yaml_section(repository_section, "branch_naming")
+        purpose_prefixes = set(_extract_yaml_list(branch_naming_section, "purpose_prefixes"))
+        self.assertEqual(_extract_yaml_scalar(branch_naming_section, "model"), "github-flow")
+        self.assertTrue(
+            {"feature/", "fix/", "chore/", "docs/"}.issubset(purpose_prefixes),
+            msg=f"missing required github-flow branch purpose prefixes: {purpose_prefixes}",
+        )
+
+        template_section = _extract_yaml_section(repository_section, "template_bootstrap")
+        self.assertEqual(_extract_yaml_scalar(template_section, "model"), "github-template")
+        self.assertEqual(_extract_yaml_scalar(template_section, "template_version"), "1.0.0")
+        self.assertEqual(_extract_yaml_scalar(template_section, "minimum_supported_upgrade_from"), "1.0.0")
+        self.assertEqual(_extract_yaml_scalar(template_section, "init_command"), "make blueprint-init-repo")
+        self.assertEqual(_extract_yaml_scalar(template_section, "upgrade_command"), "make blueprint-migrate")
+        self.assertEqual(_extract_yaml_scalar(template_section, "example_env_file"), "blueprint/repo.init.example.env")
+
+        required_inputs = set(_extract_yaml_list(template_section, "required_inputs"))
+        self.assertSetEqual(
+            required_inputs,
+            {
+                "BLUEPRINT_REPO_NAME",
+                "BLUEPRINT_GITHUB_ORG",
+                "BLUEPRINT_GITHUB_REPO",
+                "BLUEPRINT_DEFAULT_BRANCH",
+            },
+        )
+
+    def test_contract_surface_assets_targets_and_namespaces_are_present(self) -> None:
+        contract_lines = self._contract_lines()
+        required_files = set(_extract_yaml_list(contract_lines, "required_files"))
+        self.assertTrue(
+            {
+                ".github/workflows/template_release.yml",
+                ".gitignore",
+                ".dockerignore",
+                ".editorconfig",
+                ".pre-commit-config.yaml",
+                "make/blueprint.generated.mk",
+                "make/platform.mk",
+                "docs/blueprint/README.md",
+                "docs/blueprint/architecture/system_overview.md",
+                "docs/blueprint/architecture/execution_model.md",
+                "docs/blueprint/governance/template_release_policy.md",
+                "docs/blueprint/governance/ownership_matrix.md",
+                "docs/platform/README.md",
+                "docs/platform/consumer/first_30_minutes.md",
+                "docs/platform/consumer/quickstart.md",
+                "docs/platform/consumer/troubleshooting.md",
+                "docs/platform/consumer/upgrade_runbook.md",
+                "docs/platform/modules/observability/README.md",
+                "docs/platform/modules/workflows/README.md",
+                "docs/platform/modules/langfuse/README.md",
+                "docs/platform/modules/postgres/README.md",
+                "docs/platform/modules/neo4j/README.md",
+                "scripts/templates/blueprint/bootstrap/Makefile",
+                "scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl",
+                "scripts/templates/blueprint/bootstrap/make/platform.mk",
+                "scripts/lib/blueprint/bootstrap_templates.sh",
+                "scripts/lib/blueprint/contract_schema.py",
+                "scripts/lib/blueprint/generate_module_wrapper_skeletons.py",
+                "scripts/bin/blueprint/clean_generated.sh",
+                "scripts/bin/blueprint/init_repo_interactive.sh",
+                "scripts/bin/blueprint/render_module_wrapper_skeletons.sh",
+                "tests/__init__.py",
+                "tests/blueprint/__init__.py",
+                "tests/infra/__init__.py",
+                "tests/docs/__init__.py",
+                "tests/e2e/__init__.py",
+                "tests/_shared/__init__.py",
+                "tests/_shared/helpers.py",
+            }.issubset(required_files),
+            msg="contract required_files is missing canonical blueprint assets",
+        )
+
+        required_namespaces = set(_extract_yaml_list(contract_lines, "required_namespaces"))
+        self.assertTrue(
+            {"blueprint-", "quality-", "infra-", "apps-", "backend-", "touchpoints-", "test-", "docs-"}
+            .issubset(required_namespaces)
+        )
+        required_paths = set(_extract_yaml_list(contract_lines, "required_paths"))
+        self.assertTrue(
+            {
+                "tests/blueprint/",
+                "tests/infra/",
+                "tests/docs/",
+                "tests/e2e/",
+                "tests/_shared/",
+                "make/",
+                "make/platform/",
+                "scripts/bin/platform/",
+                "scripts/lib/platform/",
+            }
+            .issubset(required_paths)
+        )
+
+        required_targets = set(_extract_yaml_list(contract_lines, "required_targets"))
+        self.assertTrue(
+            {
+                "blueprint-init-repo",
+                "blueprint-init-repo-interactive",
+                "blueprint-check-placeholders",
+                "blueprint-template-smoke",
+                "blueprint-release-notes",
+                "blueprint-migrate",
+                "blueprint-bootstrap",
+                "blueprint-clean-generated",
+                "blueprint-render-makefile",
+                "blueprint-render-module-wrapper-skeletons",
+                "infra-prereqs",
+                "infra-help-reference",
+                "infra-stackit-ci-github-setup",
+                "infra-audit-version-cached",
+                "apps-audit-versions-cached",
+                "apps-publish-ghcr",
+                "docs-build",
+                "docs-smoke",
+            }.issubset(required_targets),
+            msg="contract required_targets is missing canonical blueprint/stackit/docs targets",
+        )
+
+    def test_make_contract_optional_materialization_is_canonical(self) -> None:
+        contract_lines = self._contract_lines()
+        make_contract_section = _extract_yaml_section(contract_lines, "make_contract")
+        required_targets = set(_extract_yaml_list(contract_lines, "required_targets"))
+        required_namespaces = set(_extract_yaml_list(contract_lines, "required_namespaces"))
+        optional_target_materialization = _extract_yaml_section(
+            make_contract_section,
+            "optional_target_materialization",
+        )
+        self.assertEqual(_extract_yaml_scalar(optional_target_materialization, "mode"), "conditional")
+        self.assertEqual(
+            _extract_yaml_scalar(optional_target_materialization, "source_template"),
+            "scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl",
+        )
+        self.assertEqual(
+            _extract_yaml_scalar(optional_target_materialization, "output_file"),
+            "make/blueprint.generated.mk",
+        )
+        self.assertEqual(
+            _extract_yaml_scalar(optional_target_materialization, "materialization_command"),
+            "make blueprint-render-makefile",
+        )
+
+        make_targets = _make_targets()
+        self.assertTrue(required_targets.issubset(make_targets), msg="contract required_targets drifted from Makefile")
+        for namespace in required_namespaces:
+            self.assertTrue(any(target.startswith(namespace) for target in make_targets))
+
+    def test_validator_has_core_contract_sections(self) -> None:
+        validate_py = _read("scripts/bin/blueprint/validate_contract.py")
+        self.assertIn("load_blueprint_contract", validate_py)
+        for marker in (
+            "_validate_optional_target_materialization_contract",
+            "_validate_template_bootstrap_contract",
+            "_validate_branch_naming_contract",
+            "_validate_optional_module_make_targets",
+            "_validate_module_wrapper_skeleton_templates",
+            "_validate_bootstrap_template_sync",
+            "_validate_make_ownership_contract",
+            "_validate_script_ownership_contract",
+            "_validate_platform_docs_seed_contract",
+        ):
+            self.assertIn(marker, validate_py)
+        self.assertNotIn("def _extract_yaml_list", validate_py)
+
+    def test_docs_generator_uses_schema_driven_contract_loader(self) -> None:
+        docs_generator = _read("scripts/lib/docs/generate_contract_docs.py")
+        self.assertIn("load_blueprint_contract", docs_generator)
+        self.assertIn("load_module_contract", docs_generator)
+        self.assertNotIn("def extract_scalar(", docs_generator)
+
+    def test_blueprint_bootstrap_seeds_templates_from_single_list(self) -> None:
+        bootstrap = _read("scripts/bin/blueprint/bootstrap.sh")
+        self.assertIn("local template_files=(", bootstrap)
+        self.assertIn('"make/platform.mk"', bootstrap)
+        self.assertIn('"blueprint/repo.init.example.env"', bootstrap)
+        self.assertIn('"docs/platform/consumer/quickstart.md"', bootstrap)
+        self.assertIn('"docs/platform/consumer/first_30_minutes.md"', bootstrap)
+        self.assertIn('"docs/blueprint/governance/template_release_policy.md"', bootstrap)
+        self.assertIn('"docs/blueprint/governance/ownership_matrix.md"', bootstrap)
+        self.assertIn('log_metric "blueprint_template_file_count" "${#template_files[@]}"', bootstrap)
+        self.assertIn(
+            "pre-commit install --install-hooks --hook-type pre-commit --hook-type pre-push",
+            bootstrap,
+        )
+
+    def test_bootstrap_ignore_templates_cover_generated_outputs(self) -> None:
+        bootstrap = _read("scripts/bin/blueprint/bootstrap.sh")
+        gitignore_template = _read("scripts/templates/blueprint/bootstrap/.gitignore")
+        dockerignore_template = _read("scripts/templates/blueprint/bootstrap/.dockerignore")
+
+        self.assertIn('".gitignore"', bootstrap)
+        self.assertIn('".dockerignore"', bootstrap)
+
+        self.assertIn("artifacts/", gitignore_template)
+        self.assertIn("docs/build/", gitignore_template)
+        self.assertIn("docs/.docusaurus/", gitignore_template)
+
+        self.assertIn("artifacts", dockerignore_template)
+        self.assertIn("docs/build", dockerignore_template)
+        self.assertIn("docs/.docusaurus", dockerignore_template)
+
+    def test_bootstrap_docs_templates_are_synchronized(self) -> None:
+        template_root = REPO_ROOT / "scripts/templates/blueprint/bootstrap"
+        synced_docs = [
+            "docs/README.md",
+                "docs/blueprint/README.md",
+                "docs/blueprint/architecture/system_overview.md",
+                "docs/blueprint/architecture/execution_model.md",
+                "docs/blueprint/governance/template_release_policy.md",
+                "docs/blueprint/governance/ownership_matrix.md",
+            ]
+        for rel_path in synced_docs:
+            self.assertEqual(
+                (REPO_ROOT / rel_path).read_text(encoding="utf-8"),
+                (template_root / rel_path).read_text(encoding="utf-8"),
+                msg=f"bootstrap template drift for {rel_path}",
+            )
+
+    def test_platform_docs_are_seeded_but_not_template_synced(self) -> None:
+        contract_lines = _read("blueprint/contract.yaml").splitlines()
+        docs_contract = _extract_yaml_section(contract_lines, "docs_contract")
+        platform_docs = _extract_yaml_section(docs_contract, "platform_docs")
+        bootstrap = _read("scripts/bin/blueprint/bootstrap.sh")
+        bootstrap_lib = _read("scripts/lib/bootstrap.sh")
+        validate_py = _read("scripts/bin/blueprint/validate_contract.py")
+
+        self.assertEqual(_extract_yaml_scalar(platform_docs, "seed_mode"), "create_if_missing")
+        self.assertEqual(_extract_yaml_scalar(platform_docs, "bootstrap_command"), "make blueprint-bootstrap")
+        self.assertIn("docs/platform/consumer/quickstart.md", _extract_yaml_list(platform_docs, "required_seed_files"))
+
+        self.assertIn('"docs/platform/consumer/quickstart.md"', bootstrap)
+        self.assertIn("if [[ -f \"$path\" ]]; then", bootstrap_lib)
+        self.assertIn("_validate_platform_docs_seed_contract", validate_py)
+        self.assertNotIn('"docs/platform/consumer/quickstart.md",', validate_py)
+
+    def test_platform_make_is_seeded_but_not_template_synced(self) -> None:
+        contract_lines = _read("blueprint/contract.yaml").splitlines()
+        make_contract = _extract_yaml_section(contract_lines, "make_contract")
+        ownership = _extract_yaml_section(make_contract, "ownership")
+        bootstrap = _read("scripts/bin/blueprint/bootstrap.sh")
+        bootstrap_lib = _read("scripts/lib/bootstrap.sh")
+        validate_py = _read("scripts/bin/blueprint/validate_contract.py")
+
+        self.assertEqual(_extract_yaml_scalar(ownership, "platform_seed_mode"), "create_if_missing")
+        self.assertEqual(_extract_yaml_scalar(ownership, "platform_editable_file"), "make/platform.mk")
+        self.assertEqual(_extract_yaml_scalar(ownership, "blueprint_generated_file"), "make/blueprint.generated.mk")
+        self.assertIn('"make/platform.mk"', bootstrap)
+        self.assertIn("if [[ -f \"$path\" ]]; then", bootstrap_lib)
+        self.assertIn("_validate_make_ownership_contract", validate_py)
+        self.assertNotIn('"make/platform.mk",', validate_py)
+
+    def test_docs_readme_points_to_command_discovery(self) -> None:
+        docs_readme = _read("docs/README.md")
+        self.assertIn("make quality-hooks-run", docs_readme)
+        self.assertIn("make docs-run", docs_readme)
+        self.assertIn("make blueprint-bootstrap", docs_readme)
+        self.assertIn("make blueprint-render-module-wrapper-skeletons", docs_readme)
+        self.assertIn("make blueprint-clean-generated", docs_readme)
+        self.assertIn("make help", docs_readme)
+        self.assertIn("make infra-help-reference", docs_readme)
+        self.assertIn("materializes/prunes optional-module infra scaffolding", docs_readme)
+        self.assertIn("[Blueprint Docs](blueprint/README.md)", docs_readme)
+        self.assertIn("[Platform Docs](platform/README.md)", docs_readme)
+
+    def test_module_lifecycle_runner_is_canonical(self) -> None:
+        module_lifecycle = _read("scripts/lib/infra/module_lifecycle.sh")
+        provision = _read("scripts/bin/infra/provision.sh")
+        deploy = _read("scripts/bin/infra/deploy.sh")
+        smoke = _read("scripts/bin/infra/smoke.sh")
+
+        self.assertIn("run_enabled_modules_action()", module_lifecycle)
+        self.assertIn("module_action_scripts()", module_lifecycle)
+        self.assertIn("source \"$ROOT_DIR/scripts/lib/infra/module_lifecycle.sh\"", provision)
+        self.assertIn("source \"$ROOT_DIR/scripts/lib/infra/module_lifecycle.sh\"", deploy)
+        self.assertIn("source \"$ROOT_DIR/scripts/lib/infra/module_lifecycle.sh\"", smoke)
+        self.assertIn("run_enabled_modules_action plan", provision)
+        self.assertIn("run_enabled_modules_action apply", provision)
+        self.assertIn("run_enabled_modules_action deploy", deploy)
+        self.assertIn("run_enabled_modules_action smoke", smoke)
+        self.assertIn("module_action_enabled_count", module_lifecycle)
+        self.assertIn("module_action_script_count", module_lifecycle)
+
+    def test_bootstrap_prunes_disabled_optional_scaffolding(self) -> None:
+        bootstrap = _read("scripts/bin/infra/bootstrap.sh")
+        self.assertIn(
+            'ensure_file_from_template "$ROOT_DIR/tests/infra/modules/observability/README.md" "infra" "tests/infra/modules/observability/README.md"',
+            bootstrap,
+        )
+        self.assertIn("prune_optional_module_scaffolding()", bootstrap)
+        self.assertIn("prune_path_if_exists()", bootstrap)
+        self.assertIn("optional_module_pruned_path_count", bootstrap)
+        self.assertIn('prune_path_if_exists "$ROOT_DIR/dags"', bootstrap)
+        self.assertIn('prune_path_if_exists "$ROOT_DIR/infra/cloud/stackit/terraform/modules/langfuse"', bootstrap)
+        self.assertIn('prune_path_if_exists "$ROOT_DIR/infra/local/helm/postgres"', bootstrap)
+        self.assertIn('prune_path_if_exists "$ROOT_DIR/tests/infra/modules/workflows"', bootstrap)
+        self.assertIn('prune_path_if_exists "$ROOT_DIR/tests/infra/modules/langfuse"', bootstrap)
+        self.assertIn('prune_path_if_exists "$ROOT_DIR/tests/infra/modules/postgres"', bootstrap)
+        self.assertIn('prune_path_if_exists "$ROOT_DIR/tests/infra/modules/neo4j"', bootstrap)
+        self.assertIn('prune_path_if_exists "$ROOT_DIR/infra/gitops/argocd/optional/$env/neo4j.yaml"', bootstrap)
+
+    def test_docs_scripts_are_docusaurus_only(self) -> None:
+        docs_install = _read("scripts/bin/docs/install.sh")
+        docs_build = _read("scripts/bin/docs/build.sh")
+        docs_run = _read("scripts/bin/docs/run.sh")
+        docs_site = _read("scripts/lib/docs/site.sh")
+
+        self.assertIn("source \"$ROOT_DIR/scripts/lib/docs/site.sh\"", docs_install)
+        self.assertIn("source \"$ROOT_DIR/scripts/lib/docs/site.sh\"", docs_build)
+        self.assertIn("source \"$ROOT_DIR/scripts/lib/docs/site.sh\"", docs_run)
+        self.assertIn("docs_pnpm_install", docs_install)
+        self.assertIn("docs_pnpm_build", docs_build)
+        self.assertIn("docs_pnpm_start", docs_run)
+        self.assertIn("require_command pnpm", docs_site)
+        self.assertIn("docs_require_workspace()", docs_site)
+        self.assertNotIn("markdown contract docs generated only", docs_build)
+        self.assertNotIn("python http server", docs_run)
+
+    def test_apps_bootstrap_keeps_only_canonical_app_dirs(self) -> None:
+        apps_bootstrap = _read("scripts/bin/platform/apps/bootstrap.sh")
+        self.assertIn('ensure_dir "$ROOT_DIR/apps/backend"', apps_bootstrap)
+        self.assertIn('ensure_dir "$ROOT_DIR/apps/touchpoints"', apps_bootstrap)
+        self.assertIn('ensure_dir "$ROOT_DIR/apps/catalog"', apps_bootstrap)
+        self.assertNotIn('ensure_dir "$ROOT_DIR/apps/ingestion"', apps_bootstrap)
+
+    def test_crossplane_scaffold_is_placeholder_free(self) -> None:
+        crossplane_kustomization = _read("infra/local/crossplane/kustomization.yaml")
+        template_crossplane_kustomization = _read(
+            "scripts/templates/infra/bootstrap/infra/local/crossplane/kustomization.yaml"
+        )
+        bootstrap = _read("scripts/bin/infra/bootstrap.sh")
+
+        self.assertNotIn("provider-helm-placeholder.yaml", crossplane_kustomization)
+        self.assertNotIn("provider-helm-placeholder.yaml", template_crossplane_kustomization)
+        self.assertNotIn("provider-helm-placeholder.yaml", bootstrap)
+
+    def test_module_destroy_scripts_execute_cleanup_paths(self) -> None:
+        langfuse_destroy = _read("scripts/bin/infra/langfuse_destroy.sh")
+        neo4j_destroy = _read("scripts/bin/infra/neo4j_destroy.sh")
+        postgres_destroy = _read("scripts/bin/infra/postgres_destroy.sh")
+        observability_destroy = _read("scripts/bin/infra/observability_destroy.sh")
+        tooling = _read("scripts/lib/infra/tooling.sh")
+
+        self.assertIn("run_manifest_delete()", tooling)
+        self.assertIn("run_helm_uninstall()", tooling)
+        self.assertIn("run_manifest_delete", langfuse_destroy)
+        self.assertIn("run_manifest_delete", neo4j_destroy)
+        self.assertIn("run_terraform_action destroy", postgres_destroy)
+        self.assertIn("run_helm_uninstall", postgres_destroy)
+        self.assertIn("run_terraform_action destroy", observability_destroy)
+        self.assertIn("run_manifest_delete", observability_destroy)
+        self.assertIn("run_helm_uninstall", observability_destroy)
+
+    def test_dry_run_toggle_is_canonical(self) -> None:
+        tooling = _read("scripts/lib/infra/tooling.sh")
+        execution_model = _read("docs/blueprint/architecture/execution_model.md")
+        publish_ghcr = _read("scripts/bin/platform/apps/publish_ghcr.sh")
+
+        self.assertIn('${DRY_RUN:-true}', tooling)
+        self.assertNotIn("BLUEPRINT_EXECUTE_TOOLING", tooling)
+        self.assertIn("set DRY_RUN=false to execute", tooling)
+        self.assertIn("`DRY_RUN` controls whether cloud/cluster tools are executed", execution_model)
+        self.assertNotIn("BLUEPRINT_EXECUTE_TOOLING", execution_model)
+        self.assertIn("Default mode is dry-run unless DRY_RUN=false.", publish_ghcr)
+
+    def test_stackit_runtime_inventory_exports_are_redacted_by_default(self) -> None:
+        inventory = _read("scripts/bin/infra/stackit_runtime_inventory.sh")
+        self.assertIn("print_export_or_missing()", inventory)
+        self.assertIn("STACKIT_RUNTIME_INVENTORY_INCLUDE_SENSITIVE", inventory)
+        self.assertIn("# %s=<redacted>", inventory)
+        self.assertIn("STACKIT_WORKFLOWS_API_TOKEN", inventory)
+
+    def test_stackit_ci_setup_supports_dry_run_with_missing_secrets(self) -> None:
+        stackit_ci_setup = _read("scripts/bin/infra/stackit_github_ci_setup.sh")
+        self.assertIn("[dry-run] required secret value missing from environment", stackit_ci_setup)
+        self.assertIn("stackit_ci_github_setup_missing_secret_count", stackit_ci_setup)
+        self.assertIn('write_state_file "stackit_ci_github_setup"', stackit_ci_setup)
+
+    def test_metrics_are_enabled_for_core_wrapper_scripts(self) -> None:
+        metric_files = [
+            "scripts/bin/blueprint/init_repo.sh",
+            "scripts/bin/blueprint/init_repo_interactive.sh",
+            "scripts/bin/blueprint/check_placeholders.sh",
+            "scripts/bin/blueprint/template_smoke.sh",
+            "scripts/bin/blueprint/release_notes.sh",
+            "scripts/bin/blueprint/migrate.sh",
+            "scripts/bin/blueprint/bootstrap.sh",
+            "scripts/bin/blueprint/clean_generated.sh",
+            "scripts/bin/blueprint/render_makefile.sh",
+            "scripts/bin/blueprint/render_module_wrapper_skeletons.sh",
+            "scripts/bin/infra/bootstrap.sh",
+            "scripts/bin/infra/validate.sh",
+            "scripts/bin/infra/provision.sh",
+            "scripts/bin/infra/deploy.sh",
+            "scripts/bin/infra/smoke.sh",
+            "scripts/bin/infra/provision_deploy.sh",
+            "scripts/bin/infra/audit_version.sh",
+            "scripts/bin/infra/observability_plan.sh",
+            "scripts/bin/infra/observability_apply.sh",
+            "scripts/bin/infra/observability_deploy.sh",
+            "scripts/bin/infra/observability_smoke.sh",
+            "scripts/bin/infra/observability_destroy.sh",
+            "scripts/bin/infra/stackit_foundation_fetch_kubeconfig.sh",
+            "scripts/bin/infra/stackit_foundation_refresh_kubeconfig.sh",
+            "scripts/bin/infra/stackit_bootstrap_preflight.sh",
+            "scripts/bin/infra/stackit_bootstrap_plan.sh",
+            "scripts/bin/infra/stackit_bootstrap_apply.sh",
+            "scripts/bin/infra/stackit_bootstrap_destroy.sh",
+            "scripts/bin/infra/stackit_foundation_preflight.sh",
+            "scripts/bin/infra/stackit_foundation_plan.sh",
+            "scripts/bin/infra/stackit_foundation_apply.sh",
+            "scripts/bin/infra/stackit_foundation_destroy.sh",
+            "scripts/bin/infra/stackit_destroy_all.sh",
+            "scripts/bin/infra/stackit_runtime_prerequisites.sh",
+            "scripts/bin/infra/stackit_runtime_inventory.sh",
+            "scripts/bin/infra/stackit_runtime_deploy.sh",
+            "scripts/bin/infra/stackit_smoke_foundation.sh",
+            "scripts/bin/infra/stackit_smoke_runtime.sh",
+            "scripts/bin/infra/stackit_provision_deploy.sh",
+            "scripts/bin/infra/argocd_topology_render.sh",
+            "scripts/bin/infra/argocd_topology_validate.sh",
+            "scripts/bin/infra/doctor.sh",
+            "scripts/bin/infra/context.sh",
+            "scripts/bin/infra/status.sh",
+            "scripts/bin/infra/status_json.sh",
+            "scripts/bin/infra/prereqs.sh",
+            "scripts/bin/infra/help_reference.sh",
+            "scripts/bin/infra/stackit_github_ci_setup.sh",
+            "scripts/bin/platform/apps/audit_versions.sh",
+            "scripts/bin/platform/apps/audit_versions_cached.sh",
+            "scripts/bin/platform/apps/bootstrap.sh",
+            "scripts/bin/platform/apps/publish_ghcr.sh",
+            "scripts/bin/platform/apps/smoke.sh",
+            "scripts/bin/docs/install.sh",
+            "scripts/bin/docs/run.sh",
+            "scripts/bin/docs/build.sh",
+            "scripts/bin/docs/smoke.sh",
+            "scripts/bin/platform/test/unit_all.sh",
+            "scripts/bin/platform/test/integration_all.sh",
+            "scripts/bin/platform/test/contracts_all.sh",
+            "scripts/bin/platform/test/e2e_all_local.sh",
+            "scripts/bin/infra/langfuse_plan.sh",
+            "scripts/bin/infra/postgres_plan.sh",
+            "scripts/bin/infra/neo4j_plan.sh",
+            "scripts/bin/infra/stackit_workflows_plan.sh",
+            "scripts/bin/infra/audit_version_cached.sh",
+        ]
+        for path in metric_files:
+            self.assertIn("start_script_metric_trap", _read(path), msg=f"missing metric trap in {path}")
+        self.assertIn("pytest_lane_duration_seconds", _read("scripts/lib/platform/testing.sh"))
+
+    def test_blueprint_template_init_assets_exist(self) -> None:
+        init_script = _read("scripts/bin/blueprint/init_repo.sh")
+        init_interactive_script = _read("scripts/bin/blueprint/init_repo_interactive.sh")
+        init_python = _read("scripts/lib/blueprint/init_repo.py")
+        migrate_script = _read("scripts/bin/blueprint/migrate.sh")
+        migrate_python = _read("scripts/lib/blueprint/migrate_repo.py")
+        smoke_script = _read("scripts/bin/blueprint/template_smoke.sh")
+        placeholder_script = _read("scripts/bin/blueprint/check_placeholders.sh")
+        release_notes_script = _read("scripts/bin/blueprint/release_notes.sh")
+        release_notes_python = _read("scripts/lib/blueprint/generate_release_notes.py")
+        init_env = _read("blueprint/repo.init.example.env")
+
+        self.assertIn("blueprint_init_repo", init_script)
+        self.assertIn("--dry-run", init_script)
+        self.assertIn("BLUEPRINT_INIT_DRY_RUN", init_script)
+        self.assertIn("BLUEPRINT_REPO_NAME", init_script)
+        self.assertIn("BLUEPRINT_GITHUB_ORG", init_script)
+        self.assertIn("BLUEPRINT_GITHUB_REPO", init_script)
+        self.assertIn("BLUEPRINT_DEFAULT_BRANCH", init_script)
+        self.assertIn("blueprint_init_repo_interactive", init_interactive_script)
+        self.assertIn("BLUEPRINT_INIT_DRY_RUN", init_interactive_script)
+        self.assertIn("prompt_with_default", init_interactive_script)
+        self.assertIn("_render_contract", init_python)
+        self.assertIn("_render_docusaurus_config", init_python)
+        self.assertIn("--dry-run", init_python)
+        self.assertIn("blueprint_migrate", migrate_script)
+        self.assertIn("TARGET_TEMPLATE_VERSION", migrate_python)
+        self.assertIn("_migration_registry", migrate_python)
+        self.assertIn("_plan_migration_path", migrate_python)
+        self.assertIn("unsupported upgrade path", migrate_python)
+        self.assertIn("template_bootstrap.template_version", migrate_python)
+        self.assertIn("blueprint_template_smoke", smoke_script)
+        self.assertIn("make blueprint-bootstrap", smoke_script)
+        self.assertIn("make blueprint-check-placeholders", smoke_script)
+        self.assertIn("make apps-bootstrap", smoke_script)
+        self.assertIn("make infra-smoke", smoke_script)
+        self.assertIn("blueprint_check_placeholders", placeholder_script)
+        self.assertIn("BLUEPRINT_GITHUB_ORG", placeholder_script)
+        self.assertIn("blueprint_release_notes", release_notes_script)
+        self.assertIn("render_release_notes", release_notes_python)
+        self.assertIn("BLUEPRINT_REPO_NAME=", init_env)
+        self.assertIn("BLUEPRINT_GITHUB_ORG=", init_env)
+        self.assertIn("BLUEPRINT_GITHUB_REPO=", init_env)
+        self.assertIn("BLUEPRINT_DEFAULT_BRANCH=", init_env)
+
+    def test_template_release_workflow_and_docs_exist(self) -> None:
+        release_workflow = _read(".github/workflows/template_release.yml")
+        ci_workflow = _read(".github/workflows/ci.yml")
+        docs_readme = _read("docs/README.md")
+        sidebars = _read("docs/sidebars.js")
+        docusaurus_config = _read("docs/docusaurus.config.js")
+
+        self.assertIn('name: template-release', release_workflow)
+        self.assertIn('tags:', release_workflow)
+        self.assertIn('"v*"', release_workflow)
+        self.assertIn('make blueprint-release-notes', release_workflow)
+        self.assertIn('make blueprint-template-smoke', release_workflow)
+        self.assertIn('softprops/action-gh-release', release_workflow)
+        self.assertIn('Smoke blueprint-migrate end-to-end', ci_workflow)
+        self.assertIn('consumer-golden-conformance:', ci_workflow)
+        self.assertIn('Golden template-consumer conformance', ci_workflow)
+        self.assertIn('make blueprint-template-smoke', ci_workflow)
+        self.assertIn('contract-matrix:', ci_workflow)
+        self.assertIn('profile: [local-full, stackit-dev]', ci_workflow)
+        self.assertIn('observability_enabled: ["false", "true"]', ci_workflow)
+        self.assertIn('Validate contract-critical profile/flag matrix', ci_workflow)
+        self.assertIn(
+            'tests.blueprint.test_upgrade.BlueprintUpgradeTests.test_blueprint_migrate_make_target_smoke_in_template_copy',
+            ci_workflow,
+        )
+        self.assertIn('make infra-validate', ci_workflow)
+        self.assertIn('make infra-smoke', ci_workflow)
+        self.assertIn('pytest -q tests', ci_workflow)
+        self.assertNotIn('pytest -q tests/tooling', ci_workflow)
+        self.assertIn('Run canonical quality gate', ci_workflow)
+        self.assertIn('Run pre-push hook stage', ci_workflow)
+        self.assertIn('pre-commit run --hook-stage pre-push --all-files', ci_workflow)
+        self.assertEqual(ci_workflow.count('make quality-hooks-run'), 1)
+        self.assertNotIn('Shell script lint', ci_workflow)
+        self.assertNotIn('make apps-audit-versions', ci_workflow)
+
+        self.assertIn('[Platform Quickstart](platform/consumer/quickstart.md)', docs_readme)
+        self.assertIn('[Platform Troubleshooting](platform/consumer/troubleshooting.md)', docs_readme)
+        self.assertIn('[Platform Upgrade Runbook](platform/consumer/upgrade_runbook.md)', docs_readme)
+        self.assertIn('[Template Release Policy](blueprint/governance/template_release_policy.md)', docs_readme)
+        self.assertIn('dirName: "blueprint"', sidebars)
+        self.assertIn('platformSidebar', sidebars)
+        self.assertIn('id: "platform/README"', sidebars)
+        self.assertIn('dirName: "platform/consumer"', sidebars)
+        self.assertIn('dirName: "platform/modules"', sidebars)
+        self.assertIn('dirName: "reference"', sidebars)
+        self.assertIn('"blueprint/**/*.md"', docusaurus_config)
+        self.assertIn('"platform/**/*.md"', docusaurus_config)
+        self.assertNotIn('docsPluginId: "platform"', docusaurus_config)
+
+    def test_blueprint_init_python_updates_contract_and_docs(self) -> None:
+        init_python_path = REPO_ROOT / "scripts/lib/blueprint/init_repo.py"
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            (tmp_root / "blueprint").mkdir(parents=True, exist_ok=True)
+            (tmp_root / "docs").mkdir(parents=True, exist_ok=True)
+            (tmp_root / "blueprint/contract.yaml").write_text(
+                _read("blueprint/contract.yaml"),
+                encoding="utf-8",
+            )
+            (tmp_root / "docs/docusaurus.config.js").write_text(
+                _read("docs/docusaurus.config.js"),
+                encoding="utf-8",
+            )
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(init_python_path),
+                    "--repo-root",
+                    str(tmp_root),
+                    "--repo-name",
+                    "acme-platform",
+                    "--github-org",
+                    "acme",
+                    "--github-repo",
+                    "acme-platform",
+                    "--default-branch",
+                    "main",
+                    "--docs-title",
+                    "Acme Platform Blueprint",
+                    "--docs-tagline",
+                    "Acme reusable platform blueprint",
+                ],
+                cwd=REPO_ROOT,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            updated_contract = (tmp_root / "blueprint/contract.yaml").read_text(encoding="utf-8")
+            updated_docs_config = (tmp_root / "docs/docusaurus.config.js").read_text(encoding="utf-8")
+            self.assertIn("name: acme-platform", updated_contract)
+            self.assertIn("default_branch: main", updated_contract)
+            self.assertIn('title: "Acme Platform Blueprint"', updated_docs_config)
+            self.assertIn('tagline: "Acme reusable platform blueprint"', updated_docs_config)
+            self.assertIn('organizationName: "acme"', updated_docs_config)
+            self.assertIn('projectName: "acme-platform"', updated_docs_config)
+            self.assertIn(
+                'editUrl: "https://github.com/acme/acme-platform/edit/main/docs/"',
+                updated_docs_config,
+            )
+
+    def test_blueprint_init_python_dry_run_does_not_mutate_files(self) -> None:
+        init_python_path = REPO_ROOT / "scripts/lib/blueprint/init_repo.py"
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            (tmp_root / "blueprint").mkdir(parents=True, exist_ok=True)
+            (tmp_root / "docs").mkdir(parents=True, exist_ok=True)
+            contract_original = _read("blueprint/contract.yaml")
+            docs_original = _read("docs/docusaurus.config.js")
+            (tmp_root / "blueprint/contract.yaml").write_text(contract_original, encoding="utf-8")
+            (tmp_root / "docs/docusaurus.config.js").write_text(docs_original, encoding="utf-8")
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(init_python_path),
+                    "--repo-root",
+                    str(tmp_root),
+                    "--repo-name",
+                    "acme-platform",
+                    "--github-org",
+                    "acme",
+                    "--github-repo",
+                    "acme-platform",
+                    "--default-branch",
+                    "main",
+                    "--docs-title",
+                    "Acme Platform Blueprint",
+                    "--docs-tagline",
+                    "Acme reusable platform blueprint",
+                    "--dry-run",
+                ],
+                cwd=REPO_ROOT,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            self.assertIn("[dry-run] would update:", result.stdout)
+            self.assertIn("[dry-run] summary:", result.stdout)
+            self.assertEqual((tmp_root / "blueprint/contract.yaml").read_text(encoding="utf-8"), contract_original)
+            self.assertEqual((tmp_root / "docs/docusaurus.config.js").read_text(encoding="utf-8"), docs_original)
+
+    def test_workflows_scaffolding_is_contract_conditional(self) -> None:
+        contract = _read("blueprint/contract.yaml")
+        bootstrap = _read("scripts/bin/infra/bootstrap.sh")
+        makefile_renderer = _read("scripts/bin/blueprint/render_makefile.sh")
+        validate_py = _read("scripts/bin/blueprint/validate_contract.py")
+
+        self.assertIn("WORKFLOWS_ENABLED:", contract)
+        self.assertIn("disabled_scaffold_policy:", contract)
+        self.assertIn("mode: prune_on_bootstrap", contract)
+        self.assertIn("command: make infra-bootstrap", contract)
+        self.assertIn("materialization_command: make blueprint-render-makefile", contract)
+        self.assertIn("enable_flag: WORKFLOWS_ENABLED", contract)
+        self.assertIn("scaffolding_mode: conditional", contract)
+        self.assertIn("paths_required_when_enabled:", contract)
+        self.assertIn("- dags_path", contract)
+        self.assertIn("- terraform_path", contract)
+        self.assertIn("- gitops_path", contract)
+        self.assertIn("- tests_path", contract)
+
+        self.assertIn("if is_module_enabled workflows; then", bootstrap)
+        self.assertIn("scaffolding_mode", validate_py)
+        self.assertIn("paths_required_when_enabled", validate_py)
+        self.assertIn("make_targets_mode: conditional", contract)
+        self.assertIn("_validate_optional_module_make_targets", validate_py)
+        self.assertIn("optional-module make target must not be materialized when module disabled", validate_py)
+        self.assertIn('"make/blueprint.generated.mk.tmpl"', makefile_renderer)
+        self.assertIn("updated make/blueprint.generated.mk from template based on enabled modules", makefile_renderer)
+
+    def test_langfuse_postgres_and_neo4j_scaffolding_is_contract_conditional(self) -> None:
+        contract = _read("blueprint/contract.yaml")
+        bootstrap = _read("scripts/bin/infra/bootstrap.sh")
+
+        self.assertIn("LANGFUSE_ENABLED:", contract)
+        self.assertIn("POSTGRES_ENABLED:", contract)
+        self.assertIn("NEO4J_ENABLED:", contract)
+        self.assertIn("enable_flag: LANGFUSE_ENABLED", contract)
+        self.assertIn("enable_flag: POSTGRES_ENABLED", contract)
+        self.assertIn("enable_flag: NEO4J_ENABLED", contract)
+        self.assertIn("if is_module_enabled langfuse; then", bootstrap)
+        self.assertIn("if is_module_enabled postgres; then", bootstrap)
+        self.assertIn("if is_module_enabled neo4j; then", bootstrap)
+
+    def test_makefile_template_supports_conditional_optional_targets(self) -> None:
+        makefile_template = _read("scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl")
+        makefile_renderer = _read("scripts/bin/blueprint/render_makefile.sh")
+
+        self.assertIn("{{PHONY_OBSERVABILITY}}", makefile_template)
+        self.assertIn("{{PHONY_WORKFLOWS}}", makefile_template)
+        self.assertIn("{{PHONY_LANGFUSE}}", makefile_template)
+        self.assertIn("{{PHONY_POSTGRES}}", makefile_template)
+        self.assertIn("{{PHONY_NEO4J}}", makefile_template)
+        self.assertIn("{{TARGETS_OBSERVABILITY}}", makefile_template)
+        self.assertIn("{{TARGETS_WORKFLOWS}}", makefile_template)
+        self.assertIn("{{TARGETS_LANGFUSE}}", makefile_template)
+        self.assertIn("{{TARGETS_POSTGRES}}", makefile_template)
+        self.assertIn("{{TARGETS_NEO4J}}", makefile_template)
+        self.assertIn("render_makefile()", makefile_renderer)
+        self.assertIn('render_bootstrap_template_content \\', makefile_renderer)
+        self.assertIn('"blueprint" \\', makefile_renderer)
+
+
+if __name__ == "__main__":
+    unittest.main()

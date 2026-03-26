@@ -1,0 +1,11 @@
+.DS_Store
+.venv/
+__pycache__/
+.pytest_cache/
+node_modules/
+*.log
+build/
+dist/
+artifacts/
+docs/build/
+docs/.docusaurus/

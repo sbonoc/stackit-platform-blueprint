@@ -1,0 +1,137 @@
+apiVersion: blueprint.module.contract/v1alpha1
+kind: OptionalModuleContract
+metadata:
+  name: workflows
+  version: 1.0.0
+spec:
+  module_id: workflows
+  purpose: "Provision and reconcile STACKIT Workflows (managed Airflow) and deploy DAGs."
+  enabled_by_default: false
+  enable_flag: WORKFLOWS_ENABLED
+
+  paths:
+    terraform: infra/cloud/stackit/terraform/modules/workflows
+    gitops: infra/gitops/argocd/optional/${ENV}/workflows.yaml
+    scripts:
+      - scripts/bin/infra/stackit_workflows_*.sh
+      - scripts/lib/infra/workflows.sh
+    docs: docs/platform/modules/workflows/README.md
+    tests: tests/infra/modules/workflows
+
+  dependencies:
+    required_core_capabilities:
+      - stackit_project_access
+      - stackit_secrets_manager
+      - keycloak_available
+      - argocd_available
+    optional_module_dependencies:
+      - observability
+      - postgres
+      - neo4j
+      - langfuse
+
+  inputs:
+    required_env:
+      - STACKIT_PROJECT_ID
+      - STACKIT_REGION
+      - STACKIT_WORKFLOWS_DAGS_REPO_URL
+      - STACKIT_WORKFLOWS_DAGS_REPO_BRANCH
+      - STACKIT_WORKFLOWS_DAGS_REPO_USERNAME
+      - STACKIT_WORKFLOWS_DAGS_REPO_TOKEN
+      - STACKIT_WORKFLOWS_OIDC_DISCOVERY_URL
+      - STACKIT_WORKFLOWS_OIDC_CLIENT_ID
+      - STACKIT_WORKFLOWS_OIDC_CLIENT_SECRET
+      - STACKIT_OBSERVABILITY_INSTANCE_ID
+    optional_env:
+      - STACKIT_WORKFLOWS_INSTANCE_ID
+      - STACKIT_WORKFLOWS_INSTANCE_DISPLAY_NAME
+      - STACKIT_WORKFLOWS_VERSION
+      - STACKIT_WORKFLOWS_RECONCILE_EXISTING_ONLY
+      - STACKIT_WORKFLOWS_REQUIRE_SINGLE_ACTIVE_INSTANCE
+    constraints:
+      - "STACKIT_WORKFLOWS_DAGS_REPO_URL must end with .git"
+      - "DAG repo credentials must have read access at minimum"
+
+  keycloak_reconciliation_contract:
+    client:
+      client_type: confidential
+      standard_flow_enabled: true
+      direct_access_grants_enabled: true
+      service_accounts_enabled: false
+    role_contract:
+      required_realm_roles:
+        - Admin
+        - User
+        - Viewer
+        - Op
+      required_mapper:
+        source: "Client scopes -> roles -> realm roles mapper"
+        token_claim_name: roles
+        add_to_id_token: true
+        add_to_access_token: true
+        add_to_userinfo: true
+    redirect_uri_contract:
+      root_url_template: "https://${WORKFLOWS_FQDN}"
+      home_url_template: "https://${WORKFLOWS_FQDN}"
+      valid_redirect_uris:
+        - "https://${WORKFLOWS_FQDN}/*"
+      valid_post_logout_redirect_uris:
+        - "https://${WORKFLOWS_FQDN}/*"
+      web_origins:
+        - "https://${WORKFLOWS_FQDN}"
+
+  api_request_contract:
+    create_instance_endpoint: "/projects/{projectId}/regions/{region}/instances"
+    required_payload_fields:
+      - displayName
+      - version
+      - dagsRepository.url
+      - dagsRepository.branch
+      - dagsRepository.auth.type
+      - dagsRepository.auth.username
+      - dagsRepository.auth.password
+      - identityProvider.name
+      - identityProvider.clientId
+      - identityProvider.clientSecret
+      - identityProvider.scope
+      - identityProvider.discoveryEndpoint
+      - identityProvider.type
+      - observabilityId
+
+  outputs:
+    produced:
+      - STACKIT_WORKFLOWS_INSTANCE_ID
+      - STACKIT_WORKFLOWS_INSTANCE_NAME
+      - STACKIT_WORKFLOWS_INSTANCE_FQDN
+      - STACKIT_WORKFLOWS_WEB_URL
+      - STACKIT_WORKFLOWS_HEALTH_STATUS
+
+  make_targets:
+    plan: infra-stackit-workflows-plan
+    apply: infra-stackit-workflows-apply
+    reconcile: infra-stackit-workflows-reconcile
+    deploy_dags: infra-stackit-workflows-dag-deploy
+    parse_smoke: infra-stackit-workflows-dag-parse-smoke
+    smoke: infra-stackit-workflows-smoke
+    destroy: infra-stackit-workflows-destroy
+
+  smoke_checks:
+    - "Workflows instance reaches Active state"
+    - "OIDC login succeeds for workflows-admin user"
+    - "DAG parser reports no import errors"
+    - "Configured DAG list is visible in UI/API"
+
+  failure_modes:
+    - code: WORKFLOWS_400_INVALID_IDP
+      symptom: "API returns invalid identity provider config"
+      likely_root_cause: "redirect URI/client scope/secret mismatch"
+    - code: WORKFLOWS_DAGS_REPO_401
+      symptom: "cannot sync DAG repository"
+      likely_root_cause: "invalid repo token/username"
+    - code: WORKFLOWS_NO_ROLES
+      symptom: "user has no roles and/or permissions"
+      likely_root_cause: "roles mapper claim not emitted"
+
+  cleanup_contract:
+    destroy_target: infra-stackit-workflows-destroy
+    safe_delete_rule: "Delete failed/stuck instances before recreating if not explicitly pinned by instance id."

@@ -1,0 +1,82 @@
+apiVersion: blueprint.module.contract/v1alpha1
+kind: OptionalModuleContract
+metadata:
+  name: observability
+  version: 1.0.0
+spec:
+  module_id: observability
+  purpose: "Provision and deploy observability stack plus OTEL/Faro runtime wiring for all components."
+  enabled_by_default: false
+  enable_flag: OBSERVABILITY_ENABLED
+
+  paths:
+    terraform: infra/cloud/stackit/terraform/modules/observability
+    helm:
+      - infra/local/helm/observability/grafana.values.yaml
+      - infra/local/helm/observability/otel-collector.values.yaml
+    gitops: infra/gitops/argocd/optional/${ENV}/observability.yaml
+    scripts:
+      - scripts/bin/infra/observability_*.sh
+      - scripts/lib/infra/observability.sh
+    docs: docs/platform/modules/observability/README.md
+    tests: tests/infra/modules/observability
+
+  dependencies:
+    required_core_capabilities:
+      - argocd_available
+      - k8s_cluster_available
+    stack_specific:
+      local:
+        - helm_available
+      stackit:
+        - terraform_available
+        - stackit_observability_managed_service
+
+  inputs:
+    required_env: []
+    optional_env:
+      - OBSERVABILITY_ENABLED
+      - STACKIT_OBSERVABILITY_INSTANCE_ID
+      - STACKIT_OBSERVABILITY_GRAFANA_URL
+      - OTEL_EXPORTER_OTLP_ENDPOINT
+      - OTEL_PROTOCOL
+      - OTEL_TRACES_ENABLED
+      - OTEL_METRICS_ENABLED
+      - OTEL_LOGS_ENABLED
+      - FARO_ENABLED
+      - FARO_COLLECT_PATH
+    defaults:
+      OBSERVABILITY_ENABLED: false
+      OTEL_PROTOCOL: grpc
+      OTEL_TRACES_ENABLED: true
+      OTEL_METRICS_ENABLED: true
+      OTEL_LOGS_ENABLED: true
+      FARO_ENABLED: true
+      FARO_COLLECT_PATH: /collect
+
+  outputs:
+    produced:
+      - OTEL_EXPORTER_OTLP_ENDPOINT
+      - OTEL_PROTOCOL
+      - OTEL_TRACES_ENABLED
+      - OTEL_METRICS_ENABLED
+      - OTEL_LOGS_ENABLED
+      - FARO_ENABLED
+      - FARO_COLLECT_PATH
+      - STACKIT_OBSERVABILITY_INSTANCE_ID
+      - STACKIT_OBSERVABILITY_GRAFANA_URL
+
+  make_targets:
+    plan: infra-observability-plan
+    apply: infra-observability-apply
+    deploy: infra-observability-deploy
+    smoke: infra-observability-smoke
+    destroy: infra-observability-destroy
+
+  smoke_checks:
+    - "OTEL collector endpoint contract is present"
+    - "Observability runtime and deploy artifacts are healthy"
+    - "App manifest contains observability runtime contract when enabled"
+
+  cleanup_contract:
+    destroy_target: infra-observability-destroy

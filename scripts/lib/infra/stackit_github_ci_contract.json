@@ -1,0 +1,13 @@
+{
+  "default_environments": [
+    "dev",
+    "stage",
+    "prod"
+  ],
+  "required_repository_secrets": [
+    "STACKIT_TFSTATE_ACCESS_KEY_ID",
+    "STACKIT_TFSTATE_SECRET_ACCESS_KEY",
+    "GHCR_USERNAME",
+    "GHCR_TOKEN"
+  ]
+}

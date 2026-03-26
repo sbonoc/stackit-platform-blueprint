@@ -1,0 +1,7 @@
+auth:
+  username: appuser
+  password: changeme
+  database: appdb
+primary:
+  persistence:
+    enabled: false

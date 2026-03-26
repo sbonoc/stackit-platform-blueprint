@@ -1,0 +1,152 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from pathlib import Path
+import sys
+
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from scripts.lib.blueprint.contract_schema import (  # noqa: E402
+    ModuleContract,
+    load_blueprint_contract,
+    load_module_contract,
+)
+
+
+@dataclass(frozen=True)
+class ModuleMetadata:
+    contract_path: str
+    module_id: str
+    purpose: str
+    enabled_by_default: str
+    enable_flag: str
+    make_targets: list[str]
+    required_env: list[str]
+    outputs: list[str]
+
+
+def _to_metadata(contract: ModuleContract) -> ModuleMetadata:
+    return ModuleMetadata(
+        contract_path=contract.contract_path,
+        module_id=contract.module_id,
+        purpose=contract.purpose,
+        enabled_by_default=str(contract.enabled_by_default).lower(),
+        enable_flag=contract.enable_flag,
+        make_targets=list(contract.make_targets.values()),
+        required_env=contract.required_env,
+        outputs=contract.outputs,
+    )
+
+
+def render_markdown(
+    contract_name: str,
+    contract_version: str,
+    profiles: list[str],
+    required_targets: list[str],
+    modules: list[ModuleMetadata],
+) -> str:
+    now_utc = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    lines: list[str] = []
+    lines.append("# Contract Metadata (Generated)")
+    lines.append("")
+    lines.append(f"- Generated at: `{now_utc}`")
+    lines.append(f"- Contract name: `{contract_name}`")
+    lines.append(f"- Contract version: `{contract_version}`")
+    lines.append("")
+    lines.append("## Supported Profiles")
+    for profile in profiles:
+        lines.append(f"- `{profile}`")
+    lines.append("")
+    lines.append("## Required Make Targets")
+    for target in required_targets:
+        lines.append(f"- `{target}`")
+    lines.append("")
+    lines.append("## Optional Modules")
+    lines.append("| Module | Enabled by default | Enable flag | Contract path |")
+    lines.append("|---|---:|---|---|")
+    for module in modules:
+        lines.append(
+            f"| `{module.module_id}` | `{module.enabled_by_default}` | "
+            f"`{module.enable_flag}` | `{module.contract_path}` |"
+        )
+    lines.append("")
+
+    for module in modules:
+        lines.append(f"## Module: `{module.module_id}`")
+        lines.append("")
+        lines.append(f"- Purpose: {module.purpose}")
+        lines.append(f"- Enabled by default: `{module.enabled_by_default}`")
+        lines.append(f"- Enable flag: `{module.enable_flag}`")
+        lines.append("")
+        lines.append("### Required Environment Variables")
+        for item in module.required_env:
+            lines.append(f"- `{item}`")
+        lines.append("")
+        lines.append("### Make Targets")
+        for item in module.make_targets:
+            lines.append(f"- `{item}`")
+        lines.append("")
+        lines.append("### Produced Outputs")
+        for item in module.outputs:
+            lines.append(f"- `{item}`")
+        lines.append("")
+
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--contract",
+        default="blueprint/contract.yaml",
+        help="Path to platform contract YAML",
+    )
+    parser.add_argument(
+        "--modules-dir",
+        default="blueprint/modules",
+        help="Directory containing module.contract.yaml files",
+    )
+    parser.add_argument(
+        "--output",
+        default="docs/reference/generated/contract_metadata.generated.md",
+        help="Output generated markdown path",
+    )
+    args = parser.parse_args()
+
+    repo_root = Path.cwd()
+    contract_path = repo_root / args.contract
+    modules_dir = repo_root / args.modules_dir
+    output_path = repo_root / args.output
+
+    contract = load_blueprint_contract(contract_path)
+    profiles = contract.raw.get("spec", {}).get("profiles", {}).get("supported", [])
+    if not isinstance(profiles, list):
+        raise ValueError("spec.profiles.supported must be a list")
+    profiles = [str(profile) for profile in profiles]
+
+    required_targets = contract.make_contract.required_targets
+
+    module_files = sorted(modules_dir.glob("*/module.contract.yaml"))
+    modules = [_to_metadata(load_module_contract(path, repo_root)) for path in module_files]
+
+    output = render_markdown(
+        contract_name=contract.raw.get("metadata", {}).get("name", ""),
+        contract_version=str(contract.raw.get("metadata", {}).get("version", "")),
+        profiles=profiles,
+        required_targets=required_targets,
+        modules=modules,
+    )
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(output, encoding="utf-8")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
