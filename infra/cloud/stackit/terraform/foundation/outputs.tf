@@ -36,12 +36,12 @@ output "postgres_instance_id" {
 
 output "postgres_host" {
   description = "Provisioned PostgreSQL Flex host."
-  value       = var.postgres_enabled ? stackit_postgresflex_instance.foundation[0].hostname : null
+  value       = var.postgres_enabled ? stackit_postgresflex_user.foundation[0].host : null
 }
 
 output "postgres_port" {
   description = "Provisioned PostgreSQL Flex port."
-  value       = var.postgres_enabled ? stackit_postgresflex_instance.foundation[0].port : null
+  value       = var.postgres_enabled ? stackit_postgresflex_user.foundation[0].port : null
 }
 
 output "postgres_username" {
