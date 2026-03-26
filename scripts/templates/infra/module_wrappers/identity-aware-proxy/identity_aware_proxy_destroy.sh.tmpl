@@ -17,9 +17,19 @@ fi
 
 set_state_namespace infra
 
-# TODO: implement module-specific logic for this action.
+readonly MODULE_WRAPPER_STUB_EXIT_CODE=64
+
+# Explicit stub: template consumers must replace this block with module-specific logic.
+log_metric "optional_module_wrapper_stub_invocation" "1" "module=identity-aware-proxy action=destroy target=infra-identity-aware-proxy-destroy"
 state_file="$(
   write_state_file "identity-aware-proxy_destroy" \
+    "status=not_implemented" \
+    "module=identity-aware-proxy" \
+    "action=destroy" \
+    "target=infra-identity-aware-proxy-destroy" \
     "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 )"
-log_info "identity-aware-proxy destroy state written to $state_file"
+log_error "module wrapper not implemented: module=identity-aware-proxy action=destroy target=infra-identity-aware-proxy-destroy"
+log_error "copy this skeleton into scripts/bin/infra/identity_aware_proxy_destroy.sh and replace the stub implementation"
+log_info "identity-aware-proxy destroy stub state written to $state_file"
+exit "$MODULE_WRAPPER_STUB_EXIT_CODE"

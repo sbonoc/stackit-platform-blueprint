@@ -24,7 +24,10 @@ if [[ "${1:-}" == "--help" ]]; then
   exit 0
 fi
 
-bootstrap_dir="$(stackit_layer_preflight "bootstrap")"
+stackit_layer_preflight "bootstrap"
+bootstrap_dir="$(stackit_layer_dir "bootstrap")"
+backend_file="$(stackit_layer_backend_file "bootstrap")"
+var_file="$(stackit_layer_var_file "bootstrap")"
 
 state_file="$(
   write_state_file "stackit_bootstrap_preflight" \
@@ -32,9 +35,12 @@ state_file="$(
     "stack=$(active_stack)" \
     "environment=$(profile_environment)" \
     "terraform_dir=$bootstrap_dir" \
+    "backend_file=$backend_file" \
+    "var_file=$var_file" \
+    "tfstate_credential_source=${STACKIT_TFSTATE_CREDENTIAL_SOURCE:-unknown}" \
     "tooling_mode=$(tooling_execution_mode)" \
     "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 )"
 
-log_info "stackit bootstrap preflight passed terraform_dir=$bootstrap_dir"
+log_info "stackit bootstrap preflight passed terraform_dir=$bootstrap_dir backend_file=$backend_file var_file=$var_file"
 log_info "stackit bootstrap preflight state written to $state_file"

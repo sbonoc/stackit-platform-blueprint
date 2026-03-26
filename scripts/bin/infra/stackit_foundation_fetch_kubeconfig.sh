@@ -7,6 +7,7 @@ source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 source "$ROOT_DIR/scripts/lib/infra/stack_paths.sh"
 source "$ROOT_DIR/scripts/lib/infra/state.sh"
 source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
+source "$ROOT_DIR/scripts/lib/infra/stackit_layers.sh"
 
 start_script_metric_trap "infra_stackit_foundation_fetch_kubeconfig"
 
@@ -19,7 +20,8 @@ Fetches STACKIT foundation kubeconfig into a local file path.
 Optional environment variables:
   STACKIT_FOUNDATION_KUBECONFIG_OUTPUT  Output path (absolute or repository-relative)
   STACKIT_KUBECONFIG_CONTENT_BASE64     Base64 kubeconfig payload (optional)
-  STACKIT_FOUNDATION_TERRAFORM_DIR      Terraform env dir (default: stackit profile env dir)
+  STACKIT_FOUNDATION_TERRAFORM_DIR      Terraform foundation dir override
+  STACKIT_FOUNDATION_BACKEND_FILE       Terraform backend file override
   STACKIT_PROJECT_ID                    Recorded in inventory/state metadata
   STACKIT_REGION                        Recorded in inventory/state metadata
 USAGE
@@ -37,10 +39,13 @@ fi
 if tooling_is_execution_enabled; then
   require_env_vars STACKIT_PROJECT_ID STACKIT_REGION
 else
-  set_default_env STACKIT_PROJECT_ID "project-placeholder"
-  set_default_env STACKIT_REGION "eu01"
+  set_default_env STACKIT_PROJECT_ID "${BLUEPRINT_STACKIT_PROJECT_ID:-project-placeholder}"
+  set_default_env STACKIT_REGION "${BLUEPRINT_STACKIT_REGION:-eu01}"
 fi
 set_default_env STACKIT_FOUNDATION_KUBECONFIG_OUTPUT "${HOME}/.kube/stackit-${BLUEPRINT_PROFILE}.yaml"
+stackit_layer_preflight "foundation"
+foundation_dir="$(stackit_layer_dir "foundation")"
+backend_file="$(stackit_layer_backend_file "foundation")"
 
 kubeconfig_output="$STACKIT_FOUNDATION_KUBECONFIG_OUTPUT"
 if [[ "$kubeconfig_output" != /* ]]; then
@@ -57,23 +62,12 @@ if [[ -n "${STACKIT_KUBECONFIG_CONTENT_BASE64:-}" ]]; then
   fi
   content_source="provided_base64"
 elif tooling_is_execution_enabled; then
-  set_default_env STACKIT_FOUNDATION_TERRAFORM_DIR "$(stackit_terraform_env_dir)"
-  terraform_dir="$STACKIT_FOUNDATION_TERRAFORM_DIR"
-  if [[ "$terraform_dir" != /* ]]; then
-    terraform_dir="$ROOT_DIR/$terraform_dir"
-  fi
-
-  if ! terraform_dir_has_config "$terraform_dir"; then
-    log_fatal "missing terraform configuration in $terraform_dir; cannot fetch kubeconfig output"
-  fi
-
-  require_command terraform
-  run_cmd terraform -chdir="$terraform_dir" init -input=false -no-color
-  if ! run_cmd_capture terraform -chdir="$terraform_dir" output -raw ske_kubeconfig >"$kubeconfig_output"; then
-    log_fatal "unable to fetch terraform output ske_kubeconfig from $terraform_dir"
+  terraform_backend_init "$foundation_dir" "$backend_file"
+  if ! run_cmd_capture terraform -chdir="$foundation_dir" output -raw ske_kubeconfig >"$kubeconfig_output"; then
+    log_fatal "unable to fetch terraform output ske_kubeconfig from $foundation_dir"
   fi
   if [[ ! -s "$kubeconfig_output" ]]; then
-    log_fatal "terraform output ske_kubeconfig is empty in $terraform_dir"
+    log_fatal "terraform output ske_kubeconfig is empty in $foundation_dir"
   fi
   content_source="terraform_output"
 else
@@ -108,6 +102,8 @@ state_file="$(
     "profile=$BLUEPRINT_PROFILE" \
     "project_id=$STACKIT_PROJECT_ID" \
     "region=$STACKIT_REGION" \
+    "terraform_dir=$foundation_dir" \
+    "backend_file=$backend_file" \
     "kubeconfig_output=$kubeconfig_output" \
     "source=$content_source" \
     "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")"

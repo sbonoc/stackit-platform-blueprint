@@ -39,9 +39,6 @@ if tooling_is_execution_enabled; then
     log_warn "no workflows instance id found; skipping API delete"
     api_mode="live-no-instance-id"
   fi
-
-  terraform_module_dir="$(stackit_terraform_module_dir "workflows")"
-  run_terraform_action destroy "$terraform_module_dir"
 fi
 
 remove_state_files_by_prefix "workflows_"

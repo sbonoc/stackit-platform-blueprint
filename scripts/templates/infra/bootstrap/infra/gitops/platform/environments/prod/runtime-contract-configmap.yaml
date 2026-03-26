@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: platform-runtime-contract
+  namespace: apps
+data:
+  environment: "prod"
+  profile: "stackit-prod"
+  appCatalogPath: "apps/catalog/manifest.yaml"
+  foundationContractSecretRef: "platform-foundation-contract"

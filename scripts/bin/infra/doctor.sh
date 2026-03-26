@@ -42,9 +42,9 @@ done
 
 profile_path=""
 if is_stackit_profile; then
-  profile_path="$(stackit_terraform_env_dir)"
+  profile_path="$(stackit_terraform_layer_dir foundation)"
   if ! terraform_dir_has_config "$profile_path"; then
-    log_fatal "missing terraform configuration in STACKIT environment path: $profile_path"
+    log_fatal "missing terraform configuration in STACKIT foundation path: $profile_path"
   fi
 else
   profile_path="$(local_crossplane_kustomize_dir)"

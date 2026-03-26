@@ -36,6 +36,8 @@ if ! state_file_exists deploy; then
   log_warn "deploy state artifact missing"
 fi
 
+run_cmd "$ROOT_DIR/scripts/bin/infra/core_runtime_smoke.sh"
+
 run_enabled_modules_action smoke observability
 
 run_cmd "$ROOT_DIR/scripts/bin/platform/apps/smoke.sh"
@@ -44,11 +46,17 @@ run_enabled_modules_action smoke \
   workflows langfuse postgres neo4j \
   object-storage rabbitmq dns public-endpoints secrets-manager kms identity-aware-proxy
 
+core_runtime_smoke_state="none"
+if state_file_exists core_runtime_smoke; then
+  core_runtime_smoke_state="$ROOT_DIR/artifacts/infra/core_runtime_smoke.env"
+fi
+
 state_file="$(
   write_state_file "smoke" \
     "profile=$BLUEPRINT_PROFILE" \
     "stack=$(active_stack)" \
     "tooling_mode=$(tooling_execution_mode)" \
+    "core_runtime_smoke_state=$core_runtime_smoke_state" \
     "observability_enabled=$OBSERVABILITY_ENABLED_NORMALIZED" \
     "enabled_modules=$(enabled_modules_csv)" \
     "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")"

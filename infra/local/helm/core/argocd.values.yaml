@@ -1,0 +1,4 @@
+# Blueprint-managed defaults for Argo CD core runtime bootstrap.
+server:
+  service:
+    type: ClusterIP

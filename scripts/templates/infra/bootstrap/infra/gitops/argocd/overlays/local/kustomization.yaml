@@ -1,9 +1,13 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: argocd
+resources:
+  - appproject.yaml
+  - application-platform-local.yaml
 configMapGenerator:
   - name: blueprint-runtime-profile
     literals:
-      - BLUEPRINT_ENV={{ENV}}
+      - BLUEPRINT_ENV=local
+      - DEPLOYMENT_MODEL=local-kustomize
 generatorOptions:
   disableNameSuffixHash: true

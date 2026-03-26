@@ -17,9 +17,19 @@ fi
 
 set_state_namespace infra
 
-# TODO: implement module-specific logic for this action.
+readonly MODULE_WRAPPER_STUB_EXIT_CODE=64
+
+# Explicit stub: template consumers must replace this block with module-specific logic.
+log_metric "optional_module_wrapper_stub_invocation" "1" "module=neo4j action=deploy target=infra-neo4j-deploy"
 state_file="$(
   write_state_file "neo4j_deploy" \
+    "status=not_implemented" \
+    "module=neo4j" \
+    "action=deploy" \
+    "target=infra-neo4j-deploy" \
     "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 )"
-log_info "neo4j deploy state written to $state_file"
+log_error "module wrapper not implemented: module=neo4j action=deploy target=infra-neo4j-deploy"
+log_error "copy this skeleton into scripts/bin/infra/neo4j_deploy.sh and replace the stub implementation"
+log_info "neo4j deploy stub state written to $state_file"
+exit "$MODULE_WRAPPER_STUB_EXIT_CODE"

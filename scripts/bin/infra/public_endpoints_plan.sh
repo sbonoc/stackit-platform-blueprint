@@ -20,9 +20,11 @@ public_endpoints_init_env
 provision_driver="none"
 provision_path="none"
 if is_stackit_profile; then
-  provision_driver="terraform"
-  provision_path="$(stackit_terraform_module_dir "public-endpoints")"
-  run_terraform_action plan "$provision_path"
+  provision_driver="argocd_optional_manifest"
+  provision_path="$(argocd_optional_manifest "public-endpoints")"
+  if [[ ! -f "$provision_path" ]]; then
+    log_fatal "missing public-endpoints optional manifest: $provision_path (run make infra-bootstrap)"
+  fi
 elif is_local_profile; then
   provision_driver="helm"
   provision_path="$(local_module_helm_values_file "public-endpoints")"

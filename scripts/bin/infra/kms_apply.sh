@@ -24,9 +24,9 @@ fi
 provision_driver="none"
 provision_path="none"
 if is_stackit_profile; then
-  provision_driver="terraform"
-  provision_path="$(stackit_terraform_module_dir "kms")"
-  run_terraform_action apply "$provision_path"
+  provision_driver="external_automation_contract"
+  provision_path="stackit-kms-external"
+  log_warn "kms module has no Terraform provider coverage in STACKIT MVP; apply is an external-automation contract"
 elif is_local_profile; then
   provision_driver="noop"
   log_warn "kms module has no managed local counterpart; apply is a contract no-op"

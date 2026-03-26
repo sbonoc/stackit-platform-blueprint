@@ -4,4 +4,5 @@ terraform {
 
 locals {
   blueprint_environment = "stackit"
+  deprecation_notice    = "Use infra/cloud/stackit/terraform/foundation instead."
 }

@@ -19,8 +19,8 @@ fi
 
 workflows_init_env
 workflows_api_init_env
-terraform_module_dir="$(stackit_terraform_module_dir "workflows")"
-run_terraform_action plan "$terraform_module_dir"
+provision_driver="api_contract"
+provision_path="/projects/$STACKIT_PROJECT_ID/regions/$STACKIT_REGION/instances"
 ensure_dir "$ROOT_DIR/artifacts/infra"
 payload_file="$ROOT_DIR/artifacts/infra/workflows_request_payload.json"
 workflows_payload_json >"$payload_file"
@@ -29,8 +29,8 @@ state_file="$(write_state_file "workflows_plan" \
   "profile=$BLUEPRINT_PROFILE" \
   "stack=$(active_stack)" \
   "tooling_mode=$(tooling_execution_mode)" \
-  "provision_driver=terraform_plus_api" \
-  "terraform_module_dir=$terraform_module_dir" \
+  "provision_driver=$provision_driver" \
+  "provision_path=$provision_path" \
   "project_id=$STACKIT_PROJECT_ID" \
   "region=$STACKIT_REGION" \
   "display_name=$STACKIT_WORKFLOWS_INSTANCE_DISPLAY_NAME" \

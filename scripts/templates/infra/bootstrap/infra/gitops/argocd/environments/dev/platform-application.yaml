@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: platform-dev-core
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: platform-blueprint
+    app.kubernetes.io/component: platform-core
+    app.kubernetes.io/environment: dev
+spec:
+  project: platform-dev
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: apps
+  source:
+    repoURL: https://github.com/example-org/example-repo.git
+    targetRevision: main
+    path: infra/gitops/platform/environments/dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true

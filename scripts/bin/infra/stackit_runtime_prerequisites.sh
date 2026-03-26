@@ -34,8 +34,8 @@ fi
 if tooling_is_execution_enabled; then
   require_env_vars STACKIT_PROJECT_ID STACKIT_REGION
 else
-  set_default_env STACKIT_PROJECT_ID "project-placeholder"
-  set_default_env STACKIT_REGION "eu01"
+  set_default_env STACKIT_PROJECT_ID "${BLUEPRINT_STACKIT_PROJECT_ID:-project-placeholder}"
+  set_default_env STACKIT_REGION "${BLUEPRINT_STACKIT_REGION:-eu01}"
 fi
 set_default_env STACKIT_RUNTIME_KUBECONFIG_MODE "fetch"
 set_default_env STACKIT_FOUNDATION_KUBECONFIG_OUTPUT "${HOME}/.kube/stackit-${BLUEPRINT_PROFILE}.yaml"

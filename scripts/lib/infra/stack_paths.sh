@@ -1,44 +1,40 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-profile_env() {
-  if declare -F profile_environment >/dev/null 2>&1; then
-    profile_environment
-    return 0
-  fi
-  case "${BLUEPRINT_PROFILE:-local-full}" in
-  stackit-dev)
-    echo "dev"
-    ;;
-  stackit-stage)
-    echo "stage"
-    ;;
-  stackit-prod)
-    echo "prod"
-    ;;
-  local-full | local-lite)
-    echo "local"
-    ;;
-  *)
-    echo "unknown"
-    ;;
-  esac
-}
-
-stackit_terraform_env_dir() {
-  local env_name
-  env_name="$(profile_env)"
-  printf '%s/infra/cloud/stackit/terraform/environments/%s' "$ROOT_DIR" "$env_name"
-}
-
 stackit_terraform_module_dir() {
   local module_name="$1"
   printf '%s/infra/cloud/stackit/terraform/modules/%s' "$ROOT_DIR" "$module_name"
 }
 
+stackit_terraform_layer_dir() {
+  local layer="$1"
+  case "$layer" in
+  bootstrap | foundation)
+    printf '%s/infra/cloud/stackit/terraform/%s' "$ROOT_DIR" "$layer"
+    ;;
+  *)
+    return 1
+    ;;
+  esac
+}
+
+stackit_terraform_layer_backend_file() {
+  local layer="$1"
+  local env_name
+  env_name="$(profile_environment)"
+  printf '%s/infra/cloud/stackit/terraform/%s/state-backend/%s.hcl' "$ROOT_DIR" "$layer" "$env_name"
+}
+
+stackit_terraform_layer_var_file() {
+  local layer="$1"
+  local env_name
+  env_name="$(profile_environment)"
+  printf '%s/infra/cloud/stackit/terraform/%s/env/%s.tfvars' "$ROOT_DIR" "$layer" "$env_name"
+}
+
 argocd_overlay_dir() {
   local env_name
-  env_name="$(profile_env)"
+  env_name="$(profile_environment)"
   printf '%s/infra/gitops/argocd/overlays/%s' "$ROOT_DIR" "$env_name"
 }
 
@@ -49,7 +45,7 @@ argocd_base_dir() {
 argocd_optional_manifest() {
   local module_name="$1"
   local env_name
-  env_name="$(profile_env)"
+  env_name="$(profile_environment)"
   printf '%s/infra/gitops/argocd/optional/%s/%s.yaml' "$ROOT_DIR" "$env_name" "$module_name"
 }
 
@@ -72,4 +68,14 @@ local_otel_collector_values_file() {
 local_module_helm_values_file() {
   local module_name="$1"
   printf '%s/infra/local/helm/%s/values.yaml' "$ROOT_DIR" "$module_name"
+}
+
+local_core_helm_values_file() {
+  local component_name="$1"
+  printf '%s/infra/local/helm/core/%s.values.yaml' "$ROOT_DIR" "$component_name"
+}
+
+local_crossplane_manifest_file() {
+  local manifest_name="$1"
+  printf '%s/infra/local/crossplane/%s.yaml' "$ROOT_DIR" "$manifest_name"
 }

@@ -17,9 +17,19 @@ fi
 
 set_state_namespace infra
 
-# TODO: implement module-specific logic for this action.
+readonly MODULE_WRAPPER_STUB_EXIT_CODE=64
+
+# Explicit stub: template consumers must replace this block with module-specific logic.
+log_metric "optional_module_wrapper_stub_invocation" "1" "module=workflows action=reconcile target=infra-stackit-workflows-reconcile"
 state_file="$(
   write_state_file "workflows_reconcile" \
+    "status=not_implemented" \
+    "module=workflows" \
+    "action=reconcile" \
+    "target=infra-stackit-workflows-reconcile" \
     "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 )"
-log_info "workflows reconcile state written to $state_file"
+log_error "module wrapper not implemented: module=workflows action=reconcile target=infra-stackit-workflows-reconcile"
+log_error "copy this skeleton into scripts/bin/infra/stackit_workflows_reconcile.sh and replace the stub implementation"
+log_info "workflows reconcile stub state written to $state_file"
+exit "$MODULE_WRAPPER_STUB_EXIT_CODE"

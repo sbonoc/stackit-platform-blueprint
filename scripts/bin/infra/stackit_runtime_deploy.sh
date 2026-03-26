@@ -27,14 +27,13 @@ if ! is_stackit_profile; then
   log_fatal "infra-stackit-runtime-deploy requires stackit-* profile; got BLUEPRINT_PROFILE=${BLUEPRINT_PROFILE:-unset}"
 fi
 
-if ! state_file_exists stackit_runtime_prerequisites; then
-  log_warn "stackit runtime prerequisites state not found; running prerequisites"
-  run_cmd "$ROOT_DIR/scripts/bin/infra/stackit_runtime_prerequisites.sh"
-fi
-
 run_cmd "$ROOT_DIR/scripts/bin/infra/deploy.sh"
 
 overlay_path="$(argocd_overlay_dir)"
+runtime_contract_secret_state="none"
+if state_file_exists stackit_foundation_runtime_secret; then
+  runtime_contract_secret_state="$ROOT_DIR/artifacts/infra/stackit_foundation_runtime_secret.env"
+fi
 state_file="$(
   write_state_file "stackit_runtime_deploy" \
     "profile=$BLUEPRINT_PROFILE" \
@@ -42,6 +41,7 @@ state_file="$(
     "tooling_mode=$(tooling_execution_mode)" \
     "runtime_driver=argocd_kustomize" \
     "argocd_overlay_path=$overlay_path" \
+    "runtime_contract_secret_state=$runtime_contract_secret_state" \
     "enabled_modules=$(enabled_modules_csv)" \
     "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 )"

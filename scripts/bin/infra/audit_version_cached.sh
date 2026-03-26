@@ -46,6 +46,10 @@ set_default_env INFRA_AUDIT_CACHE_FILE "${XDG_CACHE_HOME:-$HOME/.cache}/stackit-
 INFRA_AUDIT_CACHE_ENABLED="$(normalize_bool "$INFRA_AUDIT_CACHE_ENABLED")"
 INFRA_AUDIT_CACHE_FORCE="$(normalize_bool "$INFRA_AUDIT_CACHE_FORCE")"
 
+log_info "infra-audit-version cache wrapper enabled=$INFRA_AUDIT_CACHE_ENABLED force=$INFRA_AUDIT_CACHE_FORCE ttl_seconds=$INFRA_AUDIT_CACHE_TTL_SECONDS"
+log_metric "audit_cache_wrapper_invocation" "1" \
+  "audit=infra-audit-version enabled=$INFRA_AUDIT_CACHE_ENABLED force=$INFRA_AUDIT_CACHE_FORCE"
+
 fingerprint_files=(
   "scripts/bin/infra/audit_version.sh"
   "scripts/lib/infra/versions.sh"

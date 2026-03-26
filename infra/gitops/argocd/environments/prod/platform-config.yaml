@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: platform-prod-config
+  namespace: argocd
+data:
+  environment: "prod"
+  deploymentModel: "argocd-app-of-apps"
+  ownership: "platform-consumer"

@@ -11,13 +11,19 @@ source "$ROOT_DIR/scripts/lib/infra/identity_aware_proxy.sh"
 
 start_script_metric_trap "infra_identity_aware_proxy_destroy"
 
+# Destroy flow does not require live OIDC wiring, but init helpers enforce a full
+# OIDC contract. Provide deterministic placeholders so disable/prune teardown can
+# run even when runtime auth configuration has already been removed.
+set_default_env KEYCLOAK_ISSUER_URL "https://keycloak.placeholder.invalid/realms/placeholder"
+set_default_env KEYCLOAK_CLIENT_ID "placeholder-client-id"
+set_default_env KEYCLOAK_CLIENT_SECRET "placeholder-client-secret"
 identity_aware_proxy_init_env
 destroy_driver="none"
 destroy_path="none"
 if is_stackit_profile; then
-  destroy_driver="terraform"
-  destroy_path="$(stackit_terraform_module_dir "identity-aware-proxy")"
-  run_terraform_action destroy "$destroy_path"
+  destroy_driver="argocd_optional_manifest"
+  destroy_path="$(argocd_optional_manifest "identity-aware-proxy")"
+  run_manifest_delete "$destroy_path"
 elif is_local_profile; then
   destroy_driver="helm"
   destroy_path="$IAP_HELM_RELEASE@$IAP_NAMESPACE"

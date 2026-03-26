@@ -24,8 +24,16 @@ if [[ "${1:-}" == "--help" ]]; then
   exit 0
 fi
 
-foundation_dir="$(stackit_layer_preflight "foundation")"
-run_terraform_action apply "$foundation_dir"
+stackit_layer_preflight "foundation"
+foundation_dir="$(stackit_layer_dir "foundation")"
+backend_file="$(stackit_layer_backend_file "foundation")"
+var_file="$(stackit_layer_var_file "foundation")"
+tf_var_args=()
+while IFS= read -r arg; do
+  [[ -n "$arg" ]] || continue
+  tf_var_args+=("$arg")
+done < <(stackit_layer_var_args "foundation")
+run_terraform_action_with_backend apply "$foundation_dir" "$backend_file" "$var_file" "${tf_var_args[@]}"
 
 state_file="$(
   write_state_file "stackit_foundation_apply" \
@@ -33,6 +41,9 @@ state_file="$(
     "stack=$(active_stack)" \
     "environment=$(profile_environment)" \
     "terraform_dir=$foundation_dir" \
+    "backend_file=$backend_file" \
+    "var_file=$var_file" \
+    "tfstate_credential_source=${STACKIT_TFSTATE_CREDENTIAL_SOURCE:-unknown}" \
     "action=apply" \
     "tooling_mode=$(tooling_execution_mode)" \
     "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")"

@@ -13,9 +13,10 @@ start_script_metric_trap "infra_postgres_destroy"
 destroy_driver="none"
 destroy_path="none"
 if is_stackit_profile; then
-  destroy_driver="terraform"
-  destroy_path="$(stackit_terraform_module_dir "postgres")"
-  run_terraform_action destroy "$destroy_path"
+  destroy_driver="foundation_reconcile_apply"
+  destroy_path="$(stackit_terraform_layer_dir foundation)"
+  run_cmd env POSTGRES_ENABLED=false "$ROOT_DIR/scripts/bin/infra/stackit_foundation_preflight.sh"
+  run_cmd env POSTGRES_ENABLED=false "$ROOT_DIR/scripts/bin/infra/stackit_foundation_apply.sh"
 elif is_local_profile; then
   set_default_env POSTGRES_NAMESPACE "data"
   set_default_env POSTGRES_HELM_RELEASE "blueprint-postgres"

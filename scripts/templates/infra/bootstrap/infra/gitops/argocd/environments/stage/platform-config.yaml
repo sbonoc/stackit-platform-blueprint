@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: platform-stage-config
+  namespace: argocd
+data:
+  environment: "stage"
+  deploymentModel: "argocd-app-of-apps"
+  ownership: "platform-consumer"

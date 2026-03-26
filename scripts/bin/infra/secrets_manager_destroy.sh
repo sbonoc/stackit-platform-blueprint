@@ -15,9 +15,10 @@ secrets_manager_init_env
 destroy_driver="none"
 destroy_path="none"
 if is_stackit_profile; then
-  destroy_driver="terraform"
-  destroy_path="$(stackit_terraform_module_dir "secrets-manager")"
-  run_terraform_action destroy "$destroy_path"
+  destroy_driver="foundation_reconcile_apply"
+  destroy_path="$(stackit_terraform_layer_dir foundation)"
+  run_cmd env SECRETS_MANAGER_ENABLED=false "$ROOT_DIR/scripts/bin/infra/stackit_foundation_preflight.sh"
+  run_cmd env SECRETS_MANAGER_ENABLED=false "$ROOT_DIR/scripts/bin/infra/stackit_foundation_apply.sh"
 elif is_local_profile; then
   destroy_driver="noop"
   log_warn "secrets-manager module has no managed local counterpart; destroy is a contract no-op"

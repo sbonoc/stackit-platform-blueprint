@@ -26,9 +26,13 @@ provision_driver="none"
 provision_path="none"
 
 if is_stackit_profile; then
-  provision_driver="terraform"
-  provision_path="$(stackit_terraform_module_dir "observability")"
-  run_terraform_action apply "$provision_path"
+  provision_driver="foundation_contract"
+  provision_path="$(stackit_terraform_layer_dir foundation)"
+  if ! state_file_exists stackit_foundation_apply; then
+    log_info "stackit foundation apply state missing; reconciling foundation for observability contract"
+    run_cmd "$ROOT_DIR/scripts/bin/infra/stackit_foundation_preflight.sh"
+    run_cmd "$ROOT_DIR/scripts/bin/infra/stackit_foundation_apply.sh"
+  fi
 elif is_local_profile; then
   provision_driver="crossplane_plus_helm"
   provision_path="$(local_crossplane_kustomize_dir)"

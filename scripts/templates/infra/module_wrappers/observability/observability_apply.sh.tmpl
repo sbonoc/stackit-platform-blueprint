@@ -17,9 +17,19 @@ fi
 
 set_state_namespace infra
 
-# TODO: implement module-specific logic for this action.
+readonly MODULE_WRAPPER_STUB_EXIT_CODE=64
+
+# Explicit stub: template consumers must replace this block with module-specific logic.
+log_metric "optional_module_wrapper_stub_invocation" "1" "module=observability action=apply target=infra-observability-apply"
 state_file="$(
   write_state_file "observability_apply" \
+    "status=not_implemented" \
+    "module=observability" \
+    "action=apply" \
+    "target=infra-observability-apply" \
     "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 )"
-log_info "observability apply state written to $state_file"
+log_error "module wrapper not implemented: module=observability action=apply target=infra-observability-apply"
+log_error "copy this skeleton into scripts/bin/infra/observability_apply.sh and replace the stub implementation"
+log_info "observability apply stub state written to $state_file"
+exit "$MODULE_WRAPPER_STUB_EXIT_CODE"

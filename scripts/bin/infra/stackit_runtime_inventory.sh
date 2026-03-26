@@ -7,6 +7,7 @@ source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 source "$ROOT_DIR/scripts/lib/infra/stack_paths.sh"
 source "$ROOT_DIR/scripts/lib/infra/state.sh"
 source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
+source "$ROOT_DIR/scripts/lib/infra/stackit_layers.sh"
 
 start_script_metric_trap "infra_stackit_runtime_inventory"
 
@@ -34,8 +35,8 @@ fi
 if tooling_is_execution_enabled; then
   require_env_vars STACKIT_PROJECT_ID STACKIT_REGION
 else
-  set_default_env STACKIT_PROJECT_ID "project-placeholder"
-  set_default_env STACKIT_REGION "eu01"
+  set_default_env STACKIT_PROJECT_ID "${BLUEPRINT_STACKIT_PROJECT_ID:-project-placeholder}"
+  set_default_env STACKIT_REGION "${BLUEPRINT_STACKIT_REGION:-eu01}"
 fi
 set_default_env STACKIT_FOUNDATION_KUBECONFIG_OUTPUT "${HOME}/.kube/stackit-${BLUEPRINT_PROFILE}.yaml"
 set_default_env STACKIT_RUNTIME_INVENTORY_INCLUDE_SENSITIVE "false"
@@ -102,21 +103,31 @@ if state_file_exists stackit_smoke_runtime; then
 fi
 
 overlay_path="$(argocd_overlay_dir)"
-terraform_env_dir="$(stackit_terraform_env_dir)"
+foundation_dir="$(stackit_layer_dir "foundation")"
+backend_file="$(stackit_layer_backend_file "foundation")"
+var_file="$(stackit_layer_var_file "foundation")"
 workflows_instance_id="$(state_read_value workflows_instance instance_id)"
 workflows_web_url="$(state_read_value workflows_instance web_url)"
 workflows_health_status="$(state_read_value workflows_instance health_status)"
+runtime_contract_secret_name="$(state_read_value stackit_foundation_runtime_secret secret_name)"
+runtime_contract_secret_namespace="$(state_read_value stackit_foundation_runtime_secret secret_namespace)"
+runtime_contract_secret_key_count="$(state_read_value stackit_foundation_runtime_secret secret_key_count)"
 
 print_section_header "STACKIT Runtime Inventory Exports"
 print_export_or_missing "BLUEPRINT_PROFILE" "$BLUEPRINT_PROFILE"
 print_export_or_missing "STACKIT_PROJECT_ID" "$STACKIT_PROJECT_ID"
 print_export_or_missing "STACKIT_REGION" "$STACKIT_REGION"
 print_export_or_missing "STACKIT_FOUNDATION_KUBECONFIG_OUTPUT" "$kubeconfig_output"
-print_export_or_missing "STACKIT_TERRAFORM_ENV_DIR" "$terraform_env_dir"
+print_export_or_missing "STACKIT_TERRAFORM_FOUNDATION_DIR" "$foundation_dir"
+print_export_or_missing "STACKIT_TERRAFORM_FOUNDATION_BACKEND_FILE" "$backend_file"
+print_export_or_missing "STACKIT_TERRAFORM_FOUNDATION_VAR_FILE" "$var_file"
 print_export_or_missing "STACKIT_ARGOCD_OVERLAY_PATH" "$overlay_path"
 print_export_or_missing "STACKIT_FOUNDATION_SMOKE_STATUS" "$foundation_smoke_status"
 print_export_or_missing "STACKIT_RUNTIME_DEPLOY_STATUS" "$runtime_deploy_status"
 print_export_or_missing "STACKIT_RUNTIME_SMOKE_STATUS" "$runtime_smoke_status"
+print_export_or_missing "STACKIT_RUNTIME_CONTRACT_SECRET_NAME" "$runtime_contract_secret_name"
+print_export_or_missing "STACKIT_RUNTIME_CONTRACT_SECRET_NAMESPACE" "$runtime_contract_secret_namespace"
+print_export_or_missing "STACKIT_RUNTIME_CONTRACT_SECRET_KEY_COUNT" "$runtime_contract_secret_key_count"
 print_export_or_missing "STACKIT_ENABLED_MODULES" "$(enabled_modules_csv)"
 print_export_or_missing "STACKIT_WORKFLOWS_API_BASE_URL" "$STACKIT_WORKFLOWS_API_BASE_URL"
 print_export_or_missing "STACKIT_WORKFLOWS_API_TOKEN" "${STACKIT_WORKFLOWS_API_TOKEN:-}" "true"
@@ -134,12 +145,17 @@ state_file="$(
     "environment=$(profile_environment)" \
     "project_id=$STACKIT_PROJECT_ID" \
     "region=$STACKIT_REGION" \
-    "terraform_env_dir=$terraform_env_dir" \
+    "terraform_foundation_dir=$foundation_dir" \
+    "terraform_backend_file=$backend_file" \
+    "terraform_var_file=$var_file" \
     "argocd_overlay_path=$overlay_path" \
     "kubeconfig_output=$kubeconfig_output" \
     "foundation_smoke_status=$foundation_smoke_status" \
     "runtime_deploy_status=$runtime_deploy_status" \
     "runtime_smoke_status=$runtime_smoke_status" \
+    "runtime_contract_secret_name=$runtime_contract_secret_name" \
+    "runtime_contract_secret_namespace=$runtime_contract_secret_namespace" \
+    "runtime_contract_secret_key_count=$runtime_contract_secret_key_count" \
     "enabled_modules=$(enabled_modules_csv)" \
     "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 )"

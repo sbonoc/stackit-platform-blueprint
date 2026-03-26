@@ -22,9 +22,11 @@ provision_driver="none"
 provision_path="none"
 
 if is_stackit_profile; then
-  provision_driver="terraform"
-  provision_path="$(stackit_terraform_module_dir "observability")"
-  run_terraform_action plan "$provision_path"
+  provision_driver="foundation_contract"
+  provision_path="$(stackit_terraform_layer_dir foundation)"
+  if ! state_file_exists stackit_foundation_plan && ! state_file_exists stackit_foundation_apply; then
+    log_warn "STACKIT foundation plan/apply state not found; run infra-stackit-foundation-plan for full terraform diff"
+  fi
 elif is_local_profile; then
   provision_driver="crossplane_plus_helm"
   provision_path="$(local_crossplane_kustomize_dir)"

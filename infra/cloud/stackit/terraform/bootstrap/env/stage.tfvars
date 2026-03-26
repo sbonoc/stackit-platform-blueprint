@@ -1,0 +1,6 @@
+environment      = "stage"
+stackit_project_id = "{{STACKIT_PROJECT_ID}}"
+stackit_region   = "{{STACKIT_REGION}}"
+tenant_slug      = "{{STACKIT_TENANT_SLUG}}"
+platform_slug    = "{{STACKIT_PLATFORM_SLUG}}"
+state_key_prefix = "{{STACKIT_TFSTATE_KEY_PREFIX}}"

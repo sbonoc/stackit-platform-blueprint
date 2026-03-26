@@ -20,9 +20,11 @@ secrets_manager_init_env
 provision_driver="none"
 provision_path="none"
 if is_stackit_profile; then
-  provision_driver="terraform"
-  provision_path="$(stackit_terraform_module_dir "secrets-manager")"
-  run_terraform_action plan "$provision_path"
+  provision_driver="foundation_contract"
+  provision_path="$(stackit_terraform_layer_dir foundation)"
+  if ! state_file_exists stackit_foundation_plan && ! state_file_exists stackit_foundation_apply; then
+    log_warn "STACKIT foundation plan/apply state not found; run infra-stackit-foundation-plan for full terraform diff"
+  fi
 elif is_local_profile; then
   provision_driver="noop"
   log_warn "secrets-manager module has no managed local counterpart; plan is a contract no-op"

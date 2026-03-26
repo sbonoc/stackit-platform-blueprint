@@ -67,6 +67,96 @@ run_terraform_action() {
   log_info "dry-run terraform action=$action dir=$terraform_dir (set DRY_RUN=false to execute)"
 }
 
+terraform_backend_init() {
+  local terraform_dir="$1"
+  local backend_file="$2"
+  if [[ ! -f "$backend_file" ]]; then
+    log_warn "terraform backend config not found; skipping init dir=$terraform_dir backend=$backend_file"
+    return 0
+  fi
+
+  if tooling_is_execution_enabled; then
+    require_command terraform
+    require_env_vars STACKIT_TFSTATE_ACCESS_KEY_ID STACKIT_TFSTATE_SECRET_ACCESS_KEY
+    run_cmd terraform -chdir="$terraform_dir" init -reconfigure -input=false -no-color \
+      "-backend-config=$backend_file" \
+      "-backend-config=access_key=$STACKIT_TFSTATE_ACCESS_KEY_ID" \
+      "-backend-config=secret_key=$STACKIT_TFSTATE_SECRET_ACCESS_KEY"
+    return 0
+  fi
+
+  log_info "dry-run terraform init dir=$terraform_dir backend=$backend_file (set DRY_RUN=false to execute)"
+}
+
+run_terraform_action_with_backend() {
+  local action="$1"
+  local terraform_dir="$2"
+  local backend_file="$3"
+  local var_file="$4"
+  shift 4 || true
+  local extra_args=("$@")
+
+  if ! terraform_dir_has_config "$terraform_dir"; then
+    log_warn "terraform config not found; skipping action=$action dir=$terraform_dir"
+    return 0
+  fi
+  if [[ ! -f "$backend_file" ]]; then
+    log_warn "terraform backend config not found; skipping action=$action backend=$backend_file"
+    return 0
+  fi
+  if [[ ! -f "$var_file" ]]; then
+    log_warn "terraform var-file not found; skipping action=$action var_file=$var_file"
+    return 0
+  fi
+
+  if tooling_is_execution_enabled; then
+    require_command terraform
+    require_env_vars STACKIT_TFSTATE_ACCESS_KEY_ID STACKIT_TFSTATE_SECRET_ACCESS_KEY
+
+    local tf_init_cmd=(
+      terraform
+      -chdir="$terraform_dir"
+      init
+      -reconfigure
+      -input=false
+      -no-color
+      "-backend-config=$backend_file"
+      "-backend-config=access_key=$STACKIT_TFSTATE_ACCESS_KEY_ID"
+      "-backend-config=secret_key=$STACKIT_TFSTATE_SECRET_ACCESS_KEY"
+    )
+    if [[ -n "${STACKIT_TFSTATE_BUCKET:-}" ]]; then
+      tf_init_cmd+=("-backend-config=bucket=$STACKIT_TFSTATE_BUCKET")
+    fi
+    if [[ -n "${STACKIT_REGION:-}" ]]; then
+      tf_init_cmd+=("-backend-config=region=$STACKIT_REGION")
+    fi
+    run_cmd "${tf_init_cmd[@]}"
+
+    local tf_cmd=(terraform -chdir="$terraform_dir")
+    case "$action" in
+    plan)
+      tf_cmd+=(plan -input=false -no-color "-var-file=$var_file")
+      ;;
+    apply)
+      tf_cmd+=(apply -input=false -auto-approve -no-color "-var-file=$var_file")
+      ;;
+    destroy)
+      tf_cmd+=(destroy -input=false -auto-approve -no-color "-var-file=$var_file")
+      ;;
+    *)
+      log_fatal "unsupported terraform action: $action"
+      ;;
+    esac
+    if [[ "${#extra_args[@]}" -gt 0 ]]; then
+      tf_cmd+=("${extra_args[@]}")
+    fi
+    run_cmd "${tf_cmd[@]}"
+    return 0
+  fi
+
+  log_info "dry-run terraform action=$action dir=$terraform_dir backend=$backend_file var_file=$var_file extra_args=${extra_args[*]:-none} (set DRY_RUN=false to execute)"
+}
+
 run_kustomize_apply() {
   local kustomize_dir="$1"
   if ! kustomize_dir_has_config "$kustomize_dir"; then
@@ -211,6 +301,15 @@ prepare_helm_repo_for_chart() {
   case "$repo_name" in
   bitnami)
     repo_url="https://charts.bitnami.com/bitnami"
+    ;;
+  argo)
+    repo_url="https://argoproj.github.io/argo-helm"
+    ;;
+  crossplane-stable)
+    repo_url="https://charts.crossplane.io/stable"
+    ;;
+  external-secrets)
+    repo_url="https://charts.external-secrets.io"
     ;;
   neo4j)
     repo_url="https://helm.neo4j.com/neo4j"

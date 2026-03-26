@@ -15,9 +15,9 @@ kms_init_env
 destroy_driver="none"
 destroy_path="none"
 if is_stackit_profile; then
-  destroy_driver="terraform"
-  destroy_path="$(stackit_terraform_module_dir "kms")"
-  run_terraform_action destroy "$destroy_path"
+  destroy_driver="external_automation_contract"
+  destroy_path="stackit-kms-external"
+  log_warn "kms module has no Terraform provider coverage in STACKIT MVP; destroy is an external-automation contract"
 elif is_local_profile; then
   destroy_driver="noop"
   log_warn "kms module has no managed local counterpart; destroy is a contract no-op"

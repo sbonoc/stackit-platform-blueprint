@@ -15,9 +15,9 @@ rabbitmq_init_env
 destroy_driver="none"
 destroy_path="none"
 if is_stackit_profile; then
-  destroy_driver="terraform"
-  destroy_path="$(stackit_terraform_module_dir "rabbitmq")"
-  run_terraform_action destroy "$destroy_path"
+  destroy_driver="argocd_optional_manifest"
+  destroy_path="$(argocd_optional_manifest "rabbitmq")"
+  run_manifest_delete "$destroy_path"
 elif is_local_profile; then
   destroy_driver="helm"
   destroy_path="$RABBITMQ_HELM_RELEASE@$RABBITMQ_NAMESPACE"

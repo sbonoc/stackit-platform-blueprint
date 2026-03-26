@@ -1,0 +1,19 @@
+environment        = "dev"
+tenant_slug        = "{{STACKIT_TENANT_SLUG}}"
+platform_slug      = "{{STACKIT_PLATFORM_SLUG}}"
+stackit_project_id = "{{STACKIT_PROJECT_ID}}"
+stackit_region     = "{{STACKIT_REGION}}"
+
+ske_enabled                 = true
+dns_enabled                 = false
+postgres_enabled            = false
+object_storage_enabled      = false
+secrets_manager_enabled     = false
+observability_enabled       = false
+workflows_enabled           = false
+langfuse_enabled            = false
+neo4j_enabled               = false
+rabbitmq_enabled            = false
+public_endpoints_enabled    = false
+kms_enabled                 = false
+identity_aware_proxy_enabled = false

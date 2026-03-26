@@ -17,9 +17,19 @@ fi
 
 set_state_namespace infra
 
-# TODO: implement module-specific logic for this action.
+readonly MODULE_WRAPPER_STUB_EXIT_CODE=64
+
+# Explicit stub: template consumers must replace this block with module-specific logic.
+log_metric "optional_module_wrapper_stub_invocation" "1" "module=object-storage action=smoke target=infra-object-storage-smoke"
 state_file="$(
   write_state_file "object-storage_smoke" \
+    "status=not_implemented" \
+    "module=object-storage" \
+    "action=smoke" \
+    "target=infra-object-storage-smoke" \
     "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 )"
-log_info "object-storage smoke state written to $state_file"
+log_error "module wrapper not implemented: module=object-storage action=smoke target=infra-object-storage-smoke"
+log_error "copy this skeleton into scripts/bin/infra/object_storage_smoke.sh and replace the stub implementation"
+log_info "object-storage smoke stub state written to $state_file"
+exit "$MODULE_WRAPPER_STUB_EXIT_CODE"

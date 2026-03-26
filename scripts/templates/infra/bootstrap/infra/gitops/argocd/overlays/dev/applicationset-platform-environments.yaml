@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: platform-environments
+  namespace: argocd
+spec:
+  goTemplate: true
+  generators:
+    - list:
+        elements:
+          - environment: dev
+  template:
+    metadata:
+      name: platform-{{.environment}}-root
+      labels:
+        app.kubernetes.io/part-of: platform-blueprint
+        app.kubernetes.io/component: gitops-root
+        app.kubernetes.io/environment: '{{.environment}}'
+    spec:
+      project: platform-{{.environment}}
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: argocd
+      source:
+        repoURL: https://github.com/example-org/example-repo.git
+        targetRevision: main
+        path: infra/gitops/argocd/environments/{{.environment}}
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - PrunePropagationPolicy=foreground
+          - PruneLast=true

@@ -58,8 +58,8 @@ if ! state_file_exists workflows_plan; then
   log_fatal "missing workflows plan artifact; run infra-stackit-workflows-plan first"
 fi
 
-terraform_module_dir="$(stackit_terraform_module_dir "workflows")"
-run_terraform_action apply "$terraform_module_dir"
+provision_driver="api_contract"
+provision_path="/projects/$STACKIT_PROJECT_ID/regions/$STACKIT_REGION/instances"
 
 instance_name="$(workflows_compute_instance_name)"
 instance_id="${STACKIT_WORKFLOWS_INSTANCE_ID:-$(workflows_compute_instance_id "$instance_name") }"
@@ -131,8 +131,8 @@ state_file="$(write_state_file "workflows_instance" \
   "profile=$BLUEPRINT_PROFILE" \
   "stack=$(active_stack)" \
   "tooling_mode=$(tooling_execution_mode)" \
-  "provision_driver=terraform_plus_api" \
-  "terraform_module_dir=$terraform_module_dir" \
+  "provision_driver=$provision_driver" \
+  "provision_path=$provision_path" \
   "instance_id=$instance_id" \
   "instance_name=$instance_name" \
   "instance_fqdn=$instance_fqdn" \

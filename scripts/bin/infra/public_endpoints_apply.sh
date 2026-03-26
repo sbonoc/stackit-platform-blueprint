@@ -24,9 +24,9 @@ fi
 provision_driver="none"
 provision_path="none"
 if is_stackit_profile; then
-  provision_driver="terraform"
-  provision_path="$(stackit_terraform_module_dir "public-endpoints")"
-  run_terraform_action apply "$provision_path"
+  provision_driver="argocd_optional_manifest"
+  provision_path="$(argocd_optional_manifest "public-endpoints")"
+  run_manifest_apply "$provision_path"
 elif is_local_profile; then
   provision_driver="helm"
   provision_path="$(local_module_helm_values_file "public-endpoints")"

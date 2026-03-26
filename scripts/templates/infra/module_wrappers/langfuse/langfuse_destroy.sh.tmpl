@@ -17,9 +17,19 @@ fi
 
 set_state_namespace infra
 
-# TODO: implement module-specific logic for this action.
+readonly MODULE_WRAPPER_STUB_EXIT_CODE=64
+
+# Explicit stub: template consumers must replace this block with module-specific logic.
+log_metric "optional_module_wrapper_stub_invocation" "1" "module=langfuse action=destroy target=infra-langfuse-destroy"
 state_file="$(
   write_state_file "langfuse_destroy" \
+    "status=not_implemented" \
+    "module=langfuse" \
+    "action=destroy" \
+    "target=infra-langfuse-destroy" \
     "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 )"
-log_info "langfuse destroy state written to $state_file"
+log_error "module wrapper not implemented: module=langfuse action=destroy target=infra-langfuse-destroy"
+log_error "copy this skeleton into scripts/bin/infra/langfuse_destroy.sh and replace the stub implementation"
+log_info "langfuse destroy stub state written to $state_file"
+exit "$MODULE_WRAPPER_STUB_EXIT_CODE"
