@@ -7,8 +7,9 @@ Provision and reconcile STACKIT Workflows (managed Airflow) and deploy DAGs.
 - Supported only on `stackit-*` profiles.
 - Optional module Make targets are materialized by `make blueprint-render-makefile` (or `make blueprint-bootstrap`) when `WORKFLOWS_ENABLED=true`.
 - Scaffolding paths are materialized by `make infra-bootstrap` only when `WORKFLOWS_ENABLED=true`.
-- Terraform module path:
-  - `infra/cloud/stackit/terraform/modules/workflows`
+- Provisioning/reconciliation uses STACKIT Workflows API contract:
+  - `POST /projects/{projectId}/regions/{region}/instances`
+  - plus wrapper reconciliation in `scripts/bin/infra/stackit_workflows_*.sh`
 - API payload/state artifacts are generated under:
   - `artifacts/infra/workflows_*.env`
 

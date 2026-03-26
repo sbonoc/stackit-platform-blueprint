@@ -27,10 +27,17 @@ The execution flow is always the same:
 ### 1) Provision
 - Validates contracts and repository structure.
 - Chooses the provisioning driver from `BLUEPRINT_PROFILE`.
-- Runs optional module provisioning when enabled.
+- For local profiles, bootstraps Crossplane baseline (`infra/local/crossplane` + Crossplane Helm chart).
+- For STACKIT profiles, runs layered Terraform:
+  - `bootstrap` with remote S3 backend using pre-provisioned tfstate bucket/credentials.
+  - `foundation` with remote S3 backend using the same bucket contract and a separate state key.
+- Runs optional module provisioning when enabled:
+  - provider-backed modules reconcile through `foundation`,
+  - fallback modules run runtime/API contracts (for example ArgoCD optional manifests or Workflows API).
 - Writes state artifacts to `artifacts/infra/provision.env`.
 
 ### 2) Deploy
+- Bootstraps runtime core components (ArgoCD + External Secrets Operator) via Helm.
 - Applies ArgoCD base + environment overlay.
 - Bootstraps application catalog contract.
 - Runs optional module deployment/reconciliation steps.
@@ -48,9 +55,9 @@ The execution flow is always the same:
 |---|---|---|
 | `local-full` | `infra/local/crossplane` + local Helm values | `infra/gitops/argocd/base` + `infra/gitops/argocd/overlays/local` |
 | `local-lite` | `infra/local/crossplane` + local Helm values | `infra/gitops/argocd/base` + `infra/gitops/argocd/overlays/local` |
-| `stackit-dev` | `infra/cloud/stackit/terraform/environments/dev` | `infra/gitops/argocd/base` + `infra/gitops/argocd/overlays/dev` |
-| `stackit-stage` | `infra/cloud/stackit/terraform/environments/stage` | `infra/gitops/argocd/base` + `infra/gitops/argocd/overlays/stage` |
-| `stackit-prod` | `infra/cloud/stackit/terraform/environments/prod` | `infra/gitops/argocd/base` + `infra/gitops/argocd/overlays/prod` |
+| `stackit-dev` | `infra/cloud/stackit/terraform/bootstrap` + `infra/cloud/stackit/terraform/foundation` | `infra/gitops/argocd/base` + `infra/gitops/argocd/overlays/dev` |
+| `stackit-stage` | `infra/cloud/stackit/terraform/bootstrap` + `infra/cloud/stackit/terraform/foundation` | `infra/gitops/argocd/base` + `infra/gitops/argocd/overlays/stage` |
+| `stackit-prod` | `infra/cloud/stackit/terraform/bootstrap` + `infra/cloud/stackit/terraform/foundation` | `infra/gitops/argocd/base` + `infra/gitops/argocd/overlays/prod` |
 
 ## Optional Modules
 Optional modules are controlled by canonical flags:
@@ -59,14 +66,23 @@ Optional modules are controlled by canonical flags:
 - `LANGFUSE_ENABLED`
 - `POSTGRES_ENABLED`
 - `NEO4J_ENABLED`
+- `OBJECT_STORAGE_ENABLED`
+- `RABBITMQ_ENABLED`
+- `DNS_ENABLED`
+- `PUBLIC_ENDPOINTS_ENABLED`
+- `SECRETS_MANAGER_ENABLED`
+- `KMS_ENABLED`
+- `IDENTITY_AWARE_PROXY_ENABLED`
 
 If a flag is `true`, the module plan/apply/deploy/smoke scripts run and persist their own artifacts under `artifacts/infra/`.
 `blueprint-render-makefile` (or `blueprint-bootstrap`) materializes optional-module Make targets when the corresponding module flag is enabled.
 `infra-bootstrap` materializes optional-module infra scaffolding when enabled and prunes stale scaffolding when flags are switched back to `false`.
+`infra-destroy-disabled-modules` runs module destroy actions for modules currently disabled by flags, and should be executed before prune when resources may already exist.
 
 Examples:
-- `WORKFLOWS_ENABLED=true` creates `dags/`, Workflows Terraform scaffold, and optional GitOps manifests.
-- `LANGFUSE_ENABLED=true`, `POSTGRES_ENABLED=true`, and `NEO4J_ENABLED=true` create their module-specific Terraform/Helm/test scaffolding and optional manifests.
+- `WORKFLOWS_ENABLED=true` creates `dags/` scaffolding and Workflows API payload/runtime artifacts.
+- `LANGFUSE_ENABLED=true` and `NEO4J_ENABLED=true` materialize optional GitOps manifests under `infra/gitops/argocd/optional/${ENV}/`.
+- `POSTGRES_ENABLED=true`, `OBJECT_STORAGE_ENABLED=true`, `DNS_ENABLED=true`, `SECRETS_MANAGER_ENABLED=true`, and `OBSERVABILITY_ENABLED=true` are reconciled by the STACKIT `foundation` Terraform layer.
 
 ## Make and Script Ownership
 - `Makefile` is a blueprint-managed loader.
@@ -97,6 +113,9 @@ Start with:
 - `artifacts/infra/provision.env`
 - `artifacts/infra/deploy.env`
 - `artifacts/infra/smoke.env`
+- `artifacts/infra/local_crossplane_bootstrap.env`
+- `artifacts/infra/core_runtime_bootstrap.env`
+- `artifacts/infra/core_runtime_smoke.env`
 - `artifacts/apps/apps_bootstrap.env`
 - `artifacts/apps/apps_smoke.env`
 - `artifacts/docs/docs_build.env`

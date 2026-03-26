@@ -69,6 +69,7 @@ Common baseline flow:
 - `make blueprint-render-module-wrapper-skeletons`
 - `make blueprint-clean-generated`
 - `make infra-bootstrap`
+- `make infra-destroy-disabled-modules`
 - `make infra-validate`
 - `make infra-smoke`
 
@@ -82,6 +83,7 @@ Quality and docs flow:
 ## Optional Module Targets (Materialized Conditionally)
 `make blueprint-render-makefile` (or `make blueprint-bootstrap`) renders `make/blueprint.generated.mk` from template and only materializes targets for enabled modules.
 `make infra-bootstrap` materializes/prunes optional-module infra scaffolding from previously enabled optional modules.
+Use `make infra-destroy-disabled-modules` before pruning when module resources may already exist.
 
 To inspect the currently materialized optional-module targets for your active flags, run:
 - `make help`

@@ -6,7 +6,7 @@ Provision identity-aware access proxy capability and enforce Keycloak OIDC integ
 ## Stack Execution Model
 - Optional module Make targets are materialized by `make blueprint-render-makefile` (or `make blueprint-bootstrap`) when `IDENTITY_AWARE_PROXY_ENABLED=true`.
 - Scaffolding paths are materialized by `make infra-bootstrap` only when `IDENTITY_AWARE_PROXY_ENABLED=true`.
-- `stackit-*` profiles: Terraform module under `infra/cloud/stackit/terraform/modules/identity-aware-proxy`.
+- `stackit-*` profiles: runtime reconciliation through ArgoCD optional manifest `infra/gitops/argocd/optional/${ENV}/identity-aware-proxy.yaml`.
 - `local-*` profiles: Helm chart (`oauth2-proxy/oauth2-proxy`) using `infra/local/helm/identity-aware-proxy/values.yaml`.
 
 ## Enable

@@ -1,6 +1,6 @@
 # Contract Metadata (Generated)
 
-- Generated at: `2026-03-26T12:18:49Z`
+- Generated at: `2026-03-26T16:26:56Z`
 - Contract name: `stackit-k8s-reusable-blueprint`
 - Contract version: `1.0.0`
 
@@ -27,6 +27,7 @@
 - `infra-prereqs`
 - `infra-help-reference`
 - `infra-bootstrap`
+- `infra-destroy-disabled-modules`
 - `infra-validate`
 - `infra-smoke`
 - `infra-provision`
@@ -42,6 +43,7 @@
 - `infra-stackit-foundation-destroy`
 - `infra-stackit-foundation-fetch-kubeconfig`
 - `infra-stackit-foundation-refresh-kubeconfig`
+- `infra-stackit-foundation-seed-runtime-secret`
 - `infra-stackit-ci-github-setup`
 - `infra-stackit-destroy-all`
 - `infra-stackit-runtime-prerequisites`

@@ -6,7 +6,7 @@ Provision RabbitMQ for transaction state/event propagation and async notificatio
 ## Stack Execution Model
 - Optional module Make targets are materialized by `make blueprint-render-makefile` (or `make blueprint-bootstrap`) when `RABBITMQ_ENABLED=true`.
 - Scaffolding paths are materialized by `make infra-bootstrap` only when `RABBITMQ_ENABLED=true`.
-- `stackit-*` profiles: Terraform module under `infra/cloud/stackit/terraform/modules/rabbitmq`.
+- `stackit-*` profiles: runtime reconciliation through ArgoCD optional manifest `infra/gitops/argocd/optional/${ENV}/rabbitmq.yaml`.
 - `local-*` profiles: Helm chart (`bitnami/rabbitmq`) using `infra/local/helm/rabbitmq/values.yaml`.
 
 ## Enable

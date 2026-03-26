@@ -6,7 +6,7 @@ Provision managed key-management capability for encryption/signing operations.
 ## Stack Execution Model
 - Optional module Make targets are materialized by `make blueprint-render-makefile` (or `make blueprint-bootstrap`) when `KMS_ENABLED=true`.
 - Scaffolding paths are materialized by `make infra-bootstrap` only when `KMS_ENABLED=true`.
-- `stackit-*` profiles: Terraform module under `infra/cloud/stackit/terraform/modules/kms`.
+- `stackit-*` profiles: external automation contract in MVP (no Terraform provider-backed resource yet).
 - `local-*` profiles: no managed counterpart; module plan/apply is a no-op contract stub.
 
 ## Enable

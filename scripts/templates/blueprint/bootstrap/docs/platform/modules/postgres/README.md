@@ -6,7 +6,7 @@ Provision PostgreSQL and publish canonical connection contract for runtime consu
 ## Stack Execution Model
 - Optional module Make targets are materialized by `make blueprint-render-makefile` (or `make blueprint-bootstrap`) when `POSTGRES_ENABLED=true`.
 - Scaffolding paths are materialized by `make infra-bootstrap` only when `POSTGRES_ENABLED=true`.
-- `stackit-*` profiles: Terraform module under `infra/cloud/stackit/terraform/modules/postgres`.
+- `stackit-*` profiles: managed by Terraform `foundation` layer (`infra/cloud/stackit/terraform/foundation`) with `POSTGRES_ENABLED` contract flag.
 - `local-*` profiles: Helm chart (`bitnami/postgresql`) using `infra/local/helm/postgres/values.yaml`.
 
 ## Enable

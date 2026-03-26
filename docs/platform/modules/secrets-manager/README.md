@@ -6,7 +6,7 @@ Provision managed secrets-manager capability for runtime secret storage and cont
 ## Stack Execution Model
 - Optional module Make targets are materialized by `make blueprint-render-makefile` (or `make blueprint-bootstrap`) when `SECRETS_MANAGER_ENABLED=true`.
 - Scaffolding paths are materialized by `make infra-bootstrap` only when `SECRETS_MANAGER_ENABLED=true`.
-- `stackit-*` profiles: Terraform module under `infra/cloud/stackit/terraform/modules/secrets-manager`.
+- `stackit-*` profiles: managed by Terraform `foundation` layer (`infra/cloud/stackit/terraform/foundation`) with `SECRETS_MANAGER_ENABLED` contract flag.
 - `local-*` profiles: no managed counterpart; module plan/apply is a no-op contract stub.
 
 ## Enable
