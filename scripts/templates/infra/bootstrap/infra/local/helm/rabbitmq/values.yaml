@@ -1,0 +1,5 @@
+auth:
+  username: marketplace
+  password: marketplace-password
+service:
+  type: ClusterIP

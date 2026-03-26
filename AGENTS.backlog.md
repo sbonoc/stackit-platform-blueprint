@@ -4,6 +4,8 @@
 - [x] Contract-first validation flow (`infra-validate`) is aligned with `blueprint/contract.yaml`.
 - [x] Canonical execution targets exist for quality, infra, apps, tests, and docs.
 - [x] Optional modules are lean-by-default and scaffold on enable.
+- [x] Data Marketplace P0 optional modules are contract-driven and conditional (`object-storage`, `rabbitmq`, `dns`, `public-endpoints`, `secrets-manager`, `kms`, `identity-aware-proxy`).
+- [x] Identity-Aware Proxy contract enforces Keycloak OIDC dependency (Keycloak remains core capability).
 - [x] `infra-bootstrap` prunes stale optional-module scaffolding when module flags are disabled.
 - [x] Bootstrap ownership is split by domain: `blueprint-*` for template/config assets, `infra-*` for infra scaffolding.
 - [x] Root infra scaffold is lean and free of placeholder-only manifests.

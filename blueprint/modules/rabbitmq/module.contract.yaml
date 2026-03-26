@@ -1,0 +1,50 @@
+apiVersion: blueprint.module.contract/v1alpha1
+kind: OptionalModuleContract
+metadata:
+  name: rabbitmq
+  version: 1.0.0
+spec:
+  module_id: rabbitmq
+  purpose: "Provision RabbitMQ for transactional and notification event flows."
+  enabled_by_default: false
+  enable_flag: RABBITMQ_ENABLED
+
+  paths:
+    terraform: infra/cloud/stackit/terraform/modules/rabbitmq
+    helm: infra/local/helm/rabbitmq/values.yaml
+    docs: docs/platform/modules/rabbitmq/README.md
+    tests: tests/infra/modules/rabbitmq
+
+  dependencies:
+    required_core_capabilities:
+      - stackit_project_access
+      - messaging_service_available
+
+  inputs:
+    required_env:
+      - RABBITMQ_INSTANCE_NAME
+      - RABBITMQ_USERNAME
+      - RABBITMQ_PASSWORD
+    optional_env:
+      - RABBITMQ_PORT
+      - RABBITMQ_NAMESPACE
+      - RABBITMQ_HELM_RELEASE
+
+  outputs:
+    produced:
+      - RABBITMQ_HOST
+      - RABBITMQ_PORT
+      - RABBITMQ_URI
+
+  make_targets:
+    plan: infra-rabbitmq-plan
+    apply: infra-rabbitmq-apply
+    smoke: infra-rabbitmq-smoke
+    destroy: infra-rabbitmq-destroy
+
+  smoke_checks:
+    - "Broker URI is present and AMQP-formatted"
+    - "Runtime state contract is materialized"
+
+  cleanup_contract:
+    destroy_target: infra-rabbitmq-destroy

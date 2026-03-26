@@ -1,0 +1,45 @@
+apiVersion: blueprint.module.contract/v1alpha1
+kind: OptionalModuleContract
+metadata:
+  name: dns
+  version: 1.0.0
+spec:
+  module_id: dns
+  purpose: "Provision managed DNS zones and publish canonical domain contract."
+  enabled_by_default: false
+  enable_flag: DNS_ENABLED
+
+  paths:
+    terraform: infra/cloud/stackit/terraform/modules/dns
+    docs: docs/platform/modules/dns/README.md
+    tests: tests/infra/modules/dns
+
+  dependencies:
+    required_core_capabilities:
+      - stackit_project_access
+      - dns_service_available
+
+  inputs:
+    required_env:
+      - DNS_ZONE_NAME
+      - DNS_ZONE_FQDN
+    optional_env:
+      - DNS_RECORD_TTL
+
+  outputs:
+    produced:
+      - DNS_ZONE_ID
+      - DNS_ZONE_NAME
+      - DNS_ZONE_FQDN
+
+  make_targets:
+    plan: infra-dns-plan
+    apply: infra-dns-apply
+    smoke: infra-dns-smoke
+    destroy: infra-dns-destroy
+
+  smoke_checks:
+    - "DNS zone contract is present"
+
+  cleanup_contract:
+    destroy_target: infra-dns-destroy

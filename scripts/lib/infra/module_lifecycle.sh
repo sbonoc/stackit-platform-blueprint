@@ -78,6 +78,90 @@ module_action_scripts() {
   neo4j:destroy)
     echo "$ROOT_DIR/scripts/bin/infra/neo4j_destroy.sh"
     ;;
+  object-storage:plan)
+    echo "$ROOT_DIR/scripts/bin/infra/object_storage_plan.sh"
+    ;;
+  object-storage:apply)
+    echo "$ROOT_DIR/scripts/bin/infra/object_storage_apply.sh"
+    ;;
+  object-storage:smoke)
+    echo "$ROOT_DIR/scripts/bin/infra/object_storage_smoke.sh"
+    ;;
+  object-storage:destroy)
+    echo "$ROOT_DIR/scripts/bin/infra/object_storage_destroy.sh"
+    ;;
+  rabbitmq:plan)
+    echo "$ROOT_DIR/scripts/bin/infra/rabbitmq_plan.sh"
+    ;;
+  rabbitmq:apply)
+    echo "$ROOT_DIR/scripts/bin/infra/rabbitmq_apply.sh"
+    ;;
+  rabbitmq:smoke)
+    echo "$ROOT_DIR/scripts/bin/infra/rabbitmq_smoke.sh"
+    ;;
+  rabbitmq:destroy)
+    echo "$ROOT_DIR/scripts/bin/infra/rabbitmq_destroy.sh"
+    ;;
+  dns:plan)
+    echo "$ROOT_DIR/scripts/bin/infra/dns_plan.sh"
+    ;;
+  dns:apply)
+    echo "$ROOT_DIR/scripts/bin/infra/dns_apply.sh"
+    ;;
+  dns:smoke)
+    echo "$ROOT_DIR/scripts/bin/infra/dns_smoke.sh"
+    ;;
+  dns:destroy)
+    echo "$ROOT_DIR/scripts/bin/infra/dns_destroy.sh"
+    ;;
+  public-endpoints:plan)
+    echo "$ROOT_DIR/scripts/bin/infra/public_endpoints_plan.sh"
+    ;;
+  public-endpoints:apply)
+    echo "$ROOT_DIR/scripts/bin/infra/public_endpoints_apply.sh"
+    ;;
+  public-endpoints:smoke)
+    echo "$ROOT_DIR/scripts/bin/infra/public_endpoints_smoke.sh"
+    ;;
+  public-endpoints:destroy)
+    echo "$ROOT_DIR/scripts/bin/infra/public_endpoints_destroy.sh"
+    ;;
+  secrets-manager:plan)
+    echo "$ROOT_DIR/scripts/bin/infra/secrets_manager_plan.sh"
+    ;;
+  secrets-manager:apply)
+    echo "$ROOT_DIR/scripts/bin/infra/secrets_manager_apply.sh"
+    ;;
+  secrets-manager:smoke)
+    echo "$ROOT_DIR/scripts/bin/infra/secrets_manager_smoke.sh"
+    ;;
+  secrets-manager:destroy)
+    echo "$ROOT_DIR/scripts/bin/infra/secrets_manager_destroy.sh"
+    ;;
+  kms:plan)
+    echo "$ROOT_DIR/scripts/bin/infra/kms_plan.sh"
+    ;;
+  kms:apply)
+    echo "$ROOT_DIR/scripts/bin/infra/kms_apply.sh"
+    ;;
+  kms:smoke)
+    echo "$ROOT_DIR/scripts/bin/infra/kms_smoke.sh"
+    ;;
+  kms:destroy)
+    echo "$ROOT_DIR/scripts/bin/infra/kms_destroy.sh"
+    ;;
+  identity-aware-proxy:plan)
+    echo "$ROOT_DIR/scripts/bin/infra/identity_aware_proxy_plan.sh"
+    ;;
+  identity-aware-proxy:apply)
+    echo "$ROOT_DIR/scripts/bin/infra/identity_aware_proxy_apply.sh"
+    ;;
+  identity-aware-proxy:smoke)
+    echo "$ROOT_DIR/scripts/bin/infra/identity_aware_proxy_smoke.sh"
+    ;;
+  identity-aware-proxy:destroy)
+    echo "$ROOT_DIR/scripts/bin/infra/identity_aware_proxy_destroy.sh"
+    ;;
   *)
     ;;
   esac
@@ -89,7 +173,20 @@ run_enabled_modules_action() {
 
   local modules=("$@")
   if [[ "${#modules[@]}" -eq 0 ]]; then
-    modules=(observability workflows langfuse postgres neo4j)
+    modules=(
+      observability
+      workflows
+      langfuse
+      postgres
+      neo4j
+      object-storage
+      rabbitmq
+      dns
+      public-endpoints
+      secrets-manager
+      kms
+      identity-aware-proxy
+    )
   fi
 
   local enabled_modules_count=0

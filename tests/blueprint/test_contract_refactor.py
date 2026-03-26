@@ -173,6 +173,13 @@ class RefactorContractsTests(unittest.TestCase):
                 "docs/platform/modules/langfuse/README.md",
                 "docs/platform/modules/postgres/README.md",
                 "docs/platform/modules/neo4j/README.md",
+                "docs/platform/modules/object-storage/README.md",
+                "docs/platform/modules/rabbitmq/README.md",
+                "docs/platform/modules/dns/README.md",
+                "docs/platform/modules/public-endpoints/README.md",
+                "docs/platform/modules/secrets-manager/README.md",
+                "docs/platform/modules/kms/README.md",
+                "docs/platform/modules/identity-aware-proxy/README.md",
                 "scripts/templates/blueprint/bootstrap/Makefile",
                 "scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl",
                 "scripts/templates/blueprint/bootstrap/make/platform.mk",
@@ -299,6 +306,7 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn('"docs/platform/consumer/first_30_minutes.md"', bootstrap)
         self.assertIn('"docs/blueprint/governance/template_release_policy.md"', bootstrap)
         self.assertIn('"docs/blueprint/governance/ownership_matrix.md"', bootstrap)
+        self.assertIn('"docs/platform/modules/identity-aware-proxy/README.md"', bootstrap)
         self.assertIn('log_metric "blueprint_template_file_count" "${#template_files[@]}"', bootstrap)
         self.assertIn(
             "pre-commit install --install-hooks --hook-type pre-commit --hook-type pre-push",
@@ -419,6 +427,24 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn('prune_path_if_exists "$ROOT_DIR/tests/infra/modules/postgres"', bootstrap)
         self.assertIn('prune_path_if_exists "$ROOT_DIR/tests/infra/modules/neo4j"', bootstrap)
         self.assertIn('prune_path_if_exists "$ROOT_DIR/infra/gitops/argocd/optional/$env/neo4j.yaml"', bootstrap)
+        self.assertIn('prune_path_if_exists "$ROOT_DIR/infra/cloud/stackit/terraform/modules/object-storage"', bootstrap)
+        self.assertIn('prune_path_if_exists "$ROOT_DIR/infra/local/helm/object-storage"', bootstrap)
+        self.assertIn('prune_path_if_exists "$ROOT_DIR/tests/infra/modules/object-storage"', bootstrap)
+        self.assertIn('prune_path_if_exists "$ROOT_DIR/infra/cloud/stackit/terraform/modules/rabbitmq"', bootstrap)
+        self.assertIn('prune_path_if_exists "$ROOT_DIR/infra/local/helm/rabbitmq"', bootstrap)
+        self.assertIn('prune_path_if_exists "$ROOT_DIR/tests/infra/modules/rabbitmq"', bootstrap)
+        self.assertIn('prune_path_if_exists "$ROOT_DIR/infra/cloud/stackit/terraform/modules/dns"', bootstrap)
+        self.assertIn('prune_path_if_exists "$ROOT_DIR/tests/infra/modules/dns"', bootstrap)
+        self.assertIn('prune_path_if_exists "$ROOT_DIR/infra/cloud/stackit/terraform/modules/public-endpoints"', bootstrap)
+        self.assertIn('prune_path_if_exists "$ROOT_DIR/infra/local/helm/public-endpoints"', bootstrap)
+        self.assertIn('prune_path_if_exists "$ROOT_DIR/tests/infra/modules/public-endpoints"', bootstrap)
+        self.assertIn('prune_path_if_exists "$ROOT_DIR/infra/cloud/stackit/terraform/modules/secrets-manager"', bootstrap)
+        self.assertIn('prune_path_if_exists "$ROOT_DIR/tests/infra/modules/secrets-manager"', bootstrap)
+        self.assertIn('prune_path_if_exists "$ROOT_DIR/infra/cloud/stackit/terraform/modules/kms"', bootstrap)
+        self.assertIn('prune_path_if_exists "$ROOT_DIR/tests/infra/modules/kms"', bootstrap)
+        self.assertIn('prune_path_if_exists "$ROOT_DIR/infra/cloud/stackit/terraform/modules/identity-aware-proxy"', bootstrap)
+        self.assertIn('prune_path_if_exists "$ROOT_DIR/infra/local/helm/identity-aware-proxy"', bootstrap)
+        self.assertIn('prune_path_if_exists "$ROOT_DIR/tests/infra/modules/identity-aware-proxy"', bootstrap)
 
     def test_docs_scripts_are_docusaurus_only(self) -> None:
         docs_install = _read("scripts/bin/docs/install.sh")
@@ -564,6 +590,34 @@ class RefactorContractsTests(unittest.TestCase):
             "scripts/bin/infra/postgres_plan.sh",
             "scripts/bin/infra/neo4j_plan.sh",
             "scripts/bin/infra/stackit_workflows_plan.sh",
+            "scripts/bin/infra/object_storage_plan.sh",
+            "scripts/bin/infra/object_storage_apply.sh",
+            "scripts/bin/infra/object_storage_smoke.sh",
+            "scripts/bin/infra/object_storage_destroy.sh",
+            "scripts/bin/infra/rabbitmq_plan.sh",
+            "scripts/bin/infra/rabbitmq_apply.sh",
+            "scripts/bin/infra/rabbitmq_smoke.sh",
+            "scripts/bin/infra/rabbitmq_destroy.sh",
+            "scripts/bin/infra/dns_plan.sh",
+            "scripts/bin/infra/dns_apply.sh",
+            "scripts/bin/infra/dns_smoke.sh",
+            "scripts/bin/infra/dns_destroy.sh",
+            "scripts/bin/infra/public_endpoints_plan.sh",
+            "scripts/bin/infra/public_endpoints_apply.sh",
+            "scripts/bin/infra/public_endpoints_smoke.sh",
+            "scripts/bin/infra/public_endpoints_destroy.sh",
+            "scripts/bin/infra/secrets_manager_plan.sh",
+            "scripts/bin/infra/secrets_manager_apply.sh",
+            "scripts/bin/infra/secrets_manager_smoke.sh",
+            "scripts/bin/infra/secrets_manager_destroy.sh",
+            "scripts/bin/infra/kms_plan.sh",
+            "scripts/bin/infra/kms_apply.sh",
+            "scripts/bin/infra/kms_smoke.sh",
+            "scripts/bin/infra/kms_destroy.sh",
+            "scripts/bin/infra/identity_aware_proxy_plan.sh",
+            "scripts/bin/infra/identity_aware_proxy_apply.sh",
+            "scripts/bin/infra/identity_aware_proxy_smoke.sh",
+            "scripts/bin/infra/identity_aware_proxy_destroy.sh",
             "scripts/bin/infra/audit_version_cached.sh",
         ]
         for path in metric_files:
@@ -790,19 +844,60 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn('"make/blueprint.generated.mk.tmpl"', makefile_renderer)
         self.assertIn("updated make/blueprint.generated.mk from template based on enabled modules", makefile_renderer)
 
-    def test_langfuse_postgres_and_neo4j_scaffolding_is_contract_conditional(self) -> None:
+    def test_langfuse_postgres_neo4j_and_p0_modules_scaffolding_is_contract_conditional(self) -> None:
         contract = _read("blueprint/contract.yaml")
         bootstrap = _read("scripts/bin/infra/bootstrap.sh")
 
         self.assertIn("LANGFUSE_ENABLED:", contract)
         self.assertIn("POSTGRES_ENABLED:", contract)
         self.assertIn("NEO4J_ENABLED:", contract)
+        self.assertIn("OBJECT_STORAGE_ENABLED:", contract)
+        self.assertIn("RABBITMQ_ENABLED:", contract)
+        self.assertIn("DNS_ENABLED:", contract)
+        self.assertIn("PUBLIC_ENDPOINTS_ENABLED:", contract)
+        self.assertIn("SECRETS_MANAGER_ENABLED:", contract)
+        self.assertIn("KMS_ENABLED:", contract)
+        self.assertIn("IDENTITY_AWARE_PROXY_ENABLED:", contract)
         self.assertIn("enable_flag: LANGFUSE_ENABLED", contract)
         self.assertIn("enable_flag: POSTGRES_ENABLED", contract)
         self.assertIn("enable_flag: NEO4J_ENABLED", contract)
+        self.assertIn("enable_flag: OBJECT_STORAGE_ENABLED", contract)
+        self.assertIn("enable_flag: RABBITMQ_ENABLED", contract)
+        self.assertIn("enable_flag: DNS_ENABLED", contract)
+        self.assertIn("enable_flag: PUBLIC_ENDPOINTS_ENABLED", contract)
+        self.assertIn("enable_flag: SECRETS_MANAGER_ENABLED", contract)
+        self.assertIn("enable_flag: KMS_ENABLED", contract)
+        self.assertIn("enable_flag: IDENTITY_AWARE_PROXY_ENABLED", contract)
         self.assertIn("if is_module_enabled langfuse; then", bootstrap)
         self.assertIn("if is_module_enabled postgres; then", bootstrap)
         self.assertIn("if is_module_enabled neo4j; then", bootstrap)
+        self.assertIn("if is_module_enabled object-storage; then", bootstrap)
+        self.assertIn("if is_module_enabled rabbitmq; then", bootstrap)
+        self.assertIn("if is_module_enabled dns; then", bootstrap)
+        self.assertIn("if is_module_enabled public-endpoints; then", bootstrap)
+        self.assertIn("if is_module_enabled secrets-manager; then", bootstrap)
+        self.assertIn("if is_module_enabled kms; then", bootstrap)
+        self.assertIn("if is_module_enabled identity-aware-proxy; then", bootstrap)
+
+    def test_iap_contract_requires_keycloak_oidc_configuration(self) -> None:
+        contract = _read("blueprint/contract.yaml")
+        iap_module_contract = _read("blueprint/modules/identity-aware-proxy/module.contract.yaml")
+        iap_lib = _read("scripts/lib/infra/identity_aware_proxy.sh")
+
+        self.assertIn("Keycloak OIDC", contract)
+        self.assertIn("required_core_capabilities:", contract)
+        self.assertIn("keycloak_oidc_configuration", contract)
+        self.assertIn("KEYCLOAK_ISSUER_URL", contract)
+        self.assertIn("KEYCLOAK_CLIENT_ID", contract)
+        self.assertIn("KEYCLOAK_CLIENT_SECRET", contract)
+
+        self.assertIn("keycloak_available", iap_module_contract)
+        self.assertIn("keycloak_oidc_configuration", iap_module_contract)
+        self.assertIn("KEYCLOAK_ISSUER_URL", iap_module_contract)
+        self.assertIn("KEYCLOAK_CLIENT_ID", iap_module_contract)
+        self.assertIn("KEYCLOAK_CLIENT_SECRET", iap_module_contract)
+
+        self.assertIn("require_env_vars IAP_UPSTREAM_URL KEYCLOAK_ISSUER_URL KEYCLOAK_CLIENT_ID KEYCLOAK_CLIENT_SECRET", iap_lib)
 
     def test_makefile_template_supports_conditional_optional_targets(self) -> None:
         makefile_template = _read("scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl")
@@ -813,11 +908,25 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn("{{PHONY_LANGFUSE}}", makefile_template)
         self.assertIn("{{PHONY_POSTGRES}}", makefile_template)
         self.assertIn("{{PHONY_NEO4J}}", makefile_template)
+        self.assertIn("{{PHONY_OBJECT_STORAGE}}", makefile_template)
+        self.assertIn("{{PHONY_RABBITMQ}}", makefile_template)
+        self.assertIn("{{PHONY_DNS}}", makefile_template)
+        self.assertIn("{{PHONY_PUBLIC_ENDPOINTS}}", makefile_template)
+        self.assertIn("{{PHONY_SECRETS_MANAGER}}", makefile_template)
+        self.assertIn("{{PHONY_KMS}}", makefile_template)
+        self.assertIn("{{PHONY_IDENTITY_AWARE_PROXY}}", makefile_template)
         self.assertIn("{{TARGETS_OBSERVABILITY}}", makefile_template)
         self.assertIn("{{TARGETS_WORKFLOWS}}", makefile_template)
         self.assertIn("{{TARGETS_LANGFUSE}}", makefile_template)
         self.assertIn("{{TARGETS_POSTGRES}}", makefile_template)
         self.assertIn("{{TARGETS_NEO4J}}", makefile_template)
+        self.assertIn("{{TARGETS_OBJECT_STORAGE}}", makefile_template)
+        self.assertIn("{{TARGETS_RABBITMQ}}", makefile_template)
+        self.assertIn("{{TARGETS_DNS}}", makefile_template)
+        self.assertIn("{{TARGETS_PUBLIC_ENDPOINTS}}", makefile_template)
+        self.assertIn("{{TARGETS_SECRETS_MANAGER}}", makefile_template)
+        self.assertIn("{{TARGETS_KMS}}", makefile_template)
+        self.assertIn("{{TARGETS_IDENTITY_AWARE_PROXY}}", makefile_template)
         self.assertIn("render_makefile()", makefile_renderer)
         self.assertIn('render_bootstrap_template_content \\', makefile_renderer)
         self.assertIn('"blueprint" \\', makefile_renderer)

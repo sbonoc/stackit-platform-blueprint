@@ -1,0 +1,48 @@
+apiVersion: blueprint.module.contract/v1alpha1
+kind: OptionalModuleContract
+metadata:
+  name: public-endpoints
+  version: 1.0.0
+spec:
+  module_id: public-endpoints
+  purpose: "Provision ingress/public endpoint baseline for marketplace UI and API surfaces."
+  enabled_by_default: false
+  enable_flag: PUBLIC_ENDPOINTS_ENABLED
+
+  paths:
+    terraform: infra/cloud/stackit/terraform/modules/public-endpoints
+    helm: infra/local/helm/public-endpoints/values.yaml
+    docs: docs/platform/modules/public-endpoints/README.md
+    tests: tests/infra/modules/public-endpoints
+
+  dependencies:
+    required_core_capabilities:
+      - load_balancer_available
+      - ingress_controller_available
+    optional_module_dependencies:
+      - dns
+
+  inputs:
+    required_env:
+      - PUBLIC_ENDPOINTS_BASE_DOMAIN
+    optional_env:
+      - PUBLIC_ENDPOINTS_INGRESS_CLASS
+      - PUBLIC_ENDPOINTS_NAMESPACE
+      - PUBLIC_ENDPOINTS_HELM_RELEASE
+
+  outputs:
+    produced:
+      - PUBLIC_ENDPOINTS_BASE_DOMAIN
+      - PUBLIC_ENDPOINTS_INGRESS_CLASS
+
+  make_targets:
+    plan: infra-public-endpoints-plan
+    apply: infra-public-endpoints-apply
+    smoke: infra-public-endpoints-smoke
+    destroy: infra-public-endpoints-destroy
+
+  smoke_checks:
+    - "Base domain contract is present"
+
+  cleanup_contract:
+    destroy_target: infra-public-endpoints-destroy

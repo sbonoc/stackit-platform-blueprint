@@ -40,7 +40,9 @@ run_enabled_modules_action smoke observability
 
 run_cmd "$ROOT_DIR/scripts/bin/platform/apps/smoke.sh"
 
-run_enabled_modules_action smoke workflows langfuse postgres neo4j
+run_enabled_modules_action smoke \
+  workflows langfuse postgres neo4j \
+  object-storage rabbitmq dns public-endpoints secrets-manager kms identity-aware-proxy
 
 state_file="$(
   write_state_file "smoke" \

@@ -14,7 +14,7 @@ SHELL := /bin/bash
   infra-argocd-topology-render infra-argocd-topology-validate \
   infra-doctor infra-context infra-status infra-status-json \
   infra-audit-version infra-audit-version-cached \
-  docs-install docs-run docs-build docs-smoke{{PHONY_OBSERVABILITY}}{{PHONY_WORKFLOWS}}{{PHONY_LANGFUSE}}{{PHONY_POSTGRES}}{{PHONY_NEO4J}}
+  docs-install docs-run docs-build docs-smoke{{PHONY_OBSERVABILITY}}{{PHONY_WORKFLOWS}}{{PHONY_LANGFUSE}}{{PHONY_POSTGRES}}{{PHONY_NEO4J}}{{PHONY_OBJECT_STORAGE}}{{PHONY_RABBITMQ}}{{PHONY_DNS}}{{PHONY_PUBLIC_ENDPOINTS}}{{PHONY_SECRETS_MANAGER}}{{PHONY_KMS}}{{PHONY_IDENTITY_AWARE_PROXY}}
 
 help: ## Show targets
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z0-9_.-]+:.*## / {printf "%-50s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -168,4 +168,4 @@ docs-build: ## Build docs site
 docs-smoke: ## Smoke docs site output
 	@scripts/bin/docs/smoke.sh
 
-{{TARGETS_WORKFLOWS}}{{TARGETS_LANGFUSE}}{{TARGETS_POSTGRES}}{{TARGETS_NEO4J}}
+{{TARGETS_WORKFLOWS}}{{TARGETS_LANGFUSE}}{{TARGETS_POSTGRES}}{{TARGETS_NEO4J}}{{TARGETS_OBJECT_STORAGE}}{{TARGETS_RABBITMQ}}{{TARGETS_DNS}}{{TARGETS_PUBLIC_ENDPOINTS}}{{TARGETS_SECRETS_MANAGER}}{{TARGETS_KMS}}{{TARGETS_IDENTITY_AWARE_PROXY}}

@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+source "$ROOT_DIR/scripts/lib/bootstrap.sh"
+source "$ROOT_DIR/scripts/lib/infra/state.sh"
+
+start_script_metric_trap "infra_public_endpoints_destroy"
+
+# Generated wrapper skeleton from blueprint/modules/*/module.contract.yaml.
+# Copy into scripts/bin/infra/ and replace placeholders with module-specific implementation.
+
+if ! is_module_enabled public-endpoints; then
+  log_info "PUBLIC_ENDPOINTS_ENABLED=false; skipping public-endpoints destroy"
+  exit 0
+fi
+
+set_state_namespace infra
+
+# TODO: implement module-specific logic for this action.
+state_file="$(
+  write_state_file "public-endpoints_destroy" \
+    "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+)"
+log_info "public-endpoints destroy state written to $state_file"

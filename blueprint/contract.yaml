@@ -73,6 +73,13 @@ spec:
       - docs/platform/modules/langfuse/README.md
       - docs/platform/modules/postgres/README.md
       - docs/platform/modules/neo4j/README.md
+      - docs/platform/modules/object-storage/README.md
+      - docs/platform/modules/rabbitmq/README.md
+      - docs/platform/modules/dns/README.md
+      - docs/platform/modules/public-endpoints/README.md
+      - docs/platform/modules/secrets-manager/README.md
+      - docs/platform/modules/kms/README.md
+      - docs/platform/modules/identity-aware-proxy/README.md
       - tests/__init__.py
       - tests/blueprint/__init__.py
       - tests/infra/__init__.py
@@ -220,6 +227,41 @@ spec:
       default: false
       required: false
       description: "Optional-module switch for Neo4j provisioning/deployment."
+    OBJECT_STORAGE_ENABLED:
+      type: boolean
+      default: false
+      required: false
+      description: "Optional-module switch for Object Storage provisioning/deployment."
+    RABBITMQ_ENABLED:
+      type: boolean
+      default: false
+      required: false
+      description: "Optional-module switch for RabbitMQ provisioning/deployment."
+    DNS_ENABLED:
+      type: boolean
+      default: false
+      required: false
+      description: "Optional-module switch for DNS provisioning/deployment."
+    PUBLIC_ENDPOINTS_ENABLED:
+      type: boolean
+      default: false
+      required: false
+      description: "Optional-module switch for public endpoints/ingress provisioning/deployment."
+    SECRETS_MANAGER_ENABLED:
+      type: boolean
+      default: false
+      required: false
+      description: "Optional-module switch for Secrets Manager provisioning/deployment."
+    KMS_ENABLED:
+      type: boolean
+      default: false
+      required: false
+      description: "Optional-module switch for KMS provisioning/deployment."
+    IDENTITY_AWARE_PROXY_ENABLED:
+      type: boolean
+      default: false
+      required: false
+      description: "Optional-module switch for Identity-Aware Proxy provisioning/deployment; requires Keycloak OIDC configuration."
 
   tech_preferences:
     frontend:
@@ -275,6 +317,13 @@ spec:
         - docs/platform/modules/langfuse/README.md
         - docs/platform/modules/postgres/README.md
         - docs/platform/modules/neo4j/README.md
+        - docs/platform/modules/object-storage/README.md
+        - docs/platform/modules/rabbitmq/README.md
+        - docs/platform/modules/dns/README.md
+        - docs/platform/modules/public-endpoints/README.md
+        - docs/platform/modules/secrets-manager/README.md
+        - docs/platform/modules/kms/README.md
+        - docs/platform/modules/identity-aware-proxy/README.md
 
   make_contract:
     required_namespaces:
@@ -505,3 +554,138 @@ spec:
           - infra-neo4j-deploy
           - infra-neo4j-smoke
           - infra-neo4j-destroy
+      object-storage:
+        enabled_by_default: false
+        enable_flag: OBJECT_STORAGE_ENABLED
+        scaffolding_mode: conditional
+        paths_required_when_enabled:
+          - terraform_path
+          - helm_path
+          - tests_path
+        contract_path: blueprint/modules/object-storage/module.contract.yaml
+        terraform_path: infra/cloud/stackit/terraform/modules/object-storage
+        helm_path: infra/local/helm/object-storage/values.yaml
+        docs_path: docs/platform/modules/object-storage/README.md
+        tests_path: tests/infra/modules/object-storage
+        make_targets_mode: conditional
+        make_targets:
+          - infra-object-storage-plan
+          - infra-object-storage-apply
+          - infra-object-storage-smoke
+          - infra-object-storage-destroy
+      rabbitmq:
+        enabled_by_default: false
+        enable_flag: RABBITMQ_ENABLED
+        scaffolding_mode: conditional
+        paths_required_when_enabled:
+          - terraform_path
+          - helm_path
+          - tests_path
+        contract_path: blueprint/modules/rabbitmq/module.contract.yaml
+        terraform_path: infra/cloud/stackit/terraform/modules/rabbitmq
+        helm_path: infra/local/helm/rabbitmq/values.yaml
+        docs_path: docs/platform/modules/rabbitmq/README.md
+        tests_path: tests/infra/modules/rabbitmq
+        make_targets_mode: conditional
+        make_targets:
+          - infra-rabbitmq-plan
+          - infra-rabbitmq-apply
+          - infra-rabbitmq-smoke
+          - infra-rabbitmq-destroy
+      dns:
+        enabled_by_default: false
+        enable_flag: DNS_ENABLED
+        scaffolding_mode: conditional
+        paths_required_when_enabled:
+          - terraform_path
+          - tests_path
+        contract_path: blueprint/modules/dns/module.contract.yaml
+        terraform_path: infra/cloud/stackit/terraform/modules/dns
+        docs_path: docs/platform/modules/dns/README.md
+        tests_path: tests/infra/modules/dns
+        make_targets_mode: conditional
+        make_targets:
+          - infra-dns-plan
+          - infra-dns-apply
+          - infra-dns-smoke
+          - infra-dns-destroy
+      public-endpoints:
+        enabled_by_default: false
+        enable_flag: PUBLIC_ENDPOINTS_ENABLED
+        scaffolding_mode: conditional
+        paths_required_when_enabled:
+          - terraform_path
+          - helm_path
+          - tests_path
+        contract_path: blueprint/modules/public-endpoints/module.contract.yaml
+        terraform_path: infra/cloud/stackit/terraform/modules/public-endpoints
+        helm_path: infra/local/helm/public-endpoints/values.yaml
+        docs_path: docs/platform/modules/public-endpoints/README.md
+        tests_path: tests/infra/modules/public-endpoints
+        make_targets_mode: conditional
+        make_targets:
+          - infra-public-endpoints-plan
+          - infra-public-endpoints-apply
+          - infra-public-endpoints-smoke
+          - infra-public-endpoints-destroy
+      secrets-manager:
+        enabled_by_default: false
+        enable_flag: SECRETS_MANAGER_ENABLED
+        scaffolding_mode: conditional
+        paths_required_when_enabled:
+          - terraform_path
+          - tests_path
+        contract_path: blueprint/modules/secrets-manager/module.contract.yaml
+        terraform_path: infra/cloud/stackit/terraform/modules/secrets-manager
+        docs_path: docs/platform/modules/secrets-manager/README.md
+        tests_path: tests/infra/modules/secrets-manager
+        make_targets_mode: conditional
+        make_targets:
+          - infra-secrets-manager-plan
+          - infra-secrets-manager-apply
+          - infra-secrets-manager-smoke
+          - infra-secrets-manager-destroy
+      kms:
+        enabled_by_default: false
+        enable_flag: KMS_ENABLED
+        scaffolding_mode: conditional
+        paths_required_when_enabled:
+          - terraform_path
+          - tests_path
+        contract_path: blueprint/modules/kms/module.contract.yaml
+        terraform_path: infra/cloud/stackit/terraform/modules/kms
+        docs_path: docs/platform/modules/kms/README.md
+        tests_path: tests/infra/modules/kms
+        make_targets_mode: conditional
+        make_targets:
+          - infra-kms-plan
+          - infra-kms-apply
+          - infra-kms-smoke
+          - infra-kms-destroy
+      identity-aware-proxy:
+        enabled_by_default: false
+        enable_flag: IDENTITY_AWARE_PROXY_ENABLED
+        scaffolding_mode: conditional
+        paths_required_when_enabled:
+          - terraform_path
+          - helm_path
+          - tests_path
+        dependencies:
+          required_core_capabilities:
+            - keycloak_available
+            - keycloak_oidc_configuration
+          required_env:
+            - KEYCLOAK_ISSUER_URL
+            - KEYCLOAK_CLIENT_ID
+            - KEYCLOAK_CLIENT_SECRET
+        contract_path: blueprint/modules/identity-aware-proxy/module.contract.yaml
+        terraform_path: infra/cloud/stackit/terraform/modules/identity-aware-proxy
+        helm_path: infra/local/helm/identity-aware-proxy/values.yaml
+        docs_path: docs/platform/modules/identity-aware-proxy/README.md
+        tests_path: tests/infra/modules/identity-aware-proxy
+        make_targets_mode: conditional
+        make_targets:
+          - infra-identity-aware-proxy-plan
+          - infra-identity-aware-proxy-apply
+          - infra-identity-aware-proxy-smoke
+          - infra-identity-aware-proxy-destroy

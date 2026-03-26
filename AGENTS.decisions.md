@@ -1,6 +1,15 @@
 # Decisions Log
 
 ## 2026-03-26 (Template Baseline)
+- Added Data Marketplace P0 optional modules to the contract/runtime/tests:
+  - `object-storage`, `rabbitmq`, `dns`, `public-endpoints`, `secrets-manager`, `kms`, `identity-aware-proxy`.
+  - Makefile materialization, infra bootstrap/prune, module lifecycle, and smoke flows were extended for all modules.
+  - Rationale: provide a lean-by-default managed-services baseline for marketplace-style platform bootstraps while keeping modules strictly conditional.
+
+- Keycloak remains a core platform capability; IAP depends on Keycloak OIDC configuration.
+  - Modeled in both blueprint/module contracts and runtime wrappers via required `KEYCLOAK_ISSUER_URL`, `KEYCLOAK_CLIENT_ID`, and `KEYCLOAK_CLIENT_SECRET`.
+  - Rationale: enforce one canonical identity source and avoid divergent auth models when enabling Identity-Aware Proxy.
+
 - Backlog prioritization is release-driven with explicit template milestones (`v1.0`, `v1.1`, `v1.2`).
   - Rationale: keep roadmap execution focused on consumer adoption outcomes instead of implementation-history tracking.
 

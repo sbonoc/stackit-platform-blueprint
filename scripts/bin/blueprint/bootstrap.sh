@@ -69,6 +69,13 @@ bootstrap_blueprint_templates() {
     "docs/platform/modules/langfuse/README.md"
     "docs/platform/modules/postgres/README.md"
     "docs/platform/modules/neo4j/README.md"
+    "docs/platform/modules/object-storage/README.md"
+    "docs/platform/modules/rabbitmq/README.md"
+    "docs/platform/modules/dns/README.md"
+    "docs/platform/modules/public-endpoints/README.md"
+    "docs/platform/modules/secrets-manager/README.md"
+    "docs/platform/modules/kms/README.md"
+    "docs/platform/modules/identity-aware-proxy/README.md"
   )
 
   local rel

@@ -1,6 +1,6 @@
 # Contract Metadata (Generated)
 
-- Generated at: `2026-03-26T11:43:05Z`
+- Generated at: `2026-03-26T12:18:49Z`
 - Contract name: `stackit-k8s-reusable-blueprint`
 - Contract version: `1.0.0`
 
@@ -83,11 +83,83 @@
 ## Optional Modules
 | Module | Enabled by default | Enable flag | Contract path |
 |---|---:|---|---|
+| `dns` | `false` | `DNS_ENABLED` | `blueprint/modules/dns/module.contract.yaml` |
+| `identity-aware-proxy` | `false` | `IDENTITY_AWARE_PROXY_ENABLED` | `blueprint/modules/identity-aware-proxy/module.contract.yaml` |
+| `kms` | `false` | `KMS_ENABLED` | `blueprint/modules/kms/module.contract.yaml` |
 | `langfuse` | `false` | `LANGFUSE_ENABLED` | `blueprint/modules/langfuse/module.contract.yaml` |
 | `neo4j` | `false` | `NEO4J_ENABLED` | `blueprint/modules/neo4j/module.contract.yaml` |
+| `object-storage` | `false` | `OBJECT_STORAGE_ENABLED` | `blueprint/modules/object-storage/module.contract.yaml` |
 | `observability` | `false` | `OBSERVABILITY_ENABLED` | `blueprint/modules/observability/module.contract.yaml` |
 | `postgres` | `false` | `POSTGRES_ENABLED` | `blueprint/modules/postgres/module.contract.yaml` |
+| `public-endpoints` | `false` | `PUBLIC_ENDPOINTS_ENABLED` | `blueprint/modules/public-endpoints/module.contract.yaml` |
+| `rabbitmq` | `false` | `RABBITMQ_ENABLED` | `blueprint/modules/rabbitmq/module.contract.yaml` |
+| `secrets-manager` | `false` | `SECRETS_MANAGER_ENABLED` | `blueprint/modules/secrets-manager/module.contract.yaml` |
 | `workflows` | `false` | `WORKFLOWS_ENABLED` | `blueprint/modules/workflows/module.contract.yaml` |
+
+## Module: `dns`
+
+- Purpose: Provision managed DNS zones and publish canonical domain contract.
+- Enabled by default: `false`
+- Enable flag: `DNS_ENABLED`
+
+### Required Environment Variables
+- `DNS_ZONE_NAME`
+- `DNS_ZONE_FQDN`
+
+### Make Targets
+- `infra-dns-plan`
+- `infra-dns-apply`
+- `infra-dns-smoke`
+- `infra-dns-destroy`
+
+### Produced Outputs
+- `DNS_ZONE_ID`
+- `DNS_ZONE_NAME`
+- `DNS_ZONE_FQDN`
+
+## Module: `identity-aware-proxy`
+
+- Purpose: Provision identity-aware access proxy wired to Keycloak OIDC for marketplace UI/API protection.
+- Enabled by default: `false`
+- Enable flag: `IDENTITY_AWARE_PROXY_ENABLED`
+
+### Required Environment Variables
+- `IAP_UPSTREAM_URL`
+- `KEYCLOAK_ISSUER_URL`
+- `KEYCLOAK_CLIENT_ID`
+- `KEYCLOAK_CLIENT_SECRET`
+
+### Make Targets
+- `infra-identity-aware-proxy-plan`
+- `infra-identity-aware-proxy-apply`
+- `infra-identity-aware-proxy-smoke`
+- `infra-identity-aware-proxy-destroy`
+
+### Produced Outputs
+- `IAP_PUBLIC_URL`
+- `IAP_UPSTREAM_URL`
+- `IAP_OIDC_ISSUER`
+
+## Module: `kms`
+
+- Purpose: Provision managed key-management capability for encryption/signing workloads.
+- Enabled by default: `false`
+- Enable flag: `KMS_ENABLED`
+
+### Required Environment Variables
+- `KMS_KEY_RING_NAME`
+- `KMS_KEY_NAME`
+
+### Make Targets
+- `infra-kms-plan`
+- `infra-kms-apply`
+- `infra-kms-smoke`
+- `infra-kms-destroy`
+
+### Produced Outputs
+- `KMS_KEY_RING_NAME`
+- `KMS_KEY_NAME`
+- `KMS_KEY_ID`
 
 ## Module: `langfuse`
 
@@ -138,6 +210,27 @@
 - `NEO4J_USERNAME`
 - `NEO4J_PASSWORD`
 - `NEO4J_DATABASE`
+
+## Module: `object-storage`
+
+- Purpose: Provision managed object storage and expose canonical S3-compatible upload/download contract.
+- Enabled by default: `false`
+- Enable flag: `OBJECT_STORAGE_ENABLED`
+
+### Required Environment Variables
+- `OBJECT_STORAGE_BUCKET_NAME`
+
+### Make Targets
+- `infra-object-storage-plan`
+- `infra-object-storage-apply`
+- `infra-object-storage-smoke`
+- `infra-object-storage-destroy`
+
+### Produced Outputs
+- `OBJECT_STORAGE_ENDPOINT`
+- `OBJECT_STORAGE_BUCKET_NAME`
+- `OBJECT_STORAGE_ACCESS_KEY`
+- `OBJECT_STORAGE_SECRET_KEY`
 
 ## Module: `observability`
 
@@ -190,6 +283,66 @@
 - `POSTGRES_USER`
 - `POSTGRES_PASSWORD`
 - `POSTGRES_DSN`
+
+## Module: `public-endpoints`
+
+- Purpose: Provision ingress/public endpoint baseline for marketplace UI and API surfaces.
+- Enabled by default: `false`
+- Enable flag: `PUBLIC_ENDPOINTS_ENABLED`
+
+### Required Environment Variables
+- `PUBLIC_ENDPOINTS_BASE_DOMAIN`
+
+### Make Targets
+- `infra-public-endpoints-plan`
+- `infra-public-endpoints-apply`
+- `infra-public-endpoints-smoke`
+- `infra-public-endpoints-destroy`
+
+### Produced Outputs
+- `PUBLIC_ENDPOINTS_BASE_DOMAIN`
+- `PUBLIC_ENDPOINTS_INGRESS_CLASS`
+
+## Module: `rabbitmq`
+
+- Purpose: Provision RabbitMQ for transactional and notification event flows.
+- Enabled by default: `false`
+- Enable flag: `RABBITMQ_ENABLED`
+
+### Required Environment Variables
+- `RABBITMQ_INSTANCE_NAME`
+- `RABBITMQ_USERNAME`
+- `RABBITMQ_PASSWORD`
+
+### Make Targets
+- `infra-rabbitmq-plan`
+- `infra-rabbitmq-apply`
+- `infra-rabbitmq-smoke`
+- `infra-rabbitmq-destroy`
+
+### Produced Outputs
+- `RABBITMQ_HOST`
+- `RABBITMQ_PORT`
+- `RABBITMQ_URI`
+
+## Module: `secrets-manager`
+
+- Purpose: Provision managed secrets manager capability for runtime secret distribution.
+- Enabled by default: `false`
+- Enable flag: `SECRETS_MANAGER_ENABLED`
+
+### Required Environment Variables
+- `SECRETS_MANAGER_INSTANCE_NAME`
+
+### Make Targets
+- `infra-secrets-manager-plan`
+- `infra-secrets-manager-apply`
+- `infra-secrets-manager-smoke`
+- `infra-secrets-manager-destroy`
+
+### Produced Outputs
+- `SECRETS_MANAGER_INSTANCE_NAME`
+- `SECRETS_MANAGER_ENDPOINT`
 
 ## Module: `workflows`
 

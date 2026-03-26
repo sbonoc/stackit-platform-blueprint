@@ -31,6 +31,13 @@ class OptionalModulesTests(unittest.TestCase):
         self.assertNotIn("infra-langfuse-plan", disabled_help.stdout)
         self.assertNotIn("infra-postgres-plan", disabled_help.stdout)
         self.assertNotIn("infra-neo4j-plan", disabled_help.stdout)
+        self.assertNotIn("infra-object-storage-plan", disabled_help.stdout)
+        self.assertNotIn("infra-rabbitmq-plan", disabled_help.stdout)
+        self.assertNotIn("infra-dns-plan", disabled_help.stdout)
+        self.assertNotIn("infra-public-endpoints-plan", disabled_help.stdout)
+        self.assertNotIn("infra-secrets-manager-plan", disabled_help.stdout)
+        self.assertNotIn("infra-kms-plan", disabled_help.stdout)
+        self.assertNotIn("infra-identity-aware-proxy-plan", disabled_help.stdout)
 
         langfuse_env = module_flags_env(profile="stackit-dev", langfuse="true")
         langfuse_bootstrap = run_render_and_infra_bootstrap(langfuse_env)
@@ -42,6 +49,13 @@ class OptionalModulesTests(unittest.TestCase):
         self.assertNotIn("infra-stackit-workflows-plan", langfuse_help.stdout)
         self.assertNotIn("infra-postgres-plan", langfuse_help.stdout)
         self.assertNotIn("infra-neo4j-plan", langfuse_help.stdout)
+        self.assertNotIn("infra-object-storage-plan", langfuse_help.stdout)
+        self.assertNotIn("infra-rabbitmq-plan", langfuse_help.stdout)
+        self.assertNotIn("infra-dns-plan", langfuse_help.stdout)
+        self.assertNotIn("infra-public-endpoints-plan", langfuse_help.stdout)
+        self.assertNotIn("infra-secrets-manager-plan", langfuse_help.stdout)
+        self.assertNotIn("infra-kms-plan", langfuse_help.stdout)
+        self.assertNotIn("infra-identity-aware-proxy-plan", langfuse_help.stdout)
 
     def test_infra_bootstrap_prunes_stale_optional_scaffolding_when_flags_disabled(self) -> None:
         enabled_env = module_flags_env(
@@ -50,6 +64,13 @@ class OptionalModulesTests(unittest.TestCase):
             langfuse="true",
             postgres="true",
             neo4j="true",
+            object_storage="true",
+            rabbitmq="true",
+            dns="true",
+            public_endpoints="true",
+            secrets_manager="true",
+            kms="true",
+            identity_aware_proxy="true",
         )
         enabled = run_render_and_infra_bootstrap(enabled_env)
         self.assertEqual(enabled.returncode, 0, msg=enabled.stdout + enabled.stderr)
@@ -60,13 +81,31 @@ class OptionalModulesTests(unittest.TestCase):
             "infra/cloud/stackit/terraform/modules/langfuse",
             "infra/cloud/stackit/terraform/modules/postgres",
             "infra/cloud/stackit/terraform/modules/neo4j",
+            "infra/cloud/stackit/terraform/modules/object-storage",
+            "infra/cloud/stackit/terraform/modules/rabbitmq",
+            "infra/cloud/stackit/terraform/modules/dns",
+            "infra/cloud/stackit/terraform/modules/public-endpoints",
+            "infra/cloud/stackit/terraform/modules/secrets-manager",
+            "infra/cloud/stackit/terraform/modules/kms",
+            "infra/cloud/stackit/terraform/modules/identity-aware-proxy",
             "infra/local/helm/langfuse",
             "infra/local/helm/postgres",
             "infra/local/helm/neo4j",
+            "infra/local/helm/object-storage",
+            "infra/local/helm/rabbitmq",
+            "infra/local/helm/public-endpoints",
+            "infra/local/helm/identity-aware-proxy",
             "tests/infra/modules/workflows",
             "tests/infra/modules/langfuse",
             "tests/infra/modules/postgres",
             "tests/infra/modules/neo4j",
+            "tests/infra/modules/object-storage",
+            "tests/infra/modules/rabbitmq",
+            "tests/infra/modules/dns",
+            "tests/infra/modules/public-endpoints",
+            "tests/infra/modules/secrets-manager",
+            "tests/infra/modules/kms",
+            "tests/infra/modules/identity-aware-proxy",
             "infra/gitops/argocd/optional/dev/workflows.yaml",
             "infra/gitops/argocd/optional/dev/langfuse.yaml",
             "infra/gitops/argocd/optional/dev/neo4j.yaml",
@@ -84,13 +123,31 @@ class OptionalModulesTests(unittest.TestCase):
             "infra/cloud/stackit/terraform/modules/langfuse",
             "infra/cloud/stackit/terraform/modules/postgres",
             "infra/cloud/stackit/terraform/modules/neo4j",
+            "infra/cloud/stackit/terraform/modules/object-storage",
+            "infra/cloud/stackit/terraform/modules/rabbitmq",
+            "infra/cloud/stackit/terraform/modules/dns",
+            "infra/cloud/stackit/terraform/modules/public-endpoints",
+            "infra/cloud/stackit/terraform/modules/secrets-manager",
+            "infra/cloud/stackit/terraform/modules/kms",
+            "infra/cloud/stackit/terraform/modules/identity-aware-proxy",
             "infra/local/helm/langfuse",
             "infra/local/helm/postgres",
             "infra/local/helm/neo4j",
+            "infra/local/helm/object-storage",
+            "infra/local/helm/rabbitmq",
+            "infra/local/helm/public-endpoints",
+            "infra/local/helm/identity-aware-proxy",
             "tests/infra/modules/workflows",
             "tests/infra/modules/langfuse",
             "tests/infra/modules/postgres",
             "tests/infra/modules/neo4j",
+            "tests/infra/modules/object-storage",
+            "tests/infra/modules/rabbitmq",
+            "tests/infra/modules/dns",
+            "tests/infra/modules/public-endpoints",
+            "tests/infra/modules/secrets-manager",
+            "tests/infra/modules/kms",
+            "tests/infra/modules/identity-aware-proxy",
             "infra/gitops/argocd/optional/dev/workflows.yaml",
             "infra/gitops/argocd/optional/dev/langfuse.yaml",
             "infra/gitops/argocd/optional/dev/neo4j.yaml",
@@ -246,6 +303,204 @@ class OptionalModulesTests(unittest.TestCase):
         self.assertIn("uri=bolt://", runtime_content)
         self.assertIn("provision_driver=argocd_optional_manifest", runtime_content)
         destroy = run(["make", "infra-neo4j-destroy"], env)
+        self.assertEqual(destroy.returncode, 0, msg=destroy.stdout + destroy.stderr)
+
+    def test_object_storage_module_flow(self) -> None:
+        env = module_flags_env(object_storage="true")
+        env.update({"OBJECT_STORAGE_BUCKET_NAME": "marketplace-assets-dev"})
+        bootstrap = run_render_and_infra_bootstrap(env)
+        self.assertEqual(bootstrap.returncode, 0, msg=bootstrap.stdout + bootstrap.stderr)
+
+        steps = [
+            "infra-object-storage-plan",
+            "infra-object-storage-apply",
+            "infra-object-storage-smoke",
+        ]
+        for step in steps:
+            result = run(["make", step], env)
+            self.assertEqual(result.returncode, 0, msg=f"{step}\n{result.stdout}\n{result.stderr}")
+
+        runtime_file = REPO_ROOT / "artifacts" / "infra" / "object_storage_runtime.env"
+        self.assertTrue(runtime_file.exists())
+        runtime_content = runtime_file.read_text(encoding="utf-8")
+        self.assertIn("endpoint=http://", runtime_content)
+        self.assertIn("bucket=marketplace-assets-dev", runtime_content)
+
+        destroy = run(["make", "infra-object-storage-destroy"], env)
+        self.assertEqual(destroy.returncode, 0, msg=destroy.stdout + destroy.stderr)
+
+    def test_rabbitmq_module_flow(self) -> None:
+        env = module_flags_env(rabbitmq="true")
+        env.update(
+            {
+                "RABBITMQ_INSTANCE_NAME": "marketplace-rmq",
+                "RABBITMQ_USERNAME": "marketplace",
+                "RABBITMQ_PASSWORD": "marketplace-secret",
+            }
+        )
+        bootstrap = run_render_and_infra_bootstrap(env)
+        self.assertEqual(bootstrap.returncode, 0, msg=bootstrap.stdout + bootstrap.stderr)
+
+        steps = [
+            "infra-rabbitmq-plan",
+            "infra-rabbitmq-apply",
+            "infra-rabbitmq-smoke",
+        ]
+        for step in steps:
+            result = run(["make", step], env)
+            self.assertEqual(result.returncode, 0, msg=f"{step}\n{result.stdout}\n{result.stderr}")
+
+        runtime_file = REPO_ROOT / "artifacts" / "infra" / "rabbitmq_runtime.env"
+        self.assertTrue(runtime_file.exists())
+        runtime_content = runtime_file.read_text(encoding="utf-8")
+        self.assertIn("uri=amqp://", runtime_content)
+        self.assertIn("host=", runtime_content)
+
+        destroy = run(["make", "infra-rabbitmq-destroy"], env)
+        self.assertEqual(destroy.returncode, 0, msg=destroy.stdout + destroy.stderr)
+
+    def test_dns_module_flow(self) -> None:
+        env = module_flags_env(dns="true")
+        env.update(
+            {
+                "DNS_ZONE_NAME": "marketplace-dev",
+                "DNS_ZONE_FQDN": "marketplace.dev.",
+            }
+        )
+        bootstrap = run_render_and_infra_bootstrap(env)
+        self.assertEqual(bootstrap.returncode, 0, msg=bootstrap.stdout + bootstrap.stderr)
+
+        steps = [
+            "infra-dns-plan",
+            "infra-dns-apply",
+            "infra-dns-smoke",
+        ]
+        for step in steps:
+            result = run(["make", step], env)
+            self.assertEqual(result.returncode, 0, msg=f"{step}\n{result.stdout}\n{result.stderr}")
+
+        runtime_file = REPO_ROOT / "artifacts" / "infra" / "dns_runtime.env"
+        self.assertTrue(runtime_file.exists())
+        runtime_content = runtime_file.read_text(encoding="utf-8")
+        self.assertIn("zone_name=marketplace-dev", runtime_content)
+        self.assertIn("zone_fqdn=marketplace.dev.", runtime_content)
+
+        destroy = run(["make", "infra-dns-destroy"], env)
+        self.assertEqual(destroy.returncode, 0, msg=destroy.stdout + destroy.stderr)
+
+    def test_public_endpoints_module_flow(self) -> None:
+        env = module_flags_env(public_endpoints="true")
+        env.update({"PUBLIC_ENDPOINTS_BASE_DOMAIN": "apps.local"})
+        bootstrap = run_render_and_infra_bootstrap(env)
+        self.assertEqual(bootstrap.returncode, 0, msg=bootstrap.stdout + bootstrap.stderr)
+
+        steps = [
+            "infra-public-endpoints-plan",
+            "infra-public-endpoints-apply",
+            "infra-public-endpoints-smoke",
+        ]
+        for step in steps:
+            result = run(["make", step], env)
+            self.assertEqual(result.returncode, 0, msg=f"{step}\n{result.stdout}\n{result.stderr}")
+
+        runtime_file = REPO_ROOT / "artifacts" / "infra" / "public_endpoints_runtime.env"
+        self.assertTrue(runtime_file.exists())
+        runtime_content = runtime_file.read_text(encoding="utf-8")
+        self.assertIn("base_domain=apps.local", runtime_content)
+
+        destroy = run(["make", "infra-public-endpoints-destroy"], env)
+        self.assertEqual(destroy.returncode, 0, msg=destroy.stdout + destroy.stderr)
+
+    def test_secrets_manager_module_flow(self) -> None:
+        env = module_flags_env(secrets_manager="true")
+        env.update({"SECRETS_MANAGER_INSTANCE_NAME": "marketplace-secrets-dev"})
+        bootstrap = run_render_and_infra_bootstrap(env)
+        self.assertEqual(bootstrap.returncode, 0, msg=bootstrap.stdout + bootstrap.stderr)
+
+        steps = [
+            "infra-secrets-manager-plan",
+            "infra-secrets-manager-apply",
+            "infra-secrets-manager-smoke",
+        ]
+        for step in steps:
+            result = run(["make", step], env)
+            self.assertEqual(result.returncode, 0, msg=f"{step}\n{result.stdout}\n{result.stderr}")
+
+        runtime_file = REPO_ROOT / "artifacts" / "infra" / "secrets_manager_runtime.env"
+        self.assertTrue(runtime_file.exists())
+        runtime_content = runtime_file.read_text(encoding="utf-8")
+        self.assertIn("instance_name=marketplace-secrets-dev", runtime_content)
+        self.assertIn("endpoint=https://secrets.", runtime_content)
+
+        destroy = run(["make", "infra-secrets-manager-destroy"], env)
+        self.assertEqual(destroy.returncode, 0, msg=destroy.stdout + destroy.stderr)
+
+    def test_kms_module_flow(self) -> None:
+        env = module_flags_env(kms="true")
+        env.update(
+            {
+                "KMS_KEY_RING_NAME": "marketplace-ring-dev",
+                "KMS_KEY_NAME": "marketplace-key-dev",
+            }
+        )
+        bootstrap = run_render_and_infra_bootstrap(env)
+        self.assertEqual(bootstrap.returncode, 0, msg=bootstrap.stdout + bootstrap.stderr)
+
+        steps = [
+            "infra-kms-plan",
+            "infra-kms-apply",
+            "infra-kms-smoke",
+        ]
+        for step in steps:
+            result = run(["make", step], env)
+            self.assertEqual(result.returncode, 0, msg=f"{step}\n{result.stdout}\n{result.stderr}")
+
+        runtime_file = REPO_ROOT / "artifacts" / "infra" / "kms_runtime.env"
+        self.assertTrue(runtime_file.exists())
+        runtime_content = runtime_file.read_text(encoding="utf-8")
+        self.assertIn("key_id=kms://marketplace-ring-dev/marketplace-key-dev", runtime_content)
+
+        destroy = run(["make", "infra-kms-destroy"], env)
+        self.assertEqual(destroy.returncode, 0, msg=destroy.stdout + destroy.stderr)
+
+    def test_identity_aware_proxy_requires_keycloak_oidc_configuration(self) -> None:
+        env = module_flags_env(identity_aware_proxy="true")
+        bootstrap = run_render_and_infra_bootstrap(env)
+        self.assertEqual(bootstrap.returncode, 0, msg=bootstrap.stdout + bootstrap.stderr)
+
+        plan = run(["make", "infra-identity-aware-proxy-plan"], env)
+        self.assertNotEqual(plan.returncode, 0, msg=plan.stdout + plan.stderr)
+        self.assertIn("KEYCLOAK_ISSUER_URL", plan.stderr + plan.stdout)
+
+    def test_identity_aware_proxy_module_flow(self) -> None:
+        env = module_flags_env(identity_aware_proxy="true")
+        env.update(
+            {
+                "IAP_UPSTREAM_URL": "http://catalog.apps.svc.cluster.local:8080",
+                "KEYCLOAK_ISSUER_URL": "https://keycloak.example/realms/marketplace",
+                "KEYCLOAK_CLIENT_ID": "marketplace-iap",
+                "KEYCLOAK_CLIENT_SECRET": "marketplace-iap-secret",
+            }
+        )
+        bootstrap = run_render_and_infra_bootstrap(env)
+        self.assertEqual(bootstrap.returncode, 0, msg=bootstrap.stdout + bootstrap.stderr)
+
+        steps = [
+            "infra-identity-aware-proxy-plan",
+            "infra-identity-aware-proxy-apply",
+            "infra-identity-aware-proxy-smoke",
+        ]
+        for step in steps:
+            result = run(["make", step], env)
+            self.assertEqual(result.returncode, 0, msg=f"{step}\n{result.stdout}\n{result.stderr}")
+
+        runtime_file = REPO_ROOT / "artifacts" / "infra" / "identity_aware_proxy_runtime.env"
+        self.assertTrue(runtime_file.exists())
+        runtime_content = runtime_file.read_text(encoding="utf-8")
+        self.assertIn("keycloak_issuer=https://keycloak.example/realms/marketplace", runtime_content)
+        self.assertIn("keycloak_client_id=marketplace-iap", runtime_content)
+
+        destroy = run(["make", "infra-identity-aware-proxy-destroy"], env)
         self.assertEqual(destroy.returncode, 0, msg=destroy.stdout + destroy.stderr)
 
 

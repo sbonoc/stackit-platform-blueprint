@@ -1,0 +1,55 @@
+apiVersion: blueprint.module.contract/v1alpha1
+kind: OptionalModuleContract
+metadata:
+  name: identity-aware-proxy
+  version: 1.0.0
+spec:
+  module_id: identity-aware-proxy
+  purpose: "Provision identity-aware access proxy wired to Keycloak OIDC for marketplace UI/API protection."
+  enabled_by_default: false
+  enable_flag: IDENTITY_AWARE_PROXY_ENABLED
+
+  paths:
+    terraform: infra/cloud/stackit/terraform/modules/identity-aware-proxy
+    helm: infra/local/helm/identity-aware-proxy/values.yaml
+    docs: docs/platform/modules/identity-aware-proxy/README.md
+    tests: tests/infra/modules/identity-aware-proxy
+
+  dependencies:
+    required_core_capabilities:
+      - keycloak_available
+      - keycloak_oidc_configuration
+      - oidc_realm_available
+      - ingress_controller_available
+    optional_module_dependencies:
+      - public-endpoints
+
+  inputs:
+    required_env:
+      - IAP_UPSTREAM_URL
+      - KEYCLOAK_ISSUER_URL
+      - KEYCLOAK_CLIENT_ID
+      - KEYCLOAK_CLIENT_SECRET
+    optional_env:
+      - IAP_PUBLIC_HOST
+      - IAP_NAMESPACE
+      - IAP_HELM_RELEASE
+
+  outputs:
+    produced:
+      - IAP_PUBLIC_URL
+      - IAP_UPSTREAM_URL
+      - IAP_OIDC_ISSUER
+
+  make_targets:
+    plan: infra-identity-aware-proxy-plan
+    apply: infra-identity-aware-proxy-apply
+    smoke: infra-identity-aware-proxy-smoke
+    destroy: infra-identity-aware-proxy-destroy
+
+  smoke_checks:
+    - "OIDC issuer and client contract are present"
+    - "Proxy runtime contract is materialized"
+
+  cleanup_contract:
+    destroy_target: infra-identity-aware-proxy-destroy

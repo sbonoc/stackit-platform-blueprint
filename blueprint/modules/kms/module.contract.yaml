@@ -1,0 +1,43 @@
+apiVersion: blueprint.module.contract/v1alpha1
+kind: OptionalModuleContract
+metadata:
+  name: kms
+  version: 1.0.0
+spec:
+  module_id: kms
+  purpose: "Provision managed key-management capability for encryption/signing workloads."
+  enabled_by_default: false
+  enable_flag: KMS_ENABLED
+
+  paths:
+    terraform: infra/cloud/stackit/terraform/modules/kms
+    docs: docs/platform/modules/kms/README.md
+    tests: tests/infra/modules/kms
+
+  dependencies:
+    required_core_capabilities:
+      - stackit_project_access
+      - stackit_kms_api
+
+  inputs:
+    required_env:
+      - KMS_KEY_RING_NAME
+      - KMS_KEY_NAME
+
+  outputs:
+    produced:
+      - KMS_KEY_RING_NAME
+      - KMS_KEY_NAME
+      - KMS_KEY_ID
+
+  make_targets:
+    plan: infra-kms-plan
+    apply: infra-kms-apply
+    smoke: infra-kms-smoke
+    destroy: infra-kms-destroy
+
+  smoke_checks:
+    - "KMS key contract is present"
+
+  cleanup_contract:
+    destroy_target: infra-kms-destroy

@@ -127,6 +127,41 @@ bootstrap_optional_module_scaffolding() {
     scaffolded_modules+=("neo4j")
   fi
 
+  if is_module_enabled object-storage; then
+    bootstrap_module_scaffold object-storage true false
+    scaffolded_modules+=("object-storage")
+  fi
+
+  if is_module_enabled rabbitmq; then
+    bootstrap_module_scaffold rabbitmq true false
+    scaffolded_modules+=("rabbitmq")
+  fi
+
+  if is_module_enabled dns; then
+    bootstrap_module_scaffold dns false false
+    scaffolded_modules+=("dns")
+  fi
+
+  if is_module_enabled public-endpoints; then
+    bootstrap_module_scaffold public-endpoints true false
+    scaffolded_modules+=("public-endpoints")
+  fi
+
+  if is_module_enabled secrets-manager; then
+    bootstrap_module_scaffold secrets-manager false false
+    scaffolded_modules+=("secrets-manager")
+  fi
+
+  if is_module_enabled kms; then
+    bootstrap_module_scaffold kms false false
+    scaffolded_modules+=("kms")
+  fi
+
+  if is_module_enabled identity-aware-proxy; then
+    bootstrap_module_scaffold identity-aware-proxy true false
+    scaffolded_modules+=("identity-aware-proxy")
+  fi
+
   log_metric "optional_module_scaffold_count" "${#scaffolded_modules[@]}"
   if [[ "${#scaffolded_modules[@]}" -gt 0 ]]; then
     log_info "optional module infra scaffolding materialized: ${scaffolded_modules[*]}"
@@ -239,6 +274,45 @@ prune_optional_module_scaffolding() {
     for env in local dev stage prod; do
       prune_path_if_exists "$ROOT_DIR/infra/gitops/argocd/optional/$env/neo4j.yaml" && pruned_path_count=$((pruned_path_count + 1))
     done
+  fi
+
+  if ! is_module_enabled object-storage; then
+    prune_path_if_exists "$ROOT_DIR/infra/cloud/stackit/terraform/modules/object-storage" && pruned_path_count=$((pruned_path_count + 1))
+    prune_path_if_exists "$ROOT_DIR/infra/local/helm/object-storage" && pruned_path_count=$((pruned_path_count + 1))
+    prune_path_if_exists "$ROOT_DIR/tests/infra/modules/object-storage" && pruned_path_count=$((pruned_path_count + 1))
+  fi
+
+  if ! is_module_enabled rabbitmq; then
+    prune_path_if_exists "$ROOT_DIR/infra/cloud/stackit/terraform/modules/rabbitmq" && pruned_path_count=$((pruned_path_count + 1))
+    prune_path_if_exists "$ROOT_DIR/infra/local/helm/rabbitmq" && pruned_path_count=$((pruned_path_count + 1))
+    prune_path_if_exists "$ROOT_DIR/tests/infra/modules/rabbitmq" && pruned_path_count=$((pruned_path_count + 1))
+  fi
+
+  if ! is_module_enabled dns; then
+    prune_path_if_exists "$ROOT_DIR/infra/cloud/stackit/terraform/modules/dns" && pruned_path_count=$((pruned_path_count + 1))
+    prune_path_if_exists "$ROOT_DIR/tests/infra/modules/dns" && pruned_path_count=$((pruned_path_count + 1))
+  fi
+
+  if ! is_module_enabled public-endpoints; then
+    prune_path_if_exists "$ROOT_DIR/infra/cloud/stackit/terraform/modules/public-endpoints" && pruned_path_count=$((pruned_path_count + 1))
+    prune_path_if_exists "$ROOT_DIR/infra/local/helm/public-endpoints" && pruned_path_count=$((pruned_path_count + 1))
+    prune_path_if_exists "$ROOT_DIR/tests/infra/modules/public-endpoints" && pruned_path_count=$((pruned_path_count + 1))
+  fi
+
+  if ! is_module_enabled secrets-manager; then
+    prune_path_if_exists "$ROOT_DIR/infra/cloud/stackit/terraform/modules/secrets-manager" && pruned_path_count=$((pruned_path_count + 1))
+    prune_path_if_exists "$ROOT_DIR/tests/infra/modules/secrets-manager" && pruned_path_count=$((pruned_path_count + 1))
+  fi
+
+  if ! is_module_enabled kms; then
+    prune_path_if_exists "$ROOT_DIR/infra/cloud/stackit/terraform/modules/kms" && pruned_path_count=$((pruned_path_count + 1))
+    prune_path_if_exists "$ROOT_DIR/tests/infra/modules/kms" && pruned_path_count=$((pruned_path_count + 1))
+  fi
+
+  if ! is_module_enabled identity-aware-proxy; then
+    prune_path_if_exists "$ROOT_DIR/infra/cloud/stackit/terraform/modules/identity-aware-proxy" && pruned_path_count=$((pruned_path_count + 1))
+    prune_path_if_exists "$ROOT_DIR/infra/local/helm/identity-aware-proxy" && pruned_path_count=$((pruned_path_count + 1))
+    prune_path_if_exists "$ROOT_DIR/tests/infra/modules/identity-aware-proxy" && pruned_path_count=$((pruned_path_count + 1))
   fi
 
   log_metric "optional_module_pruned_path_count" "$pruned_path_count"

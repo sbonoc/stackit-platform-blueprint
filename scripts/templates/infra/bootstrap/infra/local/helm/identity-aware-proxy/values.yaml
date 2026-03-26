@@ -1,0 +1,7 @@
+config:
+  clientID: replace-me
+  clientSecret: replace-me
+  provider: oidc
+  oidcIssuerURL: https://keycloak.example/realms/marketplace
+  upstreams:
+    - http://catalog.apps.svc.cluster.local:8080

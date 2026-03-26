@@ -49,6 +49,13 @@ Read:
 - [Langfuse](platform/modules/langfuse/README.md)
 - [Postgres](platform/modules/postgres/README.md)
 - [Neo4j](platform/modules/neo4j/README.md)
+- [Object Storage](platform/modules/object-storage/README.md)
+- [RabbitMQ](platform/modules/rabbitmq/README.md)
+- [DNS](platform/modules/dns/README.md)
+- [Public Endpoints](platform/modules/public-endpoints/README.md)
+- [Secrets Manager](platform/modules/secrets-manager/README.md)
+- [KMS](platform/modules/kms/README.md)
+- [Identity-Aware Proxy](platform/modules/identity-aware-proxy/README.md)
 
 ## Command Reference
 Command discovery:

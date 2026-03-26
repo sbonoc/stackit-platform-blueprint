@@ -57,7 +57,9 @@ run_enabled_modules_action deploy observability
 
 run_cmd "$ROOT_DIR/scripts/bin/platform/apps/bootstrap.sh"
 
-run_enabled_modules_action deploy workflows langfuse neo4j postgres
+run_enabled_modules_action deploy \
+  workflows langfuse neo4j postgres \
+  object-storage rabbitmq dns public-endpoints secrets-manager kms identity-aware-proxy
 
 state_file="$(
   write_state_file "deploy" \

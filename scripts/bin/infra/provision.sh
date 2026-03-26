@@ -49,8 +49,12 @@ else
   log_fatal "unsupported BLUEPRINT_PROFILE=$BLUEPRINT_PROFILE"
 fi
 
-run_enabled_modules_action plan observability workflows langfuse postgres neo4j
-run_enabled_modules_action apply observability workflows langfuse postgres neo4j
+run_enabled_modules_action plan \
+  observability workflows langfuse postgres neo4j \
+  object-storage rabbitmq dns public-endpoints secrets-manager kms identity-aware-proxy
+run_enabled_modules_action apply \
+  observability workflows langfuse postgres neo4j \
+  object-storage rabbitmq dns public-endpoints secrets-manager kms identity-aware-proxy
 
 state_file="$(
   write_state_file "provision" \

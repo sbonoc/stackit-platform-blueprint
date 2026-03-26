@@ -1,0 +1,41 @@
+apiVersion: blueprint.module.contract/v1alpha1
+kind: OptionalModuleContract
+metadata:
+  name: secrets-manager
+  version: 1.0.0
+spec:
+  module_id: secrets-manager
+  purpose: "Provision managed secrets manager capability for runtime secret distribution."
+  enabled_by_default: false
+  enable_flag: SECRETS_MANAGER_ENABLED
+
+  paths:
+    terraform: infra/cloud/stackit/terraform/modules/secrets-manager
+    docs: docs/platform/modules/secrets-manager/README.md
+    tests: tests/infra/modules/secrets-manager
+
+  dependencies:
+    required_core_capabilities:
+      - stackit_project_access
+      - stackit_secrets_manager_api
+
+  inputs:
+    required_env:
+      - SECRETS_MANAGER_INSTANCE_NAME
+
+  outputs:
+    produced:
+      - SECRETS_MANAGER_INSTANCE_NAME
+      - SECRETS_MANAGER_ENDPOINT
+
+  make_targets:
+    plan: infra-secrets-manager-plan
+    apply: infra-secrets-manager-apply
+    smoke: infra-secrets-manager-smoke
+    destroy: infra-secrets-manager-destroy
+
+  smoke_checks:
+    - "Secrets manager runtime contract is present"
+
+  cleanup_contract:
+    destroy_target: infra-secrets-manager-destroy

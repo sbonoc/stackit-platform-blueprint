@@ -1,0 +1,7 @@
+mode: standalone
+rootUser: minioadmin
+rootPassword: minioadmin123
+buckets:
+  - name: marketplace-assets
+    policy: none
+    purge: false

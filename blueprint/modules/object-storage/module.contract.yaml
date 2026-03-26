@@ -1,0 +1,53 @@
+apiVersion: blueprint.module.contract/v1alpha1
+kind: OptionalModuleContract
+metadata:
+  name: object-storage
+  version: 1.0.0
+spec:
+  module_id: object-storage
+  purpose: "Provision managed object storage and expose canonical S3-compatible upload/download contract."
+  enabled_by_default: false
+  enable_flag: OBJECT_STORAGE_ENABLED
+
+  paths:
+    terraform: infra/cloud/stackit/terraform/modules/object-storage
+    helm: infra/local/helm/object-storage/values.yaml
+    docs: docs/platform/modules/object-storage/README.md
+    tests: tests/infra/modules/object-storage
+
+  dependencies:
+    required_core_capabilities:
+      - stackit_project_access
+      - s3_compatible_api
+      - secrets_manager_available
+
+  inputs:
+    required_env:
+      - OBJECT_STORAGE_BUCKET_NAME
+    optional_env:
+      - OBJECT_STORAGE_REGION
+      - OBJECT_STORAGE_ENDPOINT
+      - OBJECT_STORAGE_ACCESS_KEY
+      - OBJECT_STORAGE_SECRET_KEY
+      - OBJECT_STORAGE_HELM_RELEASE
+      - OBJECT_STORAGE_NAMESPACE
+
+  outputs:
+    produced:
+      - OBJECT_STORAGE_ENDPOINT
+      - OBJECT_STORAGE_BUCKET_NAME
+      - OBJECT_STORAGE_ACCESS_KEY
+      - OBJECT_STORAGE_SECRET_KEY
+
+  make_targets:
+    plan: infra-object-storage-plan
+    apply: infra-object-storage-apply
+    smoke: infra-object-storage-smoke
+    destroy: infra-object-storage-destroy
+
+  smoke_checks:
+    - "Bucket name contract is present"
+    - "Endpoint contract uses supported URI format"
+
+  cleanup_contract:
+    destroy_target: infra-object-storage-destroy

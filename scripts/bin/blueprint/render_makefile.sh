@@ -62,6 +62,48 @@ OUT
   infra-neo4j-plan infra-neo4j-apply infra-neo4j-deploy infra-neo4j-smoke infra-neo4j-destroy
 OUT
     ;;
+  object-storage)
+    cat <<'OUT'
+ \
+  infra-object-storage-plan infra-object-storage-apply infra-object-storage-smoke infra-object-storage-destroy
+OUT
+    ;;
+  rabbitmq)
+    cat <<'OUT'
+ \
+  infra-rabbitmq-plan infra-rabbitmq-apply infra-rabbitmq-smoke infra-rabbitmq-destroy
+OUT
+    ;;
+  dns)
+    cat <<'OUT'
+ \
+  infra-dns-plan infra-dns-apply infra-dns-smoke infra-dns-destroy
+OUT
+    ;;
+  public-endpoints)
+    cat <<'OUT'
+ \
+  infra-public-endpoints-plan infra-public-endpoints-apply infra-public-endpoints-smoke infra-public-endpoints-destroy
+OUT
+    ;;
+  secrets-manager)
+    cat <<'OUT'
+ \
+  infra-secrets-manager-plan infra-secrets-manager-apply infra-secrets-manager-smoke infra-secrets-manager-destroy
+OUT
+    ;;
+  kms)
+    cat <<'OUT'
+ \
+  infra-kms-plan infra-kms-apply infra-kms-smoke infra-kms-destroy
+OUT
+    ;;
+  identity-aware-proxy)
+    cat <<'OUT'
+ \
+  infra-identity-aware-proxy-plan infra-identity-aware-proxy-apply infra-identity-aware-proxy-smoke infra-identity-aware-proxy-destroy
+OUT
+    ;;
   *)
     log_fatal "unsupported makefile module phony suffix: $module"
     ;;
@@ -173,6 +215,118 @@ infra-neo4j-destroy: ## Destroy Neo4j resources
 	@scripts/bin/infra/neo4j_destroy.sh
 OUT
     ;;
+  object-storage)
+    cat <<'OUT'
+
+infra-object-storage-plan: ## Plan Object Storage resources
+	@scripts/bin/infra/object_storage_plan.sh
+
+infra-object-storage-apply: ## Apply Object Storage resources
+	@scripts/bin/infra/object_storage_apply.sh
+
+infra-object-storage-smoke: ## Object Storage smoke checks
+	@scripts/bin/infra/object_storage_smoke.sh
+
+infra-object-storage-destroy: ## Destroy Object Storage resources
+	@scripts/bin/infra/object_storage_destroy.sh
+OUT
+    ;;
+  rabbitmq)
+    cat <<'OUT'
+
+infra-rabbitmq-plan: ## Plan RabbitMQ resources
+	@scripts/bin/infra/rabbitmq_plan.sh
+
+infra-rabbitmq-apply: ## Apply RabbitMQ resources
+	@scripts/bin/infra/rabbitmq_apply.sh
+
+infra-rabbitmq-smoke: ## RabbitMQ smoke checks
+	@scripts/bin/infra/rabbitmq_smoke.sh
+
+infra-rabbitmq-destroy: ## Destroy RabbitMQ resources
+	@scripts/bin/infra/rabbitmq_destroy.sh
+OUT
+    ;;
+  dns)
+    cat <<'OUT'
+
+infra-dns-plan: ## Plan DNS resources
+	@scripts/bin/infra/dns_plan.sh
+
+infra-dns-apply: ## Apply DNS resources
+	@scripts/bin/infra/dns_apply.sh
+
+infra-dns-smoke: ## DNS smoke checks
+	@scripts/bin/infra/dns_smoke.sh
+
+infra-dns-destroy: ## Destroy DNS resources
+	@scripts/bin/infra/dns_destroy.sh
+OUT
+    ;;
+  public-endpoints)
+    cat <<'OUT'
+
+infra-public-endpoints-plan: ## Plan public endpoint resources
+	@scripts/bin/infra/public_endpoints_plan.sh
+
+infra-public-endpoints-apply: ## Apply public endpoint resources
+	@scripts/bin/infra/public_endpoints_apply.sh
+
+infra-public-endpoints-smoke: ## Public endpoint smoke checks
+	@scripts/bin/infra/public_endpoints_smoke.sh
+
+infra-public-endpoints-destroy: ## Destroy public endpoint resources
+	@scripts/bin/infra/public_endpoints_destroy.sh
+OUT
+    ;;
+  secrets-manager)
+    cat <<'OUT'
+
+infra-secrets-manager-plan: ## Plan Secrets Manager resources
+	@scripts/bin/infra/secrets_manager_plan.sh
+
+infra-secrets-manager-apply: ## Apply Secrets Manager resources
+	@scripts/bin/infra/secrets_manager_apply.sh
+
+infra-secrets-manager-smoke: ## Secrets Manager smoke checks
+	@scripts/bin/infra/secrets_manager_smoke.sh
+
+infra-secrets-manager-destroy: ## Destroy Secrets Manager resources
+	@scripts/bin/infra/secrets_manager_destroy.sh
+OUT
+    ;;
+  kms)
+    cat <<'OUT'
+
+infra-kms-plan: ## Plan KMS resources
+	@scripts/bin/infra/kms_plan.sh
+
+infra-kms-apply: ## Apply KMS resources
+	@scripts/bin/infra/kms_apply.sh
+
+infra-kms-smoke: ## KMS smoke checks
+	@scripts/bin/infra/kms_smoke.sh
+
+infra-kms-destroy: ## Destroy KMS resources
+	@scripts/bin/infra/kms_destroy.sh
+OUT
+    ;;
+  identity-aware-proxy)
+    cat <<'OUT'
+
+infra-identity-aware-proxy-plan: ## Plan Identity-Aware Proxy resources (requires Keycloak OIDC config)
+	@scripts/bin/infra/identity_aware_proxy_plan.sh
+
+infra-identity-aware-proxy-apply: ## Apply Identity-Aware Proxy resources (requires Keycloak OIDC config)
+	@scripts/bin/infra/identity_aware_proxy_apply.sh
+
+infra-identity-aware-proxy-smoke: ## Identity-Aware Proxy smoke checks (Keycloak OIDC contract)
+	@scripts/bin/infra/identity_aware_proxy_smoke.sh
+
+infra-identity-aware-proxy-destroy: ## Destroy Identity-Aware Proxy resources
+	@scripts/bin/infra/identity_aware_proxy_destroy.sh
+OUT
+    ;;
   *)
     log_fatal "unsupported makefile module target block: $module"
     ;;
@@ -181,18 +335,36 @@ OUT
 
 render_makefile() {
   local phony_observability phony_workflows phony_langfuse phony_postgres phony_neo4j
+  local phony_object_storage phony_rabbitmq phony_dns phony_public_endpoints phony_secrets_manager phony_kms
+  local phony_identity_aware_proxy
   phony_observability="$(makefile_module_phony_suffix observability)"
   phony_workflows="$(makefile_module_phony_suffix workflows)"
   phony_langfuse="$(makefile_module_phony_suffix langfuse)"
   phony_postgres="$(makefile_module_phony_suffix postgres)"
   phony_neo4j="$(makefile_module_phony_suffix neo4j)"
+  phony_object_storage="$(makefile_module_phony_suffix object-storage)"
+  phony_rabbitmq="$(makefile_module_phony_suffix rabbitmq)"
+  phony_dns="$(makefile_module_phony_suffix dns)"
+  phony_public_endpoints="$(makefile_module_phony_suffix public-endpoints)"
+  phony_secrets_manager="$(makefile_module_phony_suffix secrets-manager)"
+  phony_kms="$(makefile_module_phony_suffix kms)"
+  phony_identity_aware_proxy="$(makefile_module_phony_suffix identity-aware-proxy)"
 
   local targets_observability targets_workflows targets_langfuse targets_postgres targets_neo4j
+  local targets_object_storage targets_rabbitmq targets_dns targets_public_endpoints targets_secrets_manager
+  local targets_kms targets_identity_aware_proxy
   targets_observability="$(makefile_module_target_block observability)"
   targets_workflows="$(makefile_module_target_block workflows)"
   targets_langfuse="$(makefile_module_target_block langfuse)"
   targets_postgres="$(makefile_module_target_block postgres)"
   targets_neo4j="$(makefile_module_target_block neo4j)"
+  targets_object_storage="$(makefile_module_target_block object-storage)"
+  targets_rabbitmq="$(makefile_module_target_block rabbitmq)"
+  targets_dns="$(makefile_module_target_block dns)"
+  targets_public_endpoints="$(makefile_module_target_block public-endpoints)"
+  targets_secrets_manager="$(makefile_module_target_block secrets-manager)"
+  targets_kms="$(makefile_module_target_block kms)"
+  targets_identity_aware_proxy="$(makefile_module_target_block identity-aware-proxy)"
 
   local rendered_makefile
   rendered_makefile="$({
@@ -204,11 +376,25 @@ render_makefile() {
       "PHONY_LANGFUSE=$phony_langfuse" \
       "PHONY_POSTGRES=$phony_postgres" \
       "PHONY_NEO4J=$phony_neo4j" \
+      "PHONY_OBJECT_STORAGE=$phony_object_storage" \
+      "PHONY_RABBITMQ=$phony_rabbitmq" \
+      "PHONY_DNS=$phony_dns" \
+      "PHONY_PUBLIC_ENDPOINTS=$phony_public_endpoints" \
+      "PHONY_SECRETS_MANAGER=$phony_secrets_manager" \
+      "PHONY_KMS=$phony_kms" \
+      "PHONY_IDENTITY_AWARE_PROXY=$phony_identity_aware_proxy" \
       "TARGETS_OBSERVABILITY=$targets_observability" \
       "TARGETS_WORKFLOWS=$targets_workflows" \
       "TARGETS_LANGFUSE=$targets_langfuse" \
       "TARGETS_POSTGRES=$targets_postgres" \
-      "TARGETS_NEO4J=$targets_neo4j"
+      "TARGETS_NEO4J=$targets_neo4j" \
+      "TARGETS_OBJECT_STORAGE=$targets_object_storage" \
+      "TARGETS_RABBITMQ=$targets_rabbitmq" \
+      "TARGETS_DNS=$targets_dns" \
+      "TARGETS_PUBLIC_ENDPOINTS=$targets_public_endpoints" \
+      "TARGETS_SECRETS_MANAGER=$targets_secrets_manager" \
+      "TARGETS_KMS=$targets_kms" \
+      "TARGETS_IDENTITY_AWARE_PROXY=$targets_identity_aware_proxy"
   })"
 
   local output_path="$ROOT_DIR/make/blueprint.generated.mk"
@@ -243,6 +429,27 @@ optional_target_count() {
   fi
   if is_module_enabled neo4j; then
     count=$((count + 5))
+  fi
+  if is_module_enabled object-storage; then
+    count=$((count + 4))
+  fi
+  if is_module_enabled rabbitmq; then
+    count=$((count + 4))
+  fi
+  if is_module_enabled dns; then
+    count=$((count + 4))
+  fi
+  if is_module_enabled public-endpoints; then
+    count=$((count + 4))
+  fi
+  if is_module_enabled secrets-manager; then
+    count=$((count + 4))
+  fi
+  if is_module_enabled kms; then
+    count=$((count + 4))
+  fi
+  if is_module_enabled identity-aware-proxy; then
+    count=$((count + 4))
   fi
   echo "$count"
 }

@@ -79,6 +79,27 @@ module_flag_name() {
   neo4j)
     echo "NEO4J_ENABLED"
     ;;
+  object-storage)
+    echo "OBJECT_STORAGE_ENABLED"
+    ;;
+  rabbitmq)
+    echo "RABBITMQ_ENABLED"
+    ;;
+  dns)
+    echo "DNS_ENABLED"
+    ;;
+  public-endpoints)
+    echo "PUBLIC_ENDPOINTS_ENABLED"
+    ;;
+  secrets-manager)
+    echo "SECRETS_MANAGER_ENABLED"
+    ;;
+  kms)
+    echo "KMS_ENABLED"
+    ;;
+  identity-aware-proxy)
+    echo "IDENTITY_AWARE_PROXY_ENABLED"
+    ;;
   *)
     return 1
     ;;
@@ -94,7 +115,20 @@ is_module_enabled() {
 }
 
 enabled_modules_csv() {
-  local modules=(observability workflows langfuse postgres neo4j)
+  local modules=(
+    observability
+    workflows
+    langfuse
+    postgres
+    neo4j
+    object-storage
+    rabbitmq
+    dns
+    public-endpoints
+    secrets-manager
+    kms
+    identity-aware-proxy
+  )
   local out=""
   local module
   for module in "${modules[@]}"; do
