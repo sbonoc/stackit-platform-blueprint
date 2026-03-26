@@ -1,6 +1,50 @@
 # Decisions Log
 
 ## 2026-03-26 (Template Baseline)
+- Execution-ready E2E hardening is the active top-priority lane and is now complete in baseline.
+  - Fixed template consumer onboarding drift by excluding init-mutated ArgoCD identity files from strict bootstrap byte-sync validation (`infra/gitops/argocd/environments/dev/platform-application.yaml`, local overlay `appproject.yaml`, and `application-platform-local.yaml`), while keeping identity correctness enforced by `blueprint-check-placeholders`.
+  - Rationale: keep template governance strict for static assets without breaking deterministic GitHub-template initialization.
+
+- STACKIT optional-module execution now follows explicit contract modes instead of placeholder Terraform module roots.
+  - Provider-backed modules (`observability`, `postgres`, `object-storage`, `dns`, `secrets-manager`) now reconcile through STACKIT `foundation` layer contracts; module destroy performs flag-driven foundation reconciliation (`<MODULE>_ENABLED=false` + foundation apply) rather than standalone per-module destroy.
+  - Fallback runtime modules (`rabbitmq`, `public-endpoints`, `identity-aware-proxy`) now reconcile through ArgoCD optional manifests; `kms` is explicit external-automation contract in MVP.
+  - Workflows plan/apply/destroy no longer depend on placeholder Terraform module paths; they are API/runtime-contract based.
+  - Rationale: eliminate false-positive “successful” module operations against non-functional Terraform roots and make execution semantics truthful.
+
+- Optional manifest scaffolding/prune coverage was extended for STACKIT fallback modules.
+  - `infra-bootstrap` now materializes/prunes `infra/gitops/argocd/optional/${ENV}/{rabbitmq,public-endpoints,identity-aware-proxy}.yaml` when corresponding flags toggle.
+  - Blueprint and module contracts/docs/tests were synchronized to this behavior.
+  - Rationale: keep module enable/disable lifecycle deterministic and lean, with no stale fallback runtime manifests.
+
+- Runtime core bootstrap is now execution-ready and profile-aware.
+  - Added `scripts/bin/infra/core_runtime_bootstrap.sh` to install/upgrade ArgoCD and External Secrets Operator before ArgoCD topology apply, and `scripts/bin/infra/core_runtime_smoke.sh` for state-level smoke validation.
+  - Added `scripts/bin/infra/local_crossplane_bootstrap.sh` and wired local `infra-provision` to install Crossplane (Helm) in addition to local crossplane kustomize baseline.
+  - Rationale: close bootstrap gap where ArgoCD CRDs/operators were assumed but not provisioned, and make local profile explicitly Crossplane-backed for core provisioning.
+
+- Optional-module wrapper skeleton templates are now explicit fail-fast stubs.
+  - `scripts/lib/blueprint/generate_module_wrapper_skeletons.py` now emits a consistent not-implemented contract (`status=not_implemented`, metric label, and stable exit code `64`) instead of TODO placeholders.
+  - Rationale: avoid false-positive success when a consumer copies a skeleton without implementing module-specific logic.
+
+- Added canonical destroy-before-prune orchestration for disabled optional modules.
+  - Introduced `infra-destroy-disabled-modules` (`scripts/bin/infra/destroy_disabled_modules.sh`) and wired it into blueprint-managed Make target generation/contract/docs/tests.
+  - Extended module lifecycle runner with `run_disabled_modules_action` metrics (`module_action_disabled_count`, `module_action_disabled_script_count`) to keep execution visibility consistent with enabled-module flows.
+  - Rationale: provide an explicit, repeatable teardown step before `infra-bootstrap` pruning when module flags are toggled off after resources already exist.
+
+- STACKIT Terraform identity/state contracts are now init-driven and template-rendered.
+  - Added explicit STACKIT init inputs (`BLUEPRINT_STACKIT_REGION`, tenant/platform slugs, project id, tfstate bucket/key prefix) to template bootstrap contract and init flows (interactive + env-file).
+  - Converted STACKIT `bootstrap/foundation` tfvars and backend hcl scaffolding to rendered templates, with backend endpoint derived from region and placeholder validation enforced by `blueprint-check-placeholders`.
+  - Rationale: remove hardcoded project-specific defaults from committed scaffold, keep generated repositories deterministic, and ensure Stackit state/backend wiring is consumer-specific from day 0.
+
+- STACKIT execution path is now layered and backend-aware by default (`bootstrap` + `foundation`).
+  - Added concrete Terraform roots under `infra/cloud/stackit/terraform/{bootstrap,foundation}` with environment tfvars, backend hcl contracts, and managed-service MVP resources (SKE, DNS, Postgres Flex, Object Storage, Secrets Manager, Observability).
+  - Updated STACKIT wrappers to run backend-aware Terraform (`init -backend-config ...` + layer var-files), enforce backend compatibility guards, and export richer state/inventory metadata.
+  - Rationale: close the execution-readiness gap so STACKIT make targets operate on real Terraform topology instead of placeholder directories.
+
+- ArgoCD STACKIT delivery topology now has an explicit app-of-apps baseline.
+  - Added `infra/gitops/argocd/root`, per-environment roots under `infra/gitops/argocd/environments/{dev,stage,prod}`, and stackit overlays with `AppProject` + environment-scoped `ApplicationSet`.
+  - Repository init now rewrites ArgoCD GitHub `repoURL` fields together with contract/docs identity updates.
+  - Rationale: make GitOps deployment artifacts immediately usable in generated repositories and keep identity wiring deterministic after `make blueprint-init-repo`.
+
 - Added Data Marketplace P0 optional modules to the contract/runtime/tests:
   - `object-storage`, `rabbitmq`, `dns`, `public-endpoints`, `secrets-manager`, `kms`, `identity-aware-proxy`.
   - Makefile materialization, infra bootstrap/prune, module lifecycle, and smoke flows were extended for all modules.
@@ -188,3 +232,20 @@
 - CI now runs pre-push hook gates in addition to pre-commit.
   - Added explicit `pre-commit run --hook-stage pre-push --all-files` lane in `.github/workflows/ci.yml`.
   - Rationale: enforce push-time policy checks in CI, matching local hook behavior.
+
+- STACKIT backend now follows a strict remote-first contract from first execution.
+  - `bootstrap` and `foundation` both run with remote S3 backend (`backend "s3"` + per-layer backend files); bootstrap no longer provisions tfstate bucket/credentials and no wrapper auto-loads credentials from terraform outputs.
+  - Execution mode now requires explicit `STACKIT_TFSTATE_ACCESS_KEY_ID` and `STACKIT_TFSTATE_SECRET_ACCESS_KEY`; docs/tests/template assets were aligned accordingly.
+  - Rationale: enforce Terraform state best practices from day one, remove hidden credential coupling, and keep teardown/provision semantics explicit.
+
+- ArgoCD topology now deploys real platform resources, not only configuration placeholders.
+  - Added `infra/gitops/platform/**` kustomize tree and wired ArgoCD `Application` resources for stackit env roots plus local overlay parity (`platform-local-core`).
+  - Rationale: make runtime delivery path execution-ready with concrete sync targets for local and STACKIT profiles.
+
+- STACKIT deploy now seeds a runtime foundation contract secret before app sync.
+  - Added `infra-stackit-foundation-seed-runtime-secret` (auto-invoked by `infra-deploy` on stackit profiles) to materialize `platform-foundation-contract` from Terraform outputs and metadata.
+  - Rationale: close the handoff gap between foundation provisioning outputs and runtime workloads expecting deterministic in-cluster credentials/config contract.
+
+- Removed remaining backward-compatibility shim from infra stack path routing.
+  - Dropped `stackit_terraform_env_dir`/`profile_env` helper indirections and moved `infra-doctor` to canonical layered path resolution (`stackit_terraform_layer_dir foundation`).
+  - Rationale: enforce no-alias/no-shim governance and keep all STACKIT path contracts explicit to layered bootstrap/foundation model.

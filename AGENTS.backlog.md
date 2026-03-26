@@ -12,6 +12,15 @@
 - [x] Optional-module destroy targets execute profile-specific cleanup (not artifact-only teardown).
 - [x] Dry-run/live execution toggle is standardized as `DRY_RUN` (safe-by-default).
 - [x] Reused STACKIT operator targets for prereqs/help/CI setup/cached audits/runtime inventory redaction.
+- [x] STACKIT execution path is layered and backend-aware (`bootstrap` + `foundation` Terraform roots with env tfvars/backend hcl and wrapper wiring).
+- [x] STACKIT init contract now seeds project-specific tfvars/backend identity (region/tenant/platform/project/tfstate) and placeholder checks enforce resolution.
+- [x] ArgoCD STACKIT app-of-apps topology baseline exists (`root`, environment roots, and per-environment overlays with AppProject/ApplicationSet).
+- [x] Runtime core bootstrap is execution-ready: ArgoCD + External Secrets are installed in deploy flow, and local provisioning installs Crossplane baseline.
+- [x] STACKIT Terraform backend contract is strict from first run: bootstrap and foundation both use remote S3 backend files, and tfstate credentials are explicit required inputs.
+- [x] ArgoCD runtime topology deploys concrete platform resources via `infra/gitops/platform/**` applications for stackit and local profiles.
+- [x] STACKIT deploy seeds runtime foundation contract secret (`platform-foundation-contract`) from Terraform outputs before app sync.
+- [x] Optional-module wrapper skeleton templates are explicit fail-fast stubs (`status=not_implemented`, stable exit code) instead of TODO placeholders.
+- [x] Disabled optional-module teardown has a dedicated contract-driven orchestration target (`infra-destroy-disabled-modules`) for destroy-before-prune workflows.
 - [x] Local git hooks include YAML/large-file/shell syntax pre-commit checks and cached version audits on pre-push.
 - [x] CI executes both pre-commit and pre-push hook stages (`pre-commit run --hook-stage pre-push --all-files`).
 - [x] Core wrappers use canonical `start_script_metric_trap` instrumentation and docs command reference includes `docs-run`.
@@ -32,6 +41,16 @@
 - [x] Template scaffold roots are split by ownership: `scripts/templates/blueprint/bootstrap` (blueprint docs/make/hygiene seeds) vs `scripts/templates/infra/bootstrap` (infra/dags/tests scaffolding).
 - [x] Documentation IA is role-oriented with explicit consumer/maintainer tracks and first-day onboarding (`docs/platform/consumer/first_30_minutes.md`, ownership matrix).
 
+## Top Priority - Execution-Ready E2E (Current)
+- [x] Fix GitHub-template onboarding smoke drift by excluding init-mutated ArgoCD identity files from strict byte-sync validation while keeping identity checks enforced (`blueprint-template-smoke` green).
+- [x] Remove false-positive STACKIT optional-module Terraform execution on placeholder module roots; provider-backed modules now reconcile through `foundation` layer contract.
+- [x] Make STACKIT fallback modules explicit and executable:
+  - `workflows`: API contract path (no placeholder Terraform dependency).
+  - `rabbitmq`, `public-endpoints`, `identity-aware-proxy`: ArgoCD optional-manifest runtime reconciliation.
+  - `kms`: external-automation contract (explicitly non provider-backed in MVP).
+- [x] Extend optional manifest materialization/prune contracts for `rabbitmq`, `public-endpoints`, and `identity-aware-proxy`.
+- [x] Synchronize docs/tests/contracts to the new execution model and keep full validation bundles green.
+
 ## Release Plan
 - Current state: pre-release baseline `template_version: 1.0.0` (no published upgrade transitions yet).
 - Milestones P1/P2 represent post-GA roadmap slices; they do not imply already published template versions.
@@ -48,7 +67,11 @@
 - [x] Add upgrade runbook with before/after validation bundles.
 - [x] Add golden conformance tests for migration no-op behavior and fail-fast unsupported upgrade paths.
 - [ ] Add golden conformance matrix across profile/module combinations for newly generated repos.
+- [ ] Expand Terraform provider-backed coverage for currently fallback-only optional modules (`workflows`, `langfuse`, `neo4j`, `rabbitmq`, `public-endpoints`, `kms`, `identity-aware-proxy`) as STACKIT provider/resources mature.
+- [ ] Refactor optional-module wrappers onto a shared execution-mode library (provider-backed/fallback/external) to remove duplicated branch logic across scripts.
+- [ ] Replace generic optional ConfigMap manifests with module-specific ArgoCD applications/charts for fallback modules (`rabbitmq`, `public-endpoints`, `identity-aware-proxy`) to reach production-grade runtime delivery.
 
 ## P2 - v1.2 Scale
 - [x] Add optional interactive init UX (prompt mode), keeping env-file mode canonical.
 - [ ] Add opinionated governance starter assets for generated repos (issue templates, PR template, CODEOWNERS).
+- [ ] Normalize module input contracts so STACKIT foundation Terraform variables are sourced from canonical module env inputs (remove duplicated naming defaults across wrappers/foundation).
