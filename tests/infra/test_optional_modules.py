@@ -57,6 +57,23 @@ class OptionalModulesTests(unittest.TestCase):
         self.assertNotIn("infra-kms-plan", langfuse_help.stdout)
         self.assertNotIn("infra-identity-aware-proxy-plan", langfuse_help.stdout)
 
+    def test_destroy_disabled_modules_target_executes_disabled_module_destroy_flow(self) -> None:
+        env = module_flags_env(profile="local-full", postgres="true")
+        bootstrap = run_render_and_infra_bootstrap(env)
+        self.assertEqual(bootstrap.returncode, 0, msg=bootstrap.stdout + bootstrap.stderr)
+
+        destroy = run(["make", "infra-destroy-disabled-modules"], env)
+        self.assertEqual(destroy.returncode, 0, msg=destroy.stdout + destroy.stderr)
+        self.assertIn("module_action_disabled_count", destroy.stdout + destroy.stderr)
+
+        state_file = REPO_ROOT / "artifacts" / "infra" / "destroy_disabled_modules.env"
+        self.assertTrue(state_file.exists(), msg="disabled-module destroy state file not found")
+        state_content = state_file.read_text(encoding="utf-8")
+        self.assertIn("enabled_modules=postgres", state_content)
+        self.assertIn("disabled_modules=", state_content)
+        self.assertNotIn("disabled_modules=none", state_content)
+        self.assertNotIn("disabled_modules=postgres", state_content)
+
     def test_infra_bootstrap_prunes_stale_optional_scaffolding_when_flags_disabled(self) -> None:
         enabled_env = module_flags_env(
             profile="stackit-dev",
@@ -109,6 +126,9 @@ class OptionalModulesTests(unittest.TestCase):
             "infra/gitops/argocd/optional/dev/workflows.yaml",
             "infra/gitops/argocd/optional/dev/langfuse.yaml",
             "infra/gitops/argocd/optional/dev/neo4j.yaml",
+            "infra/gitops/argocd/optional/dev/rabbitmq.yaml",
+            "infra/gitops/argocd/optional/dev/public-endpoints.yaml",
+            "infra/gitops/argocd/optional/dev/identity-aware-proxy.yaml",
         ]
         for relative in expected_when_enabled:
             self.assertTrue((REPO_ROOT / relative).exists(), msg=f"expected path not materialized: {relative}")
@@ -151,6 +171,9 @@ class OptionalModulesTests(unittest.TestCase):
             "infra/gitops/argocd/optional/dev/workflows.yaml",
             "infra/gitops/argocd/optional/dev/langfuse.yaml",
             "infra/gitops/argocd/optional/dev/neo4j.yaml",
+            "infra/gitops/argocd/optional/dev/rabbitmq.yaml",
+            "infra/gitops/argocd/optional/dev/public-endpoints.yaml",
+            "infra/gitops/argocd/optional/dev/identity-aware-proxy.yaml",
         ]
         for relative in expected_pruned_paths:
             self.assertFalse((REPO_ROOT / relative).exists(), msg=f"expected path not pruned: {relative}")
@@ -209,7 +232,7 @@ class OptionalModulesTests(unittest.TestCase):
 
         self.assertTrue((REPO_ROOT / "artifacts" / "infra" / "workflows_instance.env").exists())
         plan_state = (REPO_ROOT / "artifacts" / "infra" / "workflows_plan.env").read_text(encoding="utf-8")
-        self.assertIn("provision_driver=terraform_plus_api", plan_state)
+        self.assertIn("provision_driver=api_contract", plan_state)
 
         destroy = run(["make", "infra-stackit-workflows-destroy"], env)
         self.assertEqual(destroy.returncode, 0, msg=destroy.stdout + destroy.stderr)
@@ -273,7 +296,7 @@ class OptionalModulesTests(unittest.TestCase):
         self.assertTrue(runtime_file.exists())
         runtime_content = runtime_file.read_text(encoding="utf-8")
         self.assertIn("dsn=postgresql://", runtime_content)
-        self.assertIn("provision_driver=terraform", runtime_content)
+        self.assertIn("provision_driver=foundation_contract", runtime_content)
         destroy = run(["make", "infra-postgres-destroy"], env)
         self.assertEqual(destroy.returncode, 0, msg=destroy.stdout + destroy.stderr)
 

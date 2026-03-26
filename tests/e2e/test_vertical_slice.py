@@ -28,6 +28,7 @@ class VerticalSliceTests(unittest.TestCase):
         self.assertIn("infra-prereqs", result.stdout)
         self.assertIn("infra-help-reference", result.stdout)
         self.assertIn("infra-bootstrap", result.stdout)
+        self.assertIn("infra-destroy-disabled-modules", result.stdout)
         self.assertIn("infra-validate", result.stdout)
         self.assertIn("infra-audit-version", result.stdout)
         self.assertIn("infra-audit-version-cached", result.stdout)
@@ -104,7 +105,7 @@ class VerticalSliceTests(unittest.TestCase):
 
         provision_state = (REPO_ROOT / "artifacts" / "infra" / "provision.env").read_text(encoding="utf-8")
         deploy_state = (REPO_ROOT / "artifacts" / "infra" / "deploy.env").read_text(encoding="utf-8")
-        self.assertIn("foundation_driver=crossplane-kustomize", provision_state)
+        self.assertIn("foundation_driver=crossplane-helm-bootstrap", provision_state)
         self.assertIn("tooling_mode=dry-run", provision_state)
         self.assertIn("deploy_driver=argocd-kustomize", deploy_state)
 
@@ -130,10 +131,10 @@ class VerticalSliceTests(unittest.TestCase):
         provision = run(["make", "infra-provision"], env)
         self.assertEqual(provision.returncode, 0, msg=provision.stdout + provision.stderr)
         provision_state = (REPO_ROOT / "artifacts" / "infra" / "provision.env").read_text(encoding="utf-8")
-        self.assertIn("foundation_driver=terraform", provision_state)
+        self.assertIn("foundation_driver=terraform-layered", provision_state)
         self.assertIn("foundation_path=", provision_state)
         observability_plan = (REPO_ROOT / "artifacts" / "infra" / "observability_plan.env").read_text(encoding="utf-8")
-        self.assertIn("provision_driver=terraform", observability_plan)
+        self.assertIn("provision_driver=foundation_contract", observability_plan)
 
     def test_stackit_operator_wrappers_dry_run(self) -> None:
         env = module_flags_env(profile="stackit-dev")

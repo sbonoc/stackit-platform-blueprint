@@ -143,6 +143,12 @@ class RefactorContractsTests(unittest.TestCase):
                 "BLUEPRINT_GITHUB_ORG",
                 "BLUEPRINT_GITHUB_REPO",
                 "BLUEPRINT_DEFAULT_BRANCH",
+                "BLUEPRINT_STACKIT_REGION",
+                "BLUEPRINT_STACKIT_TENANT_SLUG",
+                "BLUEPRINT_STACKIT_PLATFORM_SLUG",
+                "BLUEPRINT_STACKIT_PROJECT_ID",
+                "BLUEPRINT_STACKIT_TFSTATE_BUCKET",
+                "BLUEPRINT_STACKIT_TFSTATE_KEY_PREFIX",
             },
         )
 
@@ -189,6 +195,7 @@ class RefactorContractsTests(unittest.TestCase):
                 "scripts/bin/blueprint/clean_generated.sh",
                 "scripts/bin/blueprint/init_repo_interactive.sh",
                 "scripts/bin/blueprint/render_module_wrapper_skeletons.sh",
+                "scripts/bin/infra/destroy_disabled_modules.sh",
                 "tests/__init__.py",
                 "tests/blueprint/__init__.py",
                 "tests/infra/__init__.py",
@@ -236,6 +243,7 @@ class RefactorContractsTests(unittest.TestCase):
                 "blueprint-render-module-wrapper-skeletons",
                 "infra-prereqs",
                 "infra-help-reference",
+                "infra-destroy-disabled-modules",
                 "infra-stackit-ci-github-setup",
                 "infra-audit-version-cached",
                 "apps-audit-versions-cached",
@@ -388,27 +396,60 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn("make blueprint-clean-generated", docs_readme)
         self.assertIn("make help", docs_readme)
         self.assertIn("make infra-help-reference", docs_readme)
+        self.assertIn("make infra-destroy-disabled-modules", docs_readme)
         self.assertIn("materializes/prunes optional-module infra scaffolding", docs_readme)
         self.assertIn("[Blueprint Docs](blueprint/README.md)", docs_readme)
         self.assertIn("[Platform Docs](platform/README.md)", docs_readme)
+
+    def test_clean_generated_prunes_repo_wide_python_caches(self) -> None:
+        clean_generated = _read("scripts/bin/blueprint/clean_generated.sh")
+        self.assertIn('find "$ROOT_DIR" -type d -name \'__pycache__\'', clean_generated)
+        self.assertIn('-name \'*.pyc\' -o -name \'*.pyo\'', clean_generated)
+        self.assertNotIn('find "$ROOT_DIR/tests" -type d -name \'__pycache__\'', clean_generated)
+
+    def test_consumer_troubleshooting_covers_disable_vs_destroy(self) -> None:
+        troubleshooting = _read("docs/platform/consumer/troubleshooting.md")
+        troubleshooting_template = _read("scripts/templates/blueprint/bootstrap/docs/platform/consumer/troubleshooting.md")
+        expected_heading = "## Disabled module but resources still exist"
+        self.assertIn(expected_heading, troubleshooting)
+        self.assertIn("resources are not destroyed automatically", troubleshooting)
+        self.assertIn("infra-destroy-disabled-modules", troubleshooting)
+        self.assertEqual(troubleshooting, troubleshooting_template)
+
+    def test_module_wrapper_skeletons_use_explicit_not_implemented_stub(self) -> None:
+        generator = _read("scripts/lib/blueprint/generate_module_wrapper_skeletons.py")
+        workflows_apply_template = _read("scripts/templates/infra/module_wrappers/workflows/stackit_workflows_apply.sh.tmpl")
+
+        self.assertIn("MODULE_WRAPPER_STUB_EXIT_CODE=64", generator)
+        self.assertIn("optional_module_wrapper_stub_invocation", generator)
+        self.assertNotIn("TODO: implement module-specific logic for this action.", workflows_apply_template)
+        self.assertIn("status=not_implemented", workflows_apply_template)
+        self.assertIn("module wrapper not implemented", workflows_apply_template)
+        self.assertIn("exit \"$MODULE_WRAPPER_STUB_EXIT_CODE\"", workflows_apply_template)
 
     def test_module_lifecycle_runner_is_canonical(self) -> None:
         module_lifecycle = _read("scripts/lib/infra/module_lifecycle.sh")
         provision = _read("scripts/bin/infra/provision.sh")
         deploy = _read("scripts/bin/infra/deploy.sh")
         smoke = _read("scripts/bin/infra/smoke.sh")
+        destroy_disabled = _read("scripts/bin/infra/destroy_disabled_modules.sh")
 
         self.assertIn("run_enabled_modules_action()", module_lifecycle)
+        self.assertIn("run_disabled_modules_action()", module_lifecycle)
         self.assertIn("module_action_scripts()", module_lifecycle)
         self.assertIn("source \"$ROOT_DIR/scripts/lib/infra/module_lifecycle.sh\"", provision)
         self.assertIn("source \"$ROOT_DIR/scripts/lib/infra/module_lifecycle.sh\"", deploy)
         self.assertIn("source \"$ROOT_DIR/scripts/lib/infra/module_lifecycle.sh\"", smoke)
+        self.assertIn("source \"$ROOT_DIR/scripts/lib/infra/module_lifecycle.sh\"", destroy_disabled)
         self.assertIn("run_enabled_modules_action plan", provision)
         self.assertIn("run_enabled_modules_action apply", provision)
         self.assertIn("run_enabled_modules_action deploy", deploy)
         self.assertIn("run_enabled_modules_action smoke", smoke)
+        self.assertIn("run_disabled_modules_action destroy", destroy_disabled)
         self.assertIn("module_action_enabled_count", module_lifecycle)
         self.assertIn("module_action_script_count", module_lifecycle)
+        self.assertIn("module_action_disabled_count", module_lifecycle)
+        self.assertIn("module_action_disabled_script_count", module_lifecycle)
 
     def test_bootstrap_prunes_disabled_optional_scaffolding(self) -> None:
         bootstrap = _read("scripts/bin/infra/bootstrap.sh")
@@ -492,9 +533,11 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn("run_helm_uninstall()", tooling)
         self.assertIn("run_manifest_delete", langfuse_destroy)
         self.assertIn("run_manifest_delete", neo4j_destroy)
-        self.assertIn("run_terraform_action destroy", postgres_destroy)
+        self.assertIn("foundation_reconcile_apply", postgres_destroy)
+        self.assertIn("stackit_foundation_apply.sh", postgres_destroy)
         self.assertIn("run_helm_uninstall", postgres_destroy)
-        self.assertIn("run_terraform_action destroy", observability_destroy)
+        self.assertIn("foundation_reconcile_apply", observability_destroy)
+        self.assertIn("stackit_foundation_apply.sh", observability_destroy)
         self.assertIn("run_manifest_delete", observability_destroy)
         self.assertIn("run_helm_uninstall", observability_destroy)
 
@@ -536,6 +579,7 @@ class RefactorContractsTests(unittest.TestCase):
             "scripts/bin/blueprint/render_makefile.sh",
             "scripts/bin/blueprint/render_module_wrapper_skeletons.sh",
             "scripts/bin/infra/bootstrap.sh",
+            "scripts/bin/infra/destroy_disabled_modules.sh",
             "scripts/bin/infra/validate.sh",
             "scripts/bin/infra/provision.sh",
             "scripts/bin/infra/deploy.sh",
@@ -557,6 +601,7 @@ class RefactorContractsTests(unittest.TestCase):
             "scripts/bin/infra/stackit_foundation_plan.sh",
             "scripts/bin/infra/stackit_foundation_apply.sh",
             "scripts/bin/infra/stackit_foundation_destroy.sh",
+            "scripts/bin/infra/stackit_foundation_seed_runtime_secret.sh",
             "scripts/bin/infra/stackit_destroy_all.sh",
             "scripts/bin/infra/stackit_runtime_prerequisites.sh",
             "scripts/bin/infra/stackit_runtime_inventory.sh",
@@ -668,6 +713,12 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn("BLUEPRINT_GITHUB_ORG=", init_env)
         self.assertIn("BLUEPRINT_GITHUB_REPO=", init_env)
         self.assertIn("BLUEPRINT_DEFAULT_BRANCH=", init_env)
+        self.assertIn("BLUEPRINT_STACKIT_REGION=", init_env)
+        self.assertIn("BLUEPRINT_STACKIT_TENANT_SLUG=", init_env)
+        self.assertIn("BLUEPRINT_STACKIT_PLATFORM_SLUG=", init_env)
+        self.assertIn("BLUEPRINT_STACKIT_PROJECT_ID=", init_env)
+        self.assertIn("BLUEPRINT_STACKIT_TFSTATE_BUCKET=", init_env)
+        self.assertIn("BLUEPRINT_STACKIT_TFSTATE_KEY_PREFIX=", init_env)
 
     def test_template_release_workflow_and_docs_exist(self) -> None:
         release_workflow = _read(".github/workflows/template_release.yml")
@@ -725,12 +776,47 @@ class RefactorContractsTests(unittest.TestCase):
             tmp_root = Path(tmpdir)
             (tmp_root / "blueprint").mkdir(parents=True, exist_ok=True)
             (tmp_root / "docs").mkdir(parents=True, exist_ok=True)
+            (tmp_root / "infra/gitops/argocd/root").mkdir(parents=True, exist_ok=True)
+            (tmp_root / "infra/gitops/argocd/environments/dev").mkdir(parents=True, exist_ok=True)
+            (tmp_root / "infra/gitops/argocd/overlays/local").mkdir(parents=True, exist_ok=True)
+            (tmp_root / "infra/cloud/stackit/terraform/bootstrap/env").mkdir(parents=True, exist_ok=True)
+            (tmp_root / "infra/cloud/stackit/terraform/foundation/env").mkdir(parents=True, exist_ok=True)
+            (tmp_root / "infra/cloud/stackit/terraform/bootstrap/state-backend").mkdir(parents=True, exist_ok=True)
+            (tmp_root / "infra/cloud/stackit/terraform/foundation/state-backend").mkdir(parents=True, exist_ok=True)
             (tmp_root / "blueprint/contract.yaml").write_text(
                 _read("blueprint/contract.yaml"),
                 encoding="utf-8",
             )
             (tmp_root / "docs/docusaurus.config.js").write_text(
                 _read("docs/docusaurus.config.js"),
+                encoding="utf-8",
+            )
+            (tmp_root / "infra/gitops/argocd/root/applicationset-platform-environments.yaml").write_text(
+                _read("infra/gitops/argocd/root/applicationset-platform-environments.yaml"),
+                encoding="utf-8",
+            )
+            (tmp_root / "infra/gitops/argocd/environments/dev/platform-application.yaml").write_text(
+                _read("infra/gitops/argocd/environments/dev/platform-application.yaml"),
+                encoding="utf-8",
+            )
+            (tmp_root / "infra/gitops/argocd/overlays/local/application-platform-local.yaml").write_text(
+                _read("infra/gitops/argocd/overlays/local/application-platform-local.yaml"),
+                encoding="utf-8",
+            )
+            (tmp_root / "infra/cloud/stackit/terraform/bootstrap/env/dev.tfvars").write_text(
+                _read("infra/cloud/stackit/terraform/bootstrap/env/dev.tfvars"),
+                encoding="utf-8",
+            )
+            (tmp_root / "infra/cloud/stackit/terraform/foundation/env/dev.tfvars").write_text(
+                _read("infra/cloud/stackit/terraform/foundation/env/dev.tfvars"),
+                encoding="utf-8",
+            )
+            (tmp_root / "infra/cloud/stackit/terraform/bootstrap/state-backend/dev.hcl").write_text(
+                _read("infra/cloud/stackit/terraform/bootstrap/state-backend/dev.hcl"),
+                encoding="utf-8",
+            )
+            (tmp_root / "infra/cloud/stackit/terraform/foundation/state-backend/dev.hcl").write_text(
+                _read("infra/cloud/stackit/terraform/foundation/state-backend/dev.hcl"),
                 encoding="utf-8",
             )
 
@@ -752,6 +838,18 @@ class RefactorContractsTests(unittest.TestCase):
                     "Acme Platform Blueprint",
                     "--docs-tagline",
                     "Acme reusable platform blueprint",
+                    "--stackit-region",
+                    "eu02",
+                    "--stackit-tenant-slug",
+                    "acme",
+                    "--stackit-platform-slug",
+                    "marketplace",
+                    "--stackit-project-id",
+                    "acme-marketplace-dev",
+                    "--stackit-tfstate-bucket",
+                    "acme-marketplace-tf-state",
+                    "--stackit-tfstate-key-prefix",
+                    "iac/tfstate",
                 ],
                 cwd=REPO_ROOT,
                 text=True,
@@ -762,6 +860,27 @@ class RefactorContractsTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
             updated_contract = (tmp_root / "blueprint/contract.yaml").read_text(encoding="utf-8")
             updated_docs_config = (tmp_root / "docs/docusaurus.config.js").read_text(encoding="utf-8")
+            updated_argocd_root = (
+                tmp_root / "infra/gitops/argocd/root/applicationset-platform-environments.yaml"
+            ).read_text(encoding="utf-8")
+            updated_argocd_environment_dev = (
+                tmp_root / "infra/gitops/argocd/environments/dev/platform-application.yaml"
+            ).read_text(encoding="utf-8")
+            updated_argocd_local_application = (
+                tmp_root / "infra/gitops/argocd/overlays/local/application-platform-local.yaml"
+            ).read_text(encoding="utf-8")
+            updated_bootstrap_tfvars = (
+                tmp_root / "infra/cloud/stackit/terraform/bootstrap/env/dev.tfvars"
+            ).read_text(encoding="utf-8")
+            updated_foundation_tfvars = (
+                tmp_root / "infra/cloud/stackit/terraform/foundation/env/dev.tfvars"
+            ).read_text(encoding="utf-8")
+            updated_bootstrap_backend = (
+                tmp_root / "infra/cloud/stackit/terraform/bootstrap/state-backend/dev.hcl"
+            ).read_text(encoding="utf-8")
+            updated_foundation_backend = (
+                tmp_root / "infra/cloud/stackit/terraform/foundation/state-backend/dev.hcl"
+            ).read_text(encoding="utf-8")
             self.assertIn("name: acme-platform", updated_contract)
             self.assertIn("default_branch: main", updated_contract)
             self.assertIn('title: "Acme Platform Blueprint"', updated_docs_config)
@@ -772,6 +891,31 @@ class RefactorContractsTests(unittest.TestCase):
                 'editUrl: "https://github.com/acme/acme-platform/edit/main/docs/"',
                 updated_docs_config,
             )
+            self.assertIn("repoURL: https://github.com/acme/acme-platform.git", updated_argocd_root)
+            self.assertIn(
+                "repoURL: https://github.com/acme/acme-platform.git",
+                updated_argocd_environment_dev,
+            )
+            self.assertIn(
+                "repoURL: https://github.com/acme/acme-platform.git",
+                updated_argocd_local_application,
+            )
+            self.assertIn('stackit_region   = "eu02"', updated_bootstrap_tfvars)
+            self.assertIn('tenant_slug      = "acme"', updated_bootstrap_tfvars)
+            self.assertIn('platform_slug    = "marketplace"', updated_bootstrap_tfvars)
+            self.assertIn('stackit_project_id = "acme-marketplace-dev"', updated_bootstrap_tfvars)
+            self.assertNotIn("tfstate_bucket_name", updated_bootstrap_tfvars)
+            self.assertIn('state_key_prefix = "iac/tfstate"', updated_bootstrap_tfvars)
+            self.assertIn('stackit_project_id = "acme-marketplace-dev"', updated_foundation_tfvars)
+            self.assertIn('stackit_region     = "eu02"', updated_foundation_tfvars)
+            self.assertIn('bucket       = "acme-marketplace-tf-state"', updated_bootstrap_backend)
+            self.assertIn('key          = "iac/tfstate/dev/bootstrap.tfstate"', updated_bootstrap_backend)
+            self.assertIn('region       = "eu02"', updated_bootstrap_backend)
+            self.assertIn('s3 = "https://object.storage.eu02.onstackit.cloud"', updated_bootstrap_backend)
+            self.assertIn('bucket       = "acme-marketplace-tf-state"', updated_foundation_backend)
+            self.assertIn('key          = "iac/tfstate/dev/foundation.tfstate"', updated_foundation_backend)
+            self.assertIn('region       = "eu02"', updated_foundation_backend)
+            self.assertIn('s3 = "https://object.storage.eu02.onstackit.cloud"', updated_foundation_backend)
 
     def test_blueprint_init_python_dry_run_does_not_mutate_files(self) -> None:
         init_python_path = REPO_ROOT / "scripts/lib/blueprint/init_repo.py"
@@ -802,6 +946,18 @@ class RefactorContractsTests(unittest.TestCase):
                     "Acme Platform Blueprint",
                     "--docs-tagline",
                     "Acme reusable platform blueprint",
+                    "--stackit-region",
+                    "eu02",
+                    "--stackit-tenant-slug",
+                    "acme",
+                    "--stackit-platform-slug",
+                    "marketplace",
+                    "--stackit-project-id",
+                    "acme-marketplace-dev",
+                    "--stackit-tfstate-bucket",
+                    "acme-marketplace-tf-state",
+                    "--stackit-tfstate-key-prefix",
+                    "iac/tfstate",
                     "--dry-run",
                 ],
                 cwd=REPO_ROOT,
