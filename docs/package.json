@@ -1,0 +1,20 @@
+{
+  "name": "stackit-platform-blueprint-docs",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.32.1",
+  "scripts": {
+    "build": "docusaurus build",
+    "start": "docusaurus start --host 0.0.0.0 --port 3005",
+    "serve": "docusaurus serve --host 0.0.0.0 --port 3005"
+  },
+  "dependencies": {
+    "@docusaurus/core": "3.9.2",
+    "@docusaurus/preset-classic": "3.9.2",
+    "@docusaurus/theme-mermaid": "3.9.2",
+    "clsx": "2.1.1",
+    "prism-react-renderer": "2.4.1",
+    "react": "19.1.1",
+    "react-dom": "19.1.1"
+  }
+}
