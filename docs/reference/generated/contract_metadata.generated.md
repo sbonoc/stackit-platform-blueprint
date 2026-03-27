@@ -129,7 +129,7 @@
 
 ## Module: `identity-aware-proxy`
 
-- Purpose: Provision identity-aware access proxy wired to Keycloak OIDC for marketplace UI/API protection.
+- Purpose: Provision browser-facing identity-aware access proxy wired to Keycloak OIDC for protected touchpoint routes.
 - Enabled by default: `false`
 - Enable flag: `IDENTITY_AWARE_PROXY_ENABLED`
 
@@ -148,6 +148,7 @@
 
 ### Produced Outputs
 - `IAP_PUBLIC_URL`
+- `IAP_PUBLIC_HOST`
 - `IAP_UPSTREAM_URL`
 - `IAP_OIDC_ISSUER`
 
@@ -298,7 +299,7 @@
 
 ## Module: `public-endpoints`
 
-- Purpose: Provision ingress/public endpoint baseline for marketplace UI and API surfaces.
+- Purpose: Provision Gateway API public edge baseline for marketplace UI and API surfaces.
 - Enabled by default: `false`
 - Enable flag: `PUBLIC_ENDPOINTS_ENABLED`
 
@@ -313,7 +314,9 @@
 
 ### Produced Outputs
 - `PUBLIC_ENDPOINTS_BASE_DOMAIN`
-- `PUBLIC_ENDPOINTS_INGRESS_CLASS`
+- `PUBLIC_ENDPOINTS_GATEWAY_NAME`
+- `PUBLIC_ENDPOINTS_GATEWAY_CLASS_NAME`
+- `PUBLIC_ENDPOINTS_NAMESPACE`
 
 ## Module: `rabbitmq`
 

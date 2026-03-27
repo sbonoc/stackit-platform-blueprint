@@ -10,7 +10,8 @@ identity_aware_proxy_seed_env_defaults() {
   set_default_env IAP_HELM_RELEASE "blueprint-iap"
   set_default_env IAP_HELM_CHART "oauth2-proxy/oauth2-proxy"
   set_default_env IAP_HELM_CHART_VERSION "$IAP_HELM_CHART_VERSION_PIN"
-  set_default_env PUBLIC_ENDPOINTS_INGRESS_CLASS "nginx"
+  set_default_env PUBLIC_ENDPOINTS_NAMESPACE "network"
+  set_default_env PUBLIC_ENDPOINTS_GATEWAY_NAME "public-endpoints"
 }
 
 identity_aware_proxy_init_env() {
@@ -50,7 +51,8 @@ identity_aware_proxy_render_values_file() {
     "IAP_CONFIG_SECRET_NAME=$(identity_aware_proxy_config_secret_name)" \
     "KEYCLOAK_ISSUER_URL=$KEYCLOAK_ISSUER_URL" \
     "IAP_UPSTREAM_URL=$IAP_UPSTREAM_URL" \
-    "PUBLIC_ENDPOINTS_INGRESS_CLASS=$PUBLIC_ENDPOINTS_INGRESS_CLASS" \
+    "PUBLIC_ENDPOINTS_NAMESPACE=$PUBLIC_ENDPOINTS_NAMESPACE" \
+    "PUBLIC_ENDPOINTS_GATEWAY_NAME=$PUBLIC_ENDPOINTS_GATEWAY_NAME" \
     "IAP_PUBLIC_HOST=$(identity_aware_proxy_public_host)" \
     "IAP_REDIRECT_URL=$(identity_aware_proxy_redirect_url)"
 }

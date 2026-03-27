@@ -1,8 +1,8 @@
-controller:
-  ingressClassResource:
-    name: "{{PUBLIC_ENDPOINTS_INGRESS_CLASS}}"
-    enabled: true
-    default: true
-  ingressClass: "{{PUBLIC_ENDPOINTS_INGRESS_CLASS}}"
-  service:
-    type: LoadBalancer
+config:
+  # The chart installs only the Envoy Gateway controller. The shared
+  # GatewayClass/Gateway baseline is rendered separately so route ownership
+  # remains explicit in repo-managed manifests.
+  envoyGateway:
+    logging:
+      level:
+        default: info

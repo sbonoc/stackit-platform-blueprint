@@ -361,9 +361,6 @@ prepare_helm_repo_for_chart() {
   open-telemetry)
     repo_url="https://open-telemetry.github.io/opentelemetry-helm-charts"
     ;;
-  ingress-nginx)
-    repo_url="https://kubernetes.github.io/ingress-nginx"
-    ;;
   oauth2-proxy)
     repo_url="https://oauth2-proxy.github.io/manifests"
     ;;

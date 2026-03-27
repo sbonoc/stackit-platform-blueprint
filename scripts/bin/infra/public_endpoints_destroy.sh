@@ -22,8 +22,9 @@ argocd_application_chart)
   run_manifest_delete "$destroy_path"
   ;;
 helm)
-  destroy_path="$PUBLIC_ENDPOINTS_HELM_RELEASE@$PUBLIC_ENDPOINTS_NAMESPACE"
-  run_helm_uninstall "$PUBLIC_ENDPOINTS_HELM_RELEASE" "$PUBLIC_ENDPOINTS_NAMESPACE"
+  run_manifest_delete "$(public_endpoints_gateway_manifest_file)"
+  destroy_path="$PUBLIC_ENDPOINTS_HELM_RELEASE@$PUBLIC_ENDPOINTS_CONTROLLER_NAMESPACE,$(public_endpoints_gateway_manifest_file)"
+  run_helm_uninstall "$PUBLIC_ENDPOINTS_HELM_RELEASE" "$PUBLIC_ENDPOINTS_CONTROLLER_NAMESPACE"
   ;;
 *)
   optional_module_unexpected_driver "public-endpoints" "destroy"

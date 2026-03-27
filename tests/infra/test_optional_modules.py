@@ -435,7 +435,17 @@ class OptionalModulesTests(unittest.TestCase):
         self.assertTrue(runtime_file.exists())
         runtime_content = runtime_file.read_text(encoding="utf-8")
         self.assertIn("base_domain=apps.local", runtime_content)
+        self.assertIn("gateway_name=public-endpoints", runtime_content)
+        self.assertIn("gateway_class_name=public-endpoints", runtime_content)
+        self.assertIn("edge_mode=gateway_api_envoy", runtime_content)
+        self.assertIn("listener_policy=allow_cross_namespace_routes", runtime_content)
         self.assertIn("provision_path=", runtime_content)
+        self.assertIn("gateway_manifest_path=", runtime_content)
+
+        smoke_file = REPO_ROOT / "artifacts" / "infra" / "public_endpoints_smoke.env"
+        self.assertTrue(smoke_file.exists())
+        smoke_content = smoke_file.read_text(encoding="utf-8")
+        self.assertIn("gateway_manifest_path=", smoke_content)
 
         destroy = run(["make", "infra-public-endpoints-destroy"], env)
         self.assertEqual(destroy.returncode, 0, msg=destroy.stdout + destroy.stderr)
@@ -565,8 +575,11 @@ class OptionalModulesTests(unittest.TestCase):
         public_endpoints_manifest = (
             REPO_ROOT / "infra/gitops/argocd/optional/dev/public-endpoints.yaml"
         ).read_text(encoding="utf-8")
-        self.assertIn("repoURL: https://kubernetes.github.io/ingress-nginx", public_endpoints_manifest)
-        self.assertIn("targetRevision: 4.15.1", public_endpoints_manifest)
+        self.assertIn("repoURL: docker.io/envoyproxy", public_endpoints_manifest)
+        self.assertIn("chart: gateway-helm", public_endpoints_manifest)
+        self.assertIn("targetRevision: 1.7.1", public_endpoints_manifest)
+        self.assertIn("kind: GatewayClass", public_endpoints_manifest)
+        self.assertIn("kind: Gateway", public_endpoints_manifest)
 
         iap_manifest = (REPO_ROOT / "infra/gitops/argocd/optional/dev/identity-aware-proxy.yaml").read_text(
             encoding="utf-8"
@@ -574,6 +587,8 @@ class OptionalModulesTests(unittest.TestCase):
         self.assertIn("repoURL: https://oauth2-proxy.github.io/manifests", iap_manifest)
         self.assertIn("targetRevision: 10.4.0", iap_manifest)
         self.assertIn('existingSecret: "blueprint-iap-config"', iap_manifest)
+        self.assertIn("gatewayApi:", iap_manifest)
+        self.assertIn('name: "public-endpoints"', iap_manifest)
 
     def test_identity_aware_proxy_module_flow(self) -> None:
         env = module_flags_env(identity_aware_proxy="true")
@@ -603,10 +618,18 @@ class OptionalModulesTests(unittest.TestCase):
         runtime_content = runtime_file.read_text(encoding="utf-8")
         self.assertIn("keycloak_issuer=https://keycloak.example/realms/marketplace", runtime_content)
         self.assertIn("keycloak_client_id=marketplace-iap", runtime_content)
+        self.assertIn("auth_mode=browser_oidc_proxy", runtime_content)
+        self.assertIn("route_mode=gateway_api", runtime_content)
         self.assertIn("provision_path=", runtime_content)
 
         secret_manifest = REPO_ROOT / "artifacts" / "infra" / "rendered" / "secrets" / "secret-security-blueprint-iap-config.yaml"
         self.assertTrue(secret_manifest.exists(), msg="iap secret manifest not rendered")
+
+        smoke_file = REPO_ROOT / "artifacts" / "infra" / "identity_aware_proxy_smoke.env"
+        self.assertTrue(smoke_file.exists())
+        smoke_content = smoke_file.read_text(encoding="utf-8")
+        self.assertIn("public_host=iap.local", smoke_content)
+        self.assertIn("provision_path=", smoke_content)
 
         destroy = run(["make", "infra-identity-aware-proxy-destroy"], env)
         self.assertEqual(destroy.returncode, 0, msg=destroy.stdout + destroy.stderr)

@@ -118,7 +118,7 @@ locals {
     public-endpoints = {
       stackit_provider_supported = false
       stackit_resource_types     = []
-      fallback_strategy          = "manage ingress/gateway endpoints from runtime manifests"
+      fallback_strategy          = "manage shared Gateway API edge from runtime manifests"
     }
     secrets-manager = {
       stackit_provider_supported = true

@@ -5,7 +5,7 @@ metadata:
   version: 1.0.0
 spec:
   module_id: identity-aware-proxy
-  purpose: "Provision identity-aware access proxy wired to Keycloak OIDC for marketplace UI/API protection."
+  purpose: "Provision browser-facing identity-aware access proxy wired to Keycloak OIDC for protected touchpoint routes."
   enabled_by_default: false
   enable_flag: IDENTITY_AWARE_PROXY_ENABLED
 
@@ -21,7 +21,6 @@ spec:
       - keycloak_available
       - keycloak_oidc_configuration
       - oidc_realm_available
-      - ingress_controller_available
     optional_module_dependencies:
       - public-endpoints
 
@@ -38,10 +37,13 @@ spec:
       - IAP_HELM_RELEASE
       - IAP_HELM_CHART
       - IAP_HELM_CHART_VERSION
+      - PUBLIC_ENDPOINTS_NAMESPACE
+      - PUBLIC_ENDPOINTS_GATEWAY_NAME
 
   outputs:
     produced:
       - IAP_PUBLIC_URL
+      - IAP_PUBLIC_HOST
       - IAP_UPSTREAM_URL
       - IAP_OIDC_ISSUER
 
@@ -54,6 +56,7 @@ spec:
   smoke_checks:
     - "OIDC issuer and client contract are present"
     - "Proxy runtime contract is materialized"
+    - "Protected browser route contract is attached to the shared gateway"
 
   cleanup_contract:
     destroy_target: infra-identity-aware-proxy-destroy

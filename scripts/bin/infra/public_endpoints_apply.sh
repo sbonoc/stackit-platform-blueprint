@@ -26,18 +26,23 @@ fi
 resolve_optional_module_execution "public-endpoints" "apply"
 provision_driver="$OPTIONAL_MODULE_EXECUTION_DRIVER"
 provision_path="$OPTIONAL_MODULE_EXECUTION_PATH"
+gateway_manifest_path="$provision_path"
 case "$provision_driver" in
 argocd_application_chart)
   run_manifest_apply "$provision_path"
   ;;
 helm)
   provision_path="$(public_endpoints_render_values_file)"
+  gateway_manifest_path="$(public_endpoints_render_gateway_manifest)"
   run_helm_upgrade_install \
     "$PUBLIC_ENDPOINTS_HELM_RELEASE" \
-    "$PUBLIC_ENDPOINTS_NAMESPACE" \
+    "$PUBLIC_ENDPOINTS_CONTROLLER_NAMESPACE" \
     "$PUBLIC_ENDPOINTS_HELM_CHART" \
     "$PUBLIC_ENDPOINTS_HELM_CHART_VERSION" \
     "$provision_path"
+  # The controller install is only half of the contract; the shared
+  # GatewayClass/Gateway baseline must exist so app routes can attach.
+  run_manifest_apply "$gateway_manifest_path"
   ;;
 *)
   optional_module_unexpected_driver "public-endpoints" "apply"
@@ -48,10 +53,16 @@ state_file="$(write_state_file "public_endpoints_runtime" \
   "profile=$BLUEPRINT_PROFILE" \
   "stack=$(active_stack)" \
   "tooling_mode=$(tooling_execution_mode)" \
+  "edge_mode=gateway_api_envoy" \
   "provision_driver=$provision_driver" \
   "provision_path=$provision_path" \
+  "gateway_manifest_path=$gateway_manifest_path" \
   "base_domain=$PUBLIC_ENDPOINTS_BASE_DOMAIN" \
-  "ingress_class=$PUBLIC_ENDPOINTS_INGRESS_CLASS" \
+  "gateway_name=$PUBLIC_ENDPOINTS_GATEWAY_NAME" \
+  "gateway_class_name=$PUBLIC_ENDPOINTS_GATEWAY_CLASS_NAME" \
+  "gateway_namespace=$PUBLIC_ENDPOINTS_NAMESPACE" \
+  "controller_namespace=$PUBLIC_ENDPOINTS_CONTROLLER_NAMESPACE" \
+  "listener_policy=allow_cross_namespace_routes" \
   "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")")"
 
 log_info "public-endpoints runtime state written to $state_file"

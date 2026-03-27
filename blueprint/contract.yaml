@@ -332,7 +332,7 @@ spec:
       type: boolean
       default: false
       required: false
-      description: "Optional-module switch for public endpoints/ingress provisioning/deployment."
+      description: "Optional-module switch for Gateway API public edge provisioning/deployment."
     SECRETS_MANAGER_ENABLED:
       type: boolean
       default: false

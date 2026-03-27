@@ -1,0 +1,26 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: {{PUBLIC_ENDPOINTS_GATEWAY_CLASS_NAME}}
+spec:
+  controllerName: gateway.envoyproxy.io/gatewayclass-controller
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{PUBLIC_ENDPOINTS_GATEWAY_NAME}}
+  namespace: {{PUBLIC_ENDPOINTS_NAMESPACE}}
+  labels:
+    app.kubernetes.io/part-of: platform-blueprint
+    app.kubernetes.io/component: public-endpoints
+spec:
+  gatewayClassName: {{PUBLIC_ENDPOINTS_GATEWAY_CLASS_NAME}}
+  listeners:
+    # Routes attach from multiple platform namespaces, so the shared edge
+    # listener must allow cross-namespace HTTPRoute attachment.
+    - name: http
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: All

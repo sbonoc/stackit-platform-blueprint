@@ -1,6 +1,12 @@
 # Decisions Log
 
 ## 2026-03-27
+- `public-endpoints` now owns a shared Gateway API + Envoy Gateway edge baseline, while `identity-aware-proxy` stays on `oauth2-proxy`.
+  - Replaced the `ingress-nginx` fallback runtime path with Envoy Gateway (`gateway-helm`) and a blueprint-rendered shared `GatewayClass`/`Gateway` contract so edge routing is aligned with the Kubernetes Gateway API direction and remains explicit in repo-managed manifests.
+  - Kept `identity-aware-proxy` browser-focused: it still reconciles `oauth2-proxy/oauth2-proxy`, now attaches through Gateway API `HTTPRoute`, and does not become the universal proxy for public or bearer-token API routes.
+  - Added stronger smoke/state diagnostics for both modules so validation now proves the shared gateway manifest and protected browser route contracts are materially rendered, not only that wrapper state files exist.
+  - Rationale: keep ingress evolution and browser authentication concerns separated, preserve mixed public/protected route topologies, and align the platform edge with the preferred Kubernetes networking model without collapsing all traffic through one auth mode.
+
 - Live `/tmp` validation now hardens STACKIT consumer initialization, provider-boundary normalization, and runtime readiness diagnostics.
   - Fresh STACKIT consumer repos must initialize identity with `make blueprint-init-repo` before first remote bootstrap so backend and tfvars placeholders are resolved; local-only bootstrap can succeed without surfacing that requirement, but remote state bootstrap cannot.
   - DNS keeps the canonical consumer input contract with trailing dots (`DNS_ZONE_FQDN`) while foundation trims only at the provider boundary, matching STACKIT DNS API expectations without changing user-facing inputs.

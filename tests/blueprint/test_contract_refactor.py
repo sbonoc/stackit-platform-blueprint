@@ -157,7 +157,7 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn('OBJECT_STORAGE_HELM_CHART_VERSION_PIN="17.0.21"', versions)
         self.assertIn('RABBITMQ_HELM_CHART_VERSION_PIN="16.0.14"', versions)
         self.assertIn('NEO4J_HELM_CHART_VERSION_PIN="2026.1.4"', versions)
-        self.assertIn('PUBLIC_ENDPOINTS_HELM_CHART_VERSION_PIN="4.15.1"', versions)
+        self.assertIn('PUBLIC_ENDPOINTS_HELM_CHART_VERSION_PIN="1.7.1"', versions)
         self.assertIn('IAP_HELM_CHART_VERSION_PIN="10.4.0"', versions)
 
         self.assertIn(
@@ -193,8 +193,9 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn('audit_helm_chart_pin "OBJECT_STORAGE_HELM_CHART_VERSION_PIN" "bitnami/minio"', audit)
         self.assertIn('audit_helm_chart_pin "RABBITMQ_HELM_CHART_VERSION_PIN" "bitnami/rabbitmq"', audit)
         self.assertIn('audit_helm_chart_pin "NEO4J_HELM_CHART_VERSION_PIN" "neo4j/neo4j"', audit)
-        self.assertIn('audit_helm_chart_pin "PUBLIC_ENDPOINTS_HELM_CHART_VERSION_PIN" "ingress-nginx/ingress-nginx"', audit)
+        self.assertIn('audit_helm_chart_pin "PUBLIC_ENDPOINTS_HELM_CHART_VERSION_PIN" "oci://docker.io/envoyproxy/gateway-helm"', audit)
         self.assertIn('audit_helm_chart_pin "IAP_HELM_CHART_VERSION_PIN" "oauth2-proxy/oauth2-proxy"', audit)
+        self.assertIn('helm show chart "$chart_ref" --version "$version"', audit)
         self.assertIn('helm search repo "$chart_ref" --versions', audit)
         self.assertIn('run_cmd helm repo update "$repo_name"', tooling)
 

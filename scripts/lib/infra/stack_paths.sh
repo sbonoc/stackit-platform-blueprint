@@ -75,6 +75,10 @@ rendered_module_helm_values_file() {
   printf '%s/artifacts/infra/rendered/%s.values.yaml' "$ROOT_DIR" "$module_name"
 }
 
+public_endpoints_gateway_manifest_file() {
+  printf '%s/artifacts/infra/rendered/public-endpoints.gateway.yaml' "$ROOT_DIR"
+}
+
 rendered_optional_module_secret_artifacts_dir() {
   printf '%s/artifacts/infra/rendered/secrets' "$ROOT_DIR"
 }

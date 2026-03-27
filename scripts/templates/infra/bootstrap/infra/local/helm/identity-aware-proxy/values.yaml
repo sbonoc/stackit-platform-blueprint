@@ -10,8 +10,14 @@ extraArgs:
   redirect-url: "{{IAP_REDIRECT_URL}}"
   email-domain: "*"
 ingress:
+  enabled: false
+gatewayApi:
+  # oauth2-proxy renders the protected browser HTTPRoute while the shared
+  # Gateway itself stays owned by the public-endpoints baseline.
   enabled: true
-  className: "{{PUBLIC_ENDPOINTS_INGRESS_CLASS}}"
-  path: /
-  hosts:
+  gatewayRef:
+    name: "{{PUBLIC_ENDPOINTS_GATEWAY_NAME}}"
+    namespace: "{{PUBLIC_ENDPOINTS_NAMESPACE}}"
+    sectionName: http
+  hostnames:
     - "{{IAP_PUBLIC_HOST}}"

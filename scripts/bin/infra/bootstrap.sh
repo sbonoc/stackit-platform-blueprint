@@ -250,8 +250,7 @@ bootstrap_module_scaffold() {
       ensure_file_from_rendered_template \
         "$ROOT_DIR/infra/local/helm/$module/values.yaml" \
         "infra" \
-        "infra/local/helm/$module/values.yaml" \
-        "PUBLIC_ENDPOINTS_INGRESS_CLASS=$PUBLIC_ENDPOINTS_INGRESS_CLASS"
+        "infra/local/helm/$module/values.yaml"
       ;;
     identity-aware-proxy)
       identity_aware_proxy_seed_env_defaults
@@ -262,7 +261,8 @@ bootstrap_module_scaffold() {
         "IAP_CONFIG_SECRET_NAME=$(identity_aware_proxy_config_secret_name)" \
         "KEYCLOAK_ISSUER_URL=${KEYCLOAK_ISSUER_URL:-https://keycloak.example/realms/platform}" \
         "IAP_UPSTREAM_URL=$IAP_UPSTREAM_URL" \
-        "PUBLIC_ENDPOINTS_INGRESS_CLASS=$PUBLIC_ENDPOINTS_INGRESS_CLASS" \
+        "PUBLIC_ENDPOINTS_NAMESPACE=$PUBLIC_ENDPOINTS_NAMESPACE" \
+        "PUBLIC_ENDPOINTS_GATEWAY_NAME=$PUBLIC_ENDPOINTS_GATEWAY_NAME" \
         "IAP_PUBLIC_HOST=$(identity_aware_proxy_public_host)" \
         "IAP_REDIRECT_URL=$(identity_aware_proxy_redirect_url)"
       ;;
@@ -367,9 +367,12 @@ bootstrap_optional_manifest() {
       "infra/gitops/argocd/optional/public-endpoints.application.yaml.tmpl" \
       "ENV=$env" \
       "PUBLIC_ENDPOINTS_NAMESPACE=$PUBLIC_ENDPOINTS_NAMESPACE" \
+      "PUBLIC_ENDPOINTS_CONTROLLER_NAMESPACE=$PUBLIC_ENDPOINTS_CONTROLLER_NAMESPACE" \
+      "PUBLIC_ENDPOINTS_GATEWAY_NAME=$PUBLIC_ENDPOINTS_GATEWAY_NAME" \
+      "PUBLIC_ENDPOINTS_GATEWAY_CLASS_NAME=$PUBLIC_ENDPOINTS_GATEWAY_CLASS_NAME" \
       "PUBLIC_ENDPOINTS_HELM_RELEASE=$PUBLIC_ENDPOINTS_HELM_RELEASE" \
       "PUBLIC_ENDPOINTS_HELM_CHART_VERSION=$PUBLIC_ENDPOINTS_HELM_CHART_VERSION" \
-      "PUBLIC_ENDPOINTS_INGRESS_CLASS=$PUBLIC_ENDPOINTS_INGRESS_CLASS"
+      "PUBLIC_ENDPOINTS_GATEWAY_MANIFEST=$(public_endpoints_gateway_manifest_content)"
     ;;
   identity-aware-proxy)
     identity_aware_proxy_seed_env_defaults
@@ -384,7 +387,8 @@ bootstrap_optional_manifest() {
       "IAP_CONFIG_SECRET_NAME=$(identity_aware_proxy_config_secret_name)" \
       "KEYCLOAK_ISSUER_URL=${KEYCLOAK_ISSUER_URL:-https://keycloak.example/realms/platform}" \
       "IAP_UPSTREAM_URL=$IAP_UPSTREAM_URL" \
-      "PUBLIC_ENDPOINTS_INGRESS_CLASS=$PUBLIC_ENDPOINTS_INGRESS_CLASS" \
+      "PUBLIC_ENDPOINTS_NAMESPACE=$PUBLIC_ENDPOINTS_NAMESPACE" \
+      "PUBLIC_ENDPOINTS_GATEWAY_NAME=$PUBLIC_ENDPOINTS_GATEWAY_NAME" \
       "IAP_PUBLIC_HOST=$(identity_aware_proxy_public_host)" \
       "IAP_REDIRECT_URL=$(identity_aware_proxy_redirect_url)"
     ;;

@@ -5,7 +5,7 @@ metadata:
   version: 1.0.0
 spec:
   module_id: public-endpoints
-  purpose: "Provision ingress/public endpoint baseline for marketplace UI and API surfaces."
+  purpose: "Provision Gateway API public edge baseline for marketplace UI and API surfaces."
   enabled_by_default: false
   enable_flag: PUBLIC_ENDPOINTS_ENABLED
 
@@ -19,7 +19,6 @@ spec:
   dependencies:
     required_core_capabilities:
       - load_balancer_available
-      - ingress_controller_available
     optional_module_dependencies:
       - dns
 
@@ -27,8 +26,10 @@ spec:
     required_env:
       - PUBLIC_ENDPOINTS_BASE_DOMAIN
     optional_env:
-      - PUBLIC_ENDPOINTS_INGRESS_CLASS
       - PUBLIC_ENDPOINTS_NAMESPACE
+      - PUBLIC_ENDPOINTS_CONTROLLER_NAMESPACE
+      - PUBLIC_ENDPOINTS_GATEWAY_NAME
+      - PUBLIC_ENDPOINTS_GATEWAY_CLASS_NAME
       - PUBLIC_ENDPOINTS_HELM_RELEASE
       - PUBLIC_ENDPOINTS_HELM_CHART
       - PUBLIC_ENDPOINTS_HELM_CHART_VERSION
@@ -36,7 +37,9 @@ spec:
   outputs:
     produced:
       - PUBLIC_ENDPOINTS_BASE_DOMAIN
-      - PUBLIC_ENDPOINTS_INGRESS_CLASS
+      - PUBLIC_ENDPOINTS_GATEWAY_NAME
+      - PUBLIC_ENDPOINTS_GATEWAY_CLASS_NAME
+      - PUBLIC_ENDPOINTS_NAMESPACE
 
   make_targets:
     plan: infra-public-endpoints-plan
@@ -46,6 +49,7 @@ spec:
 
   smoke_checks:
     - "Base domain contract is present"
+    - "Shared Gateway API baseline contract is present"
 
   cleanup_contract:
     destroy_target: infra-public-endpoints-destroy
