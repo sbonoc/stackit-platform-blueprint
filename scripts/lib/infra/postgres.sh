@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+source "$ROOT_DIR/scripts/lib/infra/versions.sh"
+
 postgres_init_env() {
   set_default_env POSTGRES_VERSION "16"
   set_default_env POSTGRES_PORT "5432"
@@ -9,7 +11,7 @@ postgres_init_env() {
   set_default_env POSTGRES_NAMESPACE "data"
   set_default_env POSTGRES_HELM_RELEASE "blueprint-postgres"
   set_default_env POSTGRES_HELM_CHART "bitnami/postgresql"
-  set_default_env POSTGRES_HELM_CHART_VERSION "16.8.5"
+  set_default_env POSTGRES_HELM_CHART_VERSION "$POSTGRES_HELM_CHART_VERSION_PIN"
 
   require_env_vars POSTGRES_INSTANCE_NAME POSTGRES_DB_NAME POSTGRES_USER POSTGRES_PASSWORD
 

@@ -2,6 +2,7 @@
 set -euo pipefail
 
 source "$ROOT_DIR/scripts/lib/infra/stackit_foundation_outputs.sh"
+source "$ROOT_DIR/scripts/lib/infra/versions.sh"
 
 rabbitmq_seed_env_defaults() {
   set_default_env RABBITMQ_INSTANCE_NAME "marketplace-rabbitmq"
@@ -13,7 +14,7 @@ rabbitmq_seed_env_defaults() {
   set_default_env RABBITMQ_NAMESPACE "messaging"
   set_default_env RABBITMQ_HELM_RELEASE "blueprint-rabbitmq"
   set_default_env RABBITMQ_HELM_CHART "bitnami/rabbitmq"
-  set_default_env RABBITMQ_HELM_CHART_VERSION "16.0.14"
+  set_default_env RABBITMQ_HELM_CHART_VERSION "$RABBITMQ_HELM_CHART_VERSION_PIN"
 }
 
 rabbitmq_init_env() {

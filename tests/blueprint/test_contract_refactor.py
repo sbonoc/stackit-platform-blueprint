@@ -108,6 +108,46 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn('output "rabbitmq_uri"', foundation_outputs)
         self.assertIn('output "kms_key_ring_id"', foundation_outputs)
 
+    def test_local_crossplane_bootstrap_waits_for_chart_deployment_names(self) -> None:
+        bootstrap = _read("scripts/bin/infra/local_crossplane_bootstrap.sh")
+        self.assertIn("deployment/crossplane", bootstrap)
+        self.assertIn("deployment/crossplane-rbac-manager", bootstrap)
+        self.assertNotIn('deployment/"$CROSSPLANE_HELM_RELEASE"', bootstrap)
+
+    def test_optional_module_chart_pins_use_canonical_versions_source(self) -> None:
+        versions = _read("scripts/lib/infra/versions.sh")
+        self.assertIn('POSTGRES_HELM_CHART_VERSION_PIN="15.5.38"', versions)
+        self.assertIn('OBJECT_STORAGE_HELM_CHART_VERSION_PIN="17.0.17"', versions)
+        self.assertIn('RABBITMQ_HELM_CHART_VERSION_PIN="16.0.14"', versions)
+        self.assertIn('NEO4J_HELM_CHART_VERSION_PIN="2026.1.4"', versions)
+        self.assertIn('PUBLIC_ENDPOINTS_HELM_CHART_VERSION_PIN="4.15.1"', versions)
+        self.assertIn('IAP_HELM_CHART_VERSION_PIN="10.4.0"', versions)
+
+        self.assertIn(
+            'set_default_env POSTGRES_HELM_CHART_VERSION "$POSTGRES_HELM_CHART_VERSION_PIN"',
+            _read("scripts/lib/infra/postgres.sh"),
+        )
+        self.assertIn(
+            'set_default_env OBJECT_STORAGE_HELM_CHART_VERSION "$OBJECT_STORAGE_HELM_CHART_VERSION_PIN"',
+            _read("scripts/lib/infra/object_storage.sh"),
+        )
+        self.assertIn(
+            'set_default_env RABBITMQ_HELM_CHART_VERSION "$RABBITMQ_HELM_CHART_VERSION_PIN"',
+            _read("scripts/lib/infra/rabbitmq.sh"),
+        )
+        self.assertIn(
+            'set_default_env NEO4J_HELM_CHART_VERSION "$NEO4J_HELM_CHART_VERSION_PIN"',
+            _read("scripts/lib/infra/neo4j.sh"),
+        )
+        self.assertIn(
+            'set_default_env PUBLIC_ENDPOINTS_HELM_CHART_VERSION "$PUBLIC_ENDPOINTS_HELM_CHART_VERSION_PIN"',
+            _read("scripts/lib/infra/public_endpoints.sh"),
+        )
+        self.assertIn(
+            'set_default_env IAP_HELM_CHART_VERSION "$IAP_HELM_CHART_VERSION_PIN"',
+            _read("scripts/lib/infra/identity_aware_proxy.sh"),
+        )
+
     def test_pre_commit_hooks_include_cached_audits_and_shell_syntax(self) -> None:
         pre_commit = _read(".pre-commit-config.yaml")
         template_pre_commit = _read("scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml")

@@ -57,10 +57,12 @@ verification_mode="dry-run-state"
 if tooling_is_execution_enabled; then
   require_command kubectl
 
-  run_cmd kubectl rollout status deployment/"$CROSSPLANE_HELM_RELEASE" \
+  # Crossplane's chart keeps stable deployment names (`crossplane`,
+  # `crossplane-rbac-manager`) even when the Helm release name is customized.
+  run_cmd kubectl rollout status deployment/crossplane \
     --namespace "$CROSSPLANE_NAMESPACE" \
     --timeout=300s
-  run_cmd kubectl rollout status deployment/"$CROSSPLANE_HELM_RELEASE-rbac-manager" \
+  run_cmd kubectl rollout status deployment/crossplane-rbac-manager \
     --namespace "$CROSSPLANE_NAMESPACE" \
     --timeout=300s
 

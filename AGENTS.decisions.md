@@ -280,3 +280,8 @@
 - Removed remaining backward-compatibility shim from infra stack path routing.
   - Dropped `stackit_terraform_env_dir`/`profile_env` helper indirections and moved `infra-doctor` to canonical layered path resolution (`stackit_terraform_layer_dir foundation`).
   - Rationale: enforce no-alias/no-shim governance and keep all STACKIT path contracts explicit to layered bootstrap/foundation model.
+
+- Post-P1 live validation fixes now align local runtime checks and chart pin ownership with the repo contract.
+  - `local_crossplane_bootstrap.sh` now waits on the chart's stable deployment names (`crossplane`, `crossplane-rbac-manager`) instead of deriving names from the Helm release.
+  - Optional-module local Helm chart version pins were moved into `scripts/lib/infra/versions.sh`/`versions.baseline.sh` as canonical `*_PIN` constants, and wrappers consume them via `set_default_env` so operator overrides still work.
+  - Rationale: real `/tmp` local-cluster validation exposed both a live naming mismatch and a stale inline Postgres chart pin; consolidating pins under the canonical versions source removes an AGENTS/implementation inconsistency and keeps live fixes deterministic.

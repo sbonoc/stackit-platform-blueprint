@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+source "$ROOT_DIR/scripts/lib/infra/versions.sh"
+
 identity_aware_proxy_seed_env_defaults() {
   set_default_env IAP_UPSTREAM_URL "http://catalog.apps.svc.cluster.local:8080"
   set_default_env IAP_PUBLIC_HOST "iap.local"
   set_default_env IAP_NAMESPACE "security"
   set_default_env IAP_HELM_RELEASE "blueprint-iap"
   set_default_env IAP_HELM_CHART "oauth2-proxy/oauth2-proxy"
-  set_default_env IAP_HELM_CHART_VERSION "10.4.0"
+  set_default_env IAP_HELM_CHART_VERSION "$IAP_HELM_CHART_VERSION_PIN"
   set_default_env PUBLIC_ENDPOINTS_INGRESS_CLASS "nginx"
 }
 

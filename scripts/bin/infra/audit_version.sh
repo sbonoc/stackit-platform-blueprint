@@ -18,6 +18,7 @@ Audits pinned infra versions and checks drift against baseline policy:
 - minor drift => warn
 - major drift => fail
 - non-semver => warn
+- includes local optional-module Helm chart pins from the canonical versions source
 EOF
 }
 
@@ -104,6 +105,12 @@ tracked_vars=(
   GRAFANA_CHART_VERSION
   LOKI_CHART_VERSION
   TEMPO_CHART_VERSION
+  POSTGRES_HELM_CHART_VERSION_PIN
+  OBJECT_STORAGE_HELM_CHART_VERSION_PIN
+  RABBITMQ_HELM_CHART_VERSION_PIN
+  NEO4J_HELM_CHART_VERSION_PIN
+  PUBLIC_ENDPOINTS_HELM_CHART_VERSION_PIN
+  IAP_HELM_CHART_VERSION_PIN
 )
 
 for var_name in "${tracked_vars[@]}"; do
