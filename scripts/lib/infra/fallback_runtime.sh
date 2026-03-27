@@ -5,6 +5,8 @@ source "$ROOT_DIR/scripts/lib/blueprint/bootstrap_templates.sh"
 source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
 source "$ROOT_DIR/scripts/lib/infra/stack_paths.sh"
 
+# These helpers are often used in command substitutions, so stdout must stay
+# reserved for the returned artifact path. Diagnostic logs go to stderr.
 render_optional_module_values_file() {
   local module="$1"
   local template_rel="$2"
@@ -14,8 +16,8 @@ render_optional_module_values_file() {
   target_path="$(rendered_module_helm_values_file "$module")"
   ensure_dir "$(dirname "$target_path")"
   printf '%s' "$(render_bootstrap_template_content "infra" "$template_rel" "$@")" >"$target_path"
-  log_metric "optional_module_values_render_total" "1" "module=$module target=$target_path"
-  log_info "rendered optional-module values artifact: $target_path"
+  log_metric "optional_module_values_render_total" "1" "module=$module target=$target_path" >&2
+  log_info "rendered optional-module values artifact: $target_path" >&2
   printf '%s\n' "$target_path"
 }
 
@@ -67,7 +69,7 @@ EOF
     done
   } >"$secret_manifest_file"
 
-  log_metric "optional_module_secret_render_total" "1" "namespace=$namespace secret=$name"
+  log_metric "optional_module_secret_render_total" "1" "namespace=$namespace secret=$name" >&2
   printf '%s\n' "$secret_manifest_file"
 }
 

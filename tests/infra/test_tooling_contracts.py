@@ -26,6 +26,43 @@ printf 'class=%s\\ndriver=%s\\npath=%s\\nnote=%s\\n' \
 
 
 class ToolingContractsTests(unittest.TestCase):
+    def test_fallback_runtime_values_helper_keeps_stdout_machine_readable(self) -> None:
+        script = f"""
+export ROOT_DIR="{REPO_ROOT}"
+source "{REPO_ROOT}/scripts/lib/shell/bootstrap.sh"
+source "{REPO_ROOT}/scripts/lib/infra/fallback_runtime.sh"
+export RABBITMQ_HELM_RELEASE=blueprint-rabbitmq
+export RABBITMQ_PASSWORD_SECRET_NAME=blueprint-rabbitmq-auth
+render_optional_module_values_file \
+  "rabbitmq" \
+  "infra/local/helm/rabbitmq/values.yaml" \
+  "RABBITMQ_HELM_RELEASE=$RABBITMQ_HELM_RELEASE" \
+  "RABBITMQ_PASSWORD_SECRET_NAME=$RABBITMQ_PASSWORD_SECRET_NAME"
+"""
+        result = run(["bash", "-lc", script], {"ROOT_DIR": str(REPO_ROOT)})
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        self.assertEqual(
+            result.stdout.strip(),
+            f"{REPO_ROOT}/artifacts/infra/rendered/rabbitmq.values.yaml",
+        )
+        self.assertIn("optional_module_values_render_total", result.stderr)
+        self.assertIn("rendered optional-module values artifact", result.stderr)
+
+    def test_fallback_runtime_secret_helper_keeps_stdout_machine_readable(self) -> None:
+        script = f"""
+export ROOT_DIR="{REPO_ROOT}"
+source "{REPO_ROOT}/scripts/lib/shell/bootstrap.sh"
+source "{REPO_ROOT}/scripts/lib/infra/fallback_runtime.sh"
+render_optional_module_secret_manifests "messaging" "blueprint-rabbitmq-auth" "rabbitmq-password=secret"
+"""
+        result = run(["bash", "-lc", script], {"ROOT_DIR": str(REPO_ROOT)})
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        self.assertEqual(
+            result.stdout.strip(),
+            f"{REPO_ROOT}/artifacts/infra/rendered/secrets/secret-messaging-blueprint-rabbitmq-auth.yaml",
+        )
+        self.assertIn("optional_module_secret_render_total", result.stderr)
+
     def test_help_reference_includes_primary_workflows(self) -> None:
         result = run(["make", "infra-help-reference"])
         self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
