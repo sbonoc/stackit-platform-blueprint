@@ -27,7 +27,7 @@ The execution flow is always the same:
 ### 1) Provision
 - Validates contracts and repository structure.
 - Chooses the provisioning driver from `BLUEPRINT_PROFILE`.
-- For local profiles, bootstraps Crossplane baseline (`infra/local/crossplane` + Crossplane Helm chart).
+- For local profiles, bootstraps Crossplane baseline (`infra/local/crossplane` + Crossplane Helm chart) on the selected local Kubernetes context.
 - For STACKIT profiles, runs layered Terraform:
   - `bootstrap` with remote S3 backend using pre-provisioned tfstate bucket/credentials.
   - `foundation` with remote S3 backend using the same bucket contract and a separate state key.
@@ -46,6 +46,7 @@ The execution flow is always the same:
 ### 3) Smoke
 - Verifies baseline infra and app contracts.
 - Verifies optional modules (if enabled).
+- In live mode, captures pod inventory plus workload readiness for blueprint-managed namespaces only (`apps`, `data`, `messaging`, `network`, `security`, `observability`, `argocd`, `external-secrets`, `crossplane-system`, `envoy-gateway-system`).
 - Writes state artifacts to `artifacts/infra/smoke.env`.
 
 ## Profile Routing
@@ -58,6 +59,12 @@ The execution flow is always the same:
 | `stackit-dev` | `infra/cloud/stackit/terraform/bootstrap` + `infra/cloud/stackit/terraform/foundation` | `infra/gitops/argocd/base` + `infra/gitops/argocd/overlays/dev` |
 | `stackit-stage` | `infra/cloud/stackit/terraform/bootstrap` + `infra/cloud/stackit/terraform/foundation` | `infra/gitops/argocd/base` + `infra/gitops/argocd/overlays/stage` |
 | `stackit-prod` | `infra/cloud/stackit/terraform/bootstrap` + `infra/cloud/stackit/terraform/foundation` | `infra/gitops/argocd/base` + `infra/gitops/argocd/overlays/prod` |
+
+Local context routing:
+- Workstation execution prefers the `docker-desktop` Kubernetes context when it exists.
+- CI prefers `kind-*` contexts, with `kind-blueprint-e2e` as the canonical default when available.
+- Set `LOCAL_KUBE_CONTEXT` to override the local default explicitly.
+- Run `make infra-context` to see the resolved context and selection source before live execution.
 
 ## Optional Modules
 Optional modules are controlled by canonical flags:
@@ -114,6 +121,8 @@ Start with:
 - `artifacts/infra/provision.env`
 - `artifacts/infra/deploy.env`
 - `artifacts/infra/smoke.env`
+- `artifacts/infra/workload_health.json`
+- `artifacts/infra/workload_pods.json`
 - `artifacts/infra/local_crossplane_bootstrap.env`
 - `artifacts/infra/core_runtime_bootstrap.env`
 - `artifacts/infra/core_runtime_smoke.env`
@@ -133,6 +142,10 @@ These files include selected driver, selected path, and key contract outputs.
 `make infra-stackit-runtime-inventory` also prints export-ready runtime hints.
 Sensitive values are redacted by default; set `STACKIT_RUNTIME_INVENTORY_INCLUDE_SENSITIVE=true` to print them.
 
+Cleanup:
+- `make infra-local-destroy-all` removes blueprint-managed resources from the selected local cluster and preserves the cluster itself.
+- `make infra-stackit-destroy-all` tears down the canonical STACKIT bootstrap/foundation chain.
+
 ## Most Common Command Patterns
 Dry-run local:
 
@@ -146,6 +159,7 @@ Live local:
 export DRY_RUN=false
 export BLUEPRINT_PROFILE=local-full
 export OBSERVABILITY_ENABLED=true
+make infra-context
 make infra-provision-deploy
 ```
 

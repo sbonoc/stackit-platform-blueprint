@@ -48,6 +48,35 @@ Common first-day issues for generated repositories.
   ```
 - If you prefer explicit module-level teardown, run the module destroy target directly while the module flag is still enabled.
 
+## Local live execution picked the wrong Kubernetes cluster
+- Local profiles prefer the `docker-desktop` context when it is present.
+- CI prefers `kind-*` contexts.
+- Run `make infra-context` to see the resolved cluster and selection source.
+- If you want to force a different local cluster, set `LOCAL_KUBE_CONTEXT` explicitly before provisioning:
+  ```bash
+  export LOCAL_KUBE_CONTEXT=kind-blueprint-e2e
+  make infra-context
+  ```
+
+## `make infra-smoke` fails on `CrashLoopBackOff` / `ImagePullBackOff`
+- Live smoke now fails when blueprint-managed workloads are not healthy.
+- Inspect:
+  - `artifacts/infra/workload_health.json`
+  - `artifacts/infra/workload_pods.json`
+  - `artifacts/infra/smoke_diagnostics.json`
+- Typical causes:
+  - invalid module credentials or secrets (for example `IAP_COOKIE_SECRET` not being 16, 24, or 32 bytes)
+  - stale local image tags if chart/image pins were edited away from the canonical versions source (`scripts/lib/infra/versions.sh`)
+- Re-run the affected module plan/apply target after correcting the contract input.
+
+## Local destroy removed resources but not the cluster
+- `make infra-local-destroy-all` intentionally removes blueprint-managed resources only.
+- It preserves the selected local cluster itself (`docker-desktop`, `kind-*`, or the explicit `LOCAL_KUBE_CONTEXT` override).
+- Use that target before switching local clusters or before a fresh live rerun:
+  ```bash
+  make infra-local-destroy-all
+  ```
+
 ## Template smoke fails in CI
 - Ensure required local tools are available (`bash`, `git`, `make`, `python3`, `tar`).
 - Confirm CI job exports init variables, `BLUEPRINT_PROFILE`, and any intended optional-module flags before `make blueprint-template-smoke`.
@@ -122,3 +151,10 @@ Common first-day issues for generated repositories.
   - wait a few minutes and re-run `make infra-stackit-foundation-fetch-kubeconfig`
   - check whether corporate DNS, VPN, or local resolver policy is blocking `*.ske.<region>.onstackit.cloud`
 - Inspect `artifacts/infra/stackit_runtime_prerequisites.env` for the recorded `kube_api_server` and readiness status before retrying deploy.
+
+## STACKIT test resources still need cleanup
+- Run the canonical destroy chain:
+  ```bash
+  make infra-stackit-destroy-all
+  ```
+- If a cluster remains in `STATE_DELETING`, inspect whether in-cluster resources are still attached and retry the destroy after provider-side cleanup finishes.

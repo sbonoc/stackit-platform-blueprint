@@ -35,6 +35,7 @@
 - `infra-prereqs`
 - `infra-help-reference`
 - `infra-bootstrap`
+- `infra-local-destroy-all`
 - `infra-destroy-disabled-modules`
 - `infra-validate`
 - `infra-smoke`

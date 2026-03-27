@@ -19,7 +19,7 @@ export IDENTITY_AWARE_PROXY_ENABLED=true
 
 ## Required Inputs
 - `IAP_UPSTREAM_URL`
-- `IAP_COOKIE_SECRET`
+- `IAP_COOKIE_SECRET` (must be a raw 16, 24, or 32 byte string)
 - `KEYCLOAK_ISSUER_URL`
 - `KEYCLOAK_CLIENT_ID`
 - `KEYCLOAK_CLIENT_SECRET`
@@ -38,6 +38,7 @@ export IDENTITY_AWARE_PROXY_ENABLED=true
 - This module requires Keycloak issuer and client configuration.
 - `public-endpoints` must provide the shared Gateway baseline that the route attaches to.
 - OIDC issuer/client mismatch is a hard failure in smoke checks.
+- Local and fallback runtime paths pin the `oauth2-proxy` image explicitly so browser-authenticated routes do not drift with chart defaults.
 
 ## Commands
 - `make infra-identity-aware-proxy-plan`

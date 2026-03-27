@@ -11,6 +11,9 @@ Provision PostgreSQL and publish canonical connection contract for runtime consu
   - `POSTGRES_VERSION` defaults to `16` across local and STACKIT paths, and can be overridden explicitly when provider support changes.
   - Runtime artifacts resolve provider-generated host/port/password outputs after apply; dry-run mode keeps deterministic placeholders.
 - `local-*` profiles: Helm chart (`bitnami/postgresql`) using `infra/local/helm/postgres/values.yaml`.
+  - Local chart/image pins stay on the latest stable Bitnami chart carrying the PostgreSQL `16` line so the in-cluster fallback remains aligned with the current STACKIT managed-service major version.
+  - The pinned fallback image uses `docker.io/bitnamilegacy/postgresql` so the same version contract works on both amd64 CI nodes and arm64 Docker Desktop clusters.
+  - `fullnameOverride` is pinned to the Helm release name so the local service host matches the published runtime contract exactly.
 
 ## Enable
 Set:

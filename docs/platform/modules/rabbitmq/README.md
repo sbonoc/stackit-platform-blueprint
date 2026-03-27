@@ -8,6 +8,8 @@ Provision RabbitMQ for transaction state/event propagation and async notificatio
 - Scaffolding paths are materialized by `make infra-bootstrap` only when `RABBITMQ_ENABLED=true`.
 - `stackit-*` profiles: STACKIT foundation provisions managed RabbitMQ through `stackit_rabbitmq_instance` plus `stackit_rabbitmq_credential`, and wrappers read terraform outputs into the runtime contract.
 - `local-*` profiles: Helm chart (`bitnami/rabbitmq`) runs from a rendered values artifact derived from the scaffold contract in `infra/local/helm/rabbitmq/values.yaml`.
+  - Local chart/image pins stay on the latest stable Bitnami chart carrying the RabbitMQ `3.13` line so the local fallback matches the current STACKIT managed-service version family.
+  - The pinned fallback image uses `docker.io/bitnamilegacy/rabbitmq` so the same version contract works on both amd64 CI nodes and arm64 Docker Desktop clusters.
 
 ## Enable
 ```bash

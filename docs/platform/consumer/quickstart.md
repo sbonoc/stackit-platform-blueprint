@@ -50,14 +50,17 @@ make blueprint-template-smoke
 
 ## 5) Continue with Delivery Flow
 ```bash
+make infra-context
 make infra-provision-deploy
 make infra-status-json
 ```
 
 `make infra-provision-deploy` already runs the canonical smoke stage and writes
-`artifacts/infra/smoke_result.json` plus `artifacts/infra/smoke_diagnostics.json`.
+`artifacts/infra/smoke_result.json`, `artifacts/infra/smoke_diagnostics.json`, and `artifacts/infra/workload_health.json`.
 `make infra-status-json` captures the latest consolidated snapshot at
 `artifacts/infra/infra_status_snapshot.json`.
+For local live execution, the blueprint prefers the `docker-desktop` Kubernetes context when it exists.
+Set `LOCAL_KUBE_CONTEXT` before running `infra-provision-deploy` if you want to override that default.
 
 Before publishing hosts or API routes, review [Endpoint Exposure Model](endpoint_exposure_model.md)
 so public UI, protected UI, direct APIs, and internal SSR/BFF flows stay separated intentionally.
@@ -98,3 +101,7 @@ make infra-stackit-runtime-deploy
 `infra-deploy` / `infra-stackit-runtime-deploy` already call
 `infra-stackit-foundation-seed-runtime-secret` automatically; running it explicitly
 is useful for debugging foundation output-to-runtime contract wiring.
+
+Cleanup:
+- Local cluster resources only: `make infra-local-destroy-all`
+- Managed STACKIT layers: `make infra-stackit-destroy-all`

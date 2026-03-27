@@ -45,6 +45,8 @@
 - [x] Shared public edge baseline now uses Gateway API + Envoy Gateway, while `identity-aware-proxy` remains `oauth2-proxy` for selected browser-authenticated hosts.
 - [x] Generated repos now include an explicit endpoint exposure model guide and a seeded `network` namespace for the shared Gateway baseline.
 - [x] Protected API JWT route support now has a documented consumer pattern and split Argo CD project boundary: shared edge stays in `platform-edge-*`, while app namespaces gain `HTTPRoute`/`SecurityPolicy`/`BackendTLSPolicy` support.
+- [x] Local live execution now prefers Docker Desktop on workstations, kind in CI, has a dedicated `infra-local-destroy-all` cleanup target, and fails live smoke on unhealthy blueprint-managed workloads with machine-readable pod health artifacts.
+- [x] Local managed-service fallback image pins now use multi-arch `docker.io/bitnamilegacy/*` repositories while preserving the STACKIT-aligned version families for PostgreSQL, MinIO, and RabbitMQ.
 
 ## Top Priority - Execution-Ready E2E (Current)
 - [x] Fix GitHub-template onboarding smoke drift by excluding init-mutated ArgoCD identity files from strict byte-sync validation while keeping identity checks enforced (`blueprint-template-smoke` green).

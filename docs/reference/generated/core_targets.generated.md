@@ -28,6 +28,7 @@ This file is auto-generated. Do not edit it manually.
 | `infra-prereqs` | Verify local prerequisites and optionally auto-install missing tools |
 | `infra-help-reference` | Show full Make targets and variable defaults reference |
 | `infra-bootstrap` | Bootstrap infra-only tooling/scaffolding |
+| `infra-local-destroy-all` | Destroy blueprint-managed resources from the selected local cluster and preserve the cluster itself |
 | `infra-destroy-disabled-modules` | Destroy resources for currently disabled optional modules |
 | `infra-validate` | Validate infra contracts and manifests |
 | `infra-smoke` | Infra smoke checks |

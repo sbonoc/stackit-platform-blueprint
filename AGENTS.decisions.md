@@ -1,6 +1,14 @@
 # Decisions Log
 
 ## 2026-03-27
+- Local execution now prefers Docker Desktop on workstations, keeps kind for CI, and treats unhealthy blueprint-managed workloads as a hard smoke failure.
+  - Local live execution now resolves Kubernetes access through an explicit selection contract: `docker-desktop` is preferred when present on operator machines, CI prefers `kind-*` contexts, and `LOCAL_KUBE_CONTEXT` overrides both paths intentionally.
+  - Added `infra-local-destroy-all` to remove blueprint-managed resources from the selected local cluster without deleting the cluster itself, keeping local cleanup separate from the existing `infra-stackit-destroy-all` managed-stack teardown.
+  - `infra-smoke` now records `workload_health.json` and `workload_pods.json`, and fails in live mode when pods in blueprint-managed namespaces are stuck in states like `CrashLoopBackOff` or `ImagePullBackOff` instead of reporting a false green.
+  - Local Helm-backed module values now render explicit image pins and release-name-aligned service names; PostgreSQL and RabbitMQ stay on the latest stable local image/chart lines that match the current STACKIT managed-service version families (`16` and `3.13` respectively).
+  - Managed-service local fallbacks now pull those pinned runtime images from `docker.io/bitnamilegacy/*`, which preserves the exact version tags while restoring multi-arch support for Docker Desktop arm64 clusters.
+  - Rationale: make local execution deterministic on real developer machines, prevent unrelated workstation-cluster workloads from contaminating smoke results, and stop dead chart-default image tags from causing false confidence.
+
 - Protected API JWT route support now uses a split Argo CD project model instead of extending the shared edge project directly.
   - Added a dedicated `platform-edge-*` AppProject per environment for Envoy Gateway controller resources and the shared `GatewayClass`/`Gateway` baseline in `network`.
   - Kept bearer-token API `HTTPRoute`/`SecurityPolicy`/`BackendTLSPolicy` resources in the main `platform-*` AppProject so protected API policies attach in app namespaces instead of drifting onto the shared edge.
@@ -42,7 +50,7 @@
 - STACKIT fallback runtime delivery for `rabbitmq`, `public-endpoints`, and `identity-aware-proxy` is now chart-backed and secret-aware.
   - Replaced generic optional `ConfigMap` placeholders with module-specific ArgoCD `Application` templates for `bitnami/rabbitmq`, `ingress-nginx/ingress-nginx`, and `oauth2-proxy/oauth2-proxy`, and expanded ArgoCD `AppProject` repo/namespace/resource allowlists to match the real chart footprint.
   - Local fallback profiles now render deterministic Helm values artifacts under `artifacts/infra/rendered/*.values.yaml` from the scaffold contract, while secret-bearing modules reconcile runtime Kubernetes secrets from wrapper inputs instead of embedding sensitive values in GitOps YAML.
-  - Refreshed pinned fallback chart versions to currently resolvable stable releases (`rabbitmq` `16.0.14`, `ingress-nginx` `4.15.1`, `oauth2-proxy` `10.4.0`) and corrected RabbitMQ fallback host outputs to the in-cluster service contract.
+  - Refreshed pinned fallback chart versions to currently resolvable stable releases (`rabbitmq` `14.7.0` for the RabbitMQ `3.13` line, `ingress-nginx` `4.15.1`, `oauth2-proxy` `10.4.0`) and corrected RabbitMQ fallback host outputs to the in-cluster service contract.
   - Identity-Aware Proxy now has an explicit `IAP_COOKIE_SECRET` contract requirement, and shared test reset helpers restore both the default generated Make surface and app manifest state after observability-enabled paths.
   - Rationale: make fallback runtime delivery truthful and production-grade, remove placeholder-only GitOps surfaces, avoid secret leakage into repo-managed manifests, and keep full-suite/test-consumer validation deterministic.
 

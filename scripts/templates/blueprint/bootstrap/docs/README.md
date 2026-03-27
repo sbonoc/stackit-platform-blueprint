@@ -71,6 +71,7 @@ Common baseline flow:
 - `make blueprint-render-module-wrapper-skeletons`
 - `make blueprint-clean-generated`
 - `make infra-bootstrap`
+- `make infra-local-destroy-all`
 - `make infra-destroy-disabled-modules`
 - `make infra-validate`
 - `make infra-smoke`
@@ -84,10 +85,14 @@ Quality and docs flow:
 - `make docs-build`
 - `make docs-smoke`
 
-Operational diagnostics:
+Operational diagnostics and teardown:
+- `make infra-context`
 - `make infra-status-json`
+- `make infra-local-destroy-all`
+- `make infra-stackit-destroy-all`
 - `artifacts/infra/smoke_result.json`
 - `artifacts/infra/smoke_diagnostics.json`
+- `artifacts/infra/workload_health.json`
 - `artifacts/infra/infra_status_snapshot.json`
 
 ## Optional Module Targets (Materialized Conditionally)

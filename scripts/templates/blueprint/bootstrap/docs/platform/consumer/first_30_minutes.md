@@ -43,11 +43,12 @@ make infra-smoke
 
 Expected outcome:
 - Contract, structure, and docs/template sync checks pass.
-- Baseline infra smoke artifacts are written under `artifacts/infra/`, including `smoke_result.json` and `smoke_diagnostics.json`.
+- Baseline infra smoke artifacts are written under `artifacts/infra/`, including `smoke_result.json`, `smoke_diagnostics.json`, and `workload_health.json`.
 - App/docs smoke artifacts are written under `artifacts/apps/` and `artifacts/docs/`.
 
 ## 4) Next Steps (5 min)
 - Run `make infra-status-json` to capture the latest machine-readable runtime snapshot at `artifacts/infra/infra_status_snapshot.json`.
+- For live local runs, `docker-desktop` is preferred automatically when present; run `make infra-context` or set `LOCAL_KUBE_CONTEXT` before provisioning if you want a different cluster.
 - Review [Quickstart](quickstart.md) for full flow.
 - Review [Endpoint Exposure Model](endpoint_exposure_model.md) before exposing mixed public/protected UI or API routes.
 - Review [Protected API Routes](protected_api_routes.md) before exposing bearer-token APIs for SPA or direct clients.
