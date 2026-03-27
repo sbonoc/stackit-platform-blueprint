@@ -30,17 +30,18 @@ Common first-day issues for generated repositories.
 
 ## `dags/` appears unexpectedly
 - `dags/` should exist only when `WORKFLOWS_ENABLED=true`.
-- Re-run bootstrap with Workflows disabled to prune stale scaffolding, then re-validate:
+- If `WORKFLOWS_ENABLED=false` but `dags/` is still present, treat it as repository state drift and re-sync from the blueprint templates, then re-validate:
   ```bash
+  git restore dags infra/cloud/stackit/terraform/modules/workflows tests/infra/modules/workflows
   WORKFLOWS_ENABLED=false make blueprint-render-makefile
   WORKFLOWS_ENABLED=false make infra-bootstrap
   WORKFLOWS_ENABLED=false make infra-validate
   ```
 
 ## Disabled module but resources still exist
-- Disabling an optional module only prunes scaffolding and targets from the repository.
+- Disabling an optional module removes its generated Make targets, but scaffold files are intentionally preserved.
 - Already provisioned resources are not destroyed automatically.
-- Run disabled-module teardown first, then prune scaffolding:
+- Run disabled-module teardown first, then refresh the repo state for the new flag set:
   ```bash
   make infra-destroy-disabled-modules
   WORKFLOWS_ENABLED=false make blueprint-render-makefile
@@ -125,6 +126,18 @@ Common first-day issues for generated repositories.
   make infra-stackit-foundation-apply
   make infra-stackit-foundation-fetch-kubeconfig
   ```
+
+## STACKIT foundation apply fails on transient PostgreSQL Flex `404 Not Found`
+- `infra-stackit-foundation-apply` now retries a bounded number of times when STACKIT returns the known transient PostgreSQL Flex race:
+  - `Requested instance with ID: ... cannot be found`
+- Before retrying, the wrapper clears the transient Terraform taint on `stackit_postgresflex_instance.foundation[0]` so the next apply can reconcile the existing managed instance instead of destroying and recreating it.
+- The retry budget is controlled by:
+  - `STACKIT_FOUNDATION_APPLY_MAX_ATTEMPTS` (default `3`)
+  - `STACKIT_FOUNDATION_APPLY_RETRY_DELAY_SECONDS` (default `30`)
+- If the final retry still fails:
+  - check `artifacts/infra/stackit_foundation_apply.env`
+  - re-run `make infra-stackit-foundation-apply`
+  - if the PostgreSQL instance is visible in STACKIT but Terraform still cannot reconcile it, stop and inspect provider/service health before running destroy
 
 ## STACKIT runtime deploy fails on missing `platform-foundation-contract` secret
 - Regenerate runtime secret contract from foundation outputs:

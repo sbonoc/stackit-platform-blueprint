@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Keep layer path resolution self-contained so smoke/status helpers can source
+# this library through foundation-output helpers without relying on caller order.
+source "$ROOT_DIR/scripts/lib/infra/stack_paths.sh"
+
 STACKIT_FOUNDATION_SKE_ACCESS_PROBE="${STACKIT_FOUNDATION_SKE_ACCESS_PROBE:-not_applicable}"
 
 stackit_layer_label() {

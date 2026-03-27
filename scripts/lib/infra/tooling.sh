@@ -296,16 +296,16 @@ run_terraform_action() {
 
   if tooling_is_execution_enabled; then
     require_command terraform
-    run_cmd terraform -chdir="$terraform_dir" init -input=false -no-color
+    run_cmd terraform -chdir="$terraform_dir" init -input=false -no-color || return "$?"
     case "$action" in
     plan)
-      run_cmd terraform -chdir="$terraform_dir" plan -input=false -no-color
+      run_cmd terraform -chdir="$terraform_dir" plan -input=false -no-color || return "$?"
       ;;
     apply)
-      run_cmd terraform -chdir="$terraform_dir" apply -input=false -auto-approve -no-color
+      run_cmd terraform -chdir="$terraform_dir" apply -input=false -auto-approve -no-color || return "$?"
       ;;
     destroy)
-      run_cmd terraform -chdir="$terraform_dir" destroy -input=false -auto-approve -no-color
+      run_cmd terraform -chdir="$terraform_dir" destroy -input=false -auto-approve -no-color || return "$?"
       ;;
     *)
       log_fatal "unsupported terraform action: $action"
@@ -350,8 +350,16 @@ terraform_backend_init() {
       "-backend-config=access_key=***"
       "-backend-config=secret_key=***"
     )
+    if [[ -n "${STACKIT_TFSTATE_BUCKET:-}" ]]; then
+      tf_init_cmd+=("-backend-config=bucket=$STACKIT_TFSTATE_BUCKET")
+      tf_init_log_cmd+=("-backend-config=bucket=$STACKIT_TFSTATE_BUCKET")
+    fi
+    if [[ -n "${STACKIT_REGION:-}" ]]; then
+      tf_init_cmd+=("-backend-config=region=$STACKIT_REGION")
+      tf_init_log_cmd+=("-backend-config=region=$STACKIT_REGION")
+    fi
     printf '+ %s\n' "${tf_init_log_cmd[*]}"
-    "${tf_init_cmd[@]}"
+    "${tf_init_cmd[@]}" || return "$?"
     return 0
   fi
 
@@ -418,7 +426,7 @@ run_terraform_action_with_backend() {
       tf_init_log_cmd+=("-backend-config=region=$STACKIT_REGION")
     fi
     printf '+ %s\n' "${tf_init_log_cmd[*]}"
-    "${tf_init_cmd[@]}"
+    "${tf_init_cmd[@]}" || return "$?"
 
     local tf_cmd=(terraform -chdir="$terraform_dir")
     case "$action" in
@@ -438,7 +446,7 @@ run_terraform_action_with_backend() {
     if [[ "${#extra_args[@]}" -gt 0 ]]; then
       tf_cmd+=("${extra_args[@]}")
     fi
-    run_cmd "${tf_cmd[@]}"
+    run_cmd "${tf_cmd[@]}" || return "$?"
     return 0
   fi
 

@@ -73,6 +73,67 @@ public_endpoints_render_values_file() {
     "infra/local/helm/public-endpoints/values.yaml"
 }
 
+public_endpoints_gateway_api_crd_names() {
+  printf '%s\n' \
+    "gatewayclasses.gateway.networking.k8s.io" \
+    "gateways.gateway.networking.k8s.io"
+}
+
+public_endpoints_gateway_api_crds_available() {
+  if ! tooling_is_execution_enabled; then
+    return 0
+  fi
+
+  prepare_cluster_access
+  require_command kubectl
+
+  local crd_name
+  while IFS= read -r crd_name; do
+    if ! kubectl get crd "$crd_name" >/dev/null 2>&1; then
+      return 1
+    fi
+  done < <(public_endpoints_gateway_api_crd_names)
+
+  return 0
+}
+
+public_endpoints_wait_for_gateway_api_crds() {
+  local timeout_seconds="${1:-300}"
+  if ! tooling_is_execution_enabled; then
+    log_metric "public_endpoints_gateway_api_crd_wait_total" "1" "status=dry_run"
+    log_info "dry-run Gateway API CRD wait skipped (set DRY_RUN=false to execute)"
+    return 0
+  fi
+
+  prepare_cluster_access
+  require_command kubectl
+
+  local crd_name started_at now conditions
+  while IFS= read -r crd_name; do
+    started_at="$(date +%s)"
+    # ArgoCD applies the Envoy Gateway controller asynchronously, so the shared
+    # Gateway baseline must wait until the Gateway API CRDs actually exist.
+    log_info "waiting for Gateway API CRD to report Established=True: $crd_name"
+    while true; do
+      if kubectl get crd "$crd_name" >/dev/null 2>&1; then
+        conditions="$(kubectl get crd "$crd_name" -o jsonpath='{range .status.conditions[*]}{.type}={.status}{"\n"}{end}' 2>/dev/null || true)"
+        if printf '%s\n' "$conditions" | grep -qx 'Established=True'; then
+          log_metric "public_endpoints_gateway_api_crd_wait_total" "1" "crd=$crd_name status=ready"
+          break
+        fi
+      fi
+
+      now="$(date +%s)"
+      if (( now - started_at >= timeout_seconds )); then
+        log_metric "public_endpoints_gateway_api_crd_wait_total" "1" "crd=$crd_name status=timeout"
+        log_fatal "timed out waiting for Gateway API CRD to report Established=True: $crd_name"
+      fi
+
+      sleep 2
+    done
+  done < <(public_endpoints_gateway_api_crd_names)
+}
+
 public_endpoints_wait_for_resource_absence() {
   local kind="$1"
   local name="$2"
@@ -126,6 +187,12 @@ public_endpoints_force_clear_gatewayclass_finalizers() {
 }
 
 public_endpoints_delete_helm_gateway_baseline() {
+  if ! tooling_is_execution_enabled; then
+    log_metric "public_endpoints_destroy_wait_total" "1" "kind=gateway status=dry_run"
+    log_info "dry-run public-endpoints Gateway baseline delete (set DRY_RUN=false to execute)"
+    return 0
+  fi
+
   prepare_cluster_access
   require_command kubectl
 

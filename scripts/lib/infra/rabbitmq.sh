@@ -77,7 +77,7 @@ rabbitmq_uri() {
     # a stable placeholder until terraform outputs are available after apply.
     stackit_foundation_output_value_or_default \
       "rabbitmq_uri" \
-      "amqp://provider-generated:provider-generated@$(rabbitmq_stackit_placeholder_host):$RABBITMQ_PORT"
+      "amqps://provider-generated:provider-generated@$(rabbitmq_stackit_placeholder_host):$RABBITMQ_PORT"
     return 0
   fi
 

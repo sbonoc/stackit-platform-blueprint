@@ -20,7 +20,7 @@ if ! state_file_exists rabbitmq_runtime; then
 fi
 
 runtime_state="$(state_file_path rabbitmq_runtime)"
-if ! grep -q '^uri=amqp://' "$runtime_state"; then
+if ! grep -Eq '^uri=amqps?://' "$runtime_state"; then
   log_fatal "rabbitmq runtime URI contract is invalid"
 fi
 

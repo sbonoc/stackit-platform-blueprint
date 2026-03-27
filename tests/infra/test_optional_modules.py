@@ -4,18 +4,13 @@ import unittest
 from tests._shared.helpers import (
     REPO_ROOT,
     module_flags_env,
-    prune_optional_scaffolding,
     run,
     run_render_and_infra_bootstrap,
 )
 
 
 class OptionalModulesTests(unittest.TestCase):
-    def setUp(self) -> None:
-        prune_optional_scaffolding()
-
     def tearDown(self) -> None:
-        prune_optional_scaffolding()
         reset_env = module_flags_env()
         reset = run_render_and_infra_bootstrap(reset_env)
         self.assertEqual(reset.returncode, 0, msg=reset.stdout + reset.stderr)
@@ -46,6 +41,7 @@ class OptionalModulesTests(unittest.TestCase):
         self.assertEqual(langfuse_help.returncode, 0, msg=langfuse_help.stdout + langfuse_help.stderr)
         self.assertIn("infra-langfuse-plan", langfuse_help.stdout)
         self.assertIn("infra-langfuse-apply", langfuse_help.stdout)
+        self.assertIn("infra-langfuse-deploy", langfuse_help.stdout)
         self.assertNotIn("infra-stackit-workflows-plan", langfuse_help.stdout)
         self.assertNotIn("infra-postgres-plan", langfuse_help.stdout)
         self.assertNotIn("infra-neo4j-plan", langfuse_help.stdout)
@@ -91,7 +87,7 @@ class OptionalModulesTests(unittest.TestCase):
             state_content,
         )
 
-    def test_infra_bootstrap_prunes_stale_optional_scaffolding_when_flags_disabled(self) -> None:
+    def test_infra_bootstrap_preserves_disabled_optional_scaffolding(self) -> None:
         enabled_env = module_flags_env(
             profile="stackit-dev",
             workflows="true",
@@ -153,7 +149,7 @@ class OptionalModulesTests(unittest.TestCase):
         disabled = run_render_and_infra_bootstrap(disabled_env)
         self.assertEqual(disabled.returncode, 0, msg=disabled.stdout + disabled.stderr)
 
-        expected_pruned_paths = [
+        expected_preserved_paths = [
             "dags",
             "infra/cloud/stackit/terraform/modules/workflows",
             "infra/cloud/stackit/terraform/modules/langfuse",
@@ -190,8 +186,8 @@ class OptionalModulesTests(unittest.TestCase):
             "infra/gitops/argocd/optional/dev/public-endpoints.yaml",
             "infra/gitops/argocd/optional/dev/identity-aware-proxy.yaml",
         ]
-        for relative in expected_pruned_paths:
-            self.assertFalse((REPO_ROOT / relative).exists(), msg=f"expected path not pruned: {relative}")
+        for relative in expected_preserved_paths:
+            self.assertTrue((REPO_ROOT / relative).exists(), msg=f"expected path not preserved: {relative}")
 
     def test_observability_module_flow(self) -> None:
         env = module_flags_env(observability="true")
@@ -280,6 +276,8 @@ class OptionalModulesTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, msg=f"{step}\n{result.stdout}\n{result.stderr}")
 
         self.assertTrue((REPO_ROOT / "artifacts" / "infra" / "langfuse_deploy.env").exists())
+        apply_state = (REPO_ROOT / "artifacts" / "infra" / "langfuse_apply.env").read_text(encoding="utf-8")
+        self.assertIn("provision_status=deferred_to_deploy", apply_state)
         plan_state = (REPO_ROOT / "artifacts" / "infra" / "langfuse_plan.env").read_text(encoding="utf-8")
         self.assertIn("provision_driver=argocd_optional_manifest", plan_state)
         destroy = run(["make", "infra-langfuse-destroy"], env)
@@ -368,6 +366,8 @@ class OptionalModulesTests(unittest.TestCase):
         runtime_content = runtime_file.read_text(encoding="utf-8")
         self.assertIn("uri=bolt://", runtime_content)
         self.assertIn("provision_driver=argocd_optional_manifest", runtime_content)
+        self.assertIn("provision_status=deferred_to_deploy", runtime_content)
+        self.assertTrue((REPO_ROOT / "artifacts" / "infra" / "neo4j_deploy.env").exists())
         destroy = run(["make", "infra-neo4j-destroy"], env)
         self.assertEqual(destroy.returncode, 0, msg=destroy.stdout + destroy.stderr)
 
@@ -483,6 +483,7 @@ class OptionalModulesTests(unittest.TestCase):
         steps = [
             "infra-public-endpoints-plan",
             "infra-public-endpoints-apply",
+            "infra-public-endpoints-deploy",
             "infra-public-endpoints-smoke",
         ]
         for step in steps:
@@ -498,8 +499,14 @@ class OptionalModulesTests(unittest.TestCase):
         self.assertIn("edge_mode=gateway_api_envoy", runtime_content)
         self.assertIn("listener_policy=allow_cross_namespace_routes", runtime_content)
         self.assertIn("provision_path=", runtime_content)
+        self.assertIn("provision_status=applied", runtime_content)
         self.assertIn("namespace_manifest_path=", runtime_content)
         self.assertIn("gateway_manifest_path=", runtime_content)
+        deploy_file = REPO_ROOT / "artifacts" / "infra" / "public_endpoints_deploy.env"
+        self.assertTrue(deploy_file.exists())
+        deploy_content = deploy_file.read_text(encoding="utf-8")
+        self.assertIn("deploy_driver=helm", deploy_content)
+        self.assertIn("deploy_status=already_applied", deploy_content)
 
         namespace_manifest = REPO_ROOT / "artifacts" / "infra" / "rendered" / "public-endpoints.namespace.yaml"
         self.assertTrue(namespace_manifest.exists(), msg="public-endpoints namespace manifest not rendered")
@@ -664,8 +671,8 @@ class OptionalModulesTests(unittest.TestCase):
         self.assertIn("repoURL: docker.io/envoyproxy", public_endpoints_manifest)
         self.assertIn("chart: gateway-helm", public_endpoints_manifest)
         self.assertIn("targetRevision: 1.7.1", public_endpoints_manifest)
-        self.assertIn("kind: GatewayClass", public_endpoints_manifest)
-        self.assertIn("kind: Gateway", public_endpoints_manifest)
+        self.assertNotIn("kind: GatewayClass", public_endpoints_manifest)
+        self.assertNotIn("kind: Gateway", public_endpoints_manifest)
 
         iap_manifest = (REPO_ROOT / "infra/gitops/argocd/optional/dev/identity-aware-proxy.yaml").read_text(
             encoding="utf-8"
@@ -695,6 +702,7 @@ class OptionalModulesTests(unittest.TestCase):
         steps = [
             "infra-identity-aware-proxy-plan",
             "infra-identity-aware-proxy-apply",
+            "infra-identity-aware-proxy-deploy",
             "infra-identity-aware-proxy-smoke",
         ]
         for step in steps:
@@ -709,6 +717,7 @@ class OptionalModulesTests(unittest.TestCase):
         self.assertIn("auth_mode=browser_oidc_proxy", runtime_content)
         self.assertIn("route_mode=gateway_api", runtime_content)
         self.assertIn("provision_path=", runtime_content)
+        self.assertIn("provision_status=applied", runtime_content)
 
         secret_manifest = REPO_ROOT / "artifacts" / "infra" / "rendered" / "secrets" / "secret-security-blueprint-iap-config.yaml"
         self.assertTrue(secret_manifest.exists(), msg="iap secret manifest not rendered")
@@ -723,9 +732,65 @@ class OptionalModulesTests(unittest.TestCase):
         smoke_content = smoke_file.read_text(encoding="utf-8")
         self.assertIn("public_host=iap.local", smoke_content)
         self.assertIn("provision_path=", smoke_content)
+        deploy_file = REPO_ROOT / "artifacts" / "infra" / "identity_aware_proxy_deploy.env"
+        self.assertTrue(deploy_file.exists())
+        deploy_content = deploy_file.read_text(encoding="utf-8")
+        self.assertIn("deploy_driver=helm", deploy_content)
+        self.assertIn("deploy_status=already_applied", deploy_content)
 
         destroy = run(["make", "infra-identity-aware-proxy-destroy"], env)
         self.assertEqual(destroy.returncode, 0, msg=destroy.stdout + destroy.stderr)
+
+    def test_stackit_argocd_backed_modules_defer_apply_to_deploy(self) -> None:
+        env = module_flags_env(profile="stackit-dev", public_endpoints="true", identity_aware_proxy="true")
+        env.update(
+            {
+                "PUBLIC_ENDPOINTS_BASE_DOMAIN": "apps.example.invalid",
+                "IAP_UPSTREAM_URL": "http://catalog.apps.svc.cluster.local:8080",
+                "IAP_COOKIE_SECRET": "0123456789abcdef0123456789abcdef",
+                "KEYCLOAK_ISSUER_URL": "https://keycloak.example/realms/marketplace",
+                "KEYCLOAK_CLIENT_ID": "marketplace-iap",
+                "KEYCLOAK_CLIENT_SECRET": "marketplace-iap-secret",
+            }
+        )
+        bootstrap = run_render_and_infra_bootstrap(env)
+        self.assertEqual(bootstrap.returncode, 0, msg=bootstrap.stdout + bootstrap.stderr)
+
+        for step in (
+            "infra-public-endpoints-plan",
+            "infra-public-endpoints-apply",
+            "infra-public-endpoints-deploy",
+            "infra-identity-aware-proxy-plan",
+            "infra-identity-aware-proxy-apply",
+            "infra-identity-aware-proxy-deploy",
+        ):
+            result = run(["make", step], env)
+            self.assertEqual(result.returncode, 0, msg=f"{step}\n{result.stdout}\n{result.stderr}")
+
+        public_endpoints_runtime = (REPO_ROOT / "artifacts" / "infra" / "public_endpoints_runtime.env").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("provision_driver=argocd_application_chart", public_endpoints_runtime)
+        self.assertIn("provision_status=deferred_to_deploy", public_endpoints_runtime)
+        self.assertIn("namespace_manifest_path=", public_endpoints_runtime)
+        self.assertIn("gateway_manifest_path=", public_endpoints_runtime)
+        public_endpoints_deploy = (REPO_ROOT / "artifacts" / "infra" / "public_endpoints_deploy.env").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("deploy_driver=argocd_application_chart", public_endpoints_deploy)
+        self.assertIn("deploy_status=applied_via_argocd_manifest", public_endpoints_deploy)
+        self.assertIn("gateway_api_wait_status=", public_endpoints_deploy)
+
+        iap_runtime = (REPO_ROOT / "artifacts" / "infra" / "identity_aware_proxy_runtime.env").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("provision_driver=argocd_application_chart", iap_runtime)
+        self.assertIn("provision_status=deferred_to_deploy", iap_runtime)
+        iap_deploy = (REPO_ROOT / "artifacts" / "infra" / "identity_aware_proxy_deploy.env").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("deploy_driver=argocd_application_chart", iap_deploy)
+        self.assertIn("deploy_status=applied_via_argocd_manifest", iap_deploy)
 
 
 if __name__ == "__main__":

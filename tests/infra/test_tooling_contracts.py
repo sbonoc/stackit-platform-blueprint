@@ -242,6 +242,104 @@ fi
         return result.stdout + result.stderr
 
 
+def terraform_backend_init_contract(*, bucket: str, region: str) -> str:
+    with tempfile.TemporaryDirectory() as tmpdir:
+        bin_dir = Path(tmpdir) / "bin"
+        bin_dir.mkdir()
+        terraform_dir = Path(tmpdir) / "terraform"
+        terraform_dir.mkdir()
+        (terraform_dir / "main.tf").write_text("terraform {}\n", encoding="utf-8")
+        backend_file = Path(tmpdir) / "backend.hcl"
+        backend_file.write_text('bucket = "placeholder"\n', encoding="utf-8")
+        captured_args = Path(tmpdir) / "terraform-args.txt"
+        terraform = bin_dir / "terraform"
+        terraform.write_text(
+            "\n".join(
+                [
+                    "#!/bin/sh",
+                    f'printf "%s\\n" "$*" > "{captured_args}"',
+                    'if printf "%s" "$*" | grep -q " init "; then',
+                    "  exit 0",
+                    "fi",
+                    "exit 1",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        terraform.chmod(0o755)
+
+        script = f"""
+export PATH="{bin_dir}:$PATH"
+export ROOT_DIR="{REPO_ROOT}"
+export DRY_RUN="false"
+export STACKIT_TFSTATE_ACCESS_KEY_ID="access"
+export STACKIT_TFSTATE_SECRET_ACCESS_KEY="secret"
+export STACKIT_TFSTATE_BUCKET="{bucket}"
+export STACKIT_REGION="{region}"
+source "{REPO_ROOT}/scripts/lib/shell/bootstrap.sh"
+source "{REPO_ROOT}/scripts/lib/infra/tooling.sh"
+terraform_backend_init "{terraform_dir}" "{backend_file}"
+cat "{captured_args}"
+"""
+        result = run(["bash", "-lc", script])
+        if result.returncode != 0:
+            raise AssertionError(result.stdout + result.stderr)
+        return result.stdout
+
+
+def terraform_backend_apply_failure_contract() -> str:
+    with tempfile.TemporaryDirectory() as tmpdir:
+        bin_dir = Path(tmpdir) / "bin"
+        bin_dir.mkdir()
+        terraform_dir = Path(tmpdir) / "terraform"
+        terraform_dir.mkdir()
+        (terraform_dir / "main.tf").write_text("terraform {}\n", encoding="utf-8")
+        backend_file = Path(tmpdir) / "backend.hcl"
+        backend_file.write_text('bucket = "placeholder"\n', encoding="utf-8")
+        var_file = Path(tmpdir) / "dev.tfvars"
+        var_file.write_text('environment = "dev"\n', encoding="utf-8")
+        terraform = bin_dir / "terraform"
+        terraform.write_text(
+            "\n".join(
+                [
+                    "#!/bin/sh",
+                    'if printf "%s" "$*" | grep -q " init "; then',
+                    "  exit 0",
+                    "fi",
+                    'if printf "%s" "$*" | grep -q " apply "; then',
+                    "  exit 23",
+                    "fi",
+                    "exit 1",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        terraform.chmod(0o755)
+
+        script = f"""
+export PATH="{bin_dir}:$PATH"
+export ROOT_DIR="{REPO_ROOT}"
+export DRY_RUN="false"
+export STACKIT_TFSTATE_ACCESS_KEY_ID="access"
+export STACKIT_TFSTATE_SECRET_ACCESS_KEY="secret"
+export STACKIT_TFSTATE_BUCKET="runtime-state"
+export STACKIT_REGION="eu01"
+source "{REPO_ROOT}/scripts/lib/shell/bootstrap.sh"
+source "{REPO_ROOT}/scripts/lib/infra/tooling.sh"
+set +e
+run_terraform_action_with_backend apply "{terraform_dir}" "{backend_file}" "{var_file}"
+status="$?"
+set -e
+printf 'status=%s\\n' "$status"
+"""
+        result = run(["bash", "-lc", script])
+        if result.returncode != 0:
+            raise AssertionError(result.stdout + result.stderr)
+        return result.stdout
+
+
 class ToolingContractsTests(unittest.TestCase):
     def test_fallback_runtime_values_helper_keeps_stdout_machine_readable(self) -> None:
         script = f"""
@@ -343,6 +441,22 @@ stackit_layer_var_args foundation
         self.assertIn('-var=dns_zone_fqdns=["marketplace-stackit.example."]', result.stdout)
         self.assertIn("-var=secrets_manager_instance_name=bp-secrets-stackit", result.stdout)
 
+    def test_stackit_layers_resolve_paths_without_caller_sourcing_stack_paths(self) -> None:
+        script = f"""
+export ROOT_DIR="{REPO_ROOT}"
+source "{REPO_ROOT}/scripts/lib/shell/bootstrap.sh"
+source "{REPO_ROOT}/scripts/lib/infra/profile.sh"
+source "{REPO_ROOT}/scripts/lib/infra/stackit_layers.sh"
+printf 'dir=%s\\n' "$(stackit_layer_dir foundation)"
+printf 'backend=%s\\n' "$(stackit_layer_backend_file foundation)"
+printf 'vars=%s\\n' "$(stackit_layer_var_file foundation)"
+"""
+        result = run(["bash", "-lc", script], {"BLUEPRINT_PROFILE": "stackit-dev"})
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        self.assertIn(f"dir={REPO_ROOT}/infra/cloud/stackit/terraform/foundation", result.stdout)
+        self.assertIn(f"backend={REPO_ROOT}/infra/cloud/stackit/terraform/foundation/state-backend/dev.hcl", result.stdout)
+        self.assertIn(f"vars={REPO_ROOT}/infra/cloud/stackit/terraform/foundation/env/dev.tfvars", result.stdout)
+
     def test_stackit_provider_backed_helpers_prefer_foundation_outputs(self) -> None:
         payload = json.dumps(
             {
@@ -355,6 +469,13 @@ stackit_layer_var_args foundation
                 "object_storage_access_key": {"value": "managed-access"},
                 "object_storage_secret_access_key": {"value": "managed-secret"},
                 "dns_zone_ids": {"value": {"marketplace-stackit.example.": "zone-12345"}},
+                "rabbitmq_uri": {
+                    "value": "amqps://managed-user:managed-password@managed-rabbitmq.eu01.onstackit.cloud:5671"
+                },
+                "rabbitmq_host": {"value": "managed-rabbitmq.eu01.onstackit.cloud"},
+                "rabbitmq_port": {"value": 5671},
+                "rabbitmq_username": {"value": "managed-user"},
+                "rabbitmq_password": {"value": "managed-password"},
             }
         )
         script = f"""
@@ -364,6 +485,8 @@ source "{REPO_ROOT}/scripts/lib/infra/profile.sh"
 source "{REPO_ROOT}/scripts/lib/infra/postgres.sh"
 source "{REPO_ROOT}/scripts/lib/infra/object_storage.sh"
 source "{REPO_ROOT}/scripts/lib/infra/dns.sh"
+source "{REPO_ROOT}/scripts/lib/infra/rabbitmq.sh"
+rabbitmq_init_env
 printf 'postgres_host=%s\\n' "$(postgres_host)"
 printf 'postgres_port=%s\\n' "$(postgres_port)"
 printf 'postgres_user=%s\\n' "$(postgres_username)"
@@ -373,6 +496,11 @@ printf 'object_storage_bucket=%s\\n' "$(object_storage_bucket_name)"
 printf 'object_storage_access=%s\\n' "$(object_storage_access_key)"
 printf 'object_storage_secret=%s\\n' "$(object_storage_secret_key)"
 printf 'dns_zone_id=%s\\n' "$(dns_zone_id)"
+printf 'rabbitmq_uri=%s\\n' "$(rabbitmq_uri)"
+printf 'rabbitmq_host=%s\\n' "$(rabbitmq_host)"
+printf 'rabbitmq_port=%s\\n' "$(rabbitmq_port)"
+printf 'rabbitmq_user=%s\\n' "$(rabbitmq_username)"
+printf 'rabbitmq_password=%s\\n' "$(rabbitmq_password)"
 printf 'dsn=%s\\n' "$(postgres_dsn)"
 """
         result = run(
@@ -404,6 +532,14 @@ printf 'dsn=%s\\n' "$(postgres_dsn)"
         self.assertIn("object_storage_access=managed-access", result.stdout)
         self.assertIn("object_storage_secret=managed-secret", result.stdout)
         self.assertIn("dns_zone_id=zone-12345", result.stdout)
+        self.assertIn(
+            "rabbitmq_uri=amqps://managed-user:managed-password@managed-rabbitmq.eu01.onstackit.cloud:5671",
+            result.stdout,
+        )
+        self.assertIn("rabbitmq_host=managed-rabbitmq.eu01.onstackit.cloud", result.stdout)
+        self.assertIn("rabbitmq_port=5671", result.stdout)
+        self.assertIn("rabbitmq_user=managed-user", result.stdout)
+        self.assertIn("rabbitmq_password=managed-password", result.stdout)
         self.assertIn(
             "dsn=postgresql://managed-user:managed-password@managed-postgres.eu01.onstackit.cloud:15432/managed-db",
             result.stdout,
@@ -497,6 +633,20 @@ printf 'dsn=%s\\n' "$(postgres_dsn)"
         script = (REPO_ROOT / "scripts/bin/infra/stackit_foundation_apply.sh").read_text(encoding="utf-8")
         self.assertIn("stackit_foundation_fetch_kubeconfig.sh", script)
         self.assertIn("kubeconfig_state=", script)
+        self.assertIn("run_stackit_foundation_apply_with_retry", script)
+        self.assertIn("stackit_foundation_apply_retry_total", script)
+        self.assertIn('terraform -chdir="$terraform_dir" untaint "stackit_postgresflex_instance.foundation[0]"', script)
+        self.assertIn("stackit_foundation_apply_untaint_total", script)
+        self.assertIn("Requested instance with ID:", script)
+
+    def test_terraform_backend_init_honors_runtime_bucket_and_region_overrides(self) -> None:
+        output = terraform_backend_init_contract(bucket="runtime-state", region="eu01")
+        self.assertIn("-backend-config=bucket=runtime-state", output)
+        self.assertIn("-backend-config=region=eu01", output)
+
+    def test_run_terraform_action_with_backend_propagates_apply_failure_outside_errexit(self) -> None:
+        output = terraform_backend_apply_failure_contract()
+        self.assertIn("status=23", output)
 
     def test_local_destroy_all_waits_for_namespace_deletion(self) -> None:
         script = (REPO_ROOT / "scripts/bin/infra/local_destroy_all.sh").read_text(encoding="utf-8")

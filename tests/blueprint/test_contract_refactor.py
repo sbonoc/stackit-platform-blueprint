@@ -136,6 +136,7 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn('name       = local.object_storage_bucket_name', foundation_main)
         self.assertIn('name       = local.object_storage_credentials_group_name', foundation_main)
         self.assertIn('name       = local.secrets_manager_instance_name', foundation_main)
+        self.assertIn('source "$ROOT_DIR/scripts/lib/infra/stack_paths.sh"', stackit_layers)
         self.assertIn('"-var=postgres_instance_name=$POSTGRES_INSTANCE_NAME"', stackit_layers)
         self.assertIn('"-var=postgres_version=$POSTGRES_VERSION"', stackit_layers)
         self.assertIn('"-var=object_storage_bucket_name=$OBJECT_STORAGE_BUCKET_NAME"', stackit_layers)
@@ -150,6 +151,24 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn('default     = null', foundation_vars)
         self.assertIn('variable "observability_traces_retention_days"', foundation_vars)
         self.assertIn('default     = null', template_vars)
+
+    def test_stackit_foundation_apply_retries_known_postgres_provider_race(self) -> None:
+        foundation_apply = _read("scripts/bin/infra/stackit_foundation_apply.sh")
+
+        self.assertIn('STACKIT_FOUNDATION_APPLY_MAX_ATTEMPTS', foundation_apply)
+        self.assertIn('STACKIT_FOUNDATION_APPLY_RETRY_DELAY_SECONDS', foundation_apply)
+        self.assertIn('stackit_foundation_apply_is_transient_postgres_notfound()', foundation_apply)
+        self.assertIn('stackit_foundation_apply_attempt_total', foundation_apply)
+        self.assertIn('stackit_foundation_apply_clear_transient_postgres_taint()', foundation_apply)
+        self.assertIn('stackit_foundation_apply_untaint_total', foundation_apply)
+        self.assertIn('transient STACKIT PostgresFlex create/read race detected', foundation_apply)
+
+    def test_rabbitmq_smoke_accepts_managed_tls_uris(self) -> None:
+        rabbitmq_smoke = _read("scripts/bin/infra/rabbitmq_smoke.sh")
+        rabbitmq_lib = _read("scripts/lib/infra/rabbitmq.sh")
+
+        self.assertIn("^uri=amqps?://", rabbitmq_smoke)
+        self.assertIn('amqps://provider-generated:provider-generated@', rabbitmq_lib)
 
     def test_local_crossplane_bootstrap_waits_for_chart_deployment_names(self) -> None:
         bootstrap = _read("scripts/bin/infra/local_crossplane_bootstrap.sh")
@@ -611,7 +630,10 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn("make help", docs_readme)
         self.assertIn("make infra-help-reference", docs_readme)
         self.assertIn("make infra-destroy-disabled-modules", docs_readme)
-        self.assertIn("materializes/prunes optional-module infra scaffolding", docs_readme)
+        self.assertIn(
+            "materializes enabled optional-module infra scaffolding and preserves disabled-module scaffolding",
+            docs_readme,
+        )
         self.assertIn("[Blueprint Docs](blueprint/README.md)", docs_readme)
         self.assertIn("[Platform Docs](platform/README.md)", docs_readme)
         self.assertIn("[Endpoint Exposure Model](platform/consumer/endpoint_exposure_model.md)", docs_readme)
@@ -768,46 +790,49 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn("run_enabled_modules_action deploy", deploy)
         self.assertIn("run_enabled_modules_action smoke", smoke)
         self.assertIn("run_disabled_modules_action destroy", destroy_disabled)
+        self.assertIn('echo "$ROOT_DIR/scripts/bin/infra/public_endpoints_deploy.sh"', module_lifecycle)
+        self.assertIn('echo "$ROOT_DIR/scripts/bin/infra/identity_aware_proxy_deploy.sh"', module_lifecycle)
         self.assertIn("module_action_enabled_count", module_lifecycle)
         self.assertIn("module_action_script_count", module_lifecycle)
         self.assertIn("module_action_disabled_count", module_lifecycle)
         self.assertIn("module_action_disabled_script_count", module_lifecycle)
 
-    def test_bootstrap_prunes_disabled_optional_scaffolding(self) -> None:
+    def test_bootstrap_preserves_disabled_optional_scaffolding(self) -> None:
         bootstrap = _read("scripts/bin/infra/bootstrap.sh")
         self.assertIn(
             'ensure_file_from_template "$ROOT_DIR/tests/infra/modules/observability/README.md" "infra" "tests/infra/modules/observability/README.md"',
             bootstrap,
         )
-        self.assertIn("prune_optional_module_scaffolding()", bootstrap)
-        self.assertIn("prune_path_if_exists()", bootstrap)
-        self.assertIn("optional_module_pruned_path_count", bootstrap)
-        self.assertIn('prune_path_if_exists "$ROOT_DIR/dags"', bootstrap)
-        self.assertIn('prune_path_if_exists "$ROOT_DIR/infra/cloud/stackit/terraform/modules/langfuse"', bootstrap)
-        self.assertIn('prune_path_if_exists "$ROOT_DIR/infra/local/helm/postgres"', bootstrap)
-        self.assertIn('prune_path_if_exists "$ROOT_DIR/tests/infra/modules/workflows"', bootstrap)
-        self.assertIn('prune_path_if_exists "$ROOT_DIR/tests/infra/modules/langfuse"', bootstrap)
-        self.assertIn('prune_path_if_exists "$ROOT_DIR/tests/infra/modules/postgres"', bootstrap)
-        self.assertIn('prune_path_if_exists "$ROOT_DIR/tests/infra/modules/neo4j"', bootstrap)
-        self.assertIn('prune_path_if_exists "$ROOT_DIR/infra/gitops/argocd/optional/$env/neo4j.yaml"', bootstrap)
-        self.assertIn('prune_path_if_exists "$ROOT_DIR/infra/cloud/stackit/terraform/modules/object-storage"', bootstrap)
-        self.assertIn('prune_path_if_exists "$ROOT_DIR/infra/local/helm/object-storage"', bootstrap)
-        self.assertIn('prune_path_if_exists "$ROOT_DIR/tests/infra/modules/object-storage"', bootstrap)
-        self.assertIn('prune_path_if_exists "$ROOT_DIR/infra/cloud/stackit/terraform/modules/rabbitmq"', bootstrap)
-        self.assertIn('prune_path_if_exists "$ROOT_DIR/infra/local/helm/rabbitmq"', bootstrap)
-        self.assertIn('prune_path_if_exists "$ROOT_DIR/tests/infra/modules/rabbitmq"', bootstrap)
-        self.assertIn('prune_path_if_exists "$ROOT_DIR/infra/cloud/stackit/terraform/modules/dns"', bootstrap)
-        self.assertIn('prune_path_if_exists "$ROOT_DIR/tests/infra/modules/dns"', bootstrap)
-        self.assertIn('prune_path_if_exists "$ROOT_DIR/infra/cloud/stackit/terraform/modules/public-endpoints"', bootstrap)
-        self.assertIn('prune_path_if_exists "$ROOT_DIR/infra/local/helm/public-endpoints"', bootstrap)
-        self.assertIn('prune_path_if_exists "$ROOT_DIR/tests/infra/modules/public-endpoints"', bootstrap)
-        self.assertIn('prune_path_if_exists "$ROOT_DIR/infra/cloud/stackit/terraform/modules/secrets-manager"', bootstrap)
-        self.assertIn('prune_path_if_exists "$ROOT_DIR/tests/infra/modules/secrets-manager"', bootstrap)
-        self.assertIn('prune_path_if_exists "$ROOT_DIR/infra/cloud/stackit/terraform/modules/kms"', bootstrap)
-        self.assertIn('prune_path_if_exists "$ROOT_DIR/tests/infra/modules/kms"', bootstrap)
-        self.assertIn('prune_path_if_exists "$ROOT_DIR/infra/cloud/stackit/terraform/modules/identity-aware-proxy"', bootstrap)
-        self.assertIn('prune_path_if_exists "$ROOT_DIR/infra/local/helm/identity-aware-proxy"', bootstrap)
-        self.assertIn('prune_path_if_exists "$ROOT_DIR/tests/infra/modules/identity-aware-proxy"', bootstrap)
+        self.assertIn("report_disabled_module_scaffolding_preserved()", bootstrap)
+        self.assertIn("optional_module_disabled_scaffold_preserved_count", bootstrap)
+        self.assertIn("disabled optional-module scaffolding preserved:", bootstrap)
+        self.assertNotIn("prune_optional_module_scaffolding()", bootstrap)
+        self.assertNotIn("prune_path_if_exists()", bootstrap)
+        self.assertNotIn("optional_module_pruned_path_count", bootstrap)
+
+    def test_public_endpoints_smoke_accepts_list_manifest_kind_entries(self) -> None:
+        smoke = _read("scripts/bin/infra/public_endpoints_smoke.sh")
+        self.assertIn("grep -Eq '^[[:space:]]*kind: GatewayClass$'", smoke)
+        self.assertIn("grep -Eq '^[[:space:]]*kind: Gateway$'", smoke)
+
+    def test_public_endpoints_stackit_deploy_waits_for_gateway_api_crds(self) -> None:
+        deploy = _read("scripts/bin/infra/public_endpoints_deploy.sh")
+        destroy = _read("scripts/bin/infra/public_endpoints_destroy.sh")
+        template = _read("scripts/templates/infra/bootstrap/infra/gitops/argocd/optional/public-endpoints.application.yaml.tmpl")
+
+        self.assertIn("public_endpoints_wait_for_gateway_api_crds", deploy)
+        self.assertIn('run_manifest_apply "$gateway_manifest_path"', deploy)
+        self.assertIn("gateway_api_wait_status=", deploy)
+        self.assertIn("public_endpoints_gateway_api_crd_wait_total", _read("scripts/lib/infra/public_endpoints.sh"))
+        self.assertIn("public_endpoints_gateway_api_crds_available", destroy)
+        self.assertNotIn("kind: GatewayClass", template)
+        self.assertNotIn("kind: Gateway", template)
+
+    def test_identity_aware_proxy_smoke_accepts_hostnames_block_fallback(self) -> None:
+        smoke = _read("scripts/bin/infra/identity_aware_proxy_smoke.sh")
+        self.assertIn("host_binding_check_status=", smoke)
+        self.assertIn("grep -Eq '^[[:space:]]*hostnames:'", smoke)
+        self.assertIn("hostnames_block_only", smoke)
 
     def test_docs_scripts_are_docusaurus_only(self) -> None:
         docs_install = _read("scripts/bin/docs/install.sh")
@@ -1329,8 +1354,9 @@ class RefactorContractsTests(unittest.TestCase):
 
         self.assertIn("WORKFLOWS_ENABLED:", contract)
         self.assertIn("disabled_scaffold_policy:", contract)
-        self.assertIn("mode: prune_on_bootstrap", contract)
+        self.assertIn("mode: preserve_on_bootstrap", contract)
         self.assertIn("command: make infra-bootstrap", contract)
+        self.assertIn("disabled_resource_cleanup_command: make infra-destroy-disabled-modules", contract)
         self.assertIn("materialization_command: make blueprint-render-makefile", contract)
         self.assertIn("enable_flag: WORKFLOWS_ENABLED", contract)
         self.assertIn("scaffolding_mode: conditional", contract)
