@@ -50,7 +50,7 @@ Common first-day issues for generated repositories.
 
 ## Template smoke fails in CI
 - Ensure required local tools are available (`bash`, `git`, `make`, `python3`, `tar`).
-- Confirm CI job exports init variables before `make blueprint-template-smoke`.
+- Confirm CI job exports init variables, `BLUEPRINT_PROFILE`, and any intended optional-module flags before `make blueprint-template-smoke`.
 
 ## STACKIT preflight fails on backend contract
 - Ensure backend files exist under:

@@ -1,6 +1,11 @@
 # Decisions Log
 
 ## 2026-03-27
+- Generated-repo consumer conformance is now enforced as a scenario matrix.
+  - `make blueprint-template-smoke` now accepts profile/module flag inputs, seeds deterministic module env defaults for dry-run generated repos, runs the canonical provision/deploy/smoke/status chain in a temp copy, and asserts contract-driven artifacts, targets, and optional-module scaffolding outcomes.
+  - CI `consumer-golden-conformance` now spans representative generated-repo scenarios across `local-lite`, `local-full`, and `stackit-dev`, covering observability/data, runtime-edge, managed-services, fallback-runtime, and workflows combinations.
+  - Rationale: keep template-consumer onboarding green across representative profile/module combinations instead of only the default baseline path.
+
 - Optional-module wrappers now resolve execution modes through a shared infra library.
   - Added `scripts/lib/infra/module_execution.sh` to centralize provider-backed, fallback, and external-contract driver selection for optional modules, including consistent path resolution and `optional_module_execution_mode_total` metrics.
   - Optional-module plan/apply/destroy wrappers now keep module-specific actions/state outputs but delegate stack/profile branching to the shared resolver.

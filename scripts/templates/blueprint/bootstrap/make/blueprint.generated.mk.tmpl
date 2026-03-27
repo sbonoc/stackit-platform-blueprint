@@ -28,7 +28,7 @@ blueprint-init-repo-interactive: ## Interactive repository identity wizard for G
 blueprint-check-placeholders: ## Verify generated repository identity placeholders are resolved
 	@scripts/bin/blueprint/check_placeholders.sh
 
-blueprint-template-smoke: ## Smoke-test GitHub template consumer onboarding in a temp copy
+blueprint-template-smoke: ## Run generated-repo conformance smoke in a temp copy
 	@scripts/bin/blueprint/template_smoke.sh
 
 blueprint-release-notes: ## Generate template release notes

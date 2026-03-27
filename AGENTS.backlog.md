@@ -69,7 +69,7 @@
 - [x] Add upgrade runbook with before/after validation bundles.
 - [x] Add golden conformance tests for migration no-op behavior and fail-fast unsupported upgrade paths.
 - [x] Add blueprint-managed quality/docs drift guardrails and deterministic smoke/status artifacts without expanding platform-owned surfaces.
-- [ ] Add golden conformance matrix across profile/module combinations for newly generated repos.
+- [x] Add golden conformance matrix across profile/module combinations for newly generated repos.
 - [ ] Expand Terraform provider-backed coverage for currently fallback-only optional modules (`workflows`, `langfuse`, `neo4j`, `rabbitmq`, `public-endpoints`, `kms`, `identity-aware-proxy`) as STACKIT provider/resources mature.
 - [x] Refactor optional-module wrappers onto a shared execution-mode library (provider-backed/fallback/external) to remove duplicated branch logic across scripts.
 - [ ] Replace generic optional ConfigMap manifests with module-specific ArgoCD applications/charts for fallback modules (`rabbitmq`, `public-endpoints`, `identity-aware-proxy`) to reach production-grade runtime delivery.

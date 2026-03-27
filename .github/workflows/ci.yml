@@ -109,6 +109,94 @@ jobs:
 
   consumer-golden-conformance:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario:
+          - name: local-lite-baseline
+            profile: local-lite
+            observability_enabled: "false"
+            workflows_enabled: "false"
+            langfuse_enabled: "false"
+            postgres_enabled: "false"
+            neo4j_enabled: "false"
+            object_storage_enabled: "false"
+            rabbitmq_enabled: "false"
+            dns_enabled: "false"
+            public_endpoints_enabled: "false"
+            secrets_manager_enabled: "false"
+            kms_enabled: "false"
+            identity_aware_proxy_enabled: "false"
+          - name: local-full-observability-data
+            profile: local-full
+            observability_enabled: "true"
+            workflows_enabled: "false"
+            langfuse_enabled: "false"
+            postgres_enabled: "true"
+            neo4j_enabled: "false"
+            object_storage_enabled: "true"
+            rabbitmq_enabled: "false"
+            dns_enabled: "false"
+            public_endpoints_enabled: "false"
+            secrets_manager_enabled: "false"
+            kms_enabled: "false"
+            identity_aware_proxy_enabled: "false"
+          - name: local-full-runtime-edge
+            profile: local-full
+            observability_enabled: "false"
+            workflows_enabled: "false"
+            langfuse_enabled: "false"
+            postgres_enabled: "false"
+            neo4j_enabled: "false"
+            object_storage_enabled: "false"
+            rabbitmq_enabled: "true"
+            dns_enabled: "false"
+            public_endpoints_enabled: "true"
+            secrets_manager_enabled: "false"
+            kms_enabled: "false"
+            identity_aware_proxy_enabled: "true"
+          - name: stackit-dev-managed-services
+            profile: stackit-dev
+            observability_enabled: "true"
+            workflows_enabled: "false"
+            langfuse_enabled: "false"
+            postgres_enabled: "true"
+            neo4j_enabled: "false"
+            object_storage_enabled: "true"
+            rabbitmq_enabled: "false"
+            dns_enabled: "true"
+            public_endpoints_enabled: "false"
+            secrets_manager_enabled: "true"
+            kms_enabled: "false"
+            identity_aware_proxy_enabled: "false"
+          - name: stackit-dev-runtime-fallbacks
+            profile: stackit-dev
+            observability_enabled: "false"
+            workflows_enabled: "false"
+            langfuse_enabled: "true"
+            postgres_enabled: "false"
+            neo4j_enabled: "true"
+            object_storage_enabled: "false"
+            rabbitmq_enabled: "true"
+            dns_enabled: "false"
+            public_endpoints_enabled: "true"
+            secrets_manager_enabled: "false"
+            kms_enabled: "true"
+            identity_aware_proxy_enabled: "true"
+          - name: stackit-dev-workflows
+            profile: stackit-dev
+            observability_enabled: "true"
+            workflows_enabled: "true"
+            langfuse_enabled: "false"
+            postgres_enabled: "false"
+            neo4j_enabled: "false"
+            object_storage_enabled: "false"
+            rabbitmq_enabled: "false"
+            dns_enabled: "false"
+            public_endpoints_enabled: "false"
+            secrets_manager_enabled: "false"
+            kms_enabled: "false"
+            identity_aware_proxy_enabled: "false"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -118,8 +206,22 @@ jobs:
         with:
           python-version: "3.13"
 
-      - name: Golden template-consumer conformance
+      - name: Golden template-consumer conformance matrix
         run: |
+          export BLUEPRINT_TEMPLATE_SMOKE_SCENARIO=${{ matrix.scenario.name }}
+          export BLUEPRINT_PROFILE=${{ matrix.scenario.profile }}
+          export OBSERVABILITY_ENABLED=${{ matrix.scenario.observability_enabled }}
+          export WORKFLOWS_ENABLED=${{ matrix.scenario.workflows_enabled }}
+          export LANGFUSE_ENABLED=${{ matrix.scenario.langfuse_enabled }}
+          export POSTGRES_ENABLED=${{ matrix.scenario.postgres_enabled }}
+          export NEO4J_ENABLED=${{ matrix.scenario.neo4j_enabled }}
+          export OBJECT_STORAGE_ENABLED=${{ matrix.scenario.object_storage_enabled }}
+          export RABBITMQ_ENABLED=${{ matrix.scenario.rabbitmq_enabled }}
+          export DNS_ENABLED=${{ matrix.scenario.dns_enabled }}
+          export PUBLIC_ENDPOINTS_ENABLED=${{ matrix.scenario.public_endpoints_enabled }}
+          export SECRETS_MANAGER_ENABLED=${{ matrix.scenario.secrets_manager_enabled }}
+          export KMS_ENABLED=${{ matrix.scenario.kms_enabled }}
+          export IDENTITY_AWARE_PROXY_ENABLED=${{ matrix.scenario.identity_aware_proxy_enabled }}
           BLUEPRINT_REPO_NAME=ci-smoke-blueprint \
           BLUEPRINT_GITHUB_ORG=ci-smoke-org \
           BLUEPRINT_GITHUB_REPO=ci-smoke-blueprint \

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -7,8 +8,61 @@ import sys
 import tempfile
 import unittest
 
+from tests._shared.helpers import module_flags_env
+
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+
+TEMPLATE_SMOKE_INIT_ENV = {
+    "BLUEPRINT_REPO_NAME": "test-smoke-blueprint",
+    "BLUEPRINT_GITHUB_ORG": "test-smoke-org",
+    "BLUEPRINT_GITHUB_REPO": "test-smoke-blueprint",
+    "BLUEPRINT_DEFAULT_BRANCH": "main",
+}
+
+TEMPLATE_SMOKE_SCENARIOS = (
+    ("local-lite-baseline", module_flags_env(profile="local-lite")),
+    (
+        "local-full-observability-data",
+        module_flags_env(profile="local-full", observability="true", postgres="true", object_storage="true"),
+    ),
+    (
+        "local-full-runtime-edge",
+        module_flags_env(
+            profile="local-full",
+            rabbitmq="true",
+            public_endpoints="true",
+            identity_aware_proxy="true",
+        ),
+    ),
+    (
+        "stackit-dev-managed-services",
+        module_flags_env(
+            profile="stackit-dev",
+            observability="true",
+            postgres="true",
+            object_storage="true",
+            dns="true",
+            secrets_manager="true",
+        ),
+    ),
+    (
+        "stackit-dev-runtime-fallbacks",
+        module_flags_env(
+            profile="stackit-dev",
+            langfuse="true",
+            neo4j="true",
+            rabbitmq="true",
+            public_endpoints="true",
+            kms="true",
+            identity_aware_proxy="true",
+        ),
+    ),
+    (
+        "stackit-dev-workflows",
+        module_flags_env(profile="stackit-dev", observability="true", workflows="true"),
+    ),
+)
 
 
 def _read(path: str) -> str:
@@ -46,6 +100,15 @@ spec:
     required_paths:
       - scripts/bin/
 """
+
+
+def _template_smoke_env(scenario_name: str, env_overrides: dict[str, str]) -> dict[str, str]:
+    env = os.environ.copy()
+    env.update(TEMPLATE_SMOKE_INIT_ENV)
+    env.update(env_overrides)
+    env["BLUEPRINT_TEMPLATE_SMOKE_SCENARIO"] = scenario_name
+    env["DRY_RUN"] = "true"
+    return env
 
 
 class BlueprintUpgradeTests(unittest.TestCase):
@@ -150,6 +213,20 @@ class BlueprintUpgradeTests(unittest.TestCase):
             )
             self.assertEqual(second.returncode, 0, msg=second.stdout + second.stderr)
             self.assertIn("no migrations were required", second.stdout)
+
+    def test_blueprint_template_smoke_supports_representative_profile_module_matrix(self) -> None:
+        for scenario_name, env_overrides in TEMPLATE_SMOKE_SCENARIOS:
+            with self.subTest(scenario=scenario_name):
+                result = subprocess.run(
+                    ["make", "blueprint-template-smoke"],
+                    cwd=REPO_ROOT,
+                    text=True,
+                    capture_output=True,
+                    check=False,
+                    env=_template_smoke_env(scenario_name, env_overrides),
+                )
+                self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+                self.assertIn(f"scenario={scenario_name}", result.stdout)
 
 
 if __name__ == "__main__":

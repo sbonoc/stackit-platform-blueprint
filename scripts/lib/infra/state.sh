@@ -47,8 +47,9 @@ write_state_file() {
 
 state_file_exists() {
   local name="$1"
+  local namespace="${2:-$STATE_NAMESPACE}"
   local file
-  file="$(state_file_path "$name" "$STATE_NAMESPACE")"
+  file="$(state_file_path "$name" "$namespace")"
   [[ -f "$file" ]]
 }
 

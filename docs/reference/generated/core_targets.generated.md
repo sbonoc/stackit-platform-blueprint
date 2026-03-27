@@ -11,7 +11,7 @@ This file is auto-generated. Do not edit it manually.
 | `blueprint-init-repo` | Initialize repository identity after GitHub template creation |
 | `blueprint-init-repo-interactive` | Interactive repository identity wizard for GitHub template consumers |
 | `blueprint-check-placeholders` | Verify generated repository identity placeholders are resolved |
-| `blueprint-template-smoke` | Smoke-test GitHub template consumer onboarding in a temp copy |
+| `blueprint-template-smoke` | Run generated-repo conformance smoke in a temp copy |
 | `blueprint-release-notes` | Generate template release notes |
 | `blueprint-migrate` | Apply blueprint repository migrations for current template version |
 | `blueprint-bootstrap` | Bootstrap blueprint-scoped templates, docs, and Makefile rendering |

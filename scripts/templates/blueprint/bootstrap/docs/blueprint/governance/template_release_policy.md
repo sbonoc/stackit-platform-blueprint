@@ -14,7 +14,7 @@ This document defines how blueprint template releases are cut and supported.
    - `make infra-smoke`
    - CI matrix and consumer conformance lanes must pass:
      - `contract-matrix` (`local-full`/`stackit-dev` x observability `false`/`true`)
-     - `consumer-golden-conformance`
+     - `consumer-golden-conformance` (generated-repo scenario matrix across `local-lite`, `local-full`, and `stackit-dev` with representative optional-module combinations)
 3. Generate release notes:
    - `make blueprint-release-notes`
 4. Create and push release tag (`v*`).

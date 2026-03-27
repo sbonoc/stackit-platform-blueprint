@@ -46,6 +46,8 @@ make infra-validate
 make blueprint-template-smoke
 ```
 
+`make blueprint-template-smoke` respects exported `BLUEPRINT_PROFILE` and optional-module flags, so you can dry-run the exact generated-repo scenario you want to validate before provisioning live infrastructure.
+
 ## 5) Continue with Delivery Flow
 ```bash
 make infra-provision-deploy
