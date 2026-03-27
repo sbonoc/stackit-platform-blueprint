@@ -43,6 +43,7 @@
 - [x] Blueprint-managed second-wave Make/script hardening is in place: docs drift gates, generated core-targets/contract metadata sync, test-pyramid enforcement, namespaced shell/quality helpers, and machine-readable infra smoke/status diagnostics.
 - [x] Optional-module wrappers resolve provider-backed/fallback/external execution modes through a shared infra library, keeping driver selection consistent across scripts.
 - [x] Shared public edge baseline now uses Gateway API + Envoy Gateway, while `identity-aware-proxy` remains `oauth2-proxy` for selected browser-authenticated hosts.
+- [x] Generated repos now include an explicit endpoint exposure model guide and a seeded `network` namespace for the shared Gateway baseline.
 
 ## Top Priority - Execution-Ready E2E (Current)
 - [x] Fix GitHub-template onboarding smoke drift by excluding init-mutated ArgoCD identity files from strict byte-sync validation while keeping identity checks enforced (`blueprint-template-smoke` green).

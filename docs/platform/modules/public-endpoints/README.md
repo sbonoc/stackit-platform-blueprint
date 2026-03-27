@@ -9,8 +9,10 @@ Provision Gateway API public edge baseline for marketplace UI and API surfaces.
 - `stackit-*` profiles: module-specific ArgoCD `Application` reconciles Envoy Gateway (`gateway-helm`) from `infra/gitops/argocd/optional/${ENV}/public-endpoints.yaml`, and the same rendered manifest seeds the shared `GatewayClass`/`Gateway` baseline for route attachment.
 - `local-*` profiles: Helm chart (`oci://docker.io/envoyproxy/gateway-helm`) runs from a rendered values artifact derived from the scaffold contract in `infra/local/helm/public-endpoints/values.yaml`, and the wrapper applies the rendered shared `GatewayClass`/`Gateway` manifest artifact.
 - The controller chart does not own the shared `Gateway` resource. The blueprint renders that baseline separately so the route contract remains explicit and reviewable in repo-managed manifests.
+- The shared `Gateway` lives in the `network` namespace, which is seeded by the platform GitOps baseline so route attachments have a stable home across environments.
 - The shared `Gateway` listener allows cross-namespace `HTTPRoute` attachment so touchpoints, backend routes, and browser-authenticated proxy routes can attach without forcing all traffic through one auth mode.
 - Auth remains route-specific on top of this shared edge: some hosts can stay public, some can route through `identity-aware-proxy`, and API routes can evolve independently.
+- See [Endpoint Exposure Model](../../consumer/endpoint_exposure_model.md) for the mixed public/protected route classes that sit on top of this shared edge.
 
 ## Enable
 ```bash

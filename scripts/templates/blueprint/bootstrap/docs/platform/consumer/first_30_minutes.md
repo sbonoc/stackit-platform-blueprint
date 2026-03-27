@@ -49,5 +49,6 @@ Expected outcome:
 ## 4) Next Steps (5 min)
 - Run `make infra-status-json` to capture the latest machine-readable runtime snapshot at `artifacts/infra/infra_status_snapshot.json`.
 - Review [Quickstart](quickstart.md) for full flow.
+- Review [Endpoint Exposure Model](endpoint_exposure_model.md) before exposing mixed public/protected UI or API routes.
 - Review [Troubleshooting](troubleshooting.md) if any command fails.
 - Review [Upgrade Runbook](upgrade_runbook.md) before applying template upgrades later.

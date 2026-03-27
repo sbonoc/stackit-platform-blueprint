@@ -16,6 +16,11 @@ items:
   - apiVersion: v1
     kind: Namespace
     metadata:
+      # Shared gateway/route attachment namespace for public edge resources.
+      name: network
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
       name: security
   - apiVersion: v1
     kind: Namespace

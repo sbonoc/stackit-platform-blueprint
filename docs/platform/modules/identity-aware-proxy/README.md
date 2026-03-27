@@ -10,6 +10,7 @@ Provision browser-facing identity-aware access proxy capability and enforce Keyc
 - `local-*` profiles: Helm chart (`oauth2-proxy/oauth2-proxy`) runs from a rendered values artifact derived from the scaffold contract in `infra/local/helm/identity-aware-proxy/values.yaml`, and the chart creates the same Gateway API `HTTPRoute` locally.
 - This module is intentionally browser-oriented: it protects selected touchpoint hosts with OIDC login/session flow and should not be treated as the universal front door for public or bearer-token APIs.
 - Public touchpoints and direct API routes can coexist with this module. Only the protected browser hosts that opt into the proxy should route through it.
+- See [Endpoint Exposure Model](../../consumer/endpoint_exposure_model.md) for the broader mixed-route policy model around this browser-authenticated path.
 
 ## Enable
 ```bash

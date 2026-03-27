@@ -62,6 +62,7 @@ bootstrap_blueprint_templates() {
     "docs/platform/README.md"
     "docs/platform/consumer/first_30_minutes.md"
     "docs/platform/consumer/quickstart.md"
+    "docs/platform/consumer/endpoint_exposure_model.md"
     "docs/platform/consumer/troubleshooting.md"
     "docs/platform/consumer/upgrade_runbook.md"
     "docs/platform/modules/observability/README.md"

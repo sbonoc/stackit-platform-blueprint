@@ -7,6 +7,7 @@ This section is the initial documentation baseline for the target platform repos
 ## Consumer Guides
 - [First 30 Minutes](consumer/first_30_minutes.md)
 - [Quickstart](consumer/quickstart.md)
+- [Endpoint Exposure Model](consumer/endpoint_exposure_model.md)
 - [Troubleshooting](consumer/troubleshooting.md)
 - [Upgrade Runbook](consumer/upgrade_runbook.md)
 

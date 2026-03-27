@@ -59,6 +59,9 @@ make infra-status-json
 `make infra-status-json` captures the latest consolidated snapshot at
 `artifacts/infra/infra_status_snapshot.json`.
 
+Before publishing hosts or API routes, review [Endpoint Exposure Model](endpoint_exposure_model.md)
+so public UI, protected UI, direct APIs, and internal SSR/BFF flows stay separated intentionally.
+
 ## 6) STACKIT MVP Provision/Deploy (Optional)
 For managed STACKIT execution (`BLUEPRINT_PROFILE=stackit-dev|stackit-stage|stackit-prod`), export:
 - `STACKIT_PROJECT_ID`

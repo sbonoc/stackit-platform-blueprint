@@ -278,6 +278,7 @@ class RefactorContractsTests(unittest.TestCase):
                 "docs/platform/README.md",
                 "docs/platform/consumer/first_30_minutes.md",
                 "docs/platform/consumer/quickstart.md",
+                "docs/platform/consumer/endpoint_exposure_model.md",
                 "docs/platform/consumer/troubleshooting.md",
                 "docs/platform/consumer/upgrade_runbook.md",
                 "docs/platform/modules/observability/README.md",
@@ -505,8 +506,13 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertEqual(_extract_yaml_scalar(platform_docs, "seed_mode"), "create_if_missing")
         self.assertEqual(_extract_yaml_scalar(platform_docs, "bootstrap_command"), "make blueprint-bootstrap")
         self.assertIn("docs/platform/consumer/quickstart.md", _extract_yaml_list(platform_docs, "required_seed_files"))
+        self.assertIn(
+            "docs/platform/consumer/endpoint_exposure_model.md",
+            _extract_yaml_list(platform_docs, "required_seed_files"),
+        )
 
         self.assertIn('"docs/platform/consumer/quickstart.md"', bootstrap)
+        self.assertIn('"docs/platform/consumer/endpoint_exposure_model.md"', bootstrap)
         self.assertIn("if [[ -f \"$path\" ]]; then", bootstrap_lib)
         self.assertIn("_validate_platform_docs_seed_contract", validate_py)
         self.assertNotIn('"docs/platform/consumer/quickstart.md",', validate_py)
@@ -543,14 +549,49 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn("materializes/prunes optional-module infra scaffolding", docs_readme)
         self.assertIn("[Blueprint Docs](blueprint/README.md)", docs_readme)
         self.assertIn("[Platform Docs](platform/README.md)", docs_readme)
+        self.assertIn("[Endpoint Exposure Model](platform/consumer/endpoint_exposure_model.md)", docs_readme)
         self.assertIn("[Core Make Targets (Generated)](reference/generated/core_targets.generated.md)", docs_readme)
 
     def test_consumer_quickstart_mentions_status_snapshot_and_no_duplicate_smoke(self) -> None:
         quickstart = _read("docs/platform/consumer/quickstart.md")
         self.assertIn("make infra-provision-deploy", quickstart)
         self.assertIn("make infra-status-json", quickstart)
+        self.assertIn("[Endpoint Exposure Model](endpoint_exposure_model.md)", quickstart)
         self.assertIn("artifacts/infra/infra_status_snapshot.json", quickstart)
         self.assertNotIn("make infra-smoke", quickstart)
+
+    def test_endpoint_exposure_model_is_seeded_and_template_synced(self) -> None:
+        endpoint_model = _read("docs/platform/consumer/endpoint_exposure_model.md")
+        endpoint_model_template = _read(
+            "scripts/templates/blueprint/bootstrap/docs/platform/consumer/endpoint_exposure_model.md"
+        )
+        self.assertIn("## Policy Matrix", endpoint_model)
+        self.assertIn("Protected touchpoint", endpoint_model)
+        self.assertIn("Protected API", endpoint_model)
+        self.assertIn("```mermaid", endpoint_model)
+        self.assertEqual(endpoint_model, endpoint_model_template)
+
+    def test_gateway_module_docs_link_to_endpoint_exposure_model(self) -> None:
+        public_endpoints_doc = _read("docs/platform/modules/public-endpoints/README.md")
+        public_endpoints_doc_template = _read(
+            "scripts/templates/blueprint/bootstrap/docs/platform/modules/public-endpoints/README.md"
+        )
+        identity_aware_proxy_doc = _read("docs/platform/modules/identity-aware-proxy/README.md")
+        identity_aware_proxy_doc_template = _read(
+            "scripts/templates/blueprint/bootstrap/docs/platform/modules/identity-aware-proxy/README.md"
+        )
+
+        self.assertIn("[Endpoint Exposure Model](../../consumer/endpoint_exposure_model.md)", public_endpoints_doc)
+        self.assertIn("[Endpoint Exposure Model](../../consumer/endpoint_exposure_model.md)", identity_aware_proxy_doc)
+        self.assertEqual(public_endpoints_doc, public_endpoints_doc_template)
+        self.assertEqual(identity_aware_proxy_doc, identity_aware_proxy_doc_template)
+
+    def test_platform_base_namespaces_include_network_for_shared_gateway(self) -> None:
+        namespaces = _read("infra/gitops/platform/base/namespaces.yaml")
+        namespaces_template = _read("scripts/templates/infra/bootstrap/infra/gitops/platform/base/namespaces.yaml")
+        self.assertIn("name: network", namespaces)
+        self.assertIn("Shared gateway/route attachment namespace", namespaces)
+        self.assertEqual(namespaces, namespaces_template)
 
     def test_quality_hooks_run_covers_docs_sync_checks_and_test_pyramid(self) -> None:
         hooks_run = _read("scripts/bin/quality/hooks_run.sh")
@@ -941,6 +982,7 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertNotIn('make apps-audit-versions', ci_workflow)
 
         self.assertIn('[Platform Quickstart](platform/consumer/quickstart.md)', docs_readme)
+        self.assertIn('[Endpoint Exposure Model](platform/consumer/endpoint_exposure_model.md)', docs_readme)
         self.assertIn('[Platform Troubleshooting](platform/consumer/troubleshooting.md)', docs_readme)
         self.assertIn('[Platform Upgrade Runbook](platform/consumer/upgrade_runbook.md)', docs_readme)
         self.assertIn('[Template Release Policy](blueprint/governance/template_release_policy.md)', docs_readme)

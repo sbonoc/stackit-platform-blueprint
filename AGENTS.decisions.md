@@ -1,6 +1,11 @@
 # Decisions Log
 
 ## 2026-03-27
+- Generated repos now seed a mixed endpoint exposure model guide and the shared `network` namespace required by the Gateway baseline.
+  - Added `docs/platform/consumer/endpoint_exposure_model.md` as a seeded consumer guide that defines the public UI, protected UI, public API, protected API, and internal SSR/BFF route classes, together with ownership boundaries between `public-endpoints`, `identity-aware-proxy`, and app delivery.
+  - Added the `network` namespace to the platform GitOps base so the shared `Gateway` has a stable home across profiles; `public-endpoints` smoke now fails fast if that namespace contract disappears.
+  - Rationale: make the mixed public/protected route model explicit for generated repositories and close a real execution gap where Gateway resources had a configured namespace but the baseline never created it.
+
 - `public-endpoints` now owns a shared Gateway API + Envoy Gateway edge baseline, while `identity-aware-proxy` stays on `oauth2-proxy`.
   - Replaced the `ingress-nginx` fallback runtime path with Envoy Gateway (`gateway-helm`) and a blueprint-rendered shared `GatewayClass`/`Gateway` contract so edge routing is aligned with the Kubernetes Gateway API direction and remains explicit in repo-managed manifests.
   - Kept `identity-aware-proxy` browser-focused: it still reconciles `oauth2-proxy/oauth2-proxy`, now attaches through Gateway API `HTTPRoute`, and does not become the universal proxy for public or bearer-token API routes.

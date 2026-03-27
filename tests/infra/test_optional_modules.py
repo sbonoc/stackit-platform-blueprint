@@ -445,6 +445,8 @@ class OptionalModulesTests(unittest.TestCase):
         smoke_file = REPO_ROOT / "artifacts" / "infra" / "public_endpoints_smoke.env"
         self.assertTrue(smoke_file.exists())
         smoke_content = smoke_file.read_text(encoding="utf-8")
+        self.assertIn("gateway_name=public-endpoints", smoke_content)
+        self.assertIn("gateway_namespace=network", smoke_content)
         self.assertIn("gateway_manifest_path=", smoke_content)
 
         destroy = run(["make", "infra-public-endpoints-destroy"], env)
