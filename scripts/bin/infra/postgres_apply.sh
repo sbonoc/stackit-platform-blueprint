@@ -6,6 +6,7 @@ source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
 source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 source "$ROOT_DIR/scripts/lib/infra/stack_paths.sh"
 source "$ROOT_DIR/scripts/lib/infra/module_execution.sh"
+source "$ROOT_DIR/scripts/lib/infra/fallback_runtime.sh"
 source "$ROOT_DIR/scripts/lib/infra/state.sh"
 source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
 source "$ROOT_DIR/scripts/lib/infra/postgres.sh"
@@ -30,6 +31,7 @@ foundation_contract)
   optional_module_apply_foundation_contract "postgres"
   ;;
 helm)
+  provision_path="$(postgres_render_values_file)"
   run_helm_upgrade_install \
     "$POSTGRES_HELM_RELEASE" \
     "$POSTGRES_NAMESPACE" \

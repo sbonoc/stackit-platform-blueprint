@@ -74,6 +74,23 @@ class OptionalModulesTests(unittest.TestCase):
         self.assertNotIn("disabled_modules=none", state_content)
         self.assertNotIn("disabled_modules=postgres", state_content)
 
+    def test_local_destroy_all_writes_state_and_preserves_cluster_scope(self) -> None:
+        env = module_flags_env(profile="local-full", postgres="true", object_storage="true")
+        bootstrap = run_render_and_infra_bootstrap(env)
+        self.assertEqual(bootstrap.returncode, 0, msg=bootstrap.stdout + bootstrap.stderr)
+
+        destroy = run(["make", "infra-local-destroy-all"], env)
+        self.assertEqual(destroy.returncode, 0, msg=destroy.stdout + destroy.stderr)
+
+        state_file = REPO_ROOT / "artifacts" / "infra" / "local_destroy_all.env"
+        self.assertTrue(state_file.exists(), msg="local destroy-all state file not found")
+        state_content = state_file.read_text(encoding="utf-8")
+        self.assertIn("destroy_scope=local_cluster_resources", state_content)
+        self.assertIn(
+            "destroyed_modules=observability,langfuse,postgres,neo4j,object-storage,rabbitmq,dns,public-endpoints,secrets-manager,kms,identity-aware-proxy",
+            state_content,
+        )
+
     def test_infra_bootstrap_prunes_stale_optional_scaffolding_when_flags_disabled(self) -> None:
         enabled_env = module_flags_env(
             profile="stackit-dev",
@@ -298,6 +315,34 @@ class OptionalModulesTests(unittest.TestCase):
         destroy = run(["make", "infra-postgres-destroy"], env)
         self.assertEqual(destroy.returncode, 0, msg=destroy.stdout + destroy.stderr)
 
+    def test_local_postgres_module_renders_release_aligned_values(self) -> None:
+        env = module_flags_env(postgres="true")
+        env.update(
+            {
+                "POSTGRES_INSTANCE_NAME": "bp-postgres-local",
+                "POSTGRES_DB_NAME": "appdb",
+                "POSTGRES_USER": "appuser",
+                "POSTGRES_PASSWORD": "apppass",
+            }
+        )
+        bootstrap = run_render_and_infra_bootstrap(env)
+        self.assertEqual(bootstrap.returncode, 0, msg=bootstrap.stdout + bootstrap.stderr)
+
+        for step in ("infra-postgres-plan", "infra-postgres-apply", "infra-postgres-smoke"):
+            result = run(["make", step], env)
+            self.assertEqual(result.returncode, 0, msg=f"{step}\n{result.stdout}\n{result.stderr}")
+
+        rendered_values = (REPO_ROOT / "artifacts" / "infra" / "rendered" / "postgres.values.yaml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('fullnameOverride: "blueprint-postgres"', rendered_values)
+        self.assertIn('repository: "bitnamilegacy/postgresql"', rendered_values)
+        self.assertIn('tag: "16.4.0-debian-12-r14"', rendered_values)
+        self.assertIn('database: "appdb"', rendered_values)
+
+        destroy = run(["make", "infra-postgres-destroy"], env)
+        self.assertEqual(destroy.returncode, 0, msg=destroy.stdout + destroy.stderr)
+
     def test_neo4j_module_flow(self) -> None:
         env = module_flags_env(profile="stackit-dev", neo4j="true")
         env.update(
@@ -346,6 +391,14 @@ class OptionalModulesTests(unittest.TestCase):
         runtime_content = runtime_file.read_text(encoding="utf-8")
         self.assertIn("endpoint=http://", runtime_content)
         self.assertIn("bucket=marketplace-assets-dev", runtime_content)
+        rendered_values = (REPO_ROOT / "artifacts" / "infra" / "rendered" / "object-storage.values.yaml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("docker.io", rendered_values)
+        self.assertIn('repository: "bitnamilegacy/minio"', rendered_values)
+        self.assertIn("allowInsecureImages: true", rendered_values)
+        self.assertIn('defaultBuckets: "marketplace-assets-dev"', rendered_values)
+        self.assertIn('fullnameOverride: "blueprint-object-storage"', rendered_values)
 
         destroy = run(["make", "infra-object-storage-destroy"], env)
         self.assertEqual(destroy.returncode, 0, msg=destroy.stdout + destroy.stderr)
@@ -378,6 +431,11 @@ class OptionalModulesTests(unittest.TestCase):
         self.assertIn("host=blueprint-rabbitmq.messaging.svc.cluster.local", runtime_content)
         self.assertIn("password=marketplace-secret", runtime_content)
         self.assertIn("provision_path=", runtime_content)
+        rendered_values = (REPO_ROOT / "artifacts" / "infra" / "rendered" / "rabbitmq.values.yaml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('repository: "bitnamilegacy/rabbitmq"', rendered_values)
+        self.assertIn('tag: "3.13.7-debian-12-r2"', rendered_values)
 
         secret_manifest = (
             REPO_ROOT / "artifacts" / "infra" / "rendered" / "secrets" / "secret-messaging-blueprint-rabbitmq-auth.yaml"
@@ -440,7 +498,14 @@ class OptionalModulesTests(unittest.TestCase):
         self.assertIn("edge_mode=gateway_api_envoy", runtime_content)
         self.assertIn("listener_policy=allow_cross_namespace_routes", runtime_content)
         self.assertIn("provision_path=", runtime_content)
+        self.assertIn("namespace_manifest_path=", runtime_content)
         self.assertIn("gateway_manifest_path=", runtime_content)
+
+        namespace_manifest = REPO_ROOT / "artifacts" / "infra" / "rendered" / "public-endpoints.namespace.yaml"
+        self.assertTrue(namespace_manifest.exists(), msg="public-endpoints namespace manifest not rendered")
+        namespace_manifest_content = namespace_manifest.read_text(encoding="utf-8")
+        self.assertIn("kind: Namespace", namespace_manifest_content)
+        self.assertIn("name: network", namespace_manifest_content)
 
         smoke_file = REPO_ROOT / "artifacts" / "infra" / "public_endpoints_smoke.env"
         self.assertTrue(smoke_file.exists())
@@ -556,6 +621,24 @@ class OptionalModulesTests(unittest.TestCase):
         self.assertNotEqual(plan.returncode, 0, msg=plan.stdout + plan.stderr)
         self.assertIn("IAP_COOKIE_SECRET", plan.stderr + plan.stdout)
 
+    def test_identity_aware_proxy_rejects_invalid_cookie_secret_length(self) -> None:
+        env = module_flags_env(identity_aware_proxy="true")
+        env.update(
+            {
+                "IAP_UPSTREAM_URL": "http://catalog.apps.svc.cluster.local:8080",
+                "IAP_COOKIE_SECRET": "0123456789abcdef0123456789abcdef01234567",
+                "KEYCLOAK_ISSUER_URL": "https://keycloak.example/realms/marketplace",
+                "KEYCLOAK_CLIENT_ID": "marketplace-iap",
+                "KEYCLOAK_CLIENT_SECRET": "marketplace-iap-secret",
+            }
+        )
+        bootstrap = run_render_and_infra_bootstrap(env)
+        self.assertEqual(bootstrap.returncode, 0, msg=bootstrap.stdout + bootstrap.stderr)
+
+        plan = run(["make", "infra-identity-aware-proxy-plan"], env)
+        self.assertNotEqual(plan.returncode, 0, msg=plan.stdout + plan.stderr)
+        self.assertIn("must be a raw 16, 24, or 32 byte string", plan.stdout + plan.stderr)
+
     def test_stackit_fallback_modules_materialize_module_specific_argocd_applications(self) -> None:
         env = module_flags_env(
             profile="stackit-dev",
@@ -568,7 +651,7 @@ class OptionalModulesTests(unittest.TestCase):
                 "KEYCLOAK_CLIENT_ID": "marketplace-iap",
                 "KEYCLOAK_CLIENT_SECRET": "marketplace-iap-secret",
                 "IAP_UPSTREAM_URL": "http://catalog.apps.svc.cluster.local:8080",
-                "IAP_COOKIE_SECRET": "0123456789abcdef0123456789abcdef01234567",
+                "IAP_COOKIE_SECRET": "0123456789abcdef0123456789abcdef",
             }
         )
         bootstrap = run_render_and_infra_bootstrap(env)
@@ -590,6 +673,8 @@ class OptionalModulesTests(unittest.TestCase):
         self.assertIn("repoURL: https://oauth2-proxy.github.io/manifests", iap_manifest)
         self.assertIn("targetRevision: 10.4.0", iap_manifest)
         self.assertIn('existingSecret: "blueprint-iap-config"', iap_manifest)
+        self.assertIn('repository: "oauth2-proxy/oauth2-proxy"', iap_manifest)
+        self.assertIn('tag: "v7.15.0"', iap_manifest)
         self.assertIn("gatewayApi:", iap_manifest)
         self.assertIn('name: "public-endpoints"', iap_manifest)
 
@@ -598,7 +683,7 @@ class OptionalModulesTests(unittest.TestCase):
         env.update(
             {
                 "IAP_UPSTREAM_URL": "http://catalog.apps.svc.cluster.local:8080",
-                "IAP_COOKIE_SECRET": "0123456789abcdef0123456789abcdef01234567",
+                "IAP_COOKIE_SECRET": "0123456789abcdef0123456789abcdef",
                 "KEYCLOAK_ISSUER_URL": "https://keycloak.example/realms/marketplace",
                 "KEYCLOAK_CLIENT_ID": "marketplace-iap",
                 "KEYCLOAK_CLIENT_SECRET": "marketplace-iap-secret",
@@ -627,6 +712,11 @@ class OptionalModulesTests(unittest.TestCase):
 
         secret_manifest = REPO_ROOT / "artifacts" / "infra" / "rendered" / "secrets" / "secret-security-blueprint-iap-config.yaml"
         self.assertTrue(secret_manifest.exists(), msg="iap secret manifest not rendered")
+        rendered_values = (REPO_ROOT / "artifacts" / "infra" / "rendered" / "identity-aware-proxy.values.yaml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('repository: "oauth2-proxy/oauth2-proxy"', rendered_values)
+        self.assertIn('tag: "v7.15.0"', rendered_values)
 
         smoke_file = REPO_ROOT / "artifacts" / "infra" / "identity_aware_proxy_smoke.env"
         self.assertTrue(smoke_file.exists())

@@ -1,7 +1,21 @@
+fullnameOverride: "{{OBJECT_STORAGE_HELM_RELEASE}}"
+global:
+  security:
+    # The blueprint pins mirrored public ECR images because the equivalent
+    # Docker Hub tags can disappear after upstream chart releases.
+    allowInsecureImages: true
 mode: standalone
-rootUser: minioadmin
-rootPassword: minioadmin123
-buckets:
-  - name: marketplace-assets
-    policy: none
-    purge: false
+auth:
+  rootUser: "{{OBJECT_STORAGE_ACCESS_KEY}}"
+  rootPassword: "{{OBJECT_STORAGE_SECRET_KEY}}"
+defaultBuckets: "{{OBJECT_STORAGE_BUCKET_NAME}}"
+image:
+  registry: "{{OBJECT_STORAGE_IMAGE_REGISTRY}}"
+  repository: "{{OBJECT_STORAGE_IMAGE_REPOSITORY}}"
+  tag: "{{OBJECT_STORAGE_IMAGE_TAG}}"
+clientImage:
+  registry: "{{OBJECT_STORAGE_CLIENT_IMAGE_REGISTRY}}"
+  repository: "{{OBJECT_STORAGE_CLIENT_IMAGE_REPOSITORY}}"
+  tag: "{{OBJECT_STORAGE_CLIENT_IMAGE_TAG}}"
+console:
+  enabled: false

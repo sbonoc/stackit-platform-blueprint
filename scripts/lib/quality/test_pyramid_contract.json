@@ -14,7 +14,8 @@
         "tests/blueprint/test_quality_contracts.py",
         "tests/docs/test_docs_lint.py",
         "tests/infra/test_stackit_layers.py",
-        "tests/infra/test_tooling_contracts.py"
+        "tests/infra/test_tooling_contracts.py",
+        "tests/infra/test_workload_health_check.py"
       ]
     },
     {

@@ -13,9 +13,12 @@ locals {
 
   # STACKIT SKE currently enforces a short cluster-name limit (<=11 chars).
   ske_cluster_name = "k${substr(sha1(local.naming_prefix), 0, 10)}"
+  # Optional naming overrides default to null, so try() is safer than coalesce()
+  # when disabled modules leave the variables unset during plan/apply.
+  postgres_instance_name_override = try(trimspace(var.postgres_instance_name), "")
   postgres_instance_name = (
-    trimspace(coalesce(var.postgres_instance_name, "")) != ""
-    ? trimspace(var.postgres_instance_name)
+    local.postgres_instance_name_override != ""
+    ? local.postgres_instance_name_override
     : "${local.naming_prefix}-${var.postgres_instance_name_suffix}"
   )
   postgres_acl_effective = (
@@ -26,15 +29,17 @@ locals {
     ))
     : []
   )
+  object_storage_bucket_name_override = try(trimspace(var.object_storage_bucket_name), "")
   object_storage_bucket_name = (
-    trimspace(coalesce(var.object_storage_bucket_name, "")) != ""
-    ? trimspace(var.object_storage_bucket_name)
+    local.object_storage_bucket_name_override != ""
+    ? local.object_storage_bucket_name_override
     : "${local.naming_prefix}-${var.object_storage_bucket_name_suffix}"
   )
   object_storage_credentials_group_name = "${substr(local.normalized_platform, 0, 8)}-${var.environment}-creds-${substr(sha1("${local.naming_prefix}-${var.object_storage_credentials_group_name_suffix}"), 0, 6)}"
+  secrets_manager_instance_name_override = try(trimspace(var.secrets_manager_instance_name), "")
   secrets_manager_instance_name = (
-    trimspace(coalesce(var.secrets_manager_instance_name, "")) != ""
-    ? trimspace(var.secrets_manager_instance_name)
+    local.secrets_manager_instance_name_override != ""
+    ? local.secrets_manager_instance_name_override
     : "${local.naming_prefix}-${var.secrets_manager_instance_name_suffix}"
   )
 

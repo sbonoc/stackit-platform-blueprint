@@ -13,6 +13,9 @@ postgres_init_env() {
   set_default_env POSTGRES_HELM_RELEASE "blueprint-postgres"
   set_default_env POSTGRES_HELM_CHART "bitnami/postgresql"
   set_default_env POSTGRES_HELM_CHART_VERSION "$POSTGRES_HELM_CHART_VERSION_PIN"
+  set_default_env POSTGRES_IMAGE_REGISTRY "$POSTGRES_LOCAL_IMAGE_REGISTRY"
+  set_default_env POSTGRES_IMAGE_REPOSITORY "$POSTGRES_LOCAL_IMAGE_REPOSITORY"
+  set_default_env POSTGRES_IMAGE_TAG "$POSTGRES_LOCAL_IMAGE_TAG"
 
   require_env_vars POSTGRES_INSTANCE_NAME POSTGRES_DB_NAME POSTGRES_USER POSTGRES_PASSWORD
 
@@ -88,4 +91,17 @@ postgres_dsn() {
 
 postgres_local_service_host() {
   printf '%s.%s.svc.cluster.local' "$POSTGRES_HELM_RELEASE" "$POSTGRES_NAMESPACE"
+}
+
+postgres_render_values_file() {
+  render_optional_module_values_file \
+    "postgres" \
+    "infra/local/helm/postgres/values.yaml" \
+    "POSTGRES_HELM_RELEASE=$POSTGRES_HELM_RELEASE" \
+    "POSTGRES_USER=$POSTGRES_USER" \
+    "POSTGRES_PASSWORD=$POSTGRES_PASSWORD" \
+    "POSTGRES_DB_NAME=$POSTGRES_DB_NAME" \
+    "POSTGRES_IMAGE_REGISTRY=$POSTGRES_IMAGE_REGISTRY" \
+    "POSTGRES_IMAGE_REPOSITORY=$POSTGRES_IMAGE_REPOSITORY" \
+    "POSTGRES_IMAGE_TAG=$POSTGRES_IMAGE_TAG"
 }

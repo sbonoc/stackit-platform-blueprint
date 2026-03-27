@@ -1,0 +1,12 @@
+fullnameOverride: "blueprint-postgres"
+auth:
+  username: "platform"
+  password: "platform-password"
+  database: "platform"
+image:
+  registry: "docker.io"
+  repository: "bitnamilegacy/postgresql"
+  tag: "16.4.0-debian-12-r14"
+primary:
+  persistence:
+    enabled: false

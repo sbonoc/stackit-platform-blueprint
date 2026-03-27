@@ -1,4 +1,8 @@
 fullnameOverride: "{{RABBITMQ_HELM_RELEASE}}"
+image:
+  registry: "{{RABBITMQ_IMAGE_REGISTRY}}"
+  repository: "{{RABBITMQ_IMAGE_REPOSITORY}}"
+  tag: "{{RABBITMQ_IMAGE_TAG}}"
 auth:
   username: "{{RABBITMQ_USERNAME}}"
   existingPasswordSecret: "{{RABBITMQ_PASSWORD_SECRET_NAME}}"

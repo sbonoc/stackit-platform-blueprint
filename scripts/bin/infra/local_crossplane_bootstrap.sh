@@ -45,6 +45,8 @@ if [[ ! -f "$crossplane_values_file" ]]; then
   log_fatal "missing crossplane values file: $crossplane_values_file"
 fi
 
+prepare_cluster_access
+
 run_kustomize_apply "$crossplane_kustomize_dir"
 run_helm_upgrade_install \
   "$CROSSPLANE_HELM_RELEASE" \

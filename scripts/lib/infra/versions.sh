@@ -18,7 +18,26 @@ TEMPO_CHART_VERSION="1.23.2"
 # contract-driven and `infra-audit-version` has one canonical source.
 POSTGRES_HELM_CHART_VERSION_PIN="15.5.38"
 OBJECT_STORAGE_HELM_CHART_VERSION_PIN="17.0.21"
-RABBITMQ_HELM_CHART_VERSION_PIN="16.0.14"
+RABBITMQ_HELM_CHART_VERSION_PIN="14.7.0"
 NEO4J_HELM_CHART_VERSION_PIN="2026.1.4"
 PUBLIC_ENDPOINTS_HELM_CHART_VERSION_PIN="1.7.1"
 IAP_HELM_CHART_VERSION_PIN="10.4.0"
+
+# Local fallback images are pinned explicitly because upstream chart defaults
+# may drift to retired registry tags. Where STACKIT exposes a managed service
+# version contract, the local image line follows that same version family.
+POSTGRES_LOCAL_IMAGE_REGISTRY="docker.io"
+POSTGRES_LOCAL_IMAGE_REPOSITORY="bitnamilegacy/postgresql"
+POSTGRES_LOCAL_IMAGE_TAG="16.4.0-debian-12-r14"
+OBJECT_STORAGE_LOCAL_IMAGE_REGISTRY="docker.io"
+OBJECT_STORAGE_LOCAL_IMAGE_REPOSITORY="bitnamilegacy/minio"
+OBJECT_STORAGE_LOCAL_IMAGE_TAG="2025.7.23-debian-12-r3"
+OBJECT_STORAGE_LOCAL_CLIENT_IMAGE_REGISTRY="docker.io"
+OBJECT_STORAGE_LOCAL_CLIENT_IMAGE_REPOSITORY="bitnamilegacy/minio-client"
+OBJECT_STORAGE_LOCAL_CLIENT_IMAGE_TAG="2025.7.21-debian-12-r2"
+RABBITMQ_LOCAL_IMAGE_REGISTRY="docker.io"
+RABBITMQ_LOCAL_IMAGE_REPOSITORY="bitnamilegacy/rabbitmq"
+RABBITMQ_LOCAL_IMAGE_TAG="3.13.7-debian-12-r2"
+IAP_LOCAL_IMAGE_REGISTRY="quay.io"
+IAP_LOCAL_IMAGE_REPOSITORY="oauth2-proxy/oauth2-proxy"
+IAP_LOCAL_IMAGE_TAG="v7.15.0"

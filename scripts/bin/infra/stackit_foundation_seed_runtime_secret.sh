@@ -40,6 +40,7 @@ seed_mode="dry-run-state"
 secret_key_count=0
 
 if tooling_is_execution_enabled; then
+  prepare_cluster_access
   require_command terraform
   require_command kubectl
   require_command python3

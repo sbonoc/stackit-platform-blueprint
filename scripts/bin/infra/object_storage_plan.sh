@@ -6,6 +6,7 @@ source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
 source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 source "$ROOT_DIR/scripts/lib/infra/stack_paths.sh"
 source "$ROOT_DIR/scripts/lib/infra/module_execution.sh"
+source "$ROOT_DIR/scripts/lib/infra/fallback_runtime.sh"
 source "$ROOT_DIR/scripts/lib/infra/state.sh"
 source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
 source "$ROOT_DIR/scripts/lib/infra/object_storage.sh"
@@ -26,6 +27,7 @@ foundation_contract)
   optional_module_warn_missing_foundation_diff "object-storage"
   ;;
 helm)
+  provision_path="$(object_storage_render_values_file)"
   run_helm_template \
     "$OBJECT_STORAGE_HELM_RELEASE" \
     "$OBJECT_STORAGE_NAMESPACE" \

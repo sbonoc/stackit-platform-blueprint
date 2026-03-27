@@ -48,6 +48,9 @@ class SmokeStatusDiagnosticsTests(unittest.TestCase):
                 self.assertEqual(status_snapshot_payload["latestSmoke"]["status"], "success")
                 self.assertTrue(status_snapshot_payload["latestSmoke"]["resultPresent"])
                 self.assertTrue(status_snapshot_payload["latestSmoke"]["diagnosticsPresent"])
+                self.assertIn("workloadHealth", smoke_diagnostics_payload)
+                self.assertEqual(smoke_diagnostics_payload["workloadHealth"]["reportPath"], str(REPO_ROOT / "artifacts" / "infra" / "workload_health.json"))
+                self.assertIn("workloadHealth", status_snapshot_payload["latestSmoke"])
 
                 if expected_observability:
                     self.assertIn("observability", smoke_result_payload["enabledModules"])

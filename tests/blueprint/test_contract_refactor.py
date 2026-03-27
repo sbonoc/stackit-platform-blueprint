@@ -115,14 +115,20 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn('variable "postgres_version"', foundation_vars)
         self.assertIn('default     = "16"', foundation_vars)
         self.assertIn('postgres_instance_name', foundation_locals)
+        self.assertIn('postgres_instance_name_override = try(trimspace(var.postgres_instance_name), "")', foundation_locals)
         self.assertIn('postgres_acl_effective', foundation_locals)
         self.assertIn('distinct(concat(', foundation_locals)
         self.assertIn('stackit_ske_cluster.foundation[0].egress_address_ranges', foundation_locals)
         self.assertIn('dns_zone_dns_names', foundation_locals)
         self.assertIn('trimsuffix(zone, ".")', foundation_locals)
         self.assertIn('object_storage_bucket_name', foundation_locals)
+        self.assertIn('object_storage_bucket_name_override = try(trimspace(var.object_storage_bucket_name), "")', foundation_locals)
         self.assertIn('object_storage_credentials_group_name', foundation_locals)
         self.assertIn('secrets_manager_instance_name', foundation_locals)
+        self.assertIn('secrets_manager_instance_name_override = try(trimspace(var.secrets_manager_instance_name), "")', foundation_locals)
+        self.assertNotIn('coalesce(var.postgres_instance_name, "")', foundation_locals)
+        self.assertNotIn('coalesce(var.object_storage_bucket_name, "")', foundation_locals)
+        self.assertNotIn('coalesce(var.secrets_manager_instance_name, "")', foundation_locals)
         self.assertIn('name            = local.postgres_instance_name', foundation_main)
         self.assertIn('acl             = local.postgres_acl_effective', foundation_main)
         self.assertIn('enabled = var.dns_enabled && length(local.dns_zone_dns_names) > 0', foundation_main)
@@ -155,23 +161,37 @@ class RefactorContractsTests(unittest.TestCase):
         versions = _read("scripts/lib/infra/versions.sh")
         self.assertIn('POSTGRES_HELM_CHART_VERSION_PIN="15.5.38"', versions)
         self.assertIn('OBJECT_STORAGE_HELM_CHART_VERSION_PIN="17.0.21"', versions)
-        self.assertIn('RABBITMQ_HELM_CHART_VERSION_PIN="16.0.14"', versions)
+        self.assertIn('RABBITMQ_HELM_CHART_VERSION_PIN="14.7.0"', versions)
         self.assertIn('NEO4J_HELM_CHART_VERSION_PIN="2026.1.4"', versions)
         self.assertIn('PUBLIC_ENDPOINTS_HELM_CHART_VERSION_PIN="1.7.1"', versions)
         self.assertIn('IAP_HELM_CHART_VERSION_PIN="10.4.0"', versions)
+        self.assertIn('POSTGRES_LOCAL_IMAGE_REGISTRY="docker.io"', versions)
+        self.assertIn('POSTGRES_LOCAL_IMAGE_REPOSITORY="bitnamilegacy/postgresql"', versions)
+        self.assertIn('OBJECT_STORAGE_LOCAL_IMAGE_REPOSITORY="bitnamilegacy/minio"', versions)
+        self.assertIn('RABBITMQ_LOCAL_IMAGE_REPOSITORY="bitnamilegacy/rabbitmq"', versions)
+        self.assertIn('RABBITMQ_LOCAL_IMAGE_TAG="3.13.7-debian-12-r2"', versions)
+        self.assertIn('IAP_LOCAL_IMAGE_REGISTRY="quay.io"', versions)
 
         self.assertIn(
             'set_default_env POSTGRES_HELM_CHART_VERSION "$POSTGRES_HELM_CHART_VERSION_PIN"',
             _read("scripts/lib/infra/postgres.sh"),
         )
+        self.assertIn('set_default_env POSTGRES_IMAGE_REGISTRY "$POSTGRES_LOCAL_IMAGE_REGISTRY"', _read("scripts/lib/infra/postgres.sh"))
+        self.assertIn("postgres_render_values_file()", _read("scripts/lib/infra/postgres.sh"))
         self.assertIn(
             'set_default_env OBJECT_STORAGE_HELM_CHART_VERSION "$OBJECT_STORAGE_HELM_CHART_VERSION_PIN"',
             _read("scripts/lib/infra/object_storage.sh"),
         )
         self.assertIn(
+            'set_default_env OBJECT_STORAGE_IMAGE_REGISTRY "$OBJECT_STORAGE_LOCAL_IMAGE_REGISTRY"',
+            _read("scripts/lib/infra/object_storage.sh"),
+        )
+        self.assertIn("object_storage_render_values_file()", _read("scripts/lib/infra/object_storage.sh"))
+        self.assertIn(
             'set_default_env RABBITMQ_HELM_CHART_VERSION "$RABBITMQ_HELM_CHART_VERSION_PIN"',
             _read("scripts/lib/infra/rabbitmq.sh"),
         )
+        self.assertIn('set_default_env RABBITMQ_IMAGE_REGISTRY "$RABBITMQ_LOCAL_IMAGE_REGISTRY"', _read("scripts/lib/infra/rabbitmq.sh"))
         self.assertIn(
             'set_default_env NEO4J_HELM_CHART_VERSION "$NEO4J_HELM_CHART_VERSION_PIN"',
             _read("scripts/lib/infra/neo4j.sh"),
@@ -184,6 +204,30 @@ class RefactorContractsTests(unittest.TestCase):
             'set_default_env IAP_HELM_CHART_VERSION "$IAP_HELM_CHART_VERSION_PIN"',
             _read("scripts/lib/infra/identity_aware_proxy.sh"),
         )
+        self.assertIn('set_default_env IAP_IMAGE_REGISTRY "$IAP_LOCAL_IMAGE_REGISTRY"', _read("scripts/lib/infra/identity_aware_proxy.sh"))
+        self.assertIn("identity_aware_proxy_validate_cookie_secret()", _read("scripts/lib/infra/identity_aware_proxy.sh"))
+
+    def test_local_helm_templates_use_rendered_release_and_image_contracts(self) -> None:
+        postgres_values = _read("scripts/templates/infra/bootstrap/infra/local/helm/postgres/values.yaml")
+        object_storage_values = _read("scripts/templates/infra/bootstrap/infra/local/helm/object-storage/values.yaml")
+        rabbitmq_values = _read("scripts/templates/infra/bootstrap/infra/local/helm/rabbitmq/values.yaml")
+        iap_values = _read("scripts/templates/infra/bootstrap/infra/local/helm/identity-aware-proxy/values.yaml")
+
+        self.assertIn('fullnameOverride: "{{POSTGRES_HELM_RELEASE}}"', postgres_values)
+        self.assertIn('repository: "{{POSTGRES_IMAGE_REPOSITORY}}"', postgres_values)
+        self.assertIn('database: "{{POSTGRES_DB_NAME}}"', postgres_values)
+
+        self.assertIn('fullnameOverride: "{{OBJECT_STORAGE_HELM_RELEASE}}"', object_storage_values)
+        self.assertIn("allowInsecureImages: true", object_storage_values)
+        self.assertIn('defaultBuckets: "{{OBJECT_STORAGE_BUCKET_NAME}}"', object_storage_values)
+        self.assertIn("console:", object_storage_values)
+        self.assertIn("enabled: false", object_storage_values)
+
+        self.assertIn('repository: "{{RABBITMQ_IMAGE_REPOSITORY}}"', rabbitmq_values)
+        self.assertIn('tag: "{{RABBITMQ_IMAGE_TAG}}"', rabbitmq_values)
+
+        self.assertIn('repository: "{{IAP_IMAGE_REPOSITORY}}"', iap_values)
+        self.assertIn('tag: "{{IAP_IMAGE_TAG}}"', iap_values)
 
     def test_infra_audit_version_checks_local_helm_chart_pin_resolution(self) -> None:
         audit = _read("scripts/bin/infra/audit_version.sh")
@@ -195,6 +239,15 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn('audit_helm_chart_pin "NEO4J_HELM_CHART_VERSION_PIN" "neo4j/neo4j"', audit)
         self.assertIn('audit_helm_chart_pin "PUBLIC_ENDPOINTS_HELM_CHART_VERSION_PIN" "oci://docker.io/envoyproxy/gateway-helm"', audit)
         self.assertIn('audit_helm_chart_pin "IAP_HELM_CHART_VERSION_PIN" "oauth2-proxy/oauth2-proxy"', audit)
+        self.assertIn(
+            'audit_container_image_pin "POSTGRES_LOCAL_IMAGE_REGISTRY" "POSTGRES_LOCAL_IMAGE_REPOSITORY" "POSTGRES_LOCAL_IMAGE_TAG"',
+            audit,
+        )
+        self.assertIn(
+            'audit_container_image_pin "RABBITMQ_LOCAL_IMAGE_REGISTRY" "RABBITMQ_LOCAL_IMAGE_REPOSITORY" "RABBITMQ_LOCAL_IMAGE_TAG"',
+            audit,
+        )
+        self.assertIn('docker manifest inspect "$image_ref"', audit)
         self.assertIn('helm show chart "$chart_ref" --version "$version"', audit)
         self.assertIn('helm search repo "$chart_ref" --versions', audit)
         self.assertIn('run_cmd helm repo update "$repo_name"', tooling)
@@ -313,6 +366,8 @@ class RefactorContractsTests(unittest.TestCase):
                 "scripts/bin/blueprint/init_repo_interactive.sh",
                 "scripts/bin/blueprint/render_module_wrapper_skeletons.sh",
                 "scripts/bin/infra/destroy_disabled_modules.sh",
+                "scripts/bin/infra/local_destroy_all.sh",
+                "scripts/bin/infra/workload_health_check.py",
                 "scripts/bin/quality/check_test_pyramid.py",
                 "scripts/bin/quality/lint_docs.py",
                 "scripts/bin/quality/render_core_targets_doc.py",
@@ -385,6 +440,7 @@ class RefactorContractsTests(unittest.TestCase):
                 "quality-test-pyramid",
                 "infra-prereqs",
                 "infra-help-reference",
+                "infra-local-destroy-all",
                 "infra-destroy-disabled-modules",
                 "infra-stackit-ci-github-setup",
                 "infra-audit-version-cached",
@@ -545,7 +601,10 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn("make quality-docs-lint", docs_readme)
         self.assertIn("make quality-test-pyramid", docs_readme)
         self.assertIn("make docs-run", docs_readme)
+        self.assertIn("make infra-context", docs_readme)
         self.assertIn("make infra-status-json", docs_readme)
+        self.assertIn("make infra-local-destroy-all", docs_readme)
+        self.assertIn("make infra-stackit-destroy-all", docs_readme)
         self.assertIn("make blueprint-bootstrap", docs_readme)
         self.assertIn("make blueprint-render-module-wrapper-skeletons", docs_readme)
         self.assertIn("make blueprint-clean-generated", docs_readme)
@@ -558,14 +617,18 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn("[Endpoint Exposure Model](platform/consumer/endpoint_exposure_model.md)", docs_readme)
         self.assertIn("[Protected API Routes](platform/consumer/protected_api_routes.md)", docs_readme)
         self.assertIn("[Core Make Targets (Generated)](reference/generated/core_targets.generated.md)", docs_readme)
+        self.assertIn("artifacts/infra/workload_health.json", docs_readme)
 
     def test_consumer_quickstart_mentions_status_snapshot_and_no_duplicate_smoke(self) -> None:
         quickstart = _read("docs/platform/consumer/quickstart.md")
+        self.assertIn("make infra-context", quickstart)
         self.assertIn("make infra-provision-deploy", quickstart)
         self.assertIn("make infra-status-json", quickstart)
+        self.assertIn("LOCAL_KUBE_CONTEXT", quickstart)
         self.assertIn("[Endpoint Exposure Model](endpoint_exposure_model.md)", quickstart)
         self.assertIn("[Protected API Routes](protected_api_routes.md)", quickstart)
         self.assertIn("artifacts/infra/infra_status_snapshot.json", quickstart)
+        self.assertIn("artifacts/infra/workload_health.json", quickstart)
         self.assertNotIn("make infra-smoke", quickstart)
 
     def test_endpoint_exposure_model_is_seeded_and_template_synced(self) -> None:
@@ -668,6 +731,10 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn(expected_heading, troubleshooting)
         self.assertIn("resources are not destroyed automatically", troubleshooting)
         self.assertIn("infra-destroy-disabled-modules", troubleshooting)
+        self.assertIn("LOCAL_KUBE_CONTEXT", troubleshooting)
+        self.assertIn("artifacts/infra/workload_health.json", troubleshooting)
+        self.assertIn("infra-local-destroy-all", troubleshooting)
+        self.assertIn("infra-stackit-destroy-all", troubleshooting)
         self.assertEqual(troubleshooting, troubleshooting_template)
 
     def test_module_wrapper_skeletons_use_explicit_not_implemented_stub(self) -> None:

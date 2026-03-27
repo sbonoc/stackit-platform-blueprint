@@ -30,6 +30,28 @@ public_endpoints_gateway_manifest_content() {
     "PUBLIC_ENDPOINTS_GATEWAY_CLASS_NAME=$PUBLIC_ENDPOINTS_GATEWAY_CLASS_NAME"
 }
 
+public_endpoints_namespace_manifest_file() {
+  printf '%s\n' "$ROOT_DIR/artifacts/infra/rendered/public-endpoints.namespace.yaml"
+}
+
+public_endpoints_render_namespace_manifest() {
+  local target_path
+  target_path="$(public_endpoints_namespace_manifest_file)"
+  ensure_dir "$(dirname "$target_path")"
+  cat >"$target_path" <<EOF
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ${PUBLIC_ENDPOINTS_NAMESPACE}
+EOF
+  log_metric \
+    "public_endpoints_gateway_namespace_manifest_render_total" \
+    "1" \
+    "target=$target_path namespace=$PUBLIC_ENDPOINTS_NAMESPACE" >&2
+  log_info "rendered public-endpoints namespace manifest: $target_path" >&2
+  printf '%s\n' "$target_path"
+}
+
 public_endpoints_render_gateway_manifest() {
   local target_path
   target_path="$(public_endpoints_gateway_manifest_file)"
@@ -49,4 +71,73 @@ public_endpoints_render_values_file() {
   render_optional_module_values_file \
     "public-endpoints" \
     "infra/local/helm/public-endpoints/values.yaml"
+}
+
+public_endpoints_wait_for_resource_absence() {
+  local kind="$1"
+  local name="$2"
+  local timeout_seconds="${3:-60}"
+  local namespace="${4:-}"
+  local started_at now
+
+  started_at="$(date +%s)"
+  while true; do
+    if [[ -n "$namespace" ]]; then
+      if ! kubectl get "$kind" "$name" -n "$namespace" >/dev/null 2>&1; then
+        log_metric "public_endpoints_destroy_wait_total" "1" "kind=$kind name=$name status=deleted"
+        return 0
+      fi
+    elif ! kubectl get "$kind" "$name" >/dev/null 2>&1; then
+      log_metric "public_endpoints_destroy_wait_total" "1" "kind=$kind name=$name status=deleted"
+      return 0
+    fi
+
+    now="$(date +%s)"
+    if (( now - started_at >= timeout_seconds )); then
+      log_metric "public_endpoints_destroy_wait_total" "1" "kind=$kind name=$name status=timeout"
+      log_warn "timed out waiting for public-endpoints resource deletion kind=$kind name=$name namespace=${namespace:-cluster}"
+      return 1
+    fi
+
+    sleep 2
+  done
+}
+
+public_endpoints_gatewayclass_finalizers() {
+  kubectl get gatewayclass "$PUBLIC_ENDPOINTS_GATEWAY_CLASS_NAME" -o jsonpath='{.metadata.finalizers[*]}' 2>/dev/null || true
+}
+
+public_endpoints_force_clear_gatewayclass_finalizers() {
+  local finalizers
+  finalizers="$(public_endpoints_gatewayclass_finalizers)"
+
+  if [[ "$finalizers" != *"gateway-exists-finalizer.gateway.networking.k8s.io"* ]]; then
+    log_metric "public_endpoints_gatewayclass_finalizer_clear_total" "1" "status=skipped_missing_known_finalizer"
+    return 1
+  fi
+
+  # Local destroy must stay idempotent even if the Envoy Gateway controller has
+  # already disappeared. In that case the GatewayClass finalizer can never clear
+  # itself, so we remove the known class finalizer only after a bounded wait.
+  run_cmd kubectl patch gatewayclass "$PUBLIC_ENDPOINTS_GATEWAY_CLASS_NAME" --type=merge -p '{"metadata":{"finalizers":[]}}'
+  log_metric "public_endpoints_gatewayclass_finalizer_clear_total" "1" "status=executed"
+  log_warn "cleared stuck GatewayClass finalizers for public-endpoints: $PUBLIC_ENDPOINTS_GATEWAY_CLASS_NAME"
+  return 0
+}
+
+public_endpoints_delete_helm_gateway_baseline() {
+  prepare_cluster_access
+  require_command kubectl
+
+  run_cmd kubectl delete gateway "$PUBLIC_ENDPOINTS_GATEWAY_NAME" -n "$PUBLIC_ENDPOINTS_NAMESPACE" --ignore-not-found --wait=false
+  public_endpoints_wait_for_resource_absence "gateway" "$PUBLIC_ENDPOINTS_GATEWAY_NAME" 30 "$PUBLIC_ENDPOINTS_NAMESPACE" || true
+
+  run_cmd kubectl delete gatewayclass "$PUBLIC_ENDPOINTS_GATEWAY_CLASS_NAME" --ignore-not-found --wait=false
+  if public_endpoints_wait_for_resource_absence "gatewayclass" "$PUBLIC_ENDPOINTS_GATEWAY_CLASS_NAME" 30; then
+    return 0
+  fi
+
+  if public_endpoints_force_clear_gatewayclass_finalizers; then
+    public_endpoints_wait_for_resource_absence "gatewayclass" "$PUBLIC_ENDPOINTS_GATEWAY_CLASS_NAME" 15 || true
+  fi
 }

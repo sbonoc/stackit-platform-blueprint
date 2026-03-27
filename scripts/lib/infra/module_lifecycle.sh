@@ -263,3 +263,39 @@ run_disabled_modules_action() {
   log_metric "module_action_disabled_count" "$disabled_modules_count" "action=$action"
   log_metric "module_action_disabled_script_count" "$executed_scripts_count" "action=$action"
 }
+
+run_all_modules_action() {
+  local action="$1"
+  shift || true
+
+  local modules=("$@")
+  if [[ "${#modules[@]}" -eq 0 ]]; then
+    mapfile -t modules < <(default_optional_modules)
+  fi
+
+  local selected_modules_count=0
+  local executed_scripts_count=0
+  local module
+  local module_script
+  local had_script
+  for module in "${modules[@]}"; do
+    selected_modules_count=$((selected_modules_count + 1))
+    had_script="false"
+    while IFS= read -r module_script; do
+      [[ -n "${module_script}" ]] || continue
+      had_script="true"
+      if [[ ! -x "${module_script}" ]]; then
+        log_fatal "module action script not executable: ${module_script}"
+      fi
+      run_cmd "${module_script}"
+      executed_scripts_count=$((executed_scripts_count + 1))
+    done < <(module_action_scripts "${module}" "${action}")
+
+    if [[ "${had_script}" != "true" ]]; then
+      log_info "no ${action} action script for module=${module}; skipping"
+    fi
+  done
+
+  log_metric "module_action_all_count" "$selected_modules_count" "action=$action"
+  log_metric "module_action_all_script_count" "$executed_scripts_count" "action=$action"
+}

@@ -26,6 +26,7 @@ fi
 resolve_optional_module_execution "public-endpoints" "apply"
 provision_driver="$OPTIONAL_MODULE_EXECUTION_DRIVER"
 provision_path="$OPTIONAL_MODULE_EXECUTION_PATH"
+namespace_manifest_path="none"
 gateway_manifest_path="$provision_path"
 case "$provision_driver" in
 argocd_application_chart)
@@ -33,6 +34,7 @@ argocd_application_chart)
   ;;
 helm)
   provision_path="$(public_endpoints_render_values_file)"
+  namespace_manifest_path="$(public_endpoints_render_namespace_manifest)"
   gateway_manifest_path="$(public_endpoints_render_gateway_manifest)"
   run_helm_upgrade_install \
     "$PUBLIC_ENDPOINTS_HELM_RELEASE" \
@@ -40,8 +42,10 @@ helm)
     "$PUBLIC_ENDPOINTS_HELM_CHART" \
     "$PUBLIC_ENDPOINTS_HELM_CHART_VERSION" \
     "$provision_path"
-  # The controller install is only half of the contract; the shared
-  # GatewayClass/Gateway baseline must exist so app routes can attach.
+  # The shared Gateway contract lives in a dedicated namespace that may not
+  # exist yet during module-level provision time, so the module materializes it
+  # explicitly before applying the GatewayClass/Gateway manifest.
+  run_manifest_apply "$namespace_manifest_path"
   run_manifest_apply "$gateway_manifest_path"
   ;;
 *)
@@ -56,6 +60,7 @@ state_file="$(write_state_file "public_endpoints_runtime" \
   "edge_mode=gateway_api_envoy" \
   "provision_driver=$provision_driver" \
   "provision_path=$provision_path" \
+  "namespace_manifest_path=$namespace_manifest_path" \
   "gateway_manifest_path=$gateway_manifest_path" \
   "base_domain=$PUBLIC_ENDPOINTS_BASE_DOMAIN" \
   "gateway_name=$PUBLIC_ENDPOINTS_GATEWAY_NAME" \

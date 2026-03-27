@@ -1,0 +1,8 @@
+config:
+  # The chart installs only the Envoy Gateway controller. The shared
+  # GatewayClass/Gateway baseline is rendered separately so route ownership
+  # remains explicit in repo-managed manifests.
+  envoyGateway:
+    logging:
+      level:
+        default: info

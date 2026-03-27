@@ -22,6 +22,10 @@ if [[ "${1:-}" == "--help" ]]; then
   exit 0
 fi
 
+if [[ "$(tooling_execution_mode)" == "execute" ]] && command -v kubectl >/dev/null 2>&1; then
+  prepare_cluster_access
+fi
+
 state_flag() {
   local artifact_name="$1"
   if state_file_exists "$artifact_name"; then
@@ -46,9 +50,11 @@ export STATUS_STACKIT_RUNTIME_DEPLOY_PRESENT="$(state_flag stackit_runtime_deplo
 export STATUS_STACKIT_SMOKE_RUNTIME_PRESENT="$(state_flag stackit_smoke_runtime)"
 export STATUS_KUBECTL_CONTEXT="$(
   if command -v kubectl >/dev/null 2>&1; then
-    kubectl config current-context 2>/dev/null || true
+    active_kube_context_name || true
   fi
 )"
+export STATUS_KUBECONFIG_PATH="$(active_kubeconfig_path)"
+export STATUS_KUBE_ACCESS_SOURCE="$(active_kube_access_source)"
 export STATUS_SMOKE_RESULT_PATH="$ROOT_DIR/artifacts/infra/smoke_result.json"
 export STATUS_SMOKE_DIAGNOSTICS_PATH="$ROOT_DIR/artifacts/infra/smoke_diagnostics.json"
 
@@ -67,12 +73,16 @@ latest_smoke = {
     "resultPresent": smoke_result_path.is_file(),
     "diagnosticsPresent": smoke_diagnostics_path.is_file(),
     "status": "",
+    "workloadHealth": {},
 }
 # Keep the latest-smoke shape stable even when the most recent run failed before
 # writing both artifacts; callers can rely on presence flags instead of guessing.
 if smoke_result_path.is_file():
     result_payload = json.loads(smoke_result_path.read_text(encoding="utf-8"))
     latest_smoke["status"] = str(result_payload.get("status", ""))
+if smoke_diagnostics_path.is_file():
+    diagnostics_payload = json.loads(smoke_diagnostics_path.read_text(encoding="utf-8"))
+    latest_smoke["workloadHealth"] = diagnostics_payload.get("workloadHealth", {})
 payload = {
     "profile": os.environ.get("STATUS_PROFILE", ""),
     "stack": os.environ.get("STATUS_STACK", ""),
@@ -81,6 +91,8 @@ payload = {
     "observabilityEnabled": os.environ.get("STATUS_OBSERVABILITY_ENABLED", "false") == "true",
     "enabledModules": modules,
     "kubectlContext": os.environ.get("STATUS_KUBECTL_CONTEXT", "") or None,
+    "kubeconfigPath": os.environ.get("STATUS_KUBECONFIG_PATH", "") or None,
+    "kubeAccessSource": os.environ.get("STATUS_KUBE_ACCESS_SOURCE", "") or None,
     "latestSmoke": latest_smoke,
     "artifacts": {
         "provision": os.environ.get("STATUS_PROVISION_PRESENT", "false") == "true",

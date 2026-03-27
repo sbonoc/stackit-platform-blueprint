@@ -55,7 +55,7 @@ fi
 
 current_context="unavailable"
 if command -v kubectl >/dev/null 2>&1; then
-  current_context="$(kubectl config current-context 2>/dev/null || true)"
+  current_context="$(active_kube_context_name)"
   if [[ -z "$current_context" ]]; then
     current_context="unset"
   fi

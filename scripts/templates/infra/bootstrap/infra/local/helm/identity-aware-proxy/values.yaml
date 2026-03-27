@@ -1,3 +1,7 @@
+image:
+  registry: "{{IAP_IMAGE_REGISTRY}}"
+  repository: "{{IAP_IMAGE_REPOSITORY}}"
+  tag: "{{IAP_IMAGE_TAG}}"
 config:
   existingSecret: "{{IAP_CONFIG_SECRET_NAME}}"
   provider: oidc

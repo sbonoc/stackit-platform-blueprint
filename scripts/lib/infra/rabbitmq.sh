@@ -15,6 +15,9 @@ rabbitmq_seed_env_defaults() {
   set_default_env RABBITMQ_HELM_RELEASE "blueprint-rabbitmq"
   set_default_env RABBITMQ_HELM_CHART "bitnami/rabbitmq"
   set_default_env RABBITMQ_HELM_CHART_VERSION "$RABBITMQ_HELM_CHART_VERSION_PIN"
+  set_default_env RABBITMQ_IMAGE_REGISTRY "$RABBITMQ_LOCAL_IMAGE_REGISTRY"
+  set_default_env RABBITMQ_IMAGE_REPOSITORY "$RABBITMQ_LOCAL_IMAGE_REPOSITORY"
+  set_default_env RABBITMQ_IMAGE_TAG "$RABBITMQ_LOCAL_IMAGE_TAG"
 }
 
 rabbitmq_init_env() {
@@ -89,7 +92,10 @@ rabbitmq_render_values_file() {
     "infra/local/helm/rabbitmq/values.yaml" \
     "RABBITMQ_HELM_RELEASE=$RABBITMQ_HELM_RELEASE" \
     "RABBITMQ_USERNAME=$RABBITMQ_USERNAME" \
-    "RABBITMQ_PASSWORD_SECRET_NAME=$(rabbitmq_password_secret_name)"
+    "RABBITMQ_PASSWORD_SECRET_NAME=$(rabbitmq_password_secret_name)" \
+    "RABBITMQ_IMAGE_REGISTRY=$RABBITMQ_IMAGE_REGISTRY" \
+    "RABBITMQ_IMAGE_REPOSITORY=$RABBITMQ_IMAGE_REPOSITORY" \
+    "RABBITMQ_IMAGE_TAG=$RABBITMQ_IMAGE_TAG"
 }
 
 rabbitmq_reconcile_runtime_secret() {

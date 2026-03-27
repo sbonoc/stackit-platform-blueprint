@@ -1,0 +1,21 @@
+fullnameOverride: "blueprint-object-storage"
+global:
+  security:
+    # The blueprint pins mirrored public ECR images because the equivalent
+    # Docker Hub tags can disappear after upstream chart releases.
+    allowInsecureImages: true
+mode: standalone
+auth:
+  rootUser: "minioadmin"
+  rootPassword: "minioadmin123"
+defaultBuckets: "marketplace-assets"
+image:
+  registry: "docker.io"
+  repository: "bitnamilegacy/minio"
+  tag: "2025.7.23-debian-12-r3"
+clientImage:
+  registry: "docker.io"
+  repository: "bitnamilegacy/minio-client"
+  tag: "2025.7.21-debian-12-r2"
+console:
+  enabled: false

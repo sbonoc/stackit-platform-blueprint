@@ -10,13 +10,31 @@ identity_aware_proxy_seed_env_defaults() {
   set_default_env IAP_HELM_RELEASE "blueprint-iap"
   set_default_env IAP_HELM_CHART "oauth2-proxy/oauth2-proxy"
   set_default_env IAP_HELM_CHART_VERSION "$IAP_HELM_CHART_VERSION_PIN"
+  set_default_env IAP_IMAGE_REGISTRY "$IAP_LOCAL_IMAGE_REGISTRY"
+  set_default_env IAP_IMAGE_REPOSITORY "$IAP_LOCAL_IMAGE_REPOSITORY"
+  set_default_env IAP_IMAGE_TAG "$IAP_LOCAL_IMAGE_TAG"
   set_default_env PUBLIC_ENDPOINTS_NAMESPACE "network"
   set_default_env PUBLIC_ENDPOINTS_GATEWAY_NAME "public-endpoints"
+}
+
+identity_aware_proxy_validate_cookie_secret() {
+  local secret_length
+  secret_length="${#IAP_COOKIE_SECRET}"
+  case "$secret_length" in
+  16 | 24 | 32)
+    log_metric "identity_aware_proxy_cookie_secret_validation_total" "1" "status=valid length=$secret_length"
+    ;;
+  *)
+    log_metric "identity_aware_proxy_cookie_secret_validation_total" "1" "status=invalid length=$secret_length"
+    log_fatal "IAP_COOKIE_SECRET must be a raw 16, 24, or 32 byte string; got length=$secret_length"
+    ;;
+  esac
 }
 
 identity_aware_proxy_init_env() {
   identity_aware_proxy_seed_env_defaults
   require_env_vars IAP_UPSTREAM_URL KEYCLOAK_ISSUER_URL KEYCLOAK_CLIENT_ID KEYCLOAK_CLIENT_SECRET IAP_COOKIE_SECRET
+  identity_aware_proxy_validate_cookie_secret
 }
 
 identity_aware_proxy_public_url() {
@@ -54,7 +72,10 @@ identity_aware_proxy_render_values_file() {
     "PUBLIC_ENDPOINTS_NAMESPACE=$PUBLIC_ENDPOINTS_NAMESPACE" \
     "PUBLIC_ENDPOINTS_GATEWAY_NAME=$PUBLIC_ENDPOINTS_GATEWAY_NAME" \
     "IAP_PUBLIC_HOST=$(identity_aware_proxy_public_host)" \
-    "IAP_REDIRECT_URL=$(identity_aware_proxy_redirect_url)"
+    "IAP_REDIRECT_URL=$(identity_aware_proxy_redirect_url)" \
+    "IAP_IMAGE_REGISTRY=$IAP_IMAGE_REGISTRY" \
+    "IAP_IMAGE_REPOSITORY=$IAP_IMAGE_REPOSITORY" \
+    "IAP_IMAGE_TAG=$IAP_IMAGE_TAG"
 }
 
 identity_aware_proxy_reconcile_runtime_secret() {

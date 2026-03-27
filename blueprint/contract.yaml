@@ -56,9 +56,11 @@ spec:
       - scripts/bin/blueprint/validate_contract.py
       - scripts/bin/infra/destroy_disabled_modules.sh
       - scripts/bin/infra/local_crossplane_bootstrap.sh
+      - scripts/bin/infra/local_destroy_all.sh
       - scripts/bin/infra/core_runtime_bootstrap.sh
       - scripts/bin/infra/core_runtime_smoke.sh
       - scripts/bin/infra/stackit_foundation_seed_runtime_secret.sh
+      - scripts/bin/infra/workload_health_check.py
       - scripts/bin/quality/check_test_pyramid.py
       - scripts/bin/quality/lint_docs.py
       - scripts/bin/quality/render_core_targets_doc.py
@@ -243,9 +245,9 @@ spec:
       - stackit-prod
     profile_contract:
       local-full:
-        description: "Local KinD stack with optional modules available."
+        description: "Local Kubernetes stack with Docker Desktop preferred on workstations and optional modules available."
       local-lite:
-        description: "Local KinD stack without heavy optional services by default."
+        description: "Local Kubernetes stack with Docker Desktop preferred on workstations and lighter defaults."
       stackit-dev:
         description: "Managed STACKIT deployment for dev."
       stackit-stage:
@@ -269,7 +271,9 @@ spec:
 
   stack_contract:
     local:
-      kubernetes: kind
+      kubernetes: docker-desktop-preferred
+      kubernetes_override_env: LOCAL_KUBE_CONTEXT
+      ci_kubernetes: kind
       provisioning: crossplane
       deployment: argocd
       secrets: external-secrets-operator
@@ -447,6 +451,7 @@ spec:
       - infra-prereqs
       - infra-help-reference
       - infra-bootstrap
+      - infra-local-destroy-all
       - infra-destroy-disabled-modules
       - infra-validate
       - infra-smoke

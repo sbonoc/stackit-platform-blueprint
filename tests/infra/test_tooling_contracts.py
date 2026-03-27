@@ -28,6 +28,220 @@ printf 'class=%s\\ndriver=%s\\npath=%s\\nnote=%s\\n' \
     return result.stdout + result.stderr
 
 
+def resolve_local_kube_context_contract(
+    contexts: list[str],
+    current_context: str,
+    *,
+    ci: str = "false",
+    local_kube_context: str | None = None,
+) -> str:
+    with tempfile.TemporaryDirectory() as tmpdir:
+        kubectl = Path(tmpdir) / "kubectl"
+        kubectl.write_text(
+            "\n".join(
+                [
+                    "#!/bin/sh",
+                    'if [ "$1" = "config" ] && [ "$2" = "get-contexts" ] && [ "$3" = "-o" ] && [ "$4" = "name" ]; then',
+                    "  cat <<'EOF'",
+                    *contexts,
+                    "EOF",
+                    "  exit 0",
+                    "fi",
+                    'if [ "$1" = "config" ] && [ "$2" = "current-context" ]; then',
+                    f"  printf '%s\\n' '{current_context}'",
+                    "  exit 0",
+                    "fi",
+                    'printf \'unexpected kubectl call: %s\\n\' \"$*\" >&2',
+                    "exit 1",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        kubectl.chmod(0o755)
+
+        script = f"""
+export PATH="{tmpdir}:$PATH"
+export ROOT_DIR="{REPO_ROOT}"
+source "{REPO_ROOT}/scripts/lib/shell/bootstrap.sh"
+source "{REPO_ROOT}/scripts/lib/infra/tooling.sh"
+printf 'context=%s\\n' "$(resolve_local_kube_context)"
+printf 'source=%s\\n' "$(resolve_local_kube_context_source)"
+"""
+        env = {"BLUEPRINT_PROFILE": "local-full", "CI": ci}
+        if local_kube_context is not None:
+            env["LOCAL_KUBE_CONTEXT"] = local_kube_context
+        result = run(["bash", "-lc", script], env)
+        if result.returncode != 0:
+            raise AssertionError(result.stdout + result.stderr)
+        return result.stdout + result.stderr
+
+
+def cluster_crd_exists_contract(crds: list[str], query: str) -> bool:
+    with tempfile.TemporaryDirectory() as tmpdir:
+        kubectl = Path(tmpdir) / "kubectl"
+        kubectl.write_text(
+            "\n".join(
+                [
+                    "#!/bin/sh",
+                    'if [ "$1" = "--context=docker-desktop" ] && [ "$2" = "config" ] && [ "$3" = "view" ] && [ "$4" = "--raw" ] && [ "$5" = "--minify" ] && [ "$6" = "--flatten" ]; then',
+                    "  cat <<'EOF'",
+                    "apiVersion: v1",
+                    "kind: Config",
+                    "clusters:",
+                    "- cluster:",
+                    "    server: https://docker-desktop.example:6443",
+                    "  name: docker-desktop",
+                    "contexts:",
+                    "- context:",
+                    "    cluster: docker-desktop",
+                    "    user: docker-desktop",
+                    "  name: docker-desktop",
+                    "current-context: docker-desktop",
+                    "users:",
+                    "- name: docker-desktop",
+                    "  user:",
+                    "    token: placeholder",
+                    "EOF",
+                    "  exit 0",
+                    "fi",
+                    'if [ "$1" = "config" ] && [ "$2" = "get-contexts" ] && [ "$3" = "-o" ] && [ "$4" = "name" ]; then',
+                    "  printf '%s\\n' docker-desktop",
+                    "  exit 0",
+                    "fi",
+                    'if [ "$1" = "config" ] && [ "$2" = "current-context" ]; then',
+                    "  printf '%s\\n' docker-desktop",
+                    "  exit 0",
+                    "fi",
+                    'if [ \"$1\" = \"get\" ] && [ \"$2\" = \"crd\" ]; then',
+                    "  case \"$3\" in",
+                    *[f"    {crd}) exit 0 ;;" for crd in crds],
+                    "    *) exit 1 ;;",
+                    "  esac",
+                    "fi",
+                    'printf \'unexpected kubectl call: %s\\n\' \"$*\" >&2',
+                    "exit 1",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        kubectl.chmod(0o755)
+
+        script = f"""
+export PATH="{tmpdir}:$PATH"
+export ROOT_DIR="{REPO_ROOT}"
+export BLUEPRINT_PROFILE="local-full"
+export DRY_RUN="false"
+source "{REPO_ROOT}/scripts/lib/shell/bootstrap.sh"
+source "{REPO_ROOT}/scripts/lib/infra/tooling.sh"
+if cluster_crd_exists "{query}"; then
+  printf 'present\\n'
+else
+  printf 'missing\\n'
+fi
+"""
+        result = run(["bash", "-lc", script])
+        if result.returncode != 0:
+            raise AssertionError(result.stdout + result.stderr)
+        return result.stdout.strip().splitlines()[-1] == "present"
+
+
+def public_endpoints_delete_contract(*, require_finalizer_patch: bool) -> str:
+    with tempfile.TemporaryDirectory() as tmpdir:
+        state_file = Path(tmpdir) / "gatewayclass_patch_state"
+        kubectl = Path(tmpdir) / "kubectl"
+        kubectl.write_text(
+            "\n".join(
+                [
+                    "#!/bin/sh",
+                    f'STATE_FILE="{state_file}"',
+                    'if [ "$1" = "--context=docker-desktop" ] && [ "$2" = "config" ] && [ "$3" = "view" ] && [ "$4" = "--raw" ] && [ "$5" = "--minify" ] && [ "$6" = "--flatten" ]; then',
+                    "  cat <<'EOF'",
+                    "apiVersion: v1",
+                    "kind: Config",
+                    "clusters:",
+                    "- cluster:",
+                    "    server: https://docker-desktop.example:6443",
+                    "  name: docker-desktop",
+                    "contexts:",
+                    "- context:",
+                    "    cluster: docker-desktop",
+                    "    user: docker-desktop",
+                    "  name: docker-desktop",
+                    "current-context: docker-desktop",
+                    "users:",
+                    "- name: docker-desktop",
+                    "  user:",
+                    "    token: placeholder",
+                    "EOF",
+                    "  exit 0",
+                    "fi",
+                    'if [ "$1" = "config" ] && [ "$2" = "get-contexts" ] && [ "$3" = "-o" ] && [ "$4" = "name" ]; then',
+                    "  printf '%s\\n' docker-desktop",
+                    "  exit 0",
+                    "fi",
+                    'if [ "$1" = "config" ] && [ "$2" = "current-context" ]; then',
+                    "  printf '%s\\n' docker-desktop",
+                    "  exit 0",
+                    "fi",
+                    'if [ "$1" = "delete" ] && [ "$2" = "gateway" ]; then',
+                    "  exit 0",
+                    "fi",
+                    'if [ "$1" = "delete" ] && [ "$2" = "gatewayclass" ]; then',
+                    "  exit 0",
+                    "fi",
+                    'if [ "$1" = "get" ] && [ "$2" = "gatewayclass" ] && [ "$3" = "public-endpoints" ] && [ "$4" = "-o" ]; then',
+                    f"  if [ {1 if require_finalizer_patch else 0} -eq 1 ] && [ ! -f \"$STATE_FILE\" ]; then",
+                    "    printf '%s\\n' 'gateway-exists-finalizer.gateway.networking.k8s.io'",
+                    "  fi",
+                    "  exit 0",
+                    "fi",
+                    'if [ "$1" = "patch" ] && [ "$2" = "gatewayclass" ] && [ "$3" = "public-endpoints" ]; then',
+                    '  printf "%s\\n" patched > "$STATE_FILE"',
+                    "  exit 0",
+                    "fi",
+                    'printf \'unexpected kubectl call: %s\\n\' \"$*\" >&2',
+                    "exit 1",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        kubectl.chmod(0o755)
+
+        script = f"""
+export PATH="{tmpdir}:$PATH"
+export ROOT_DIR="{REPO_ROOT}"
+export BLUEPRINT_PROFILE="local-full"
+export DRY_RUN="false"
+export LOCAL_KUBE_CONTEXT="docker-desktop"
+source "{REPO_ROOT}/scripts/lib/shell/bootstrap.sh"
+source "{REPO_ROOT}/scripts/lib/infra/tooling.sh"
+source "{REPO_ROOT}/scripts/lib/infra/public_endpoints.sh"
+public_endpoints_init_env
+wait_call_count=0
+public_endpoints_wait_for_resource_absence() {{
+  wait_call_count=$((wait_call_count + 1))
+  if [[ "$1" == "gatewayclass" && "{str(require_finalizer_patch).lower()}" == "true" && "$wait_call_count" -eq 2 ]]; then
+    return 1
+  fi
+  return 0
+}}
+public_endpoints_delete_helm_gateway_baseline
+printf 'wait_call_count=%s\\n' "$wait_call_count"
+if [[ -f "{state_file}" ]]; then
+  printf 'patch_state=%s\\n' "$(cat "{state_file}")"
+else
+  printf 'patch_state=none\\n'
+fi
+"""
+        result = run(["bash", "-lc", script])
+        if result.returncode != 0:
+            raise AssertionError(result.stdout + result.stderr)
+        return result.stdout + result.stderr
+
+
 class ToolingContractsTests(unittest.TestCase):
     def test_fallback_runtime_values_helper_keeps_stdout_machine_readable(self) -> None:
         script = f"""
@@ -201,6 +415,48 @@ printf 'dsn=%s\\n' "$(postgres_dsn)"
         self.assertIn("driver=helm", resolved)
         self.assertIn(f"path={REPO_ROOT}/artifacts/infra/rendered/rabbitmq.values.yaml", resolved)
 
+    def test_local_context_prefers_docker_desktop_on_workstations(self) -> None:
+        resolved = resolve_local_kube_context_contract(
+            ["kind-blueprint-e2e", "docker-desktop", "kind-ppwr-local"],
+            "kind-ppwr-local",
+        )
+        self.assertIn("context=docker-desktop", resolved)
+        self.assertIn("source=docker-desktop-preferred", resolved)
+
+    def test_local_context_prefers_kind_in_ci(self) -> None:
+        resolved = resolve_local_kube_context_contract(
+            ["docker-desktop", "kind-blueprint-e2e", "kind-ppwr-local"],
+            "docker-desktop",
+            ci="true",
+        )
+        self.assertIn("context=kind-blueprint-e2e", resolved)
+        self.assertIn("source=ci-kind-blueprint-e2e", resolved)
+
+    def test_local_context_override_env_wins(self) -> None:
+        resolved = resolve_local_kube_context_contract(
+            ["docker-desktop", "kind-blueprint-e2e"],
+            "docker-desktop",
+            local_kube_context="kind-blueprint-e2e",
+        )
+        self.assertIn("context=kind-blueprint-e2e", resolved)
+        self.assertIn("source=env", resolved)
+
+    def test_public_endpoints_destroy_clears_stuck_gatewayclass_finalizer(self) -> None:
+        result = public_endpoints_delete_contract(require_finalizer_patch=True)
+        self.assertIn("patch_state=patched", result)
+        self.assertIn("public_endpoints_gatewayclass_finalizer_clear_total", result)
+
+    def test_public_endpoints_destroy_skips_gatewayclass_patch_when_not_needed(self) -> None:
+        result = public_endpoints_delete_contract(require_finalizer_patch=False)
+        self.assertIn("patch_state=none", result)
+        self.assertNotIn("public_endpoints_gatewayclass_finalizer_clear_total", result)
+
+    def test_cluster_crd_exists_detects_present_crd(self) -> None:
+        self.assertTrue(cluster_crd_exists_contract(["applications.argoproj.io"], "applications.argoproj.io"))
+
+    def test_cluster_crd_exists_detects_missing_crd(self) -> None:
+        self.assertFalse(cluster_crd_exists_contract(["applications.argoproj.io"], "appprojects.argoproj.io"))
+
     def test_optional_module_execution_resolves_stackit_provider_backed_rabbitmq_modes(self) -> None:
         resolved = resolve_optional_module_execution("rabbitmq", "apply", profile="stackit-dev")
         self.assertIn("class=provider_backed", resolved)
@@ -230,6 +486,23 @@ printf 'dsn=%s\\n' "$(postgres_dsn)"
         self.assertIn("class=fallback_runtime", resolved)
         self.assertIn("driver=argocd_optional_manifest", resolved)
         self.assertIn(f"path={REPO_ROOT}/infra/gitops/argocd/optional/local/langfuse.yaml", resolved)
+
+    def test_core_runtime_bootstrap_polls_crd_conditions_directly(self) -> None:
+        script = (REPO_ROOT / "scripts/bin/infra/core_runtime_bootstrap.sh").read_text(encoding="utf-8")
+        self.assertIn(".status.conditions", script)
+        self.assertIn("runtime_crd_wait_total", script)
+        self.assertNotIn("kubectl wait --for=condition=Established", script)
+
+    def test_stackit_foundation_apply_materializes_kubeconfig_artifact(self) -> None:
+        script = (REPO_ROOT / "scripts/bin/infra/stackit_foundation_apply.sh").read_text(encoding="utf-8")
+        self.assertIn("stackit_foundation_fetch_kubeconfig.sh", script)
+        self.assertIn("kubeconfig_state=", script)
+
+    def test_local_destroy_all_waits_for_namespace_deletion(self) -> None:
+        script = (REPO_ROOT / "scripts/bin/infra/local_destroy_all.sh").read_text(encoding="utf-8")
+        self.assertIn("wait_for_namespace_deletion()", script)
+        self.assertIn("local_destroy_all_namespace_wait_total", script)
+        self.assertIn("still in `Terminating`", script)
 
     def test_k8s_wait_extracts_server_url_from_kubeconfig(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

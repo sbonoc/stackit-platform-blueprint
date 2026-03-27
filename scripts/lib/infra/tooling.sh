@@ -25,6 +25,256 @@ tooling_is_execution_enabled() {
   [[ "$(tooling_execution_mode)" == "execute" ]]
 }
 
+tooling_is_local_profile() {
+  [[ "${BLUEPRINT_PROFILE:-local-full}" == local-* ]]
+}
+
+tooling_is_stackit_profile() {
+  [[ "${BLUEPRINT_PROFILE:-local-full}" == stackit-* ]]
+}
+
+kubectl_contexts_list() {
+  if ! command -v kubectl >/dev/null 2>&1; then
+    return 0
+  fi
+  kubectl config get-contexts -o name 2>/dev/null || true
+}
+
+kubectl_current_context_name() {
+  if ! command -v kubectl >/dev/null 2>&1; then
+    return 0
+  fi
+  kubectl config current-context 2>/dev/null || true
+}
+
+kubectl_context_exists() {
+  local context_name="$1"
+  kubectl_contexts_list | grep -Fxq "$context_name"
+}
+
+stackit_kubeconfig_path() {
+  set_default_env STACKIT_FOUNDATION_KUBECONFIG_OUTPUT "${HOME}/.kube/stackit-${BLUEPRINT_PROFILE}.yaml"
+  local kubeconfig_path="$STACKIT_FOUNDATION_KUBECONFIG_OUTPUT"
+  if [[ "$kubeconfig_path" != /* ]]; then
+    kubeconfig_path="$ROOT_DIR/$kubeconfig_path"
+  fi
+  printf '%s\n' "$kubeconfig_path"
+}
+
+local_kubeconfig_artifact_path() {
+  printf '%s/artifacts/infra/local_kubeconfig.yaml' "$ROOT_DIR"
+}
+
+resolve_local_kube_context() {
+  # Local workstation runs should favor the user's Docker Desktop cluster when
+  # available, while CI stays on ephemeral kind contexts for isolation.
+  if [[ -n "${LOCAL_KUBE_CONTEXT:-}" ]]; then
+    printf '%s\n' "$LOCAL_KUBE_CONTEXT"
+    return 0
+  fi
+
+  local current_context
+  current_context="$(kubectl_current_context_name)"
+
+  if [[ "$(tooling_normalize_bool "${CI:-false}")" == "true" ]]; then
+    if [[ "$current_context" =~ ^kind- ]]; then
+      printf '%s\n' "$current_context"
+      return 0
+    fi
+
+    if kubectl_context_exists "kind-blueprint-e2e"; then
+      printf 'kind-blueprint-e2e\n'
+      return 0
+    fi
+
+    local first_kind_context
+    first_kind_context="$(kubectl_contexts_list | grep '^kind-' | head -n 1 || true)"
+    if [[ -n "$first_kind_context" ]]; then
+      printf '%s\n' "$first_kind_context"
+      return 0
+    fi
+  fi
+
+  if kubectl_context_exists "docker-desktop"; then
+    printf 'docker-desktop\n'
+    return 0
+  fi
+
+  if [[ -n "$current_context" ]]; then
+    printf '%s\n' "$current_context"
+    return 0
+  fi
+
+  local first_context
+  first_context="$(kubectl_contexts_list | head -n 1 || true)"
+  printf '%s\n' "$first_context"
+}
+
+resolve_local_kube_context_source() {
+  if [[ -n "${LOCAL_KUBE_CONTEXT:-}" ]]; then
+    printf 'env\n'
+    return 0
+  fi
+
+  local current_context
+  current_context="$(kubectl_current_context_name)"
+
+  if [[ "$(tooling_normalize_bool "${CI:-false}")" == "true" ]]; then
+    if [[ "$current_context" =~ ^kind- ]]; then
+      printf 'ci-current-context\n'
+      return 0
+    fi
+    if kubectl_context_exists "kind-blueprint-e2e"; then
+      printf 'ci-kind-blueprint-e2e\n'
+      return 0
+    fi
+    if kubectl_contexts_list | grep -q '^kind-'; then
+      printf 'ci-first-kind-context\n'
+      return 0
+    fi
+  fi
+
+  if kubectl_context_exists "docker-desktop"; then
+    printf 'docker-desktop-preferred\n'
+    return 0
+  fi
+
+  if [[ -n "$current_context" ]]; then
+    printf 'current-context\n'
+    return 0
+  fi
+
+  printf 'first-context\n'
+}
+
+prepare_cluster_access() {
+  if ! tooling_is_execution_enabled; then
+    return 0
+  fi
+
+  if [[ -n "${BLUEPRINT_ACTIVE_KUBECONFIG:-}" && -f "${BLUEPRINT_ACTIVE_KUBECONFIG:-}" && -n "${BLUEPRINT_ACTIVE_KUBE_CONTEXT:-}" ]]; then
+    export KUBECONFIG="$BLUEPRINT_ACTIVE_KUBECONFIG"
+    return 0
+  fi
+
+  require_command kubectl
+
+  local kubeconfig_path context_name context_source
+  if tooling_is_stackit_profile; then
+    kubeconfig_path="$(stackit_kubeconfig_path)"
+    context_source="stackit-kubeconfig"
+    if [[ ! -f "$kubeconfig_path" ]]; then
+      log_fatal "missing STACKIT kubeconfig: $kubeconfig_path"
+    fi
+    export KUBECONFIG="$kubeconfig_path"
+    context_name="$(kubectl config current-context 2>/dev/null || true)"
+  elif tooling_is_local_profile; then
+    context_name="$(resolve_local_kube_context)"
+    context_source="$(resolve_local_kube_context_source)"
+    if [[ -z "$context_name" ]]; then
+      log_fatal "unable to resolve a local kubectl context; set LOCAL_KUBE_CONTEXT explicitly"
+    fi
+    kubeconfig_path="$(local_kubeconfig_artifact_path)"
+    ensure_dir "$(dirname "$kubeconfig_path")"
+    if ! kubectl --context="$context_name" config view --raw --minify --flatten >"$kubeconfig_path"; then
+      log_fatal "failed to materialize kubeconfig for local context=$context_name"
+    fi
+    chmod 600 "$kubeconfig_path"
+    export KUBECONFIG="$kubeconfig_path"
+  else
+    return 0
+  fi
+
+  export BLUEPRINT_ACTIVE_KUBECONFIG="$kubeconfig_path"
+  export BLUEPRINT_ACTIVE_KUBE_CONTEXT="${context_name:-unset}"
+  export BLUEPRINT_ACTIVE_KUBE_SOURCE="$context_source"
+  log_metric \
+    "kube_access_context_prepare_total" \
+    "1" \
+    "profile=${BLUEPRINT_PROFILE:-unset} context=${BLUEPRINT_ACTIVE_KUBE_CONTEXT} source=$context_source"
+  log_info \
+    "prepared cluster access profile=${BLUEPRINT_PROFILE:-unset} context=${BLUEPRINT_ACTIVE_KUBE_CONTEXT} source=$context_source kubeconfig=$kubeconfig_path"
+}
+
+active_kube_context_name() {
+  if [[ -n "${BLUEPRINT_ACTIVE_KUBE_CONTEXT:-}" ]]; then
+    printf '%s\n' "$BLUEPRINT_ACTIVE_KUBE_CONTEXT"
+    return 0
+  fi
+
+  if tooling_is_local_profile; then
+    if ! command -v kubectl >/dev/null 2>&1; then
+      return 0
+    fi
+    resolve_local_kube_context
+    return 0
+  fi
+
+  if tooling_is_stackit_profile; then
+    if ! command -v kubectl >/dev/null 2>&1; then
+      return 0
+    fi
+    local kubeconfig_path
+    kubeconfig_path="$(stackit_kubeconfig_path)"
+    if [[ -f "$kubeconfig_path" ]]; then
+      kubectl --kubeconfig "$kubeconfig_path" config current-context 2>/dev/null || true
+    fi
+    return 0
+  fi
+
+  kubectl_current_context_name
+}
+
+active_kubeconfig_path() {
+  if [[ -n "${BLUEPRINT_ACTIVE_KUBECONFIG:-}" ]]; then
+    printf '%s\n' "$BLUEPRINT_ACTIVE_KUBECONFIG"
+    return 0
+  fi
+
+  if tooling_is_stackit_profile; then
+    stackit_kubeconfig_path
+    return 0
+  fi
+
+  if tooling_is_local_profile; then
+    printf '%s\n' "$(local_kubeconfig_artifact_path)"
+    return 0
+  fi
+
+  printf '%s\n' "${KUBECONFIG:-}"
+}
+
+active_kube_access_source() {
+  if [[ -n "${BLUEPRINT_ACTIVE_KUBE_SOURCE:-}" ]]; then
+    printf '%s\n' "$BLUEPRINT_ACTIVE_KUBE_SOURCE"
+    return 0
+  fi
+
+  if tooling_is_local_profile; then
+    resolve_local_kube_context_source
+    return 0
+  fi
+
+  if tooling_is_stackit_profile; then
+    printf 'stackit-kubeconfig\n'
+    return 0
+  fi
+
+  printf 'current-context\n'
+}
+
+cluster_crd_exists() {
+  local crd_name="$1"
+
+  if ! tooling_is_execution_enabled; then
+    return 0
+  fi
+
+  prepare_cluster_access
+  require_command kubectl
+  kubectl get crd "$crd_name" >/dev/null 2>&1
+}
+
 terraform_dir_has_config() {
   local terraform_dir="$1"
   [[ -d "$terraform_dir" ]] || return 1
@@ -203,6 +453,7 @@ run_kustomize_apply() {
   fi
 
   if tooling_is_execution_enabled; then
+    prepare_cluster_access
     require_command kubectl
     run_cmd kubectl apply -k "$kustomize_dir"
     return 0
@@ -219,6 +470,7 @@ run_kustomize_delete() {
   fi
 
   if tooling_is_execution_enabled; then
+    prepare_cluster_access
     require_command kubectl
     run_cmd kubectl delete -k "$kustomize_dir" --ignore-not-found
     return 0
@@ -235,6 +487,7 @@ run_manifest_apply() {
   fi
 
   if tooling_is_execution_enabled; then
+    prepare_cluster_access
     require_command kubectl
     run_cmd kubectl apply -f "$manifest_file"
     return 0
@@ -251,6 +504,7 @@ run_manifest_delete() {
   fi
 
   if tooling_is_execution_enabled; then
+    prepare_cluster_access
     require_command kubectl
     run_cmd kubectl delete -f "$manifest_file" --ignore-not-found
     return 0
@@ -272,6 +526,7 @@ run_helm_upgrade_install() {
   fi
 
   if tooling_is_execution_enabled; then
+    prepare_cluster_access
     require_command helm
     prepare_helm_repo_for_chart "$chart_ref"
     run_cmd helm upgrade --install \
@@ -292,6 +547,7 @@ run_helm_uninstall() {
   local namespace="$2"
 
   if tooling_is_execution_enabled; then
+    prepare_cluster_access
     require_command helm
     run_cmd helm uninstall "$release_name" --namespace "$namespace" --ignore-not-found
     return 0
@@ -313,6 +569,7 @@ run_helm_template() {
   fi
 
   if tooling_is_execution_enabled; then
+    prepare_cluster_access
     require_command helm
     prepare_helm_repo_for_chart "$chart_ref"
     run_cmd helm template \

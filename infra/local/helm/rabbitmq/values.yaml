@@ -1,0 +1,11 @@
+fullnameOverride: "blueprint-rabbitmq"
+image:
+  registry: "docker.io"
+  repository: "bitnamilegacy/rabbitmq"
+  tag: "3.13.7-debian-12-r2"
+auth:
+  username: "marketplace"
+  existingPasswordSecret: "blueprint-rabbitmq-auth"
+  existingSecretPasswordKey: rabbitmq-password
+service:
+  type: ClusterIP

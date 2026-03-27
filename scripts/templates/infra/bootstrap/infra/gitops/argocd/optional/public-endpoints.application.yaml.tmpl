@@ -1,38 +1,67 @@
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: platform-public-endpoints-{{ENV}}
-  namespace: argocd
-  labels:
-    app.kubernetes.io/part-of: platform-blueprint
-    app.kubernetes.io/component: optional-module
-    app.kubernetes.io/name: public-endpoints
-    app.kubernetes.io/environment: {{ENV}}
-spec:
-  project: platform-edge-{{ENV}}
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: {{PUBLIC_ENDPOINTS_CONTROLLER_NAMESPACE}}
-  source:
-    repoURL: docker.io/envoyproxy
-    chart: gateway-helm
-    targetRevision: {{PUBLIC_ENDPOINTS_HELM_CHART_VERSION}}
-    helm:
-      releaseName: {{PUBLIC_ENDPOINTS_HELM_RELEASE}}
-      values: |
-        config:
-          envoyGateway:
-            logging:
-              level:
-                default: info
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
-      - ServerSideApply=true
-      - PrunePropagationPolicy=foreground
-      - PruneLast=true
----
-{{PUBLIC_ENDPOINTS_GATEWAY_MANIFEST}}
+apiVersion: v1
+kind: List
+items:
+  # Keep the optional public-endpoints payload as a single YAML document so it
+  # stays compatible with the repository's YAML lint policy and with ArgoCD's
+  # plain-manifest ingestion path.
+  - apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      name: platform-public-endpoints-{{ENV}}
+      namespace: argocd
+      labels:
+        app.kubernetes.io/part-of: platform-blueprint
+        app.kubernetes.io/component: optional-module
+        app.kubernetes.io/name: public-endpoints
+        app.kubernetes.io/environment: {{ENV}}
+    spec:
+      project: platform-edge-{{ENV}}
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: {{PUBLIC_ENDPOINTS_CONTROLLER_NAMESPACE}}
+      source:
+        repoURL: docker.io/envoyproxy
+        chart: gateway-helm
+        targetRevision: {{PUBLIC_ENDPOINTS_HELM_CHART_VERSION}}
+        helm:
+          releaseName: {{PUBLIC_ENDPOINTS_HELM_RELEASE}}
+          values: |
+            config:
+              envoyGateway:
+                logging:
+                  level:
+                    default: info
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true
+          - PrunePropagationPolicy=foreground
+          - PruneLast=true
+  - apiVersion: gateway.networking.k8s.io/v1
+    kind: GatewayClass
+    metadata:
+      name: {{PUBLIC_ENDPOINTS_GATEWAY_CLASS_NAME}}
+    spec:
+      controllerName: gateway.envoyproxy.io/gatewayclass-controller
+  - apiVersion: gateway.networking.k8s.io/v1
+    kind: Gateway
+    metadata:
+      name: {{PUBLIC_ENDPOINTS_GATEWAY_NAME}}
+      namespace: {{PUBLIC_ENDPOINTS_NAMESPACE}}
+      labels:
+        app.kubernetes.io/part-of: platform-blueprint
+        app.kubernetes.io/component: public-endpoints
+    spec:
+      gatewayClassName: {{PUBLIC_ENDPOINTS_GATEWAY_CLASS_NAME}}
+      listeners:
+        # Routes attach from multiple platform namespaces, so the shared edge
+        # listener must allow cross-namespace HTTPRoute attachment.
+        - name: http
+          protocol: HTTP
+          port: 80
+          allowedRoutes:
+            namespaces:
+              from: All

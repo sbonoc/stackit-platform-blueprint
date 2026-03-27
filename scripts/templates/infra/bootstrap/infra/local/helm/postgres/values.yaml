@@ -1,7 +1,12 @@
+fullnameOverride: "{{POSTGRES_HELM_RELEASE}}"
 auth:
-  username: appuser
-  password: changeme
-  database: appdb
+  username: "{{POSTGRES_USER}}"
+  password: "{{POSTGRES_PASSWORD}}"
+  database: "{{POSTGRES_DB_NAME}}"
+image:
+  registry: "{{POSTGRES_IMAGE_REGISTRY}}"
+  repository: "{{POSTGRES_IMAGE_REPOSITORY}}"
+  tag: "{{POSTGRES_IMAGE_TAG}}"
 primary:
   persistence:
     enabled: false

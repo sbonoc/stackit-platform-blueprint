@@ -5,6 +5,8 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
 source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 source "$ROOT_DIR/scripts/lib/blueprint/bootstrap_templates.sh"
+source "$ROOT_DIR/scripts/lib/infra/postgres.sh"
+source "$ROOT_DIR/scripts/lib/infra/object_storage.sh"
 source "$ROOT_DIR/scripts/lib/infra/rabbitmq.sh"
 source "$ROOT_DIR/scripts/lib/infra/public_endpoints.sh"
 source "$ROOT_DIR/scripts/lib/infra/identity_aware_proxy.sh"
@@ -235,6 +237,37 @@ bootstrap_module_scaffold() {
   if [[ "$include_helm_values" == "true" ]]; then
     ensure_dir "$ROOT_DIR/infra/local/helm/$module"
     case "$module" in
+    postgres)
+      postgres_init_env
+      ensure_file_from_rendered_template \
+        "$ROOT_DIR/infra/local/helm/$module/values.yaml" \
+        "infra" \
+        "infra/local/helm/$module/values.yaml" \
+        "POSTGRES_HELM_RELEASE=$POSTGRES_HELM_RELEASE" \
+        "POSTGRES_USER=$POSTGRES_USER" \
+        "POSTGRES_PASSWORD=$POSTGRES_PASSWORD" \
+        "POSTGRES_DB_NAME=$POSTGRES_DB_NAME" \
+        "POSTGRES_IMAGE_REGISTRY=$POSTGRES_IMAGE_REGISTRY" \
+        "POSTGRES_IMAGE_REPOSITORY=$POSTGRES_IMAGE_REPOSITORY" \
+        "POSTGRES_IMAGE_TAG=$POSTGRES_IMAGE_TAG"
+      ;;
+    object-storage)
+      object_storage_init_env
+      ensure_file_from_rendered_template \
+        "$ROOT_DIR/infra/local/helm/$module/values.yaml" \
+        "infra" \
+        "infra/local/helm/$module/values.yaml" \
+        "OBJECT_STORAGE_HELM_RELEASE=$OBJECT_STORAGE_HELM_RELEASE" \
+        "OBJECT_STORAGE_ACCESS_KEY=$OBJECT_STORAGE_ACCESS_KEY" \
+        "OBJECT_STORAGE_SECRET_KEY=$OBJECT_STORAGE_SECRET_KEY" \
+        "OBJECT_STORAGE_BUCKET_NAME=$OBJECT_STORAGE_BUCKET_NAME" \
+        "OBJECT_STORAGE_IMAGE_REGISTRY=$OBJECT_STORAGE_IMAGE_REGISTRY" \
+        "OBJECT_STORAGE_IMAGE_REPOSITORY=$OBJECT_STORAGE_IMAGE_REPOSITORY" \
+        "OBJECT_STORAGE_IMAGE_TAG=$OBJECT_STORAGE_IMAGE_TAG" \
+        "OBJECT_STORAGE_CLIENT_IMAGE_REGISTRY=$OBJECT_STORAGE_CLIENT_IMAGE_REGISTRY" \
+        "OBJECT_STORAGE_CLIENT_IMAGE_REPOSITORY=$OBJECT_STORAGE_CLIENT_IMAGE_REPOSITORY" \
+        "OBJECT_STORAGE_CLIENT_IMAGE_TAG=$OBJECT_STORAGE_CLIENT_IMAGE_TAG"
+      ;;
     rabbitmq)
       rabbitmq_seed_env_defaults
       ensure_file_from_rendered_template \
@@ -243,7 +276,10 @@ bootstrap_module_scaffold() {
         "infra/local/helm/$module/values.yaml" \
         "RABBITMQ_HELM_RELEASE=$RABBITMQ_HELM_RELEASE" \
         "RABBITMQ_USERNAME=$RABBITMQ_USERNAME" \
-        "RABBITMQ_PASSWORD_SECRET_NAME=$(rabbitmq_password_secret_name)"
+        "RABBITMQ_PASSWORD_SECRET_NAME=$(rabbitmq_password_secret_name)" \
+        "RABBITMQ_IMAGE_REGISTRY=$RABBITMQ_IMAGE_REGISTRY" \
+        "RABBITMQ_IMAGE_REPOSITORY=$RABBITMQ_IMAGE_REPOSITORY" \
+        "RABBITMQ_IMAGE_TAG=$RABBITMQ_IMAGE_TAG"
       ;;
     public-endpoints)
       public_endpoints_seed_env_defaults
@@ -264,7 +300,10 @@ bootstrap_module_scaffold() {
         "PUBLIC_ENDPOINTS_NAMESPACE=$PUBLIC_ENDPOINTS_NAMESPACE" \
         "PUBLIC_ENDPOINTS_GATEWAY_NAME=$PUBLIC_ENDPOINTS_GATEWAY_NAME" \
         "IAP_PUBLIC_HOST=$(identity_aware_proxy_public_host)" \
-        "IAP_REDIRECT_URL=$(identity_aware_proxy_redirect_url)"
+        "IAP_REDIRECT_URL=$(identity_aware_proxy_redirect_url)" \
+        "IAP_IMAGE_REGISTRY=$IAP_IMAGE_REGISTRY" \
+        "IAP_IMAGE_REPOSITORY=$IAP_IMAGE_REPOSITORY" \
+        "IAP_IMAGE_TAG=$IAP_IMAGE_TAG"
       ;;
     *)
       ensure_file_from_template \
@@ -371,8 +410,7 @@ bootstrap_optional_manifest() {
       "PUBLIC_ENDPOINTS_GATEWAY_NAME=$PUBLIC_ENDPOINTS_GATEWAY_NAME" \
       "PUBLIC_ENDPOINTS_GATEWAY_CLASS_NAME=$PUBLIC_ENDPOINTS_GATEWAY_CLASS_NAME" \
       "PUBLIC_ENDPOINTS_HELM_RELEASE=$PUBLIC_ENDPOINTS_HELM_RELEASE" \
-      "PUBLIC_ENDPOINTS_HELM_CHART_VERSION=$PUBLIC_ENDPOINTS_HELM_CHART_VERSION" \
-      "PUBLIC_ENDPOINTS_GATEWAY_MANIFEST=$(public_endpoints_gateway_manifest_content)"
+      "PUBLIC_ENDPOINTS_HELM_CHART_VERSION=$PUBLIC_ENDPOINTS_HELM_CHART_VERSION"
     ;;
   identity-aware-proxy)
     identity_aware_proxy_seed_env_defaults
@@ -390,7 +428,10 @@ bootstrap_optional_manifest() {
       "PUBLIC_ENDPOINTS_NAMESPACE=$PUBLIC_ENDPOINTS_NAMESPACE" \
       "PUBLIC_ENDPOINTS_GATEWAY_NAME=$PUBLIC_ENDPOINTS_GATEWAY_NAME" \
       "IAP_PUBLIC_HOST=$(identity_aware_proxy_public_host)" \
-      "IAP_REDIRECT_URL=$(identity_aware_proxy_redirect_url)"
+      "IAP_REDIRECT_URL=$(identity_aware_proxy_redirect_url)" \
+      "IAP_IMAGE_REGISTRY=$IAP_IMAGE_REGISTRY" \
+      "IAP_IMAGE_REPOSITORY=$IAP_IMAGE_REPOSITORY" \
+      "IAP_IMAGE_TAG=$IAP_IMAGE_TAG"
     ;;
   *)
     ensure_file_from_rendered_template \

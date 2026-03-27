@@ -75,7 +75,7 @@ def module_flags_env(
     kms: str = "false",
     identity_aware_proxy: str = "false",
 ) -> dict[str, str]:
-    return {
+    env = {
         "BLUEPRINT_PROFILE": profile,
         "OBSERVABILITY_ENABLED": observability,
         "WORKFLOWS_ENABLED": workflows,
@@ -90,6 +90,16 @@ def module_flags_env(
         "KMS_ENABLED": kms,
         "IDENTITY_AWARE_PROXY_ENABLED": identity_aware_proxy,
     }
+
+    # Tests that enable provider-backed Postgres need stable contract inputs so
+    # `infra-bootstrap` can render the local/STACKIT scaffolding deterministically.
+    if postgres == "true":
+        env.setdefault("POSTGRES_INSTANCE_NAME", "blueprint-postgres")
+        env.setdefault("POSTGRES_DB_NAME", "platform")
+        env.setdefault("POSTGRES_USER", "platform")
+        env.setdefault("POSTGRES_PASSWORD", "platform-password")
+
+    return env
 
 
 def run(

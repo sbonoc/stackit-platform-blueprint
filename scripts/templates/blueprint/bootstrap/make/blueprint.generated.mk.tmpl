@@ -4,7 +4,7 @@ SHELL := /bin/bash
 .PHONY: help \
   blueprint-init-repo blueprint-init-repo-interactive blueprint-check-placeholders blueprint-template-smoke blueprint-release-notes blueprint-migrate blueprint-bootstrap blueprint-render-makefile blueprint-clean-generated blueprint-render-module-wrapper-skeletons \
   quality-hooks-run quality-docs-lint quality-docs-sync-core-targets quality-docs-check-core-targets-sync quality-docs-sync-contract-metadata quality-docs-check-contract-metadata-sync quality-test-pyramid \
-  infra-prereqs infra-help-reference infra-bootstrap infra-destroy-disabled-modules infra-validate infra-smoke infra-provision infra-deploy infra-provision-deploy \
+  infra-prereqs infra-help-reference infra-bootstrap infra-local-destroy-all infra-destroy-disabled-modules infra-validate infra-smoke infra-provision infra-deploy infra-provision-deploy \
   infra-stackit-bootstrap-preflight infra-stackit-bootstrap-plan infra-stackit-bootstrap-apply infra-stackit-bootstrap-destroy \
   infra-stackit-foundation-preflight infra-stackit-foundation-plan infra-stackit-foundation-apply infra-stackit-foundation-destroy \
   infra-stackit-foundation-fetch-kubeconfig infra-stackit-foundation-refresh-kubeconfig infra-stackit-foundation-seed-runtime-secret \
@@ -85,6 +85,9 @@ infra-help-reference: ## Show full Make targets and variable defaults reference
 
 infra-bootstrap: ## Bootstrap infra-only tooling/scaffolding
 	@scripts/bin/infra/bootstrap.sh
+
+infra-local-destroy-all: ## Destroy blueprint-managed resources from the selected local cluster and preserve the cluster itself
+	@scripts/bin/infra/local_destroy_all.sh
 
 infra-destroy-disabled-modules: ## Destroy resources for currently disabled optional modules
 	@scripts/bin/infra/destroy_disabled_modules.sh

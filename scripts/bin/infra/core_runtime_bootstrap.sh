@@ -31,7 +31,33 @@ fi
 wait_for_crd_established() {
   local crd_name="$1"
   local timeout_seconds="${2:-300}"
-  run_cmd kubectl wait --for=condition=Established "crd/$crd_name" --timeout="${timeout_seconds}s"
+  local started_at
+  local now
+  local elapsed
+  local conditions
+
+  started_at="$(date +%s)"
+  log_info "waiting for CRD to report Established=True: $crd_name"
+
+  while true; do
+    # Some clusters briefly return CRDs before `.status.conditions` is
+    # populated, which makes `kubectl wait` fail with an accessor error. Poll
+    # the CRD conditions directly so runtime bootstrap tolerates that window.
+    conditions="$(kubectl get "crd/$crd_name" -o jsonpath='{range .status.conditions[*]}{.type}={.status}{"\n"}{end}' 2>/dev/null || true)"
+    if printf '%s\n' "$conditions" | grep -qx 'Established=True'; then
+      log_metric "runtime_crd_wait_total" "1" "crd=$crd_name status=ready"
+      return 0
+    fi
+
+    now="$(date +%s)"
+    elapsed="$((now - started_at))"
+    if (( elapsed >= timeout_seconds )); then
+      log_metric "runtime_crd_wait_total" "1" "crd=$crd_name status=timeout"
+      log_fatal "timed out waiting for CRD to report Established=True: $crd_name"
+    fi
+
+    sleep 2
+  done
 }
 
 wait_for_deployments_by_instance_label() {
@@ -72,6 +98,8 @@ fi
 if [[ ! -f "$external_secrets_values_file" ]]; then
   log_fatal "missing External Secrets values file: $external_secrets_values_file"
 fi
+
+prepare_cluster_access
 
 run_helm_upgrade_install \
   "$ARGOCD_HELM_RELEASE" \

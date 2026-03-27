@@ -19,7 +19,7 @@ start_script_metric_trap "infra_identity_aware_proxy_destroy"
 set_default_env KEYCLOAK_ISSUER_URL "https://keycloak.placeholder.invalid/realms/placeholder"
 set_default_env KEYCLOAK_CLIENT_ID "placeholder-client-id"
 set_default_env KEYCLOAK_CLIENT_SECRET "placeholder-client-secret"
-set_default_env IAP_COOKIE_SECRET "placeholder-cookie-secret"
+set_default_env IAP_COOKIE_SECRET "0123456789abcdef0123456789abcdef"
 identity_aware_proxy_init_env
 resolve_optional_module_execution "identity-aware-proxy" "destroy"
 destroy_driver="$OPTIONAL_MODULE_EXECUTION_DRIVER"

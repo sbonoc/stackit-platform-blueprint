@@ -104,7 +104,7 @@ seed_template_smoke_contract_env() {
   set_default_env KEYCLOAK_ISSUER_URL "https://keycloak.${BLUEPRINT_GITHUB_REPO}.example.com/realms/platform"
   set_default_env KEYCLOAK_CLIENT_ID "blueprint-client"
   set_default_env KEYCLOAK_CLIENT_SECRET "blueprint-client-secret"
-  set_default_env IAP_COOKIE_SECRET "0123456789abcdef0123456789abcdef01234567"
+  set_default_env IAP_COOKIE_SECRET "0123456789abcdef0123456789abcdef"
   set_default_env IAP_UPSTREAM_URL "http://catalog.apps.svc.cluster.local:8080"
   set_default_env IAP_PUBLIC_HOST "iap.${BLUEPRINT_GITHUB_REPO}.example.com"
 

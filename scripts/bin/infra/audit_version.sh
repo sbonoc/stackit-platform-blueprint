@@ -32,6 +32,7 @@ fi
 failures=0
 warnings=0
 helm_pin_checks_skipped="false"
+docker_pin_checks_skipped="false"
 
 audit_var() {
   local var_name="$1"
@@ -137,6 +138,39 @@ audit_helm_chart_pin() {
   failures=$((failures + 1))
 }
 
+audit_container_image_pin() {
+  local registry_var="$1"
+  local repository_var="$2"
+  local tag_var="$3"
+  local registry="${!registry_var:-}"
+  local repository="${!repository_var:-}"
+  local tag="${!tag_var:-}"
+
+  if [[ -z "$registry" || -z "$repository" || -z "$tag" ]]; then
+    log_error "missing runtime image pin values for $registry_var/$repository_var/$tag_var"
+    failures=$((failures + 1))
+    return 0
+  fi
+
+  if ! shell_has_cmd docker; then
+    if [[ "$docker_pin_checks_skipped" == "false" ]]; then
+      log_warn "docker not installed; skipping runtime image manifest resolution checks"
+      docker_pin_checks_skipped="true"
+    fi
+    return 0
+  fi
+
+  local image_ref="${registry}/${repository}:${tag}"
+  if docker manifest inspect "$image_ref" >/dev/null 2>&1; then
+    log_metric "container_image_pin_check_total" "1" "image=$image_ref status=found"
+    return 0
+  fi
+
+  log_metric "container_image_pin_check_total" "1" "image=$image_ref status=missing"
+  log_error "pinned container image not found: $image_ref"
+  failures=$((failures + 1))
+}
+
 tracked_vars=(
   TERRAFORM_VERSION
   HELM_VERSION
@@ -167,6 +201,12 @@ audit_helm_chart_pin "RABBITMQ_HELM_CHART_VERSION_PIN" "bitnami/rabbitmq"
 audit_helm_chart_pin "NEO4J_HELM_CHART_VERSION_PIN" "neo4j/neo4j"
 audit_helm_chart_pin "PUBLIC_ENDPOINTS_HELM_CHART_VERSION_PIN" "oci://docker.io/envoyproxy/gateway-helm"
 audit_helm_chart_pin "IAP_HELM_CHART_VERSION_PIN" "oauth2-proxy/oauth2-proxy"
+
+audit_container_image_pin "POSTGRES_LOCAL_IMAGE_REGISTRY" "POSTGRES_LOCAL_IMAGE_REPOSITORY" "POSTGRES_LOCAL_IMAGE_TAG"
+audit_container_image_pin "OBJECT_STORAGE_LOCAL_IMAGE_REGISTRY" "OBJECT_STORAGE_LOCAL_IMAGE_REPOSITORY" "OBJECT_STORAGE_LOCAL_IMAGE_TAG"
+audit_container_image_pin "OBJECT_STORAGE_LOCAL_CLIENT_IMAGE_REGISTRY" "OBJECT_STORAGE_LOCAL_CLIENT_IMAGE_REPOSITORY" "OBJECT_STORAGE_LOCAL_CLIENT_IMAGE_TAG"
+audit_container_image_pin "RABBITMQ_LOCAL_IMAGE_REGISTRY" "RABBITMQ_LOCAL_IMAGE_REPOSITORY" "RABBITMQ_LOCAL_IMAGE_TAG"
+audit_container_image_pin "IAP_LOCAL_IMAGE_REGISTRY" "IAP_LOCAL_IMAGE_REPOSITORY" "IAP_LOCAL_IMAGE_TAG"
 
 if [[ $warnings -gt 0 ]]; then
   log_warn "version audit completed with $warnings warning(s)"
