@@ -6,7 +6,7 @@ Provision RabbitMQ for transaction state/event propagation and async notificatio
 ## Stack Execution Model
 - Optional module Make targets are materialized by `make blueprint-render-makefile` (or `make blueprint-bootstrap`) when `RABBITMQ_ENABLED=true`.
 - Scaffolding paths are materialized by `make infra-bootstrap` only when `RABBITMQ_ENABLED=true`.
-- `stackit-*` profiles: module-specific ArgoCD `Application` reconciles `bitnami/rabbitmq` from `infra/gitops/argocd/optional/${ENV}/rabbitmq.yaml`, with runtime credentials seeded as a Kubernetes Secret.
+- `stackit-*` profiles: STACKIT foundation provisions managed RabbitMQ through `stackit_rabbitmq_instance` plus `stackit_rabbitmq_credential`, and wrappers read terraform outputs into the runtime contract.
 - `local-*` profiles: Helm chart (`bitnami/rabbitmq`) runs from a rendered values artifact derived from the scaffold contract in `infra/local/helm/rabbitmq/values.yaml`.
 
 ## Enable
@@ -16,8 +16,12 @@ export RABBITMQ_ENABLED=true
 
 ## Required Inputs
 - `RABBITMQ_INSTANCE_NAME`
+
+## Optional Inputs
 - `RABBITMQ_USERNAME`
 - `RABBITMQ_PASSWORD`
+- `RABBITMQ_VERSION`
+- `RABBITMQ_PLAN_NAME`
 
 ## Commands
 - `make infra-rabbitmq-plan`
@@ -28,6 +32,8 @@ export RABBITMQ_ENABLED=true
 ## Outputs
 - `RABBITMQ_HOST`
 - `RABBITMQ_PORT`
+- `RABBITMQ_USERNAME`
+- `RABBITMQ_PASSWORD`
 - `RABBITMQ_URI`
 
-`RABBITMQ_HOST` resolves to the in-cluster service host backed by the Helm release in both local and STACKIT fallback-runtime profiles.
+`RABBITMQ_HOST` resolves to the in-cluster Helm service host for local profiles and to provider-managed broker coordinates for `stackit-*` profiles. In dry-run `stackit-*` flows, the wrappers emit deterministic `.stackit.invalid` placeholders until terraform outputs exist.

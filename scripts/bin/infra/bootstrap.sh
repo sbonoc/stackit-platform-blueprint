@@ -359,19 +359,6 @@ bootstrap_optional_manifest() {
   local env="$2"
 
   case "$module" in
-  rabbitmq)
-    rabbitmq_seed_env_defaults
-    ensure_file_from_rendered_template \
-      "$ROOT_DIR/infra/gitops/argocd/optional/$env/$module.yaml" \
-      "infra" \
-      "infra/gitops/argocd/optional/rabbitmq.application.yaml.tmpl" \
-      "ENV=$env" \
-      "RABBITMQ_NAMESPACE=$RABBITMQ_NAMESPACE" \
-      "RABBITMQ_HELM_RELEASE=$RABBITMQ_HELM_RELEASE" \
-      "RABBITMQ_HELM_CHART_VERSION=$RABBITMQ_HELM_CHART_VERSION" \
-      "RABBITMQ_USERNAME=$RABBITMQ_USERNAME" \
-      "RABBITMQ_PASSWORD_SECRET_NAME=$(rabbitmq_password_secret_name)"
-    ;;
   public-endpoints)
     public_endpoints_seed_env_defaults
     ensure_file_from_rendered_template \
@@ -437,13 +424,6 @@ bootstrap_optional_manifests() {
   if is_module_enabled neo4j; then
     for env in local dev stage prod; do
       bootstrap_optional_manifest neo4j "$env"
-      rendered_optional_manifest_count=$((rendered_optional_manifest_count + 1))
-    done
-  fi
-
-  if is_module_enabled rabbitmq; then
-    for env in local dev stage prod; do
-      bootstrap_optional_manifest rabbitmq "$env"
       rendered_optional_manifest_count=$((rendered_optional_manifest_count + 1))
     done
   fi
@@ -527,9 +507,6 @@ prune_optional_module_scaffolding() {
     prune_path_if_exists "$ROOT_DIR/infra/cloud/stackit/terraform/modules/rabbitmq" && pruned_path_count=$((pruned_path_count + 1))
     prune_path_if_exists "$ROOT_DIR/infra/local/helm/rabbitmq" && pruned_path_count=$((pruned_path_count + 1))
     prune_path_if_exists "$ROOT_DIR/tests/infra/modules/rabbitmq" && pruned_path_count=$((pruned_path_count + 1))
-    for env in local dev stage prod; do
-      prune_path_if_exists "$ROOT_DIR/infra/gitops/argocd/optional/$env/rabbitmq.yaml" && pruned_path_count=$((pruned_path_count + 1))
-    done
   fi
 
   if ! is_module_enabled dns; then

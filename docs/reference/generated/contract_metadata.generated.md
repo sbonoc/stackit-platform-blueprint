@@ -170,6 +170,7 @@
 ### Produced Outputs
 - `KMS_KEY_RING_NAME`
 - `KMS_KEY_NAME`
+- `KMS_KEY_RING_ID`
 - `KMS_KEY_ID`
 
 ## Module: `langfuse`
@@ -322,8 +323,6 @@
 
 ### Required Environment Variables
 - `RABBITMQ_INSTANCE_NAME`
-- `RABBITMQ_USERNAME`
-- `RABBITMQ_PASSWORD`
 
 ### Make Targets
 - `infra-rabbitmq-plan`
@@ -334,6 +333,8 @@
 ### Produced Outputs
 - `RABBITMQ_HOST`
 - `RABBITMQ_PORT`
+- `RABBITMQ_USERNAME`
+- `RABBITMQ_PASSWORD`
 - `RABBITMQ_URI`
 
 ## Module: `secrets-manager`

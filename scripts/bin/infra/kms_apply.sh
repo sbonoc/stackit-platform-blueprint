@@ -26,6 +26,9 @@ resolve_optional_module_execution "kms" "apply"
 provision_driver="$OPTIONAL_MODULE_EXECUTION_DRIVER"
 provision_path="$OPTIONAL_MODULE_EXECUTION_PATH"
 case "$provision_driver" in
+foundation_contract)
+  optional_module_apply_foundation_contract "kms"
+  ;;
 external_automation_contract | noop)
   optional_module_log_execution_note
   ;;
@@ -41,6 +44,7 @@ state_file="$(write_state_file "kms_runtime" \
   "provision_driver=$provision_driver" \
   "provision_path=$provision_path" \
   "key_ring=$KMS_KEY_RING_NAME" \
+  "key_ring_id=$(kms_key_ring_id)" \
   "key_name=$KMS_KEY_NAME" \
   "key_id=$(kms_key_id)" \
   "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")")"

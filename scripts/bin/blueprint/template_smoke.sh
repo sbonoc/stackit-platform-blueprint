@@ -94,6 +94,9 @@ seed_template_smoke_contract_env() {
   set_default_env POSTGRES_DB_NAME "platform"
   set_default_env POSTGRES_USER "platform"
   set_default_env POSTGRES_PASSWORD "platform-password"
+  set_default_env RABBITMQ_INSTANCE_NAME "bp-rabbitmq"
+  set_default_env KMS_KEY_RING_NAME "bp-ring"
+  set_default_env KMS_KEY_NAME "bp-key"
 
   set_default_env NEO4J_AUTH_USERNAME "neo4j"
   set_default_env NEO4J_AUTH_PASSWORD "neo4j-password"

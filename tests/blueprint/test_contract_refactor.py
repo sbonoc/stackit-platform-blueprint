@@ -93,6 +93,21 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn("--severity=error", hooks)
         self.assertNotIn("shellcheck not installed; skipping", hooks)
 
+    def test_stackit_foundation_contract_tracks_rabbitmq_and_kms_provider_coverage(self) -> None:
+        providers = _read("infra/cloud/stackit/terraform/foundation/providers.tf")
+        foundation_main = _read("infra/cloud/stackit/terraform/foundation/main.tf")
+        foundation_outputs = _read("infra/cloud/stackit/terraform/foundation/outputs.tf")
+        foundation_locals = _read("infra/cloud/stackit/terraform/foundation/locals.tf")
+
+        self.assertIn("default_region = var.stackit_region", providers)
+        self.assertIn('stackit_provider_supported = true', foundation_locals)
+        self.assertIn('stackit_rabbitmq_instance', foundation_main)
+        self.assertIn('stackit_rabbitmq_credential', foundation_main)
+        self.assertIn('stackit_kms_keyring', foundation_main)
+        self.assertIn('stackit_kms_key', foundation_main)
+        self.assertIn('output "rabbitmq_uri"', foundation_outputs)
+        self.assertIn('output "kms_key_ring_id"', foundation_outputs)
+
     def test_pre_commit_hooks_include_cached_audits_and_shell_syntax(self) -> None:
         pre_commit = _read(".pre-commit-config.yaml")
         template_pre_commit = _read("scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml")

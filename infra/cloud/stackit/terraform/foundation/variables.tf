@@ -287,9 +287,27 @@ variable "neo4j_enabled" {
 }
 
 variable "rabbitmq_enabled" {
-  description = "Enable RabbitMQ contract in foundation outputs (fallback mode in MVP)."
+  description = "Enable managed RabbitMQ provisioning contract."
   type        = bool
   default     = false
+}
+
+variable "rabbitmq_instance_name" {
+  description = "Managed RabbitMQ instance name."
+  type        = string
+  default     = "marketplace-rabbitmq"
+}
+
+variable "rabbitmq_version" {
+  description = "Managed RabbitMQ service version."
+  type        = string
+  default     = "3.13"
+}
+
+variable "rabbitmq_plan_name" {
+  description = "Managed RabbitMQ plan name."
+  type        = string
+  default     = "stackit-rabbitmq-1.2.10-replica"
 }
 
 variable "public_endpoints_enabled" {
@@ -299,7 +317,104 @@ variable "public_endpoints_enabled" {
 }
 
 variable "kms_enabled" {
-  description = "Enable KMS contract in foundation outputs (fallback mode in MVP)."
+  description = "Enable managed KMS provisioning contract."
+  type        = bool
+  default     = false
+}
+
+variable "kms_key_ring_name" {
+  description = "Display name for managed KMS keyring."
+  type        = string
+  default     = "marketplace-ring"
+}
+
+variable "kms_key_ring_description" {
+  description = "Description for managed KMS keyring."
+  type        = string
+  default     = "Blueprint-managed KMS keyring."
+}
+
+variable "kms_key_name" {
+  description = "Display name for managed KMS key."
+  type        = string
+  default     = "marketplace-key"
+}
+
+variable "kms_key_description" {
+  description = "Description for managed KMS key."
+  type        = string
+  default     = "Blueprint-managed KMS key."
+}
+
+variable "kms_key_algorithm" {
+  description = "Managed KMS key algorithm."
+  type        = string
+  default     = "aes_256_gcm"
+
+  validation {
+    condition = contains(
+      [
+        "aes_256_gcm",
+        "rsa_2048_oaep_sha256",
+        "rsa_3072_oaep_sha256",
+        "rsa_4096_oaep_sha256",
+        "rsa_4096_oaep_sha512",
+        "hmac_sha256",
+        "hmac_sha384",
+        "hmac_sha512",
+        "ecdsa_p256_sha256",
+        "ecdsa_p384_sha384",
+        "ecdsa_p521_sha512",
+      ],
+      var.kms_key_algorithm
+    )
+    error_message = "kms_key_algorithm must be a provider-supported STACKIT KMS algorithm."
+  }
+}
+
+variable "kms_key_purpose" {
+  description = "Managed KMS key purpose."
+  type        = string
+  default     = "symmetric_encrypt_decrypt"
+
+  validation {
+    condition = contains(
+      [
+        "symmetric_encrypt_decrypt",
+        "asymmetric_encrypt_decrypt",
+        "message_authentication_code",
+        "asymmetric_sign_verify",
+      ],
+      var.kms_key_purpose
+    )
+    error_message = "kms_key_purpose must be a provider-supported STACKIT KMS purpose."
+  }
+}
+
+variable "kms_key_protection" {
+  description = "Managed KMS key protection mode."
+  type        = string
+  default     = "software"
+
+  validation {
+    condition     = contains(["software"], var.kms_key_protection)
+    error_message = "kms_key_protection must be one of the provider-supported values."
+  }
+}
+
+variable "kms_key_access_scope" {
+  description = "Managed KMS key access scope."
+  type        = string
+  default     = "PUBLIC"
+
+  validation {
+    condition     = contains(["PUBLIC", "SNA"], var.kms_key_access_scope)
+    error_message = "kms_key_access_scope must be one of: PUBLIC, SNA."
+  }
+}
+
+variable "kms_key_import_only" {
+  description = "Whether managed KMS key accepts imports only."
   type        = bool
   default     = false
 }

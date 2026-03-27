@@ -57,18 +57,23 @@ class ToolingContractsTests(unittest.TestCase):
         self.assertIn("driver=helm", resolved)
         self.assertIn(f"path={REPO_ROOT}/artifacts/infra/rendered/rabbitmq.values.yaml", resolved)
 
+    def test_optional_module_execution_resolves_stackit_provider_backed_rabbitmq_modes(self) -> None:
+        resolved = resolve_optional_module_execution("rabbitmq", "apply", profile="stackit-dev")
+        self.assertIn("class=provider_backed", resolved)
+        self.assertIn("driver=foundation_contract", resolved)
+        self.assertIn(f"path={REPO_ROOT}/infra/cloud/stackit/terraform/foundation", resolved)
+
     def test_optional_module_execution_resolves_stackit_chart_applications(self) -> None:
         resolved = resolve_optional_module_execution("public-endpoints", "apply", profile="stackit-dev")
         self.assertIn("class=fallback_runtime", resolved)
         self.assertIn("driver=argocd_application_chart", resolved)
         self.assertIn(f"path={REPO_ROOT}/infra/gitops/argocd/optional/dev/public-endpoints.yaml", resolved)
 
-    def test_optional_module_execution_resolves_external_contract_modes(self) -> None:
+    def test_optional_module_execution_resolves_stackit_provider_backed_kms_modes(self) -> None:
         resolved = resolve_optional_module_execution("kms", "apply", profile="stackit-dev")
-        self.assertIn("class=external_contract", resolved)
-        self.assertIn("driver=external_automation_contract", resolved)
-        self.assertIn("path=stackit-kms-external", resolved)
-        self.assertIn("apply is an external-automation contract", resolved)
+        self.assertIn("class=provider_backed", resolved)
+        self.assertIn("driver=foundation_contract", resolved)
+        self.assertIn(f"path={REPO_ROOT}/infra/cloud/stackit/terraform/foundation", resolved)
 
     def test_optional_module_execution_resolves_local_noop_modes(self) -> None:
         resolved = resolve_optional_module_execution("dns", "destroy", profile="local-full")

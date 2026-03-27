@@ -17,6 +17,10 @@ resolve_optional_module_execution "kms" "destroy"
 destroy_driver="$OPTIONAL_MODULE_EXECUTION_DRIVER"
 destroy_path="$OPTIONAL_MODULE_EXECUTION_PATH"
 case "$destroy_driver" in
+foundation_reconcile_apply)
+  optional_module_log_execution_note
+  optional_module_destroy_foundation_contract "kms"
+  ;;
 external_automation_contract | noop)
   optional_module_log_execution_note
   ;;

@@ -1,6 +1,13 @@
 # Decisions Log
 
 ## 2026-03-27
+- Official STACKIT provider coverage now includes `rabbitmq` and `kms`, so both modules have been promoted to provider-backed foundation contracts.
+  - Added `stackit_rabbitmq_instance`, `stackit_rabbitmq_credential`, `stackit_kms_keyring`, and `stackit_kms_key` to the STACKIT foundation layer, with `provider "stackit"` now setting `default_region = var.stackit_region` to satisfy region-scoped services like RabbitMQ.
+  - Added shared STACKIT foundation output resolution helpers plus `stackit_foundation_output_fetch_total` / `stackit_foundation_output_resolve_total` metrics so provider-generated credentials and key identifiers flow into module wrappers and runtime secret seeding when real terraform outputs are available.
+  - Retired the unused STACKIT RabbitMQ ArgoCD fallback manifest surface; local RabbitMQ remains Helm-backed, while STACKIT now reconciles through foundation like the other managed services.
+  - KMS destroy semantics now follow the official provider contract: keyrings are removed from Terraform state without API deletion, and keys are scheduled for deletion rather than being deleted immediately.
+  - Rationale: align execution with current official STACKIT provider coverage, eliminate stale fallback behavior/docs/tests, and keep runtime contracts truthful in both dry-run and real apply paths.
+
 - STACKIT fallback runtime delivery for `rabbitmq`, `public-endpoints`, and `identity-aware-proxy` is now chart-backed and secret-aware.
   - Replaced generic optional `ConfigMap` placeholders with module-specific ArgoCD `Application` templates for `bitnami/rabbitmq`, `ingress-nginx/ingress-nginx`, and `oauth2-proxy/oauth2-proxy`, and expanded ArgoCD `AppProject` repo/namespace/resource allowlists to match the real chart footprint.
   - Local fallback profiles now render deterministic Helm values artifacts under `artifacts/infra/rendered/*.values.yaml` from the scaffold contract, while secret-bearing modules reconcile runtime Kubernetes secrets from wrapper inputs instead of embedding sensitive values in GitOps YAML.

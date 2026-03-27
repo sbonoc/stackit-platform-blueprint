@@ -74,6 +74,12 @@ allowed = [
     "object_storage_bucket_name",
     "object_storage_access_key",
     "object_storage_secret_access_key",
+    "rabbitmq_instance_id",
+    "rabbitmq_host",
+    "rabbitmq_port",
+    "rabbitmq_username",
+    "rabbitmq_password",
+    "rabbitmq_uri",
     "secrets_manager_instance_id",
     "secrets_manager_username",
     "secrets_manager_password",
@@ -81,6 +87,10 @@ allowed = [
     "observability_grafana_url",
     "observability_credential_username",
     "observability_credential_password",
+    "kms_key_ring_name",
+    "kms_key_name",
+    "kms_key_ring_id",
+    "kms_key_id",
 ]
 
 lines = []

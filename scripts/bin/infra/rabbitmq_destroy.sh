@@ -18,9 +18,8 @@ resolve_optional_module_execution "rabbitmq" "destroy"
 destroy_driver="$OPTIONAL_MODULE_EXECUTION_DRIVER"
 destroy_path="$OPTIONAL_MODULE_EXECUTION_PATH"
 case "$destroy_driver" in
-argocd_application_chart)
-  run_manifest_delete "$destroy_path"
-  rabbitmq_delete_runtime_secret
+foundation_reconcile_apply)
+  optional_module_destroy_foundation_contract "rabbitmq"
   ;;
 helm)
   destroy_path="$RABBITMQ_HELM_RELEASE@$RABBITMQ_NAMESPACE"

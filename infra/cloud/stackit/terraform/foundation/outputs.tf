@@ -77,6 +77,38 @@ output "object_storage_secret_access_key" {
   value       = var.object_storage_enabled ? stackit_objectstorage_credential.foundation[0].secret_access_key : null
 }
 
+output "rabbitmq_instance_id" {
+  description = "Provisioned RabbitMQ instance identifier."
+  value       = var.rabbitmq_enabled ? stackit_rabbitmq_instance.foundation[0].instance_id : null
+}
+
+output "rabbitmq_host" {
+  description = "Provisioned RabbitMQ broker host."
+  value       = var.rabbitmq_enabled ? stackit_rabbitmq_credential.foundation[0].host : null
+}
+
+output "rabbitmq_port" {
+  description = "Provisioned RabbitMQ broker port."
+  value       = var.rabbitmq_enabled ? stackit_rabbitmq_credential.foundation[0].port : null
+}
+
+output "rabbitmq_username" {
+  description = "Provisioned RabbitMQ runtime username."
+  value       = var.rabbitmq_enabled ? stackit_rabbitmq_credential.foundation[0].username : null
+}
+
+output "rabbitmq_password" {
+  description = "Provisioned RabbitMQ runtime password."
+  sensitive   = true
+  value       = var.rabbitmq_enabled ? stackit_rabbitmq_credential.foundation[0].password : null
+}
+
+output "rabbitmq_uri" {
+  description = "Provisioned RabbitMQ runtime URI."
+  sensitive   = true
+  value       = var.rabbitmq_enabled ? stackit_rabbitmq_credential.foundation[0].uri : null
+}
+
 output "secrets_manager_instance_id" {
   description = "Provisioned Secrets Manager instance identifier."
   value       = var.secrets_manager_enabled ? stackit_secretsmanager_instance.foundation[0].instance_id : null
@@ -114,4 +146,24 @@ output "observability_credential_password" {
   description = "Provisioned Observability runtime credential password."
   sensitive   = true
   value       = var.observability_enabled ? stackit_observability_credential.foundation[0].password : null
+}
+
+output "kms_key_ring_name" {
+  description = "Provisioned KMS keyring display name."
+  value       = var.kms_enabled ? var.kms_key_ring_name : null
+}
+
+output "kms_key_name" {
+  description = "Provisioned KMS key display name."
+  value       = var.kms_enabled ? var.kms_key_name : null
+}
+
+output "kms_key_ring_id" {
+  description = "Provisioned KMS keyring identifier."
+  value       = var.kms_enabled ? stackit_kms_keyring.foundation[0].keyring_id : null
+}
+
+output "kms_key_id" {
+  description = "Provisioned KMS key identifier."
+  value       = var.kms_enabled ? stackit_kms_key.foundation[0].key_id : null
 }

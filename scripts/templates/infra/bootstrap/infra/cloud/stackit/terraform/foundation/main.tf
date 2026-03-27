@@ -115,6 +115,22 @@ resource "stackit_objectstorage_credential" "foundation" {
   expiration_timestamp = var.object_storage_credential_expiration_timestamp
 }
 
+resource "stackit_rabbitmq_instance" "foundation" {
+  count = var.rabbitmq_enabled ? 1 : 0
+
+  project_id = var.stackit_project_id
+  name       = var.rabbitmq_instance_name
+  version    = var.rabbitmq_version
+  plan_name  = var.rabbitmq_plan_name
+}
+
+resource "stackit_rabbitmq_credential" "foundation" {
+  count = var.rabbitmq_enabled ? 1 : 0
+
+  project_id  = var.stackit_project_id
+  instance_id = stackit_rabbitmq_instance.foundation[0].instance_id
+}
+
 resource "stackit_secretsmanager_instance" "foundation" {
   count = var.secrets_manager_enabled ? 1 : 0
 
@@ -153,4 +169,30 @@ resource "stackit_observability_credential" "foundation" {
   project_id  = var.stackit_project_id
   instance_id = stackit_observability_instance.foundation[0].instance_id
   description = "Runtime credential managed by Terraform foundation."
+}
+
+# STACKIT KMS destroy is intentionally conservative: keyrings are removed from
+# Terraform state without API deletion, and keys are scheduled for deletion.
+resource "stackit_kms_keyring" "foundation" {
+  count = var.kms_enabled ? 1 : 0
+
+  project_id   = var.stackit_project_id
+  region       = var.stackit_region
+  display_name = var.kms_key_ring_name
+  description  = var.kms_key_ring_description
+}
+
+resource "stackit_kms_key" "foundation" {
+  count = var.kms_enabled ? 1 : 0
+
+  project_id   = var.stackit_project_id
+  region       = var.stackit_region
+  keyring_id   = stackit_kms_keyring.foundation[0].keyring_id
+  display_name = var.kms_key_name
+  description  = var.kms_key_description
+  algorithm    = var.kms_key_algorithm
+  purpose      = var.kms_key_purpose
+  protection   = var.kms_key_protection
+  access_scope = var.kms_key_access_scope
+  import_only  = var.kms_key_import_only
 }

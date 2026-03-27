@@ -48,8 +48,8 @@
 - [x] Remove false-positive STACKIT optional-module Terraform execution on placeholder module roots; provider-backed modules now reconcile through `foundation` layer contract.
 - [x] Make STACKIT fallback modules explicit and executable:
   - `workflows`: API contract path (no placeholder Terraform dependency).
-  - `rabbitmq`, `public-endpoints`, `identity-aware-proxy`: ArgoCD optional-manifest runtime reconciliation.
-  - `kms`: external-automation contract (explicitly non provider-backed in MVP).
+  - `langfuse`, `neo4j`, `public-endpoints`, `identity-aware-proxy`: fallback runtime/API reconciliation.
+  - `rabbitmq`, `kms`: STACKIT foundation provider-backed reconciliation.
 - [x] Extend optional manifest materialization/prune contracts for `rabbitmq`, `public-endpoints`, and `identity-aware-proxy`.
 - [x] Synchronize docs/tests/contracts to the new execution model and keep full validation bundles green.
 
@@ -70,11 +70,12 @@
 - [x] Add golden conformance tests for migration no-op behavior and fail-fast unsupported upgrade paths.
 - [x] Add blueprint-managed quality/docs drift guardrails and deterministic smoke/status artifacts without expanding platform-owned surfaces.
 - [x] Add golden conformance matrix across profile/module combinations for newly generated repos.
-- [ ] Expand Terraform provider-backed coverage for currently fallback-only optional modules (`workflows`, `langfuse`, `neo4j`, `rabbitmq`, `public-endpoints`, `kms`, `identity-aware-proxy`) as STACKIT provider/resources mature.
+- [x] Expand Terraform provider-backed coverage for optional modules as official STACKIT provider resources mature; `rabbitmq` and `kms` now reconcile through foundation, while `workflows`, `langfuse`, `neo4j`, `public-endpoints`, and `identity-aware-proxy` remain fallback/API contracts until provider support exists.
 - [x] Refactor optional-module wrappers onto a shared execution-mode library (provider-backed/fallback/external) to remove duplicated branch logic across scripts.
 - [x] Replace generic optional ConfigMap manifests with module-specific ArgoCD applications/charts for fallback modules (`rabbitmq`, `public-endpoints`, `identity-aware-proxy`) to reach production-grade runtime delivery.
 
 ## P2 - v1.2 Scale
 - [x] Add optional interactive init UX (prompt mode), keeping env-file mode canonical.
 - [ ] Add opinionated governance starter assets for generated repos (issue templates, PR template, CODEOWNERS).
+- [ ] Continue migrating remaining fallback/API optional modules (`workflows`, `langfuse`, `neo4j`, `public-endpoints`, `identity-aware-proxy`) to provider-backed STACKIT execution when official resources become available.
 - [ ] Normalize module input contracts so STACKIT foundation Terraform variables are sourced from canonical module env inputs (remove duplicated naming defaults across wrappers/foundation).

@@ -27,6 +27,9 @@ resolve_optional_module_execution "rabbitmq" "apply"
 provision_driver="$OPTIONAL_MODULE_EXECUTION_DRIVER"
 provision_path="$OPTIONAL_MODULE_EXECUTION_PATH"
 case "$provision_driver" in
+foundation_contract)
+  optional_module_apply_foundation_contract "rabbitmq"
+  ;;
 argocd_application_chart)
   rabbitmq_reconcile_runtime_secret
   run_manifest_apply "$provision_path"
@@ -53,9 +56,10 @@ state_file="$(write_state_file "rabbitmq_runtime" \
   "provision_driver=$provision_driver" \
   "provision_path=$provision_path" \
   "host=$(rabbitmq_host)" \
-  "port=$RABBITMQ_PORT" \
+  "port=$(rabbitmq_port)" \
   "uri=$(rabbitmq_uri)" \
-  "username=$RABBITMQ_USERNAME" \
+  "username=$(rabbitmq_username)" \
+  "password=$(rabbitmq_password)" \
   "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")")"
 
 log_info "rabbitmq runtime state written to $state_file"

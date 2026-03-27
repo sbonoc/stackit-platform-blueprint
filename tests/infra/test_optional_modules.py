@@ -126,7 +126,6 @@ class OptionalModulesTests(unittest.TestCase):
             "infra/gitops/argocd/optional/dev/workflows.yaml",
             "infra/gitops/argocd/optional/dev/langfuse.yaml",
             "infra/gitops/argocd/optional/dev/neo4j.yaml",
-            "infra/gitops/argocd/optional/dev/rabbitmq.yaml",
             "infra/gitops/argocd/optional/dev/public-endpoints.yaml",
             "infra/gitops/argocd/optional/dev/identity-aware-proxy.yaml",
         ]
@@ -171,7 +170,6 @@ class OptionalModulesTests(unittest.TestCase):
             "infra/gitops/argocd/optional/dev/workflows.yaml",
             "infra/gitops/argocd/optional/dev/langfuse.yaml",
             "infra/gitops/argocd/optional/dev/neo4j.yaml",
-            "infra/gitops/argocd/optional/dev/rabbitmq.yaml",
             "infra/gitops/argocd/optional/dev/public-endpoints.yaml",
             "infra/gitops/argocd/optional/dev/identity-aware-proxy.yaml",
         ]
@@ -378,6 +376,7 @@ class OptionalModulesTests(unittest.TestCase):
         runtime_content = runtime_file.read_text(encoding="utf-8")
         self.assertIn("uri=amqp://", runtime_content)
         self.assertIn("host=blueprint-rabbitmq.messaging.svc.cluster.local", runtime_content)
+        self.assertIn("password=marketplace-secret", runtime_content)
         self.assertIn("provision_path=", runtime_content)
 
         secret_manifest = (
@@ -493,6 +492,49 @@ class OptionalModulesTests(unittest.TestCase):
         destroy = run(["make", "infra-kms-destroy"], env)
         self.assertEqual(destroy.returncode, 0, msg=destroy.stdout + destroy.stderr)
 
+    def test_stackit_rabbitmq_module_flow_uses_foundation_contract(self) -> None:
+        env = module_flags_env(profile="stackit-dev", rabbitmq="true")
+        env.update({"RABBITMQ_INSTANCE_NAME": "marketplace-rmq"})
+        bootstrap = run_render_and_infra_bootstrap(env)
+        self.assertEqual(bootstrap.returncode, 0, msg=bootstrap.stdout + bootstrap.stderr)
+
+        for step in ("infra-rabbitmq-plan", "infra-rabbitmq-apply", "infra-rabbitmq-smoke"):
+            result = run(["make", step], env)
+            self.assertEqual(result.returncode, 0, msg=f"{step}\n{result.stdout}\n{result.stderr}")
+
+        runtime_file = REPO_ROOT / "artifacts" / "infra" / "rabbitmq_runtime.env"
+        runtime_content = runtime_file.read_text(encoding="utf-8")
+        self.assertIn("provision_driver=foundation_contract", runtime_content)
+        self.assertIn("host=marketplace-rmq.rabbitmq.eu01.stackit.invalid", runtime_content)
+        self.assertIn("username=provider-generated", runtime_content)
+
+        destroy = run(["make", "infra-rabbitmq-destroy"], env)
+        self.assertEqual(destroy.returncode, 0, msg=destroy.stdout + destroy.stderr)
+
+    def test_stackit_kms_module_flow_uses_foundation_contract(self) -> None:
+        env = module_flags_env(profile="stackit-dev", kms="true")
+        env.update(
+            {
+                "KMS_KEY_RING_NAME": "marketplace-ring-dev",
+                "KMS_KEY_NAME": "marketplace-key-dev",
+            }
+        )
+        bootstrap = run_render_and_infra_bootstrap(env)
+        self.assertEqual(bootstrap.returncode, 0, msg=bootstrap.stdout + bootstrap.stderr)
+
+        for step in ("infra-kms-plan", "infra-kms-apply", "infra-kms-smoke"):
+            result = run(["make", step], env)
+            self.assertEqual(result.returncode, 0, msg=f"{step}\n{result.stdout}\n{result.stderr}")
+
+        runtime_file = REPO_ROOT / "artifacts" / "infra" / "kms_runtime.env"
+        runtime_content = runtime_file.read_text(encoding="utf-8")
+        self.assertIn("provision_driver=foundation_contract", runtime_content)
+        self.assertIn("key_ring_id=kms://marketplace-ring-dev", runtime_content)
+        self.assertIn("key_id=kms://marketplace-ring-dev/marketplace-key-dev", runtime_content)
+
+        destroy = run(["make", "infra-kms-destroy"], env)
+        self.assertEqual(destroy.returncode, 0, msg=destroy.stdout + destroy.stderr)
+
     def test_identity_aware_proxy_requires_keycloak_oidc_configuration(self) -> None:
         env = module_flags_env(identity_aware_proxy="true")
         bootstrap = run_render_and_infra_bootstrap(env)
@@ -505,7 +547,6 @@ class OptionalModulesTests(unittest.TestCase):
     def test_stackit_fallback_modules_materialize_module_specific_argocd_applications(self) -> None:
         env = module_flags_env(
             profile="stackit-dev",
-            rabbitmq="true",
             public_endpoints="true",
             identity_aware_proxy="true",
         )
@@ -520,11 +561,6 @@ class OptionalModulesTests(unittest.TestCase):
         )
         bootstrap = run_render_and_infra_bootstrap(env)
         self.assertEqual(bootstrap.returncode, 0, msg=bootstrap.stdout + bootstrap.stderr)
-
-        rabbitmq_manifest = (REPO_ROOT / "infra/gitops/argocd/optional/dev/rabbitmq.yaml").read_text(encoding="utf-8")
-        self.assertIn("kind: Application", rabbitmq_manifest)
-        self.assertIn("repoURL: https://charts.bitnami.com/bitnami", rabbitmq_manifest)
-        self.assertIn("targetRevision: 16.0.14", rabbitmq_manifest)
 
         public_endpoints_manifest = (
             REPO_ROOT / "infra/gitops/argocd/optional/dev/public-endpoints.yaml"

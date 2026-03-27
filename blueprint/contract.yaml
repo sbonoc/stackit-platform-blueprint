@@ -675,12 +675,10 @@ spec:
         paths_required_when_enabled:
           - terraform_path
           - helm_path
-          - gitops_path
           - tests_path
         contract_path: blueprint/modules/rabbitmq/module.contract.yaml
         terraform_path: infra/cloud/stackit/terraform/modules/rabbitmq
         helm_path: infra/local/helm/rabbitmq/values.yaml
-        gitops_path: infra/gitops/argocd/optional/${ENV}/rabbitmq.yaml
         docs_path: docs/platform/modules/rabbitmq/README.md
         tests_path: tests/infra/modules/rabbitmq
         make_targets_mode: conditional

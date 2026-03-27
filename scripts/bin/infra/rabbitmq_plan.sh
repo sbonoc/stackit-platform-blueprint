@@ -23,6 +23,9 @@ resolve_optional_module_execution "rabbitmq" "plan"
 provision_driver="$OPTIONAL_MODULE_EXECUTION_DRIVER"
 provision_path="$OPTIONAL_MODULE_EXECUTION_PATH"
 case "$provision_driver" in
+foundation_contract)
+  optional_module_warn_missing_foundation_diff "rabbitmq"
+  ;;
 argocd_application_chart)
   optional_module_require_manifest_present "rabbitmq" "$provision_path"
   ;;
@@ -48,7 +51,7 @@ state_file="$(write_state_file "rabbitmq_plan" \
   "provision_path=$provision_path" \
   "instance_name=$RABBITMQ_INSTANCE_NAME" \
   "host=$(rabbitmq_host)" \
-  "port=$RABBITMQ_PORT" \
+  "port=$(rabbitmq_port)" \
   "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")")"
 
 log_info "rabbitmq plan state written to $state_file"

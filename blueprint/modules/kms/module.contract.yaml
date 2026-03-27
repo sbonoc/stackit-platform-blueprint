@@ -23,11 +23,20 @@ spec:
     required_env:
       - KMS_KEY_RING_NAME
       - KMS_KEY_NAME
+    optional_env:
+      - KMS_KEY_RING_DESCRIPTION
+      - KMS_KEY_DESCRIPTION
+      - KMS_KEY_ALGORITHM
+      - KMS_KEY_PURPOSE
+      - KMS_KEY_PROTECTION
+      - KMS_KEY_ACCESS_SCOPE
+      - KMS_KEY_IMPORT_ONLY
 
   outputs:
     produced:
       - KMS_KEY_RING_NAME
       - KMS_KEY_NAME
+      - KMS_KEY_RING_ID
       - KMS_KEY_ID
 
   make_targets:

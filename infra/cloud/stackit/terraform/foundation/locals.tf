@@ -74,9 +74,12 @@ locals {
       fallback_strategy = "none"
     }
     rabbitmq = {
-      stackit_provider_supported = false
-      stackit_resource_types     = []
-      fallback_strategy          = "deploy RabbitMQ on SKE via ArgoCD"
+      stackit_provider_supported = true
+      stackit_resource_types = [
+        "stackit_rabbitmq_instance",
+        "stackit_rabbitmq_credential",
+      ]
+      fallback_strategy = "none"
     }
     dns = {
       stackit_provider_supported = true
@@ -99,9 +102,12 @@ locals {
       fallback_strategy = "none"
     }
     kms = {
-      stackit_provider_supported = false
-      stackit_resource_types     = []
-      fallback_strategy          = "consume KMS through external automation until provider coverage exists"
+      stackit_provider_supported = true
+      stackit_resource_types = [
+        "stackit_kms_keyring",
+        "stackit_kms_key",
+      ]
+      fallback_strategy = "none"
     }
     identity-aware-proxy = {
       stackit_provider_supported = false

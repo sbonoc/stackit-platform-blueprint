@@ -163,11 +163,11 @@ jobs:
             postgres_enabled: "true"
             neo4j_enabled: "false"
             object_storage_enabled: "true"
-            rabbitmq_enabled: "false"
+            rabbitmq_enabled: "true"
             dns_enabled: "true"
             public_endpoints_enabled: "false"
             secrets_manager_enabled: "true"
-            kms_enabled: "false"
+            kms_enabled: "true"
             identity_aware_proxy_enabled: "false"
           - name: stackit-dev-runtime-fallbacks
             profile: stackit-dev
@@ -177,11 +177,11 @@ jobs:
             postgres_enabled: "false"
             neo4j_enabled: "true"
             object_storage_enabled: "false"
-            rabbitmq_enabled: "true"
+            rabbitmq_enabled: "false"
             dns_enabled: "false"
             public_endpoints_enabled: "true"
             secrets_manager_enabled: "false"
-            kms_enabled: "true"
+            kms_enabled: "false"
             identity_aware_proxy_enabled: "true"
           - name: stackit-dev-workflows
             profile: stackit-dev

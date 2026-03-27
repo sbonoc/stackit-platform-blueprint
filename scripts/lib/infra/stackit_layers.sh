@@ -144,6 +144,44 @@ stackit_layer_var_args() {
   printf '%s\n' "-var=secrets_manager_enabled=$(stackit_module_enabled_tf_bool secrets-manager)"
   printf '%s\n' "-var=kms_enabled=$(stackit_module_enabled_tf_bool kms)"
   printf '%s\n' "-var=identity_aware_proxy_enabled=$(stackit_module_enabled_tf_bool identity-aware-proxy)"
+
+  if is_module_enabled rabbitmq; then
+    require_env_vars RABBITMQ_INSTANCE_NAME
+    printf '%s\n' "-var=rabbitmq_instance_name=$RABBITMQ_INSTANCE_NAME"
+    if [[ -n "${RABBITMQ_VERSION:-}" ]]; then
+      printf '%s\n' "-var=rabbitmq_version=$RABBITMQ_VERSION"
+    fi
+    if [[ -n "${RABBITMQ_PLAN_NAME:-}" ]]; then
+      printf '%s\n' "-var=rabbitmq_plan_name=$RABBITMQ_PLAN_NAME"
+    fi
+  fi
+
+  if is_module_enabled kms; then
+    require_env_vars KMS_KEY_RING_NAME KMS_KEY_NAME
+    printf '%s\n' "-var=kms_key_ring_name=$KMS_KEY_RING_NAME"
+    printf '%s\n' "-var=kms_key_name=$KMS_KEY_NAME"
+    if [[ -n "${KMS_KEY_RING_DESCRIPTION:-}" ]]; then
+      printf '%s\n' "-var=kms_key_ring_description=$KMS_KEY_RING_DESCRIPTION"
+    fi
+    if [[ -n "${KMS_KEY_DESCRIPTION:-}" ]]; then
+      printf '%s\n' "-var=kms_key_description=$KMS_KEY_DESCRIPTION"
+    fi
+    if [[ -n "${KMS_KEY_ALGORITHM:-}" ]]; then
+      printf '%s\n' "-var=kms_key_algorithm=$KMS_KEY_ALGORITHM"
+    fi
+    if [[ -n "${KMS_KEY_PURPOSE:-}" ]]; then
+      printf '%s\n' "-var=kms_key_purpose=$KMS_KEY_PURPOSE"
+    fi
+    if [[ -n "${KMS_KEY_PROTECTION:-}" ]]; then
+      printf '%s\n' "-var=kms_key_protection=$KMS_KEY_PROTECTION"
+    fi
+    if [[ -n "${KMS_KEY_ACCESS_SCOPE:-}" ]]; then
+      printf '%s\n' "-var=kms_key_access_scope=$KMS_KEY_ACCESS_SCOPE"
+    fi
+    if [[ -n "${KMS_KEY_IMPORT_ONLY:-}" ]]; then
+      printf '%s\n' "-var=kms_key_import_only=$KMS_KEY_IMPORT_ONLY"
+    fi
+  fi
 }
 
 stackit_flatten_file_to_single_line() {
