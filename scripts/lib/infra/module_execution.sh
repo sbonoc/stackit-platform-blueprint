@@ -183,7 +183,7 @@ resolve_optional_module_execution() {
       log_fatal "unsupported BLUEPRINT_PROFILE=$BLUEPRINT_PROFILE"
     fi
     ;;
-  public-endpoints:plan | public-endpoints:apply)
+  public-endpoints:plan | public-endpoints:apply | public-endpoints:deploy)
     if is_stackit_profile; then
       optional_module_execution_set "fallback_runtime" "argocd_application_chart" "$(argocd_optional_manifest "public-endpoints")"
     elif is_local_profile; then
@@ -201,7 +201,7 @@ resolve_optional_module_execution() {
       log_fatal "unsupported BLUEPRINT_PROFILE=$BLUEPRINT_PROFILE"
     fi
     ;;
-  identity-aware-proxy:plan | identity-aware-proxy:apply)
+  identity-aware-proxy:plan | identity-aware-proxy:apply | identity-aware-proxy:deploy)
     if is_stackit_profile; then
       optional_module_execution_set "fallback_runtime" "argocd_application_chart" "$(argocd_optional_manifest "identity-aware-proxy")"
     elif is_local_profile; then
@@ -240,10 +240,10 @@ resolve_optional_module_execution() {
       log_fatal "unsupported BLUEPRINT_PROFILE=$BLUEPRINT_PROFILE"
     fi
     ;;
-  langfuse:plan | langfuse:apply | langfuse:destroy)
+  langfuse:plan | langfuse:apply | langfuse:deploy | langfuse:destroy)
     optional_module_execution_set "fallback_runtime" "argocd_optional_manifest" "$(argocd_optional_manifest "langfuse")"
     ;;
-  neo4j:plan | neo4j:apply | neo4j:destroy)
+  neo4j:plan | neo4j:apply | neo4j:deploy | neo4j:destroy)
     optional_module_execution_set "fallback_runtime" "argocd_optional_manifest" "$(argocd_optional_manifest "neo4j")"
     ;;
   *)

@@ -83,8 +83,8 @@ Optional modules are controlled by canonical flags:
 
 If a flag is `true`, the module plan/apply/deploy/smoke scripts run and persist their own artifacts under `artifacts/infra/`.
 `blueprint-render-makefile` (or `blueprint-bootstrap`) materializes optional-module Make targets when the corresponding module flag is enabled.
-`infra-bootstrap` materializes optional-module infra scaffolding when enabled and prunes stale scaffolding when flags are switched back to `false`.
-`infra-destroy-disabled-modules` runs module destroy actions for modules currently disabled by flags, and should be executed before prune when resources may already exist.
+`infra-bootstrap` materializes optional-module infra scaffolding when enabled and preserves disabled-module scaffolding so flag toggles cannot delete tracked repo content.
+`infra-destroy-disabled-modules` runs module destroy actions for modules currently disabled by flags when resources may already exist.
 
 Examples:
 - `WORKFLOWS_ENABLED=true` creates `dags/` scaffolding and Workflows API payload/runtime artifacts.

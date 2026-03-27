@@ -120,6 +120,9 @@ module_action_scripts() {
   public-endpoints:apply)
     echo "$ROOT_DIR/scripts/bin/infra/public_endpoints_apply.sh"
     ;;
+  public-endpoints:deploy)
+    echo "$ROOT_DIR/scripts/bin/infra/public_endpoints_deploy.sh"
+    ;;
   public-endpoints:smoke)
     echo "$ROOT_DIR/scripts/bin/infra/public_endpoints_smoke.sh"
     ;;
@@ -155,6 +158,9 @@ module_action_scripts() {
     ;;
   identity-aware-proxy:apply)
     echo "$ROOT_DIR/scripts/bin/infra/identity_aware_proxy_apply.sh"
+    ;;
+  identity-aware-proxy:deploy)
+    echo "$ROOT_DIR/scripts/bin/infra/identity_aware_proxy_deploy.sh"
     ;;
   identity-aware-proxy:smoke)
     echo "$ROOT_DIR/scripts/bin/infra/identity_aware_proxy_smoke.sh"

@@ -1,0 +1,55 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: platform-identity-aware-proxy-local
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: platform-blueprint
+    app.kubernetes.io/component: optional-module
+    app.kubernetes.io/name: identity-aware-proxy
+    app.kubernetes.io/environment: local
+spec:
+  project: platform-local
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: security
+  source:
+    repoURL: https://oauth2-proxy.github.io/manifests
+    chart: oauth2-proxy
+    targetRevision: 10.4.0
+    helm:
+      releaseName: blueprint-iap
+      values: |
+        image:
+          registry: "quay.io"
+          repository: "oauth2-proxy/oauth2-proxy"
+          tag: "v7.15.0"
+        config:
+          existingSecret: "blueprint-iap-config"
+          provider: oidc
+          oidcIssuerURL: "https://keycloak.example/realms/marketplace"
+          upstreams:
+            - "http://catalog.apps.svc.cluster.local:8080"
+          emailDomains:
+            - "*"
+        extraArgs:
+          redirect-url: "https://iap.local/oauth2/callback"
+          email-domain: "*"
+        ingress:
+          enabled: false
+        gatewayApi:
+          enabled: true
+          gatewayRef:
+            name: "public-endpoints"
+            namespace: "network"
+            sectionName: http
+          hostnames:
+            - "iap.local"
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true

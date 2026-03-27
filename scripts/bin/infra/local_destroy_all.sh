@@ -39,6 +39,11 @@ wait_for_namespace_deletion() {
   local now
   local phase
 
+  if ! tooling_is_execution_enabled; then
+    log_metric "local_destroy_all_namespace_wait_total" "1" "namespace=$namespace status=dry_run"
+    return 0
+  fi
+
   started_at="$(date +%s)"
   while true; do
     if ! kubectl get namespace "$namespace" >/dev/null 2>&1; then
@@ -117,7 +122,11 @@ for namespace in \
   "$ARGOCD_NAMESPACE" \
   "$EXTERNAL_SECRETS_NAMESPACE" \
   "$CROSSPLANE_NAMESPACE"; do
-  run_cmd kubectl delete namespace "$namespace" --ignore-not-found --wait=false
+  if tooling_is_execution_enabled; then
+    run_cmd kubectl delete namespace "$namespace" --ignore-not-found --wait=false
+  else
+    log_info "dry-run kubectl delete namespace $namespace --ignore-not-found --wait=false (set DRY_RUN=false to execute)"
+  fi
 done
 
 # Local reprovision often happens immediately after this target, so wait for

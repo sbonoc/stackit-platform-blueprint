@@ -5,6 +5,7 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
 source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 source "$ROOT_DIR/scripts/lib/infra/stack_paths.sh"
+source "$ROOT_DIR/scripts/lib/infra/module_execution.sh"
 source "$ROOT_DIR/scripts/lib/infra/state.sh"
 source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
 source "$ROOT_DIR/scripts/lib/infra/langfuse.sh"
@@ -21,12 +22,24 @@ if ! state_file_exists langfuse_apply; then
   log_fatal "missing langfuse apply artifact; run infra-langfuse-apply first"
 fi
 
+resolve_optional_module_execution "langfuse" "deploy"
+deploy_driver="$OPTIONAL_MODULE_EXECUTION_DRIVER"
+deploy_path="$OPTIONAL_MODULE_EXECUTION_PATH"
+case "$deploy_driver" in
+argocd_optional_manifest)
+  run_manifest_apply "$deploy_path"
+  ;;
+*)
+  optional_module_unexpected_driver "langfuse" "deploy"
+  ;;
+esac
+
 state_file="$(write_state_file "langfuse_deploy" \
   "profile=$BLUEPRINT_PROFILE" \
   "stack=$(active_stack)" \
   "tooling_mode=$(tooling_execution_mode)" \
-  "deploy_driver=argocd_optional_manifest" \
-  "deploy_path=$(argocd_optional_manifest "langfuse")" \
+  "deploy_driver=$deploy_driver" \
+  "deploy_path=$deploy_path" \
   "public_url=$(langfuse_public_url)" \
   "health_status=Healthy" \
   "oidc_mode=app_level_oidc" \

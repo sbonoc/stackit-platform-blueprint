@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: blueprint-neo4j-deployment
+  namespace: argocd
+data:
+  module: "neo4j"
+  environment: "local"
+  deploymentDriver: "argocd"

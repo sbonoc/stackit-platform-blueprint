@@ -6,7 +6,7 @@
 - [x] Optional modules are lean-by-default and scaffold on enable.
 - [x] Data Marketplace P0 optional modules are contract-driven and conditional (`object-storage`, `rabbitmq`, `dns`, `public-endpoints`, `secrets-manager`, `kms`, `identity-aware-proxy`).
 - [x] Identity-Aware Proxy contract enforces Keycloak OIDC dependency (Keycloak remains core capability).
-- [x] `infra-bootstrap` prunes stale optional-module scaffolding when module flags are disabled.
+- [x] `infra-bootstrap` preserves disabled optional-module scaffolding so toggling flags cannot delete tracked repo assets.
 - [x] Bootstrap ownership is split by domain: `blueprint-*` for template/config assets, `infra-*` for infra scaffolding.
 - [x] Root infra scaffold is lean and free of placeholder-only manifests.
 - [x] Optional-module destroy targets execute profile-specific cleanup (not artifact-only teardown).
@@ -20,7 +20,7 @@
 - [x] ArgoCD runtime topology deploys concrete platform resources via `infra/gitops/platform/**` applications for stackit and local profiles.
 - [x] STACKIT deploy seeds runtime foundation contract secret (`platform-foundation-contract`) from Terraform outputs before app sync.
 - [x] Optional-module wrapper skeleton templates are explicit fail-fast stubs (`status=not_implemented`, stable exit code) instead of TODO placeholders.
-- [x] Disabled optional-module teardown has a dedicated contract-driven orchestration target (`infra-destroy-disabled-modules`) for destroy-before-prune workflows.
+- [x] Disabled optional-module teardown has a dedicated contract-driven orchestration target (`infra-destroy-disabled-modules`) for flag-toggle cleanup workflows.
 - [x] Local git hooks include YAML/large-file/shell syntax pre-commit checks and cached version audits on pre-push.
 - [x] CI executes both pre-commit and pre-push hook stages (`pre-commit run --hook-stage pre-push --all-files`).
 - [x] Core wrappers use canonical `start_script_metric_trap` instrumentation and docs command reference includes `docs-run`.
@@ -35,7 +35,7 @@
 - [x] STACKIT operator lifecycle/diagnostic and GHCR publish targets are contract-driven and template-generated.
 - [x] Migration framework is transition-registered and fails fast on unsupported upgrade paths.
 - [x] CI includes migration smoke, contract-critical profile/observability matrix, and golden template-consumer conformance lanes.
-- [x] Tooling tests share canonical helper utilities for run/env/bootstrap/prune flows.
+- [x] Tooling tests share canonical helper utilities for run/env/bootstrap/reset flows.
 - [x] Test suite layout follows blueprint namespaces (`tests/blueprint`, `tests/infra`, `tests/docs`, `tests/e2e`, `tests/_shared`).
 - [x] Test namespace package markers keep `pytest` and `unittest` imports consistent (`tests/**/__init__.py`).
 - [x] Template scaffold roots are split by ownership: `scripts/templates/blueprint/bootstrap` (blueprint docs/make/hygiene seeds) vs `scripts/templates/infra/bootstrap` (infra/dags/tests scaffolding).
@@ -55,7 +55,7 @@
   - `workflows`: API contract path (no placeholder Terraform dependency).
   - `langfuse`, `neo4j`, `public-endpoints`, `identity-aware-proxy`: fallback runtime/API reconciliation.
   - `rabbitmq`, `kms`: STACKIT foundation provider-backed reconciliation.
-- [x] Extend optional manifest materialization/prune contracts for `rabbitmq`, `public-endpoints`, and `identity-aware-proxy`.
+- [x] Extend optional manifest materialization/preservation contracts for `rabbitmq`, `public-endpoints`, and `identity-aware-proxy`.
 - [x] Synchronize docs/tests/contracts to the new execution model and keep full validation bundles green.
 - [x] Fold live `/tmp` validation findings back into the blueprint:
   - STACKIT consumer repos must run `make blueprint-init-repo` before first remote bootstrap so backend/tfvars placeholders are initialized.

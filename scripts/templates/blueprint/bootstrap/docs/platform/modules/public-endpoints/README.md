@@ -6,7 +6,7 @@ Provision Gateway API public edge baseline for marketplace UI and API surfaces.
 ## Stack Execution Model
 - Optional module Make targets are materialized by `make blueprint-render-makefile` (or `make blueprint-bootstrap`) when `PUBLIC_ENDPOINTS_ENABLED=true`.
 - Scaffolding paths are materialized by `make infra-bootstrap` only when `PUBLIC_ENDPOINTS_ENABLED=true`.
-- `stackit-*` profiles: module-specific ArgoCD `Application` reconciles Envoy Gateway (`gateway-helm`) from `infra/gitops/argocd/optional/${ENV}/public-endpoints.yaml`, and the same rendered manifest seeds the shared `GatewayClass`/`Gateway` baseline for route attachment.
+- `stackit-*` profiles: module-specific ArgoCD `Application` reconciles Envoy Gateway (`gateway-helm`) from `infra/gitops/argocd/optional/${ENV}/public-endpoints.yaml`, and the wrapper waits for the Gateway API CRDs before applying the separately rendered shared `GatewayClass`/`Gateway` baseline artifact.
 - `local-*` profiles: Helm chart (`oci://docker.io/envoyproxy/gateway-helm`) runs from a rendered values artifact derived from the scaffold contract in `infra/local/helm/public-endpoints/values.yaml`, and the wrapper applies the rendered shared `GatewayClass`/`Gateway` manifest artifact.
 - The controller chart does not own the shared `Gateway` resource. The blueprint renders that baseline separately so the route contract remains explicit and reviewable in repo-managed manifests.
 - The shared edge reconciles through a dedicated `platform-edge-<env>` Argo CD project so `GatewayClass`/shared `Gateway` resources stay isolated from app-route policy resources.

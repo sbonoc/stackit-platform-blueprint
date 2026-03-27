@@ -47,10 +47,10 @@ fi
 if [[ ! -f "$appproject_path" || ! -f "$edge_appproject_path" ]]; then
   log_fatal "public-endpoints Argo CD project contract files are missing"
 fi
-if ! grep -q '^kind: GatewayClass$' "$gateway_manifest_path"; then
+if ! grep -Eq '^[[:space:]]*kind: GatewayClass$' "$gateway_manifest_path"; then
   log_fatal "public-endpoints gateway manifest is missing GatewayClass"
 fi
-if ! grep -q '^kind: Gateway$' "$gateway_manifest_path"; then
+if ! grep -Eq '^[[:space:]]*kind: Gateway$' "$gateway_manifest_path"; then
   log_fatal "public-endpoints gateway manifest is missing Gateway"
 fi
 if ! grep -q 'from: All' "$gateway_manifest_path"; then

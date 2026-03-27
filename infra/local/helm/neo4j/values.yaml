@@ -1,0 +1,6 @@
+neo4j:
+  name: blueprint-neo4j
+  password: changeme
+volumes:
+  data:
+    mode: defaultStorageClass

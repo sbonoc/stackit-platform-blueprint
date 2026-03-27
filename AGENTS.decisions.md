@@ -81,10 +81,10 @@
   - Workflows plan/apply/destroy no longer depend on placeholder Terraform module paths; they are API/runtime-contract based.
   - Rationale: eliminate false-positive “successful” module operations against non-functional Terraform roots and make execution semantics truthful.
 
-- Optional manifest scaffolding/prune coverage was extended for STACKIT fallback modules.
-  - `infra-bootstrap` now materializes/prunes `infra/gitops/argocd/optional/${ENV}/{rabbitmq,public-endpoints,identity-aware-proxy}.yaml` when corresponding flags toggle.
+- Optional manifest scaffolding coverage was extended for STACKIT fallback modules.
+  - `infra-bootstrap` now materializes `infra/gitops/argocd/optional/${ENV}/{rabbitmq,public-endpoints,identity-aware-proxy}.yaml` for enabled modules while preserving tracked manifests in the repo for safe future enablement.
   - Blueprint and module contracts/docs/tests were synchronized to this behavior.
-  - Rationale: keep module enable/disable lifecycle deterministic and lean, with no stale fallback runtime manifests.
+  - Rationale: keep module enable/disable lifecycle deterministic without deleting tracked fallback runtime manifests from the working tree.
 
 - Runtime core bootstrap is now execution-ready and profile-aware.
   - Added `scripts/bin/infra/core_runtime_bootstrap.sh` to install/upgrade ArgoCD and External Secrets Operator before ArgoCD topology apply, and `scripts/bin/infra/core_runtime_smoke.sh` for state-level smoke validation.
@@ -95,10 +95,10 @@
   - `scripts/lib/blueprint/generate_module_wrapper_skeletons.py` now emits a consistent not-implemented contract (`status=not_implemented`, metric label, and stable exit code `64`) instead of TODO placeholders.
   - Rationale: avoid false-positive success when a consumer copies a skeleton without implementing module-specific logic.
 
-- Added canonical destroy-before-prune orchestration for disabled optional modules.
+- Added canonical disabled-module cleanup orchestration for optional modules.
   - Introduced `infra-destroy-disabled-modules` (`scripts/bin/infra/destroy_disabled_modules.sh`) and wired it into blueprint-managed Make target generation/contract/docs/tests.
   - Extended module lifecycle runner with `run_disabled_modules_action` metrics (`module_action_disabled_count`, `module_action_disabled_script_count`) to keep execution visibility consistent with enabled-module flows.
-  - Rationale: provide an explicit, repeatable teardown step before `infra-bootstrap` pruning when module flags are toggled off after resources already exist.
+  - Rationale: provide an explicit, repeatable teardown step when module flags are toggled off after resources already exist.
 
 - STACKIT Terraform identity/state contracts are now init-driven and template-rendered.
   - Added explicit STACKIT init inputs (`BLUEPRINT_STACKIT_REGION`, tenant/platform slugs, project id, tfstate bucket/key prefix) to template bootstrap contract and init flows (interactive + env-file).
@@ -117,7 +117,7 @@
 
 - Added Data Marketplace P0 optional modules to the contract/runtime/tests:
   - `object-storage`, `rabbitmq`, `dns`, `public-endpoints`, `secrets-manager`, `kms`, `identity-aware-proxy`.
-  - Makefile materialization, infra bootstrap/prune, module lifecycle, and smoke flows were extended for all modules.
+  - Makefile materialization, infra bootstrap/state-preservation, module lifecycle, and smoke flows were extended for all modules.
   - Rationale: provide a lean-by-default managed-services baseline for marketplace-style platform bootstraps while keeping modules strictly conditional.
 
 - Keycloak remains a core platform capability; IAP depends on Keycloak OIDC configuration.
@@ -198,13 +198,13 @@
   - Added canonical targets/scripts for prerequisites (`infra-prereqs`), full Make reference (`infra-help-reference`), GitHub STACKIT CI setup (`infra-stackit-ci-github-setup`), cached audits (`infra-audit-version-cached`, `apps-audit-versions-cached`), and enhanced redacted runtime inventory exports.
   - Rationale: improve day-0 onboarding, operator usability, and local feedback-loop speed while keeping contract-driven behavior and safe defaults.
 
-- Optional-module scaffolding is now pruned on `infra-bootstrap` when a module flag is disabled.
-  - `infra-bootstrap` removes stale module-specific Terraform/Helm/tests/manifest assets (including `dags/` for Workflows) to keep repositories lean after flag toggles.
-  - Rationale: enforce lean-by-default continuously, not only on fresh bootstrap runs, and reduce stale-scope confusion in generated repositories.
+- Optional-module scaffolding is now preserved on `infra-bootstrap` when a module flag is disabled.
+  - `infra-bootstrap` keeps tracked module-specific Terraform/Helm/tests/manifest assets available so flag toggles and validation runs cannot delete repo content.
+  - Rationale: protect repository state during review and live validation while still keeping runtime behavior flag-driven.
 
 - Blueprint and infra bootstrap responsibilities are explicitly split.
   - Added blueprint-scoped bootstrap/render targets (`blueprint-bootstrap`, `blueprint-render-makefile`) and moved Makefile materialization and template/hygiene docs sync out of `infra-bootstrap`.
-  - `infra-bootstrap` is now infra-only scaffolding/pruning, while blueprint concerns are handled under `scripts/bin/blueprint/*`.
+  - `infra-bootstrap` is now infra-only scaffolding/state-preservation, while blueprint concerns are handled under `scripts/bin/blueprint/*`.
   - Rationale: keep command ownership clear (`blueprint-*` configures blueprint/template assets, `infra-*` configures infra assets) and reduce namespace ambiguity for template consumers.
 
 - Contract validator Python ownership moved from infra to blueprint namespace.
@@ -224,7 +224,7 @@
   - Rationale: catch profile/flag regressions and template-consumer onboarding/upgrade regressions before release.
 
 - Tooling tests now share canonical helper utilities.
-  - Added `tests/_shared/helpers.py` and refactored tooling suites to reuse common run/env/bootstrap/prune functions.
+  - Added `tests/_shared/helpers.py` and refactored tooling suites to reuse common run/env/bootstrap/reset helpers.
   - Rationale: reduce duplicate harness logic and keep test behavior changes localized.
 
 - Tooling test namespace now mirrors blueprint domain ownership.
@@ -326,3 +326,8 @@
   - Helm repo bootstrap now updates only the requested repo alias instead of refreshing every configured repo, reducing unrelated network flakiness during audits and live runs.
   - Fallback-runtime artifact helpers now keep stdout machine-readable and send diagnostics to stderr, preventing command substitutions from capturing log lines as file paths.
   - Rationale: real `/tmp` local-cluster validation exposed both a live naming mismatch and stale inline chart pins; consolidating pins under the canonical versions source removes an AGENTS/implementation inconsistency, while targeted repo refresh plus chart-resolution auditing surfaces drift before provisioning fails.
+
+- `infra-bootstrap` now preserves disabled optional-module scaffolding instead of pruning tracked repo files.
+  - The bootstrap flow still materializes enabled-module scaffolding and manifests, but it no longer deletes tracked module directories or files from the working tree when flags are disabled.
+  - Tooling tests were updated to stop pruning live repo scaffolding during setup/teardown, and docs/contracts now describe preservation plus explicit disabled-resource cleanup.
+  - Rationale: review and live-validation runs exposed that bootstrap/test flows could silently remove tracked content from the live blueprint workspace, which is unsafe and conflicts with repository hygiene expectations.

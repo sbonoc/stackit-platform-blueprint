@@ -25,9 +25,11 @@ fi
 resolve_optional_module_execution "neo4j" "apply"
 provision_driver="$OPTIONAL_MODULE_EXECUTION_DRIVER"
 provision_path="$OPTIONAL_MODULE_EXECUTION_PATH"
+provision_status="applied"
 case "$provision_driver" in
 argocd_optional_manifest)
-  run_manifest_apply "$provision_path"
+  provision_status="deferred_to_deploy"
+  log_info "deferring neo4j ArgoCD manifest apply to deploy phase path=$provision_path"
   ;;
 *)
   optional_module_unexpected_driver "neo4j" "apply"
@@ -40,6 +42,7 @@ state_file="$(write_state_file "neo4j_runtime" \
   "tooling_mode=$(tooling_execution_mode)" \
   "provision_driver=$provision_driver" \
   "provision_path=$provision_path" \
+  "provision_status=$provision_status" \
   "uri=$(neo4j_uri)" \
   "username=$NEO4J_AUTH_USERNAME" \
   "password=$NEO4J_AUTH_PASSWORD" \

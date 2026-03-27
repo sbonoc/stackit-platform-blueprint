@@ -33,7 +33,7 @@ make infra-bootstrap
 
 Expected outcome:
 - `make/blueprint.generated.mk` is rendered for current module flags.
-- Optional scaffolding is materialized or pruned based on enabled flags.
+- Optional scaffolding is materialized for enabled modules while disabled-module scaffold files stay available for later enablement.
 
 ## 3) Validate Baseline (10 min)
 ```bash

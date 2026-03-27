@@ -44,6 +44,7 @@ spec:
   make_targets:
     plan: infra-public-endpoints-plan
     apply: infra-public-endpoints-apply
+    deploy: infra-public-endpoints-deploy
     smoke: infra-public-endpoints-smoke
     destroy: infra-public-endpoints-destroy
 

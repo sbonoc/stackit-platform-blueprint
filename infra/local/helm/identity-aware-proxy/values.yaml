@@ -1,0 +1,27 @@
+image:
+  registry: "quay.io"
+  repository: "oauth2-proxy/oauth2-proxy"
+  tag: "v7.15.0"
+config:
+  existingSecret: "blueprint-iap-config"
+  provider: oidc
+  oidcIssuerURL: "https://keycloak.example/realms/marketplace"
+  emailDomains:
+    - "*"
+  upstreams:
+    - "http://catalog.apps.svc.cluster.local:8080"
+extraArgs:
+  redirect-url: "https://iap.local/oauth2/callback"
+  email-domain: "*"
+ingress:
+  enabled: false
+gatewayApi:
+  # oauth2-proxy renders the protected browser HTTPRoute while the shared
+  # Gateway itself stays owned by the public-endpoints baseline.
+  enabled: true
+  gatewayRef:
+    name: "public-endpoints"
+    namespace: "network"
+    sectionName: http
+  hostnames:
+    - "iap.local"

@@ -1,0 +1,5 @@
+langfuse:
+  enabled: true
+  nextauth:
+    secret:
+      value: changeme

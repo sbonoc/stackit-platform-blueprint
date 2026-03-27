@@ -144,6 +144,7 @@
 ### Make Targets
 - `infra-identity-aware-proxy-plan`
 - `infra-identity-aware-proxy-apply`
+- `infra-identity-aware-proxy-deploy`
 - `infra-identity-aware-proxy-smoke`
 - `infra-identity-aware-proxy-destroy`
 
@@ -310,6 +311,7 @@
 ### Make Targets
 - `infra-public-endpoints-plan`
 - `infra-public-endpoints-apply`
+- `infra-public-endpoints-deploy`
 - `infra-public-endpoints-smoke`
 - `infra-public-endpoints-destroy`
 

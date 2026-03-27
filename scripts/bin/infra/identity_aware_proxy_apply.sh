@@ -26,10 +26,12 @@ fi
 resolve_optional_module_execution "identity-aware-proxy" "apply"
 provision_driver="$OPTIONAL_MODULE_EXECUTION_DRIVER"
 provision_path="$OPTIONAL_MODULE_EXECUTION_PATH"
+provision_status="applied"
 case "$provision_driver" in
 argocd_application_chart)
   identity_aware_proxy_reconcile_runtime_secret
-  run_manifest_apply "$provision_path"
+  provision_status="deferred_to_deploy"
+  log_info "deferring identity-aware-proxy ArgoCD manifest apply to deploy phase path=$provision_path"
   ;;
 helm)
   provision_path="$(identity_aware_proxy_render_values_file)"
@@ -40,6 +42,7 @@ helm)
     "$IAP_HELM_CHART" \
     "$IAP_HELM_CHART_VERSION" \
     "$provision_path"
+  provision_status="applied"
   ;;
 *)
   optional_module_unexpected_driver "identity-aware-proxy" "apply"
@@ -54,6 +57,7 @@ state_file="$(write_state_file "identity_aware_proxy_runtime" \
   "route_mode=gateway_api" \
   "provision_driver=$provision_driver" \
   "provision_path=$provision_path" \
+  "provision_status=$provision_status" \
   "public_host=$(identity_aware_proxy_public_host)" \
   "public_url=$(identity_aware_proxy_public_url)" \
   "upstream_url=$IAP_UPSTREAM_URL" \

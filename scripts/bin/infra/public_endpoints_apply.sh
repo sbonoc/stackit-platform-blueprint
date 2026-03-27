@@ -26,16 +26,18 @@ fi
 resolve_optional_module_execution "public-endpoints" "apply"
 provision_driver="$OPTIONAL_MODULE_EXECUTION_DRIVER"
 provision_path="$OPTIONAL_MODULE_EXECUTION_PATH"
-namespace_manifest_path="none"
-gateway_manifest_path="$provision_path"
+namespace_manifest_path="$(public_endpoints_render_namespace_manifest)"
+gateway_manifest_path="$(public_endpoints_render_gateway_manifest)"
+provision_status="applied"
 case "$provision_driver" in
 argocd_application_chart)
-  run_manifest_apply "$provision_path"
+  # ArgoCD-backed fallback modules are applied during deploy after the core
+  # runtime bootstraps the ArgoCD CRDs and controller into the cluster.
+  provision_status="deferred_to_deploy"
+  log_info "deferring public-endpoints ArgoCD manifest apply to deploy phase path=$provision_path"
   ;;
 helm)
   provision_path="$(public_endpoints_render_values_file)"
-  namespace_manifest_path="$(public_endpoints_render_namespace_manifest)"
-  gateway_manifest_path="$(public_endpoints_render_gateway_manifest)"
   run_helm_upgrade_install \
     "$PUBLIC_ENDPOINTS_HELM_RELEASE" \
     "$PUBLIC_ENDPOINTS_CONTROLLER_NAMESPACE" \
@@ -47,6 +49,7 @@ helm)
   # explicitly before applying the GatewayClass/Gateway manifest.
   run_manifest_apply "$namespace_manifest_path"
   run_manifest_apply "$gateway_manifest_path"
+  provision_status="applied"
   ;;
 *)
   optional_module_unexpected_driver "public-endpoints" "apply"
@@ -60,6 +63,7 @@ state_file="$(write_state_file "public_endpoints_runtime" \
   "edge_mode=gateway_api_envoy" \
   "provision_driver=$provision_driver" \
   "provision_path=$provision_path" \
+  "provision_status=$provision_status" \
   "namespace_manifest_path=$namespace_manifest_path" \
   "gateway_manifest_path=$gateway_manifest_path" \
   "base_domain=$PUBLIC_ENDPOINTS_BASE_DOMAIN" \

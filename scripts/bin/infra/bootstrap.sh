@@ -21,7 +21,7 @@ Bootstraps infra-scoped scaffolding only:
 - required infra directories and baseline manifests,
 - stack-specific Terraform and ArgoCD overlay scaffolding,
 - optional-module infra scaffolding when enabled,
-- stale optional-module infra scaffolding pruning when disabled.
+- preserves disabled optional-module scaffolding for safe future enablement.
 USAGE
 }
 
@@ -490,108 +490,37 @@ bootstrap_optional_manifests() {
   log_metric "optional_manifest_rendered_count" "$rendered_optional_manifest_count"
 }
 
-prune_path_if_exists() {
-  local path="$1"
-  if [[ ! -e "$path" ]]; then
-    return 1
-  fi
+report_disabled_module_scaffolding_preserved() {
+  local modules=(
+    observability
+    workflows
+    langfuse
+    postgres
+    neo4j
+    object-storage
+    rabbitmq
+    dns
+    public-endpoints
+    secrets-manager
+    kms
+    identity-aware-proxy
+  )
+  local disabled_modules=()
+  local module
 
-  if [[ -d "$path" ]]; then
-    run_cmd rm -rf "$path"
+  for module in "${modules[@]}"; do
+    if ! is_module_enabled "$module"; then
+      disabled_modules+=("$module")
+    fi
+  done
+
+  log_metric "optional_module_disabled_scaffold_preserved_count" "${#disabled_modules[@]}"
+  if [[ "${#disabled_modules[@]}" -gt 0 ]]; then
+    # Disabled module scaffolding stays on disk so flag toggles and review/test
+    # runs cannot silently delete tracked repo content.
+    log_info "disabled optional-module scaffolding preserved: ${disabled_modules[*]}"
   else
-    run_cmd rm -f "$path"
-  fi
-  log_info "pruned stale optional-module scaffold path: $path"
-  return 0
-}
-
-prune_optional_module_scaffolding() {
-  local pruned_path_count=0
-  local env
-
-  if ! is_module_enabled workflows; then
-    prune_path_if_exists "$ROOT_DIR/dags" && pruned_path_count=$((pruned_path_count + 1))
-    prune_path_if_exists "$ROOT_DIR/infra/cloud/stackit/terraform/modules/workflows" && pruned_path_count=$((pruned_path_count + 1))
-    prune_path_if_exists "$ROOT_DIR/tests/infra/modules/workflows" && pruned_path_count=$((pruned_path_count + 1))
-    for env in local dev stage prod; do
-      prune_path_if_exists "$ROOT_DIR/infra/gitops/argocd/optional/$env/workflows.yaml" && pruned_path_count=$((pruned_path_count + 1))
-    done
-  fi
-
-  if ! is_module_enabled langfuse; then
-    prune_path_if_exists "$ROOT_DIR/infra/cloud/stackit/terraform/modules/langfuse" && pruned_path_count=$((pruned_path_count + 1))
-    prune_path_if_exists "$ROOT_DIR/infra/local/helm/langfuse" && pruned_path_count=$((pruned_path_count + 1))
-    prune_path_if_exists "$ROOT_DIR/tests/infra/modules/langfuse" && pruned_path_count=$((pruned_path_count + 1))
-    for env in local dev stage prod; do
-      prune_path_if_exists "$ROOT_DIR/infra/gitops/argocd/optional/$env/langfuse.yaml" && pruned_path_count=$((pruned_path_count + 1))
-    done
-  fi
-
-  if ! is_module_enabled postgres; then
-    prune_path_if_exists "$ROOT_DIR/infra/cloud/stackit/terraform/modules/postgres" && pruned_path_count=$((pruned_path_count + 1))
-    prune_path_if_exists "$ROOT_DIR/infra/local/helm/postgres" && pruned_path_count=$((pruned_path_count + 1))
-    prune_path_if_exists "$ROOT_DIR/tests/infra/modules/postgres" && pruned_path_count=$((pruned_path_count + 1))
-  fi
-
-  if ! is_module_enabled neo4j; then
-    prune_path_if_exists "$ROOT_DIR/infra/cloud/stackit/terraform/modules/neo4j" && pruned_path_count=$((pruned_path_count + 1))
-    prune_path_if_exists "$ROOT_DIR/infra/local/helm/neo4j" && pruned_path_count=$((pruned_path_count + 1))
-    prune_path_if_exists "$ROOT_DIR/tests/infra/modules/neo4j" && pruned_path_count=$((pruned_path_count + 1))
-    for env in local dev stage prod; do
-      prune_path_if_exists "$ROOT_DIR/infra/gitops/argocd/optional/$env/neo4j.yaml" && pruned_path_count=$((pruned_path_count + 1))
-    done
-  fi
-
-  if ! is_module_enabled object-storage; then
-    prune_path_if_exists "$ROOT_DIR/infra/cloud/stackit/terraform/modules/object-storage" && pruned_path_count=$((pruned_path_count + 1))
-    prune_path_if_exists "$ROOT_DIR/infra/local/helm/object-storage" && pruned_path_count=$((pruned_path_count + 1))
-    prune_path_if_exists "$ROOT_DIR/tests/infra/modules/object-storage" && pruned_path_count=$((pruned_path_count + 1))
-  fi
-
-  if ! is_module_enabled rabbitmq; then
-    prune_path_if_exists "$ROOT_DIR/infra/cloud/stackit/terraform/modules/rabbitmq" && pruned_path_count=$((pruned_path_count + 1))
-    prune_path_if_exists "$ROOT_DIR/infra/local/helm/rabbitmq" && pruned_path_count=$((pruned_path_count + 1))
-    prune_path_if_exists "$ROOT_DIR/tests/infra/modules/rabbitmq" && pruned_path_count=$((pruned_path_count + 1))
-  fi
-
-  if ! is_module_enabled dns; then
-    prune_path_if_exists "$ROOT_DIR/infra/cloud/stackit/terraform/modules/dns" && pruned_path_count=$((pruned_path_count + 1))
-    prune_path_if_exists "$ROOT_DIR/tests/infra/modules/dns" && pruned_path_count=$((pruned_path_count + 1))
-  fi
-
-  if ! is_module_enabled public-endpoints; then
-    prune_path_if_exists "$ROOT_DIR/infra/cloud/stackit/terraform/modules/public-endpoints" && pruned_path_count=$((pruned_path_count + 1))
-    prune_path_if_exists "$ROOT_DIR/infra/local/helm/public-endpoints" && pruned_path_count=$((pruned_path_count + 1))
-    prune_path_if_exists "$ROOT_DIR/tests/infra/modules/public-endpoints" && pruned_path_count=$((pruned_path_count + 1))
-    for env in local dev stage prod; do
-      prune_path_if_exists "$ROOT_DIR/infra/gitops/argocd/optional/$env/public-endpoints.yaml" && pruned_path_count=$((pruned_path_count + 1))
-    done
-  fi
-
-  if ! is_module_enabled secrets-manager; then
-    prune_path_if_exists "$ROOT_DIR/infra/cloud/stackit/terraform/modules/secrets-manager" && pruned_path_count=$((pruned_path_count + 1))
-    prune_path_if_exists "$ROOT_DIR/tests/infra/modules/secrets-manager" && pruned_path_count=$((pruned_path_count + 1))
-  fi
-
-  if ! is_module_enabled kms; then
-    prune_path_if_exists "$ROOT_DIR/infra/cloud/stackit/terraform/modules/kms" && pruned_path_count=$((pruned_path_count + 1))
-    prune_path_if_exists "$ROOT_DIR/tests/infra/modules/kms" && pruned_path_count=$((pruned_path_count + 1))
-  fi
-
-  if ! is_module_enabled identity-aware-proxy; then
-    prune_path_if_exists "$ROOT_DIR/infra/cloud/stackit/terraform/modules/identity-aware-proxy" && pruned_path_count=$((pruned_path_count + 1))
-    prune_path_if_exists "$ROOT_DIR/infra/local/helm/identity-aware-proxy" && pruned_path_count=$((pruned_path_count + 1))
-    prune_path_if_exists "$ROOT_DIR/tests/infra/modules/identity-aware-proxy" && pruned_path_count=$((pruned_path_count + 1))
-    for env in local dev stage prod; do
-      prune_path_if_exists "$ROOT_DIR/infra/gitops/argocd/optional/$env/identity-aware-proxy.yaml" && pruned_path_count=$((pruned_path_count + 1))
-    done
-  fi
-
-  log_metric "optional_module_pruned_path_count" "$pruned_path_count"
-  if [[ "$pruned_path_count" -gt 0 ]]; then
-    log_info "optional module infra scaffolding pruned paths=$pruned_path_count"
-  else
-    log_info "optional module infra scaffolding prune skipped; no stale disabled-module paths found"
+    log_info "all optional-module scaffolding active for current module flags"
   fi
 }
 
@@ -601,6 +530,6 @@ bootstrap_stackit_terraform_scaffolding
 bootstrap_optional_module_scaffolding
 bootstrap_argocd_overlay_scaffolding
 bootstrap_optional_manifests
-prune_optional_module_scaffolding
+report_disabled_module_scaffolding_preserved
 
 log_info "infra bootstrap complete"

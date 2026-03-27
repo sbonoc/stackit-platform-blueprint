@@ -196,12 +196,6 @@ def assert_path_exists(repo_root: Path, relative_path: str, scenario: str) -> No
         raise AssertionError(f"{scenario}: expected path to exist: {relative_path}")
 
 
-def assert_path_missing(repo_root: Path, relative_path: str, scenario: str) -> None:
-    path = repo_root / relative_path
-    if path.exists():
-        raise AssertionError(f"{scenario}: expected path to be pruned: {relative_path}")
-
-
 def assert_make_target_presence(makefile_text: str, target: str, expected: bool, scenario: str) -> None:
     pattern = re.compile(rf"^{re.escape(target)}:", re.MULTILINE)
     present = bool(pattern.search(makefile_text))
@@ -231,10 +225,10 @@ for module_name, module in sorted(contract.optional_modules.modules.items()):
     for path_key in module.paths_required_when_enabled:
         raw_path = module.paths[path_key].replace("${ENV}", expected_environment)
         relative_path = raw_path.rstrip("/")
-        if enabled:
-            assert_path_exists(repo_root, relative_path, scenario)
-        else:
-            assert_path_missing(repo_root, relative_path, scenario)
+        # Generated repos now preserve disabled-module scaffolding on disk so
+        # flag toggles cannot delete tracked template assets. Enabled modules
+        # still rely on the same paths being present for execution.
+        assert_path_exists(repo_root, relative_path, scenario)
 
 required_artifacts = [
     "artifacts/infra/provision.env",

@@ -59,6 +59,8 @@ spec:
       - scripts/bin/infra/local_destroy_all.sh
       - scripts/bin/infra/core_runtime_bootstrap.sh
       - scripts/bin/infra/core_runtime_smoke.sh
+      - scripts/bin/infra/public_endpoints_deploy.sh
+      - scripts/bin/infra/identity_aware_proxy_deploy.sh
       - scripts/bin/infra/stackit_foundation_seed_runtime_secret.sh
       - scripts/bin/infra/workload_health_check.py
       - scripts/bin/quality/check_test_pyramid.py
@@ -553,8 +555,8 @@ spec:
   optional_modules:
     root: blueprint/modules
     disabled_scaffold_policy:
-      mode: prune_on_bootstrap
-      destroy_before_prune_command: make infra-destroy-disabled-modules
+      mode: preserve_on_bootstrap
+      disabled_resource_cleanup_command: make infra-destroy-disabled-modules
       command: make infra-bootstrap
     modules:
       observability:
@@ -732,6 +734,7 @@ spec:
         make_targets:
           - infra-public-endpoints-plan
           - infra-public-endpoints-apply
+          - infra-public-endpoints-deploy
           - infra-public-endpoints-smoke
           - infra-public-endpoints-destroy
       secrets-manager:
@@ -796,5 +799,6 @@ spec:
         make_targets:
           - infra-identity-aware-proxy-plan
           - infra-identity-aware-proxy-apply
+          - infra-identity-aware-proxy-deploy
           - infra-identity-aware-proxy-smoke
           - infra-identity-aware-proxy-destroy

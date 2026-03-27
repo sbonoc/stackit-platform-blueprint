@@ -22,14 +22,14 @@ public_endpoints_init_env
 resolve_optional_module_execution "public-endpoints" "plan"
 provision_driver="$OPTIONAL_MODULE_EXECUTION_DRIVER"
 provision_path="$OPTIONAL_MODULE_EXECUTION_PATH"
-gateway_manifest_path="$provision_path"
+namespace_manifest_path="$(public_endpoints_render_namespace_manifest)"
+gateway_manifest_path="$(public_endpoints_render_gateway_manifest)"
 case "$provision_driver" in
 argocd_application_chart)
   optional_module_require_manifest_present "public-endpoints" "$provision_path"
   ;;
 helm)
   provision_path="$(public_endpoints_render_values_file)"
-  gateway_manifest_path="$(public_endpoints_render_gateway_manifest)"
   run_helm_template \
     "$PUBLIC_ENDPOINTS_HELM_RELEASE" \
     "$PUBLIC_ENDPOINTS_CONTROLLER_NAMESPACE" \
@@ -49,6 +49,7 @@ state_file="$(write_state_file "public_endpoints_plan" \
   "edge_mode=gateway_api_envoy" \
   "provision_driver=$provision_driver" \
   "provision_path=$provision_path" \
+  "namespace_manifest_path=$namespace_manifest_path" \
   "gateway_manifest_path=$gateway_manifest_path" \
   "base_domain=$PUBLIC_ENDPOINTS_BASE_DOMAIN" \
   "gateway_name=$PUBLIC_ENDPOINTS_GATEWAY_NAME" \

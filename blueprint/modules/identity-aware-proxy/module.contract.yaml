@@ -50,6 +50,7 @@ spec:
   make_targets:
     plan: infra-identity-aware-proxy-plan
     apply: infra-identity-aware-proxy-apply
+    deploy: infra-identity-aware-proxy-deploy
     smoke: infra-identity-aware-proxy-smoke
     destroy: infra-identity-aware-proxy-destroy
 

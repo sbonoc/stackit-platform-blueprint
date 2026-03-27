@@ -83,7 +83,7 @@ OUT
   public-endpoints)
     cat <<'OUT'
  \
-  infra-public-endpoints-plan infra-public-endpoints-apply infra-public-endpoints-smoke infra-public-endpoints-destroy
+  infra-public-endpoints-plan infra-public-endpoints-apply infra-public-endpoints-deploy infra-public-endpoints-smoke infra-public-endpoints-destroy
 OUT
     ;;
   secrets-manager)
@@ -101,7 +101,7 @@ OUT
   identity-aware-proxy)
     cat <<'OUT'
  \
-  infra-identity-aware-proxy-plan infra-identity-aware-proxy-apply infra-identity-aware-proxy-smoke infra-identity-aware-proxy-destroy
+  infra-identity-aware-proxy-plan infra-identity-aware-proxy-apply infra-identity-aware-proxy-deploy infra-identity-aware-proxy-smoke infra-identity-aware-proxy-destroy
 OUT
     ;;
   *)
@@ -272,6 +272,9 @@ infra-public-endpoints-plan: ## Plan public endpoint resources
 infra-public-endpoints-apply: ## Apply public endpoint resources
 	@scripts/bin/infra/public_endpoints_apply.sh
 
+infra-public-endpoints-deploy: ## Deploy public endpoint runtime
+	@scripts/bin/infra/public_endpoints_deploy.sh
+
 infra-public-endpoints-smoke: ## Public endpoint smoke checks
 	@scripts/bin/infra/public_endpoints_smoke.sh
 
@@ -319,6 +322,9 @@ infra-identity-aware-proxy-plan: ## Plan Identity-Aware Proxy resources (require
 
 infra-identity-aware-proxy-apply: ## Apply Identity-Aware Proxy resources (requires Keycloak OIDC config)
 	@scripts/bin/infra/identity_aware_proxy_apply.sh
+
+infra-identity-aware-proxy-deploy: ## Deploy Identity-Aware Proxy runtime
+	@scripts/bin/infra/identity_aware_proxy_deploy.sh
 
 infra-identity-aware-proxy-smoke: ## Identity-Aware Proxy smoke checks (Keycloak OIDC contract)
 	@scripts/bin/infra/identity_aware_proxy_smoke.sh
@@ -441,7 +447,7 @@ optional_target_count() {
     count=$((count + 4))
   fi
   if is_module_enabled public-endpoints; then
-    count=$((count + 4))
+    count=$((count + 5))
   fi
   if is_module_enabled secrets-manager; then
     count=$((count + 4))
@@ -450,7 +456,7 @@ optional_target_count() {
     count=$((count + 4))
   fi
   if is_module_enabled identity-aware-proxy; then
-    count=$((count + 4))
+    count=$((count + 5))
   fi
   echo "$count"
 }
