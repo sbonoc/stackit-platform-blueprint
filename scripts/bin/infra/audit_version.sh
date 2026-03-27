@@ -3,6 +3,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
+source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
 source "$ROOT_DIR/scripts/lib/infra/versions.sh"
 source "$ROOT_DIR/scripts/lib/infra/versions.baseline.sh"
 source "$ROOT_DIR/scripts/lib/quality/semver.sh"
@@ -19,6 +20,7 @@ Audits pinned infra versions and checks drift against baseline policy:
 - major drift => fail
 - non-semver => warn
 - includes local optional-module Helm chart pins from the canonical versions source
+- verifies Helm-backed chart pins resolve when `helm` is available locally
 EOF
 }
 
@@ -29,6 +31,7 @@ fi
 
 failures=0
 warnings=0
+helm_pin_checks_skipped="false"
 
 audit_var() {
   local var_name="$1"
@@ -93,6 +96,35 @@ audit_var() {
   esac
 }
 
+audit_helm_chart_pin() {
+  local var_name="$1"
+  local chart_ref="$2"
+  local version="${!var_name:-}"
+
+  if [[ -z "$version" ]]; then
+    return 0
+  fi
+
+  if ! shell_has_cmd helm; then
+    if [[ "$helm_pin_checks_skipped" == "false" ]]; then
+      log_warn "helm not installed; skipping Helm chart pin resolution checks"
+      helm_pin_checks_skipped="true"
+    fi
+    return 0
+  fi
+
+  prepare_helm_repo_for_chart "$chart_ref"
+
+  if helm search repo "$chart_ref" --versions | awk -v version="$version" 'NR > 1 && $2 == version { found = 1 } END { exit found ? 0 : 1 }'; then
+    log_metric "helm_chart_pin_check_total" "1" "chart=$chart_ref version=$version status=found"
+    return 0
+  fi
+
+  log_metric "helm_chart_pin_check_total" "1" "chart=$chart_ref version=$version status=missing"
+  log_error "pinned Helm chart version not found for $var_name: chart=$chart_ref version=$version"
+  failures=$((failures + 1))
+}
+
 tracked_vars=(
   TERRAFORM_VERSION
   HELM_VERSION
@@ -116,6 +148,13 @@ tracked_vars=(
 for var_name in "${tracked_vars[@]}"; do
   audit_var "$var_name"
 done
+
+audit_helm_chart_pin "POSTGRES_HELM_CHART_VERSION_PIN" "bitnami/postgresql"
+audit_helm_chart_pin "OBJECT_STORAGE_HELM_CHART_VERSION_PIN" "bitnami/minio"
+audit_helm_chart_pin "RABBITMQ_HELM_CHART_VERSION_PIN" "bitnami/rabbitmq"
+audit_helm_chart_pin "NEO4J_HELM_CHART_VERSION_PIN" "neo4j/neo4j"
+audit_helm_chart_pin "PUBLIC_ENDPOINTS_HELM_CHART_VERSION_PIN" "ingress-nginx/ingress-nginx"
+audit_helm_chart_pin "IAP_HELM_CHART_VERSION_PIN" "oauth2-proxy/oauth2-proxy"
 
 if [[ $warnings -gt 0 ]]; then
   log_warn "version audit completed with $warnings warning(s)"

@@ -283,5 +283,6 @@
 
 - Post-P1 live validation fixes now align local runtime checks and chart pin ownership with the repo contract.
   - `local_crossplane_bootstrap.sh` now waits on the chart's stable deployment names (`crossplane`, `crossplane-rbac-manager`) instead of deriving names from the Helm release.
-  - Optional-module local Helm chart version pins were moved into `scripts/lib/infra/versions.sh`/`versions.baseline.sh` as canonical `*_PIN` constants, and wrappers consume them via `set_default_env` so operator overrides still work.
-  - Rationale: real `/tmp` local-cluster validation exposed both a live naming mismatch and a stale inline Postgres chart pin; consolidating pins under the canonical versions source removes an AGENTS/implementation inconsistency and keeps live fixes deterministic.
+  - Optional-module local Helm chart version pins were moved into `scripts/lib/infra/versions.sh`/`versions.baseline.sh` as canonical `*_PIN` constants, wrappers consume them via `set_default_env` so operator overrides still work, and `infra-audit-version` now resolves those pins against the live Helm index when `helm` is installed.
+  - Helm repo bootstrap now updates only the requested repo alias instead of refreshing every configured repo, reducing unrelated network flakiness during audits and live runs.
+  - Rationale: real `/tmp` local-cluster validation exposed both a live naming mismatch and stale inline chart pins; consolidating pins under the canonical versions source removes an AGENTS/implementation inconsistency, while targeted repo refresh plus chart-resolution auditing surfaces drift before provisioning fails.

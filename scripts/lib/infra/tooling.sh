@@ -374,5 +374,7 @@ prepare_helm_repo_for_chart() {
   esac
 
   run_cmd helm repo add "$repo_name" "$repo_url"
-  run_cmd helm repo update
+  # Refresh only the repo needed for this chart to avoid unrelated network
+  # flakiness in live runs and validation audits.
+  run_cmd helm repo update "$repo_name"
 }
