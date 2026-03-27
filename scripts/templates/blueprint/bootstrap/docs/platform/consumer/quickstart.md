@@ -61,6 +61,8 @@ make infra-status-json
 
 Before publishing hosts or API routes, review [Endpoint Exposure Model](endpoint_exposure_model.md)
 so public UI, protected UI, direct APIs, and internal SSR/BFF flows stay separated intentionally.
+If you plan to expose bearer-token APIs on the shared edge, review
+[Protected API Routes](protected_api_routes.md) before attaching JWT policy resources.
 
 ## 6) STACKIT MVP Provision/Deploy (Optional)
 For managed STACKIT execution (`BLUEPRINT_PROFILE=stackit-dev|stackit-stage|stackit-prod`), export:

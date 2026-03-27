@@ -1,6 +1,12 @@
 # Decisions Log
 
 ## 2026-03-27
+- Protected API JWT route support now uses a split Argo CD project model instead of extending the shared edge project directly.
+  - Added a dedicated `platform-edge-*` AppProject per environment for Envoy Gateway controller resources and the shared `GatewayClass`/`Gateway` baseline in `network`.
+  - Kept bearer-token API `HTTPRoute`/`SecurityPolicy`/`BackendTLSPolicy` resources in the main `platform-*` AppProject so protected API policies attach in app namespaces instead of drifting onto the shared edge.
+  - Seeded `docs/platform/consumer/protected_api_routes.md` and updated consumer/module docs to make the protected API JWT route pattern explicit.
+  - Rationale: preserve the shared edge boundary while still making protected API JWT policies available for SPA/direct-client use cases.
+
 - Generated repos now seed a mixed endpoint exposure model guide and the shared `network` namespace required by the Gateway baseline.
   - Added `docs/platform/consumer/endpoint_exposure_model.md` as a seeded consumer guide that defines the public UI, protected UI, public API, protected API, and internal SSR/BFF route classes, together with ownership boundaries between `public-endpoints`, `identity-aware-proxy`, and app delivery.
   - Added the `network` namespace to the platform GitOps base so the shared `Gateway` has a stable home across profiles; `public-endpoints` smoke now fails fast if that namespace contract disappears.

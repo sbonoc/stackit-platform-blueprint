@@ -3,6 +3,7 @@ kind: Kustomization
 namespace: argocd
 resources:
   - appproject.yaml
+  - appproject-edge.yaml
   - application-platform-local.yaml
 configMapGenerator:
   - name: blueprint-runtime-profile

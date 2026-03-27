@@ -279,6 +279,7 @@ class RefactorContractsTests(unittest.TestCase):
                 "docs/platform/consumer/first_30_minutes.md",
                 "docs/platform/consumer/quickstart.md",
                 "docs/platform/consumer/endpoint_exposure_model.md",
+                "docs/platform/consumer/protected_api_routes.md",
                 "docs/platform/consumer/troubleshooting.md",
                 "docs/platform/consumer/upgrade_runbook.md",
                 "docs/platform/modules/observability/README.md",
@@ -510,9 +511,14 @@ class RefactorContractsTests(unittest.TestCase):
             "docs/platform/consumer/endpoint_exposure_model.md",
             _extract_yaml_list(platform_docs, "required_seed_files"),
         )
+        self.assertIn(
+            "docs/platform/consumer/protected_api_routes.md",
+            _extract_yaml_list(platform_docs, "required_seed_files"),
+        )
 
         self.assertIn('"docs/platform/consumer/quickstart.md"', bootstrap)
         self.assertIn('"docs/platform/consumer/endpoint_exposure_model.md"', bootstrap)
+        self.assertIn('"docs/platform/consumer/protected_api_routes.md"', bootstrap)
         self.assertIn("if [[ -f \"$path\" ]]; then", bootstrap_lib)
         self.assertIn("_validate_platform_docs_seed_contract", validate_py)
         self.assertNotIn('"docs/platform/consumer/quickstart.md",', validate_py)
@@ -550,6 +556,7 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn("[Blueprint Docs](blueprint/README.md)", docs_readme)
         self.assertIn("[Platform Docs](platform/README.md)", docs_readme)
         self.assertIn("[Endpoint Exposure Model](platform/consumer/endpoint_exposure_model.md)", docs_readme)
+        self.assertIn("[Protected API Routes](platform/consumer/protected_api_routes.md)", docs_readme)
         self.assertIn("[Core Make Targets (Generated)](reference/generated/core_targets.generated.md)", docs_readme)
 
     def test_consumer_quickstart_mentions_status_snapshot_and_no_duplicate_smoke(self) -> None:
@@ -557,6 +564,7 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn("make infra-provision-deploy", quickstart)
         self.assertIn("make infra-status-json", quickstart)
         self.assertIn("[Endpoint Exposure Model](endpoint_exposure_model.md)", quickstart)
+        self.assertIn("[Protected API Routes](protected_api_routes.md)", quickstart)
         self.assertIn("artifacts/infra/infra_status_snapshot.json", quickstart)
         self.assertNotIn("make infra-smoke", quickstart)
 
@@ -571,6 +579,16 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn("```mermaid", endpoint_model)
         self.assertEqual(endpoint_model, endpoint_model_template)
 
+    def test_protected_api_routes_guide_is_seeded_and_template_synced(self) -> None:
+        protected_api_routes = _read("docs/platform/consumer/protected_api_routes.md")
+        protected_api_routes_template = _read(
+            "scripts/templates/blueprint/bootstrap/docs/platform/consumer/protected_api_routes.md"
+        )
+        self.assertIn("## Recommended Pattern", protected_api_routes)
+        self.assertIn("kind: SecurityPolicy", protected_api_routes)
+        self.assertIn("platform-edge-*", protected_api_routes)
+        self.assertEqual(protected_api_routes, protected_api_routes_template)
+
     def test_gateway_module_docs_link_to_endpoint_exposure_model(self) -> None:
         public_endpoints_doc = _read("docs/platform/modules/public-endpoints/README.md")
         public_endpoints_doc_template = _read(
@@ -582,6 +600,7 @@ class RefactorContractsTests(unittest.TestCase):
         )
 
         self.assertIn("[Endpoint Exposure Model](../../consumer/endpoint_exposure_model.md)", public_endpoints_doc)
+        self.assertIn("[Protected API Routes](../../consumer/protected_api_routes.md)", public_endpoints_doc)
         self.assertIn("[Endpoint Exposure Model](../../consumer/endpoint_exposure_model.md)", identity_aware_proxy_doc)
         self.assertEqual(public_endpoints_doc, public_endpoints_doc_template)
         self.assertEqual(identity_aware_proxy_doc, identity_aware_proxy_doc_template)
@@ -592,6 +611,42 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn("name: network", namespaces)
         self.assertIn("Shared gateway/route attachment namespace", namespaces)
         self.assertEqual(namespaces, namespaces_template)
+
+    def test_argocd_projects_split_edge_and_route_policy_boundaries(self) -> None:
+        for environment in ("local", "dev", "stage", "prod"):
+            with self.subTest(environment=environment):
+                appproject = _read(f"infra/gitops/argocd/overlays/{environment}/appproject.yaml")
+                appproject_template = _read(
+                    f"scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/{environment}/appproject.yaml"
+                )
+                edge_appproject = _read(f"infra/gitops/argocd/overlays/{environment}/appproject-edge.yaml")
+                edge_appproject_template = _read(
+                    f"scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/{environment}/appproject-edge.yaml"
+                )
+                kustomization = _read(f"infra/gitops/argocd/overlays/{environment}/kustomization.yaml")
+                kustomization_template = _read(
+                    f"scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/{environment}/kustomization.yaml"
+                )
+
+                self.assertNotIn("namespace: network", appproject)
+                self.assertIn("kind: HTTPRoute", appproject)
+                self.assertIn("kind: BackendTLSPolicy", appproject)
+                self.assertIn("kind: SecurityPolicy", appproject)
+                self.assertIn("kind: Backend\n", appproject)
+                self.assertNotIn("kind: GatewayClass", appproject)
+                self.assertNotIn("kind: Gateway\n", appproject)
+                self.assertEqual(appproject, appproject_template)
+
+                self.assertIn(f"name: platform-edge-{environment}", edge_appproject)
+                self.assertIn("namespace: network", edge_appproject)
+                self.assertIn("namespace: envoy-gateway-system", edge_appproject)
+                self.assertIn("kind: GatewayClass", edge_appproject)
+                self.assertIn("kind: Gateway\n", edge_appproject)
+                self.assertNotIn("kind: SecurityPolicy", edge_appproject)
+                self.assertEqual(edge_appproject, edge_appproject_template)
+
+                self.assertIn("- appproject-edge.yaml", kustomization)
+                self.assertEqual(kustomization, kustomization_template)
 
     def test_quality_hooks_run_covers_docs_sync_checks_and_test_pyramid(self) -> None:
         hooks_run = _read("scripts/bin/quality/hooks_run.sh")
@@ -983,6 +1038,7 @@ class RefactorContractsTests(unittest.TestCase):
 
         self.assertIn('[Platform Quickstart](platform/consumer/quickstart.md)', docs_readme)
         self.assertIn('[Endpoint Exposure Model](platform/consumer/endpoint_exposure_model.md)', docs_readme)
+        self.assertIn('[Protected API Routes](platform/consumer/protected_api_routes.md)', docs_readme)
         self.assertIn('[Platform Troubleshooting](platform/consumer/troubleshooting.md)', docs_readme)
         self.assertIn('[Platform Upgrade Runbook](platform/consumer/upgrade_runbook.md)', docs_readme)
         self.assertIn('[Template Release Policy](blueprint/governance/template_release_policy.md)', docs_readme)

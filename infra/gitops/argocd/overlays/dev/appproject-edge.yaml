@@ -1,30 +1,19 @@
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
-  name: platform-prod
+  name: platform-edge-dev
   namespace: argocd
 spec:
-  description: Platform workloads for prod environment.
+  description: Shared public edge resources for dev environment.
   sourceRepos:
     - https://github.com/example-org/example-repo.git
-    - https://charts.bitnami.com/bitnami
     - docker.io/envoyproxy
-    - https://oauth2-proxy.github.io/manifests
-    - https://open-telemetry.github.io/opentelemetry-helm-charts
-    - https://langfuse.github.io/langfuse-k8s
-    - https://helm.neo4j.com/neo4j
   destinations:
     - namespace: argocd
       server: https://kubernetes.default.svc
-    - namespace: apps
+    - namespace: network
       server: https://kubernetes.default.svc
-    - namespace: data
-      server: https://kubernetes.default.svc
-    - namespace: messaging
-      server: https://kubernetes.default.svc
-    - namespace: security
-      server: https://kubernetes.default.svc
-    - namespace: observability
+    - namespace: envoy-gateway-system
       server: https://kubernetes.default.svc
   clusterResourceWhitelist:
     - group: ""
@@ -35,12 +24,12 @@ spec:
       kind: ValidatingWebhookConfiguration
     - group: admissionregistration.k8s.io
       kind: MutatingWebhookConfiguration
+    - group: gateway.networking.k8s.io
+      kind: GatewayClass
     - group: rbac.authorization.k8s.io
       kind: ClusterRole
     - group: rbac.authorization.k8s.io
       kind: ClusterRoleBinding
-    - group: external-secrets.io
-      kind: ClusterSecretStore
   namespaceResourceWhitelist:
     - group: ""
       kind: ServiceAccount
@@ -54,12 +43,6 @@ spec:
       kind: Job
     - group: apps
       kind: Deployment
-    - group: apps
-      kind: StatefulSet
-    - group: argoproj.io
-      kind: Application
-    - group: external-secrets.io
-      kind: ExternalSecret
     - group: networking.k8s.io
       kind: NetworkPolicy
     - group: policy
@@ -69,10 +52,4 @@ spec:
     - group: rbac.authorization.k8s.io
       kind: RoleBinding
     - group: gateway.networking.k8s.io
-      kind: HTTPRoute
-    - group: gateway.networking.k8s.io
-      kind: BackendTLSPolicy
-    - group: gateway.envoyproxy.io
-      kind: SecurityPolicy
-    - group: gateway.envoyproxy.io
-      kind: Backend
+      kind: Gateway

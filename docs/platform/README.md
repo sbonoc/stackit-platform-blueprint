@@ -8,6 +8,7 @@ This section is the initial documentation baseline for the target platform repos
 - [First 30 Minutes](consumer/first_30_minutes.md)
 - [Quickstart](consumer/quickstart.md)
 - [Endpoint Exposure Model](consumer/endpoint_exposure_model.md)
+- [Protected API Routes](consumer/protected_api_routes.md)
 - [Troubleshooting](consumer/troubleshooting.md)
 - [Upgrade Runbook](consumer/upgrade_runbook.md)
 

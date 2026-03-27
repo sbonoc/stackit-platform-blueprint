@@ -22,10 +22,6 @@ spec:
       server: https://kubernetes.default.svc
     - namespace: messaging
       server: https://kubernetes.default.svc
-    - namespace: network
-      server: https://kubernetes.default.svc
-    - namespace: envoy-gateway-system
-      server: https://kubernetes.default.svc
     - namespace: security
       server: https://kubernetes.default.svc
     - namespace: observability
@@ -39,8 +35,6 @@ spec:
       kind: ValidatingWebhookConfiguration
     - group: admissionregistration.k8s.io
       kind: MutatingWebhookConfiguration
-    - group: gateway.networking.k8s.io
-      kind: GatewayClass
     - group: rbac.authorization.k8s.io
       kind: ClusterRole
     - group: rbac.authorization.k8s.io
@@ -75,6 +69,10 @@ spec:
     - group: rbac.authorization.k8s.io
       kind: RoleBinding
     - group: gateway.networking.k8s.io
-      kind: Gateway
-    - group: gateway.networking.k8s.io
       kind: HTTPRoute
+    - group: gateway.networking.k8s.io
+      kind: BackendTLSPolicy
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+    - group: gateway.envoyproxy.io
+      kind: Backend

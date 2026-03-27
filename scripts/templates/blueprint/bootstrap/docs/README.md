@@ -11,8 +11,9 @@ Recommended reading order:
 1. [First 30 Minutes](platform/consumer/first_30_minutes.md)
 2. [Platform Quickstart](platform/consumer/quickstart.md)
 3. [Endpoint Exposure Model](platform/consumer/endpoint_exposure_model.md)
-4. [Platform Troubleshooting](platform/consumer/troubleshooting.md)
-5. [Platform Upgrade Runbook](platform/consumer/upgrade_runbook.md)
+4. [Protected API Routes](platform/consumer/protected_api_routes.md)
+5. [Platform Troubleshooting](platform/consumer/troubleshooting.md)
+6. [Platform Upgrade Runbook](platform/consumer/upgrade_runbook.md)
 
 Fast path:
 ```bash

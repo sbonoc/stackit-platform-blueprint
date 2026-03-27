@@ -36,11 +36,16 @@ runtime_gateway_name="$(grep '^gateway_name=' "$runtime_state" | head -n1 | cut 
 runtime_gateway_class_name="$(grep '^gateway_class_name=' "$runtime_state" | head -n1 | cut -d= -f2-)"
 runtime_gateway_namespace="$(grep '^gateway_namespace=' "$runtime_state" | head -n1 | cut -d= -f2-)"
 gateway_manifest_path="$(grep '^gateway_manifest_path=' "$runtime_state" | head -n1 | cut -d= -f2-)"
+appproject_path="$ROOT_DIR/infra/gitops/argocd/overlays/$(profile_environment)/appproject.yaml"
+edge_appproject_path="$ROOT_DIR/infra/gitops/argocd/overlays/$(profile_environment)/appproject-edge.yaml"
 if [[ -z "$runtime_base_domain" || -z "$runtime_gateway_name" || -z "$runtime_gateway_class_name" || -z "$runtime_gateway_namespace" ]]; then
   log_fatal "public-endpoints runtime Gateway contract is incomplete"
 fi
 if [[ -z "$gateway_manifest_path" || ! -f "$gateway_manifest_path" ]]; then
   log_fatal "public-endpoints runtime gateway manifest artifact is missing"
+fi
+if [[ ! -f "$appproject_path" || ! -f "$edge_appproject_path" ]]; then
+  log_fatal "public-endpoints Argo CD project contract files are missing"
 fi
 if ! grep -q '^kind: GatewayClass$' "$gateway_manifest_path"; then
   log_fatal "public-endpoints gateway manifest is missing GatewayClass"
@@ -54,12 +59,47 @@ fi
 if ! grep -q 'name: network' "$ROOT_DIR/infra/gitops/platform/base/namespaces.yaml"; then
   log_fatal "platform base namespace contract is missing the shared network namespace"
 fi
+# The shared edge and consumer route policy resources intentionally live in
+# separate Argo CD projects so JWT route policies cannot drift onto the
+# shared Gateway baseline in the network namespace.
+if grep -q 'namespace: network' "$appproject_path"; then
+  log_fatal "application AppProject must not target the shared network namespace"
+fi
+if ! grep -Eq '^[[:space:]]+kind: HTTPRoute$' "$appproject_path"; then
+  log_fatal "application AppProject is missing HTTPRoute permissions"
+fi
+if ! grep -Eq '^[[:space:]]+kind: BackendTLSPolicy$' "$appproject_path"; then
+  log_fatal "application AppProject is missing BackendTLSPolicy permissions"
+fi
+if ! grep -Eq '^[[:space:]]+kind: SecurityPolicy$' "$appproject_path"; then
+  log_fatal "application AppProject is missing SecurityPolicy permissions"
+fi
+if ! grep -Eq '^[[:space:]]+kind: Backend$' "$appproject_path"; then
+  log_fatal "application AppProject is missing Envoy Backend permissions"
+fi
+if ! grep -q 'namespace: network' "$edge_appproject_path"; then
+  log_fatal "edge AppProject is missing the shared network namespace destination"
+fi
+if ! grep -q 'namespace: envoy-gateway-system' "$edge_appproject_path"; then
+  log_fatal "edge AppProject is missing the Envoy Gateway controller namespace destination"
+fi
+if ! grep -Eq '^[[:space:]]+kind: GatewayClass$' "$edge_appproject_path"; then
+  log_fatal "edge AppProject is missing GatewayClass permissions"
+fi
+if ! grep -Eq '^[[:space:]]+kind: Gateway$' "$edge_appproject_path"; then
+  log_fatal "edge AppProject is missing Gateway permissions"
+fi
 
 log_metric \
   "public_endpoints_gateway_contract_check_total" \
   "1" \
   "gateway_name=$runtime_gateway_name gateway_class_name=$runtime_gateway_class_name gateway_namespace=$runtime_gateway_namespace"
 log_info "validated shared Gateway API contract gateway=$runtime_gateway_name class=$runtime_gateway_class_name namespace=$runtime_gateway_namespace"
+log_metric \
+  "public_endpoints_route_policy_project_check_total" \
+  "1" \
+  "environment=$(profile_environment) route_project=$(basename "$appproject_path") edge_project=$(basename "$edge_appproject_path")"
+log_info "validated split Argo CD project contract environment=$(profile_environment) route_project=$(basename "$appproject_path") edge_project=$(basename "$edge_appproject_path")"
 
 state_file="$(write_state_file "public_endpoints_smoke" \
   "status=passed" \

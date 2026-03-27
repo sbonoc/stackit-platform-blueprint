@@ -577,6 +577,7 @@ class OptionalModulesTests(unittest.TestCase):
         public_endpoints_manifest = (
             REPO_ROOT / "infra/gitops/argocd/optional/dev/public-endpoints.yaml"
         ).read_text(encoding="utf-8")
+        self.assertIn("project: platform-edge-dev", public_endpoints_manifest)
         self.assertIn("repoURL: docker.io/envoyproxy", public_endpoints_manifest)
         self.assertIn("chart: gateway-helm", public_endpoints_manifest)
         self.assertIn("targetRevision: 1.7.1", public_endpoints_manifest)

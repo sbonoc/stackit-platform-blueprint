@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/name: public-endpoints
     app.kubernetes.io/environment: {{ENV}}
 spec:
-  project: platform-{{ENV}}
+  project: platform-edge-{{ENV}}
   destination:
     server: https://kubernetes.default.svc
     namespace: {{PUBLIC_ENDPOINTS_CONTROLLER_NAMESPACE}}
