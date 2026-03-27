@@ -6,8 +6,8 @@ Provision ingress/public endpoint baseline for marketplace UI and API surfaces.
 ## Stack Execution Model
 - Optional module Make targets are materialized by `make blueprint-render-makefile` (or `make blueprint-bootstrap`) when `PUBLIC_ENDPOINTS_ENABLED=true`.
 - Scaffolding paths are materialized by `make infra-bootstrap` only when `PUBLIC_ENDPOINTS_ENABLED=true`.
-- `stackit-*` profiles: runtime reconciliation through ArgoCD optional manifest `infra/gitops/argocd/optional/${ENV}/public-endpoints.yaml`.
-- `local-*` profiles: Helm chart (`ingress-nginx/ingress-nginx`) using `infra/local/helm/public-endpoints/values.yaml`.
+- `stackit-*` profiles: module-specific ArgoCD `Application` reconciles `ingress-nginx/ingress-nginx` from `infra/gitops/argocd/optional/${ENV}/public-endpoints.yaml`.
+- `local-*` profiles: Helm chart (`ingress-nginx/ingress-nginx`) runs from a rendered values artifact derived from the scaffold contract in `infra/local/helm/public-endpoints/values.yaml`.
 
 ## Enable
 ```bash

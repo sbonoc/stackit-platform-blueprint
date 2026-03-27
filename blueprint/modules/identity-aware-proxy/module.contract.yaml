@@ -28,6 +28,7 @@ spec:
   inputs:
     required_env:
       - IAP_UPSTREAM_URL
+      - IAP_COOKIE_SECRET
       - KEYCLOAK_ISSUER_URL
       - KEYCLOAK_CLIENT_ID
       - KEYCLOAK_CLIENT_SECRET
@@ -35,6 +36,8 @@ spec:
       - IAP_PUBLIC_HOST
       - IAP_NAMESPACE
       - IAP_HELM_RELEASE
+      - IAP_HELM_CHART
+      - IAP_HELM_CHART_VERSION
 
   outputs:
     produced:

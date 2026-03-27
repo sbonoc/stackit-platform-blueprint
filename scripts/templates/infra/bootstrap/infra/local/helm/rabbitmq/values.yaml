@@ -1,5 +1,7 @@
+fullnameOverride: "{{RABBITMQ_HELM_RELEASE}}"
 auth:
-  username: marketplace
-  password: marketplace-password
+  username: "{{RABBITMQ_USERNAME}}"
+  existingPasswordSecret: "{{RABBITMQ_PASSWORD_SECRET_NAME}}"
+  existingSecretPasswordKey: rabbitmq-password
 service:
   type: ClusterIP

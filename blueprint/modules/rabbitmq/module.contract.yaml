@@ -30,6 +30,8 @@ spec:
       - RABBITMQ_PORT
       - RABBITMQ_NAMESPACE
       - RABBITMQ_HELM_RELEASE
+      - RABBITMQ_HELM_CHART
+      - RABBITMQ_HELM_CHART_VERSION
 
   outputs:
     produced:

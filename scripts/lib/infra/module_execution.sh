@@ -167,54 +167,54 @@ resolve_optional_module_execution() {
     ;;
   rabbitmq:plan | rabbitmq:apply)
     if is_stackit_profile; then
-      optional_module_execution_set "fallback_runtime" "argocd_optional_manifest" "$(argocd_optional_manifest "rabbitmq")"
+      optional_module_execution_set "fallback_runtime" "argocd_application_chart" "$(argocd_optional_manifest "rabbitmq")"
     elif is_local_profile; then
-      optional_module_execution_set "fallback_runtime" "helm" "$(local_module_helm_values_file "rabbitmq")"
+      optional_module_execution_set "fallback_runtime" "helm" "$(rendered_module_helm_values_file "rabbitmq")"
     else
       log_fatal "unsupported BLUEPRINT_PROFILE=$BLUEPRINT_PROFILE"
     fi
     ;;
   rabbitmq:destroy)
     if is_stackit_profile; then
-      optional_module_execution_set "fallback_runtime" "argocd_optional_manifest" "$(argocd_optional_manifest "rabbitmq")"
+      optional_module_execution_set "fallback_runtime" "argocd_application_chart" "$(argocd_optional_manifest "rabbitmq")"
     elif is_local_profile; then
-      optional_module_execution_set "fallback_runtime" "helm" "$(local_module_helm_values_file "rabbitmq")"
+      optional_module_execution_set "fallback_runtime" "helm" "$(rendered_module_helm_values_file "rabbitmq")"
     else
       log_fatal "unsupported BLUEPRINT_PROFILE=$BLUEPRINT_PROFILE"
     fi
     ;;
   public-endpoints:plan | public-endpoints:apply)
     if is_stackit_profile; then
-      optional_module_execution_set "fallback_runtime" "argocd_optional_manifest" "$(argocd_optional_manifest "public-endpoints")"
+      optional_module_execution_set "fallback_runtime" "argocd_application_chart" "$(argocd_optional_manifest "public-endpoints")"
     elif is_local_profile; then
-      optional_module_execution_set "fallback_runtime" "helm" "$(local_module_helm_values_file "public-endpoints")"
+      optional_module_execution_set "fallback_runtime" "helm" "$(rendered_module_helm_values_file "public-endpoints")"
     else
       log_fatal "unsupported BLUEPRINT_PROFILE=$BLUEPRINT_PROFILE"
     fi
     ;;
   public-endpoints:destroy)
     if is_stackit_profile; then
-      optional_module_execution_set "fallback_runtime" "argocd_optional_manifest" "$(argocd_optional_manifest "public-endpoints")"
+      optional_module_execution_set "fallback_runtime" "argocd_application_chart" "$(argocd_optional_manifest "public-endpoints")"
     elif is_local_profile; then
-      optional_module_execution_set "fallback_runtime" "helm" "$(local_module_helm_values_file "public-endpoints")"
+      optional_module_execution_set "fallback_runtime" "helm" "$(rendered_module_helm_values_file "public-endpoints")"
     else
       log_fatal "unsupported BLUEPRINT_PROFILE=$BLUEPRINT_PROFILE"
     fi
     ;;
   identity-aware-proxy:plan | identity-aware-proxy:apply)
     if is_stackit_profile; then
-      optional_module_execution_set "fallback_runtime" "argocd_optional_manifest" "$(argocd_optional_manifest "identity-aware-proxy")"
+      optional_module_execution_set "fallback_runtime" "argocd_application_chart" "$(argocd_optional_manifest "identity-aware-proxy")"
     elif is_local_profile; then
-      optional_module_execution_set "fallback_runtime" "helm" "$(local_module_helm_values_file "identity-aware-proxy")"
+      optional_module_execution_set "fallback_runtime" "helm" "$(rendered_module_helm_values_file "identity-aware-proxy")"
     else
       log_fatal "unsupported BLUEPRINT_PROFILE=$BLUEPRINT_PROFILE"
     fi
     ;;
   identity-aware-proxy:destroy)
     if is_stackit_profile; then
-      optional_module_execution_set "fallback_runtime" "argocd_optional_manifest" "$(argocd_optional_manifest "identity-aware-proxy")"
+      optional_module_execution_set "fallback_runtime" "argocd_application_chart" "$(argocd_optional_manifest "identity-aware-proxy")"
     elif is_local_profile; then
-      optional_module_execution_set "fallback_runtime" "helm" "$(local_module_helm_values_file "identity-aware-proxy")"
+      optional_module_execution_set "fallback_runtime" "helm" "$(rendered_module_helm_values_file "identity-aware-proxy")"
     else
       log_fatal "unsupported BLUEPRINT_PROFILE=$BLUEPRINT_PROFILE"
     fi

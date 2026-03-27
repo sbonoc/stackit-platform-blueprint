@@ -775,6 +775,7 @@ spec:
             - keycloak_available
             - keycloak_oidc_configuration
           required_env:
+            - IAP_COOKIE_SECRET
             - KEYCLOAK_ISSUER_URL
             - KEYCLOAK_CLIENT_ID
             - KEYCLOAK_CLIENT_SECRET

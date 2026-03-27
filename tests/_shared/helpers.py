@@ -10,6 +10,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
 OPTIONAL_SCAFFOLD_DIRS = [
+    "artifacts/infra/rendered",
     "dags",
     "infra/cloud/stackit/terraform/modules/workflows",
     "infra/cloud/stackit/terraform/modules/langfuse",
@@ -134,7 +135,11 @@ def run_render_and_infra_bootstrap(env_overrides: dict[str, str]) -> subprocess.
 
 
 def restore_default_generated_state() -> subprocess.CompletedProcess[str]:
-    return run_make("blueprint-render-makefile", module_flags_env())
+    reset_env = module_flags_env()
+    render = run_make("blueprint-render-makefile", reset_env)
+    if render.returncode != 0:
+        return render
+    return run_make("apps-bootstrap", reset_env)
 
 
 def prune_optional_scaffolding() -> None:

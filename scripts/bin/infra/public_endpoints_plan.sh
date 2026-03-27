@@ -6,6 +6,7 @@ source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
 source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 source "$ROOT_DIR/scripts/lib/infra/stack_paths.sh"
 source "$ROOT_DIR/scripts/lib/infra/module_execution.sh"
+source "$ROOT_DIR/scripts/lib/infra/fallback_runtime.sh"
 source "$ROOT_DIR/scripts/lib/infra/state.sh"
 source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
 source "$ROOT_DIR/scripts/lib/infra/public_endpoints.sh"
@@ -22,10 +23,11 @@ resolve_optional_module_execution "public-endpoints" "plan"
 provision_driver="$OPTIONAL_MODULE_EXECUTION_DRIVER"
 provision_path="$OPTIONAL_MODULE_EXECUTION_PATH"
 case "$provision_driver" in
-argocd_optional_manifest)
+argocd_application_chart)
   optional_module_require_manifest_present "public-endpoints" "$provision_path"
   ;;
 helm)
+  provision_path="$(public_endpoints_render_values_file)"
   run_helm_template \
     "$PUBLIC_ENDPOINTS_HELM_RELEASE" \
     "$PUBLIC_ENDPOINTS_NAMESPACE" \

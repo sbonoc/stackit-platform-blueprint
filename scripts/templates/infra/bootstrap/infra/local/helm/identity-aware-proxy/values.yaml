@@ -1,7 +1,17 @@
 config:
-  clientID: replace-me
-  clientSecret: replace-me
+  existingSecret: "{{IAP_CONFIG_SECRET_NAME}}"
   provider: oidc
-  oidcIssuerURL: https://keycloak.example/realms/marketplace
+  oidcIssuerURL: "{{KEYCLOAK_ISSUER_URL}}"
+  emailDomains:
+    - "*"
   upstreams:
-    - http://catalog.apps.svc.cluster.local:8080
+    - "{{IAP_UPSTREAM_URL}}"
+extraArgs:
+  redirect-url: "{{IAP_REDIRECT_URL}}"
+  email-domain: "*"
+ingress:
+  enabled: true
+  className: "{{PUBLIC_ENDPOINTS_INGRESS_CLASS}}"
+  path: /
+  hosts:
+    - "{{IAP_PUBLIC_HOST}}"

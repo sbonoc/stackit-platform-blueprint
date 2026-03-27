@@ -33,7 +33,7 @@ The execution flow is always the same:
   - `foundation` with remote S3 backend using the same bucket contract and a separate state key.
 - Runs optional module provisioning when enabled:
   - provider-backed modules reconcile through `foundation`,
-  - fallback modules run runtime/API contracts (for example ArgoCD optional manifests or Workflows API).
+  - fallback modules run runtime/API contracts (for example module-specific ArgoCD Applications or Workflows API).
 - Writes state artifacts to `artifacts/infra/provision.env`.
 
 ### 2) Deploy
@@ -82,6 +82,7 @@ If a flag is `true`, the module plan/apply/deploy/smoke scripts run and persist 
 Examples:
 - `WORKFLOWS_ENABLED=true` creates `dags/` scaffolding and Workflows API payload/runtime artifacts.
 - `LANGFUSE_ENABLED=true` and `NEO4J_ENABLED=true` materialize optional GitOps manifests under `infra/gitops/argocd/optional/${ENV}/`.
+- `RABBITMQ_ENABLED=true`, `PUBLIC_ENDPOINTS_ENABLED=true`, and `IDENTITY_AWARE_PROXY_ENABLED=true` materialize module-specific ArgoCD `Application` manifests under `infra/gitops/argocd/optional/${ENV}/`.
 - `POSTGRES_ENABLED=true`, `OBJECT_STORAGE_ENABLED=true`, `DNS_ENABLED=true`, `SECRETS_MANAGER_ENABLED=true`, and `OBSERVABILITY_ENABLED=true` are reconciled by the STACKIT `foundation` Terraform layer.
 
 ## Make and Script Ownership

@@ -6,8 +6,8 @@ Provision identity-aware access proxy capability and enforce Keycloak OIDC integ
 ## Stack Execution Model
 - Optional module Make targets are materialized by `make blueprint-render-makefile` (or `make blueprint-bootstrap`) when `IDENTITY_AWARE_PROXY_ENABLED=true`.
 - Scaffolding paths are materialized by `make infra-bootstrap` only when `IDENTITY_AWARE_PROXY_ENABLED=true`.
-- `stackit-*` profiles: runtime reconciliation through ArgoCD optional manifest `infra/gitops/argocd/optional/${ENV}/identity-aware-proxy.yaml`.
-- `local-*` profiles: Helm chart (`oauth2-proxy/oauth2-proxy`) using `infra/local/helm/identity-aware-proxy/values.yaml`.
+- `stackit-*` profiles: module-specific ArgoCD `Application` reconciles `oauth2-proxy/oauth2-proxy` from `infra/gitops/argocd/optional/${ENV}/identity-aware-proxy.yaml`, with OIDC credentials seeded as a Kubernetes Secret.
+- `local-*` profiles: Helm chart (`oauth2-proxy/oauth2-proxy`) runs from a rendered values artifact derived from the scaffold contract in `infra/local/helm/identity-aware-proxy/values.yaml`.
 
 ## Enable
 ```bash
@@ -16,6 +16,7 @@ export IDENTITY_AWARE_PROXY_ENABLED=true
 
 ## Required Inputs
 - `IAP_UPSTREAM_URL`
+- `IAP_COOKIE_SECRET`
 - `KEYCLOAK_ISSUER_URL`
 - `KEYCLOAK_CLIENT_ID`
 - `KEYCLOAK_CLIENT_SECRET`

@@ -55,7 +55,13 @@ class ToolingContractsTests(unittest.TestCase):
         resolved = resolve_optional_module_execution("rabbitmq", "plan", profile="local-full")
         self.assertIn("class=fallback_runtime", resolved)
         self.assertIn("driver=helm", resolved)
-        self.assertIn(f"path={REPO_ROOT}/infra/local/helm/rabbitmq/values.yaml", resolved)
+        self.assertIn(f"path={REPO_ROOT}/artifacts/infra/rendered/rabbitmq.values.yaml", resolved)
+
+    def test_optional_module_execution_resolves_stackit_chart_applications(self) -> None:
+        resolved = resolve_optional_module_execution("public-endpoints", "apply", profile="stackit-dev")
+        self.assertIn("class=fallback_runtime", resolved)
+        self.assertIn("driver=argocd_application_chart", resolved)
+        self.assertIn(f"path={REPO_ROOT}/infra/gitops/argocd/optional/dev/public-endpoints.yaml", resolved)
 
     def test_optional_module_execution_resolves_external_contract_modes(self) -> None:
         resolved = resolve_optional_module_execution("kms", "apply", profile="stackit-dev")

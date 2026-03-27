@@ -1,6 +1,13 @@
 # Decisions Log
 
 ## 2026-03-27
+- STACKIT fallback runtime delivery for `rabbitmq`, `public-endpoints`, and `identity-aware-proxy` is now chart-backed and secret-aware.
+  - Replaced generic optional `ConfigMap` placeholders with module-specific ArgoCD `Application` templates for `bitnami/rabbitmq`, `ingress-nginx/ingress-nginx`, and `oauth2-proxy/oauth2-proxy`, and expanded ArgoCD `AppProject` repo/namespace/resource allowlists to match the real chart footprint.
+  - Local fallback profiles now render deterministic Helm values artifacts under `artifacts/infra/rendered/*.values.yaml` from the scaffold contract, while secret-bearing modules reconcile runtime Kubernetes secrets from wrapper inputs instead of embedding sensitive values in GitOps YAML.
+  - Refreshed pinned fallback chart versions to currently resolvable stable releases (`rabbitmq` `16.0.14`, `ingress-nginx` `4.15.1`, `oauth2-proxy` `10.4.0`) and corrected RabbitMQ fallback host outputs to the in-cluster service contract.
+  - Identity-Aware Proxy now has an explicit `IAP_COOKIE_SECRET` contract requirement, and shared test reset helpers restore both the default generated Make surface and app manifest state after observability-enabled paths.
+  - Rationale: make fallback runtime delivery truthful and production-grade, remove placeholder-only GitOps surfaces, avoid secret leakage into repo-managed manifests, and keep full-suite/test-consumer validation deterministic.
+
 - Generated-repo consumer conformance is now enforced as a scenario matrix.
   - `make blueprint-template-smoke` now accepts profile/module flag inputs, seeds deterministic module env defaults for dry-run generated repos, runs the canonical provision/deploy/smoke/status chain in a temp copy, and asserts contract-driven artifacts, targets, and optional-module scaffolding outcomes.
   - CI `consumer-golden-conformance` now spans representative generated-repo scenarios across `local-lite`, `local-full`, and `stackit-dev`, covering observability/data, runtime-edge, managed-services, fallback-runtime, and workflows combinations.

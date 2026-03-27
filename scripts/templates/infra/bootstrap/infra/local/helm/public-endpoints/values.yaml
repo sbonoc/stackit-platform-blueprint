@@ -1,5 +1,8 @@
 controller:
   ingressClassResource:
+    name: "{{PUBLIC_ENDPOINTS_INGRESS_CLASS}}"
+    enabled: true
     default: true
+  ingressClass: "{{PUBLIC_ENDPOINTS_INGRESS_CLASS}}"
   service:
     type: LoadBalancer

@@ -1,0 +1,47 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: platform-identity-aware-proxy-{{ENV}}
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: platform-blueprint
+    app.kubernetes.io/component: optional-module
+    app.kubernetes.io/name: identity-aware-proxy
+    app.kubernetes.io/environment: {{ENV}}
+spec:
+  project: platform-{{ENV}}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{IAP_NAMESPACE}}
+  source:
+    repoURL: https://oauth2-proxy.github.io/manifests
+    chart: oauth2-proxy
+    targetRevision: {{IAP_HELM_CHART_VERSION}}
+    helm:
+      releaseName: {{IAP_HELM_RELEASE}}
+      values: |
+        config:
+          existingSecret: "{{IAP_CONFIG_SECRET_NAME}}"
+          provider: oidc
+          oidcIssuerURL: "{{KEYCLOAK_ISSUER_URL}}"
+          upstreams:
+            - "{{IAP_UPSTREAM_URL}}"
+          emailDomains:
+            - "*"
+        extraArgs:
+          redirect-url: "{{IAP_REDIRECT_URL}}"
+          email-domain: "*"
+        ingress:
+          enabled: true
+          className: "{{PUBLIC_ENDPOINTS_INGRESS_CLASS}}"
+          path: /
+          hosts:
+            - "{{IAP_PUBLIC_HOST}}"
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true

@@ -72,7 +72,7 @@
 - [x] Add golden conformance matrix across profile/module combinations for newly generated repos.
 - [ ] Expand Terraform provider-backed coverage for currently fallback-only optional modules (`workflows`, `langfuse`, `neo4j`, `rabbitmq`, `public-endpoints`, `kms`, `identity-aware-proxy`) as STACKIT provider/resources mature.
 - [x] Refactor optional-module wrappers onto a shared execution-mode library (provider-backed/fallback/external) to remove duplicated branch logic across scripts.
-- [ ] Replace generic optional ConfigMap manifests with module-specific ArgoCD applications/charts for fallback modules (`rabbitmq`, `public-endpoints`, `identity-aware-proxy`) to reach production-grade runtime delivery.
+- [x] Replace generic optional ConfigMap manifests with module-specific ArgoCD applications/charts for fallback modules (`rabbitmq`, `public-endpoints`, `identity-aware-proxy`) to reach production-grade runtime delivery.
 
 ## P2 - v1.2 Scale
 - [x] Add optional interactive init UX (prompt mode), keeping env-file mode canonical.

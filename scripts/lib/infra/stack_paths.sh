@@ -70,6 +70,15 @@ local_module_helm_values_file() {
   printf '%s/infra/local/helm/%s/values.yaml' "$ROOT_DIR" "$module_name"
 }
 
+rendered_module_helm_values_file() {
+  local module_name="$1"
+  printf '%s/artifacts/infra/rendered/%s.values.yaml' "$ROOT_DIR" "$module_name"
+}
+
+rendered_optional_module_secret_artifacts_dir() {
+  printf '%s/artifacts/infra/rendered/secrets' "$ROOT_DIR"
+}
+
 local_core_helm_values_file() {
   local component_name="$1"
   printf '%s/infra/local/helm/core/%s.values.yaml' "$ROOT_DIR" "$component_name"

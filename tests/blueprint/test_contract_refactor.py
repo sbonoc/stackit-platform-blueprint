@@ -1110,14 +1110,19 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn("KEYCLOAK_ISSUER_URL", contract)
         self.assertIn("KEYCLOAK_CLIENT_ID", contract)
         self.assertIn("KEYCLOAK_CLIENT_SECRET", contract)
+        self.assertIn("IAP_COOKIE_SECRET", contract)
 
         self.assertIn("keycloak_available", iap_module_contract)
         self.assertIn("keycloak_oidc_configuration", iap_module_contract)
+        self.assertIn("IAP_COOKIE_SECRET", iap_module_contract)
         self.assertIn("KEYCLOAK_ISSUER_URL", iap_module_contract)
         self.assertIn("KEYCLOAK_CLIENT_ID", iap_module_contract)
         self.assertIn("KEYCLOAK_CLIENT_SECRET", iap_module_contract)
 
-        self.assertIn("require_env_vars IAP_UPSTREAM_URL KEYCLOAK_ISSUER_URL KEYCLOAK_CLIENT_ID KEYCLOAK_CLIENT_SECRET", iap_lib)
+        self.assertIn(
+            "require_env_vars IAP_UPSTREAM_URL KEYCLOAK_ISSUER_URL KEYCLOAK_CLIENT_ID KEYCLOAK_CLIENT_SECRET IAP_COOKIE_SECRET",
+            iap_lib,
+        )
 
     def test_makefile_template_supports_conditional_optional_targets(self) -> None:
         makefile_template = _read("scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl")

@@ -1,0 +1,38 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: platform-public-endpoints-{{ENV}}
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: platform-blueprint
+    app.kubernetes.io/component: optional-module
+    app.kubernetes.io/name: public-endpoints
+    app.kubernetes.io/environment: {{ENV}}
+spec:
+  project: platform-{{ENV}}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{PUBLIC_ENDPOINTS_NAMESPACE}}
+  source:
+    repoURL: https://kubernetes.github.io/ingress-nginx
+    chart: ingress-nginx
+    targetRevision: {{PUBLIC_ENDPOINTS_HELM_CHART_VERSION}}
+    helm:
+      releaseName: {{PUBLIC_ENDPOINTS_HELM_RELEASE}}
+      values: |
+        controller:
+          ingressClass: "{{PUBLIC_ENDPOINTS_INGRESS_CLASS}}"
+          ingressClassResource:
+            name: "{{PUBLIC_ENDPOINTS_INGRESS_CLASS}}"
+            enabled: true
+            default: true
+          service:
+            type: LoadBalancer
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true

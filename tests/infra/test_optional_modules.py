@@ -377,7 +377,13 @@ class OptionalModulesTests(unittest.TestCase):
         self.assertTrue(runtime_file.exists())
         runtime_content = runtime_file.read_text(encoding="utf-8")
         self.assertIn("uri=amqp://", runtime_content)
-        self.assertIn("host=", runtime_content)
+        self.assertIn("host=blueprint-rabbitmq.messaging.svc.cluster.local", runtime_content)
+        self.assertIn("provision_path=", runtime_content)
+
+        secret_manifest = (
+            REPO_ROOT / "artifacts" / "infra" / "rendered" / "secrets" / "secret-messaging-blueprint-rabbitmq-auth.yaml"
+        )
+        self.assertTrue(secret_manifest.exists(), msg="rabbitmq secret manifest not rendered")
 
         destroy = run(["make", "infra-rabbitmq-destroy"], env)
         self.assertEqual(destroy.returncode, 0, msg=destroy.stdout + destroy.stderr)
@@ -430,6 +436,7 @@ class OptionalModulesTests(unittest.TestCase):
         self.assertTrue(runtime_file.exists())
         runtime_content = runtime_file.read_text(encoding="utf-8")
         self.assertIn("base_domain=apps.local", runtime_content)
+        self.assertIn("provision_path=", runtime_content)
 
         destroy = run(["make", "infra-public-endpoints-destroy"], env)
         self.assertEqual(destroy.returncode, 0, msg=destroy.stdout + destroy.stderr)
@@ -493,13 +500,51 @@ class OptionalModulesTests(unittest.TestCase):
 
         plan = run(["make", "infra-identity-aware-proxy-plan"], env)
         self.assertNotEqual(plan.returncode, 0, msg=plan.stdout + plan.stderr)
-        self.assertIn("KEYCLOAK_ISSUER_URL", plan.stderr + plan.stdout)
+        self.assertIn("IAP_COOKIE_SECRET", plan.stderr + plan.stdout)
+
+    def test_stackit_fallback_modules_materialize_module_specific_argocd_applications(self) -> None:
+        env = module_flags_env(
+            profile="stackit-dev",
+            rabbitmq="true",
+            public_endpoints="true",
+            identity_aware_proxy="true",
+        )
+        env.update(
+            {
+                "KEYCLOAK_ISSUER_URL": "https://keycloak.example/realms/marketplace",
+                "KEYCLOAK_CLIENT_ID": "marketplace-iap",
+                "KEYCLOAK_CLIENT_SECRET": "marketplace-iap-secret",
+                "IAP_UPSTREAM_URL": "http://catalog.apps.svc.cluster.local:8080",
+                "IAP_COOKIE_SECRET": "0123456789abcdef0123456789abcdef01234567",
+            }
+        )
+        bootstrap = run_render_and_infra_bootstrap(env)
+        self.assertEqual(bootstrap.returncode, 0, msg=bootstrap.stdout + bootstrap.stderr)
+
+        rabbitmq_manifest = (REPO_ROOT / "infra/gitops/argocd/optional/dev/rabbitmq.yaml").read_text(encoding="utf-8")
+        self.assertIn("kind: Application", rabbitmq_manifest)
+        self.assertIn("repoURL: https://charts.bitnami.com/bitnami", rabbitmq_manifest)
+        self.assertIn("targetRevision: 16.0.14", rabbitmq_manifest)
+
+        public_endpoints_manifest = (
+            REPO_ROOT / "infra/gitops/argocd/optional/dev/public-endpoints.yaml"
+        ).read_text(encoding="utf-8")
+        self.assertIn("repoURL: https://kubernetes.github.io/ingress-nginx", public_endpoints_manifest)
+        self.assertIn("targetRevision: 4.15.1", public_endpoints_manifest)
+
+        iap_manifest = (REPO_ROOT / "infra/gitops/argocd/optional/dev/identity-aware-proxy.yaml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("repoURL: https://oauth2-proxy.github.io/manifests", iap_manifest)
+        self.assertIn("targetRevision: 10.4.0", iap_manifest)
+        self.assertIn('existingSecret: "blueprint-iap-config"', iap_manifest)
 
     def test_identity_aware_proxy_module_flow(self) -> None:
         env = module_flags_env(identity_aware_proxy="true")
         env.update(
             {
                 "IAP_UPSTREAM_URL": "http://catalog.apps.svc.cluster.local:8080",
+                "IAP_COOKIE_SECRET": "0123456789abcdef0123456789abcdef01234567",
                 "KEYCLOAK_ISSUER_URL": "https://keycloak.example/realms/marketplace",
                 "KEYCLOAK_CLIENT_ID": "marketplace-iap",
                 "KEYCLOAK_CLIENT_SECRET": "marketplace-iap-secret",
@@ -522,6 +567,10 @@ class OptionalModulesTests(unittest.TestCase):
         runtime_content = runtime_file.read_text(encoding="utf-8")
         self.assertIn("keycloak_issuer=https://keycloak.example/realms/marketplace", runtime_content)
         self.assertIn("keycloak_client_id=marketplace-iap", runtime_content)
+        self.assertIn("provision_path=", runtime_content)
+
+        secret_manifest = REPO_ROOT / "artifacts" / "infra" / "rendered" / "secrets" / "secret-security-blueprint-iap-config.yaml"
+        self.assertTrue(secret_manifest.exists(), msg="iap secret manifest not rendered")
 
         destroy = run(["make", "infra-identity-aware-proxy-destroy"], env)
         self.assertEqual(destroy.returncode, 0, msg=destroy.stdout + destroy.stderr)

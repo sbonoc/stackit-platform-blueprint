@@ -6,6 +6,7 @@ source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
 source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 source "$ROOT_DIR/scripts/lib/infra/stack_paths.sh"
 source "$ROOT_DIR/scripts/lib/infra/module_execution.sh"
+source "$ROOT_DIR/scripts/lib/infra/fallback_runtime.sh"
 source "$ROOT_DIR/scripts/lib/infra/state.sh"
 source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
 source "$ROOT_DIR/scripts/lib/infra/identity_aware_proxy.sh"
@@ -18,17 +19,20 @@ start_script_metric_trap "infra_identity_aware_proxy_destroy"
 set_default_env KEYCLOAK_ISSUER_URL "https://keycloak.placeholder.invalid/realms/placeholder"
 set_default_env KEYCLOAK_CLIENT_ID "placeholder-client-id"
 set_default_env KEYCLOAK_CLIENT_SECRET "placeholder-client-secret"
+set_default_env IAP_COOKIE_SECRET "placeholder-cookie-secret"
 identity_aware_proxy_init_env
 resolve_optional_module_execution "identity-aware-proxy" "destroy"
 destroy_driver="$OPTIONAL_MODULE_EXECUTION_DRIVER"
 destroy_path="$OPTIONAL_MODULE_EXECUTION_PATH"
 case "$destroy_driver" in
-argocd_optional_manifest)
+argocd_application_chart)
   run_manifest_delete "$destroy_path"
+  identity_aware_proxy_delete_runtime_secret
   ;;
 helm)
   destroy_path="$IAP_HELM_RELEASE@$IAP_NAMESPACE"
   run_helm_uninstall "$IAP_HELM_RELEASE" "$IAP_NAMESPACE"
+  identity_aware_proxy_delete_runtime_secret
   ;;
 *)
   optional_module_unexpected_driver "identity-aware-proxy" "destroy"

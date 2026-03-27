@@ -5,6 +5,9 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
 source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 source "$ROOT_DIR/scripts/lib/blueprint/bootstrap_templates.sh"
+source "$ROOT_DIR/scripts/lib/infra/rabbitmq.sh"
+source "$ROOT_DIR/scripts/lib/infra/public_endpoints.sh"
+source "$ROOT_DIR/scripts/lib/infra/identity_aware_proxy.sh"
 
 start_script_metric_trap "infra_bootstrap"
 
@@ -231,10 +234,45 @@ bootstrap_module_scaffold() {
 
   if [[ "$include_helm_values" == "true" ]]; then
     ensure_dir "$ROOT_DIR/infra/local/helm/$module"
-    ensure_file_from_template \
-      "$ROOT_DIR/infra/local/helm/$module/values.yaml" \
-      "infra" \
-      "infra/local/helm/$module/values.yaml"
+    case "$module" in
+    rabbitmq)
+      rabbitmq_seed_env_defaults
+      ensure_file_from_rendered_template \
+        "$ROOT_DIR/infra/local/helm/$module/values.yaml" \
+        "infra" \
+        "infra/local/helm/$module/values.yaml" \
+        "RABBITMQ_HELM_RELEASE=$RABBITMQ_HELM_RELEASE" \
+        "RABBITMQ_USERNAME=$RABBITMQ_USERNAME" \
+        "RABBITMQ_PASSWORD_SECRET_NAME=$(rabbitmq_password_secret_name)"
+      ;;
+    public-endpoints)
+      public_endpoints_seed_env_defaults
+      ensure_file_from_rendered_template \
+        "$ROOT_DIR/infra/local/helm/$module/values.yaml" \
+        "infra" \
+        "infra/local/helm/$module/values.yaml" \
+        "PUBLIC_ENDPOINTS_INGRESS_CLASS=$PUBLIC_ENDPOINTS_INGRESS_CLASS"
+      ;;
+    identity-aware-proxy)
+      identity_aware_proxy_seed_env_defaults
+      ensure_file_from_rendered_template \
+        "$ROOT_DIR/infra/local/helm/$module/values.yaml" \
+        "infra" \
+        "infra/local/helm/$module/values.yaml" \
+        "IAP_CONFIG_SECRET_NAME=$(identity_aware_proxy_config_secret_name)" \
+        "KEYCLOAK_ISSUER_URL=${KEYCLOAK_ISSUER_URL:-https://keycloak.example/realms/platform}" \
+        "IAP_UPSTREAM_URL=$IAP_UPSTREAM_URL" \
+        "PUBLIC_ENDPOINTS_INGRESS_CLASS=$PUBLIC_ENDPOINTS_INGRESS_CLASS" \
+        "IAP_PUBLIC_HOST=$(identity_aware_proxy_public_host)" \
+        "IAP_REDIRECT_URL=$(identity_aware_proxy_redirect_url)"
+      ;;
+    *)
+      ensure_file_from_template \
+        "$ROOT_DIR/infra/local/helm/$module/values.yaml" \
+        "infra" \
+        "infra/local/helm/$module/values.yaml"
+      ;;
+    esac
   fi
 
   if [[ "$include_workflows_dags" == "true" ]]; then
@@ -319,12 +357,59 @@ bootstrap_argocd_overlay_scaffolding() {
 bootstrap_optional_manifest() {
   local module="$1"
   local env="$2"
-  ensure_file_from_rendered_template \
-    "$ROOT_DIR/infra/gitops/argocd/optional/$env/$module.yaml" \
-    "infra" \
-    "infra/gitops/argocd/optional/module.yaml.tmpl" \
-    "MODULE=$module" \
-    "ENV=$env"
+
+  case "$module" in
+  rabbitmq)
+    rabbitmq_seed_env_defaults
+    ensure_file_from_rendered_template \
+      "$ROOT_DIR/infra/gitops/argocd/optional/$env/$module.yaml" \
+      "infra" \
+      "infra/gitops/argocd/optional/rabbitmq.application.yaml.tmpl" \
+      "ENV=$env" \
+      "RABBITMQ_NAMESPACE=$RABBITMQ_NAMESPACE" \
+      "RABBITMQ_HELM_RELEASE=$RABBITMQ_HELM_RELEASE" \
+      "RABBITMQ_HELM_CHART_VERSION=$RABBITMQ_HELM_CHART_VERSION" \
+      "RABBITMQ_USERNAME=$RABBITMQ_USERNAME" \
+      "RABBITMQ_PASSWORD_SECRET_NAME=$(rabbitmq_password_secret_name)"
+    ;;
+  public-endpoints)
+    public_endpoints_seed_env_defaults
+    ensure_file_from_rendered_template \
+      "$ROOT_DIR/infra/gitops/argocd/optional/$env/$module.yaml" \
+      "infra" \
+      "infra/gitops/argocd/optional/public-endpoints.application.yaml.tmpl" \
+      "ENV=$env" \
+      "PUBLIC_ENDPOINTS_NAMESPACE=$PUBLIC_ENDPOINTS_NAMESPACE" \
+      "PUBLIC_ENDPOINTS_HELM_RELEASE=$PUBLIC_ENDPOINTS_HELM_RELEASE" \
+      "PUBLIC_ENDPOINTS_HELM_CHART_VERSION=$PUBLIC_ENDPOINTS_HELM_CHART_VERSION" \
+      "PUBLIC_ENDPOINTS_INGRESS_CLASS=$PUBLIC_ENDPOINTS_INGRESS_CLASS"
+    ;;
+  identity-aware-proxy)
+    identity_aware_proxy_seed_env_defaults
+    ensure_file_from_rendered_template \
+      "$ROOT_DIR/infra/gitops/argocd/optional/$env/$module.yaml" \
+      "infra" \
+      "infra/gitops/argocd/optional/identity-aware-proxy.application.yaml.tmpl" \
+      "ENV=$env" \
+      "IAP_NAMESPACE=$IAP_NAMESPACE" \
+      "IAP_HELM_RELEASE=$IAP_HELM_RELEASE" \
+      "IAP_HELM_CHART_VERSION=$IAP_HELM_CHART_VERSION" \
+      "IAP_CONFIG_SECRET_NAME=$(identity_aware_proxy_config_secret_name)" \
+      "KEYCLOAK_ISSUER_URL=${KEYCLOAK_ISSUER_URL:-https://keycloak.example/realms/platform}" \
+      "IAP_UPSTREAM_URL=$IAP_UPSTREAM_URL" \
+      "PUBLIC_ENDPOINTS_INGRESS_CLASS=$PUBLIC_ENDPOINTS_INGRESS_CLASS" \
+      "IAP_PUBLIC_HOST=$(identity_aware_proxy_public_host)" \
+      "IAP_REDIRECT_URL=$(identity_aware_proxy_redirect_url)"
+    ;;
+  *)
+    ensure_file_from_rendered_template \
+      "$ROOT_DIR/infra/gitops/argocd/optional/$env/$module.yaml" \
+      "infra" \
+      "infra/gitops/argocd/optional/module.yaml.tmpl" \
+      "MODULE=$module" \
+      "ENV=$env"
+    ;;
+  esac
 }
 
 bootstrap_optional_manifests() {

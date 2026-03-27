@@ -6,6 +6,7 @@ source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
 source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 source "$ROOT_DIR/scripts/lib/infra/stack_paths.sh"
 source "$ROOT_DIR/scripts/lib/infra/module_execution.sh"
+source "$ROOT_DIR/scripts/lib/infra/fallback_runtime.sh"
 source "$ROOT_DIR/scripts/lib/infra/state.sh"
 source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
 source "$ROOT_DIR/scripts/lib/infra/rabbitmq.sh"
@@ -17,12 +18,14 @@ resolve_optional_module_execution "rabbitmq" "destroy"
 destroy_driver="$OPTIONAL_MODULE_EXECUTION_DRIVER"
 destroy_path="$OPTIONAL_MODULE_EXECUTION_PATH"
 case "$destroy_driver" in
-argocd_optional_manifest)
+argocd_application_chart)
   run_manifest_delete "$destroy_path"
+  rabbitmq_delete_runtime_secret
   ;;
 helm)
   destroy_path="$RABBITMQ_HELM_RELEASE@$RABBITMQ_NAMESPACE"
   run_helm_uninstall "$RABBITMQ_HELM_RELEASE" "$RABBITMQ_NAMESPACE"
+  rabbitmq_delete_runtime_secret
   ;;
 *)
   optional_module_unexpected_driver "rabbitmq" "destroy"

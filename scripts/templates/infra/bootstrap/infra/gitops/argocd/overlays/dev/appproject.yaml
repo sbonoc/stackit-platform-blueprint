@@ -8,6 +8,7 @@ spec:
   sourceRepos:
     - https://github.com/example-org/example-repo.git
     - https://charts.bitnami.com/bitnami
+    - https://kubernetes.github.io/ingress-nginx
     - https://oauth2-proxy.github.io/manifests
     - https://open-telemetry.github.io/opentelemetry-helm-charts
     - https://langfuse.github.io/langfuse-k8s
@@ -21,6 +22,8 @@ spec:
       server: https://kubernetes.default.svc
     - namespace: messaging
       server: https://kubernetes.default.svc
+    - namespace: network
+      server: https://kubernetes.default.svc
     - namespace: security
       server: https://kubernetes.default.svc
     - namespace: observability
@@ -28,15 +31,27 @@ spec:
   clusterResourceWhitelist:
     - group: ""
       kind: Namespace
+    - group: admissionregistration.k8s.io
+      kind: ValidatingWebhookConfiguration
+    - group: networking.k8s.io
+      kind: IngressClass
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRole
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRoleBinding
     - group: external-secrets.io
       kind: ClusterSecretStore
   namespaceResourceWhitelist:
+    - group: ""
+      kind: ServiceAccount
     - group: ""
       kind: ConfigMap
     - group: ""
       kind: Secret
     - group: ""
       kind: Service
+    - group: batch
+      kind: Job
     - group: apps
       kind: Deployment
     - group: apps
@@ -46,7 +61,15 @@ spec:
     - group: external-secrets.io
       kind: ExternalSecret
     - group: networking.k8s.io
+      kind: NetworkPolicy
+    - group: networking.k8s.io
       kind: Ingress
+    - group: policy
+      kind: PodDisruptionBudget
+    - group: rbac.authorization.k8s.io
+      kind: Role
+    - group: rbac.authorization.k8s.io
+      kind: RoleBinding
     - group: gateway.networking.k8s.io
       kind: Gateway
     - group: gateway.networking.k8s.io

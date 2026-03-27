@@ -101,6 +101,7 @@ seed_template_smoke_contract_env() {
   set_default_env KEYCLOAK_ISSUER_URL "https://keycloak.${BLUEPRINT_GITHUB_REPO}.example.com/realms/platform"
   set_default_env KEYCLOAK_CLIENT_ID "blueprint-client"
   set_default_env KEYCLOAK_CLIENT_SECRET "blueprint-client-secret"
+  set_default_env IAP_COOKIE_SECRET "0123456789abcdef0123456789abcdef01234567"
   set_default_env IAP_UPSTREAM_URL "http://catalog.apps.svc.cluster.local:8080"
   set_default_env IAP_PUBLIC_HOST "iap.${BLUEPRINT_GITHUB_REPO}.example.com"
 
@@ -138,6 +139,23 @@ run_template_smoke_init_repo() {
     KMS_ENABLED=false \
     IDENTITY_AWARE_PROXY_ENABLED=false \
     make blueprint-init-repo
+}
+
+run_template_smoke_reset_generated_make_surface() {
+  env \
+    OBSERVABILITY_ENABLED=false \
+    WORKFLOWS_ENABLED=false \
+    LANGFUSE_ENABLED=false \
+    POSTGRES_ENABLED=false \
+    NEO4J_ENABLED=false \
+    OBJECT_STORAGE_ENABLED=false \
+    RABBITMQ_ENABLED=false \
+    DNS_ENABLED=false \
+    PUBLIC_ENDPOINTS_ENABLED=false \
+    SECRETS_MANAGER_ENABLED=false \
+    KMS_ENABLED=false \
+    IDENTITY_AWARE_PROXY_ENABLED=false \
+    make blueprint-render-makefile
 }
 
 assert_template_smoke_repo_state() {
@@ -333,6 +351,10 @@ log_info "template smoke workspace: $tmp_repo"
 (
   cd "$tmp_repo"
   git init -q
+  # Generated repos must start from the baseline no-optional-modules Make
+  # surface, even if the source workspace currently has an enabled-module
+  # generated file from a previous local validation run.
+  run_cmd run_template_smoke_reset_generated_make_surface
   run_cmd run_template_smoke_init_repo
   run_cmd make blueprint-bootstrap
   run_cmd make infra-bootstrap

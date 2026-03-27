@@ -79,16 +79,20 @@ class QualityContractsTests(unittest.TestCase):
 
     def test_optional_module_wrappers_use_shared_execution_library(self) -> None:
         module_execution = _read("scripts/lib/infra/module_execution.sh")
+        fallback_runtime = _read("scripts/lib/infra/fallback_runtime.sh")
         postgres_apply = _read("scripts/bin/infra/postgres_apply.sh")
         rabbitmq_plan = _read("scripts/bin/infra/rabbitmq_plan.sh")
         kms_destroy = _read("scripts/bin/infra/kms_destroy.sh")
 
         self.assertIn("resolve_optional_module_execution", module_execution)
         self.assertIn("optional_module_execution_mode_total", module_execution)
+        self.assertIn("optional_module_values_render_total", fallback_runtime)
+        self.assertIn("optional_module_secret_render_total", fallback_runtime)
         self.assertIn('scripts/lib/infra/module_execution.sh', postgres_apply)
         self.assertIn('resolve_optional_module_execution "postgres" "apply"', postgres_apply)
         self.assertNotIn("if is_stackit_profile; then", postgres_apply)
         self.assertIn('resolve_optional_module_execution "rabbitmq" "plan"', rabbitmq_plan)
+        self.assertIn('scripts/lib/infra/fallback_runtime.sh', rabbitmq_plan)
         self.assertNotIn("elif is_local_profile; then", rabbitmq_plan)
         self.assertIn('resolve_optional_module_execution "kms" "destroy"', kms_destroy)
 
