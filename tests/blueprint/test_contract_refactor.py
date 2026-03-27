@@ -98,6 +98,8 @@ class RefactorContractsTests(unittest.TestCase):
         foundation_main = _read("infra/cloud/stackit/terraform/foundation/main.tf")
         foundation_outputs = _read("infra/cloud/stackit/terraform/foundation/outputs.tf")
         foundation_locals = _read("infra/cloud/stackit/terraform/foundation/locals.tf")
+        foundation_vars = _read("infra/cloud/stackit/terraform/foundation/variables.tf")
+        stackit_layers = _read("scripts/lib/infra/stackit_layers.sh")
 
         self.assertIn("default_region = var.stackit_region", providers)
         self.assertIn('stackit_provider_supported = true', foundation_locals)
@@ -107,6 +109,34 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn('stackit_kms_key', foundation_main)
         self.assertIn('output "rabbitmq_uri"', foundation_outputs)
         self.assertIn('output "kms_key_ring_id"', foundation_outputs)
+        self.assertIn('variable "postgres_instance_name"', foundation_vars)
+        self.assertIn('variable "object_storage_bucket_name"', foundation_vars)
+        self.assertIn('variable "secrets_manager_instance_name"', foundation_vars)
+        self.assertIn('postgres_instance_name', foundation_locals)
+        self.assertIn('postgres_acl_effective', foundation_locals)
+        self.assertIn('distinct(concat(', foundation_locals)
+        self.assertIn('stackit_ske_cluster.foundation[0].egress_address_ranges', foundation_locals)
+        self.assertIn('object_storage_bucket_name', foundation_locals)
+        self.assertIn('object_storage_credentials_group_name', foundation_locals)
+        self.assertIn('secrets_manager_instance_name', foundation_locals)
+        self.assertIn('name            = local.postgres_instance_name', foundation_main)
+        self.assertIn('acl             = local.postgres_acl_effective', foundation_main)
+        self.assertIn('name       = local.object_storage_bucket_name', foundation_main)
+        self.assertIn('name       = local.object_storage_credentials_group_name', foundation_main)
+        self.assertIn('name       = local.secrets_manager_instance_name', foundation_main)
+        self.assertIn('"-var=postgres_instance_name=$POSTGRES_INSTANCE_NAME"', stackit_layers)
+        self.assertIn('"-var=object_storage_bucket_name=$OBJECT_STORAGE_BUCKET_NAME"', stackit_layers)
+        self.assertIn('stackit_emit_tf_string_list_arg_from_csv "dns_zone_fqdns" "$DNS_ZONE_FQDN"', stackit_layers)
+        self.assertIn('"-var=secrets_manager_instance_name=$SECRETS_MANAGER_INSTANCE_NAME"', stackit_layers)
+
+    def test_stackit_observability_defaults_omit_unsupported_medium_plan_retentions(self) -> None:
+        foundation_vars = _read("infra/cloud/stackit/terraform/foundation/variables.tf")
+        template_vars = _read("scripts/templates/infra/bootstrap/infra/cloud/stackit/terraform/foundation/variables.tf")
+
+        self.assertIn('variable "observability_logs_retention_days"', foundation_vars)
+        self.assertIn('default     = null', foundation_vars)
+        self.assertIn('variable "observability_traces_retention_days"', foundation_vars)
+        self.assertIn('default     = null', template_vars)
 
     def test_local_crossplane_bootstrap_waits_for_chart_deployment_names(self) -> None:
         bootstrap = _read("scripts/bin/infra/local_crossplane_bootstrap.sh")

@@ -49,10 +49,10 @@ state_file="$(write_state_file "postgres_runtime" \
   "provision_driver=$provision_driver" \
   "provision_path=$provision_path" \
   "host=$(postgres_host)" \
-  "port=$POSTGRES_PORT" \
-  "database=$POSTGRES_DB_NAME" \
-  "username=$POSTGRES_USER" \
-  "password=$POSTGRES_PASSWORD" \
+  "port=$(postgres_port)" \
+  "database=$(postgres_database)" \
+  "username=$(postgres_username)" \
+  "password=$(postgres_password)" \
   "dsn=$(postgres_dsn)" \
   "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")")"
 

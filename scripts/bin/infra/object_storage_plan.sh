@@ -45,7 +45,7 @@ state_file="$(write_state_file "object_storage_plan" \
   "provision_driver=$provision_driver" \
   "provision_path=$provision_path" \
   "endpoint=$(object_storage_endpoint)" \
-  "bucket=$OBJECT_STORAGE_BUCKET_NAME" \
+  "bucket=$(object_storage_bucket_name)" \
   "region=$OBJECT_STORAGE_REGION" \
   "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")")"
 

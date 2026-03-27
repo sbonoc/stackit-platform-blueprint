@@ -30,7 +30,7 @@ fi
 state_file="$(write_state_file "object_storage_smoke" \
   "status=passed" \
   "endpoint=$(object_storage_endpoint)" \
-  "bucket=$OBJECT_STORAGE_BUCKET_NAME" \
+  "bucket=$(object_storage_bucket_name)" \
   "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")")"
 
 log_info "object-storage smoke state written to $state_file"

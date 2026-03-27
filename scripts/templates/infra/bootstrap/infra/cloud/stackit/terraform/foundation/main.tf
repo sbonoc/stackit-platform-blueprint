@@ -51,10 +51,10 @@ resource "stackit_postgresflex_instance" "foundation" {
 
   project_id      = var.stackit_project_id
   region          = var.stackit_region
-  name            = "${local.naming_prefix}-${var.postgres_instance_name_suffix}"
+  name            = local.postgres_instance_name
   version         = var.postgres_version
   replicas        = var.postgres_replicas
-  acl             = var.postgres_acl
+  acl             = local.postgres_acl_effective
   backup_schedule = var.postgres_backup_schedule
 
   flavor = {
@@ -95,7 +95,7 @@ resource "stackit_objectstorage_bucket" "foundation" {
 
   project_id = var.stackit_project_id
   region     = var.stackit_region
-  name       = "${local.naming_prefix}-${var.object_storage_bucket_name_suffix}"
+  name       = local.object_storage_bucket_name
 }
 
 resource "stackit_objectstorage_credentials_group" "foundation" {
@@ -103,7 +103,7 @@ resource "stackit_objectstorage_credentials_group" "foundation" {
 
   project_id = var.stackit_project_id
   region     = var.stackit_region
-  name       = "${local.naming_prefix}-${var.object_storage_credentials_group_name_suffix}"
+  name       = local.object_storage_credentials_group_name
 }
 
 resource "stackit_objectstorage_credential" "foundation" {
@@ -135,7 +135,7 @@ resource "stackit_secretsmanager_instance" "foundation" {
   count = var.secrets_manager_enabled ? 1 : 0
 
   project_id = var.stackit_project_id
-  name       = "${local.naming_prefix}-${var.secrets_manager_instance_name_suffix}"
+  name       = local.secrets_manager_instance_name
   acls       = length(var.secrets_manager_acl) > 0 ? var.secrets_manager_acl : null
 }
 

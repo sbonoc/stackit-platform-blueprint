@@ -88,6 +88,12 @@ variable "postgres_instance_name_suffix" {
   default     = "postgres"
 }
 
+variable "postgres_instance_name" {
+  description = "Canonical PostgreSQL Flex instance name sourced from module env inputs."
+  type        = string
+  default     = null
+}
+
 variable "postgres_db_name" {
   description = "Database name to provision in PostgreSQL Flex."
   type        = string
@@ -110,6 +116,11 @@ variable "postgres_acl" {
   description = "Optional ACL CIDR allowlist for PostgreSQL Flex access."
   type        = list(string)
   default     = []
+
+  validation {
+    condition     = var.postgres_enabled ? (length(var.postgres_acl) > 0 || var.ske_enabled) : true
+    error_message = "postgres_enabled requires explicit postgres_acl values or ske_enabled=true so ACLs can be derived from SKE egress ranges."
+  }
 }
 
 variable "postgres_backup_schedule" {
@@ -166,6 +177,12 @@ variable "object_storage_bucket_name_suffix" {
   default     = "assets"
 }
 
+variable "object_storage_bucket_name" {
+  description = "Canonical Object Storage bucket name sourced from module env inputs."
+  type        = string
+  default     = null
+}
+
 variable "object_storage_credentials_group_name_suffix" {
   description = "Suffix used when naming Object Storage credentials group."
   type        = string
@@ -188,6 +205,12 @@ variable "secrets_manager_instance_name_suffix" {
   description = "Suffix used when naming Secrets Manager instance."
   type        = string
   default     = "secrets"
+}
+
+variable "secrets_manager_instance_name" {
+  description = "Canonical Secrets Manager instance name sourced from module env inputs."
+  type        = string
+  default     = null
 }
 
 variable "secrets_manager_acl" {
@@ -239,9 +262,9 @@ variable "observability_grafana_admin_enabled" {
 }
 
 variable "observability_logs_retention_days" {
-  description = "Logs retention in days for Observability."
+  description = "Logs retention in days for Observability when the selected plan supports it."
   type        = number
-  default     = 14
+  default     = null
 }
 
 variable "observability_metrics_retention_days" {
@@ -263,9 +286,9 @@ variable "observability_metrics_retention_days_1h_downsampling" {
 }
 
 variable "observability_traces_retention_days" {
-  description = "Traces retention in days for Observability."
+  description = "Traces retention in days for Observability when the selected plan supports it."
   type        = number
-  default     = 14
+  default     = null
 }
 
 variable "workflows_enabled" {

@@ -18,6 +18,7 @@ By default it is disabled.
   - Provisioning is managed by STACKIT foundation Terraform layer: `infra/cloud/stackit/terraform/foundation`
   - Module wrappers reconcile/verify the `foundation` contract (no standalone per-module Terraform root)
   - Managed Grafana/Loki/Tempo contract through STACKIT Observability outputs
+  - The default `Observability-Monitoring-Medium-EU01` plan does not accept explicit log/trace retention overrides, so those provider arguments are omitted unless you opt into a compatible plan/override strategy.
 - `local-*` profiles:
   - Crossplane path: `infra/local/crossplane/`
   - Helm values:

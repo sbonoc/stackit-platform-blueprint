@@ -71,6 +71,35 @@ else:
 PY
 }
 
+stackit_foundation_output_map_value() {
+  local output_name="$1"
+  local map_key="$2"
+  if ! stackit_foundation_outputs_load; then
+    return 1
+  fi
+
+  STACKIT_FOUNDATION_OUTPUT_NAME="$output_name" STACKIT_FOUNDATION_OUTPUT_MAP_KEY="$map_key" STACKIT_FOUNDATION_OUTPUTS_JSON="$STACKIT_FOUNDATION_OUTPUTS_JSON" python3 - <<'PY'
+import json
+import os
+
+payload = json.loads(os.environ["STACKIT_FOUNDATION_OUTPUTS_JSON"])
+entry = payload.get(os.environ["STACKIT_FOUNDATION_OUTPUT_NAME"])
+if not isinstance(entry, dict) or not isinstance(entry.get("value"), dict):
+    raise SystemExit(1)
+
+value = entry["value"].get(os.environ["STACKIT_FOUNDATION_OUTPUT_MAP_KEY"])
+if value is None:
+    raise SystemExit(1)
+
+if isinstance(value, bool):
+    print("true" if value else "false")
+elif isinstance(value, (int, float, str)):
+    print(value)
+else:
+    raise SystemExit(1)
+PY
+}
+
 stackit_foundation_output_value_or_default() {
   local output_name="$1"
   local fallback_value="$2"
@@ -87,5 +116,25 @@ stackit_foundation_output_value_or_default() {
   fi
 
   log_metric "stackit_foundation_output_resolve_total" "1" "output=$output_name status=fallback" >&2
+  printf '%s' "$fallback_value"
+}
+
+stackit_foundation_output_map_value_or_default() {
+  local output_name="$1"
+  local map_key="$2"
+  local fallback_value="$3"
+  local value=""
+
+  if value="$(stackit_foundation_output_map_value "$output_name" "$map_key")"; then
+    log_metric "stackit_foundation_output_resolve_total" "1" "output=$output_name status=resolved kind=map" >&2
+    printf '%s' "$value"
+    return 0
+  fi
+
+  if is_stackit_profile && tooling_is_execution_enabled && state_file_exists stackit_foundation_apply; then
+    log_warn "using deterministic placeholder for STACKIT foundation map output '$output_name' key='$map_key'"
+  fi
+
+  log_metric "stackit_foundation_output_resolve_total" "1" "output=$output_name status=fallback kind=map" >&2
   printf '%s' "$fallback_value"
 }

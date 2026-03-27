@@ -98,6 +98,41 @@ stackit_layer_validate_backend_contract() {
   fi
 }
 
+stackit_trim_whitespace() {
+  local value="${1:-}"
+  value="${value#"${value%%[![:space:]]*}"}"
+  value="${value%"${value##*[![:space:]]}"}"
+  printf '%s' "$value"
+}
+
+stackit_emit_tf_string_list_arg_from_csv() {
+  local var_name="$1"
+  local raw_csv="${2:-}"
+  local raw_values=()
+  local rendered="["
+  local value=""
+  local escaped=""
+
+  IFS=',' read -r -a raw_values <<<"$raw_csv"
+  for value in "${raw_values[@]}"; do
+    value="$(stackit_trim_whitespace "$value")"
+    [[ -n "$value" ]] || continue
+    escaped="${value//\\/\\\\}"
+    escaped="${escaped//\"/\\\"}"
+    if [[ "$rendered" != "[" ]]; then
+      rendered+=", "
+    fi
+    rendered+="\"$escaped\""
+  done
+  rendered+="]"
+
+  if [[ "$rendered" == "[]" ]]; then
+    return 0
+  fi
+
+  printf '%s\n' "-var=${var_name}=${rendered}"
+}
+
 stackit_module_enabled_tf_bool() {
   local module="$1"
   if is_module_enabled "$module"; then
@@ -154,6 +189,33 @@ stackit_layer_var_args() {
     if [[ -n "${RABBITMQ_PLAN_NAME:-}" ]]; then
       printf '%s\n' "-var=rabbitmq_plan_name=$RABBITMQ_PLAN_NAME"
     fi
+  fi
+
+  if is_module_enabled postgres; then
+    require_env_vars POSTGRES_INSTANCE_NAME POSTGRES_DB_NAME POSTGRES_USER
+    printf '%s\n' "-var=postgres_instance_name=$POSTGRES_INSTANCE_NAME"
+    printf '%s\n' "-var=postgres_db_name=$POSTGRES_DB_NAME"
+    printf '%s\n' "-var=postgres_username=$POSTGRES_USER"
+    if [[ -n "${POSTGRES_EXTRA_ALLOWED_CIDRS:-}" ]]; then
+      stackit_emit_tf_string_list_arg_from_csv "postgres_acl" "$POSTGRES_EXTRA_ALLOWED_CIDRS"
+    fi
+  fi
+
+  if is_module_enabled object-storage; then
+    require_env_vars OBJECT_STORAGE_BUCKET_NAME
+    printf '%s\n' "-var=object_storage_bucket_name=$OBJECT_STORAGE_BUCKET_NAME"
+  fi
+
+  if is_module_enabled dns; then
+    require_env_vars DNS_ZONE_NAME DNS_ZONE_FQDN
+    # The runtime contract keeps DNS_ZONE_NAME as the consumer-facing alias,
+    # while foundation provisioning keys off the canonical FQDN list.
+    stackit_emit_tf_string_list_arg_from_csv "dns_zone_fqdns" "$DNS_ZONE_FQDN"
+  fi
+
+  if is_module_enabled secrets-manager; then
+    require_env_vars SECRETS_MANAGER_INSTANCE_NAME
+    printf '%s\n' "-var=secrets_manager_instance_name=$SECRETS_MANAGER_INSTANCE_NAME"
   fi
 
   if is_module_enabled kms; then

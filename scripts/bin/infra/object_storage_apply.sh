@@ -49,9 +49,9 @@ state_file="$(write_state_file "object_storage_runtime" \
   "provision_driver=$provision_driver" \
   "provision_path=$provision_path" \
   "endpoint=$(object_storage_endpoint)" \
-  "bucket=$OBJECT_STORAGE_BUCKET_NAME" \
-  "access_key=$OBJECT_STORAGE_ACCESS_KEY" \
-  "secret_key=$OBJECT_STORAGE_SECRET_KEY" \
+  "bucket=$(object_storage_bucket_name)" \
+  "access_key=$(object_storage_access_key)" \
+  "secret_key=$(object_storage_secret_key)" \
   "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")")"
 
 log_info "object-storage runtime state written to $state_file"

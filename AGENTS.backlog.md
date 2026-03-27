@@ -78,4 +78,4 @@
 - [x] Add optional interactive init UX (prompt mode), keeping env-file mode canonical.
 - [ ] Add opinionated governance starter assets for generated repos (issue templates, PR template, CODEOWNERS).
 - [ ] Continue migrating remaining fallback/API optional modules (`workflows`, `langfuse`, `neo4j`, `public-endpoints`, `identity-aware-proxy`) to provider-backed STACKIT execution when official resources become available.
-- [ ] Normalize module input contracts so STACKIT foundation Terraform variables are sourced from canonical module env inputs (remove duplicated naming defaults across wrappers/foundation).
+- [x] Normalize module input contracts so STACKIT foundation Terraform variables are sourced from canonical module env inputs (remove duplicated naming defaults across wrappers/foundation).

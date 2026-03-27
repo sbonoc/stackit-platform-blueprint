@@ -1,6 +1,13 @@
 # Decisions Log
 
 ## 2026-03-27
+- STACKIT foundation now sources canonical provider-backed module inputs and runtime artifacts prefer live Terraform outputs.
+  - `stackit_layer_var_args` now passes through canonical env inputs for provider-backed modules instead of relying on foundation-only naming defaults, including `POSTGRES_INSTANCE_NAME`, `POSTGRES_DB_NAME`, `POSTGRES_USER`, `POSTGRES_EXTRA_ALLOWED_CIDRS`, `OBJECT_STORAGE_BUCKET_NAME`, `DNS_ZONE_FQDN`, and `SECRETS_MANAGER_INSTANCE_NAME`.
+  - PostgreSQL ACLs now merge SKE-derived egress ranges with explicit extra CIDRs, so greenfield STACKIT runs satisfy the provider ACL requirement without opening access broadly.
+  - Runtime contract helpers for PostgreSQL, Object Storage, and DNS now resolve live foundation outputs after apply, falling back to deterministic placeholders only when Terraform outputs are not yet available.
+  - The default STACKIT Observability medium plan omits explicit log/trace retention overrides, and Object Storage credentials-group names are compressed deterministically to stay within provider length limits.
+  - Rationale: keep consumer-facing module env contracts truthful, remove drift between wrapper/runtime state and managed resources, and encode real provider constraints discovered during live `/tmp` validation.
+
 - Official STACKIT provider coverage now includes `rabbitmq` and `kms`, so both modules have been promoted to provider-backed foundation contracts.
   - Added `stackit_rabbitmq_instance`, `stackit_rabbitmq_credential`, `stackit_kms_keyring`, and `stackit_kms_key` to the STACKIT foundation layer, with `provider "stackit"` now setting `default_region = var.stackit_region` to satisfy region-scoped services like RabbitMQ.
   - Added shared STACKIT foundation output resolution helpers plus `stackit_foundation_output_fetch_total` / `stackit_foundation_output_resolve_total` metrics so provider-generated credentials and key identifiers flow into module wrappers and runtime secret seeding when real terraform outputs are available.

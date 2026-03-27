@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+source "$ROOT_DIR/scripts/lib/infra/stackit_foundation_outputs.sh"
 source "$ROOT_DIR/scripts/lib/infra/versions.sh"
 
 postgres_init_env() {
@@ -20,11 +21,47 @@ postgres_init_env() {
   fi
 }
 
-postgres_host() {
+postgres_stackit_placeholder_host() {
   local region
   region="${STACKIT_REGION:-local}"
+  printf '%s.postgresql.%s.onstackit.cloud' "$POSTGRES_INSTANCE_NAME" "$region"
+}
+
+postgres_username() {
   if is_stackit_profile; then
-    printf '%s.postgresql.%s.onstackit.cloud' "$POSTGRES_INSTANCE_NAME" "$region"
+    stackit_foundation_output_value_or_default "postgres_username" "$POSTGRES_USER"
+    return 0
+  fi
+  printf '%s' "$POSTGRES_USER"
+}
+
+postgres_password() {
+  if is_stackit_profile; then
+    stackit_foundation_output_value_or_default "postgres_password" "provider-generated"
+    return 0
+  fi
+  printf '%s' "$POSTGRES_PASSWORD"
+}
+
+postgres_port() {
+  if is_stackit_profile; then
+    stackit_foundation_output_value_or_default "postgres_port" "$POSTGRES_PORT"
+    return 0
+  fi
+  printf '%s' "$POSTGRES_PORT"
+}
+
+postgres_database() {
+  if is_stackit_profile; then
+    stackit_foundation_output_value_or_default "postgres_database" "$POSTGRES_DB_NAME"
+    return 0
+  fi
+  printf '%s' "$POSTGRES_DB_NAME"
+}
+
+postgres_host() {
+  if is_stackit_profile; then
+    stackit_foundation_output_value_or_default "postgres_host" "$(postgres_stackit_placeholder_host)"
     return 0
   fi
   postgres_local_service_host
@@ -32,13 +69,21 @@ postgres_host() {
 
 postgres_dsn() {
   local host
+  local username
+  local password
+  local port
+  local database
   host="$(postgres_host)"
+  username="$(postgres_username)"
+  password="$(postgres_password)"
+  port="$(postgres_port)"
+  database="$(postgres_database)"
   printf 'postgresql://%s:%s@%s:%s/%s' \
-    "$POSTGRES_USER" \
-    "$POSTGRES_PASSWORD" \
+    "$username" \
+    "$password" \
     "$host" \
-    "$POSTGRES_PORT" \
-    "$POSTGRES_DB_NAME"
+    "$port" \
+    "$database"
 }
 
 postgres_local_service_host() {

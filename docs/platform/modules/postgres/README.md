@@ -7,6 +7,8 @@ Provision PostgreSQL and publish canonical connection contract for runtime consu
 - Optional module Make targets are materialized by `make blueprint-render-makefile` (or `make blueprint-bootstrap`) when `POSTGRES_ENABLED=true`.
 - Scaffolding paths are materialized by `make infra-bootstrap` only when `POSTGRES_ENABLED=true`.
 - `stackit-*` profiles: managed by Terraform `foundation` layer (`infra/cloud/stackit/terraform/foundation`) with `POSTGRES_ENABLED` contract flag.
+  - Canonical inputs `POSTGRES_INSTANCE_NAME`, `POSTGRES_DB_NAME`, `POSTGRES_USER`, and `POSTGRES_EXTRA_ALLOWED_CIDRS` are passed through to the foundation layer.
+  - Runtime artifacts resolve provider-generated host/port/password outputs after apply; dry-run mode keeps deterministic placeholders.
 - `local-*` profiles: Helm chart (`bitnami/postgresql`) using `infra/local/helm/postgres/values.yaml`.
 
 ## Enable
@@ -23,8 +25,9 @@ export POSTGRES_ENABLED=true
 - `POSTGRES_PASSWORD`
 
 ## ACL Policy
-- Auto-align ACL with SKE egress ranges
-- Merge explicit extra CIDRs if provided
+- Derive the base allowlist from SKE egress ranges when `ske_enabled=true`
+- Merge `POSTGRES_EXTRA_ALLOWED_CIDRS` with the SKE-derived ranges when provided
+- If `ske_enabled=false`, explicit extra CIDRs are required
 - No open-world default (`0.0.0.0/0` forbidden by default)
 
 ## Commands

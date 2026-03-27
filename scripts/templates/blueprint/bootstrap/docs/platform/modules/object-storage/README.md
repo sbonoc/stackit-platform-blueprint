@@ -7,6 +7,8 @@ Provision managed object storage and publish canonical S3-compatible contracts f
 - Optional module Make targets are materialized by `make blueprint-render-makefile` (or `make blueprint-bootstrap`) when `OBJECT_STORAGE_ENABLED=true`.
 - Scaffolding paths are materialized by `make infra-bootstrap` only when `OBJECT_STORAGE_ENABLED=true`.
 - `stackit-*` profiles: managed by Terraform `foundation` layer (`infra/cloud/stackit/terraform/foundation`) with `OBJECT_STORAGE_ENABLED` contract flag.
+  - `OBJECT_STORAGE_BUCKET_NAME` is passed through as the canonical bucket contract.
+  - Access keys are provider-generated and resolved into runtime artifacts from foundation outputs after apply.
 - `local-*` profiles: Helm chart (`bitnami/minio`) using `infra/local/helm/object-storage/values.yaml`.
 
 ## Enable

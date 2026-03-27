@@ -13,6 +13,30 @@ locals {
 
   # STACKIT SKE currently enforces a short cluster-name limit (<=11 chars).
   ske_cluster_name = "k${substr(sha1(local.naming_prefix), 0, 10)}"
+  postgres_instance_name = (
+    trimspace(coalesce(var.postgres_instance_name, "")) != ""
+    ? trimspace(var.postgres_instance_name)
+    : "${local.naming_prefix}-${var.postgres_instance_name_suffix}"
+  )
+  postgres_acl_effective = (
+    var.postgres_enabled
+    ? distinct(concat(
+      var.ske_enabled ? stackit_ske_cluster.foundation[0].egress_address_ranges : [],
+      var.postgres_acl,
+    ))
+    : []
+  )
+  object_storage_bucket_name = (
+    trimspace(coalesce(var.object_storage_bucket_name, "")) != ""
+    ? trimspace(var.object_storage_bucket_name)
+    : "${local.naming_prefix}-${var.object_storage_bucket_name_suffix}"
+  )
+  object_storage_credentials_group_name = "${substr(local.normalized_platform, 0, 8)}-${var.environment}-creds-${substr(sha1("${local.naming_prefix}-${var.object_storage_credentials_group_name_suffix}"), 0, 6)}"
+  secrets_manager_instance_name = (
+    trimspace(coalesce(var.secrets_manager_instance_name, "")) != ""
+    ? trimspace(var.secrets_manager_instance_name)
+    : "${local.naming_prefix}-${var.secrets_manager_instance_name_suffix}"
+  )
 
   dns_zone_fqdns = sort(distinct(var.dns_zone_fqdns))
 
