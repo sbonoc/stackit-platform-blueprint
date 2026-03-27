@@ -196,6 +196,9 @@ stackit_layer_var_args() {
     printf '%s\n' "-var=postgres_instance_name=$POSTGRES_INSTANCE_NAME"
     printf '%s\n' "-var=postgres_db_name=$POSTGRES_DB_NAME"
     printf '%s\n' "-var=postgres_username=$POSTGRES_USER"
+    if [[ -n "${POSTGRES_VERSION:-}" ]]; then
+      printf '%s\n' "-var=postgres_version=$POSTGRES_VERSION"
+    fi
     if [[ -n "${POSTGRES_EXTRA_ALLOWED_CIDRS:-}" ]]; then
       stackit_emit_tf_string_list_arg_from_csv "postgres_acl" "$POSTGRES_EXTRA_ALLOWED_CIDRS"
     fi

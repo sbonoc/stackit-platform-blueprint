@@ -8,6 +8,7 @@ Provision PostgreSQL and publish canonical connection contract for runtime consu
 - Scaffolding paths are materialized by `make infra-bootstrap` only when `POSTGRES_ENABLED=true`.
 - `stackit-*` profiles: managed by Terraform `foundation` layer (`infra/cloud/stackit/terraform/foundation`) with `POSTGRES_ENABLED` contract flag.
   - Canonical inputs `POSTGRES_INSTANCE_NAME`, `POSTGRES_DB_NAME`, `POSTGRES_USER`, and `POSTGRES_EXTRA_ALLOWED_CIDRS` are passed through to the foundation layer.
+  - `POSTGRES_VERSION` defaults to `16` across local and STACKIT paths, and can be overridden explicitly when provider support changes.
   - Runtime artifacts resolve provider-generated host/port/password outputs after apply; dry-run mode keeps deterministic placeholders.
 - `local-*` profiles: Helm chart (`bitnami/postgresql`) using `infra/local/helm/postgres/values.yaml`.
 

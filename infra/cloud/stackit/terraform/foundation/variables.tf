@@ -132,7 +132,7 @@ variable "postgres_backup_schedule" {
 variable "postgres_version" {
   description = "PostgreSQL Flex major version."
   type        = string
-  default     = "17"
+  default     = "16"
 }
 
 variable "postgres_replicas" {

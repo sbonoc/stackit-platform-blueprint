@@ -1,6 +1,13 @@
 # Decisions Log
 
 ## 2026-03-27
+- Live `/tmp` validation now hardens STACKIT consumer initialization, provider-boundary normalization, and runtime readiness diagnostics.
+  - Fresh STACKIT consumer repos must initialize identity with `make blueprint-init-repo` before first remote bootstrap so backend and tfvars placeholders are resolved; local-only bootstrap can succeed without surfacing that requirement, but remote state bootstrap cannot.
+  - DNS keeps the canonical consumer input contract with trailing dots (`DNS_ZONE_FQDN`) while foundation trims only at the provider boundary, matching STACKIT DNS API expectations without changing user-facing inputs.
+  - PostgreSQL provider-backed defaults are normalized at version `16` across wrappers and foundation, and provider-backed layer args now pass `POSTGRES_VERSION` through explicitly.
+  - STACKIT runtime prerequisites now wait for kubeconfig API hostname resolution plus `/readyz` before the first `kubectl` call, record the resolved API endpoint in state, and point troubleshooting docs at operator-side DNS checks when the SKE hostname never becomes reachable.
+  - Rationale: real `/tmp` runs proved the remaining drift was not architectural but boundary-specific, so the blueprint now encodes those findings directly and fails with clearer diagnostics when the operator environment, rather than repo code, is the blocker.
+
 - STACKIT foundation now sources canonical provider-backed module inputs and runtime artifacts prefer live Terraform outputs.
   - `stackit_layer_var_args` now passes through canonical env inputs for provider-backed modules instead of relying on foundation-only naming defaults, including `POSTGRES_INSTANCE_NAME`, `POSTGRES_DB_NAME`, `POSTGRES_USER`, `POSTGRES_EXTRA_ALLOWED_CIDRS`, `OBJECT_STORAGE_BUCKET_NAME`, `DNS_ZONE_FQDN`, and `SECRETS_MANAGER_INSTANCE_NAME`.
   - PostgreSQL ACLs now merge SKE-derived egress ranges with explicit extra CIDRs, so greenfield STACKIT runs satisfy the provider ACL requirement without opening access broadly.

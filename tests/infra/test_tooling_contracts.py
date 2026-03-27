@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
+import tempfile
 import unittest
 
 from tests._shared.helpers import REPO_ROOT, run
@@ -109,6 +111,7 @@ stackit_layer_var_args foundation
                 "POSTGRES_INSTANCE_NAME": "bp-postgres-stackit",
                 "POSTGRES_DB_NAME": "platform",
                 "POSTGRES_USER": "platform",
+                "POSTGRES_VERSION": "16",
                 "POSTGRES_EXTRA_ALLOWED_CIDRS": "10.0.0.0/24, 10.0.1.0/24",
                 "OBJECT_STORAGE_BUCKET_NAME": "bp-assets-stackit",
                 "DNS_ZONE_NAME": "marketplace-stackit",
@@ -120,6 +123,7 @@ stackit_layer_var_args foundation
         self.assertIn("-var=postgres_instance_name=bp-postgres-stackit", result.stdout)
         self.assertIn("-var=postgres_db_name=platform", result.stdout)
         self.assertIn("-var=postgres_username=platform", result.stdout)
+        self.assertIn("-var=postgres_version=16", result.stdout)
         self.assertIn('-var=postgres_acl=["10.0.0.0/24", "10.0.1.0/24"]', result.stdout)
         self.assertIn("-var=object_storage_bucket_name=bp-assets-stackit", result.stdout)
         self.assertIn('-var=dns_zone_fqdns=["marketplace-stackit.example."]', result.stdout)
@@ -226,6 +230,45 @@ printf 'dsn=%s\\n' "$(postgres_dsn)"
         self.assertIn("class=fallback_runtime", resolved)
         self.assertIn("driver=argocd_optional_manifest", resolved)
         self.assertIn(f"path={REPO_ROOT}/infra/gitops/argocd/optional/local/langfuse.yaml", resolved)
+
+    def test_k8s_wait_extracts_server_url_from_kubeconfig(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            kubeconfig = Path(tmpdir) / "stackit.yaml"
+            kubeconfig.write_text(
+                "\n".join(
+                    [
+                        "apiVersion: v1",
+                        "kind: Config",
+                        "clusters:",
+                        "- cluster:",
+                        "    server: https://api.example.internal:6443",
+                        "  name: stackit-dev",
+                        "contexts:",
+                        "- context:",
+                        "    cluster: stackit-dev",
+                        "    user: stackit-dev",
+                        "  name: stackit-dev",
+                        "current-context: stackit-dev",
+                        "users:",
+                        "- name: stackit-dev",
+                        "  user:",
+                        "    token: placeholder",
+                        "",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            script = f"""
+export ROOT_DIR="{REPO_ROOT}"
+source "{REPO_ROOT}/scripts/lib/shell/bootstrap.sh"
+source "{REPO_ROOT}/scripts/lib/infra/k8s_wait.sh"
+printf 'server=%s\\n' "$(k8s_kubeconfig_server_url "{kubeconfig}")"
+printf 'host=%s\\n' "$(k8s_kubeconfig_server_host "{kubeconfig}")"
+"""
+            result = run(["bash", "-lc", script], {"ROOT_DIR": str(REPO_ROOT)})
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            self.assertIn("server=https://api.example.internal:6443", result.stdout)
+            self.assertIn("host=api.example.internal", result.stdout)
 
 
 if __name__ == "__main__":

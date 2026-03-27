@@ -52,6 +52,11 @@
   - `rabbitmq`, `kms`: STACKIT foundation provider-backed reconciliation.
 - [x] Extend optional manifest materialization/prune contracts for `rabbitmq`, `public-endpoints`, and `identity-aware-proxy`.
 - [x] Synchronize docs/tests/contracts to the new execution model and keep full validation bundles green.
+- [x] Fold live `/tmp` validation findings back into the blueprint:
+  - STACKIT consumer repos must run `make blueprint-init-repo` before first remote bootstrap so backend/tfvars placeholders are initialized.
+  - DNS zones keep trailing dots in consumer input contracts but are trimmed at the provider boundary.
+  - PostgreSQL provider-backed defaults stay aligned at version `16` across wrappers and foundation.
+  - STACKIT runtime deploy now waits explicitly for kube API hostname resolution and API readiness before the first `kubectl` operation, with troubleshooting updated for operator-side DNS blockers.
 
 ## Release Plan
 - Current state: pre-release baseline `template_version: 1.0.0` (no published upgrade transitions yet).

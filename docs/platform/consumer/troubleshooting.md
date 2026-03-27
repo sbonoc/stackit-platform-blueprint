@@ -108,3 +108,17 @@ Common first-day issues for generated repositories.
   ```bash
   make infra-stackit-runtime-deploy
   ```
+
+## STACKIT runtime prerequisites time out waiting for Kubernetes API readiness
+- `infra-stackit-runtime-prerequisites` now waits for the SKE API hostname to resolve and for `/readyz` to answer before the first `kubectl apply`.
+- If it times out on hostname resolution, verify the operator machine can resolve the SKE endpoint handed out in the kubeconfig:
+  - `python3 - <<'PY'`
+    `import socket`
+    `socket.getaddrinfo("api.<cluster>.<suffix>.ske.<region>.onstackit.cloud", None)`
+    `PY`
+  - or `dig +short <host>`
+- If resolution fails from your workstation:
+  - confirm you ran `make blueprint-init-repo` before the first STACKIT bootstrap so backend and tfvars placeholders are initialized
+  - wait a few minutes and re-run `make infra-stackit-foundation-fetch-kubeconfig`
+  - check whether corporate DNS, VPN, or local resolver policy is blocking `*.ske.<region>.onstackit.cloud`
+- Inspect `artifacts/infra/stackit_runtime_prerequisites.env` for the recorded `kube_api_server` and readiness status before retrying deploy.

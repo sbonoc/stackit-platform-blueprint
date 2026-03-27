@@ -39,6 +39,9 @@ locals {
   )
 
   dns_zone_fqdns = sort(distinct(var.dns_zone_fqdns))
+  dns_zone_dns_names = {
+    for zone in local.dns_zone_fqdns : zone => trimsuffix(zone, ".")
+  }
 
   module_enablement = {
     observability        = var.observability_enabled

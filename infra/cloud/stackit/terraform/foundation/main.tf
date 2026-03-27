@@ -8,10 +8,10 @@ resource "stackit_ske_cluster" "foundation" {
   extensions = {
     dns = merge(
       {
-        enabled = var.dns_enabled && length(local.dns_zone_fqdns) > 0
+        enabled = var.dns_enabled && length(local.dns_zone_dns_names) > 0
       },
-      var.dns_enabled && length(local.dns_zone_fqdns) > 0 ? {
-        zones = local.dns_zone_fqdns
+      var.dns_enabled && length(local.dns_zone_dns_names) > 0 ? {
+        zones = values(local.dns_zone_dns_names)
       } : {}
     )
   }
@@ -37,9 +37,7 @@ resource "stackit_ske_kubeconfig" "foundation" {
 }
 
 resource "stackit_dns_zone" "foundation" {
-  for_each = var.dns_enabled ? {
-    for zone in local.dns_zone_fqdns : zone => zone
-  } : {}
+  for_each = var.dns_enabled ? local.dns_zone_dns_names : {}
 
   project_id = var.stackit_project_id
   name       = substr("${local.naming_prefix}-dns-${substr(sha1(each.value), 0, 8)}", 0, 63)
