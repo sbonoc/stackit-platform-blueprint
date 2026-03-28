@@ -84,6 +84,14 @@ def _validate_required_files(repo_root: Path, required_files: list[str]) -> list
     return errors
 
 
+def _validate_absent_files(repo_root: Path, relative_paths: list[str]) -> list[str]:
+    errors: list[str] = []
+    for relative_path in relative_paths:
+        if (repo_root / relative_path).exists():
+            errors.append(f"file must be absent for current repo_mode: {relative_path}")
+    return errors
+
+
 def _validate_required_paths(repo_root: Path, required_paths: list[str]) -> list[str]:
     errors: list[str] = []
     for relative_path in required_paths:
@@ -106,32 +114,12 @@ def _validate_template_bootstrap_contract(repo_root: Path, contract: BlueprintCo
     if template_version and not template_version_tuple:
         errors.append("repository.template_bootstrap.template_version must be semver (MAJOR.MINOR.PATCH)")
 
-    minimum_supported_upgrade_from = template.minimum_supported_upgrade_from
-    if not minimum_supported_upgrade_from:
-        errors.append("repository.template_bootstrap.minimum_supported_upgrade_from is required")
-    minimum_supported_upgrade_from_tuple = _parse_semver(minimum_supported_upgrade_from)
-    if minimum_supported_upgrade_from and not minimum_supported_upgrade_from_tuple:
-        errors.append(
-            "repository.template_bootstrap.minimum_supported_upgrade_from must be semver (MAJOR.MINOR.PATCH)"
-        )
-    if template_version_tuple and minimum_supported_upgrade_from_tuple:
-        if minimum_supported_upgrade_from_tuple > template_version_tuple:
-            errors.append(
-                "repository.template_bootstrap.minimum_supported_upgrade_from cannot be greater than template_version"
-            )
-
     init_command = template.init_command
     if not init_command:
         errors.append("repository.template_bootstrap.init_command is required")
-    upgrade_command = template.upgrade_command
-    if not upgrade_command:
-        errors.append("repository.template_bootstrap.upgrade_command is required")
 
     targets = _make_targets(repo_root)
-    for command_key, command_value in (
-        ("init_command", init_command),
-        ("upgrade_command", upgrade_command),
-    ):
+    for command_key, command_value in (("init_command", init_command),):
         if not command_value:
             continue
         if not command_value.startswith("make "):
@@ -172,6 +160,87 @@ def _validate_template_bootstrap_contract(repo_root: Path, contract: BlueprintCo
             errors.append(
                 "template bootstrap example env missing required input variable " f"declaration: {variable}"
             )
+    return errors
+
+
+def _required_files_for_repo_mode(contract: BlueprintContract) -> list[str]:
+    return list(contract.repository.required_files)
+
+
+def _validate_repository_mode_contract(repo_root: Path, contract: BlueprintContract) -> list[str]:
+    errors: list[str] = []
+    repository = contract.repository
+    consumer_init = repository.consumer_init
+    source_only_paths = repository.source_only_paths
+    consumer_seeded_paths = repository.consumer_seeded_paths
+    conditional_scaffold_paths = repository.conditional_scaffold_paths
+
+    if not repository.repo_mode:
+        errors.append("repository.repo_mode is required")
+    elif repository.repo_mode not in repository.allowed_repo_modes:
+        errors.append(
+            "repository.repo_mode must be one of configured allowed_repo_modes: "
+            + ", ".join(repository.allowed_repo_modes)
+        )
+
+    if not repository.allowed_repo_modes:
+        errors.append("repository.allowed_repo_modes must define at least one repo mode")
+
+    if not consumer_seeded_paths:
+        errors.append("repository.ownership_path_classes.consumer_seeded must define at least one path")
+    if not conditional_scaffold_paths:
+        errors.append("repository.ownership_path_classes.conditional_scaffold must define at least one path")
+
+    if not consumer_init.template_root:
+        errors.append("repository.consumer_init.template_root is required")
+    elif not (repo_root / consumer_init.template_root).is_dir():
+        errors.append(f"missing consumer init template root: {consumer_init.template_root}")
+
+    if consumer_init.mode_from not in repository.allowed_repo_modes:
+        errors.append("repository.consumer_init.mode_from must be listed in repository.allowed_repo_modes")
+    if consumer_init.mode_to not in repository.allowed_repo_modes:
+        errors.append("repository.consumer_init.mode_to must be listed in repository.allowed_repo_modes")
+    if consumer_init.mode_from == consumer_init.mode_to:
+        errors.append("repository.consumer_init.mode_from and mode_to must differ")
+
+    for relative_path in consumer_seeded_paths:
+        template_path = repo_root / consumer_init.template_root / f"{relative_path}.tmpl"
+        if not template_path.is_file():
+            errors.append(
+                "missing consumer init template file for "
+                f"{relative_path}: {template_path.relative_to(repo_root).as_posix()}"
+            )
+        if relative_path not in repository.required_files:
+            errors.append(
+                "repository.ownership_path_classes.consumer_seeded paths must also be included in "
+                f"repository.required_files: {relative_path}"
+            )
+
+    overlap = (set(source_only_paths) & set(repository.required_files)) | (set(source_only_paths) & set(consumer_seeded_paths))
+    if overlap:
+        errors.append(
+            "repository.ownership_path_classes.source_only must not overlap with repository.required_files "
+            "or repository.ownership_path_classes.consumer_seeded: "
+            + ", ".join(sorted(overlap))
+        )
+
+    expected_conditional_scaffold = {
+        module.paths[path_key]
+        for module in contract.optional_modules.modules.values()
+        if module.scaffolding_mode == "conditional"
+        for path_key in module.paths_required_when_enabled
+    }
+    if set(conditional_scaffold_paths) != expected_conditional_scaffold:
+        errors.append(
+            "repository.ownership_path_classes.conditional_scaffold must match the union of "
+            "optional_modules.*.paths_required_when_enabled"
+        )
+
+    if repository.repo_mode == consumer_init.mode_from:
+        errors.extend(_validate_required_paths(repo_root, source_only_paths))
+    if repository.repo_mode == consumer_init.mode_to:
+        errors.extend(_validate_absent_files(repo_root, source_only_paths))
+
     return errors
 
 
@@ -646,8 +715,10 @@ def _validate_platform_docs_seed_contract(repo_root: Path, contract: BlueprintCo
     return errors
 
 
-def _validate_bootstrap_template_sync(repo_root: Path) -> list[str]:
+def _validate_bootstrap_template_sync(repo_root: Path, contract: BlueprintContract) -> list[str]:
     errors: list[str] = []
+    repository = contract.repository
+    consumer_owned_seed_paths = set(repository.consumer_seeded_paths)
 
     # These files are materialized by blueprint-bootstrap/infra-bootstrap from
     # static templates and must stay byte-for-byte synchronized to keep generated
@@ -666,7 +737,6 @@ def _validate_bootstrap_template_sync(repo_root: Path) -> list[str]:
                 "docs/blueprint/README.md",
                 "docs/blueprint/architecture/system_overview.md",
                 "docs/blueprint/architecture/execution_model.md",
-                "docs/blueprint/governance/template_release_policy.md",
                 "docs/blueprint/governance/ownership_matrix.md",
             ),
         ),
@@ -701,6 +771,11 @@ def _validate_bootstrap_template_sync(repo_root: Path) -> list[str]:
     # identity checks, not by strict byte-for-byte template sync.
     for template_root, synced_files in template_sync_contract:
         for rel_path in synced_files:
+            # Generated consumer repos replace a small set of source-root docs/CI
+            # files during blueprint-init-repo, so those files no longer follow
+            # the source bootstrap template byte-for-byte afterwards.
+            if repository.repo_mode == repository.consumer_init.mode_to and rel_path in consumer_owned_seed_paths:
+                continue
             target_path = repo_root / rel_path
             template_path = template_root / rel_path
             template_rel = template_path.relative_to(repo_root).as_posix()
@@ -733,7 +808,7 @@ def main() -> int:
 
     try:
         contract = load_blueprint_contract(contract_path)
-        required_files = contract.repository.required_files
+        required_files = _required_files_for_repo_mode(contract)
         required_paths = contract.structure.required_paths
         required_diagrams = contract.docs_contract.required_diagrams
         required_targets = contract.make_contract.required_targets
@@ -751,6 +826,7 @@ def main() -> int:
         return 1
 
     errors: list[str] = []
+    errors.extend(_validate_repository_mode_contract(repo_root, contract))
     errors.extend(_validate_required_files(repo_root, required_files))
     errors.extend(_validate_required_paths(repo_root, required_paths))
     errors.extend(_validate_template_bootstrap_contract(repo_root, contract))
@@ -767,7 +843,7 @@ def main() -> int:
     errors.extend(_validate_airflow_contract(repo_root, contract))
     errors.extend(_validate_docs_edit_link(repo_root, contract))
     errors.extend(_validate_platform_docs_seed_contract(repo_root, contract))
-    errors.extend(_validate_bootstrap_template_sync(repo_root))
+    errors.extend(_validate_bootstrap_template_sync(repo_root, contract))
 
     if errors:
         for error in errors:

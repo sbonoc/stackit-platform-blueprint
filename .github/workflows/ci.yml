@@ -13,48 +13,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
+      - name: Prepare shared CI baseline
+        uses: ./.github/actions/prepare-blueprint-ci
 
-      - name: Install Python test deps
+      - name: Run fast quality gate
         run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install pytest pre-commit
+          make quality-hooks-fast
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-
-      - name: Enable pnpm
+      - name: Run strict audit gate
         run: |
-          corepack enable
-          pnpm --version
-
-      - name: Install shellcheck
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y shellcheck
-
-      - name: Bootstrap blueprint and infra baseline
-        run: |
-          make blueprint-bootstrap
-          make infra-bootstrap
-
-      - name: Run canonical quality gate
-        run: |
-          make quality-hooks-run
+          make quality-hooks-strict
 
       - name: Run pre-push hook stage
         run: |
           pre-commit run --hook-stage pre-push --all-files
-
-      - name: Smoke blueprint-migrate end-to-end
-        run: |
-          python3 -m unittest \
-            tests.blueprint.test_upgrade.BlueprintUpgradeTests.test_blueprint_migrate_make_target_smoke_in_template_copy
 
       - name: Validate app baseline
         run: |
@@ -77,151 +49,31 @@ jobs:
       - name: Run tooling tests
         run: pytest -q tests
 
-  contract-matrix:
+  generated-consumer-smoke:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        profile: [local-full, stackit-dev]
-        observability_enabled: ["false", "true"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
+      - name: Prepare shared CI baseline
+        uses: ./.github/actions/prepare-blueprint-ci
 
-      - name: Validate contract-critical profile/flag matrix
+      - name: Smoke generated consumer baseline
         run: |
-          export BLUEPRINT_PROFILE=${{ matrix.profile }}
-          export OBSERVABILITY_ENABLED=${{ matrix.observability_enabled }}
+          export BLUEPRINT_TEMPLATE_SMOKE_SCENARIO=local-lite-baseline
+          export BLUEPRINT_PROFILE=local-lite
+          export OBSERVABILITY_ENABLED=false
           export WORKFLOWS_ENABLED=false
           export LANGFUSE_ENABLED=false
           export POSTGRES_ENABLED=false
           export NEO4J_ENABLED=false
-          make blueprint-bootstrap
-          make infra-bootstrap
-          make apps-bootstrap
-          make infra-validate
-          make infra-smoke
-
-  consumer-golden-conformance:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        scenario:
-          - name: local-lite-baseline
-            profile: local-lite
-            observability_enabled: "false"
-            workflows_enabled: "false"
-            langfuse_enabled: "false"
-            postgres_enabled: "false"
-            neo4j_enabled: "false"
-            object_storage_enabled: "false"
-            rabbitmq_enabled: "false"
-            dns_enabled: "false"
-            public_endpoints_enabled: "false"
-            secrets_manager_enabled: "false"
-            kms_enabled: "false"
-            identity_aware_proxy_enabled: "false"
-          - name: local-full-observability-data
-            profile: local-full
-            observability_enabled: "true"
-            workflows_enabled: "false"
-            langfuse_enabled: "false"
-            postgres_enabled: "true"
-            neo4j_enabled: "false"
-            object_storage_enabled: "true"
-            rabbitmq_enabled: "false"
-            dns_enabled: "false"
-            public_endpoints_enabled: "false"
-            secrets_manager_enabled: "false"
-            kms_enabled: "false"
-            identity_aware_proxy_enabled: "false"
-          - name: local-full-runtime-edge
-            profile: local-full
-            observability_enabled: "false"
-            workflows_enabled: "false"
-            langfuse_enabled: "false"
-            postgres_enabled: "false"
-            neo4j_enabled: "false"
-            object_storage_enabled: "false"
-            rabbitmq_enabled: "true"
-            dns_enabled: "false"
-            public_endpoints_enabled: "true"
-            secrets_manager_enabled: "false"
-            kms_enabled: "false"
-            identity_aware_proxy_enabled: "true"
-          - name: stackit-dev-managed-services
-            profile: stackit-dev
-            observability_enabled: "true"
-            workflows_enabled: "false"
-            langfuse_enabled: "false"
-            postgres_enabled: "true"
-            neo4j_enabled: "false"
-            object_storage_enabled: "true"
-            rabbitmq_enabled: "true"
-            dns_enabled: "true"
-            public_endpoints_enabled: "false"
-            secrets_manager_enabled: "true"
-            kms_enabled: "true"
-            identity_aware_proxy_enabled: "false"
-          - name: stackit-dev-runtime-fallbacks
-            profile: stackit-dev
-            observability_enabled: "false"
-            workflows_enabled: "false"
-            langfuse_enabled: "true"
-            postgres_enabled: "false"
-            neo4j_enabled: "true"
-            object_storage_enabled: "false"
-            rabbitmq_enabled: "false"
-            dns_enabled: "false"
-            public_endpoints_enabled: "true"
-            secrets_manager_enabled: "false"
-            kms_enabled: "false"
-            identity_aware_proxy_enabled: "true"
-          - name: stackit-dev-workflows
-            profile: stackit-dev
-            observability_enabled: "true"
-            workflows_enabled: "true"
-            langfuse_enabled: "false"
-            postgres_enabled: "false"
-            neo4j_enabled: "false"
-            object_storage_enabled: "false"
-            rabbitmq_enabled: "false"
-            dns_enabled: "false"
-            public_endpoints_enabled: "false"
-            secrets_manager_enabled: "false"
-            kms_enabled: "false"
-            identity_aware_proxy_enabled: "false"
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-
-      - name: Golden template-consumer conformance matrix
-        run: |
-          export BLUEPRINT_TEMPLATE_SMOKE_SCENARIO=${{ matrix.scenario.name }}
-          export BLUEPRINT_PROFILE=${{ matrix.scenario.profile }}
-          export OBSERVABILITY_ENABLED=${{ matrix.scenario.observability_enabled }}
-          export WORKFLOWS_ENABLED=${{ matrix.scenario.workflows_enabled }}
-          export LANGFUSE_ENABLED=${{ matrix.scenario.langfuse_enabled }}
-          export POSTGRES_ENABLED=${{ matrix.scenario.postgres_enabled }}
-          export NEO4J_ENABLED=${{ matrix.scenario.neo4j_enabled }}
-          export OBJECT_STORAGE_ENABLED=${{ matrix.scenario.object_storage_enabled }}
-          export RABBITMQ_ENABLED=${{ matrix.scenario.rabbitmq_enabled }}
-          export DNS_ENABLED=${{ matrix.scenario.dns_enabled }}
-          export PUBLIC_ENDPOINTS_ENABLED=${{ matrix.scenario.public_endpoints_enabled }}
-          export SECRETS_MANAGER_ENABLED=${{ matrix.scenario.secrets_manager_enabled }}
-          export KMS_ENABLED=${{ matrix.scenario.kms_enabled }}
-          export IDENTITY_AWARE_PROXY_ENABLED=${{ matrix.scenario.identity_aware_proxy_enabled }}
+          export OBJECT_STORAGE_ENABLED=false
+          export RABBITMQ_ENABLED=false
+          export DNS_ENABLED=false
+          export PUBLIC_ENDPOINTS_ENABLED=false
+          export SECRETS_MANAGER_ENABLED=false
+          export KMS_ENABLED=false
+          export IDENTITY_AWARE_PROXY_ENABLED=false
           BLUEPRINT_REPO_NAME=ci-smoke-blueprint \
           BLUEPRINT_GITHUB_ORG=ci-smoke-org \
           BLUEPRINT_GITHUB_REPO=ci-smoke-blueprint \

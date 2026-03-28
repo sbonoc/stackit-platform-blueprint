@@ -10,14 +10,9 @@ usage() {
   cat <<'EOF'
 Usage: hooks_run.sh
 
-Runs local quality gates:
-- pre-commit (if available)
-- shellcheck (required)
-- docs lint
-- generated docs sync checks
-- test pyramid
-- infra validation
-- infra version audit
+Runs the full quality gate by composing:
+- `hooks_fast.sh`
+- `hooks_strict.sh`
 EOF
 }
 
@@ -27,27 +22,6 @@ if [[ "${1:-}" == "--help" ]]; then
 fi
 
 log_info "quality hooks run start"
-if command -v pre-commit >/dev/null 2>&1; then
-  run_cmd pre-commit run --all-files
-else
-  log_warn "pre-commit not installed; skipping pre-commit checks"
-fi
-
-require_command shellcheck
-shell_scripts=()
-while IFS= read -r shell_script; do
-  shell_scripts+=("$shell_script")
-done < <(find "$ROOT_DIR/scripts" -type f -name '*.sh' | sort)
-if [[ "${#shell_scripts[@]}" -gt 0 ]]; then
-  run_cmd shellcheck --severity=error --exclude=SC1090,SC1091 "${shell_scripts[@]}"
-fi
-
-run_cmd make -C "$ROOT_DIR" quality-docs-lint
-run_cmd make -C "$ROOT_DIR" quality-docs-check-core-targets-sync
-run_cmd make -C "$ROOT_DIR" quality-docs-check-contract-metadata-sync
-run_cmd make -C "$ROOT_DIR" quality-test-pyramid
-run_cmd make -C "$ROOT_DIR" infra-validate
-run_cmd make -C "$ROOT_DIR" infra-audit-version
-run_cmd make -C "$ROOT_DIR" apps-audit-versions
-
+run_cmd "$ROOT_DIR/scripts/bin/quality/hooks_fast.sh"
+run_cmd "$ROOT_DIR/scripts/bin/quality/hooks_strict.sh"
 log_info "quality hooks run completed"

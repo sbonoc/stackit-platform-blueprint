@@ -29,6 +29,17 @@ fi
 failures=0
 warnings=0
 
+log_audit_metric() {
+  local var_name="$1"
+  local status="$2"
+  shift 2 || true
+  if (($#)); then
+    log_metric "apps_version_pin_audit_total" "1" "variable=$var_name status=$status $*"
+    return 0
+  fi
+  log_metric "apps_version_pin_audit_total" "1" "variable=$var_name status=$status"
+}
+
 audit_var() {
   local var_name="$1"
   local current baseline
@@ -39,16 +50,19 @@ audit_var() {
   )"
 
   if [[ -z "$current" ]]; then
+    log_audit_metric "$var_name" "missing"
     log_error "missing pinned version for $var_name"
     failures=$((failures + 1))
     return
   fi
   if [[ "$current" == "latest" ]]; then
+    log_audit_metric "$var_name" "unpinned_latest" "current=$current"
     log_error "unpinned value is forbidden for $var_name"
     failures=$((failures + 1))
     return
   fi
   if [[ -z "$baseline" ]]; then
+    log_audit_metric "$var_name" "missing_baseline" "current=$current"
     log_warn "no baseline defined for $var_name; skipping drift check"
     warnings=$((warnings + 1))
     return
@@ -58,20 +72,25 @@ audit_var() {
   drift="$(classify_semver_drift "$current" "$baseline")"
   case "$drift" in
   same)
+    log_audit_metric "$var_name" "same" "current=$current baseline=$baseline"
     ;;
   patch | major)
+    log_audit_metric "$var_name" "${drift}_drift" "current=$current baseline=$baseline"
     log_error "$drift drift detected for $var_name: current=$current baseline=$baseline"
     failures=$((failures + 1))
     ;;
   minor)
+    log_audit_metric "$var_name" "minor_drift" "current=$current baseline=$baseline"
     log_warn "minor drift detected for $var_name: current=$current baseline=$baseline"
     warnings=$((warnings + 1))
     ;;
   non-semver)
+    log_audit_metric "$var_name" "non_semver" "current=$current baseline=$baseline"
     log_warn "non-semver drift comparison for $var_name: current=$current baseline=$baseline"
     warnings=$((warnings + 1))
     ;;
   *)
+    log_audit_metric "$var_name" "unknown_drift" "current=$current baseline=$baseline drift=$drift"
     log_error "unknown drift classification for $var_name: $drift"
     failures=$((failures + 1))
     ;;
@@ -91,6 +110,18 @@ tracked_vars=(
 for var_name in "${tracked_vars[@]}"; do
   audit_var "$var_name"
 done
+
+summary_status="success"
+if [[ $warnings -gt 0 ]]; then
+  summary_status="warning"
+fi
+if [[ $failures -gt 0 ]]; then
+  summary_status="failure"
+fi
+log_metric \
+  "apps_version_audit_summary_total" \
+  "1" \
+  "tracked=${#tracked_vars[@]} warnings=$warnings failures=$failures status=$summary_status"
 
 if [[ $warnings -gt 0 ]]; then
   log_warn "apps version audit completed with $warnings warning(s)"

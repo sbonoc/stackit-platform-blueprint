@@ -23,19 +23,48 @@ class BranchNamingContract:
 class TemplateBootstrapContract:
     model: str
     template_version: str
-    minimum_supported_upgrade_from: str
     init_command: str
-    upgrade_command: str
     example_env_file: str
     required_inputs: list[str]
 
 
 @dataclass(frozen=True)
+class ConsumerInitContract:
+    template_root: str
+    mode_from: str
+    mode_to: str
+    prune_disabled_optional_scaffolding: bool
+
+
+@dataclass(frozen=True)
+class RepositoryOwnershipPathClasses:
+    source_only: list[str]
+    consumer_seeded: list[str]
+    conditional_scaffold: list[str]
+
+
+@dataclass(frozen=True)
 class RepositoryContract:
+    repo_mode: str
+    allowed_repo_modes: list[str]
     default_branch: str
     branch_naming: BranchNamingContract
     template_bootstrap: TemplateBootstrapContract
     required_files: list[str]
+    ownership_path_classes: RepositoryOwnershipPathClasses
+    consumer_init: ConsumerInitContract
+
+    @property
+    def source_only_paths(self) -> list[str]:
+        return self.ownership_path_classes.source_only
+
+    @property
+    def consumer_seeded_paths(self) -> list[str]:
+        return self.ownership_path_classes.consumer_seeded
+
+    @property
+    def conditional_scaffold_paths(self) -> list[str]:
+        return self.ownership_path_classes.conditional_scaffold
 
 
 @dataclass(frozen=True)
@@ -376,8 +405,18 @@ def load_blueprint_contract(path: Path) -> BlueprintContract:
     repository_raw = _as_mapping(spec.get("repository"), "spec.repository")
     branch_raw = _as_mapping(repository_raw.get("branch_naming"), "spec.repository.branch_naming")
     template_raw = _as_mapping(repository_raw.get("template_bootstrap"), "spec.repository.template_bootstrap")
+    consumer_init_raw = _as_mapping(repository_raw.get("consumer_init"), "spec.repository.consumer_init")
+    ownership_classes_raw = _as_mapping(
+        repository_raw.get("ownership_path_classes"),
+        "spec.repository.ownership_path_classes",
+    )
 
     repository = RepositoryContract(
+        repo_mode=_as_str(repository_raw.get("repo_mode"), "spec.repository.repo_mode"),
+        allowed_repo_modes=_as_list_of_str(
+            repository_raw.get("allowed_repo_modes", []),
+            "spec.repository.allowed_repo_modes",
+        ),
         default_branch=_as_str(repository_raw.get("default_branch"), "spec.repository.default_branch"),
         branch_naming=BranchNamingContract(
             model=_as_str(branch_raw.get("model"), "spec.repository.branch_naming.model"),
@@ -392,15 +431,7 @@ def load_blueprint_contract(path: Path) -> BlueprintContract:
                 template_raw.get("template_version"),
                 "spec.repository.template_bootstrap.template_version",
             ),
-            minimum_supported_upgrade_from=_as_str(
-                template_raw.get("minimum_supported_upgrade_from"),
-                "spec.repository.template_bootstrap.minimum_supported_upgrade_from",
-            ),
             init_command=_as_str(template_raw.get("init_command"), "spec.repository.template_bootstrap.init_command"),
-            upgrade_command=_as_str(
-                template_raw.get("upgrade_command"),
-                "spec.repository.template_bootstrap.upgrade_command",
-            ),
             example_env_file=_as_str(
                 template_raw.get("example_env_file"),
                 "spec.repository.template_bootstrap.example_env_file",
@@ -411,6 +442,39 @@ def load_blueprint_contract(path: Path) -> BlueprintContract:
             ),
         ),
         required_files=_as_list_of_str(repository_raw.get("required_files", []), "spec.repository.required_files"),
+        ownership_path_classes=RepositoryOwnershipPathClasses(
+            source_only=_as_list_of_str(
+                ownership_classes_raw.get("source_only", []),
+                "spec.repository.ownership_path_classes.source_only",
+            ),
+            consumer_seeded=_as_list_of_str(
+                ownership_classes_raw.get("consumer_seeded", []),
+                "spec.repository.ownership_path_classes.consumer_seeded",
+            ),
+            conditional_scaffold=_as_list_of_str(
+                ownership_classes_raw.get("conditional_scaffold", []),
+                "spec.repository.ownership_path_classes.conditional_scaffold",
+            ),
+        ),
+        consumer_init=ConsumerInitContract(
+            template_root=_as_str(
+                consumer_init_raw.get("template_root"),
+                "spec.repository.consumer_init.template_root",
+            ),
+            mode_from=_as_str(
+                consumer_init_raw.get("mode_from"),
+                "spec.repository.consumer_init.mode_from",
+            ),
+            mode_to=_as_str(
+                consumer_init_raw.get("mode_to"),
+                "spec.repository.consumer_init.mode_to",
+            ),
+            prune_disabled_optional_scaffolding=_as_bool(
+                consumer_init_raw.get("prune_disabled_optional_scaffolding"),
+                "spec.repository.consumer_init.prune_disabled_optional_scaffolding",
+                default=False,
+            ),
+        ),
     )
 
     structure_raw = _as_mapping(spec.get("structure"), "spec.structure")

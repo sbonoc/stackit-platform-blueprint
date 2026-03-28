@@ -12,6 +12,11 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+from scripts.lib.blueprint.cli_support import (  # noqa: E402
+    display_repo_path,
+    resolve_repo_path,
+    resolve_repo_root,
+)
 from scripts.lib.blueprint.contract_schema import load_module_contract  # noqa: E402
 
 
@@ -71,13 +76,21 @@ def _render_template(module_id: str, enable_flag: str, action_key: str, make_tar
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
+        "--repo-root",
+        type=Path,
+        default=REPO_ROOT,
+        help="Repository root used to resolve relative module/output paths.",
+    )
+    parser.add_argument(
         "--modules-dir",
-        default="blueprint/modules",
+        type=Path,
+        default=Path("blueprint/modules"),
         help="Directory containing module.contract.yaml files.",
     )
     parser.add_argument(
         "--output-root",
-        default="scripts/templates/infra/module_wrappers",
+        type=Path,
+        default=Path("scripts/templates/infra/module_wrappers"),
         help="Output directory for generated skeleton templates.",
     )
     return parser.parse_args()
@@ -85,9 +98,11 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
-    repo_root = Path.cwd()
-    modules_dir = repo_root / args.modules_dir
-    output_root = repo_root / args.output_root
+    # Shell wrappers resolve their own ROOT_DIR, so this generator must resolve
+    # relative paths from the repository root rather than the caller cwd.
+    repo_root = resolve_repo_root(args.repo_root, __file__)
+    modules_dir = resolve_repo_path(repo_root, args.modules_dir)
+    output_root = resolve_repo_path(repo_root, args.output_root)
     output_root.mkdir(parents=True, exist_ok=True)
 
     module_contracts = sorted(modules_dir.glob("*/module.contract.yaml"))
@@ -116,7 +131,7 @@ def main() -> int:
 
     print(
         f"[blueprint-render-module-wrapper-skeletons] generated {generated} template file(s) under "
-        f"{output_root.relative_to(repo_root).as_posix()}"
+        f"{display_repo_path(repo_root, output_root)}"
     )
     return 0
 

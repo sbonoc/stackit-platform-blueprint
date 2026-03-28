@@ -1,16 +1,27 @@
 # Observability Module (Optional)
 
-## Purpose
-Provision and deploy the observability stack and the OTEL/Faro runtime contract used by backend/UI runtime components.
-
-## Enable
-Set:
-
-```bash
-export OBSERVABILITY_ENABLED=true
-```
-
-By default it is disabled.
+<!-- BEGIN GENERATED MODULE CONTRACT SUMMARY -->
+## Contract Summary
+- Purpose: Provision and deploy observability stack plus OTEL/Faro runtime wiring for all components.
+- Enable flag: `OBSERVABILITY_ENABLED` (default: `false`)
+- Required inputs:
+- Make targets:
+  - `infra-observability-plan`
+  - `infra-observability-apply`
+  - `infra-observability-deploy`
+  - `infra-observability-smoke`
+  - `infra-observability-destroy`
+- Outputs:
+  - `OTEL_EXPORTER_OTLP_ENDPOINT`
+  - `OTEL_PROTOCOL`
+  - `OTEL_TRACES_ENABLED`
+  - `OTEL_METRICS_ENABLED`
+  - `OTEL_LOGS_ENABLED`
+  - `FARO_ENABLED`
+  - `FARO_COLLECT_PATH`
+  - `STACKIT_OBSERVABILITY_INSTANCE_ID`
+  - `STACKIT_OBSERVABILITY_GRAFANA_URL`
+<!-- END GENERATED MODULE CONTRACT SUMMARY -->
 
 ## Stack Execution Model
 - Optional module Make targets are materialized by `make blueprint-render-makefile` (or `make blueprint-bootstrap`) when `OBSERVABILITY_ENABLED=true`.
@@ -36,10 +47,3 @@ When enabled, module outputs/wires:
 - `FARO_COLLECT_PATH`
 
 These values are also propagated into the app catalog contract (`apps/catalog/manifest.yaml`) under `observabilityRuntimeContract`.
-
-## Commands
-- `make infra-observability-plan`
-- `make infra-observability-apply`
-- `make infra-observability-deploy`
-- `make infra-observability-smoke`
-- `make infra-observability-destroy`

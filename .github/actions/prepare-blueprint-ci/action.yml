@@ -1,0 +1,39 @@
+name: Prepare Blueprint CI
+description: Setup shared tooling and bootstrap the blueprint baseline for CI jobs.
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.13"
+
+    - name: Install Python tooling
+      shell: bash
+      run: |
+        python3 -m pip install --upgrade pip
+        python3 -m pip install pytest pre-commit
+
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: "22"
+
+    - name: Enable pnpm
+      shell: bash
+      run: |
+        corepack enable
+        pnpm --version
+
+    - name: Install shellcheck
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y shellcheck
+
+    - name: Bootstrap blueprint and infra baseline
+      shell: bash
+      run: |
+        make blueprint-bootstrap
+        make infra-bootstrap

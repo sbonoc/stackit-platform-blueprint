@@ -77,7 +77,8 @@ A task is done only when all applicable items pass:
 ## Dependency and Versioning Mandates
 - Strict latest-stable policy for dependencies introduced/changed.
 - Pin all runtime/deployment dependencies (no floating versions).
-- No alpha/beta/rc/legacy versions in runtime paths.
+- No alpha/beta/rc or unsupported runtime versions in runtime paths.
+- A vendor repository name that contains `legacy` is allowed only when the pinned artifact is still latest-stable/supported and the rationale is documented in repo decisions/docs.
 - Canonical versions source: `scripts/lib/infra/versions.sh`.
 - Drift policy:
   - patch drift: fail
@@ -113,6 +114,12 @@ A task is done only when all applicable items pass:
   - `.dockerignore`
   - `.editorconfig`
   - `.pre-commit-config.yaml`
+- Generated consumer-owned root files should stay short and task-oriented.
+  - Prefer current-state guidance over blueprint history.
+  - Avoid seeding maintainer-only release or migration narratives into consumer defaults.
+- Root repository-mode ownership is explicit:
+  - this source blueprint repo keeps blueprint-maintainer `README.md`, `AGENTS*.md`, `.github/{CODEOWNERS,pull_request_template.md,ISSUE_TEMPLATE/**}`, `.github/actions/**`, and `.github/workflows/ci.yml`
+  - `make blueprint-init-repo` must replace the consumer-owned root files in generated repos and remove blueprint-source-only workflow leftovers
 - Keep docs synchronized with Make targets and script behavior.
 - Enforce docs ownership boundaries:
   - `docs/blueprint/**` must remain template-synchronized.
@@ -134,8 +141,6 @@ A task is done only when all applicable items pass:
   - `blueprint-init-repo`
   - `blueprint-check-placeholders`
   - `blueprint-template-smoke`
-  - `blueprint-release-notes`
-  - `blueprint-migrate`
   - `blueprint-bootstrap`
   - `blueprint-render-makefile`
   - `blueprint-render-module-wrapper-skeletons`

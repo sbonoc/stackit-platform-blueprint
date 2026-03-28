@@ -2,8 +2,8 @@ SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
 .PHONY: help \
-  blueprint-init-repo blueprint-init-repo-interactive blueprint-check-placeholders blueprint-template-smoke blueprint-release-notes blueprint-migrate blueprint-bootstrap blueprint-render-makefile blueprint-clean-generated blueprint-render-module-wrapper-skeletons \
-  quality-hooks-run quality-docs-lint quality-docs-sync-core-targets quality-docs-check-core-targets-sync quality-docs-sync-contract-metadata quality-docs-check-contract-metadata-sync quality-test-pyramid \
+  blueprint-init-repo blueprint-init-repo-interactive blueprint-check-placeholders blueprint-template-smoke blueprint-bootstrap blueprint-render-makefile blueprint-clean-generated blueprint-render-module-wrapper-skeletons \
+  quality-hooks-fast quality-hooks-strict quality-hooks-run quality-docs-lint quality-docs-sync-core-targets quality-docs-check-core-targets-sync quality-docs-sync-contract-metadata quality-docs-check-contract-metadata-sync quality-docs-sync-module-contract-summaries quality-docs-check-module-contract-summaries-sync quality-test-pyramid \
   infra-prereqs infra-help-reference infra-bootstrap infra-local-destroy-all infra-destroy-disabled-modules infra-validate infra-smoke infra-provision infra-deploy infra-provision-deploy \
   infra-stackit-bootstrap-preflight infra-stackit-bootstrap-plan infra-stackit-bootstrap-apply infra-stackit-bootstrap-destroy \
   infra-stackit-foundation-preflight infra-stackit-foundation-plan infra-stackit-foundation-apply infra-stackit-foundation-destroy \
@@ -31,12 +31,6 @@ blueprint-check-placeholders: ## Verify generated repository identity placeholde
 blueprint-template-smoke: ## Run generated-repo conformance smoke in a temp copy
 	@scripts/bin/blueprint/template_smoke.sh
 
-blueprint-release-notes: ## Generate template release notes
-	@scripts/bin/blueprint/release_notes.sh
-
-blueprint-migrate: ## Apply blueprint repository migrations for current template version
-	@scripts/bin/blueprint/migrate.sh
-
 blueprint-bootstrap: ## Bootstrap blueprint-scoped templates, docs, and Makefile rendering
 	@scripts/bin/blueprint/bootstrap.sh
 
@@ -48,6 +42,12 @@ blueprint-clean-generated: ## Remove generated runtime/build/cache artifacts
 
 blueprint-render-module-wrapper-skeletons: ## Render optional-module wrapper skeleton templates from module contracts
 	@scripts/bin/blueprint/render_module_wrapper_skeletons.sh
+
+quality-hooks-fast: ## Run fast local quality checks
+	@scripts/bin/quality/hooks_fast.sh
+
+quality-hooks-strict: ## Run slower audit-focused quality checks
+	@scripts/bin/quality/hooks_strict.sh
 
 quality-hooks-run: ## Run pre-commit hooks and quality gates
 	@scripts/bin/quality/hooks_run.sh
@@ -73,6 +73,12 @@ quality-docs-check-contract-metadata-sync: ## Fail when tracked contract metadat
 		--modules-dir blueprint/modules \
 		--output docs/reference/generated/contract_metadata.generated.md \
 		--check
+
+quality-docs-sync-module-contract-summaries: ## Regenerate module contract summary blocks in source and template docs
+	@python3 scripts/lib/docs/sync_module_contract_summaries.py
+
+quality-docs-check-module-contract-summaries-sync: ## Fail when module contract summary blocks are out of date
+	@python3 scripts/lib/docs/sync_module_contract_summaries.py --check
 
 quality-test-pyramid: ## Enforce repository test-pyramid ratios from canonical classification contract
 	@python3 scripts/bin/quality/check_test_pyramid.py

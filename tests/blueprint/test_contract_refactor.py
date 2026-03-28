@@ -88,7 +88,7 @@ class RefactorContractsTests(unittest.TestCase):
         return _read("blueprint/contract.yaml").splitlines()
 
     def test_quality_hooks_require_shellcheck(self) -> None:
-        hooks = _read("scripts/bin/quality/hooks_run.sh")
+        hooks = _read("scripts/bin/quality/hooks_fast.sh")
         self.assertIn("require_command shellcheck", hooks)
         self.assertIn("--severity=error", hooks)
         self.assertNotIn("shellcheck not installed; skipping", hooks)
@@ -322,9 +322,7 @@ class RefactorContractsTests(unittest.TestCase):
         template_section = _extract_yaml_section(repository_section, "template_bootstrap")
         self.assertEqual(_extract_yaml_scalar(template_section, "model"), "github-template")
         self.assertEqual(_extract_yaml_scalar(template_section, "template_version"), "1.0.0")
-        self.assertEqual(_extract_yaml_scalar(template_section, "minimum_supported_upgrade_from"), "1.0.0")
         self.assertEqual(_extract_yaml_scalar(template_section, "init_command"), "make blueprint-init-repo")
-        self.assertEqual(_extract_yaml_scalar(template_section, "upgrade_command"), "make blueprint-migrate")
         self.assertEqual(_extract_yaml_scalar(template_section, "example_env_file"), "blueprint/repo.init.example.env")
 
         required_inputs = set(_extract_yaml_list(template_section, "required_inputs"))
@@ -347,19 +345,30 @@ class RefactorContractsTests(unittest.TestCase):
     def test_contract_surface_assets_targets_and_namespaces_are_present(self) -> None:
         contract_lines = self._contract_lines()
         required_files = set(_extract_yaml_list(contract_lines, "required_files"))
+        repository_section = _extract_yaml_section(contract_lines, "repository")
+        ownership_classes = _extract_yaml_section(repository_section, "ownership_path_classes")
+        source_only_paths = set(_extract_yaml_list(ownership_classes, "source_only"))
+        consumer_seeded_paths = set(_extract_yaml_list(ownership_classes, "consumer_seeded"))
+        conditional_scaffold_paths = set(_extract_yaml_list(ownership_classes, "conditional_scaffold"))
         self.assertTrue(
             {
-                ".github/workflows/template_release.yml",
+                ".github/actions/prepare-blueprint-ci/action.yml",
+                ".github/CODEOWNERS",
+                ".github/ISSUE_TEMPLATE/bug_report.yml",
+                ".github/ISSUE_TEMPLATE/feature_request.yml",
+                ".github/ISSUE_TEMPLATE/config.yml",
+                ".github/pull_request_template.md",
+                ".github/workflows/ci.yml",
                 ".gitignore",
                 ".dockerignore",
                 ".editorconfig",
                 ".pre-commit-config.yaml",
+                "README.md",
                 "make/blueprint.generated.mk",
                 "make/platform.mk",
                 "docs/blueprint/README.md",
                 "docs/blueprint/architecture/system_overview.md",
                 "docs/blueprint/architecture/execution_model.md",
-                "docs/blueprint/governance/template_release_policy.md",
                 "docs/blueprint/governance/ownership_matrix.md",
                 "docs/platform/README.md",
                 "docs/platform/consumer/first_30_minutes.md",
@@ -367,7 +376,6 @@ class RefactorContractsTests(unittest.TestCase):
                 "docs/platform/consumer/endpoint_exposure_model.md",
                 "docs/platform/consumer/protected_api_routes.md",
                 "docs/platform/consumer/troubleshooting.md",
-                "docs/platform/consumer/upgrade_runbook.md",
                 "docs/platform/modules/observability/README.md",
                 "docs/platform/modules/workflows/README.md",
                 "docs/platform/modules/langfuse/README.md",
@@ -383,10 +391,23 @@ class RefactorContractsTests(unittest.TestCase):
                 "scripts/templates/blueprint/bootstrap/Makefile",
                 "scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl",
                 "scripts/templates/blueprint/bootstrap/make/platform.mk",
+                "scripts/templates/consumer/init/README.md.tmpl",
+                "scripts/templates/consumer/init/AGENTS.md.tmpl",
+                "scripts/templates/consumer/init/AGENTS.backlog.md.tmpl",
+                "scripts/templates/consumer/init/AGENTS.decisions.md.tmpl",
+                "scripts/templates/consumer/init/docs/README.md.tmpl",
+                "scripts/templates/consumer/init/.github/CODEOWNERS.tmpl",
+                "scripts/templates/consumer/init/.github/ISSUE_TEMPLATE/bug_report.yml.tmpl",
+                "scripts/templates/consumer/init/.github/ISSUE_TEMPLATE/feature_request.yml.tmpl",
+                "scripts/templates/consumer/init/.github/ISSUE_TEMPLATE/config.yml.tmpl",
+                "scripts/templates/consumer/init/.github/pull_request_template.md.tmpl",
+                "scripts/templates/consumer/init/.github/workflows/ci.yml.tmpl",
                 "scripts/lib/blueprint/bootstrap_templates.sh",
                 "scripts/lib/blueprint/contract_schema.py",
+                "scripts/lib/blueprint/cli_support.py",
                 "scripts/lib/blueprint/generate_module_wrapper_skeletons.py",
                 "scripts/lib/docs/generate_contract_docs.py",
+                "scripts/lib/docs/sync_module_contract_summaries.py",
                 "scripts/lib/infra/k8s_wait.sh",
                 "scripts/lib/infra/module_execution.sh",
                 "scripts/lib/quality/semver.sh",
@@ -402,20 +423,51 @@ class RefactorContractsTests(unittest.TestCase):
                 "scripts/bin/infra/local_destroy_all.sh",
                 "scripts/bin/infra/workload_health_check.py",
                 "scripts/bin/quality/check_test_pyramid.py",
+                "scripts/bin/quality/hooks_fast.sh",
+                "scripts/bin/quality/hooks_run.sh",
+                "scripts/bin/quality/hooks_strict.sh",
                 "scripts/bin/quality/lint_docs.py",
                 "scripts/bin/quality/render_core_targets_doc.py",
                 "docs/reference/generated/contract_metadata.generated.md",
                 "docs/reference/generated/core_targets.generated.md",
                 "tests/__init__.py",
-                "tests/blueprint/__init__.py",
                 "tests/infra/__init__.py",
-                "tests/docs/__init__.py",
                 "tests/e2e/__init__.py",
                 "tests/_shared/__init__.py",
                 "tests/_shared/helpers.py",
             }.issubset(required_files),
             msg="contract required_files is missing canonical blueprint assets",
         )
+        self.assertEqual(source_only_paths, {"tests/blueprint", "tests/docs"})
+        self.assertTrue(
+            {
+                "README.md",
+                "AGENTS.md",
+                "AGENTS.backlog.md",
+                "AGENTS.decisions.md",
+                "docs/README.md",
+                ".github/CODEOWNERS",
+                ".github/ISSUE_TEMPLATE/bug_report.yml",
+                ".github/ISSUE_TEMPLATE/feature_request.yml",
+                ".github/ISSUE_TEMPLATE/config.yml",
+                ".github/pull_request_template.md",
+                ".github/workflows/ci.yml",
+            }.issubset(consumer_seeded_paths)
+        )
+        self.assertIn("dags/", conditional_scaffold_paths)
+        self.assertIn("infra/cloud/stackit/terraform/modules/workflows", conditional_scaffold_paths)
+        self.assertIn("infra/gitops/argocd/optional/${ENV}/langfuse.yaml", conditional_scaffold_paths)
+        self.assertIn("infra/local/helm/identity-aware-proxy/values.yaml", conditional_scaffold_paths)
+
+        consumer_init = _extract_yaml_section(repository_section, "consumer_init")
+        self.assertEqual(_extract_yaml_scalar(repository_section, "repo_mode"), "template-source")
+        self.assertEqual(
+            set(_extract_yaml_list(repository_section, "allowed_repo_modes")),
+            {"template-source", "generated-consumer"},
+        )
+        self.assertEqual(_extract_yaml_scalar(consumer_init, "template_root"), "scripts/templates/consumer/init")
+        self.assertEqual(_extract_yaml_scalar(consumer_init, "mode_from"), "template-source")
+        self.assertEqual(_extract_yaml_scalar(consumer_init, "mode_to"), "generated-consumer")
 
         required_namespaces = set(_extract_yaml_list(contract_lines, "required_namespaces"))
         self.assertTrue(
@@ -425,9 +477,7 @@ class RefactorContractsTests(unittest.TestCase):
         required_paths = set(_extract_yaml_list(contract_lines, "required_paths"))
         self.assertTrue(
             {
-                "tests/blueprint/",
                 "tests/infra/",
-                "tests/docs/",
                 "tests/e2e/",
                 "tests/_shared/",
                 "make/",
@@ -459,17 +509,19 @@ class RefactorContractsTests(unittest.TestCase):
                 "blueprint-init-repo-interactive",
                 "blueprint-check-placeholders",
                 "blueprint-template-smoke",
-                "blueprint-release-notes",
-                "blueprint-migrate",
                 "blueprint-bootstrap",
                 "blueprint-clean-generated",
                 "blueprint-render-makefile",
                 "blueprint-render-module-wrapper-skeletons",
+                "quality-hooks-fast",
+                "quality-hooks-strict",
                 "quality-docs-lint",
                 "quality-docs-sync-core-targets",
                 "quality-docs-check-core-targets-sync",
                 "quality-docs-sync-contract-metadata",
                 "quality-docs-check-contract-metadata-sync",
+                "quality-docs-sync-module-contract-summaries",
+                "quality-docs-check-module-contract-summaries-sync",
                 "quality-test-pyramid",
                 "infra-prereqs",
                 "infra-help-reference",
@@ -524,6 +576,7 @@ class RefactorContractsTests(unittest.TestCase):
             "_validate_module_wrapper_skeleton_templates",
             "_validate_bootstrap_template_sync",
             "_validate_make_ownership_contract",
+            "_validate_repository_mode_contract",
             "_validate_script_ownership_contract",
             "_validate_platform_docs_seed_contract",
         ):
@@ -543,7 +596,6 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn('"blueprint/repo.init.example.env"', bootstrap)
         self.assertIn('"docs/platform/consumer/quickstart.md"', bootstrap)
         self.assertIn('"docs/platform/consumer/first_30_minutes.md"', bootstrap)
-        self.assertIn('"docs/blueprint/governance/template_release_policy.md"', bootstrap)
         self.assertIn('"docs/blueprint/governance/ownership_matrix.md"', bootstrap)
         self.assertIn('"docs/platform/modules/identity-aware-proxy/README.md"', bootstrap)
         self.assertIn('log_metric "blueprint_template_file_count" "${#template_files[@]}"', bootstrap)
@@ -572,12 +624,11 @@ class RefactorContractsTests(unittest.TestCase):
         template_root = REPO_ROOT / "scripts/templates/blueprint/bootstrap"
         synced_docs = [
             "docs/README.md",
-                "docs/blueprint/README.md",
-                "docs/blueprint/architecture/system_overview.md",
-                "docs/blueprint/architecture/execution_model.md",
-                "docs/blueprint/governance/template_release_policy.md",
-                "docs/blueprint/governance/ownership_matrix.md",
-            ]
+            "docs/blueprint/README.md",
+            "docs/blueprint/architecture/system_overview.md",
+            "docs/blueprint/architecture/execution_model.md",
+            "docs/blueprint/governance/ownership_matrix.md",
+        ]
         for rel_path in synced_docs:
             self.assertEqual(
                 (REPO_ROOT / rel_path).read_text(encoding="utf-8"),
@@ -630,8 +681,11 @@ class RefactorContractsTests(unittest.TestCase):
 
     def test_docs_readme_points_to_command_discovery(self) -> None:
         docs_readme = _read("docs/README.md")
+        self.assertIn("make quality-hooks-fast", docs_readme)
+        self.assertIn("make quality-hooks-strict", docs_readme)
         self.assertIn("make quality-hooks-run", docs_readme)
         self.assertIn("make quality-docs-lint", docs_readme)
+        self.assertIn("make quality-docs-sync-module-contract-summaries", docs_readme)
         self.assertIn("make quality-test-pyramid", docs_readme)
         self.assertIn("make docs-run", docs_readme)
         self.assertIn("make infra-context", docs_readme)
@@ -747,12 +801,40 @@ class RefactorContractsTests(unittest.TestCase):
                 self.assertIn("- appproject-edge.yaml", kustomization)
                 self.assertEqual(kustomization, kustomization_template)
 
-    def test_quality_hooks_run_covers_docs_sync_checks_and_test_pyramid(self) -> None:
+    def test_quality_hooks_split_fast_and_strict_gates(self) -> None:
+        hooks_fast = _read("scripts/bin/quality/hooks_fast.sh")
         hooks_run = _read("scripts/bin/quality/hooks_run.sh")
-        self.assertIn("quality-docs-lint", hooks_run)
-        self.assertIn("quality-docs-check-core-targets-sync", hooks_run)
-        self.assertIn("quality-docs-check-contract-metadata-sync", hooks_run)
-        self.assertIn("quality-test-pyramid", hooks_run)
+        hooks_strict = _read("scripts/bin/quality/hooks_strict.sh")
+        self.assertIn("quality-docs-lint", hooks_fast)
+        self.assertIn("quality-docs-check-core-targets-sync", hooks_fast)
+        self.assertIn("quality-docs-check-contract-metadata-sync", hooks_fast)
+        self.assertIn("quality-docs-check-module-contract-summaries-sync", hooks_fast)
+        self.assertIn("quality-test-pyramid", hooks_fast)
+        self.assertIn("infra-validate", hooks_fast)
+        self.assertIn("infra-audit-version", hooks_strict)
+        self.assertIn("apps-audit-versions", hooks_strict)
+        self.assertIn("hooks_fast.sh", hooks_run)
+        self.assertIn("hooks_strict.sh", hooks_run)
+
+    def test_quality_hooks_run_usage_mentions_composed_gates(self) -> None:
+        hooks_run = _read("scripts/bin/quality/hooks_run.sh")
+        self.assertIn("hooks_fast.sh", hooks_run)
+        self.assertIn("hooks_strict.sh", hooks_run)
+
+    def test_governance_documents_legacy_vendor_registry_exception(self) -> None:
+        agents = _read("AGENTS.md")
+        decisions = _read("AGENTS.decisions.md")
+        versions = _read("scripts/lib/infra/versions.sh")
+        postgres_doc = _read("docs/platform/modules/postgres/README.md")
+        rabbitmq_doc = _read("docs/platform/modules/rabbitmq/README.md")
+        object_storage_doc = _read("docs/platform/modules/object-storage/README.md")
+
+        self.assertIn("vendor repository name that contains `legacy` is allowed", agents)
+        self.assertIn("bitnamilegacy/*", decisions)
+        self.assertIn("Bitnami publishes some current multi-arch tags under the `bitnamilegacy/*`", versions)
+        self.assertIn("despite the registry namespace", postgres_doc)
+        self.assertIn("despite the registry namespace", rabbitmq_doc)
+        self.assertIn("vendor namespace quirk", object_storage_doc)
 
     def test_clean_generated_prunes_repo_wide_python_caches(self) -> None:
         clean_generated = _read("scripts/bin/blueprint/clean_generated.sh")
@@ -766,6 +848,8 @@ class RefactorContractsTests(unittest.TestCase):
         expected_heading = "## Disabled module but resources still exist"
         self.assertIn(expected_heading, troubleshooting)
         self.assertIn("resources are not destroyed automatically", troubleshooting)
+        self.assertIn("blueprint source repository", troubleshooting)
+        self.assertIn("repo_mode: generated-consumer", troubleshooting)
         self.assertIn("infra-destroy-disabled-modules", troubleshooting)
         self.assertIn("LOCAL_KUBE_CONTEXT", troubleshooting)
         self.assertIn("artifacts/infra/workload_health.json", troubleshooting)
@@ -823,6 +907,12 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertNotIn("prune_optional_module_scaffolding()", bootstrap)
         self.assertNotIn("prune_path_if_exists()", bootstrap)
         self.assertNotIn("optional_module_pruned_path_count", bootstrap)
+
+    def test_init_repo_prunes_disabled_optional_scaffolding_on_first_init(self) -> None:
+        init_python = _read("scripts/lib/blueprint/init_repo.py")
+        self.assertIn("prune_disabled_optional_scaffolding", init_python)
+        self.assertIn("consumer-owned seed already applied", init_python)
+        self.assertIn("_expand_optional_module_path(", init_python)
 
     def test_public_endpoints_smoke_accepts_list_manifest_kind_entries(self) -> None:
         smoke = _read("scripts/bin/infra/public_endpoints_smoke.sh")
@@ -948,8 +1038,6 @@ class RefactorContractsTests(unittest.TestCase):
             "scripts/bin/blueprint/init_repo_interactive.sh",
             "scripts/bin/blueprint/check_placeholders.sh",
             "scripts/bin/blueprint/template_smoke.sh",
-            "scripts/bin/blueprint/release_notes.sh",
-            "scripts/bin/blueprint/migrate.sh",
             "scripts/bin/blueprint/bootstrap.sh",
             "scripts/bin/blueprint/clean_generated.sh",
             "scripts/bin/blueprint/render_makefile.sh",
@@ -1049,12 +1137,8 @@ class RefactorContractsTests(unittest.TestCase):
         init_script = _read("scripts/bin/blueprint/init_repo.sh")
         init_interactive_script = _read("scripts/bin/blueprint/init_repo_interactive.sh")
         init_python = _read("scripts/lib/blueprint/init_repo.py")
-        migrate_script = _read("scripts/bin/blueprint/migrate.sh")
-        migrate_python = _read("scripts/lib/blueprint/migrate_repo.py")
         smoke_script = _read("scripts/bin/blueprint/template_smoke.sh")
         placeholder_script = _read("scripts/bin/blueprint/check_placeholders.sh")
-        release_notes_script = _read("scripts/bin/blueprint/release_notes.sh")
-        release_notes_python = _read("scripts/lib/blueprint/generate_release_notes.py")
         init_env = _read("blueprint/repo.init.example.env")
 
         self.assertIn("blueprint_init_repo", init_script)
@@ -1070,12 +1154,6 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn("_render_contract", init_python)
         self.assertIn("_render_docusaurus_config", init_python)
         self.assertIn("--dry-run", init_python)
-        self.assertIn("blueprint_migrate", migrate_script)
-        self.assertIn("TARGET_TEMPLATE_VERSION", migrate_python)
-        self.assertIn("_migration_registry", migrate_python)
-        self.assertIn("_plan_migration_path", migrate_python)
-        self.assertIn("unsupported upgrade path", migrate_python)
-        self.assertIn("template_bootstrap.template_version", migrate_python)
         self.assertIn("blueprint_template_smoke", smoke_script)
         self.assertIn("make blueprint-bootstrap", smoke_script)
         self.assertIn("make blueprint-check-placeholders", smoke_script)
@@ -1085,8 +1163,6 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn("assert_template_smoke_repo_state", smoke_script)
         self.assertIn("blueprint_check_placeholders", placeholder_script)
         self.assertIn("BLUEPRINT_GITHUB_ORG", placeholder_script)
-        self.assertIn("blueprint_release_notes", release_notes_script)
-        self.assertIn("render_release_notes", release_notes_python)
         self.assertIn("BLUEPRINT_REPO_NAME=", init_env)
         self.assertIn("BLUEPRINT_GITHUB_ORG=", init_env)
         self.assertIn("BLUEPRINT_GITHUB_REPO=", init_env)
@@ -1097,57 +1173,68 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn("BLUEPRINT_STACKIT_PROJECT_ID=", init_env)
         self.assertIn("BLUEPRINT_STACKIT_TFSTATE_BUCKET=", init_env)
         self.assertIn("BLUEPRINT_STACKIT_TFSTATE_KEY_PREFIX=", init_env)
+        self.assertIn("consumer_init:", _read("blueprint/contract.yaml"))
+        self.assertIn("ownership_path_classes:", _read("blueprint/contract.yaml"))
 
-    def test_template_release_workflow_and_docs_exist(self) -> None:
-        release_workflow = _read(".github/workflows/template_release.yml")
+    def test_ci_workflows_and_docs_exist(self) -> None:
         ci_workflow = _read(".github/workflows/ci.yml")
+        consumer_ci_template = _read("scripts/templates/consumer/init/.github/workflows/ci.yml.tmpl")
+        shared_ci_action = _read(".github/actions/prepare-blueprint-ci/action.yml")
+        hooks_fast = _read("scripts/bin/quality/hooks_fast.sh")
+        source_codeowners = _read(".github/CODEOWNERS")
+        source_pr_template = _read(".github/pull_request_template.md")
+        source_bug_template = _read(".github/ISSUE_TEMPLATE/bug_report.yml")
+        consumer_codeowners_template = _read("scripts/templates/consumer/init/.github/CODEOWNERS.tmpl")
+        consumer_pr_template = _read("scripts/templates/consumer/init/.github/pull_request_template.md.tmpl")
+        consumer_bug_template = _read("scripts/templates/consumer/init/.github/ISSUE_TEMPLATE/bug_report.yml.tmpl")
         docs_readme = _read("docs/README.md")
         sidebars = _read("docs/sidebars.js")
         docusaurus_config = _read("docs/docusaurus.config.js")
 
-        self.assertIn('name: template-release', release_workflow)
-        self.assertIn('tags:', release_workflow)
-        self.assertIn('"v*"', release_workflow)
-        self.assertIn('make blueprint-release-notes', release_workflow)
-        self.assertIn('make blueprint-template-smoke', release_workflow)
-        self.assertIn('softprops/action-gh-release', release_workflow)
-        self.assertIn('Smoke blueprint-migrate end-to-end', ci_workflow)
-        self.assertIn('consumer-golden-conformance:', ci_workflow)
-        self.assertIn('Golden template-consumer conformance matrix', ci_workflow)
-        self.assertIn('BLUEPRINT_TEMPLATE_SMOKE_SCENARIO=${{ matrix.scenario.name }}', ci_workflow)
-        self.assertIn('make blueprint-template-smoke', ci_workflow)
-        self.assertIn('fail-fast: false', ci_workflow)
-        self.assertIn('name: local-lite-baseline', ci_workflow)
-        self.assertIn('name: local-full-observability-data', ci_workflow)
-        self.assertIn('name: local-full-runtime-edge', ci_workflow)
-        self.assertIn('name: stackit-dev-managed-services', ci_workflow)
-        self.assertIn('name: stackit-dev-runtime-fallbacks', ci_workflow)
-        self.assertIn('name: stackit-dev-workflows', ci_workflow)
-        self.assertIn('contract-matrix:', ci_workflow)
-        self.assertIn('profile: [local-full, stackit-dev]', ci_workflow)
-        self.assertIn('observability_enabled: ["false", "true"]', ci_workflow)
-        self.assertIn('Validate contract-critical profile/flag matrix', ci_workflow)
-        self.assertIn(
-            'tests.blueprint.test_upgrade.BlueprintUpgradeTests.test_blueprint_migrate_make_target_smoke_in_template_copy',
-            ci_workflow,
-        )
-        self.assertIn('make infra-validate', ci_workflow)
-        self.assertIn('make infra-smoke', ci_workflow)
+        self.assertIn("Prepare Blueprint CI", shared_ci_action)
+        self.assertIn("make blueprint-bootstrap", shared_ci_action)
+        self.assertIn("make infra-bootstrap", shared_ci_action)
+        self.assertIn("platform-blueprint-maintainers", source_codeowners)
+        self.assertIn("Describe the blueprint change.", source_pr_template)
+        self.assertIn("Blueprint Bug Report", source_bug_template)
+        self.assertIn("generated repository", consumer_codeowners_template)
+        self.assertIn("Describe the project change.", consumer_pr_template)
+        self.assertIn("Project Bug Report", consumer_bug_template)
+        self.assertIn("blueprint-quality:", ci_workflow)
+        self.assertIn("generated-consumer-smoke:", ci_workflow)
+        self.assertIn('run_cmd make -C "$ROOT_DIR" infra-validate', hooks_fast)
         self.assertIn('pytest -q tests', ci_workflow)
         self.assertNotIn('pytest -q tests/tooling', ci_workflow)
-        self.assertIn('Run canonical quality gate', ci_workflow)
+        self.assertIn('Prepare shared CI baseline', ci_workflow)
+        self.assertIn('uses: ./.github/actions/prepare-blueprint-ci', ci_workflow)
+        self.assertIn('Run fast quality gate', ci_workflow)
+        self.assertIn('Run strict audit gate', ci_workflow)
         self.assertIn('Run pre-push hook stage', ci_workflow)
         self.assertIn('pre-commit run --hook-stage pre-push --all-files', ci_workflow)
-        self.assertEqual(ci_workflow.count('make quality-hooks-run'), 1)
+        self.assertEqual(ci_workflow.count('make quality-hooks-fast'), 1)
+        self.assertEqual(ci_workflow.count('make quality-hooks-strict'), 1)
+        self.assertIn('Smoke generated consumer baseline', ci_workflow)
+        self.assertIn('BLUEPRINT_TEMPLATE_SMOKE_SCENARIO=local-lite-baseline', ci_workflow)
+        self.assertIn('make blueprint-template-smoke', ci_workflow)
+        self.assertIn('BLUEPRINT_PROFILE=local-lite OBSERVABILITY_ENABLED=false make apps-bootstrap', ci_workflow)
+        self.assertIn('BLUEPRINT_PROFILE=local-lite OBSERVABILITY_ENABLED=false make apps-smoke', ci_workflow)
+        self.assertIn('make docs-build', ci_workflow)
+        self.assertIn('make docs-smoke', ci_workflow)
+        self.assertIn('make test-unit-all', ci_workflow)
+        self.assertIn('make test-integration-all', ci_workflow)
+        self.assertIn('make test-contracts-all', ci_workflow)
+        self.assertIn('make test-e2e-all-local', ci_workflow)
         self.assertNotIn('Shell script lint', ci_workflow)
         self.assertNotIn('make apps-audit-versions', ci_workflow)
-
+        self.assertEqual(consumer_ci_template.count('uses: ./.github/actions/prepare-blueprint-ci'), 2)
+        self.assertIn('Run fast quality gate', consumer_ci_template)
+        self.assertIn('make quality-hooks-fast', consumer_ci_template)
+        self.assertIn('Run strict audit gate', consumer_ci_template)
+        self.assertIn('make quality-hooks-strict', consumer_ci_template)
         self.assertIn('[Platform Quickstart](platform/consumer/quickstart.md)', docs_readme)
         self.assertIn('[Endpoint Exposure Model](platform/consumer/endpoint_exposure_model.md)', docs_readme)
         self.assertIn('[Protected API Routes](platform/consumer/protected_api_routes.md)', docs_readme)
         self.assertIn('[Platform Troubleshooting](platform/consumer/troubleshooting.md)', docs_readme)
-        self.assertIn('[Platform Upgrade Runbook](platform/consumer/upgrade_runbook.md)', docs_readme)
-        self.assertIn('[Template Release Policy](blueprint/governance/template_release_policy.md)', docs_readme)
         self.assertIn('dirName: "blueprint"', sidebars)
         self.assertIn('platformSidebar', sidebars)
         self.assertIn('id: "platform/README"', sidebars)
@@ -1164,6 +1251,8 @@ class RefactorContractsTests(unittest.TestCase):
             tmp_root = Path(tmpdir)
             (tmp_root / "blueprint").mkdir(parents=True, exist_ok=True)
             (tmp_root / "docs").mkdir(parents=True, exist_ok=True)
+            (tmp_root / ".github/workflows").mkdir(parents=True, exist_ok=True)
+            (tmp_root / ".github/ISSUE_TEMPLATE").mkdir(parents=True, exist_ok=True)
             (tmp_root / "infra/gitops/argocd/root").mkdir(parents=True, exist_ok=True)
             (tmp_root / "infra/gitops/argocd/environments/dev").mkdir(parents=True, exist_ok=True)
             (tmp_root / "infra/gitops/argocd/overlays/local").mkdir(parents=True, exist_ok=True)
@@ -1171,10 +1260,53 @@ class RefactorContractsTests(unittest.TestCase):
             (tmp_root / "infra/cloud/stackit/terraform/foundation/env").mkdir(parents=True, exist_ok=True)
             (tmp_root / "infra/cloud/stackit/terraform/bootstrap/state-backend").mkdir(parents=True, exist_ok=True)
             (tmp_root / "infra/cloud/stackit/terraform/foundation/state-backend").mkdir(parents=True, exist_ok=True)
+            (tmp_root / "scripts/templates/consumer/init/.github/workflows").mkdir(parents=True, exist_ok=True)
+            (tmp_root / "scripts/templates/consumer/init/.github/ISSUE_TEMPLATE").mkdir(parents=True, exist_ok=True)
+            (tmp_root / "scripts/templates/consumer/init/docs").mkdir(parents=True, exist_ok=True)
+            (tmp_root / "dags").mkdir(parents=True, exist_ok=True)
+            (tmp_root / "infra/cloud/stackit/terraform/modules/workflows").mkdir(parents=True, exist_ok=True)
+            (tmp_root / "tests/infra/modules/workflows").mkdir(parents=True, exist_ok=True)
             (tmp_root / "blueprint/contract.yaml").write_text(
                 _read("blueprint/contract.yaml"),
                 encoding="utf-8",
             )
+            (tmp_root / "README.md").write_text("source readme", encoding="utf-8")
+            (tmp_root / "AGENTS.md").write_text("source agents", encoding="utf-8")
+            (tmp_root / "AGENTS.backlog.md").write_text("source backlog", encoding="utf-8")
+            (tmp_root / "AGENTS.decisions.md").write_text("source decisions", encoding="utf-8")
+            (tmp_root / "docs/README.md").write_text("source docs index", encoding="utf-8")
+            (tmp_root / ".github/CODEOWNERS").write_text("source codeowners", encoding="utf-8")
+            (tmp_root / ".github/pull_request_template.md").write_text("source pr template", encoding="utf-8")
+            (tmp_root / ".github/ISSUE_TEMPLATE/bug_report.yml").write_text("source bug template", encoding="utf-8")
+            (tmp_root / ".github/ISSUE_TEMPLATE/feature_request.yml").write_text(
+                "source feature template",
+                encoding="utf-8",
+            )
+            (tmp_root / ".github/ISSUE_TEMPLATE/config.yml").write_text("blank_issues_enabled: false\n", encoding="utf-8")
+            (tmp_root / ".github/workflows/ci.yml").write_text("source ci", encoding="utf-8")
+            (tmp_root / "tests/blueprint").mkdir(parents=True, exist_ok=True)
+            (tmp_root / "tests/docs").mkdir(parents=True, exist_ok=True)
+            (tmp_root / "tests/blueprint/placeholder.py").write_text("source blueprint tests", encoding="utf-8")
+            (tmp_root / "tests/docs/placeholder.py").write_text("source docs tests", encoding="utf-8")
+            (tmp_root / "dags/.airflowignore").write_text("apps/**\n", encoding="utf-8")
+            (tmp_root / "infra/cloud/stackit/terraform/modules/workflows/main.tf").write_text("", encoding="utf-8")
+            (tmp_root / "tests/infra/modules/workflows/README.md").write_text("workflow test", encoding="utf-8")
+            for template_path in (
+                "README.md.tmpl",
+                "AGENTS.md.tmpl",
+                "AGENTS.backlog.md.tmpl",
+                "AGENTS.decisions.md.tmpl",
+                "docs/README.md.tmpl",
+                ".github/CODEOWNERS.tmpl",
+                ".github/pull_request_template.md.tmpl",
+                ".github/ISSUE_TEMPLATE/bug_report.yml.tmpl",
+                ".github/ISSUE_TEMPLATE/feature_request.yml.tmpl",
+                ".github/ISSUE_TEMPLATE/config.yml.tmpl",
+                ".github/workflows/ci.yml.tmpl",
+            ):
+                source_path = REPO_ROOT / "scripts/templates/consumer/init" / template_path
+                target_path = tmp_root / "scripts/templates/consumer/init" / template_path
+                target_path.write_text(source_path.read_text(encoding="utf-8"), encoding="utf-8")
             (tmp_root / "docs/docusaurus.config.js").write_text(
                 _read("docs/docusaurus.config.js"),
                 encoding="utf-8",
@@ -1269,7 +1401,13 @@ class RefactorContractsTests(unittest.TestCase):
             updated_foundation_backend = (
                 tmp_root / "infra/cloud/stackit/terraform/foundation/state-backend/dev.hcl"
             ).read_text(encoding="utf-8")
+            seeded_readme = (tmp_root / "README.md").read_text(encoding="utf-8")
+            seeded_docs_readme = (tmp_root / "docs/README.md").read_text(encoding="utf-8")
+            seeded_codeowners = (tmp_root / ".github/CODEOWNERS").read_text(encoding="utf-8")
+            seeded_pr_template = (tmp_root / ".github/pull_request_template.md").read_text(encoding="utf-8")
+            seeded_bug_template = (tmp_root / ".github/ISSUE_TEMPLATE/bug_report.yml").read_text(encoding="utf-8")
             self.assertIn("name: acme-platform", updated_contract)
+            self.assertIn("repo_mode: generated-consumer", updated_contract)
             self.assertIn("default_branch: main", updated_contract)
             self.assertIn('title: "Acme Platform Blueprint"', updated_docs_config)
             self.assertIn('tagline: "Acme reusable platform blueprint"', updated_docs_config)
@@ -1304,6 +1442,16 @@ class RefactorContractsTests(unittest.TestCase):
             self.assertIn('key          = "iac/tfstate/dev/foundation.tfstate"', updated_foundation_backend)
             self.assertIn('region       = "eu02"', updated_foundation_backend)
             self.assertIn('s3 = "https://object.storage.eu02.onstackit.cloud"', updated_foundation_backend)
+            self.assertIn("platform project created from the STACKIT Platform Blueprint", seeded_readme)
+            self.assertIn("Blueprint Reference Track", seeded_docs_readme)
+            self.assertIn("generated repository", seeded_codeowners)
+            self.assertIn("Describe the project change.", seeded_pr_template)
+            self.assertIn("Project Bug Report", seeded_bug_template)
+            self.assertFalse((tmp_root / "tests/blueprint").exists())
+            self.assertFalse((tmp_root / "tests/docs").exists())
+            self.assertFalse((tmp_root / "dags").exists())
+            self.assertFalse((tmp_root / "infra/cloud/stackit/terraform/modules/workflows").exists())
+            self.assertFalse((tmp_root / "tests/infra/modules/workflows").exists())
 
     def test_blueprint_init_python_dry_run_does_not_mutate_files(self) -> None:
         init_python_path = REPO_ROOT / "scripts/lib/blueprint/init_repo.py"
@@ -1311,10 +1459,29 @@ class RefactorContractsTests(unittest.TestCase):
             tmp_root = Path(tmpdir)
             (tmp_root / "blueprint").mkdir(parents=True, exist_ok=True)
             (tmp_root / "docs").mkdir(parents=True, exist_ok=True)
+            (tmp_root / "scripts/templates/consumer/init/.github/workflows").mkdir(parents=True, exist_ok=True)
+            (tmp_root / "scripts/templates/consumer/init/.github/ISSUE_TEMPLATE").mkdir(parents=True, exist_ok=True)
+            (tmp_root / "scripts/templates/consumer/init/docs").mkdir(parents=True, exist_ok=True)
             contract_original = _read("blueprint/contract.yaml")
             docs_original = _read("docs/docusaurus.config.js")
             (tmp_root / "blueprint/contract.yaml").write_text(contract_original, encoding="utf-8")
             (tmp_root / "docs/docusaurus.config.js").write_text(docs_original, encoding="utf-8")
+            for template_path in (
+                "README.md.tmpl",
+                "AGENTS.md.tmpl",
+                "AGENTS.backlog.md.tmpl",
+                "AGENTS.decisions.md.tmpl",
+                "docs/README.md.tmpl",
+                ".github/CODEOWNERS.tmpl",
+                ".github/pull_request_template.md.tmpl",
+                ".github/ISSUE_TEMPLATE/bug_report.yml.tmpl",
+                ".github/ISSUE_TEMPLATE/feature_request.yml.tmpl",
+                ".github/ISSUE_TEMPLATE/config.yml.tmpl",
+                ".github/workflows/ci.yml.tmpl",
+            ):
+                source_path = REPO_ROOT / "scripts/templates/consumer/init" / template_path
+                target_path = tmp_root / "scripts/templates/consumer/init" / template_path
+                target_path.write_text(source_path.read_text(encoding="utf-8"), encoding="utf-8")
 
             result = subprocess.run(
                 [
@@ -1355,8 +1522,8 @@ class RefactorContractsTests(unittest.TestCase):
             )
 
             self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
-            self.assertIn("[dry-run] would update:", result.stdout)
             self.assertIn("[dry-run] summary:", result.stdout)
+            self.assertIn("created:", result.stdout)
             self.assertEqual((tmp_root / "blueprint/contract.yaml").read_text(encoding="utf-8"), contract_original)
             self.assertEqual((tmp_root / "docs/docusaurus.config.js").read_text(encoding="utf-8"), docs_original)
 

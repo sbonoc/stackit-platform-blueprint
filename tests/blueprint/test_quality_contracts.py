@@ -23,26 +23,58 @@ class QualityContractsTests(unittest.TestCase):
 
     def test_make_template_exposes_quality_docs_targets(self) -> None:
         make_template = _read("scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl")
+        self.assertIn("quality-hooks-fast", make_template)
+        self.assertIn("quality-hooks-strict", make_template)
         self.assertIn("quality-docs-lint", make_template)
         self.assertIn("quality-docs-sync-core-targets", make_template)
         self.assertIn("quality-docs-check-core-targets-sync", make_template)
         self.assertIn("quality-docs-sync-contract-metadata", make_template)
         self.assertIn("quality-docs-check-contract-metadata-sync", make_template)
+        self.assertIn("quality-docs-sync-module-contract-summaries", make_template)
+        self.assertIn("quality-docs-check-module-contract-summaries-sync", make_template)
         self.assertIn("quality-test-pyramid", make_template)
 
     def test_generated_makefile_exposes_quality_docs_targets(self) -> None:
         generated_make = _read("make/blueprint.generated.mk")
+        self.assertIn("quality-hooks-fast", generated_make)
+        self.assertIn("quality-hooks-strict", generated_make)
         self.assertIn("quality-docs-lint", generated_make)
         self.assertIn("quality-docs-sync-core-targets", generated_make)
         self.assertIn("quality-docs-check-core-targets-sync", generated_make)
         self.assertIn("quality-docs-sync-contract-metadata", generated_make)
         self.assertIn("quality-docs-check-contract-metadata-sync", generated_make)
+        self.assertIn("quality-docs-sync-module-contract-summaries", generated_make)
+        self.assertIn("quality-docs-check-module-contract-summaries-sync", generated_make)
         self.assertIn("quality-test-pyramid", generated_make)
 
     def test_docs_generator_supports_check_mode(self) -> None:
         generator = _read("scripts/lib/docs/generate_contract_docs.py")
         self.assertIn("--check", generator)
         self.assertNotIn("Generated at:", generator)
+        self.assertIn("resolve_repo_root", generator)
+
+    def test_module_wrapper_generator_is_repo_rooted(self) -> None:
+        generator = REPO_ROOT / "scripts/lib/blueprint/generate_module_wrapper_skeletons.py"
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_root = Path(tmpdir) / "generated"
+            result = run(
+                [sys.executable, str(generator), "--output-root", str(output_root)],
+                cwd=Path(tmpdir),
+            )
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            self.assertTrue((output_root / "postgres" / "postgres_plan.sh.tmpl").exists())
+            self.assertIn("generated", result.stdout)
+            self.assertIn("resolve_repo_root", _read("scripts/lib/blueprint/generate_module_wrapper_skeletons.py"))
+
+    def test_module_doc_summary_generator_syncs_source_and_template_docs(self) -> None:
+        generator = REPO_ROOT / "scripts/lib/docs/sync_module_contract_summaries.py"
+        result = run([sys.executable, str(generator), "--check"])
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        postgres_doc = _read("docs/platform/modules/postgres/README.md")
+        postgres_template = _read("scripts/templates/blueprint/bootstrap/docs/platform/modules/postgres/README.md")
+        self.assertIn("BEGIN GENERATED MODULE CONTRACT SUMMARY", postgres_doc)
+        self.assertIn("## Contract Summary", postgres_doc)
+        self.assertEqual(postgres_doc, postgres_template)
 
     def test_core_targets_generator_uses_make_help(self) -> None:
         generator = _read("scripts/bin/quality/render_core_targets_doc.py")

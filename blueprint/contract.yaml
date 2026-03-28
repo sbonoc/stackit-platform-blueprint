@@ -5,6 +5,10 @@ metadata:
   version: 1.0.0
 spec:
   repository:
+    repo_mode: template-source
+    allowed_repo_modes:
+      - template-source
+      - generated-consumer
     default_branch: main
     branch_naming:
       model: github-flow
@@ -20,9 +24,7 @@ spec:
     template_bootstrap:
       model: github-template
       template_version: 1.0.0
-      minimum_supported_upgrade_from: 1.0.0
       init_command: make blueprint-init-repo
-      upgrade_command: make blueprint-migrate
       example_env_file: blueprint/repo.init.example.env
       required_inputs:
         - BLUEPRINT_REPO_NAME
@@ -36,11 +38,18 @@ spec:
         - BLUEPRINT_STACKIT_TFSTATE_BUCKET
         - BLUEPRINT_STACKIT_TFSTATE_KEY_PREFIX
     required_files:
-      - .github/workflows/template_release.yml
+      - .github/actions/prepare-blueprint-ci/action.yml
+      - .github/CODEOWNERS
+      - .github/ISSUE_TEMPLATE/bug_report.yml
+      - .github/ISSUE_TEMPLATE/feature_request.yml
+      - .github/ISSUE_TEMPLATE/config.yml
+      - .github/pull_request_template.md
+      - .github/workflows/ci.yml
       - .gitignore
       - .dockerignore
       - .editorconfig
       - .pre-commit-config.yaml
+      - README.md
       - AGENTS.md
       - AGENTS.backlog.md
       - AGENTS.decisions.md
@@ -64,12 +73,17 @@ spec:
       - scripts/bin/infra/stackit_foundation_seed_runtime_secret.sh
       - scripts/bin/infra/workload_health_check.py
       - scripts/bin/quality/check_test_pyramid.py
+      - scripts/bin/quality/hooks_fast.sh
       - scripts/bin/quality/lint_docs.py
+      - scripts/bin/quality/hooks_run.sh
+      - scripts/bin/quality/hooks_strict.sh
       - scripts/bin/quality/render_core_targets_doc.py
       - scripts/lib/blueprint/contract_schema.py
       - scripts/lib/blueprint/bootstrap_templates.sh
+      - scripts/lib/blueprint/cli_support.py
       - scripts/lib/blueprint/generate_module_wrapper_skeletons.py
       - scripts/lib/docs/generate_contract_docs.py
+      - scripts/lib/docs/sync_module_contract_summaries.py
       - scripts/lib/infra/k8s_wait.sh
       - scripts/lib/infra/module_execution.sh
       - scripts/lib/quality/semver.sh
@@ -82,6 +96,17 @@ spec:
       - scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl
       - scripts/templates/blueprint/bootstrap/make/platform.mk
       - scripts/templates/blueprint/bootstrap/make/platform/.gitkeep
+      - scripts/templates/consumer/init/README.md.tmpl
+      - scripts/templates/consumer/init/AGENTS.md.tmpl
+      - scripts/templates/consumer/init/AGENTS.backlog.md.tmpl
+      - scripts/templates/consumer/init/AGENTS.decisions.md.tmpl
+      - scripts/templates/consumer/init/docs/README.md.tmpl
+      - scripts/templates/consumer/init/.github/CODEOWNERS.tmpl
+      - scripts/templates/consumer/init/.github/ISSUE_TEMPLATE/bug_report.yml.tmpl
+      - scripts/templates/consumer/init/.github/ISSUE_TEMPLATE/feature_request.yml.tmpl
+      - scripts/templates/consumer/init/.github/ISSUE_TEMPLATE/config.yml.tmpl
+      - scripts/templates/consumer/init/.github/pull_request_template.md.tmpl
+      - scripts/templates/consumer/init/.github/workflows/ci.yml.tmpl
       - scripts/lib/infra/stackit_github_ci_contract.json
       - infra/cloud/stackit/terraform/bootstrap/versions.tf
       - infra/cloud/stackit/terraform/bootstrap/providers.tf
@@ -138,7 +163,6 @@ spec:
       - docs/blueprint/README.md
       - docs/blueprint/architecture/system_overview.md
       - docs/blueprint/architecture/execution_model.md
-      - docs/blueprint/governance/template_release_policy.md
       - docs/blueprint/governance/ownership_matrix.md
       - docs/reference/generated/contract_metadata.generated.md
       - docs/reference/generated/core_targets.generated.md
@@ -148,7 +172,6 @@ spec:
       - docs/platform/consumer/endpoint_exposure_model.md
       - docs/platform/consumer/protected_api_routes.md
       - docs/platform/consumer/troubleshooting.md
-      - docs/platform/consumer/upgrade_runbook.md
       - docs/platform/modules/observability/README.md
       - docs/platform/modules/workflows/README.md
       - docs/platform/modules/langfuse/README.md
@@ -162,12 +185,66 @@ spec:
       - docs/platform/modules/kms/README.md
       - docs/platform/modules/identity-aware-proxy/README.md
       - tests/__init__.py
-      - tests/blueprint/__init__.py
       - tests/infra/__init__.py
-      - tests/docs/__init__.py
       - tests/e2e/__init__.py
       - tests/_shared/__init__.py
       - tests/_shared/helpers.py
+    ownership_path_classes:
+      source_only:
+        - tests/blueprint
+        - tests/docs
+      consumer_seeded:
+        - README.md
+        - AGENTS.md
+        - AGENTS.backlog.md
+        - AGENTS.decisions.md
+        - docs/README.md
+        - .github/CODEOWNERS
+        - .github/ISSUE_TEMPLATE/bug_report.yml
+        - .github/ISSUE_TEMPLATE/feature_request.yml
+        - .github/ISSUE_TEMPLATE/config.yml
+        - .github/pull_request_template.md
+        - .github/workflows/ci.yml
+      conditional_scaffold:
+        - dags/
+        - infra/cloud/stackit/terraform/modules/workflows
+        - infra/gitops/argocd/optional/${ENV}/workflows.yaml
+        - tests/infra/modules/workflows
+        - infra/cloud/stackit/terraform/modules/langfuse
+        - infra/gitops/argocd/optional/${ENV}/langfuse.yaml
+        - tests/infra/modules/langfuse
+        - infra/cloud/stackit/terraform/modules/postgres
+        - infra/local/helm/postgres/values.yaml
+        - tests/infra/modules/postgres
+        - infra/cloud/stackit/terraform/modules/neo4j
+        - infra/local/helm/neo4j/values.yaml
+        - infra/gitops/argocd/optional/${ENV}/neo4j.yaml
+        - tests/infra/modules/neo4j
+        - infra/cloud/stackit/terraform/modules/object-storage
+        - infra/local/helm/object-storage/values.yaml
+        - tests/infra/modules/object-storage
+        - infra/cloud/stackit/terraform/modules/rabbitmq
+        - infra/local/helm/rabbitmq/values.yaml
+        - tests/infra/modules/rabbitmq
+        - infra/cloud/stackit/terraform/modules/dns
+        - tests/infra/modules/dns
+        - infra/cloud/stackit/terraform/modules/public-endpoints
+        - infra/local/helm/public-endpoints/values.yaml
+        - infra/gitops/argocd/optional/${ENV}/public-endpoints.yaml
+        - tests/infra/modules/public-endpoints
+        - infra/cloud/stackit/terraform/modules/secrets-manager
+        - tests/infra/modules/secrets-manager
+        - infra/cloud/stackit/terraform/modules/kms
+        - tests/infra/modules/kms
+        - infra/cloud/stackit/terraform/modules/identity-aware-proxy
+        - infra/local/helm/identity-aware-proxy/values.yaml
+        - infra/gitops/argocd/optional/${ENV}/identity-aware-proxy.yaml
+        - tests/infra/modules/identity-aware-proxy
+    consumer_init:
+      template_root: scripts/templates/consumer/init
+      mode_from: template-source
+      mode_to: generated-consumer
+      prune_disabled_optional_scaffolding: true
 
   governance:
     canonical_policy_source: AGENTS.md
@@ -200,9 +277,7 @@ spec:
       - make/platform/
       - apps/
       - tests/
-      - tests/blueprint/
       - tests/infra/
-      - tests/docs/
       - tests/e2e/
       - tests/_shared/
       - docs/
@@ -407,7 +482,6 @@ spec:
         - docs/platform/consumer/endpoint_exposure_model.md
         - docs/platform/consumer/protected_api_routes.md
         - docs/platform/consumer/troubleshooting.md
-        - docs/platform/consumer/upgrade_runbook.md
         - docs/platform/modules/observability/README.md
         - docs/platform/modules/workflows/README.md
         - docs/platform/modules/langfuse/README.md
@@ -437,18 +511,20 @@ spec:
       - blueprint-init-repo-interactive
       - blueprint-check-placeholders
       - blueprint-template-smoke
-      - blueprint-release-notes
-      - blueprint-migrate
       - blueprint-bootstrap
       - blueprint-clean-generated
       - blueprint-render-makefile
       - blueprint-render-module-wrapper-skeletons
+      - quality-hooks-fast
+      - quality-hooks-strict
       - quality-hooks-run
       - quality-docs-lint
       - quality-docs-sync-core-targets
       - quality-docs-check-core-targets-sync
       - quality-docs-sync-contract-metadata
       - quality-docs-check-contract-metadata-sync
+      - quality-docs-sync-module-contract-summaries
+      - quality-docs-check-module-contract-summaries-sync
       - quality-test-pyramid
       - infra-prereqs
       - infra-help-reference

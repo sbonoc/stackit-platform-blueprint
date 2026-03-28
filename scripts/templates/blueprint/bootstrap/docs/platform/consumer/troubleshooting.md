@@ -27,19 +27,26 @@ Common first-day issues for generated repositories.
 ## `make blueprint-check-placeholders` fails
 - Re-run `make blueprint-init-repo` with correct values.
 - Confirm contract and docs identity values match your repository owner/name.
+- Confirm `blueprint/contract.yaml` sets `repo_mode: generated-consumer`.
+
+## Pull requests are not auto-requesting reviewers
+- Generated repositories seed `.github/CODEOWNERS` as a starter file with commented examples only.
+- Replace the example owners with your real team handles before relying on GitHub review assignment.
+- Keep `.github/pull_request_template.md` and `.github/ISSUE_TEMPLATE/**` aligned with your team workflow once you adopt them.
 
 ## `dags/` appears unexpectedly
-- `dags/` should exist only when `WORKFLOWS_ENABLED=true`.
-- If `WORKFLOWS_ENABLED=false` but `dags/` is still present, treat it as repository state drift and re-sync from the blueprint templates, then re-validate:
+- In the blueprint source repository, `dags/` is tracked intentionally as template authoring scaffolding.
+- In a generated consumer repository, `make blueprint-init-repo` prunes `dags/` when `WORKFLOWS_ENABLED=false`.
+- If `WORKFLOWS_ENABLED=false` and `dags/` is still present in a fresh consumer repo, rerun first init before your first commit, then re-validate:
   ```bash
-  git restore dags infra/cloud/stackit/terraform/modules/workflows tests/infra/modules/workflows
-  WORKFLOWS_ENABLED=false make blueprint-render-makefile
+  WORKFLOWS_ENABLED=false make blueprint-init-repo
+  WORKFLOWS_ENABLED=false make blueprint-bootstrap
   WORKFLOWS_ENABLED=false make infra-bootstrap
   WORKFLOWS_ENABLED=false make infra-validate
   ```
 
 ## Disabled module but resources still exist
-- Disabling an optional module removes its generated Make targets, but scaffold files are intentionally preserved.
+- Disabling an optional module removes its generated Make targets, but already materialized scaffold files are intentionally preserved.
 - Already provisioned resources are not destroyed automatically.
 - Run disabled-module teardown first, then refresh the repo state for the new flag set:
   ```bash
@@ -60,7 +67,7 @@ Common first-day issues for generated repositories.
   ```
 
 ## `make infra-smoke` fails on `CrashLoopBackOff` / `ImagePullBackOff`
-- Live smoke now fails when blueprint-managed workloads are not healthy.
+- Live smoke fails when blueprint-managed workloads are not healthy.
 - Inspect:
   - `artifacts/infra/workload_health.json`
   - `artifacts/infra/workload_pods.json`
@@ -90,13 +97,13 @@ Common first-day issues for generated repositories.
   - `skip_requesting_account_id`
   - `use_path_style`
   - STACKIT object storage endpoint (`object.storage...`)
-- Ensure initialized values are coherent:
+- Ensure repository identity values are coherent:
   - `BLUEPRINT_STACKIT_REGION`
   - `BLUEPRINT_STACKIT_TFSTATE_BUCKET`
   - `BLUEPRINT_STACKIT_TFSTATE_KEY_PREFIX`
 
 ## STACKIT foundation preflight fails on SKE permission probe
-- In execution mode (`DRY_RUN=false`), foundation preflight now probes SKE API access before Terraform apply.
+- In execution mode (`DRY_RUN=false`), foundation preflight probes SKE API access before Terraform apply.
 - If you see `service account lacks SKE permissions`, ensure the identity behind `STACKIT_SERVICE_ACCOUNT_KEY` can:
   - enable/read SKE service in the project and region
   - list/read SKE clusters in the project
@@ -114,7 +121,7 @@ Common first-day issues for generated repositories.
   - `STACKIT_SERVICE_ACCOUNT_KEY`
   - `STACKIT_TFSTATE_ACCESS_KEY_ID`
   - `STACKIT_TFSTATE_SECRET_ACCESS_KEY`
-- Ensure backend bucket exists and matches initialized identity:
+- Ensure the backend bucket exists and matches the repository identity:
   - `BLUEPRINT_STACKIT_TFSTATE_BUCKET`
   - `BLUEPRINT_STACKIT_TFSTATE_KEY_PREFIX`
 - Ensure `STACKIT_TFSTATE_ACCESS_KEY_ID` / `STACKIT_TFSTATE_SECRET_ACCESS_KEY` can read/write that bucket.
@@ -128,7 +135,7 @@ Common first-day issues for generated repositories.
   ```
 
 ## STACKIT foundation apply fails on transient PostgreSQL Flex `404 Not Found`
-- `infra-stackit-foundation-apply` now retries a bounded number of times when STACKIT returns the known transient PostgreSQL Flex race:
+- `infra-stackit-foundation-apply` retries a bounded number of times when STACKIT returns the known transient PostgreSQL Flex race:
   - `Requested instance with ID: ... cannot be found`
 - Before retrying, the wrapper clears the transient Terraform taint on `stackit_postgresflex_instance.foundation[0]` so the next apply can reconcile the existing managed instance instead of destroying and recreating it.
 - The retry budget is controlled by:
@@ -152,7 +159,7 @@ Common first-day issues for generated repositories.
   ```
 
 ## STACKIT runtime prerequisites time out waiting for Kubernetes API readiness
-- `infra-stackit-runtime-prerequisites` now waits for the SKE API hostname to resolve and for `/readyz` to answer before the first `kubectl apply`.
+- `infra-stackit-runtime-prerequisites` waits for the SKE API hostname to resolve and for `/readyz` to answer before the first `kubectl apply`.
 - If it times out on hostname resolution, verify the operator machine can resolve the SKE endpoint handed out in the kubeconfig:
   - `python3 - <<'PY'`
     `import socket`
@@ -170,10 +177,10 @@ Common first-day issues for generated repositories.
   ```bash
   make infra-stackit-destroy-all
   ```
-- The destroy flow now performs a best-effort delete of blueprint-managed namespaces before Terraform destroys the SKE cluster:
+- The destroy flow performs a best-effort delete of blueprint-managed namespaces before Terraform destroys the SKE cluster:
   - `apps`, `data`, `messaging`, `network`, `security`, `observability`
   - controller namespaces such as `argocd`, `external-secrets`, and `envoy-gateway-system`
-- If a cluster still remains in `STATE_DELETING` after that:
+- If a cluster still reports `STATE_DELETING` after that:
   - inspect whether Kubernetes access is still available with `kubectl get ns`
   - if access is still available, look for namespaces stuck in `Terminating` and remaining `LoadBalancer` services or Gateway resources
   - then retry `make infra-stackit-destroy-all` after those in-cluster resources are gone

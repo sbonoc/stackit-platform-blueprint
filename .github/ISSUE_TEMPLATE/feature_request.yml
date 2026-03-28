@@ -1,0 +1,27 @@
+name: Blueprint Feature Request
+description: Propose a contract, governance, or automation improvement for the blueprint.
+title: "[feature]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What operator or consumer pain should this change solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: Describe the desired blueprint behavior or asset.
+    validations:
+      required: true
+  - type: textarea
+    id: contract
+    attributes:
+      label: Contract and rollout impact
+      description: Note any expected impact on `blueprint/contract.yaml`, docs, or generated repos.
+    validations:
+      required: true

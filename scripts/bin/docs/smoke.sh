@@ -31,6 +31,10 @@ for marker in "${required_markers[@]}"; do
   fi
 done
 
+if ! grep -qF "## Contract Summary" "$ROOT_DIR/docs/platform/modules/postgres/README.md"; then
+  log_fatal "module contract summary block missing in docs/platform/modules/postgres/README.md"
+fi
+
 docs_build_index="$ROOT_DIR/docs/build/index.html"
 if [[ ! -f "$docs_build_index" ]]; then
   log_fatal "missing docs static build artifact: $docs_build_index (run make docs-build first)"

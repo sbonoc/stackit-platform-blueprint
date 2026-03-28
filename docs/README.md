@@ -2,9 +2,11 @@
 
 This repository uses Markdown as the canonical documentation source and can be rendered via Docusaurus.
 
+In the source blueprint repository this page is maintainer-oriented. Generated consumer repositories replace `docs/README.md` during `make blueprint-init-repo` with a consumer-owned docs index.
+
 ## Choose Your Path
 - [Blueprint Docs](blueprint/README.md): maintain and evolve the blueprint itself.
-- [Platform Docs](platform/README.md): seeded baseline docs for generated target repositories.
+- [Platform Docs](platform/README.md): platform docs for generated target repositories.
 
 ## If You Are Using the Template (Consumer Track)
 Recommended reading order:
@@ -13,7 +15,6 @@ Recommended reading order:
 3. [Endpoint Exposure Model](platform/consumer/endpoint_exposure_model.md)
 4. [Protected API Routes](platform/consumer/protected_api_routes.md)
 5. [Platform Troubleshooting](platform/consumer/troubleshooting.md)
-6. [Platform Upgrade Runbook](platform/consumer/upgrade_runbook.md)
 
 Fast path:
 ```bash
@@ -37,7 +38,6 @@ Read:
 2. [Blueprint Execution Model](blueprint/architecture/execution_model.md)
 3. [Blueprint System Overview](blueprint/architecture/system_overview.md)
 4. [Ownership Matrix](blueprint/governance/ownership_matrix.md)
-5. [Template Release Policy](blueprint/governance/template_release_policy.md)
 
 ## Canonical Infra Paths
 - STACKIT Terraform: `infra/cloud/stackit/terraform/`
@@ -77,9 +77,12 @@ Common baseline flow:
 - `make infra-smoke`
 
 Quality and docs flow:
+- `make quality-hooks-fast`
+- `make quality-hooks-strict`
 - `make quality-hooks-run`
 - `make quality-docs-lint`
 - `make quality-test-pyramid`
+- `make quality-docs-sync-module-contract-summaries`
 - `make docs-install`
 - `make docs-run`
 - `make docs-build`

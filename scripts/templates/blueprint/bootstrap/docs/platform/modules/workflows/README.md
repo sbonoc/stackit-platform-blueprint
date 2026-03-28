@@ -1,7 +1,35 @@
 # Workflows Module (Optional)
 
-## Purpose
-Provision and reconcile STACKIT Workflows (managed Airflow) and deploy DAGs.
+<!-- BEGIN GENERATED MODULE CONTRACT SUMMARY -->
+## Contract Summary
+- Purpose: Provision and reconcile STACKIT Workflows (managed Airflow) and deploy DAGs.
+- Enable flag: `WORKFLOWS_ENABLED` (default: `false`)
+- Required inputs:
+  - `STACKIT_PROJECT_ID`
+  - `STACKIT_REGION`
+  - `STACKIT_WORKFLOWS_DAGS_REPO_URL`
+  - `STACKIT_WORKFLOWS_DAGS_REPO_BRANCH`
+  - `STACKIT_WORKFLOWS_DAGS_REPO_USERNAME`
+  - `STACKIT_WORKFLOWS_DAGS_REPO_TOKEN`
+  - `STACKIT_WORKFLOWS_OIDC_DISCOVERY_URL`
+  - `STACKIT_WORKFLOWS_OIDC_CLIENT_ID`
+  - `STACKIT_WORKFLOWS_OIDC_CLIENT_SECRET`
+  - `STACKIT_OBSERVABILITY_INSTANCE_ID`
+- Make targets:
+  - `infra-stackit-workflows-plan`
+  - `infra-stackit-workflows-apply`
+  - `infra-stackit-workflows-reconcile`
+  - `infra-stackit-workflows-dag-deploy`
+  - `infra-stackit-workflows-dag-parse-smoke`
+  - `infra-stackit-workflows-smoke`
+  - `infra-stackit-workflows-destroy`
+- Outputs:
+  - `STACKIT_WORKFLOWS_INSTANCE_ID`
+  - `STACKIT_WORKFLOWS_INSTANCE_NAME`
+  - `STACKIT_WORKFLOWS_INSTANCE_FQDN`
+  - `STACKIT_WORKFLOWS_WEB_URL`
+  - `STACKIT_WORKFLOWS_HEALTH_STATUS`
+<!-- END GENERATED MODULE CONTRACT SUMMARY -->
 
 ## Stack Execution Model
 - Supported only on `stackit-*` profiles.
@@ -12,25 +40,6 @@ Provision and reconcile STACKIT Workflows (managed Airflow) and deploy DAGs.
   - plus wrapper reconciliation in `scripts/bin/infra/stackit_workflows_*.sh`
 - API payload/state artifacts are generated under:
   - `artifacts/infra/workflows_*.env`
-
-## Enable
-Set:
-
-```bash
-export WORKFLOWS_ENABLED=true
-```
-
-## Required Inputs
-- `STACKIT_PROJECT_ID`
-- `STACKIT_REGION`
-- `STACKIT_WORKFLOWS_DAGS_REPO_URL` (must end with `.git`)
-- `STACKIT_WORKFLOWS_DAGS_REPO_BRANCH`
-- `STACKIT_WORKFLOWS_DAGS_REPO_USERNAME`
-- `STACKIT_WORKFLOWS_DAGS_REPO_TOKEN`
-- `STACKIT_WORKFLOWS_OIDC_DISCOVERY_URL`
-- `STACKIT_WORKFLOWS_OIDC_CLIENT_ID`
-- `STACKIT_WORKFLOWS_OIDC_CLIENT_SECRET`
-- `STACKIT_OBSERVABILITY_INSTANCE_ID`
 
 ## Reconciliation Rules
 - If one active instance exists, reconcile it.
@@ -44,23 +53,8 @@ export WORKFLOWS_ENABLED=true
 - Realm roles: `Admin`, `User`, `Viewer`, `Op`
 - Roles mapper claim must be `roles` in ID token, access token, and userinfo.
 
-## Commands
-- `make infra-stackit-workflows-plan`
-- `make infra-stackit-workflows-apply`
-- `make infra-stackit-workflows-reconcile`
-- `make infra-stackit-workflows-dag-deploy`
-- `make infra-stackit-workflows-dag-parse-smoke`
-- `make infra-stackit-workflows-smoke`
-- `make infra-stackit-workflows-destroy`
-
 ## Smoke Expectations
 - Instance is `Active`
 - OIDC login works
 - DAG parsing has no import errors
 - Expected DAGs are visible
-
-## Outputs
-- `STACKIT_WORKFLOWS_INSTANCE_ID`
-- `STACKIT_WORKFLOWS_INSTANCE_NAME`
-- `STACKIT_WORKFLOWS_INSTANCE_FQDN`
-- `STACKIT_WORKFLOWS_WEB_URL`

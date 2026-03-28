@@ -38,7 +38,9 @@ done
 
 printf 'Usage: make <target>\n\n'
 printf 'Primary Workflows\n'
-printf '  make quality-hooks-run        # canonical local quality gate\n'
+printf '  make quality-hooks-fast       # default fast quality gate for local/PR feedback\n'
+printf '  make quality-hooks-strict     # slower audit gate for protected-branch or release lanes\n'
+printf '  make quality-hooks-run        # composite fast+strict quality gate\n'
 printf '  make blueprint-bootstrap      # refresh blueprint-managed templates/docs/make surface\n'
 printf '  make infra-bootstrap          # bootstrap infra scaffolding and prune disabled module scope\n'
 printf '  make infra-smoke              # run canonical infra smoke chain and write diagnostics artifacts\n'

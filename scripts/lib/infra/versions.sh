@@ -26,6 +26,9 @@ IAP_HELM_CHART_VERSION_PIN="10.4.0"
 # Local fallback images are pinned explicitly because upstream chart defaults
 # may drift to retired registry tags. Where STACKIT exposes a managed service
 # version contract, the local image line follows that same version family.
+# Bitnami publishes some current multi-arch tags under the `bitnamilegacy/*`
+# namespace; treat that as a vendor naming quirk, not as approval to use
+# unsupported runtime versions.
 POSTGRES_LOCAL_IMAGE_REGISTRY="docker.io"
 POSTGRES_LOCAL_IMAGE_REPOSITORY="bitnamilegacy/postgresql"
 POSTGRES_LOCAL_IMAGE_TAG="16.4.0-debian-12-r14"

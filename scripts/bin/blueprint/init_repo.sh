@@ -11,6 +11,8 @@ usage() {
 Usage: init_repo.sh [--dry-run]
 
 Initializes repository identity after creating a new repository from the GitHub template.
+On first init, this also swaps blueprint-maintainer root docs/governance/CI files
+for consumer-owned seeds and removes source-only workflow leftovers.
 
 Environment variables:
   BLUEPRINT_REPO_NAME        Repository slug used for blueprint contract metadata.

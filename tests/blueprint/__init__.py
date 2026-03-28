@@ -1,1 +1,1 @@
-"""Blueprint contract and migration tests."""
+"""Blueprint contract and template baseline tests."""

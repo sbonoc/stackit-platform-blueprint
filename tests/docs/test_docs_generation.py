@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from pathlib import Path
+import sys
+import tempfile
 import unittest
 
 from tests._shared.helpers import REPO_ROOT, run
@@ -11,6 +14,20 @@ def module_ids_from_contract() -> list[str]:
 
 
 class DocsGenerationTests(unittest.TestCase):
+    def test_contract_docs_generator_is_repo_rooted(self) -> None:
+        generator = REPO_ROOT / "scripts/lib/docs/generate_contract_docs.py"
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output = Path(tmpdir) / "contract_metadata.generated.md"
+            result = run(
+                [sys.executable, str(generator), "--output", str(output)],
+                cwd=Path(tmpdir),
+            )
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            self.assertTrue(output.exists(), msg="contract metadata doc not generated outside repo cwd")
+            content = output.read_text(encoding="utf-8")
+            self.assertIn("Contract Metadata (Generated)", content)
+            self.assertIn("modules=", result.stdout)
+
     def test_docs_build_and_smoke(self) -> None:
         install = run(["make", "docs-install"])
         self.assertEqual(install.returncode, 0, msg=install.stdout + install.stderr)
@@ -31,6 +48,13 @@ class DocsGenerationTests(unittest.TestCase):
             msg=contract_metadata_check.stdout + contract_metadata_check.stderr,
         )
 
+        module_summary_check = run(["make", "quality-docs-check-module-contract-summaries-sync"])
+        self.assertEqual(
+            module_summary_check.returncode,
+            0,
+            msg=module_summary_check.stdout + module_summary_check.stderr,
+        )
+
         contract_generated = REPO_ROOT / "docs" / "reference" / "generated" / "contract_metadata.generated.md"
         self.assertTrue(contract_generated.exists(), msg="generated contract metadata doc not found")
         contract_content = contract_generated.read_text(encoding="utf-8")
@@ -47,7 +71,10 @@ class DocsGenerationTests(unittest.TestCase):
         core_targets_content = core_targets_generated.read_text(encoding="utf-8")
         self.assertIn("Core Make Targets", core_targets_content)
         self.assertIn("`quality-hooks-run`", core_targets_content)
+        self.assertIn("`quality-hooks-fast`", core_targets_content)
+        self.assertIn("`quality-hooks-strict`", core_targets_content)
         self.assertIn("`quality-test-pyramid`", core_targets_content)
+        self.assertIn("## Contract Summary", (REPO_ROOT / "docs/platform/modules/postgres/README.md").read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

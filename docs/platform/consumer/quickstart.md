@@ -75,7 +75,7 @@ For managed STACKIT execution (`BLUEPRINT_PROFILE=stackit-dev|stackit-stage|stac
 - `STACKIT_TFSTATE_ACCESS_KEY_ID`
 - `STACKIT_TFSTATE_SECRET_ACCESS_KEY`
 
-These values should align with initialized blueprint values:
+These values should align with the repository identity values:
 - `BLUEPRINT_STACKIT_REGION`
 - `BLUEPRINT_STACKIT_PROJECT_ID`
 - `BLUEPRINT_STACKIT_TFSTATE_BUCKET`

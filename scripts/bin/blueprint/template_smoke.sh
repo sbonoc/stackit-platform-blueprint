@@ -210,6 +210,12 @@ expected_stack, expected_environment = profile_environment(profile)
 observability_enabled = normalize_bool(os.environ.get("OBSERVABILITY_ENABLED", "false"))
 
 contract = load_blueprint_contract(repo_root / "blueprint/contract.yaml")
+if contract.repository.repo_mode != "generated-consumer":
+    raise AssertionError(
+        f"{scenario}: expected repo_mode=generated-consumer after blueprint-init-repo, "
+        f"got {contract.repository.repo_mode}"
+    )
+
 makefile_path = repo_root / contract.make_contract.ownership.blueprint_generated_file
 makefile_text = makefile_path.read_text(encoding="utf-8")
 
@@ -225,10 +231,13 @@ for module_name, module in sorted(contract.optional_modules.modules.items()):
     for path_key in module.paths_required_when_enabled:
         raw_path = module.paths[path_key].replace("${ENV}", expected_environment)
         relative_path = raw_path.rstrip("/")
-        # Generated repos now preserve disabled-module scaffolding on disk so
-        # flag toggles cannot delete tracked template assets. Enabled modules
-        # still rely on the same paths being present for execution.
-        assert_path_exists(repo_root, relative_path, scenario)
+        path = repo_root / relative_path
+        if enabled:
+            assert_path_exists(repo_root, relative_path, scenario)
+        elif path.exists():
+            raise AssertionError(
+                f"{scenario}: expected disabled conditional scaffold to stay pruned in generated repo: {relative_path}"
+            )
 
 required_artifacts = [
     "artifacts/infra/provision.env",

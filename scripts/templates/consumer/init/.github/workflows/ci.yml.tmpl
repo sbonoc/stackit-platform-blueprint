@@ -1,0 +1,60 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches:
+      - {{DEFAULT_BRANCH}}
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  quality-fast:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare shared CI baseline
+        uses: ./.github/actions/prepare-blueprint-ci
+
+      - name: Run fast quality gate
+        run: |
+          make quality-hooks-fast
+
+      - name: Validate apps baseline
+        run: |
+          BLUEPRINT_PROFILE=local-lite OBSERVABILITY_ENABLED=false make apps-bootstrap
+          BLUEPRINT_PROFILE=local-lite OBSERVABILITY_ENABLED=false make apps-smoke
+
+      - name: Build and smoke docs
+        run: |
+          make docs-install
+          make docs-build
+          make docs-smoke
+
+      - name: Run canonical test lanes
+        run: |
+          make test-unit-all
+          make test-integration-all
+          make test-contracts-all
+          make test-e2e-all-local
+
+      - name: Run tooling tests
+        run: pytest -q tests
+
+  quality-strict:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare shared CI baseline
+        uses: ./.github/actions/prepare-blueprint-ci
+
+      - name: Run strict audit gate
+        run: |
+          make quality-hooks-strict

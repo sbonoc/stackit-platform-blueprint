@@ -1,0 +1,38 @@
+name: Project Bug Report
+description: Report a defect in this generated platform repository.
+title: "[bug]: "
+labels:
+  - bug
+body:
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Affected scope
+      options:
+        - Application or platform code
+        - CI or delivery automation
+        - Infrastructure contract or wrapper
+        - Docs or governance
+        - Blueprint handoff or upgrade
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Share the commands, flags, or environment that reproduce the issue.
+      render: bash
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true

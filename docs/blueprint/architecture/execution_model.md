@@ -7,13 +7,10 @@ For repositories created via GitHub template:
 1. Initialize repository identity:
    - Interactive wizard: `make blueprint-init-repo-interactive`
    - Env-file mode (CI-friendly): fill `blueprint/repo.init.example.env` and run `make blueprint-init-repo`
+   - First init also switches the contract from `template-source` to `generated-consumer`, replaces consumer-owned root docs/governance/CI seeds, and prunes disabled conditional optional scaffolding from the raw template copy.
 2. Run `make blueprint-bootstrap`.
 3. Run `make infra-bootstrap`.
 4. Run `make infra-validate`.
-
-For template upgrades:
-1. Run `make blueprint-migrate`.
-2. Re-run validation bundles (`quality-hooks-run`, `infra-validate`, `infra-smoke`).
 
 ## Core Idea
 The execution flow is always the same:
@@ -83,11 +80,12 @@ Optional modules are controlled by canonical flags:
 
 If a flag is `true`, the module plan/apply/deploy/smoke scripts run and persist their own artifacts under `artifacts/infra/`.
 `blueprint-render-makefile` (or `blueprint-bootstrap`) materializes optional-module Make targets when the corresponding module flag is enabled.
-`infra-bootstrap` materializes optional-module infra scaffolding when enabled and preserves disabled-module scaffolding so flag toggles cannot delete tracked repo content.
+`make blueprint-init-repo` prunes disabled conditional optional-module scaffolding from fresh generated repos so the initial working tree is lean.
+`infra-bootstrap` materializes optional-module infra scaffolding when enabled and preserves already-materialized disabled-module scaffolding so later flag toggles cannot silently delete tracked repo content.
 `infra-destroy-disabled-modules` runs module destroy actions for modules currently disabled by flags when resources may already exist.
 
 Examples:
-- `WORKFLOWS_ENABLED=true` creates `dags/` scaffolding and Workflows API payload/runtime artifacts.
+- `WORKFLOWS_ENABLED=true` creates `dags/` scaffolding and Workflows API payload/runtime artifacts in generated repos.
 - `LANGFUSE_ENABLED=true` and `NEO4J_ENABLED=true` materialize optional GitOps manifests under `infra/gitops/argocd/optional/${ENV}/`.
 - `RABBITMQ_ENABLED=true`, `PUBLIC_ENDPOINTS_ENABLED=true`, and `IDENTITY_AWARE_PROXY_ENABLED=true` materialize module-specific ArgoCD `Application` manifests under `infra/gitops/argocd/optional/${ENV}/`.
 - `POSTGRES_ENABLED=true`, `OBJECT_STORAGE_ENABLED=true`, `DNS_ENABLED=true`, `SECRETS_MANAGER_ENABLED=true`, and `OBSERVABILITY_ENABLED=true` are reconciled by the STACKIT `foundation` Terraform layer.

@@ -1,0 +1,24 @@
+# {{REPO_NAME}}
+
+This repository is a platform project created from the STACKIT Platform Blueprint.
+
+## Start Here
+```bash
+make blueprint-bootstrap
+make infra-bootstrap
+make infra-validate
+```
+
+## Default Work Scope
+- Work in `apps/**`, `docs/platform/**`, `make/platform.mk`, `make/platform/*.mk`, `scripts/bin/platform/**`, and `scripts/lib/platform/**` by default.
+- Consult blueprint-managed paths only when the task explicitly mentions bootstrap, contract, validation, or inherited blueprint behavior.
+
+## Ownership Split
+- Consumer-owned after first init: `README.md`, `AGENTS.md`, `AGENTS.backlog.md`, `AGENTS.decisions.md`, `docs/README.md`, `.github/CODEOWNERS`, `.github/pull_request_template.md`, `.github/ISSUE_TEMPLATE/**`, `.github/workflows/ci.yml`, `docs/platform/**`, `make/platform.mk`, `make/platform/*.mk`, `scripts/bin/platform/**`, and `scripts/lib/platform/**`.
+- Blueprint-managed reference and automation live under `blueprint/**`, `docs/blueprint/**`, `.github/actions/**`, `scripts/bin/blueprint/**`, `scripts/lib/blueprint/**`, `scripts/templates/**`, and `make/blueprint.generated.mk`.
+
+## CI Baseline
+- `.github/workflows/ci.yml` is the consumer CI baseline for this repository.
+- `.github/CODEOWNERS`, `.github/pull_request_template.md`, and `.github/ISSUE_TEMPLATE/**` are starter governance assets and should be customized early.
+- `make quality-hooks-fast` is the default PR-quality gate.
+- `make quality-hooks-strict` is the slower audit bundle for protected-branch or scheduled lanes.

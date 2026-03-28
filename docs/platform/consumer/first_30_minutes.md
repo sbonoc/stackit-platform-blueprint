@@ -22,8 +22,8 @@ make blueprint-init-repo
 ```
 
 Expected outcome:
-- `blueprint/contract.yaml` metadata is updated for your repository identity.
-- `docs/docusaurus.config.js` owner/repo/edit links are aligned.
+- `blueprint/contract.yaml` metadata reflects your repository identity.
+- `docs/docusaurus.config.js` owner/repo/edit links match your repository.
 
 ## 2) Bootstrap Template and Infra Scaffolding (10 min)
 ```bash
@@ -53,4 +53,3 @@ Expected outcome:
 - Review [Endpoint Exposure Model](endpoint_exposure_model.md) before exposing mixed public/protected UI or API routes.
 - Review [Protected API Routes](protected_api_routes.md) before exposing bearer-token APIs for SPA or direct clients.
 - Review [Troubleshooting](troubleshooting.md) if any command fails.
-- Review [Upgrade Runbook](upgrade_runbook.md) before applying template upgrades later.

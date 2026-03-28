@@ -1,7 +1,22 @@
 # DNS Module (Optional)
 
-## Purpose
-Provision managed DNS zones for marketplace public endpoints.
+<!-- BEGIN GENERATED MODULE CONTRACT SUMMARY -->
+## Contract Summary
+- Purpose: Provision managed DNS zones and publish canonical domain contract.
+- Enable flag: `DNS_ENABLED` (default: `false`)
+- Required inputs:
+  - `DNS_ZONE_NAME`
+  - `DNS_ZONE_FQDN`
+- Make targets:
+  - `infra-dns-plan`
+  - `infra-dns-apply`
+  - `infra-dns-smoke`
+  - `infra-dns-destroy`
+- Outputs:
+  - `DNS_ZONE_ID`
+  - `DNS_ZONE_NAME`
+  - `DNS_ZONE_FQDN`
+<!-- END GENERATED MODULE CONTRACT SUMMARY -->
 
 ## Stack Execution Model
 - Optional module Make targets are materialized by `make blueprint-render-makefile` (or `make blueprint-bootstrap`) when `DNS_ENABLED=true`.
@@ -9,25 +24,5 @@ Provision managed DNS zones for marketplace public endpoints.
 - `stackit-*` profiles: managed by Terraform `foundation` layer (`infra/cloud/stackit/terraform/foundation`) with `DNS_ENABLED` contract flag.
   - `DNS_ZONE_FQDN` is the canonical provisioning input passed to foundation.
   - The consumer-facing FQDN may keep its trailing dot; foundation trims it only when calling STACKIT provider resources.
-  - `DNS_ZONE_NAME` remains the consumer-facing alias used in runtime artifacts, and `DNS_ZONE_ID` resolves from foundation outputs after apply.
+  - `DNS_ZONE_NAME` is the consumer-facing alias used in runtime artifacts, and `DNS_ZONE_ID` resolves from foundation outputs after apply.
 - `local-*` profiles: no managed DNS counterpart; module plan/apply is a no-op contract stub.
-
-## Enable
-```bash
-export DNS_ENABLED=true
-```
-
-## Required Inputs
-- `DNS_ZONE_NAME`
-- `DNS_ZONE_FQDN`
-
-## Commands
-- `make infra-dns-plan`
-- `make infra-dns-apply`
-- `make infra-dns-smoke`
-- `make infra-dns-destroy`
-
-## Outputs
-- `DNS_ZONE_ID`
-- `DNS_ZONE_NAME`
-- `DNS_ZONE_FQDN`

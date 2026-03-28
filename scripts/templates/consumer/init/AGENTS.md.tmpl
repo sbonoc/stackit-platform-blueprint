@@ -1,0 +1,69 @@
+# AGENTS Governance and Execution Checklist
+
+This file is the canonical governance source for this generated platform repository.
+
+## Scope and Precedence
+- Companion files:
+  - `AGENTS.backlog.md` for project backlog
+  - `AGENTS.decisions.md` for project decisions
+- `blueprint/contract.yaml` is the executable implementation contract inherited from the blueprint.
+- `docs/blueprint/**` stays as blueprint reference documentation; root governance files and `.github/workflows/ci.yml` are consumer-owned after initialization.
+
+## Default Work Scope
+- Start in `apps/**`, `docs/platform/**`, `make/platform.mk`, `make/platform/*.mk`, `scripts/bin/platform/**`, and `scripts/lib/platform/**`.
+- Use blueprint-managed paths only when the task explicitly involves bootstrap, contract, validation, or inherited blueprint behavior.
+
+## Mandatory Workflow
+1. Read `AGENTS.md` before starting work.
+2. Change code, tests, docs, and contract-adjacent files together.
+3. Keep platform-owned work in `make/platform.mk`, `make/platform/*.mk`, `scripts/bin/platform/**`, `scripts/lib/platform/**`, `apps/**`, and `docs/platform/**`.
+4. Treat blueprint-managed paths as controlled surfaces and update them only intentionally:
+   - `blueprint/**`
+   - `docs/blueprint/**`
+   - `scripts/bin/blueprint/**`
+   - `scripts/lib/blueprint/**`
+   - `scripts/templates/**`
+   - `make/blueprint.generated.mk`
+5. Run the required validation bundle for the changed scope before finishing.
+6. Update `AGENTS.decisions.md` when scope, contracts, or operating policy change.
+7. Update `AGENTS.backlog.md` when priorities or status change.
+8. Do not run `git commit` or `git push` unless explicitly requested in the current conversation.
+
+## Definition of Done
+- Behavior works in affected paths.
+- Tests cover the behavior at the lowest valid layer.
+- Docs and Make targets stay synchronized.
+- Validation passes for the touched scope.
+- No avoidable debt is left in touched consumer-owned areas.
+
+## Quality Gates
+- Fast gate: `make quality-hooks-fast`
+- Full gate: `make quality-hooks-run`
+- Strict audits: `make quality-hooks-strict`
+- Infra validation: `make infra-validate`
+- Docs build/smoke: `make docs-build` and `make docs-smoke`
+
+## Repository Ownership
+- Consumer-owned:
+  - `README.md`
+  - `AGENTS.md`
+  - `AGENTS.backlog.md`
+  - `AGENTS.decisions.md`
+  - `docs/README.md`
+  - `.github/CODEOWNERS`
+  - `.github/pull_request_template.md`
+  - `.github/ISSUE_TEMPLATE/**`
+  - `.github/workflows/ci.yml`
+  - `docs/platform/**`
+  - `make/platform.mk`
+  - `make/platform/*.mk`
+  - `scripts/bin/platform/**`
+  - `scripts/lib/platform/**`
+- Blueprint-managed:
+  - `blueprint/contract.yaml`
+  - `docs/blueprint/**`
+  - `.github/actions/**`
+  - `scripts/bin/blueprint/**`
+  - `scripts/lib/blueprint/**`
+  - `scripts/templates/**`
+  - `make/blueprint.generated.mk`

@@ -11,6 +11,11 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+from scripts.lib.blueprint.cli_support import (  # noqa: E402
+    display_repo_path,
+    resolve_repo_path,
+    resolve_repo_root,
+)
 from scripts.lib.blueprint.contract_schema import (  # noqa: E402
     ModuleContract,
     load_blueprint_contract,
@@ -103,18 +108,27 @@ def render_markdown(
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        "--repo-root",
+        type=Path,
+        default=REPO_ROOT,
+        help="Repository root used to resolve relative contract/modules/output paths.",
+    )
+    parser.add_argument(
         "--contract",
-        default="blueprint/contract.yaml",
+        type=Path,
+        default=Path("blueprint/contract.yaml"),
         help="Path to platform contract YAML",
     )
     parser.add_argument(
         "--modules-dir",
-        default="blueprint/modules",
+        type=Path,
+        default=Path("blueprint/modules"),
         help="Directory containing module.contract.yaml files",
     )
     parser.add_argument(
         "--output",
-        default="docs/reference/generated/contract_metadata.generated.md",
+        type=Path,
+        default=Path("docs/reference/generated/contract_metadata.generated.md"),
         help="Output generated markdown path",
     )
     parser.add_argument(
@@ -124,10 +138,12 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    repo_root = Path.cwd()
-    contract_path = repo_root / args.contract
-    modules_dir = repo_root / args.modules_dir
-    output_path = repo_root / args.output
+    # Shell wrappers resolve their own ROOT_DIR, so the Python helper must keep
+    # relative paths anchored to the repository root instead of the caller cwd.
+    repo_root = resolve_repo_root(args.repo_root, __file__)
+    contract_path = resolve_repo_path(repo_root, args.contract)
+    modules_dir = resolve_repo_path(repo_root, args.modules_dir)
+    output_path = resolve_repo_path(repo_root, args.output)
 
     contract = load_blueprint_contract(contract_path)
     profiles = contract.raw.get("spec", {}).get("profiles", {}).get("supported", [])
@@ -164,6 +180,10 @@ def main() -> int:
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(output, encoding="utf-8")
+    print(
+        f"rendered contract metadata doc: {display_repo_path(repo_root, output_path)} "
+        f"(profiles={len(profiles)} targets={len(required_targets)} modules={len(modules)})"
+    )
     return 0
 
 

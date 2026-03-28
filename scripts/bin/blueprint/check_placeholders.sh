@@ -45,6 +45,19 @@ require_env_vars \
 
 contract_file="$ROOT_DIR/blueprint/contract.yaml"
 docs_config="$ROOT_DIR/docs/docusaurus.config.js"
+consumer_root_files=(
+  "$ROOT_DIR/README.md"
+  "$ROOT_DIR/AGENTS.md"
+  "$ROOT_DIR/AGENTS.backlog.md"
+  "$ROOT_DIR/AGENTS.decisions.md"
+  "$ROOT_DIR/docs/README.md"
+  "$ROOT_DIR/.github/CODEOWNERS"
+  "$ROOT_DIR/.github/ISSUE_TEMPLATE/bug_report.yml"
+  "$ROOT_DIR/.github/ISSUE_TEMPLATE/feature_request.yml"
+  "$ROOT_DIR/.github/ISSUE_TEMPLATE/config.yml"
+  "$ROOT_DIR/.github/pull_request_template.md"
+  "$ROOT_DIR/.github/workflows/ci.yml"
+)
 argocd_files=(
   "$ROOT_DIR/infra/gitops/argocd/root/applicationset-platform-environments.yaml"
   "$ROOT_DIR/infra/gitops/argocd/overlays/dev/applicationset-platform-environments.yaml"
@@ -108,6 +121,8 @@ expected_repo_url="https://github.com/${BLUEPRINT_GITHUB_ORG}/${BLUEPRINT_GITHUB
 
 grep -qE "^  name: ${BLUEPRINT_REPO_NAME}$" "$contract_file" || \
   log_fatal "contract metadata.name does not match BLUEPRINT_REPO_NAME"
+grep -qE "^    repo_mode: generated-consumer$" "$contract_file" || \
+  log_fatal "contract repository.repo_mode must be generated-consumer after initialization"
 grep -qE "^    default_branch: ${BLUEPRINT_DEFAULT_BRANCH}$" "$contract_file" || \
   log_fatal "contract repository.default_branch does not match BLUEPRINT_DEFAULT_BRANCH"
 grep -qF "organizationName: \"${BLUEPRINT_GITHUB_ORG}\"" "$docs_config" || \
@@ -200,6 +215,15 @@ for token in "${placeholder_tokens[@]}"; do
   for file in "${scan_files[@]}"; do
     if grep -qF "$token" "$file"; then
       log_fatal "unresolved placeholder token '$token' found in $file"
+    fi
+  done
+done
+
+for file in "${consumer_root_files[@]}"; do
+  [[ -f "$file" ]] || log_fatal "missing consumer-owned initialized file: $file"
+  for token in "{{REPO_NAME}}" "{{DOCS_TITLE}}" "{{DOCS_TAGLINE}}" "{{DEFAULT_BRANCH}}" "{{TEMPLATE_VERSION}}"; do
+    if grep -qF "$token" "$file"; then
+      log_fatal "unresolved consumer template token '$token' found in $file"
     fi
   done
 done

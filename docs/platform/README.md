@@ -1,8 +1,8 @@
-# Platform Docs (Seeded for Generated Repositories)
+# Platform Docs
 
-This section is the initial documentation baseline for the target platform repository produced from this blueprint.
+This section is the platform-facing documentation baseline for a generated repository.
 
-`make blueprint-bootstrap` seeds these files when they are missing and does not overwrite existing content.
+`make blueprint-bootstrap` creates missing files in this section and leaves existing consumer edits in place.
 
 ## Consumer Guides
 - [First 30 Minutes](consumer/first_30_minutes.md)
@@ -10,7 +10,6 @@ This section is the initial documentation baseline for the target platform repos
 - [Endpoint Exposure Model](consumer/endpoint_exposure_model.md)
 - [Protected API Routes](consumer/protected_api_routes.md)
 - [Troubleshooting](consumer/troubleshooting.md)
-- [Upgrade Runbook](consumer/upgrade_runbook.md)
 
 ## Optional Modules
 - [Observability](modules/observability/README.md)

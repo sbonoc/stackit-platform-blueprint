@@ -11,7 +11,7 @@ Use this pattern when a public host must expose a bearer-token API for an SPA or
 ## Ownership Boundary
 - `public-endpoints` owns the shared edge baseline and the dedicated `platform-edge-*` Argo CD project for Envoy Gateway controller and shared `Gateway` resources.
 - Application delivery owns protected API `HTTPRoute` and `SecurityPolicy` resources in app namespaces through the main `platform-*` Argo CD project.
-- `identity-aware-proxy` is not part of this bearer-token path. It remains the browser-login path for protected touchpoints.
+- `identity-aware-proxy` is not part of this bearer-token path. It is the browser-login path for protected touchpoints.
 
 ## Example Resources
 ```yaml

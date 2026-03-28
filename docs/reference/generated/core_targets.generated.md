@@ -12,18 +12,20 @@ This file is auto-generated. Do not edit it manually.
 | `blueprint-init-repo-interactive` | Interactive repository identity wizard for GitHub template consumers |
 | `blueprint-check-placeholders` | Verify generated repository identity placeholders are resolved |
 | `blueprint-template-smoke` | Run generated-repo conformance smoke in a temp copy |
-| `blueprint-release-notes` | Generate template release notes |
-| `blueprint-migrate` | Apply blueprint repository migrations for current template version |
 | `blueprint-bootstrap` | Bootstrap blueprint-scoped templates, docs, and Makefile rendering |
 | `blueprint-render-makefile` | Render blueprint-generated make targets from template and enabled module flags |
 | `blueprint-clean-generated` | Remove generated runtime/build/cache artifacts |
 | `blueprint-render-module-wrapper-skeletons` | Render optional-module wrapper skeleton templates from module contracts |
+| `quality-hooks-fast` | Run fast local quality checks |
+| `quality-hooks-strict` | Run slower audit-focused quality checks |
 | `quality-hooks-run` | Run pre-commit hooks and quality gates |
 | `quality-docs-lint` | Lint markdown docs, governance links, and make target references |
 | `quality-docs-sync-core-targets` | Regenerate tracked core Make targets reference doc |
 | `quality-docs-check-core-targets-sync` | Fail when tracked core Make targets doc is out of date |
 | `quality-docs-sync-contract-metadata` | Regenerate tracked contract metadata reference doc |
 | `quality-docs-check-contract-metadata-sync` | Fail when tracked contract metadata doc is out of date |
+| `quality-docs-sync-module-contract-summaries` | Regenerate module contract summary blocks in source and template docs |
+| `quality-docs-check-module-contract-summaries-sync` | Fail when module contract summary blocks are out of date |
 | `quality-test-pyramid` | Enforce repository test-pyramid ratios from canonical classification contract |
 | `infra-prereqs` | Verify local prerequisites and optionally auto-install missing tools |
 | `infra-help-reference` | Show full Make targets and variable defaults reference |

@@ -1,0 +1,43 @@
+name: Blueprint Bug Report
+description: Report a defect in the blueprint source, consumer handoff, or generated repo contract.
+title: "[bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve the blueprint.
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Affected scope
+      options:
+        - Blueprint source repository
+        - Generated consumer initialization
+        - CI or release automation
+        - Docs or governance
+        - Optional module scaffolding
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Describe the failure, drift, or inconsistency.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Share the commands, flags, or environment that reproduce the issue.
+      render: bash
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true

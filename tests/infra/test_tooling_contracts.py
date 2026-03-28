@@ -426,6 +426,8 @@ render_optional_module_secret_manifests "messaging" "blueprint-rabbitmq-auth" "r
         result = run(["make", "infra-help-reference"])
         self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
         self.assertIn("Primary Workflows", result.stdout)
+        self.assertIn("make quality-hooks-fast", result.stdout)
+        self.assertIn("make quality-hooks-strict", result.stdout)
         self.assertIn("make quality-hooks-run", result.stdout)
         self.assertIn("make blueprint-bootstrap", result.stdout)
         self.assertIn("make infra-bootstrap", result.stdout)
