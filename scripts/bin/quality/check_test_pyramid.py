@@ -11,6 +11,11 @@ import sys
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from scripts.lib.blueprint.contract_schema import load_blueprint_contract  # noqa: E402
+
 DEFAULT_CONTRACT = REPO_ROOT / "scripts/lib/quality/test_pyramid_contract.json"
 SCOPES = ("unit", "integration", "e2e")
 
@@ -83,6 +88,10 @@ def main() -> int:
     try:
         contract_path = args.contract_path.resolve()
         contract = load_contract(contract_path)
+        blueprint_contract = load_blueprint_contract(REPO_ROOT / "blueprint/contract.yaml")
+        if blueprint_contract.repository.repo_mode == "generated-consumer":
+            print("[test-pyramid] skipped for generated-consumer repo")
+            return 0
         file_scopes = resolve_file_scopes(REPO_ROOT, contract)
     except ValueError as exc:
         print(str(exc), file=sys.stderr)
