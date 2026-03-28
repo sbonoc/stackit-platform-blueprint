@@ -2,10 +2,10 @@
 
 ## Current Priorities
 - [ ] Continue migrating `workflows` to provider-backed STACKIT execution when official resources become available.
+- [ ] Deliver provider-backed OpenSearch support as an active blueprint priority for DHE Data Marketplace needs.
 
 ## Provider-Backed STACKIT Expansion Candidates
 - [ ] Evaluate and add a provider-backed Redis module built on official STACKIT Terraform resources.
-- [ ] Evaluate and add a provider-backed OpenSearch module built on official STACKIT Terraform resources.
 - [ ] Evaluate and add provider-backed relational/NoSQL data-service modules for the currently available STACKIT Terraform resources (`mariadb`, `mongodbflex`, `sqlserverflex`).
 - [ ] Evaluate and add a provider-backed Logs/LogMe module or baseline observability extension using official STACKIT Terraform resources.
 - [ ] Evaluate and add a provider-backed File Storage module using STACKIT SFS Terraform resources.

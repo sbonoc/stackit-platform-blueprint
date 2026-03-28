@@ -12,9 +12,10 @@
   - Blueprint-managed paths are reference and tooling surfaces; consult them only when the task explicitly touches bootstrap, contract, validation, or inherited blueprint behavior.
   - Blueprint-maintainer test suites under `tests/blueprint/**` and `tests/docs/**` stay source-only and are pruned during first init.
 - Optional modules use the simplest truthful execution model available:
-  - provider-backed STACKIT foundation modules: `observability`, `postgres`, `object-storage`, `rabbitmq`, `dns`, `secrets-manager`, `kms`
+  - provider-backed STACKIT foundation modules: `observability`, `opensearch`, `postgres`, `object-storage`, `rabbitmq`, `dns`, `secrets-manager`, `kms`
   - runtime/API modules: `workflows`, `langfuse`, `neo4j`, `public-endpoints`, `identity-aware-proxy`
   - generated repositories persist their chosen optional-module set in `blueprint/contract.yaml` during `make blueprint-init-repo`; later commands read that contract by default, and env flags act as explicit overrides
+  - OpenSearch is a blueprint-owned platform capability target; OpenMetadata remains consumer/product-owned and is out of blueprint scope unless a future decision records otherwise
 - Runtime dependency policy keeps pinned latest-stable versions, with one explicit vendor exception:
   - current multi-arch Bitnami images published under `bitnamilegacy/*` are allowed when the pinned tag is the supported stable line validated by this repo
 - Quality gates are split by operator intent:
