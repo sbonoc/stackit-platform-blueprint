@@ -164,6 +164,12 @@ run_cmd "$ROOT_DIR/scripts/lib/blueprint/init_repo.py" "${init_repo_args[@]}"
 
 if [[ "${BLUEPRINT_INIT_DRY_RUN}" == "true" ]]; then
   log_info "init dry-run mode enabled; skipping contract validation because files were not written"
+else
+  run_cmd "$ROOT_DIR/scripts/bin/blueprint/render_makefile.sh"
+fi
+
+if [[ "${BLUEPRINT_INIT_DRY_RUN}" == "true" ]]; then
+  :
 elif [[ "${BLUEPRINT_INIT_SKIP_VALIDATE}" != "true" ]]; then
   run_cmd "$ROOT_DIR/scripts/bin/blueprint/validate_contract.py" \
     --contract-path "$ROOT_DIR/blueprint/contract.yaml"

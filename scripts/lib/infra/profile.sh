@@ -2,6 +2,9 @@
 set -euo pipefail
 
 BLUEPRINT_PROFILE="${BLUEPRINT_PROFILE:-local-full}"
+PROFILE_SH_ROOT_DIR="${ROOT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)}"
+MODULE_ENABLEMENT_CONTRACT_LOADED="false"
+MODULE_ENABLEMENT_CONTRACT_LINES="${MODULE_ENABLEMENT_CONTRACT_LINES:-}"
 
 normalize_bool() {
   local value="${1:-false}"
@@ -16,6 +19,58 @@ normalize_bool() {
 }
 
 OBSERVABILITY_ENABLED_NORMALIZED="$(normalize_bool "${OBSERVABILITY_ENABLED:-false}")"
+
+load_module_enablement_contract_defaults() {
+  if [[ "$MODULE_ENABLEMENT_CONTRACT_LOADED" == "true" ]]; then
+    return 0
+  fi
+  MODULE_ENABLEMENT_CONTRACT_LOADED="true"
+
+  # Generated repos persist their selected module set in blueprint/contract.yaml
+  # during blueprint-init-repo. Shell env flags still win when operators need an override.
+  local contract_path="$PROFILE_SH_ROOT_DIR/blueprint/contract.yaml"
+  if [[ ! -f "$contract_path" ]] || ! command -v python3 >/dev/null 2>&1; then
+    return 0
+  fi
+
+  local line
+  while IFS= read -r line; do
+    [[ -n "$line" ]] || continue
+    MODULE_ENABLEMENT_CONTRACT_LINES+="${line}"$'\n'
+  done < <(
+    python3 - "$contract_path" <<'PY'
+from pathlib import Path
+import sys
+
+contract_path = Path(sys.argv[1]).resolve()
+repo_root = contract_path.parents[1]
+if str(repo_root) not in sys.path:
+    sys.path.insert(0, str(repo_root))
+
+from scripts.lib.blueprint.contract_schema import load_blueprint_contract
+
+contract = load_blueprint_contract(contract_path)
+for module_id, module in contract.optional_modules.modules.items():
+    print(f"{module_id}={str(module.enabled_by_default).lower()}")
+PY
+  )
+}
+
+module_contract_default_enabled() {
+  local module="$1"
+  load_module_enablement_contract_defaults
+
+  local line
+  while IFS= read -r line; do
+    [[ -n "$line" ]] || continue
+    if [[ "${line%%=*}" == "$module" ]]; then
+      normalize_bool "${line#*=}"
+      return 0
+    fi
+  done <<<"$MODULE_ENABLEMENT_CONTRACT_LINES"
+
+  echo "false"
+}
 
 is_local_profile() {
   [[ "$BLUEPRINT_PROFILE" == local-* ]]
@@ -110,7 +165,12 @@ is_module_enabled() {
   local module="$1"
   local var_name
   var_name="$(module_flag_name "$module")" || return 1
-  local raw="${!var_name:-false}"
+  local raw
+  if [[ -n "${!var_name+x}" ]]; then
+    raw="${!var_name}"
+  else
+    raw="$(module_contract_default_enabled "$module")"
+  fi
   [[ "$(normalize_bool "$raw")" == "true" ]]
 }
 

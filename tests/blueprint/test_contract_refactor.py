@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 import re
 import subprocess
@@ -598,6 +599,11 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn('"docs/platform/consumer/first_30_minutes.md"', bootstrap)
         self.assertIn('"docs/blueprint/governance/ownership_matrix.md"', bootstrap)
         self.assertIn('"docs/platform/modules/identity-aware-proxy/README.md"', bootstrap)
+        self.assertIn('ensure_dir "$ROOT_DIR/docs/reference/generated"', bootstrap)
+        self.assertIn('scripts/bin/quality/render_core_targets_doc.py', bootstrap)
+        self.assertIn('docs/reference/generated/core_targets.generated.md', bootstrap)
+        self.assertIn('scripts/lib/docs/generate_contract_docs.py', bootstrap)
+        self.assertIn('docs/reference/generated/contract_metadata.generated.md', bootstrap)
         self.assertIn('log_metric "blueprint_template_file_count" "${#template_files[@]}"', bootstrap)
         self.assertIn(
             "pre-commit install --install-hooks --hook-type pre-commit --hook-type pre-push",
@@ -1151,6 +1157,7 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn("blueprint_init_repo_interactive", init_interactive_script)
         self.assertIn("BLUEPRINT_INIT_DRY_RUN", init_interactive_script)
         self.assertIn("prompt_with_default", init_interactive_script)
+        self.assertIn('scripts/bin/blueprint/render_makefile.sh', init_script)
         self.assertIn("_render_contract", init_python)
         self.assertIn("_render_docusaurus_config", init_python)
         self.assertIn("--dry-run", init_python)
@@ -1372,6 +1379,13 @@ class RefactorContractsTests(unittest.TestCase):
                     "iac/tfstate",
                 ],
                 cwd=REPO_ROOT,
+                env={
+                    **os.environ,
+                    "POSTGRES_ENABLED": "true",
+                    "OBJECT_STORAGE_ENABLED": "true",
+                    "PUBLIC_ENDPOINTS_ENABLED": "true",
+                    "IDENTITY_AWARE_PROXY_ENABLED": "true",
+                },
                 text=True,
                 capture_output=True,
                 check=False,
@@ -1406,9 +1420,27 @@ class RefactorContractsTests(unittest.TestCase):
             seeded_codeowners = (tmp_root / ".github/CODEOWNERS").read_text(encoding="utf-8")
             seeded_pr_template = (tmp_root / ".github/pull_request_template.md").read_text(encoding="utf-8")
             seeded_bug_template = (tmp_root / ".github/ISSUE_TEMPLATE/bug_report.yml").read_text(encoding="utf-8")
+            optional_modules_section = _extract_yaml_section(updated_contract.splitlines(), "optional_modules")
+            optional_module_entries = _extract_yaml_section(optional_modules_section, "modules")
             self.assertIn("name: acme-platform", updated_contract)
             self.assertIn("repo_mode: generated-consumer", updated_contract)
             self.assertIn("default_branch: main", updated_contract)
+            self.assertEqual(_extract_yaml_scalar(_extract_yaml_section(optional_module_entries, "postgres"), "enabled_by_default"), "true")
+            self.assertEqual(
+                _extract_yaml_scalar(_extract_yaml_section(optional_module_entries, "object-storage"), "enabled_by_default"),
+                "true",
+            )
+            self.assertEqual(
+                _extract_yaml_scalar(_extract_yaml_section(optional_module_entries, "public-endpoints"), "enabled_by_default"),
+                "true",
+            )
+            self.assertEqual(
+                _extract_yaml_scalar(
+                    _extract_yaml_section(optional_module_entries, "identity-aware-proxy"),
+                    "enabled_by_default",
+                ),
+                "true",
+            )
             self.assertIn('title: "Acme Platform Blueprint"', updated_docs_config)
             self.assertIn('tagline: "Acme reusable platform blueprint"', updated_docs_config)
             self.assertIn('organizationName: "acme"', updated_docs_config)

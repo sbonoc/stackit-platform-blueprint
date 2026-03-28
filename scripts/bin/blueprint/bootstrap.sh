@@ -38,6 +38,7 @@ bootstrap_blueprint_directories() {
   ensure_dir "$ROOT_DIR/docs/blueprint/governance"
   ensure_dir "$ROOT_DIR/docs/platform/consumer"
   ensure_dir "$ROOT_DIR/docs/platform/modules"
+  ensure_dir "$ROOT_DIR/docs/reference/generated"
   ensure_dir "$ROOT_DIR/make/platform"
 }
 
@@ -91,6 +92,12 @@ bootstrap_blueprint_directories
 bootstrap_blueprint_templates
 run_cmd "$ROOT_DIR/scripts/bin/blueprint/render_module_wrapper_skeletons.sh"
 run_cmd "$ROOT_DIR/scripts/bin/blueprint/render_makefile.sh"
+run_cmd python3 "$ROOT_DIR/scripts/bin/quality/render_core_targets_doc.py" \
+  --output "$ROOT_DIR/docs/reference/generated/core_targets.generated.md"
+run_cmd python3 "$ROOT_DIR/scripts/lib/docs/generate_contract_docs.py" \
+  --contract "$ROOT_DIR/blueprint/contract.yaml" \
+  --modules-dir "$ROOT_DIR/blueprint/modules" \
+  --output "$ROOT_DIR/docs/reference/generated/contract_metadata.generated.md"
 
 if command -v pre-commit >/dev/null 2>&1; then
   run_cmd pre-commit install --install-hooks --hook-type pre-commit --hook-type pre-push

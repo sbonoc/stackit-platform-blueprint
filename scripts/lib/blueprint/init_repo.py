@@ -60,6 +60,7 @@ def _render_contract(
     repo_name: str,
     default_branch: str,
     repo_mode: str,
+    module_enablement: dict[str, bool],
 ) -> str:
     content = _replace_scalar_once(
         content,
@@ -79,6 +80,15 @@ def _render_contract(
         rf"\1{repo_mode}",
         "blueprint contract repository.repo_mode",
     )
+    # Persist init-time module selection so generated repos can treat the contract
+    # as their steady-state default without replaying the original init env.
+    for module_id, enabled in module_enablement.items():
+        content = _replace_scalar_once(
+            content,
+            rf"(^\s{{6}}{re.escape(module_id)}:\n(?:\s{{8}}.*\n)*?\s{{8}}enabled_by_default:\s*)(true|false)",
+            rf"\g<1>{str(enabled).lower()}",
+            f"optional module default enablement for {module_id}",
+        )
     return content
 
 
@@ -304,11 +314,23 @@ def _expand_optional_module_path(path_value: str) -> list[str]:
     return [path_value.replace("${ENV}", env) for env in ("local", "dev", "stage", "prod")]
 
 
+def _resolve_optional_module_enablement(repo_root: Path) -> dict[str, bool]:
+    contract = load_blueprint_contract(repo_root / "blueprint/contract.yaml")
+    module_enablement: dict[str, bool] = {}
+    for module in contract.optional_modules.modules.values():
+        env_value = os.environ.get(module.enable_flag)
+        module_enablement[module.module_id] = (
+            module.enabled_by_default if env_value is None else _normalize_bool(env_value)
+        )
+    return module_enablement
+
+
 def _seed_consumer_owned_files(
     repo_root: Path,
     dry_run: bool,
     summary: ChangeSummary,
     replacements: dict[str, str],
+    module_enablement: dict[str, bool],
 ) -> None:
     contract = load_blueprint_contract(repo_root / "blueprint/contract.yaml")
     repository = contract.repository
@@ -335,8 +357,7 @@ def _seed_consumer_owned_files(
         if module.scaffolding_mode != "conditional":
             continue
 
-        env_value = os.environ.get(module.enable_flag)
-        module_enabled = module.enabled_by_default if env_value is None else _normalize_bool(env_value)
+        module_enabled = module_enablement[module.module_id]
         if module_enabled:
             continue
 
@@ -427,12 +448,14 @@ def main() -> int:
         (repo_root / "infra/cloud/stackit/terraform/foundation/state-backend/stage.hcl", "stage"),
         (repo_root / "infra/cloud/stackit/terraform/foundation/state-backend/prod.hcl", "prod"),
     ]
+    module_enablement = _resolve_optional_module_enablement(repo_root)
 
     _seed_consumer_owned_files(
         repo_root=repo_root,
         dry_run=args.dry_run,
         summary=summary,
         replacements=consumer_replacements,
+        module_enablement=module_enablement,
     )
 
     contract_original = contract_path.read_text(encoding="utf-8")
@@ -441,6 +464,7 @@ def main() -> int:
         repo_name=args.repo_name,
         default_branch=args.default_branch,
         repo_mode=_target_repo_mode(repo_root),
+        module_enablement=module_enablement,
     )
     docusaurus_original = docusaurus_path.read_text(encoding="utf-8")
     docusaurus_updated = _render_docusaurus_config(

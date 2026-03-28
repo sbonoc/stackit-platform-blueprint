@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import re
 import tempfile
 import unittest
 
@@ -288,6 +289,52 @@ cat "{captured_args}"
         return result.stdout
 
 
+def profile_module_enablement_contract(module_defaults: dict[str, bool], env: dict[str, str] | None = None) -> str:
+    with tempfile.TemporaryDirectory() as tmpdir:
+        repo_root = Path(tmpdir)
+        profile_path = repo_root / "scripts/lib/infra/profile.sh"
+        profile_path.parent.mkdir(parents=True, exist_ok=True)
+        profile_path.write_text((REPO_ROOT / "scripts/lib/infra/profile.sh").read_text(encoding="utf-8"), encoding="utf-8")
+
+        contract_schema_path = repo_root / "scripts/lib/blueprint/contract_schema.py"
+        contract_schema_path.parent.mkdir(parents=True, exist_ok=True)
+        contract_schema_path.write_text(
+            (REPO_ROOT / "scripts/lib/blueprint/contract_schema.py").read_text(encoding="utf-8"),
+            encoding="utf-8",
+        )
+
+        contract = (REPO_ROOT / "blueprint/contract.yaml").read_text(encoding="utf-8")
+        contract = re.sub(
+            r"^(\s*repo_mode:\s*).+$",
+            r"\1generated-consumer",
+            contract,
+            count=1,
+            flags=re.MULTILINE,
+        )
+        for module, enabled in module_defaults.items():
+            contract = re.sub(
+                rf"(^\s{{6}}{re.escape(module)}:\n(?:\s{{8}}.*\n)*?\s{{8}}enabled_by_default:\s*)(true|false)",
+                rf"\1{'true' if enabled else 'false'}",
+                contract,
+                count=1,
+                flags=re.MULTILINE,
+            )
+        contract_path = repo_root / "blueprint/contract.yaml"
+        contract_path.parent.mkdir(parents=True, exist_ok=True)
+        contract_path.write_text(contract, encoding="utf-8")
+
+        script = f"""
+source "{profile_path}"
+printf 'postgres=%s\\n' "$(is_module_enabled postgres && echo true || echo false)"
+printf 'public_endpoints=%s\\n' "$(is_module_enabled public-endpoints && echo true || echo false)"
+printf 'enabled_modules=%s\\n' "$(enabled_modules_csv)"
+"""
+        result = run(["bash", "-lc", script], env)
+        if result.returncode != 0:
+            raise AssertionError(result.stdout + result.stderr)
+        return result.stdout + result.stderr
+
+
 def terraform_backend_apply_failure_contract() -> str:
     with tempfile.TemporaryDirectory() as tmpdir:
         bin_dir = Path(tmpdir) / "bin"
@@ -442,6 +489,21 @@ render_optional_module_secret_manifests "messaging" "blueprint-rabbitmq-auth" "r
         result = run(["make", "quality-test-pyramid"])
         self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
         self.assertIn("[test-pyramid] OK", result.stdout)
+
+    def test_profile_uses_generated_repo_contract_when_module_env_is_unset(self) -> None:
+        resolved = profile_module_enablement_contract({"postgres": True, "public-endpoints": False})
+        self.assertIn("postgres=true", resolved)
+        self.assertIn("public_endpoints=false", resolved)
+        self.assertIn("enabled_modules=postgres", resolved)
+
+    def test_profile_env_flags_override_generated_repo_contract_defaults(self) -> None:
+        resolved = profile_module_enablement_contract(
+            {"postgres": True, "public-endpoints": False},
+            {"POSTGRES_ENABLED": "false", "PUBLIC_ENDPOINTS_ENABLED": "true"},
+        )
+        self.assertIn("postgres=false", resolved)
+        self.assertIn("public_endpoints=true", resolved)
+        self.assertIn("enabled_modules=public-endpoints", resolved)
 
     def test_optional_module_execution_resolves_provider_backed_stackit_modes(self) -> None:
         resolved = resolve_optional_module_execution("postgres", "plan", profile="stackit-dev")

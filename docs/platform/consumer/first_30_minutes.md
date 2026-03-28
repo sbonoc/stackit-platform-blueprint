@@ -23,6 +23,7 @@ make blueprint-init-repo
 
 Expected outcome:
 - `blueprint/contract.yaml` metadata reflects your repository identity.
+- `blueprint/contract.yaml` persists the optional modules you selected during init; later commands use that contract as the default module set unless you override flags explicitly.
 - `docs/docusaurus.config.js` owner/repo/edit links match your repository.
 
 ## 2) Bootstrap Template and Infra Scaffolding (10 min)
@@ -32,7 +33,7 @@ make infra-bootstrap
 ```
 
 Expected outcome:
-- `make/blueprint.generated.mk` is rendered for current module flags.
+- `make/blueprint.generated.mk` is rendered for the current contract-selected module set.
 - Optional scaffolding is materialized for enabled modules while disabled-module scaffold files stay available for later enablement.
 
 ## 3) Validate Baseline (10 min)

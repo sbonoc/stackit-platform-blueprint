@@ -14,6 +14,7 @@
 - Optional modules use the simplest truthful execution model available:
   - provider-backed STACKIT foundation modules: `observability`, `postgres`, `object-storage`, `rabbitmq`, `dns`, `secrets-manager`, `kms`
   - runtime/API modules: `workflows`, `langfuse`, `neo4j`, `public-endpoints`, `identity-aware-proxy`
+  - generated repositories persist their chosen optional-module set in `blueprint/contract.yaml` during `make blueprint-init-repo`; later commands read that contract by default, and env flags act as explicit overrides
 - Runtime dependency policy keeps pinned latest-stable versions, with one explicit vendor exception:
   - current multi-arch Bitnami images published under `bitnamilegacy/*` are allowed when the pinned tag is the supported stable line validated by this repo
 - Quality gates are split by operator intent:
