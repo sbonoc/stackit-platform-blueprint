@@ -1,6 +1,7 @@
 # Blueprint Backlog
 
 ## Current Priorities
+- [ ] Split the mirrored Python version pin so STACKIT Workflows can keep its runtime-limited baseline while the rest of the blueprint tracks latest stable upstream Python.
 - [ ] Continue migrating `workflows` to provider-backed STACKIT execution when official resources become available.
 - [ ] Deliver provider-backed OpenSearch support as an active blueprint priority for DHE Data Marketplace needs.
 
