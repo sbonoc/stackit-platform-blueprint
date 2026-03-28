@@ -62,6 +62,7 @@
   - DNS zones keep trailing dots in consumer input contracts but are trimmed at the provider boundary.
   - PostgreSQL provider-backed defaults stay aligned at version `16` across wrappers and foundation.
   - STACKIT runtime deploy now waits explicitly for kube API hostname resolution and API readiness before the first `kubectl` operation, with troubleshooting updated for operator-side DNS blockers.
+  - STACKIT foundation destroy now performs a best-effort delete/wait of blueprint-managed namespaces before Terraform deletes the SKE cluster, reducing the chance of long-lived `STATE_DELETING` clusters caused by in-cluster edge/runtime resources.
 
 ## Release Plan
 - Current state: pre-release baseline `template_version: 1.0.0` (no published upgrade transitions yet).

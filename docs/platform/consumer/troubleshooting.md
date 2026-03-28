@@ -170,4 +170,10 @@ Common first-day issues for generated repositories.
   ```bash
   make infra-stackit-destroy-all
   ```
-- If a cluster remains in `STATE_DELETING`, inspect whether in-cluster resources are still attached and retry the destroy after provider-side cleanup finishes.
+- The destroy flow now performs a best-effort delete of blueprint-managed namespaces before Terraform destroys the SKE cluster:
+  - `apps`, `data`, `messaging`, `network`, `security`, `observability`
+  - controller namespaces such as `argocd`, `external-secrets`, and `envoy-gateway-system`
+- If a cluster still remains in `STATE_DELETING` after that:
+  - inspect whether Kubernetes access is still available with `kubectl get ns`
+  - if access is still available, look for namespaces stuck in `Terminating` and remaining `LoadBalancer` services or Gateway resources
+  - then retry `make infra-stackit-destroy-all` after those in-cluster resources are gone

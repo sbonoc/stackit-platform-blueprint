@@ -340,6 +340,50 @@ printf 'status=%s\\n' "$status"
         return result.stdout
 
 
+def blueprint_namespace_cleanup_contract() -> str:
+    with tempfile.TemporaryDirectory() as tmpdir:
+        state_dir = Path(tmpdir) / "state"
+        state_dir.mkdir()
+        kubectl = Path(tmpdir) / "kubectl"
+        kubectl.write_text(
+            "\n".join(
+                [
+                    "#!/bin/sh",
+                    f'STATE_DIR="{state_dir}"',
+                    'if [ "$1" = "delete" ] && [ "$2" = "namespace" ]; then',
+                    '  touch "$STATE_DIR/$3.deleted"',
+                    "  exit 0",
+                    "fi",
+                    'if [ "$1" = "get" ] && [ "$2" = "namespace" ]; then',
+                    '  if [ -f "$STATE_DIR/$3.deleted" ]; then',
+                    "    exit 1",
+                    "  fi",
+                    '  printf "%s\\n" "$3"',
+                    "  exit 0",
+                    "fi",
+                    'printf \'unexpected kubectl call: %s\\n\' \"$*\" >&2',
+                    "exit 1",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        kubectl.chmod(0o755)
+
+        script = f"""
+export PATH="{tmpdir}:$PATH"
+export ROOT_DIR="{REPO_ROOT}"
+export DRY_RUN="false"
+source "{REPO_ROOT}/scripts/lib/shell/bootstrap.sh"
+source "{REPO_ROOT}/scripts/lib/infra/tooling.sh"
+delete_blueprint_managed_namespaces 5 "contract_namespace_cleanup"
+"""
+        result = run(["bash", "-lc", script])
+        if result.returncode != 0:
+            raise AssertionError(result.stdout + result.stderr)
+        return result.stdout + result.stderr
+
+
 class ToolingContractsTests(unittest.TestCase):
     def test_fallback_runtime_values_helper_keeps_stdout_machine_readable(self) -> None:
         script = f"""
@@ -647,6 +691,14 @@ printf 'dsn=%s\\n' "$(postgres_dsn)"
     def test_run_terraform_action_with_backend_propagates_apply_failure_outside_errexit(self) -> None:
         output = terraform_backend_apply_failure_contract()
         self.assertIn("status=23", output)
+
+    def test_delete_blueprint_managed_namespaces_requests_delete_and_waits(self) -> None:
+        output = blueprint_namespace_cleanup_contract()
+        self.assertIn("contract_namespace_cleanup_delete_total", output)
+        self.assertIn("namespace=apps status=requested", output)
+        self.assertIn("namespace=network status=requested", output)
+        self.assertIn("contract_namespace_cleanup_wait_total", output)
+        self.assertIn("namespace=argocd status=deleted", output)
 
     def test_local_destroy_all_waits_for_namespace_deletion(self) -> None:
         script = (REPO_ROOT / "scripts/bin/infra/local_destroy_all.sh").read_text(encoding="utf-8")

@@ -275,6 +275,86 @@ cluster_crd_exists() {
   kubectl get crd "$crd_name" >/dev/null 2>&1
 }
 
+blueprint_managed_namespaces() {
+  set_default_env ARGOCD_NAMESPACE "argocd"
+  set_default_env EXTERNAL_SECRETS_NAMESPACE "external-secrets"
+  set_default_env CROSSPLANE_NAMESPACE "crossplane-system"
+  set_default_env PUBLIC_ENDPOINTS_CONTROLLER_NAMESPACE "envoy-gateway-system"
+
+  printf '%s\n' \
+    "apps" \
+    "observability" \
+    "network" \
+    "security" \
+    "messaging" \
+    "data" \
+    "$ARGOCD_NAMESPACE" \
+    "$EXTERNAL_SECRETS_NAMESPACE" \
+    "$CROSSPLANE_NAMESPACE" \
+    "$PUBLIC_ENDPOINTS_CONTROLLER_NAMESPACE" |
+    awk '!seen[$0]++'
+}
+
+wait_for_namespace_deletion() {
+  local namespace="$1"
+  local timeout_seconds="${2:-180}"
+  local metric_name="${3:-namespace_wait_total}"
+  local started_at
+  local now
+  local phase
+
+  if ! tooling_is_execution_enabled; then
+    log_metric "$metric_name" "1" "namespace=$namespace status=dry_run"
+    return 0
+  fi
+
+  started_at="$(date +%s)"
+  while true; do
+    if ! kubectl get namespace "$namespace" >/dev/null 2>&1; then
+      log_metric "$metric_name" "1" "namespace=$namespace status=deleted"
+      return 0
+    fi
+
+    now="$(date +%s)"
+    if ((now - started_at >= timeout_seconds)); then
+      phase="$(kubectl get namespace "$namespace" -o jsonpath='{.status.phase}' 2>/dev/null || true)"
+      log_metric "$metric_name" "1" "namespace=$namespace status=timeout"
+      log_warn "namespace did not finish deleting before timeout namespace=$namespace phase=${phase:-unknown}"
+      return 0
+    fi
+
+    sleep 2
+  done
+}
+
+delete_blueprint_managed_namespaces() {
+  local timeout_seconds="${1:-180}"
+  local metric_prefix="${2:-blueprint_namespace_cleanup}"
+  local namespace
+
+  if ! tooling_is_execution_enabled; then
+    while IFS= read -r namespace; do
+      [[ -n "$namespace" ]] || continue
+      log_metric "${metric_prefix}_delete_total" "1" "namespace=$namespace status=dry_run"
+      log_metric "${metric_prefix}_wait_total" "1" "namespace=$namespace status=dry_run"
+    done < <(blueprint_managed_namespaces)
+    return 0
+  fi
+
+  require_command kubectl
+
+  while IFS= read -r namespace; do
+    [[ -n "$namespace" ]] || continue
+    run_cmd kubectl delete namespace "$namespace" --ignore-not-found --wait=false
+    log_metric "${metric_prefix}_delete_total" "1" "namespace=$namespace status=requested"
+  done < <(blueprint_managed_namespaces)
+
+  while IFS= read -r namespace; do
+    [[ -n "$namespace" ]] || continue
+    wait_for_namespace_deletion "$namespace" "$timeout_seconds" "${metric_prefix}_wait_total"
+  done < <(blueprint_managed_namespaces)
+}
+
 terraform_dir_has_config() {
   local terraform_dir="$1"
   [[ -d "$terraform_dir" ]] || return 1

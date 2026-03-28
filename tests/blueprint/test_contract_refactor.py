@@ -163,6 +163,20 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn('stackit_foundation_apply_untaint_total', foundation_apply)
         self.assertIn('transient STACKIT PostgresFlex create/read race detected', foundation_apply)
 
+    def test_stackit_foundation_destroy_cleans_namespaces_before_cluster_destroy(self) -> None:
+        foundation_destroy = _read("scripts/bin/infra/stackit_foundation_destroy.sh")
+        tooling = _read("scripts/lib/infra/tooling.sh")
+
+        self.assertIn('STACKIT_FOUNDATION_NAMESPACE_DELETE_TIMEOUT_SECONDS', foundation_destroy)
+        self.assertIn('stackit_foundation_cleanup_namespaces_before_destroy', foundation_destroy)
+        self.assertIn('stackit_foundation_prepare_namespace_cleanup_access', foundation_destroy)
+        self.assertIn('delete_blueprint_managed_namespaces', foundation_destroy)
+        self.assertIn('stackit_foundation_namespace_cleanup_total', foundation_destroy)
+        self.assertIn('namespace_cleanup_status=$STACKIT_FOUNDATION_NAMESPACE_CLEANUP_STATUS', foundation_destroy)
+        self.assertIn('blueprint_managed_namespaces()', tooling)
+        self.assertIn('delete_blueprint_managed_namespaces()', tooling)
+        self.assertIn('PUBLIC_ENDPOINTS_CONTROLLER_NAMESPACE "envoy-gateway-system"', tooling)
+
     def test_rabbitmq_smoke_accepts_managed_tls_uris(self) -> None:
         rabbitmq_smoke = _read("scripts/bin/infra/rabbitmq_smoke.sh")
         rabbitmq_lib = _read("scripts/lib/infra/rabbitmq.sh")

@@ -331,3 +331,8 @@
   - The bootstrap flow still materializes enabled-module scaffolding and manifests, but it no longer deletes tracked module directories or files from the working tree when flags are disabled.
   - Tooling tests were updated to stop pruning live repo scaffolding during setup/teardown, and docs/contracts now describe preservation plus explicit disabled-resource cleanup.
   - Rationale: review and live-validation runs exposed that bootstrap/test flows could silently remove tracked content from the live blueprint workspace, which is unsafe and conflicts with repository hygiene expectations.
+
+- STACKIT foundation destroy now deletes blueprint-managed namespaces before cluster teardown when Kubernetes access is still available.
+  - Added shared namespace delete/wait helpers in `scripts/lib/infra/tooling.sh` and wired `stackit_foundation_destroy.sh` to fetch kubeconfig if needed, delete blueprint-managed namespaces, wait for their removal, and then run Terraform destroy.
+  - The cleanup is intentionally best-effort: if `kubectl` is missing, kubeconfig fetch fails, or the cluster is already unreachable, the destroy continues with recorded metrics/state instead of failing before Terraform can attempt cluster deletion.
+  - Rationale: real STACKIT `/tmp` e2e runs left SKE clusters in prolonged `STATE_DELETING` after runtime workloads created in-cluster edge resources; draining blueprint-owned namespaces first gives those resources a chance to disappear before the provider control plane deletes the cluster.
