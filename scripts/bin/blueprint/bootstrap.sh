@@ -21,7 +21,8 @@ Bootstraps blueprint-scoped repository assets:
 - local pre-commit and pre-push hook installation.
 
 In generated repos, consumer-seeded init files are not recreated here.
-Restore them intentionally with BLUEPRINT_INIT_FORCE=true make blueprint-init-repo.
+Restore them intentionally with make blueprint-resync-consumer-seeds
+(or force init when full re-seed is intentional).
 USAGE
 }
 
@@ -41,7 +42,7 @@ ensure_blueprint_seed_file() {
   local relative_path="$1"
   if blueprint_repo_is_generated_consumer && blueprint_path_is_consumer_seeded "$relative_path"; then
     if [[ ! -f "$ROOT_DIR/$relative_path" ]]; then
-      log_fatal "missing consumer-initialized file: $relative_path; rerun with $(blueprint_init_force_env_var)=true make blueprint-init-repo"
+      log_fatal "missing consumer-initialized file: $relative_path; run make blueprint-resync-consumer-seeds first (or $(blueprint_init_force_env_var)=true make blueprint-init-repo for full re-seed)"
     fi
     blueprint_bootstrap_seeded_skip_count=$((blueprint_bootstrap_seeded_skip_count + 1))
     return 0

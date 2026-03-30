@@ -28,9 +28,14 @@ Common first-day issues for generated repositories.
 - Generated repos do not recreate consumer-owned root files during bootstrap.
 - Restore them intentionally, then rerun bootstrap:
   ```bash
-  BLUEPRINT_INIT_FORCE=true make blueprint-init-repo
+  make blueprint-resync-consumer-seeds
+  BLUEPRINT_RESYNC_APPLY_SAFE=true make blueprint-resync-consumer-seeds
   make blueprint-bootstrap
   ```
+- Missing files are classified as `auto-refresh` (`action=create`) and are recreated by safe apply:
+  `BLUEPRINT_RESYNC_APPLY_SAFE=true make blueprint-resync-consumer-seeds`.
+- Use `BLUEPRINT_RESYNC_APPLY_ALL=true make blueprint-resync-consumer-seeds` only when full overwrite is intentional
+  for files classified as `manual-merge`.
 
 ## `make infra-bootstrap` fails with a missing init-managed file
 - Generated repos do not recreate init-managed identity files from ambient env during infra bootstrap.
@@ -51,6 +56,19 @@ Common first-day issues for generated repositories.
 - For enabled optional modules, confirm required non-sensitive inputs in `blueprint/repo.init.env` and required sensitive inputs in `blueprint/repo.init.secrets.env` are non-empty.
 - Confirm contract and docs identity values match your repository owner/name.
 - Confirm `blueprint/contract.yaml` sets `repo_mode: generated-consumer`.
+
+## `make blueprint-resync-consumer-seeds` reports `manual-merge`
+- `manual-merge` means the current file diverged from the latest seed and appears customized.
+- Keep dry-run as the default review step, then decide per file:
+  - merge manually if you need to preserve local customizations
+  - use safe apply for untouched/missing files:
+    ```bash
+    BLUEPRINT_RESYNC_APPLY_SAFE=true make blueprint-resync-consumer-seeds
+    ```
+  - use full overwrite only when intentional:
+    ```bash
+    BLUEPRINT_RESYNC_APPLY_ALL=true make blueprint-resync-consumer-seeds
+    ```
 
 ## Pull requests are not auto-requesting reviewers
 - Generated repositories seed `.github/CODEOWNERS` as a starter file with commented examples only.

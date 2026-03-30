@@ -4,6 +4,7 @@
 - [ ] Split the mirrored Python version pin so STACKIT Workflows can keep its runtime-limited baseline while the rest of the blueprint tracks latest stable upstream Python.
 - [ ] Continue migrating `workflows` to provider-backed STACKIT execution when official resources become available.
 - [ ] Deliver provider-backed OpenSearch support as an active blueprint priority for DHE Data Marketplace needs.
+- [ ] Extend the consumer seed resync workflow with optional merge-assist coverage for selected init-managed identity files without weakening customization boundaries.
 
 ## Provider-Backed STACKIT Expansion Candidates
 - [ ] Evaluate and add a provider-backed Redis module built on official STACKIT Terraform resources.

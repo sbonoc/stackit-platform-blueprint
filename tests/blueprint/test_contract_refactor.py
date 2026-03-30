@@ -462,6 +462,7 @@ class RefactorContractsTests(unittest.TestCase):
                 "scripts/lib/blueprint/init_repo_env.py",
                 "scripts/lib/blueprint/init_repo_io.py",
                 "scripts/lib/blueprint/init_repo_renderers.py",
+                "scripts/lib/blueprint/resync_consumer_seeds.py",
                 "scripts/lib/docs/generate_contract_docs.py",
                 "scripts/lib/docs/sync_module_contract_summaries.py",
                 "scripts/lib/infra/k8s_wait.sh",
@@ -474,6 +475,7 @@ class RefactorContractsTests(unittest.TestCase):
                 "scripts/lib/shell/utils.sh",
                 "scripts/bin/blueprint/clean_generated.sh",
                 "scripts/bin/blueprint/init_repo_interactive.sh",
+                "scripts/bin/blueprint/resync_consumer_seeds.sh",
                 "scripts/bin/blueprint/render_module_wrapper_skeletons.sh",
                 "scripts/bin/infra/destroy_disabled_modules.sh",
                 "scripts/bin/infra/local_destroy_all.sh",
@@ -575,6 +577,7 @@ class RefactorContractsTests(unittest.TestCase):
             {
                 "blueprint-init-repo",
                 "blueprint-init-repo-interactive",
+                "blueprint-resync-consumer-seeds",
                 "blueprint-check-placeholders",
                 "blueprint-template-smoke",
                 "blueprint-bootstrap",
@@ -676,7 +679,7 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn('log_metric "blueprint_template_file_count" "${#template_files[@]}"', bootstrap)
         self.assertIn('blueprint_consumer_seeded_skip_count', bootstrap)
         self.assertIn('missing consumer-initialized file:', bootstrap)
-        self.assertIn('BLUEPRINT_INIT_FORCE=true make blueprint-init-repo', bootstrap)
+        self.assertIn("make blueprint-resync-consumer-seeds", bootstrap)
         self.assertIn(
             "pre-commit install --install-hooks --hook-type pre-commit --hook-type pre-push",
             bootstrap,
@@ -775,6 +778,7 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn("make infra-local-destroy-all", docs_readme)
         self.assertIn("make infra-stackit-destroy-all", docs_readme)
         self.assertIn("make blueprint-bootstrap", docs_readme)
+        self.assertIn("make blueprint-resync-consumer-seeds", docs_readme)
         self.assertIn("make blueprint-render-module-wrapper-skeletons", docs_readme)
         self.assertIn("make blueprint-clean-generated", docs_readme)
         self.assertIn("BLUEPRINT_INIT_FORCE=true make blueprint-init-repo", docs_readme)
@@ -794,6 +798,7 @@ class RefactorContractsTests(unittest.TestCase):
 
     def test_consumer_quickstart_mentions_status_snapshot_and_no_duplicate_smoke(self) -> None:
         quickstart = _read("docs/platform/consumer/quickstart.md")
+        self.assertIn("make blueprint-resync-consumer-seeds", quickstart)
         self.assertIn("make infra-context", quickstart)
         self.assertIn("make infra-provision-deploy", quickstart)
         self.assertIn("make infra-status-json", quickstart)
@@ -1151,6 +1156,7 @@ class RefactorContractsTests(unittest.TestCase):
         metric_files = [
             "scripts/bin/blueprint/init_repo.sh",
             "scripts/bin/blueprint/init_repo_interactive.sh",
+            "scripts/bin/blueprint/resync_consumer_seeds.sh",
             "scripts/bin/blueprint/check_placeholders.sh",
             "scripts/bin/blueprint/template_smoke.sh",
             "scripts/bin/blueprint/bootstrap.sh",
