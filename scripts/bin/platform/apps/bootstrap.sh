@@ -31,7 +31,7 @@ ensure_dir "$ROOT_DIR/apps/backend"
 ensure_dir "$ROOT_DIR/apps/touchpoints"
 ensure_dir "$ROOT_DIR/apps/catalog"
 
-manifest_content=$'schemaVersion: v1\nappVersionContract:\n  appVersionEnv: APP_VERSION\n  appBuildIdEnv: APP_BUILD_ID\n  appReleaseEnv: APP_RELEASE\nruntimePinnedVersions:\n  python: '"$PYTHON_RUNTIME_BASE_IMAGE_VERSION"$'\n  node: '"$NODE_RUNTIME_BASE_IMAGE_VERSION"$'\n  nginx: '"$NGINX_RUNTIME_BASE_IMAGE_VERSION"$'\nframeworkPinnedVersions:\n  fastapi: '"$FASTAPI_VERSION"$'\n  pydantic: '"$PYDANTIC_VERSION"$'\n  vue: '"$VUE_VERSION"$'\n  pinia: '"$PINIA_VERSION"$'\n'
+manifest_content=$'schemaVersion: v1\nappVersionContract:\n  appVersionEnv: APP_VERSION\n  appBuildIdEnv: APP_BUILD_ID\n  appReleaseEnv: APP_RELEASE\nruntimePinnedVersions:\n  python: '"$PYTHON_RUNTIME_BASE_IMAGE_VERSION"$'\n  node: '"$NODE_RUNTIME_BASE_IMAGE_VERSION"$'\n  nginx: '"$NGINX_RUNTIME_BASE_IMAGE_VERSION"$'\nframeworkPinnedVersions:\n  fastapi: '"$FASTAPI_VERSION"$'\n  pydantic: '"$PYDANTIC_VERSION"$'\n  vue: '"$VUE_VERSION"$'\n  vue_router: '"$VUE_ROUTER_VERSION"$'\n  pinia: '"$PINIA_VERSION"$'\n'
 # Keep observability wiring explicit in the app catalog contract so runtime consumers
 # (backend/UI) can be configured consistently from one canonical source.
 if is_module_enabled observability; then
@@ -40,7 +40,7 @@ if is_module_enabled observability; then
 else
   manifest_content+=$'observabilityRuntimeContract:\n  enabled: false\n  otel:\n    endpoint: ""\n    protocol: ""\n    tracesEnabled: false\n    metricsEnabled: false\n    logsEnabled: false\n  faro:\n    enabled: false\n    collectPath: ""\n'
 fi
-versions_content=$'PYTHON_RUNTIME_BASE_IMAGE_VERSION='"$PYTHON_RUNTIME_BASE_IMAGE_VERSION"$'\nNODE_RUNTIME_BASE_IMAGE_VERSION='"$NODE_RUNTIME_BASE_IMAGE_VERSION"$'\nNGINX_RUNTIME_BASE_IMAGE_VERSION='"$NGINX_RUNTIME_BASE_IMAGE_VERSION"$'\nFASTAPI_VERSION='"$FASTAPI_VERSION"$'\nPYDANTIC_VERSION='"$PYDANTIC_VERSION"$'\nVUE_VERSION='"$VUE_VERSION"$'\nPINIA_VERSION='"$PINIA_VERSION"$'\n'
+versions_content=$'PYTHON_RUNTIME_BASE_IMAGE_VERSION='"$PYTHON_RUNTIME_BASE_IMAGE_VERSION"$'\nNODE_RUNTIME_BASE_IMAGE_VERSION='"$NODE_RUNTIME_BASE_IMAGE_VERSION"$'\nNGINX_RUNTIME_BASE_IMAGE_VERSION='"$NGINX_RUNTIME_BASE_IMAGE_VERSION"$'\nFASTAPI_VERSION='"$FASTAPI_VERSION"$'\nPYDANTIC_VERSION='"$PYDANTIC_VERSION"$'\nVUE_VERSION='"$VUE_VERSION"$'\nVUE_ROUTER_VERSION='"$VUE_ROUTER_VERSION"$'\nPINIA_VERSION='"$PINIA_VERSION"$'\n'
 
 printf '%s' "$manifest_content" >"$ROOT_DIR/apps/catalog/manifest.yaml"
 printf '%s' "$versions_content" >"$ROOT_DIR/apps/catalog/versions.lock"
