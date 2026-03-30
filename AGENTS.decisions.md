@@ -37,5 +37,5 @@
   - `make quality-hooks-fast` for default local and PR feedback
   - `make quality-hooks-strict` for slower audit lanes
   - `make quality-hooks-run` as the full composed gate
-- Branch naming contract explicitly allows `codex/` in addition to GitHub Flow purpose prefixes so assistant-authored branches remain policy-valid during CI validation.
+- Branch naming contract explicitly allows `codex/` and `copilot/` in addition to GitHub Flow purpose prefixes so assistant-authored branches remain policy-valid during CI validation.
 - Backlog entries represent open work only. Change history lives in Git; finished work does not stay in the backlog.

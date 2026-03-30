@@ -22,6 +22,7 @@ spec:
         - test/
         - ci/
         - codex/
+        - copilot/
     template_bootstrap:
       model: github-template
       template_version: 1.0.0
