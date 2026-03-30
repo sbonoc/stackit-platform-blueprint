@@ -89,6 +89,17 @@ infra-prereqs: ## Verify local prerequisites and optionally auto-install missing
 infra-help-reference: ## Show full Make targets and variable defaults reference
 	@scripts/bin/infra/help_reference.sh $(MAKEFILE_LIST)
 
+INFRA_ENV_GUARDED_TARGETS := \
+	infra-bootstrap infra-local-destroy-all infra-destroy-disabled-modules infra-validate infra-smoke infra-provision infra-deploy infra-provision-deploy \
+	infra-stackit-bootstrap-preflight infra-stackit-bootstrap-plan infra-stackit-bootstrap-apply infra-stackit-bootstrap-destroy \
+	infra-stackit-foundation-preflight infra-stackit-foundation-plan infra-stackit-foundation-apply infra-stackit-foundation-destroy \
+	infra-stackit-foundation-fetch-kubeconfig infra-stackit-foundation-refresh-kubeconfig infra-stackit-foundation-seed-runtime-secret \
+	infra-stackit-ci-github-setup infra-stackit-destroy-all infra-stackit-runtime-prerequisites infra-stackit-runtime-inventory infra-stackit-runtime-deploy \
+	infra-stackit-smoke-foundation infra-stackit-smoke-runtime infra-stackit-provision-deploy infra-argocd-topology-render infra-argocd-topology-validate \
+	infra-doctor infra-context infra-status infra-status-json infra-audit-version infra-audit-version-cached
+
+$(INFRA_ENV_GUARDED_TARGETS): blueprint-check-placeholders
+
 infra-bootstrap: ## Bootstrap infra-only tooling/scaffolding
 	@scripts/bin/infra/bootstrap.sh
 

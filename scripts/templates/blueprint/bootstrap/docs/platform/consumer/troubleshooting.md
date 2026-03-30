@@ -3,7 +3,7 @@
 Common first-day issues for generated repositories.
 
 ## `make blueprint-init-repo` fails
-- Ensure required variables are exported:
+- Ensure required variables are exported or present in `blueprint/repo.init.env`:
   - `BLUEPRINT_REPO_NAME`
   - `BLUEPRINT_GITHUB_ORG`
   - `BLUEPRINT_GITHUB_REPO`
@@ -15,10 +15,30 @@ Common first-day issues for generated repositories.
   - `BLUEPRINT_STACKIT_TFSTATE_BUCKET`
   - `BLUEPRINT_STACKIT_TFSTATE_KEY_PREFIX`
 - Check `docs/docusaurus.config.js` and `blueprint/contract.yaml` are writable.
+- If the repo is already initialized, rerun only when you intentionally want to re-apply init-owned files:
+  ```bash
+  BLUEPRINT_INIT_FORCE=true make blueprint-init-repo
+  ```
 
 ## `make blueprint-init-repo-interactive` fails in CI
 - The interactive target requires a TTY terminal.
 - In CI/non-interactive shells, use env-file mode with `make blueprint-init-repo`.
+
+## `make blueprint-bootstrap` fails with a missing consumer-initialized file
+- Generated repos do not recreate consumer-owned root files during bootstrap.
+- Restore them intentionally, then rerun bootstrap:
+  ```bash
+  BLUEPRINT_INIT_FORCE=true make blueprint-init-repo
+  make blueprint-bootstrap
+  ```
+
+## `make infra-bootstrap` fails with a missing init-managed file
+- Generated repos do not recreate init-managed identity files from ambient env during infra bootstrap.
+- Restore them intentionally, then rerun infra bootstrap:
+  ```bash
+  BLUEPRINT_INIT_FORCE=true make blueprint-init-repo
+  make infra-bootstrap
+  ```
 
 ## `make infra-validate` fails with branch naming errors
 - Branch names must match contract prefixes (for example `feature/...`, `fix/...`, `chore/...`, `docs/...`).
@@ -26,6 +46,8 @@ Common first-day issues for generated repositories.
 
 ## `make blueprint-check-placeholders` fails
 - Re-run `make blueprint-init-repo` with correct values.
+- Confirm `blueprint/repo.init.env` does not contain stale identity overrides.
+- Confirm `blueprint/repo.init.secrets.env` exists (copy from `blueprint/repo.init.secrets.example.env` when missing).
 - Confirm contract and docs identity values match your repository owner/name.
 - Confirm `blueprint/contract.yaml` sets `repo_mode: generated-consumer`.
 
@@ -39,7 +61,7 @@ Common first-day issues for generated repositories.
 - In a generated consumer repository, `make blueprint-init-repo` prunes `dags/` when `WORKFLOWS_ENABLED=false`.
 - If `WORKFLOWS_ENABLED=false` and `dags/` is still present in a fresh consumer repo, rerun first init before your first commit, then re-validate:
   ```bash
-  WORKFLOWS_ENABLED=false make blueprint-init-repo
+  WORKFLOWS_ENABLED=false BLUEPRINT_INIT_FORCE=true make blueprint-init-repo
   WORKFLOWS_ENABLED=false make blueprint-bootstrap
   WORKFLOWS_ENABLED=false make infra-bootstrap
   WORKFLOWS_ENABLED=false make infra-validate

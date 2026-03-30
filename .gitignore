@@ -7,6 +7,7 @@ node_modules/
 build/
 dist/
 artifacts/
+blueprint/repo.init.secrets.env
 docs/build/
 docs/.docusaurus/
 **/.terraform/

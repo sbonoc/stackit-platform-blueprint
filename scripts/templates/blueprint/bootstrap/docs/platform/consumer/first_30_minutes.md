@@ -15,15 +15,17 @@ make blueprint-init-repo-interactive
 
 CI/non-interactive mode:
 ```bash
-set -a
-source blueprint/repo.init.example.env
-set +a
+cp blueprint/repo.init.secrets.example.env blueprint/repo.init.secrets.env
+${EDITOR:-vi} blueprint/repo.init.env blueprint/repo.init.secrets.env
 make blueprint-init-repo
 ```
 
 Expected outcome:
 - `blueprint/contract.yaml` metadata reflects your repository identity.
+- `blueprint/contract.yaml` persists the optional modules you selected during init; later commands use that contract as the default module set unless you override flags explicitly.
 - `docs/docusaurus.config.js` owner/repo/edit links match your repository.
+- `blueprint/repo.init.env` is tracked for non-sensitive defaults and auto-loaded by later validation/infra commands.
+- `blueprint/repo.init.secrets.env` exists locally (gitignored) for sensitive runtime inputs.
 
 ## 2) Bootstrap Template and Infra Scaffolding (10 min)
 ```bash
@@ -47,6 +49,7 @@ Expected outcome:
 - App/docs smoke artifacts are written under `artifacts/apps/` and `artifacts/docs/`.
 
 ## 4) Next Steps (5 min)
+- Reapply init-owned files only when you mean to: `BLUEPRINT_INIT_FORCE=true make blueprint-init-repo`
 - Run `make infra-status-json` to capture the latest machine-readable runtime snapshot at `artifacts/infra/infra_status_snapshot.json`.
 - For live local runs, `docker-desktop` is preferred automatically when present; run `make infra-context` or set `LOCAL_KUBE_CONTEXT` before provisioning if you want a different cluster.
 - Review [Quickstart](quickstart.md) for full flow.

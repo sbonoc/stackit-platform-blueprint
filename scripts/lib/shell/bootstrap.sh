@@ -51,6 +51,34 @@ set_default_env() {
   fi
 }
 
+load_env_file_defaults() {
+  local env_file="$1"
+  if [[ ! -f "$env_file" ]]; then
+    return 0
+  fi
+
+  local -a existing_names=()
+  local -a existing_values=()
+  local var_name
+  while IFS= read -r var_name; do
+    [[ -n "$var_name" ]] || continue
+    if [[ -n "${!var_name+x}" ]]; then
+      existing_names+=("$var_name")
+      existing_values+=("${!var_name}")
+    fi
+  done < <(sed -nE 's/^[[:space:]]*([A-Za-z_][A-Za-z0-9_]*)=.*/\1/p' "$env_file")
+
+  set -a
+  # shellcheck disable=SC1090
+  source "$env_file"
+  set +a
+
+  local idx
+  for idx in "${!existing_names[@]}"; do
+    export "${existing_names[$idx]}=${existing_values[$idx]}"
+  done
+}
+
 require_env_vars() {
   local missing=0
   local var_name

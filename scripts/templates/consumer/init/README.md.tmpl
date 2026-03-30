@@ -9,12 +9,17 @@ make infra-bootstrap
 make infra-validate
 ```
 
+`blueprint/repo.init.env` is the tracked non-sensitive defaults file for bootstrap and validation commands.
+Use `blueprint/repo.init.secrets.env` (gitignored) for sensitive values, scaffolded from
+`blueprint/repo.init.secrets.example.env`.
+
 ## Default Work Scope
 - Work in `apps/**`, `docs/platform/**`, `make/platform.mk`, `make/platform/*.mk`, `scripts/bin/platform/**`, and `scripts/lib/platform/**` by default.
 - Consult blueprint-managed paths only when the task explicitly mentions bootstrap, contract, validation, or inherited blueprint behavior.
 
 ## Ownership Split
 - Consumer-owned after first init: `README.md`, `AGENTS.md`, `AGENTS.backlog.md`, `AGENTS.decisions.md`, `docs/README.md`, `.github/CODEOWNERS`, `.github/pull_request_template.md`, `.github/ISSUE_TEMPLATE/**`, `.github/workflows/ci.yml`, `docs/platform/**`, `make/platform.mk`, `make/platform/*.mk`, `scripts/bin/platform/**`, and `scripts/lib/platform/**`.
+- Local operator config: `blueprint/repo.init.secrets.env` is gitignored and auto-loaded (after `blueprint/repo.init.env`) by selected bootstrap/validation commands.
 - Blueprint-managed reference and automation live under `blueprint/**`, `docs/blueprint/**`, `.github/actions/**`, `scripts/bin/blueprint/**`, `scripts/lib/blueprint/**`, `scripts/templates/**`, and `make/blueprint.generated.mk`.
 
 ## CI Baseline

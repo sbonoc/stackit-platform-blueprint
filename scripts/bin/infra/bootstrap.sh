@@ -3,6 +3,11 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
+source "$ROOT_DIR/scripts/lib/blueprint/contract_runtime.sh"
+blueprint_load_env_defaults
+if blueprint_repo_is_generated_consumer; then
+  blueprint_require_runtime_env
+fi
 source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 source "$ROOT_DIR/scripts/lib/blueprint/bootstrap_templates.sh"
 source "$ROOT_DIR/scripts/lib/infra/postgres.sh"
@@ -22,6 +27,10 @@ Bootstraps infra-scoped scaffolding only:
 - stack-specific Terraform and ArgoCD overlay scaffolding,
 - optional-module infra scaffolding when enabled,
 - preserves disabled optional-module scaffolding for safe future enablement.
+
+When present, blueprint/repo.init.env and blueprint/repo.init.secrets.env are auto-loaded.
+In generated repos, init-managed identity files are not recreated here.
+Restore them intentionally with BLUEPRINT_INIT_FORCE=true make blueprint-init-repo.
 USAGE
 }
 
@@ -34,6 +43,38 @@ require_command bash
 require_command git
 require_command make
 require_command python3
+
+infra_bootstrap_init_managed_skip_count=0
+
+ensure_infra_template_file() {
+  local relative_path="$1"
+  local template_rel="${2:-$relative_path}"
+  if blueprint_repo_is_generated_consumer && blueprint_path_is_init_managed "$relative_path"; then
+    if [[ ! -f "$ROOT_DIR/$relative_path" ]]; then
+      log_fatal "missing init-managed file: $relative_path; rerun with $(blueprint_init_force_env_var)=true make blueprint-init-repo"
+    fi
+    infra_bootstrap_init_managed_skip_count=$((infra_bootstrap_init_managed_skip_count + 1))
+    return 0
+  fi
+
+  ensure_file_from_template "$ROOT_DIR/$relative_path" "infra" "$template_rel"
+}
+
+ensure_infra_rendered_file() {
+  local relative_path="$1"
+  local template_rel="$2"
+  shift 2 || true
+
+  if blueprint_repo_is_generated_consumer && blueprint_path_is_init_managed "$relative_path"; then
+    if [[ ! -f "$ROOT_DIR/$relative_path" ]]; then
+      log_fatal "missing init-managed file: $relative_path; rerun with $(blueprint_init_force_env_var)=true make blueprint-init-repo"
+    fi
+    infra_bootstrap_init_managed_skip_count=$((infra_bootstrap_init_managed_skip_count + 1))
+    return 0
+  fi
+
+  ensure_file_from_rendered_template "$ROOT_DIR/$relative_path" "infra" "$template_rel" "$@"
+}
 
 normalize_slug_component() {
   local raw="$1"
@@ -117,37 +158,37 @@ bootstrap_infra_directories() {
 }
 
 bootstrap_infra_static_templates() {
-  ensure_file_from_template "$ROOT_DIR/tests/infra/modules/observability/README.md" "infra" "tests/infra/modules/observability/README.md"
-  ensure_file_from_template "$ROOT_DIR/infra/local/crossplane/kustomization.yaml" "infra" "infra/local/crossplane/kustomization.yaml"
-  ensure_file_from_template "$ROOT_DIR/infra/local/crossplane/namespace.yaml" "infra" "infra/local/crossplane/namespace.yaml"
-  ensure_file_from_template "$ROOT_DIR/infra/local/helm/core/argocd.values.yaml" "infra" "infra/local/helm/core/argocd.values.yaml"
-  ensure_file_from_template "$ROOT_DIR/infra/local/helm/core/external-secrets.values.yaml" "infra" "infra/local/helm/core/external-secrets.values.yaml"
-  ensure_file_from_template "$ROOT_DIR/infra/local/helm/core/crossplane.values.yaml" "infra" "infra/local/helm/core/crossplane.values.yaml"
-  ensure_file_from_template "$ROOT_DIR/infra/local/helm/observability/grafana.values.yaml" "infra" "infra/local/helm/observability/grafana.values.yaml"
-  ensure_file_from_template "$ROOT_DIR/infra/local/helm/observability/otel-collector.values.yaml" "infra" "infra/local/helm/observability/otel-collector.values.yaml"
-  ensure_file_from_template "$ROOT_DIR/infra/gitops/argocd/base/kustomization.yaml" "infra" "infra/gitops/argocd/base/kustomization.yaml"
-  ensure_file_from_template "$ROOT_DIR/infra/gitops/argocd/base/namespace.yaml" "infra" "infra/gitops/argocd/base/namespace.yaml"
-  ensure_file_from_template "$ROOT_DIR/infra/gitops/platform/base/kustomization.yaml" "infra" "infra/gitops/platform/base/kustomization.yaml"
-  ensure_file_from_template "$ROOT_DIR/infra/gitops/platform/base/namespaces.yaml" "infra" "infra/gitops/platform/base/namespaces.yaml"
-  ensure_file_from_template "$ROOT_DIR/infra/gitops/platform/environments/local/kustomization.yaml" "infra" "infra/gitops/platform/environments/local/kustomization.yaml"
-  ensure_file_from_template "$ROOT_DIR/infra/gitops/platform/environments/local/runtime-contract-configmap.yaml" "infra" "infra/gitops/platform/environments/local/runtime-contract-configmap.yaml"
-  ensure_file_from_template "$ROOT_DIR/infra/gitops/argocd/root/kustomization.yaml" "infra" "infra/gitops/argocd/root/kustomization.yaml"
-  ensure_file_from_template "$ROOT_DIR/infra/gitops/argocd/root/applicationset-platform-environments.yaml" "infra" "infra/gitops/argocd/root/applicationset-platform-environments.yaml"
+  ensure_infra_template_file "tests/infra/modules/observability/README.md"
+  ensure_infra_template_file "infra/local/crossplane/kustomization.yaml"
+  ensure_infra_template_file "infra/local/crossplane/namespace.yaml"
+  ensure_infra_template_file "infra/local/helm/core/argocd.values.yaml"
+  ensure_infra_template_file "infra/local/helm/core/external-secrets.values.yaml"
+  ensure_infra_template_file "infra/local/helm/core/crossplane.values.yaml"
+  ensure_infra_template_file "infra/local/helm/observability/grafana.values.yaml"
+  ensure_infra_template_file "infra/local/helm/observability/otel-collector.values.yaml"
+  ensure_infra_template_file "infra/gitops/argocd/base/kustomization.yaml"
+  ensure_infra_template_file "infra/gitops/argocd/base/namespace.yaml"
+  ensure_infra_template_file "infra/gitops/platform/base/kustomization.yaml"
+  ensure_infra_template_file "infra/gitops/platform/base/namespaces.yaml"
+  ensure_infra_template_file "infra/gitops/platform/environments/local/kustomization.yaml"
+  ensure_infra_template_file "infra/gitops/platform/environments/local/runtime-contract-configmap.yaml"
+  ensure_infra_template_file "infra/gitops/argocd/root/kustomization.yaml"
+  ensure_infra_template_file "infra/gitops/argocd/root/applicationset-platform-environments.yaml"
 
   local env
   for env in dev stage prod; do
-    ensure_file_from_template "$ROOT_DIR/infra/gitops/platform/environments/$env/kustomization.yaml" "infra" "infra/gitops/platform/environments/$env/kustomization.yaml"
-    ensure_file_from_template "$ROOT_DIR/infra/gitops/platform/environments/$env/runtime-contract-configmap.yaml" "infra" "infra/gitops/platform/environments/$env/runtime-contract-configmap.yaml"
-    ensure_file_from_template "$ROOT_DIR/infra/gitops/argocd/environments/$env/kustomization.yaml" "infra" "infra/gitops/argocd/environments/$env/kustomization.yaml"
-    ensure_file_from_template "$ROOT_DIR/infra/gitops/argocd/environments/$env/platform-config.yaml" "infra" "infra/gitops/argocd/environments/$env/platform-config.yaml"
-    ensure_file_from_template "$ROOT_DIR/infra/gitops/argocd/environments/$env/platform-application.yaml" "infra" "infra/gitops/argocd/environments/$env/platform-application.yaml"
-    ensure_file_from_template "$ROOT_DIR/infra/gitops/argocd/overlays/$env/kustomization.yaml" "infra" "infra/gitops/argocd/overlays/$env/kustomization.yaml"
-    ensure_file_from_template "$ROOT_DIR/infra/gitops/argocd/overlays/$env/appproject.yaml" "infra" "infra/gitops/argocd/overlays/$env/appproject.yaml"
-    ensure_file_from_template "$ROOT_DIR/infra/gitops/argocd/overlays/$env/applicationset-platform-environments.yaml" "infra" "infra/gitops/argocd/overlays/$env/applicationset-platform-environments.yaml"
+    ensure_infra_template_file "infra/gitops/platform/environments/$env/kustomization.yaml"
+    ensure_infra_template_file "infra/gitops/platform/environments/$env/runtime-contract-configmap.yaml"
+    ensure_infra_template_file "infra/gitops/argocd/environments/$env/kustomization.yaml"
+    ensure_infra_template_file "infra/gitops/argocd/environments/$env/platform-config.yaml"
+    ensure_infra_template_file "infra/gitops/argocd/environments/$env/platform-application.yaml"
+    ensure_infra_template_file "infra/gitops/argocd/overlays/$env/kustomization.yaml"
+    ensure_infra_template_file "infra/gitops/argocd/overlays/$env/appproject.yaml"
+    ensure_infra_template_file "infra/gitops/argocd/overlays/$env/applicationset-platform-environments.yaml"
   done
-  ensure_file_from_template "$ROOT_DIR/infra/gitops/argocd/overlays/local/kustomization.yaml" "infra" "infra/gitops/argocd/overlays/local/kustomization.yaml"
-  ensure_file_from_template "$ROOT_DIR/infra/gitops/argocd/overlays/local/appproject.yaml" "infra" "infra/gitops/argocd/overlays/local/appproject.yaml"
-  ensure_file_from_template "$ROOT_DIR/infra/gitops/argocd/overlays/local/application-platform-local.yaml" "infra" "infra/gitops/argocd/overlays/local/application-platform-local.yaml"
+  ensure_infra_template_file "infra/gitops/argocd/overlays/local/kustomization.yaml"
+  ensure_infra_template_file "infra/gitops/argocd/overlays/local/appproject.yaml"
+  ensure_infra_template_file "infra/gitops/argocd/overlays/local/application-platform-local.yaml"
 }
 
 bootstrap_stackit_terraform_scaffolding() {
@@ -168,14 +209,13 @@ bootstrap_stackit_terraform_scaffolding() {
   )
   local rel
   for rel in "${stackit_tf_files[@]}"; do
-    ensure_file_from_template "$ROOT_DIR/$rel" "infra" "$rel"
+    ensure_infra_template_file "$rel"
   done
 
   local env
   for env in dev stage prod; do
-    ensure_file_from_rendered_template \
-      "$ROOT_DIR/infra/cloud/stackit/terraform/bootstrap/env/$env.tfvars" \
-      "infra" \
+    ensure_infra_rendered_file \
+      "infra/cloud/stackit/terraform/bootstrap/env/$env.tfvars" \
       "infra/cloud/stackit/terraform/bootstrap/env/$env.tfvars" \
       "STACKIT_PROJECT_ID=$BLUEPRINT_STACKIT_PROJECT_ID" \
       "STACKIT_REGION=$BLUEPRINT_STACKIT_REGION" \
@@ -183,26 +223,23 @@ bootstrap_stackit_terraform_scaffolding() {
       "STACKIT_PLATFORM_SLUG=$BLUEPRINT_STACKIT_PLATFORM_SLUG" \
       "STACKIT_TFSTATE_KEY_PREFIX=$BLUEPRINT_STACKIT_TFSTATE_KEY_PREFIX"
 
-    ensure_file_from_rendered_template \
-      "$ROOT_DIR/infra/cloud/stackit/terraform/foundation/env/$env.tfvars" \
-      "infra" \
+    ensure_infra_rendered_file \
+      "infra/cloud/stackit/terraform/foundation/env/$env.tfvars" \
       "infra/cloud/stackit/terraform/foundation/env/$env.tfvars" \
       "STACKIT_TENANT_SLUG=$BLUEPRINT_STACKIT_TENANT_SLUG" \
       "STACKIT_PLATFORM_SLUG=$BLUEPRINT_STACKIT_PLATFORM_SLUG" \
       "STACKIT_PROJECT_ID=$BLUEPRINT_STACKIT_PROJECT_ID" \
       "STACKIT_REGION=$BLUEPRINT_STACKIT_REGION"
 
-    ensure_file_from_rendered_template \
-      "$ROOT_DIR/infra/cloud/stackit/terraform/bootstrap/state-backend/$env.hcl" \
-      "infra" \
+    ensure_infra_rendered_file \
+      "infra/cloud/stackit/terraform/bootstrap/state-backend/$env.hcl" \
       "infra/cloud/stackit/terraform/bootstrap/state-backend/$env.hcl" \
       "STACKIT_TFSTATE_BUCKET=$BLUEPRINT_STACKIT_TFSTATE_BUCKET" \
       "STACKIT_TFSTATE_KEY_PREFIX=$BLUEPRINT_STACKIT_TFSTATE_KEY_PREFIX" \
       "STACKIT_REGION=$BLUEPRINT_STACKIT_REGION"
 
-    ensure_file_from_rendered_template \
-      "$ROOT_DIR/infra/cloud/stackit/terraform/foundation/state-backend/$env.hcl" \
-      "infra" \
+    ensure_infra_rendered_file \
+      "infra/cloud/stackit/terraform/foundation/state-backend/$env.hcl" \
       "infra/cloud/stackit/terraform/foundation/state-backend/$env.hcl" \
       "STACKIT_TFSTATE_BUCKET=$BLUEPRINT_STACKIT_TFSTATE_BUCKET" \
       "STACKIT_TFSTATE_KEY_PREFIX=$BLUEPRINT_STACKIT_TFSTATE_KEY_PREFIX" \
@@ -210,14 +247,12 @@ bootstrap_stackit_terraform_scaffolding() {
   done
 
   for env in dev stage prod; do
-    ensure_file_from_template \
-      "$ROOT_DIR/infra/cloud/stackit/terraform/environments/$env/main.tf" \
-      "infra" \
+    ensure_infra_template_file \
+      "infra/cloud/stackit/terraform/environments/$env/main.tf" \
       "infra/cloud/stackit/terraform/main.tf"
   done
-  ensure_file_from_template \
-    "$ROOT_DIR/infra/cloud/stackit/terraform/modules/observability/main.tf" \
-    "infra" \
+  ensure_infra_template_file \
+    "infra/cloud/stackit/terraform/modules/observability/main.tf" \
     "infra/cloud/stackit/terraform/main.tf"
 }
 
@@ -531,5 +566,6 @@ bootstrap_optional_module_scaffolding
 bootstrap_argocd_overlay_scaffolding
 bootstrap_optional_manifests
 report_disabled_module_scaffolding_preserved
+log_metric "infra_init_managed_skip_count" "$infra_bootstrap_init_managed_skip_count"
 
 log_info "infra bootstrap complete"

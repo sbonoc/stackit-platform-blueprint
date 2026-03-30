@@ -3,16 +3,20 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
+export BLUEPRINT_CONTRACT_RUNTIME_ALLOW_DEFAULTS="true"
+source "$ROOT_DIR/scripts/lib/blueprint/contract_runtime.sh"
+unset BLUEPRINT_CONTRACT_RUNTIME_ALLOW_DEFAULTS
 
 start_script_metric_trap "blueprint_init_repo"
 
 usage() {
-  cat <<'EOF'
+  cat <<EOF
 Usage: init_repo.sh [--dry-run]
 
 Initializes repository identity after creating a new repository from the GitHub template.
 On first init, this also swaps blueprint-maintainer root docs/governance/CI files
 for consumer-owned seeds and removes source-only workflow leftovers.
+After first init, reruns must opt in with $(blueprint_init_force_env_var)=true.
 
 Environment variables:
   BLUEPRINT_REPO_NAME        Repository slug used for blueprint contract metadata.
@@ -29,8 +33,11 @@ Environment variables:
   BLUEPRINT_STACKIT_TFSTATE_KEY_PREFIX  Terraform state key prefix (default: terraform/state).
 
 Optional:
+  $(blueprint_init_force_env_var)=true to re-apply init-managed and consumer-seeded files.
   BLUEPRINT_INIT_SKIP_VALIDATE=true to skip contract validation after initialization.
   BLUEPRINT_INIT_DRY_RUN=true       to preview identity changes without writing files.
+  $(blueprint_defaults_env_file) and $(blueprint_secrets_env_file) are auto-loaded when present.
+                                    explicit shell env vars still win.
 
 Options:
   --dry-run                         same as BLUEPRINT_INIT_DRY_RUN=true.
@@ -56,6 +63,9 @@ done
 
 require_command python3
 require_command git
+
+blueprint_load_env_defaults
+blueprint_init_force_var_name="$(blueprint_init_force_env_var)"
 
 infer_github_org_from_remote() {
   local remote_url
@@ -135,6 +145,7 @@ set_default_env \
   "$(normalize_bucket_name "${BLUEPRINT_STACKIT_TENANT_SLUG}-${BLUEPRINT_STACKIT_PLATFORM_SLUG}-tf-state")"
 set_default_env BLUEPRINT_INIT_SKIP_VALIDATE "false"
 set_default_env BLUEPRINT_INIT_DRY_RUN "false"
+set_default_env "$blueprint_init_force_var_name" "false"
 
 if [[ "$cli_dry_run" == "true" ]]; then
   export BLUEPRINT_INIT_DRY_RUN="true"
@@ -159,6 +170,12 @@ init_repo_args=(
 if [[ "${BLUEPRINT_INIT_DRY_RUN}" == "true" ]]; then
   init_repo_args+=(--dry-run)
 fi
+
+case "${!blueprint_init_force_var_name:-false}" in
+1 | true | TRUE | True | yes | YES | on | ON)
+  init_repo_args+=(--force)
+  ;;
+esac
 
 run_cmd "$ROOT_DIR/scripts/lib/blueprint/init_repo.py" "${init_repo_args[@]}"
 

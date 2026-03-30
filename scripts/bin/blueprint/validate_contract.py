@@ -144,21 +144,61 @@ def _validate_template_bootstrap_contract(repo_root: Path, contract: BlueprintCo
                     f"repository.template_bootstrap.required_inputs contains invalid variable name: {variable}"
                 )
 
-    example_env_file = template.example_env_file
-    if not example_env_file:
-        errors.append("repository.template_bootstrap.example_env_file is required")
+    defaults_env_file = template.defaults_env_file
+    if not defaults_env_file:
+        errors.append("repository.template_bootstrap.defaults_env_file is required")
         return errors
 
-    example_path = repo_root / example_env_file
-    if not example_path.is_file():
-        errors.append(f"missing template bootstrap example env file: {example_env_file}")
+    defaults_path = repo_root / defaults_env_file
+    if not defaults_path.is_file():
+        errors.append(f"missing template bootstrap defaults env file: {defaults_env_file}")
         return errors
 
-    example_content = example_path.read_text(encoding="utf-8")
+    defaults_content = defaults_path.read_text(encoding="utf-8")
     for variable in required_inputs:
-        if f"{variable}=" not in example_content:
+        if f"{variable}=" not in defaults_content:
             errors.append(
-                "template bootstrap example env missing required input variable " f"declaration: {variable}"
+                "template bootstrap defaults env missing required input variable declaration: " f"{variable}"
+            )
+
+    secrets_example_env_file = template.secrets_example_env_file
+    if not secrets_example_env_file:
+        errors.append("repository.template_bootstrap.secrets_example_env_file is required")
+    else:
+        secrets_example_path = repo_root / secrets_example_env_file
+        if not secrets_example_path.is_file():
+            errors.append(
+                "missing template bootstrap secrets example env file: "
+                f"{secrets_example_env_file}"
+            )
+
+    secrets_env_file = template.secrets_env_file
+    if not secrets_env_file:
+        errors.append("repository.template_bootstrap.secrets_env_file is required")
+    elif secrets_env_file in {defaults_env_file, secrets_example_env_file}:
+        errors.append(
+            "repository.template_bootstrap.secrets_env_file must differ from "
+            "defaults_env_file and secrets_example_env_file"
+        )
+
+    force_env_var = template.force_env_var
+    if not force_env_var:
+        errors.append("repository.template_bootstrap.force_env_var is required")
+    elif not re.fullmatch(r"[A-Z][A-Z0-9_]*", force_env_var):
+        errors.append("repository.template_bootstrap.force_env_var must be a valid shell env variable name")
+
+    gitignore_path = repo_root / ".gitignore"
+    if gitignore_path.is_file():
+        gitignore_content = gitignore_path.read_text(encoding="utf-8")
+        if secrets_env_file and secrets_env_file not in gitignore_content:
+            errors.append(
+                ".gitignore must ignore repository.template_bootstrap.secrets_env_file: "
+                f"{secrets_env_file}"
+            )
+        if defaults_env_file and defaults_env_file in gitignore_content:
+            errors.append(
+                ".gitignore must not ignore repository.template_bootstrap.defaults_env_file: "
+                f"{defaults_env_file}"
             )
     return errors
 
@@ -173,6 +213,7 @@ def _validate_repository_mode_contract(repo_root: Path, contract: BlueprintContr
     consumer_init = repository.consumer_init
     source_only_paths = repository.source_only_paths
     consumer_seeded_paths = repository.consumer_seeded_paths
+    init_managed_paths = repository.init_managed_paths
     conditional_scaffold_paths = repository.conditional_scaffold_paths
 
     if not repository.repo_mode:
@@ -188,6 +229,8 @@ def _validate_repository_mode_contract(repo_root: Path, contract: BlueprintContr
 
     if not consumer_seeded_paths:
         errors.append("repository.ownership_path_classes.consumer_seeded must define at least one path")
+    if not init_managed_paths:
+        errors.append("repository.ownership_path_classes.init_managed must define at least one path")
     if not conditional_scaffold_paths:
         errors.append("repository.ownership_path_classes.conditional_scaffold must define at least one path")
 
@@ -216,13 +259,24 @@ def _validate_repository_mode_contract(repo_root: Path, contract: BlueprintContr
                 f"repository.required_files: {relative_path}"
             )
 
-    overlap = (set(source_only_paths) & set(repository.required_files)) | (set(source_only_paths) & set(consumer_seeded_paths))
+    overlap = set(source_only_paths) & set(repository.required_files)
     if overlap:
         errors.append(
-            "repository.ownership_path_classes.source_only must not overlap with repository.required_files "
-            "or repository.ownership_path_classes.consumer_seeded: "
+            "repository.ownership_path_classes.source_only must not overlap with repository.required_files: "
             + ", ".join(sorted(overlap))
         )
+    class_overlap = (
+        (set(source_only_paths) & set(consumer_seeded_paths))
+        | (set(source_only_paths) & set(init_managed_paths))
+        | (set(consumer_seeded_paths) & set(init_managed_paths))
+    )
+    if class_overlap:
+        errors.append(
+            "repository ownership path classes must be disjoint across source_only, consumer_seeded, and init_managed: "
+            + ", ".join(sorted(class_overlap))
+        )
+
+    errors.extend(_validate_required_files(repo_root, init_managed_paths))
 
     expected_conditional_scaffold = {
         module.paths[path_key]
@@ -719,6 +773,7 @@ def _validate_bootstrap_template_sync(repo_root: Path, contract: BlueprintContra
     errors: list[str] = []
     repository = contract.repository
     consumer_owned_seed_paths = set(repository.consumer_seeded_paths)
+    init_managed_paths = set(repository.init_managed_paths)
 
     # These files are materialized by blueprint-bootstrap/infra-bootstrap from
     # static templates and must stay byte-for-byte synchronized to keep generated
@@ -732,7 +787,10 @@ def _validate_bootstrap_template_sync(repo_root: Path, contract: BlueprintContra
                 ".gitignore",
                 ".dockerignore",
                 ".pre-commit-config.yaml",
-                "blueprint/repo.init.example.env",
+                "blueprint/contract.yaml",
+                "blueprint/repo.init.env",
+                "blueprint/repo.init.secrets.example.env",
+                "docs/docusaurus.config.js",
                 "docs/README.md",
                 "docs/blueprint/README.md",
                 "docs/blueprint/architecture/system_overview.md",
@@ -774,7 +832,9 @@ def _validate_bootstrap_template_sync(repo_root: Path, contract: BlueprintContra
             # Generated consumer repos replace a small set of source-root docs/CI
             # files during blueprint-init-repo, so those files no longer follow
             # the source bootstrap template byte-for-byte afterwards.
-            if repository.repo_mode == repository.consumer_init.mode_to and rel_path in consumer_owned_seed_paths:
+            if repository.repo_mode == repository.consumer_init.mode_to and (
+                rel_path in consumer_owned_seed_paths or rel_path in init_managed_paths
+            ):
                 continue
             target_path = repo_root / rel_path
             template_path = template_root / rel_path
