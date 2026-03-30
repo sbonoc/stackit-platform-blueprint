@@ -60,48 +60,81 @@ run_python_pytest_lane() {
     "lane=${lane_slug} status=success discovered_tests=${#discovered[@]}"
 }
 
-_discover_pnpm_script_projects() {
+_discover_pnpm_script_project_entries() {
   local root_path="$1"
-  local script_name="$2"
+  shift
 
   if [[ ! -d "$root_path" ]]; then
     return 0
   fi
 
+  if [[ "$#" -eq 0 ]]; then
+    log_fatal "_discover_pnpm_script_project_entries requires at least one script name candidate"
+  fi
+
   require_command python3
-  python3 - "$root_path" "$script_name" <<'PY'
+  python3 - "$root_path" "$@" <<'PY'
 import json
+import os
 import pathlib
 import sys
 
 root_path = pathlib.Path(sys.argv[1])
-script_name = sys.argv[2]
+script_candidates = sys.argv[2:]
+excluded_dirs = {
+    "node_modules",
+    ".pnpm",
+    ".git",
+    ".turbo",
+    ".next",
+    "dist",
+    "build",
+    "coverage",
+    "__pycache__",
+    ".venv",
+    "venv",
+}
 
-for package_json in sorted(root_path.rglob("package.json")):
+for current_root, dirs, files in os.walk(root_path, topdown=True):
+    dirs[:] = sorted([directory for directory in dirs if directory not in excluded_dirs])
+    if "package.json" not in files:
+        continue
+
+    package_json = pathlib.Path(current_root) / "package.json"
     try:
         payload = json.loads(package_json.read_text(encoding="utf-8"))
     except Exception:
         continue
+
     scripts = payload.get("scripts")
-    if isinstance(scripts, dict) and isinstance(scripts.get(script_name), str):
-        print(str(package_json.parent))
+    if not isinstance(scripts, dict):
+        continue
+
+    selected_script = ""
+    for script_candidate in script_candidates:
+        if isinstance(scripts.get(script_candidate), str):
+            selected_script = script_candidate
+            break
+
+    if selected_script:
+        print(f"{package_json.parent}\t{selected_script}")
 PY
 }
 
 run_touchpoints_pnpm_lane() {
+  if [[ "$#" -lt 4 ]]; then
+    log_fatal "run_touchpoints_pnpm_lane requires lane, runner, root path, and at least one script name candidate"
+  fi
+
   local lane="$1"
   local runner="$2"
   local touchpoints_root="$3"
-  shift 3 || true
+  shift 3
 
   local lane_start_epoch
   lane_start_epoch="$(now_epoch_seconds)"
   local lane_slug
   lane_slug="${lane// /_}"
-
-  if [[ "$#" -eq 0 ]]; then
-    log_fatal "run_touchpoints_pnpm_lane requires at least one script name candidate"
-  fi
 
   if [[ ! -d "$touchpoints_root" ]]; then
     log_info "touchpoints root not found; skipping ${lane} lane path=$touchpoints_root"
@@ -111,24 +144,17 @@ run_touchpoints_pnpm_lane() {
     return 0
   fi
 
-  local selected_script=""
   local discovered=()
-  local script_candidate
+  local discovered_entry
   local package_dir
-  for script_candidate in "$@"; do
-    discovered=()
-    while IFS= read -r package_dir; do
-      [[ -n "$package_dir" ]] || continue
-      discovered+=("$package_dir")
-    done < <(_discover_pnpm_script_projects "$touchpoints_root" "$script_candidate")
+  local selected_script
+  while IFS=$'\t' read -r package_dir selected_script; do
+    [[ -n "$package_dir" ]] || continue
+    [[ -n "$selected_script" ]] || continue
+    discovered+=("${package_dir}"$'\t'"${selected_script}")
+  done < <(_discover_pnpm_script_project_entries "$touchpoints_root" "$@")
 
-    if [[ "${#discovered[@]}" -gt 0 ]]; then
-      selected_script="$script_candidate"
-      break
-    fi
-  done
-
-  if [[ -z "$selected_script" ]]; then
+  if [[ "${#discovered[@]}" -eq 0 ]]; then
     log_info "no touchpoints pnpm script discovered for ${lane}; skipping"
     log_metric "pnpm_lane_duration_seconds" \
       "$(( $(now_epoch_seconds) - lane_start_epoch ))" \
@@ -137,18 +163,20 @@ run_touchpoints_pnpm_lane() {
   fi
 
   require_command pnpm
-  log_info "running ${lane} ${runner} lane via script '$selected_script' for ${#discovered[@]} package(s)"
+  log_info "running ${lane} ${runner} lane with per-package script discovery for ${#discovered[@]} package(s)"
 
-  for package_dir in "${discovered[@]}"; do
+  for discovered_entry in "${discovered[@]}"; do
+    package_dir="${discovered_entry%%$'\t'*}"
+    selected_script="${discovered_entry#*$'\t'}"
     if ! run_cmd pnpm --dir "$package_dir" run "$selected_script"; then
       log_metric "pnpm_lane_duration_seconds" \
         "$(( $(now_epoch_seconds) - lane_start_epoch ))" \
-        "lane=${lane_slug} runner=${runner} status=failure discovered_packages=${#discovered[@]} script=$selected_script"
+        "lane=${lane_slug} runner=${runner} status=failure discovered_packages=${#discovered[@]} script_mode=per_package"
       return 1
     fi
   done
 
   log_metric "pnpm_lane_duration_seconds" \
     "$(( $(now_epoch_seconds) - lane_start_epoch ))" \
-    "lane=${lane_slug} runner=${runner} status=success discovered_packages=${#discovered[@]} script=$selected_script"
+    "lane=${lane_slug} runner=${runner} status=success discovered_packages=${#discovered[@]} script_mode=per_package"
 }

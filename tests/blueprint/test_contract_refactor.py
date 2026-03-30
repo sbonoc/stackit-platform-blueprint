@@ -1255,9 +1255,11 @@ class RefactorContractsTests(unittest.TestCase):
         contracts = _read("scripts/bin/platform/touchpoints/test_contracts.sh")
         e2e = _read("scripts/bin/platform/touchpoints/test_e2e.sh")
 
-        self.assertIn("_discover_pnpm_script_projects()", testing)
+        self.assertIn("_discover_pnpm_script_project_entries()", testing)
         self.assertIn("run_touchpoints_pnpm_lane()", testing)
         self.assertIn("pnpm_lane_duration_seconds", testing)
+        self.assertIn('"node_modules"', testing)
+        self.assertIn("script_mode=per_package", testing)
 
         self.assertIn("run_touchpoints_pnpm_lane", unit)
         self.assertIn('"touchpoints unit"', unit)
