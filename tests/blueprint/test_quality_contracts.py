@@ -107,6 +107,7 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn('"integration_max_inclusive"', contract)
         self.assertIn('"e2e_max_inclusive"', contract)
         self.assertIn("tests/blueprint/test_contract_refactor.py", contract)
+        self.assertIn("tests/blueprint/test_init_repo_env.py", contract)
         self.assertIn("tests/infra/test_workload_health_check.py", contract)
         self.assertIn("tests/e2e/test_vertical_slice.py", contract)
 

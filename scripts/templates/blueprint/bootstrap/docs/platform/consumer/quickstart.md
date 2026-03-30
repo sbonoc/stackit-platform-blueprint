@@ -35,6 +35,8 @@ Minimum required variables for env-file mode:
 
 `make blueprint-init-repo` creates or refreshes tracked defaults in `blueprint/repo.init.env`
 and local-sensitive defaults in `blueprint/repo.init.secrets.env` (scaffolded from `blueprint/repo.init.secrets.example.env`).
+When optional modules are enabled, required non-sensitive module inputs are seeded in `blueprint/repo.init.env`,
+while required sensitive module inputs are scaffolded in the secrets files with non-empty placeholders.
 Later `make blueprint-check-placeholders` and infra targets auto-load both files when present.
 Infra targets run `blueprint-check-placeholders` first, so missing required inputs fail fast before mutable operations.
 After first init, re-apply init-owned files only with `BLUEPRINT_INIT_FORCE=true make blueprint-init-repo`.
