@@ -26,6 +26,9 @@
   - Default work scope for human and AI contributors is `apps/**`, `docs/platform/**`, `make/platform*.mk`, `scripts/bin/platform/**`, and `scripts/lib/platform/**`.
   - Blueprint-managed paths are reference and tooling surfaces; consult them only when the task explicitly touches bootstrap, contract, validation, or inherited blueprint behavior.
   - Blueprint-maintainer test suites under `tests/blueprint/**` and `tests/docs/**` stay source-only and are pruned during first init.
+- Touchpoints test lanes are frontend-first in generated repos.
+  - `touchpoints-test-unit`, `touchpoints-test-integration`, `touchpoints-test-contracts`, and `touchpoints-test-e2e` discover and run pnpm script lanes from `apps/touchpoints/**` using Vitest/Pact/Playwright-oriented script keys.
+  - `touchpoints-test-contracts` also keeps optional pytest contract assertions under `tests/touchpoints/contracts` when consumers add them.
 - Optional modules use the simplest truthful execution model available:
   - provider-backed STACKIT foundation modules: `observability`, `opensearch`, `postgres`, `object-storage`, `rabbitmq`, `dns`, `secrets-manager`, `kms`
   - runtime/API modules: `workflows`, `langfuse`, `neo4j`, `public-endpoints`, `identity-aware-proxy`

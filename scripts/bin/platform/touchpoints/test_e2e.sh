@@ -7,4 +7,10 @@ source "$ROOT_DIR/scripts/lib/platform/testing.sh"
 
 start_script_metric_trap "touchpoints_test_e2e"
 
-run_python_pytest_lane "touchpoints e2e" "$ROOT_DIR/tests/touchpoints/e2e"
+run_touchpoints_pnpm_lane \
+  "touchpoints e2e" \
+  "playwright" \
+  "$ROOT_DIR/apps/touchpoints" \
+  "test:e2e" \
+  "test:playwright" \
+  "e2e"

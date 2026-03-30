@@ -7,4 +7,10 @@ source "$ROOT_DIR/scripts/lib/platform/testing.sh"
 
 start_script_metric_trap "touchpoints_test_integration"
 
-run_python_pytest_lane "touchpoints integration" "$ROOT_DIR/tests/touchpoints/integration"
+run_touchpoints_pnpm_lane \
+  "touchpoints integration" \
+  "vitest" \
+  "$ROOT_DIR/apps/touchpoints" \
+  "test:integration" \
+  "test:integration:ci" \
+  "test"

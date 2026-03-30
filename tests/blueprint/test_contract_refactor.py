@@ -1248,6 +1248,43 @@ class RefactorContractsTests(unittest.TestCase):
             self.assertIn("start_script_metric_trap", _read(path), msg=f"missing metric trap in {path}")
         self.assertIn("pytest_lane_duration_seconds", _read("scripts/lib/platform/testing.sh"))
 
+    def test_touchpoints_test_lanes_support_frontend_frameworks(self) -> None:
+        testing = _read("scripts/lib/platform/testing.sh")
+        unit = _read("scripts/bin/platform/touchpoints/test_unit.sh")
+        integration = _read("scripts/bin/platform/touchpoints/test_integration.sh")
+        contracts = _read("scripts/bin/platform/touchpoints/test_contracts.sh")
+        e2e = _read("scripts/bin/platform/touchpoints/test_e2e.sh")
+
+        self.assertIn("_discover_pnpm_script_project_entries()", testing)
+        self.assertIn("run_touchpoints_pnpm_lane()", testing)
+        self.assertIn("pnpm_lane_duration_seconds", testing)
+        self.assertIn('"node_modules"', testing)
+        self.assertIn("script_mode=per_package", testing)
+
+        self.assertIn("run_touchpoints_pnpm_lane", unit)
+        self.assertIn('"touchpoints unit"', unit)
+        self.assertIn('"vitest"', unit)
+        self.assertIn('"test:unit"', unit)
+        self.assertNotIn('run_python_pytest_lane "touchpoints unit"', unit)
+
+        self.assertIn("run_touchpoints_pnpm_lane", integration)
+        self.assertIn('"touchpoints integration"', integration)
+        self.assertIn('"vitest"', integration)
+        self.assertIn('"test:integration"', integration)
+        self.assertNotIn('run_python_pytest_lane "touchpoints integration"', integration)
+
+        self.assertIn("run_touchpoints_pnpm_lane", contracts)
+        self.assertIn('"touchpoints contracts"', contracts)
+        self.assertIn('"pact"', contracts)
+        self.assertIn('"test:pact"', contracts)
+        self.assertIn('run_python_pytest_lane "touchpoints contracts"', contracts)
+
+        self.assertIn("run_touchpoints_pnpm_lane", e2e)
+        self.assertIn('"touchpoints e2e"', e2e)
+        self.assertIn('"playwright"', e2e)
+        self.assertIn('"test:playwright"', e2e)
+        self.assertNotIn('run_python_pytest_lane "touchpoints e2e"', e2e)
+
     def test_blueprint_template_init_assets_exist(self) -> None:
         init_script = _read("scripts/bin/blueprint/init_repo.sh")
         init_interactive_script = _read("scripts/bin/blueprint/init_repo_interactive.sh")
