@@ -24,8 +24,8 @@ Expected outcome:
 - `blueprint/contract.yaml` metadata reflects your repository identity.
 - `blueprint/contract.yaml` persists the optional modules you selected during init; later commands use that contract as the default module set unless you override flags explicitly.
 - `docs/docusaurus.config.js` owner/repo/edit links match your repository.
-- `blueprint/repo.init.env` is tracked for non-sensitive defaults and auto-loaded by later validation/infra commands.
-- `blueprint/repo.init.secrets.env` exists locally (gitignored) for sensitive runtime inputs.
+- `blueprint/repo.init.env` is tracked for non-sensitive defaults (including required non-sensitive module inputs for enabled modules) and auto-loaded by later validation/infra commands.
+- `blueprint/repo.init.secrets.env` exists locally (gitignored) for sensitive runtime inputs (including required sensitive module placeholders for enabled modules).
 
 ## 2) Bootstrap Template and Infra Scaffolding (10 min)
 ```bash

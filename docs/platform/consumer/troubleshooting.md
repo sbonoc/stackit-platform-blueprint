@@ -48,6 +48,7 @@ Common first-day issues for generated repositories.
 - Re-run `make blueprint-init-repo` with correct values.
 - Confirm `blueprint/repo.init.env` does not contain stale identity overrides.
 - Confirm `blueprint/repo.init.secrets.env` exists (copy from `blueprint/repo.init.secrets.example.env` when missing).
+- For enabled optional modules, confirm required non-sensitive inputs in `blueprint/repo.init.env` and required sensitive inputs in `blueprint/repo.init.secrets.env` are non-empty.
 - Confirm contract and docs identity values match your repository owner/name.
 - Confirm `blueprint/contract.yaml` sets `repo_mode: generated-consumer`.
 
