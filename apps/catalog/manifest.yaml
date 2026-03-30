@@ -11,6 +11,7 @@ frameworkPinnedVersions:
   fastapi: 0.117.1
   pydantic: 2.11.10
   vue: 3.5.31
+  vue_router: 5.0.4
   pinia: 3.0.4
 observabilityRuntimeContract:
   enabled: false

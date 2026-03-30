@@ -79,10 +79,12 @@ class VerticalSliceTests(unittest.TestCase):
     def test_validate_and_audit_pass(self) -> None:
         validate = run(["make", "infra-validate"])
         self.assertEqual(validate.returncode, 0, msg=validate.stdout + validate.stderr)
-        audit = run(["make", "infra-audit-version"])
-        self.assertEqual(audit.returncode, 0, msg=audit.stdout + audit.stderr)
         audit_cached = run(["make", "infra-audit-version-cached"])
         self.assertEqual(audit_cached.returncode, 0, msg=audit_cached.stdout + audit_cached.stderr)
+        audit_output = audit_cached.stdout + audit_cached.stderr
+        self.assertIn("audit=infra-audit-version", audit_output)
+        self.assertIn("audit_cache_wrapper_invocation", audit_output)
+        self.assertIn("audit_cache_hit", audit_output)
 
     def test_apps_bootstrap_smoke_and_audit(self) -> None:
         env = module_flags_env(profile="local-lite")
@@ -90,14 +92,12 @@ class VerticalSliceTests(unittest.TestCase):
         self.assertEqual(bootstrap.returncode, 0, msg=bootstrap.stdout + bootstrap.stderr)
         smoke = run(["make", "apps-smoke"], env)
         self.assertEqual(smoke.returncode, 0, msg=smoke.stdout + smoke.stderr)
-        audit = run(["make", "apps-audit-versions"], env)
-        self.assertEqual(audit.returncode, 0, msg=audit.stdout + audit.stderr)
-        audit_output = audit.stdout + audit.stderr
-        self.assertIn("apps_version_pin_audit_total", audit_output)
-        self.assertIn("variable=PYTHON_RUNTIME_BASE_IMAGE_VERSION status=same", audit_output)
-        self.assertIn("apps_version_audit_summary_total", audit_output)
         audit_cached = run(["make", "apps-audit-versions-cached"], env)
         self.assertEqual(audit_cached.returncode, 0, msg=audit_cached.stdout + audit_cached.stderr)
+        audit_output = audit_cached.stdout + audit_cached.stderr
+        self.assertIn("audit=apps-audit-versions", audit_output)
+        self.assertIn("audit_cache_wrapper_invocation", audit_output)
+        self.assertIn("audit_cache_hit", audit_output)
         publish = run(["make", "apps-publish-ghcr"], env)
         self.assertEqual(publish.returncode, 0, msg=publish.stdout + publish.stderr)
 

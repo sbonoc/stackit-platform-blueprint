@@ -1066,6 +1066,17 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn('pinia: 3.0.4', manifest)
         self.assertIn('PINIA_VERSION=3.0.4', versions_lock)
 
+    def test_apps_version_baseline_pins_vue_router_504(self) -> None:
+        versions = _read("scripts/lib/platform/apps/versions.sh")
+        baseline = _read("scripts/lib/platform/apps/versions.baseline.sh")
+        manifest = _read("apps/catalog/manifest.yaml")
+        versions_lock = _read("apps/catalog/versions.lock")
+
+        self.assertIn('VUE_ROUTER_VERSION="5.0.4"', versions)
+        self.assertIn('VUE_ROUTER_VERSION="5.0.4"', baseline)
+        self.assertIn('vue_router: 5.0.4', manifest)
+        self.assertIn('VUE_ROUTER_VERSION=5.0.4', versions_lock)
+
     def test_crossplane_scaffold_is_placeholder_free(self) -> None:
         crossplane_kustomization = _read("infra/local/crossplane/kustomization.yaml")
         template_crossplane_kustomization = _read(
