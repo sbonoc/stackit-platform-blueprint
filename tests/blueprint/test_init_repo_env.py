@@ -92,9 +92,9 @@ class InitRepoEnvTests(unittest.TestCase):
         with patch.dict(
             os.environ,
             {
-                "POSTGRES_PASSWORD": "",
-                "IAP_COOKIE_SECRET": "",
-                "KEYCLOAK_CLIENT_SECRET": "",
+                "POSTGRES_PASSWORD": "env-postgres-password",
+                "IAP_COOKIE_SECRET": "env-cookie-secret-0123456789",
+                "KEYCLOAK_CLIENT_SECRET": "env-keycloak-secret",
             },
             clear=False,
         ):
@@ -106,6 +106,9 @@ class InitRepoEnvTests(unittest.TestCase):
         self.assertIn("POSTGRES_PASSWORD=platform-password", rendered)
         self.assertIn("IAP_COOKIE_SECRET=0123456789abcdef0123456789abcdef", rendered)
         self.assertIn("KEYCLOAK_CLIENT_SECRET=blueprint-client-secret", rendered)
+        self.assertNotIn("env-postgres-password", rendered)
+        self.assertNotIn("env-cookie-secret-0123456789", rendered)
+        self.assertNotIn("env-keycloak-secret", rendered)
 
 
 if __name__ == "__main__":

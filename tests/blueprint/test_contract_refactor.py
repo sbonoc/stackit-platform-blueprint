@@ -1684,6 +1684,11 @@ class RefactorContractsTests(unittest.TestCase):
             self.assertFalse((tmp_root / "infra/cloud/stackit/terraform/modules/workflows").exists())
             self.assertFalse((tmp_root / "tests/infra/modules/workflows").exists())
 
+            custom_defaults_env = defaults_env.replace(
+                "PUBLIC_ENDPOINTS_BASE_DOMAIN=apps.local",
+                "PUBLIC_ENDPOINTS_BASE_DOMAIN=apps.acme.local",
+            )
+            (tmp_root / "blueprint/repo.init.env").write_text(custom_defaults_env, encoding="utf-8")
             (tmp_root / "docs/docusaurus.config.js").unlink()
             (tmp_root / "infra/cloud/stackit/terraform/bootstrap/env/dev.tfvars").unlink()
 
@@ -1737,6 +1742,10 @@ class RefactorContractsTests(unittest.TestCase):
             self.assertIn(
                 'stackit_region   = "eu02"',
                 (tmp_root / "infra/cloud/stackit/terraform/bootstrap/env/dev.tfvars").read_text(encoding="utf-8"),
+            )
+            self.assertIn(
+                "PUBLIC_ENDPOINTS_BASE_DOMAIN=apps.acme.local",
+                (tmp_root / "blueprint/repo.init.env").read_text(encoding="utf-8"),
             )
 
     def test_blueprint_init_python_dry_run_does_not_mutate_files(self) -> None:

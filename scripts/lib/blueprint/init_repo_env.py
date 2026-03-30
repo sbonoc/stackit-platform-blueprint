@@ -231,7 +231,13 @@ def render_secrets_example_env_file_content(
         "STACKIT_TFSTATE_ACCESS_KEY_ID=\n",
         "STACKIT_TFSTATE_SECRET_ACCESS_KEY=\n",
     ]
-    module_specs = [(name, value) for name, value in sensitive_specs if name not in CORE_SENSITIVE_ENV_NAMES]
+    # Tracked example files must stay placeholder-only even when the caller has
+    # live secrets exported in the shell.
+    module_specs = [
+        (name, MODULE_REQUIRED_ENV_DEFAULTS.get(name, ""))
+        for name, _ in sensitive_specs
+        if name not in CORE_SENSITIVE_ENV_NAMES
+    ]
     if module_specs:
         lines.extend(["\n", "# Module inputs for currently enabled optional modules\n"])
         lines.extend(shell_assignment(name, value) for name, value in module_specs)
@@ -288,7 +294,7 @@ def ensure_defaults_env_file(
 
     original = defaults_env_path.read_text(encoding="utf-8")
     updated = original
-    for name, value in [*identity_specs, profile_spec, *module_flag_specs, *module_required_specs]:
+    for name, value in [*identity_specs, profile_spec, *module_flag_specs]:
         updated, _ = _replace_env_assignment(updated, name, value)
 
     declared_names = _declared_env_names(updated)
