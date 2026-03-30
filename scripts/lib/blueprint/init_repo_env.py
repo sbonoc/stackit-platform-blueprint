@@ -13,6 +13,68 @@ from scripts.lib.blueprint.contract_schema import load_module_contract
 from scripts.lib.blueprint.init_repo_contract import load_blueprint_contract_for_init
 from scripts.lib.blueprint.init_repo_io import apply_file_update
 
+CORE_SENSITIVE_ENV_NAMES = {
+    "STACKIT_SERVICE_ACCOUNT_KEY",
+    "STACKIT_SERVICE_ACCOUNT_TOKEN",
+    "STACKIT_TFSTATE_ACCESS_KEY_ID",
+    "STACKIT_TFSTATE_SECRET_ACCESS_KEY",
+}
+
+# Keep generated-consumer first-run deterministic when optional modules are
+# enabled: required module env vars should be pre-seeded with safe defaults or
+# placeholders, not left empty.
+MODULE_REQUIRED_ENV_DEFAULTS = {
+    "DNS_ZONE_NAME": "marketplace-dev",
+    "DNS_ZONE_FQDN": "marketplace.local.",
+    "IAP_UPSTREAM_URL": "http://catalog.apps.svc.cluster.local:8080",
+    "IAP_COOKIE_SECRET": "0123456789abcdef0123456789abcdef",
+    "KEYCLOAK_ISSUER_URL": "https://keycloak.example/realms/platform",
+    "KEYCLOAK_CLIENT_ID": "blueprint-client",
+    "KEYCLOAK_CLIENT_SECRET": "blueprint-client-secret",
+    "KMS_KEY_RING_NAME": "marketplace-ring",
+    "KMS_KEY_NAME": "marketplace-key",
+    "LANGFUSE_PUBLIC_DOMAIN": "langfuse.example.com",
+    "LANGFUSE_OIDC_ISSUER_URL": "https://keycloak.example/realms/platform",
+    "LANGFUSE_OIDC_CLIENT_ID": "langfuse-client",
+    "LANGFUSE_OIDC_CLIENT_SECRET": "langfuse-client-secret",
+    "LANGFUSE_DATABASE_URL": "postgresql://langfuse:langfuse-password@postgres.internal:5432/langfuse",
+    "LANGFUSE_SALT": "langfuse-salt-0123456789",
+    "LANGFUSE_ENCRYPTION_KEY": "langfuse-encryption-key-0123456789",
+    "LANGFUSE_NEXTAUTH_SECRET": "langfuse-nextauth-secret",
+    "NEO4J_AUTH_USERNAME": "neo4j",
+    "NEO4J_AUTH_PASSWORD": "neo4j-password",
+    "OBJECT_STORAGE_BUCKET_NAME": "marketplace-assets",
+    "POSTGRES_INSTANCE_NAME": "blueprint-postgres",
+    "POSTGRES_DB_NAME": "platform",
+    "POSTGRES_USER": "platform",
+    "POSTGRES_PASSWORD": "platform-password",
+    "PUBLIC_ENDPOINTS_BASE_DOMAIN": "apps.local",
+    "RABBITMQ_INSTANCE_NAME": "marketplace-rabbitmq",
+    "SECRETS_MANAGER_INSTANCE_NAME": "marketplace-secrets",
+    "STACKIT_WORKFLOWS_DAGS_REPO_URL": "https://github.com/example-org/example-repo.git",
+    "STACKIT_WORKFLOWS_DAGS_REPO_BRANCH": "main",
+    "STACKIT_WORKFLOWS_DAGS_REPO_USERNAME": "workflows-user",
+    "STACKIT_WORKFLOWS_DAGS_REPO_TOKEN": "workflows-token",
+    "STACKIT_WORKFLOWS_OIDC_DISCOVERY_URL": "https://keycloak.example/realms/platform/.well-known/openid-configuration",
+    "STACKIT_WORKFLOWS_OIDC_CLIENT_ID": "workflows-client",
+    "STACKIT_WORKFLOWS_OIDC_CLIENT_SECRET": "workflows-client-secret",
+    "STACKIT_OBSERVABILITY_INSTANCE_ID": "obs-dev",
+}
+
+MODULE_REQUIRED_SENSITIVE_ENV_NAMES = {
+    "POSTGRES_PASSWORD",
+    "NEO4J_AUTH_PASSWORD",
+    "IAP_COOKIE_SECRET",
+    "KEYCLOAK_CLIENT_SECRET",
+    "LANGFUSE_OIDC_CLIENT_SECRET",
+    "LANGFUSE_DATABASE_URL",
+    "LANGFUSE_SALT",
+    "LANGFUSE_ENCRYPTION_KEY",
+    "LANGFUSE_NEXTAUTH_SECRET",
+    "STACKIT_WORKFLOWS_DAGS_REPO_TOKEN",
+    "STACKIT_WORKFLOWS_OIDC_CLIENT_SECRET",
+}
+
 
 def shell_assignment(name: str, value: str) -> str:
     if not value:
@@ -48,7 +110,20 @@ def defaults_env_module_flag_specs(
     return specs
 
 
-def enabled_module_input_specs(
+def _module_required_env_value(name: str) -> str:
+    explicit_value = os.environ.get(name)
+    if explicit_value:
+        return explicit_value
+    return MODULE_REQUIRED_ENV_DEFAULTS.get(name, "")
+
+
+def _is_sensitive_module_required_env(name: str) -> bool:
+    if name in MODULE_REQUIRED_SENSITIVE_ENV_NAMES:
+        return True
+    return any(marker in name for marker in ("_PASSWORD", "_SECRET", "_TOKEN"))
+
+
+def enabled_module_required_env_specs(
     repo_root: Path,
     module_enablement: dict[str, bool],
 ) -> list[tuple[str, str]]:
@@ -63,13 +138,14 @@ def enabled_module_input_specs(
             if env_name in seen:
                 continue
             seen.add(env_name)
-            specs.append((env_name, os.environ.get(env_name, "")))
+            specs.append((env_name, _module_required_env_value(env_name)))
     return specs
 
 
 def render_defaults_env_file_content(
     identity_specs: list[tuple[str, str]],
     module_flag_specs: list[tuple[str, str]],
+    module_required_specs: list[tuple[str, str]],
 ) -> str:
     lines = [
         "# Repository defaults tracked in Git for this generated consumer.\n",
@@ -90,6 +166,9 @@ def render_defaults_env_file_content(
         ]
     )
     lines.extend(shell_assignment(name, value) for name, value in module_flag_specs)
+    if module_required_specs:
+        lines.extend(["\n", "# Required non-sensitive module inputs for currently enabled optional modules\n"])
+        lines.extend(shell_assignment(name, value) for name, value in module_required_specs)
     return "".join(lines)
 
 
@@ -102,13 +181,35 @@ def core_sensitive_env_specs() -> list[tuple[str, str]]:
     ]
 
 
+def non_sensitive_module_required_env_specs(
+    repo_root: Path,
+    module_enablement: dict[str, bool],
+) -> list[tuple[str, str]]:
+    return [
+        (name, value)
+        for name, value in enabled_module_required_env_specs(repo_root, module_enablement)
+        if not _is_sensitive_module_required_env(name)
+    ]
+
+
+def sensitive_module_required_env_specs(
+    repo_root: Path,
+    module_enablement: dict[str, bool],
+) -> list[tuple[str, str]]:
+    return [
+        (name, value)
+        for name, value in enabled_module_required_env_specs(repo_root, module_enablement)
+        if _is_sensitive_module_required_env(name)
+    ]
+
+
 def sensitive_env_specs(
     repo_root: Path,
     module_enablement: dict[str, bool],
 ) -> list[tuple[str, str]]:
     specs: list[tuple[str, str]] = []
     seen: set[str] = set()
-    for name, value in [*core_sensitive_env_specs(), *enabled_module_input_specs(repo_root, module_enablement)]:
+    for name, value in [*core_sensitive_env_specs(), *sensitive_module_required_env_specs(repo_root, module_enablement)]:
         if name in seen:
             continue
         seen.add(name)
@@ -130,17 +231,7 @@ def render_secrets_example_env_file_content(
         "STACKIT_TFSTATE_ACCESS_KEY_ID=\n",
         "STACKIT_TFSTATE_SECRET_ACCESS_KEY=\n",
     ]
-    module_specs = [
-        (name, "")
-        for name, _ in sensitive_specs
-        if name
-        not in {
-            "STACKIT_SERVICE_ACCOUNT_KEY",
-            "STACKIT_SERVICE_ACCOUNT_TOKEN",
-            "STACKIT_TFSTATE_ACCESS_KEY_ID",
-            "STACKIT_TFSTATE_SECRET_ACCESS_KEY",
-        }
-    ]
+    module_specs = [(name, value) for name, value in sensitive_specs if name not in CORE_SENSITIVE_ENV_NAMES]
     if module_specs:
         lines.extend(["\n", "# Module inputs for currently enabled optional modules\n"])
         lines.extend(shell_assignment(name, value) for name, value in module_specs)
@@ -158,17 +249,7 @@ def render_local_secrets_env_file_content(
         "# Core STACKIT credentials (required for live STACKIT execution)\n",
     ]
     lines.extend(shell_assignment(name, value) for name, value in core_sensitive_env_specs())
-    module_specs = [
-        (name, value)
-        for name, value in sensitive_specs
-        if name
-        not in {
-            "STACKIT_SERVICE_ACCOUNT_KEY",
-            "STACKIT_SERVICE_ACCOUNT_TOKEN",
-            "STACKIT_TFSTATE_ACCESS_KEY_ID",
-            "STACKIT_TFSTATE_SECRET_ACCESS_KEY",
-        }
-    ]
+    module_specs = [(name, value) for name, value in sensitive_specs if name not in CORE_SENSITIVE_ENV_NAMES]
     if module_specs:
         lines.extend(["\n", "# Module inputs for currently enabled optional modules\n"])
         lines.extend(shell_assignment(name, value) for name, value in module_specs)
@@ -197,16 +278,17 @@ def ensure_defaults_env_file(
     defaults_env_path = repo_root / contract.repository.template_bootstrap.defaults_env_file
     identity_specs = defaults_env_identity_specs(args)
     module_flag_specs = defaults_env_module_flag_specs(repo_root, module_enablement)
+    module_required_specs = non_sensitive_module_required_env_specs(repo_root, module_enablement)
     profile_spec = ("BLUEPRINT_PROFILE", os.environ.get("BLUEPRINT_PROFILE", "local-full"))
 
     if not defaults_env_path.exists():
-        updated = render_defaults_env_file_content(identity_specs, module_flag_specs)
+        updated = render_defaults_env_file_content(identity_specs, module_flag_specs, module_required_specs)
         apply_file_update(defaults_env_path, None, updated, dry_run, summary)
         return
 
     original = defaults_env_path.read_text(encoding="utf-8")
     updated = original
-    for name, value in [*identity_specs, profile_spec, *module_flag_specs]:
+    for name, value in [*identity_specs, profile_spec, *module_flag_specs, *module_required_specs]:
         updated, _ = _replace_env_assignment(updated, name, value)
 
     declared_names = _declared_env_names(updated)
@@ -216,6 +298,7 @@ def ensure_defaults_env_file(
             *identity_specs,
             profile_spec,
             *module_flag_specs,
+            *module_required_specs,
         ]
         if name not in declared_names
     ]
