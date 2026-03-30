@@ -58,6 +58,9 @@ set_default_env IDENTITY_AWARE_PROXY_ENABLED "false"
 
 source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
+# Ignore untouched template placeholder identity values from source-repo
+# defaults so smoke scenarios operate on deterministic non-placeholder inputs.
+blueprint_sanitize_init_placeholder_defaults
 
 set_default_env BLUEPRINT_REPO_NAME "acme-platform-blueprint"
 set_default_env BLUEPRINT_GITHUB_ORG "acme-platform"

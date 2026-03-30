@@ -1280,6 +1280,7 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn("make blueprint-check-placeholders", smoke_script)
         self.assertIn("make infra-provision-deploy", smoke_script)
         self.assertIn("make infra-status-json", smoke_script)
+        self.assertIn("blueprint_sanitize_init_placeholder_defaults", smoke_script)
         self.assertIn("BLUEPRINT_TEMPLATE_SMOKE_SCENARIO", smoke_script)
         self.assertIn("assert_template_smoke_repo_state", smoke_script)
         self.assertIn("blueprint_check_placeholders", placeholder_script)
