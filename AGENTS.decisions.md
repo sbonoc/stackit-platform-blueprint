@@ -7,6 +7,19 @@
   - this source repository is maintained as the blueprint
   - generated repositories replace consumer-owned root files on first init
   - blueprint-managed surfaces stay controlled and should change intentionally
+- `make blueprint-init-repo` is one-time by default in generated repos.
+  - Re-apply consumer-seeded or init-managed files only with `BLUEPRINT_INIT_FORCE=true`.
+  - Forced re-init restores missing init-managed files from canonical blueprint/infra template roots.
+  - The init wrappers can still resolve the canonical local env file and force flag when `blueprint/contract.yaml` itself is missing.
+  - `make blueprint-bootstrap` and `make infra-bootstrap` validate missing init-owned files but do not recreate them in generated repos.
+- Generated repos keep a split env model:
+  - tracked non-sensitive defaults in `blueprint/repo.init.env`
+  - tracked placeholder-only secrets scaffold in `blueprint/repo.init.secrets.example.env`
+  - gitignored local-sensitive overrides in `blueprint/repo.init.secrets.env`
+  - `make blueprint-init-repo` creates or refreshes these files and preserves explicit shell env precedence.
+- Python-in-shell contract parsing is centralized in reusable helpers:
+  - shell wrappers call `scripts/lib/blueprint/contract_runtime_cli.py` instead of embedding inline Python blocks for contract inspection.
+  - `scripts/lib/blueprint/init_repo.py` remains the entrypoint but delegates implementation to focused modules (`init_repo_contract.py`, `init_repo_renderers.py`, `init_repo_env.py`, `init_repo_io.py`) for reuse and maintainability.
 - Generated repositories should optimize for project delivery work, not blueprint history.
   - Default work scope for human and AI contributors is `apps/**`, `docs/platform/**`, `make/platform*.mk`, `scripts/bin/platform/**`, and `scripts/lib/platform/**`.
   - Blueprint-managed paths are reference and tooling surfaces; consult them only when the task explicitly touches bootstrap, contract, validation, or inherited blueprint behavior.
