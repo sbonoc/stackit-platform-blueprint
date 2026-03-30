@@ -64,7 +64,7 @@ done
 require_command python3
 require_command git
 
-blueprint_load_env_defaults
+blueprint_load_env_defaults_for_init
 blueprint_init_force_var_name="$(blueprint_init_force_env_var)"
 
 infer_github_org_from_remote() {

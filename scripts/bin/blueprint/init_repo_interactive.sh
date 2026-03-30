@@ -161,7 +161,7 @@ require_command bash
 require_command git
 require_command python3
 
-blueprint_load_env_defaults
+blueprint_load_env_defaults_for_init
 blueprint_init_force_var_name="$(blueprint_init_force_env_var)"
 
 default_repo_name="${BLUEPRINT_REPO_NAME:-$(basename "$ROOT_DIR")}"

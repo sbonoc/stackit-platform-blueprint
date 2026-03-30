@@ -21,6 +21,7 @@ spec:
         - refactor/
         - test/
         - ci/
+        - codex/
     template_bootstrap:
       model: github-template
       template_version: 1.0.0
@@ -220,6 +221,8 @@ spec:
         - .github/pull_request_template.md
         - .github/workflows/ci.yml
       init_managed:
+        - blueprint/repo.init.env
+        - blueprint/repo.init.secrets.example.env
         - blueprint/contract.yaml
         - docs/docusaurus.config.js
         - infra/gitops/argocd/root/applicationset-platform-environments.yaml

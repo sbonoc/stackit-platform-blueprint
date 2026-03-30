@@ -466,12 +466,42 @@ printf 'gh_repo=%s\\n' "$BLUEPRINT_GITHUB_REPO"
         return result.stdout + result.stderr
 
 
+def init_placeholder_sanitization_contract() -> str:
+    script = f"""
+export ROOT_DIR="{REPO_ROOT}"
+source "{REPO_ROOT}/scripts/lib/shell/bootstrap.sh"
+export BLUEPRINT_CONTRACT_RUNTIME_ALLOW_DEFAULTS="true"
+source "{REPO_ROOT}/scripts/lib/blueprint/contract_runtime.sh"
+unset BLUEPRINT_CONTRACT_RUNTIME_ALLOW_DEFAULTS
+export BLUEPRINT_REPO_NAME="your-platform-blueprint"
+export BLUEPRINT_GITHUB_ORG="your-github-org"
+export BLUEPRINT_GITHUB_REPO="repo-from-user"
+export BLUEPRINT_DOCS_TITLE="Your Platform Blueprint"
+blueprint_sanitize_init_placeholder_defaults
+printf 'repo=%s\\n' "${{BLUEPRINT_REPO_NAME-__unset__}}"
+printf 'org=%s\\n' "${{BLUEPRINT_GITHUB_ORG-__unset__}}"
+printf 'repo_name=%s\\n' "${{BLUEPRINT_GITHUB_REPO-__unset__}}"
+printf 'docs_title=%s\\n' "${{BLUEPRINT_DOCS_TITLE-__unset__}}"
+"""
+    result = run(["bash", "-lc", script], {"ROOT_DIR": str(REPO_ROOT)})
+    if result.returncode != 0:
+        raise AssertionError(result.stdout + result.stderr)
+    return result.stdout + result.stderr
+
+
 class ToolingContractsTests(unittest.TestCase):
     def test_load_env_file_defaults_preserves_explicit_env(self) -> None:
         output = env_file_defaults_contract()
         self.assertIn("repo=repo-from-file", output)
         self.assertIn("org=explicit-org", output)
         self.assertIn("gh_repo=repo-from-file", output)
+
+    def test_init_placeholder_sanitization_unsets_template_identity_values(self) -> None:
+        output = init_placeholder_sanitization_contract()
+        self.assertIn("repo=__unset__", output)
+        self.assertIn("org=__unset__", output)
+        self.assertIn("repo_name=repo-from-user", output)
+        self.assertIn("docs_title=__unset__", output)
 
     def test_fallback_runtime_values_helper_keeps_stdout_machine_readable(self) -> None:
         script = f"""

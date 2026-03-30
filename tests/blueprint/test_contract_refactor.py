@@ -513,6 +513,8 @@ class RefactorContractsTests(unittest.TestCase):
         )
         self.assertTrue(
             {
+                "blueprint/repo.init.env",
+                "blueprint/repo.init.secrets.example.env",
                 "blueprint/contract.yaml",
                 "docs/docusaurus.config.js",
                 "infra/gitops/argocd/root/applicationset-platform-environments.yaml",

@@ -129,6 +129,52 @@ blueprint_load_env_defaults() {
   load_env_file_defaults "$(blueprint_secrets_env_file)"
 }
 
+_blueprint_unset_placeholder_env_if_equal() {
+  local env_name="$1"
+  local placeholder="$2"
+  if [[ "${!env_name:-}" == "$placeholder" ]]; then
+    unset "$env_name"
+    return 0
+  fi
+  return 1
+}
+
+blueprint_sanitize_init_placeholder_defaults() {
+  if blueprint_repo_is_generated_consumer; then
+    return 0
+  fi
+
+  local -a placeholder_specs=(
+    "BLUEPRINT_REPO_NAME:your-platform-blueprint"
+    "BLUEPRINT_GITHUB_ORG:your-github-org"
+    "BLUEPRINT_GITHUB_REPO:your-platform-blueprint"
+    "BLUEPRINT_DOCS_TITLE:Your Platform Blueprint"
+    "BLUEPRINT_STACKIT_TENANT_SLUG:your-tenant-slug"
+    "BLUEPRINT_STACKIT_PLATFORM_SLUG:your-platform-slug"
+    "BLUEPRINT_STACKIT_PROJECT_ID:your-stackit-project-id"
+    "BLUEPRINT_STACKIT_TFSTATE_BUCKET:your-stackit-tfstate-bucket"
+  )
+
+  local cleared_count=0
+  local spec env_name placeholder
+  for spec in "${placeholder_specs[@]}"; do
+    env_name="${spec%%:*}"
+    placeholder="${spec#*:}"
+    if _blueprint_unset_placeholder_env_if_equal "$env_name" "$placeholder"; then
+      cleared_count=$((cleared_count + 1))
+    fi
+  done
+
+  if ((cleared_count > 0)); then
+    log_metric "blueprint_init_placeholder_defaults_cleared_total" "$cleared_count"
+  fi
+}
+
+blueprint_load_env_defaults_for_init() {
+  blueprint_load_env_defaults
+  blueprint_sanitize_init_placeholder_defaults
+}
+
 blueprint_init_force_env_var() {
   _blueprint_contract_runtime_value "force_env_var"
 }
@@ -154,7 +200,11 @@ blueprint_required_env_vars() {
 
 blueprint_require_runtime_env() {
   local -a required_vars=()
-  mapfile -t required_vars < <(blueprint_required_env_vars)
+  local required_var
+  while IFS= read -r required_var; do
+    [[ -n "$required_var" ]] || continue
+    required_vars+=("$required_var")
+  done < <(blueprint_required_env_vars)
   if ((${#required_vars[@]} == 0)); then
     return 0
   fi
