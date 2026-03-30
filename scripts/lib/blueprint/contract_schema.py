@@ -24,7 +24,10 @@ class TemplateBootstrapContract:
     model: str
     template_version: str
     init_command: str
-    example_env_file: str
+    defaults_env_file: str
+    secrets_example_env_file: str
+    secrets_env_file: str
+    force_env_var: str
     required_inputs: list[str]
 
 
@@ -40,6 +43,7 @@ class ConsumerInitContract:
 class RepositoryOwnershipPathClasses:
     source_only: list[str]
     consumer_seeded: list[str]
+    init_managed: list[str]
     conditional_scaffold: list[str]
 
 
@@ -61,6 +65,10 @@ class RepositoryContract:
     @property
     def consumer_seeded_paths(self) -> list[str]:
         return self.ownership_path_classes.consumer_seeded
+
+    @property
+    def init_managed_paths(self) -> list[str]:
+        return self.ownership_path_classes.init_managed
 
     @property
     def conditional_scaffold_paths(self) -> list[str]:
@@ -432,9 +440,21 @@ def load_blueprint_contract(path: Path) -> BlueprintContract:
                 "spec.repository.template_bootstrap.template_version",
             ),
             init_command=_as_str(template_raw.get("init_command"), "spec.repository.template_bootstrap.init_command"),
-            example_env_file=_as_str(
-                template_raw.get("example_env_file"),
-                "spec.repository.template_bootstrap.example_env_file",
+            defaults_env_file=_as_str(
+                template_raw.get("defaults_env_file"),
+                "spec.repository.template_bootstrap.defaults_env_file",
+            ),
+            secrets_example_env_file=_as_str(
+                template_raw.get("secrets_example_env_file"),
+                "spec.repository.template_bootstrap.secrets_example_env_file",
+            ),
+            secrets_env_file=_as_str(
+                template_raw.get("secrets_env_file"),
+                "spec.repository.template_bootstrap.secrets_env_file",
+            ),
+            force_env_var=_as_str(
+                template_raw.get("force_env_var"),
+                "spec.repository.template_bootstrap.force_env_var",
             ),
             required_inputs=_as_list_of_str(
                 template_raw.get("required_inputs", []),
@@ -450,6 +470,10 @@ def load_blueprint_contract(path: Path) -> BlueprintContract:
             consumer_seeded=_as_list_of_str(
                 ownership_classes_raw.get("consumer_seeded", []),
                 "spec.repository.ownership_path_classes.consumer_seeded",
+            ),
+            init_managed=_as_list_of_str(
+                ownership_classes_raw.get("init_managed", []),
+                "spec.repository.ownership_path_classes.init_managed",
             ),
             conditional_scaffold=_as_list_of_str(
                 ownership_classes_raw.get("conditional_scaffold", []),
@@ -687,6 +711,13 @@ def load_module_contract(path: Path, repo_root: Path) -> ModuleContract:
             f"{path}:spec.make_targets.{key}",
         )
 
+    resolved_path = path.resolve()
+    resolved_repo_root = repo_root.resolve()
+    try:
+        contract_path = resolved_path.relative_to(resolved_repo_root).as_posix()
+    except ValueError:
+        contract_path = path.relative_to(repo_root).as_posix()
+
     return ModuleContract(
         module_id=_as_str(spec.get("module_id"), f"{path}:spec.module_id"),
         purpose=_as_str(spec.get("purpose"), f"{path}:spec.purpose"),
@@ -695,5 +726,5 @@ def load_module_contract(path: Path, repo_root: Path) -> ModuleContract:
         make_targets=make_targets,
         required_env=_as_list_of_str(inputs.get("required_env", []), f"{path}:spec.inputs.required_env"),
         outputs=_as_list_of_str(outputs.get("produced", []), f"{path}:spec.outputs.produced"),
-        contract_path=path.relative_to(repo_root).as_posix(),
+        contract_path=contract_path,
     )

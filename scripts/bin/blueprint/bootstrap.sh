@@ -4,6 +4,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
 source "$ROOT_DIR/scripts/lib/blueprint/bootstrap_templates.sh"
+source "$ROOT_DIR/scripts/lib/blueprint/contract_runtime.sh"
 
 start_script_metric_trap "blueprint_bootstrap"
 
@@ -18,6 +19,9 @@ Bootstraps blueprint-scoped repository assets:
 - optional-module wrapper skeleton templates rendered from module contracts,
 - blueprint makefile rendering from template with conditional module targets,
 - local pre-commit and pre-push hook installation.
+
+In generated repos, consumer-seeded init files are not recreated here.
+Restore them intentionally with BLUEPRINT_INIT_FORCE=true make blueprint-init-repo.
 USAGE
 }
 
@@ -30,6 +34,21 @@ require_command bash
 require_command git
 require_command make
 require_command python3
+
+blueprint_bootstrap_seeded_skip_count=0
+
+ensure_blueprint_seed_file() {
+  local relative_path="$1"
+  if blueprint_repo_is_generated_consumer && blueprint_path_is_consumer_seeded "$relative_path"; then
+    if [[ ! -f "$ROOT_DIR/$relative_path" ]]; then
+      log_fatal "missing consumer-initialized file: $relative_path; rerun with $(blueprint_init_force_env_var)=true make blueprint-init-repo"
+    fi
+    blueprint_bootstrap_seeded_skip_count=$((blueprint_bootstrap_seeded_skip_count + 1))
+    return 0
+  fi
+
+  ensure_file_from_template "$ROOT_DIR/$relative_path" "blueprint" "$relative_path"
+}
 
 bootstrap_blueprint_directories() {
   ensure_dir "$ROOT_DIR/blueprint"
@@ -53,7 +72,8 @@ bootstrap_blueprint_templates() {
     "Makefile"
     "make/platform.mk"
     "make/platform/.gitkeep"
-    "blueprint/repo.init.example.env"
+    "blueprint/repo.init.env"
+    "blueprint/repo.init.secrets.example.env"
     "docs/README.md"
     "docs/blueprint/README.md"
     "docs/blueprint/architecture/system_overview.md"
@@ -81,10 +101,11 @@ bootstrap_blueprint_templates() {
 
   local rel
   for rel in "${template_files[@]}"; do
-    ensure_file_from_template "$ROOT_DIR/$rel" "blueprint" "$rel"
+    ensure_blueprint_seed_file "$rel"
   done
 
   log_metric "blueprint_template_file_count" "${#template_files[@]}"
+  log_metric "blueprint_consumer_seeded_skip_count" "$blueprint_bootstrap_seeded_skip_count"
   log_info "blueprint static templates ensured"
 }
 

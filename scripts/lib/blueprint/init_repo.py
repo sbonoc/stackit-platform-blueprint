@@ -4,10 +4,7 @@
 from __future__ import annotations
 
 import argparse
-import os
 from pathlib import Path
-import re
-import shutil
 import sys
 
 
@@ -15,373 +12,33 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from scripts.lib.blueprint.cli_support import (  # noqa: E402
-    ChangeSummary,
-    render_template,
-    resolve_repo_root,
+from scripts.lib.blueprint.cli_support import ChangeSummary, resolve_repo_root  # noqa: E402
+from scripts.lib.blueprint.init_repo_contract import (  # noqa: E402
+    BLUEPRINT_TEMPLATE_ROOT,
+    INFRA_TEMPLATE_ROOT,
+    consumer_template_replacements as _consumer_template_replacements,
+    load_blueprint_contract_for_init as _load_blueprint_contract_for_init,
+    resolve_optional_module_enablement as _resolve_optional_module_enablement,
+    seed_consumer_owned_files as _seed_consumer_owned_files,
+    target_repo_mode as _target_repo_mode,
 )
-from scripts.lib.blueprint.contract_schema import load_blueprint_contract  # noqa: E402
-
-
-def _replace_scalar_once(content: str, pattern: str, replacement: str, label: str) -> str:
-    compiled = re.compile(pattern, flags=re.MULTILINE)
-    updated, count = compiled.subn(replacement, content, count=1)
-    if count != 1:
-        raise ValueError(f"unable to update {label}")
-    return updated
-
-
-def _replace_js_string_key(content: str, key: str, value: str, label: str) -> str:
-    pattern = re.compile(rf'^(\s*{re.escape(key)}:\s*")[^"]*(".*)$', flags=re.MULTILINE)
-
-    def repl(match: re.Match[str]) -> str:
-        return f'{match.group(1)}{value}{match.group(2)}'
-
-    updated, count = pattern.subn(repl, content, count=1)
-    if count != 1:
-        raise ValueError(f"unable to update {label}")
-    return updated
-
-
-def _replace_quoted_assignment_once(content: str, key: str, value: str, label: str) -> str:
-    pattern = re.compile(rf'^(\s*{re.escape(key)}\s*=\s*")[^"]*(".*)$', flags=re.MULTILINE)
-
-    def repl(match: re.Match[str]) -> str:
-        return f'{match.group(1)}{value}{match.group(2)}'
-
-    updated, count = pattern.subn(repl, content, count=1)
-    if count != 1:
-        raise ValueError(f"unable to update {label}")
-    return updated
-
-
-def _render_contract(
-    content: str,
-    repo_name: str,
-    default_branch: str,
-    repo_mode: str,
-    module_enablement: dict[str, bool],
-) -> str:
-    content = _replace_scalar_once(
-        content,
-        r"^(\s*name:\s*).+$",
-        rf"\1{repo_name}",
-        "blueprint contract metadata.name",
-    )
-    content = _replace_scalar_once(
-        content,
-        r"^(\s*default_branch:\s*).+$",
-        rf"\1{default_branch}",
-        "blueprint contract repository.default_branch",
-    )
-    content = _replace_scalar_once(
-        content,
-        r"^(\s*repo_mode:\s*).+$",
-        rf"\1{repo_mode}",
-        "blueprint contract repository.repo_mode",
-    )
-    # Persist init-time module selection so generated repos can treat the contract
-    # as their steady-state default without replaying the original init env.
-    for module_id, enabled in module_enablement.items():
-        content = _replace_scalar_once(
-            content,
-            rf"(^\s{{6}}{re.escape(module_id)}:\n(?:\s{{8}}.*\n)*?\s{{8}}enabled_by_default:\s*)(true|false)",
-            rf"\g<1>{str(enabled).lower()}",
-            f"optional module default enablement for {module_id}",
-        )
-    return content
-
-
-def _render_docusaurus_config(
-    content: str,
-    docs_title: str,
-    docs_tagline: str,
-    github_org: str,
-    github_repo: str,
-    default_branch: str,
-) -> str:
-    edit_url = f"https://github.com/{github_org}/{github_repo}/edit/{default_branch}/docs/"
-
-    content = _replace_js_string_key(content, "title", docs_title, "docs title")
-    content = _replace_js_string_key(content, "tagline", docs_tagline, "docs tagline")
-    content = _replace_js_string_key(content, "organizationName", github_org, "docs organizationName")
-    content = _replace_js_string_key(content, "projectName", github_repo, "docs projectName")
-    content = _replace_js_string_key(content, "editUrl", edit_url, "docs editUrl")
-    return content
-
-
-def _render_argocd_repo_urls(
-    content: str,
-    github_org: str,
-    github_repo: str,
-) -> str:
-    repo_url = f"https://github.com/{github_org}/{github_repo}.git"
-
-    content = re.sub(
-        r"(^\s*repoURL:\s*)https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\.git(\s*$)",
-        rf"\g<1>{repo_url}\g<2>",
-        content,
-        flags=re.MULTILINE,
-    )
-    content = re.sub(
-        r"(^\s*-\s*)https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\.git(\s*$)",
-        rf"\g<1>{repo_url}\g<2>",
-        content,
-        flags=re.MULTILINE,
-    )
-    return content
-
-
-def _render_stackit_bootstrap_tfvars(
-    content: str,
-    environment: str,
-    stackit_region: str,
-    tenant_slug: str,
-    platform_slug: str,
-    stackit_project_id: str,
-    stackit_tfstate_key_prefix: str,
-) -> str:
-    content = _replace_quoted_assignment_once(
-        content,
-        "environment",
-        environment,
-        f"bootstrap tfvars {environment} environment",
-    )
-    content = _replace_quoted_assignment_once(
-        content,
-        "stackit_region",
-        stackit_region,
-        f"bootstrap tfvars {environment} stackit_region",
-    )
-    content = _replace_quoted_assignment_once(
-        content,
-        "tenant_slug",
-        tenant_slug,
-        f"bootstrap tfvars {environment} tenant_slug",
-    )
-    content = _replace_quoted_assignment_once(
-        content,
-        "platform_slug",
-        platform_slug,
-        f"bootstrap tfvars {environment} platform_slug",
-    )
-    content = _replace_quoted_assignment_once(
-        content,
-        "stackit_project_id",
-        stackit_project_id,
-        f"bootstrap tfvars {environment} stackit_project_id",
-    )
-    content = _replace_quoted_assignment_once(
-        content,
-        "state_key_prefix",
-        stackit_tfstate_key_prefix,
-        f"bootstrap tfvars {environment} state_key_prefix",
-    )
-    return content
-
-
-def _render_stackit_foundation_tfvars(
-    content: str,
-    environment: str,
-    stackit_region: str,
-    tenant_slug: str,
-    platform_slug: str,
-    stackit_project_id: str,
-) -> str:
-    content = _replace_quoted_assignment_once(
-        content,
-        "environment",
-        environment,
-        f"foundation tfvars {environment} environment",
-    )
-    content = _replace_quoted_assignment_once(
-        content,
-        "tenant_slug",
-        tenant_slug,
-        f"foundation tfvars {environment} tenant_slug",
-    )
-    content = _replace_quoted_assignment_once(
-        content,
-        "platform_slug",
-        platform_slug,
-        f"foundation tfvars {environment} platform_slug",
-    )
-    content = _replace_quoted_assignment_once(
-        content,
-        "stackit_project_id",
-        stackit_project_id,
-        f"foundation tfvars {environment} stackit_project_id",
-    )
-    content = _replace_quoted_assignment_once(
-        content,
-        "stackit_region",
-        stackit_region,
-        f"foundation tfvars {environment} stackit_region",
-    )
-    return content
-
-
-def _render_stackit_backend_hcl(
-    content: str,
-    environment: str,
-    layer: str,
-    stackit_region: str,
-    stackit_tfstate_bucket: str,
-    stackit_tfstate_key_prefix: str,
-) -> str:
-    content = _replace_quoted_assignment_once(
-        content,
-        "bucket",
-        stackit_tfstate_bucket,
-        f"{layer} backend {environment} bucket",
-    )
-    content = _replace_quoted_assignment_once(
-        content,
-        "key",
-        f"{stackit_tfstate_key_prefix}/{environment}/{layer}.tfstate",
-        f"{layer} backend {environment} key",
-    )
-    content = _replace_quoted_assignment_once(
-        content,
-        "region",
-        stackit_region,
-        f"{layer} backend {environment} region",
-    )
-    content = _replace_scalar_once(
-        content,
-        r'(^\s*s3\s*=\s*")https://object\.storage\.[^"]+(".*$)',
-        rf'\1https://object.storage.{stackit_region}.onstackit.cloud\2',
-        f"{layer} backend {environment} s3 endpoint",
-    )
-    return content
-
-
-def _apply_file_update(
-    path: Path,
-    original: str | None,
-    updated: str,
-    dry_run: bool,
-    summary: ChangeSummary,
-) -> bool:
-    original_content = original if original is not None else ""
-    changed = original is None or updated != original_content
-    if not changed:
-        summary.skipped_path(path, "no change required")
-        return False
-
-    if dry_run:
-        if original is None:
-            summary.created_path(path)
-        else:
-            summary.updated_path(path)
-        return True
-
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(updated, encoding="utf-8")
-    if original is None:
-        summary.created_path(path)
-    else:
-        summary.updated_path(path)
-    return True
-
-
-def _remove_path(path: Path, dry_run: bool, summary: ChangeSummary) -> bool:
-    if not path.exists():
-        summary.skipped_path(path, "already absent")
-        return False
-
-    if dry_run:
-        summary.removed_path(path)
-        return True
-
-    if path.is_dir():
-        shutil.rmtree(path)
-    else:
-        path.unlink()
-    summary.removed_path(path)
-    return True
-
-
-def _normalize_bool(value: str | None) -> bool:
-    if value is None:
-        return False
-    return value.strip().lower() in {"1", "true", "yes", "on"}
-
-
-def _expand_optional_module_path(path_value: str) -> list[str]:
-    if "${ENV}" not in path_value:
-        return [path_value]
-    return [path_value.replace("${ENV}", env) for env in ("local", "dev", "stage", "prod")]
-
-
-def _resolve_optional_module_enablement(repo_root: Path) -> dict[str, bool]:
-    contract = load_blueprint_contract(repo_root / "blueprint/contract.yaml")
-    module_enablement: dict[str, bool] = {}
-    for module in contract.optional_modules.modules.values():
-        env_value = os.environ.get(module.enable_flag)
-        module_enablement[module.module_id] = (
-            module.enabled_by_default if env_value is None else _normalize_bool(env_value)
-        )
-    return module_enablement
-
-
-def _seed_consumer_owned_files(
-    repo_root: Path,
-    dry_run: bool,
-    summary: ChangeSummary,
-    replacements: dict[str, str],
-    module_enablement: dict[str, bool],
-) -> None:
-    contract = load_blueprint_contract(repo_root / "blueprint/contract.yaml")
-    repository = contract.repository
-    consumer_init = repository.consumer_init
-    if repository.repo_mode != consumer_init.mode_from:
-        summary.skipped_path(repo_root / "README.md", f"consumer-owned seed already applied ({repository.repo_mode})")
-        return
-
-    template_root = repo_root / consumer_init.template_root
-    for relative_path in repository.consumer_seeded_paths:
-        target_path = repo_root / relative_path
-        template_path = template_root / f"{relative_path}.tmpl"
-        original = target_path.read_text(encoding="utf-8") if target_path.is_file() else None
-        updated = render_template(template_path.read_text(encoding="utf-8"), replacements)
-        _apply_file_update(target_path, original, updated, dry_run, summary)
-
-    for relative_path in repository.source_only_paths:
-        _remove_path(repo_root / relative_path, dry_run, summary)
-
-    if not consumer_init.prune_disabled_optional_scaffolding:
-        return
-
-    for module in contract.optional_modules.modules.values():
-        if module.scaffolding_mode != "conditional":
-            continue
-
-        module_enabled = module_enablement[module.module_id]
-        if module_enabled:
-            continue
-
-        for path_key in module.paths_required_when_enabled:
-            for expanded in _expand_optional_module_path(module.paths[path_key]):
-                _remove_path(repo_root / expanded.rstrip("/"), dry_run, summary)
-
-
-def _target_repo_mode(repo_root: Path) -> str:
-    repository = load_blueprint_contract(repo_root / "blueprint/contract.yaml").repository
-    if repository.repo_mode == repository.consumer_init.mode_from:
-        return repository.consumer_init.mode_to
-    return repository.repo_mode
-
-
-def _consumer_template_replacements(args: argparse.Namespace, repo_root: Path) -> dict[str, str]:
-    contract = load_blueprint_contract(repo_root / "blueprint/contract.yaml")
-    return {
-        "REPO_NAME": args.repo_name,
-        "DOCS_TITLE": args.docs_title,
-        "DOCS_TAGLINE": args.docs_tagline,
-        "DEFAULT_BRANCH": args.default_branch,
-        "TEMPLATE_VERSION": contract.repository.template_bootstrap.template_version,
-    }
+from scripts.lib.blueprint.init_repo_env import (  # noqa: E402
+    ensure_defaults_env_file as _ensure_defaults_env_file,
+    ensure_local_secrets_env_file as _ensure_local_secrets_env_file,
+    ensure_secrets_example_env_file as _ensure_secrets_example_env_file,
+)
+from scripts.lib.blueprint.init_repo_io import (  # noqa: E402
+    apply_file_update as _apply_file_update,
+    read_existing_or_template as _read_existing_or_template,
+)
+from scripts.lib.blueprint.init_repo_renderers import (  # noqa: E402
+    render_argocd_repo_urls as _render_argocd_repo_urls,
+    render_contract as _render_contract,
+    render_docusaurus_config as _render_docusaurus_config,
+    render_stackit_backend_hcl as _render_stackit_backend_hcl,
+    render_stackit_bootstrap_tfvars as _render_stackit_bootstrap_tfvars,
+    render_stackit_foundation_tfvars as _render_stackit_foundation_tfvars,
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -403,6 +60,7 @@ def parse_args() -> argparse.Namespace:
         required=True,
         help="Terraform state key prefix used by STACKIT backend files and bootstrap tfvars.",
     )
+    parser.add_argument("--force", action="store_true", help="Allow re-applying init in generated-consumer repos.")
     parser.add_argument("--dry-run", action="store_true", help="Preview updates without writing files.")
     return parser.parse_args()
 
@@ -410,10 +68,25 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     repo_root = resolve_repo_root(args.repo_root, __file__)
+    repository = _load_blueprint_contract_for_init(repo_root).repository
+    if (
+        repository.repo_mode == repository.consumer_init.mode_to
+        and not args.force
+        and not args.dry_run
+    ):
+        print(
+            "blueprint-init-repo already completed for this generated repository; "
+            f"rerun only with {repository.template_bootstrap.force_env_var}=true",
+            file=sys.stderr,
+        )
+        return 1
+
     contract_path = repo_root / "blueprint/contract.yaml"
     docusaurus_path = repo_root / "docs/docusaurus.config.js"
     summary = ChangeSummary("blueprint-init-repo")
     consumer_replacements = _consumer_template_replacements(args, repo_root)
+    module_enablement = _resolve_optional_module_enablement(repo_root)
+
     argocd_paths = [
         repo_root / "infra/gitops/argocd/root/applicationset-platform-environments.yaml",
         repo_root / "infra/gitops/argocd/environments/dev/platform-application.yaml",
@@ -448,27 +121,37 @@ def main() -> int:
         (repo_root / "infra/cloud/stackit/terraform/foundation/state-backend/stage.hcl", "stage"),
         (repo_root / "infra/cloud/stackit/terraform/foundation/state-backend/prod.hcl", "prod"),
     ]
-    module_enablement = _resolve_optional_module_enablement(repo_root)
 
     _seed_consumer_owned_files(
         repo_root=repo_root,
         dry_run=args.dry_run,
+        force=args.force,
         summary=summary,
         replacements=consumer_replacements,
         module_enablement=module_enablement,
     )
 
-    contract_original = contract_path.read_text(encoding="utf-8")
+    contract_original, contract_base = _read_existing_or_template(
+        repo_root,
+        contract_path,
+        BLUEPRINT_TEMPLATE_ROOT,
+        "blueprint/contract.yaml",
+    )
     contract_updated = _render_contract(
-        content=contract_original,
+        content=contract_base,
         repo_name=args.repo_name,
         default_branch=args.default_branch,
         repo_mode=_target_repo_mode(repo_root),
         module_enablement=module_enablement,
     )
-    docusaurus_original = docusaurus_path.read_text(encoding="utf-8")
+    docusaurus_original, docusaurus_base = _read_existing_or_template(
+        repo_root,
+        docusaurus_path,
+        BLUEPRINT_TEMPLATE_ROOT,
+        "docs/docusaurus.config.js",
+    )
     docusaurus_updated = _render_docusaurus_config(
-        content=docusaurus_original,
+        content=docusaurus_base,
         docs_title=args.docs_title,
         docs_tagline=args.docs_tagline,
         github_org=args.github_org,
@@ -477,23 +160,30 @@ def main() -> int:
     )
     _apply_file_update(contract_path, contract_original, contract_updated, args.dry_run, summary)
     _apply_file_update(docusaurus_path, docusaurus_original, docusaurus_updated, args.dry_run, summary)
+
     for argocd_path in argocd_paths:
-        if not argocd_path.is_file():
-            continue
-        argocd_original = argocd_path.read_text(encoding="utf-8")
+        argocd_original, argocd_base = _read_existing_or_template(
+            repo_root,
+            argocd_path,
+            INFRA_TEMPLATE_ROOT,
+            argocd_path.relative_to(repo_root).as_posix(),
+        )
         argocd_updated = _render_argocd_repo_urls(
-            content=argocd_original,
+            content=argocd_base,
             github_org=args.github_org,
             github_repo=args.github_repo,
         )
         _apply_file_update(argocd_path, argocd_original, argocd_updated, args.dry_run, summary)
 
     for tfvars_path, environment in stackit_bootstrap_tfvars_paths:
-        if not tfvars_path.is_file():
-            continue
-        tfvars_original = tfvars_path.read_text(encoding="utf-8")
+        tfvars_original, tfvars_base = _read_existing_or_template(
+            repo_root,
+            tfvars_path,
+            INFRA_TEMPLATE_ROOT,
+            tfvars_path.relative_to(repo_root).as_posix(),
+        )
         tfvars_updated = _render_stackit_bootstrap_tfvars(
-            content=tfvars_original,
+            content=tfvars_base,
             environment=environment,
             stackit_region=args.stackit_region,
             tenant_slug=args.stackit_tenant_slug,
@@ -504,11 +194,14 @@ def main() -> int:
         _apply_file_update(tfvars_path, tfvars_original, tfvars_updated, args.dry_run, summary)
 
     for tfvars_path, environment in stackit_foundation_tfvars_paths:
-        if not tfvars_path.is_file():
-            continue
-        tfvars_original = tfvars_path.read_text(encoding="utf-8")
+        tfvars_original, tfvars_base = _read_existing_or_template(
+            repo_root,
+            tfvars_path,
+            INFRA_TEMPLATE_ROOT,
+            tfvars_path.relative_to(repo_root).as_posix(),
+        )
         tfvars_updated = _render_stackit_foundation_tfvars(
-            content=tfvars_original,
+            content=tfvars_base,
             environment=environment,
             stackit_region=args.stackit_region,
             tenant_slug=args.stackit_tenant_slug,
@@ -518,11 +211,14 @@ def main() -> int:
         _apply_file_update(tfvars_path, tfvars_original, tfvars_updated, args.dry_run, summary)
 
     for backend_path, environment in stackit_bootstrap_backend_paths:
-        if not backend_path.is_file():
-            continue
-        backend_original = backend_path.read_text(encoding="utf-8")
+        backend_original, backend_base = _read_existing_or_template(
+            repo_root,
+            backend_path,
+            INFRA_TEMPLATE_ROOT,
+            backend_path.relative_to(repo_root).as_posix(),
+        )
         backend_updated = _render_stackit_backend_hcl(
-            content=backend_original,
+            content=backend_base,
             environment=environment,
             layer="bootstrap",
             stackit_region=args.stackit_region,
@@ -532,11 +228,14 @@ def main() -> int:
         _apply_file_update(backend_path, backend_original, backend_updated, args.dry_run, summary)
 
     for backend_path, environment in stackit_foundation_backend_paths:
-        if not backend_path.is_file():
-            continue
-        backend_original = backend_path.read_text(encoding="utf-8")
+        backend_original, backend_base = _read_existing_or_template(
+            repo_root,
+            backend_path,
+            INFRA_TEMPLATE_ROOT,
+            backend_path.relative_to(repo_root).as_posix(),
+        )
         backend_updated = _render_stackit_backend_hcl(
-            content=backend_original,
+            content=backend_base,
             environment=environment,
             layer="foundation",
             stackit_region=args.stackit_region,
@@ -544,6 +243,26 @@ def main() -> int:
             stackit_tfstate_key_prefix=args.stackit_tfstate_key_prefix,
         )
         _apply_file_update(backend_path, backend_original, backend_updated, args.dry_run, summary)
+
+    _ensure_defaults_env_file(
+        repo_root=repo_root,
+        args=args,
+        dry_run=args.dry_run,
+        summary=summary,
+        module_enablement=module_enablement,
+    )
+    _ensure_secrets_example_env_file(
+        repo_root=repo_root,
+        dry_run=args.dry_run,
+        summary=summary,
+        module_enablement=module_enablement,
+    )
+    _ensure_local_secrets_env_file(
+        repo_root=repo_root,
+        dry_run=args.dry_run,
+        summary=summary,
+        module_enablement=module_enablement,
+    )
 
     summary.emit(dry_run=args.dry_run)
     return 0

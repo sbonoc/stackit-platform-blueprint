@@ -3,11 +3,14 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
+export BLUEPRINT_CONTRACT_RUNTIME_ALLOW_DEFAULTS="true"
+source "$ROOT_DIR/scripts/lib/blueprint/contract_runtime.sh"
+unset BLUEPRINT_CONTRACT_RUNTIME_ALLOW_DEFAULTS
 
 start_script_metric_trap "blueprint_init_repo_interactive"
 
 usage() {
-  cat <<'EOF'
+  cat <<EOF
 Usage: init_repo_interactive.sh [--dry-run]
 
 Interactive repository identity wizard for GitHub-template consumers.
@@ -16,6 +19,8 @@ and then calls blueprint-init-repo with resolved values.
 
 Environment variables:
   BLUEPRINT_INIT_DRY_RUN=true to preview file changes without writing them.
+  $(blueprint_init_force_env_var)=true to re-apply init after first initialization.
+  $(blueprint_defaults_env_file) and $(blueprint_secrets_env_file) are auto-loaded when present.
 
 Options:
   --dry-run    Preview file changes without writing them.
@@ -156,16 +161,27 @@ require_command bash
 require_command git
 require_command python3
 
-default_repo_name="$(basename "$ROOT_DIR")"
-default_org="example-org"
-default_repo="$default_repo_name"
+blueprint_load_env_defaults_for_init
+blueprint_init_force_var_name="$(blueprint_init_force_env_var)"
+
+default_repo_name="${BLUEPRINT_REPO_NAME:-$(basename "$ROOT_DIR")}"
+default_org="${BLUEPRINT_GITHUB_ORG:-example-org}"
+default_repo="${BLUEPRINT_GITHUB_REPO:-$default_repo_name}"
+default_default_branch="${BLUEPRINT_DEFAULT_BRANCH:-main}"
+default_docs_title="${BLUEPRINT_DOCS_TITLE:-$default_repo_name}"
+default_docs_tagline="${BLUEPRINT_DOCS_TAGLINE:-Reusable local+STACKIT platform blueprint}"
+default_stackit_region="${BLUEPRINT_STACKIT_REGION:-eu01}"
 
 if inferred_org="$(infer_github_org_from_remote)"; then
-  default_org="$inferred_org"
+  if [[ -z "${BLUEPRINT_GITHUB_ORG:-}" ]]; then
+    default_org="$inferred_org"
+  fi
 fi
 
 if inferred_repo="$(infer_github_repo_from_remote)"; then
-  default_repo="$inferred_repo"
+  if [[ -z "${BLUEPRINT_GITHUB_REPO:-}" ]]; then
+    default_repo="$inferred_repo"
+  fi
 fi
 
 printf '\nBlueprint Init Wizard\n'
@@ -174,24 +190,25 @@ printf 'Repository root: %s\n\n' "$ROOT_DIR"
 blueprint_repo_name="$(prompt_with_default "Repository slug" "$default_repo_name" validate_repo_slug)"
 blueprint_github_org="$(prompt_with_default "GitHub org/user" "$default_org" validate_github_name)"
 blueprint_github_repo="$(prompt_with_default "GitHub repository" "$default_repo" validate_github_name)"
-blueprint_default_branch="$(prompt_with_default "Default branch" "main" validate_branch_name)"
-blueprint_docs_title="$(prompt_with_default "Docs title" "$blueprint_repo_name" validate_non_empty)"
-blueprint_docs_tagline="$(prompt_with_default "Docs tagline" "Reusable local+STACKIT platform blueprint" validate_non_empty)"
+blueprint_default_branch="$(prompt_with_default "Default branch" "$default_default_branch" validate_branch_name)"
+blueprint_docs_title="$(prompt_with_default "Docs title" "$default_docs_title" validate_non_empty)"
+blueprint_docs_tagline="$(prompt_with_default "Docs tagline" "$default_docs_tagline" validate_non_empty)"
 
-default_stackit_tenant="$(normalize_slug_component "$blueprint_github_org")"
-default_stackit_platform="$(normalize_slug_component "${blueprint_repo_name%-blueprint}")"
+default_stackit_tenant="${BLUEPRINT_STACKIT_TENANT_SLUG:-$(normalize_slug_component "$blueprint_github_org")}"
+default_stackit_platform="${BLUEPRINT_STACKIT_PLATFORM_SLUG:-$(normalize_slug_component "${blueprint_repo_name%-blueprint}")}"
 if [[ "$default_stackit_platform" == "blueprint" ]]; then
   default_stackit_platform="$(normalize_slug_component "$blueprint_repo_name")"
 fi
-default_stackit_project_id="${default_stackit_tenant}-${default_stackit_platform}"
-default_stackit_bucket="$(normalize_bucket_name "${default_stackit_tenant}-${default_stackit_platform}-tf-state")"
+default_stackit_project_id="${BLUEPRINT_STACKIT_PROJECT_ID:-${default_stackit_tenant}-${default_stackit_platform}}"
+default_stackit_bucket="${BLUEPRINT_STACKIT_TFSTATE_BUCKET:-$(normalize_bucket_name "${default_stackit_tenant}-${default_stackit_platform}-tf-state")}"
+default_stackit_key_prefix="${BLUEPRINT_STACKIT_TFSTATE_KEY_PREFIX:-terraform/state}"
 
-blueprint_stackit_region="$(prompt_with_default "STACKIT region" "eu01" validate_stackit_region)"
+blueprint_stackit_region="$(prompt_with_default "STACKIT region" "$default_stackit_region" validate_stackit_region)"
 blueprint_stackit_tenant_slug="$(prompt_with_default "STACKIT tenant slug" "$default_stackit_tenant" validate_stackit_slug)"
 blueprint_stackit_platform_slug="$(prompt_with_default "STACKIT platform slug" "$default_stackit_platform" validate_stackit_slug)"
 blueprint_stackit_project_id="$(prompt_with_default "STACKIT project id" "$default_stackit_project_id" validate_non_empty)"
 blueprint_stackit_tfstate_bucket="$(prompt_with_default "STACKIT TF state bucket" "$default_stackit_bucket" validate_stackit_bucket)"
-blueprint_stackit_tfstate_key_prefix="$(prompt_with_default "STACKIT TF state key prefix" "terraform/state" validate_stackit_key_prefix)"
+blueprint_stackit_tfstate_key_prefix="$(prompt_with_default "STACKIT TF state key prefix" "$default_stackit_key_prefix" validate_stackit_key_prefix)"
 
 printf '\nResolved values\n'
 printf '  BLUEPRINT_REPO_NAME=%s\n' "$blueprint_repo_name"
@@ -208,6 +225,9 @@ printf '  BLUEPRINT_STACKIT_TFSTATE_BUCKET=%s\n' "$blueprint_stackit_tfstate_buc
 printf '  BLUEPRINT_STACKIT_TFSTATE_KEY_PREFIX=%s\n' "$blueprint_stackit_tfstate_key_prefix"
 if [[ "$dry_run" == "true" ]]; then
   printf '  BLUEPRINT_INIT_DRY_RUN=true\n'
+fi
+if [[ "${!blueprint_init_force_var_name:-false}" == "true" ]]; then
+  printf '  %s=true\n' "$blueprint_init_force_var_name"
 fi
 
 confirm_default="Y"
@@ -232,6 +252,7 @@ run_cmd env \
   BLUEPRINT_STACKIT_TFSTATE_BUCKET="$blueprint_stackit_tfstate_bucket" \
   BLUEPRINT_STACKIT_TFSTATE_KEY_PREFIX="$blueprint_stackit_tfstate_key_prefix" \
   BLUEPRINT_INIT_DRY_RUN="$dry_run" \
+  "$blueprint_init_force_var_name=${!blueprint_init_force_var_name:-false}" \
   "$ROOT_DIR/scripts/bin/blueprint/init_repo.sh"
 
 if [[ "$dry_run" == "true" ]]; then

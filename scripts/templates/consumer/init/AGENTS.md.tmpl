@@ -12,6 +12,7 @@ This file is the canonical governance source for this generated platform reposit
 ## Default Work Scope
 - Start in `apps/**`, `docs/platform/**`, `make/platform.mk`, `make/platform/*.mk`, `scripts/bin/platform/**`, and `scripts/lib/platform/**`.
 - Use blueprint-managed paths only when the task explicitly involves bootstrap, contract, validation, or inherited blueprint behavior.
+- Treat `blueprint/repo.init.env` as tracked non-sensitive operator input, and `blueprint/repo.init.secrets.env` as local-sensitive operator input, not product implementation files.
 
 ## Mandatory Workflow
 1. Read `AGENTS.md` before starting work.
@@ -50,6 +51,9 @@ This file is the canonical governance source for this generated platform reposit
   - `AGENTS.backlog.md`
   - `AGENTS.decisions.md`
   - `docs/README.md`
+  - `blueprint/repo.init.env` (tracked non-sensitive config)
+  - `blueprint/repo.init.secrets.example.env` (tracked placeholder-only sensitive scaffold)
+  - `blueprint/repo.init.secrets.env` (gitignored local-sensitive config)
   - `.github/CODEOWNERS`
   - `.github/pull_request_template.md`
   - `.github/ISSUE_TEMPLATE/**`

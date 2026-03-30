@@ -3,26 +3,21 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
+source "$ROOT_DIR/scripts/lib/blueprint/contract_runtime.sh"
 
 start_script_metric_trap "blueprint_check_placeholders"
 
 usage() {
-  cat <<'EOF'
+  cat <<EOF
 Usage: check_placeholders.sh
 
 Validates that generated-repository identity placeholders are resolved.
 
 Required environment variables:
-  BLUEPRINT_REPO_NAME
-  BLUEPRINT_GITHUB_ORG
-  BLUEPRINT_GITHUB_REPO
-  BLUEPRINT_DEFAULT_BRANCH
-  BLUEPRINT_STACKIT_REGION
-  BLUEPRINT_STACKIT_TENANT_SLUG
-  BLUEPRINT_STACKIT_PLATFORM_SLUG
-  BLUEPRINT_STACKIT_PROJECT_ID
-  BLUEPRINT_STACKIT_TFSTATE_BUCKET
-  BLUEPRINT_STACKIT_TFSTATE_KEY_PREFIX
+  - all repository.template_bootstrap.required_inputs from blueprint/contract.yaml
+  - required module inputs for currently enabled optional modules
+
+When present, $(blueprint_defaults_env_file) and $(blueprint_secrets_env_file) are auto-loaded before validation.
 EOF
 }
 
@@ -31,17 +26,14 @@ if [[ "${1:-}" == "--help" ]]; then
   exit 0
 fi
 
-require_env_vars \
-  BLUEPRINT_REPO_NAME \
-  BLUEPRINT_GITHUB_ORG \
-  BLUEPRINT_GITHUB_REPO \
-  BLUEPRINT_DEFAULT_BRANCH \
-  BLUEPRINT_STACKIT_REGION \
-  BLUEPRINT_STACKIT_TENANT_SLUG \
-  BLUEPRINT_STACKIT_PLATFORM_SLUG \
-  BLUEPRINT_STACKIT_PROJECT_ID \
-  BLUEPRINT_STACKIT_TFSTATE_BUCKET \
-  BLUEPRINT_STACKIT_TFSTATE_KEY_PREFIX
+blueprint_load_env_defaults
+
+if ! blueprint_repo_is_generated_consumer; then
+  log_info "repo_mode=$(blueprint_repo_mode); skipping generated-repository placeholder checks"
+  exit 0
+fi
+
+blueprint_require_runtime_env
 
 contract_file="$ROOT_DIR/blueprint/contract.yaml"
 docs_config="$ROOT_DIR/docs/docusaurus.config.js"

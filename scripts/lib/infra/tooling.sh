@@ -1,6 +1,41 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+TOOLING_ENV_DEFAULTS_LOADED="${TOOLING_ENV_DEFAULTS_LOADED:-false}"
+
+tooling_load_blueprint_env_defaults() {
+  if [[ "$TOOLING_ENV_DEFAULTS_LOADED" == "true" ]]; then
+    return 0
+  fi
+  TOOLING_ENV_DEFAULTS_LOADED="true"
+
+  local contract_runtime="$ROOT_DIR/scripts/lib/blueprint/contract_runtime.sh"
+  if [[ ! -f "$contract_runtime" ]]; then
+    return 0
+  fi
+
+  # shellcheck disable=SC1090
+  source "$contract_runtime"
+  local defaults_env_file secrets_env_file
+  defaults_env_file="$(blueprint_defaults_env_file)"
+  secrets_env_file="$(blueprint_secrets_env_file)"
+  local defaults_present="0"
+  local secrets_present="0"
+  [[ -f "$defaults_env_file" ]] && defaults_present="1"
+  [[ -f "$secrets_env_file" ]] && secrets_present="1"
+
+  blueprint_load_env_defaults
+  log_metric \
+    "blueprint_env_defaults_load_total" \
+    "1" \
+    "repo_mode=$(blueprint_repo_mode) defaults_present=$defaults_present secrets_present=$secrets_present" >&2
+  if blueprint_repo_is_generated_consumer; then
+    blueprint_require_runtime_env
+  fi
+}
+
+tooling_load_blueprint_env_defaults
+
 tooling_normalize_bool() {
   local value="${1:-false}"
   case "$value" in

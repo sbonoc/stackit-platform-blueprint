@@ -8,12 +8,48 @@ import sys
 import tempfile
 import unittest
 
+from scripts.lib.blueprint.contract_schema import load_module_contract
+
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+INIT_MANAGED_RESTORE_TEMPLATE_PATHS = (
+    "scripts/templates/blueprint/bootstrap/blueprint/contract.yaml",
+    "scripts/templates/blueprint/bootstrap/docs/docusaurus.config.js",
+    "scripts/templates/infra/bootstrap/infra/gitops/argocd/root/applicationset-platform-environments.yaml",
+    "scripts/templates/infra/bootstrap/infra/gitops/argocd/environments/dev/platform-application.yaml",
+    "scripts/templates/infra/bootstrap/infra/gitops/argocd/environments/stage/platform-application.yaml",
+    "scripts/templates/infra/bootstrap/infra/gitops/argocd/environments/prod/platform-application.yaml",
+    "scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/local/appproject.yaml",
+    "scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/local/application-platform-local.yaml",
+    "scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/dev/appproject.yaml",
+    "scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/dev/applicationset-platform-environments.yaml",
+    "scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/stage/appproject.yaml",
+    "scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/stage/applicationset-platform-environments.yaml",
+    "scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/prod/appproject.yaml",
+    "scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/prod/applicationset-platform-environments.yaml",
+    "scripts/templates/infra/bootstrap/infra/cloud/stackit/terraform/bootstrap/env/dev.tfvars",
+    "scripts/templates/infra/bootstrap/infra/cloud/stackit/terraform/bootstrap/env/stage.tfvars",
+    "scripts/templates/infra/bootstrap/infra/cloud/stackit/terraform/bootstrap/env/prod.tfvars",
+    "scripts/templates/infra/bootstrap/infra/cloud/stackit/terraform/foundation/env/dev.tfvars",
+    "scripts/templates/infra/bootstrap/infra/cloud/stackit/terraform/foundation/env/stage.tfvars",
+    "scripts/templates/infra/bootstrap/infra/cloud/stackit/terraform/foundation/env/prod.tfvars",
+    "scripts/templates/infra/bootstrap/infra/cloud/stackit/terraform/bootstrap/state-backend/dev.hcl",
+    "scripts/templates/infra/bootstrap/infra/cloud/stackit/terraform/bootstrap/state-backend/stage.hcl",
+    "scripts/templates/infra/bootstrap/infra/cloud/stackit/terraform/bootstrap/state-backend/prod.hcl",
+    "scripts/templates/infra/bootstrap/infra/cloud/stackit/terraform/foundation/state-backend/dev.hcl",
+    "scripts/templates/infra/bootstrap/infra/cloud/stackit/terraform/foundation/state-backend/stage.hcl",
+    "scripts/templates/infra/bootstrap/infra/cloud/stackit/terraform/foundation/state-backend/prod.hcl",
+)
 
 
 def _read(path: str) -> str:
     return (REPO_ROOT / path).read_text(encoding="utf-8")
+
+
+def _copy_repo_text_path(tmp_root: Path, rel_path: str) -> None:
+    target_path = tmp_root / rel_path
+    target_path.parent.mkdir(parents=True, exist_ok=True)
+    target_path.write_text(_read(rel_path), encoding="utf-8")
 
 
 def _line_indent(line: str) -> int:
@@ -324,7 +360,16 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertEqual(_extract_yaml_scalar(template_section, "model"), "github-template")
         self.assertEqual(_extract_yaml_scalar(template_section, "template_version"), "1.0.0")
         self.assertEqual(_extract_yaml_scalar(template_section, "init_command"), "make blueprint-init-repo")
-        self.assertEqual(_extract_yaml_scalar(template_section, "example_env_file"), "blueprint/repo.init.example.env")
+        self.assertEqual(_extract_yaml_scalar(template_section, "defaults_env_file"), "blueprint/repo.init.env")
+        self.assertEqual(
+            _extract_yaml_scalar(template_section, "secrets_example_env_file"),
+            "blueprint/repo.init.secrets.example.env",
+        )
+        self.assertEqual(
+            _extract_yaml_scalar(template_section, "secrets_env_file"),
+            "blueprint/repo.init.secrets.env",
+        )
+        self.assertEqual(_extract_yaml_scalar(template_section, "force_env_var"), "BLUEPRINT_INIT_FORCE")
 
         required_inputs = set(_extract_yaml_list(template_section, "required_inputs"))
         self.assertSetEqual(
@@ -350,6 +395,7 @@ class RefactorContractsTests(unittest.TestCase):
         ownership_classes = _extract_yaml_section(repository_section, "ownership_path_classes")
         source_only_paths = set(_extract_yaml_list(ownership_classes, "source_only"))
         consumer_seeded_paths = set(_extract_yaml_list(ownership_classes, "consumer_seeded"))
+        init_managed_paths = set(_extract_yaml_list(ownership_classes, "init_managed"))
         conditional_scaffold_paths = set(_extract_yaml_list(ownership_classes, "conditional_scaffold"))
         self.assertTrue(
             {
@@ -390,6 +436,8 @@ class RefactorContractsTests(unittest.TestCase):
                 "docs/platform/modules/kms/README.md",
                 "docs/platform/modules/identity-aware-proxy/README.md",
                 "scripts/templates/blueprint/bootstrap/Makefile",
+                "scripts/templates/blueprint/bootstrap/blueprint/contract.yaml",
+                "scripts/templates/blueprint/bootstrap/docs/docusaurus.config.js",
                 "scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl",
                 "scripts/templates/blueprint/bootstrap/make/platform.mk",
                 "scripts/templates/consumer/init/README.md.tmpl",
@@ -405,8 +453,15 @@ class RefactorContractsTests(unittest.TestCase):
                 "scripts/templates/consumer/init/.github/workflows/ci.yml.tmpl",
                 "scripts/lib/blueprint/bootstrap_templates.sh",
                 "scripts/lib/blueprint/contract_schema.py",
+                "scripts/lib/blueprint/contract_runtime.sh",
+                "scripts/lib/blueprint/contract_runtime_cli.py",
                 "scripts/lib/blueprint/cli_support.py",
                 "scripts/lib/blueprint/generate_module_wrapper_skeletons.py",
+                "scripts/lib/blueprint/init_repo.py",
+                "scripts/lib/blueprint/init_repo_contract.py",
+                "scripts/lib/blueprint/init_repo_env.py",
+                "scripts/lib/blueprint/init_repo_io.py",
+                "scripts/lib/blueprint/init_repo_renderers.py",
                 "scripts/lib/docs/generate_contract_docs.py",
                 "scripts/lib/docs/sync_module_contract_summaries.py",
                 "scripts/lib/infra/k8s_wait.sh",
@@ -429,6 +484,7 @@ class RefactorContractsTests(unittest.TestCase):
                 "scripts/bin/quality/hooks_strict.sh",
                 "scripts/bin/quality/lint_docs.py",
                 "scripts/bin/quality/render_core_targets_doc.py",
+                "docs/docusaurus.config.js",
                 "docs/reference/generated/contract_metadata.generated.md",
                 "docs/reference/generated/core_targets.generated.md",
                 "tests/__init__.py",
@@ -454,6 +510,17 @@ class RefactorContractsTests(unittest.TestCase):
                 ".github/pull_request_template.md",
                 ".github/workflows/ci.yml",
             }.issubset(consumer_seeded_paths)
+        )
+        self.assertTrue(
+            {
+                "blueprint/repo.init.env",
+                "blueprint/repo.init.secrets.example.env",
+                "blueprint/contract.yaml",
+                "docs/docusaurus.config.js",
+                "infra/gitops/argocd/root/applicationset-platform-environments.yaml",
+                "infra/cloud/stackit/terraform/bootstrap/env/dev.tfvars",
+                "infra/cloud/stackit/terraform/foundation/state-backend/prod.hcl",
+            }.issubset(init_managed_paths)
         )
         self.assertIn("dags/", conditional_scaffold_paths)
         self.assertIn("infra/cloud/stackit/terraform/modules/workflows", conditional_scaffold_paths)
@@ -593,8 +660,10 @@ class RefactorContractsTests(unittest.TestCase):
     def test_blueprint_bootstrap_seeds_templates_from_single_list(self) -> None:
         bootstrap = _read("scripts/bin/blueprint/bootstrap.sh")
         self.assertIn("local template_files=(", bootstrap)
+        self.assertIn("ensure_blueprint_seed_file()", bootstrap)
         self.assertIn('"make/platform.mk"', bootstrap)
-        self.assertIn('"blueprint/repo.init.example.env"', bootstrap)
+        self.assertIn('"blueprint/repo.init.env"', bootstrap)
+        self.assertIn('"blueprint/repo.init.secrets.example.env"', bootstrap)
         self.assertIn('"docs/platform/consumer/quickstart.md"', bootstrap)
         self.assertIn('"docs/platform/consumer/first_30_minutes.md"', bootstrap)
         self.assertIn('"docs/blueprint/governance/ownership_matrix.md"', bootstrap)
@@ -605,6 +674,9 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn('scripts/lib/docs/generate_contract_docs.py', bootstrap)
         self.assertIn('docs/reference/generated/contract_metadata.generated.md', bootstrap)
         self.assertIn('log_metric "blueprint_template_file_count" "${#template_files[@]}"', bootstrap)
+        self.assertIn('blueprint_consumer_seeded_skip_count', bootstrap)
+        self.assertIn('missing consumer-initialized file:', bootstrap)
+        self.assertIn('BLUEPRINT_INIT_FORCE=true make blueprint-init-repo', bootstrap)
         self.assertIn(
             "pre-commit install --install-hooks --hook-type pre-commit --hook-type pre-push",
             bootstrap,
@@ -619,6 +691,8 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn('".dockerignore"', bootstrap)
 
         self.assertIn("artifacts/", gitignore_template)
+        self.assertIn("blueprint/repo.init.secrets.env", gitignore_template)
+        self.assertNotIn("blueprint/repo.init.env", gitignore_template)
         self.assertIn("docs/build/", gitignore_template)
         self.assertIn("docs/.docusaurus/", gitignore_template)
 
@@ -629,6 +703,8 @@ class RefactorContractsTests(unittest.TestCase):
     def test_bootstrap_docs_templates_are_synchronized(self) -> None:
         template_root = REPO_ROOT / "scripts/templates/blueprint/bootstrap"
         synced_docs = [
+            "blueprint/contract.yaml",
+            "docs/docusaurus.config.js",
             "docs/README.md",
             "docs/blueprint/README.md",
             "docs/blueprint/architecture/system_overview.md",
@@ -701,6 +777,7 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn("make blueprint-bootstrap", docs_readme)
         self.assertIn("make blueprint-render-module-wrapper-skeletons", docs_readme)
         self.assertIn("make blueprint-clean-generated", docs_readme)
+        self.assertIn("BLUEPRINT_INIT_FORCE=true make blueprint-init-repo", docs_readme)
         self.assertIn("make help", docs_readme)
         self.assertIn("make infra-help-reference", docs_readme)
         self.assertIn("make infra-destroy-disabled-modules", docs_readme)
@@ -904,7 +981,7 @@ class RefactorContractsTests(unittest.TestCase):
     def test_bootstrap_preserves_disabled_optional_scaffolding(self) -> None:
         bootstrap = _read("scripts/bin/infra/bootstrap.sh")
         self.assertIn(
-            'ensure_file_from_template "$ROOT_DIR/tests/infra/modules/observability/README.md" "infra" "tests/infra/modules/observability/README.md"',
+            'ensure_infra_template_file "tests/infra/modules/observability/README.md"',
             bootstrap,
         )
         self.assertIn("report_disabled_module_scaffolding_preserved()", bootstrap)
@@ -914,11 +991,21 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertNotIn("prune_path_if_exists()", bootstrap)
         self.assertNotIn("optional_module_pruned_path_count", bootstrap)
 
+    def test_infra_bootstrap_does_not_recreate_init_managed_files_in_generated_repos(self) -> None:
+        bootstrap = _read("scripts/bin/infra/bootstrap.sh")
+        self.assertIn("ensure_infra_template_file()", bootstrap)
+        self.assertIn("ensure_infra_rendered_file()", bootstrap)
+        self.assertIn("missing init-managed file:", bootstrap)
+        self.assertIn("BLUEPRINT_INIT_FORCE=true make blueprint-init-repo", bootstrap)
+        self.assertIn("infra_init_managed_skip_count", bootstrap)
+
     def test_init_repo_prunes_disabled_optional_scaffolding_on_first_init(self) -> None:
         init_python = _read("scripts/lib/blueprint/init_repo.py")
-        self.assertIn("prune_disabled_optional_scaffolding", init_python)
-        self.assertIn("consumer-owned seed already applied", init_python)
-        self.assertIn("_expand_optional_module_path(", init_python)
+        init_contract_helpers = _read("scripts/lib/blueprint/init_repo_contract.py")
+        self.assertIn("seed_consumer_owned_files", init_python)
+        self.assertIn("prune_disabled_optional_scaffolding", init_contract_helpers)
+        self.assertIn("consumer-owned seed already applied", init_contract_helpers)
+        self.assertIn("expand_optional_module_path(", init_contract_helpers)
 
     def test_public_endpoints_smoke_accepts_list_manifest_kind_entries(self) -> None:
         smoke = _read("scripts/bin/infra/public_endpoints_smoke.sh")
@@ -1167,41 +1254,67 @@ class RefactorContractsTests(unittest.TestCase):
         init_python = _read("scripts/lib/blueprint/init_repo.py")
         smoke_script = _read("scripts/bin/blueprint/template_smoke.sh")
         placeholder_script = _read("scripts/bin/blueprint/check_placeholders.sh")
-        init_env = _read("blueprint/repo.init.example.env")
+        init_env_defaults = _read("blueprint/repo.init.env")
+        init_env_secrets_example = _read("blueprint/repo.init.secrets.example.env")
 
         self.assertIn("blueprint_init_repo", init_script)
         self.assertIn("--dry-run", init_script)
+        self.assertIn("--force", init_python)
         self.assertIn("BLUEPRINT_INIT_DRY_RUN", init_script)
+        self.assertIn("blueprint_init_force_var_name", init_script)
+        self.assertIn("blueprint_load_env_defaults", init_script)
         self.assertIn("BLUEPRINT_REPO_NAME", init_script)
         self.assertIn("BLUEPRINT_GITHUB_ORG", init_script)
         self.assertIn("BLUEPRINT_GITHUB_REPO", init_script)
         self.assertIn("BLUEPRINT_DEFAULT_BRANCH", init_script)
         self.assertIn("blueprint_init_repo_interactive", init_interactive_script)
         self.assertIn("BLUEPRINT_INIT_DRY_RUN", init_interactive_script)
+        self.assertIn("blueprint_init_force_var_name", init_interactive_script)
         self.assertIn("prompt_with_default", init_interactive_script)
+        self.assertIn("contract_runtime.sh", init_script)
+        self.assertIn("contract_runtime.sh", init_interactive_script)
+        self.assertIn("contract_runtime.sh", placeholder_script)
+        self.assertIn("blueprint_load_env_defaults", placeholder_script)
         self.assertIn('scripts/bin/blueprint/render_makefile.sh', init_script)
         self.assertIn("_render_contract", init_python)
         self.assertIn("_render_docusaurus_config", init_python)
+        self.assertIn("_ensure_defaults_env_file", init_python)
+        self.assertIn("_ensure_secrets_example_env_file", init_python)
+        self.assertIn("_ensure_local_secrets_env_file", init_python)
+        self.assertIn("init_repo_contract", init_python)
+        self.assertIn("init_repo_renderers", init_python)
+        self.assertIn("init_repo_env", init_python)
+        self.assertIn("init_repo_io", init_python)
         self.assertIn("--dry-run", init_python)
         self.assertIn("blueprint_template_smoke", smoke_script)
         self.assertIn("make blueprint-bootstrap", smoke_script)
         self.assertIn("make blueprint-check-placeholders", smoke_script)
         self.assertIn("make infra-provision-deploy", smoke_script)
         self.assertIn("make infra-status-json", smoke_script)
+        self.assertIn("blueprint_sanitize_init_placeholder_defaults", smoke_script)
         self.assertIn("BLUEPRINT_TEMPLATE_SMOKE_SCENARIO", smoke_script)
         self.assertIn("assert_template_smoke_repo_state", smoke_script)
         self.assertIn("blueprint_check_placeholders", placeholder_script)
         self.assertIn("BLUEPRINT_GITHUB_ORG", placeholder_script)
-        self.assertIn("BLUEPRINT_REPO_NAME=", init_env)
-        self.assertIn("BLUEPRINT_GITHUB_ORG=", init_env)
-        self.assertIn("BLUEPRINT_GITHUB_REPO=", init_env)
-        self.assertIn("BLUEPRINT_DEFAULT_BRANCH=", init_env)
-        self.assertIn("BLUEPRINT_STACKIT_REGION=", init_env)
-        self.assertIn("BLUEPRINT_STACKIT_TENANT_SLUG=", init_env)
-        self.assertIn("BLUEPRINT_STACKIT_PLATFORM_SLUG=", init_env)
-        self.assertIn("BLUEPRINT_STACKIT_PROJECT_ID=", init_env)
-        self.assertIn("BLUEPRINT_STACKIT_TFSTATE_BUCKET=", init_env)
-        self.assertIn("BLUEPRINT_STACKIT_TFSTATE_KEY_PREFIX=", init_env)
+        self.assertIn("BLUEPRINT_REPO_NAME=", init_env_defaults)
+        self.assertIn("BLUEPRINT_GITHUB_ORG=", init_env_defaults)
+        self.assertIn("BLUEPRINT_GITHUB_REPO=", init_env_defaults)
+        self.assertIn("BLUEPRINT_DEFAULT_BRANCH=", init_env_defaults)
+        self.assertIn("BLUEPRINT_STACKIT_REGION=", init_env_defaults)
+        self.assertIn("BLUEPRINT_STACKIT_TENANT_SLUG=", init_env_defaults)
+        self.assertIn("BLUEPRINT_STACKIT_PLATFORM_SLUG=", init_env_defaults)
+        self.assertIn("BLUEPRINT_STACKIT_PROJECT_ID=", init_env_defaults)
+        self.assertIn("BLUEPRINT_STACKIT_TFSTATE_BUCKET=", init_env_defaults)
+        self.assertIn("BLUEPRINT_STACKIT_TFSTATE_KEY_PREFIX=", init_env_defaults)
+        self.assertIn("STACKIT_SERVICE_ACCOUNT_KEY=", init_env_secrets_example)
+        self.assertIn("STACKIT_TFSTATE_ACCESS_KEY_ID=", init_env_secrets_example)
+        self.assertIn("defaults_env_file: blueprint/repo.init.env", _read("blueprint/contract.yaml"))
+        self.assertIn(
+            "secrets_example_env_file: blueprint/repo.init.secrets.example.env",
+            _read("blueprint/contract.yaml"),
+        )
+        self.assertIn("secrets_env_file: blueprint/repo.init.secrets.env", _read("blueprint/contract.yaml"))
+        self.assertIn("force_env_var: BLUEPRINT_INIT_FORCE", _read("blueprint/contract.yaml"))
         self.assertIn("consumer_init:", _read("blueprint/contract.yaml"))
         self.assertIn("ownership_path_classes:", _read("blueprint/contract.yaml"))
 
@@ -1292,6 +1405,7 @@ class RefactorContractsTests(unittest.TestCase):
             (tmp_root / "scripts/templates/consumer/init/.github/workflows").mkdir(parents=True, exist_ok=True)
             (tmp_root / "scripts/templates/consumer/init/.github/ISSUE_TEMPLATE").mkdir(parents=True, exist_ok=True)
             (tmp_root / "scripts/templates/consumer/init/docs").mkdir(parents=True, exist_ok=True)
+            (tmp_root / "blueprint/modules").mkdir(parents=True, exist_ok=True)
             (tmp_root / "dags").mkdir(parents=True, exist_ok=True)
             (tmp_root / "infra/cloud/stackit/terraform/modules/workflows").mkdir(parents=True, exist_ok=True)
             (tmp_root / "tests/infra/modules/workflows").mkdir(parents=True, exist_ok=True)
@@ -1335,6 +1449,12 @@ class RefactorContractsTests(unittest.TestCase):
             ):
                 source_path = REPO_ROOT / "scripts/templates/consumer/init" / template_path
                 target_path = tmp_root / "scripts/templates/consumer/init" / template_path
+                target_path.write_text(source_path.read_text(encoding="utf-8"), encoding="utf-8")
+            for template_path in INIT_MANAGED_RESTORE_TEMPLATE_PATHS:
+                _copy_repo_text_path(tmp_root, template_path)
+            for source_path in (REPO_ROOT / "blueprint/modules").glob("*/module.contract.yaml"):
+                target_path = tmp_root / source_path.relative_to(REPO_ROOT)
+                target_path.parent.mkdir(parents=True, exist_ok=True)
                 target_path.write_text(source_path.read_text(encoding="utf-8"), encoding="utf-8")
             (tmp_root / "docs/docusaurus.config.js").write_text(
                 _read("docs/docusaurus.config.js"),
@@ -1437,6 +1557,8 @@ class RefactorContractsTests(unittest.TestCase):
             updated_foundation_backend = (
                 tmp_root / "infra/cloud/stackit/terraform/foundation/state-backend/dev.hcl"
             ).read_text(encoding="utf-8")
+            defaults_env = (tmp_root / "blueprint/repo.init.env").read_text(encoding="utf-8")
+            local_secrets_env = (tmp_root / "blueprint/repo.init.secrets.env").read_text(encoding="utf-8")
             seeded_readme = (tmp_root / "README.md").read_text(encoding="utf-8")
             seeded_docs_readme = (tmp_root / "docs/README.md").read_text(encoding="utf-8")
             seeded_codeowners = (tmp_root / ".github/CODEOWNERS").read_text(encoding="utf-8")
@@ -1496,6 +1618,14 @@ class RefactorContractsTests(unittest.TestCase):
             self.assertIn('key          = "iac/tfstate/dev/foundation.tfstate"', updated_foundation_backend)
             self.assertIn('region       = "eu02"', updated_foundation_backend)
             self.assertIn('s3 = "https://object.storage.eu02.onstackit.cloud"', updated_foundation_backend)
+            self.assertIn("BLUEPRINT_REPO_NAME=acme-platform", defaults_env)
+            self.assertIn("BLUEPRINT_DOCS_TITLE='Acme Platform Blueprint'", defaults_env)
+            self.assertIn("POSTGRES_ENABLED=true", defaults_env)
+            self.assertIn("OBJECT_STORAGE_ENABLED=true", defaults_env)
+            self.assertIn("PUBLIC_ENDPOINTS_ENABLED=true", defaults_env)
+            self.assertIn("IDENTITY_AWARE_PROXY_ENABLED=true", defaults_env)
+            self.assertIn("POSTGRES_DB_NAME=", local_secrets_env)
+            self.assertIn("KEYCLOAK_CLIENT_ID=", local_secrets_env)
             self.assertIn("platform project created from the STACKIT Platform Blueprint", seeded_readme)
             self.assertIn("Blueprint Reference Track", seeded_docs_readme)
             self.assertIn("generated repository", seeded_codeowners)
@@ -1506,6 +1636,61 @@ class RefactorContractsTests(unittest.TestCase):
             self.assertFalse((tmp_root / "dags").exists())
             self.assertFalse((tmp_root / "infra/cloud/stackit/terraform/modules/workflows").exists())
             self.assertFalse((tmp_root / "tests/infra/modules/workflows").exists())
+
+            (tmp_root / "docs/docusaurus.config.js").unlink()
+            (tmp_root / "infra/cloud/stackit/terraform/bootstrap/env/dev.tfvars").unlink()
+
+            restore_result = subprocess.run(
+                [
+                    sys.executable,
+                    str(init_python_path),
+                    "--repo-root",
+                    str(tmp_root),
+                    "--repo-name",
+                    "acme-platform",
+                    "--github-org",
+                    "acme",
+                    "--github-repo",
+                    "acme-platform",
+                    "--default-branch",
+                    "main",
+                    "--docs-title",
+                    "Acme Platform Blueprint",
+                    "--docs-tagline",
+                    "Acme reusable platform blueprint",
+                    "--stackit-region",
+                    "eu02",
+                    "--stackit-tenant-slug",
+                    "acme",
+                    "--stackit-platform-slug",
+                    "marketplace",
+                    "--stackit-project-id",
+                    "acme-marketplace-dev",
+                    "--stackit-tfstate-bucket",
+                    "acme-marketplace-tf-state",
+                    "--stackit-tfstate-key-prefix",
+                    "iac/tfstate",
+                    "--force",
+                ],
+                cwd=REPO_ROOT,
+                env={
+                    **os.environ,
+                    "POSTGRES_ENABLED": "true",
+                    "OBJECT_STORAGE_ENABLED": "true",
+                    "PUBLIC_ENDPOINTS_ENABLED": "true",
+                    "IDENTITY_AWARE_PROXY_ENABLED": "true",
+                },
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+
+            self.assertEqual(restore_result.returncode, 0, msg=restore_result.stdout + restore_result.stderr)
+            self.assertIn('title: "Acme Platform Blueprint"', (tmp_root / "docs/docusaurus.config.js").read_text(encoding="utf-8"))
+            self.assertIn(
+                'stackit_region   = "eu02"',
+                (tmp_root / "infra/cloud/stackit/terraform/bootstrap/env/dev.tfvars").read_text(encoding="utf-8"),
+            )
 
     def test_blueprint_init_python_dry_run_does_not_mutate_files(self) -> None:
         init_python_path = REPO_ROOT / "scripts/lib/blueprint/init_repo.py"
@@ -1536,6 +1721,8 @@ class RefactorContractsTests(unittest.TestCase):
                 source_path = REPO_ROOT / "scripts/templates/consumer/init" / template_path
                 target_path = tmp_root / "scripts/templates/consumer/init" / template_path
                 target_path.write_text(source_path.read_text(encoding="utf-8"), encoding="utf-8")
+            for template_path in INIT_MANAGED_RESTORE_TEMPLATE_PATHS:
+                _copy_repo_text_path(tmp_root, template_path)
 
             result = subprocess.run(
                 [
@@ -1580,6 +1767,94 @@ class RefactorContractsTests(unittest.TestCase):
             self.assertIn("created:", result.stdout)
             self.assertEqual((tmp_root / "blueprint/contract.yaml").read_text(encoding="utf-8"), contract_original)
             self.assertEqual((tmp_root / "docs/docusaurus.config.js").read_text(encoding="utf-8"), docs_original)
+            self.assertFalse((tmp_root / "blueprint/repo.init.secrets.env").exists())
+
+    def test_blueprint_init_python_requires_force_for_generated_consumer_repo(self) -> None:
+        init_python_path = REPO_ROOT / "scripts/lib/blueprint/init_repo.py"
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            (tmp_root / "blueprint").mkdir(parents=True, exist_ok=True)
+            contract_content = _read("blueprint/contract.yaml").replace("repo_mode: template-source", "repo_mode: generated-consumer", 1)
+            (tmp_root / "blueprint/contract.yaml").write_text(contract_content, encoding="utf-8")
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(init_python_path),
+                    "--repo-root",
+                    str(tmp_root),
+                    "--repo-name",
+                    "acme-platform",
+                    "--github-org",
+                    "acme",
+                    "--github-repo",
+                    "acme-platform",
+                    "--default-branch",
+                    "main",
+                    "--docs-title",
+                    "Acme Platform Blueprint",
+                    "--docs-tagline",
+                    "Acme reusable platform blueprint",
+                    "--stackit-region",
+                    "eu02",
+                    "--stackit-tenant-slug",
+                    "acme",
+                    "--stackit-platform-slug",
+                    "marketplace",
+                    "--stackit-project-id",
+                    "acme-marketplace-dev",
+                    "--stackit-tfstate-bucket",
+                    "acme-marketplace-tf-state",
+                    "--stackit-tfstate-key-prefix",
+                    "iac/tfstate",
+                ],
+                cwd=REPO_ROOT,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+
+            self.assertEqual(result.returncode, 1, msg=result.stdout + result.stderr)
+            self.assertIn("BLUEPRINT_INIT_FORCE=true", result.stderr)
+
+    def test_load_module_contract_resolves_repo_relative_path_through_symlinked_repo_root(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            real_root = Path(tmpdir) / "real-repo"
+            module_dir = real_root / "blueprint/modules/sample"
+            module_dir.mkdir(parents=True, exist_ok=True)
+            module_path = module_dir / "module.contract.yaml"
+            module_path.write_text(
+                "\n".join(
+                    [
+                        "apiVersion: blueprint.module.contract/v1alpha1",
+                        "kind: OptionalModuleContract",
+                        "metadata:",
+                        "  name: sample",
+                        "  version: 1.0.0",
+                        "spec:",
+                        "  module_id: sample",
+                        '  purpose: "sample"',
+                        "  enabled_by_default: false",
+                        "  enable_flag: SAMPLE_ENABLED",
+                        "  inputs:",
+                        "    required_env: []",
+                        "  outputs:",
+                        "    produced: []",
+                        "  make_targets: {}",
+                        "",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            symlink_root = Path(tmpdir) / "repo-link"
+            symlink_root.symlink_to(real_root, target_is_directory=True)
+
+            module = load_module_contract(
+                symlink_root / "blueprint/modules/sample/module.contract.yaml",
+                real_root.resolve(),
+            )
+
+            self.assertEqual(module.contract_path, "blueprint/modules/sample/module.contract.yaml")
 
     def test_workflows_scaffolding_is_contract_conditional(self) -> None:
         contract = _read("blueprint/contract.yaml")
@@ -1686,6 +1961,20 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn("{{PHONY_SECRETS_MANAGER}}", makefile_template)
         self.assertIn("{{PHONY_KMS}}", makefile_template)
         self.assertIn("{{PHONY_IDENTITY_AWARE_PROXY}}", makefile_template)
+        self.assertIn("{{INFRA_ENV_GUARDED_OBSERVABILITY}}", makefile_template)
+        self.assertIn("{{INFRA_ENV_GUARDED_WORKFLOWS}}", makefile_template)
+        self.assertIn("{{INFRA_ENV_GUARDED_LANGFUSE}}", makefile_template)
+        self.assertIn("{{INFRA_ENV_GUARDED_POSTGRES}}", makefile_template)
+        self.assertIn("{{INFRA_ENV_GUARDED_NEO4J}}", makefile_template)
+        self.assertIn("{{INFRA_ENV_GUARDED_OBJECT_STORAGE}}", makefile_template)
+        self.assertIn("{{INFRA_ENV_GUARDED_RABBITMQ}}", makefile_template)
+        self.assertIn("{{INFRA_ENV_GUARDED_DNS}}", makefile_template)
+        self.assertIn("{{INFRA_ENV_GUARDED_PUBLIC_ENDPOINTS}}", makefile_template)
+        self.assertIn("{{INFRA_ENV_GUARDED_SECRETS_MANAGER}}", makefile_template)
+        self.assertIn("{{INFRA_ENV_GUARDED_KMS}}", makefile_template)
+        self.assertIn("{{INFRA_ENV_GUARDED_IDENTITY_AWARE_PROXY}}", makefile_template)
+        self.assertIn("INFRA_ENV_GUARDED_TARGETS :=", makefile_template)
+        self.assertIn("$(INFRA_ENV_GUARDED_TARGETS): blueprint-check-placeholders", makefile_template)
         self.assertIn("{{TARGETS_OBSERVABILITY}}", makefile_template)
         self.assertIn("{{TARGETS_WORKFLOWS}}", makefile_template)
         self.assertIn("{{TARGETS_LANGFUSE}}", makefile_template)
@@ -1698,9 +1987,34 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn("{{TARGETS_SECRETS_MANAGER}}", makefile_template)
         self.assertIn("{{TARGETS_KMS}}", makefile_template)
         self.assertIn("{{TARGETS_IDENTITY_AWARE_PROXY}}", makefile_template)
+        self.assertIn('"INFRA_ENV_GUARDED_OBSERVABILITY=$phony_observability" \\', makefile_renderer)
+        self.assertIn('"INFRA_ENV_GUARDED_WORKFLOWS=$phony_workflows" \\', makefile_renderer)
+        self.assertIn('"INFRA_ENV_GUARDED_LANGFUSE=$phony_langfuse" \\', makefile_renderer)
+        self.assertIn('"INFRA_ENV_GUARDED_POSTGRES=$phony_postgres" \\', makefile_renderer)
+        self.assertIn('"INFRA_ENV_GUARDED_NEO4J=$phony_neo4j" \\', makefile_renderer)
+        self.assertIn('"INFRA_ENV_GUARDED_OBJECT_STORAGE=$phony_object_storage" \\', makefile_renderer)
+        self.assertIn('"INFRA_ENV_GUARDED_RABBITMQ=$phony_rabbitmq" \\', makefile_renderer)
+        self.assertIn('"INFRA_ENV_GUARDED_DNS=$phony_dns" \\', makefile_renderer)
+        self.assertIn('"INFRA_ENV_GUARDED_PUBLIC_ENDPOINTS=$phony_public_endpoints" \\', makefile_renderer)
+        self.assertIn('"INFRA_ENV_GUARDED_SECRETS_MANAGER=$phony_secrets_manager" \\', makefile_renderer)
+        self.assertIn('"INFRA_ENV_GUARDED_KMS=$phony_kms" \\', makefile_renderer)
+        self.assertIn('"INFRA_ENV_GUARDED_IDENTITY_AWARE_PROXY=$phony_identity_aware_proxy" \\', makefile_renderer)
         self.assertIn("render_makefile()", makefile_renderer)
         self.assertIn('render_bootstrap_template_content \\', makefile_renderer)
         self.assertIn('"blueprint" \\', makefile_renderer)
+
+    def test_shell_contract_helpers_use_reusable_python_cli(self) -> None:
+        contract_runtime_sh = _read("scripts/lib/blueprint/contract_runtime.sh")
+        profile_sh = _read("scripts/lib/infra/profile.sh")
+        runtime_cli = _read("scripts/lib/blueprint/contract_runtime_cli.py")
+
+        self.assertNotIn("<<'PY'", contract_runtime_sh)
+        self.assertNotIn("<<'PY'", profile_sh)
+        self.assertIn("contract_runtime_cli.py", contract_runtime_sh)
+        self.assertIn("contract_runtime_cli.py", profile_sh)
+        self.assertIn("runtime-lines", runtime_cli)
+        self.assertIn("required-env-vars", runtime_cli)
+        self.assertIn("module-defaults", runtime_cli)
 
 
 if __name__ == "__main__":

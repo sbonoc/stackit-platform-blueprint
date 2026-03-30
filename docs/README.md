@@ -26,11 +26,15 @@ make infra-validate
 
 For CI/non-interactive bootstrap, use:
 ```bash
-set -a
-source blueprint/repo.init.example.env
-set +a
+cp blueprint/repo.init.secrets.example.env blueprint/repo.init.secrets.env
+${EDITOR:-vi} blueprint/repo.init.env blueprint/repo.init.secrets.env
 make blueprint-init-repo
 ```
+
+`make blueprint-init-repo` creates or refreshes tracked defaults in `blueprint/repo.init.env`,
+keeps placeholder-only scaffolding in `blueprint/repo.init.secrets.example.env`, and creates
+gitignored local sensitive defaults in `blueprint/repo.init.secrets.env`.
+Later `make blueprint-check-placeholders` and infra targets auto-load defaults + secrets files when present.
 
 ## If You Maintain the Blueprint (Maintainer Track)
 Read:
@@ -75,6 +79,9 @@ Common baseline flow:
 - `make infra-destroy-disabled-modules`
 - `make infra-validate`
 - `make infra-smoke`
+
+If you intentionally need to re-apply consumer-seeded or init-managed files after first init, rerun:
+- `BLUEPRINT_INIT_FORCE=true make blueprint-init-repo`
 
 Quality and docs flow:
 - `make quality-hooks-fast`

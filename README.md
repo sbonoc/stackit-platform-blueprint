@@ -4,6 +4,7 @@ This repository is a GitHub template for bootstrapping platform repositories tha
 
 ## What It Provides
 - Repository identity initialization with `make blueprint-init-repo`
+- A tracked `blueprint/repo.init.env` plus gitignored `blueprint/repo.init.secrets.env` for local defaults
 - Blueprint-managed bootstrap and validation with `make blueprint-bootstrap` and `make infra-validate`
 - A clean ownership split between blueprint-managed surfaces and platform-owned implementation paths
 - Lean optional modules that materialize only when enabled
@@ -20,9 +21,8 @@ This repository is a GitHub template for bootstrapping platform repositories tha
    ```
    or
    ```bash
-   set -a
-   source blueprint/repo.init.example.env
-   set +a
+   cp blueprint/repo.init.secrets.example.env blueprint/repo.init.secrets.env
+   ${EDITOR:-vi} blueprint/repo.init.env blueprint/repo.init.secrets.env
    make blueprint-init-repo
    ```
 3. Bootstrap and validate:

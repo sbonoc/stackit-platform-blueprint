@@ -32,27 +32,17 @@ load_module_enablement_contract_defaults() {
   if [[ ! -f "$contract_path" ]] || ! command -v python3 >/dev/null 2>&1; then
     return 0
   fi
+  local runtime_helper="$PROFILE_SH_ROOT_DIR/scripts/lib/blueprint/contract_runtime_cli.py"
+  if [[ ! -f "$runtime_helper" ]]; then
+    return 0
+  fi
 
   local line
   while IFS= read -r line; do
     [[ -n "$line" ]] || continue
     MODULE_ENABLEMENT_CONTRACT_LINES+="${line}"$'\n'
   done < <(
-    python3 - "$contract_path" <<'PY'
-from pathlib import Path
-import sys
-
-contract_path = Path(sys.argv[1]).resolve()
-repo_root = contract_path.parents[1]
-if str(repo_root) not in sys.path:
-    sys.path.insert(0, str(repo_root))
-
-from scripts.lib.blueprint.contract_schema import load_blueprint_contract
-
-contract = load_blueprint_contract(contract_path)
-for module_id, module in contract.optional_modules.modules.items():
-    print(f"{module_id}={str(module.enabled_by_default).lower()}")
-PY
+    python3 "$runtime_helper" module-defaults --contract-path "$contract_path"
   )
 }
 
