@@ -150,28 +150,33 @@ def _classify_entry(
     git: GitInspector,
 ) -> SeedResyncEntry:
     if current_content is None:
+        tracked = git.is_tracked(relative_path)
+        dirty = git.has_worktree_changes(relative_path)
+        commit_count = git.commit_count(relative_path) if tracked else None
         return SeedResyncEntry(
             path=relative_path,
             status="missing",
             action="create",
             classification=CLASS_AUTO_REFRESH,
             reason="missing file; safe to recreate from template seed",
-            tracked=False,
-            dirty=False,
-            commit_count=None,
+            tracked=tracked,
+            dirty=dirty,
+            commit_count=commit_count,
             expected_content=expected_content,
         )
 
     if current_content == expected_content:
+        tracked = git.is_tracked(relative_path)
+        commit_count = git.commit_count(relative_path) if tracked else None
         return SeedResyncEntry(
             path=relative_path,
             status="in-sync",
             action="none",
             classification=CLASS_UP_TO_DATE,
             reason="already matches current template seed",
-            tracked=True,
+            tracked=tracked,
             dirty=False,
-            commit_count=git.commit_count(relative_path),
+            commit_count=commit_count,
             expected_content=expected_content,
         )
 
@@ -205,13 +210,13 @@ def _classify_entry(
             expected_content=expected_content,
         )
 
-    if commit_count is not None and commit_count <= 1:
+    if commit_count is not None and commit_count <= 2:
         return SeedResyncEntry(
             path=relative_path,
             status="drifted",
             action="update",
             classification=CLASS_AUTO_REFRESH,
-            reason="only one commit touched this path; treated as untouched seed",
+            reason="one or two commits touched this path; treated as untouched seed/init rewrite",
             tracked=True,
             dirty=False,
             commit_count=commit_count,
@@ -325,9 +330,16 @@ def _write_json_report(
 ) -> None:
     if not report_path_value:
         return
+    repo_root_resolved = repo_root.resolve()
     report_path = Path(report_path_value)
     if not report_path.is_absolute():
-        report_path = repo_root / report_path
+        report_path = (repo_root / report_path).resolve()
+        try:
+            report_path.relative_to(repo_root_resolved)
+        except ValueError as exc:
+            raise ValueError(
+                "--report-path must stay within the repository root when using a relative path"
+            ) from exc
     report_path.parent.mkdir(parents=True, exist_ok=True)
     payload = {
         "mode": mode,
@@ -358,7 +370,11 @@ def main() -> int:
     applied = _apply_entries(repo_root, entries, mode)
     summary = _summarize(entries, applied)
     _print_report(entries, summary, mode)
-    _write_json_report(args.report_path, repo_root, mode, entries, summary)
+    try:
+        _write_json_report(args.report_path, repo_root, mode, entries, summary)
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
     return 0
 
 

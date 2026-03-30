@@ -32,8 +32,10 @@ Common first-day issues for generated repositories.
   BLUEPRINT_RESYNC_APPLY_SAFE=true make blueprint-resync-consumer-seeds
   make blueprint-bootstrap
   ```
-- If the resync report classifies a missing file as `manual-merge`, resolve that file manually or use
-  `BLUEPRINT_RESYNC_APPLY_ALL=true make blueprint-resync-consumer-seeds` when full overwrite is intentional.
+- Missing files are classified as `auto-refresh` (`action=create`) and are recreated by safe apply:
+  `BLUEPRINT_RESYNC_APPLY_SAFE=true make blueprint-resync-consumer-seeds`.
+- Use `BLUEPRINT_RESYNC_APPLY_ALL=true make blueprint-resync-consumer-seeds` only when full overwrite is intentional
+  for files classified as `manual-merge`.
 
 ## `make infra-bootstrap` fails with a missing init-managed file
 - Generated repos do not recreate init-managed identity files from ambient env during infra bootstrap.

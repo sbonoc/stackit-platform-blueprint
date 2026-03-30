@@ -79,10 +79,13 @@ class ResyncConsumerSeedsTests(unittest.TestCase):
         self.assertEqual(_run(["git", "add", "."], cwd=tmp_root).returncode, 0)
         self.assertEqual(_run(["git", "commit", "-m", "initial generated repo"], cwd=tmp_root).returncode, 0)
 
-        # Ensure AGENTS.md is classified as manual-merge by giving it >1 commits.
+        # Ensure AGENTS.md is classified as manual-merge by giving it >2 commits.
         _write(tmp_root / "AGENTS.md", "# customized AGENTS history\n")
         self.assertEqual(_run(["git", "add", "AGENTS.md"], cwd=tmp_root).returncode, 0)
         self.assertEqual(_run(["git", "commit", "-m", "customize agents"], cwd=tmp_root).returncode, 0)
+        _write(tmp_root / "AGENTS.md", "# customized AGENTS history again\n")
+        self.assertEqual(_run(["git", "add", "AGENTS.md"], cwd=tmp_root).returncode, 0)
+        self.assertEqual(_run(["git", "commit", "-m", "customize agents again"], cwd=tmp_root).returncode, 0)
         return replacements
 
     def test_dry_run_classifies_auto_refresh_and_manual_merge(self) -> None:
@@ -139,7 +142,63 @@ class ResyncConsumerSeedsTests(unittest.TestCase):
             self.assertEqual((tmp_root / "docs/README.md").read_text(encoding="utf-8"), docs_readme_expected)
 
             # AGENTS.md remains unchanged because it is classified as manual-merge.
-            self.assertEqual((tmp_root / "AGENTS.md").read_text(encoding="utf-8"), "# customized AGENTS history\n")
+            self.assertEqual(
+                (tmp_root / "AGENTS.md").read_text(encoding="utf-8"),
+                "# customized AGENTS history again\n",
+            )
+
+    def test_two_commit_drift_is_still_auto_refresh(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            self._prepare_generated_repo(tmp_root)
+
+            _write(tmp_root / "README.md", "# custom README second commit\n")
+            self.assertEqual(_run(["git", "add", "README.md"], cwd=tmp_root).returncode, 0)
+            self.assertEqual(_run(["git", "commit", "-m", "customize readme"], cwd=tmp_root).returncode, 0)
+
+            result = _run(
+                [
+                    sys.executable,
+                    str(RESYNC_SCRIPT),
+                    "--repo-root",
+                    str(tmp_root),
+                    "--dry-run",
+                ],
+                cwd=REPO_ROOT,
+            )
+
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            self.assertIn(
+                "auto-refresh: README.md (status=drifted action=update) - one or two commits touched this path; "
+                "treated as untouched seed/init rewrite",
+                result.stdout,
+            )
+
+    def test_report_path_rejects_repo_escape(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            self._prepare_generated_repo(tmp_root)
+            escaped_report_path = tmp_root.parent / "escaped-report.json"
+
+            result = _run(
+                [
+                    sys.executable,
+                    str(RESYNC_SCRIPT),
+                    "--repo-root",
+                    str(tmp_root),
+                    "--dry-run",
+                    "--report-path",
+                    "../escaped-report.json",
+                ],
+                cwd=REPO_ROOT,
+            )
+
+            self.assertEqual(result.returncode, 1, msg=result.stdout + result.stderr)
+            self.assertIn(
+                "--report-path must stay within the repository root when using a relative path",
+                result.stderr,
+            )
+            self.assertFalse(escaped_report_path.exists())
 
     def test_refuses_template_source_repo_mode(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
