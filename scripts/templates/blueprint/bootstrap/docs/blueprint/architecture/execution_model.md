@@ -8,7 +8,7 @@ For repositories created via GitHub template:
    - Interactive wizard: `make blueprint-init-repo-interactive`
    - Env-file mode (CI-friendly): copy `blueprint/repo.init.secrets.example.env` to `blueprint/repo.init.secrets.env`, edit `blueprint/repo.init.env` + `blueprint/repo.init.secrets.env`, and run `make blueprint-init-repo`
    - First init also switches the contract from `template-source` to `generated-consumer`, replaces consumer-owned root docs/governance/CI seeds, and prunes disabled conditional optional scaffolding from the raw template copy.
-   - `make blueprint-init-repo` creates or refreshes tracked non-sensitive defaults in `blueprint/repo.init.env`, placeholder scaffolding in `blueprint/repo.init.secrets.example.env`, and local-sensitive defaults in `blueprint/repo.init.secrets.env`.
+   - `make blueprint-init-repo` creates or refreshes tracked non-sensitive defaults in `blueprint/repo.init.env` (including required non-sensitive module inputs for enabled modules), placeholder scaffolding in `blueprint/repo.init.secrets.example.env`, and local-sensitive defaults in `blueprint/repo.init.secrets.env` (including required sensitive module placeholders for enabled modules).
    - Reapply init-managed files only with `BLUEPRINT_INIT_FORCE=true make blueprint-init-repo`.
 2. Run `make blueprint-bootstrap`.
 3. Run `make infra-bootstrap`.

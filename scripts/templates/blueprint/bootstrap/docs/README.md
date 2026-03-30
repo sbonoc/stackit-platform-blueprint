@@ -34,6 +34,8 @@ make blueprint-init-repo
 `make blueprint-init-repo` creates or refreshes tracked defaults in `blueprint/repo.init.env`,
 keeps placeholder-only scaffolding in `blueprint/repo.init.secrets.example.env`, and creates
 gitignored local sensitive defaults in `blueprint/repo.init.secrets.env`.
+For enabled optional modules, required non-sensitive inputs are seeded into `blueprint/repo.init.env`
+and required sensitive inputs are scaffolded in the secrets files with non-empty placeholders.
 Later `make blueprint-check-placeholders` and infra targets auto-load defaults + secrets files when present.
 
 ## If You Maintain the Blueprint (Maintainer Track)

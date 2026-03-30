@@ -1661,8 +1661,18 @@ class RefactorContractsTests(unittest.TestCase):
             self.assertIn("OBJECT_STORAGE_ENABLED=true", defaults_env)
             self.assertIn("PUBLIC_ENDPOINTS_ENABLED=true", defaults_env)
             self.assertIn("IDENTITY_AWARE_PROXY_ENABLED=true", defaults_env)
-            self.assertIn("POSTGRES_DB_NAME=", local_secrets_env)
-            self.assertIn("KEYCLOAK_CLIENT_ID=", local_secrets_env)
+            self.assertIn("POSTGRES_INSTANCE_NAME=blueprint-postgres", defaults_env)
+            self.assertIn("POSTGRES_DB_NAME=platform", defaults_env)
+            self.assertIn("POSTGRES_USER=platform", defaults_env)
+            self.assertIn("OBJECT_STORAGE_BUCKET_NAME=marketplace-assets", defaults_env)
+            self.assertIn("PUBLIC_ENDPOINTS_BASE_DOMAIN=apps.local", defaults_env)
+            self.assertIn("IAP_UPSTREAM_URL=http://catalog.apps.svc.cluster.local:8080", defaults_env)
+            self.assertIn("KEYCLOAK_ISSUER_URL=https://keycloak.example/realms/platform", defaults_env)
+            self.assertIn("KEYCLOAK_CLIENT_ID=blueprint-client", defaults_env)
+            self.assertIn("POSTGRES_PASSWORD=platform-password", local_secrets_env)
+            self.assertIn("IAP_COOKIE_SECRET=0123456789abcdef0123456789abcdef", local_secrets_env)
+            self.assertIn("KEYCLOAK_CLIENT_SECRET=blueprint-client-secret", local_secrets_env)
+            self.assertNotIn("KEYCLOAK_CLIENT_ID=", local_secrets_env)
             self.assertIn("platform project created from the STACKIT Platform Blueprint", seeded_readme)
             self.assertIn("Blueprint Reference Track", seeded_docs_readme)
             self.assertIn("generated repository", seeded_codeowners)
@@ -1674,6 +1684,11 @@ class RefactorContractsTests(unittest.TestCase):
             self.assertFalse((tmp_root / "infra/cloud/stackit/terraform/modules/workflows").exists())
             self.assertFalse((tmp_root / "tests/infra/modules/workflows").exists())
 
+            custom_defaults_env = defaults_env.replace(
+                "PUBLIC_ENDPOINTS_BASE_DOMAIN=apps.local",
+                "PUBLIC_ENDPOINTS_BASE_DOMAIN=apps.acme.local",
+            )
+            (tmp_root / "blueprint/repo.init.env").write_text(custom_defaults_env, encoding="utf-8")
             (tmp_root / "docs/docusaurus.config.js").unlink()
             (tmp_root / "infra/cloud/stackit/terraform/bootstrap/env/dev.tfvars").unlink()
 
@@ -1727,6 +1742,10 @@ class RefactorContractsTests(unittest.TestCase):
             self.assertIn(
                 'stackit_region   = "eu02"',
                 (tmp_root / "infra/cloud/stackit/terraform/bootstrap/env/dev.tfvars").read_text(encoding="utf-8"),
+            )
+            self.assertIn(
+                "PUBLIC_ENDPOINTS_BASE_DOMAIN=apps.acme.local",
+                (tmp_root / "blueprint/repo.init.env").read_text(encoding="utf-8"),
             )
 
     def test_blueprint_init_python_dry_run_does_not_mutate_files(self) -> None:
