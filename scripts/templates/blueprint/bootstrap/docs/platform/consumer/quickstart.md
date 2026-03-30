@@ -38,6 +38,14 @@ and local-sensitive defaults in `blueprint/repo.init.secrets.env` (scaffolded fr
 Later `make blueprint-check-placeholders` and infra targets auto-load both files when present.
 Infra targets run `blueprint-check-placeholders` first, so missing required inputs fail fast before mutable operations.
 After first init, re-apply init-owned files only with `BLUEPRINT_INIT_FORCE=true make blueprint-init-repo`.
+For existing generated repos that need template seed updates, start with:
+```bash
+make blueprint-resync-consumer-seeds
+```
+Then apply only safe updates when appropriate:
+```bash
+BLUEPRINT_RESYNC_APPLY_SAFE=true make blueprint-resync-consumer-seeds
+```
 
 ## 3) Bootstrap and Validate
 ```bash

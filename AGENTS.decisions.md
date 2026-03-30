@@ -19,6 +19,10 @@
   - `make blueprint-init-repo` creates or refreshes these files and preserves explicit shell env precedence.
   - Init wrappers sanitize known template placeholder identity defaults during first-run inference so remote-derived/project-derived values are not overridden by untouched template placeholders.
   - `blueprint/repo.init.env` and `blueprint/repo.init.secrets.example.env` are treated as init-managed identity surfaces in generated repos, so post-init validation does not enforce byte-for-byte bootstrap-template sync on those files.
+- Generated repos use an explicit consumer-seed resync workflow for template drift:
+  - `make blueprint-resync-consumer-seeds` is the supported dry-run comparison between consumer-seeded files and current `scripts/templates/consumer/init/*.tmpl` content.
+  - Safe deterministic refreshes are classified as `auto-refresh`; potentially customized files are classified as `manual-merge`.
+  - `BLUEPRINT_RESYNC_APPLY_SAFE=true` applies only auto-refresh paths, while `BLUEPRINT_RESYNC_APPLY_ALL=true` is an explicit full-overwrite opt-in.
 - Python-in-shell contract parsing is centralized in reusable helpers:
   - shell wrappers call `scripts/lib/blueprint/contract_runtime_cli.py` instead of embedding inline Python blocks for contract inspection.
   - `scripts/lib/blueprint/init_repo.py` remains the entrypoint but delegates implementation to focused modules (`init_repo_contract.py`, `init_repo_renderers.py`, `init_repo_env.py`, `init_repo_io.py`) for reuse and maintainability.

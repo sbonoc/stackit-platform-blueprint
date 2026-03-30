@@ -139,6 +139,7 @@ A task is done only when all applicable items pass:
 - Branches must follow GitHub Flow naming with purpose-based prefixes defined in `blueprint/contract.yaml`.
 - Canonical blueprint lifecycle targets:
   - `blueprint-init-repo`
+  - `blueprint-resync-consumer-seeds`
   - `blueprint-check-placeholders`
   - `blueprint-template-smoke`
   - `blueprint-bootstrap`
