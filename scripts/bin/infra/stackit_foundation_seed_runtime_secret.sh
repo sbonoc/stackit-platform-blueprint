@@ -65,40 +65,46 @@ out = Path(sys.argv[2])
 
 # Keep this allowlist tight so the secret contract is deterministic and does
 # not include large/non-scalar outputs (for example module metadata maps).
+# Each entry maps <terraform_output_name> -> <runtime_secret_key>.
 allowed = [
-    "ske_cluster_name",
-    "postgres_host",
-    "postgres_port",
-    "postgres_username",
-    "postgres_password",
-    "postgres_database",
-    "object_storage_bucket_name",
-    "object_storage_access_key",
-    "object_storage_secret_access_key",
-    "rabbitmq_instance_id",
-    "rabbitmq_host",
-    "rabbitmq_port",
-    "rabbitmq_username",
-    "rabbitmq_password",
-    "rabbitmq_uri",
-    "secrets_manager_instance_id",
-    "secrets_manager_username",
-    "secrets_manager_password",
-    "observability_instance_id",
-    "observability_grafana_url",
-    "observability_credential_username",
-    "observability_credential_password",
-    "kms_key_ring_name",
-    "kms_key_name",
-    "kms_key_ring_id",
-    "kms_key_id",
+    ("ske_cluster_name", "ske_cluster_name"),
+    ("postgres_host", "postgres_host"),
+    ("postgres_port", "postgres_port"),
+    ("postgres_username", "postgres_username"),
+    ("postgres_password", "postgres_password"),
+    ("postgres_database", "postgres_database"),
+    ("keycloak_postgres_host", "KEYCLOAK_DATABASE_HOST"),
+    ("keycloak_postgres_port", "KEYCLOAK_DATABASE_PORT"),
+    ("keycloak_postgres_username", "KEYCLOAK_DATABASE_USERNAME"),
+    ("keycloak_postgres_password", "KEYCLOAK_DATABASE_PASSWORD"),
+    ("keycloak_postgres_database", "KEYCLOAK_DATABASE_NAME"),
+    ("object_storage_bucket_name", "object_storage_bucket_name"),
+    ("object_storage_access_key", "object_storage_access_key"),
+    ("object_storage_secret_access_key", "object_storage_secret_access_key"),
+    ("rabbitmq_instance_id", "rabbitmq_instance_id"),
+    ("rabbitmq_host", "rabbitmq_host"),
+    ("rabbitmq_port", "rabbitmq_port"),
+    ("rabbitmq_username", "rabbitmq_username"),
+    ("rabbitmq_password", "rabbitmq_password"),
+    ("rabbitmq_uri", "rabbitmq_uri"),
+    ("secrets_manager_instance_id", "secrets_manager_instance_id"),
+    ("secrets_manager_username", "secrets_manager_username"),
+    ("secrets_manager_password", "secrets_manager_password"),
+    ("observability_instance_id", "observability_instance_id"),
+    ("observability_grafana_url", "observability_grafana_url"),
+    ("observability_credential_username", "observability_credential_username"),
+    ("observability_credential_password", "observability_credential_password"),
+    ("kms_key_ring_name", "kms_key_ring_name"),
+    ("kms_key_name", "kms_key_name"),
+    ("kms_key_ring_id", "kms_key_ring_id"),
+    ("kms_key_id", "kms_key_id"),
 ]
 
 lines = []
-for key in allowed:
-    if key not in payload:
+for output_name, secret_key in allowed:
+    if output_name not in payload:
       continue
-    value = payload[key].get("value")
+    value = payload[output_name].get("value")
     if value is None:
       continue
     if isinstance(value, bool):
@@ -111,7 +117,7 @@ for key in allowed:
       continue
     if "\n" in rendered or rendered == "":
       continue
-    lines.append(f"{key}={rendered}")
+    lines.append(f"{secret_key}={rendered}")
 
 out.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
 PY

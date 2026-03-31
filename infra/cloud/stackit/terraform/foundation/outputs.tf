@@ -60,6 +60,37 @@ output "postgres_database" {
   value       = var.postgres_enabled ? stackit_postgresflex_database.foundation[0].name : null
 }
 
+output "keycloak_postgres_instance_id" {
+  description = "Provisioned dedicated PostgreSQL Flex instance identifier for Keycloak."
+  value       = stackit_postgresflex_instance.keycloak.instance_id
+}
+
+output "keycloak_postgres_host" {
+  description = "Provisioned dedicated PostgreSQL Flex host for Keycloak."
+  value       = stackit_postgresflex_user.keycloak.host
+}
+
+output "keycloak_postgres_port" {
+  description = "Provisioned dedicated PostgreSQL Flex port for Keycloak."
+  value       = stackit_postgresflex_user.keycloak.port
+}
+
+output "keycloak_postgres_username" {
+  description = "Provisioned dedicated PostgreSQL Flex username for Keycloak."
+  value       = stackit_postgresflex_user.keycloak.username
+}
+
+output "keycloak_postgres_password" {
+  description = "Provisioned dedicated PostgreSQL Flex password for Keycloak."
+  sensitive   = true
+  value       = stackit_postgresflex_user.keycloak.password
+}
+
+output "keycloak_postgres_database" {
+  description = "Provisioned dedicated PostgreSQL Flex database name for Keycloak."
+  value       = stackit_postgresflex_database.keycloak.name
+}
+
 output "object_storage_bucket_name" {
   description = "Provisioned Object Storage bucket name."
   value       = var.object_storage_enabled ? stackit_objectstorage_bucket.foundation[0].name : null

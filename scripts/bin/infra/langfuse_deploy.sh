@@ -34,6 +34,12 @@ argocd_optional_manifest)
   ;;
 esac
 
+run_cmd "$ROOT_DIR/scripts/bin/infra/langfuse_keycloak_reconcile.sh"
+keycloak_reconcile_state="none"
+if state_file_exists langfuse_keycloak_reconcile; then
+  keycloak_reconcile_state="$(state_file_path langfuse_keycloak_reconcile)"
+fi
+
 state_file="$(write_state_file "langfuse_deploy" \
   "profile=$BLUEPRINT_PROFILE" \
   "stack=$(active_stack)" \
@@ -43,6 +49,7 @@ state_file="$(write_state_file "langfuse_deploy" \
   "public_url=$(langfuse_public_url)" \
   "health_status=Healthy" \
   "oidc_mode=app_level_oidc" \
+  "keycloak_reconcile_state=$keycloak_reconcile_state" \
   "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")")"
 
 log_info "langfuse deploy state written to $state_file"

@@ -4,3 +4,4 @@ resources:
   - appproject.yaml
   - appproject-edge.yaml
   - applicationset-platform-environments.yaml
+  - ../../core/stage/keycloak.yaml

@@ -1,0 +1,5 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# Drift-safe consumer extension surface. Generated repos can add
+# security/runtime overlays here without editing drift-locked root files.
+resources: []

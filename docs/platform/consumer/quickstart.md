@@ -59,6 +59,7 @@ make blueprint-template-smoke
 ```bash
 make infra-context
 make infra-provision-deploy
+make auth-reconcile-eso-runtime-secrets
 make infra-status-json
 ```
 
@@ -68,6 +69,9 @@ make infra-status-json
 `artifacts/infra/infra_status_snapshot.json`.
 For local live execution, the blueprint prefers the `docker-desktop` Kubernetes context when it exists.
 Set `LOCAL_KUBE_CONTEXT` before running `infra-provision-deploy` if you want to override that default.
+Use `make auth-reconcile-eso-runtime-secrets` whenever you need an explicit runtime credential
+source-to-target ESO reconciliation pass (including readiness and target-secret verification).
+See [Runtime Credentials (ESO)](runtime_credentials_eso.md) for local seeding and managed-store wiring.
 
 Before publishing hosts or API routes, review [Endpoint Exposure Model](endpoint_exposure_model.md)
 so public UI, protected UI, direct APIs, and internal SSR/BFF flows stay separated intentionally.
@@ -103,6 +107,7 @@ make infra-stackit-foundation-seed-runtime-secret
 make infra-stackit-foundation-fetch-kubeconfig
 make infra-stackit-runtime-prerequisites
 make infra-stackit-runtime-deploy
+make auth-reconcile-eso-runtime-secrets
 ```
 
 `infra-deploy` / `infra-stackit-runtime-deploy` already call

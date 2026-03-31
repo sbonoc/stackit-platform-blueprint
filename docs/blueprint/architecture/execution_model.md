@@ -140,8 +140,10 @@ Then inspect module-specific artifacts, for example:
 
 These files include selected driver, selected path, and key contract outputs.
 
-`make infra-stackit-runtime-inventory` also prints export-ready runtime hints.
-Sensitive values are redacted by default; set `STACKIT_RUNTIME_INVENTORY_INCLUDE_SENSITIVE=true` to print them.
+`make infra-runtime-inventory` prints export-ready runtime hints for the active profile.
+- local profiles can call `make infra-local-runtime-inventory` directly.
+- stackit profiles can call `make infra-stackit-runtime-inventory` directly.
+Sensitive values are redacted by default; set `LOCAL_RUNTIME_INVENTORY_INCLUDE_SENSITIVE=true` (local) or `STACKIT_RUNTIME_INVENTORY_INCLUDE_SENSITIVE=true` (stackit) to print them.
 
 Cleanup:
 - `make infra-local-destroy-all` removes blueprint-managed resources from the selected local cluster and preserves the cluster itself.

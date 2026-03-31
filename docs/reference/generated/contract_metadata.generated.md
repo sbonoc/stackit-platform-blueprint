@@ -31,6 +31,8 @@
 - `quality-docs-check-core-targets-sync`
 - `quality-docs-sync-contract-metadata`
 - `quality-docs-check-contract-metadata-sync`
+- `quality-docs-sync-runtime-identity-summary`
+- `quality-docs-check-runtime-identity-summary-sync`
 - `quality-docs-sync-module-contract-summaries`
 - `quality-docs-check-module-contract-summaries-sync`
 - `quality-test-pyramid`
@@ -57,6 +59,8 @@
 - `infra-stackit-foundation-seed-runtime-secret`
 - `infra-stackit-ci-github-setup`
 - `infra-stackit-destroy-all`
+- `infra-runtime-inventory`
+- `infra-local-runtime-inventory`
 - `infra-stackit-runtime-prerequisites`
 - `infra-stackit-runtime-inventory`
 - `infra-stackit-runtime-deploy`
@@ -76,6 +80,7 @@
 - `apps-audit-versions`
 - `apps-audit-versions-cached`
 - `apps-publish-ghcr`
+- `auth-reconcile-eso-runtime-secrets`
 - `backend-test-unit`
 - `backend-test-integration`
 - `backend-test-contracts`
@@ -88,6 +93,8 @@
 - `test-integration-all`
 - `test-contracts-all`
 - `test-e2e-all-local`
+- `test-e2e-all-local-full`
+- `test-e2e-all-local-execute`
 - `docs-install`
 - `docs-run`
 - `docs-build`

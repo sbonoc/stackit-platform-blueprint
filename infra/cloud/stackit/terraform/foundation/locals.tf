@@ -29,6 +29,11 @@ locals {
     ))
     : []
   )
+  keycloak_postgres_instance_name = "${local.naming_prefix}-keycloak-postgres"
+  keycloak_postgres_acl_effective = distinct(concat(
+    var.ske_enabled ? stackit_ske_cluster.foundation[0].egress_address_ranges : [],
+    var.postgres_acl,
+  ))
   object_storage_bucket_name_override = try(trimspace(var.object_storage_bucket_name), "")
   object_storage_bucket_name = (
     local.object_storage_bucket_name_override != ""

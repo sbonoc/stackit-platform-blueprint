@@ -29,7 +29,6 @@ deploy_path="$OPTIONAL_MODULE_EXECUTION_PATH"
 deploy_status="already_applied"
 case "$deploy_driver" in
 argocd_application_chart)
-  identity_aware_proxy_reconcile_runtime_secret
   run_manifest_apply "$deploy_path"
   deploy_status="applied_via_argocd_manifest"
   ;;

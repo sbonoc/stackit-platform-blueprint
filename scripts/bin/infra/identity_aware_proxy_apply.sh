@@ -29,7 +29,6 @@ provision_path="$OPTIONAL_MODULE_EXECUTION_PATH"
 provision_status="applied"
 case "$provision_driver" in
 argocd_application_chart)
-  identity_aware_proxy_reconcile_runtime_secret
   provision_status="deferred_to_deploy"
   log_info "deferring identity-aware-proxy ArgoCD manifest apply to deploy phase path=$provision_path"
   ;;

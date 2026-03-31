@@ -34,9 +34,14 @@ warnings=0
 helm_pin_checks_skipped="false"
 docker_pin_checks_skipped="false"
 
+normalize_optional_v_semver() {
+  local value="$1"
+  printf '%s' "${value#v}"
+}
+
 audit_var() {
   local var_name="$1"
-  local current baseline
+  local current baseline current_semver baseline_semver
   current="${!var_name:-}"
   baseline="$(
     source "$ROOT_DIR/scripts/lib/infra/versions.baseline.sh"
@@ -55,7 +60,8 @@ audit_var() {
     return
   fi
 
-  if ! is_semver "$current"; then
+  current_semver="$(normalize_optional_v_semver "$current")"
+  if ! is_semver "$current_semver"; then
     log_warn "non-semver value for $var_name: $current"
     warnings=$((warnings + 1))
     return
@@ -67,14 +73,15 @@ audit_var() {
     return
   fi
 
-  if ! is_semver "$baseline"; then
+  baseline_semver="$(normalize_optional_v_semver "$baseline")"
+  if ! is_semver "$baseline_semver"; then
     log_warn "non-semver baseline for $var_name: $baseline"
     warnings=$((warnings + 1))
     return
   fi
 
   local drift
-  drift="$(classify_semver_drift "$current" "$baseline")"
+  drift="$(classify_semver_drift "$current_semver" "$baseline_semver")"
   case "$drift" in
   same)
     ;;
@@ -177,6 +184,7 @@ tracked_vars=(
   KUBECTL_VERSION
   KIND_VERSION
   EXTERNAL_SECRETS_CHART_VERSION
+  CERT_MANAGER_CHART_VERSION
   ARGOCD_CHART_VERSION
   CROSSPLANE_CHART_VERSION
   OTEL_COLLECTOR_CHART_VERSION
@@ -189,6 +197,8 @@ tracked_vars=(
   NEO4J_HELM_CHART_VERSION_PIN
   PUBLIC_ENDPOINTS_HELM_CHART_VERSION_PIN
   IAP_HELM_CHART_VERSION_PIN
+  KEYCLOAK_HELM_CHART_VERSION_PIN
+  KEYCLOAK_IMAGE_TAG_PIN
 )
 
 for var_name in "${tracked_vars[@]}"; do
@@ -201,6 +211,8 @@ audit_helm_chart_pin "RABBITMQ_HELM_CHART_VERSION_PIN" "bitnami/rabbitmq"
 audit_helm_chart_pin "NEO4J_HELM_CHART_VERSION_PIN" "neo4j/neo4j"
 audit_helm_chart_pin "PUBLIC_ENDPOINTS_HELM_CHART_VERSION_PIN" "oci://docker.io/envoyproxy/gateway-helm"
 audit_helm_chart_pin "IAP_HELM_CHART_VERSION_PIN" "oauth2-proxy/oauth2-proxy"
+audit_helm_chart_pin "KEYCLOAK_HELM_CHART_VERSION_PIN" "codecentric/keycloakx"
+audit_helm_chart_pin "CERT_MANAGER_CHART_VERSION" "jetstack/cert-manager"
 
 audit_container_image_pin "POSTGRES_LOCAL_IMAGE_REGISTRY" "POSTGRES_LOCAL_IMAGE_REPOSITORY" "POSTGRES_LOCAL_IMAGE_TAG"
 audit_container_image_pin "OBJECT_STORAGE_LOCAL_IMAGE_REGISTRY" "OBJECT_STORAGE_LOCAL_IMAGE_REPOSITORY" "OBJECT_STORAGE_LOCAL_IMAGE_TAG"

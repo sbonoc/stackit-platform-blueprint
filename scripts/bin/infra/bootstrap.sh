@@ -15,6 +15,7 @@ source "$ROOT_DIR/scripts/lib/infra/object_storage.sh"
 source "$ROOT_DIR/scripts/lib/infra/rabbitmq.sh"
 source "$ROOT_DIR/scripts/lib/infra/public_endpoints.sh"
 source "$ROOT_DIR/scripts/lib/infra/identity_aware_proxy.sh"
+source "$ROOT_DIR/scripts/lib/infra/keycloak.sh"
 
 start_script_metric_trap "infra_bootstrap"
 
@@ -147,6 +148,8 @@ bootstrap_infra_directories() {
   ensure_dir "$ROOT_DIR/infra/gitops/argocd/environments/stage"
   ensure_dir "$ROOT_DIR/infra/gitops/argocd/environments/prod"
   ensure_dir "$ROOT_DIR/infra/gitops/platform/base"
+  ensure_dir "$ROOT_DIR/infra/gitops/platform/base/security"
+  ensure_dir "$ROOT_DIR/infra/gitops/platform/base/extensions"
   ensure_dir "$ROOT_DIR/infra/gitops/platform/environments/local"
   ensure_dir "$ROOT_DIR/infra/gitops/platform/environments/dev"
   ensure_dir "$ROOT_DIR/infra/gitops/platform/environments/stage"
@@ -163,6 +166,7 @@ bootstrap_infra_static_templates() {
   ensure_infra_template_file "infra/local/crossplane/namespace.yaml"
   ensure_infra_template_file "infra/local/helm/core/argocd.values.yaml"
   ensure_infra_template_file "infra/local/helm/core/external-secrets.values.yaml"
+  ensure_infra_template_file "infra/local/helm/core/cert-manager.values.yaml"
   ensure_infra_template_file "infra/local/helm/core/crossplane.values.yaml"
   ensure_infra_template_file "infra/local/helm/observability/grafana.values.yaml"
   ensure_infra_template_file "infra/local/helm/observability/otel-collector.values.yaml"
@@ -170,6 +174,10 @@ bootstrap_infra_static_templates() {
   ensure_infra_template_file "infra/gitops/argocd/base/namespace.yaml"
   ensure_infra_template_file "infra/gitops/platform/base/kustomization.yaml"
   ensure_infra_template_file "infra/gitops/platform/base/namespaces.yaml"
+  ensure_infra_template_file "infra/gitops/platform/base/security/kustomization.yaml"
+  ensure_infra_template_file "infra/gitops/platform/base/security/runtime-source-store.yaml"
+  ensure_infra_template_file "infra/gitops/platform/base/security/runtime-external-secrets-core.yaml"
+  ensure_infra_template_file "infra/gitops/platform/base/extensions/kustomization.yaml"
   ensure_infra_template_file "infra/gitops/platform/environments/local/kustomization.yaml"
   ensure_infra_template_file "infra/gitops/platform/environments/local/runtime-contract-configmap.yaml"
   ensure_infra_template_file "infra/gitops/argocd/root/kustomization.yaml"
@@ -330,7 +338,7 @@ bootstrap_module_scaffold() {
         "infra" \
         "infra/local/helm/$module/values.yaml" \
         "IAP_CONFIG_SECRET_NAME=$(identity_aware_proxy_config_secret_name)" \
-        "KEYCLOAK_ISSUER_URL=${KEYCLOAK_ISSUER_URL:-https://keycloak.example/realms/platform}" \
+        "KEYCLOAK_ISSUER_URL=$KEYCLOAK_ISSUER_URL" \
         "IAP_UPSTREAM_URL=$IAP_UPSTREAM_URL" \
         "PUBLIC_ENDPOINTS_NAMESPACE=$PUBLIC_ENDPOINTS_NAMESPACE" \
         "PUBLIC_ENDPOINTS_GATEWAY_NAME=$PUBLIC_ENDPOINTS_GATEWAY_NAME" \
@@ -457,8 +465,8 @@ bootstrap_optional_manifest() {
       "IAP_NAMESPACE=$IAP_NAMESPACE" \
       "IAP_HELM_RELEASE=$IAP_HELM_RELEASE" \
       "IAP_HELM_CHART_VERSION=$IAP_HELM_CHART_VERSION" \
-      "IAP_CONFIG_SECRET_NAME=$(identity_aware_proxy_config_secret_name)" \
-      "KEYCLOAK_ISSUER_URL=${KEYCLOAK_ISSUER_URL:-https://keycloak.example/realms/platform}" \
+      "IAP_CONFIG_SECRET_NAME=$(identity_aware_proxy_argocd_config_secret_name)" \
+      "KEYCLOAK_ISSUER_URL=$KEYCLOAK_ISSUER_URL" \
       "IAP_UPSTREAM_URL=$IAP_UPSTREAM_URL" \
       "PUBLIC_ENDPOINTS_NAMESPACE=$PUBLIC_ENDPOINTS_NAMESPACE" \
       "PUBLIC_ENDPOINTS_GATEWAY_NAME=$PUBLIC_ENDPOINTS_GATEWAY_NAME" \
@@ -467,6 +475,27 @@ bootstrap_optional_manifest() {
       "IAP_IMAGE_REGISTRY=$IAP_IMAGE_REGISTRY" \
       "IAP_IMAGE_REPOSITORY=$IAP_IMAGE_REPOSITORY" \
       "IAP_IMAGE_TAG=$IAP_IMAGE_TAG"
+    ;;
+  keycloak)
+    keycloak_seed_env_defaults
+    # Keycloak is a mandatory identity baseline; render under argocd/core even
+    # though other modules continue using argocd/optional.
+    ensure_file_from_rendered_template \
+      "$ROOT_DIR/infra/gitops/argocd/core/$env/$module.yaml" \
+      "infra" \
+      "infra/gitops/argocd/core/keycloak.application.yaml.tmpl" \
+      "ENV=$env" \
+      "KEYCLOAK_NAMESPACE=$KEYCLOAK_NAMESPACE" \
+      "KEYCLOAK_HELM_RELEASE=$KEYCLOAK_HELM_RELEASE" \
+      "KEYCLOAK_HELM_CHART_VERSION=$KEYCLOAK_HELM_CHART_VERSION" \
+      "KEYCLOAK_IMAGE_TAG=$KEYCLOAK_IMAGE_TAG" \
+      "KEYCLOAK_ADMIN_USERNAME=$KEYCLOAK_ADMIN_USERNAME" \
+      "KEYCLOAK_PUBLIC_HOST=$KEYCLOAK_PUBLIC_HOST" \
+      "KEYCLOAK_ACME_EMAIL=$KEYCLOAK_ACME_EMAIL" \
+      "KEYCLOAK_ACME_SERVER=$KEYCLOAK_ACME_SERVER" \
+      "KEYCLOAK_GATEWAY_NAME=$KEYCLOAK_GATEWAY_NAME" \
+      "KEYCLOAK_GATEWAY_CLASS_NAME=$KEYCLOAK_GATEWAY_CLASS_NAME" \
+      "KEYCLOAK_TLS_SECRET_NAME=$KEYCLOAK_TLS_SECRET_NAME"
     ;;
   *)
     ensure_file_from_rendered_template \
@@ -483,6 +512,8 @@ bootstrap_optional_manifests() {
   local rendered_optional_manifest_count=0
   local env
   for env in local dev stage prod; do
+    bootstrap_optional_manifest keycloak "$env"
+    rendered_optional_manifest_count=$((rendered_optional_manifest_count + 1))
     bootstrap_optional_manifest observability "$env"
     rendered_optional_manifest_count=$((rendered_optional_manifest_count + 1))
   done

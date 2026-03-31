@@ -26,7 +26,7 @@
 ## Stack Execution Model
 - Optional module Make targets are materialized by `make blueprint-render-makefile` (or `make blueprint-bootstrap`) when `IDENTITY_AWARE_PROXY_ENABLED=true`.
 - Scaffolding paths are materialized by `make infra-bootstrap` only when `IDENTITY_AWARE_PROXY_ENABLED=true`.
-- `stackit-*` profiles: module-specific ArgoCD `Application` reconciles `oauth2-proxy/oauth2-proxy` from `infra/gitops/argocd/optional/${ENV}/identity-aware-proxy.yaml`, with OIDC credentials rendered as a Kubernetes Secret and the chart creating an `HTTPRoute` that attaches to the shared Gateway baseline from `public-endpoints`.
+- `stackit-*` profiles: module-specific ArgoCD `Application` reconciles `oauth2-proxy/oauth2-proxy` from `infra/gitops/argocd/optional/${ENV}/identity-aware-proxy.yaml`, with OIDC credentials sourced from ESO-issued `security/iap-runtime-credentials`, and the chart creating an `HTTPRoute` that attaches to the shared Gateway baseline from `public-endpoints`.
 - `local-*` profiles: Helm chart (`oauth2-proxy/oauth2-proxy`) runs from a rendered values artifact derived from the scaffold contract in `infra/local/helm/identity-aware-proxy/values.yaml`, and the chart creates the same Gateway API `HTTPRoute` locally.
 - This module is intentionally browser-oriented: it protects selected touchpoint hosts with OIDC login/session flow and should not be treated as the universal front door for public or bearer-token APIs.
 - Public touchpoints and direct API routes can coexist with this module. Only the protected browser hosts that opt into the proxy should route through it.

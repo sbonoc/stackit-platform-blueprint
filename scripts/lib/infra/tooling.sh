@@ -729,6 +729,9 @@ prepare_helm_repo_for_chart() {
   external-secrets)
     repo_url="https://charts.external-secrets.io"
     ;;
+  jetstack)
+    repo_url="https://charts.jetstack.io"
+    ;;
   neo4j)
     repo_url="https://helm.neo4j.com/neo4j"
     ;;
@@ -743,6 +746,9 @@ prepare_helm_repo_for_chart() {
     ;;
   oauth2-proxy)
     repo_url="https://oauth2-proxy.github.io/manifests"
+    ;;
+  codecentric)
+    repo_url="https://codecentric.github.io/helm-charts"
     ;;
   *)
     log_warn "unknown helm repository prefix '$repo_name'; continuing without repo bootstrap"

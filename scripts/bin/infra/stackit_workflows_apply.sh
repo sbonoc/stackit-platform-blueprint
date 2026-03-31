@@ -58,6 +58,10 @@ if ! state_file_exists workflows_plan; then
   log_fatal "missing workflows plan artifact; run infra-stackit-workflows-plan first"
 fi
 
+# Keep Keycloak realm/client/admin prerequisites converged before calling the
+# managed Workflows API identity provider contract.
+run_cmd "$ROOT_DIR/scripts/bin/infra/stackit_workflows_keycloak_reconcile.sh"
+
 provision_driver="api_contract"
 provision_path="/projects/$STACKIT_PROJECT_ID/regions/$STACKIT_REGION/instances"
 
@@ -70,6 +74,10 @@ web_url="https://$instance_fqdn"
 redirect_uri="$web_url/oauth-authorized/keycloak"
 api_mode="simulated"
 api_http_status="0"
+keycloak_reconcile_state="none"
+if state_file_exists workflows_keycloak_reconcile; then
+  keycloak_reconcile_state="$(state_file_path workflows_keycloak_reconcile)"
+fi
 
 payload_file="$(resolve_workflows_payload_file)"
 api_log="$ROOT_DIR/artifacts/infra/workflows_api_calls.log"
@@ -141,6 +149,7 @@ state_file="$(write_state_file "workflows_instance" \
   "redirect_uri=$redirect_uri" \
   "oidc_client_id=$STACKIT_WORKFLOWS_OIDC_CLIENT_ID" \
   "oidc_discovery_url=$STACKIT_WORKFLOWS_OIDC_DISCOVERY_URL" \
+  "keycloak_reconcile_state=$keycloak_reconcile_state" \
   "api_mode=$api_mode" \
   "api_http_status=$api_http_status" \
   "api_base_url=$STACKIT_WORKFLOWS_API_BASE_URL" \

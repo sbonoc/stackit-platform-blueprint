@@ -10,10 +10,12 @@ from tests._shared.helpers import (
 
 
 class OptionalModulesTests(unittest.TestCase):
-    def tearDown(self) -> None:
+    @classmethod
+    def tearDownClass(cls) -> None:
         reset_env = module_flags_env()
         reset = run_render_and_infra_bootstrap(reset_env)
-        self.assertEqual(reset.returncode, 0, msg=reset.stdout + reset.stderr)
+        if reset.returncode != 0:
+            raise AssertionError(reset.stdout + reset.stderr)
 
     def test_optional_module_make_targets_materialize_only_when_enabled(self) -> None:
         disabled_env = module_flags_env()
@@ -139,6 +141,7 @@ class OptionalModulesTests(unittest.TestCase):
             "infra/gitops/argocd/optional/dev/workflows.yaml",
             "infra/gitops/argocd/optional/dev/langfuse.yaml",
             "infra/gitops/argocd/optional/dev/neo4j.yaml",
+            "infra/gitops/argocd/core/dev/keycloak.yaml",
             "infra/gitops/argocd/optional/dev/public-endpoints.yaml",
             "infra/gitops/argocd/optional/dev/identity-aware-proxy.yaml",
         ]
@@ -183,6 +186,7 @@ class OptionalModulesTests(unittest.TestCase):
             "infra/gitops/argocd/optional/dev/workflows.yaml",
             "infra/gitops/argocd/optional/dev/langfuse.yaml",
             "infra/gitops/argocd/optional/dev/neo4j.yaml",
+            "infra/gitops/argocd/core/dev/keycloak.yaml",
             "infra/gitops/argocd/optional/dev/public-endpoints.yaml",
             "infra/gitops/argocd/optional/dev/identity-aware-proxy.yaml",
         ]
@@ -435,7 +439,7 @@ class OptionalModulesTests(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertIn('repository: "bitnamilegacy/rabbitmq"', rendered_values)
-        self.assertIn('tag: "3.13.7-debian-12-r2"', rendered_values)
+        self.assertIn('tag: "4.0.9-debian-12-r1"', rendered_values)
 
         secret_manifest = (
             REPO_ROOT / "artifacts" / "infra" / "rendered" / "secrets" / "secret-messaging-blueprint-rabbitmq-auth.yaml"
@@ -677,9 +681,15 @@ class OptionalModulesTests(unittest.TestCase):
         iap_manifest = (REPO_ROOT / "infra/gitops/argocd/optional/dev/identity-aware-proxy.yaml").read_text(
             encoding="utf-8"
         )
+        keycloak_manifest = (REPO_ROOT / "infra/gitops/argocd/core/dev/keycloak.yaml").read_text(encoding="utf-8")
+        self.assertIn("repoURL: https://codecentric.github.io/helm-charts", keycloak_manifest)
+        self.assertIn("chart: keycloakx", keycloak_manifest)
+        self.assertIn("targetRevision: 7.1.9", keycloak_manifest)
+        self.assertIn("namespace: security", keycloak_manifest)
+        self.assertIn("name: keycloak-runtime-credentials", keycloak_manifest)
         self.assertIn("repoURL: https://oauth2-proxy.github.io/manifests", iap_manifest)
         self.assertIn("targetRevision: 10.4.0", iap_manifest)
-        self.assertIn('existingSecret: "blueprint-iap-config"', iap_manifest)
+        self.assertIn('existingSecret: "iap-runtime-credentials"', iap_manifest)
         self.assertIn('repository: "oauth2-proxy/oauth2-proxy"', iap_manifest)
         self.assertIn('tag: "v7.15.0"', iap_manifest)
         self.assertIn("gatewayApi:", iap_manifest)

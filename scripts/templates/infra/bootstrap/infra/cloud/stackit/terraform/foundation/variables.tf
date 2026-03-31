@@ -118,8 +118,8 @@ variable "postgres_acl" {
   default     = []
 
   validation {
-    condition     = var.postgres_enabled ? (length(var.postgres_acl) > 0 || var.ske_enabled) : true
-    error_message = "postgres_enabled requires explicit postgres_acl values or ske_enabled=true so ACLs can be derived from SKE egress ranges."
+    condition     = length(var.postgres_acl) > 0 || var.ske_enabled
+    error_message = "Managed PostgreSQL contracts require explicit postgres_acl values or ske_enabled=true so ACLs can be derived from SKE egress ranges."
   }
 }
 
@@ -324,13 +324,13 @@ variable "rabbitmq_instance_name" {
 variable "rabbitmq_version" {
   description = "Managed RabbitMQ service version."
   type        = string
-  default     = "3.13"
+  default     = "4.0"
 }
 
 variable "rabbitmq_plan_name" {
   description = "Managed RabbitMQ plan name."
   type        = string
-  default     = "stackit-rabbitmq-1.2.10-replica"
+  default     = "stackit-rabbitmq-2.4.10-replica"
 }
 
 variable "public_endpoints_enabled" {
