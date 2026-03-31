@@ -7,6 +7,7 @@
     "report_generated_at",
     "required_validation_targets",
     "merge_marker_check",
+    "runtime_dependency_edge_check",
     "command_results",
     "summary"
   ],
@@ -41,6 +42,55 @@
           "type": "array",
           "items": {
             "type": "string"
+          }
+        }
+      }
+    },
+    "runtime_dependency_edge_check": {
+      "type": "object",
+      "required": [
+        "required_edges",
+        "missing"
+      ],
+      "properties": {
+        "required_edges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "consumer_path",
+              "dependency_path"
+            ],
+            "properties": {
+              "consumer_path": {
+                "type": "string"
+              },
+              "dependency_path": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "missing": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "consumer_path",
+              "dependency_path",
+              "reason"
+            ],
+            "properties": {
+              "consumer_path": {
+                "type": "string"
+              },
+              "dependency_path": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              }
+            }
           }
         }
       }
@@ -97,6 +147,7 @@
         "failed_targets",
         "merge_markers_pre_count",
         "merge_markers_post_count",
+        "runtime_dependency_missing_count",
         "commands_total"
       ],
       "properties": {
@@ -117,6 +168,9 @@
           "type": "integer"
         },
         "merge_markers_post_count": {
+          "type": "integer"
+        },
+        "runtime_dependency_missing_count": {
           "type": "integer"
         },
         "commands_total": {

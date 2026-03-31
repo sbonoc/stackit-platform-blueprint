@@ -82,6 +82,7 @@ spec:
       - scripts/bin/infra/identity_aware_proxy_deploy.sh
       - scripts/bin/infra/stackit_foundation_seed_runtime_secret.sh
       - scripts/bin/infra/workload_health_check.py
+      - scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh
       - scripts/bin/quality/check_test_pyramid.py
       - scripts/bin/quality/hooks_fast.sh
       - scripts/bin/quality/lint_docs.py
@@ -139,6 +140,7 @@ spec:
       - scripts/templates/consumer/init/.github/ISSUE_TEMPLATE/config.yml.tmpl
       - scripts/templates/consumer/init/.github/pull_request_template.md.tmpl
       - scripts/templates/consumer/init/.github/workflows/ci.yml.tmpl
+      - scripts/templates/blueprint/bootstrap/docs/platform/consumer/runtime_credentials_eso.md
       - scripts/lib/infra/stackit_github_ci_contract.json
       - infra/cloud/stackit/terraform/bootstrap/versions.tf
       - infra/cloud/stackit/terraform/bootstrap/providers.tf

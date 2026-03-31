@@ -63,6 +63,9 @@ emit_validate_report_metrics() {
     validate_merge_markers_post_total)
       log_metric "blueprint_upgrade_validate_merge_markers_total" "$value" "phase=post"
       ;;
+    validate_runtime_dependency_missing_total)
+      log_metric "blueprint_upgrade_validate_runtime_dependency_missing_total" "$value"
+      ;;
     esac
   done < <(
     python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_report_metrics.py" \

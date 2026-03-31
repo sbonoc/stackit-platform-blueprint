@@ -110,6 +110,13 @@ class RuntimeIdentityRefactorCases(RefactorContractBase):
         self.assertEqual(external_secret, external_secret_template)
         self.assertIn("resources: []", extensions_kustomization)
 
+    def test_runtime_identity_validation_enforces_dependency_edges(self) -> None:
+        validate_py = _read("scripts/bin/blueprint/validate_contract.py")
+        self.assertIn("runtime_dependency_edges", validate_py)
+        self.assertIn("scripts/bin/infra/smoke.sh", validate_py)
+        self.assertIn("scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh", validate_py)
+        self.assertIn("reconcile runtime identity artifacts before infra-smoke/upgrade validation", validate_py)
+
     def test_keycloak_is_mandatory_in_argocd_overlays(self) -> None:
         keycloak_template = _read("scripts/templates/infra/bootstrap/infra/gitops/argocd/core/keycloak.application.yaml.tmpl")
         self.assertIn("chart: keycloakx", keycloak_template)

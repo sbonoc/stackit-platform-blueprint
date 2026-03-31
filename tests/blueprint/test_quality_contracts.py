@@ -177,10 +177,12 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn("emit_validate_report_metrics()", validate_wrapper)
         self.assertIn("blueprint_upgrade_validate_status_total", validate_wrapper)
         self.assertIn("blueprint_upgrade_validate_merge_markers_total", validate_wrapper)
+        self.assertIn("blueprint_upgrade_validate_runtime_dependency_missing_total", validate_wrapper)
         self.assertIn("upgrade_report_metrics.py", validate_wrapper)
         self.assertNotIn("python3 - \"$validate_report_path\" <<'PY'", validate_wrapper)
         self.assertIn("from scripts.lib.blueprint.merge_markers import find_merge_markers", upgrade_lib)
         self.assertIn("from scripts.lib.blueprint.merge_markers import find_merge_markers", validate_lib)
+        self.assertIn("runtime_dependency_edge_check", validate_lib)
 
 
 if __name__ == "__main__":

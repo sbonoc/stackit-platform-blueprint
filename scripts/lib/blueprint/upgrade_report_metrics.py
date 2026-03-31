@@ -71,6 +71,7 @@ def _emit_validate_metrics(report_path: Path) -> Iterable[str]:
         f"validate_failed_targets_total={len(failed_targets)}",
         f"validate_merge_markers_pre_total={_as_int(summary.get('merge_markers_pre_count', 0))}",
         f"validate_merge_markers_post_total={_as_int(summary.get('merge_markers_post_count', 0))}",
+        f"validate_runtime_dependency_missing_total={_as_int(summary.get('runtime_dependency_missing_count', 0))}",
     ]
 
 
