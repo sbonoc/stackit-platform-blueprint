@@ -225,6 +225,37 @@ class UpgradeConsumerTests(unittest.TestCase):
             self.assertEqual(entry.get("action"), "skip")
             self.assertIn("platform-owned", str(entry.get("reason", "")))
 
+    def test_upgrade_fails_when_baseline_ref_collides_with_target_commit(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            source_repo = tmp_root / "source"
+            _init_git_repo(source_repo)
+            _write(source_repo / MANAGED_TEST_PATH, "baseline\n")
+            _commit_all(source_repo, "baseline")
+            version_tag = f"v{_template_version()}"
+            _require_success(_git(source_repo, "tag", version_tag), "git tag template version")
+
+            target_repo = _create_generated_repo(tmp_root, MANAGED_TEST_PATH, "baseline\nlocal-change\n")
+            result = _run(
+                [
+                    sys.executable,
+                    str(UPGRADE_SCRIPT),
+                    "--repo-root",
+                    str(target_repo),
+                    "--source",
+                    str(source_repo),
+                    "--ref",
+                    version_tag,
+                ],
+                cwd=REPO_ROOT,
+            )
+
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("upgrade baseline collision", result.stderr)
+            self.assertIn(f"baseline ref {version_tag}", result.stderr)
+            self.assertFalse((target_repo / "artifacts/blueprint/upgrade_plan.json").exists())
+            self.assertFalse((target_repo / "artifacts/blueprint/upgrade_apply.json").exists())
+
     def test_apply_runs_three_way_merge_for_diverged_blueprint_managed_file(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp_root = Path(tmpdir)
