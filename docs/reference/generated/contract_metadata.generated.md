@@ -17,6 +17,7 @@
 - `help`
 - `blueprint-init-repo`
 - `blueprint-init-repo-interactive`
+- `blueprint-resync-consumer-seeds`
 - `blueprint-check-placeholders`
 - `blueprint-template-smoke`
 - `blueprint-bootstrap`

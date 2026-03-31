@@ -15,6 +15,7 @@
         "tests/blueprint/test_contract_quality_tooling.py",
         "tests/blueprint/test_contract_init_governance.py",
         "tests/blueprint/test_init_repo_env.py",
+        "tests/blueprint/test_resync_consumer_seeds.py",
         "tests/blueprint/test_quality_contracts.py",
         "tests/docs/test_docs_lint.py",
         "tests/infra/test_runtime_credentials_eso.py",

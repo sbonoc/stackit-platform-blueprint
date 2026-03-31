@@ -38,6 +38,20 @@ For enabled optional modules, required non-sensitive inputs are seeded into `blu
 and required sensitive inputs are scaffolded in the secrets files with non-empty placeholders.
 Later `make blueprint-check-placeholders` and infra targets auto-load defaults + secrets files when present.
 
+For existing generated repositories, compare consumer-seeded root files against the latest
+seed templates with a supported dry-run workflow:
+```bash
+make blueprint-resync-consumer-seeds
+```
+Apply only safe deterministic updates:
+```bash
+BLUEPRINT_RESYNC_APPLY_SAFE=true make blueprint-resync-consumer-seeds
+```
+Force full overwrite (including manual-merge candidates):
+```bash
+BLUEPRINT_RESYNC_APPLY_ALL=true make blueprint-resync-consumer-seeds
+```
+
 ## If You Maintain the Blueprint (Maintainer Track)
 Read:
 1. [Blueprint README](blueprint/README.md)
@@ -73,6 +87,7 @@ Command discovery:
 Common baseline flow:
 - `make blueprint-init-repo-interactive`
 - `make blueprint-init-repo`
+- `make blueprint-resync-consumer-seeds`
 - `make blueprint-bootstrap`
 - `make blueprint-render-module-wrapper-skeletons`
 - `make blueprint-clean-generated`

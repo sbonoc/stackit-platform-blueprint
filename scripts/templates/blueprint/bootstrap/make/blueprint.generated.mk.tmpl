@@ -2,7 +2,7 @@ SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
 .PHONY: help \
-  blueprint-init-repo blueprint-init-repo-interactive blueprint-check-placeholders blueprint-template-smoke blueprint-bootstrap blueprint-render-makefile blueprint-clean-generated blueprint-render-module-wrapper-skeletons \
+  blueprint-init-repo blueprint-init-repo-interactive blueprint-resync-consumer-seeds blueprint-check-placeholders blueprint-template-smoke blueprint-bootstrap blueprint-render-makefile blueprint-clean-generated blueprint-render-module-wrapper-skeletons \
   quality-hooks-fast quality-hooks-strict quality-hooks-run quality-docs-lint quality-docs-sync-core-targets quality-docs-check-core-targets-sync quality-docs-sync-contract-metadata quality-docs-check-contract-metadata-sync quality-docs-sync-runtime-identity-summary quality-docs-check-runtime-identity-summary-sync quality-docs-sync-module-contract-summaries quality-docs-check-module-contract-summaries-sync quality-test-pyramid \
   infra-prereqs infra-help-reference infra-bootstrap infra-local-destroy-all infra-destroy-disabled-modules infra-validate infra-smoke infra-provision infra-deploy infra-provision-deploy \
   infra-stackit-bootstrap-preflight infra-stackit-bootstrap-plan infra-stackit-bootstrap-apply infra-stackit-bootstrap-destroy \
@@ -24,6 +24,9 @@ blueprint-init-repo: ## Initialize repository identity after GitHub template cre
 
 blueprint-init-repo-interactive: ## Interactive repository identity wizard for GitHub template consumers
 	@scripts/bin/blueprint/init_repo_interactive.sh
+
+blueprint-resync-consumer-seeds: ## Compare consumer-seeded files to templates and classify safe refresh vs manual merge
+	@scripts/bin/blueprint/resync_consumer_seeds.sh
 
 blueprint-check-placeholders: ## Verify generated repository identity placeholders are resolved
 	@scripts/bin/blueprint/check_placeholders.sh

@@ -65,6 +65,7 @@ spec:
       - scripts/bin/blueprint/bootstrap.sh
       - scripts/bin/blueprint/clean_generated.sh
       - scripts/bin/blueprint/init_repo_interactive.sh
+      - scripts/bin/blueprint/resync_consumer_seeds.sh
       - scripts/bin/blueprint/render_module_wrapper_skeletons.sh
       - scripts/bin/blueprint/render_makefile.sh
       - scripts/bin/blueprint/validate_contract.py
@@ -96,6 +97,7 @@ spec:
       - scripts/lib/blueprint/init_repo_env.py
       - scripts/lib/blueprint/init_repo_io.py
       - scripts/lib/blueprint/init_repo_renderers.py
+      - scripts/lib/blueprint/resync_consumer_seeds.py
       - scripts/lib/docs/generate_contract_docs.py
       - scripts/lib/docs/sync_module_contract_summaries.py
       - scripts/lib/docs/sync_runtime_identity_contract_summary.py
@@ -604,6 +606,7 @@ spec:
       - help
       - blueprint-init-repo
       - blueprint-init-repo-interactive
+      - blueprint-resync-consumer-seeds
       - blueprint-check-placeholders
       - blueprint-template-smoke
       - blueprint-bootstrap

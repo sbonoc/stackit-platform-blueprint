@@ -39,6 +39,23 @@ normalize_optional_v_semver() {
   printf '%s' "${value#v}"
 }
 
+is_transient_registry_error() {
+  local error_text="$1"
+  local lowered
+  lowered="$(printf '%s' "$error_text" | tr '[:upper:]' '[:lower:]')"
+  [[ "$lowered" == *"502 bad gateway"* ]] && return 0
+  [[ "$lowered" == *"503 service unavailable"* ]] && return 0
+  [[ "$lowered" == *"504 gateway timeout"* ]] && return 0
+  [[ "$lowered" == *"context deadline exceeded"* ]] && return 0
+  [[ "$lowered" == *"client.timeout exceeded"* ]] && return 0
+  [[ "$lowered" == *"i/o timeout"* ]] && return 0
+  [[ "$lowered" == *"connection reset by peer"* ]] && return 0
+  [[ "$lowered" == *"tls handshake timeout"* ]] && return 0
+  [[ "$lowered" == *"too many requests"* ]] && return 0
+  [[ "$lowered" == *"429"* ]] && return 0
+  return 1
+}
+
 audit_var() {
   local var_name="$1"
   local current baseline current_semver baseline_semver
@@ -168,8 +185,16 @@ audit_container_image_pin() {
   fi
 
   local image_ref="${registry}/${repository}:${tag}"
-  if docker manifest inspect "$image_ref" >/dev/null 2>&1; then
+  local inspect_output=""
+  if inspect_output="$(docker manifest inspect "$image_ref" 2>&1 >/dev/null)"; then
     log_metric "container_image_pin_check_total" "1" "image=$image_ref status=found"
+    return 0
+  fi
+
+  if is_transient_registry_error "$inspect_output"; then
+    log_metric "container_image_pin_check_total" "1" "image=$image_ref status=unavailable"
+    log_warn "container registry check unavailable for pinned image: $image_ref ($inspect_output)"
+    warnings=$((warnings + 1))
     return 0
   fi
 

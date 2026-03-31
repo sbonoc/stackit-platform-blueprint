@@ -2,8 +2,8 @@
 
 ## Current Priorities
 - [ ] Implement a non-destructive generated-consumer upgrade workflow with two canonical targets:
-  - `make blueprint-upgrade-consumer`
-  - `make blueprint-upgrade-consumer-validate`
+  - `blueprint-upgrade-consumer`
+  - `blueprint-upgrade-consumer-validate`
   - Goal:
     - Upgrade existing generated-consumer repositories to latest blueprint-managed behavior (including runtime-identity/ESO/Keycloak changes) without losing consumer-owned modifications.
   - Required inputs and defaults:
@@ -50,6 +50,7 @@
 - [ ] Deliver provider-backed OpenSearch support as an active blueprint priority for DHE Data Marketplace needs.
 - [ ] Continue migrating `workflows` to provider-backed STACKIT execution when official resources become available.
 - [ ] Add optional Neo4j Keycloak realm/client reconciliation (gated by `KEYCLOAK_OPTIONAL_MODULE_RECONCILIATION_ENABLED`) as a follow-up to current Workflows/Langfuse reconciliation.
+- [ ] Extend the consumer seed resync workflow with optional merge-assist coverage for selected init-managed identity files without weakening customization boundaries.
 
 ## Provider-Backed STACKIT Expansion Candidates
 - [ ] Evaluate and add a provider-backed Redis module built on official STACKIT Terraform resources.

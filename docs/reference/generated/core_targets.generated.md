@@ -10,6 +10,7 @@ This file is auto-generated. Do not edit it manually.
 | `help` | Show targets |
 | `blueprint-init-repo` | Initialize repository identity after GitHub template creation |
 | `blueprint-init-repo-interactive` | Interactive repository identity wizard for GitHub template consumers |
+| `blueprint-resync-consumer-seeds` | Compare consumer-seeded files to templates and classify safe refresh vs manual merge |
 | `blueprint-check-placeholders` | Verify generated repository identity placeholders are resolved |
 | `blueprint-template-smoke` | Run generated-repo conformance smoke in a temp copy |
 | `blueprint-bootstrap` | Bootstrap blueprint-scoped templates, docs, and Makefile rendering |
