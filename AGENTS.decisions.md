@@ -42,3 +42,34 @@
   - `make quality-hooks-run` as the full composed gate
 - Branch naming contract explicitly allows `codex/` and `copilot/` in addition to GitHub Flow purpose prefixes so assistant-authored branches remain policy-valid during CI validation.
 - Backlog entries represent open work only. Change history lives in Git; finished work does not stay in the backlog.
+- Runtime credentials reconciliation is now a blueprint-native ESO contract:
+  - blueprint-owned manifests live under `infra/gitops/platform/base/security/**`
+  - a drift-safe consumer extension surface lives under `infra/gitops/platform/base/extensions/kustomization.yaml`
+  - canonical execution entrypoint is `make auth-reconcile-eso-runtime-secrets`
+  - `infra-smoke` includes this reconciliation path so CRD/readiness/target-secret checks are exercised in the canonical smoke flow.
+  - Core ESO reconciliation is mandatory; there is no feature toggle to disable `auth-reconcile-eso-runtime-secrets`.
+- Keycloak is a mandatory runtime identity baseline:
+  - ArgoCD overlays always include environment-specific `infra/gitops/argocd/core/<env>/keycloak.yaml` applications.
+  - Keycloak deploys in namespace `security` and consumes ESO-issued `security/keycloak-runtime-credentials`.
+  - Keycloak realm model is module-scoped (`iap`, `workflows`, `langfuse`) so each auth consumer has a dedicated realm contract.
+  - STACKIT profiles always provision a dedicated managed PostgreSQL instance for Keycloak (no toggle); local profiles always use the shared local Postgres instance.
+  - Public browser login is exposed through Keycloak Gateway API manifests with cert-manager-managed certificates and STACKIT-managed DNS records (`external-dns` annotation contract).
+  - Identity-aware-proxy stackit path consumes ESO-issued `security/iap-runtime-credentials` instead of direct env-rendered secret upserts.
+  - Runtime ESO contract now includes module-scoped credential targets for keycloak/iap/workflows and enabled optional modules (`langfuse`, `neo4j`, `postgres`).
+  - Optional-module Keycloak reconciliation (for example Workflows/Langfuse) is feature-gated by `KEYCLOAK_OPTIONAL_MODULE_RECONCILIATION_ENABLED`.
+- Runtime inventory now has profile-aware and local-specific entrypoints:
+  - `make infra-runtime-inventory` routes by active profile.
+  - `make infra-local-runtime-inventory` prints local-only runtime inventory exports/state hints.
+- Runtime identity docs are now contract-generated:
+  - `scripts/lib/docs/sync_runtime_identity_contract_summary.py` owns the generated summary block in `docs/platform/consumer/runtime_credentials_eso.md` and its bootstrap template counterpart.
+  - Fast quality gate now enforces this via `quality-docs-check-runtime-identity-summary-sync`.
+- Aggregate e2e execution now follows a two-speed contract with explicit runtime budgets:
+  - `test-e2e-all-local` is the fast lane (dry-run infra + backend e2e).
+  - `test-e2e-all-local-full` is the full dry-run lane (backend + touchpoints e2e).
+  - `test-e2e-all-local-execute` remains full coverage with `DRY_RUN=false`.
+  - `scripts/bin/platform/test/e2e_all_local.sh` enforces budget telemetry and optional fail-on-overrun (`E2E_*_BUDGET_SECONDS`, `E2E_BUDGET_ENFORCE`).
+- CI now separates fast and full e2e intent:
+  - pull requests run the fast e2e lane by default.
+  - branch update lanes run the full dry-run e2e lane.
+- Helm chart pin coverage is guarded against repo-prefix drift:
+  - tests assert every non-OCI chart pin in `infra/audit_version.sh` has a matching repo-prefix mapping in `scripts/lib/infra/tooling.sh`.

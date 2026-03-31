@@ -10,10 +10,14 @@
     {
       "scope": "unit",
       "patterns": [
-        "tests/blueprint/test_contract_refactor.py",
+        "tests/blueprint/test_contract_stackit_runtime.py",
+        "tests/blueprint/test_contract_bootstrap_surface.py",
+        "tests/blueprint/test_contract_quality_tooling.py",
+        "tests/blueprint/test_contract_init_governance.py",
         "tests/blueprint/test_init_repo_env.py",
         "tests/blueprint/test_quality_contracts.py",
         "tests/docs/test_docs_lint.py",
+        "tests/infra/test_runtime_credentials_eso.py",
         "tests/infra/test_stackit_layers.py",
         "tests/infra/test_tooling_contracts.py",
         "tests/infra/test_workload_health_check.py"

@@ -231,15 +231,17 @@ class RefactorContractsTests(unittest.TestCase):
         versions = _read("scripts/lib/infra/versions.sh")
         self.assertIn('POSTGRES_HELM_CHART_VERSION_PIN="15.5.38"', versions)
         self.assertIn('OBJECT_STORAGE_HELM_CHART_VERSION_PIN="17.0.21"', versions)
-        self.assertIn('RABBITMQ_HELM_CHART_VERSION_PIN="14.7.0"', versions)
+        self.assertIn('RABBITMQ_HELM_CHART_VERSION_PIN="15.5.3"', versions)
         self.assertIn('NEO4J_HELM_CHART_VERSION_PIN="2026.1.4"', versions)
         self.assertIn('PUBLIC_ENDPOINTS_HELM_CHART_VERSION_PIN="1.7.1"', versions)
         self.assertIn('IAP_HELM_CHART_VERSION_PIN="10.4.0"', versions)
+        self.assertIn('KEYCLOAK_HELM_CHART_VERSION_PIN="7.1.9"', versions)
+        self.assertIn('KEYCLOAK_IMAGE_TAG_PIN="26.5.5"', versions)
         self.assertIn('POSTGRES_LOCAL_IMAGE_REGISTRY="docker.io"', versions)
         self.assertIn('POSTGRES_LOCAL_IMAGE_REPOSITORY="bitnamilegacy/postgresql"', versions)
         self.assertIn('OBJECT_STORAGE_LOCAL_IMAGE_REPOSITORY="bitnamilegacy/minio"', versions)
         self.assertIn('RABBITMQ_LOCAL_IMAGE_REPOSITORY="bitnamilegacy/rabbitmq"', versions)
-        self.assertIn('RABBITMQ_LOCAL_IMAGE_TAG="3.13.7-debian-12-r2"', versions)
+        self.assertIn('RABBITMQ_LOCAL_IMAGE_TAG="4.0.9-debian-12-r1"', versions)
         self.assertIn('IAP_LOCAL_IMAGE_REGISTRY="quay.io"', versions)
 
         self.assertIn(
@@ -276,6 +278,11 @@ class RefactorContractsTests(unittest.TestCase):
         )
         self.assertIn('set_default_env IAP_IMAGE_REGISTRY "$IAP_LOCAL_IMAGE_REGISTRY"', _read("scripts/lib/infra/identity_aware_proxy.sh"))
         self.assertIn("identity_aware_proxy_validate_cookie_secret()", _read("scripts/lib/infra/identity_aware_proxy.sh"))
+        self.assertIn(
+            'set_default_env KEYCLOAK_HELM_CHART_VERSION "$KEYCLOAK_HELM_CHART_VERSION_PIN"',
+            _read("scripts/lib/infra/keycloak.sh"),
+        )
+        self.assertIn('set_default_env KEYCLOAK_IMAGE_TAG "$KEYCLOAK_IMAGE_TAG_PIN"', _read("scripts/lib/infra/keycloak.sh"))
 
     def test_local_helm_templates_use_rendered_release_and_image_contracts(self) -> None:
         postgres_values = _read("scripts/templates/infra/bootstrap/infra/local/helm/postgres/values.yaml")
@@ -309,6 +316,7 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn('audit_helm_chart_pin "NEO4J_HELM_CHART_VERSION_PIN" "neo4j/neo4j"', audit)
         self.assertIn('audit_helm_chart_pin "PUBLIC_ENDPOINTS_HELM_CHART_VERSION_PIN" "oci://docker.io/envoyproxy/gateway-helm"', audit)
         self.assertIn('audit_helm_chart_pin "IAP_HELM_CHART_VERSION_PIN" "oauth2-proxy/oauth2-proxy"', audit)
+        self.assertIn('audit_helm_chart_pin "KEYCLOAK_HELM_CHART_VERSION_PIN" "codecentric/keycloakx"', audit)
         self.assertIn(
             'audit_container_image_pin "POSTGRES_LOCAL_IMAGE_REGISTRY" "POSTGRES_LOCAL_IMAGE_REPOSITORY" "POSTGRES_LOCAL_IMAGE_TAG"',
             audit,
@@ -539,7 +547,7 @@ class RefactorContractsTests(unittest.TestCase):
 
         required_namespaces = set(_extract_yaml_list(contract_lines, "required_namespaces"))
         self.assertTrue(
-            {"blueprint-", "quality-", "infra-", "apps-", "backend-", "touchpoints-", "test-", "docs-"}
+            {"blueprint-", "quality-", "infra-", "apps-", "backend-", "touchpoints-", "test-", "auth-", "docs-"}
             .issubset(required_namespaces)
         )
         required_paths = set(_extract_yaml_list(contract_lines, "required_paths"))
@@ -588,6 +596,8 @@ class RefactorContractsTests(unittest.TestCase):
                 "quality-docs-check-core-targets-sync",
                 "quality-docs-sync-contract-metadata",
                 "quality-docs-check-contract-metadata-sync",
+                "quality-docs-sync-runtime-identity-summary",
+                "quality-docs-check-runtime-identity-summary-sync",
                 "quality-docs-sync-module-contract-summaries",
                 "quality-docs-check-module-contract-summaries-sync",
                 "quality-test-pyramid",
@@ -599,6 +609,7 @@ class RefactorContractsTests(unittest.TestCase):
                 "infra-audit-version-cached",
                 "apps-audit-versions-cached",
                 "apps-publish-ghcr",
+                "auth-reconcile-eso-runtime-secrets",
                 "docs-build",
                 "docs-smoke",
             }.issubset(required_targets),
@@ -665,6 +676,7 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn('"blueprint/repo.init.env"', bootstrap)
         self.assertIn('"blueprint/repo.init.secrets.example.env"', bootstrap)
         self.assertIn('"docs/platform/consumer/quickstart.md"', bootstrap)
+        self.assertIn('"docs/platform/consumer/runtime_credentials_eso.md"', bootstrap)
         self.assertIn('"docs/platform/consumer/first_30_minutes.md"', bootstrap)
         self.assertIn('"docs/blueprint/governance/ownership_matrix.md"', bootstrap)
         self.assertIn('"docs/platform/modules/identity-aware-proxy/README.md"', bootstrap)
@@ -737,10 +749,15 @@ class RefactorContractsTests(unittest.TestCase):
             "docs/platform/consumer/protected_api_routes.md",
             _extract_yaml_list(platform_docs, "required_seed_files"),
         )
+        self.assertIn(
+            "docs/platform/consumer/runtime_credentials_eso.md",
+            _extract_yaml_list(platform_docs, "required_seed_files"),
+        )
 
         self.assertIn('"docs/platform/consumer/quickstart.md"', bootstrap)
         self.assertIn('"docs/platform/consumer/endpoint_exposure_model.md"', bootstrap)
         self.assertIn('"docs/platform/consumer/protected_api_routes.md"', bootstrap)
+        self.assertIn('"docs/platform/consumer/runtime_credentials_eso.md"', bootstrap)
         self.assertIn("if [[ -f \"$path\" ]]; then", bootstrap_lib)
         self.assertIn("_validate_platform_docs_seed_contract", validate_py)
         self.assertNotIn('"docs/platform/consumer/quickstart.md",', validate_py)
@@ -848,6 +865,65 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn("Shared gateway/route attachment namespace", namespaces)
         self.assertEqual(namespaces, namespaces_template)
 
+    def test_runtime_credentials_security_slice_is_seeded_and_template_synced(self) -> None:
+        base_kustomization = _read("infra/gitops/platform/base/kustomization.yaml")
+        base_kustomization_template = _read(
+            "scripts/templates/infra/bootstrap/infra/gitops/platform/base/kustomization.yaml"
+        )
+        security_kustomization = _read("infra/gitops/platform/base/security/kustomization.yaml")
+        security_kustomization_template = _read(
+            "scripts/templates/infra/bootstrap/infra/gitops/platform/base/security/kustomization.yaml"
+        )
+        source_store = _read("infra/gitops/platform/base/security/runtime-source-store.yaml")
+        source_store_template = _read(
+            "scripts/templates/infra/bootstrap/infra/gitops/platform/base/security/runtime-source-store.yaml"
+        )
+        external_secret = _read("infra/gitops/platform/base/security/runtime-external-secrets-core.yaml")
+        external_secret_template = _read(
+            "scripts/templates/infra/bootstrap/infra/gitops/platform/base/security/runtime-external-secrets-core.yaml"
+        )
+        extensions_kustomization = _read("infra/gitops/platform/base/extensions/kustomization.yaml")
+
+        self.assertIn("- security", base_kustomization)
+        self.assertIn("- extensions", base_kustomization)
+        self.assertEqual(base_kustomization, base_kustomization_template)
+        self.assertIn("- runtime-source-store.yaml", security_kustomization)
+        self.assertIn("- runtime-external-secrets-core.yaml", security_kustomization)
+        self.assertEqual(security_kustomization, security_kustomization_template)
+        self.assertIn("kind: ClusterSecretStore", source_store)
+        self.assertIn("name: runtime-credentials-source-store", source_store)
+        self.assertEqual(source_store, source_store_template)
+        self.assertIn("kind: ExternalSecret", external_secret)
+        self.assertIn("name: runtime-credentials", external_secret)
+        self.assertIn("name: keycloak-runtime-credentials", external_secret)
+        self.assertIn("name: iap-runtime-credentials", external_secret)
+        self.assertEqual(external_secret, external_secret_template)
+        self.assertIn("resources: []", extensions_kustomization)
+
+    def test_keycloak_is_mandatory_in_argocd_overlays(self) -> None:
+        keycloak_template = _read("scripts/templates/infra/bootstrap/infra/gitops/argocd/core/keycloak.application.yaml.tmpl")
+        self.assertIn("chart: keycloakx", keycloak_template)
+        self.assertIn("namespace: {{KEYCLOAK_NAMESPACE}}", keycloak_template)
+        self.assertIn("existingSecret: keycloak-runtime-credentials", keycloak_template)
+
+        local_overlay = _read("infra/gitops/argocd/overlays/local/kustomization.yaml")
+        local_overlay_template = _read("scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/local/kustomization.yaml")
+        dev_overlay = _read("infra/gitops/argocd/overlays/dev/kustomization.yaml")
+        dev_overlay_template = _read("scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/dev/kustomization.yaml")
+        stage_overlay = _read("infra/gitops/argocd/overlays/stage/kustomization.yaml")
+        stage_overlay_template = _read("scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/stage/kustomization.yaml")
+        prod_overlay = _read("infra/gitops/argocd/overlays/prod/kustomization.yaml")
+        prod_overlay_template = _read("scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/prod/kustomization.yaml")
+
+        self.assertIn("../../core/local/keycloak.yaml", local_overlay)
+        self.assertIn("../../core/dev/keycloak.yaml", dev_overlay)
+        self.assertIn("../../core/stage/keycloak.yaml", stage_overlay)
+        self.assertIn("../../core/prod/keycloak.yaml", prod_overlay)
+        self.assertEqual(local_overlay, local_overlay_template)
+        self.assertEqual(dev_overlay, dev_overlay_template)
+        self.assertEqual(stage_overlay, stage_overlay_template)
+        self.assertEqual(prod_overlay, prod_overlay_template)
+
     def test_argocd_projects_split_edge_and_route_policy_boundaries(self) -> None:
         for environment in ("local", "dev", "stage", "prod"):
             with self.subTest(environment=environment):
@@ -870,7 +946,7 @@ class RefactorContractsTests(unittest.TestCase):
                 self.assertIn("kind: SecurityPolicy", appproject)
                 self.assertIn("kind: Backend\n", appproject)
                 self.assertNotIn("kind: GatewayClass", appproject)
-                self.assertNotIn("kind: Gateway\n", appproject)
+                self.assertIn("kind: Gateway\n", appproject)
                 self.assertEqual(appproject, appproject_template)
 
                 self.assertIn(f"name: platform-edge-{environment}", edge_appproject)
@@ -891,6 +967,7 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn("quality-docs-lint", hooks_fast)
         self.assertIn("quality-docs-check-core-targets-sync", hooks_fast)
         self.assertIn("quality-docs-check-contract-metadata-sync", hooks_fast)
+        self.assertIn("quality-docs-check-runtime-identity-summary-sync", hooks_fast)
         self.assertIn("quality-docs-check-module-contract-summaries-sync", hooks_fast)
         self.assertIn("quality-test-pyramid", hooks_fast)
         self.assertIn("infra-validate", hooks_fast)
@@ -1343,6 +1420,11 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn("BLUEPRINT_STACKIT_PROJECT_ID=", init_env_defaults)
         self.assertIn("BLUEPRINT_STACKIT_TFSTATE_BUCKET=", init_env_defaults)
         self.assertIn("BLUEPRINT_STACKIT_TFSTATE_KEY_PREFIX=", init_env_defaults)
+        self.assertIn("KEYCLOAK_OPTIONAL_MODULE_RECONCILIATION_ENABLED=true", init_env_defaults)
+        self.assertIn("RUNTIME_CREDENTIALS_SOURCE_NAMESPACE=security", init_env_defaults)
+        self.assertIn("RUNTIME_CREDENTIALS_TARGET_NAMESPACE=apps", init_env_defaults)
+        self.assertIn("RUNTIME_CREDENTIALS_ESO_WAIT_TIMEOUT=180", init_env_defaults)
+        self.assertIn("RUNTIME_CREDENTIALS_REQUIRED=false", init_env_defaults)
         self.assertIn("STACKIT_SERVICE_ACCOUNT_KEY=", init_env_secrets_example)
         self.assertIn("STACKIT_TFSTATE_ACCESS_KEY_ID=", init_env_secrets_example)
         self.assertIn("defaults_env_file: blueprint/repo.init.env", _read("blueprint/contract.yaml"))
@@ -1382,7 +1464,7 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn("blueprint-quality:", ci_workflow)
         self.assertIn("generated-consumer-smoke:", ci_workflow)
         self.assertIn('run_cmd make -C "$ROOT_DIR" infra-validate', hooks_fast)
-        self.assertIn('pytest -q tests', ci_workflow)
+        self.assertNotIn('pytest -q tests', ci_workflow)
         self.assertNotIn('pytest -q tests/tooling', ci_workflow)
         self.assertIn('Prepare shared CI baseline', ci_workflow)
         self.assertIn('uses: ./.github/actions/prepare-blueprint-ci', ci_workflow)
@@ -1403,6 +1485,7 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn('make test-integration-all', ci_workflow)
         self.assertIn('make test-contracts-all', ci_workflow)
         self.assertIn('make test-e2e-all-local', ci_workflow)
+        self.assertIn('make test-e2e-all-local-full', ci_workflow)
         self.assertNotIn('Shell script lint', ci_workflow)
         self.assertNotIn('make apps-audit-versions', ci_workflow)
         self.assertEqual(consumer_ci_template.count('uses: ./.github/actions/prepare-blueprint-ci'), 2)
@@ -1667,8 +1750,8 @@ class RefactorContractsTests(unittest.TestCase):
             self.assertIn("OBJECT_STORAGE_BUCKET_NAME=marketplace-assets", defaults_env)
             self.assertIn("PUBLIC_ENDPOINTS_BASE_DOMAIN=apps.local", defaults_env)
             self.assertIn("IAP_UPSTREAM_URL=http://catalog.apps.svc.cluster.local:8080", defaults_env)
-            self.assertIn("KEYCLOAK_ISSUER_URL=https://keycloak.example/realms/platform", defaults_env)
-            self.assertIn("KEYCLOAK_CLIENT_ID=blueprint-client", defaults_env)
+            self.assertIn("KEYCLOAK_ISSUER_URL=https://auth.example.invalid/realms/iap", defaults_env)
+            self.assertIn("KEYCLOAK_CLIENT_ID=iap-client", defaults_env)
             self.assertIn("POSTGRES_PASSWORD=platform-password", local_secrets_env)
             self.assertIn("IAP_COOKIE_SECRET=0123456789abcdef0123456789abcdef", local_secrets_env)
             self.assertIn("KEYCLOAK_CLIENT_SECRET=blueprint-client-secret", local_secrets_env)

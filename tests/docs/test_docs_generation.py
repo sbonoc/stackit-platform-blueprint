@@ -48,6 +48,13 @@ class DocsGenerationTests(unittest.TestCase):
             msg=contract_metadata_check.stdout + contract_metadata_check.stderr,
         )
 
+        runtime_identity_summary_check = run(["make", "quality-docs-check-runtime-identity-summary-sync"])
+        self.assertEqual(
+            runtime_identity_summary_check.returncode,
+            0,
+            msg=runtime_identity_summary_check.stdout + runtime_identity_summary_check.stderr,
+        )
+
         module_summary_check = run(["make", "quality-docs-check-module-contract-summaries-sync"])
         self.assertEqual(
             module_summary_check.returncode,
@@ -75,6 +82,10 @@ class DocsGenerationTests(unittest.TestCase):
         self.assertIn("`quality-hooks-strict`", core_targets_content)
         self.assertIn("`quality-test-pyramid`", core_targets_content)
         self.assertIn("## Contract Summary", (REPO_ROOT / "docs/platform/modules/postgres/README.md").read_text(encoding="utf-8"))
+        self.assertIn(
+            "## Contract Summary (Generated)",
+            (REPO_ROOT / "docs/platform/consumer/runtime_credentials_eso.md").read_text(encoding="utf-8"),
+        )
 
 
 if __name__ == "__main__":

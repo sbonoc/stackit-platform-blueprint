@@ -489,6 +489,21 @@ printf 'docs_title=%s\\n' "${{BLUEPRINT_DOCS_TITLE-__unset__}}"
     return result.stdout + result.stderr
 
 
+def audit_helm_chart_repo_prefix_contract() -> tuple[set[str], set[str]]:
+    audit_script = (REPO_ROOT / "scripts/bin/infra/audit_version.sh").read_text(encoding="utf-8")
+    tooling_script = (REPO_ROOT / "scripts/lib/infra/tooling.sh").read_text(encoding="utf-8")
+
+    chart_refs = re.findall(r'audit_helm_chart_pin\s+"[^"]+"\s+"([^"]+)"', audit_script)
+    chart_repo_prefixes = {
+        chart_ref.split("/", maxsplit=1)[0]
+        for chart_ref in chart_refs
+        if chart_ref and not chart_ref.startswith("oci://") and "/" in chart_ref
+    }
+
+    known_repo_prefixes = set(re.findall(r"^\s{2}([a-z0-9-]+)\)\s*$", tooling_script, flags=re.MULTILINE))
+    return chart_repo_prefixes, known_repo_prefixes
+
+
 class ToolingContractsTests(unittest.TestCase):
     def test_load_env_file_defaults_preserves_explicit_env(self) -> None:
         output = env_file_defaults_contract()
@@ -555,6 +570,26 @@ render_optional_module_secret_manifests "messaging" "blueprint-rabbitmq-auth" "r
         result = run(["scripts/bin/infra/prereqs.sh", "--help"])
         self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
         self.assertIn("terraform kubectl helm docker kind uv gh jq pnpm kustomize nc", result.stdout)
+
+    def test_audit_version_chart_refs_have_known_helm_repo_prefixes(self) -> None:
+        chart_repo_prefixes, known_repo_prefixes = audit_helm_chart_repo_prefix_contract()
+        missing = sorted(chart_repo_prefixes - known_repo_prefixes)
+        self.assertFalse(
+            missing,
+            msg=(
+                "audit_version.sh chart refs use unknown repo prefixes without tooling mapping: "
+                + ", ".join(missing)
+            ),
+        )
+        self.assertIn("codecentric", known_repo_prefixes)
+
+    def test_e2e_aggregate_script_supports_scope_and_budget_contract(self) -> None:
+        script = (REPO_ROOT / "scripts/bin/platform/test/e2e_all_local.sh").read_text(encoding="utf-8")
+        self.assertIn("--scope fast|full", script)
+        self.assertIn("E2E_FAST_BUDGET_SECONDS", script)
+        self.assertIn("E2E_FULL_BUDGET_SECONDS", script)
+        self.assertIn("aggregate_e2e_budget_total", script)
+        self.assertIn("touchpoints-test-e2e", script)
 
     def test_quality_test_pyramid_target_passes(self) -> None:
         result = run(["make", "quality-test-pyramid"])

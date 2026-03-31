@@ -24,6 +24,8 @@ This file is auto-generated. Do not edit it manually.
 | `quality-docs-check-core-targets-sync` | Fail when tracked core Make targets doc is out of date |
 | `quality-docs-sync-contract-metadata` | Regenerate tracked contract metadata reference doc |
 | `quality-docs-check-contract-metadata-sync` | Fail when tracked contract metadata doc is out of date |
+| `quality-docs-sync-runtime-identity-summary` | Regenerate runtime identity summary blocks in source and template docs |
+| `quality-docs-check-runtime-identity-summary-sync` | Fail when runtime identity summary docs are out of date |
 | `quality-docs-sync-module-contract-summaries` | Regenerate module contract summary blocks in source and template docs |
 | `quality-docs-check-module-contract-summaries-sync` | Fail when module contract summary blocks are out of date |
 | `quality-test-pyramid` | Enforce repository test-pyramid ratios from canonical classification contract |
@@ -50,6 +52,8 @@ This file is auto-generated. Do not edit it manually.
 | `infra-stackit-foundation-seed-runtime-secret` | Seed runtime Kubernetes secret from STACKIT foundation outputs |
 | `infra-stackit-ci-github-setup` | Create GitHub environments/secrets required for STACKIT CI delivery |
 | `infra-stackit-destroy-all` | Destroy STACKIT foundation and bootstrap layers in canonical order |
+| `infra-runtime-inventory` | Print runtime inventory for active profile from contract/state |
+| `infra-local-runtime-inventory` | Print local runtime inventory from contract/state |
 | `infra-stackit-runtime-prerequisites` | Validate STACKIT runtime prerequisites and kubeconfig availability |
 | `infra-stackit-runtime-inventory` | Print STACKIT runtime inventory from contract/state |
 | `infra-stackit-runtime-deploy` | Deploy STACKIT runtime control plane and apps path |
@@ -68,6 +72,7 @@ This file is auto-generated. Do not edit it manually.
 | `docs-run` | Run docs site locally |
 | `docs-build` | Build docs site |
 | `docs-smoke` | Smoke docs site output |
+| `auth-reconcile-eso-runtime-secrets` | Reconcile generic ESO runtime source-to-target credentials contract |
 | `apps-bootstrap` | Bootstrap app build/deploy prerequisites |
 | `apps-smoke` | App-level smoke checks |
 | `apps-audit-versions` | Audit app/base-image dependency versions |
@@ -84,4 +89,6 @@ This file is auto-generated. Do not edit it manually.
 | `test-unit-all` | Run all unit-test lanes |
 | `test-integration-all` | Run all integration-test lanes |
 | `test-contracts-all` | Run all contract-test lanes |
-| `test-e2e-all-local` | Full local E2E chain |
+| `test-e2e-all-local` | Fast local E2E chain (dry-run infra + backend e2e lane) |
+| `test-e2e-all-local-full` | Full local E2E chain in dry-run mode (backend + touchpoints e2e lanes) |
+| `test-e2e-all-local-execute` | Full local E2E chain in execute mode (DRY_RUN=false, backend + touchpoints e2e lanes) |
