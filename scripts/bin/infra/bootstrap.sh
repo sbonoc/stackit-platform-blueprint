@@ -478,6 +478,8 @@ bootstrap_optional_manifest() {
     ;;
   keycloak)
     keycloak_seed_env_defaults
+    local keycloak_extra_manifests
+    keycloak_extra_manifests="$(keycloak_extra_manifests_block)"
     # Keycloak is a mandatory identity baseline; render under argocd/core even
     # though other modules continue using argocd/optional.
     ensure_file_from_rendered_template \
@@ -495,7 +497,8 @@ bootstrap_optional_manifest() {
       "KEYCLOAK_ACME_SERVER=$KEYCLOAK_ACME_SERVER" \
       "KEYCLOAK_GATEWAY_NAME=$KEYCLOAK_GATEWAY_NAME" \
       "KEYCLOAK_GATEWAY_CLASS_NAME=$KEYCLOAK_GATEWAY_CLASS_NAME" \
-      "KEYCLOAK_TLS_SECRET_NAME=$KEYCLOAK_TLS_SECRET_NAME"
+      "KEYCLOAK_TLS_SECRET_NAME=$KEYCLOAK_TLS_SECRET_NAME" \
+      "KEYCLOAK_EXTRA_MANIFESTS_BLOCK=$keycloak_extra_manifests"
     ;;
   *)
     ensure_file_from_rendered_template \

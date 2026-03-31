@@ -29,7 +29,8 @@ workflows_init_env() {
   set_default_env STACKIT_WORKFLOWS_INSTANCE_DISPLAY_NAME "$(workflows_default_display_name)"
   set_default_env STACKIT_WORKFLOWS_OIDC_CLIENT_ID "stackit-workflows"
   set_default_env STACKIT_WORKFLOWS_ADMIN_USERNAME "workflows-admin"
-  set_default_env STACKIT_WORKFLOWS_ADMIN_PASSWORD "$STACKIT_WORKFLOWS_OIDC_CLIENT_SECRET"
+  # Keep user credentials independent from OIDC client credentials.
+  set_default_env STACKIT_WORKFLOWS_ADMIN_PASSWORD ""
   set_default_env STACKIT_WORKFLOWS_RECONCILE_EXISTING_ONLY "false"
   set_default_env STACKIT_WORKFLOWS_REQUIRE_SINGLE_ACTIVE_INSTANCE "true"
 

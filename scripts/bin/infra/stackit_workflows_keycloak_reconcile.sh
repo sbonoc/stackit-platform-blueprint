@@ -31,7 +31,7 @@ workflows_init_env
 keycloak_identity_contract_load_realm "workflows"
 
 set_default_env STACKIT_WORKFLOWS_ADMIN_USERNAME "workflows-admin"
-set_default_env STACKIT_WORKFLOWS_ADMIN_PASSWORD "$STACKIT_WORKFLOWS_OIDC_CLIENT_SECRET"
+set_default_env STACKIT_WORKFLOWS_ADMIN_PASSWORD ""
 
 workflows_realm_name="${KEYCLOAK_IDENTITY_CONTRACT_REALM_NAME:-$KEYCLOAK_REALM_WORKFLOWS}"
 workflows_role_names="${KEYCLOAK_IDENTITY_CONTRACT_ROLE_NAMES_CSV:-Admin,User,Viewer,Op}"

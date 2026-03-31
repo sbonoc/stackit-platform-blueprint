@@ -57,6 +57,7 @@ if tooling_is_execution_enabled; then
 
   python3 - "$outputs_json_file" "$secret_env_file" <<'PY'
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -118,6 +119,13 @@ for output_name, secret_key in allowed:
     if "\n" in rendered or rendered == "":
       continue
     lines.append(f"{secret_key}={rendered}")
+
+# Keycloak admin bootstrap credentials are not Terraform outputs; allow seeding
+# from the operator environment so the runtime secret contract can be satisfied
+# without post-apply manual patching.
+keycloak_admin_password = os.environ.get("KEYCLOAK_ADMIN_PASSWORD", "")
+if keycloak_admin_password and "\n" not in keycloak_admin_password:
+    lines.append(f"KEYCLOAK_ADMIN_PASSWORD={keycloak_admin_password}")
 
 out.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
 PY

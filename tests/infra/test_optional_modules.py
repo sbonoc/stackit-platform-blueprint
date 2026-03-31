@@ -687,6 +687,7 @@ class OptionalModulesTests(unittest.TestCase):
         self.assertIn("targetRevision: 7.1.9", keycloak_manifest)
         self.assertIn("namespace: security", keycloak_manifest)
         self.assertIn("name: keycloak-runtime-credentials", keycloak_manifest)
+        self.assertIn("extraManifests:", keycloak_manifest)
         self.assertIn("repoURL: https://oauth2-proxy.github.io/manifests", iap_manifest)
         self.assertIn("targetRevision: 10.4.0", iap_manifest)
         self.assertIn('existingSecret: "iap-runtime-credentials"', iap_manifest)

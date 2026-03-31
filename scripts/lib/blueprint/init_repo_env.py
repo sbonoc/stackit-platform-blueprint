@@ -126,8 +126,8 @@ def _is_sensitive_module_required_env(name: str) -> bool:
     return any(marker in name for marker in ("_PASSWORD", "_SECRET", "_TOKEN"))
 
 
-def runtime_credentials_env_specs() -> list[tuple[str, str]]:
-    contract = load_runtime_identity_contract(REPO_ROOT / "blueprint/runtime_identity_contract.yaml")
+def runtime_credentials_env_specs(repo_root: Path = REPO_ROOT) -> list[tuple[str, str]]:
+    contract = load_runtime_identity_contract(repo_root / "blueprint/runtime_identity_contract.yaml")
     specs: list[tuple[str, str]] = []
     for item in contract.runtime_env_defaults:
         name = item.name
@@ -306,7 +306,7 @@ def ensure_defaults_env_file(
     identity_specs = defaults_env_identity_specs(args)
     module_flag_specs = defaults_env_module_flag_specs(repo_root, module_enablement)
     module_required_specs = non_sensitive_module_required_env_specs(repo_root, module_enablement)
-    runtime_credentials_specs = runtime_credentials_env_specs()
+    runtime_credentials_specs = runtime_credentials_env_specs(repo_root)
     profile_spec = ("BLUEPRINT_PROFILE", os.environ.get("BLUEPRINT_PROFILE", "local-full"))
 
     if not defaults_env_path.exists():

@@ -897,6 +897,9 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertEqual(security_kustomization, security_kustomization_template)
         self.assertIn("kind: ClusterSecretStore", source_store)
         self.assertIn("name: runtime-credentials-source-store", source_store)
+        self.assertIn("- get", source_store)
+        self.assertNotIn("- list", source_store)
+        self.assertNotIn("- watch", source_store)
         self.assertEqual(source_store, source_store_template)
         self.assertIn("kind: ExternalSecret", external_secret)
         self.assertIn("name: runtime-credentials", external_secret)
@@ -910,6 +913,7 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn("chart: keycloakx", keycloak_template)
         self.assertIn("namespace: {{KEYCLOAK_NAMESPACE}}", keycloak_template)
         self.assertIn("existingSecret: keycloak-runtime-credentials", keycloak_template)
+        self.assertIn("{{KEYCLOAK_EXTRA_MANIFESTS_BLOCK}}", keycloak_template)
 
         local_overlay = _read("infra/gitops/argocd/overlays/local/kustomization.yaml")
         local_overlay_template = _read("scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/local/kustomization.yaml")
@@ -1228,6 +1232,22 @@ class RefactorContractsTests(unittest.TestCase):
         self.assertIn("wait_for_kube_api_ready()", k8s_wait)
         self.assertIn("k8s_api_readiness_wait_seconds", k8s_wait)
         self.assertIn("k8s_hostname_resolution_attempts", k8s_wait)
+
+    def test_keycloak_runtime_reconcile_and_credentials_contract_hardening(self) -> None:
+        keycloak_identity_contract = _read("scripts/lib/infra/keycloak_identity_contract.sh")
+        keycloak_lib = _read("scripts/lib/infra/keycloak.sh")
+        workflows_lib = _read("scripts/lib/infra/workflows.sh")
+        workflows_reconcile = _read("scripts/bin/infra/stackit_workflows_keycloak_reconcile.sh")
+        foundation_seed = _read("scripts/bin/infra/stackit_foundation_seed_runtime_secret.sh")
+
+        self.assertIn("keycloak_wait_for_runtime_pod()", keycloak_identity_contract)
+        self.assertIn("KEYCLOAK_RUNTIME_WAIT_TIMEOUT_SECONDS", keycloak_identity_contract)
+        self.assertIn("keycloak_runtime_pod_wait_seconds", keycloak_identity_contract)
+        self.assertIn('normalize_bool "${PUBLIC_ENDPOINTS_ENABLED:-false}"', keycloak_lib)
+        self.assertIn("keycloak_extra_manifests_block()", keycloak_lib)
+        self.assertIn('set_default_env STACKIT_WORKFLOWS_ADMIN_PASSWORD ""', workflows_lib)
+        self.assertIn('set_default_env STACKIT_WORKFLOWS_ADMIN_PASSWORD ""', workflows_reconcile)
+        self.assertIn("KEYCLOAK_ADMIN_PASSWORD", foundation_seed)
 
     def test_metrics_are_enabled_for_core_wrapper_scripts(self) -> None:
         metric_files = [

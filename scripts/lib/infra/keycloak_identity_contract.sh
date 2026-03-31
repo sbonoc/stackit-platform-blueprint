@@ -61,6 +61,55 @@ keycloak_find_runtime_pod() {
     | head -n 1
 }
 
+keycloak_reconcile_wait_defaults() {
+  set_default_env KEYCLOAK_RUNTIME_WAIT_TIMEOUT_SECONDS "300"
+  set_default_env KEYCLOAK_RUNTIME_WAIT_POLL_SECONDS "5"
+}
+
+keycloak_wait_for_runtime_pod() {
+  local namespace="$1"
+  local release_name="$2"
+  local timeout_seconds="${3:-}"
+  local poll_seconds="${4:-}"
+  local started_at now elapsed pod_name
+
+  keycloak_reconcile_wait_defaults
+  if [[ -z "$timeout_seconds" ]]; then
+    timeout_seconds="$KEYCLOAK_RUNTIME_WAIT_TIMEOUT_SECONDS"
+  fi
+  if [[ -z "$poll_seconds" ]]; then
+    poll_seconds="$KEYCLOAK_RUNTIME_WAIT_POLL_SECONDS"
+  fi
+  if ! [[ "$timeout_seconds" =~ ^[0-9]+$ ]] || [[ "$timeout_seconds" == "0" ]]; then
+    timeout_seconds="300"
+  fi
+  if ! [[ "$poll_seconds" =~ ^[0-9]+$ ]] || [[ "$poll_seconds" == "0" ]]; then
+    poll_seconds="5"
+  fi
+
+  started_at="$(date +%s)"
+  while true; do
+    pod_name="$(keycloak_find_runtime_pod "$namespace" "$release_name")"
+    if [[ -n "$pod_name" ]]; then
+      elapsed=$(( $(date +%s) - started_at ))
+      log_metric "keycloak_runtime_pod_wait_seconds" "$elapsed" "namespace=$namespace release=$release_name status=ready"
+      printf '%s' "$pod_name"
+      return 0
+    fi
+
+    now="$(date +%s)"
+    elapsed=$((now - started_at))
+    if (( elapsed >= timeout_seconds )); then
+      log_metric \
+        "keycloak_runtime_pod_wait_seconds" \
+        "$elapsed" \
+        "namespace=$namespace release=$release_name status=timeout"
+      return 1
+    fi
+    sleep "$poll_seconds"
+  done
+}
+
 keycloak_read_secret_key() {
   local namespace="$1"
   local secret_name="$2"
@@ -110,13 +159,13 @@ keycloak_reconcile_oidc_identity_contract() {
   require_command kubectl
 
   local pod_name=""
-  pod_name="$(keycloak_find_runtime_pod "$namespace" "$release_name")"
+  pod_name="$(keycloak_wait_for_runtime_pod "$namespace" "$release_name" || true)"
   if [[ -z "$pod_name" ]]; then
     log_metric \
       "keycloak_identity_contract_reconcile_total" \
       "1" \
       "namespace=$namespace realm=$realm_name client_id=$client_id status=failed_no_runtime_pod"
-    log_fatal "unable to locate running Keycloak pod in namespace=$namespace release=$release_name"
+    log_fatal "unable to locate running Keycloak pod in namespace=$namespace release=$release_name after ${KEYCLOAK_RUNTIME_WAIT_TIMEOUT_SECONDS}s"
   fi
 
   local keycloak_admin_password=""

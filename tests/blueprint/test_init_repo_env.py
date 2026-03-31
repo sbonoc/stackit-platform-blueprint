@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -128,6 +130,17 @@ class InitRepoEnvTests(unittest.TestCase):
         self.assertEqual(overrides["RUNTIME_CREDENTIALS_TARGET_NAMESPACE"], "custom-apps")
         self.assertEqual(overrides["RUNTIME_CREDENTIALS_ESO_WAIT_TIMEOUT"], "60")
         self.assertEqual(overrides["RUNTIME_CREDENTIALS_REQUIRED"], "true")
+
+    def test_runtime_credentials_env_specs_uses_passed_repo_root(self) -> None:
+        custom_repo_root = Path("/tmp/custom-blueprint-root")
+        with patch(
+            "scripts.lib.blueprint.init_repo_env.load_runtime_identity_contract",
+            return_value=SimpleNamespace(runtime_env_defaults=[]),
+        ) as load_contract:
+            resolved = runtime_credentials_env_specs(custom_repo_root)
+
+        self.assertEqual(resolved, [])
+        load_contract.assert_called_once_with(custom_repo_root / "blueprint/runtime_identity_contract.yaml")
 
     def test_secrets_example_render_keeps_module_sensitive_placeholders_non_empty(self) -> None:
         module_enablement = self._module_enablement({"postgres", "identity-aware-proxy"})

@@ -45,3 +45,100 @@ keycloak_seed_env_defaults() {
     set_default_env KEYCLOAK_DATABASE_HOST "${local_postgres_instance}.data.svc.cluster.local"
   fi
 }
+
+keycloak_public_endpoints_enabled() {
+  [[ "$(normalize_bool "${PUBLIC_ENDPOINTS_ENABLED:-false}")" == "true" ]]
+}
+
+keycloak_extra_manifests_block() {
+  if ! keycloak_public_endpoints_enabled; then
+    printf '%s' "        extraManifests: []"
+    return 0
+  fi
+
+  cat <<EOF
+        extraManifests:
+          - |
+            apiVersion: cert-manager.io/v1
+            kind: Issuer
+            metadata:
+              name: keycloak-acme
+              namespace: ${KEYCLOAK_NAMESPACE}
+            spec:
+              acme:
+                email: "${KEYCLOAK_ACME_EMAIL}"
+                server: "${KEYCLOAK_ACME_SERVER}"
+                privateKeySecretRef:
+                  name: keycloak-acme-account-key
+                solvers:
+                  - http01:
+                      gatewayHTTPRoute:
+                        parentRefs:
+                          - name: ${KEYCLOAK_GATEWAY_NAME}
+                            namespace: ${KEYCLOAK_NAMESPACE}
+                            kind: Gateway
+          - |
+            apiVersion: cert-manager.io/v1
+            kind: Certificate
+            metadata:
+              name: ${KEYCLOAK_TLS_SECRET_NAME}
+              namespace: ${KEYCLOAK_NAMESPACE}
+            spec:
+              secretName: ${KEYCLOAK_TLS_SECRET_NAME}
+              commonName: "${KEYCLOAK_PUBLIC_HOST}"
+              dnsNames:
+                - "${KEYCLOAK_PUBLIC_HOST}"
+              issuerRef:
+                kind: Issuer
+                name: keycloak-acme
+          - |
+            apiVersion: gateway.networking.k8s.io/v1
+            kind: Gateway
+            metadata:
+              name: ${KEYCLOAK_GATEWAY_NAME}
+              namespace: ${KEYCLOAK_NAMESPACE}
+              annotations:
+                external-dns.alpha.kubernetes.io/hostname: "${KEYCLOAK_PUBLIC_HOST}"
+            spec:
+              gatewayClassName: ${KEYCLOAK_GATEWAY_CLASS_NAME}
+              listeners:
+                - name: http
+                  protocol: HTTP
+                  port: 80
+                  hostname: "${KEYCLOAK_PUBLIC_HOST}"
+                  allowedRoutes:
+                    namespaces:
+                      from: Same
+                - name: https
+                  protocol: HTTPS
+                  port: 443
+                  hostname: "${KEYCLOAK_PUBLIC_HOST}"
+                  tls:
+                    mode: Terminate
+                    certificateRefs:
+                      - name: ${KEYCLOAK_TLS_SECRET_NAME}
+                  allowedRoutes:
+                    namespaces:
+                      from: Same
+          - |
+            apiVersion: gateway.networking.k8s.io/v1
+            kind: HTTPRoute
+            metadata:
+              name: ${KEYCLOAK_GATEWAY_NAME}
+              namespace: ${KEYCLOAK_NAMESPACE}
+            spec:
+              parentRefs:
+                - name: ${KEYCLOAK_GATEWAY_NAME}
+                  namespace: ${KEYCLOAK_NAMESPACE}
+              hostnames:
+                - "${KEYCLOAK_PUBLIC_HOST}"
+              rules:
+                - matches:
+                    - path:
+                        type: PathPrefix
+                        value: /
+                  backendRefs:
+                    - name: keycloak-http
+                      port: 80
+EOF
+}
