@@ -904,7 +904,7 @@ def main() -> int:
         if baseline_ref is not None and baseline_commit == resolved_commit:
             print(
                 "upgrade baseline collision: "
-                f"baseline ref {baseline_ref} resolves to target commit {resolved_commit}. "
+                f"baseline ref {baseline_ref} and upgrade ref {args.ref} both resolve to target commit {resolved_commit}. "
                 "Pick an upgrade ref newer than the baseline tag or bump template_bootstrap.template_version first.",
                 file=sys.stderr,
             )
