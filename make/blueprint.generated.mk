@@ -2,8 +2,8 @@ SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
 .PHONY: help \
-  blueprint-init-repo blueprint-init-repo-interactive blueprint-resync-consumer-seeds blueprint-check-placeholders blueprint-template-smoke blueprint-bootstrap blueprint-render-makefile blueprint-clean-generated blueprint-render-module-wrapper-skeletons \
-  quality-hooks-fast quality-hooks-strict quality-hooks-run quality-docs-lint quality-docs-sync-core-targets quality-docs-check-core-targets-sync quality-docs-sync-contract-metadata quality-docs-check-contract-metadata-sync quality-docs-sync-runtime-identity-summary quality-docs-check-runtime-identity-summary-sync quality-docs-sync-module-contract-summaries quality-docs-check-module-contract-summaries-sync quality-test-pyramid \
+  blueprint-init-repo blueprint-init-repo-interactive blueprint-resync-consumer-seeds blueprint-upgrade-consumer blueprint-upgrade-consumer-validate blueprint-check-placeholders blueprint-template-smoke blueprint-bootstrap blueprint-render-makefile blueprint-clean-generated blueprint-render-module-wrapper-skeletons \
+  quality-hooks-fast quality-hooks-strict quality-hooks-run quality-docs-lint quality-docs-sync-blueprint-template quality-docs-check-blueprint-template-sync quality-docs-sync-core-targets quality-docs-check-core-targets-sync quality-docs-sync-contract-metadata quality-docs-check-contract-metadata-sync quality-docs-sync-runtime-identity-summary quality-docs-check-runtime-identity-summary-sync quality-docs-sync-module-contract-summaries quality-docs-check-module-contract-summaries-sync quality-test-pyramid \
   infra-prereqs infra-help-reference infra-bootstrap infra-local-destroy-all infra-destroy-disabled-modules infra-validate infra-smoke infra-provision infra-deploy infra-provision-deploy \
   infra-stackit-bootstrap-preflight infra-stackit-bootstrap-plan infra-stackit-bootstrap-apply infra-stackit-bootstrap-destroy \
   infra-stackit-foundation-preflight infra-stackit-foundation-plan infra-stackit-foundation-apply infra-stackit-foundation-destroy \
@@ -27,6 +27,12 @@ blueprint-init-repo-interactive: ## Interactive repository identity wizard for G
 
 blueprint-resync-consumer-seeds: ## Compare consumer-seeded files to templates and classify safe refresh vs manual merge
 	@scripts/bin/blueprint/resync_consumer_seeds.sh
+
+blueprint-upgrade-consumer: ## Plan/apply non-destructive generated-consumer upgrade from pinned blueprint source ref
+	@scripts/bin/blueprint/upgrade_consumer.sh
+
+blueprint-upgrade-consumer-validate: ## Run post-upgrade validation bundle and strict merge-marker checks
+	@scripts/bin/blueprint/upgrade_consumer_validate.sh
 
 blueprint-check-placeholders: ## Verify generated repository identity placeholders are resolved
 	@scripts/bin/blueprint/check_placeholders.sh
@@ -57,6 +63,12 @@ quality-hooks-run: ## Run pre-commit hooks and quality gates
 
 quality-docs-lint: ## Lint markdown docs, governance links, and make target references
 	@python3 scripts/bin/quality/lint_docs.py
+
+quality-docs-sync-blueprint-template: ## Sync docs/blueprint/** into bootstrap template blueprint docs mirror
+	@python3 scripts/lib/docs/sync_blueprint_template_docs.py
+
+quality-docs-check-blueprint-template-sync: ## Fail when docs/blueprint/** and bootstrap template blueprint docs drift
+	@python3 scripts/lib/docs/sync_blueprint_template_docs.py --check
 
 quality-docs-sync-core-targets: ## Regenerate tracked core Make targets reference doc
 	@python3 scripts/bin/quality/render_core_targets_doc.py

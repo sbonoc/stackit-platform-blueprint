@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Blueprint Upgrade Validate Report",
+  "type": "object",
+  "required": [
+    "repo_root",
+    "report_generated_at",
+    "required_validation_targets",
+    "merge_marker_check",
+    "command_results",
+    "summary"
+  ],
+  "properties": {
+    "repo_root": {
+      "type": "string"
+    },
+    "report_generated_at": {
+      "type": "string"
+    },
+    "required_validation_targets": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "merge_marker_check": {
+      "type": "object",
+      "required": [
+        "pre",
+        "post"
+      ],
+      "properties": {
+        "pre": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "post": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "command_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "target",
+          "command",
+          "returncode",
+          "duration_seconds",
+          "stdout",
+          "stderr",
+          "stdout_truncated",
+          "stderr_truncated"
+        ],
+        "properties": {
+          "target": {
+            "type": "string"
+          },
+          "command": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "returncode": {
+            "type": "integer"
+          },
+          "duration_seconds": {
+            "type": "number"
+          },
+          "stdout": {
+            "type": "string"
+          },
+          "stderr": {
+            "type": "string"
+          },
+          "stdout_truncated": {
+            "type": "boolean"
+          },
+          "stderr_truncated": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "status",
+        "failed_targets",
+        "merge_markers_pre_count",
+        "merge_markers_post_count",
+        "commands_total"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "success",
+            "failure"
+          ]
+        },
+        "failed_targets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "merge_markers_pre_count": {
+          "type": "integer"
+        },
+        "merge_markers_post_count": {
+          "type": "integer"
+        },
+        "commands_total": {
+          "type": "integer"
+        }
+      }
+    }
+  }
+}

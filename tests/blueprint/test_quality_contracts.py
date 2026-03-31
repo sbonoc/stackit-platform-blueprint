@@ -26,6 +26,8 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn("quality-hooks-fast", make_template)
         self.assertIn("quality-hooks-strict", make_template)
         self.assertIn("quality-docs-lint", make_template)
+        self.assertIn("quality-docs-sync-blueprint-template", make_template)
+        self.assertIn("quality-docs-check-blueprint-template-sync", make_template)
         self.assertIn("quality-docs-sync-core-targets", make_template)
         self.assertIn("quality-docs-check-core-targets-sync", make_template)
         self.assertIn("quality-docs-sync-contract-metadata", make_template)
@@ -41,6 +43,8 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn("quality-hooks-fast", generated_make)
         self.assertIn("quality-hooks-strict", generated_make)
         self.assertIn("quality-docs-lint", generated_make)
+        self.assertIn("quality-docs-sync-blueprint-template", generated_make)
+        self.assertIn("quality-docs-check-blueprint-template-sync", generated_make)
         self.assertIn("quality-docs-sync-core-targets", generated_make)
         self.assertIn("quality-docs-check-core-targets-sync", generated_make)
         self.assertIn("quality-docs-sync-contract-metadata", generated_make)
@@ -90,6 +94,12 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn("## Contract Summary (Generated)", source_doc)
         self.assertEqual(source_doc, template_doc)
 
+    def test_blueprint_docs_template_sync_checker_is_repo_rooted(self) -> None:
+        checker = REPO_ROOT / "scripts/lib/docs/sync_blueprint_template_docs.py"
+        result = run([sys.executable, str(checker), "--check"])
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        self.assertIn("resolve_repo_root", _read("scripts/lib/docs/sync_blueprint_template_docs.py"))
+
     def test_core_targets_generator_uses_make_help(self) -> None:
         generator = _read("scripts/bin/quality/render_core_targets_doc.py")
         self.assertIn('["make", "help"]', generator)
@@ -122,6 +132,7 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn('"e2e_max_inclusive"', contract)
         self.assertIn("tests/blueprint/test_contract_stackit_runtime.py", contract)
         self.assertIn("tests/blueprint/test_init_repo_env.py", contract)
+        self.assertIn("tests/blueprint/test_upgrade_consumer.py", contract)
         self.assertIn("tests/infra/test_workload_health_check.py", contract)
         self.assertIn("tests/e2e/test_vertical_slice.py", contract)
 
@@ -149,6 +160,27 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn('scripts/lib/infra/fallback_runtime.sh', rabbitmq_plan)
         self.assertNotIn("elif is_local_profile; then", rabbitmq_plan)
         self.assertIn('resolve_optional_module_execution "kms" "destroy"', kms_destroy)
+
+    def test_upgrade_workflow_wrappers_emit_metrics_and_parse_reports(self) -> None:
+        upgrade_wrapper = _read("scripts/bin/blueprint/upgrade_consumer.sh")
+        validate_wrapper = _read("scripts/bin/blueprint/upgrade_consumer_validate.sh")
+        upgrade_lib = _read("scripts/lib/blueprint/upgrade_consumer.py")
+        validate_lib = _read("scripts/lib/blueprint/upgrade_consumer_validate.py")
+
+        self.assertIn("emit_upgrade_report_metrics()", upgrade_wrapper)
+        self.assertIn("blueprint_upgrade_plan_entries_total", upgrade_wrapper)
+        self.assertIn("blueprint_upgrade_apply_status_total", upgrade_wrapper)
+        self.assertIn("upgrade_report_metrics.py", upgrade_wrapper)
+        self.assertNotIn("python3 - \"$plan_report_path\" \"$apply_report_path\" <<'PY'", upgrade_wrapper)
+        self.assertIn("remote.upstream.url", upgrade_wrapper)
+        self.assertIn("remote.origin.url", upgrade_wrapper)
+        self.assertIn("emit_validate_report_metrics()", validate_wrapper)
+        self.assertIn("blueprint_upgrade_validate_status_total", validate_wrapper)
+        self.assertIn("blueprint_upgrade_validate_merge_markers_total", validate_wrapper)
+        self.assertIn("upgrade_report_metrics.py", validate_wrapper)
+        self.assertNotIn("python3 - \"$validate_report_path\" <<'PY'", validate_wrapper)
+        self.assertIn("from scripts.lib.blueprint.merge_markers import find_merge_markers", upgrade_lib)
+        self.assertIn("from scripts.lib.blueprint.merge_markers import find_merge_markers", validate_lib)
 
 
 if __name__ == "__main__":

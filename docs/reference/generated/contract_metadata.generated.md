@@ -18,6 +18,8 @@
 - `blueprint-init-repo`
 - `blueprint-init-repo-interactive`
 - `blueprint-resync-consumer-seeds`
+- `blueprint-upgrade-consumer`
+- `blueprint-upgrade-consumer-validate`
 - `blueprint-check-placeholders`
 - `blueprint-template-smoke`
 - `blueprint-bootstrap`
@@ -28,6 +30,8 @@
 - `quality-hooks-strict`
 - `quality-hooks-run`
 - `quality-docs-lint`
+- `quality-docs-sync-blueprint-template`
+- `quality-docs-check-blueprint-template-sync`
 - `quality-docs-sync-core-targets`
 - `quality-docs-check-core-targets-sync`
 - `quality-docs-sync-contract-metadata`

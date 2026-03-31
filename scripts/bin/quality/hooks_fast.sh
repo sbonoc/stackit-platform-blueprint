@@ -14,6 +14,7 @@ Runs the fast local quality gate:
 - pre-commit (if available)
 - shellcheck (required)
 - docs lint
+- blueprint docs/template sync checks
 - generated docs sync checks
 - runtime identity summary sync checks
 - generated module contract summary sync checks
@@ -44,6 +45,7 @@ if [[ "${#shell_scripts[@]}" -gt 0 ]]; then
 fi
 
 run_cmd make -C "$ROOT_DIR" quality-docs-lint
+run_cmd make -C "$ROOT_DIR" quality-docs-check-blueprint-template-sync
 run_cmd make -C "$ROOT_DIR" quality-docs-check-core-targets-sync
 run_cmd make -C "$ROOT_DIR" quality-docs-check-contract-metadata-sync
 run_cmd make -C "$ROOT_DIR" quality-docs-check-runtime-identity-summary-sync

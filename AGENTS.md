@@ -140,6 +140,8 @@ A task is done only when all applicable items pass:
 - Canonical blueprint lifecycle targets:
   - `blueprint-init-repo`
   - `blueprint-resync-consumer-seeds`
+  - `blueprint-upgrade-consumer`
+  - `blueprint-upgrade-consumer-validate`
   - `blueprint-check-placeholders`
   - `blueprint-template-smoke`
   - `blueprint-bootstrap`

@@ -23,6 +23,25 @@
   - `make blueprint-resync-consumer-seeds` is the supported dry-run comparison between consumer-seeded files and current `scripts/templates/consumer/init/*.tmpl` content.
   - Safe deterministic refreshes are classified as `auto-refresh`; potentially customized files are classified as `manual-merge`.
   - `BLUEPRINT_RESYNC_APPLY_SAFE=true` applies only auto-refresh paths, while `BLUEPRINT_RESYNC_APPLY_ALL=true` is an explicit full-overwrite opt-in.
+- Generated repos use a non-destructive pinned-source upgrade workflow for blueprint-managed drift:
+  - `make blueprint-upgrade-consumer` plans/applies upgrade actions from a pinned source ref (`BLUEPRINT_UPGRADE_REF`) and emits `artifacts/blueprint/upgrade_plan.json`, `artifacts/blueprint/upgrade_apply.json`, and `artifacts/blueprint/upgrade_summary.md`.
+  - Default execution is plan-only (`BLUEPRINT_UPGRADE_APPLY=false`), with dirty-worktree and delete operations blocked unless explicitly enabled.
+  - Platform-owned consumer surfaces (`make/platform/**`, `scripts/*/platform/**`, `docs/platform/**`) are protected from overwrite.
+  - Diverged blueprint-managed files use 3-way merge against the template-version baseline; unresolved merges emit conflict artifacts under `artifacts/blueprint/conflicts/**` and fail apply.
+  - `make blueprint-upgrade-consumer-validate` runs the required post-upgrade validation bundle and writes `artifacts/blueprint/upgrade_validate.json`, failing on any target error or unresolved merge markers.
+- Upgrade/report validation internals are shared and contract-typed:
+  - unresolved merge-marker detection is centralized in `scripts/lib/blueprint/merge_markers.py`.
+  - wrapper metric extraction for plan/apply/validate reports is centralized in `scripts/lib/blueprint/upgrade_report_metrics.py` (no inline Python heredocs in shell wrappers).
+  - upgrade artifacts (`upgrade_plan.json`, `upgrade_apply.json`, `upgrade_validate.json`) have canonical JSON Schema definitions under `scripts/lib/blueprint/schemas/`.
+- Blueprint docs/template mirror drift is explicitly checked:
+  - `make quality-docs-check-blueprint-template-sync` verifies `docs/blueprint/**` and `scripts/templates/blueprint/bootstrap/docs/blueprint/**` remain synchronized.
+  - `make quality-hooks-fast` includes this check in the default fast quality lane.
+- Strict version audit Helm repo refresh is cached per process:
+  - `prepare_helm_repo_for_chart` updates each Helm repository once per run and reuses a local cache for repeated chart checks, reducing strict-gate network overhead.
+- Source-only contract refactor tests are split into focused suites:
+  - shared helpers live in `tests/blueprint/contract_refactor_shared.py`.
+  - suite-specific cases are organized in `contract_refactor_{governance,docs,make,scripts,runtime_identity}_cases.py`.
+  - `tests/blueprint/contract_refactor_cases.py` remains as a compatibility aggregate.
 - Python-in-shell contract parsing is centralized in reusable helpers:
   - shell wrappers call `scripts/lib/blueprint/contract_runtime_cli.py` instead of embedding inline Python blocks for contract inspection.
   - `scripts/lib/blueprint/init_repo.py` remains the entrypoint but delegates implementation to focused modules (`init_repo_contract.py`, `init_repo_renderers.py`, `init_repo_env.py`, `init_repo_io.py`) for reuse and maintainability.
