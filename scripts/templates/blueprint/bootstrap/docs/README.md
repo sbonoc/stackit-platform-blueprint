@@ -106,6 +106,10 @@ Common baseline flow:
 - `make infra-validate`
 - `make infra-smoke`
 
+Upgrade guardrails:
+- `make blueprint-upgrade-consumer` fails fast when the resolved baseline tag and selected upgrade ref point to the same commit (`upgrade baseline collision`).
+- When this happens, choose an upgrade ref newer than the baseline tag (or bump `template_bootstrap.template_version` first) before re-running.
+
 If you intentionally need to re-apply consumer-seeded or init-managed files after first init, rerun:
 - `BLUEPRINT_INIT_FORCE=true make blueprint-init-repo`
 

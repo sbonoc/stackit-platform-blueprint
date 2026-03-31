@@ -211,6 +211,13 @@ def _resolve_baseline_ref(source_repo: Path, template_version: str) -> str | Non
     return None
 
 
+def _resolve_commit(source_repo: Path, ref: str) -> str | None:
+    result = _run_git(source_repo, "rev-parse", "-q", "--verify", f"{ref}^{{commit}}")
+    if result.returncode != 0:
+        return None
+    return result.stdout.strip()
+
+
 def _clone_source_repository(source: str, ref: str) -> tuple[Path, Path, str]:
     temp_dir = Path(tempfile.mkdtemp(prefix="blueprint-upgrade-source-"))
     source_repo = temp_dir / "source"
@@ -943,6 +950,15 @@ def main() -> int:
     try:
         temp_dir, source_repo, resolved_commit = _clone_source_repository(args.source, args.ref)
         baseline_ref = _resolve_baseline_ref(source_repo, contract.repository.template_bootstrap.template_version)
+        baseline_commit = _resolve_commit(source_repo, baseline_ref) if baseline_ref else None
+        if baseline_ref is not None and baseline_commit == resolved_commit:
+            print(
+                "upgrade baseline collision: "
+                f"baseline ref {baseline_ref} and upgrade ref {args.ref} both resolve to target commit {resolved_commit}. "
+                "Pick an upgrade ref newer than the baseline tag or bump template_bootstrap.template_version first.",
+                file=sys.stderr,
+            )
+            return 1
 
         required_files, source_only, consumer_seeded, init_managed, conditional = _contract_paths(contract)
         source_files, target_files, managed_dir_roots = _collect_candidate_paths(
