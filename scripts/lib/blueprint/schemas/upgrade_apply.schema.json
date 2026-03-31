@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Blueprint Upgrade Apply Report",
+  "type": "object",
+  "required": [
+    "repo_root",
+    "source",
+    "upgrade_ref",
+    "resolved_upgrade_commit",
+    "baseline_ref",
+    "apply_enabled",
+    "allow_delete",
+    "status",
+    "results",
+    "summary"
+  ],
+  "properties": {
+    "repo_root": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "upgrade_ref": {
+      "type": "string"
+    },
+    "resolved_upgrade_commit": {
+      "type": "string"
+    },
+    "baseline_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "apply_enabled": {
+      "type": "boolean"
+    },
+    "allow_delete": {
+      "type": "boolean"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "success",
+        "failure"
+      ]
+    },
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "path",
+          "planned_action",
+          "planned_operation",
+          "result",
+          "reason"
+        ],
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "planned_action": {
+            "type": "string"
+          },
+          "planned_operation": {
+            "type": "string"
+          },
+          "result": {
+            "type": "string",
+            "enum": [
+              "planned-only",
+              "skipped",
+              "applied",
+              "deleted",
+              "merged",
+              "conflict"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          },
+          "conflict_artifact": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "total",
+        "applied_count"
+      ],
+      "properties": {
+        "total": {
+          "type": "integer"
+        },
+        "applied_count": {
+          "type": "integer"
+        }
+      }
+    },
+    "merge_markers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

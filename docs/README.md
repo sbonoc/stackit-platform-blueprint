@@ -51,6 +51,13 @@ Force full overwrite (including manual-merge candidates):
 ```bash
 BLUEPRINT_RESYNC_APPLY_ALL=true make blueprint-resync-consumer-seeds
 ```
+For full blueprint-managed upgrades on existing generated repos:
+```bash
+BLUEPRINT_UPGRADE_REF=<tag|branch|commit> make blueprint-upgrade-consumer
+BLUEPRINT_UPGRADE_REF=<tag|branch|commit> BLUEPRINT_UPGRADE_APPLY=true make blueprint-upgrade-consumer
+make blueprint-upgrade-consumer-validate
+```
+`BLUEPRINT_UPGRADE_SOURCE` defaults to `remote.upstream.url` when configured, then `remote.origin.url`.
 
 ## If You Maintain the Blueprint (Maintainer Track)
 Read:
@@ -88,6 +95,8 @@ Common baseline flow:
 - `make blueprint-init-repo-interactive`
 - `make blueprint-init-repo`
 - `make blueprint-resync-consumer-seeds`
+- `make blueprint-upgrade-consumer`
+- `make blueprint-upgrade-consumer-validate`
 - `make blueprint-bootstrap`
 - `make blueprint-render-module-wrapper-skeletons`
 - `make blueprint-clean-generated`
@@ -105,6 +114,7 @@ Quality and docs flow:
 - `make quality-hooks-strict`
 - `make quality-hooks-run`
 - `make quality-docs-lint`
+- `make quality-docs-check-blueprint-template-sync`
 - `make quality-test-pyramid`
 - `make quality-docs-sync-runtime-identity-summary`
 - `make quality-docs-sync-module-contract-summaries`

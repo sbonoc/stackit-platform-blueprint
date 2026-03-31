@@ -10,6 +10,7 @@ For repositories created via GitHub template:
    - First init also switches the contract from `template-source` to `generated-consumer`, replaces consumer-owned root docs/governance/CI seeds, and prunes disabled conditional optional scaffolding from the raw template copy.
    - `make blueprint-init-repo` creates or refreshes tracked non-sensitive defaults in `blueprint/repo.init.env` (including required non-sensitive module inputs for enabled modules), placeholder scaffolding in `blueprint/repo.init.secrets.example.env`, and local-sensitive defaults in `blueprint/repo.init.secrets.env` (including required sensitive module placeholders for enabled modules).
    - For existing generated repos, use `make blueprint-resync-consumer-seeds` to compare consumer-seeded files with latest templates before deciding what to refresh.
+   - For full blueprint-managed drift upgrades, use `make blueprint-upgrade-consumer` (plan/apply) followed by `make blueprint-upgrade-consumer-validate`.
    - Reapply init-managed files only with `BLUEPRINT_INIT_FORCE=true make blueprint-init-repo`.
 2. Run `make blueprint-bootstrap`.
 3. Run `make infra-bootstrap`.
@@ -85,7 +86,7 @@ If a flag is `true`, the module plan/apply/deploy/smoke scripts run and persist 
 `blueprint-render-makefile` (or `blueprint-bootstrap`) materializes optional-module Make targets when the corresponding module flag is enabled.
 `make blueprint-init-repo` prunes disabled conditional optional-module scaffolding from fresh generated repos so the initial working tree is lean.
 In generated repos, `blueprint-bootstrap` does not recreate consumer-seeded files and `infra-bootstrap` does not recreate init-managed identity files.
-Use `make blueprint-resync-consumer-seeds` for consumer-seeded files and forced init (`BLUEPRINT_INIT_FORCE=true make blueprint-init-repo`) for init-managed identity files.
+Use `make blueprint-resync-consumer-seeds` for consumer-seeded files, `make blueprint-upgrade-consumer` for blueprint-managed file drift, and forced init (`BLUEPRINT_INIT_FORCE=true make blueprint-init-repo`) for init-managed identity files.
 `infra-bootstrap` materializes optional-module infra scaffolding when enabled and preserves already-materialized disabled-module scaffolding so later flag toggles cannot silently delete tracked repo content.
 `infra-destroy-disabled-modules` runs module destroy actions for modules currently disabled by flags when resources may already exist.
 

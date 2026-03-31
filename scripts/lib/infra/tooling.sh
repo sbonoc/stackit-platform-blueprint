@@ -2,6 +2,7 @@
 set -euo pipefail
 
 TOOLING_ENV_DEFAULTS_LOADED="${TOOLING_ENV_DEFAULTS_LOADED:-false}"
+HELM_PREPARED_REPOS_CACHE="${HELM_PREPARED_REPOS_CACHE:-|}"
 
 tooling_load_blueprint_env_defaults() {
   if [[ "$TOOLING_ENV_DEFAULTS_LOADED" == "true" ]]; then
@@ -756,8 +757,15 @@ prepare_helm_repo_for_chart() {
     ;;
   esac
 
+  if [[ "$HELM_PREPARED_REPOS_CACHE" == *"|${repo_name}|"* ]]; then
+    log_metric "helm_repo_prepare_total" "1" "repo=$repo_name status=cached"
+    return 0
+  fi
+
   run_cmd helm repo add "$repo_name" "$repo_url"
-  # Refresh only the repo needed for this chart to avoid unrelated network
-  # flakiness in live runs and validation audits.
+  # Refresh each repo only once per process to reduce strict-lane runtime and
+  # external flakiness while preserving deterministic pin checks.
   run_cmd helm repo update "$repo_name"
+  HELM_PREPARED_REPOS_CACHE="${HELM_PREPARED_REPOS_CACHE}${repo_name}|"
+  log_metric "helm_repo_prepare_total" "1" "repo=$repo_name status=updated"
 }

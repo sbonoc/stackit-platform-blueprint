@@ -48,6 +48,15 @@ Then apply only safe updates when appropriate:
 ```bash
 BLUEPRINT_RESYNC_APPLY_SAFE=true make blueprint-resync-consumer-seeds
 ```
+For full blueprint-managed upgrades on existing generated repos (non-destructive plan/apply workflow):
+```bash
+BLUEPRINT_UPGRADE_REF=<tag|branch|commit> make blueprint-upgrade-consumer
+BLUEPRINT_UPGRADE_REF=<tag|branch|commit> BLUEPRINT_UPGRADE_APPLY=true make blueprint-upgrade-consumer
+make blueprint-upgrade-consumer-validate
+```
+Set `BLUEPRINT_UPGRADE_SOURCE` when the blueprint source repository differs from your default `origin` remote.
+By default, the upgrade target resolves `BLUEPRINT_UPGRADE_SOURCE` from `remote.upstream.url`
+when present, and falls back to `remote.origin.url`.
 
 ## 3) Bootstrap and Validate
 ```bash

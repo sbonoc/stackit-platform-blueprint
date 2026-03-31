@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Blueprint Upgrade Plan Report",
+  "type": "object",
+  "required": [
+    "repo_root",
+    "source",
+    "upgrade_ref",
+    "resolved_upgrade_commit",
+    "template_version",
+    "baseline_ref",
+    "apply_requested",
+    "allow_dirty",
+    "allow_delete",
+    "entries",
+    "summary"
+  ],
+  "properties": {
+    "repo_root": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "upgrade_ref": {
+      "type": "string"
+    },
+    "resolved_upgrade_commit": {
+      "type": "string"
+    },
+    "template_version": {
+      "type": "string"
+    },
+    "baseline_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "apply_requested": {
+      "type": "boolean"
+    },
+    "allow_dirty": {
+      "type": "boolean"
+    },
+    "allow_delete": {
+      "type": "boolean"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "path",
+          "ownership",
+          "action",
+          "operation",
+          "reason",
+          "source_exists",
+          "target_exists",
+          "baseline_ref",
+          "baseline_content_available"
+        ],
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "ownership": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "create",
+              "update",
+              "merge-required",
+              "skip",
+              "conflict"
+            ]
+          },
+          "operation": {
+            "type": "string",
+            "enum": [
+              "create",
+              "update",
+              "delete",
+              "merge",
+              "none"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          },
+          "source_exists": {
+            "type": "boolean"
+          },
+          "target_exists": {
+            "type": "boolean"
+          },
+          "baseline_ref": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "baseline_content_available": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "create",
+        "update",
+        "merge-required",
+        "skip",
+        "conflict",
+        "total"
+      ],
+      "properties": {
+        "create": {
+          "type": "integer"
+        },
+        "update": {
+          "type": "integer"
+        },
+        "merge-required": {
+          "type": "integer"
+        },
+        "skip": {
+          "type": "integer"
+        },
+        "conflict": {
+          "type": "integer"
+        },
+        "total": {
+          "type": "integer"
+        }
+      }
+    }
+  }
+}
