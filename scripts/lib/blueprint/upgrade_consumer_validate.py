@@ -20,6 +20,7 @@ if str(REPO_ROOT) not in sys.path:
 
 from scripts.lib.blueprint.cli_support import display_repo_path, resolve_repo_root  # noqa: E402
 from scripts.lib.blueprint.merge_markers import find_merge_markers  # noqa: E402
+from scripts.lib.blueprint.runtime_dependency_edges import RUNTIME_DEPENDENCY_EDGES  # noqa: E402
 
 
 VALIDATION_TARGETS = (
@@ -29,9 +30,6 @@ VALIDATION_TARGETS = (
     "quality-docs-check-contract-metadata-sync",
     "quality-docs-check-runtime-identity-summary-sync",
     "quality-docs-check-module-contract-summaries-sync",
-)
-RUNTIME_DEPENDENCY_EDGES: tuple[tuple[str, str], ...] = (
-    ("scripts/bin/infra/smoke.sh", "scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh"),
 )
 MAX_CAPTURE_CHARS = 20000
 

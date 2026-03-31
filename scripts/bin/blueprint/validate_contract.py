@@ -19,6 +19,7 @@ from scripts.lib.blueprint.contract_schema import (  # noqa: E402
     BlueprintContract,
     load_blueprint_contract,
 )
+from scripts.lib.blueprint.runtime_dependency_edges import RUNTIME_DEPENDENCY_EDGES  # noqa: E402
 from scripts.lib.infra.runtime_identity_contract import (  # noqa: E402
     load_runtime_identity_contract,
     render_eso_external_secrets_manifest,
@@ -206,10 +207,7 @@ def _validate_runtime_credentials_contract(repo_root: Path) -> list[str]:
                 f"{resource_path}"
             )
 
-    runtime_dependency_edges = (
-        ("scripts/bin/infra/smoke.sh", "scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh"),
-    )
-    for consumer_path, dependency_path in runtime_dependency_edges:
+    for consumer_path, dependency_path in RUNTIME_DEPENDENCY_EDGES:
         consumer_file = repo_root / consumer_path
         if not consumer_file.is_file():
             continue

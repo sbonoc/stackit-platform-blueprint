@@ -24,6 +24,7 @@ from scripts.lib.blueprint.cli_support import display_repo_path, resolve_repo_ro
 from scripts.lib.blueprint.contract_schema import BlueprintContract, load_blueprint_contract  # noqa: E402
 from scripts.lib.blueprint.init_repo_contract import expand_optional_module_path  # noqa: E402
 from scripts.lib.blueprint.merge_markers import find_merge_markers  # noqa: E402
+from scripts.lib.blueprint.runtime_dependency_edges import RUNTIME_DEPENDENCY_EDGES  # noqa: E402
 
 
 ACTION_CREATE = "create"
@@ -37,10 +38,6 @@ OPERATION_UPDATE = "update"
 OPERATION_DELETE = "delete"
 OPERATION_MERGE = "merge"
 OPERATION_NONE = "none"
-
-RUNTIME_DEPENDENCY_EDGES: tuple[tuple[str, str], ...] = (
-    ("scripts/bin/infra/smoke.sh", "scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh"),
-)
 
 
 @dataclass(frozen=True)

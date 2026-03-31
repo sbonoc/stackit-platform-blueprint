@@ -219,6 +219,7 @@ class GovernanceRefactorCases(RefactorContractBase):
                 "scripts/lib/blueprint/init_repo_renderers.py",
                 "scripts/lib/blueprint/merge_markers.py",
                 "scripts/lib/blueprint/resync_consumer_seeds.py",
+                "scripts/lib/blueprint/runtime_dependency_edges.py",
                 "scripts/lib/blueprint/upgrade_consumer.py",
                 "scripts/lib/blueprint/upgrade_consumer_validate.py",
                 "scripts/lib/blueprint/upgrade_report_metrics.py",
