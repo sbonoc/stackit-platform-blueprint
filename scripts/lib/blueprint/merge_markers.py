@@ -12,6 +12,7 @@ DEFAULT_EXCLUDED_DIR_NAMES = {
     "node_modules",
     "__pycache__",
     ".venv",
+    "artifacts",
 }
 
 

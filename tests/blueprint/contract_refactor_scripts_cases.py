@@ -52,7 +52,7 @@ class ScriptsRefactorCases(RefactorContractBase):
         self.assertIn('docker manifest inspect "$image_ref"', audit)
         self.assertIn('helm show chart "$chart_ref" --version "$version"', audit)
         self.assertIn('helm search repo "$chart_ref" --versions', audit)
-        self.assertIn('HELM_PREPARED_REPOS_CACHE="${HELM_PREPARED_REPOS_CACHE:-|}"', tooling)
+        self.assertIn('HELM_PREPARED_REPOS_CACHE="|"', tooling)
         self.assertIn('if [[ "$HELM_PREPARED_REPOS_CACHE" == *"|${repo_name}|"* ]]; then', tooling)
         self.assertIn('log_metric "helm_repo_prepare_total" "1" "repo=$repo_name status=cached"', tooling)
         self.assertIn('run_cmd helm repo update "$repo_name"', tooling)

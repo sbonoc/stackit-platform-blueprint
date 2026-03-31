@@ -2,7 +2,7 @@
 set -euo pipefail
 
 TOOLING_ENV_DEFAULTS_LOADED="${TOOLING_ENV_DEFAULTS_LOADED:-false}"
-HELM_PREPARED_REPOS_CACHE="${HELM_PREPARED_REPOS_CACHE:-|}"
+HELM_PREPARED_REPOS_CACHE="|"
 
 tooling_load_blueprint_env_defaults() {
   if [[ "$TOOLING_ENV_DEFAULTS_LOADED" == "true" ]]; then

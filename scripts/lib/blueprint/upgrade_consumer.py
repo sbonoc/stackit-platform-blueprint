@@ -7,6 +7,7 @@ import argparse
 from dataclasses import dataclass
 import hashlib
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -159,6 +160,12 @@ def _read_text(path: Path) -> str:
 def _write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
+
+
+def _copy_permissions(from_path: Path, to_path: Path) -> None:
+    source_mode = from_path.stat().st_mode
+    # Preserve rwx permission bits so new scripts keep executable mode.
+    os.chmod(to_path, source_mode & 0o777)
 
 
 def _content_hash(content: str) -> str:
@@ -647,6 +654,7 @@ def _apply_entries(
                 )
                 continue
             _write_text(target_path, _read_text(source_path))
+            _copy_permissions(source_path, target_path)
             applied_count += 1
             results.append(
                 ApplyResult(

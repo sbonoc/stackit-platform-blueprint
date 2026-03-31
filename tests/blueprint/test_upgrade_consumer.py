@@ -34,16 +34,23 @@ def _git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
     return _run(["git", *args], cwd=repo)
 
 
+def _require_success(result: subprocess.CompletedProcess[str], command: str) -> None:
+    if result.returncode != 0:
+        raise AssertionError(
+            f"command failed ({command}) exit={result.returncode}\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}"
+        )
+
+
 def _init_git_repo(repo: Path) -> None:
     repo.mkdir(parents=True, exist_ok=True)
-    assert _git(repo, "init").returncode == 0
-    assert _git(repo, "config", "user.email", "tests@example.com").returncode == 0
-    assert _git(repo, "config", "user.name", "Blueprint Tests").returncode == 0
+    _require_success(_git(repo, "init"), "git init")
+    _require_success(_git(repo, "config", "user.email", "tests@example.com"), "git config user.email")
+    _require_success(_git(repo, "config", "user.name", "Blueprint Tests"), "git config user.name")
 
 
 def _commit_all(repo: Path, message: str) -> None:
-    assert _git(repo, "add", ".").returncode == 0
-    assert _git(repo, "commit", "-m", message).returncode == 0
+    _require_success(_git(repo, "add", "."), "git add .")
+    _require_success(_git(repo, "commit", "-m", message), f"git commit -m {message}")
 
 
 def _generated_contract_text() -> str:
@@ -64,7 +71,7 @@ def _create_source_repo(root: Path, relative_path: str, base_content: str, head_
     _init_git_repo(source_repo)
     _write(source_repo / relative_path, base_content)
     _commit_all(source_repo, "baseline")
-    assert _git(source_repo, "tag", f"v{_template_version()}").returncode == 0
+    _require_success(_git(source_repo, "tag", f"v{_template_version()}"), "git tag template version")
 
     _write(source_repo / relative_path, head_content)
     _commit_all(source_repo, "head")
@@ -263,6 +270,48 @@ class UpgradeConsumerTests(unittest.TestCase):
                 PLAN_SCHEMA,
             )
             _assert_json_schema(apply_report, APPLY_SCHEMA)
+
+    def test_apply_create_preserves_executable_mode_from_source(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            source_repo = tmp_root / "source"
+            _init_git_repo(source_repo)
+
+            executable_path = "scripts/bin/blueprint/new_exec.sh"
+            source_file = source_repo / executable_path
+            _write(source_file, "#!/usr/bin/env bash\necho baseline\n")
+            source_file.chmod(0o755)
+            _commit_all(source_repo, "baseline")
+            _require_success(_git(source_repo, "tag", f"v{_template_version()}"), "git tag template version")
+
+            _write(source_file, "#!/usr/bin/env bash\necho head\n")
+            source_file.chmod(0o755)
+            _commit_all(source_repo, "head")
+
+            target_repo = _create_generated_repo(tmp_root, MANAGED_TEST_PATH, "baseline\n")
+            result = _run(
+                [
+                    sys.executable,
+                    str(UPGRADE_SCRIPT),
+                    "--repo-root",
+                    str(target_repo),
+                    "--source",
+                    str(source_repo),
+                    "--ref",
+                    "HEAD",
+                    "--apply",
+                ],
+                cwd=REPO_ROOT,
+            )
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+
+            target_file = target_repo / executable_path
+            self.assertTrue(target_file.is_file())
+            self.assertEqual(target_file.stat().st_mode & 0o777, 0o755)
+
+            apply_report = _load_json(target_repo / "artifacts/blueprint/upgrade_apply.json")
+            path_result = _apply_result(apply_report, executable_path)
+            self.assertEqual(path_result.get("result"), "applied")
 
     def test_apply_conflict_creates_artifact_and_fails(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
