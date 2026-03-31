@@ -28,6 +28,7 @@
   - Default execution is plan-only (`BLUEPRINT_UPGRADE_APPLY=false`), with dirty-worktree and delete operations blocked unless explicitly enabled.
   - Platform-owned consumer surfaces (`make/platform/**`, `scripts/*/platform/**`, `docs/platform/**`) are protected from overwrite.
   - Diverged blueprint-managed files use 3-way merge against the template-version baseline; unresolved merges emit conflict artifacts under `artifacts/blueprint/conflicts/**` and fail apply.
+  - Upgrade planning fails fast when the resolved baseline ref points to the same commit as the selected upgrade target (`upgrade baseline collision`) to prevent no-op merge plans and mixed upgrade states.
   - `make blueprint-upgrade-consumer-validate` runs the required post-upgrade validation bundle and writes `artifacts/blueprint/upgrade_validate.json`, failing on any target error or unresolved merge markers.
 - Upgrade/report validation internals are shared and contract-typed:
   - unresolved merge-marker detection is centralized in `scripts/lib/blueprint/merge_markers.py`.
