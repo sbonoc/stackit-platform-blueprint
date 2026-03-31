@@ -27,6 +27,7 @@
   - `make blueprint-upgrade-consumer` plans/applies upgrade actions from a pinned source ref (`BLUEPRINT_UPGRADE_REF`) and emits `artifacts/blueprint/upgrade_plan.json`, `artifacts/blueprint/upgrade_apply.json`, and `artifacts/blueprint/upgrade_summary.md`.
   - Default execution is plan-only (`BLUEPRINT_UPGRADE_APPLY=false`), with dirty-worktree and delete operations blocked unless explicitly enabled.
   - Platform-owned consumer surfaces (`make/platform/**`, `scripts/*/platform/**`, `docs/platform/**`) are protected from overwrite.
+  - When protected platform-owned runtime identity paths are missing but referenced by blueprint-managed smoke paths, upgrade planning emits `required-manual-action` diagnostics on the skipped dependency path.
   - Diverged blueprint-managed files use 3-way merge against the template-version baseline; unresolved merges emit conflict artifacts under `artifacts/blueprint/conflicts/**` and fail apply.
   - Upgrade planning fails fast when the resolved baseline ref points to the same commit as the selected upgrade target (`upgrade baseline collision`) to prevent no-op merge plans and mixed upgrade states.
   - `make blueprint-upgrade-consumer-validate` runs the required post-upgrade validation bundle and writes `artifacts/blueprint/upgrade_validate.json`, failing on any target error or unresolved merge markers.
@@ -71,6 +72,7 @@
   - a drift-safe consumer extension surface lives under `infra/gitops/platform/base/extensions/kustomization.yaml`
   - canonical execution entrypoint is `make auth-reconcile-eso-runtime-secrets`
   - `infra-smoke` includes this reconciliation path so CRD/readiness/target-secret checks are exercised in the canonical smoke flow.
+  - `infra-validate` and post-upgrade validation enforce runtime dependency edges (for example `scripts/bin/infra/smoke.sh` referencing `scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh`) so mixed upgrade states fail early.
   - Core ESO reconciliation is mandatory; there is no feature toggle to disable `auth-reconcile-eso-runtime-secrets`.
 - Keycloak is a mandatory runtime identity baseline:
   - ArgoCD overlays always include environment-specific `infra/gitops/argocd/core/<env>/keycloak.yaml` applications.

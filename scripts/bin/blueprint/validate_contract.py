@@ -19,6 +19,7 @@ from scripts.lib.blueprint.contract_schema import (  # noqa: E402
     BlueprintContract,
     load_blueprint_contract,
 )
+from scripts.lib.blueprint.runtime_dependency_edges import RUNTIME_DEPENDENCY_EDGES  # noqa: E402
 from scripts.lib.infra.runtime_identity_contract import (  # noqa: E402
     load_runtime_identity_contract,
     render_eso_external_secrets_manifest,
@@ -123,6 +124,7 @@ def _validate_runtime_credentials_contract(repo_root: Path) -> list[str]:
 
     required_security_files = (
         "blueprint/runtime_identity_contract.yaml",
+        "docs/platform/consumer/runtime_credentials_eso.md",
         "infra/gitops/platform/base/extensions/kustomization.yaml",
         "infra/gitops/platform/base/security/kustomization.yaml",
         "infra/gitops/platform/base/security/runtime-source-store.yaml",
@@ -131,6 +133,8 @@ def _validate_runtime_credentials_contract(repo_root: Path) -> list[str]:
         "infra/gitops/argocd/core/dev/keycloak.yaml",
         "infra/gitops/argocd/core/stage/keycloak.yaml",
         "infra/gitops/argocd/core/prod/keycloak.yaml",
+        "scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh",
+        "scripts/templates/blueprint/bootstrap/docs/platform/consumer/runtime_credentials_eso.md",
         "scripts/templates/infra/bootstrap/infra/gitops/argocd/core/keycloak.application.yaml.tmpl",
         "scripts/templates/blueprint/bootstrap/blueprint/runtime_identity_contract.yaml",
         "scripts/templates/infra/bootstrap/infra/gitops/platform/base/security/runtime-external-secrets-core.yaml",
@@ -201,6 +205,19 @@ def _validate_runtime_credentials_contract(repo_root: Path) -> list[str]:
             errors.append(
                 f"infra/gitops/argocd/overlays/{env_name}/kustomization.yaml missing mandatory keycloak resource: "
                 f"{resource_path}"
+            )
+
+    for consumer_path, dependency_path in RUNTIME_DEPENDENCY_EDGES:
+        consumer_file = repo_root / consumer_path
+        if not consumer_file.is_file():
+            continue
+        consumer_content = consumer_file.read_text(encoding="utf-8", errors="surrogateescape")
+        if dependency_path not in consumer_content:
+            continue
+        if not (repo_root / dependency_path).is_file():
+            errors.append(
+                f"{consumer_path} references {dependency_path} but dependency file is missing; "
+                "reconcile runtime identity artifacts before infra-smoke/upgrade validation"
             )
 
     return errors

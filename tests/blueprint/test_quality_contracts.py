@@ -166,6 +166,7 @@ class QualityContractsTests(unittest.TestCase):
         validate_wrapper = _read("scripts/bin/blueprint/upgrade_consumer_validate.sh")
         upgrade_lib = _read("scripts/lib/blueprint/upgrade_consumer.py")
         validate_lib = _read("scripts/lib/blueprint/upgrade_consumer_validate.py")
+        runtime_edges = _read("scripts/lib/blueprint/runtime_dependency_edges.py")
 
         self.assertIn("emit_upgrade_report_metrics()", upgrade_wrapper)
         self.assertIn("blueprint_upgrade_plan_entries_total", upgrade_wrapper)
@@ -177,10 +178,15 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn("emit_validate_report_metrics()", validate_wrapper)
         self.assertIn("blueprint_upgrade_validate_status_total", validate_wrapper)
         self.assertIn("blueprint_upgrade_validate_merge_markers_total", validate_wrapper)
+        self.assertIn("blueprint_upgrade_validate_runtime_dependency_missing_total", validate_wrapper)
         self.assertIn("upgrade_report_metrics.py", validate_wrapper)
         self.assertNotIn("python3 - \"$validate_report_path\" <<'PY'", validate_wrapper)
         self.assertIn("from scripts.lib.blueprint.merge_markers import find_merge_markers", upgrade_lib)
+        self.assertIn("from scripts.lib.blueprint.runtime_dependency_edges import RUNTIME_DEPENDENCY_EDGES", upgrade_lib)
         self.assertIn("from scripts.lib.blueprint.merge_markers import find_merge_markers", validate_lib)
+        self.assertIn("from scripts.lib.blueprint.runtime_dependency_edges import RUNTIME_DEPENDENCY_EDGES", validate_lib)
+        self.assertIn("runtime_dependency_edge_check", validate_lib)
+        self.assertIn("RUNTIME_DEPENDENCY_EDGES", runtime_edges)
 
 
 if __name__ == "__main__":

@@ -24,6 +24,7 @@ from scripts.lib.blueprint.cli_support import display_repo_path, resolve_repo_ro
 from scripts.lib.blueprint.contract_schema import BlueprintContract, load_blueprint_contract  # noqa: E402
 from scripts.lib.blueprint.init_repo_contract import expand_optional_module_path  # noqa: E402
 from scripts.lib.blueprint.merge_markers import find_merge_markers  # noqa: E402
+from scripts.lib.blueprint.runtime_dependency_edges import RUNTIME_DEPENDENCY_EDGES  # noqa: E402
 
 
 ACTION_CREATE = "create"
@@ -37,6 +38,7 @@ OPERATION_UPDATE = "update"
 OPERATION_DELETE = "delete"
 OPERATION_MERGE = "merge"
 OPERATION_NONE = "none"
+
 
 @dataclass(frozen=True)
 class UpgradeEntry:
@@ -543,6 +545,51 @@ def _classify_entries(
     return entries
 
 
+def _annotate_protected_dependency_gaps(entries: list[UpgradeEntry]) -> list[UpgradeEntry]:
+    entries_by_path = {entry.path: entry for entry in entries}
+    annotated: list[UpgradeEntry] = []
+
+    for entry in entries:
+        reason = entry.reason
+        for depender_path, dependency_path in RUNTIME_DEPENDENCY_EDGES:
+            if entry.path != dependency_path:
+                continue
+            if entry.action != ACTION_SKIP:
+                continue
+            if entry.target_exists or not entry.source_exists:
+                continue
+            if "platform-owned" not in entry.reason:
+                continue
+            depender_entry = entries_by_path.get(depender_path)
+            if depender_entry is None or not depender_entry.source_exists:
+                continue
+            reason = (
+                f"{entry.reason}; required-manual-action: {depender_path} references {dependency_path} "
+                "and upgrade validation will fail until the dependency file exists"
+            )
+            break
+
+        if reason == entry.reason:
+            annotated.append(entry)
+            continue
+
+        annotated.append(
+            UpgradeEntry(
+                path=entry.path,
+                ownership=entry.ownership,
+                action=entry.action,
+                operation=entry.operation,
+                reason=reason,
+                source_exists=entry.source_exists,
+                target_exists=entry.target_exists,
+                baseline_ref=entry.baseline_ref,
+                baseline_content_available=entry.baseline_content_available,
+            )
+        )
+
+    return annotated
+
+
 def _three_way_merge(base: str, ours: str, theirs: str) -> tuple[str, bool]:
     with tempfile.TemporaryDirectory(prefix="blueprint-upgrade-merge-") as tmpdir:
         tmp_root = Path(tmpdir)
@@ -933,6 +980,7 @@ def main() -> int:
             baseline_cache=baseline_cache,
             allow_delete=args.allow_delete,
         )
+        entries = _annotate_protected_dependency_gaps(entries)
 
         plan_summary = _summarize_plan(entries)
         plan_payload = {

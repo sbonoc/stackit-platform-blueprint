@@ -20,6 +20,7 @@ if str(REPO_ROOT) not in sys.path:
 
 from scripts.lib.blueprint.cli_support import display_repo_path, resolve_repo_root  # noqa: E402
 from scripts.lib.blueprint.merge_markers import find_merge_markers  # noqa: E402
+from scripts.lib.blueprint.runtime_dependency_edges import RUNTIME_DEPENDENCY_EDGES  # noqa: E402
 
 
 VALIDATION_TARGETS = (
@@ -124,6 +125,27 @@ def _write_json(path: Path, payload: dict[str, Any]) -> None:
     path.write_text(f"{json.dumps(payload, indent=2, sort_keys=True)}\n", encoding="utf-8")
 
 
+def _detect_missing_runtime_dependency_edges(repo_root: Path) -> list[dict[str, str]]:
+    missing: list[dict[str, str]] = []
+    for consumer_path, dependency_path in RUNTIME_DEPENDENCY_EDGES:
+        consumer_file = repo_root / consumer_path
+        if not consumer_file.is_file():
+            continue
+        content = consumer_file.read_text(encoding="utf-8", errors="surrogateescape")
+        if dependency_path not in content:
+            continue
+        if (repo_root / dependency_path).is_file():
+            continue
+        missing.append(
+            {
+                "consumer_path": consumer_path,
+                "dependency_path": dependency_path,
+                "reason": "consumer path references dependency path but dependency file is missing",
+            }
+        )
+    return missing
+
+
 def main() -> int:
     args = _parse_args()
     repo_root = resolve_repo_root(args.repo_root, __file__)
@@ -142,10 +164,11 @@ def main() -> int:
     merge_markers_pre = find_merge_markers(repo_root)
     command_results = [_run_make_target(repo_root, target) for target in VALIDATION_TARGETS]
     merge_markers_post = find_merge_markers(repo_root)
+    missing_runtime_dependencies = _detect_missing_runtime_dependency_edges(repo_root)
 
     failed_targets = [result.target for result in command_results if result.returncode != 0]
     status = "success"
-    if failed_targets or merge_markers_pre or merge_markers_post:
+    if failed_targets or merge_markers_pre or merge_markers_post or missing_runtime_dependencies:
         status = "failure"
 
     payload = {
@@ -156,12 +179,20 @@ def main() -> int:
             "pre": merge_markers_pre,
             "post": merge_markers_post,
         },
+        "runtime_dependency_edge_check": {
+            "required_edges": [
+                {"consumer_path": consumer_path, "dependency_path": dependency_path}
+                for consumer_path, dependency_path in RUNTIME_DEPENDENCY_EDGES
+            ],
+            "missing": missing_runtime_dependencies,
+        },
         "command_results": [result.as_dict() for result in command_results],
         "summary": {
             "status": status,
             "failed_targets": failed_targets,
             "merge_markers_pre_count": len(merge_markers_pre),
             "merge_markers_post_count": len(merge_markers_post),
+            "runtime_dependency_missing_count": len(missing_runtime_dependencies),
             "commands_total": len(command_results),
         },
     }
@@ -181,6 +212,15 @@ def main() -> int:
     if failed_targets:
         print(
             "upgrade validation failed targets: " + ", ".join(failed_targets),
+            file=sys.stderr,
+        )
+    if missing_runtime_dependencies:
+        diagnostics = ", ".join(
+            f"{entry['consumer_path']} -> {entry['dependency_path']}"
+            for entry in missing_runtime_dependencies
+        )
+        print(
+            "upgrade validation runtime dependency edges missing required files: " + diagnostics,
             file=sys.stderr,
         )
 
