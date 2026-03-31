@@ -74,6 +74,8 @@ spec:
       - scripts/bin/infra/local_destroy_all.sh
       - scripts/bin/infra/core_runtime_bootstrap.sh
       - scripts/bin/infra/core_runtime_smoke.sh
+      - scripts/bin/infra/stackit_workflows_keycloak_reconcile.sh
+      - scripts/bin/infra/langfuse_keycloak_reconcile.sh
       - scripts/bin/infra/public_endpoints_deploy.sh
       - scripts/bin/infra/identity_aware_proxy_deploy.sh
       - scripts/bin/infra/stackit_foundation_seed_runtime_secret.sh
@@ -98,7 +100,10 @@ spec:
       - scripts/lib/blueprint/resync_consumer_seeds.py
       - scripts/lib/docs/generate_contract_docs.py
       - scripts/lib/docs/sync_module_contract_summaries.py
+      - scripts/lib/docs/sync_runtime_identity_contract_summary.py
       - scripts/lib/infra/k8s_wait.sh
+      - scripts/lib/infra/keycloak_identity_contract.sh
+      - scripts/lib/infra/runtime_identity_contract.py
       - scripts/lib/infra/module_execution.sh
       - scripts/lib/quality/semver.sh
       - scripts/lib/quality/test_pyramid_contract.json
@@ -108,6 +113,7 @@ spec:
       - scripts/lib/shell/utils.sh
       - scripts/templates/blueprint/bootstrap/Makefile
       - scripts/templates/blueprint/bootstrap/blueprint/contract.yaml
+      - scripts/templates/blueprint/bootstrap/blueprint/runtime_identity_contract.yaml
       - scripts/templates/blueprint/bootstrap/docs/docusaurus.config.js
       - scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl
       - scripts/templates/blueprint/bootstrap/make/platform.mk
@@ -144,11 +150,19 @@ spec:
       - infra/gitops/argocd/environments/dev/kustomization.yaml
       - infra/gitops/argocd/environments/dev/platform-config.yaml
       - infra/gitops/argocd/environments/dev/platform-application.yaml
+      - infra/gitops/argocd/core/local/keycloak.yaml
+      - infra/gitops/argocd/core/dev/keycloak.yaml
+      - infra/gitops/argocd/core/stage/keycloak.yaml
+      - infra/gitops/argocd/core/prod/keycloak.yaml
       - infra/gitops/argocd/overlays/local/kustomization.yaml
       - infra/gitops/argocd/overlays/local/appproject.yaml
       - infra/gitops/argocd/overlays/local/application-platform-local.yaml
       - infra/gitops/platform/base/kustomization.yaml
       - infra/gitops/platform/base/namespaces.yaml
+      - infra/gitops/platform/base/extensions/kustomization.yaml
+      - infra/gitops/platform/base/security/kustomization.yaml
+      - infra/gitops/platform/base/security/runtime-source-store.yaml
+      - infra/gitops/platform/base/security/runtime-external-secrets-core.yaml
       - infra/gitops/platform/environments/local/kustomization.yaml
       - infra/gitops/platform/environments/local/runtime-contract-configmap.yaml
       - infra/gitops/platform/environments/dev/kustomization.yaml
@@ -157,25 +171,33 @@ spec:
       - infra/gitops/argocd/overlays/dev/applicationset-platform-environments.yaml
       - infra/local/helm/core/argocd.values.yaml
       - infra/local/helm/core/external-secrets.values.yaml
+      - infra/local/helm/core/cert-manager.values.yaml
       - infra/local/helm/core/crossplane.values.yaml
       - scripts/templates/infra/bootstrap/infra/cloud/stackit/terraform/bootstrap/versions.tf
       - scripts/templates/infra/bootstrap/infra/cloud/stackit/terraform/foundation/versions.tf
       - scripts/templates/infra/bootstrap/infra/gitops/argocd/root/kustomization.yaml
       - scripts/templates/infra/bootstrap/infra/gitops/argocd/root/applicationset-platform-environments.yaml
       - scripts/templates/infra/bootstrap/infra/gitops/argocd/environments/dev/platform-application.yaml
+      - scripts/templates/infra/bootstrap/infra/gitops/argocd/core/keycloak.application.yaml.tmpl
       - scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/local/appproject.yaml
       - scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/local/application-platform-local.yaml
       - scripts/templates/infra/bootstrap/infra/gitops/platform/base/kustomization.yaml
       - scripts/templates/infra/bootstrap/infra/gitops/platform/base/namespaces.yaml
+      - scripts/templates/infra/bootstrap/infra/gitops/platform/base/extensions/kustomization.yaml
+      - scripts/templates/infra/bootstrap/infra/gitops/platform/base/security/kustomization.yaml
+      - scripts/templates/infra/bootstrap/infra/gitops/platform/base/security/runtime-source-store.yaml
+      - scripts/templates/infra/bootstrap/infra/gitops/platform/base/security/runtime-external-secrets-core.yaml
       - scripts/templates/infra/bootstrap/infra/gitops/platform/environments/local/kustomization.yaml
       - scripts/templates/infra/bootstrap/infra/gitops/platform/environments/local/runtime-contract-configmap.yaml
       - scripts/templates/infra/bootstrap/infra/gitops/platform/environments/dev/kustomization.yaml
       - scripts/templates/infra/bootstrap/infra/gitops/platform/environments/dev/runtime-contract-configmap.yaml
       - scripts/templates/infra/bootstrap/infra/local/helm/core/argocd.values.yaml
       - scripts/templates/infra/bootstrap/infra/local/helm/core/external-secrets.values.yaml
+      - scripts/templates/infra/bootstrap/infra/local/helm/core/cert-manager.values.yaml
       - scripts/templates/infra/bootstrap/infra/local/helm/core/crossplane.values.yaml
       - blueprint/repo.init.env
       - blueprint/repo.init.secrets.example.env
+      - blueprint/runtime_identity_contract.yaml
       - docs/docusaurus.config.js
       - docs/README.md
       - docs/blueprint/README.md
@@ -189,6 +211,7 @@ spec:
       - docs/platform/consumer/quickstart.md
       - docs/platform/consumer/endpoint_exposure_model.md
       - docs/platform/consumer/protected_api_routes.md
+      - docs/platform/consumer/runtime_credentials_eso.md
       - docs/platform/consumer/troubleshooting.md
       - docs/platform/modules/observability/README.md
       - docs/platform/modules/workflows/README.md
@@ -478,6 +501,31 @@ spec:
       default: false
       required: false
       description: "Optional-module switch for Identity-Aware Proxy provisioning/deployment; requires Keycloak OIDC configuration."
+    KEYCLOAK_OPTIONAL_MODULE_RECONCILIATION_ENABLED:
+      type: boolean
+      default: true
+      required: false
+      description: "Feature toggle for optional-module Keycloak realm/client/admin reconciliation (for example Workflows/Langfuse)."
+    RUNTIME_CREDENTIALS_SOURCE_NAMESPACE:
+      type: string
+      default: security
+      required: false
+      description: "Namespace holding source credentials consumed by ESO."
+    RUNTIME_CREDENTIALS_TARGET_NAMESPACE:
+      type: string
+      default: apps
+      required: false
+      description: "Namespace where canonical runtime credential target secrets are materialized."
+    RUNTIME_CREDENTIALS_ESO_WAIT_TIMEOUT:
+      type: integer
+      default: 180
+      required: false
+      description: "Timeout (seconds) for ESO CRD, ExternalSecret readiness, and target secret verification checks."
+    RUNTIME_CREDENTIALS_REQUIRED:
+      type: boolean
+      default: false
+      required: false
+      description: "When true, runtime credential reconciliation failures are fail-fast instead of warn-and-skip."
 
   tech_preferences:
     frontend:
@@ -528,6 +576,7 @@ spec:
         - docs/platform/consumer/quickstart.md
         - docs/platform/consumer/endpoint_exposure_model.md
         - docs/platform/consumer/protected_api_routes.md
+        - docs/platform/consumer/runtime_credentials_eso.md
         - docs/platform/consumer/troubleshooting.md
         - docs/platform/modules/observability/README.md
         - docs/platform/modules/workflows/README.md
@@ -551,6 +600,7 @@ spec:
       - backend-
       - touchpoints-
       - test-
+      - auth-
       - docs-
     required_targets:
       - help
@@ -571,6 +621,8 @@ spec:
       - quality-docs-check-core-targets-sync
       - quality-docs-sync-contract-metadata
       - quality-docs-check-contract-metadata-sync
+      - quality-docs-sync-runtime-identity-summary
+      - quality-docs-check-runtime-identity-summary-sync
       - quality-docs-sync-module-contract-summaries
       - quality-docs-check-module-contract-summaries-sync
       - quality-test-pyramid
@@ -597,6 +649,8 @@ spec:
       - infra-stackit-foundation-seed-runtime-secret
       - infra-stackit-ci-github-setup
       - infra-stackit-destroy-all
+      - infra-runtime-inventory
+      - infra-local-runtime-inventory
       - infra-stackit-runtime-prerequisites
       - infra-stackit-runtime-inventory
       - infra-stackit-runtime-deploy
@@ -616,6 +670,7 @@ spec:
       - apps-audit-versions
       - apps-audit-versions-cached
       - apps-publish-ghcr
+      - auth-reconcile-eso-runtime-secrets
       - backend-test-unit
       - backend-test-integration
       - backend-test-contracts
@@ -628,6 +683,8 @@ spec:
       - test-integration-all
       - test-contracts-all
       - test-e2e-all-local
+      - test-e2e-all-local-full
+      - test-e2e-all-local-execute
       - docs-install
       - docs-run
       - docs-build

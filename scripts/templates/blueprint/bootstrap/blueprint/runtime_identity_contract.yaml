@@ -1,0 +1,157 @@
+apiVersion: blueprint.identity.contract/v1alpha1
+kind: RuntimeIdentityContract
+metadata:
+  name: runtime-identity
+  version: 1.0.0
+spec:
+  runtime_env_defaults:
+    - name: KEYCLOAK_OPTIONAL_MODULE_RECONCILIATION_ENABLED
+      default: "true"
+    - name: RUNTIME_CREDENTIALS_SOURCE_NAMESPACE
+      default: security
+    - name: RUNTIME_CREDENTIALS_TARGET_NAMESPACE
+      default: apps
+    - name: RUNTIME_CREDENTIALS_ESO_WAIT_TIMEOUT
+      default: "180"
+    - name: RUNTIME_CREDENTIALS_REQUIRED
+      default: "false"
+
+  eso:
+    source_secret_key: runtime-credentials-source
+    store_kind: ClusterSecretStore
+    store_name: runtime-credentials-source-store
+    contracts:
+      - id: runtime-credentials
+        module_id: ""
+        namespace: apps
+        external_secret_name: runtime-credentials
+        target_secret_name: runtime-credentials
+        data:
+          - secret_key: username
+            source_property: username
+          - secret_key: password
+            source_property: password
+      - id: keycloak-runtime-credentials
+        module_id: ""
+        namespace: security
+        external_secret_name: keycloak-runtime-credentials
+        target_secret_name: keycloak-runtime-credentials
+        data:
+          - secret_key: KEYCLOAK_ADMIN_PASSWORD
+            source_property: KEYCLOAK_ADMIN_PASSWORD
+          - secret_key: KEYCLOAK_DATABASE_HOST
+            source_property: KEYCLOAK_DATABASE_HOST
+          - secret_key: KEYCLOAK_DATABASE_PORT
+            source_property: KEYCLOAK_DATABASE_PORT
+          - secret_key: KEYCLOAK_DATABASE_NAME
+            source_property: KEYCLOAK_DATABASE_NAME
+          - secret_key: KEYCLOAK_DATABASE_USERNAME
+            source_property: KEYCLOAK_DATABASE_USERNAME
+          - secret_key: KEYCLOAK_DATABASE_PASSWORD
+            source_property: KEYCLOAK_DATABASE_PASSWORD
+      - id: iap-runtime-credentials
+        module_id: ""
+        namespace: security
+        external_secret_name: iap-runtime-credentials
+        target_secret_name: iap-runtime-credentials
+        data:
+          - secret_key: client-id
+            source_property: KEYCLOAK_CLIENT_ID
+          - secret_key: client-secret
+            source_property: KEYCLOAK_CLIENT_SECRET
+          - secret_key: cookie-secret
+            source_property: IAP_COOKIE_SECRET
+      - id: postgres-runtime-credentials
+        module_id: postgres
+        namespace: data
+        external_secret_name: postgres-runtime-credentials
+        target_secret_name: postgres-runtime-credentials
+        data:
+          - secret_key: POSTGRES_DB_NAME
+            source_property: POSTGRES_DB_NAME
+          - secret_key: POSTGRES_USER
+            source_property: POSTGRES_USER
+          - secret_key: POSTGRES_PASSWORD
+            source_property: POSTGRES_PASSWORD
+      - id: neo4j-runtime-credentials
+        module_id: neo4j
+        namespace: data
+        external_secret_name: neo4j-runtime-credentials
+        target_secret_name: neo4j-runtime-credentials
+        data:
+          - secret_key: NEO4J_AUTH_USERNAME
+            source_property: NEO4J_AUTH_USERNAME
+          - secret_key: NEO4J_AUTH_PASSWORD
+            source_property: NEO4J_AUTH_PASSWORD
+      - id: workflows-runtime-credentials
+        module_id: workflows
+        namespace: security
+        external_secret_name: workflows-runtime-credentials
+        target_secret_name: workflows-runtime-credentials
+        data:
+          - secret_key: STACKIT_WORKFLOWS_OIDC_DISCOVERY_URL
+            source_property: STACKIT_WORKFLOWS_OIDC_DISCOVERY_URL
+          - secret_key: STACKIT_WORKFLOWS_OIDC_CLIENT_ID
+            source_property: STACKIT_WORKFLOWS_OIDC_CLIENT_ID
+          - secret_key: STACKIT_WORKFLOWS_OIDC_CLIENT_SECRET
+            source_property: STACKIT_WORKFLOWS_OIDC_CLIENT_SECRET
+      - id: langfuse-runtime-credentials
+        module_id: langfuse
+        namespace: observability
+        external_secret_name: langfuse-runtime-credentials
+        target_secret_name: langfuse-runtime-credentials
+        data:
+          - secret_key: LANGFUSE_OIDC_ISSUER_URL
+            source_property: LANGFUSE_OIDC_ISSUER_URL
+          - secret_key: LANGFUSE_OIDC_CLIENT_ID
+            source_property: LANGFUSE_OIDC_CLIENT_ID
+          - secret_key: LANGFUSE_OIDC_CLIENT_SECRET
+            source_property: LANGFUSE_OIDC_CLIENT_SECRET
+          - secret_key: LANGFUSE_DATABASE_URL
+            source_property: LANGFUSE_DATABASE_URL
+          - secret_key: LANGFUSE_SALT
+            source_property: LANGFUSE_SALT
+          - secret_key: LANGFUSE_ENCRYPTION_KEY
+            source_property: LANGFUSE_ENCRYPTION_KEY
+          - secret_key: LANGFUSE_NEXTAUTH_SECRET
+            source_property: LANGFUSE_NEXTAUTH_SECRET
+
+  keycloak:
+    namespace: security
+    helm_release_env: KEYCLOAK_HELM_RELEASE
+    admin_secret_name: keycloak-runtime-credentials
+    optional_module_reconciliation_toggle_env: KEYCLOAK_OPTIONAL_MODULE_RECONCILIATION_ENABLED
+    realms:
+      - id: iap
+        module_id: identity-aware-proxy
+        realm_env: KEYCLOAK_REALM_IAP
+        default_realm_name: iap
+        client_display_name: Identity-Aware Proxy
+        client_id_env: KEYCLOAK_CLIENT_ID
+        client_secret_env: KEYCLOAK_CLIENT_SECRET
+        role_names: []
+      - id: workflows
+        module_id: workflows
+        realm_env: KEYCLOAK_REALM_WORKFLOWS
+        default_realm_name: workflows
+        client_display_name: STACKIT Workflows
+        client_id_env: STACKIT_WORKFLOWS_OIDC_CLIENT_ID
+        client_secret_env: STACKIT_WORKFLOWS_OIDC_CLIENT_SECRET
+        role_names:
+          - Admin
+          - User
+          - Viewer
+          - Op
+        admin_username_env: STACKIT_WORKFLOWS_ADMIN_USERNAME
+        admin_password_env: STACKIT_WORKFLOWS_ADMIN_PASSWORD
+        admin_role: Admin
+      - id: langfuse
+        module_id: langfuse
+        realm_env: KEYCLOAK_REALM_LANGFUSE
+        default_realm_name: langfuse
+        client_display_name: Langfuse
+        client_id_env: LANGFUSE_OIDC_CLIENT_ID
+        client_secret_env: LANGFUSE_OIDC_CLIENT_SECRET
+        role_names:
+          - admin
+          - user

@@ -15,6 +15,7 @@ Runs the fast local quality gate:
 - shellcheck (required)
 - docs lint
 - generated docs sync checks
+- runtime identity summary sync checks
 - generated module contract summary sync checks
 - test pyramid
 - infra validation
@@ -45,6 +46,7 @@ fi
 run_cmd make -C "$ROOT_DIR" quality-docs-lint
 run_cmd make -C "$ROOT_DIR" quality-docs-check-core-targets-sync
 run_cmd make -C "$ROOT_DIR" quality-docs-check-contract-metadata-sync
+run_cmd make -C "$ROOT_DIR" quality-docs-check-runtime-identity-summary-sync
 run_cmd make -C "$ROOT_DIR" quality-docs-check-module-contract-summaries-sync
 run_cmd make -C "$ROOT_DIR" quality-test-pyramid
 run_cmd make -C "$ROOT_DIR" infra-validate

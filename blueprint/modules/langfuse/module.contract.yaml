@@ -38,6 +38,7 @@ spec:
       - LANGFUSE_SMTP_URL
       - LANGFUSE_RETENTION_DAYS
       - LANGFUSE_BASE_PATH
+      - KEYCLOAK_REALM_LANGFUSE
     domain_template_example: "dhe-langfuse-${ENV}.runs.onstackit.cloud"
 
   oidc_contract:

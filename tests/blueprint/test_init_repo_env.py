@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -9,6 +11,7 @@ from scripts.lib.blueprint.init_repo_env import (
     non_sensitive_module_required_env_specs,
     render_defaults_env_file_content,
     render_secrets_example_env_file_content,
+    runtime_credentials_env_specs,
     sensitive_env_specs,
     sensitive_module_required_env_specs,
 )
@@ -54,8 +57,8 @@ class InitRepoEnvTests(unittest.TestCase):
         self.assertEqual(non_sensitive["OBJECT_STORAGE_BUCKET_NAME"], "marketplace-assets")
         self.assertEqual(non_sensitive["PUBLIC_ENDPOINTS_BASE_DOMAIN"], "apps.local")
         self.assertEqual(non_sensitive["IAP_UPSTREAM_URL"], "http://catalog.apps.svc.cluster.local:8080")
-        self.assertEqual(non_sensitive["KEYCLOAK_ISSUER_URL"], "https://keycloak.example/realms/platform")
-        self.assertEqual(non_sensitive["KEYCLOAK_CLIENT_ID"], "blueprint-client")
+        self.assertEqual(non_sensitive["KEYCLOAK_ISSUER_URL"], "https://auth.example.invalid/realms/iap")
+        self.assertEqual(non_sensitive["KEYCLOAK_CLIENT_ID"], "iap-client")
         self.assertNotIn("POSTGRES_PASSWORD", non_sensitive)
         self.assertNotIn("IAP_COOKIE_SECRET", non_sensitive)
         self.assertNotIn("KEYCLOAK_CLIENT_SECRET", non_sensitive)
@@ -76,6 +79,13 @@ class InitRepoEnvTests(unittest.TestCase):
                 ("IAP_UPSTREAM_URL", "http://catalog.apps.svc.cluster.local:8080"),
                 ("KEYCLOAK_CLIENT_ID", "blueprint-client"),
             ],
+            runtime_credentials_specs=[
+                ("KEYCLOAK_OPTIONAL_MODULE_RECONCILIATION_ENABLED", "true"),
+                ("RUNTIME_CREDENTIALS_SOURCE_NAMESPACE", "security"),
+                ("RUNTIME_CREDENTIALS_TARGET_NAMESPACE", "apps"),
+                ("RUNTIME_CREDENTIALS_ESO_WAIT_TIMEOUT", "180"),
+                ("RUNTIME_CREDENTIALS_REQUIRED", "false"),
+            ],
         )
 
         self.assertIn("POSTGRES_ENABLED=true", rendered)
@@ -86,6 +96,51 @@ class InitRepoEnvTests(unittest.TestCase):
         self.assertIn("POSTGRES_USER=platform", rendered)
         self.assertIn("IAP_UPSTREAM_URL=http://catalog.apps.svc.cluster.local:8080", rendered)
         self.assertIn("KEYCLOAK_CLIENT_ID=blueprint-client", rendered)
+        self.assertIn("# Runtime credential contract", rendered)
+        self.assertIn("KEYCLOAK_OPTIONAL_MODULE_RECONCILIATION_ENABLED=true", rendered)
+        self.assertIn("RUNTIME_CREDENTIALS_SOURCE_NAMESPACE=security", rendered)
+        self.assertIn("RUNTIME_CREDENTIALS_TARGET_NAMESPACE=apps", rendered)
+        self.assertIn("RUNTIME_CREDENTIALS_ESO_WAIT_TIMEOUT=180", rendered)
+        self.assertIn("RUNTIME_CREDENTIALS_REQUIRED=false", rendered)
+
+    def test_runtime_credentials_env_specs_default_and_override(self) -> None:
+        with patch.dict(os.environ, {}, clear=False):
+            defaults = dict(runtime_credentials_env_specs())
+        self.assertEqual(defaults["KEYCLOAK_OPTIONAL_MODULE_RECONCILIATION_ENABLED"], "true")
+        self.assertEqual(defaults["RUNTIME_CREDENTIALS_SOURCE_NAMESPACE"], "security")
+        self.assertEqual(defaults["RUNTIME_CREDENTIALS_TARGET_NAMESPACE"], "apps")
+        self.assertEqual(defaults["RUNTIME_CREDENTIALS_ESO_WAIT_TIMEOUT"], "180")
+        self.assertEqual(defaults["RUNTIME_CREDENTIALS_REQUIRED"], "false")
+
+        with patch.dict(
+            os.environ,
+            {
+                "KEYCLOAK_OPTIONAL_MODULE_RECONCILIATION_ENABLED": "false",
+                "RUNTIME_CREDENTIALS_SOURCE_NAMESPACE": "custom-security",
+                "RUNTIME_CREDENTIALS_TARGET_NAMESPACE": "custom-apps",
+                "RUNTIME_CREDENTIALS_ESO_WAIT_TIMEOUT": "60",
+                "RUNTIME_CREDENTIALS_REQUIRED": "true",
+            },
+            clear=False,
+        ):
+            overrides = dict(runtime_credentials_env_specs())
+
+        self.assertEqual(overrides["KEYCLOAK_OPTIONAL_MODULE_RECONCILIATION_ENABLED"], "false")
+        self.assertEqual(overrides["RUNTIME_CREDENTIALS_SOURCE_NAMESPACE"], "custom-security")
+        self.assertEqual(overrides["RUNTIME_CREDENTIALS_TARGET_NAMESPACE"], "custom-apps")
+        self.assertEqual(overrides["RUNTIME_CREDENTIALS_ESO_WAIT_TIMEOUT"], "60")
+        self.assertEqual(overrides["RUNTIME_CREDENTIALS_REQUIRED"], "true")
+
+    def test_runtime_credentials_env_specs_uses_passed_repo_root(self) -> None:
+        custom_repo_root = Path("/tmp/custom-blueprint-root")
+        with patch(
+            "scripts.lib.blueprint.init_repo_env.load_runtime_identity_contract",
+            return_value=SimpleNamespace(runtime_env_defaults=[]),
+        ) as load_contract:
+            resolved = runtime_credentials_env_specs(custom_repo_root)
+
+        self.assertEqual(resolved, [])
+        load_contract.assert_called_once_with(custom_repo_root / "blueprint/runtime_identity_contract.yaml")
 
     def test_secrets_example_render_keeps_module_sensitive_placeholders_non_empty(self) -> None:
         module_enablement = self._module_enablement({"postgres", "identity-aware-proxy"})

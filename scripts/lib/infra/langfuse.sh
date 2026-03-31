@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+source "$ROOT_DIR/scripts/lib/infra/keycloak.sh"
+
 langfuse_init_env() {
+  keycloak_seed_env_defaults
   set_default_env LANGFUSE_RETENTION_DAYS "30"
   set_default_env LANGFUSE_BASE_PATH "/"
+  set_default_env LANGFUSE_OIDC_CLIENT_ID "langfuse"
 
   require_env_vars \
     LANGFUSE_PUBLIC_DOMAIN \

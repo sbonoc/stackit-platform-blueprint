@@ -5,7 +5,7 @@ image:
 config:
   existingSecret: "blueprint-iap-config"
   provider: oidc
-  oidcIssuerURL: "https://keycloak.example/realms/marketplace"
+  oidcIssuerURL: "https://auth.example.invalid/realms/iap"
   emailDomains:
     - "*"
   upstreams:

@@ -106,6 +106,7 @@ Quality and docs flow:
 - `make quality-hooks-run`
 - `make quality-docs-lint`
 - `make quality-test-pyramid`
+- `make quality-docs-sync-runtime-identity-summary`
 - `make quality-docs-sync-module-contract-summaries`
 - `make docs-install`
 - `make docs-run`

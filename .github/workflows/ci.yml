@@ -39,15 +39,17 @@ jobs:
           make docs-build
           make docs-smoke
 
-      - name: Run canonical test lanes
+      - name: Run canonical fast test lanes
         run: |
           make test-unit-all
           make test-integration-all
           make test-contracts-all
           make test-e2e-all-local
 
-      - name: Run tooling tests
-        run: pytest -q tests
+      - name: Run canonical full e2e lane on main updates
+        if: github.event_name == 'push'
+        run: |
+          make test-e2e-all-local-full
 
   generated-consumer-smoke:
     runs-on: ubuntu-latest

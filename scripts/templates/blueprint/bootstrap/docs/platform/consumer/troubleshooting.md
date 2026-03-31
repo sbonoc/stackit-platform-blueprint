@@ -199,6 +199,27 @@ Common first-day issues for generated repositories.
   make infra-stackit-runtime-deploy
   ```
 
+## Runtime credentials ESO reconciliation is not converging
+- Run the canonical reconciliation command directly:
+  ```bash
+  make auth-reconcile-eso-runtime-secrets
+  ```
+- Inspect reconciliation state:
+  - `artifacts/infra/runtime_credentials_eso_reconcile.env`
+- Common failure modes:
+  - source secret missing:
+    - seed with `RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS='username=...,password=...'`
+      before rerunning
+    - or create/manage the source secret with your provider-backed store path
+  - `ExternalSecret` not `Ready=True`:
+    - confirm ESO CRDs are established (`clustersecretstores.external-secrets.io`, `externalsecrets.external-secrets.io`)
+    - confirm the referenced store (`runtime-credentials-source-store`) exists and authenticates correctly
+  - target secret missing keys:
+    - verify `RUNTIME_CREDENTIALS_TARGET_SECRET_KEYS` matches the key contract expected by workloads
+    - verify the source secret contains those keys
+
+For operator workflow details, see [Runtime Credentials (ESO)](runtime_credentials_eso.md).
+
 ## STACKIT runtime prerequisites time out waiting for Kubernetes API readiness
 - `infra-stackit-runtime-prerequisites` waits for the SKE API hostname to resolve and for `/readyz` to answer before the first `kubectl apply`.
 - If it times out on hostname resolution, verify the operator machine can resolve the SKE endpoint handed out in the kubeconfig:

@@ -45,11 +45,11 @@ spec:
   jwt:
     providers:
       - name: keycloak
-        issuer: https://keycloak.example/realms/platform
+        issuer: https://auth.example.invalid/realms/iap
         audiences:
           - platform-api
         remoteJWKS:
-          uri: https://keycloak.example/realms/platform/protocol/openid-connect/certs
+          uri: https://auth.example.invalid/realms/iap/protocol/openid-connect/certs
 ```
 
 ## Working Rules

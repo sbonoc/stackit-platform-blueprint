@@ -43,10 +43,19 @@ if ! state_file_exists workflows_instance; then
   run_cmd "$ROOT_DIR/scripts/bin/infra/stackit_workflows_apply.sh"
 fi
 
+# Reconcile redirect URI and role/user contract once instance URL is known.
+run_cmd "$ROOT_DIR/scripts/bin/infra/stackit_workflows_keycloak_reconcile.sh"
+
+keycloak_reconcile_state="none"
+if state_file_exists workflows_keycloak_reconcile; then
+  keycloak_reconcile_state="$(state_file_path workflows_keycloak_reconcile)"
+fi
+
 state_file="$(write_state_file "workflows_reconcile" \
   "status=reconciled" \
   "reconcile_source=$reconcile_source" \
   "active_instances_count=$active_instances" \
+  "keycloak_reconcile_state=$keycloak_reconcile_state" \
   "reconcile_existing_only=${STACKIT_WORKFLOWS_RECONCILE_EXISTING_ONLY:-false}" \
   "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")")"
 

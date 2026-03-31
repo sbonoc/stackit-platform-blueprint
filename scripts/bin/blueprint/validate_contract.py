@@ -19,6 +19,10 @@ from scripts.lib.blueprint.contract_schema import (  # noqa: E402
     BlueprintContract,
     load_blueprint_contract,
 )
+from scripts.lib.infra.runtime_identity_contract import (  # noqa: E402
+    load_runtime_identity_contract,
+    render_eso_external_secrets_manifest,
+)
 
 
 def _resolve_repo_root() -> Path:
@@ -97,6 +101,108 @@ def _validate_required_paths(repo_root: Path, required_paths: list[str]) -> list
     for relative_path in required_paths:
         if not (repo_root / relative_path).exists():
             errors.append(f"missing path: {relative_path}")
+    return errors
+
+
+def _kustomization_resources(path: Path) -> set[str]:
+    if not path.is_file():
+        return set()
+    resources: set[str] = set()
+    for line in path.read_text(encoding="utf-8").splitlines():
+        stripped = line.strip()
+        if not stripped.startswith("- "):
+            continue
+        value = stripped[2:].strip().strip('"').strip("'")
+        if value:
+            resources.add(value)
+    return resources
+
+
+def _validate_runtime_credentials_contract(repo_root: Path) -> list[str]:
+    errors: list[str] = []
+
+    required_security_files = (
+        "blueprint/runtime_identity_contract.yaml",
+        "infra/gitops/platform/base/extensions/kustomization.yaml",
+        "infra/gitops/platform/base/security/kustomization.yaml",
+        "infra/gitops/platform/base/security/runtime-source-store.yaml",
+        "infra/gitops/platform/base/security/runtime-external-secrets-core.yaml",
+        "infra/gitops/argocd/core/local/keycloak.yaml",
+        "infra/gitops/argocd/core/dev/keycloak.yaml",
+        "infra/gitops/argocd/core/stage/keycloak.yaml",
+        "infra/gitops/argocd/core/prod/keycloak.yaml",
+        "scripts/templates/infra/bootstrap/infra/gitops/argocd/core/keycloak.application.yaml.tmpl",
+        "scripts/templates/blueprint/bootstrap/blueprint/runtime_identity_contract.yaml",
+        "scripts/templates/infra/bootstrap/infra/gitops/platform/base/security/runtime-external-secrets-core.yaml",
+    )
+    errors.extend(_validate_required_files(repo_root, list(required_security_files)))
+
+    runtime_identity_contract_path = repo_root / "blueprint/runtime_identity_contract.yaml"
+    if runtime_identity_contract_path.is_file():
+        try:
+            runtime_identity_contract = load_runtime_identity_contract(runtime_identity_contract_path)
+            rendered_eso_manifest = render_eso_external_secrets_manifest(runtime_identity_contract)
+        except Exception as exc:  # pragma: no cover - defensive guard for contract parsing
+            errors.append(f"invalid runtime identity contract: {exc}")
+            rendered_eso_manifest = ""
+
+        if rendered_eso_manifest:
+            for relative_path in (
+                "infra/gitops/platform/base/security/runtime-external-secrets-core.yaml",
+                "scripts/templates/infra/bootstrap/infra/gitops/platform/base/security/runtime-external-secrets-core.yaml",
+            ):
+                manifest_path = repo_root / relative_path
+                if not manifest_path.is_file():
+                    continue
+                if manifest_path.read_text(encoding="utf-8") != rendered_eso_manifest:
+                    errors.append(
+                        f"{relative_path} is out of sync with blueprint/runtime_identity_contract.yaml; "
+                        "run runtime_identity_contract.py render-eso-manifest"
+                    )
+
+    base_kustomization = repo_root / "infra/gitops/platform/base/kustomization.yaml"
+    base_resources = _kustomization_resources(base_kustomization)
+    required_base_resources = {"security", "extensions"}
+    missing_base_resources = sorted(required_base_resources - base_resources)
+    if missing_base_resources:
+        errors.append(
+            "infra/gitops/platform/base/kustomization.yaml missing required runtime credentials resources: "
+            + ", ".join(missing_base_resources)
+        )
+
+    security_kustomization = repo_root / "infra/gitops/platform/base/security/kustomization.yaml"
+    security_resources = _kustomization_resources(security_kustomization)
+    required_security_resources = {"runtime-source-store.yaml", "runtime-external-secrets-core.yaml"}
+    missing_security_resources = sorted(required_security_resources - security_resources)
+    if missing_security_resources:
+        errors.append(
+            "infra/gitops/platform/base/security/kustomization.yaml missing required resources: "
+            + ", ".join(missing_security_resources)
+        )
+
+    extensions_kustomization = repo_root / "infra/gitops/platform/base/extensions/kustomization.yaml"
+    if extensions_kustomization.is_file():
+        extensions_content = extensions_kustomization.read_text(encoding="utf-8")
+        if "resources:" not in extensions_content:
+            errors.append(
+                "infra/gitops/platform/base/extensions/kustomization.yaml must define resources for drift-safe extensions"
+            )
+
+    required_keycloak_resources = {
+        "local": "../../core/local/keycloak.yaml",
+        "dev": "../../core/dev/keycloak.yaml",
+        "stage": "../../core/stage/keycloak.yaml",
+        "prod": "../../core/prod/keycloak.yaml",
+    }
+    for env_name, resource_path in required_keycloak_resources.items():
+        overlay_path = repo_root / f"infra/gitops/argocd/overlays/{env_name}/kustomization.yaml"
+        overlay_resources = _kustomization_resources(overlay_path)
+        if resource_path not in overlay_resources:
+            errors.append(
+                f"infra/gitops/argocd/overlays/{env_name}/kustomization.yaml missing mandatory keycloak resource: "
+                f"{resource_path}"
+            )
+
     return errors
 
 
@@ -816,6 +922,9 @@ def _validate_bootstrap_template_sync(repo_root: Path, contract: BlueprintContra
                 "infra/gitops/argocd/overlays/local/kustomization.yaml",
                 "infra/gitops/platform/base/kustomization.yaml",
                 "infra/gitops/platform/base/namespaces.yaml",
+                "infra/gitops/platform/base/security/kustomization.yaml",
+                "infra/gitops/platform/base/security/runtime-source-store.yaml",
+                "infra/gitops/platform/base/security/runtime-external-secrets-core.yaml",
                 "infra/gitops/platform/environments/local/kustomization.yaml",
                 "infra/gitops/platform/environments/local/runtime-contract-configmap.yaml",
                 "infra/gitops/platform/environments/dev/kustomization.yaml",
@@ -827,6 +936,8 @@ def _validate_bootstrap_template_sync(repo_root: Path, contract: BlueprintContra
     # These ArgoCD files are intentionally rewritten by blueprint-init-repo to
     # inject repository identity (repoURL). They are validated by placeholder/
     # identity checks, not by strict byte-for-byte template sync.
+    # The platform extensions kustomization is intentionally excluded from strict
+    # sync so generated repos can extend security/runtime topology safely.
     for template_root, synced_files in template_sync_contract:
         for rel_path in synced_files:
             # Generated consumer repos replace a small set of source-root docs/CI
@@ -903,6 +1014,7 @@ def main() -> int:
     errors.extend(_validate_airflow_contract(repo_root, contract))
     errors.extend(_validate_docs_edit_link(repo_root, contract))
     errors.extend(_validate_platform_docs_seed_contract(repo_root, contract))
+    errors.extend(_validate_runtime_credentials_contract(repo_root))
     errors.extend(_validate_bootstrap_template_sync(repo_root, contract))
 
     if errors:

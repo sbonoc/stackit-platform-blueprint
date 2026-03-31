@@ -2,8 +2,10 @@
 set -euo pipefail
 
 source "$ROOT_DIR/scripts/lib/infra/versions.sh"
+source "$ROOT_DIR/scripts/lib/infra/keycloak.sh"
 
 identity_aware_proxy_seed_env_defaults() {
+  keycloak_seed_env_defaults
   set_default_env IAP_UPSTREAM_URL "http://catalog.apps.svc.cluster.local:8080"
   set_default_env IAP_PUBLIC_HOST "iap.local"
   set_default_env IAP_NAMESPACE "security"
@@ -15,6 +17,8 @@ identity_aware_proxy_seed_env_defaults() {
   set_default_env IAP_IMAGE_TAG "$IAP_LOCAL_IMAGE_TAG"
   set_default_env PUBLIC_ENDPOINTS_NAMESPACE "network"
   set_default_env PUBLIC_ENDPOINTS_GATEWAY_NAME "public-endpoints"
+  set_default_env IAP_RUNTIME_CREDENTIALS_SECRET_NAME "iap-runtime-credentials"
+  set_default_env KEYCLOAK_CLIENT_ID "iap-client"
 }
 
 identity_aware_proxy_validate_cookie_secret() {
@@ -60,6 +64,10 @@ identity_aware_proxy_redirect_url() {
 
 identity_aware_proxy_config_secret_name() {
   printf '%s-config' "$IAP_HELM_RELEASE"
+}
+
+identity_aware_proxy_argocd_config_secret_name() {
+  printf '%s' "$IAP_RUNTIME_CREDENTIALS_SECRET_NAME"
 }
 
 identity_aware_proxy_render_values_file() {

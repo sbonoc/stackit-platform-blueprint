@@ -88,6 +88,44 @@ resource "stackit_postgresflex_database" "foundation" {
   depends_on = [stackit_postgresflex_user.foundation]
 }
 
+resource "stackit_postgresflex_instance" "keycloak" {
+  project_id      = var.stackit_project_id
+  region          = var.stackit_region
+  name            = local.keycloak_postgres_instance_name
+  version         = var.postgres_version
+  replicas        = 1
+  acl             = local.keycloak_postgres_acl_effective
+  backup_schedule = "0 3 * * *"
+
+  flavor = {
+    cpu = 2
+    ram = 4
+  }
+
+  storage = {
+    class = var.postgres_storage_class
+    size  = 20
+  }
+}
+
+resource "stackit_postgresflex_user" "keycloak" {
+  project_id  = var.stackit_project_id
+  region      = var.stackit_region
+  instance_id = stackit_postgresflex_instance.keycloak.instance_id
+  username    = "keycloak"
+  roles       = ["login"]
+}
+
+resource "stackit_postgresflex_database" "keycloak" {
+  project_id  = var.stackit_project_id
+  region      = var.stackit_region
+  instance_id = stackit_postgresflex_instance.keycloak.instance_id
+  name        = "keycloak"
+  owner       = "keycloak"
+
+  depends_on = [stackit_postgresflex_user.keycloak]
+}
+
 resource "stackit_objectstorage_bucket" "foundation" {
   count = var.object_storage_enabled ? 1 : 0
 

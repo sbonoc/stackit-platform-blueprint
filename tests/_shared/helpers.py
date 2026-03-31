@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import hashlib
+import json
 import os
 from pathlib import Path
+import shutil
 import subprocess
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+FIXTURE_CACHE_DIR = REPO_ROOT / "artifacts" / "tests" / "fixture-cache"
 
 
 def module_flags_env(
@@ -93,7 +97,46 @@ def run_render_and_infra_bootstrap(env_overrides: dict[str, str]) -> subprocess.
     return run_make("infra-bootstrap", env_overrides)
 
 
+def _bootstrap_fixture_cache_key(env_overrides: dict[str, str], cache_namespace: str) -> str:
+    contract_digest = hashlib.sha256((REPO_ROOT / "blueprint" / "contract.yaml").read_bytes()).hexdigest()[:16]
+    runtime_identity_contract_path = REPO_ROOT / "blueprint" / "runtime_identity_contract.yaml"
+    runtime_identity_digest = ""
+    if runtime_identity_contract_path.is_file():
+        runtime_identity_digest = hashlib.sha256(runtime_identity_contract_path.read_bytes()).hexdigest()[:16]
+    payload = {
+        "cache_namespace": cache_namespace,
+        "contract_digest": contract_digest,
+        "runtime_identity_digest": runtime_identity_digest,
+        "env": {key: env_overrides[key] for key in sorted(env_overrides)},
+    }
+    return hashlib.sha256(json.dumps(payload, sort_keys=True).encode("utf-8")).hexdigest()
+
+
+def run_blueprint_and_infra_bootstrap_cached(
+    env_overrides: dict[str, str],
+    *,
+    cache_namespace: str = "default",
+) -> subprocess.CompletedProcess[str]:
+    cache_key = _bootstrap_fixture_cache_key(env_overrides, cache_namespace)
+    marker_path = FIXTURE_CACHE_DIR / f"{cache_key}.ok"
+    if marker_path.exists():
+        return subprocess.CompletedProcess(
+            args=["cached-bootstrap"],
+            returncode=0,
+            stdout=f"bootstrap fixture cache hit: {marker_path}\n",
+            stderr="",
+        )
+
+    bootstrap = run_blueprint_and_infra_bootstrap(env_overrides)
+    if bootstrap.returncode == 0:
+        FIXTURE_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        marker_path.write_text("ok\n", encoding="utf-8")
+    return bootstrap
+
+
 def restore_default_generated_state() -> subprocess.CompletedProcess[str]:
+    if FIXTURE_CACHE_DIR.exists():
+        shutil.rmtree(FIXTURE_CACHE_DIR)
     reset_env = module_flags_env()
     render = run_make("blueprint-render-makefile", reset_env)
     if render.returncode != 0:

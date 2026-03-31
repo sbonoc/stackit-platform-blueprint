@@ -30,6 +30,8 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn("quality-docs-check-core-targets-sync", make_template)
         self.assertIn("quality-docs-sync-contract-metadata", make_template)
         self.assertIn("quality-docs-check-contract-metadata-sync", make_template)
+        self.assertIn("quality-docs-sync-runtime-identity-summary", make_template)
+        self.assertIn("quality-docs-check-runtime-identity-summary-sync", make_template)
         self.assertIn("quality-docs-sync-module-contract-summaries", make_template)
         self.assertIn("quality-docs-check-module-contract-summaries-sync", make_template)
         self.assertIn("quality-test-pyramid", make_template)
@@ -43,6 +45,8 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn("quality-docs-check-core-targets-sync", generated_make)
         self.assertIn("quality-docs-sync-contract-metadata", generated_make)
         self.assertIn("quality-docs-check-contract-metadata-sync", generated_make)
+        self.assertIn("quality-docs-sync-runtime-identity-summary", generated_make)
+        self.assertIn("quality-docs-check-runtime-identity-summary-sync", generated_make)
         self.assertIn("quality-docs-sync-module-contract-summaries", generated_make)
         self.assertIn("quality-docs-check-module-contract-summaries-sync", generated_make)
         self.assertIn("quality-test-pyramid", generated_make)
@@ -76,6 +80,16 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn("## Contract Summary", postgres_doc)
         self.assertEqual(postgres_doc, postgres_template)
 
+    def test_runtime_identity_summary_generator_syncs_source_and_template_docs(self) -> None:
+        generator = REPO_ROOT / "scripts/lib/docs/sync_runtime_identity_contract_summary.py"
+        result = run([sys.executable, str(generator), "--check"])
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        source_doc = _read("docs/platform/consumer/runtime_credentials_eso.md")
+        template_doc = _read("scripts/templates/blueprint/bootstrap/docs/platform/consumer/runtime_credentials_eso.md")
+        self.assertIn("BEGIN GENERATED RUNTIME IDENTITY CONTRACT SUMMARY", source_doc)
+        self.assertIn("## Contract Summary (Generated)", source_doc)
+        self.assertEqual(source_doc, template_doc)
+
     def test_core_targets_generator_uses_make_help(self) -> None:
         generator = _read("scripts/bin/quality/render_core_targets_doc.py")
         self.assertIn('["make", "help"]', generator)
@@ -106,7 +120,7 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn('"unit_min_exclusive"', contract)
         self.assertIn('"integration_max_inclusive"', contract)
         self.assertIn('"e2e_max_inclusive"', contract)
-        self.assertIn("tests/blueprint/test_contract_refactor.py", contract)
+        self.assertIn("tests/blueprint/test_contract_stackit_runtime.py", contract)
         self.assertIn("tests/blueprint/test_init_repo_env.py", contract)
         self.assertIn("tests/infra/test_workload_health_check.py", contract)
         self.assertIn("tests/e2e/test_vertical_slice.py", contract)

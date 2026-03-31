@@ -6,23 +6,26 @@ from tests._shared.helpers import (
     module_flags_env,
     restore_default_generated_state,
     run,
-    run_blueprint_and_infra_bootstrap,
+    run_blueprint_and_infra_bootstrap_cached,
 )
 
 
 class VerticalSliceTests(unittest.TestCase):
-    def setUp(self) -> None:
+    @classmethod
+    def setUpClass(cls) -> None:
         baseline_env = module_flags_env()
-        baseline_bootstrap = run_blueprint_and_infra_bootstrap(baseline_env)
-        self.assertEqual(
-            baseline_bootstrap.returncode,
-            0,
-            msg=baseline_bootstrap.stdout + baseline_bootstrap.stderr,
+        baseline_bootstrap = run_blueprint_and_infra_bootstrap_cached(
+            baseline_env,
+            cache_namespace="vertical-slice",
         )
+        if baseline_bootstrap.returncode != 0:
+            raise AssertionError(baseline_bootstrap.stdout + baseline_bootstrap.stderr)
 
-    def tearDown(self) -> None:
+    @classmethod
+    def tearDownClass(cls) -> None:
         reset = restore_default_generated_state()
-        self.assertEqual(reset.returncode, 0, msg=reset.stdout + reset.stderr)
+        if reset.returncode != 0:
+            raise AssertionError(reset.stdout + reset.stderr)
 
     def test_help_lists_vertical_slice_targets(self) -> None:
         result = run(["make", "help"])
@@ -46,6 +49,8 @@ class VerticalSliceTests(unittest.TestCase):
         self.assertIn("infra-stackit-foundation-plan", result.stdout)
         self.assertIn("infra-stackit-foundation-fetch-kubeconfig", result.stdout)
         self.assertIn("infra-stackit-ci-github-setup", result.stdout)
+        self.assertIn("infra-runtime-inventory", result.stdout)
+        self.assertIn("infra-local-runtime-inventory", result.stdout)
         self.assertIn("infra-stackit-runtime-prerequisites", result.stdout)
         self.assertIn("infra-stackit-runtime-inventory", result.stdout)
         self.assertIn("infra-stackit-runtime-deploy", result.stdout)
@@ -68,6 +73,8 @@ class VerticalSliceTests(unittest.TestCase):
         self.assertIn("backend-test-unit", result.stdout)
         self.assertIn("touchpoints-test-unit", result.stdout)
         self.assertIn("test-unit-all", result.stdout)
+        self.assertIn("test-e2e-all-local-full", result.stdout)
+        self.assertIn("test-e2e-all-local-execute", result.stdout)
         self.assertIn("docs-build", result.stdout)
 
     def test_infra_bootstrap_is_idempotent(self) -> None:

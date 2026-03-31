@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+source "$ROOT_DIR/scripts/lib/infra/keycloak.sh"
+
 workflows_default_display_name() {
   local profile_slug raw sanitized
   profile_slug="$(printf '%s' "${BLUEPRINT_PROFILE:-stackit-dev}" | tr '[:upper:]' '[:lower:]')"
@@ -18,12 +20,17 @@ workflows_init_env() {
     log_fatal "STACKIT Workflows module requires stackit-* profile; got BLUEPRINT_PROFILE=${BLUEPRINT_PROFILE:-unset}"
   fi
 
+  keycloak_seed_env_defaults
   set_default_env STACKIT_WORKFLOWS_API_BASE_URL "https://workflows.api.stackit.cloud/v1alpha"
   set_default_env STACKIT_WORKFLOWS_API_TIMEOUT_SECONDS "30"
   set_default_env STACKIT_WORKFLOWS_ACCESS_TOKEN ""
   set_default_env STACKIT_WORKFLOWS_API_TOKEN "$STACKIT_WORKFLOWS_ACCESS_TOKEN"
   set_default_env STACKIT_WORKFLOWS_VERSION "workflows-2.3-airflow-2.11"
   set_default_env STACKIT_WORKFLOWS_INSTANCE_DISPLAY_NAME "$(workflows_default_display_name)"
+  set_default_env STACKIT_WORKFLOWS_OIDC_CLIENT_ID "stackit-workflows"
+  set_default_env STACKIT_WORKFLOWS_ADMIN_USERNAME "workflows-admin"
+  # Keep user credentials independent from OIDC client credentials.
+  set_default_env STACKIT_WORKFLOWS_ADMIN_PASSWORD ""
   set_default_env STACKIT_WORKFLOWS_RECONCILE_EXISTING_ONLY "false"
   set_default_env STACKIT_WORKFLOWS_REQUIRE_SINGLE_ACTIVE_INSTANCE "true"
 

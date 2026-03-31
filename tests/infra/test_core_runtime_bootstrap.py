@@ -39,6 +39,7 @@ class CoreRuntimeBootstrapTests(unittest.TestCase):
 
         self.assertIn("argocd_chart=argo/argo-cd", core_state)
         self.assertIn("external_secrets_chart=external-secrets/external-secrets", core_state)
+        self.assertIn("cert_manager_chart=jetstack/cert-manager", core_state)
 
         smoke = run_make("infra-smoke", env)
         self.assertEqual(smoke.returncode, 0, msg=smoke.stdout + smoke.stderr)

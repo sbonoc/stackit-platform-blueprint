@@ -36,10 +36,17 @@ if ! grep -q '^external_secrets_chart=' "$runtime_state"; then
   log_fatal "external_secrets_chart missing from core runtime state: $runtime_state"
 fi
 
+cert_manager_state="present"
+if ! grep -q '^cert_manager_chart=' "$runtime_state"; then
+  cert_manager_state="legacy-missing"
+  log_warn "cert_manager_chart missing from core runtime state (legacy artifact); rerun infra-deploy to refresh: $runtime_state"
+fi
+
 if [[ "$(tooling_execution_mode)" == "execute" ]] && command -v kubectl >/dev/null 2>&1; then
   prepare_cluster_access
   wait_for_deployment_if_present "argocd" "argocd-server" "$(k8s_timeout_kubectl normal)"
   wait_for_deployment_if_present "external-secrets" "external-secrets" "$(k8s_timeout_kubectl normal)"
+  wait_for_deployment_if_present "cert-manager" "blueprint-cert-manager-cert-manager" "$(k8s_timeout_kubectl normal)"
 fi
 
 state_file="$(
@@ -48,6 +55,7 @@ state_file="$(
     "stack=$(active_stack)" \
     "tooling_mode=$(tooling_execution_mode)" \
     "runtime_state=$runtime_state" \
+    "cert_manager_state=$cert_manager_state" \
     "status=ok" \
     "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 )"

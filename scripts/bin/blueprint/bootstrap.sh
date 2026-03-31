@@ -75,6 +75,7 @@ bootstrap_blueprint_templates() {
     "make/platform/.gitkeep"
     "blueprint/repo.init.env"
     "blueprint/repo.init.secrets.example.env"
+    "blueprint/runtime_identity_contract.yaml"
     "docs/README.md"
     "docs/blueprint/README.md"
     "docs/blueprint/architecture/system_overview.md"
@@ -85,6 +86,7 @@ bootstrap_blueprint_templates() {
     "docs/platform/consumer/quickstart.md"
     "docs/platform/consumer/endpoint_exposure_model.md"
     "docs/platform/consumer/protected_api_routes.md"
+    "docs/platform/consumer/runtime_credentials_eso.md"
     "docs/platform/consumer/troubleshooting.md"
     "docs/platform/modules/observability/README.md"
     "docs/platform/modules/workflows/README.md"
@@ -120,6 +122,7 @@ run_cmd python3 "$ROOT_DIR/scripts/lib/docs/generate_contract_docs.py" \
   --contract "$ROOT_DIR/blueprint/contract.yaml" \
   --modules-dir "$ROOT_DIR/blueprint/modules" \
   --output "$ROOT_DIR/docs/reference/generated/contract_metadata.generated.md"
+run_cmd python3 "$ROOT_DIR/scripts/lib/docs/sync_runtime_identity_contract_summary.py"
 
 if command -v pre-commit >/dev/null 2>&1; then
   run_cmd pre-commit install --install-hooks --hook-type pre-commit --hook-type pre-push

@@ -9,6 +9,7 @@ This section is the platform-facing documentation baseline for a generated repos
 - [Quickstart](consumer/quickstart.md)
 - [Endpoint Exposure Model](consumer/endpoint_exposure_model.md)
 - [Protected API Routes](consumer/protected_api_routes.md)
+- [Runtime Credentials (ESO)](consumer/runtime_credentials_eso.md)
 - [Troubleshooting](consumer/troubleshooting.md)
 
 ## Optional Modules

@@ -12,6 +12,10 @@ from scripts.lib.blueprint.cli_support import ChangeSummary
 from scripts.lib.blueprint.contract_schema import load_module_contract
 from scripts.lib.blueprint.init_repo_contract import load_blueprint_contract_for_init
 from scripts.lib.blueprint.init_repo_io import apply_file_update
+from scripts.lib.infra.runtime_identity_contract import load_runtime_identity_contract
+
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
 
 CORE_SENSITIVE_ENV_NAMES = {
     "STACKIT_SERVICE_ACCOUNT_KEY",
@@ -28,13 +32,13 @@ MODULE_REQUIRED_ENV_DEFAULTS = {
     "DNS_ZONE_FQDN": "marketplace.local.",
     "IAP_UPSTREAM_URL": "http://catalog.apps.svc.cluster.local:8080",
     "IAP_COOKIE_SECRET": "0123456789abcdef0123456789abcdef",
-    "KEYCLOAK_ISSUER_URL": "https://keycloak.example/realms/platform",
-    "KEYCLOAK_CLIENT_ID": "blueprint-client",
+    "KEYCLOAK_ISSUER_URL": "https://auth.example.invalid/realms/iap",
+    "KEYCLOAK_CLIENT_ID": "iap-client",
     "KEYCLOAK_CLIENT_SECRET": "blueprint-client-secret",
     "KMS_KEY_RING_NAME": "marketplace-ring",
     "KMS_KEY_NAME": "marketplace-key",
     "LANGFUSE_PUBLIC_DOMAIN": "langfuse.example.com",
-    "LANGFUSE_OIDC_ISSUER_URL": "https://keycloak.example/realms/platform",
+    "LANGFUSE_OIDC_ISSUER_URL": "https://auth.example.invalid/realms/langfuse",
     "LANGFUSE_OIDC_CLIENT_ID": "langfuse-client",
     "LANGFUSE_OIDC_CLIENT_SECRET": "langfuse-client-secret",
     "LANGFUSE_DATABASE_URL": "postgresql://langfuse:langfuse-password@postgres.internal:5432/langfuse",
@@ -55,7 +59,7 @@ MODULE_REQUIRED_ENV_DEFAULTS = {
     "STACKIT_WORKFLOWS_DAGS_REPO_BRANCH": "main",
     "STACKIT_WORKFLOWS_DAGS_REPO_USERNAME": "workflows-user",
     "STACKIT_WORKFLOWS_DAGS_REPO_TOKEN": "workflows-token",
-    "STACKIT_WORKFLOWS_OIDC_DISCOVERY_URL": "https://keycloak.example/realms/platform/.well-known/openid-configuration",
+    "STACKIT_WORKFLOWS_OIDC_DISCOVERY_URL": "https://auth.example.invalid/realms/workflows/.well-known/openid-configuration",
     "STACKIT_WORKFLOWS_OIDC_CLIENT_ID": "workflows-client",
     "STACKIT_WORKFLOWS_OIDC_CLIENT_SECRET": "workflows-client-secret",
     "STACKIT_OBSERVABILITY_INSTANCE_ID": "obs-dev",
@@ -74,7 +78,6 @@ MODULE_REQUIRED_SENSITIVE_ENV_NAMES = {
     "STACKIT_WORKFLOWS_DAGS_REPO_TOKEN",
     "STACKIT_WORKFLOWS_OIDC_CLIENT_SECRET",
 }
-
 
 def shell_assignment(name: str, value: str) -> str:
     if not value:
@@ -123,6 +126,19 @@ def _is_sensitive_module_required_env(name: str) -> bool:
     return any(marker in name for marker in ("_PASSWORD", "_SECRET", "_TOKEN"))
 
 
+def runtime_credentials_env_specs(repo_root: Path = REPO_ROOT) -> list[tuple[str, str]]:
+    contract = load_runtime_identity_contract(repo_root / "blueprint/runtime_identity_contract.yaml")
+    specs: list[tuple[str, str]] = []
+    for item in contract.runtime_env_defaults:
+        name = item.name
+        default = item.default
+        value = os.environ.get(name)
+        if value is None or value == "":
+            value = default
+        specs.append((name, value))
+    return specs
+
+
 def enabled_module_required_env_specs(
     repo_root: Path,
     module_enablement: dict[str, bool],
@@ -146,7 +162,9 @@ def render_defaults_env_file_content(
     identity_specs: list[tuple[str, str]],
     module_flag_specs: list[tuple[str, str]],
     module_required_specs: list[tuple[str, str]],
+    runtime_credentials_specs: list[tuple[str, str]] | None = None,
 ) -> str:
+    runtime_specs = runtime_credentials_specs or []
     lines = [
         "# Repository defaults tracked in Git for this generated consumer.\n",
         "# Auto-loaded by blueprint-init-repo, blueprint-check-placeholders, and infra-bootstrap when present.\n",
@@ -166,6 +184,9 @@ def render_defaults_env_file_content(
         ]
     )
     lines.extend(shell_assignment(name, value) for name, value in module_flag_specs)
+    if runtime_specs:
+        lines.extend(["\n", "# Runtime credential contract\n"])
+        lines.extend(shell_assignment(name, value) for name, value in runtime_specs)
     if module_required_specs:
         lines.extend(["\n", "# Required non-sensitive module inputs for currently enabled optional modules\n"])
         lines.extend(shell_assignment(name, value) for name, value in module_required_specs)
@@ -285,16 +306,22 @@ def ensure_defaults_env_file(
     identity_specs = defaults_env_identity_specs(args)
     module_flag_specs = defaults_env_module_flag_specs(repo_root, module_enablement)
     module_required_specs = non_sensitive_module_required_env_specs(repo_root, module_enablement)
+    runtime_credentials_specs = runtime_credentials_env_specs(repo_root)
     profile_spec = ("BLUEPRINT_PROFILE", os.environ.get("BLUEPRINT_PROFILE", "local-full"))
 
     if not defaults_env_path.exists():
-        updated = render_defaults_env_file_content(identity_specs, module_flag_specs, module_required_specs)
+        updated = render_defaults_env_file_content(
+            identity_specs,
+            module_flag_specs,
+            module_required_specs,
+            runtime_credentials_specs=runtime_credentials_specs,
+        )
         apply_file_update(defaults_env_path, None, updated, dry_run, summary)
         return
 
     original = defaults_env_path.read_text(encoding="utf-8")
     updated = original
-    for name, value in [*identity_specs, profile_spec, *module_flag_specs]:
+    for name, value in [*identity_specs, profile_spec, *module_flag_specs, *runtime_credentials_specs]:
         updated, _ = _replace_env_assignment(updated, name, value)
 
     declared_names = _declared_env_names(updated)
@@ -304,6 +331,7 @@ def ensure_defaults_env_file(
             *identity_specs,
             profile_spec,
             *module_flag_specs,
+            *runtime_credentials_specs,
             *module_required_specs,
         ]
         if name not in declared_names

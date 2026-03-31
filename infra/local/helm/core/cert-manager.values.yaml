@@ -1,0 +1,4 @@
+# Blueprint-managed defaults for cert-manager core runtime bootstrap.
+installCRDs: true
+prometheus:
+  enabled: false

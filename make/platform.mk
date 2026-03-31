@@ -2,10 +2,14 @@
 # Safe to edit in generated repositories.
 
 .PHONY: \
+  auth-reconcile-eso-runtime-secrets \
   apps-bootstrap apps-smoke apps-audit-versions apps-audit-versions-cached apps-publish-ghcr \
   backend-test-unit backend-test-integration backend-test-contracts backend-test-e2e \
   touchpoints-test-unit touchpoints-test-integration touchpoints-test-contracts touchpoints-test-e2e \
-  test-unit-all test-integration-all test-contracts-all test-e2e-all-local
+  test-unit-all test-integration-all test-contracts-all test-e2e-all-local test-e2e-all-local-full test-e2e-all-local-execute
+
+auth-reconcile-eso-runtime-secrets: ## Reconcile generic ESO runtime source-to-target credentials contract
+	@scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh
 
 apps-bootstrap: ## Bootstrap app build/deploy prerequisites
 	@scripts/bin/platform/apps/bootstrap.sh
@@ -55,5 +59,11 @@ test-integration-all: ## Run all integration-test lanes
 test-contracts-all: ## Run all contract-test lanes
 	@scripts/bin/platform/test/contracts_all.sh
 
-test-e2e-all-local: ## Full local E2E chain
-	@scripts/bin/platform/test/e2e_all_local.sh
+test-e2e-all-local: ## Fast local E2E chain (dry-run infra + backend e2e lane)
+	@scripts/bin/platform/test/e2e_all_local.sh --scope fast
+
+test-e2e-all-local-full: ## Full local E2E chain in dry-run mode (backend + touchpoints e2e lanes)
+	@scripts/bin/platform/test/e2e_all_local.sh --scope full
+
+test-e2e-all-local-execute: ## Full local E2E chain in execute mode (DRY_RUN=false, backend + touchpoints e2e lanes)
+	@scripts/bin/platform/test/e2e_all_local.sh --scope full --execute
