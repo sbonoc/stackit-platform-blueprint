@@ -11,6 +11,7 @@ from tests._shared.exec import DEFAULT_TEST_COMMAND_TIMEOUT_SECONDS, run_command
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 UPGRADE_PREFLIGHT_SCRIPT = REPO_ROOT / "scripts/lib/blueprint/upgrade_preflight.py"
+UPGRADE_PREFLIGHT_WRAPPER = REPO_ROOT / "scripts/bin/blueprint/upgrade_consumer_preflight.sh"
 
 
 class UpgradePreflightTests(unittest.TestCase):
@@ -133,3 +134,20 @@ class UpgradePreflightTests(unittest.TestCase):
 
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("--plan-path must stay within the repository root", result.stderr)
+
+    def test_preflight_wrapper_handles_empty_forward_args_without_nounset_failure(self) -> None:
+        result = run_command(
+            [str(UPGRADE_PREFLIGHT_WRAPPER)],
+            cwd=REPO_ROOT,
+            env={
+                "BLUEPRINT_UPGRADE_SOURCE": str(REPO_ROOT),
+                "BLUEPRINT_UPGRADE_REF": "HEAD",
+            },
+            timeout_seconds=DEFAULT_TEST_COMMAND_TIMEOUT_SECONDS,
+        )
+
+        combined_output = f"{result.stdout}\n{result.stderr}"
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("running blueprint consumer upgrade", combined_output)
+        self.assertIn("generated-consumer repositories", combined_output)
+        self.assertNotIn("forward_args[@]: unbound variable", combined_output)
