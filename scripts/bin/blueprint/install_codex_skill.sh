@@ -28,6 +28,7 @@ require_command mkdir
 require_command mv
 require_command rm
 require_command mktemp
+require_command find
 
 set_default_env BLUEPRINT_CODEX_SKILL_NAME "blueprint-consumer-upgrade"
 set_default_env BLUEPRINT_CODEX_SKILLS_DIR "${CODEX_HOME:-$HOME/.codex}/skills"
@@ -58,14 +59,8 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 source_dir="$ROOT_DIR/.agents/skills/$skill_name"
+template_source_dir="$ROOT_DIR/scripts/templates/consumer/init/.agents/skills/$skill_name"
 target_dir="$skills_dir/$skill_name"
-
-if [[ ! -d "$source_dir" ]]; then
-  log_fatal "skill source not found: $source_dir"
-fi
-if [[ ! -f "$source_dir/SKILL.md" ]]; then
-  log_fatal "skill source is missing SKILL.md: $source_dir"
-fi
 
 run_cmd mkdir -p "$skills_dir"
 
@@ -75,9 +70,31 @@ cleanup() {
 }
 trap cleanup EXIT
 
-run_cmd cp -R "$source_dir" "$tmp_dir/$skill_name"
+materialized_source_dir="$tmp_dir/$skill_name"
+
+if [[ -d "$source_dir" && -f "$source_dir/SKILL.md" ]]; then
+  run_cmd cp -R "$source_dir" "$materialized_source_dir"
+  log_info "using codex skill source from repo-local path: $source_dir"
+elif [[ -d "$template_source_dir" && -f "$template_source_dir/SKILL.md.tmpl" ]]; then
+  run_cmd mkdir -p "$materialized_source_dir"
+  while IFS= read -r template_file; do
+    relative_path="${template_file#"$template_source_dir"/}"
+    target_relative_path="${relative_path%.tmpl}"
+    target_path="$materialized_source_dir/$target_relative_path"
+    run_cmd mkdir -p "$(dirname "$target_path")"
+    run_cmd cp "$template_file" "$target_path"
+  done < <(find "$template_source_dir" -type f | LC_ALL=C sort)
+  log_info "using codex skill source from consumer template fallback: $template_source_dir"
+else
+  log_fatal "skill source not found for '$skill_name'. Checked: $source_dir and $template_source_dir. Run a blueprint upgrade/resync to restore skill assets (for example: make blueprint-upgrade-consumer or BLUEPRINT_RESYNC_APPLY_SAFE=true make blueprint-resync-consumer-seeds)."
+fi
+
+if [[ ! -f "$materialized_source_dir/SKILL.md" ]]; then
+  log_fatal "materialized skill source is missing SKILL.md: $materialized_source_dir"
+fi
+
 run_cmd rm -rf "$target_dir"
-run_cmd mv "$tmp_dir/$skill_name" "$target_dir"
+run_cmd mv "$materialized_source_dir" "$target_dir"
 
 # Keep shell helpers executable for local operator convenience.
 if [[ -d "$target_dir/scripts" ]]; then

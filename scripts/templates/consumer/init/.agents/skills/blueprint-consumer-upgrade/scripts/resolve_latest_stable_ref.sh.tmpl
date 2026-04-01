@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SOURCE_REPO="${1:-https://github.com/sbonoc/stackit-platform-blueprint}"
+
+require_command() {
+  command -v "$1" >/dev/null 2>&1 || {
+    echo "missing required command: $1" >&2
+    exit 1
+  }
+}
+
+require_command git
+require_command awk
+require_command sed
+require_command sort
+require_command grep
+require_command tail
+
+latest_tag="$({
+  git ls-remote --tags --refs "$SOURCE_REPO" 'v*' \
+    | awk '{print $2}' \
+    | sed 's#refs/tags/##' \
+    | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' \
+    | sort -V
+} | tail -n 1)"
+
+if [[ -z "$latest_tag" ]]; then
+  echo "failed to resolve stable tag from $SOURCE_REPO" >&2
+  exit 1
+fi
+
+# Prefer the peeled commit for annotated tags, then fall back to the tag ref SHA.
+resolved_sha="$(git ls-remote --tags "$SOURCE_REPO" "${latest_tag}^{}" | awk '{print $1}')"
+if [[ -z "$resolved_sha" ]]; then
+  resolved_sha="$(git ls-remote --tags --refs "$SOURCE_REPO" "$latest_tag" | awk '{print $1}')"
+fi
+if [[ -z "$resolved_sha" ]]; then
+  echo "failed to resolve SHA for tag $latest_tag from $SOURCE_REPO" >&2
+  exit 1
+fi
+
+echo "SOURCE=$SOURCE_REPO"
+echo "TAG=$latest_tag"
+echo "SHA=$resolved_sha"
