@@ -23,6 +23,7 @@
   - `make blueprint-resync-consumer-seeds` is the supported dry-run comparison between consumer-seeded files and current `scripts/templates/consumer/init/*.tmpl` content.
   - Safe deterministic refreshes are classified as `auto-refresh`; potentially customized files are classified as `manual-merge`.
   - `BLUEPRINT_RESYNC_APPLY_SAFE=true` applies only auto-refresh paths, while `BLUEPRINT_RESYNC_APPLY_ALL=true` is an explicit full-overwrite opt-in.
+  - Resync rendering now includes `DEFAULT_BRANCH` replacements and fails fast when unresolved `{{TOKEN}}` placeholders remain in rendered consumer-seeded content, preventing invalid workflow/template writes.
 - Generated repos use a non-destructive pinned-source upgrade workflow for blueprint-managed drift:
   - `make blueprint-upgrade-consumer` plans/applies upgrade actions from a pinned source ref (`BLUEPRINT_UPGRADE_REF`) and emits `artifacts/blueprint/upgrade_plan.json`, `artifacts/blueprint/upgrade_apply.json`, and `artifacts/blueprint/upgrade_summary.md`.
   - Default execution is plan-only (`BLUEPRINT_UPGRADE_APPLY=false`), with dirty-worktree and delete operations blocked unless explicitly enabled.

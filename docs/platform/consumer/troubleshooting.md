@@ -71,6 +71,11 @@ Common first-day issues for generated repositories.
     BLUEPRINT_RESYNC_APPLY_ALL=true make blueprint-resync-consumer-seeds
     ```
 
+## `make blueprint-resync-consumer-seeds` fails with unresolved `{{...}}` token errors
+- Resync now fails fast when a seeded template still contains unresolved blueprint tokens after rendering.
+- Typical cause: a consumer-seeded template introduced a token that is not part of the supported replacement set.
+- Keep dry-run first, then inspect the template path reported in the error and replace unsupported tokens with concrete values or supported placeholders.
+
 ## Pull requests are not auto-requesting reviewers
 - Generated repositories seed `.github/CODEOWNERS` as a starter file with commented examples only.
 - Replace the example owners with your real team handles before relying on GitHub review assignment.
