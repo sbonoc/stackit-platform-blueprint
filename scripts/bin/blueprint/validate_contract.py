@@ -185,6 +185,64 @@ def _kustomization_resources(path: Path) -> set[str]:
     return resources
 
 
+def _validate_core_chart_values_contract(repo_root: Path) -> list[str]:
+    errors: list[str] = []
+
+    def _has_immediate_child_key(content: str, *, parent_key: str, child_key: str) -> bool:
+        parent_pattern = re.compile(rf"^\s*{re.escape(parent_key)}\s*:\s*(?:#[^\n]*)?$")
+        child_pattern = re.compile(rf"^\s*{re.escape(child_key)}\s*:")
+
+        lines = content.splitlines()
+        for idx, line in enumerate(lines):
+            if not parent_pattern.match(line):
+                continue
+            parent_indent = len(line) - len(line.lstrip(" "))
+            cursor = idx + 1
+            while cursor < len(lines):
+                candidate = lines[cursor]
+                stripped = candidate.strip()
+                if not stripped or stripped.startswith("#"):
+                    cursor += 1
+                    continue
+
+                candidate_indent = len(candidate) - len(candidate.lstrip(" "))
+                if candidate_indent <= parent_indent:
+                    break
+                if child_pattern.match(candidate):
+                    return True
+                cursor += 1
+            return False
+        return False
+
+    deprecated_value_keys = (
+        (
+            "infra/local/helm/core/cert-manager.values.yaml",
+            "installCRDs",
+            "crds.enabled",
+        ),
+        (
+            "scripts/templates/infra/bootstrap/infra/local/helm/core/cert-manager.values.yaml",
+            "installCRDs",
+            "crds.enabled",
+        ),
+    )
+
+    for relative_path, deprecated_key, replacement_key in deprecated_value_keys:
+        values_path = repo_root / relative_path
+        if not values_path.is_file():
+            continue
+
+        content = values_path.read_text(encoding="utf-8")
+        if re.search(rf"(?m)^\s*{re.escape(deprecated_key)}\s*:", content):
+            errors.append(
+                f"{relative_path} uses deprecated values key '{deprecated_key}'; use '{replacement_key}' instead"
+            )
+        if not _has_immediate_child_key(content, parent_key="crds", child_key="enabled"):
+            errors.append(f"{relative_path} missing required values key mapping: crds.enabled")
+
+    return errors
+
+
 def _validate_runtime_credentials_contract(repo_root: Path) -> list[str]:
     errors: list[str] = []
 
@@ -1719,6 +1777,7 @@ def _validate_bootstrap_template_sync(repo_root: Path, contract: BlueprintContra
                 "infra/local/crossplane/namespace.yaml",
                 "infra/local/helm/core/argocd.values.yaml",
                 "infra/local/helm/core/external-secrets.values.yaml",
+                "infra/local/helm/core/cert-manager.values.yaml",
                 "infra/local/helm/core/crossplane.values.yaml",
                 "infra/local/helm/observability/grafana.values.yaml",
                 "infra/local/helm/observability/otel-collector.values.yaml",
@@ -1823,6 +1882,7 @@ def main() -> int:
     errors.extend(_validate_airflow_contract(repo_root, contract))
     errors.extend(_validate_docs_edit_link(repo_root, contract))
     errors.extend(_validate_platform_docs_seed_contract(repo_root, contract))
+    errors.extend(_validate_core_chart_values_contract(repo_root))
     errors.extend(_validate_runtime_credentials_contract(repo_root))
     errors.extend(_validate_event_messaging_contract(repo_root, contract))
     errors.extend(_validate_zero_downtime_evolution_contract(repo_root, contract))

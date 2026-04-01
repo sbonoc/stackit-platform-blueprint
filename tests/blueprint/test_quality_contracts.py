@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 from pathlib import Path
+import re
 import sys
 import tempfile
 import unittest
@@ -105,6 +106,91 @@ class QualityContractsTests(unittest.TestCase):
 
         self.assertFalse(any(path.startswith("tests/blueprint/") for path in required_files))
         self.assertIn("tests/_shared/helpers.py", required_files)
+
+    def test_cert_manager_values_use_crds_enabled_without_deprecated_key(self) -> None:
+        source_values = _read("infra/local/helm/core/cert-manager.values.yaml")
+        template_values = _read("scripts/templates/infra/bootstrap/infra/local/helm/core/cert-manager.values.yaml")
+
+        def has_crds_enabled_true(content: str) -> bool:
+            parent_pattern = re.compile(r"^\s*crds\s*:\s*(?:#[^\n]*)?$")
+            enabled_pattern = re.compile(r"^\s*enabled\s*:\s*true\s*(?:#.*)?$")
+
+            lines = content.splitlines()
+            for idx, line in enumerate(lines):
+                if not parent_pattern.match(line):
+                    continue
+                parent_indent = len(line) - len(line.lstrip(" "))
+                cursor = idx + 1
+                while cursor < len(lines):
+                    candidate = lines[cursor]
+                    stripped = candidate.strip()
+                    if not stripped or stripped.startswith("#"):
+                        cursor += 1
+                        continue
+                    candidate_indent = len(candidate) - len(candidate.lstrip(" "))
+                    if candidate_indent <= parent_indent:
+                        break
+                    if enabled_pattern.match(candidate):
+                        return True
+                    cursor += 1
+                return False
+            return False
+
+        deprecated_pattern = re.compile(r"(?m)^\s*installCRDs\s*:")
+
+        self.assertNotRegex(source_values, deprecated_pattern)
+        self.assertTrue(has_crds_enabled_true(source_values))
+        self.assertNotRegex(template_values, deprecated_pattern)
+        self.assertTrue(has_crds_enabled_true(template_values))
+        self.assertEqual(source_values, template_values)
+
+    def test_validate_contract_rejects_deprecated_cert_manager_values_key(self) -> None:
+        validate_script = REPO_ROOT / "scripts/bin/blueprint/validate_contract.py"
+        spec = importlib.util.spec_from_file_location("validate_contract_module", validate_script)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)  # type: ignore[union-attr]
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            cert_manager_values = tmp_root / "infra/local/helm/core/cert-manager.values.yaml"
+            cert_manager_values.parent.mkdir(parents=True, exist_ok=True)
+            cert_manager_values.write_text("installCRDs: true\n", encoding="utf-8")
+
+            errors = module._validate_core_chart_values_contract(tmp_root)
+
+        self.assertIn(
+            "infra/local/helm/core/cert-manager.values.yaml uses deprecated values key 'installCRDs'; use "
+            "'crds.enabled' instead",
+            errors,
+        )
+
+    def test_validate_contract_requires_enabled_under_crds_mapping(self) -> None:
+        validate_script = REPO_ROOT / "scripts/bin/blueprint/validate_contract.py"
+        spec = importlib.util.spec_from_file_location("validate_contract_module", validate_script)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)  # type: ignore[union-attr]
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            cert_manager_values = tmp_root / "infra/local/helm/core/cert-manager.values.yaml"
+            cert_manager_values.parent.mkdir(parents=True, exist_ok=True)
+            cert_manager_values.write_text(
+                "crds: # comment only\n"
+                "prometheus:\n"
+                "  enabled: false\n",
+                encoding="utf-8",
+            )
+
+            errors = module._validate_core_chart_values_contract(tmp_root)
+
+        self.assertIn(
+            "infra/local/helm/core/cert-manager.values.yaml missing required values key mapping: crds.enabled",
+            errors,
+        )
 
     def test_module_wrapper_generator_is_repo_rooted(self) -> None:
         generator = REPO_ROOT / "scripts/lib/blueprint/generate_module_wrapper_skeletons.py"

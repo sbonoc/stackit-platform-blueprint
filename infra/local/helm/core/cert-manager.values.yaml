@@ -1,4 +1,6 @@
 # Blueprint-managed defaults for cert-manager core runtime bootstrap.
-installCRDs: true
+# cert-manager deprecates installCRDs in favor of crds.enabled.
+crds:
+  enabled: true
 prometheus:
   enabled: false
