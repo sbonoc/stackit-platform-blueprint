@@ -8,6 +8,7 @@ import tempfile
 import unittest
 
 from scripts.lib.blueprint.contract_schema import load_blueprint_contract
+from tests._shared.exec import run_command
 from tests._shared.json_schema import assert_json_matches_schema, load_json_schema
 from tests._shared.helpers import REPO_ROOT
 
@@ -22,7 +23,7 @@ PROTECTED_TEST_PATH = "docs/platform/consumer/quickstart.md"
 
 
 def _run(cmd: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(cmd, cwd=cwd, text=True, capture_output=True, check=False)
+    return run_command(cmd, cwd=cwd)
 
 
 def _write(path: Path, content: str) -> None:

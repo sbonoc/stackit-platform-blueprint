@@ -52,6 +52,9 @@ class AsyncMessageContractsTests(unittest.TestCase):
                 },
             )
             self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            combined = result.stdout + result.stderr
+            self.assertIn("found no contract files", combined)
+            self.assertIn("async_pact_message_contract_contract_file_count", combined)
 
             self.assertEqual((producer_artifacts / "producer.txt").read_text(encoding="utf-8").strip(), "producer-ok")
             self.assertEqual((producer_artifacts / "publish.txt").read_text(encoding="utf-8").strip(), "publish-ok")

@@ -41,6 +41,16 @@ class DocsGenerationTests(unittest.TestCase):
         core_targets_check = run(["make", "quality-docs-check-core-targets-sync"])
         self.assertEqual(core_targets_check.returncode, 0, msg=core_targets_check.stdout + core_targets_check.stderr)
 
+        ci_sync_check = run(["make", "quality-ci-check-sync"])
+        self.assertEqual(ci_sync_check.returncode, 0, msg=ci_sync_check.stdout + ci_sync_check.stderr)
+
+        platform_seed_sync_check = run(["make", "quality-docs-check-platform-seed-sync"])
+        self.assertEqual(
+            platform_seed_sync_check.returncode,
+            0,
+            msg=platform_seed_sync_check.stdout + platform_seed_sync_check.stderr,
+        )
+
         contract_metadata_check = run(["make", "quality-docs-check-contract-metadata-sync"])
         self.assertEqual(
             contract_metadata_check.returncode,

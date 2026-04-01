@@ -7,6 +7,8 @@ from pathlib import Path
 import shutil
 import subprocess
 
+from tests._shared.exec import DEFAULT_TEST_COMMAND_TIMEOUT_SECONDS, run_command
+
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FIXTURE_CACHE_DIR = REPO_ROOT / "artifacts" / "tests" / "fixture-cache"
@@ -60,17 +62,13 @@ def run(
     env_overrides: dict[str, str] | None = None,
     *,
     cwd: Path | None = None,
+    timeout_seconds: int | None = None,
 ) -> subprocess.CompletedProcess[str]:
-    env = os.environ.copy()
-    if env_overrides:
-        env.update(env_overrides)
-    return subprocess.run(
+    return run_command(
         cmd,
         cwd=cwd or REPO_ROOT,
-        text=True,
-        capture_output=True,
-        check=False,
-        env=env,
+        env=env_overrides,
+        timeout_seconds=timeout_seconds or DEFAULT_TEST_COMMAND_TIMEOUT_SECONDS,
     )
 
 
