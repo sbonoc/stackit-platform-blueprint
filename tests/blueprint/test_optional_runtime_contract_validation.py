@@ -96,6 +96,42 @@ class OptionalRuntimeContractValidationTests(unittest.TestCase):
                 result.stdout + result.stderr,
             )
 
+    def test_branch_naming_compat_accepts_codex_prefix_for_legacy_contract(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            contract_path = Path(tmpdir) / "contract.yaml"
+            content = CONTRACT_PATH.read_text(encoding="utf-8")
+            content = content.replace("        - codex/\n", "", 1).replace("        - copilot/\n", "", 1)
+            contract_path.write_text(content, encoding="utf-8")
+            result = self._run_validate_result(
+                contract_path,
+                {
+                    "BLUEPRINT_BRANCH_NAME": "codex/upgrade-consumer-blueprint",
+                    "EVENT_MESSAGING_BASELINE_ENABLED": "false",
+                    "ZERO_DOWNTIME_EVOLUTION_ENABLED": "false",
+                    "TENANT_CONTEXT_PROPAGATION_ENABLED": "false",
+                },
+            )
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            self.assertIn("[infra-validate] contract validation passed", result.stdout)
+
+    def test_branch_naming_unknown_prefix_still_fails_validation(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            contract_path = Path(tmpdir) / "contract.yaml"
+            content = CONTRACT_PATH.read_text(encoding="utf-8")
+            content = content.replace("        - codex/\n", "", 1).replace("        - copilot/\n", "", 1)
+            contract_path.write_text(content, encoding="utf-8")
+            result = self._run_validate_result(
+                contract_path,
+                {
+                    "BLUEPRINT_BRANCH_NAME": "assistant/upgrade-consumer-blueprint",
+                    "EVENT_MESSAGING_BASELINE_ENABLED": "false",
+                    "ZERO_DOWNTIME_EVOLUTION_ENABLED": "false",
+                    "TENANT_CONTEXT_PROPAGATION_ENABLED": "false",
+                },
+            )
+            self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            self.assertIn("must start with one of allowed purpose prefixes", result.stdout + result.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()
