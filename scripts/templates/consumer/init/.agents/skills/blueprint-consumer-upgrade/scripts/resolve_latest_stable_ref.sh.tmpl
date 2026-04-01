@@ -15,6 +15,7 @@ require_command awk
 require_command sed
 require_command sort
 require_command grep
+require_command tail
 
 latest_tag="$({
   git ls-remote --tags --refs "$SOURCE_REPO" 'v*' \
