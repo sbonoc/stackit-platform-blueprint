@@ -849,7 +849,7 @@ spec:
       producer_consumer_overlap_releases: 2
       dual_read_required_for_breaking: true
     quality_checks:
-      reject_drop_column_without_expand_marker: true
+      reject_drop_column_without_contract_marker: true
       reject_drop_table_without_contract_marker: true
       reject_event_version_overwrite_without_new_version: true
 

@@ -140,6 +140,9 @@ def _bool_or_error(value: object, path: str, errors: list[str]) -> bool | None:
 
 
 def _int_or_error(value: object, path: str, errors: list[str]) -> int | None:
+    if isinstance(value, bool):
+        errors.append(f"{path} must be an integer")
+        return None
     if isinstance(value, int):
         return value
     errors.append(f"{path} must be an integer")
@@ -279,13 +282,15 @@ def _validate_runtime_credentials_contract(repo_root: Path) -> list[str]:
 def _validate_event_messaging_contract(repo_root: Path, contract: BlueprintContract) -> list[str]:
     errors: list[str] = []
     spec_raw = _mapping_or_error(contract.raw.get("spec"), "spec", errors)
+    raw_contract_section = spec_raw.get("event_messaging_contract")
+    if raw_contract_section is None:
+        errors.append("spec.event_messaging_contract is required")
+        return errors
     contract_section = _mapping_or_error(
-        spec_raw.get("event_messaging_contract"),
+        raw_contract_section,
         "spec.event_messaging_contract",
         errors,
     )
-    if not contract_section:
-        return errors
 
     enabled_by_default = _bool_or_error(
         contract_section.get("enabled_by_default"),
@@ -495,13 +500,15 @@ def _validate_event_messaging_contract(repo_root: Path, contract: BlueprintContr
 def _validate_zero_downtime_evolution_contract(repo_root: Path, contract: BlueprintContract) -> list[str]:
     errors: list[str] = []
     spec_raw = _mapping_or_error(contract.raw.get("spec"), "spec", errors)
+    raw_contract_section = spec_raw.get("zero_downtime_evolution_contract")
+    if raw_contract_section is None:
+        errors.append("spec.zero_downtime_evolution_contract is required")
+        return errors
     contract_section = _mapping_or_error(
-        spec_raw.get("zero_downtime_evolution_contract"),
+        raw_contract_section,
         "spec.zero_downtime_evolution_contract",
         errors,
     )
-    if not contract_section:
-        return errors
 
     enabled_by_default = _bool_or_error(
         contract_section.get("enabled_by_default"),
@@ -624,7 +631,7 @@ def _validate_zero_downtime_evolution_contract(repo_root: Path, contract: Bluepr
         errors,
     )
     for check_name in (
-        "reject_drop_column_without_expand_marker",
+        "reject_drop_column_without_contract_marker",
         "reject_drop_table_without_contract_marker",
         "reject_event_version_overwrite_without_new_version",
     ):
@@ -665,13 +672,15 @@ def _validate_zero_downtime_evolution_contract(repo_root: Path, contract: Bluepr
 def _validate_tenant_context_contract(contract: BlueprintContract) -> list[str]:
     errors: list[str] = []
     spec_raw = _mapping_or_error(contract.raw.get("spec"), "spec", errors)
+    raw_contract_section = spec_raw.get("tenant_context_contract")
+    if raw_contract_section is None:
+        errors.append("spec.tenant_context_contract is required")
+        return errors
     contract_section = _mapping_or_error(
-        spec_raw.get("tenant_context_contract"),
+        raw_contract_section,
         "spec.tenant_context_contract",
         errors,
     )
-    if not contract_section:
-        return errors
 
     enabled_by_default = _bool_or_error(
         contract_section.get("enabled_by_default"),
