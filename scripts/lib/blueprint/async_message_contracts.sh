@@ -13,17 +13,25 @@ async_message_contracts_feature_enabled() {
 
 async_message_contracts_default_artifact_dir() {
   local role="$1"
+  local dir
   case "$role" in
   producer)
-    printf '%s' "${ASYNC_PACT_PRODUCER_ARTIFACT_DIR:-$ROOT_DIR/artifacts/contracts/async/pact/producer}"
+    dir="${ASYNC_PACT_PRODUCER_ARTIFACT_DIR:-artifacts/contracts/async/pact/producer}"
     ;;
   consumer)
-    printf '%s' "${ASYNC_PACT_CONSUMER_ARTIFACT_DIR:-$ROOT_DIR/artifacts/contracts/async/pact/consumer}"
+    dir="${ASYNC_PACT_CONSUMER_ARTIFACT_DIR:-artifacts/contracts/async/pact/consumer}"
     ;;
   *)
     log_fatal "unsupported async pact role: $role"
     ;;
   esac
+
+  # Normalize relative artifact paths against repository root for deterministic outputs.
+  if [[ "$dir" != /* ]]; then
+    dir="$ROOT_DIR/$dir"
+  fi
+
+  printf '%s' "$dir"
 }
 
 async_message_contracts_contract_dir() {
