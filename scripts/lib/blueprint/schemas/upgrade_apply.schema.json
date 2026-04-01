@@ -12,6 +12,7 @@
     "allow_delete",
     "status",
     "results",
+    "required_manual_actions",
     "summary"
   ],
   "properties": {
@@ -87,17 +88,50 @@
         }
       }
     },
+    "required_manual_actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "dependency_path",
+          "dependency_of",
+          "reason",
+          "required_follow_up_commands"
+        ],
+        "properties": {
+          "dependency_path": {
+            "type": "string"
+          },
+          "dependency_of": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "required_follow_up_commands": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
     "summary": {
       "type": "object",
       "required": [
         "total",
-        "applied_count"
+        "applied_count",
+        "required_manual_action_count"
       ],
       "properties": {
         "total": {
           "type": "integer"
         },
         "applied_count": {
+          "type": "integer"
+        },
+        "required_manual_action_count": {
           "type": "integer"
         }
       }

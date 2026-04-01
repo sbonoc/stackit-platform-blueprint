@@ -13,6 +13,7 @@
     "allow_dirty",
     "allow_delete",
     "entries",
+    "required_manual_actions",
     "summary"
   ],
   "properties": {
@@ -109,6 +110,35 @@
         }
       }
     },
+    "required_manual_actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "dependency_path",
+          "dependency_of",
+          "reason",
+          "required_follow_up_commands"
+        ],
+        "properties": {
+          "dependency_path": {
+            "type": "string"
+          },
+          "dependency_of": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "required_follow_up_commands": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
     "summary": {
       "type": "object",
       "required": [
@@ -117,6 +147,7 @@
         "merge-required",
         "skip",
         "conflict",
+        "required_manual_action_count",
         "total"
       ],
       "properties": {
@@ -133,6 +164,9 @@
           "type": "integer"
         },
         "conflict": {
+          "type": "integer"
+        },
+        "required_manual_action_count": {
           "type": "integer"
         },
         "total": {

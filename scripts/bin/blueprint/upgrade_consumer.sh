@@ -89,6 +89,9 @@ emit_upgrade_report_metrics() {
     plan_conflict)
       log_metric "blueprint_upgrade_plan_action_total" "$value" "action=conflict"
       ;;
+    plan_required_manual_actions)
+      log_metric "blueprint_upgrade_required_manual_action_total" "$value" "scope=plan"
+      ;;
     apply_status)
       log_metric "blueprint_upgrade_apply_status_total" "1" "status=$value"
       ;;
@@ -115,6 +118,9 @@ emit_upgrade_report_metrics() {
       ;;
     apply_planned_only)
       log_metric "blueprint_upgrade_apply_results_by_type_total" "$value" "result=planned-only"
+      ;;
+    apply_required_manual_actions)
+      log_metric "blueprint_upgrade_required_manual_action_total" "$value" "scope=apply"
       ;;
     esac
   done < <(

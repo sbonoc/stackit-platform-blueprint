@@ -109,6 +109,8 @@ Common baseline flow:
 Upgrade guardrails:
 - `make blueprint-upgrade-consumer` fails fast when the resolved baseline tag and selected upgrade ref point to the same commit (`upgrade baseline collision`).
 - When this happens, choose an upgrade ref newer than the baseline tag (or bump `template_bootstrap.template_version` first) before re-running.
+- Upgrade plan/apply reports include explicit `required_manual_actions` diagnostics when platform-owned dependency paths are missing (for example runtime-identity edges).
+- Treat non-empty `required_manual_actions` as blocking and re-run `make blueprint-upgrade-consumer-validate` after reconciliation.
 
 If you intentionally need to re-apply consumer-seeded or init-managed files after first init, rerun:
 - `BLUEPRINT_INIT_FORCE=true make blueprint-init-repo`

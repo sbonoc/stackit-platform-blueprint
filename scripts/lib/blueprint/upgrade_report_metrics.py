@@ -37,6 +37,7 @@ def _emit_plan_apply_metrics(plan_path: Path, apply_path: Path) -> Iterable[str]
             yield f"plan_merge_required={_as_int(summary.get('merge-required', 0))}"
             yield f"plan_skip={_as_int(summary.get('skip', 0))}"
             yield f"plan_conflict={_as_int(summary.get('conflict', 0))}"
+            yield f"plan_required_manual_actions={_as_int(summary.get('required_manual_action_count', 0))}"
 
     apply = _load_json(apply_path)
     if isinstance(apply, dict):
@@ -52,6 +53,7 @@ def _emit_plan_apply_metrics(plan_path: Path, apply_path: Path) -> Iterable[str]
             yield f"apply_deleted={_as_int(summary.get('deleted', 0))}"
             yield f"apply_skipped={_as_int(summary.get('skipped', 0))}"
             yield f"apply_planned_only={_as_int(summary.get('planned-only', 0))}"
+            yield f"apply_required_manual_actions={_as_int(summary.get('required_manual_action_count', 0))}"
 
 
 def _emit_validate_metrics(report_path: Path) -> Iterable[str]:

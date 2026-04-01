@@ -54,6 +54,9 @@ BLUEPRINT_UPGRADE_REF=<tag|branch|commit> make blueprint-upgrade-consumer
 BLUEPRINT_UPGRADE_REF=<tag|branch|commit> BLUEPRINT_UPGRADE_APPLY=true make blueprint-upgrade-consumer
 make blueprint-upgrade-consumer-validate
 ```
+Inspect `artifacts/blueprint/upgrade_plan.json`, `artifacts/blueprint/upgrade_apply.json`, and
+`artifacts/blueprint/upgrade_summary.md` after each run. When `required_manual_actions` is non-empty,
+resolve the listed platform-owned dependency paths first, then re-run `make blueprint-upgrade-consumer-validate`.
 Set `BLUEPRINT_UPGRADE_SOURCE` when the blueprint source repository differs from your default `origin` remote.
 By default, the upgrade target resolves `BLUEPRINT_UPGRADE_SOURCE` from `remote.upstream.url`
 when present, and falls back to `remote.origin.url`.
