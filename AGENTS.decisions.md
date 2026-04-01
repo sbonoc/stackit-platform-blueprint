@@ -70,6 +70,7 @@
 - Backlog entries represent open work only. Change history lives in Git; finished work does not stay in the backlog.
 - Runtime credentials reconciliation is now a blueprint-native ESO contract:
   - blueprint-owned manifests live under `infra/gitops/platform/base/security/**`
+  - runtime ESO manifests and renderer target `external-secrets.io/v1` (no `v1beta1`) to match pinned External Secrets CRDs.
   - a drift-safe consumer extension surface lives under `infra/gitops/platform/base/extensions/kustomization.yaml`
   - canonical execution entrypoint is `make auth-reconcile-eso-runtime-secrets`
   - `infra-smoke` includes this reconciliation path so CRD/readiness/target-secret checks are exercised in the canonical smoke flow.

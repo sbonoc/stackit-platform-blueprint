@@ -24,6 +24,7 @@ from scripts.lib.blueprint.contract_schema import load_yaml_subset  # noqa: E402
 
 
 DEFAULT_CONTRACT_PATH = Path("blueprint/runtime_identity_contract.yaml")
+EXTERNAL_SECRETS_API_VERSION = "external-secrets.io/v1"
 
 
 @dataclass(frozen=True)
@@ -235,7 +236,7 @@ def _render_external_secret_doc(
     secret_contract: EsoSecretContract,
 ) -> str:
     lines: list[str] = [
-        "apiVersion: external-secrets.io/v1beta1",
+        f"apiVersion: {EXTERNAL_SECRETS_API_VERSION}",
         "kind: ExternalSecret",
         "metadata:",
         f"  name: {secret_contract.external_secret_name}",
