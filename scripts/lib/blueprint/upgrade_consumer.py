@@ -260,41 +260,55 @@ def _contract_paths(contract: BlueprintContract) -> tuple[set[str], set[str], se
     return required_files, source_only, consumer_seeded, init_managed, conditional
 
 
-def _protected_roots(contract: BlueprintContract) -> set[str]:
-    ownership = contract.make_contract.ownership
-    roots = set(contract.script_contract.platform_editable_roots)
-    roots.add(ownership.platform_editable_file)
-    roots.add(ownership.platform_editable_include_dir)
-    roots.add(contract.docs_contract.platform_docs.root)
-    return {root.rstrip("/") for root in roots}
+def _managed_roots(contract: BlueprintContract) -> set[str]:
+    return {root.rstrip("/") for root in contract.script_contract.blueprint_managed_roots}
+
+
+def _merge_path_sets(*path_sets: set[str]) -> set[str]:
+    merged: set[str] = set()
+    for path_set in path_sets:
+        merged.update(path_set)
+    return merged
+
+
+def _protected_roots(contract: BlueprintContract, source_contract: BlueprintContract | None = None) -> set[str]:
+    def roots_for(value: BlueprintContract) -> set[str]:
+        ownership = value.make_contract.ownership
+        roots = set(value.script_contract.platform_editable_roots)
+        roots.add(ownership.platform_editable_file)
+        roots.add(ownership.platform_editable_include_dir)
+        roots.add(value.docs_contract.platform_docs.root)
+        return {root.rstrip("/") for root in roots}
+
+    roots = roots_for(contract)
+    if source_contract is not None:
+        roots.update(roots_for(source_contract))
+    return roots
 
 
 def _collect_candidate_paths(
     repo_root: Path,
     source_repo: Path,
-    contract: BlueprintContract,
+    managed_dir_roots: set[str],
     required_files: set[str],
     init_managed: set[str],
     conditional_entries: set[str],
 ) -> tuple[set[str], set[str], set[str]]:
     explicit_file_paths: set[str] = set(required_files | init_managed)
-    managed_dir_roots: set[str] = {
-        root.rstrip("/")
-        for root in contract.script_contract.blueprint_managed_roots
-    }
+    managed_roots = set(managed_dir_roots)
 
     for entry in conditional_entries:
         normalized = entry.rstrip("/")
         source_candidate = source_repo / normalized
         target_candidate = repo_root / normalized
         if source_candidate.is_dir() or target_candidate.is_dir() or _entry_looks_like_dir(entry):
-            managed_dir_roots.add(normalized)
+            managed_roots.add(normalized)
         else:
             explicit_file_paths.add(normalized)
 
     source_files: set[str] = set()
     target_files: set[str] = set()
-    for root in sorted(managed_dir_roots):
+    for root in sorted(managed_roots):
         source_files.update(_collect_files_under(source_repo, root))
         target_files.update(_collect_files_under(repo_root, root))
 
@@ -306,7 +320,7 @@ def _collect_candidate_paths(
         if target_path.is_file():
             target_files.add(relative)
 
-    return source_files, target_files, managed_dir_roots
+    return source_files, target_files, managed_roots
 
 
 def _ownership_class(
@@ -1041,12 +1055,45 @@ def main() -> int:
             )
             return 1
 
+        source_contract: BlueprintContract | None = None
+        source_contract_path = source_repo / "blueprint/contract.yaml"
+        if source_contract_path.is_file():
+            try:
+                source_contract = load_blueprint_contract(source_contract_path)
+            except Exception as exc:  # pragma: no cover - defensive fallback for malformed source snapshots
+                print(
+                    f"warning: unable to load source contract at {source_contract_path}: {exc}; "
+                    "falling back to target repository contract scope",
+                    file=sys.stderr,
+                )
+
         required_files, source_only, consumer_seeded, init_managed, conditional = _contract_paths(contract)
+        managed_dir_roots = _managed_roots(contract)
+        if source_contract is not None:
+            (
+                source_required_files,
+                source_source_only,
+                source_consumer_seeded,
+                source_init_managed,
+                source_conditional,
+            ) = _contract_paths(source_contract)
+            required_files = _merge_path_sets(required_files, source_required_files)
+            source_only = _merge_path_sets(source_only, source_source_only)
+            consumer_seeded = _merge_path_sets(consumer_seeded, source_consumer_seeded)
+            init_managed = _merge_path_sets(init_managed, source_init_managed)
+            conditional = _merge_path_sets(conditional, source_conditional)
+            managed_dir_roots = _merge_path_sets(managed_dir_roots, _managed_roots(source_contract))
+
         source_files, target_files, managed_dir_roots = _collect_candidate_paths(
-            repo_root, source_repo, contract, required_files, init_managed, conditional
+            repo_root,
+            source_repo,
+            managed_dir_roots,
+            required_files,
+            init_managed,
+            conditional,
         )
         all_paths = sorted(source_files | target_files)
-        protected_roots = _protected_roots(contract)
+        protected_roots = _protected_roots(contract, source_contract)
 
         baseline_cache: dict[str, str | None] = {}
         entries = _classify_entries(

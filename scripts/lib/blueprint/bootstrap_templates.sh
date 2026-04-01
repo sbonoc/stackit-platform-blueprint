@@ -25,7 +25,8 @@ bootstrap_template_content() {
   local template_path
   template_path="$(bootstrap_template_path "$namespace" "$template_rel")"
   if [[ ! -f "$template_path" ]]; then
-    log_fatal "missing bootstrap template ($namespace): $template_path"
+    log_error "missing bootstrap template ($namespace): $template_path"
+    return 1
   fi
   cat "$template_path"
 }
@@ -52,7 +53,16 @@ ensure_file_from_template() {
   local target_path="$1"
   local namespace="$2"
   local template_rel="$3"
-  ensure_file_with_content "$target_path" "$(bootstrap_template_content "$namespace" "$template_rel")"
+  local content
+  if ! content="$(bootstrap_template_content "$namespace" "$template_rel")"; then
+    log_fatal "cannot render bootstrap target without template ($namespace): $template_rel"
+  fi
+  if [[ -f "$target_path" && ! -s "$target_path" ]]; then
+    printf '%s' "$content" >"$target_path"
+    log_warn "rewrote empty bootstrap target from template: $target_path"
+    return 0
+  fi
+  ensure_file_with_content "$target_path" "$content"
 }
 
 ensure_file_from_rendered_template() {
@@ -60,5 +70,14 @@ ensure_file_from_rendered_template() {
   local namespace="$2"
   local template_rel="$3"
   shift 3 || true
-  ensure_file_with_content "$target_path" "$(render_bootstrap_template_content "$namespace" "$template_rel" "$@")"
+  local content
+  if ! content="$(render_bootstrap_template_content "$namespace" "$template_rel" "$@")"; then
+    log_fatal "cannot render bootstrap target without template ($namespace): $template_rel"
+  fi
+  if [[ -f "$target_path" && ! -s "$target_path" ]]; then
+    printf '%s' "$content" >"$target_path"
+    log_warn "rewrote empty bootstrap target from template: $target_path"
+    return 0
+  fi
+  ensure_file_with_content "$target_path" "$content"
 }

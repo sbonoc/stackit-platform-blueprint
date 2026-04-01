@@ -54,12 +54,15 @@ def _commit_all(repo: Path, message: str) -> None:
     _require_success(_git(repo, "commit", "-m", message), f"git commit -m {message}")
 
 
-def _generated_contract_text() -> str:
-    return (REPO_ROOT / "blueprint/contract.yaml").read_text(encoding="utf-8").replace(
+def _generated_contract_text(*, drop_paths: tuple[str, ...] = ()) -> str:
+    content = (REPO_ROOT / "blueprint/contract.yaml").read_text(encoding="utf-8").replace(
         "repo_mode: template-source",
         "repo_mode: generated-consumer",
         1,
     )
+    for path in drop_paths:
+        content = content.replace(f"      - {path}\n", "")
+    return content
 
 
 def _template_version() -> str:
@@ -79,10 +82,10 @@ def _create_source_repo(root: Path, relative_path: str, base_content: str, head_
     return source_repo
 
 
-def _create_generated_repo(root: Path, relative_path: str, content: str) -> Path:
+def _create_generated_repo(root: Path, relative_path: str, content: str, *, contract_text: str | None = None) -> Path:
     target_repo = root / "target"
     _init_git_repo(target_repo)
-    _write(target_repo / "blueprint/contract.yaml", _generated_contract_text())
+    _write(target_repo / "blueprint/contract.yaml", contract_text or _generated_contract_text())
     _write(target_repo / ".gitignore", "artifacts/\n")
     _write(target_repo / relative_path, content)
     _commit_all(target_repo, "initial generated")
@@ -377,6 +380,60 @@ class UpgradeConsumerTests(unittest.TestCase):
             self.assertNotIn("required-manual-action", str(dependency_entry.get("reason", "")))
             self.assertEqual(plan.get("required_manual_actions"), [])
             self.assertEqual(plan.get("summary", {}).get("required_manual_action_count"), 0)
+
+    def test_upgrade_plan_includes_new_template_assets_from_source_contract_when_target_contract_lags(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            source_repo = tmp_root / "source"
+            _init_git_repo(source_repo)
+
+            template_a = "scripts/templates/infra/bootstrap/infra/local/helm/core/cert-manager.values.yaml"
+            template_b = "scripts/templates/infra/bootstrap/infra/gitops/platform/base/extensions/kustomization.yaml"
+            _write(source_repo / "blueprint/contract.yaml", (REPO_ROOT / "blueprint/contract.yaml").read_text(encoding="utf-8"))
+            _write(source_repo / template_a, "crds:\n  enabled: true\n")
+            _write(source_repo / template_b, "apiVersion: kustomize.config.k8s.io/v1beta1\nkind: Kustomization\n")
+            _write(source_repo / MANAGED_TEST_PATH, "baseline\n")
+            _commit_all(source_repo, "baseline")
+            _require_success(_git(source_repo, "tag", f"v{_template_version()}"), "git tag template version")
+            _write(source_repo / MANAGED_TEST_PATH, "baseline\nhead\n")
+            _commit_all(source_repo, "head")
+
+            lagging_contract = _generated_contract_text(
+                drop_paths=(
+                    template_a,
+                    template_b,
+                )
+            )
+            target_repo = _create_generated_repo(
+                tmp_root,
+                MANAGED_TEST_PATH,
+                "baseline\n",
+                contract_text=lagging_contract,
+            )
+            result = _run(
+                [
+                    sys.executable,
+                    str(UPGRADE_SCRIPT),
+                    "--repo-root",
+                    str(target_repo),
+                    "--source",
+                    str(source_repo),
+                    "--ref",
+                    "HEAD",
+                ],
+                cwd=REPO_ROOT,
+            )
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+
+            plan = _load_json(target_repo / "artifacts/blueprint/upgrade_plan.json")
+            first_entry = _plan_entry(plan, template_a)
+            self.assertEqual(first_entry.get("action"), "create")
+            self.assertEqual(first_entry.get("source_exists"), True)
+            self.assertEqual(first_entry.get("target_exists"), False)
+            second_entry = _plan_entry(plan, template_b)
+            self.assertEqual(second_entry.get("action"), "create")
+            self.assertEqual(second_entry.get("source_exists"), True)
+            self.assertEqual(second_entry.get("target_exists"), False)
 
     def test_apply_runs_three_way_merge_for_diverged_blueprint_managed_file(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
