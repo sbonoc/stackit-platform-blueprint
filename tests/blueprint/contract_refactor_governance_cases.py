@@ -253,6 +253,9 @@ class GovernanceRefactorCases(RefactorContractBase):
                 "scripts/bin/blueprint/resync_consumer_seeds.sh",
                 "scripts/bin/blueprint/upgrade_consumer.sh",
                 "scripts/bin/blueprint/upgrade_consumer_validate.sh",
+                "scripts/bin/blueprint/test_async_message_contracts_producer.sh",
+                "scripts/bin/blueprint/test_async_message_contracts_consumer.sh",
+                "scripts/bin/blueprint/test_async_message_contracts_all.sh",
                 "scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh",
                 "scripts/bin/blueprint/render_module_wrapper_skeletons.sh",
                 "scripts/bin/infra/destroy_disabled_modules.sh",
@@ -265,6 +268,9 @@ class GovernanceRefactorCases(RefactorContractBase):
                 "scripts/bin/quality/lint_docs.py",
                 "scripts/bin/quality/render_core_targets_doc.py",
                 "docs/docusaurus.config.js",
+                "docs/blueprint/contracts/async_message_contracts.md",
+                "contracts/async/pact/messages/producer/README.md",
+                "contracts/async/pact/messages/consumer/README.md",
                 "docs/reference/generated/contract_metadata.generated.md",
                 "docs/reference/generated/core_targets.generated.md",
                 "tests/__init__.py",
@@ -390,8 +396,28 @@ class GovernanceRefactorCases(RefactorContractBase):
                 "auth-reconcile-eso-runtime-secrets",
                 "docs-build",
                 "docs-smoke",
+                "test-contracts-async-producer",
+                "test-contracts-async-consumer",
+                "test-contracts-async-all",
             }.issubset(required_targets),
             msg="contract required_targets is missing canonical blueprint/stackit/docs targets",
+        )
+        async_contract = _extract_yaml_section(contract_lines, "async_message_contracts")
+        async_make_targets = _extract_yaml_section(async_contract, "make_targets")
+        async_hooks = _extract_yaml_section(async_contract, "optional_hooks")
+        self.assertEqual(_extract_yaml_scalar(async_contract, "provider"), "pact")
+        self.assertEqual(_extract_yaml_scalar(async_contract, "enabled_env_var"), "ASYNC_PACT_MESSAGE_CONTRACTS_ENABLED")
+        self.assertEqual(_extract_yaml_scalar(async_make_targets, "producer"), "test-contracts-async-producer")
+        self.assertEqual(_extract_yaml_scalar(async_make_targets, "consumer"), "test-contracts-async-consumer")
+        self.assertEqual(_extract_yaml_scalar(async_make_targets, "all"), "test-contracts-async-all")
+        self.assertEqual(_extract_yaml_scalar(async_make_targets, "aggregate"), "test-contracts-all")
+        self.assertEqual(
+            _extract_yaml_scalar(async_hooks, "producer_verify_command_env_var"),
+            "ASYNC_PACT_PRODUCER_VERIFY_CMD",
+        )
+        self.assertEqual(
+            _extract_yaml_scalar(async_hooks, "consumer_verify_command_env_var"),
+            "ASYNC_PACT_CONSUMER_VERIFY_CMD",
         )
 
     def test_validator_has_core_contract_sections(self) -> None:
@@ -408,6 +434,7 @@ class GovernanceRefactorCases(RefactorContractBase):
             "_validate_repository_mode_contract",
             "_validate_script_ownership_contract",
             "_validate_platform_docs_seed_contract",
+            "_validate_async_message_contract",
             "_validate_event_messaging_contract",
             "_validate_zero_downtime_evolution_contract",
             "_validate_tenant_context_contract",
@@ -534,6 +561,13 @@ class GovernanceRefactorCases(RefactorContractBase):
         self.assertIn("RUNTIME_CREDENTIALS_TARGET_NAMESPACE=apps", init_env_defaults)
         self.assertIn("RUNTIME_CREDENTIALS_ESO_WAIT_TIMEOUT=180", init_env_defaults)
         self.assertIn("RUNTIME_CREDENTIALS_REQUIRED=false", init_env_defaults)
+        self.assertIn("ASYNC_PACT_MESSAGE_CONTRACTS_ENABLED=false", init_env_defaults)
+        self.assertIn("ASYNC_PACT_PRODUCER_VERIFY_CMD=", init_env_defaults)
+        self.assertIn("ASYNC_PACT_CONSUMER_VERIFY_CMD=", init_env_defaults)
+        self.assertIn("ASYNC_PACT_BROKER_PUBLISH_CMD=", init_env_defaults)
+        self.assertIn("ASYNC_PACT_CAN_I_DEPLOY_CMD=", init_env_defaults)
+        self.assertIn("ASYNC_PACT_PRODUCER_ARTIFACT_DIR=artifacts/contracts/async/pact/producer", init_env_defaults)
+        self.assertIn("ASYNC_PACT_CONSUMER_ARTIFACT_DIR=artifacts/contracts/async/pact/consumer", init_env_defaults)
         self.assertIn("STACKIT_SERVICE_ACCOUNT_KEY=", init_env_secrets_example)
         self.assertIn("STACKIT_TFSTATE_ACCESS_KEY_ID=", init_env_secrets_example)
         self.assertIn("defaults_env_file: blueprint/repo.init.env", _read("blueprint/contract.yaml"))

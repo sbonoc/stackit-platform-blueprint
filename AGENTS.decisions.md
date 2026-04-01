@@ -105,3 +105,9 @@
   - branch update lanes run the full dry-run e2e lane.
 - Helm chart pin coverage is guarded against repo-prefix drift:
   - tests assert every non-OCI chart pin in `infra/audit_version.sh` has a matching repo-prefix mapping in `scripts/lib/infra/tooling.sh`.
+- Async message-contract testing is an opt-in Pact contract lane:
+  - canonical scaffold paths are `contracts/async/pact/messages/{producer,consumer}`.
+  - blueprint-managed wrappers live under `scripts/bin/blueprint/test_async_message_contracts_*.sh` with shared execution in `scripts/lib/blueprint/async_message_contracts.sh`.
+  - make targets `test-contracts-async-{producer,consumer,all}` are materialized from `make/blueprint.generated.mk`.
+  - `test-contracts-all` is augmented via prerequisite (`test-contracts-async-all`) in blueprint-managed makefile generation, avoiding recipe overrides on platform-owned `make/platform.mk`.
+  - broker publish and can-i-deploy remain optional command hooks (`ASYNC_PACT_BROKER_PUBLISH_CMD`, `ASYNC_PACT_CAN_I_DEPLOY_CMD`).

@@ -105,3 +105,17 @@ class MakeRefactorCases(RefactorContractBase):
         self.assertIn("render_makefile()", makefile_renderer)
         self.assertIn('render_bootstrap_template_content \\', makefile_renderer)
         self.assertIn('"blueprint" \\', makefile_renderer)
+
+    def test_async_message_contract_targets_are_in_blueprint_generated_makefiles(self) -> None:
+        makefile_template = _read("scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl")
+        generated_makefile = _read("make/blueprint.generated.mk")
+
+        self.assertIn("test-contracts-async-producer", makefile_template)
+        self.assertIn("test-contracts-async-consumer", makefile_template)
+        self.assertIn("test-contracts-async-all", makefile_template)
+        self.assertIn("test-contracts-all: test-contracts-async-all", makefile_template)
+
+        self.assertIn("test-contracts-async-producer", generated_makefile)
+        self.assertIn("test-contracts-async-consumer", generated_makefile)
+        self.assertIn("test-contracts-async-all", generated_makefile)
+        self.assertIn("test-contracts-all: test-contracts-async-all", generated_makefile)

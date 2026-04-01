@@ -133,6 +133,7 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn("tests/blueprint/test_contract_stackit_runtime.py", contract)
         self.assertIn("tests/blueprint/test_init_repo_env.py", contract)
         self.assertIn("tests/blueprint/test_upgrade_consumer.py", contract)
+        self.assertIn("tests/infra/test_async_message_contracts.py", contract)
         self.assertIn("tests/blueprint/test_optional_runtime_contract_validation.py", contract)
         self.assertIn("tests/infra/test_workload_health_check.py", contract)
         self.assertIn("tests/e2e/test_vertical_slice.py", contract)
