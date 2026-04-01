@@ -142,6 +142,32 @@ class QualityContractsTests(unittest.TestCase):
             errors,
         )
 
+    def test_validate_contract_requires_enabled_under_crds_mapping(self) -> None:
+        validate_script = REPO_ROOT / "scripts/bin/blueprint/validate_contract.py"
+        spec = importlib.util.spec_from_file_location("validate_contract_module", validate_script)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)  # type: ignore[union-attr]
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            cert_manager_values = tmp_root / "infra/local/helm/core/cert-manager.values.yaml"
+            cert_manager_values.parent.mkdir(parents=True, exist_ok=True)
+            cert_manager_values.write_text(
+                "crds: # comment only\n"
+                "prometheus:\n"
+                "  enabled: false\n",
+                encoding="utf-8",
+            )
+
+            errors = module._validate_core_chart_values_contract(tmp_root)
+
+        self.assertIn(
+            "infra/local/helm/core/cert-manager.values.yaml missing required values key mapping: crds.enabled",
+            errors,
+        )
+
     def test_module_wrapper_generator_is_repo_rooted(self) -> None:
         generator = REPO_ROOT / "scripts/lib/blueprint/generate_module_wrapper_skeletons.py"
         with tempfile.TemporaryDirectory() as tmpdir:

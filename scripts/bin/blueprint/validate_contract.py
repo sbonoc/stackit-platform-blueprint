@@ -188,6 +188,32 @@ def _kustomization_resources(path: Path) -> set[str]:
 def _validate_core_chart_values_contract(repo_root: Path) -> list[str]:
     errors: list[str] = []
 
+    def _has_immediate_child_key(content: str, *, parent_key: str, child_key: str) -> bool:
+        parent_pattern = re.compile(rf"^\s*{re.escape(parent_key)}\s*:\s*(?:#[^\n]*)?$")
+        child_pattern = re.compile(rf"^\s*{re.escape(child_key)}\s*:")
+
+        lines = content.splitlines()
+        for idx, line in enumerate(lines):
+            if not parent_pattern.match(line):
+                continue
+            parent_indent = len(line) - len(line.lstrip(" "))
+            cursor = idx + 1
+            while cursor < len(lines):
+                candidate = lines[cursor]
+                stripped = candidate.strip()
+                if not stripped or stripped.startswith("#"):
+                    cursor += 1
+                    continue
+
+                candidate_indent = len(candidate) - len(candidate.lstrip(" "))
+                if candidate_indent <= parent_indent:
+                    break
+                if child_pattern.match(candidate):
+                    return True
+                cursor += 1
+            return False
+        return False
+
     deprecated_value_keys = (
         (
             "infra/local/helm/core/cert-manager.values.yaml",
@@ -200,7 +226,6 @@ def _validate_core_chart_values_contract(repo_root: Path) -> list[str]:
             "crds.enabled",
         ),
     )
-    crds_enabled_pattern = re.compile(r"(?ms)^\s*crds\s*:\s*(?:#.*)?\n\s+enabled\s*:")
 
     for relative_path, deprecated_key, replacement_key in deprecated_value_keys:
         values_path = repo_root / relative_path
@@ -212,7 +237,7 @@ def _validate_core_chart_values_contract(repo_root: Path) -> list[str]:
             errors.append(
                 f"{relative_path} uses deprecated values key '{deprecated_key}'; use '{replacement_key}' instead"
             )
-        if not crds_enabled_pattern.search(content):
+        if not _has_immediate_child_key(content, parent_key="crds", child_key="enabled"):
             errors.append(f"{relative_path} missing required values key mapping: crds.enabled")
 
     return errors
