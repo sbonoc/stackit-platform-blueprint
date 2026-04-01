@@ -88,6 +88,22 @@ class ApplyResult:
         return payload
 
 
+@dataclass(frozen=True)
+class RequiredManualAction:
+    dependency_path: str
+    dependency_of: str
+    reason: str
+    required_follow_up_commands: tuple[str, ...]
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "dependency_path": self.dependency_path,
+            "dependency_of": self.dependency_of,
+            "reason": self.reason,
+            "required_follow_up_commands": list(self.required_follow_up_commands),
+        }
+
+
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-root", default=None, help="Repository root path.")
@@ -545,9 +561,21 @@ def _classify_entries(
     return entries
 
 
-def _annotate_protected_dependency_gaps(entries: list[UpgradeEntry]) -> list[UpgradeEntry]:
+def _required_manual_follow_up_commands(path: str) -> tuple[str, ...]:
+    commands: list[str] = []
+    if path.startswith("docs/platform/"):
+        commands.append("make blueprint-bootstrap")
+    commands.append("make blueprint-upgrade-consumer-validate")
+    return tuple(commands)
+
+
+def _annotate_protected_dependency_gaps(
+    entries: list[UpgradeEntry],
+) -> tuple[list[UpgradeEntry], list[RequiredManualAction]]:
     entries_by_path = {entry.path: entry for entry in entries}
     annotated: list[UpgradeEntry] = []
+    required_manual_actions: list[RequiredManualAction] = []
+    seen_manual_actions: set[tuple[str, str]] = set()
 
     for entry in entries:
         reason = entry.reason
@@ -563,6 +591,20 @@ def _annotate_protected_dependency_gaps(entries: list[UpgradeEntry]) -> list[Upg
             depender_entry = entries_by_path.get(depender_path)
             if depender_entry is None or not depender_entry.source_exists:
                 continue
+            manual_action_key = (depender_path, dependency_path)
+            if manual_action_key not in seen_manual_actions:
+                seen_manual_actions.add(manual_action_key)
+                required_manual_actions.append(
+                    RequiredManualAction(
+                        dependency_path=dependency_path,
+                        dependency_of=depender_path,
+                        reason=(
+                            f"{depender_path} references {dependency_path} and upgrade validation "
+                            "will fail until the dependency file exists"
+                        ),
+                        required_follow_up_commands=_required_manual_follow_up_commands(dependency_path),
+                    )
+                )
             reason = (
                 f"{entry.reason}; required-manual-action: {depender_path} references {dependency_path} "
                 "and upgrade validation will fail until the dependency file exists"
@@ -587,7 +629,7 @@ def _annotate_protected_dependency_gaps(entries: list[UpgradeEntry]) -> list[Upg
             )
         )
 
-    return annotated
+    return annotated, required_manual_actions
 
 
 def _three_way_merge(base: str, ours: str, theirs: str) -> tuple[str, bool]:
@@ -819,7 +861,10 @@ def _apply_entries(
     return results, applied_count
 
 
-def _summarize_plan(entries: list[UpgradeEntry]) -> dict[str, int]:
+def _summarize_plan(
+    entries: list[UpgradeEntry],
+    required_manual_actions: list[RequiredManualAction],
+) -> dict[str, int]:
     counts = {
         ACTION_CREATE: 0,
         ACTION_UPDATE: 0,
@@ -830,13 +875,19 @@ def _summarize_plan(entries: list[UpgradeEntry]) -> dict[str, int]:
     for entry in entries:
         counts[entry.action] = counts.get(entry.action, 0) + 1
     counts["total"] = len(entries)
+    counts["required_manual_action_count"] = len(required_manual_actions)
     return counts
 
 
-def _summarize_apply(results: list[ApplyResult], applied_count: int) -> dict[str, int]:
+def _summarize_apply(
+    results: list[ApplyResult],
+    applied_count: int,
+    required_manual_actions: list[RequiredManualAction],
+) -> dict[str, int]:
     counts: dict[str, int] = {"total": len(results), "applied_count": applied_count}
     for result in results:
         counts[result.result] = counts.get(result.result, 0) + 1
+    counts["required_manual_action_count"] = len(required_manual_actions)
     return counts
 
 
@@ -857,6 +908,7 @@ def _write_summary(
     apply_summary: dict[str, int],
     apply_enabled: bool,
     results: list[ApplyResult],
+    required_manual_actions: list[RequiredManualAction],
 ) -> None:
     conflict_results = [result for result in results if result.result == "conflict"]
     lines = [
@@ -879,6 +931,8 @@ def _write_summary(
         f"| {ACTION_CONFLICT} | {plan_summary.get(ACTION_CONFLICT, 0)} |",
         f"| total | {plan_summary.get('total', 0)} |",
         "",
+        f"- Required manual actions: `{plan_summary.get('required_manual_action_count', 0)}`",
+        "",
         "## Apply Summary",
         "",
         "| Result | Count |",
@@ -888,6 +942,17 @@ def _write_summary(
     for key in sorted(k for k in apply_summary if k != "total"):
         lines.append(f"| {key} | {apply_summary[key]} |")
     lines.append(f"| total | {apply_summary.get('total', 0)} |")
+    lines.append("")
+    lines.append(f"- Required manual actions: `{apply_summary.get('required_manual_action_count', 0)}`")
+
+    if required_manual_actions:
+        lines.extend(["", "## Required Manual Actions", ""])
+        for action in required_manual_actions:
+            follow_up_commands = ", ".join(f"`{command}`" for command in action.required_follow_up_commands)
+            lines.append(
+                f"- `{action.dependency_path}` required by `{action.dependency_of}`: {action.reason}. "
+                f"Follow-up: {follow_up_commands}"
+            )
 
     if conflict_results:
         lines.extend(
@@ -980,9 +1045,9 @@ def main() -> int:
             baseline_cache=baseline_cache,
             allow_delete=args.allow_delete,
         )
-        entries = _annotate_protected_dependency_gaps(entries)
+        entries, required_manual_actions = _annotate_protected_dependency_gaps(entries)
 
-        plan_summary = _summarize_plan(entries)
+        plan_summary = _summarize_plan(entries, required_manual_actions)
         plan_payload = {
             "repo_root": str(repo_root),
             "source": args.source,
@@ -994,6 +1059,7 @@ def main() -> int:
             "allow_dirty": args.allow_dirty,
             "allow_delete": args.allow_delete,
             "entries": [entry.as_dict() for entry in entries],
+            "required_manual_actions": [action.as_dict() for action in required_manual_actions],
             "summary": plan_summary,
         }
         _write_json(plan_path, plan_payload)
@@ -1006,7 +1072,7 @@ def main() -> int:
             baseline_cache=baseline_cache,
             apply_enabled=args.apply,
         )
-        apply_summary = _summarize_apply(results, applied_count)
+        apply_summary = _summarize_apply(results, applied_count, required_manual_actions)
         apply_payload = {
             "repo_root": str(repo_root),
             "source": args.source,
@@ -1016,6 +1082,7 @@ def main() -> int:
             "apply_enabled": args.apply,
             "allow_delete": args.allow_delete,
             "results": [result.as_dict() for result in results],
+            "required_manual_actions": [action.as_dict() for action in required_manual_actions],
             "summary": apply_summary,
         }
 
@@ -1035,6 +1102,7 @@ def main() -> int:
                 apply_summary=apply_summary,
                 apply_enabled=args.apply,
                 results=results,
+                required_manual_actions=required_manual_actions,
             )
             print(
                 "merge conflict markers detected after apply; resolve markers before validation",
@@ -1056,9 +1124,19 @@ def main() -> int:
             apply_summary=apply_summary,
             apply_enabled=args.apply,
             results=results,
+            required_manual_actions=required_manual_actions,
         )
         print(f"upgrade-apply: {display_repo_path(repo_root, apply_path)}")
         print(f"upgrade-summary: {display_repo_path(repo_root, summary_path)}")
+        if required_manual_actions:
+            manual_actions_summary = ", ".join(
+                f"{action.dependency_of} -> {action.dependency_path}" for action in required_manual_actions
+            )
+            print(
+                "upgrade requires manual action for protected runtime dependency paths: "
+                + manual_actions_summary,
+                file=sys.stderr,
+            )
 
         if args.apply and conflict_count > 0:
             print(

@@ -149,11 +149,13 @@ class UpgradeConsumerTests(unittest.TestCase):
             self.assertEqual((target_repo / MANAGED_TEST_PATH).read_text(encoding="utf-8"), "baseline\n")
             self.assertEqual(first_plan, second_plan)
             self.assertEqual(first_plan.get("summary", {}).get("total"), second_plan.get("summary", {}).get("total"))
+            self.assertEqual(first_plan.get("required_manual_actions"), [])
+            self.assertEqual(first_plan.get("summary", {}).get("required_manual_action_count"), 0)
             _assert_json_schema(first_plan, PLAN_SCHEMA)
-            _assert_json_schema(
-                _load_json(target_repo / "artifacts/blueprint/upgrade_apply.json"),
-                APPLY_SCHEMA,
-            )
+            apply_report = _load_json(target_repo / "artifacts/blueprint/upgrade_apply.json")
+            self.assertEqual(apply_report.get("required_manual_actions"), [])
+            self.assertEqual(apply_report.get("summary", {}).get("required_manual_action_count"), 0)
+            _assert_json_schema(apply_report, APPLY_SCHEMA)
 
     def test_dirty_worktree_requires_allow_dirty_opt_in(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -301,6 +303,32 @@ class UpgradeConsumerTests(unittest.TestCase):
             self.assertEqual(dependency_entry.get("action"), "skip")
             self.assertIn("required-manual-action", str(dependency_entry.get("reason", "")))
             self.assertIn("scripts/bin/infra/smoke.sh", str(dependency_entry.get("reason", "")))
+            required_manual_actions = plan.get("required_manual_actions", [])
+            self.assertEqual(len(required_manual_actions), 1)
+            self.assertEqual(
+                required_manual_actions[0].get("dependency_path"),
+                "scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh",
+            )
+            self.assertEqual(
+                required_manual_actions[0].get("dependency_of"),
+                "scripts/bin/infra/smoke.sh",
+            )
+            self.assertIn(
+                "make blueprint-upgrade-consumer-validate",
+                required_manual_actions[0].get("required_follow_up_commands", []),
+            )
+            self.assertEqual(plan.get("summary", {}).get("required_manual_action_count"), 1)
+
+            apply_report = _load_json(target_repo / "artifacts/blueprint/upgrade_apply.json")
+            self.assertEqual(len(apply_report.get("required_manual_actions", [])), 1)
+            self.assertEqual(apply_report.get("summary", {}).get("required_manual_action_count"), 1)
+
+            summary_path = target_repo / "artifacts/blueprint/upgrade_summary.md"
+            self.assertTrue(summary_path.is_file())
+            summary_content = summary_path.read_text(encoding="utf-8")
+            self.assertIn("## Required Manual Actions", summary_content)
+            self.assertIn("scripts/bin/infra/smoke.sh", summary_content)
+            self.assertIn("scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh", summary_content)
 
     def test_apply_runs_three_way_merge_for_diverged_blueprint_managed_file(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
