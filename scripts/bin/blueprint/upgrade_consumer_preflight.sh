@@ -92,12 +92,20 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 log_info "running blueprint upgrade preflight source=${BLUEPRINT_UPGRADE_SOURCE:-auto} ref=${BLUEPRINT_UPGRADE_REF:-unset}"
-run_cmd "$ROOT_DIR/scripts/bin/blueprint/upgrade_consumer.sh" \
-  --dry-run \
-  --plan-path "$plan_path" \
-  --apply-path "$apply_path" \
-  --summary-path "$summary_path" \
-  "${forward_args[@]}"
+if [[ "${#forward_args[@]}" -gt 0 ]]; then
+  run_cmd "$ROOT_DIR/scripts/bin/blueprint/upgrade_consumer.sh" \
+    --dry-run \
+    --plan-path "$plan_path" \
+    --apply-path "$apply_path" \
+    --summary-path "$summary_path" \
+    "${forward_args[@]}"
+else
+  run_cmd "$ROOT_DIR/scripts/bin/blueprint/upgrade_consumer.sh" \
+    --dry-run \
+    --plan-path "$plan_path" \
+    --apply-path "$apply_path" \
+    --summary-path "$summary_path"
+fi
 
 run_cmd python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_preflight.py" \
   --repo-root "$ROOT_DIR" \
