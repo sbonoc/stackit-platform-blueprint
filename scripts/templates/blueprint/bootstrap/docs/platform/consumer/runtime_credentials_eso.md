@@ -65,6 +65,8 @@ make auth-reconcile-eso-runtime-secrets
   - `infra/gitops/argocd/core/<env>/keycloak.yaml`
 - Keycloak admin and DB bootstrap credentials come from ESO target:
   - `security/keycloak-runtime-credentials`
+- Local overlay keeps Keycloak Argo sync manual by default (`infra/gitops/argocd/overlays/local/keycloak.yaml`)
+  so local-lite smoke does not fail before runtime credentials are available.
 - Module-scoped realms are used by default:
   - IAP realm: `KEYCLOAK_REALM_IAP` (default `iap`)
   - Workflows realm: `KEYCLOAK_REALM_WORKFLOWS` (default `workflows`)
@@ -97,6 +99,11 @@ make auth-reconcile-eso-runtime-secrets
 
 Resulting state artifact:
 - `artifacts/infra/runtime_credentials_eso_reconcile.env`
+
+After local runtime credentials are ready, manually sync the local Keycloak Argo application (UI or CLI):
+```bash
+argocd app sync platform-keycloak-local
+```
 
 ## Managed Profile Flow
 

@@ -77,6 +77,7 @@
   - Core ESO reconciliation is mandatory; there is no feature toggle to disable `auth-reconcile-eso-runtime-secrets`.
 - Keycloak is a mandatory runtime identity baseline:
   - ArgoCD overlays always include environment-specific `infra/gitops/argocd/core/<env>/keycloak.yaml` applications.
+  - Local profile keeps Keycloak Argo application sync manual by default (`infra/gitops/argocd/core|overlays/local/keycloak.yaml`) so local-lite smoke remains stable until runtime credentials are reconciled.
   - Keycloak deploys in namespace `security` and consumes ESO-issued `security/keycloak-runtime-credentials`.
   - Keycloak realm model is module-scoped (`iap`, `workflows`, `langfuse`) so each auth consumer has a dedicated realm contract.
   - STACKIT profiles always provision a dedicated managed PostgreSQL instance for Keycloak (no toggle); local profiles always use the shared local Postgres instance.

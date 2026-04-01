@@ -185,6 +185,31 @@ def _kustomization_resources(path: Path) -> set[str]:
     return resources
 
 
+def _manifest_sync_policy_has_automated(content: str) -> bool:
+    lines = content.splitlines()
+    for idx, line in enumerate(lines):
+        if line.strip() != "syncPolicy:":
+            continue
+
+        parent_indent = len(line) - len(line.lstrip(" "))
+        cursor = idx + 1
+        while cursor < len(lines):
+            candidate = lines[cursor]
+            stripped = candidate.strip()
+            if not stripped or stripped.startswith("#"):
+                cursor += 1
+                continue
+
+            candidate_indent = len(candidate) - len(candidate.lstrip(" "))
+            if candidate_indent <= parent_indent:
+                break
+            if stripped.startswith("automated:"):
+                return True
+            cursor += 1
+        return False
+    return False
+
+
 def _validate_core_chart_values_contract(repo_root: Path) -> list[str]:
     errors: list[str] = []
 
@@ -257,9 +282,11 @@ def _validate_runtime_credentials_contract(repo_root: Path) -> list[str]:
         "infra/gitops/argocd/core/dev/keycloak.yaml",
         "infra/gitops/argocd/core/stage/keycloak.yaml",
         "infra/gitops/argocd/core/prod/keycloak.yaml",
+        "infra/gitops/argocd/overlays/local/keycloak.yaml",
         "scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh",
         "scripts/templates/blueprint/bootstrap/docs/platform/consumer/runtime_credentials_eso.md",
         "scripts/templates/infra/bootstrap/infra/gitops/argocd/core/keycloak.application.yaml.tmpl",
+        "scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/local/keycloak.yaml",
         "scripts/templates/blueprint/bootstrap/blueprint/runtime_identity_contract.yaml",
         "scripts/templates/infra/bootstrap/infra/gitops/platform/base/security/runtime-external-secrets-core.yaml",
     )
@@ -329,6 +356,30 @@ def _validate_runtime_credentials_contract(repo_root: Path) -> list[str]:
             errors.append(
                 f"infra/gitops/argocd/overlays/{env_name}/kustomization.yaml missing mandatory keycloak resource: "
                 f"{resource_path}"
+            )
+
+    keycloak_sync_policy_contract = {
+        "infra/gitops/argocd/core/local/keycloak.yaml": False,
+        "infra/gitops/argocd/overlays/local/keycloak.yaml": False,
+        "infra/gitops/argocd/core/dev/keycloak.yaml": True,
+        "infra/gitops/argocd/core/stage/keycloak.yaml": True,
+        "infra/gitops/argocd/core/prod/keycloak.yaml": True,
+    }
+    for relative_path, expected_automated in keycloak_sync_policy_contract.items():
+        manifest_path = repo_root / relative_path
+        if not manifest_path.is_file():
+            continue
+        has_automated = _manifest_sync_policy_has_automated(manifest_path.read_text(encoding="utf-8"))
+        if has_automated == expected_automated:
+            continue
+        if expected_automated:
+            errors.append(
+                f"{relative_path} must keep syncPolicy.automated enabled for managed profile convergence"
+            )
+        else:
+            errors.append(
+                f"{relative_path} must keep syncPolicy manual (syncPolicy.automated absent) "
+                "until runtime credentials are reconciled"
             )
 
     for consumer_path, dependency_path in RUNTIME_DEPENDENCY_EDGES:

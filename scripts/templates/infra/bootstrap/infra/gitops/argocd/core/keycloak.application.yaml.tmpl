@@ -80,9 +80,7 @@ spec:
           existingSecretKey: KEYCLOAK_DATABASE_PASSWORD
 {{KEYCLOAK_EXTRA_MANIFESTS_BLOCK}}
   syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
+{{KEYCLOAK_SYNC_AUTOMATED_BLOCK}}
     syncOptions:
       - CreateNamespace=true
       - PrunePropagationPolicy=foreground

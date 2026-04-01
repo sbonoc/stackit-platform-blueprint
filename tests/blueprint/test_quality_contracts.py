@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 from pathlib import Path
 import re
+import shutil
 import sys
 import tempfile
 import unittest
@@ -189,6 +190,86 @@ class QualityContractsTests(unittest.TestCase):
 
         self.assertIn(
             "infra/local/helm/core/cert-manager.values.yaml missing required values key mapping: crds.enabled",
+            errors,
+        )
+
+    def test_keycloak_local_manifest_defaults_to_manual_sync_policy(self) -> None:
+        local_core_manifest = _read("infra/gitops/argocd/core/local/keycloak.yaml")
+        local_overlay_manifest = _read("infra/gitops/argocd/overlays/local/keycloak.yaml")
+        local_overlay_template = _read("scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/local/keycloak.yaml")
+        keycloak_template = _read("scripts/templates/infra/bootstrap/infra/gitops/argocd/core/keycloak.application.yaml.tmpl")
+        infra_bootstrap = _read("scripts/bin/infra/bootstrap.sh")
+        keycloak_lib = _read("scripts/lib/infra/keycloak.sh")
+
+        for content in (local_core_manifest, local_overlay_manifest, local_overlay_template):
+            self.assertIn("syncPolicy:", content)
+            self.assertNotIn("\n    automated:\n", content)
+            self.assertIn("\n    syncOptions:\n", content)
+
+        for env_name in ("dev", "stage", "prod"):
+            non_local_manifest = _read(f"infra/gitops/argocd/core/{env_name}/keycloak.yaml")
+            self.assertIn("\n    automated:\n", non_local_manifest)
+
+        self.assertIn("{{KEYCLOAK_SYNC_AUTOMATED_BLOCK}}", keycloak_template)
+        self.assertIn("KEYCLOAK_SYNC_AUTOMATED_BLOCK=$keycloak_sync_automated_block", infra_bootstrap)
+        self.assertIn("keycloak_sync_automated_block()", keycloak_lib)
+
+    def test_validate_contract_rejects_local_keycloak_automated_sync(self) -> None:
+        validate_script = REPO_ROOT / "scripts/bin/blueprint/validate_contract.py"
+        spec = importlib.util.spec_from_file_location("validate_contract_module", validate_script)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)  # type: ignore[union-attr]
+
+        required_files = [
+            "blueprint/runtime_identity_contract.yaml",
+            "docs/platform/consumer/runtime_credentials_eso.md",
+            "infra/gitops/platform/base/extensions/kustomization.yaml",
+            "infra/gitops/platform/base/security/kustomization.yaml",
+            "infra/gitops/platform/base/security/runtime-source-store.yaml",
+            "infra/gitops/platform/base/security/runtime-external-secrets-core.yaml",
+            "infra/gitops/platform/base/kustomization.yaml",
+            "infra/gitops/argocd/core/local/keycloak.yaml",
+            "infra/gitops/argocd/core/dev/keycloak.yaml",
+            "infra/gitops/argocd/core/stage/keycloak.yaml",
+            "infra/gitops/argocd/core/prod/keycloak.yaml",
+            "infra/gitops/argocd/overlays/local/keycloak.yaml",
+            "infra/gitops/argocd/overlays/local/kustomization.yaml",
+            "infra/gitops/argocd/overlays/dev/kustomization.yaml",
+            "infra/gitops/argocd/overlays/stage/kustomization.yaml",
+            "infra/gitops/argocd/overlays/prod/kustomization.yaml",
+            "scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh",
+            "scripts/templates/blueprint/bootstrap/docs/platform/consumer/runtime_credentials_eso.md",
+            "scripts/templates/infra/bootstrap/infra/gitops/argocd/core/keycloak.application.yaml.tmpl",
+            "scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/local/keycloak.yaml",
+            "scripts/templates/blueprint/bootstrap/blueprint/runtime_identity_contract.yaml",
+            "scripts/templates/infra/bootstrap/infra/gitops/platform/base/security/runtime-external-secrets-core.yaml",
+        ]
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            for relative in required_files:
+                destination = tmp_root / relative
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(REPO_ROOT / relative, destination)
+
+            local_manifest = tmp_root / "infra/gitops/argocd/core/local/keycloak.yaml"
+            local_content = local_manifest.read_text(encoding="utf-8")
+            local_manifest.write_text(
+                local_content.replace(
+                    "  syncPolicy:\n    syncOptions:\n",
+                    "  syncPolicy:\n    automated:\n      prune: true\n      selfHeal: true\n    syncOptions:\n",
+                    1,
+                ),
+                encoding="utf-8",
+            )
+
+            errors = module._validate_runtime_credentials_contract(tmp_root)
+
+        self.assertIn(
+            "infra/gitops/argocd/core/local/keycloak.yaml must keep syncPolicy manual (syncPolicy.automated absent) "
+            "until runtime credentials are reconciled",
             errors,
         )
 

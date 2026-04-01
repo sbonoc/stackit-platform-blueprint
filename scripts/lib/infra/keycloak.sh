@@ -50,6 +50,23 @@ keycloak_public_endpoints_enabled() {
   [[ "$(normalize_bool "${PUBLIC_ENDPOINTS_ENABLED:-false}")" == "true" ]]
 }
 
+keycloak_sync_automated_block() {
+  local environment="${1:-$(profile_environment)}"
+
+  if [[ "$environment" == "local" ]]; then
+    # Keep local Keycloak manual by default until runtime credentials are
+    # reconciled, avoiding local-lite smoke regressions from missing secrets.
+    printf ''
+    return 0
+  fi
+
+  cat <<'EOF'
+    automated:
+      prune: true
+      selfHeal: true
+EOF
+}
+
 keycloak_extra_manifests_block() {
   if ! keycloak_public_endpoints_enabled; then
     printf '%s' "        extraManifests: []"
