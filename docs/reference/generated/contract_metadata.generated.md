@@ -121,6 +121,81 @@
 | `secrets-manager` | `false` | `SECRETS_MANAGER_ENABLED` | `blueprint/modules/secrets-manager/module.contract.yaml` |
 | `workflows` | `false` | `WORKFLOWS_ENABLED` | `blueprint/modules/workflows/module.contract.yaml` |
 
+## Optional Runtime Contracts
+| Contract | Enabled by default | Enable flag | Summary |
+|---|---:|---|---|
+| `event_messaging_contract` | `false` | `EVENT_MESSAGING_BASELINE_ENABLED` | Canonical async envelope, versioning, outbox/inbox, and idempotency baseline. |
+| `zero_downtime_evolution_contract` | `false` | `ZERO_DOWNTIME_EVOLUTION_ENABLED` | Expand/migrate/contract policy for schema, API, and event rollouts. |
+| `tenant_context_contract` | `false` | `TENANT_CONTEXT_PROPAGATION_ENABLED` | Tenant/organization context propagation across identity, HTTP, async, and telemetry. |
+
+## Runtime Contract: `event_messaging_contract`
+
+### Envelope Required Fields
+- `event_id`
+- `event_type`
+- `event_version`
+- `occurred_at`
+- `producer_service`
+- `correlation_id`
+- `causation_id`
+- `traceparent`
+- `tenant_id`
+- `organization_id`
+- `payload`
+
+### Envelope Optional Fields
+- `metadata`
+
+### Versioning Policy
+- Additive default: `true`
+- Overlap window releases: `2`
+- Deprecation window releases: `2`
+
+### Reliability and Scaffolding Hooks
+- `producer_contract_dir`: `scripts/templates/consumer/scaffold/messaging/contracts/producer`
+- `consumer_contract_dir`: `scripts/templates/consumer/scaffold/messaging/contracts/consumer`
+- `outbox_template_path`: `scripts/templates/consumer/scaffold/messaging/sql/outbox.sql.tmpl`
+- `inbox_template_path`: `scripts/templates/consumer/scaffold/messaging/sql/inbox.sql.tmpl`
+- `idempotency_template_path`: `scripts/templates/consumer/scaffold/messaging/sql/idempotency_keys.sql.tmpl`
+- `retry.strategy`: `exponential-backoff-with-jitter`
+
+## Runtime Contract: `zero_downtime_evolution_contract`
+
+### Lifecycle Phases
+- `expand`
+- `migrate`
+- `contract`
+
+### Policy Highlights
+- Destructive changes only in contract phase: `true`
+- API additive default: `true`
+- Event additive default: `true`
+- DB expand-first required: `true`
+
+## Runtime Contract: `tenant_context_contract`
+
+### Required Claims
+- `tenant_id`
+- `organization_id`
+- `user_id`
+
+### Required HTTP Headers
+- `tenant_id`: `X-Tenant-ID`
+- `organization_id`: `X-Organization-ID`
+- `correlation_id`: `X-Correlation-ID`
+
+### Async Event Fields
+- `tenant_id`
+- `organization_id`
+- `correlation_id`
+- `causation_id`
+
+### Observability Fields
+- `tenant_id`
+- `organization_id`
+- `correlation_id`
+- `trace_id`
+
 ## Module: `dns`
 
 - Purpose: Provision managed DNS zones and publish canonical domain contract.

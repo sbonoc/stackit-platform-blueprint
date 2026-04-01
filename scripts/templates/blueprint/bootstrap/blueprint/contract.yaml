@@ -141,6 +141,14 @@ spec:
       - scripts/templates/consumer/init/.github/ISSUE_TEMPLATE/config.yml.tmpl
       - scripts/templates/consumer/init/.github/pull_request_template.md.tmpl
       - scripts/templates/consumer/init/.github/workflows/ci.yml.tmpl
+      - scripts/templates/consumer/scaffold/messaging/contracts/producer/.gitkeep
+      - scripts/templates/consumer/scaffold/messaging/contracts/consumer/.gitkeep
+      - scripts/templates/consumer/scaffold/messaging/sql/outbox.sql.tmpl
+      - scripts/templates/consumer/scaffold/messaging/sql/inbox.sql.tmpl
+      - scripts/templates/consumer/scaffold/messaging/sql/idempotency_keys.sql.tmpl
+      - scripts/templates/blueprint/bootstrap/docs/platform/consumer/event_messaging_baseline.md
+      - scripts/templates/blueprint/bootstrap/docs/platform/consumer/zero_downtime_evolution.md
+      - scripts/templates/blueprint/bootstrap/docs/platform/consumer/tenant_context_propagation.md
       - scripts/templates/blueprint/bootstrap/docs/platform/consumer/runtime_credentials_eso.md
       - scripts/lib/infra/stackit_github_ci_contract.json
       - infra/cloud/stackit/terraform/bootstrap/versions.tf
@@ -224,6 +232,9 @@ spec:
       - docs/platform/consumer/quickstart.md
       - docs/platform/consumer/endpoint_exposure_model.md
       - docs/platform/consumer/protected_api_routes.md
+      - docs/platform/consumer/event_messaging_baseline.md
+      - docs/platform/consumer/zero_downtime_evolution.md
+      - docs/platform/consumer/tenant_context_propagation.md
       - docs/platform/consumer/runtime_credentials_eso.md
       - docs/platform/consumer/troubleshooting.md
       - docs/platform/modules/observability/README.md
@@ -515,6 +526,21 @@ spec:
       default: false
       required: false
       description: "Optional-module switch for Identity-Aware Proxy provisioning/deployment; requires Keycloak OIDC configuration."
+    EVENT_MESSAGING_BASELINE_ENABLED:
+      type: boolean
+      default: false
+      required: false
+      description: "Optional contract switch for canonical async event envelope, versioning policy, and reliability guidance."
+    ZERO_DOWNTIME_EVOLUTION_ENABLED:
+      type: boolean
+      default: false
+      required: false
+      description: "Optional contract switch for expand/migrate/contract rollout policy checks across schema/API/event changes."
+    TENANT_CONTEXT_PROPAGATION_ENABLED:
+      type: boolean
+      default: false
+      required: false
+      description: "Optional contract switch for tenant/organization context propagation across identity, HTTP, async events, and telemetry."
     KEYCLOAK_OPTIONAL_MODULE_RECONCILIATION_ENABLED:
       type: boolean
       default: true
@@ -590,6 +616,9 @@ spec:
         - docs/platform/consumer/quickstart.md
         - docs/platform/consumer/endpoint_exposure_model.md
         - docs/platform/consumer/protected_api_routes.md
+        - docs/platform/consumer/event_messaging_baseline.md
+        - docs/platform/consumer/zero_downtime_evolution.md
+        - docs/platform/consumer/tenant_context_propagation.md
         - docs/platform/consumer/runtime_credentials_eso.md
         - docs/platform/consumer/troubleshooting.md
         - docs/platform/modules/observability/README.md
@@ -750,6 +779,120 @@ spec:
       - metrics_ingestion
       - logs_ingestion
       - traces_ingestion
+
+  event_messaging_contract:
+    enabled_by_default: false
+    enable_flag: EVENT_MESSAGING_BASELINE_ENABLED
+    envelope:
+      required_fields:
+        - event_id
+        - event_type
+        - event_version
+        - occurred_at
+        - producer_service
+        - correlation_id
+        - causation_id
+        - traceparent
+        - tenant_id
+        - organization_id
+        - payload
+      optional_fields:
+        - metadata
+    versioning_policy:
+      additive_evolution_default: true
+      deprecation_window_releases: 2
+      overlap_window_releases: 2
+      dual_publish_required_for_breaking: true
+      dual_read_required_for_breaking: true
+    reliability:
+      outbox:
+        contract_required: true
+      inbox:
+        contract_required: true
+      idempotency:
+        contract_required: true
+        key_fields:
+          - event_id
+          - consumer_name
+      retry:
+        strategy: exponential-backoff-with-jitter
+      dead_letter_queue:
+        naming_pattern: "<event_type>.dlq"
+        replay_contract_required: true
+    scaffolding_hooks:
+      producer_contract_dir: scripts/templates/consumer/scaffold/messaging/contracts/producer
+      consumer_contract_dir: scripts/templates/consumer/scaffold/messaging/contracts/consumer
+      outbox_template_path: scripts/templates/consumer/scaffold/messaging/sql/outbox.sql.tmpl
+      inbox_template_path: scripts/templates/consumer/scaffold/messaging/sql/inbox.sql.tmpl
+      idempotency_template_path: scripts/templates/consumer/scaffold/messaging/sql/idempotency_keys.sql.tmpl
+
+  zero_downtime_evolution_contract:
+    enabled_by_default: false
+    enable_flag: ZERO_DOWNTIME_EVOLUTION_ENABLED
+    lifecycle:
+      phases:
+        - expand
+        - migrate
+        - contract
+      destructive_changes_only_in_contract_phase: true
+      minimum_stable_release_windows: 1
+    database_policy:
+      backward_compatible_expand_first: true
+      rollback_checkpoint_required: true
+      destructive_migrations_require_feature_flag: true
+    api_policy:
+      additive_changes_default: true
+      mixed_version_compatibility_required: true
+      removal_deprecation_window_releases: 2
+    event_policy:
+      additive_evolution_default: true
+      producer_consumer_overlap_releases: 2
+      dual_read_required_for_breaking: true
+    quality_checks:
+      reject_drop_column_without_expand_marker: true
+      reject_drop_table_without_contract_marker: true
+      reject_event_version_overwrite_without_new_version: true
+
+  tenant_context_contract:
+    enabled_by_default: false
+    enable_flag: TENANT_CONTEXT_PROPAGATION_ENABLED
+    required_for_user_initiated_flows: true
+    identity:
+      required_claims:
+        - tenant_id
+        - organization_id
+        - user_id
+      optional_claims:
+        - tenant_role
+    http_api:
+      required_headers:
+        tenant_id: X-Tenant-ID
+        organization_id: X-Organization-ID
+        correlation_id: X-Correlation-ID
+      missing_context_http_status: 400
+    async_events:
+      required_fields:
+        - tenant_id
+        - organization_id
+        - correlation_id
+        - causation_id
+      allow_empty_tenant_for_system_events: true
+    observability:
+      log_fields:
+        - tenant_id
+        - organization_id
+        - correlation_id
+        - trace_id
+      trace_attributes:
+        - tenant.id
+        - organization.id
+        - correlation.id
+      audit_fields:
+        - tenant_id
+        - organization_id
+        - actor_id
+        - action
+        - outcome
 
   optional_modules:
     root: blueprint/modules

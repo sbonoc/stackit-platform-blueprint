@@ -1,0 +1,25 @@
+-- Canonical outbox table scaffold (generic SQL template)
+-- Replace schema/table names according to consumer conventions.
+
+CREATE TABLE IF NOT EXISTS outbox_events (
+  id BIGSERIAL PRIMARY KEY,
+  event_id VARCHAR(64) NOT NULL,
+  event_type VARCHAR(128) NOT NULL,
+  event_version VARCHAR(32) NOT NULL,
+  occurred_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  producer_service VARCHAR(128) NOT NULL,
+  correlation_id VARCHAR(128) NOT NULL,
+  causation_id VARCHAR(128) NOT NULL,
+  traceparent VARCHAR(256) NOT NULL,
+  tenant_id VARCHAR(128) NOT NULL,
+  organization_id VARCHAR(128) NOT NULL,
+  payload JSONB NOT NULL,
+  metadata JSONB,
+  dispatch_status VARCHAR(32) NOT NULL DEFAULT 'pending',
+  dispatched_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  UNIQUE (event_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_outbox_dispatch_status
+  ON outbox_events (dispatch_status, created_at);

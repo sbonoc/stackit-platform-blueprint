@@ -176,6 +176,9 @@ class GovernanceRefactorCases(RefactorContractBase):
                 "docs/platform/consumer/quickstart.md",
                 "docs/platform/consumer/endpoint_exposure_model.md",
                 "docs/platform/consumer/protected_api_routes.md",
+                "docs/platform/consumer/event_messaging_baseline.md",
+                "docs/platform/consumer/zero_downtime_evolution.md",
+                "docs/platform/consumer/tenant_context_propagation.md",
                 "docs/platform/consumer/troubleshooting.md",
                 "docs/platform/modules/observability/README.md",
                 "docs/platform/modules/workflows/README.md",
@@ -205,6 +208,14 @@ class GovernanceRefactorCases(RefactorContractBase):
                 "scripts/templates/consumer/init/.github/ISSUE_TEMPLATE/config.yml.tmpl",
                 "scripts/templates/consumer/init/.github/pull_request_template.md.tmpl",
                 "scripts/templates/consumer/init/.github/workflows/ci.yml.tmpl",
+                "scripts/templates/consumer/scaffold/messaging/contracts/producer/.gitkeep",
+                "scripts/templates/consumer/scaffold/messaging/contracts/consumer/.gitkeep",
+                "scripts/templates/consumer/scaffold/messaging/sql/outbox.sql.tmpl",
+                "scripts/templates/consumer/scaffold/messaging/sql/inbox.sql.tmpl",
+                "scripts/templates/consumer/scaffold/messaging/sql/idempotency_keys.sql.tmpl",
+                "scripts/templates/blueprint/bootstrap/docs/platform/consumer/event_messaging_baseline.md",
+                "scripts/templates/blueprint/bootstrap/docs/platform/consumer/zero_downtime_evolution.md",
+                "scripts/templates/blueprint/bootstrap/docs/platform/consumer/tenant_context_propagation.md",
                 "scripts/templates/blueprint/bootstrap/docs/platform/consumer/runtime_credentials_eso.md",
                 "scripts/lib/blueprint/bootstrap_templates.sh",
                 "scripts/lib/blueprint/contract_schema.py",
@@ -397,9 +408,21 @@ class GovernanceRefactorCases(RefactorContractBase):
             "_validate_repository_mode_contract",
             "_validate_script_ownership_contract",
             "_validate_platform_docs_seed_contract",
+            "_validate_event_messaging_contract",
+            "_validate_zero_downtime_evolution_contract",
+            "_validate_tenant_context_contract",
         ):
             self.assertIn(marker, validate_py)
         self.assertNotIn("def _extract_yaml_list", validate_py)
+
+    def test_contract_includes_optional_runtime_policy_sections(self) -> None:
+        contract_yaml = _read("blueprint/contract.yaml")
+        self.assertIn("EVENT_MESSAGING_BASELINE_ENABLED:", contract_yaml)
+        self.assertIn("ZERO_DOWNTIME_EVOLUTION_ENABLED:", contract_yaml)
+        self.assertIn("TENANT_CONTEXT_PROPAGATION_ENABLED:", contract_yaml)
+        self.assertIn("event_messaging_contract:", contract_yaml)
+        self.assertIn("zero_downtime_evolution_contract:", contract_yaml)
+        self.assertIn("tenant_context_contract:", contract_yaml)
 
     def test_platform_base_namespaces_include_network_for_shared_gateway(self) -> None:
         namespaces = _read("infra/gitops/platform/base/namespaces.yaml")
@@ -504,6 +527,9 @@ class GovernanceRefactorCases(RefactorContractBase):
         self.assertIn("BLUEPRINT_STACKIT_TFSTATE_BUCKET=", init_env_defaults)
         self.assertIn("BLUEPRINT_STACKIT_TFSTATE_KEY_PREFIX=", init_env_defaults)
         self.assertIn("KEYCLOAK_OPTIONAL_MODULE_RECONCILIATION_ENABLED=true", init_env_defaults)
+        self.assertIn("EVENT_MESSAGING_BASELINE_ENABLED=false", init_env_defaults)
+        self.assertIn("ZERO_DOWNTIME_EVOLUTION_ENABLED=false", init_env_defaults)
+        self.assertIn("TENANT_CONTEXT_PROPAGATION_ENABLED=false", init_env_defaults)
         self.assertIn("RUNTIME_CREDENTIALS_SOURCE_NAMESPACE=security", init_env_defaults)
         self.assertIn("RUNTIME_CREDENTIALS_TARGET_NAMESPACE=apps", init_env_defaults)
         self.assertIn("RUNTIME_CREDENTIALS_ESO_WAIT_TIMEOUT=180", init_env_defaults)

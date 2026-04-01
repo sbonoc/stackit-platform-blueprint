@@ -105,6 +105,59 @@ def _validate_required_paths(repo_root: Path, required_paths: list[str]) -> list
     return errors
 
 
+def _mapping_or_error(value: object, path: str, errors: list[str]) -> dict[str, object]:
+    if isinstance(value, dict):
+        return {str(key): val for key, val in value.items()}
+    errors.append(f"{path} must be a mapping")
+    return {}
+
+
+def _list_of_str_or_error(value: object, path: str, errors: list[str]) -> list[str]:
+    if not isinstance(value, list):
+        errors.append(f"{path} must be a list")
+        return []
+    values: list[str] = []
+    for idx, item in enumerate(value):
+        if not isinstance(item, str):
+            errors.append(f"{path}[{idx}] must be a string")
+            continue
+        values.append(item)
+    return values
+
+
+def _string_or_error(value: object, path: str, errors: list[str]) -> str:
+    if isinstance(value, str):
+        return value
+    errors.append(f"{path} must be a string")
+    return ""
+
+
+def _bool_or_error(value: object, path: str, errors: list[str]) -> bool | None:
+    if isinstance(value, bool):
+        return value
+    errors.append(f"{path} must be a boolean")
+    return None
+
+
+def _int_or_error(value: object, path: str, errors: list[str]) -> int | None:
+    if isinstance(value, int):
+        return value
+    errors.append(f"{path} must be an integer")
+    return None
+
+
+def _is_optional_contract_enabled(spec_raw: dict[str, object], contract_section: dict[str, object]) -> bool:
+    enabled_by_default = bool(contract_section.get("enabled_by_default", False))
+    enable_flag_raw = contract_section.get("enable_flag")
+    enable_flag = enable_flag_raw if isinstance(enable_flag_raw, str) else ""
+    if not enable_flag:
+        return enabled_by_default
+    env_value = os.environ.get(enable_flag)
+    if env_value is None:
+        return enabled_by_default
+    return _normalize_bool(env_value)
+
+
 def _kustomization_resources(path: Path) -> set[str]:
     if not path.is_file():
         return set()
@@ -219,6 +272,546 @@ def _validate_runtime_credentials_contract(repo_root: Path) -> list[str]:
                 f"{consumer_path} references {dependency_path} but dependency file is missing; "
                 "reconcile runtime identity artifacts before infra-smoke/upgrade validation"
             )
+
+    return errors
+
+
+def _validate_event_messaging_contract(repo_root: Path, contract: BlueprintContract) -> list[str]:
+    errors: list[str] = []
+    spec_raw = _mapping_or_error(contract.raw.get("spec"), "spec", errors)
+    contract_section = _mapping_or_error(
+        spec_raw.get("event_messaging_contract"),
+        "spec.event_messaging_contract",
+        errors,
+    )
+    if not contract_section:
+        return errors
+
+    enabled_by_default = _bool_or_error(
+        contract_section.get("enabled_by_default"),
+        "spec.event_messaging_contract.enabled_by_default",
+        errors,
+    )
+    if enabled_by_default:
+        errors.append("spec.event_messaging_contract.enabled_by_default must be false")
+
+    enable_flag = _string_or_error(
+        contract_section.get("enable_flag"),
+        "spec.event_messaging_contract.enable_flag",
+        errors,
+    )
+    toggles_raw = spec_raw.get("toggles")
+    if isinstance(toggles_raw, dict) and enable_flag and enable_flag not in toggles_raw:
+        errors.append(
+            "spec.event_messaging_contract.enable_flag must reference an existing toggle: "
+            f"{enable_flag}"
+        )
+
+    envelope = _mapping_or_error(contract_section.get("envelope"), "spec.event_messaging_contract.envelope", errors)
+    required_fields = _list_of_str_or_error(
+        envelope.get("required_fields"),
+        "spec.event_messaging_contract.envelope.required_fields",
+        errors,
+    )
+    expected_required_fields = {
+        "event_id",
+        "event_type",
+        "event_version",
+        "occurred_at",
+        "producer_service",
+        "correlation_id",
+        "causation_id",
+        "traceparent",
+        "tenant_id",
+        "organization_id",
+        "payload",
+    }
+    missing_required_fields = sorted(expected_required_fields - set(required_fields))
+    if missing_required_fields:
+        errors.append(
+            "spec.event_messaging_contract.envelope.required_fields missing canonical fields: "
+            + ", ".join(missing_required_fields)
+        )
+    optional_fields = _list_of_str_or_error(
+        envelope.get("optional_fields"),
+        "spec.event_messaging_contract.envelope.optional_fields",
+        errors,
+    )
+    if "metadata" not in optional_fields:
+        errors.append(
+            "spec.event_messaging_contract.envelope.optional_fields must include metadata"
+        )
+
+    versioning = _mapping_or_error(
+        contract_section.get("versioning_policy"),
+        "spec.event_messaging_contract.versioning_policy",
+        errors,
+    )
+    _bool_or_error(
+        versioning.get("additive_evolution_default"),
+        "spec.event_messaging_contract.versioning_policy.additive_evolution_default",
+        errors,
+    )
+    deprecation_window = _int_or_error(
+        versioning.get("deprecation_window_releases"),
+        "spec.event_messaging_contract.versioning_policy.deprecation_window_releases",
+        errors,
+    )
+    if deprecation_window is not None and deprecation_window < 1:
+        errors.append(
+            "spec.event_messaging_contract.versioning_policy.deprecation_window_releases must be >= 1"
+        )
+    overlap_window = _int_or_error(
+        versioning.get("overlap_window_releases"),
+        "spec.event_messaging_contract.versioning_policy.overlap_window_releases",
+        errors,
+    )
+    if overlap_window is not None and overlap_window < 1:
+        errors.append(
+            "spec.event_messaging_contract.versioning_policy.overlap_window_releases must be >= 1"
+        )
+    _bool_or_error(
+        versioning.get("dual_publish_required_for_breaking"),
+        "spec.event_messaging_contract.versioning_policy.dual_publish_required_for_breaking",
+        errors,
+    )
+    _bool_or_error(
+        versioning.get("dual_read_required_for_breaking"),
+        "spec.event_messaging_contract.versioning_policy.dual_read_required_for_breaking",
+        errors,
+    )
+
+    reliability = _mapping_or_error(
+        contract_section.get("reliability"),
+        "spec.event_messaging_contract.reliability",
+        errors,
+    )
+    outbox = _mapping_or_error(
+        reliability.get("outbox"),
+        "spec.event_messaging_contract.reliability.outbox",
+        errors,
+    )
+    _bool_or_error(
+        outbox.get("contract_required"),
+        "spec.event_messaging_contract.reliability.outbox.contract_required",
+        errors,
+    )
+    inbox = _mapping_or_error(
+        reliability.get("inbox"),
+        "spec.event_messaging_contract.reliability.inbox",
+        errors,
+    )
+    _bool_or_error(
+        inbox.get("contract_required"),
+        "spec.event_messaging_contract.reliability.inbox.contract_required",
+        errors,
+    )
+    idempotency = _mapping_or_error(
+        reliability.get("idempotency"),
+        "spec.event_messaging_contract.reliability.idempotency",
+        errors,
+    )
+    _bool_or_error(
+        idempotency.get("contract_required"),
+        "spec.event_messaging_contract.reliability.idempotency.contract_required",
+        errors,
+    )
+    idempotency_key_fields = _list_of_str_or_error(
+        idempotency.get("key_fields"),
+        "spec.event_messaging_contract.reliability.idempotency.key_fields",
+        errors,
+    )
+    for required_key in ("event_id", "consumer_name"):
+        if required_key not in idempotency_key_fields:
+            errors.append(
+                "spec.event_messaging_contract.reliability.idempotency.key_fields must include "
+                f"{required_key}"
+            )
+    retry = _mapping_or_error(
+        reliability.get("retry"),
+        "spec.event_messaging_contract.reliability.retry",
+        errors,
+    )
+    retry_strategy = _string_or_error(
+        retry.get("strategy"),
+        "spec.event_messaging_contract.reliability.retry.strategy",
+        errors,
+    )
+    if retry_strategy != "exponential-backoff-with-jitter":
+        errors.append(
+            "spec.event_messaging_contract.reliability.retry.strategy must be exponential-backoff-with-jitter"
+        )
+    dead_letter_queue = _mapping_or_error(
+        reliability.get("dead_letter_queue"),
+        "spec.event_messaging_contract.reliability.dead_letter_queue",
+        errors,
+    )
+    _string_or_error(
+        dead_letter_queue.get("naming_pattern"),
+        "spec.event_messaging_contract.reliability.dead_letter_queue.naming_pattern",
+        errors,
+    )
+    _bool_or_error(
+        dead_letter_queue.get("replay_contract_required"),
+        "spec.event_messaging_contract.reliability.dead_letter_queue.replay_contract_required",
+        errors,
+    )
+
+    scaffolding_hooks = _mapping_or_error(
+        contract_section.get("scaffolding_hooks"),
+        "spec.event_messaging_contract.scaffolding_hooks",
+        errors,
+    )
+    for path_key in (
+        "producer_contract_dir",
+        "consumer_contract_dir",
+        "outbox_template_path",
+        "inbox_template_path",
+        "idempotency_template_path",
+    ):
+        path_value = _string_or_error(
+            scaffolding_hooks.get(path_key),
+            f"spec.event_messaging_contract.scaffolding_hooks.{path_key}",
+            errors,
+        )
+        if not path_value:
+            continue
+        if not (repo_root / path_value).exists():
+            errors.append(
+                f"missing event messaging scaffolding hook path: {path_value}"
+            )
+
+    docs_path = repo_root / "docs/platform/consumer/event_messaging_baseline.md"
+    if docs_path.is_file():
+        docs_content = docs_path.read_text(encoding="utf-8")
+        if "Python / FastAPI" not in docs_content:
+            errors.append("docs/platform/consumer/event_messaging_baseline.md must include Python / FastAPI guidance")
+        if "JS/TS runtime" not in docs_content:
+            errors.append("docs/platform/consumer/event_messaging_baseline.md must include JS/TS runtime guidance")
+
+    return errors
+
+
+def _validate_zero_downtime_evolution_contract(repo_root: Path, contract: BlueprintContract) -> list[str]:
+    errors: list[str] = []
+    spec_raw = _mapping_or_error(contract.raw.get("spec"), "spec", errors)
+    contract_section = _mapping_or_error(
+        spec_raw.get("zero_downtime_evolution_contract"),
+        "spec.zero_downtime_evolution_contract",
+        errors,
+    )
+    if not contract_section:
+        return errors
+
+    enabled_by_default = _bool_or_error(
+        contract_section.get("enabled_by_default"),
+        "spec.zero_downtime_evolution_contract.enabled_by_default",
+        errors,
+    )
+    if enabled_by_default:
+        errors.append("spec.zero_downtime_evolution_contract.enabled_by_default must be false")
+
+    enable_flag = _string_or_error(
+        contract_section.get("enable_flag"),
+        "spec.zero_downtime_evolution_contract.enable_flag",
+        errors,
+    )
+    toggles_raw = spec_raw.get("toggles")
+    if isinstance(toggles_raw, dict) and enable_flag and enable_flag not in toggles_raw:
+        errors.append(
+            "spec.zero_downtime_evolution_contract.enable_flag must reference an existing toggle: "
+            f"{enable_flag}"
+        )
+
+    lifecycle = _mapping_or_error(
+        contract_section.get("lifecycle"),
+        "spec.zero_downtime_evolution_contract.lifecycle",
+        errors,
+    )
+    phases = _list_of_str_or_error(
+        lifecycle.get("phases"),
+        "spec.zero_downtime_evolution_contract.lifecycle.phases",
+        errors,
+    )
+    if phases != ["expand", "migrate", "contract"]:
+        errors.append(
+            "spec.zero_downtime_evolution_contract.lifecycle.phases must be [expand, migrate, contract]"
+        )
+    _bool_or_error(
+        lifecycle.get("destructive_changes_only_in_contract_phase"),
+        "spec.zero_downtime_evolution_contract.lifecycle.destructive_changes_only_in_contract_phase",
+        errors,
+    )
+    minimum_release_windows = _int_or_error(
+        lifecycle.get("minimum_stable_release_windows"),
+        "spec.zero_downtime_evolution_contract.lifecycle.minimum_stable_release_windows",
+        errors,
+    )
+    if minimum_release_windows is not None and minimum_release_windows < 1:
+        errors.append(
+            "spec.zero_downtime_evolution_contract.lifecycle.minimum_stable_release_windows must be >= 1"
+        )
+
+    for section_name, keys in (
+        (
+            "database_policy",
+            (
+                "backward_compatible_expand_first",
+                "rollback_checkpoint_required",
+                "destructive_migrations_require_feature_flag",
+            ),
+        ),
+        (
+            "api_policy",
+            (
+                "additive_changes_default",
+                "mixed_version_compatibility_required",
+            ),
+        ),
+        (
+            "event_policy",
+            (
+                "additive_evolution_default",
+                "dual_read_required_for_breaking",
+            ),
+        ),
+    ):
+        section_mapping = _mapping_or_error(
+            contract_section.get(section_name),
+            f"spec.zero_downtime_evolution_contract.{section_name}",
+            errors,
+        )
+        for key in keys:
+            _bool_or_error(
+                section_mapping.get(key),
+                f"spec.zero_downtime_evolution_contract.{section_name}.{key}",
+                errors,
+            )
+
+    api_policy = _mapping_or_error(
+        contract_section.get("api_policy"),
+        "spec.zero_downtime_evolution_contract.api_policy",
+        errors,
+    )
+    api_window = _int_or_error(
+        api_policy.get("removal_deprecation_window_releases"),
+        "spec.zero_downtime_evolution_contract.api_policy.removal_deprecation_window_releases",
+        errors,
+    )
+    if api_window is not None and api_window < 1:
+        errors.append(
+            "spec.zero_downtime_evolution_contract.api_policy.removal_deprecation_window_releases must be >= 1"
+        )
+
+    event_policy = _mapping_or_error(
+        contract_section.get("event_policy"),
+        "spec.zero_downtime_evolution_contract.event_policy",
+        errors,
+    )
+    overlap_releases = _int_or_error(
+        event_policy.get("producer_consumer_overlap_releases"),
+        "spec.zero_downtime_evolution_contract.event_policy.producer_consumer_overlap_releases",
+        errors,
+    )
+    if overlap_releases is not None and overlap_releases < 1:
+        errors.append(
+            "spec.zero_downtime_evolution_contract.event_policy.producer_consumer_overlap_releases must be >= 1"
+        )
+
+    quality_checks = _mapping_or_error(
+        contract_section.get("quality_checks"),
+        "spec.zero_downtime_evolution_contract.quality_checks",
+        errors,
+    )
+    for check_name in (
+        "reject_drop_column_without_expand_marker",
+        "reject_drop_table_without_contract_marker",
+        "reject_event_version_overwrite_without_new_version",
+    ):
+        _bool_or_error(
+            quality_checks.get(check_name),
+            f"spec.zero_downtime_evolution_contract.quality_checks.{check_name}",
+            errors,
+        )
+
+    docs_path = repo_root / "docs/platform/consumer/zero_downtime_evolution.md"
+    if docs_path.is_file():
+        docs_content = docs_path.read_text(encoding="utf-8")
+        for phase in ("expand", "migrate", "contract"):
+            if f"`{phase}`" not in docs_content:
+                errors.append(
+                    "docs/platform/consumer/zero_downtime_evolution.md must describe lifecycle phase: "
+                    f"{phase}"
+                )
+
+    if _is_optional_contract_enabled(spec_raw, contract_section):
+        for sql_path in sorted(repo_root.rglob("*.sql")):
+            relative = sql_path.relative_to(repo_root).as_posix()
+            if not any(marker in relative for marker in ("migration", "migrations/")):
+                continue
+            content_upper = sql_path.read_text(encoding="utf-8", errors="surrogateescape").upper()
+            destructive = "DROP COLUMN" in content_upper or "DROP TABLE" in content_upper
+            if not destructive:
+                continue
+            if "ZERO_DOWNTIME_CONTRACT_PHASE=CONTRACT" in content_upper:
+                continue
+            errors.append(
+                f"{relative} contains destructive SQL without ZERO_DOWNTIME_CONTRACT_PHASE=contract marker"
+            )
+
+    return errors
+
+
+def _validate_tenant_context_contract(contract: BlueprintContract) -> list[str]:
+    errors: list[str] = []
+    spec_raw = _mapping_or_error(contract.raw.get("spec"), "spec", errors)
+    contract_section = _mapping_or_error(
+        spec_raw.get("tenant_context_contract"),
+        "spec.tenant_context_contract",
+        errors,
+    )
+    if not contract_section:
+        return errors
+
+    enabled_by_default = _bool_or_error(
+        contract_section.get("enabled_by_default"),
+        "spec.tenant_context_contract.enabled_by_default",
+        errors,
+    )
+    if enabled_by_default:
+        errors.append("spec.tenant_context_contract.enabled_by_default must be false")
+
+    enable_flag = _string_or_error(
+        contract_section.get("enable_flag"),
+        "spec.tenant_context_contract.enable_flag",
+        errors,
+    )
+    toggles_raw = spec_raw.get("toggles")
+    if isinstance(toggles_raw, dict) and enable_flag and enable_flag not in toggles_raw:
+        errors.append(
+            "spec.tenant_context_contract.enable_flag must reference an existing toggle: "
+            f"{enable_flag}"
+        )
+
+    _bool_or_error(
+        contract_section.get("required_for_user_initiated_flows"),
+        "spec.tenant_context_contract.required_for_user_initiated_flows",
+        errors,
+    )
+
+    identity = _mapping_or_error(
+        contract_section.get("identity"),
+        "spec.tenant_context_contract.identity",
+        errors,
+    )
+    required_claims = _list_of_str_or_error(
+        identity.get("required_claims"),
+        "spec.tenant_context_contract.identity.required_claims",
+        errors,
+    )
+    for required_claim in ("tenant_id", "organization_id", "user_id"):
+        if required_claim not in required_claims:
+            errors.append(
+                "spec.tenant_context_contract.identity.required_claims must include "
+                f"{required_claim}"
+            )
+    _list_of_str_or_error(
+        identity.get("optional_claims"),
+        "spec.tenant_context_contract.identity.optional_claims",
+        errors,
+    )
+
+    http_api = _mapping_or_error(
+        contract_section.get("http_api"),
+        "spec.tenant_context_contract.http_api",
+        errors,
+    )
+    required_headers = _mapping_or_error(
+        http_api.get("required_headers"),
+        "spec.tenant_context_contract.http_api.required_headers",
+        errors,
+    )
+    for header_key in ("tenant_id", "organization_id", "correlation_id"):
+        header_value = required_headers.get(header_key)
+        if not isinstance(header_value, str) or not header_value.strip():
+            errors.append(
+                "spec.tenant_context_contract.http_api.required_headers must define "
+                f"a non-empty value for {header_key}"
+            )
+    missing_context_status = _int_or_error(
+        http_api.get("missing_context_http_status"),
+        "spec.tenant_context_contract.http_api.missing_context_http_status",
+        errors,
+    )
+    if missing_context_status is not None and missing_context_status < 400:
+        errors.append(
+            "spec.tenant_context_contract.http_api.missing_context_http_status must be a client/server error status"
+        )
+
+    async_events = _mapping_or_error(
+        contract_section.get("async_events"),
+        "spec.tenant_context_contract.async_events",
+        errors,
+    )
+    required_event_fields = _list_of_str_or_error(
+        async_events.get("required_fields"),
+        "spec.tenant_context_contract.async_events.required_fields",
+        errors,
+    )
+    for event_field in ("tenant_id", "organization_id", "correlation_id", "causation_id"):
+        if event_field not in required_event_fields:
+            errors.append(
+                "spec.tenant_context_contract.async_events.required_fields must include "
+                f"{event_field}"
+            )
+    _bool_or_error(
+        async_events.get("allow_empty_tenant_for_system_events"),
+        "spec.tenant_context_contract.async_events.allow_empty_tenant_for_system_events",
+        errors,
+    )
+
+    observability = _mapping_or_error(
+        contract_section.get("observability"),
+        "spec.tenant_context_contract.observability",
+        errors,
+    )
+    log_fields = _list_of_str_or_error(
+        observability.get("log_fields"),
+        "spec.tenant_context_contract.observability.log_fields",
+        errors,
+    )
+    for field in ("tenant_id", "organization_id", "correlation_id"):
+        if field not in log_fields:
+            errors.append(
+                "spec.tenant_context_contract.observability.log_fields must include "
+                f"{field}"
+            )
+    _list_of_str_or_error(
+        observability.get("trace_attributes"),
+        "spec.tenant_context_contract.observability.trace_attributes",
+        errors,
+    )
+    _list_of_str_or_error(
+        observability.get("audit_fields"),
+        "spec.tenant_context_contract.observability.audit_fields",
+        errors,
+    )
+
+    event_messaging_section = spec_raw.get("event_messaging_contract")
+    if isinstance(event_messaging_section, dict):
+        envelope = event_messaging_section.get("envelope")
+        if isinstance(envelope, dict):
+            event_required_fields_raw = envelope.get("required_fields")
+            if isinstance(event_required_fields_raw, list):
+                event_required_fields = {
+                    str(field) for field in event_required_fields_raw if isinstance(field, str)
+                }
+                for field in ("tenant_id", "organization_id", "correlation_id", "causation_id"):
+                    if field not in event_required_fields:
+                        errors.append(
+                            "spec.event_messaging_contract.envelope.required_fields must include "
+                            f"{field} to match tenant context propagation contract"
+                        )
 
     return errors
 
@@ -1032,6 +1625,9 @@ def main() -> int:
     errors.extend(_validate_docs_edit_link(repo_root, contract))
     errors.extend(_validate_platform_docs_seed_contract(repo_root, contract))
     errors.extend(_validate_runtime_credentials_contract(repo_root))
+    errors.extend(_validate_event_messaging_contract(repo_root, contract))
+    errors.extend(_validate_zero_downtime_evolution_contract(repo_root, contract))
+    errors.extend(_validate_tenant_context_contract(contract))
     errors.extend(_validate_bootstrap_template_sync(repo_root, contract))
 
     if errors:

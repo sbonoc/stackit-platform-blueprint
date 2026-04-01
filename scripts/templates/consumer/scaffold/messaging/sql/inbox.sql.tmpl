@@ -1,0 +1,18 @@
+-- Canonical inbox table scaffold (generic SQL template)
+-- Tracks message consumption for idempotent consumers.
+
+CREATE TABLE IF NOT EXISTS inbox_events (
+  id BIGSERIAL PRIMARY KEY,
+  event_id VARCHAR(64) NOT NULL,
+  consumer_name VARCHAR(128) NOT NULL,
+  consumed_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  correlation_id VARCHAR(128),
+  causation_id VARCHAR(128),
+  traceparent VARCHAR(256),
+  tenant_id VARCHAR(128),
+  organization_id VARCHAR(128),
+  UNIQUE (event_id, consumer_name)
+);
+
+CREATE INDEX IF NOT EXISTS idx_inbox_consumer_consumed_at
+  ON inbox_events (consumer_name, consumed_at DESC);

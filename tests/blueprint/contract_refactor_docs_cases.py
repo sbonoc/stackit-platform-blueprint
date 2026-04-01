@@ -48,6 +48,18 @@ class DocsRefactorCases(RefactorContractBase):
             _extract_yaml_list(platform_docs, "required_seed_files"),
         )
         self.assertIn(
+            "docs/platform/consumer/event_messaging_baseline.md",
+            _extract_yaml_list(platform_docs, "required_seed_files"),
+        )
+        self.assertIn(
+            "docs/platform/consumer/zero_downtime_evolution.md",
+            _extract_yaml_list(platform_docs, "required_seed_files"),
+        )
+        self.assertIn(
+            "docs/platform/consumer/tenant_context_propagation.md",
+            _extract_yaml_list(platform_docs, "required_seed_files"),
+        )
+        self.assertIn(
             "docs/platform/consumer/runtime_credentials_eso.md",
             _extract_yaml_list(platform_docs, "required_seed_files"),
         )
@@ -55,10 +67,17 @@ class DocsRefactorCases(RefactorContractBase):
         self.assertIn('"docs/platform/consumer/quickstart.md"', bootstrap)
         self.assertIn('"docs/platform/consumer/endpoint_exposure_model.md"', bootstrap)
         self.assertIn('"docs/platform/consumer/protected_api_routes.md"', bootstrap)
+        self.assertIn('"docs/platform/consumer/event_messaging_baseline.md"', bootstrap)
+        self.assertIn('"docs/platform/consumer/zero_downtime_evolution.md"', bootstrap)
+        self.assertIn('"docs/platform/consumer/tenant_context_propagation.md"', bootstrap)
         self.assertIn('"docs/platform/consumer/runtime_credentials_eso.md"', bootstrap)
         self.assertIn("if [[ -f \"$path\" ]]; then", bootstrap_lib)
         self.assertIn("_validate_platform_docs_seed_contract", validate_py)
         self.assertNotIn('"docs/platform/consumer/quickstart.md",', validate_py)
+        platform_readme = _read("docs/platform/README.md")
+        self.assertIn("[Event Messaging Baseline](consumer/event_messaging_baseline.md)", platform_readme)
+        self.assertIn("[Zero-Downtime Evolution](consumer/zero_downtime_evolution.md)", platform_readme)
+        self.assertIn("[Tenant Context Propagation](consumer/tenant_context_propagation.md)", platform_readme)
 
     def test_docs_readme_points_to_command_discovery(self) -> None:
         docs_readme = _read("docs/README.md")
@@ -92,6 +111,9 @@ class DocsRefactorCases(RefactorContractBase):
         self.assertIn("[Platform Docs](platform/README.md)", docs_readme)
         self.assertIn("[Endpoint Exposure Model](platform/consumer/endpoint_exposure_model.md)", docs_readme)
         self.assertIn("[Protected API Routes](platform/consumer/protected_api_routes.md)", docs_readme)
+        self.assertIn("[Event Messaging Baseline](platform/consumer/event_messaging_baseline.md)", docs_readme)
+        self.assertIn("[Zero-Downtime Evolution](platform/consumer/zero_downtime_evolution.md)", docs_readme)
+        self.assertIn("[Tenant Context Propagation](platform/consumer/tenant_context_propagation.md)", docs_readme)
         self.assertIn("[Core Make Targets (Generated)](reference/generated/core_targets.generated.md)", docs_readme)
         self.assertIn("artifacts/infra/workload_health.json", docs_readme)
 
@@ -108,6 +130,9 @@ class DocsRefactorCases(RefactorContractBase):
         self.assertIn("LOCAL_KUBE_CONTEXT", quickstart)
         self.assertIn("[Endpoint Exposure Model](endpoint_exposure_model.md)", quickstart)
         self.assertIn("[Protected API Routes](protected_api_routes.md)", quickstart)
+        self.assertIn("[Event Messaging Baseline](event_messaging_baseline.md)", quickstart)
+        self.assertIn("[Zero-Downtime Evolution](zero_downtime_evolution.md)", quickstart)
+        self.assertIn("[Tenant Context Propagation](tenant_context_propagation.md)", quickstart)
         self.assertIn("artifacts/infra/infra_status_snapshot.json", quickstart)
         self.assertIn("artifacts/infra/workload_health.json", quickstart)
         self.assertNotIn("make infra-smoke", quickstart)
@@ -142,6 +167,37 @@ class DocsRefactorCases(RefactorContractBase):
         self.assertIn("kind: SecurityPolicy", protected_api_routes)
         self.assertIn("platform-edge-*", protected_api_routes)
         self.assertEqual(protected_api_routes, protected_api_routes_template)
+
+    def test_runtime_policy_guides_are_seeded_and_template_synced(self) -> None:
+        event_messaging = _read("docs/platform/consumer/event_messaging_baseline.md")
+        event_messaging_template = _read(
+            "scripts/templates/blueprint/bootstrap/docs/platform/consumer/event_messaging_baseline.md"
+        )
+        zero_downtime = _read("docs/platform/consumer/zero_downtime_evolution.md")
+        zero_downtime_template = _read(
+            "scripts/templates/blueprint/bootstrap/docs/platform/consumer/zero_downtime_evolution.md"
+        )
+        tenant_context = _read("docs/platform/consumer/tenant_context_propagation.md")
+        tenant_context_template = _read(
+            "scripts/templates/blueprint/bootstrap/docs/platform/consumer/tenant_context_propagation.md"
+        )
+
+        self.assertIn("EVENT_MESSAGING_BASELINE_ENABLED", event_messaging)
+        self.assertIn("Python / FastAPI", event_messaging)
+        self.assertIn("JS/TS runtime", event_messaging)
+        self.assertEqual(event_messaging, event_messaging_template)
+
+        self.assertIn("ZERO_DOWNTIME_EVOLUTION_ENABLED", zero_downtime)
+        self.assertIn("expand", zero_downtime)
+        self.assertIn("migrate", zero_downtime)
+        self.assertIn("contract", zero_downtime)
+        self.assertEqual(zero_downtime, zero_downtime_template)
+
+        self.assertIn("TENANT_CONTEXT_PROPAGATION_ENABLED", tenant_context)
+        self.assertIn("X-Tenant-ID", tenant_context)
+        self.assertIn("X-Organization-ID", tenant_context)
+        self.assertIn("X-Correlation-ID", tenant_context)
+        self.assertEqual(tenant_context, tenant_context_template)
 
     def test_gateway_module_docs_link_to_endpoint_exposure_model(self) -> None:
         public_endpoints_doc = _read("docs/platform/modules/public-endpoints/README.md")
