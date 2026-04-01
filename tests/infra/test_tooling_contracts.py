@@ -591,6 +591,18 @@ render_optional_module_secret_manifests "messaging" "blueprint-rabbitmq-auth" "r
         self.assertIn("aggregate_e2e_budget_total", script)
         self.assertIn("touchpoints-test-e2e", script)
 
+    def test_argocd_local_overlay_resolves_with_default_kustomize_load_restrictions(self) -> None:
+        kubectl_check = run(["bash", "-lc", "command -v kubectl >/dev/null 2>&1"])
+        if kubectl_check.returncode != 0:
+            self.skipTest("kubectl is required for local overlay kustomize regression check")
+        kustomize_help_check = run(["bash", "-lc", "kubectl kustomize --help >/dev/null 2>&1"])
+        if kustomize_help_check.returncode != 0:
+            self.skipTest("kubectl kustomize is required for local overlay kustomize regression check")
+
+        result = run(["kubectl", "kustomize", str(REPO_ROOT / "infra/gitops/argocd/overlays/local")])
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        self.assertIn("name: platform-keycloak-local", result.stdout)
+
     def test_quality_test_pyramid_target_passes(self) -> None:
         result = run(["make", "quality-test-pyramid"])
         self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)

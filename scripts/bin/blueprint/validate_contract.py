@@ -259,7 +259,7 @@ def _validate_runtime_credentials_contract(repo_root: Path) -> list[str]:
             )
 
     required_keycloak_resources = {
-        "local": "../../core/local/keycloak.yaml",
+        "local": "keycloak.yaml",
         "dev": "../../core/dev/keycloak.yaml",
         "stage": "../../core/stage/keycloak.yaml",
         "prod": "../../core/prod/keycloak.yaml",
@@ -1727,6 +1727,7 @@ def _validate_bootstrap_template_sync(repo_root: Path, contract: BlueprintContra
                 "infra/gitops/argocd/environments/dev/kustomization.yaml",
                 "infra/gitops/argocd/environments/dev/platform-config.yaml",
                 "infra/gitops/argocd/overlays/local/kustomization.yaml",
+                "infra/gitops/argocd/overlays/local/keycloak.yaml",
                 "infra/gitops/platform/base/kustomization.yaml",
                 "infra/gitops/platform/base/namespaces.yaml",
                 "infra/gitops/platform/base/security/kustomization.yaml",

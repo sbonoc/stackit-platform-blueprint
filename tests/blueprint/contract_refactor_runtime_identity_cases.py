@@ -134,11 +134,20 @@ class RuntimeIdentityRefactorCases(RefactorContractBase):
         stage_overlay_template = _read("scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/stage/kustomization.yaml")
         prod_overlay = _read("infra/gitops/argocd/overlays/prod/kustomization.yaml")
         prod_overlay_template = _read("scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/prod/kustomization.yaml")
+        local_core_keycloak = _read("infra/gitops/argocd/core/local/keycloak.yaml")
+        local_overlay_keycloak = _read("infra/gitops/argocd/overlays/local/keycloak.yaml")
+        local_overlay_keycloak_template = _read(
+            "scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/local/keycloak.yaml"
+        )
 
-        self.assertIn("../../core/local/keycloak.yaml", local_overlay)
+        self.assertRegex(local_overlay, r"(?m)^\s*- keycloak\.yaml$")
+        self.assertNotIn("../../core/local/keycloak.yaml", local_overlay)
         self.assertIn("../../core/dev/keycloak.yaml", dev_overlay)
         self.assertIn("../../core/stage/keycloak.yaml", stage_overlay)
         self.assertIn("../../core/prod/keycloak.yaml", prod_overlay)
+        self.assertIn("name: platform-keycloak-local", local_overlay_keycloak)
+        self.assertEqual(local_overlay_keycloak, local_core_keycloak)
+        self.assertEqual(local_overlay_keycloak, local_overlay_keycloak_template)
         self.assertEqual(local_overlay, local_overlay_template)
         self.assertEqual(dev_overlay, dev_overlay_template)
         self.assertEqual(stage_overlay, stage_overlay_template)
