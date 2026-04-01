@@ -118,3 +118,7 @@
   - `make blueprint-upgrade-consumer-preflight` now emits `artifacts/blueprint/upgrade_preflight.json` with auto-apply/manual-merge/conflict grouping plus required follow-up commands.
   - source CI workflow is rendered/checked via `scripts/lib/quality/render_ci_workflow.py` and exposed through `quality-ci-{sync,check-sync}`.
   - platform seed docs parity (`docs/platform/**` <-> bootstrap template mirror) is enforced through `quality-docs-{sync,check}-platform-seed`.
+- Codex-assisted consumer upgrades are packaged as a blueprint-managed local skill contract:
+  - canonical skill assets live under `.agents/skills/blueprint-consumer-upgrade/**` and are part of required repository files.
+  - `make blueprint-install-codex-skill` is the canonical wrapper to sync the bundled skill into `${CODEX_HOME:-$HOME/.codex}/skills`.
+  - the bundled resolver helper (`resolve_latest_stable_ref.sh`) selects latest stable semantic tags and resolves the peeled commit SHA for annotated tags.

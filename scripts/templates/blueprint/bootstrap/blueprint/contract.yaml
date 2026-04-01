@@ -58,12 +58,17 @@ spec:
       - AGENTS.md
       - AGENTS.backlog.md
       - AGENTS.decisions.md
+      - .agents/skills/blueprint-consumer-upgrade/SKILL.md
+      - .agents/skills/blueprint-consumer-upgrade/agents/openai.yaml
+      - .agents/skills/blueprint-consumer-upgrade/references/manual_merge_checklist.md
+      - .agents/skills/blueprint-consumer-upgrade/scripts/resolve_latest_stable_ref.sh
       - Makefile
       - make/blueprint.generated.mk
       - make/platform.mk
       - make/platform/.gitkeep
       - scripts/bin/blueprint/bootstrap.sh
       - scripts/bin/blueprint/clean_generated.sh
+      - scripts/bin/blueprint/install_codex_skill.sh
       - scripts/bin/blueprint/init_repo_interactive.sh
       - scripts/bin/blueprint/resync_consumer_seeds.sh
       - scripts/bin/blueprint/upgrade_consumer.sh
@@ -736,6 +741,7 @@ spec:
       - blueprint-upgrade-consumer
       - blueprint-upgrade-consumer-preflight
       - blueprint-upgrade-consumer-validate
+      - blueprint-install-codex-skill
       - blueprint-check-placeholders
       - blueprint-template-smoke
       - blueprint-bootstrap
