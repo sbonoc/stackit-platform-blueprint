@@ -1,0 +1,4 @@
+interface:
+  display_name: "Blueprint Consumer Upgrade"
+  short_description: "Safe consumer upgrade from latest blueprint tag"
+  default_prompt: "Use $blueprint-consumer-upgrade to upgrade this generated-consumer repo to the latest stable stackit-platform-blueprint tag with preflight, apply, and validate."

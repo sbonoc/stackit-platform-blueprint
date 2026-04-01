@@ -61,6 +61,11 @@ BLUEPRINT_UPGRADE_REF=<tag|branch|commit> BLUEPRINT_UPGRADE_APPLY=true make blue
 make blueprint-upgrade-consumer-validate
 ```
 `BLUEPRINT_UPGRADE_SOURCE` defaults to `remote.upstream.url` when configured, then `remote.origin.url`.
+Install/sync the bundled Codex consumer-upgrade skill locally when you want repeatable AI-driven upgrade runs:
+```bash
+make blueprint-install-codex-skill
+BLUEPRINT_CODEX_SKILLS_DIR="${CODEX_HOME:-$HOME/.codex}/skills" make blueprint-install-codex-skill
+```
 
 ## If You Maintain the Blueprint (Maintainer Track)
 Read:
@@ -101,6 +106,7 @@ Common baseline flow:
 - `make blueprint-upgrade-consumer`
 - `make blueprint-upgrade-consumer-preflight`
 - `make blueprint-upgrade-consumer-validate`
+- `make blueprint-install-codex-skill`
 - `make blueprint-bootstrap`
 - `make blueprint-render-module-wrapper-skeletons`
 - `make blueprint-clean-generated`

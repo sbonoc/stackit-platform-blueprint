@@ -21,6 +21,7 @@
 - `blueprint-upgrade-consumer`
 - `blueprint-upgrade-consumer-preflight`
 - `blueprint-upgrade-consumer-validate`
+- `blueprint-install-codex-skill`
 - `blueprint-check-placeholders`
 - `blueprint-template-smoke`
 - `blueprint-bootstrap`
