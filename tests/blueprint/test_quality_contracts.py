@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import importlib.util
 from pathlib import Path
 import sys
 import tempfile
 import unittest
 
+from scripts.lib.blueprint.contract_schema import load_blueprint_contract
 from tests._shared.helpers import REPO_ROOT, run
 
 
@@ -79,6 +81,30 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn("branches:", workflow)
         self.assertIn("  push:", workflow)
         self.assertIn("default_branch: main", contract)
+
+    def test_required_files_filter_source_only_paths_for_generated_repo_mode(self) -> None:
+        validate_script = REPO_ROOT / "scripts/bin/blueprint/validate_contract.py"
+        spec = importlib.util.spec_from_file_location("validate_contract_module", validate_script)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)  # type: ignore[union-attr]
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            contract_path = Path(tmpdir) / "contract.yaml"
+            contract_path.write_text(
+                _read("blueprint/contract.yaml").replace(
+                    "repo_mode: template-source",
+                    "repo_mode: generated-consumer",
+                    1,
+                ),
+                encoding="utf-8",
+            )
+            contract = load_blueprint_contract(contract_path)
+            required_files = module._required_files_for_repo_mode(contract)
+
+        self.assertFalse(any(path.startswith("tests/blueprint/") for path in required_files))
+        self.assertIn("tests/_shared/helpers.py", required_files)
 
     def test_module_wrapper_generator_is_repo_rooted(self) -> None:
         generator = REPO_ROOT / "scripts/lib/blueprint/generate_module_wrapper_skeletons.py"
