@@ -111,13 +111,37 @@ class QualityContractsTests(unittest.TestCase):
         source_values = _read("infra/local/helm/core/cert-manager.values.yaml")
         template_values = _read("scripts/templates/infra/bootstrap/infra/local/helm/core/cert-manager.values.yaml")
 
+        def has_crds_enabled_true(content: str) -> bool:
+            parent_pattern = re.compile(r"^\s*crds\s*:\s*(?:#[^\n]*)?$")
+            enabled_pattern = re.compile(r"^\s*enabled\s*:\s*true\s*(?:#.*)?$")
+
+            lines = content.splitlines()
+            for idx, line in enumerate(lines):
+                if not parent_pattern.match(line):
+                    continue
+                parent_indent = len(line) - len(line.lstrip(" "))
+                cursor = idx + 1
+                while cursor < len(lines):
+                    candidate = lines[cursor]
+                    stripped = candidate.strip()
+                    if not stripped or stripped.startswith("#"):
+                        cursor += 1
+                        continue
+                    candidate_indent = len(candidate) - len(candidate.lstrip(" "))
+                    if candidate_indent <= parent_indent:
+                        break
+                    if enabled_pattern.match(candidate):
+                        return True
+                    cursor += 1
+                return False
+            return False
+
         deprecated_pattern = re.compile(r"(?m)^\s*installCRDs\s*:")
-        required_mapping_pattern = re.compile(r"(?ms)^\s*crds\s*:\s*(?:#.*)?\n\s+enabled\s*:\s*true\s*$")
 
         self.assertNotRegex(source_values, deprecated_pattern)
-        self.assertRegex(source_values, required_mapping_pattern)
+        self.assertTrue(has_crds_enabled_true(source_values))
         self.assertNotRegex(template_values, deprecated_pattern)
-        self.assertRegex(template_values, required_mapping_pattern)
+        self.assertTrue(has_crds_enabled_true(template_values))
         self.assertEqual(source_values, template_values)
 
     def test_validate_contract_rejects_deprecated_cert_manager_values_key(self) -> None:
