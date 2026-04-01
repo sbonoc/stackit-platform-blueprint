@@ -5,7 +5,7 @@ resources:
   - appproject.yaml
   - appproject-edge.yaml
   - application-platform-local.yaml
-  - ../../core/local/keycloak.yaml
+  - keycloak.yaml
 configMapGenerator:
   - name: blueprint-runtime-profile
     literals:

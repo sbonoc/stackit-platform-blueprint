@@ -197,6 +197,7 @@ bootstrap_infra_static_templates() {
   ensure_infra_template_file "infra/gitops/argocd/overlays/local/kustomization.yaml"
   ensure_infra_template_file "infra/gitops/argocd/overlays/local/appproject.yaml"
   ensure_infra_template_file "infra/gitops/argocd/overlays/local/application-platform-local.yaml"
+  ensure_infra_template_file "infra/gitops/argocd/overlays/local/keycloak.yaml"
 }
 
 bootstrap_stackit_terraform_scaffolding() {

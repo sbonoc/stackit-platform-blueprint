@@ -196,6 +196,7 @@ spec:
       - infra/gitops/argocd/overlays/local/kustomization.yaml
       - infra/gitops/argocd/overlays/local/appproject.yaml
       - infra/gitops/argocd/overlays/local/application-platform-local.yaml
+      - infra/gitops/argocd/overlays/local/keycloak.yaml
       - infra/gitops/platform/base/kustomization.yaml
       - infra/gitops/platform/base/namespaces.yaml
       - infra/gitops/platform/base/extensions/kustomization.yaml
@@ -220,6 +221,7 @@ spec:
       - scripts/templates/infra/bootstrap/infra/gitops/argocd/core/keycloak.application.yaml.tmpl
       - scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/local/appproject.yaml
       - scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/local/application-platform-local.yaml
+      - scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/local/keycloak.yaml
       - scripts/templates/infra/bootstrap/infra/gitops/platform/base/kustomization.yaml
       - scripts/templates/infra/bootstrap/infra/gitops/platform/base/namespaces.yaml
       - scripts/templates/infra/bootstrap/infra/gitops/platform/base/extensions/kustomization.yaml
