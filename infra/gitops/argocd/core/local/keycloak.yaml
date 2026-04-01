@@ -80,9 +80,6 @@ spec:
           existingSecretKey: KEYCLOAK_DATABASE_PASSWORD
         extraManifests: []
   syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
     syncOptions:
       - CreateNamespace=true
       - PrunePropagationPolicy=foreground

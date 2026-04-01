@@ -102,6 +102,8 @@ For local live execution, the blueprint prefers the `docker-desktop` Kubernetes 
 Set `LOCAL_KUBE_CONTEXT` before running `infra-provision-deploy` if you want to override that default.
 Use `make auth-reconcile-eso-runtime-secrets` whenever you need an explicit runtime credential
 source-to-target ESO reconciliation pass (including readiness and target-secret verification).
+For local profiles, Keycloak Argo sync is manual by default; after a successful reconcile run,
+sync `platform-keycloak-local` explicitly from ArgoCD UI/CLI when you want to activate browser login.
 See [Runtime Credentials (ESO)](runtime_credentials_eso.md) for local seeding and managed-store wiring.
 
 Before publishing hosts or API routes, review [Endpoint Exposure Model](endpoint_exposure_model.md)
