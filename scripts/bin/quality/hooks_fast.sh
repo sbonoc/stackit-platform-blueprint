@@ -3,6 +3,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
+source "$ROOT_DIR/scripts/lib/blueprint/contract_runtime.sh"
 
 start_script_metric_trap "quality_hooks_fast"
 
@@ -13,8 +14,10 @@ Usage: hooks_fast.sh
 Runs the fast local quality gate:
 - pre-commit (if available)
 - shellcheck (required)
+- CI workflow sync checks (template-source only)
 - docs lint
 - blueprint docs/template sync checks
+- platform docs/template sync checks
 - generated docs sync checks
 - runtime identity summary sync checks
 - generated module contract summary sync checks
@@ -45,7 +48,15 @@ if [[ "${#shell_scripts[@]}" -gt 0 ]]; then
 fi
 
 run_cmd make -C "$ROOT_DIR" quality-docs-lint
+if blueprint_repo_is_generated_consumer; then
+  log_metric "quality_ci_check_sync_total" "1" "status=skipped repo_mode=generated-consumer"
+  log_info "skipping quality-ci-check-sync in generated-consumer repo"
+else
+  run_cmd make -C "$ROOT_DIR" quality-ci-check-sync
+  log_metric "quality_ci_check_sync_total" "1" "status=success repo_mode=template-source"
+fi
 run_cmd make -C "$ROOT_DIR" quality-docs-check-blueprint-template-sync
+run_cmd make -C "$ROOT_DIR" quality-docs-check-platform-seed-sync
 run_cmd make -C "$ROOT_DIR" quality-docs-check-core-targets-sync
 run_cmd make -C "$ROOT_DIR" quality-docs-check-contract-metadata-sync
 run_cmd make -C "$ROOT_DIR" quality-docs-check-runtime-identity-summary-sync

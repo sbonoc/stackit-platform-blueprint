@@ -8,6 +8,7 @@ import unittest
 
 from scripts.lib.blueprint.cli_support import render_template
 from scripts.lib.blueprint.contract_schema import load_blueprint_contract
+from tests._shared.exec import run_command
 from tests._shared.helpers import REPO_ROOT
 
 
@@ -15,7 +16,7 @@ RESYNC_SCRIPT = REPO_ROOT / "scripts/lib/blueprint/resync_consumer_seeds.py"
 
 
 def _run(cmd: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(cmd, cwd=cwd, text=True, capture_output=True, check=False)
+    return run_command(cmd, cwd=cwd)
 
 
 def _write(path: Path, content: str) -> None:

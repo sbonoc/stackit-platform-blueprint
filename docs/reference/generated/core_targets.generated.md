@@ -12,6 +12,7 @@ This file is auto-generated. Do not edit it manually.
 | `blueprint-init-repo-interactive` | Interactive repository identity wizard for GitHub template consumers |
 | `blueprint-resync-consumer-seeds` | Compare consumer-seeded files to templates and classify safe refresh vs manual merge |
 | `blueprint-upgrade-consumer` | Plan/apply non-destructive generated-consumer upgrade from pinned blueprint source ref |
+| `blueprint-upgrade-consumer-preflight` | Plan-only generated-consumer upgrade preflight report with auto/manual guidance |
 | `blueprint-upgrade-consumer-validate` | Run post-upgrade validation bundle and strict merge-marker checks |
 | `blueprint-check-placeholders` | Verify generated repository identity placeholders are resolved |
 | `blueprint-template-smoke` | Run generated-repo conformance smoke in a temp copy |
@@ -25,9 +26,13 @@ This file is auto-generated. Do not edit it manually.
 | `quality-hooks-fast` | Run fast local quality checks |
 | `quality-hooks-strict` | Run slower audit-focused quality checks |
 | `quality-hooks-run` | Run pre-commit hooks and quality gates |
+| `quality-ci-sync` | Regenerate source CI workflow from contract and canonical lane metadata |
+| `quality-ci-check-sync` | Fail when source CI workflow is out of date |
 | `quality-docs-lint` | Lint markdown docs, governance links, and make target references |
 | `quality-docs-sync-blueprint-template` | Sync docs/blueprint/** into bootstrap template blueprint docs mirror |
 | `quality-docs-check-blueprint-template-sync` | Fail when docs/blueprint/** and bootstrap template blueprint docs drift |
+| `quality-docs-sync-platform-seed` | Sync docs/platform/** into bootstrap template platform docs seed mirror |
+| `quality-docs-check-platform-seed-sync` | Fail when docs/platform/** and bootstrap template platform docs drift |
 | `quality-docs-sync-core-targets` | Regenerate tracked core Make targets reference doc |
 | `quality-docs-check-core-targets-sync` | Fail when tracked core Make targets doc is out of date |
 | `quality-docs-sync-contract-metadata` | Regenerate tracked contract metadata reference doc |

@@ -2,9 +2,9 @@ SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
 .PHONY: help \
-  blueprint-init-repo blueprint-init-repo-interactive blueprint-resync-consumer-seeds blueprint-upgrade-consumer blueprint-upgrade-consumer-validate blueprint-check-placeholders blueprint-template-smoke blueprint-bootstrap blueprint-render-makefile blueprint-clean-generated blueprint-render-module-wrapper-skeletons \
+  blueprint-init-repo blueprint-init-repo-interactive blueprint-resync-consumer-seeds blueprint-upgrade-consumer blueprint-upgrade-consumer-preflight blueprint-upgrade-consumer-validate blueprint-check-placeholders blueprint-template-smoke blueprint-bootstrap blueprint-render-makefile blueprint-clean-generated blueprint-render-module-wrapper-skeletons \
   test-contracts-async-producer test-contracts-async-consumer test-contracts-async-all \
-  quality-hooks-fast quality-hooks-strict quality-hooks-run quality-docs-lint quality-docs-sync-blueprint-template quality-docs-check-blueprint-template-sync quality-docs-sync-core-targets quality-docs-check-core-targets-sync quality-docs-sync-contract-metadata quality-docs-check-contract-metadata-sync quality-docs-sync-runtime-identity-summary quality-docs-check-runtime-identity-summary-sync quality-docs-sync-module-contract-summaries quality-docs-check-module-contract-summaries-sync quality-test-pyramid \
+  quality-hooks-fast quality-hooks-strict quality-hooks-run quality-ci-sync quality-ci-check-sync quality-docs-lint quality-docs-sync-blueprint-template quality-docs-check-blueprint-template-sync quality-docs-sync-platform-seed quality-docs-check-platform-seed-sync quality-docs-sync-core-targets quality-docs-check-core-targets-sync quality-docs-sync-contract-metadata quality-docs-check-contract-metadata-sync quality-docs-sync-runtime-identity-summary quality-docs-check-runtime-identity-summary-sync quality-docs-sync-module-contract-summaries quality-docs-check-module-contract-summaries-sync quality-test-pyramid \
   infra-prereqs infra-help-reference infra-bootstrap infra-local-destroy-all infra-destroy-disabled-modules infra-validate infra-smoke infra-provision infra-deploy infra-provision-deploy \
   infra-stackit-bootstrap-preflight infra-stackit-bootstrap-plan infra-stackit-bootstrap-apply infra-stackit-bootstrap-destroy \
   infra-stackit-foundation-preflight infra-stackit-foundation-plan infra-stackit-foundation-apply infra-stackit-foundation-destroy \
@@ -31,6 +31,9 @@ blueprint-resync-consumer-seeds: ## Compare consumer-seeded files to templates a
 
 blueprint-upgrade-consumer: ## Plan/apply non-destructive generated-consumer upgrade from pinned blueprint source ref
 	@scripts/bin/blueprint/upgrade_consumer.sh
+
+blueprint-upgrade-consumer-preflight: ## Plan-only generated-consumer upgrade preflight report with auto/manual guidance
+	@scripts/bin/blueprint/upgrade_consumer_preflight.sh
 
 blueprint-upgrade-consumer-validate: ## Run post-upgrade validation bundle and strict merge-marker checks
 	@scripts/bin/blueprint/upgrade_consumer_validate.sh
@@ -74,6 +77,12 @@ quality-hooks-strict: ## Run slower audit-focused quality checks
 quality-hooks-run: ## Run pre-commit hooks and quality gates
 	@scripts/bin/quality/hooks_run.sh
 
+quality-ci-sync: ## Regenerate source CI workflow from contract and canonical lane metadata
+	@python3 scripts/lib/quality/render_ci_workflow.py
+
+quality-ci-check-sync: ## Fail when source CI workflow is out of date
+	@python3 scripts/lib/quality/render_ci_workflow.py --check
+
 quality-docs-lint: ## Lint markdown docs, governance links, and make target references
 	@python3 scripts/bin/quality/lint_docs.py
 
@@ -82,6 +91,12 @@ quality-docs-sync-blueprint-template: ## Sync docs/blueprint/** into bootstrap t
 
 quality-docs-check-blueprint-template-sync: ## Fail when docs/blueprint/** and bootstrap template blueprint docs drift
 	@python3 scripts/lib/docs/sync_blueprint_template_docs.py --check
+
+quality-docs-sync-platform-seed: ## Sync docs/platform/** into bootstrap template platform docs seed mirror
+	@python3 scripts/lib/docs/sync_platform_seed_docs.py
+
+quality-docs-check-platform-seed-sync: ## Fail when docs/platform/** and bootstrap template platform docs drift
+	@python3 scripts/lib/docs/sync_platform_seed_docs.py --check
 
 quality-docs-sync-core-targets: ## Regenerate tracked core Make targets reference doc
 	@python3 scripts/bin/quality/render_core_targets_doc.py

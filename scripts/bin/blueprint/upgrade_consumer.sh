@@ -29,6 +29,7 @@ Environment variables:
 
 Notes:
   - Apply mode enforces non-destructive 3-way merge behavior for diverged blueprint-managed files.
+  - For plan-only machine-readable guidance, run `make blueprint-upgrade-consumer-preflight`.
   - Use `make blueprint-upgrade-consumer-validate` after apply to run the post-upgrade validation bundle.
 USAGE
 }

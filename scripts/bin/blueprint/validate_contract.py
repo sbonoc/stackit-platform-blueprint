@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import argparse
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import re
 import subprocess
 import sys
@@ -103,6 +103,16 @@ def _validate_required_paths(repo_root: Path, required_paths: list[str]) -> list
         if not (repo_root / relative_path).exists():
             errors.append(f"missing path: {relative_path}")
     return errors
+
+
+def _path_is_same_or_child(path: str, parent: str) -> bool:
+    path_parts = PurePosixPath(path).parts
+    parent_parts = PurePosixPath(parent).parts
+    if not parent_parts:
+        return False
+    if len(path_parts) < len(parent_parts):
+        return False
+    return path_parts[: len(parent_parts)] == parent_parts
 
 
 def _mapping_or_error(value: object, path: str, errors: list[str]) -> dict[str, object]:
@@ -1094,7 +1104,20 @@ def _validate_async_message_contract(repo_root: Path, contract: BlueprintContrac
 
 
 def _required_files_for_repo_mode(contract: BlueprintContract) -> list[str]:
-    return list(contract.repository.required_files)
+    required_files = list(contract.repository.required_files)
+    repository = contract.repository
+    if repository.repo_mode != repository.consumer_init.mode_to:
+        return required_files
+
+    # Generated-consumer repos intentionally prune source-only paths. Keep the
+    # required-files surface mode-aware so source-only files can still be
+    # validated in template-source mode without breaking consumer validation.
+    source_only_paths = repository.source_only_paths
+    return [
+        relative_path
+        for relative_path in required_files
+        if not any(_path_is_same_or_child(relative_path, source_only_path) for source_only_path in source_only_paths)
+    ]
 
 
 def _validate_repository_mode_contract(repo_root: Path, contract: BlueprintContract) -> list[str]:

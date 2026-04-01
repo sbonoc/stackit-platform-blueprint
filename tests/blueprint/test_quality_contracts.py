@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import importlib.util
 from pathlib import Path
 import sys
 import tempfile
 import unittest
 
+from scripts.lib.blueprint.contract_schema import load_blueprint_contract
 from tests._shared.helpers import REPO_ROOT, run
 
 
@@ -25,9 +27,13 @@ class QualityContractsTests(unittest.TestCase):
         make_template = _read("scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl")
         self.assertIn("quality-hooks-fast", make_template)
         self.assertIn("quality-hooks-strict", make_template)
+        self.assertIn("quality-ci-sync", make_template)
+        self.assertIn("quality-ci-check-sync", make_template)
         self.assertIn("quality-docs-lint", make_template)
         self.assertIn("quality-docs-sync-blueprint-template", make_template)
         self.assertIn("quality-docs-check-blueprint-template-sync", make_template)
+        self.assertIn("quality-docs-sync-platform-seed", make_template)
+        self.assertIn("quality-docs-check-platform-seed-sync", make_template)
         self.assertIn("quality-docs-sync-core-targets", make_template)
         self.assertIn("quality-docs-check-core-targets-sync", make_template)
         self.assertIn("quality-docs-sync-contract-metadata", make_template)
@@ -42,9 +48,13 @@ class QualityContractsTests(unittest.TestCase):
         generated_make = _read("make/blueprint.generated.mk")
         self.assertIn("quality-hooks-fast", generated_make)
         self.assertIn("quality-hooks-strict", generated_make)
+        self.assertIn("quality-ci-sync", generated_make)
+        self.assertIn("quality-ci-check-sync", generated_make)
         self.assertIn("quality-docs-lint", generated_make)
         self.assertIn("quality-docs-sync-blueprint-template", generated_make)
         self.assertIn("quality-docs-check-blueprint-template-sync", generated_make)
+        self.assertIn("quality-docs-sync-platform-seed", generated_make)
+        self.assertIn("quality-docs-check-platform-seed-sync", generated_make)
         self.assertIn("quality-docs-sync-core-targets", generated_make)
         self.assertIn("quality-docs-check-core-targets-sync", generated_make)
         self.assertIn("quality-docs-sync-contract-metadata", generated_make)
@@ -60,6 +70,41 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn("--check", generator)
         self.assertNotIn("Generated at:", generator)
         self.assertIn("resolve_repo_root", generator)
+
+    def test_ci_workflow_renderer_is_contract_driven(self) -> None:
+        renderer = _read("scripts/lib/quality/render_ci_workflow.py")
+        workflow = _read(".github/workflows/ci.yml")
+        contract = _read("blueprint/contract.yaml")
+        self.assertIn("load_blueprint_contract", renderer)
+        self.assertIn("default_branch", renderer)
+        self.assertIn("quality-ci-check-sync", _read("scripts/bin/quality/hooks_fast.sh"))
+        self.assertIn("branches:", workflow)
+        self.assertIn("  push:", workflow)
+        self.assertIn("default_branch: main", contract)
+
+    def test_required_files_filter_source_only_paths_for_generated_repo_mode(self) -> None:
+        validate_script = REPO_ROOT / "scripts/bin/blueprint/validate_contract.py"
+        spec = importlib.util.spec_from_file_location("validate_contract_module", validate_script)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)  # type: ignore[union-attr]
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            contract_path = Path(tmpdir) / "contract.yaml"
+            contract_path.write_text(
+                _read("blueprint/contract.yaml").replace(
+                    "repo_mode: template-source",
+                    "repo_mode: generated-consumer",
+                    1,
+                ),
+                encoding="utf-8",
+            )
+            contract = load_blueprint_contract(contract_path)
+            required_files = module._required_files_for_repo_mode(contract)
+
+        self.assertFalse(any(path.startswith("tests/blueprint/") for path in required_files))
+        self.assertIn("tests/_shared/helpers.py", required_files)
 
     def test_module_wrapper_generator_is_repo_rooted(self) -> None:
         generator = REPO_ROOT / "scripts/lib/blueprint/generate_module_wrapper_skeletons.py"
@@ -143,6 +188,11 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn("load_blueprint_contract", checker)
         self.assertIn('repo_mode == "generated-consumer"', checker)
         self.assertIn("[test-pyramid] skipped for generated-consumer repo", checker)
+
+    def test_governance_aggregate_module_uses_load_tests_guard(self) -> None:
+        governance_module = _read("tests/blueprint/contract_refactor_governance_cases.py")
+        self.assertIn("def load_tests(", governance_module)
+        self.assertIn("loader.loadTestsFromTestCase(GovernanceRefactorCases)", governance_module)
 
     def test_optional_module_wrappers_use_shared_execution_library(self) -> None:
         module_execution = _read("scripts/lib/infra/module_execution.sh")

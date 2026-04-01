@@ -47,6 +47,7 @@ async_message_contracts_contract_file_count() {
   fi
 
   local count
+  # Ignore scaffolding helpers; only count concrete contract payload artifacts.
   count="$(find "$contracts_dir" -type f ! -name '.gitkeep' ! -name 'README.md' ! -name 'verify.sh' | wc -l | tr -d '[:space:]')"
   printf '%s' "${count:-0}"
 }
@@ -116,6 +117,14 @@ async_message_contracts_run_lane() {
   artifact_dir="$(async_message_contracts_default_artifact_dir "$role")"
   local contract_file_count
   contract_file_count="$(async_message_contracts_contract_file_count "$contracts_dir")"
+  log_metric \
+    "async_pact_message_contract_contract_file_count" \
+    "$contract_file_count" \
+    "role=$role"
+  if (( contract_file_count == 0 )); then
+    log_warn \
+      "async pact message-contract lane role=$role found no contract files under $contracts_dir (README/.gitkeep/verify.sh excluded)"
+  fi
 
   ensure_dir "$artifact_dir"
 

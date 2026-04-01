@@ -111,3 +111,10 @@
   - make targets `test-contracts-async-{producer,consumer,all}` are materialized from `make/blueprint.generated.mk`.
   - `test-contracts-all` is augmented via prerequisite (`test-contracts-async-all`) in blueprint-managed makefile generation, avoiding recipe overrides on platform-owned `make/platform.mk`.
   - broker publish and can-i-deploy remain optional command hooks (`ASYNC_PACT_BROKER_PUBLISH_CMD`, `ASYNC_PACT_CAN_I_DEPLOY_CMD`).
+- Test subprocess calls are bounded by a shared timeout contract:
+  - canonical env knob `BLUEPRINT_TEST_COMMAND_TIMEOUT_SECONDS` (default `900`) is used by shared and blueprint contract-test subprocess helpers.
+  - long-running/hung subprocesses now fail fast deterministically instead of hanging CI/local quality lanes indefinitely.
+- Blueprint upgrade and docs/CI sync guardrails are contract-driven:
+  - `make blueprint-upgrade-consumer-preflight` now emits `artifacts/blueprint/upgrade_preflight.json` with auto-apply/manual-merge/conflict grouping plus required follow-up commands.
+  - source CI workflow is rendered/checked via `scripts/lib/quality/render_ci_workflow.py` and exposed through `quality-ci-{sync,check-sync}`.
+  - platform seed docs parity (`docs/platform/**` <-> bootstrap template mirror) is enforced through `quality-docs-{sync,check}-platform-seed`.

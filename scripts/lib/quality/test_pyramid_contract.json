@@ -16,6 +16,7 @@
         "tests/blueprint/test_contract_init_governance.py",
         "tests/blueprint/test_init_repo_env.py",
         "tests/blueprint/test_upgrade_consumer.py",
+        "tests/blueprint/test_upgrade_preflight.py",
         "tests/blueprint/test_resync_consumer_seeds.py",
         "tests/blueprint/test_quality_contracts.py",
         "tests/blueprint/test_optional_runtime_contract_validation.py",

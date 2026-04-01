@@ -10,9 +10,11 @@ import tempfile
 import unittest
 
 from scripts.lib.blueprint.contract_schema import load_module_contract
+from tests._shared.exec import DEFAULT_TEST_COMMAND_TIMEOUT_SECONDS, run_command
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+TEST_SUBPROCESS_TIMEOUT_SECONDS = DEFAULT_TEST_COMMAND_TIMEOUT_SECONDS
 INIT_MANAGED_RESTORE_TEMPLATE_PATHS = (
     "scripts/templates/blueprint/bootstrap/blueprint/contract.yaml",
     "scripts/templates/blueprint/bootstrap/blueprint/runtime_identity_contract.yaml",
@@ -133,6 +135,7 @@ class RefactorContractBase(unittest.TestCase):
 __all__ = [
     "INIT_MANAGED_RESTORE_TEMPLATE_PATHS",
     "REPO_ROOT",
+    "TEST_SUBPROCESS_TIMEOUT_SECONDS",
     "RefactorContractBase",
     "_copy_repo_text_path",
     "_extract_yaml_list",
@@ -143,6 +146,7 @@ __all__ = [
     "_read",
     "_strip_yaml_scalar",
     "load_module_contract",
+    "run_command",
     "os",
     "Path",
     "re",
