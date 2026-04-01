@@ -211,7 +211,7 @@ class ResyncConsumerSeedsTests(unittest.TestCase):
             self._prepare_generated_repo(tmp_root)
             workflow_template_path = tmp_root / "scripts/templates/consumer/init/.github/workflows/ci.yml.tmpl"
             workflow_template = workflow_template_path.read_text(encoding="utf-8")
-            workflow_template = workflow_template.replace("{{DEFAULT_BRANCH}}", "{{UNRESOLVED_BRANCH_TOKEN}}", 1)
+            workflow_template = workflow_template.replace("{{DEFAULT_BRANCH}}", "{{ unresolved_branch_token }}", 1)
             workflow_template_path.write_text(workflow_template, encoding="utf-8")
 
             result = _run(
@@ -227,7 +227,9 @@ class ResyncConsumerSeedsTests(unittest.TestCase):
 
             self.assertEqual(result.returncode, 1, msg=result.stdout + result.stderr)
             self.assertIn(
-                "unresolved consumer template token(s) in .github/workflows/ci.yml: {{UNRESOLVED_BRANCH_TOKEN}}",
+                "unresolved consumer template token(s) in .github/workflows/ci.yml "
+                "(template scripts/templates/consumer/init/.github/workflows/ci.yml.tmpl): "
+                "{{ unresolved_branch_token }}",
                 result.stderr,
             )
 

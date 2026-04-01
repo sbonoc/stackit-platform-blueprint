@@ -28,7 +28,7 @@ MODE_DRY_RUN = "dry-run"
 MODE_APPLY_SAFE = "apply-safe"
 MODE_APPLY_ALL = "apply-all"
 
-UNRESOLVED_TEMPLATE_TOKEN_PATTERN = re.compile(r"\{\{([A-Z0-9_]+)\}\}")
+UNRESOLVED_TEMPLATE_TOKEN_PATTERN = re.compile(r"(?<!\$)\{\{[^{}\n]+\}\}")
 
 
 @dataclass(frozen=True)
@@ -147,7 +147,7 @@ def _template_replacements(repo_root: Path) -> dict[str, str]:
 
 
 def _unresolved_template_tokens(content: str) -> list[str]:
-    return sorted({f"{{{{{match.group(1)}}}}}" for match in UNRESOLVED_TEMPLATE_TOKEN_PATTERN.finditer(content)})
+    return sorted({match.group(0) for match in UNRESOLVED_TEMPLATE_TOKEN_PATTERN.finditer(content)})
 
 
 def _classify_entry(
@@ -276,9 +276,10 @@ def _plan_entries(repo_root: Path, git: GitInspector) -> list[SeedResyncEntry]:
         expected_content = render_template(template_path.read_text(encoding="utf-8"), replacements)
         unresolved_tokens = _unresolved_template_tokens(expected_content)
         if unresolved_tokens:
+            template_relative_path = template_path.relative_to(repo_root).as_posix()
             raise ValueError(
                 "unresolved consumer template token(s) in "
-                f"{relative_path}: {', '.join(unresolved_tokens)}"
+                f"{relative_path} (template {template_relative_path}): {', '.join(unresolved_tokens)}"
             )
         current_content = target_path.read_text(encoding="utf-8") if target_path.is_file() else None
         entries.append(
