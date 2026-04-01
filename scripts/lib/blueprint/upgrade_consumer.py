@@ -39,6 +39,8 @@ OPERATION_DELETE = "delete"
 OPERATION_MERGE = "merge"
 OPERATION_NONE = "none"
 
+REASON_PLATFORM_PROTECTED_SKIP = "path is platform-owned and protected from blueprint-managed overwrite"
+
 
 @dataclass(frozen=True)
 class UpgradeEntry:
@@ -399,7 +401,7 @@ def _classify_entries(
                     ownership=ownership,
                     action=ACTION_SKIP,
                     operation=OPERATION_NONE,
-                    reason="path is platform-owned and protected from blueprint-managed overwrite",
+                    reason=REASON_PLATFORM_PROTECTED_SKIP,
                     source_exists=source_exists,
                     target_exists=target_exists,
                     baseline_ref=baseline_ref,
@@ -569,8 +571,17 @@ def _required_manual_follow_up_commands(path: str) -> tuple[str, ...]:
     return tuple(commands)
 
 
+def _source_file_references_dependency(source_repo: Path, depender_path: str, dependency_path: str) -> bool:
+    depender_file = source_repo / depender_path
+    if not depender_file.is_file():
+        return False
+    return dependency_path in _read_text(depender_file)
+
+
 def _annotate_protected_dependency_gaps(
     entries: list[UpgradeEntry],
+    source_repo: Path,
+    protected_roots: set[str],
 ) -> tuple[list[UpgradeEntry], list[RequiredManualAction]]:
     entries_by_path = {entry.path: entry for entry in entries}
     annotated: list[UpgradeEntry] = []
@@ -586,10 +597,14 @@ def _annotate_protected_dependency_gaps(
                 continue
             if entry.target_exists or not entry.source_exists:
                 continue
-            if "platform-owned" not in entry.reason:
+            if not any(_path_is_within(entry.path, root) for root in protected_roots):
+                continue
+            if entry.reason != REASON_PLATFORM_PROTECTED_SKIP:
                 continue
             depender_entry = entries_by_path.get(depender_path)
             if depender_entry is None or not depender_entry.source_exists:
+                continue
+            if not _source_file_references_dependency(source_repo, depender_path, dependency_path):
                 continue
             manual_action_key = (depender_path, dependency_path)
             if manual_action_key not in seen_manual_actions:
@@ -939,10 +954,14 @@ def _write_summary(
         "| --- | ---: |",
     ]
 
-    for key in sorted(k for k in apply_summary if k != "total"):
+    result_keys = sorted(
+        key for key in apply_summary if key not in ("total", "applied_count", "required_manual_action_count")
+    )
+    for key in result_keys:
         lines.append(f"| {key} | {apply_summary[key]} |")
     lines.append(f"| total | {apply_summary.get('total', 0)} |")
     lines.append("")
+    lines.append(f"- Applied paths: `{apply_summary.get('applied_count', 0)}`")
     lines.append(f"- Required manual actions: `{apply_summary.get('required_manual_action_count', 0)}`")
 
     if required_manual_actions:
@@ -1045,7 +1064,7 @@ def main() -> int:
             baseline_cache=baseline_cache,
             allow_delete=args.allow_delete,
         )
-        entries, required_manual_actions = _annotate_protected_dependency_gaps(entries)
+        entries, required_manual_actions = _annotate_protected_dependency_gaps(entries, source_repo, protected_roots)
 
         plan_summary = _summarize_plan(entries, required_manual_actions)
         plan_payload = {

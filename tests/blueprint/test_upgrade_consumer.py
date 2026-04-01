@@ -329,6 +329,53 @@ class UpgradeConsumerTests(unittest.TestCase):
             self.assertIn("## Required Manual Actions", summary_content)
             self.assertIn("scripts/bin/infra/smoke.sh", summary_content)
             self.assertIn("scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh", summary_content)
+            self.assertIn("- Applied paths: `0`", summary_content)
+            self.assertNotIn("| applied_count |", summary_content)
+            self.assertNotIn("| required_manual_action_count |", summary_content)
+
+    def test_upgrade_plan_skips_manual_action_when_source_depender_no_longer_references_dependency(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            source_repo = tmp_root / "source"
+            _init_git_repo(source_repo)
+            _write(
+                source_repo / "scripts/bin/infra/smoke.sh",
+                "echo warmup\n",
+            )
+            _write(
+                source_repo / "scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh",
+                "#!/usr/bin/env bash\necho ok\n",
+            )
+            _commit_all(source_repo, "baseline")
+            _require_success(_git(source_repo, "tag", f"v{_template_version()}"), "git tag template version")
+            _write(source_repo / "README.md", "head update\n")
+            _commit_all(source_repo, "head")
+
+            target_repo = _create_generated_repo(tmp_root, "scripts/bin/infra/smoke.sh", "echo warmup\n")
+            result = _run(
+                [
+                    sys.executable,
+                    str(UPGRADE_SCRIPT),
+                    "--repo-root",
+                    str(target_repo),
+                    "--source",
+                    str(source_repo),
+                    "--ref",
+                    "HEAD",
+                ],
+                cwd=REPO_ROOT,
+            )
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+
+            plan = _load_json(target_repo / "artifacts/blueprint/upgrade_plan.json")
+            dependency_entry = _plan_entry(
+                plan,
+                "scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh",
+            )
+            self.assertEqual(dependency_entry.get("action"), "skip")
+            self.assertNotIn("required-manual-action", str(dependency_entry.get("reason", "")))
+            self.assertEqual(plan.get("required_manual_actions"), [])
+            self.assertEqual(plan.get("summary", {}).get("required_manual_action_count"), 0)
 
     def test_apply_runs_three_way_merge_for_diverged_blueprint_managed_file(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
