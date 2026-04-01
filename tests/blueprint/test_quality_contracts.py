@@ -273,6 +273,87 @@ class QualityContractsTests(unittest.TestCase):
             errors,
         )
 
+    def test_runtime_security_manifests_use_external_secrets_v1(self) -> None:
+        runtime_source_store = _read("infra/gitops/platform/base/security/runtime-source-store.yaml")
+        runtime_external_secrets = _read("infra/gitops/platform/base/security/runtime-external-secrets-core.yaml")
+        template_source_store = _read("scripts/templates/infra/bootstrap/infra/gitops/platform/base/security/runtime-source-store.yaml")
+        template_external_secrets = _read(
+            "scripts/templates/infra/bootstrap/infra/gitops/platform/base/security/runtime-external-secrets-core.yaml"
+        )
+        runtime_identity_renderer = _read("scripts/lib/infra/runtime_identity_contract.py")
+
+        for content in (
+            runtime_source_store,
+            runtime_external_secrets,
+            template_source_store,
+            template_external_secrets,
+        ):
+            self.assertIn("external-secrets.io/v1", content)
+            self.assertNotIn("external-secrets.io/v1beta1", content)
+
+        self.assertIn('EXTERNAL_SECRETS_API_VERSION = "external-secrets.io/v1"', runtime_identity_renderer)
+        self.assertNotIn("external-secrets.io/v1beta1", runtime_identity_renderer)
+
+    def test_validate_contract_rejects_external_secrets_v1beta1_runtime_manifest(self) -> None:
+        validate_script = REPO_ROOT / "scripts/bin/blueprint/validate_contract.py"
+        spec = importlib.util.spec_from_file_location("validate_contract_module", validate_script)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)  # type: ignore[union-attr]
+
+        required_files = [
+            "blueprint/runtime_identity_contract.yaml",
+            "docs/platform/consumer/runtime_credentials_eso.md",
+            "infra/gitops/platform/base/extensions/kustomization.yaml",
+            "infra/gitops/platform/base/security/kustomization.yaml",
+            "infra/gitops/platform/base/security/runtime-source-store.yaml",
+            "infra/gitops/platform/base/security/runtime-external-secrets-core.yaml",
+            "infra/gitops/platform/base/kustomization.yaml",
+            "infra/gitops/argocd/core/local/keycloak.yaml",
+            "infra/gitops/argocd/core/dev/keycloak.yaml",
+            "infra/gitops/argocd/core/stage/keycloak.yaml",
+            "infra/gitops/argocd/core/prod/keycloak.yaml",
+            "infra/gitops/argocd/overlays/local/keycloak.yaml",
+            "infra/gitops/argocd/overlays/local/kustomization.yaml",
+            "infra/gitops/argocd/overlays/dev/kustomization.yaml",
+            "infra/gitops/argocd/overlays/stage/kustomization.yaml",
+            "infra/gitops/argocd/overlays/prod/kustomization.yaml",
+            "scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh",
+            "scripts/lib/infra/runtime_identity_contract.py",
+            "scripts/templates/blueprint/bootstrap/docs/platform/consumer/runtime_credentials_eso.md",
+            "scripts/templates/infra/bootstrap/infra/gitops/argocd/core/keycloak.application.yaml.tmpl",
+            "scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/local/keycloak.yaml",
+            "scripts/templates/blueprint/bootstrap/blueprint/runtime_identity_contract.yaml",
+            "scripts/templates/infra/bootstrap/infra/gitops/platform/base/security/runtime-source-store.yaml",
+            "scripts/templates/infra/bootstrap/infra/gitops/platform/base/security/runtime-external-secrets-core.yaml",
+        ]
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            for relative in required_files:
+                destination = tmp_root / relative
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(REPO_ROOT / relative, destination)
+
+            source_store = tmp_root / "infra/gitops/platform/base/security/runtime-source-store.yaml"
+            source_store.write_text(
+                source_store.read_text(encoding="utf-8").replace(
+                    "external-secrets.io/v1",
+                    "external-secrets.io/v1beta1",
+                    1,
+                ),
+                encoding="utf-8",
+            )
+
+            errors = module._validate_runtime_credentials_contract(tmp_root)
+
+        self.assertIn(
+            "infra/gitops/platform/base/security/runtime-source-store.yaml uses deprecated External Secrets apiVersion "
+            "external-secrets.io/v1beta1",
+            errors,
+        )
+
     def test_module_wrapper_generator_is_repo_rooted(self) -> None:
         generator = REPO_ROOT / "scripts/lib/blueprint/generate_module_wrapper_skeletons.py"
         with tempfile.TemporaryDirectory() as tmpdir:

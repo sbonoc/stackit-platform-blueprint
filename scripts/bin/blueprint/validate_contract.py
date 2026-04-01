@@ -382,6 +382,36 @@ def _validate_runtime_credentials_contract(repo_root: Path) -> list[str]:
                 "until runtime credentials are reconciled"
             )
 
+    external_secrets_api_contract_paths = (
+        "infra/gitops/platform/base/security/runtime-source-store.yaml",
+        "infra/gitops/platform/base/security/runtime-external-secrets-core.yaml",
+        "scripts/templates/infra/bootstrap/infra/gitops/platform/base/security/runtime-source-store.yaml",
+        "scripts/templates/infra/bootstrap/infra/gitops/platform/base/security/runtime-external-secrets-core.yaml",
+    )
+    for relative_path in external_secrets_api_contract_paths:
+        manifest_path = repo_root / relative_path
+        if not manifest_path.is_file():
+            continue
+        content = manifest_path.read_text(encoding="utf-8")
+        if "external-secrets.io/v1beta1" in content:
+            errors.append(f"{relative_path} uses deprecated External Secrets apiVersion external-secrets.io/v1beta1")
+        if "external-secrets.io/v1" not in content:
+            errors.append(f"{relative_path} must target External Secrets apiVersion external-secrets.io/v1")
+
+    runtime_identity_renderer = repo_root / "scripts/lib/infra/runtime_identity_contract.py"
+    if runtime_identity_renderer.is_file():
+        renderer_content = runtime_identity_renderer.read_text(encoding="utf-8")
+        if 'EXTERNAL_SECRETS_API_VERSION = "external-secrets.io/v1"' not in renderer_content:
+            errors.append(
+                "scripts/lib/infra/runtime_identity_contract.py must define EXTERNAL_SECRETS_API_VERSION="
+                "\"external-secrets.io/v1\""
+            )
+        if "external-secrets.io/v1beta1" in renderer_content:
+            errors.append(
+                "scripts/lib/infra/runtime_identity_contract.py must not render deprecated "
+                "External Secrets apiVersion external-secrets.io/v1beta1"
+            )
+
     for consumer_path, dependency_path in RUNTIME_DEPENDENCY_EDGES:
         consumer_file = repo_root / consumer_path
         if not consumer_file.is_file():
