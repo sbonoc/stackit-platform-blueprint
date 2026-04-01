@@ -19,6 +19,9 @@ This file is auto-generated. Do not edit it manually.
 | `blueprint-render-makefile` | Render blueprint-generated make targets from template and enabled module flags |
 | `blueprint-clean-generated` | Remove generated runtime/build/cache artifacts |
 | `blueprint-render-module-wrapper-skeletons` | Render optional-module wrapper skeleton templates from module contracts |
+| `test-contracts-async-producer` | Run async Pact message-contract producer lane (opt-in) |
+| `test-contracts-async-consumer` | Run async Pact message-contract consumer lane (opt-in) |
+| `test-contracts-async-all` | Run async Pact message-contract producer+consumer lanes (opt-in) |
 | `quality-hooks-fast` | Run fast local quality checks |
 | `quality-hooks-strict` | Run slower audit-focused quality checks |
 | `quality-hooks-run` | Run pre-commit hooks and quality gates |

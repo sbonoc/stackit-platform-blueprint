@@ -96,6 +96,9 @@
 - `touchpoints-test-e2e`
 - `test-unit-all`
 - `test-integration-all`
+- `test-contracts-async-producer`
+- `test-contracts-async-consumer`
+- `test-contracts-async-all`
 - `test-contracts-all`
 - `test-e2e-all-local`
 - `test-e2e-all-local-full`

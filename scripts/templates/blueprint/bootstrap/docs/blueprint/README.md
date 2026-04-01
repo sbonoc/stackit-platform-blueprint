@@ -6,6 +6,7 @@ This section documents how to maintain and evolve the reusable blueprint reposit
 1. [Execution Model](architecture/execution_model.md)
 2. [System Overview](architecture/system_overview.md)
 3. [Ownership Matrix](governance/ownership_matrix.md)
+4. [Async Message Contracts (Pact)](contracts/async_message_contracts.md)
 
 ## Scope
 - Contract governance (`blueprint/contract.yaml`, `AGENTS.*`)

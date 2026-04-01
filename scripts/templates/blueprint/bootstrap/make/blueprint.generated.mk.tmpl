@@ -3,6 +3,7 @@ SHELL := /bin/bash
 
 .PHONY: help \
   blueprint-init-repo blueprint-init-repo-interactive blueprint-resync-consumer-seeds blueprint-upgrade-consumer blueprint-upgrade-consumer-validate blueprint-check-placeholders blueprint-template-smoke blueprint-bootstrap blueprint-render-makefile blueprint-clean-generated blueprint-render-module-wrapper-skeletons \
+  test-contracts-async-producer test-contracts-async-consumer test-contracts-async-all \
   quality-hooks-fast quality-hooks-strict quality-hooks-run quality-docs-lint quality-docs-sync-blueprint-template quality-docs-check-blueprint-template-sync quality-docs-sync-core-targets quality-docs-check-core-targets-sync quality-docs-sync-contract-metadata quality-docs-check-contract-metadata-sync quality-docs-sync-runtime-identity-summary quality-docs-check-runtime-identity-summary-sync quality-docs-sync-module-contract-summaries quality-docs-check-module-contract-summaries-sync quality-test-pyramid \
   infra-prereqs infra-help-reference infra-bootstrap infra-local-destroy-all infra-destroy-disabled-modules infra-validate infra-smoke infra-provision infra-deploy infra-provision-deploy \
   infra-stackit-bootstrap-preflight infra-stackit-bootstrap-plan infra-stackit-bootstrap-apply infra-stackit-bootstrap-destroy \
@@ -51,6 +52,18 @@ blueprint-clean-generated: ## Remove generated runtime/build/cache artifacts
 
 blueprint-render-module-wrapper-skeletons: ## Render optional-module wrapper skeleton templates from module contracts
 	@scripts/bin/blueprint/render_module_wrapper_skeletons.sh
+
+test-contracts-async-producer: ## Run async Pact message-contract producer lane (opt-in)
+	@scripts/bin/blueprint/test_async_message_contracts_producer.sh
+
+test-contracts-async-consumer: ## Run async Pact message-contract consumer lane (opt-in)
+	@scripts/bin/blueprint/test_async_message_contracts_consumer.sh
+
+test-contracts-async-all: ## Run async Pact message-contract producer+consumer lanes (opt-in)
+	@scripts/bin/blueprint/test_async_message_contracts_all.sh
+
+# Augment the platform-owned aggregate contract lane without overriding its recipe.
+test-contracts-all: test-contracts-async-all
 
 quality-hooks-fast: ## Run fast local quality checks
 	@scripts/bin/quality/hooks_fast.sh

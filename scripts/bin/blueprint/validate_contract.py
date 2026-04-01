@@ -326,6 +326,171 @@ def _validate_template_bootstrap_contract(repo_root: Path, contract: BlueprintCo
     return errors
 
 
+def _declared_runtime_env_vars(spec: dict[str, object]) -> tuple[set[str], str | None]:
+    env_names: set[str] = set()
+
+    toggles = spec.get("toggles")
+    if isinstance(toggles, dict):
+        for raw_name in toggles:
+            candidate = str(raw_name).strip()
+            if candidate:
+                env_names.add(candidate)
+
+    runtime_env_vars = spec.get("runtime_env_vars")
+    if isinstance(runtime_env_vars, dict):
+        for raw_name in runtime_env_vars:
+            candidate = str(raw_name).strip()
+            if candidate:
+                env_names.add(candidate)
+    elif isinstance(runtime_env_vars, list):
+        for item in runtime_env_vars:
+            if isinstance(item, str):
+                candidate = item.strip()
+                if candidate:
+                    env_names.add(candidate)
+                continue
+            if not isinstance(item, dict):
+                continue
+            raw_name = item.get("name")
+            if raw_name is None:
+                continue
+            candidate = str(raw_name).strip()
+            if candidate:
+                env_names.add(candidate)
+
+    if env_names:
+        return env_names, None
+
+    return set(), "contract must define runtime env vars via spec.toggles or spec.runtime_env_vars"
+
+
+def _validate_async_message_contract(repo_root: Path, contract: BlueprintContract) -> list[str]:
+    errors: list[str] = []
+    spec = contract.raw.get("spec")
+    if not isinstance(spec, dict):
+        return ["invalid contract raw payload: spec must be a mapping"]
+
+    async_contract = spec.get("async_message_contracts")
+    if not isinstance(async_contract, dict):
+        return ["missing spec.async_message_contracts contract block"]
+
+    runtime_env_vars, runtime_env_error = _declared_runtime_env_vars(spec)
+    if runtime_env_error:
+        return [runtime_env_error]
+
+    provider = str(async_contract.get("provider", "")).strip()
+    if provider != "pact":
+        errors.append("spec.async_message_contracts.provider must be pact")
+
+    enabled_env_var = str(async_contract.get("enabled_env_var", "")).strip()
+    if not enabled_env_var:
+        errors.append("spec.async_message_contracts.enabled_env_var is required")
+    elif enabled_env_var not in runtime_env_vars:
+        errors.append(
+            "spec.async_message_contracts.enabled_env_var references missing declared env var: "
+            f"{enabled_env_var}"
+        )
+
+    enabled_by_default_raw = async_contract.get("enabled_by_default")
+    if isinstance(enabled_by_default_raw, bool):
+        enabled_by_default = enabled_by_default_raw
+    elif isinstance(enabled_by_default_raw, str):
+        enabled_by_default = _normalize_bool(enabled_by_default_raw)
+    else:
+        enabled_by_default = False
+    if enabled_by_default:
+        errors.append("spec.async_message_contracts.enabled_by_default must be false (opt-in)")
+
+    canonical_paths = async_contract.get("canonical_paths")
+    if not isinstance(canonical_paths, dict):
+        errors.append("spec.async_message_contracts.canonical_paths must be a mapping")
+        canonical_paths = {}
+    for key in ("producer_contracts_dir", "consumer_contracts_dir", "producer_seed_readme", "consumer_seed_readme"):
+        raw_value = canonical_paths.get(key, "")
+        path_value = str(raw_value).strip()
+        if not path_value:
+            errors.append(f"spec.async_message_contracts.canonical_paths.{key} is required")
+            continue
+        candidate = repo_root / path_value
+        if key.endswith("_dir"):
+            if not candidate.is_dir():
+                errors.append(f"missing async message-contract directory: {path_value}")
+        elif not candidate.is_file():
+            errors.append(f"missing async message-contract file: {path_value}")
+
+    wrappers = async_contract.get("wrappers")
+    if not isinstance(wrappers, dict):
+        errors.append("spec.async_message_contracts.wrappers must be a mapping")
+        wrappers = {}
+    for key in ("producer", "consumer", "all"):
+        wrapper_path = str(wrappers.get(key, "")).strip()
+        if not wrapper_path:
+            errors.append(f"spec.async_message_contracts.wrappers.{key} is required")
+            continue
+        if not (repo_root / wrapper_path).is_file():
+            errors.append(f"missing async message-contract wrapper: {wrapper_path}")
+
+    make_targets_contract = async_contract.get("make_targets")
+    if not isinstance(make_targets_contract, dict):
+        errors.append("spec.async_message_contracts.make_targets must be a mapping")
+        make_targets_contract = {}
+
+    resolved_targets: dict[str, str] = {}
+    for key in ("producer", "consumer", "all", "aggregate"):
+        target_name = str(make_targets_contract.get(key, "")).strip()
+        if not target_name:
+            errors.append(f"spec.async_message_contracts.make_targets.{key} is required")
+            continue
+        resolved_targets[key] = target_name
+
+    make_targets = _make_targets(repo_root)
+    for key, target_name in resolved_targets.items():
+        if target_name not in make_targets:
+            errors.append(
+                f"spec.async_message_contracts.make_targets.{key} references missing make target: {target_name}"
+            )
+
+    aggregate_target = resolved_targets.get("aggregate")
+    async_all_target = resolved_targets.get("all")
+    if aggregate_target and async_all_target and aggregate_target == async_all_target:
+        errors.append("spec.async_message_contracts.make_targets.aggregate must differ from make_targets.all")
+
+    generated_makefile = repo_root / contract.make_contract.ownership.blueprint_generated_file
+    if aggregate_target and async_all_target and generated_makefile.is_file():
+        content = generated_makefile.read_text(encoding="utf-8")
+        dependency_pattern = re.compile(
+            rf"^{re.escape(aggregate_target)}:\s+.*\b{re.escape(async_all_target)}\b",
+            flags=re.MULTILINE,
+        )
+        if dependency_pattern.search(content) is None:
+            errors.append(
+                "make aggregate lane must depend on async lane in "
+                f"{contract.make_contract.ownership.blueprint_generated_file}: "
+                f"{aggregate_target} -> {async_all_target}"
+            )
+
+    optional_hooks = async_contract.get("optional_hooks")
+    if not isinstance(optional_hooks, dict):
+        errors.append("spec.async_message_contracts.optional_hooks must be a mapping")
+        optional_hooks = {}
+    for key in (
+        "producer_verify_command_env_var",
+        "consumer_verify_command_env_var",
+        "producer_publish_command_env_var",
+        "can_i_deploy_command_env_var",
+    ):
+        env_name = str(optional_hooks.get(key, "")).strip()
+        if not env_name:
+            errors.append(f"spec.async_message_contracts.optional_hooks.{key} is required")
+            continue
+        if env_name not in runtime_env_vars:
+            errors.append(
+                "spec.async_message_contracts.optional_hooks references missing declared env var: "
+                f"{env_name}"
+            )
+    return errors
+
+
 def _required_files_for_repo_mode(contract: BlueprintContract) -> list[str]:
     return list(contract.repository.required_files)
 
@@ -1018,6 +1183,7 @@ def main() -> int:
     errors.extend(_validate_required_files(repo_root, required_files))
     errors.extend(_validate_required_paths(repo_root, required_paths))
     errors.extend(_validate_template_bootstrap_contract(repo_root, contract))
+    errors.extend(_validate_async_message_contract(repo_root, contract))
     errors.extend(_validate_branch_naming_contract(contract))
     errors.extend(_validate_make_contract(repo_root, required_targets, required_namespaces))
     errors.extend(_validate_make_ownership_contract(repo_root, contract))

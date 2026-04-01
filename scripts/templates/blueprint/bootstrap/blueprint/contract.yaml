@@ -70,6 +70,9 @@ spec:
       - scripts/bin/blueprint/upgrade_consumer_validate.sh
       - scripts/bin/blueprint/render_module_wrapper_skeletons.sh
       - scripts/bin/blueprint/render_makefile.sh
+      - scripts/bin/blueprint/test_async_message_contracts_producer.sh
+      - scripts/bin/blueprint/test_async_message_contracts_consumer.sh
+      - scripts/bin/blueprint/test_async_message_contracts_all.sh
       - scripts/bin/blueprint/validate_contract.py
       - scripts/bin/infra/destroy_disabled_modules.sh
       - scripts/bin/infra/local_crossplane_bootstrap.sh
@@ -91,6 +94,7 @@ spec:
       - scripts/bin/quality/render_core_targets_doc.py
       - scripts/lib/blueprint/contract_schema.py
       - scripts/lib/blueprint/bootstrap_templates.sh
+      - scripts/lib/blueprint/async_message_contracts.sh
       - scripts/lib/blueprint/cli_support.py
       - scripts/lib/blueprint/generate_module_wrapper_skeletons.py
       - scripts/lib/blueprint/contract_runtime.sh
@@ -127,6 +131,11 @@ spec:
       - scripts/templates/blueprint/bootstrap/blueprint/contract.yaml
       - scripts/templates/blueprint/bootstrap/blueprint/runtime_identity_contract.yaml
       - scripts/templates/blueprint/bootstrap/docs/docusaurus.config.js
+      - scripts/templates/blueprint/bootstrap/docs/blueprint/contracts/async_message_contracts.md
+      - scripts/templates/blueprint/bootstrap/contracts/async/pact/messages/producer/.gitkeep
+      - scripts/templates/blueprint/bootstrap/contracts/async/pact/messages/producer/README.md
+      - scripts/templates/blueprint/bootstrap/contracts/async/pact/messages/consumer/.gitkeep
+      - scripts/templates/blueprint/bootstrap/contracts/async/pact/messages/consumer/README.md
       - scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl
       - scripts/templates/blueprint/bootstrap/make/platform.mk
       - scripts/templates/blueprint/bootstrap/make/platform/.gitkeep
@@ -216,9 +225,14 @@ spec:
       - docs/blueprint/README.md
       - docs/blueprint/architecture/system_overview.md
       - docs/blueprint/architecture/execution_model.md
+      - docs/blueprint/contracts/async_message_contracts.md
       - docs/blueprint/governance/ownership_matrix.md
       - docs/reference/generated/contract_metadata.generated.md
       - docs/reference/generated/core_targets.generated.md
+      - contracts/async/pact/messages/producer/.gitkeep
+      - contracts/async/pact/messages/producer/README.md
+      - contracts/async/pact/messages/consumer/.gitkeep
+      - contracts/async/pact/messages/consumer/README.md
       - docs/platform/README.md
       - docs/platform/consumer/first_30_minutes.md
       - docs/platform/consumer/quickstart.md
@@ -366,6 +380,7 @@ spec:
       - tests/_shared/
       - docs/
       - docs/blueprint/
+      - contracts/
       - docs/platform/
       - blueprint/modules/
     canonical_entrypoints:
@@ -540,6 +555,65 @@ spec:
       default: false
       required: false
       description: "When true, runtime credential reconciliation failures are fail-fast instead of warn-and-skip."
+    ASYNC_PACT_MESSAGE_CONTRACTS_ENABLED:
+      type: boolean
+      default: false
+      required: false
+      description: "Enable opt-in async message-contract producer/consumer Pact lanes."
+    ASYNC_PACT_PRODUCER_VERIFY_CMD:
+      type: string
+      default: ""
+      required: false
+      description: "Shell command that verifies producer-side async Pact message contracts."
+    ASYNC_PACT_CONSUMER_VERIFY_CMD:
+      type: string
+      default: ""
+      required: false
+      description: "Shell command that verifies consumer-side async Pact message contracts."
+    ASYNC_PACT_BROKER_PUBLISH_CMD:
+      type: string
+      default: ""
+      required: false
+      description: "Optional shell command that publishes producer Pact artifacts to a broker."
+    ASYNC_PACT_CAN_I_DEPLOY_CMD:
+      type: string
+      default: ""
+      required: false
+      description: "Optional shell command that runs can-i-deploy style gate checks after async verification."
+    ASYNC_PACT_PRODUCER_ARTIFACT_DIR:
+      type: string
+      default: artifacts/contracts/async/pact/producer
+      required: false
+      description: "Producer async Pact artifact output directory."
+    ASYNC_PACT_CONSUMER_ARTIFACT_DIR:
+      type: string
+      default: artifacts/contracts/async/pact/consumer
+      required: false
+      description: "Consumer async Pact artifact output directory."
+
+  async_message_contracts:
+    provider: pact
+    enabled_by_default: false
+    enabled_env_var: ASYNC_PACT_MESSAGE_CONTRACTS_ENABLED
+    canonical_paths:
+      producer_contracts_dir: contracts/async/pact/messages/producer
+      consumer_contracts_dir: contracts/async/pact/messages/consumer
+      producer_seed_readme: contracts/async/pact/messages/producer/README.md
+      consumer_seed_readme: contracts/async/pact/messages/consumer/README.md
+    wrappers:
+      producer: scripts/bin/blueprint/test_async_message_contracts_producer.sh
+      consumer: scripts/bin/blueprint/test_async_message_contracts_consumer.sh
+      all: scripts/bin/blueprint/test_async_message_contracts_all.sh
+    make_targets:
+      producer: test-contracts-async-producer
+      consumer: test-contracts-async-consumer
+      all: test-contracts-async-all
+      aggregate: test-contracts-all
+    optional_hooks:
+      producer_verify_command_env_var: ASYNC_PACT_PRODUCER_VERIFY_CMD
+      consumer_verify_command_env_var: ASYNC_PACT_CONSUMER_VERIFY_CMD
+      producer_publish_command_env_var: ASYNC_PACT_BROKER_PUBLISH_CMD
+      can_i_deploy_command_env_var: ASYNC_PACT_CAN_I_DEPLOY_CMD
 
   tech_preferences:
     frontend:
@@ -699,6 +773,9 @@ spec:
       - touchpoints-test-e2e
       - test-unit-all
       - test-integration-all
+      - test-contracts-async-producer
+      - test-contracts-async-consumer
+      - test-contracts-async-all
       - test-contracts-all
       - test-e2e-all-local
       - test-e2e-all-local-full

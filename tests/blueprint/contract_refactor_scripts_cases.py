@@ -80,9 +80,12 @@ class ScriptsRefactorCases(RefactorContractBase):
         self.assertIn('"make/platform.mk"', bootstrap)
         self.assertIn('"blueprint/repo.init.env"', bootstrap)
         self.assertIn('"blueprint/repo.init.secrets.example.env"', bootstrap)
+        self.assertIn('"contracts/async/pact/messages/producer/README.md"', bootstrap)
+        self.assertIn('"contracts/async/pact/messages/consumer/README.md"', bootstrap)
         self.assertIn('"docs/platform/consumer/quickstart.md"', bootstrap)
         self.assertIn('"docs/platform/consumer/runtime_credentials_eso.md"', bootstrap)
         self.assertIn('"docs/platform/consumer/first_30_minutes.md"', bootstrap)
+        self.assertIn('"docs/blueprint/contracts/async_message_contracts.md"', bootstrap)
         self.assertIn('"docs/blueprint/governance/ownership_matrix.md"', bootstrap)
         self.assertIn('"docs/platform/modules/identity-aware-proxy/README.md"', bootstrap)
         self.assertIn('ensure_dir "$ROOT_DIR/docs/reference/generated"', bootstrap)
@@ -346,6 +349,9 @@ class ScriptsRefactorCases(RefactorContractBase):
             "scripts/bin/platform/test/integration_all.sh",
             "scripts/bin/platform/test/contracts_all.sh",
             "scripts/bin/platform/test/e2e_all_local.sh",
+            "scripts/bin/blueprint/test_async_message_contracts_producer.sh",
+            "scripts/bin/blueprint/test_async_message_contracts_consumer.sh",
+            "scripts/bin/blueprint/test_async_message_contracts_all.sh",
             "scripts/bin/infra/langfuse_plan.sh",
             "scripts/bin/infra/postgres_plan.sh",
             "scripts/bin/infra/neo4j_plan.sh",
@@ -383,6 +389,10 @@ class ScriptsRefactorCases(RefactorContractBase):
         for path in metric_files:
             self.assertIn("start_script_metric_trap", _read(path), msg=f"missing metric trap in {path}")
         self.assertIn("pytest_lane_duration_seconds", _read("scripts/lib/platform/testing.sh"))
+        async_contract_lib = _read("scripts/lib/blueprint/async_message_contracts.sh")
+        self.assertIn("ASYNC_PACT_MESSAGE_CONTRACTS_ENABLED", async_contract_lib)
+        self.assertIn("async_message_contracts_run_lane()", async_contract_lib)
+        self.assertIn("async_pact_message_contract_lane_duration_seconds", async_contract_lib)
 
     def test_touchpoints_test_lanes_support_frontend_frameworks(self) -> None:
         testing = _read("scripts/lib/platform/testing.sh")

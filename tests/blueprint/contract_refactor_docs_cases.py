@@ -19,6 +19,7 @@ class DocsRefactorCases(RefactorContractBase):
             "docs/blueprint/README.md",
             "docs/blueprint/architecture/system_overview.md",
             "docs/blueprint/architecture/execution_model.md",
+            "docs/blueprint/contracts/async_message_contracts.md",
             "docs/blueprint/governance/ownership_matrix.md",
         ]
         for rel_path in synced_docs:
@@ -94,6 +95,10 @@ class DocsRefactorCases(RefactorContractBase):
         self.assertIn("[Protected API Routes](platform/consumer/protected_api_routes.md)", docs_readme)
         self.assertIn("[Core Make Targets (Generated)](reference/generated/core_targets.generated.md)", docs_readme)
         self.assertIn("artifacts/infra/workload_health.json", docs_readme)
+        self.assertIn(
+            "[Async Message Contracts (Pact)](contracts/async_message_contracts.md)",
+            _read("docs/blueprint/README.md"),
+        )
 
     def test_consumer_quickstart_mentions_status_snapshot_and_no_duplicate_smoke(self) -> None:
         quickstart = _read("docs/platform/consumer/quickstart.md")

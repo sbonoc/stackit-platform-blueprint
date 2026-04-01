@@ -29,6 +29,7 @@
       "scope": "integration",
       "patterns": [
         "tests/docs/test_docs_generation.py",
+        "tests/infra/test_async_message_contracts.py",
         "tests/infra/test_core_runtime_bootstrap.py",
         "tests/infra/test_optional_modules.py",
         "tests/infra/test_smoke_status_diagnostics.py"

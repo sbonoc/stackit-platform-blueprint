@@ -10,6 +10,7 @@
 - [ ] Continue migrating `workflows` to provider-backed STACKIT execution when official resources become available.
 - [ ] Add optional Neo4j Keycloak realm/client reconciliation (gated by `KEYCLOAK_OPTIONAL_MODULE_RECONCILIATION_ENABLED`) as a follow-up to current Workflows/Langfuse reconciliation.
 - [ ] Extend the consumer seed resync workflow with optional merge-assist coverage for selected init-managed identity files without weakening customization boundaries.
+- [ ] Add pluggable async message-contract provider support beyond Pact while preserving the canonical producer/consumer lane contract and upgrade safety guarantees.
 
 ## Provider-Backed STACKIT Expansion Candidates
 - [ ] Evaluate and add a provider-backed Redis module built on official STACKIT Terraform resources.
