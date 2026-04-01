@@ -185,6 +185,39 @@ def _kustomization_resources(path: Path) -> set[str]:
     return resources
 
 
+def _validate_core_chart_values_contract(repo_root: Path) -> list[str]:
+    errors: list[str] = []
+
+    deprecated_value_keys = (
+        (
+            "infra/local/helm/core/cert-manager.values.yaml",
+            "installCRDs",
+            "crds.enabled",
+        ),
+        (
+            "scripts/templates/infra/bootstrap/infra/local/helm/core/cert-manager.values.yaml",
+            "installCRDs",
+            "crds.enabled",
+        ),
+    )
+    crds_enabled_pattern = re.compile(r"(?ms)^\s*crds\s*:\s*(?:#.*)?\n\s+enabled\s*:")
+
+    for relative_path, deprecated_key, replacement_key in deprecated_value_keys:
+        values_path = repo_root / relative_path
+        if not values_path.is_file():
+            continue
+
+        content = values_path.read_text(encoding="utf-8")
+        if re.search(rf"(?m)^\s*{re.escape(deprecated_key)}\s*:", content):
+            errors.append(
+                f"{relative_path} uses deprecated values key '{deprecated_key}'; use '{replacement_key}' instead"
+            )
+        if not crds_enabled_pattern.search(content):
+            errors.append(f"{relative_path} missing required values key mapping: crds.enabled")
+
+    return errors
+
+
 def _validate_runtime_credentials_contract(repo_root: Path) -> list[str]:
     errors: list[str] = []
 
@@ -1719,6 +1752,7 @@ def _validate_bootstrap_template_sync(repo_root: Path, contract: BlueprintContra
                 "infra/local/crossplane/namespace.yaml",
                 "infra/local/helm/core/argocd.values.yaml",
                 "infra/local/helm/core/external-secrets.values.yaml",
+                "infra/local/helm/core/cert-manager.values.yaml",
                 "infra/local/helm/core/crossplane.values.yaml",
                 "infra/local/helm/observability/grafana.values.yaml",
                 "infra/local/helm/observability/otel-collector.values.yaml",
@@ -1823,6 +1857,7 @@ def main() -> int:
     errors.extend(_validate_airflow_contract(repo_root, contract))
     errors.extend(_validate_docs_edit_link(repo_root, contract))
     errors.extend(_validate_platform_docs_seed_contract(repo_root, contract))
+    errors.extend(_validate_core_chart_values_contract(repo_root))
     errors.extend(_validate_runtime_credentials_contract(repo_root))
     errors.extend(_validate_event_messaging_contract(repo_root, contract))
     errors.extend(_validate_zero_downtime_evolution_contract(repo_root, contract))
