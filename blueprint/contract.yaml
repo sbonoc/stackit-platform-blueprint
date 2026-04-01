@@ -67,6 +67,7 @@ spec:
       - scripts/bin/blueprint/init_repo_interactive.sh
       - scripts/bin/blueprint/resync_consumer_seeds.sh
       - scripts/bin/blueprint/upgrade_consumer.sh
+      - scripts/bin/blueprint/upgrade_consumer_preflight.sh
       - scripts/bin/blueprint/upgrade_consumer_validate.sh
       - scripts/bin/blueprint/render_module_wrapper_skeletons.sh
       - scripts/bin/blueprint/render_makefile.sh
@@ -108,6 +109,7 @@ spec:
       - scripts/lib/blueprint/resync_consumer_seeds.py
       - scripts/lib/blueprint/runtime_dependency_edges.py
       - scripts/lib/blueprint/upgrade_consumer.py
+      - scripts/lib/blueprint/upgrade_preflight.py
       - scripts/lib/blueprint/upgrade_consumer_validate.py
       - scripts/lib/blueprint/upgrade_report_metrics.py
       - scripts/lib/blueprint/schemas/upgrade_plan.schema.json
@@ -115,6 +117,7 @@ spec:
       - scripts/lib/blueprint/schemas/upgrade_validate.schema.json
       - scripts/lib/docs/generate_contract_docs.py
       - scripts/lib/docs/sync_blueprint_template_docs.py
+      - scripts/lib/docs/sync_platform_seed_docs.py
       - scripts/lib/docs/sync_module_contract_summaries.py
       - scripts/lib/docs/sync_runtime_identity_contract_summary.py
       - scripts/lib/infra/k8s_wait.sh
@@ -122,6 +125,7 @@ spec:
       - scripts/lib/infra/runtime_identity_contract.py
       - scripts/lib/infra/module_execution.sh
       - scripts/lib/quality/semver.sh
+      - scripts/lib/quality/render_ci_workflow.py
       - scripts/lib/quality/test_pyramid_contract.json
       - scripts/lib/shell/bootstrap.sh
       - scripts/lib/shell/exec.sh
@@ -267,8 +271,13 @@ spec:
       - tests/infra/__init__.py
       - tests/e2e/__init__.py
       - tests/_shared/__init__.py
+      - tests/_shared/exec.py
       - tests/_shared/helpers.py
       - tests/_shared/json_schema.py
+      - tests/blueprint/contract_refactor_governance_structure_cases.py
+      - tests/blueprint/contract_refactor_governance_runtime_cases.py
+      - tests/blueprint/contract_refactor_governance_version_cases.py
+      - tests/blueprint/contract_refactor_governance_init_cases.py
     ownership_path_classes:
       source_only:
         - tests/blueprint
@@ -725,6 +734,7 @@ spec:
       - blueprint-init-repo-interactive
       - blueprint-resync-consumer-seeds
       - blueprint-upgrade-consumer
+      - blueprint-upgrade-consumer-preflight
       - blueprint-upgrade-consumer-validate
       - blueprint-check-placeholders
       - blueprint-template-smoke
@@ -735,9 +745,13 @@ spec:
       - quality-hooks-fast
       - quality-hooks-strict
       - quality-hooks-run
+      - quality-ci-sync
+      - quality-ci-check-sync
       - quality-docs-lint
       - quality-docs-sync-blueprint-template
       - quality-docs-check-blueprint-template-sync
+      - quality-docs-sync-platform-seed
+      - quality-docs-check-platform-seed-sync
       - quality-docs-sync-core-targets
       - quality-docs-check-core-targets-sync
       - quality-docs-sync-contract-metadata

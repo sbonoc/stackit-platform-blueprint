@@ -16,16 +16,10 @@ jobs:
       - name: Prepare shared CI baseline
         uses: ./.github/actions/prepare-blueprint-ci
 
-      - name: Run fast quality gate
+      - name: Run quality gates
         run: |
           make quality-hooks-fast
-
-      - name: Run strict audit gate
-        run: |
           make quality-hooks-strict
-
-      - name: Run pre-push hook stage
-        run: |
           pre-commit run --hook-stage pre-push --all-files
 
       - name: Validate app baseline

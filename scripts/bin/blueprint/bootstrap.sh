@@ -124,12 +124,15 @@ bootstrap_blueprint_directories
 bootstrap_blueprint_templates
 run_cmd "$ROOT_DIR/scripts/bin/blueprint/render_module_wrapper_skeletons.sh"
 run_cmd "$ROOT_DIR/scripts/bin/blueprint/render_makefile.sh"
+run_cmd python3 "$ROOT_DIR/scripts/lib/quality/render_ci_workflow.py" \
+  --output "$ROOT_DIR/.github/workflows/ci.yml"
 run_cmd python3 "$ROOT_DIR/scripts/bin/quality/render_core_targets_doc.py" \
   --output "$ROOT_DIR/docs/reference/generated/core_targets.generated.md"
 run_cmd python3 "$ROOT_DIR/scripts/lib/docs/generate_contract_docs.py" \
   --contract "$ROOT_DIR/blueprint/contract.yaml" \
   --modules-dir "$ROOT_DIR/blueprint/modules" \
   --output "$ROOT_DIR/docs/reference/generated/contract_metadata.generated.md"
+run_cmd python3 "$ROOT_DIR/scripts/lib/docs/sync_platform_seed_docs.py"
 run_cmd python3 "$ROOT_DIR/scripts/lib/docs/sync_runtime_identity_contract_summary.py"
 
 if command -v pre-commit >/dev/null 2>&1; then

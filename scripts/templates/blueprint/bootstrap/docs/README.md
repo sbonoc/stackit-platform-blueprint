@@ -99,6 +99,7 @@ Common baseline flow:
 - `make blueprint-init-repo`
 - `make blueprint-resync-consumer-seeds`
 - `make blueprint-upgrade-consumer`
+- `make blueprint-upgrade-consumer-preflight`
 - `make blueprint-upgrade-consumer-validate`
 - `make blueprint-bootstrap`
 - `make blueprint-render-module-wrapper-skeletons`
@@ -122,8 +123,10 @@ Quality and docs flow:
 - `make quality-hooks-fast`
 - `make quality-hooks-strict`
 - `make quality-hooks-run`
+- `make quality-ci-check-sync`
 - `make quality-docs-lint`
 - `make quality-docs-check-blueprint-template-sync`
+- `make quality-docs-check-platform-seed-sync`
 - `make quality-test-pyramid`
 - `make quality-docs-sync-runtime-identity-summary`
 - `make quality-docs-sync-module-contract-summaries`

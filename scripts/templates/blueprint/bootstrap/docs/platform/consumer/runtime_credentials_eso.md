@@ -78,6 +78,7 @@ make auth-reconcile-eso-runtime-secrets
 
 Defaults live in `blueprint/repo.init.env`.
 `KEYCLOAK_OPTIONAL_MODULE_RECONCILIATION_ENABLED` gates optional-module Keycloak reconciliation (Workflows/Langfuse) during module deploy flows.
+`RUNTIME_CREDENTIALS_REQUIRED` does not disable reconciliation; it only switches reconcile failures from warning mode (`false`) to hard-fail mode (`true`).
 
 Additional reconcile knobs:
 - `RUNTIME_CREDENTIALS_SOURCE_SECRET_NAME` (default `runtime-credentials-source`)

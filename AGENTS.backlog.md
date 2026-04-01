@@ -1,7 +1,6 @@
 # Blueprint Backlog
 
 ## Current Priorities
-- [ ] Add optional async Pact message-contract scaffold and contract-test lane integration (`#25`) on top of the new runtime policy contracts.
 - [ ] Backport the new runtime-credentials ESO source-to-target contract (including mandatory Keycloak/IAP runtime targets) and drift-safe platform extension surface to existing generated-consumer repositories.
 - [ ] Add a DNS contract mode where generated-consumer repos can provide pre-created Keycloak/IAP DNS entries instead of blueprint-managed STACKIT DNS record reconciliation.
 - [ ] Add a CI-grade execute-mode full e2e lane (ephemeral cluster + `test-e2e-all-local-execute`) so merge gating covers real apply paths, not only dry-run orchestration.

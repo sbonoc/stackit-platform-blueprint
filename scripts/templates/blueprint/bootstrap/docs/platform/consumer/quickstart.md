@@ -50,10 +50,13 @@ BLUEPRINT_RESYNC_APPLY_SAFE=true make blueprint-resync-consumer-seeds
 ```
 For full blueprint-managed upgrades on existing generated repos (non-destructive plan/apply workflow):
 ```bash
+BLUEPRINT_UPGRADE_REF=<tag|branch|commit> make blueprint-upgrade-consumer-preflight
 BLUEPRINT_UPGRADE_REF=<tag|branch|commit> make blueprint-upgrade-consumer
 BLUEPRINT_UPGRADE_REF=<tag|branch|commit> BLUEPRINT_UPGRADE_APPLY=true make blueprint-upgrade-consumer
 make blueprint-upgrade-consumer-validate
 ```
+Use the preflight report `artifacts/blueprint/upgrade_preflight.json` to inspect auto-apply candidates,
+manual-merge/conflict paths, and required follow-up commands before apply mode.
 Inspect `artifacts/blueprint/upgrade_plan.json`, `artifacts/blueprint/upgrade_apply.json`, and
 `artifacts/blueprint/upgrade_summary.md` after each run. When `required_manual_actions` is non-empty,
 resolve the listed platform-owned dependency paths first, then re-run `make blueprint-upgrade-consumer-validate`.

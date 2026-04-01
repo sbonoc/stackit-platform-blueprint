@@ -19,6 +19,7 @@
 - `blueprint-init-repo-interactive`
 - `blueprint-resync-consumer-seeds`
 - `blueprint-upgrade-consumer`
+- `blueprint-upgrade-consumer-preflight`
 - `blueprint-upgrade-consumer-validate`
 - `blueprint-check-placeholders`
 - `blueprint-template-smoke`
@@ -29,9 +30,13 @@
 - `quality-hooks-fast`
 - `quality-hooks-strict`
 - `quality-hooks-run`
+- `quality-ci-sync`
+- `quality-ci-check-sync`
 - `quality-docs-lint`
 - `quality-docs-sync-blueprint-template`
 - `quality-docs-check-blueprint-template-sync`
+- `quality-docs-sync-platform-seed`
+- `quality-docs-check-platform-seed-sync`
 - `quality-docs-sync-core-targets`
 - `quality-docs-check-core-targets-sync`
 - `quality-docs-sync-contract-metadata`
