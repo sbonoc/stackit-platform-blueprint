@@ -18,6 +18,7 @@
         "tests/blueprint/test_upgrade_consumer.py",
         "tests/blueprint/test_resync_consumer_seeds.py",
         "tests/blueprint/test_quality_contracts.py",
+        "tests/blueprint/test_optional_runtime_contract_validation.py",
         "tests/docs/test_docs_lint.py",
         "tests/infra/test_runtime_credentials_eso.py",
         "tests/infra/test_stackit_layers.py",

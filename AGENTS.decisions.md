@@ -87,6 +87,11 @@
 - Runtime inventory now has profile-aware and local-specific entrypoints:
   - `make infra-runtime-inventory` routes by active profile.
   - `make infra-local-runtime-inventory` prints local-only runtime inventory exports/state hints.
+- Optional runtime policy contracts are now blueprint-managed and disabled by default:
+  - `event_messaging_contract` defines canonical async envelope/versioning/outbox+inbox/idempotency guidance and scaffold hooks.
+  - `zero_downtime_evolution_contract` defines expand/migrate/contract rollout policy and optional destructive-SQL guard checks.
+  - `tenant_context_contract` standardizes tenant/organization claim, HTTP header, async event, and observability field propagation.
+  - Corresponding toggles (`EVENT_MESSAGING_BASELINE_ENABLED`, `ZERO_DOWNTIME_EVOLUTION_ENABLED`, `TENANT_CONTEXT_PROPAGATION_ENABLED`) are opt-in and additive for generated consumers.
 - Runtime identity docs are now contract-generated:
   - `scripts/lib/docs/sync_runtime_identity_contract_summary.py` owns the generated summary block in `docs/platform/consumer/runtime_credentials_eso.md` and its bootstrap template counterpart.
   - Fast quality gate now enforces this via `quality-docs-check-runtime-identity-summary-sync`.

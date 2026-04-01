@@ -14,7 +14,10 @@ Recommended reading order:
 2. [Platform Quickstart](platform/consumer/quickstart.md)
 3. [Endpoint Exposure Model](platform/consumer/endpoint_exposure_model.md)
 4. [Protected API Routes](platform/consumer/protected_api_routes.md)
-5. [Platform Troubleshooting](platform/consumer/troubleshooting.md)
+5. [Event Messaging Baseline](platform/consumer/event_messaging_baseline.md)
+6. [Zero-Downtime Evolution](platform/consumer/zero_downtime_evolution.md)
+7. [Tenant Context Propagation](platform/consumer/tenant_context_propagation.md)
+8. [Platform Troubleshooting](platform/consumer/troubleshooting.md)
 
 Fast path:
 ```bash

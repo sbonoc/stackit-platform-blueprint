@@ -1,0 +1,13 @@
+-- Canonical idempotency-key table scaffold (PostgreSQL-specific SQL template)
+
+CREATE TABLE IF NOT EXISTS message_idempotency_keys (
+  id BIGSERIAL PRIMARY KEY,
+  key_hash VARCHAR(128) NOT NULL,
+  consumer_name VARCHAR(128) NOT NULL,
+  first_seen_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  expires_at TIMESTAMP WITH TIME ZONE,
+  UNIQUE (key_hash, consumer_name)
+);
+
+CREATE INDEX IF NOT EXISTS idx_idempotency_expires_at
+  ON message_idempotency_keys (expires_at);

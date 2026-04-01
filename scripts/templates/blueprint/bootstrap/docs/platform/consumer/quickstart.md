@@ -97,6 +97,10 @@ Before publishing hosts or API routes, review [Endpoint Exposure Model](endpoint
 so public UI, protected UI, direct APIs, and internal SSR/BFF flows stay separated intentionally.
 If you plan to expose bearer-token APIs on the shared edge, review
 [Protected API Routes](protected_api_routes.md) before attaching JWT policy resources.
+For async choreography and tenant-aware service boundaries, also review:
+- [Event Messaging Baseline](event_messaging_baseline.md)
+- [Zero-Downtime Evolution](zero_downtime_evolution.md)
+- [Tenant Context Propagation](tenant_context_propagation.md)
 
 ## 6) STACKIT MVP Provision/Deploy (Optional)
 For managed STACKIT execution (`BLUEPRINT_PROFILE=stackit-dev|stackit-stage|stackit-prod`), export:
