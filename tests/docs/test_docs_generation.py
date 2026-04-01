@@ -69,6 +69,10 @@ class DocsGenerationTests(unittest.TestCase):
         self.assertIn("## Supported Profiles", contract_content)
         self.assertIn("## Required Make Targets", contract_content)
         self.assertIn("## Optional Modules", contract_content)
+        self.assertIn("## Optional Runtime Contracts", contract_content)
+        self.assertIn("Runtime Contract: `event_messaging_contract`", contract_content)
+        self.assertIn("Runtime Contract: `zero_downtime_evolution_contract`", contract_content)
+        self.assertIn("Runtime Contract: `tenant_context_contract`", contract_content)
 
         for module_id in module_ids_from_contract():
             self.assertIn(f"Module: `{module_id}`", contract_content)

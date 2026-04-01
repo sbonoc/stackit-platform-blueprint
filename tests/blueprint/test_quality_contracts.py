@@ -134,6 +134,7 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn("tests/blueprint/test_init_repo_env.py", contract)
         self.assertIn("tests/blueprint/test_upgrade_consumer.py", contract)
         self.assertIn("tests/infra/test_async_message_contracts.py", contract)
+        self.assertIn("tests/blueprint/test_optional_runtime_contract_validation.py", contract)
         self.assertIn("tests/infra/test_workload_health_check.py", contract)
         self.assertIn("tests/e2e/test_vertical_slice.py", contract)
 
@@ -172,6 +173,7 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn("emit_upgrade_report_metrics()", upgrade_wrapper)
         self.assertIn("blueprint_upgrade_plan_entries_total", upgrade_wrapper)
         self.assertIn("blueprint_upgrade_apply_status_total", upgrade_wrapper)
+        self.assertIn("blueprint_upgrade_required_manual_action_total", upgrade_wrapper)
         self.assertIn("upgrade_report_metrics.py", upgrade_wrapper)
         self.assertNotIn("python3 - \"$plan_report_path\" \"$apply_report_path\" <<'PY'", upgrade_wrapper)
         self.assertIn("remote.upstream.url", upgrade_wrapper)
@@ -184,6 +186,7 @@ class QualityContractsTests(unittest.TestCase):
         self.assertNotIn("python3 - \"$validate_report_path\" <<'PY'", validate_wrapper)
         self.assertIn("from scripts.lib.blueprint.merge_markers import find_merge_markers", upgrade_lib)
         self.assertIn("from scripts.lib.blueprint.runtime_dependency_edges import RUNTIME_DEPENDENCY_EDGES", upgrade_lib)
+        self.assertIn("required_manual_actions", upgrade_lib)
         self.assertIn("from scripts.lib.blueprint.merge_markers import find_merge_markers", validate_lib)
         self.assertIn("from scripts.lib.blueprint.runtime_dependency_edges import RUNTIME_DEPENDENCY_EDGES", validate_lib)
         self.assertIn("runtime_dependency_edge_check", validate_lib)

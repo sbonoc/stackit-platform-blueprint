@@ -54,6 +54,9 @@ BLUEPRINT_UPGRADE_REF=<tag|branch|commit> make blueprint-upgrade-consumer
 BLUEPRINT_UPGRADE_REF=<tag|branch|commit> BLUEPRINT_UPGRADE_APPLY=true make blueprint-upgrade-consumer
 make blueprint-upgrade-consumer-validate
 ```
+Inspect `artifacts/blueprint/upgrade_plan.json`, `artifacts/blueprint/upgrade_apply.json`, and
+`artifacts/blueprint/upgrade_summary.md` after each run. When `required_manual_actions` is non-empty,
+resolve the listed platform-owned dependency paths first, then re-run `make blueprint-upgrade-consumer-validate`.
 Set `BLUEPRINT_UPGRADE_SOURCE` when the blueprint source repository differs from your default `origin` remote.
 By default, the upgrade target resolves `BLUEPRINT_UPGRADE_SOURCE` from `remote.upstream.url`
 when present, and falls back to `remote.origin.url`.
@@ -94,6 +97,10 @@ Before publishing hosts or API routes, review [Endpoint Exposure Model](endpoint
 so public UI, protected UI, direct APIs, and internal SSR/BFF flows stay separated intentionally.
 If you plan to expose bearer-token APIs on the shared edge, review
 [Protected API Routes](protected_api_routes.md) before attaching JWT policy resources.
+For async choreography and tenant-aware service boundaries, also review:
+- [Event Messaging Baseline](event_messaging_baseline.md)
+- [Zero-Downtime Evolution](zero_downtime_evolution.md)
+- [Tenant Context Propagation](tenant_context_propagation.md)
 
 ## 6) STACKIT MVP Provision/Deploy (Optional)
 For managed STACKIT execution (`BLUEPRINT_PROFILE=stackit-dev|stackit-stage|stackit-prod`), export:

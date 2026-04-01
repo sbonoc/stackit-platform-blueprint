@@ -28,6 +28,7 @@
   - Default execution is plan-only (`BLUEPRINT_UPGRADE_APPLY=false`), with dirty-worktree and delete operations blocked unless explicitly enabled.
   - Platform-owned consumer surfaces (`make/platform/**`, `scripts/*/platform/**`, `docs/platform/**`) are protected from overwrite.
   - When protected platform-owned runtime identity paths are missing but referenced by blueprint-managed smoke paths, upgrade planning emits `required-manual-action` diagnostics on the skipped dependency path.
+  - Upgrade reports now emit structured `required_manual_actions` in plan/apply JSON and a dedicated summary section so manual runtime-identity dependency reconciliation is explicit and auditable.
   - Diverged blueprint-managed files use 3-way merge against the template-version baseline; unresolved merges emit conflict artifacts under `artifacts/blueprint/conflicts/**` and fail apply.
   - Upgrade planning fails fast when the resolved baseline ref points to the same commit as the selected upgrade target (`upgrade baseline collision`) to prevent no-op merge plans and mixed upgrade states.
   - `make blueprint-upgrade-consumer-validate` runs the required post-upgrade validation bundle and writes `artifacts/blueprint/upgrade_validate.json`, failing on any target error or unresolved merge markers.
@@ -86,6 +87,11 @@
 - Runtime inventory now has profile-aware and local-specific entrypoints:
   - `make infra-runtime-inventory` routes by active profile.
   - `make infra-local-runtime-inventory` prints local-only runtime inventory exports/state hints.
+- Optional runtime policy contracts are now blueprint-managed and disabled by default:
+  - `event_messaging_contract` defines canonical async envelope/versioning/outbox+inbox/idempotency guidance and scaffold hooks.
+  - `zero_downtime_evolution_contract` defines expand/migrate/contract rollout policy and optional destructive-SQL guard checks.
+  - `tenant_context_contract` standardizes tenant/organization claim, HTTP header, async event, and observability field propagation.
+  - Corresponding toggles (`EVENT_MESSAGING_BASELINE_ENABLED`, `ZERO_DOWNTIME_EVOLUTION_ENABLED`, `TENANT_CONTEXT_PROPAGATION_ENABLED`) are opt-in and additive for generated consumers.
 - Runtime identity docs are now contract-generated:
   - `scripts/lib/docs/sync_runtime_identity_contract_summary.py` owns the generated summary block in `docs/platform/consumer/runtime_credentials_eso.md` and its bootstrap template counterpart.
   - Fast quality gate now enforces this via `quality-docs-check-runtime-identity-summary-sync`.
