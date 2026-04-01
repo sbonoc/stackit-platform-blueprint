@@ -124,5 +124,6 @@
   - platform seed docs parity (`docs/platform/**` <-> bootstrap template mirror) is enforced through `quality-docs-{sync,check}-platform-seed`.
 - Codex-assisted consumer upgrades are packaged as a blueprint-managed local skill contract:
   - canonical skill assets live under `.agents/skills/blueprint-consumer-upgrade/**` and are part of required repository files.
+  - consumer template fallback copies of that skill now live under `scripts/templates/consumer/init/.agents/skills/blueprint-consumer-upgrade/**` so generated-consumer install flows remain repairable when repo-local skill assets are missing.
   - `make blueprint-install-codex-skill` is the canonical wrapper to sync the bundled skill into `${CODEX_HOME:-$HOME/.codex}/skills`.
   - the bundled resolver helper (`resolve_latest_stable_ref.sh`) selects latest stable semantic tags and resolves the peeled commit SHA for annotated tags.

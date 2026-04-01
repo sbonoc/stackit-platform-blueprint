@@ -76,6 +76,16 @@ Common first-day issues for generated repositories.
 - Typical cause: a consumer-seeded template introduced a token that is not part of the supported replacement set.
 - Keep dry-run first, then inspect the template path reported in the error and replace unsupported tokens with concrete values or supported placeholders.
 
+## `make blueprint-install-codex-skill` fails with `skill source not found`
+- The installer first checks the repo-local skill source under `.agents/skills/<skill-name>`.
+- If repo-local skill files are missing, it falls back to consumer template assets under `scripts/templates/consumer/init/.agents/skills/<skill-name>`.
+- If both paths are missing, sync blueprint-managed assets first and rerun:
+  ```bash
+  make blueprint-upgrade-consumer
+  BLUEPRINT_RESYNC_APPLY_SAFE=true make blueprint-resync-consumer-seeds
+  make blueprint-install-codex-skill
+  ```
+
 ## Pull requests are not auto-requesting reviewers
 - Generated repositories seed `.github/CODEOWNERS` as a starter file with commented examples only.
 - Replace the example owners with your real team handles before relying on GitHub review assignment.
