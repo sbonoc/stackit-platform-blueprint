@@ -196,7 +196,7 @@ external_secret_checked=""
 target_secret_checked=""
 declare -a ESO_SECRET_CONTRACTS=()
 
-while IFS=$'\t' read -r contract_id contract_module contract_namespace contract_external_secret contract_target_secret contract_target_keys; do
+while IFS='|' read -r contract_id contract_module contract_namespace contract_external_secret contract_target_secret contract_target_keys; do
   [[ -n "$contract_id" ]] || continue
 
   if [[ -n "$contract_module" ]] && ! is_module_enabled "$contract_module"; then
@@ -208,122 +208,136 @@ while IFS=$'\t' read -r contract_id contract_module contract_namespace contract_
     "$contract_external_secret" \
     "$contract_target_secret" \
     "$contract_target_keys"
-done < <(python3 "$runtime_identity_contract_cli" eso-contracts)
+done < <(python3 "$runtime_identity_contract_cli" eso-contracts | tr $'\t' '|')
 
-if tooling_is_execution_enabled; then
-  apply_mode="kubectl-apply-kustomize"
-fi
-run_kustomize_apply "$ROOT_DIR/infra/gitops/platform/base/security"
-
-source_literals=()
-if literal_output="$(parse_literal_pairs "$RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS")"; then
-  if [[ -n "$literal_output" ]]; then
-    while IFS= read -r literal_pair; do
-      [[ -n "$literal_pair" ]] || continue
-      source_literals+=("$literal_pair")
-    done <<<"$literal_output"
-  fi
-else
-  record_reconcile_issue "invalid RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS format; expected key=value,key2=value2"
-fi
-
-if (( ${#source_literals[@]} > 0 )); then
-  source_seed_mode="manifest-rendered"
-  if tooling_is_execution_enabled; then
-    source_seed_mode="kubectl-apply"
-  fi
-  apply_optional_module_secret_from_literals \
-    "$RUNTIME_CREDENTIALS_SOURCE_NAMESPACE" \
-    "$RUNTIME_CREDENTIALS_SOURCE_SECRET_NAME" \
-    "${source_literals[@]}"
-elif tooling_is_execution_enabled; then
-  if kubectl -n "$RUNTIME_CREDENTIALS_SOURCE_NAMESPACE" get secret "$RUNTIME_CREDENTIALS_SOURCE_SECRET_NAME" >/dev/null 2>&1; then
-    source_seed_mode="existing-source-secret"
-    source_secret_present="true"
-  else
-    source_seed_mode="missing-source-secret"
-    source_secret_present="false"
-    record_reconcile_issue \
-      "source secret ${RUNTIME_CREDENTIALS_SOURCE_NAMESPACE}/${RUNTIME_CREDENTIALS_SOURCE_SECRET_NAME} missing and no literals provided"
-  fi
-fi
-
-if tooling_is_execution_enabled; then
-  require_command kubectl
-
-  if wait_for_crd_established "clustersecretstores.external-secrets.io" "$runtime_wait_timeout" \
-    && wait_for_crd_established "externalsecrets.external-secrets.io" "$runtime_wait_timeout"; then
-    crd_status="ready"
-  else
-    crd_status="timeout"
-    record_reconcile_issue "ESO CRDs did not report Established=True within ${runtime_wait_timeout}s"
-  fi
-
-  external_secret_status="ready"
-  target_secret_status="ready"
+status="success"
+if (( ${#ESO_SECRET_CONTRACTS[@]} == 0 )); then
+  status="noop-empty-contract-set"
+  apply_mode="skipped-empty-contract-set"
+  source_seed_mode="skipped-empty-contract-set"
+  source_secret_present="not-applicable"
+  crd_status="not-applicable"
+  external_secret_status="not-applicable"
+  target_secret_status="not-applicable"
   target_missing_keys="none"
   external_secret_checked="none"
   target_secret_checked="none"
-  for contract_entry in "${ESO_SECRET_CONTRACTS[@]}"; do
-    IFS='|' read -r contract_namespace contract_external_secret contract_target_secret contract_target_keys <<<"$contract_entry"
+  log_info "runtime credential contract set empty; skipping source secret checks"
+else
+  if tooling_is_execution_enabled; then
+    apply_mode="kubectl-apply-kustomize"
+  fi
+  run_kustomize_apply "$ROOT_DIR/infra/gitops/platform/base/security"
 
-    if wait_for_external_secret_ready \
-      "$contract_namespace" \
-      "$contract_external_secret" \
-      "$runtime_wait_timeout"; then
-      if [[ "$external_secret_checked" == "none" ]]; then
-        external_secret_checked="${contract_namespace}/${contract_external_secret}"
-      else
-        external_secret_checked+=",${contract_namespace}/${contract_external_secret}"
-      fi
-    else
-      external_secret_status="timeout"
-      record_reconcile_issue \
-        "ExternalSecret ${contract_namespace}/${contract_external_secret} not Ready within ${runtime_wait_timeout}s"
+  source_literals=()
+  if literal_output="$(parse_literal_pairs "$RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS")"; then
+    if [[ -n "$literal_output" ]]; then
+      while IFS= read -r literal_pair; do
+        [[ -n "$literal_pair" ]] || continue
+        source_literals+=("$literal_pair")
+      done <<<"$literal_output"
     fi
-
-    target_check_output="$(verify_target_secret_keys \
-      "$contract_namespace" \
-      "$contract_target_secret" \
-      "$contract_target_keys" || true)"
-    if [[ "$target_check_output" == "ok" ]]; then
-      if [[ "$target_secret_checked" == "none" ]]; then
-        target_secret_checked="${contract_namespace}/${contract_target_secret}"
-      else
-        target_secret_checked+=",${contract_namespace}/${contract_target_secret}"
-      fi
-      continue
-    fi
-
-    if [[ "$target_check_output" == "__missing_secret__" ]]; then
-      target_secret_status="missing"
-      if [[ "$target_missing_keys" == "none" ]]; then
-        target_missing_keys="${contract_namespace}/${contract_target_secret}:missing"
-      else
-        target_missing_keys+=",${contract_namespace}/${contract_target_secret}:missing"
-      fi
-      record_reconcile_issue \
-        "target secret ${contract_namespace}/${contract_target_secret} is missing"
-      continue
-    fi
-
-    target_secret_status="missing-keys"
-    if [[ "$target_missing_keys" == "none" ]]; then
-      target_missing_keys="${contract_namespace}/${contract_target_secret}:${target_check_output}"
-    else
-      target_missing_keys+=",${contract_namespace}/${contract_target_secret}:${target_check_output}"
-    fi
-    record_reconcile_issue \
-      "target secret ${contract_namespace}/${contract_target_secret} missing key(s): $target_check_output"
-  done
-fi
-
-status="success"
-if (( ${#RUNTIME_RECONCILE_ISSUES[@]} > 0 )); then
-  if [[ "$RUNTIME_CREDENTIALS_REQUIRED_NORMALIZED" == "true" ]]; then
-    status="failed-required"
   else
-    status="warn-and-skip"
+    record_reconcile_issue "invalid RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS format; expected key=value,key2=value2"
+  fi
+
+  if (( ${#source_literals[@]} > 0 )); then
+    source_seed_mode="manifest-rendered"
+    if tooling_is_execution_enabled; then
+      source_seed_mode="kubectl-apply"
+    fi
+    apply_optional_module_secret_from_literals \
+      "$RUNTIME_CREDENTIALS_SOURCE_NAMESPACE" \
+      "$RUNTIME_CREDENTIALS_SOURCE_SECRET_NAME" \
+      "${source_literals[@]}"
+  elif tooling_is_execution_enabled; then
+    if kubectl -n "$RUNTIME_CREDENTIALS_SOURCE_NAMESPACE" get secret "$RUNTIME_CREDENTIALS_SOURCE_SECRET_NAME" >/dev/null 2>&1; then
+      source_seed_mode="existing-source-secret"
+      source_secret_present="true"
+    else
+      source_seed_mode="missing-source-secret"
+      source_secret_present="false"
+      record_reconcile_issue \
+        "source secret ${RUNTIME_CREDENTIALS_SOURCE_NAMESPACE}/${RUNTIME_CREDENTIALS_SOURCE_SECRET_NAME} missing and no literals provided"
+    fi
+  fi
+
+  if tooling_is_execution_enabled; then
+    require_command kubectl
+
+    if wait_for_crd_established "clustersecretstores.external-secrets.io" "$runtime_wait_timeout" \
+      && wait_for_crd_established "externalsecrets.external-secrets.io" "$runtime_wait_timeout"; then
+      crd_status="ready"
+    else
+      crd_status="timeout"
+      record_reconcile_issue "ESO CRDs did not report Established=True within ${runtime_wait_timeout}s"
+    fi
+
+    external_secret_status="ready"
+    target_secret_status="ready"
+    target_missing_keys="none"
+    external_secret_checked="none"
+    target_secret_checked="none"
+    for contract_entry in "${ESO_SECRET_CONTRACTS[@]}"; do
+      IFS='|' read -r contract_namespace contract_external_secret contract_target_secret contract_target_keys <<<"$contract_entry"
+
+      if wait_for_external_secret_ready \
+        "$contract_namespace" \
+        "$contract_external_secret" \
+        "$runtime_wait_timeout"; then
+        if [[ "$external_secret_checked" == "none" ]]; then
+          external_secret_checked="${contract_namespace}/${contract_external_secret}"
+        else
+          external_secret_checked+=",${contract_namespace}/${contract_external_secret}"
+        fi
+      else
+        external_secret_status="timeout"
+        record_reconcile_issue \
+          "ExternalSecret ${contract_namespace}/${contract_external_secret} not Ready within ${runtime_wait_timeout}s"
+      fi
+
+      target_check_output="$(verify_target_secret_keys \
+        "$contract_namespace" \
+        "$contract_target_secret" \
+        "$contract_target_keys" || true)"
+      if [[ "$target_check_output" == "ok" ]]; then
+        if [[ "$target_secret_checked" == "none" ]]; then
+          target_secret_checked="${contract_namespace}/${contract_target_secret}"
+        else
+          target_secret_checked+=",${contract_namespace}/${contract_target_secret}"
+        fi
+        continue
+      fi
+
+      if [[ "$target_check_output" == "__missing_secret__" ]]; then
+        target_secret_status="missing"
+        if [[ "$target_missing_keys" == "none" ]]; then
+          target_missing_keys="${contract_namespace}/${contract_target_secret}:missing"
+        else
+          target_missing_keys+=",${contract_namespace}/${contract_target_secret}:missing"
+        fi
+        record_reconcile_issue \
+          "target secret ${contract_namespace}/${contract_target_secret} is missing"
+        continue
+      fi
+
+      target_secret_status="missing-keys"
+      if [[ "$target_missing_keys" == "none" ]]; then
+        target_missing_keys="${contract_namespace}/${contract_target_secret}:${target_check_output}"
+      else
+        target_missing_keys+=",${contract_namespace}/${contract_target_secret}:${target_check_output}"
+      fi
+      record_reconcile_issue \
+        "target secret ${contract_namespace}/${contract_target_secret} missing key(s): $target_check_output"
+    done
+  fi
+
+  if (( ${#RUNTIME_RECONCILE_ISSUES[@]} > 0 )); then
+    if [[ "$RUNTIME_CREDENTIALS_REQUIRED_NORMALIZED" == "true" ]]; then
+      status="failed-required"
+    else
+      status="warn-and-skip"
+    fi
   fi
 fi
 
