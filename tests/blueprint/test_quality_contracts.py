@@ -380,6 +380,13 @@ class QualityContractsTests(unittest.TestCase):
         self.assertNotIn("elif is_local_profile; then", rabbitmq_plan)
         self.assertIn('resolve_optional_module_execution "kms" "destroy"', kms_destroy)
 
+    def test_runtime_credentials_reconcile_uses_nounset_safe_contract_iteration(self) -> None:
+        reconcile_script = _read("scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh")
+        self.assertIn("eso_secret_contract_count()", reconcile_script)
+        self.assertIn('for contract_entry in "${ESO_SECRET_CONTRACTS[@]-}"; do', reconcile_script)
+        self.assertIn("eso_contract_count=\"$(eso_secret_contract_count)\"", reconcile_script)
+        self.assertIn("contracts=$eso_contract_count", reconcile_script)
+
     def test_upgrade_workflow_wrappers_emit_metrics_and_parse_reports(self) -> None:
         upgrade_wrapper = _read("scripts/bin/blueprint/upgrade_consumer.sh")
         validate_wrapper = _read("scripts/bin/blueprint/upgrade_consumer_validate.sh")

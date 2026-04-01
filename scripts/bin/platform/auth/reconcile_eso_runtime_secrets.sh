@@ -184,6 +184,14 @@ register_eso_secret_contract() {
   ESO_SECRET_CONTRACTS+=("${namespace}|${external_secret}|${target_secret}|${target_keys}")
 }
 
+eso_secret_contract_count() {
+  if ! declare -p ESO_SECRET_CONTRACTS >/dev/null 2>&1; then
+    printf '0'
+    return 0
+  fi
+  printf '%s' "${#ESO_SECRET_CONTRACTS[@]}"
+}
+
 RUNTIME_RECONCILE_ISSUES=()
 source_seed_mode="not-requested"
 apply_mode="kustomize-dry-run"
@@ -210,8 +218,9 @@ while IFS='|' read -r contract_id contract_module contract_namespace contract_ex
     "$contract_target_keys"
 done < <(python3 "$runtime_identity_contract_cli" eso-contracts | tr $'\t' '|')
 
+eso_contract_count="$(eso_secret_contract_count)"
 status="success"
-if (( ${#ESO_SECRET_CONTRACTS[@]} == 0 )); then
+if (( eso_contract_count == 0 )); then
   status="noop-empty-contract-set"
   apply_mode="skipped-empty-contract-set"
   source_seed_mode="skipped-empty-contract-set"
@@ -278,7 +287,7 @@ else
     target_missing_keys="none"
     external_secret_checked="none"
     target_secret_checked="none"
-    for contract_entry in "${ESO_SECRET_CONTRACTS[@]}"; do
+    for contract_entry in "${ESO_SECRET_CONTRACTS[@]-}"; do
       IFS='|' read -r contract_namespace contract_external_secret contract_target_secret contract_target_keys <<<"$contract_entry"
 
       if wait_for_external_secret_ready \
@@ -344,7 +353,7 @@ fi
 log_metric \
   "runtime_credentials_eso_reconcile_total" \
   "1" \
-  "profile=$BLUEPRINT_PROFILE mode=$(tooling_execution_mode) status=$status required=$RUNTIME_CREDENTIALS_REQUIRED_NORMALIZED issue_count=${#RUNTIME_RECONCILE_ISSUES[@]} contracts=${#ESO_SECRET_CONTRACTS[@]}"
+  "profile=$BLUEPRINT_PROFILE mode=$(tooling_execution_mode) status=$status required=$RUNTIME_CREDENTIALS_REQUIRED_NORMALIZED issue_count=${#RUNTIME_RECONCILE_ISSUES[@]} contracts=$eso_contract_count"
 
 state_file="$(
   write_state_file "runtime_credentials_eso_reconcile" \
