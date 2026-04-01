@@ -595,6 +595,9 @@ render_optional_module_secret_manifests "messaging" "blueprint-rabbitmq-auth" "r
         kubectl_check = run(["bash", "-lc", "command -v kubectl >/dev/null 2>&1"])
         if kubectl_check.returncode != 0:
             self.skipTest("kubectl is required for local overlay kustomize regression check")
+        kustomize_help_check = run(["bash", "-lc", "kubectl kustomize --help >/dev/null 2>&1"])
+        if kustomize_help_check.returncode != 0:
+            self.skipTest("kubectl kustomize is required for local overlay kustomize regression check")
 
         result = run(["kubectl", "kustomize", str(REPO_ROOT / "infra/gitops/argocd/overlays/local")])
         self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)

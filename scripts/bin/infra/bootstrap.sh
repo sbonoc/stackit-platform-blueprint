@@ -500,6 +500,15 @@ bootstrap_optional_manifest() {
       "KEYCLOAK_GATEWAY_CLASS_NAME=$KEYCLOAK_GATEWAY_CLASS_NAME" \
       "KEYCLOAK_TLS_SECRET_NAME=$KEYCLOAK_TLS_SECRET_NAME" \
       "KEYCLOAK_EXTRA_MANIFESTS_BLOCK=$keycloak_extra_manifests"
+    if [[ "$env" == "local" ]]; then
+      local keycloak_core_manifest="$ROOT_DIR/infra/gitops/argocd/core/local/keycloak.yaml"
+      local keycloak_overlay_manifest="$ROOT_DIR/infra/gitops/argocd/overlays/local/keycloak.yaml"
+      if [[ ! -f "$keycloak_core_manifest" ]]; then
+        log_fatal "missing rendered local keycloak manifest: $keycloak_core_manifest"
+      fi
+      cp "$keycloak_core_manifest" "$keycloak_overlay_manifest"
+      log_info "synchronized local keycloak overlay manifest from rendered core contract"
+    fi
     ;;
   *)
     ensure_file_from_rendered_template \
