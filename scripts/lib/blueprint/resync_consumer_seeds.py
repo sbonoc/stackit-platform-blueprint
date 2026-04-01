@@ -7,6 +7,7 @@ import argparse
 from dataclasses import dataclass
 import json
 from pathlib import Path
+import re
 import subprocess
 import sys
 
@@ -26,6 +27,8 @@ CLASS_MANUAL_MERGE = "manual-merge"
 MODE_DRY_RUN = "dry-run"
 MODE_APPLY_SAFE = "apply-safe"
 MODE_APPLY_ALL = "apply-all"
+
+UNRESOLVED_TEMPLATE_TOKEN_PATTERN = re.compile(r"\{\{([A-Z0-9_]+)\}\}")
 
 
 @dataclass(frozen=True)
@@ -138,8 +141,13 @@ def _template_replacements(repo_root: Path) -> dict[str, str]:
     repo_name = str(contract.raw.get("metadata", {}).get("name", "")).strip() or repo_root.name
     return {
         "REPO_NAME": repo_name,
+        "DEFAULT_BRANCH": contract.repository.default_branch,
         "TEMPLATE_VERSION": contract.repository.template_bootstrap.template_version,
     }
+
+
+def _unresolved_template_tokens(content: str) -> list[str]:
+    return sorted({f"{{{{{match.group(1)}}}}}" for match in UNRESOLVED_TEMPLATE_TOKEN_PATTERN.finditer(content)})
 
 
 def _classify_entry(
@@ -266,6 +274,12 @@ def _plan_entries(repo_root: Path, git: GitInspector) -> list[SeedResyncEntry]:
                 f"{relative_path}: {template_path.relative_to(repo_root).as_posix()}"
             )
         expected_content = render_template(template_path.read_text(encoding="utf-8"), replacements)
+        unresolved_tokens = _unresolved_template_tokens(expected_content)
+        if unresolved_tokens:
+            raise ValueError(
+                "unresolved consumer template token(s) in "
+                f"{relative_path}: {', '.join(unresolved_tokens)}"
+            )
         current_content = target_path.read_text(encoding="utf-8") if target_path.is_file() else None
         entries.append(
             _classify_entry(
@@ -366,11 +380,11 @@ def main() -> int:
 
     mode = _resolve_mode(args)
     git = GitInspector(repo_root)
-    entries = _plan_entries(repo_root, git)
-    applied = _apply_entries(repo_root, entries, mode)
-    summary = _summarize(entries, applied)
-    _print_report(entries, summary, mode)
     try:
+        entries = _plan_entries(repo_root, git)
+        applied = _apply_entries(repo_root, entries, mode)
+        summary = _summarize(entries, applied)
+        _print_report(entries, summary, mode)
         _write_json_report(args.report_path, repo_root, mode, entries, summary)
     except ValueError as exc:
         print(str(exc), file=sys.stderr)

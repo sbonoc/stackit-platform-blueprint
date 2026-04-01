@@ -41,6 +41,7 @@ class ResyncConsumerSeedsTests(unittest.TestCase):
         contract = load_blueprint_contract(tmp_root / "blueprint/contract.yaml")
         replacements = {
             "REPO_NAME": "acme-platform",
+            "DEFAULT_BRANCH": contract.repository.default_branch,
             "TEMPLATE_VERSION": contract.repository.template_bootstrap.template_version,
         }
 
@@ -141,6 +142,9 @@ class ResyncConsumerSeedsTests(unittest.TestCase):
                 replacements,
             )
             self.assertEqual((tmp_root / "docs/README.md").read_text(encoding="utf-8"), docs_readme_expected)
+            workflow_content = (tmp_root / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+            self.assertIn(f"      - {replacements['DEFAULT_BRANCH']}", workflow_content)
+            self.assertNotIn("{{DEFAULT_BRANCH}}", workflow_content)
 
             # AGENTS.md remains unchanged because it is classified as manual-merge.
             self.assertEqual(
@@ -200,6 +204,32 @@ class ResyncConsumerSeedsTests(unittest.TestCase):
                 result.stderr,
             )
             self.assertFalse(escaped_report_path.exists())
+
+    def test_apply_safe_fails_when_consumer_template_has_unresolved_tokens(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            self._prepare_generated_repo(tmp_root)
+            workflow_template_path = tmp_root / "scripts/templates/consumer/init/.github/workflows/ci.yml.tmpl"
+            workflow_template = workflow_template_path.read_text(encoding="utf-8")
+            workflow_template = workflow_template.replace("{{DEFAULT_BRANCH}}", "{{UNRESOLVED_BRANCH_TOKEN}}", 1)
+            workflow_template_path.write_text(workflow_template, encoding="utf-8")
+
+            result = _run(
+                [
+                    sys.executable,
+                    str(RESYNC_SCRIPT),
+                    "--repo-root",
+                    str(tmp_root),
+                    "--apply-safe",
+                ],
+                cwd=REPO_ROOT,
+            )
+
+            self.assertEqual(result.returncode, 1, msg=result.stdout + result.stderr)
+            self.assertIn(
+                "unresolved consumer template token(s) in .github/workflows/ci.yml: {{UNRESOLVED_BRANCH_TOKEN}}",
+                result.stderr,
+            )
 
     def test_refuses_template_source_repo_mode(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
