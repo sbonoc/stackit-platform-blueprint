@@ -15,3 +15,11 @@ class GovernanceRefactorCases(
     RefactorContractBase,
 ):
     """Backwards-compatible aggregate over split governance contract suites."""
+
+
+def load_tests(loader, tests, pattern):
+    """Avoid duplicate discovery of imported split case classes in this module."""
+    del tests, pattern
+    suite = loader.suiteClass()
+    suite.addTests(loader.loadTestsFromTestCase(GovernanceRefactorCases))
+    return suite

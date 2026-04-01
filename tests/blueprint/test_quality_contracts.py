@@ -189,6 +189,11 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn('repo_mode == "generated-consumer"', checker)
         self.assertIn("[test-pyramid] skipped for generated-consumer repo", checker)
 
+    def test_governance_aggregate_module_uses_load_tests_guard(self) -> None:
+        governance_module = _read("tests/blueprint/contract_refactor_governance_cases.py")
+        self.assertIn("def load_tests(", governance_module)
+        self.assertIn("loader.loadTestsFromTestCase(GovernanceRefactorCases)", governance_module)
+
     def test_optional_module_wrappers_use_shared_execution_library(self) -> None:
         module_execution = _read("scripts/lib/infra/module_execution.sh")
         fallback_runtime = _read("scripts/lib/infra/fallback_runtime.sh")

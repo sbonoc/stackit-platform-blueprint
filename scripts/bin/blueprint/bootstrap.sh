@@ -124,8 +124,19 @@ bootstrap_blueprint_directories
 bootstrap_blueprint_templates
 run_cmd "$ROOT_DIR/scripts/bin/blueprint/render_module_wrapper_skeletons.sh"
 run_cmd "$ROOT_DIR/scripts/bin/blueprint/render_makefile.sh"
-run_cmd python3 "$ROOT_DIR/scripts/lib/quality/render_ci_workflow.py" \
-  --output "$ROOT_DIR/.github/workflows/ci.yml"
+
+# `.github/workflows/ci.yml` is consumer-seeded in generated repos and must
+# remain consumer-owned after init. Only render the source blueprint workflow
+# in template-source mode.
+if blueprint_repo_is_generated_consumer; then
+  log_metric "blueprint_ci_workflow_sync_total" "1" "status=skipped repo_mode=generated-consumer"
+  log_info "skipping source CI workflow render in generated-consumer repo"
+else
+  run_cmd python3 "$ROOT_DIR/scripts/lib/quality/render_ci_workflow.py" \
+    --output "$ROOT_DIR/.github/workflows/ci.yml"
+  log_metric "blueprint_ci_workflow_sync_total" "1" "status=success repo_mode=template-source"
+fi
+
 run_cmd python3 "$ROOT_DIR/scripts/bin/quality/render_core_targets_doc.py" \
   --output "$ROOT_DIR/docs/reference/generated/core_targets.generated.md"
 run_cmd python3 "$ROOT_DIR/scripts/lib/docs/generate_contract_docs.py" \
