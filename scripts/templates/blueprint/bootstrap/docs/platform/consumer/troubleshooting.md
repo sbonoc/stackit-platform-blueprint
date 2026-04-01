@@ -47,6 +47,7 @@ Common first-day issues for generated repositories.
 
 ## `make infra-validate` fails with branch naming errors
 - Branch names must match contract prefixes (for example `feature/...`, `fix/...`, `chore/...`, `docs/...`).
+- Compatibility prefixes `codex/...` and `copilot/...` are accepted even when older consumer contracts do not yet list them.
 - If running in CI, ensure `GITHUB_HEAD_REF`/`GITHUB_REF_NAME` is available or set `BLUEPRINT_BRANCH_NAME`.
 
 ## `make blueprint-check-placeholders` fails

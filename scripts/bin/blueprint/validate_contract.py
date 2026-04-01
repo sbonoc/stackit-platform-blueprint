@@ -26,6 +26,9 @@ from scripts.lib.infra.runtime_identity_contract import (  # noqa: E402
 )
 
 
+COMPAT_BRANCH_PURPOSE_PREFIXES = ("codex/", "copilot/")
+
+
 def _resolve_repo_root() -> Path:
     return REPO_ROOT
 
@@ -1380,6 +1383,17 @@ def _resolve_branch_name() -> str:
     return branch_name
 
 
+def _merge_compat_branch_prefixes(prefixes: list[str]) -> list[str]:
+    merged_prefixes: list[str] = list(prefixes)
+    seen_prefixes = set(prefixes)
+    for compat_prefix in COMPAT_BRANCH_PURPOSE_PREFIXES:
+        if compat_prefix in seen_prefixes:
+            continue
+        merged_prefixes.append(compat_prefix)
+        seen_prefixes.add(compat_prefix)
+    return merged_prefixes
+
+
 def _validate_branch_naming_contract(contract: BlueprintContract) -> list[str]:
     errors: list[str] = []
     default_branch = contract.repository.default_branch
@@ -1416,10 +1430,12 @@ def _validate_branch_naming_contract(contract: BlueprintContract) -> list[str]:
     if not branch_name or (default_branch and branch_name == default_branch):
         return errors
 
-    matching_prefixes = [prefix for prefix in prefixes if branch_name.startswith(prefix)]
+    allowed_prefixes = _merge_compat_branch_prefixes(prefixes)
+    matching_prefixes = [prefix for prefix in allowed_prefixes if branch_name.startswith(prefix)]
     if not matching_prefixes:
         errors.append(
-            f"branch '{branch_name}' must start with one of configured purpose prefixes: {', '.join(prefixes)}"
+            f"branch '{branch_name}' must start with one of allowed purpose prefixes: "
+            f"{', '.join(allowed_prefixes)}"
         )
         return errors
 

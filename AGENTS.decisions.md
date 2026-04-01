@@ -67,6 +67,7 @@
   - `make quality-hooks-strict` for slower audit lanes
   - `make quality-hooks-run` as the full composed gate
 - Branch naming contract explicitly allows `codex/` and `copilot/` in addition to GitHub Flow purpose prefixes so assistant-authored branches remain policy-valid during CI validation.
+- Branch naming validation keeps backward-compatible `codex/` and `copilot/` acceptance even for stale generated-consumer contracts that do not yet list those prefixes, so `infra-validate` remains upgrade-safe.
 - Backlog entries represent open work only. Change history lives in Git; finished work does not stay in the backlog.
 - Runtime credentials reconciliation is now a blueprint-native ESO contract:
   - blueprint-owned manifests live under `infra/gitops/platform/base/security/**`
