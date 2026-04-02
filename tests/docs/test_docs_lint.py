@@ -96,6 +96,37 @@ class DocsLintTests(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
             self.assertIn("RabbitMQ managed-service major-family drift", result.stderr)
 
+    def test_rabbitmq_family_contract_fails_when_versions_source_unreadable(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _write(
+                repo_root / "scripts/lib/infra/versions.sh",
+                'RABBITMQ_LOCAL_IMAGE_REPOSITORY="bitnamilegacy/rabbitmq"\n',
+            )
+            _write(
+                repo_root / "docs/platform/modules/rabbitmq/README.md",
+                "RabbitMQ managed-service major family: `4.0`\n",
+            )
+            _write(
+                repo_root / "scripts/templates/blueprint/bootstrap/docs/platform/modules/rabbitmq/README.md",
+                "RabbitMQ managed-service major family: `4.0`\n",
+            )
+            result = run(
+                [
+                    sys.executable,
+                    str(LINTER),
+                    "--repo-root",
+                    str(repo_root),
+                    "--doc-glob",
+                    "docs/**/*.md",
+                    "--doc-glob",
+                    "scripts/templates/blueprint/bootstrap/docs/**/*.md",
+                ],
+                cwd=repo_root,
+            )
+            self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            self.assertIn("unable to derive RabbitMQ managed-service major family", result.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()

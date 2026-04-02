@@ -166,15 +166,25 @@ def rabbitmq_expected_managed_family(repo_root: Path) -> str | None:
 
 
 def lint_rabbitmq_doc_family(repo_root: Path) -> list[LintIssue]:
-    expected_family = rabbitmq_expected_managed_family(repo_root)
-    if expected_family is None:
+    existing_doc_paths = [repo_root / relative_doc_path for relative_doc_path in RABBITMQ_DOC_PATHS]
+    existing_doc_paths = [doc_path for doc_path in existing_doc_paths if doc_path.is_file()]
+    if not existing_doc_paths:
         return []
 
     issues: list[LintIssue] = []
-    for relative_doc_path in RABBITMQ_DOC_PATHS:
-        doc_path = repo_root / relative_doc_path
-        if not doc_path.is_file():
-            continue
+    expected_family = rabbitmq_expected_managed_family(repo_root)
+    if expected_family is None:
+        issues.append(
+            LintIssue(
+                repo_root / "scripts/lib/infra/versions.sh",
+                1,
+                "unable to derive RabbitMQ managed-service major family from "
+                "RABBITMQ_LOCAL_IMAGE_TAG in scripts/lib/infra/versions.sh",
+            )
+        )
+        return issues
+
+    for doc_path in existing_doc_paths:
 
         lines = doc_path.read_text(encoding="utf-8").splitlines()
         matched_line = None
