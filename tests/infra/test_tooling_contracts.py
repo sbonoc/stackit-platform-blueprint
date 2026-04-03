@@ -770,6 +770,55 @@ run_touchpoints_pnpm_lane "touchpoints e2e" "playwright" "{touchpoints_root}" "t
             self.assertIn("+ env -u NO_COLOR pnpm --dir", output)
             self.assertIn("no_color_sanitized=true", output)
 
+    def test_touchpoints_pnpm_lane_no_color_sanitized_false_when_absent(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            touchpoints_root = Path(tmpdir) / "apps" / "touchpoints"
+            package_dir = touchpoints_root / "service-a"
+            package_dir.mkdir(parents=True, exist_ok=True)
+            (package_dir / "package.json").write_text(
+                json.dumps(
+                    {
+                        "name": "service-a",
+                        "version": "1.0.0",
+                        "scripts": {
+                            "test:e2e": "echo should-not-run",
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            bin_dir = Path(tmpdir) / "bin"
+            bin_dir.mkdir(parents=True, exist_ok=True)
+            pnpm = bin_dir / "pnpm"
+            pnpm.write_text(
+                "\n".join(
+                    [
+                        "#!/bin/sh",
+                        'printf "pnpm_no_color=%s\\n" "${NO_COLOR-unset}"',
+                        "exit 0",
+                        "",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            pnpm.chmod(0o755)
+
+            script = f"""
+export PATH="{bin_dir}:$PATH"
+export ROOT_DIR="{REPO_ROOT}"
+unset NO_COLOR
+source "{REPO_ROOT}/scripts/lib/shell/bootstrap.sh"
+source "{REPO_ROOT}/scripts/lib/platform/testing.sh"
+run_touchpoints_pnpm_lane "touchpoints e2e" "playwright" "{touchpoints_root}" "test:e2e"
+"""
+            result = run(["bash", "-lc", script], {"ROOT_DIR": str(REPO_ROOT)})
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            output = result.stdout + result.stderr
+            self.assertNotIn("unsetting NO_COLOR", output)
+            self.assertIn("pnpm_no_color=unset", output)
+            self.assertIn("no_color_sanitized=false", output)
+
     def test_optional_module_execution_resolves_provider_backed_stackit_modes(self) -> None:
         resolved = resolve_optional_module_execution("postgres", "plan", profile="stackit-dev")
         self.assertIn("class=provider_backed", resolved)
