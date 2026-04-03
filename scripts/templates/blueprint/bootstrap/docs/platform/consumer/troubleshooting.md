@@ -158,6 +158,21 @@ Common first-day issues for generated repositories.
 - Ensure required local tools are available (`bash`, `git`, `make`, `python3`, `tar`).
 - Confirm CI job exports init variables, `BLUEPRINT_PROFILE`, and any intended optional-module flags before `make blueprint-template-smoke`.
 
+## CI warns about deprecated Node 20 GitHub actions
+- Upgrade your generated repository to the latest blueprint ref so CI picks up Node-24-ready action majors:
+  - `.github/actions/prepare-blueprint-ci/action.yml` (`actions/setup-python@v6`, `actions/setup-node@v6`)
+  - `.github/workflows/ci.yml` (`actions/checkout@v6`)
+- Use the upgrade flow from the repository root:
+  ```bash
+  make blueprint-resync-consumer-seeds
+  BLUEPRINT_RESYNC_APPLY_SAFE=true make blueprint-resync-consumer-seeds
+  make blueprint-upgrade-consumer
+  BLUEPRINT_UPGRADE_APPLY=true make blueprint-upgrade-consumer
+  make blueprint-upgrade-consumer-validate
+  ```
+- Temporary fallback only if you cannot upgrade immediately:
+  - set `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true` in workflow/job env.
+
 ## STACKIT preflight fails on backend contract
 - Ensure backend files exist under:
   - `infra/cloud/stackit/terraform/bootstrap/state-backend/<env>.hcl`
