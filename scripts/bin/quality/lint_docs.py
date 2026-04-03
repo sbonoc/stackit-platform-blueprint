@@ -35,6 +35,13 @@ MARKDOWN_LINK_PATTERN = re.compile(r"(?<!!)\[[^\]]+\]\(([^)]+)\)")
 INLINE_CODE_PATTERN = re.compile(r"`([^`]+)`")
 FENCED_CODE_PATTERN = re.compile(r"```[^\n]*\n(.*?)```", re.DOTALL)
 VALID_GOVERNANCE_LINK_BASENAMES = {"AGENTS.md", "AGENTS.backlog.md", "AGENTS.decisions.md"}
+RABBITMQ_LOCAL_IMAGE_TAG_PATTERN = re.compile(r'^RABBITMQ_LOCAL_IMAGE_TAG="([^"]+)"$', re.MULTILINE)
+RABBITMQ_LOCAL_IMAGE_FAMILY_PATTERN = re.compile(r"^(\d+\.\d+)\.")
+RABBITMQ_DOC_FAMILY_LINE_PATTERN = re.compile(r"RabbitMQ managed-service major family:\s*`(\d+\.\d+)`")
+RABBITMQ_DOC_PATHS = (
+    Path("docs/platform/modules/rabbitmq/README.md"),
+    Path("scripts/templates/blueprint/bootstrap/docs/platform/modules/rabbitmq/README.md"),
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -141,6 +148,79 @@ def lint_markdown_file(repo_root: Path, file_path: Path, make_targets: set[str])
     return issues
 
 
+def rabbitmq_expected_managed_family(repo_root: Path) -> str | None:
+    versions_path = repo_root / "scripts/lib/infra/versions.sh"
+    if not versions_path.is_file():
+        return None
+
+    content = versions_path.read_text(encoding="utf-8")
+    image_tag_match = RABBITMQ_LOCAL_IMAGE_TAG_PATTERN.search(content)
+    if image_tag_match is None:
+        return None
+
+    image_tag = image_tag_match.group(1)
+    family_match = RABBITMQ_LOCAL_IMAGE_FAMILY_PATTERN.match(image_tag)
+    if family_match is None:
+        return None
+    return family_match.group(1)
+
+
+def lint_rabbitmq_doc_family(repo_root: Path) -> list[LintIssue]:
+    existing_doc_paths = [repo_root / relative_doc_path for relative_doc_path in RABBITMQ_DOC_PATHS]
+    existing_doc_paths = [doc_path for doc_path in existing_doc_paths if doc_path.is_file()]
+    if not existing_doc_paths:
+        return []
+
+    issues: list[LintIssue] = []
+    expected_family = rabbitmq_expected_managed_family(repo_root)
+    if expected_family is None:
+        issues.append(
+            LintIssue(
+                repo_root / "scripts/lib/infra/versions.sh",
+                1,
+                "unable to derive RabbitMQ managed-service major family from "
+                "RABBITMQ_LOCAL_IMAGE_TAG in scripts/lib/infra/versions.sh",
+            )
+        )
+        return issues
+
+    for doc_path in existing_doc_paths:
+
+        lines = doc_path.read_text(encoding="utf-8").splitlines()
+        matched_line = None
+        matched_family = None
+        for line_no, line in enumerate(lines, start=1):
+            match = RABBITMQ_DOC_FAMILY_LINE_PATTERN.search(line)
+            if match is None:
+                continue
+            matched_line = line_no
+            matched_family = match.group(1)
+            break
+
+        if matched_line is None:
+            issues.append(
+                LintIssue(
+                    doc_path,
+                    1,
+                    "missing RabbitMQ managed family contract line: "
+                    f"expected 'RabbitMQ managed-service major family: `{expected_family}`' derived from scripts/lib/infra/versions.sh",
+                )
+            )
+            continue
+
+        if matched_family != expected_family:
+            issues.append(
+                LintIssue(
+                    doc_path,
+                    matched_line,
+                    "RabbitMQ managed-service major-family drift: "
+                    f"found `{matched_family}` but expected `{expected_family}` from scripts/lib/infra/versions.sh",
+                )
+            )
+
+    return issues
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Lint repository markdown docs.")
     parser.add_argument(
@@ -165,6 +245,7 @@ def main() -> int:
     issues: list[LintIssue] = []
     for file_path in markdown_files:
         issues.extend(lint_markdown_file(repo_root, file_path, make_targets))
+    issues.extend(lint_rabbitmq_doc_family(repo_root))
 
     if issues:
         for issue in issues:
