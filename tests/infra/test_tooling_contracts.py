@@ -603,6 +603,12 @@ render_optional_module_secret_manifests "messaging" "blueprint-rabbitmq-auth" "r
         self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
         self.assertIn("name: platform-keycloak-local", result.stdout)
 
+    def test_kustomize_apply_contract_avoids_load_restrictions_none_fallback(self) -> None:
+        tooling = (REPO_ROOT / "scripts/lib/infra/tooling.sh").read_text(encoding="utf-8")
+        self.assertIn('run_cmd kubectl apply -k "$kustomize_dir"', tooling)
+        self.assertNotIn("LoadRestrictionsNone", tooling)
+        self.assertNotIn("kubectl kustomize --load-restrictor", tooling)
+
     def test_quality_test_pyramid_target_passes(self) -> None:
         result = run(["make", "quality-test-pyramid"])
         self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
