@@ -623,6 +623,99 @@ render_optional_module_secret_manifests "messaging" "blueprint-rabbitmq-auth" "r
         self.assertIn("public_endpoints=true", resolved)
         self.assertIn("enabled_modules=public-endpoints", resolved)
 
+    def test_infra_validate_renders_makefile_from_contract_defaults(self) -> None:
+        contract_path = REPO_ROOT / "blueprint" / "contract.yaml"
+        contract_template_path = (
+            REPO_ROOT / "scripts" / "templates" / "blueprint" / "bootstrap" / "blueprint" / "contract.yaml"
+        )
+        makefile_path = REPO_ROOT / "make" / "blueprint.generated.mk"
+        original_contract = contract_path.read_text(encoding="utf-8")
+        original_contract_template = contract_template_path.read_text(encoding="utf-8")
+        original_makefile = makefile_path.read_text(encoding="utf-8")
+
+        try:
+            patched_contract = original_contract.replace(
+                "      postgres:\n        enabled_by_default: false\n        enable_flag: POSTGRES_ENABLED",
+                "      postgres:\n        enabled_by_default: true\n        enable_flag: POSTGRES_ENABLED",
+                1,
+            ).replace(
+                "      public-endpoints:\n        enabled_by_default: false\n        enable_flag: PUBLIC_ENDPOINTS_ENABLED",
+                "      public-endpoints:\n        enabled_by_default: true\n        enable_flag: PUBLIC_ENDPOINTS_ENABLED",
+                1,
+            )
+            self.assertNotEqual(
+                patched_contract,
+                original_contract,
+                msg="contract patch failed; expected enabled_by_default=true for regression scenario",
+            )
+            contract_path.write_text(patched_contract, encoding="utf-8")
+            contract_template_path.write_text(patched_contract, encoding="utf-8")
+
+            render = run(
+                [
+                    "env",
+                    "-u",
+                    "OBSERVABILITY_ENABLED",
+                    "-u",
+                    "WORKFLOWS_ENABLED",
+                    "-u",
+                    "LANGFUSE_ENABLED",
+                    "-u",
+                    "POSTGRES_ENABLED",
+                    "-u",
+                    "NEO4J_ENABLED",
+                    "-u",
+                    "OBJECT_STORAGE_ENABLED",
+                    "-u",
+                    "RABBITMQ_ENABLED",
+                    "-u",
+                    "DNS_ENABLED",
+                    "-u",
+                    "PUBLIC_ENDPOINTS_ENABLED",
+                    "-u",
+                    "SECRETS_MANAGER_ENABLED",
+                    "-u",
+                    "KMS_ENABLED",
+                    "-u",
+                    "IDENTITY_AWARE_PROXY_ENABLED",
+                    "make",
+                    "blueprint-render-makefile",
+                ]
+            )
+            self.assertEqual(render.returncode, 0, msg=render.stdout + render.stderr)
+            expected_makefile = makefile_path.read_text(encoding="utf-8")
+            self.assertIn("infra-postgres-plan", expected_makefile)
+            self.assertIn("infra-public-endpoints-plan", expected_makefile)
+
+            validate = run(
+                ["make", "infra-validate"],
+                {
+                    "GITHUB_REF_NAME": "fix/infra-validate-regression",
+                    "BLUEPRINT_PROFILE": "local-lite",
+                    "OBSERVABILITY_ENABLED": "false",
+                    "POSTGRES_ENABLED": "false",
+                    "PUBLIC_ENDPOINTS_ENABLED": "false",
+                },
+            )
+            self.assertEqual(validate.returncode, 0, msg=validate.stdout + validate.stderr)
+            self.assertIn(
+                "infra validate ignored transient module toggle overrides while rendering makefile",
+                validate.stdout + validate.stderr,
+            )
+            actual_makefile = makefile_path.read_text(encoding="utf-8")
+            self.assertEqual(
+                actual_makefile,
+                expected_makefile,
+                msg=(
+                    "infra-validate should render from contract defaults and must not rewrite "
+                    "make/blueprint.generated.mk from transient runtime module flags"
+                ),
+            )
+        finally:
+            contract_path.write_text(original_contract, encoding="utf-8")
+            contract_template_path.write_text(original_contract_template, encoding="utf-8")
+            makefile_path.write_text(original_makefile, encoding="utf-8")
+
     def test_optional_module_execution_resolves_provider_backed_stackit_modes(self) -> None:
         resolved = resolve_optional_module_execution("postgres", "plan", profile="stackit-dev")
         self.assertIn("class=provider_backed", resolved)

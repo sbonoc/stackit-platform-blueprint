@@ -113,6 +113,18 @@ Common first-day issues for generated repositories.
   ```
 - If you prefer explicit module-level teardown, run the module destroy target directly while the module flag is still enabled.
 
+## Local runtime command left `make/blueprint.generated.mk` modified
+- Runtime chains (`infra-provision`, `infra-deploy`, `infra-smoke`, and `infra-provision-deploy`) must be side-effect free for blueprint-managed tracked files.
+- `infra-validate` now renders `make/blueprint.generated.mk` from contract defaults and ignores transient module toggle overrides during runtime flows.
+- If you intentionally want to materialize optional module targets from a new module flag set, use:
+  ```bash
+  make blueprint-render-makefile
+  ```
+- Confirm clean state after runtime commands:
+  ```bash
+  git status --short make/blueprint.generated.mk
+  ```
+
 ## Local live execution picked the wrong Kubernetes cluster
 - Local profiles prefer the `docker-desktop` context when it is present.
 - CI prefers `kind-*` contexts.
