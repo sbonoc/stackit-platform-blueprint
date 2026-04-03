@@ -80,6 +80,8 @@ runs:
               return 0
             fi
           done
+
+          return 0
         }
 
         bootstrap_python_project "."

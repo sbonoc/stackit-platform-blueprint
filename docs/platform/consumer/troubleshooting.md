@@ -176,7 +176,7 @@ Common first-day issues for generated repositories.
 ## CI test lanes fail on clean runners with missing `fastapi` or `vitest`
 - Ensure your workflow uses `.github/actions/prepare-blueprint-ci/action.yml` before test lanes.
 - The current action bootstrap contract now installs project dependencies when manifests exist:
-  - Python projects: `pyproject.toml` + `uv sync` (or `requirements*.txt` fallback).
+  - Python projects: `pyproject.toml` + `uv sync` (or `requirements-dev.txt` / `requirements.txt` fallback).
   - JavaScript workspaces: `pnpm install` from repo root (or `apps/touchpoints` fallback).
 - If your repository still fails with errors such as `ModuleNotFoundError: fastapi` or `vitest: command not found`, resync and upgrade from repository root:
   ```bash
