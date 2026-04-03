@@ -121,6 +121,12 @@ for current_root, dirs, files in os.walk(root_path, topdown=True):
 PY
 }
 
+_run_touchpoints_pnpm_script() {
+  local package_dir="$1"
+  local selected_script="$2"
+  run_cmd env -u NO_COLOR pnpm --dir "$package_dir" run "$selected_script"
+}
+
 run_touchpoints_pnpm_lane() {
   if [[ "$#" -lt 4 ]]; then
     log_fatal "run_touchpoints_pnpm_lane requires lane, runner, root path, and at least one script name candidate"
@@ -135,12 +141,17 @@ run_touchpoints_pnpm_lane() {
   lane_start_epoch="$(now_epoch_seconds)"
   local lane_slug
   lane_slug="${lane// /_}"
+  local no_color_sanitized="false"
+  if [[ -n "${NO_COLOR+x}" ]]; then
+    no_color_sanitized="true"
+    log_info "touchpoints ${lane_slug} lane unsetting NO_COLOR for pnpm child process execution"
+  fi
 
   if [[ ! -d "$touchpoints_root" ]]; then
     log_info "touchpoints root not found; skipping ${lane} lane path=$touchpoints_root"
     log_metric "pnpm_lane_duration_seconds" \
       "$(( $(now_epoch_seconds) - lane_start_epoch ))" \
-      "lane=${lane_slug} runner=${runner} status=skipped discovered_packages=0 script=none"
+      "lane=${lane_slug} runner=${runner} status=skipped discovered_packages=0 script=none no_color_sanitized=${no_color_sanitized}"
     return 0
   fi
 
@@ -158,7 +169,7 @@ run_touchpoints_pnpm_lane() {
     log_info "no touchpoints pnpm script discovered for ${lane}; skipping"
     log_metric "pnpm_lane_duration_seconds" \
       "$(( $(now_epoch_seconds) - lane_start_epoch ))" \
-      "lane=${lane_slug} runner=${runner} status=skipped discovered_packages=0 script=none"
+      "lane=${lane_slug} runner=${runner} status=skipped discovered_packages=0 script=none no_color_sanitized=${no_color_sanitized}"
     return 0
   fi
 
@@ -168,15 +179,15 @@ run_touchpoints_pnpm_lane() {
   for discovered_entry in "${discovered[@]}"; do
     package_dir="${discovered_entry%%$'\t'*}"
     selected_script="${discovered_entry#*$'\t'}"
-    if ! run_cmd pnpm --dir "$package_dir" run "$selected_script"; then
+    if ! _run_touchpoints_pnpm_script "$package_dir" "$selected_script"; then
       log_metric "pnpm_lane_duration_seconds" \
         "$(( $(now_epoch_seconds) - lane_start_epoch ))" \
-        "lane=${lane_slug} runner=${runner} status=failure discovered_packages=${#discovered[@]} script_mode=per_package"
+        "lane=${lane_slug} runner=${runner} status=failure discovered_packages=${#discovered[@]} script_mode=per_package no_color_sanitized=${no_color_sanitized}"
       return 1
     fi
   done
 
   log_metric "pnpm_lane_duration_seconds" \
     "$(( $(now_epoch_seconds) - lane_start_epoch ))" \
-    "lane=${lane_slug} runner=${runner} status=success discovered_packages=${#discovered[@]} script_mode=per_package"
+    "lane=${lane_slug} runner=${runner} status=success discovered_packages=${#discovered[@]} script_mode=per_package no_color_sanitized=${no_color_sanitized}"
 }
