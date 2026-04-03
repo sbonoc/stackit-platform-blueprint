@@ -716,6 +716,109 @@ render_optional_module_secret_manifests "messaging" "blueprint-rabbitmq-auth" "r
             contract_template_path.write_text(original_contract_template, encoding="utf-8")
             makefile_path.write_text(original_makefile, encoding="utf-8")
 
+    def test_touchpoints_pnpm_lane_unsets_no_color_for_child_processes(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            touchpoints_root = Path(tmpdir) / "apps" / "touchpoints"
+            package_dir = touchpoints_root / "service-a"
+            package_dir.mkdir(parents=True, exist_ok=True)
+            (package_dir / "package.json").write_text(
+                json.dumps(
+                    {
+                        "name": "service-a",
+                        "version": "1.0.0",
+                        "scripts": {
+                            "test:e2e": "echo should-not-run",
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            bin_dir = Path(tmpdir) / "bin"
+            bin_dir.mkdir(parents=True, exist_ok=True)
+            pnpm = bin_dir / "pnpm"
+            pnpm.write_text(
+                "\n".join(
+                    [
+                        "#!/bin/sh",
+                        'printf "pnpm_no_color=%s\\n" "${NO_COLOR-unset}"',
+                        'printf "pnpm_force_color=%s\\n" "${FORCE_COLOR-unset}"',
+                        'printf "pnpm_args=%s\\n" "$*"',
+                        "exit 0",
+                        "",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            pnpm.chmod(0o755)
+
+            script = f"""
+export PATH="{bin_dir}:$PATH"
+export ROOT_DIR="{REPO_ROOT}"
+export NO_COLOR="1"
+export FORCE_COLOR="1"
+source "{REPO_ROOT}/scripts/lib/shell/bootstrap.sh"
+source "{REPO_ROOT}/scripts/lib/platform/testing.sh"
+run_touchpoints_pnpm_lane "touchpoints e2e" "playwright" "{touchpoints_root}" "test:e2e"
+"""
+            result = run(["bash", "-lc", script], {"ROOT_DIR": str(REPO_ROOT)})
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            output = result.stdout + result.stderr
+            self.assertIn("touchpoints touchpoints_e2e lane unsetting NO_COLOR", output)
+            self.assertIn("pnpm_no_color=unset", output)
+            self.assertIn("pnpm_force_color=1", output)
+            self.assertIn("+ env -u NO_COLOR pnpm --dir", output)
+            self.assertIn("no_color_sanitized=true", output)
+
+    def test_touchpoints_pnpm_lane_no_color_sanitized_false_when_absent(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            touchpoints_root = Path(tmpdir) / "apps" / "touchpoints"
+            package_dir = touchpoints_root / "service-a"
+            package_dir.mkdir(parents=True, exist_ok=True)
+            (package_dir / "package.json").write_text(
+                json.dumps(
+                    {
+                        "name": "service-a",
+                        "version": "1.0.0",
+                        "scripts": {
+                            "test:e2e": "echo should-not-run",
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            bin_dir = Path(tmpdir) / "bin"
+            bin_dir.mkdir(parents=True, exist_ok=True)
+            pnpm = bin_dir / "pnpm"
+            pnpm.write_text(
+                "\n".join(
+                    [
+                        "#!/bin/sh",
+                        'printf "pnpm_no_color=%s\\n" "${NO_COLOR-unset}"',
+                        "exit 0",
+                        "",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            pnpm.chmod(0o755)
+
+            script = f"""
+export PATH="{bin_dir}:$PATH"
+export ROOT_DIR="{REPO_ROOT}"
+unset NO_COLOR
+source "{REPO_ROOT}/scripts/lib/shell/bootstrap.sh"
+source "{REPO_ROOT}/scripts/lib/platform/testing.sh"
+run_touchpoints_pnpm_lane "touchpoints e2e" "playwright" "{touchpoints_root}" "test:e2e"
+"""
+            result = run(["bash", "-lc", script], {"ROOT_DIR": str(REPO_ROOT)})
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            output = result.stdout + result.stderr
+            self.assertNotIn("unsetting NO_COLOR", output)
+            self.assertIn("pnpm_no_color=unset", output)
+            self.assertIn("no_color_sanitized=false", output)
+
     def test_optional_module_execution_resolves_provider_backed_stackit_modes(self) -> None:
         resolved = resolve_optional_module_execution("postgres", "plan", profile="stackit-dev")
         self.assertIn("class=provider_backed", resolved)
