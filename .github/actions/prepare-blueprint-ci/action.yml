@@ -43,6 +43,12 @@ runs:
       run: |
         set -euo pipefail
 
+        _ensure_uv_installed() {
+          if ! command -v uv &>/dev/null; then
+            python3 -m pip install uv
+          fi
+        }
+
         bootstrap_python_project() {
           local project_dir="$1"
           if [[ ! -d "$project_dir" ]]; then
@@ -51,7 +57,7 @@ runs:
 
           if [[ -f "$project_dir/pyproject.toml" ]]; then
             echo "[prepare-blueprint-ci] bootstrapping Python project at $project_dir"
-            python3 -m pip install uv
+            _ensure_uv_installed
             if [[ -f "$project_dir/uv.lock" ]]; then
               (cd "$project_dir" && uv sync --frozen --all-groups)
             else
@@ -82,5 +88,9 @@ runs:
           fi
         elif [[ -f apps/touchpoints/package.json ]]; then
           echo "[prepare-blueprint-ci] bootstrapping pnpm dependencies at apps/touchpoints"
-          pnpm --dir apps/touchpoints install --no-frozen-lockfile
+          if [[ -f apps/touchpoints/pnpm-lock.yaml ]]; then
+            pnpm --dir apps/touchpoints install --frozen-lockfile
+          else
+            pnpm --dir apps/touchpoints install --no-frozen-lockfile
+          fi
         fi

@@ -277,6 +277,7 @@ class DocsRefactorCases(RefactorContractBase):
         self.assertIn("python3 -m pip install uv", shared_ci_action)
         self.assertIn("uv sync --frozen --all-groups", shared_ci_action)
         self.assertIn("pnpm install --frozen-lockfile", shared_ci_action)
+        self.assertIn("pnpm --dir apps/touchpoints install --frozen-lockfile", shared_ci_action)
         self.assertIn("pnpm --dir apps/touchpoints install --no-frozen-lockfile", shared_ci_action)
         self.assertIn("uses: actions/setup-python@v6", shared_ci_action)
         self.assertIn("uses: actions/setup-node@v6", shared_ci_action)
