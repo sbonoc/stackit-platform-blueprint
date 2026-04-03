@@ -37,3 +37,50 @@ runs:
       run: |
         make blueprint-bootstrap
         make infra-bootstrap
+
+    - name: Bootstrap project dependencies for clean runners
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        bootstrap_python_project() {
+          local project_dir="$1"
+          if [[ ! -d "$project_dir" ]]; then
+            return 0
+          fi
+
+          if [[ -f "$project_dir/pyproject.toml" ]]; then
+            echo "[prepare-blueprint-ci] bootstrapping Python project at $project_dir"
+            python3 -m pip install uv
+            if [[ -f "$project_dir/uv.lock" ]]; then
+              (cd "$project_dir" && uv sync --frozen --all-groups)
+            else
+              (cd "$project_dir" && uv sync --all-groups)
+            fi
+            return 0
+          fi
+
+          local requirements_file
+          for requirements_file in requirements-dev.txt requirements.txt; do
+            if [[ -f "$project_dir/$requirements_file" ]]; then
+              echo "[prepare-blueprint-ci] installing Python requirements from $project_dir/$requirements_file"
+              python3 -m pip install -r "$project_dir/$requirements_file"
+              return 0
+            fi
+          done
+        }
+
+        bootstrap_python_project "."
+        bootstrap_python_project "apps/backend"
+
+        if [[ -f pnpm-lock.yaml || -f pnpm-workspace.yaml || -f package.json ]]; then
+          echo "[prepare-blueprint-ci] bootstrapping pnpm dependencies at repository root"
+          if [[ -f pnpm-lock.yaml ]]; then
+            pnpm install --frozen-lockfile
+          else
+            pnpm install --no-frozen-lockfile
+          fi
+        elif [[ -f apps/touchpoints/package.json ]]; then
+          echo "[prepare-blueprint-ci] bootstrapping pnpm dependencies at apps/touchpoints"
+          pnpm --dir apps/touchpoints install --no-frozen-lockfile
+        fi
