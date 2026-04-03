@@ -87,10 +87,16 @@
 - `infra-audit-version`
 - `infra-audit-version-cached`
 - `apps-bootstrap`
+- `apps-ci-bootstrap`
 - `apps-smoke`
 - `apps-audit-versions`
 - `apps-audit-versions-cached`
 - `apps-publish-ghcr`
+- `quality-ci-fast`
+- `quality-ci-full-e2e`
+- `quality-ci-strict`
+- `quality-ci-blueprint`
+- `quality-ci-generated-consumer-smoke`
 - `auth-reconcile-eso-runtime-secrets`
 - `backend-test-unit`
 - `backend-test-integration`

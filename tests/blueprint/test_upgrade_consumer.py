@@ -381,6 +381,91 @@ class UpgradeConsumerTests(unittest.TestCase):
             self.assertEqual(plan.get("required_manual_actions"), [])
             self.assertEqual(plan.get("summary", {}).get("required_manual_action_count"), 0)
 
+    def test_upgrade_plan_flags_manual_action_for_missing_platform_ci_bootstrap_target(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            source_repo = tmp_root / "source"
+            _init_git_repo(source_repo)
+            _write(
+                source_repo / "blueprint/contract.yaml",
+                (REPO_ROOT / "blueprint/contract.yaml").read_text(encoding="utf-8"),
+            )
+            _write(
+                source_repo / ".github/actions/prepare-blueprint-ci/action.yml",
+                (REPO_ROOT / ".github/actions/prepare-blueprint-ci/action.yml").read_text(encoding="utf-8"),
+            )
+            _write(
+                source_repo / "make/platform.mk",
+                (REPO_ROOT / "make/platform.mk").read_text(encoding="utf-8"),
+            )
+            _write(source_repo / MANAGED_TEST_PATH, "baseline\n")
+            _commit_all(source_repo, "baseline")
+            _require_success(_git(source_repo, "tag", f"v{_template_version()}"), "git tag template version")
+            _write(source_repo / MANAGED_TEST_PATH, "baseline\nhead\n")
+            _commit_all(source_repo, "head")
+
+            target_repo = _create_generated_repo(tmp_root, MANAGED_TEST_PATH, "baseline\n")
+            _write(
+                target_repo / "make/platform.mk",
+                (
+                    "# Platform-owned Make targets.\n"
+                    "\n"
+                    ".PHONY: apps-bootstrap\n"
+                    "\n"
+                    "apps-bootstrap:\n"
+                    "\t@echo bootstrap\n"
+                ),
+            )
+            _commit_all(target_repo, "legacy platform make target set")
+
+            result = _run(
+                [
+                    sys.executable,
+                    str(UPGRADE_SCRIPT),
+                    "--repo-root",
+                    str(target_repo),
+                    "--source",
+                    str(source_repo),
+                    "--ref",
+                    "HEAD",
+                ],
+                cwd=REPO_ROOT,
+            )
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+
+            plan = _load_json(target_repo / "artifacts/blueprint/upgrade_plan.json")
+            required_manual_actions = plan.get("required_manual_actions", [])
+            ci_bootstrap_action = None
+            for action in required_manual_actions:
+                if not isinstance(action, dict):
+                    continue
+                if action.get("dependency_path") != "make/platform.mk":
+                    continue
+                if "apps-ci-bootstrap" not in str(action.get("dependency_of", "")):
+                    continue
+                ci_bootstrap_action = action
+                break
+
+            self.assertIsNotNone(ci_bootstrap_action, msg=f"missing apps-ci-bootstrap manual action: {required_manual_actions}")
+            self.assertIn(
+                ".github/actions/prepare-blueprint-ci/action.yml",
+                str(ci_bootstrap_action.get("dependency_of", "")),
+            )
+            self.assertIn(
+                "required make target `apps-ci-bootstrap` is missing",
+                str(ci_bootstrap_action.get("reason", "")),
+            )
+            self.assertIn(
+                "make blueprint-upgrade-consumer-validate",
+                ci_bootstrap_action.get("required_follow_up_commands", []),
+            )
+            self.assertEqual(plan.get("summary", {}).get("required_manual_action_count"), 1)
+
+            apply_report = _load_json(target_repo / "artifacts/blueprint/upgrade_apply.json")
+            apply_manual_actions = apply_report.get("required_manual_actions", [])
+            self.assertEqual(len(apply_manual_actions), 1)
+            self.assertEqual(apply_report.get("summary", {}).get("required_manual_action_count"), 1)
+
     def test_upgrade_plan_includes_new_template_assets_from_source_contract_when_target_contract_lags(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp_root = Path(tmpdir)

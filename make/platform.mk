@@ -3,7 +3,7 @@
 
 .PHONY: \
   auth-reconcile-eso-runtime-secrets \
-  apps-bootstrap apps-smoke apps-audit-versions apps-audit-versions-cached apps-publish-ghcr \
+  apps-bootstrap apps-ci-bootstrap apps-smoke apps-audit-versions apps-audit-versions-cached apps-publish-ghcr \
   backend-test-unit backend-test-integration backend-test-contracts backend-test-e2e \
   touchpoints-test-unit touchpoints-test-integration touchpoints-test-contracts touchpoints-test-e2e \
   test-unit-all test-integration-all test-contracts-all test-e2e-all-local test-e2e-all-local-full test-e2e-all-local-execute
@@ -13,6 +13,9 @@ auth-reconcile-eso-runtime-secrets: ## Reconcile generic ESO runtime source-to-t
 
 apps-bootstrap: ## Bootstrap app build/deploy prerequisites
 	@scripts/bin/platform/apps/bootstrap.sh
+
+apps-ci-bootstrap: ## Bootstrap CI runner dependencies for app/test lanes (consumer-owned override point)
+	@$(MAKE) apps-bootstrap
 
 apps-smoke: ## App-level smoke checks
 	@scripts/bin/platform/apps/smoke.sh
