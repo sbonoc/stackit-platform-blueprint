@@ -173,6 +173,20 @@ Common first-day issues for generated repositories.
 - Temporary fallback only if you cannot upgrade immediately:
   - set `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true` in workflow/job env.
 
+## CI test lanes fail on clean runners with missing `fastapi` or `vitest`
+- Ensure your workflow uses `.github/actions/prepare-blueprint-ci/action.yml` before test lanes.
+- The current action bootstrap contract now installs project dependencies when manifests exist:
+  - Python projects: `pyproject.toml` + `uv sync` (or `requirements-dev.txt` / `requirements.txt` fallback).
+  - JavaScript workspaces: `pnpm install` from repo root (or `apps/touchpoints` fallback).
+- If your repository still fails with errors such as `ModuleNotFoundError: fastapi` or `vitest: command not found`, resync and upgrade from repository root:
+  ```bash
+  make blueprint-resync-consumer-seeds
+  BLUEPRINT_RESYNC_APPLY_SAFE=true make blueprint-resync-consumer-seeds
+  make blueprint-upgrade-consumer
+  BLUEPRINT_UPGRADE_APPLY=true make blueprint-upgrade-consumer
+  make blueprint-upgrade-consumer-validate
+  ```
+
 ## STACKIT preflight fails on backend contract
 - Ensure backend files exist under:
   - `infra/cloud/stackit/terraform/bootstrap/state-backend/<env>.hcl`
