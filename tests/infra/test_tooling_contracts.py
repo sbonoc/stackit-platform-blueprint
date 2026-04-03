@@ -651,7 +651,37 @@ render_optional_module_secret_manifests "messaging" "blueprint-rabbitmq-auth" "r
             contract_path.write_text(patched_contract, encoding="utf-8")
             contract_template_path.write_text(patched_contract, encoding="utf-8")
 
-            render = run(["make", "blueprint-render-makefile"])
+            render = run(
+                [
+                    "env",
+                    "-u",
+                    "OBSERVABILITY_ENABLED",
+                    "-u",
+                    "WORKFLOWS_ENABLED",
+                    "-u",
+                    "LANGFUSE_ENABLED",
+                    "-u",
+                    "POSTGRES_ENABLED",
+                    "-u",
+                    "NEO4J_ENABLED",
+                    "-u",
+                    "OBJECT_STORAGE_ENABLED",
+                    "-u",
+                    "RABBITMQ_ENABLED",
+                    "-u",
+                    "DNS_ENABLED",
+                    "-u",
+                    "PUBLIC_ENDPOINTS_ENABLED",
+                    "-u",
+                    "SECRETS_MANAGER_ENABLED",
+                    "-u",
+                    "KMS_ENABLED",
+                    "-u",
+                    "IDENTITY_AWARE_PROXY_ENABLED",
+                    "make",
+                    "blueprint-render-makefile",
+                ]
+            )
             self.assertEqual(render.returncode, 0, msg=render.stdout + render.stderr)
             expected_makefile = makefile_path.read_text(encoding="utf-8")
             self.assertIn("infra-postgres-plan", expected_makefile)
