@@ -660,6 +660,7 @@ render_optional_module_secret_manifests "messaging" "blueprint-rabbitmq-auth" "r
             validate = run(
                 ["make", "infra-validate"],
                 {
+                    "GITHUB_REF_NAME": "fix/infra-validate-regression",
                     "BLUEPRINT_PROFILE": "local-lite",
                     "OBSERVABILITY_ENABLED": "false",
                     "POSTGRES_ENABLED": "false",
