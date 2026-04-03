@@ -64,8 +64,10 @@ runs:
               (cd "$project_dir" && uv sync --all-groups)
             fi
             if [[ -n "${GITHUB_PATH:-}" && -d "$project_dir/.venv/bin" ]]; then
-              echo "$project_dir/.venv/bin" >>"$GITHUB_PATH"
-              echo "[prepare-blueprint-ci] activated venv path for downstream lanes: $project_dir/.venv/bin"
+              local venv_bin
+              venv_bin="$(cd "$project_dir/.venv/bin" && pwd)"
+              echo "$venv_bin" >>"$GITHUB_PATH"
+              echo "[prepare-blueprint-ci] activated venv path for downstream lanes: $venv_bin"
             fi
             return 0
           fi
