@@ -755,12 +755,26 @@ class UpgradeConsumerTests(unittest.TestCase):
         self.assertTrue(has_conflicts)
         self.assertIn("<<<<<<<", merged_content)
 
-    def test_three_way_merge_raises_on_non_conflict_failure_exit(self) -> None:
+    def test_three_way_merge_treats_positive_exit_without_markers_as_conflict(self) -> None:
         merge_result = subprocess.CompletedProcess(
             args=["git", "merge-file", "-p", "ours", "base", "theirs"],
-            returncode=255,
+            returncode=4,
             stdout="",
-            stderr="fatal: unsupported file format",
+            stderr="",
+        )
+
+        with mock.patch.object(upgrade_consumer, "_run", return_value=merge_result):
+            merged_content, has_conflicts = upgrade_consumer._three_way_merge("base\n", "ours\n", "theirs\n")
+
+        self.assertEqual(merged_content, "")
+        self.assertTrue(has_conflicts)
+
+    def test_three_way_merge_raises_on_negative_exit(self) -> None:
+        merge_result = subprocess.CompletedProcess(
+            args=["git", "merge-file", "-p", "ours", "base", "theirs"],
+            returncode=-1,
+            stdout="",
+            stderr="signal: killed",
         )
 
         with mock.patch.object(upgrade_consumer, "_run", return_value=merge_result):

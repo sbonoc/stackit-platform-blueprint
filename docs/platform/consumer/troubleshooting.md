@@ -89,6 +89,7 @@ Common first-day issues for generated repositories.
 ## `make blueprint-upgrade-consumer` fails with `RuntimeError: git merge-file failed:` (empty detail)
 - This usually means the repository is still executing a stale local upgrade engine from an older consumer baseline.
 - Current blueprint upgrade wrappers default to `BLUEPRINT_UPGRADE_ENGINE_MODE=source-ref`, which runs the engine script resolved from `BLUEPRINT_UPGRADE_SOURCE@BLUEPRINT_UPGRADE_REF`.
+- Current local engine behavior also treats any positive `git merge-file` return code as conflict-present and emits normal conflict artifacts/report output instead of an internal abort.
 - If your repository still has the legacy wrapper behavior, run a one-time source-driven upgrade engine call, then rerun validation:
   ```bash
   TMP_DIR="$(mktemp -d)"

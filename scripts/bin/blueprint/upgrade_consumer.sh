@@ -69,9 +69,14 @@ resolve_report_path() {
 }
 
 emit_upgrade_report_metrics() {
-  local plan_report_path="$1"
-  local apply_report_path="$2"
+  local plan_report_path="${1:-}"
+  local apply_report_path="${2:-}"
   local python_exit=0
+
+  if [[ -z "$plan_report_path" || -z "$apply_report_path" ]]; then
+    log_warn "upgrade report metric paths were not provided; skipping report metrics emission"
+    return 0
+  fi
 
   while IFS='=' read -r key value; do
     [[ -n "$key" ]] || continue

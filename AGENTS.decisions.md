@@ -34,6 +34,8 @@
   - Upgrade planning fails fast when the resolved baseline ref points to the same commit as the selected upgrade target (`upgrade baseline collision`) to prevent no-op merge plans and mixed upgrade states.
   - `make blueprint-upgrade-consumer-validate` runs the required post-upgrade validation bundle and writes `artifacts/blueprint/upgrade_validate.json`, failing on any target error or unresolved merge markers.
   - upgrade wrapper execution defaults to `BLUEPRINT_UPGRADE_ENGINE_MODE=source-ref`, so consumer upgrades execute the engine script resolved from `BLUEPRINT_UPGRADE_SOURCE@BLUEPRINT_UPGRADE_REF` instead of a potentially stale local engine copy.
+  - local upgrade-engine mode now treats any positive `git merge-file` return code as conflict-present (normal conflict artifact/report path) and reserves runtime aborts for true process-execution failures (`<0`), preventing local-mode internal aborts on multi-conflict outcomes.
+  - upgrade wrapper metrics helper is nounset-safe: missing metric report paths are treated as a non-fatal warning instead of an `unbound variable` abort under `set -u`.
   - troubleshooting now includes a one-time source-driven recovery command for legacy generated-consumer repositories still failing with empty-detail `RuntimeError: git merge-file failed:` from older local engines.
 - Upgrade/report validation internals are shared and contract-typed:
   - unresolved merge-marker detection is centralized in `scripts/lib/blueprint/merge_markers.py`.
