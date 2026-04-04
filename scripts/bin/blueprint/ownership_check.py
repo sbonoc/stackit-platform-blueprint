@@ -19,6 +19,7 @@ from scripts.lib.blueprint.contract_schema import BlueprintContract, load_bluepr
 
 
 ENV_PLACEHOLDER = "${ENV}"
+KNOWN_ENV_NAMES = ("dev", "stage", "prod", "local")
 
 
 @dataclass(frozen=True)
@@ -29,32 +30,57 @@ class OwnershipRule:
     regex: re.Pattern[str]
 
 
-def _pattern_to_regex(pattern: str) -> re.Pattern[str]:
+def _pattern_to_regex(pattern: str, *, is_directory: bool) -> re.Pattern[str]:
     normalized = pattern.strip().lstrip("./")
-    is_dir = normalized.endswith("/")
-    if is_dir:
+    if normalized.endswith("/"):
         normalized = normalized[:-1]
     escaped = re.escape(normalized)
     escaped = escaped.replace(re.escape(ENV_PLACEHOLDER), r"[^/]+")
-    if is_dir:
+    if is_directory:
         return re.compile(rf"^{escaped}(?:/.*)?$")
     return re.compile(rf"^{escaped}$")
 
 
 def _normalize_relative_path(raw_path: str, repo_root: Path) -> tuple[str, bool]:
     candidate = Path(raw_path).expanduser()
-    if candidate.is_absolute():
-        try:
-            relative = candidate.resolve().relative_to(repo_root.resolve())
-            normalized = PurePosixPath(relative.as_posix())
-            return str(normalized), True
-        except ValueError:
-            return candidate.as_posix(), False
-    normalized = PurePosixPath(raw_path.strip().lstrip("./"))
-    return str(normalized), True
+    repo_resolved = repo_root.resolve()
+    if not candidate.is_absolute():
+        candidate = repo_resolved / candidate
+    resolved_candidate = candidate.resolve()
+    try:
+        relative = resolved_candidate.relative_to(repo_resolved)
+    except ValueError:
+        return PurePosixPath(resolved_candidate.as_posix()).as_posix(), False
+    return PurePosixPath(relative.as_posix()).as_posix(), True
 
 
-def _build_rules(contract: BlueprintContract) -> list[OwnershipRule]:
+def _pattern_is_directory(pattern: str, repo_root: Path) -> bool:
+    normalized = pattern.strip().lstrip("./")
+    if normalized.endswith("/"):
+        return True
+
+    def _resolved_kind(candidate: str) -> bool | None:
+        resolved_path = repo_root / candidate
+        if resolved_path.is_dir():
+            return True
+        if resolved_path.is_file():
+            return False
+        return None
+
+    if ENV_PLACEHOLDER in normalized:
+        for env_name in KNOWN_ENV_NAMES:
+            resolved = _resolved_kind(normalized.replace(ENV_PLACEHOLDER, env_name))
+            if resolved is not None:
+                return resolved
+
+    resolved = _resolved_kind(normalized)
+    if resolved is not None:
+        return resolved
+
+    return False
+
+
+def _build_rules(contract: BlueprintContract, *, repo_root: Path) -> list[OwnershipRule]:
     repository = contract.repository
     make_ownership = contract.make_contract.ownership
 
@@ -101,7 +127,7 @@ def _build_rules(contract: BlueprintContract) -> list[OwnershipRule]:
                 owner=owner,
                 source=source,
                 pattern=pattern,
-                regex=_pattern_to_regex(pattern),
+                regex=_pattern_to_regex(pattern, is_directory=_pattern_is_directory(pattern, repo_root)),
             )
         )
     return rules
@@ -176,7 +202,7 @@ def main() -> int:
     if not contract_path.is_absolute():
         contract_path = (REPO_ROOT / contract_path).resolve()
     contract = load_blueprint_contract(contract_path)
-    rules = _build_rules(contract)
+    rules = _build_rules(contract, repo_root=REPO_ROOT)
 
     if args.metadata_json:
         print(json.dumps(_metadata_payload(rules), indent=2, sort_keys=True))

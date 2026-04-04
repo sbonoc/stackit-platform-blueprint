@@ -46,6 +46,18 @@ class OwnershipCheckTests(unittest.TestCase):
         payload = json.loads(result.stdout)
         self.assertEqual(payload["results"][0]["owner"], "blueprint-managed")
 
+    def test_checker_resolves_source_only_directory_roots_without_trailing_slash(self) -> None:
+        result = _run_checker("--json", "tests/blueprint/test_ownership_check.py")
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertEqual(payload["results"][0]["owner"], "source-only")
+
+    def test_checker_marks_parent_traversal_as_outside_repository(self) -> None:
+        result = _run_checker("--json", "../make/platform.mk")
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertEqual(payload["results"][0]["owner"], "outside-repository")
+
     def test_make_target_wraps_checker(self) -> None:
         result = run_command(
             [
