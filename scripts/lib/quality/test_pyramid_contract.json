@@ -16,6 +16,7 @@
         "tests/blueprint/test_contract_init_governance.py",
         "tests/blueprint/test_init_repo_env.py",
         "tests/blueprint/test_upgrade_consumer.py",
+        "tests/blueprint/test_upgrade_consumer_wrapper.py",
         "tests/blueprint/test_upgrade_preflight.py",
         "tests/blueprint/test_bootstrap_templates.py",
         "tests/blueprint/test_install_codex_skill.py",

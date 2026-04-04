@@ -86,6 +86,27 @@ Common first-day issues for generated repositories.
   make blueprint-install-codex-skill
   ```
 
+## `make blueprint-upgrade-consumer` fails with `RuntimeError: git merge-file failed:` (empty detail)
+- This usually means the repository is still executing a stale local upgrade engine from an older consumer baseline.
+- Current blueprint upgrade wrappers default to `BLUEPRINT_UPGRADE_ENGINE_MODE=source-ref`, which runs the engine script resolved from `BLUEPRINT_UPGRADE_SOURCE@BLUEPRINT_UPGRADE_REF`.
+- If your repository still has the legacy wrapper behavior, run a one-time source-driven upgrade engine call, then rerun validation:
+  ```bash
+  TMP_DIR="$(mktemp -d)"
+  git clone --quiet --no-checkout "${BLUEPRINT_UPGRADE_SOURCE}" "${TMP_DIR}/source"
+  git -C "${TMP_DIR}/source" checkout --quiet "${BLUEPRINT_UPGRADE_REF}"
+  python3 "${TMP_DIR}/source/scripts/lib/blueprint/upgrade_consumer.py" \
+    --repo-root "$PWD" \
+    --source "${BLUEPRINT_UPGRADE_SOURCE}" \
+    --ref "${BLUEPRINT_UPGRADE_REF}" \
+    --apply \
+    --plan-path artifacts/blueprint/upgrade_plan.json \
+    --apply-path artifacts/blueprint/upgrade_apply.json \
+    --summary-path artifacts/blueprint/upgrade_summary.md
+  rm -rf "${TMP_DIR}"
+  make blueprint-upgrade-consumer-validate
+  ```
+- After the upgrade lands, keep using `make blueprint-upgrade-consumer` with the default engine mode (`source-ref`) for deterministic future runs.
+
 ## Pull requests are not auto-requesting reviewers
 - Generated repositories seed `.github/CODEOWNERS` as a starter file with commented examples only.
 - Replace the example owners with your real team handles before relying on GitHub review assignment.

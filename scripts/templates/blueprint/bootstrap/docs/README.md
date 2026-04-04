@@ -61,6 +61,9 @@ BLUEPRINT_UPGRADE_REF=<tag|branch|commit> BLUEPRINT_UPGRADE_APPLY=true make blue
 make blueprint-upgrade-consumer-validate
 ```
 `BLUEPRINT_UPGRADE_SOURCE` defaults to `remote.upstream.url` when configured, then `remote.origin.url`.
+`BLUEPRINT_UPGRADE_ENGINE_MODE` defaults to `source-ref`, so upgrade runs execute the engine script resolved
+from `BLUEPRINT_UPGRADE_SOURCE@BLUEPRINT_UPGRADE_REF` (instead of a potentially stale local engine copy).
+Set `BLUEPRINT_UPGRADE_ENGINE_MODE=local` only for explicit local debugging.
 Install/sync the bundled Codex consumer-upgrade skill locally when you want repeatable AI-driven upgrade runs:
 ```bash
 make blueprint-install-codex-skill

@@ -33,6 +33,8 @@
   - Diverged blueprint-managed files use 3-way merge against the template-version baseline; unresolved merges emit conflict artifacts under `artifacts/blueprint/conflicts/**` and fail apply.
   - Upgrade planning fails fast when the resolved baseline ref points to the same commit as the selected upgrade target (`upgrade baseline collision`) to prevent no-op merge plans and mixed upgrade states.
   - `make blueprint-upgrade-consumer-validate` runs the required post-upgrade validation bundle and writes `artifacts/blueprint/upgrade_validate.json`, failing on any target error or unresolved merge markers.
+  - upgrade wrapper execution defaults to `BLUEPRINT_UPGRADE_ENGINE_MODE=source-ref`, so consumer upgrades execute the engine script resolved from `BLUEPRINT_UPGRADE_SOURCE@BLUEPRINT_UPGRADE_REF` instead of a potentially stale local engine copy.
+  - troubleshooting now includes a one-time source-driven recovery command for legacy generated-consumer repositories still failing with empty-detail `RuntimeError: git merge-file failed:` from older local engines.
 - Upgrade/report validation internals are shared and contract-typed:
   - unresolved merge-marker detection is centralized in `scripts/lib/blueprint/merge_markers.py`.
   - wrapper metric extraction for plan/apply/validate reports is centralized in `scripts/lib/blueprint/upgrade_report_metrics.py` (no inline Python heredocs in shell wrappers).

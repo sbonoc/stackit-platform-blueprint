@@ -479,6 +479,8 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn("blueprint_upgrade_plan_entries_total", upgrade_wrapper)
         self.assertIn("blueprint_upgrade_apply_status_total", upgrade_wrapper)
         self.assertIn("blueprint_upgrade_required_manual_action_total", upgrade_wrapper)
+        self.assertIn("BLUEPRINT_UPGRADE_ENGINE_MODE", upgrade_wrapper)
+        self.assertIn("source-ref", upgrade_wrapper)
         self.assertIn("upgrade_report_metrics.py", upgrade_wrapper)
         self.assertNotIn("python3 - \"$plan_report_path\" \"$apply_report_path\" <<'PY'", upgrade_wrapper)
         self.assertIn("remote.upstream.url", upgrade_wrapper)
