@@ -317,6 +317,8 @@ class DocsRefactorCases(RefactorContractBase):
         self.assertIn('make quality-ci-full-e2e', consumer_ci_template)
         self.assertIn('Run strict audit gate', consumer_ci_template)
         self.assertIn('make quality-ci-strict', consumer_ci_template)
+        self.assertIn('python3 -m pytest -q tests', consumer_ci_template)
+        self.assertNotIn('run: pytest -q tests', consumer_ci_template)
         self.assertIn('apps-ci-bootstrap-consumer', platform_make)
         self.assertIn('@$(MAKE) apps-ci-bootstrap-consumer', platform_make)
         self.assertIn('apps-ci-bootstrap-consumer placeholder active', platform_make)

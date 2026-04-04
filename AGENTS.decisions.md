@@ -114,6 +114,7 @@
   - dependency bootstrap policy is explicit and consumer-owned in `make/platform.mk` via `apps-ci-bootstrap` (no implicit path discovery in workflow code).
   - source CI keeps the push-only full e2e lane (`make quality-ci-full-e2e`) as an explicit workflow step rendered by `scripts/lib/quality/render_ci_workflow.py`.
   - shared CI baseline invokes `apps-ci-bootstrap` with `BLUEPRINT_PROFILE=local-lite OBSERVABILITY_ENABLED=false` so bootstrap profile and test-lane profile remain deterministic.
+  - `make infra-prereqs` now enforces `pytest` as a required Python module, and consumer CI templates run tooling tests via `python3 -m pytest -q tests` for interpreter-path determinism.
   - `apps-ci-bootstrap-consumer` is now a generated-consumer fail-fast placeholder in `make/platform.mk`; blueprint no longer assumes consumer app paths for dependency install.
   - generated-consumer maintainers must replace that target with deterministic repository-specific dependency bootstrap commands; template-source mode skips the placeholder to keep source CI deterministic.
   - upgrade planning/preflight now emits required-manual-action diagnostics when platform-owned Make targets required by blueprint CI surfaces (for example `apps-ci-bootstrap`) are missing in generated-consumer repositories.

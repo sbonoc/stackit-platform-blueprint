@@ -30,7 +30,7 @@ jobs:
           make quality-ci-full-e2e
 
       - name: Run tooling tests
-        run: pytest -q tests
+        run: python3 -m pytest -q tests
 
   quality-strict:
     if: github.event_name != 'pull_request'
