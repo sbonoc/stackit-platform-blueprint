@@ -18,10 +18,20 @@ This matrix clarifies which areas are blueprint-managed and which are platform-o
 | `tests/blueprint/**`, `tests/docs/**` | Blueprint source only | Controlled | Maintainer-only blueprint contract and docs test suites; pruned from generated repos during first init. |
 | `.github/actions/**` | Blueprint | Controlled | Shared local GitHub Actions support for source and generated-repo CI workflows. |
 | `make/platform.mk`, `make/platform/*.mk` | Platform | Editable | Consumer-facing project targets. |
-| `scripts/bin/platform/**`, `scripts/lib/platform/**` | Platform | Editable | Application/runtime-specific automation. |
+| `scripts/bin/platform/**`, `scripts/lib/platform/**` | Platform | Editable | Application/runtime-specific automation (for example `scripts/bin/platform/touchpoints/test_e2e.sh`). |
 | `docs/blueprint/**` | Blueprint | Template-synchronized | Governed by strict template sync policy. |
 | `docs/platform/**` | Platform | Editable after seed | Seeded if missing by `make blueprint-bootstrap`. |
 
 ## Rule of Thumb
 - If a path is template-generated or part of blueprint governance, change it intentionally and update docs/tests/contract in the same change.
 - If a path is platform-owned, treat it as the solution layer for generated repositories.
+
+## Ownership Helper Commands
+- Path lookup helper (CI triage-friendly):
+  ```bash
+  make blueprint-ownership-check OWNERSHIP_PATHS="scripts/bin/platform/touchpoints/test_e2e.sh"
+  ```
+- Machine-readable ownership metadata (`pattern -> owner`):
+  ```bash
+  make blueprint-ownership-metadata
+  ```

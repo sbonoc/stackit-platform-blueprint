@@ -207,6 +207,9 @@ Common first-day issues for generated repositories.
   - touchpoints/package-manager dependency install from your fixed frontend/workspace path(s)
   - optional browser/runtime bootstrap only when your package metadata declares that dependency
 - Keep all consumer-specific CI bootstrap commands in `apps-ci-bootstrap-consumer` in `make/platform.mk` (or `make/platform/*.mk`) as the single consumer-owned hook.
+- Confirm path ownership before patching CI failures:
+  - `make blueprint-ownership-check OWNERSHIP_PATHS="scripts/bin/platform/touchpoints/test_e2e.sh make/platform.mk"`
+  - `scripts/bin/platform/**` and `make/platform*` ownership should resolve to `platform-owned`.
 - If your repository still fails with errors such as `ModuleNotFoundError: fastapi`, `vitest: command not found`, or `Executable doesn't exist ... chrome-headless-shell`, resync and upgrade from repository root:
   ```bash
   make blueprint-resync-consumer-seeds

@@ -2,7 +2,7 @@ SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
 .PHONY: help \
-  blueprint-init-repo blueprint-init-repo-interactive blueprint-resync-consumer-seeds blueprint-upgrade-consumer blueprint-upgrade-consumer-preflight blueprint-upgrade-consumer-validate blueprint-install-codex-skill blueprint-check-placeholders blueprint-template-smoke blueprint-bootstrap blueprint-render-makefile blueprint-clean-generated blueprint-render-module-wrapper-skeletons \
+  blueprint-init-repo blueprint-init-repo-interactive blueprint-resync-consumer-seeds blueprint-upgrade-consumer blueprint-upgrade-consumer-preflight blueprint-upgrade-consumer-validate blueprint-install-codex-skill blueprint-ownership-check blueprint-ownership-metadata blueprint-check-placeholders blueprint-template-smoke blueprint-bootstrap blueprint-render-makefile blueprint-clean-generated blueprint-render-module-wrapper-skeletons \
   test-contracts-async-producer test-contracts-async-consumer test-contracts-async-all \
   quality-hooks-fast quality-hooks-strict quality-hooks-run quality-ci-sync quality-ci-check-sync quality-ci-fast quality-ci-full-e2e quality-ci-strict quality-ci-blueprint quality-ci-generated-consumer-smoke quality-docs-lint quality-docs-sync-blueprint-template quality-docs-check-blueprint-template-sync quality-docs-sync-platform-seed quality-docs-check-platform-seed-sync quality-docs-sync-core-targets quality-docs-check-core-targets-sync quality-docs-sync-contract-metadata quality-docs-check-contract-metadata-sync quality-docs-sync-runtime-identity-summary quality-docs-check-runtime-identity-summary-sync quality-docs-sync-module-contract-summaries quality-docs-check-module-contract-summaries-sync quality-test-pyramid \
   infra-prereqs infra-help-reference infra-bootstrap infra-local-destroy-all infra-destroy-disabled-modules infra-validate infra-smoke infra-provision infra-deploy infra-provision-deploy \
@@ -45,6 +45,16 @@ blueprint-upgrade-consumer-validate: ## Run post-upgrade validation bundle and s
 
 blueprint-install-codex-skill: ## Install/sync bundled Codex upgrade skill into local CODEX_HOME skills directory
 	@scripts/bin/blueprint/install_codex_skill.sh
+
+blueprint-ownership-check: ## Resolve path ownership classes (set OWNERSHIP_PATHS=\"path/one path/two\")
+	@if [[ -z "$(strip $(OWNERSHIP_PATHS))" ]]; then \
+		echo "[blueprint] set OWNERSHIP_PATHS to one or more paths (space-separated)" >&2; \
+		exit 1; \
+	fi
+	@python3 scripts/bin/blueprint/ownership_check.py $(OWNERSHIP_PATHS)
+
+blueprint-ownership-metadata: ## Print machine-readable ownership metadata (pattern -> owner)
+	@python3 scripts/bin/blueprint/ownership_check.py --metadata-json
 
 blueprint-check-placeholders: ## Verify generated repository identity placeholders are resolved
 	@scripts/bin/blueprint/check_placeholders.sh
