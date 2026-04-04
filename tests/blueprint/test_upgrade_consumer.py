@@ -769,6 +769,18 @@ class UpgradeConsumerTests(unittest.TestCase):
         self.assertEqual(merged_content, "")
         self.assertTrue(has_conflicts)
 
+    def test_three_way_merge_raises_on_negative_exit(self) -> None:
+        merge_result = subprocess.CompletedProcess(
+            args=["git", "merge-file", "-p", "ours", "base", "theirs"],
+            returncode=-1,
+            stdout="",
+            stderr="signal: killed",
+        )
+
+        with mock.patch.object(upgrade_consumer, "_run", return_value=merge_result):
+            with self.assertRaisesRegex(RuntimeError, "git merge-file failed"):
+                upgrade_consumer._three_way_merge("base\n", "ours\n", "theirs\n")
+
     def test_relative_report_paths_cannot_escape_repo(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp_root = Path(tmpdir)
