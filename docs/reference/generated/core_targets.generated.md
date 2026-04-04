@@ -29,6 +29,11 @@ This file is auto-generated. Do not edit it manually.
 | `quality-hooks-run` | Run pre-commit hooks and quality gates |
 | `quality-ci-sync` | Regenerate source CI workflow from contract and canonical lane metadata |
 | `quality-ci-check-sync` | Fail when source CI workflow is out of date |
+| `quality-ci-fast` | Run canonical fast CI lane bundle |
+| `quality-ci-full-e2e` | Run canonical full local E2E CI lane |
+| `quality-ci-strict` | Run canonical strict CI audit lane |
+| `quality-ci-blueprint` | Run source blueprint CI lane bundle |
+| `quality-ci-generated-consumer-smoke` | Run generated-consumer template smoke lane |
 | `quality-docs-lint` | Lint markdown docs, governance links, and make target references |
 | `quality-docs-sync-blueprint-template` | Sync docs/blueprint/** into bootstrap template blueprint docs mirror |
 | `quality-docs-check-blueprint-template-sync` | Fail when docs/blueprint/** and bootstrap template blueprint docs drift |
@@ -88,6 +93,8 @@ This file is auto-generated. Do not edit it manually.
 | `docs-smoke` | Smoke docs site output |
 | `auth-reconcile-eso-runtime-secrets` | Reconcile generic ESO runtime source-to-target credentials contract |
 | `apps-bootstrap` | Bootstrap app build/deploy prerequisites |
+| `apps-ci-bootstrap` | Bootstrap CI runner dependencies for app/test lanes (consumer-owned override point) |
+| `apps-ci-bootstrap-consumer` | Consumer-owned dependency install hook for app/test lanes (required in generated-consumer repos) |
 | `apps-smoke` | App-level smoke checks |
 | `apps-audit-versions` | Audit app/base-image dependency versions |
 | `apps-audit-versions-cached` | Audit app/base-image dependency versions with local success cache |

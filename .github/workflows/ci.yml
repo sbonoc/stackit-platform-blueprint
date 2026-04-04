@@ -18,32 +18,12 @@ jobs:
 
       - name: Run quality gates
         run: |
-          make quality-hooks-fast
-          make quality-hooks-strict
-          pre-commit run --hook-stage pre-push --all-files
-
-      - name: Validate app baseline
-        run: |
-          BLUEPRINT_PROFILE=local-lite OBSERVABILITY_ENABLED=false make apps-bootstrap
-          BLUEPRINT_PROFILE=local-lite OBSERVABILITY_ENABLED=false make apps-smoke
-
-      - name: Build and smoke docs
-        run: |
-          make docs-install
-          make docs-build
-          make docs-smoke
-
-      - name: Run canonical fast test lanes
-        run: |
-          make test-unit-all
-          make test-integration-all
-          make test-contracts-all
-          make test-e2e-all-local
+          make quality-ci-blueprint
 
       - name: Run canonical full e2e lane on main updates
         if: github.event_name == 'push'
         run: |
-          make test-e2e-all-local-full
+          make quality-ci-full-e2e
 
   generated-consumer-smoke:
     runs-on: ubuntu-latest
@@ -56,22 +36,4 @@ jobs:
 
       - name: Smoke generated consumer baseline
         run: |
-          export BLUEPRINT_TEMPLATE_SMOKE_SCENARIO=local-lite-baseline
-          export BLUEPRINT_PROFILE=local-lite
-          export OBSERVABILITY_ENABLED=false
-          export WORKFLOWS_ENABLED=false
-          export LANGFUSE_ENABLED=false
-          export POSTGRES_ENABLED=false
-          export NEO4J_ENABLED=false
-          export OBJECT_STORAGE_ENABLED=false
-          export RABBITMQ_ENABLED=false
-          export DNS_ENABLED=false
-          export PUBLIC_ENDPOINTS_ENABLED=false
-          export SECRETS_MANAGER_ENABLED=false
-          export KMS_ENABLED=false
-          export IDENTITY_AWARE_PROXY_ENABLED=false
-          BLUEPRINT_REPO_NAME=ci-smoke-blueprint \
-          BLUEPRINT_GITHUB_ORG=ci-smoke-org \
-          BLUEPRINT_GITHUB_REPO=ci-smoke-blueprint \
-          BLUEPRINT_DEFAULT_BRANCH=main \
-          make blueprint-template-smoke
+          make quality-ci-generated-consumer-smoke

@@ -570,6 +570,13 @@ render_optional_module_secret_manifests "messaging" "blueprint-rabbitmq-auth" "r
         result = run(["scripts/bin/infra/prereqs.sh", "--help"])
         self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
         self.assertIn("terraform kubectl helm docker kind uv gh jq pnpm kustomize nc", result.stdout)
+        self.assertIn("Canonical required Python modules:", result.stdout)
+        self.assertIn("pytest", result.stdout)
+
+    def test_prereqs_script_enforces_required_pytest_python_module(self) -> None:
+        script = (REPO_ROOT / "scripts/bin/infra/prereqs.sh").read_text(encoding="utf-8")
+        self.assertIn('check_or_install_python_module "pytest" "required"', script)
+        self.assertIn("python_module_available()", script)
 
     def test_audit_version_chart_refs_have_known_helm_repo_prefixes(self) -> None:
         chart_repo_prefixes, known_repo_prefixes = audit_helm_chart_repo_prefix_contract()

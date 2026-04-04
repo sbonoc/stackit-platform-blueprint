@@ -9,6 +9,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -40,6 +41,17 @@ OPERATION_MERGE = "merge"
 OPERATION_NONE = "none"
 
 REASON_PLATFORM_PROTECTED_SKIP = "path is platform-owned and protected from blueprint-managed overwrite"
+MAKE_TARGET_PATTERN = re.compile(r"^([A-Za-z0-9_.-]+):")
+BLUEPRINT_MAKE_TARGET_REFERENCE_PATHS = (
+    ".github/actions/prepare-blueprint-ci/action.yml",
+    ".github/workflows/ci.yml",
+    "make/blueprint.generated.mk",
+    "scripts/templates/consumer/init/.github/workflows/ci.yml.tmpl",
+    "scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl",
+)
+APPS_CI_BOOTSTRAP_TARGET = "apps-ci-bootstrap"
+APPS_CI_BOOTSTRAP_CONSUMER_TARGET = "apps-ci-bootstrap-consumer"
+APPS_CI_BOOTSTRAP_CONSUMER_PLACEHOLDER_TOKEN = "apps-ci-bootstrap-consumer placeholder active"
 
 
 @dataclass(frozen=True)
@@ -661,6 +673,158 @@ def _annotate_protected_dependency_gaps(
     return annotated, required_manual_actions
 
 
+def _collect_platform_make_paths(root: Path, contract: BlueprintContract) -> list[tuple[str, Path]]:
+    ownership = contract.make_contract.ownership
+    paths: list[tuple[str, Path]] = []
+
+    editable_file = ownership.platform_editable_file.strip()
+    if editable_file:
+        editable_path = root / editable_file
+        if editable_path.is_file():
+            paths.append((editable_file, editable_path))
+
+    editable_include_dir = ownership.platform_editable_include_dir.strip()
+    if editable_include_dir:
+        include_root = root / editable_include_dir
+        if include_root.is_dir():
+            for include_file in sorted(include_root.rglob("*.mk")):
+                if not include_file.is_file():
+                    continue
+                rel_path = include_file.relative_to(root).as_posix()
+                paths.append((rel_path, include_file))
+
+    deduped: list[tuple[str, Path]] = []
+    seen_rel_paths: set[str] = set()
+    for rel_path, abs_path in paths:
+        if rel_path in seen_rel_paths:
+            continue
+        seen_rel_paths.add(rel_path)
+        deduped.append((rel_path, abs_path))
+    return deduped
+
+
+def _make_target_definitions(paths: list[tuple[str, Path]]) -> dict[str, str]:
+    definitions: dict[str, str] = {}
+    for rel_path, abs_path in paths:
+        for line in _read_text(abs_path).splitlines():
+            match = MAKE_TARGET_PATTERN.match(line)
+            if not match:
+                continue
+            target_name = match.group(1)
+            if target_name == ".PHONY":
+                continue
+            definitions.setdefault(target_name, rel_path)
+    return definitions
+
+
+def _file_contains_literal(path: Path, token: str) -> bool:
+    if not path.is_file():
+        return False
+    return token in _read_text(path)
+
+
+def _source_make_target_reference(source_repo: Path, target_name: str) -> str | None:
+    needles = (f"make {target_name}", f"$(MAKE) {target_name}")
+    for rel_path in BLUEPRINT_MAKE_TARGET_REFERENCE_PATHS:
+        abs_path = source_repo / rel_path
+        if not abs_path.is_file():
+            continue
+        content = _read_text(abs_path)
+        if any(needle in content for needle in needles):
+            return rel_path
+    return None
+
+
+def _collect_missing_platform_make_target_actions(
+    repo_root: Path,
+    source_repo: Path,
+    contract: BlueprintContract,
+    source_contract: BlueprintContract | None,
+) -> list[RequiredManualAction]:
+    source_scope_contract = source_contract or contract
+    source_target_definitions = _make_target_definitions(_collect_platform_make_paths(source_repo, source_scope_contract))
+    if not source_target_definitions:
+        return []
+
+    target_target_definitions = _make_target_definitions(_collect_platform_make_paths(repo_root, contract))
+    target_targets = set(target_target_definitions.keys())
+    required_targets = set(source_scope_contract.make_contract.required_targets)
+    platform_makefile = contract.make_contract.ownership.platform_editable_file
+
+    actions: list[RequiredManualAction] = []
+    for target_name in sorted(source_target_definitions.keys()):
+        if target_name not in required_targets:
+            continue
+        if target_name in target_targets:
+            continue
+        reference_path = _source_make_target_reference(source_repo, target_name)
+        if reference_path is None:
+            continue
+        actions.append(
+            RequiredManualAction(
+                dependency_path=platform_makefile,
+                dependency_of=f"{reference_path}: make {target_name}",
+                reason=(
+                    f"required make target `{target_name}` is missing from platform-owned make surfaces; "
+                    f"{reference_path} invokes it and validation will fail until the target is added"
+                ),
+                required_follow_up_commands=("make blueprint-upgrade-consumer-validate",),
+            )
+        )
+
+    if APPS_CI_BOOTSTRAP_TARGET in target_targets and APPS_CI_BOOTSTRAP_CONSUMER_TARGET in required_targets:
+        bootstrap_reference_path = _source_make_target_reference(source_repo, APPS_CI_BOOTSTRAP_TARGET) or platform_makefile
+        bootstrap_dependency_of = f"{bootstrap_reference_path}: make {APPS_CI_BOOTSTRAP_TARGET}"
+        consumer_target_path = target_target_definitions.get(APPS_CI_BOOTSTRAP_CONSUMER_TARGET)
+        if consumer_target_path is None:
+            actions.append(
+                RequiredManualAction(
+                    dependency_path=platform_makefile,
+                    dependency_of=bootstrap_dependency_of,
+                    reason=(
+                        f"required consumer-owned make target `{APPS_CI_BOOTSTRAP_CONSUMER_TARGET}` is missing; "
+                        f"`{APPS_CI_BOOTSTRAP_TARGET}` invokes it and CI dependency bootstrap cannot be completed "
+                        "until the target is implemented"
+                    ),
+                    required_follow_up_commands=("make blueprint-upgrade-consumer-validate",),
+                )
+            )
+        elif _file_contains_literal(
+            repo_root / consumer_target_path,
+            APPS_CI_BOOTSTRAP_CONSUMER_PLACEHOLDER_TOKEN,
+        ):
+            actions.append(
+                RequiredManualAction(
+                    dependency_path=consumer_target_path,
+                    dependency_of=bootstrap_dependency_of,
+                    reason=(
+                        f"required consumer-owned make target `{APPS_CI_BOOTSTRAP_CONSUMER_TARGET}` is still "
+                        "placeholder; replace it with deterministic repository-specific dependency bootstrap commands"
+                    ),
+                    required_follow_up_commands=("make blueprint-upgrade-consumer-validate",),
+                )
+            )
+    return actions
+
+
+def _merge_required_manual_actions(*groups: list[RequiredManualAction]) -> list[RequiredManualAction]:
+    merged: list[RequiredManualAction] = []
+    seen: set[tuple[str, str, str, tuple[str, ...]]] = set()
+    for actions in groups:
+        for action in actions:
+            key = (
+                action.dependency_path,
+                action.dependency_of,
+                action.reason,
+                action.required_follow_up_commands,
+            )
+            if key in seen:
+                continue
+            seen.add(key)
+            merged.append(action)
+    return merged
+
+
 def _three_way_merge(base: str, ours: str, theirs: str) -> tuple[str, bool]:
     with tempfile.TemporaryDirectory(prefix="blueprint-upgrade-merge-") as tmpdir:
         tmp_root = Path(tmpdir)
@@ -1111,7 +1275,21 @@ def main() -> int:
             baseline_cache=baseline_cache,
             allow_delete=args.allow_delete,
         )
-        entries, required_manual_actions = _annotate_protected_dependency_gaps(entries, source_repo, protected_roots)
+        entries, runtime_dependency_manual_actions = _annotate_protected_dependency_gaps(
+            entries,
+            source_repo,
+            protected_roots,
+        )
+        platform_make_target_manual_actions = _collect_missing_platform_make_target_actions(
+            repo_root,
+            source_repo,
+            contract,
+            source_contract,
+        )
+        required_manual_actions = _merge_required_manual_actions(
+            runtime_dependency_manual_actions,
+            platform_make_target_manual_actions,
+        )
 
         plan_summary = _summarize_plan(entries, required_manual_actions)
         plan_payload = {
@@ -1199,7 +1377,7 @@ def main() -> int:
                 f"{action.dependency_of} -> {action.dependency_path}" for action in required_manual_actions
             )
             print(
-                "upgrade requires manual action for protected runtime dependency paths: "
+                "upgrade requires manual actions for protected/consumer-owned dependency gaps: "
                 + manual_actions_summary,
                 file=sys.stderr,
             )

@@ -17,50 +17,9 @@ from scripts.lib.blueprint.contract_schema import load_blueprint_contract  # noq
 
 
 DEFAULT_OUTPUT = Path(".github/workflows/ci.yml")
-FAST_QUALITY_COMMANDS = (
-    "make quality-hooks-fast",
-    "make quality-hooks-strict",
-    "pre-commit run --hook-stage pre-push --all-files",
-)
-APPS_BASELINE_COMMANDS = (
-    "BLUEPRINT_PROFILE=local-lite OBSERVABILITY_ENABLED=false make apps-bootstrap",
-    "BLUEPRINT_PROFILE=local-lite OBSERVABILITY_ENABLED=false make apps-smoke",
-)
-DOCS_COMMANDS = (
-    "make docs-install",
-    "make docs-build",
-    "make docs-smoke",
-)
-FAST_TEST_LANES = (
-    "make test-unit-all",
-    "make test-integration-all",
-    "make test-contracts-all",
-    "make test-e2e-all-local",
-)
-FULL_PUSH_LANES = ("make test-e2e-all-local-full",)
-GENERATED_SMOKE_EXPORTS = (
-    "export BLUEPRINT_TEMPLATE_SMOKE_SCENARIO=local-lite-baseline",
-    "export BLUEPRINT_PROFILE=local-lite",
-    "export OBSERVABILITY_ENABLED=false",
-    "export WORKFLOWS_ENABLED=false",
-    "export LANGFUSE_ENABLED=false",
-    "export POSTGRES_ENABLED=false",
-    "export NEO4J_ENABLED=false",
-    "export OBJECT_STORAGE_ENABLED=false",
-    "export RABBITMQ_ENABLED=false",
-    "export DNS_ENABLED=false",
-    "export PUBLIC_ENDPOINTS_ENABLED=false",
-    "export SECRETS_MANAGER_ENABLED=false",
-    "export KMS_ENABLED=false",
-    "export IDENTITY_AWARE_PROXY_ENABLED=false",
-)
-GENERATED_SMOKE_RUN = (
-    "BLUEPRINT_REPO_NAME=ci-smoke-blueprint \\",
-    "BLUEPRINT_GITHUB_ORG=ci-smoke-org \\",
-    "BLUEPRINT_GITHUB_REPO=ci-smoke-blueprint \\",
-    "BLUEPRINT_DEFAULT_BRANCH=main \\",
-    "make blueprint-template-smoke",
-)
+BLUEPRINT_QUALITY_LANE = ("make quality-ci-blueprint",)
+BLUEPRINT_FULL_PUSH_LANE = ("make quality-ci-full-e2e",)
+GENERATED_CONSUMER_SMOKE_LANE = ("make quality-ci-generated-consumer-smoke",)
 
 
 def _indent_block(lines: tuple[str, ...], *, spaces: int) -> str:
@@ -86,20 +45,11 @@ def _render_ci(default_branch: str) -> str:
         "        uses: ./.github/actions/prepare-blueprint-ci\n\n"
         "      - name: Run quality gates\n"
         "        run: |\n"
-        f"{_indent_block(FAST_QUALITY_COMMANDS, spaces=10)}\n\n"
-        "      - name: Validate app baseline\n"
-        "        run: |\n"
-        f"{_indent_block(APPS_BASELINE_COMMANDS, spaces=10)}\n\n"
-        "      - name: Build and smoke docs\n"
-        "        run: |\n"
-        f"{_indent_block(DOCS_COMMANDS, spaces=10)}\n\n"
-        "      - name: Run canonical fast test lanes\n"
-        "        run: |\n"
-        f"{_indent_block(FAST_TEST_LANES, spaces=10)}\n\n"
+        f"{_indent_block(BLUEPRINT_QUALITY_LANE, spaces=10)}\n\n"
         f"      - name: Run canonical full e2e lane on {default_branch} updates\n"
         "        if: github.event_name == 'push'\n"
         "        run: |\n"
-        f"{_indent_block(FULL_PUSH_LANES, spaces=10)}\n\n"
+        f"{_indent_block(BLUEPRINT_FULL_PUSH_LANE, spaces=10)}\n\n"
         "  generated-consumer-smoke:\n"
         "    runs-on: ubuntu-latest\n"
         "    steps:\n"
@@ -109,8 +59,7 @@ def _render_ci(default_branch: str) -> str:
         "        uses: ./.github/actions/prepare-blueprint-ci\n\n"
         "      - name: Smoke generated consumer baseline\n"
         "        run: |\n"
-        f"{_indent_block(GENERATED_SMOKE_EXPORTS, spaces=10)}\n"
-        f"{_indent_block(GENERATED_SMOKE_RUN, spaces=10)}\n"
+        f"{_indent_block(GENERATED_CONSUMER_SMOKE_LANE, spaces=10)}\n"
     )
 
 

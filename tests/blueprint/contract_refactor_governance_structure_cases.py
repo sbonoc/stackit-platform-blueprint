@@ -95,7 +95,8 @@ class GovernanceStructureCases(RefactorContractBase):
     def test_validate_command_is_contract_driven(self) -> None:
         validate_sh = _read("scripts/bin/infra/validate.sh")
         self.assertIn("scripts/bin/blueprint/validate_contract.py", validate_sh)
-        self.assertIn("--contract-path \"$ROOT_DIR/blueprint/contract.yaml\"", validate_sh)
+        self.assertIn('"--contract-path"', validate_sh)
+        self.assertIn('"$ROOT_DIR/blueprint/contract.yaml"', validate_sh)
 
     def test_contract_template_bootstrap_metadata_is_canonical(self) -> None:
         contract_lines = self._contract_lines()
@@ -415,8 +416,14 @@ class GovernanceStructureCases(RefactorContractBase):
                 "infra-destroy-disabled-modules",
                 "infra-stackit-ci-github-setup",
                 "infra-audit-version-cached",
+                "apps-ci-bootstrap",
                 "apps-audit-versions-cached",
                 "apps-publish-ghcr",
+                "quality-ci-fast",
+                "quality-ci-full-e2e",
+                "quality-ci-strict",
+                "quality-ci-blueprint",
+                "quality-ci-generated-consumer-smoke",
                 "auth-reconcile-eso-runtime-secrets",
                 "docs-build",
                 "docs-smoke",

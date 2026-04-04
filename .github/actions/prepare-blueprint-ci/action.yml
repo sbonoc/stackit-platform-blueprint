@@ -9,12 +9,6 @@ runs:
       with:
         python-version: "3.13"
 
-    - name: Install Python tooling
-      shell: bash
-      run: |
-        python3 -m pip install --upgrade pip
-        python3 -m pip install pytest pre-commit
-
     - name: Setup Node
       uses: actions/setup-node@v6
       with:
@@ -26,11 +20,14 @@ runs:
         corepack enable
         pnpm --version
 
-    - name: Install shellcheck
+    - name: Ensure CI CLI prerequisites
       shell: bash
       run: |
-        sudo apt-get update
-        sudo apt-get install -y shellcheck
+        PREREQS_AUTO_INSTALL=true \
+        PREREQS_INSTALL_OPTIONAL=false \
+        PREREQS_REQUIRE_STACKIT_TOOLS=false \
+        make infra-prereqs
+        echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
     - name: Bootstrap blueprint and infra baseline
       shell: bash
@@ -41,64 +38,4 @@ runs:
     - name: Bootstrap project dependencies for clean runners
       shell: bash
       run: |
-        set -euo pipefail
-
-        _ensure_uv_installed() {
-          if ! command -v uv &>/dev/null; then
-            python3 -m pip install uv
-          fi
-        }
-
-        bootstrap_python_project() {
-          local project_dir="$1"
-          if [[ ! -d "$project_dir" ]]; then
-            return 0
-          fi
-
-          if [[ -f "$project_dir/pyproject.toml" ]]; then
-            echo "[prepare-blueprint-ci] bootstrapping Python project at $project_dir"
-            _ensure_uv_installed
-            if [[ -f "$project_dir/uv.lock" ]]; then
-              (cd "$project_dir" && uv sync --frozen --all-groups)
-            else
-              (cd "$project_dir" && uv sync --all-groups)
-            fi
-            if [[ -n "${GITHUB_PATH:-}" && -d "$project_dir/.venv/bin" ]]; then
-              local venv_bin
-              venv_bin="$(cd "$project_dir/.venv/bin" && pwd)"
-              echo "$venv_bin" >>"$GITHUB_PATH"
-              echo "[prepare-blueprint-ci] activated venv path for downstream lanes: $venv_bin"
-            fi
-            return 0
-          fi
-
-          local requirements_file
-          for requirements_file in requirements-dev.txt requirements.txt; do
-            if [[ -f "$project_dir/$requirements_file" ]]; then
-              echo "[prepare-blueprint-ci] installing Python requirements from $project_dir/$requirements_file"
-              python3 -m pip install -r "$project_dir/$requirements_file"
-              return 0
-            fi
-          done
-
-          return 0
-        }
-
-        bootstrap_python_project "."
-        bootstrap_python_project "apps/backend"
-
-        if [[ -f pnpm-lock.yaml || -f pnpm-workspace.yaml || -f package.json ]]; then
-          echo "[prepare-blueprint-ci] bootstrapping pnpm dependencies at repository root"
-          if [[ -f pnpm-lock.yaml ]]; then
-            pnpm install --frozen-lockfile
-          else
-            pnpm install --no-frozen-lockfile
-          fi
-        elif [[ -f apps/touchpoints/package.json ]]; then
-          echo "[prepare-blueprint-ci] bootstrapping pnpm dependencies at apps/touchpoints"
-          if [[ -f apps/touchpoints/pnpm-lock.yaml ]]; then
-            pnpm --dir apps/touchpoints install --frozen-lockfile
-          else
-            pnpm --dir apps/touchpoints install --no-frozen-lockfile
-          fi
-        fi
+        BLUEPRINT_PROFILE=local-lite OBSERVABILITY_ENABLED=false make apps-ci-bootstrap

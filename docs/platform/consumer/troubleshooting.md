@@ -173,18 +173,26 @@ Common first-day issues for generated repositories.
 - Temporary fallback only if you cannot upgrade immediately:
   - set `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true` in workflow/job env.
 
-## CI test lanes fail on clean runners with missing `fastapi` or `vitest`
+## CI test lanes fail on clean runners with missing `fastapi`, `vitest`, or Playwright browsers
 - Ensure your workflow uses `.github/actions/prepare-blueprint-ci/action.yml` before test lanes.
-- The current action bootstrap contract now installs project dependencies when manifests exist:
-  - Python projects: `pyproject.toml` + `uv sync` (or `requirements-dev.txt` / `requirements.txt` fallback).
-  - JavaScript workspaces: `pnpm install` from repo root (or `apps/touchpoints` fallback).
-- If your repository still fails with errors such as `ModuleNotFoundError: fastapi` or `vitest: command not found`, resync and upgrade from repository root:
+- The current action bootstrap contract delegates dependency installation to `BLUEPRINT_PROFILE=local-lite OBSERVABILITY_ENABLED=false make apps-ci-bootstrap`.
+- CI toolchain/OS dependencies are handled by `make infra-prereqs` in the shared action.
+- App/runtime dependencies are handled by `make apps-ci-bootstrap`, which composes:
+  - `make apps-bootstrap` (baseline app scaffolding/state)
+  - `make apps-ci-bootstrap-consumer` (consumer-owned dependency install contract)
+- In generated-consumer mode, the seeded `apps-ci-bootstrap-consumer` is an intentional fail-fast placeholder. Replace it with deterministic commands for your repository layout (no directory scanning/discovery), for example:
+  - backend Python dependency install from your fixed backend path(s)
+  - touchpoints/package-manager dependency install from your fixed frontend/workspace path(s)
+  - optional browser/runtime bootstrap only when your package metadata declares that dependency
+- Keep all consumer-specific CI bootstrap commands in `apps-ci-bootstrap-consumer` in `make/platform.mk` (or `make/platform/*.mk`) as the single consumer-owned hook.
+- If your repository still fails with errors such as `ModuleNotFoundError: fastapi`, `vitest: command not found`, or `Executable doesn't exist ... chrome-headless-shell`, resync and upgrade from repository root:
   ```bash
   make blueprint-resync-consumer-seeds
   BLUEPRINT_RESYNC_APPLY_SAFE=true make blueprint-resync-consumer-seeds
   make blueprint-upgrade-consumer
   BLUEPRINT_UPGRADE_APPLY=true make blueprint-upgrade-consumer
   make blueprint-upgrade-consumer-validate
+  make apps-ci-bootstrap
   ```
 
 ## STACKIT preflight fails on backend contract

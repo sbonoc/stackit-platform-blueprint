@@ -4,7 +4,7 @@ SHELL := /bin/bash
 .PHONY: help \
   blueprint-init-repo blueprint-init-repo-interactive blueprint-resync-consumer-seeds blueprint-upgrade-consumer blueprint-upgrade-consumer-preflight blueprint-upgrade-consumer-validate blueprint-install-codex-skill blueprint-check-placeholders blueprint-template-smoke blueprint-bootstrap blueprint-render-makefile blueprint-clean-generated blueprint-render-module-wrapper-skeletons \
   test-contracts-async-producer test-contracts-async-consumer test-contracts-async-all \
-  quality-hooks-fast quality-hooks-strict quality-hooks-run quality-ci-sync quality-ci-check-sync quality-docs-lint quality-docs-sync-blueprint-template quality-docs-check-blueprint-template-sync quality-docs-sync-platform-seed quality-docs-check-platform-seed-sync quality-docs-sync-core-targets quality-docs-check-core-targets-sync quality-docs-sync-contract-metadata quality-docs-check-contract-metadata-sync quality-docs-sync-runtime-identity-summary quality-docs-check-runtime-identity-summary-sync quality-docs-sync-module-contract-summaries quality-docs-check-module-contract-summaries-sync quality-test-pyramid \
+  quality-hooks-fast quality-hooks-strict quality-hooks-run quality-ci-sync quality-ci-check-sync quality-ci-fast quality-ci-full-e2e quality-ci-strict quality-ci-blueprint quality-ci-generated-consumer-smoke quality-docs-lint quality-docs-sync-blueprint-template quality-docs-check-blueprint-template-sync quality-docs-sync-platform-seed quality-docs-check-platform-seed-sync quality-docs-sync-core-targets quality-docs-check-core-targets-sync quality-docs-sync-contract-metadata quality-docs-check-contract-metadata-sync quality-docs-sync-runtime-identity-summary quality-docs-check-runtime-identity-summary-sync quality-docs-sync-module-contract-summaries quality-docs-check-module-contract-summaries-sync quality-test-pyramid \
   infra-prereqs infra-help-reference infra-bootstrap infra-local-destroy-all infra-destroy-disabled-modules infra-validate infra-smoke infra-provision infra-deploy infra-provision-deploy \
   infra-stackit-bootstrap-preflight infra-stackit-bootstrap-plan infra-stackit-bootstrap-apply infra-stackit-bootstrap-destroy \
   infra-stackit-foundation-preflight infra-stackit-foundation-plan infra-stackit-foundation-apply infra-stackit-foundation-destroy \
@@ -15,6 +15,11 @@ SHELL := /bin/bash
   infra-argocd-topology-render infra-argocd-topology-validate \
   infra-doctor infra-context infra-status infra-status-json \
   infra-audit-version infra-audit-version-cached \
+  apps-bootstrap apps-ci-bootstrap apps-ci-bootstrap-consumer apps-smoke apps-audit-versions apps-audit-versions-cached apps-publish-ghcr \
+  backend-test-unit backend-test-integration backend-test-contracts backend-test-e2e \
+  touchpoints-test-unit touchpoints-test-integration touchpoints-test-contracts touchpoints-test-e2e \
+  test-unit-all test-integration-all test-contracts-all test-e2e-all-local test-e2e-all-local-full test-e2e-all-local-execute \
+  auth-reconcile-eso-runtime-secrets \
   docs-install docs-run docs-build docs-smoke{{PHONY_OBSERVABILITY}}{{PHONY_WORKFLOWS}}{{PHONY_LANGFUSE}}{{PHONY_POSTGRES}}{{PHONY_NEO4J}}{{PHONY_OBJECT_STORAGE}}{{PHONY_RABBITMQ}}{{PHONY_DNS}}{{PHONY_PUBLIC_ENDPOINTS}}{{PHONY_SECRETS_MANAGER}}{{PHONY_KMS}}{{PHONY_IDENTITY_AWARE_PROXY}}
 
 help: ## Show targets
@@ -85,6 +90,50 @@ quality-ci-sync: ## Regenerate source CI workflow from contract and canonical la
 
 quality-ci-check-sync: ## Fail when source CI workflow is out of date
 	@python3 scripts/lib/quality/render_ci_workflow.py --check
+
+quality-ci-fast: ## Run canonical fast CI lane bundle
+	@$(MAKE) quality-hooks-fast
+	@BLUEPRINT_PROFILE=local-lite OBSERVABILITY_ENABLED=false $(MAKE) apps-ci-bootstrap
+	@BLUEPRINT_PROFILE=local-lite OBSERVABILITY_ENABLED=false $(MAKE) apps-smoke
+	@$(MAKE) docs-install
+	@$(MAKE) docs-build
+	@$(MAKE) docs-smoke
+	@$(MAKE) test-unit-all
+	@$(MAKE) test-integration-all
+	@$(MAKE) test-contracts-all
+	@$(MAKE) test-e2e-all-local
+
+quality-ci-full-e2e: ## Run canonical full local E2E CI lane
+	@$(MAKE) test-e2e-all-local-full
+
+quality-ci-strict: ## Run canonical strict CI audit lane
+	@$(MAKE) quality-hooks-strict
+
+quality-ci-blueprint: ## Run source blueprint CI lane bundle
+	@$(MAKE) quality-ci-fast
+	@$(MAKE) quality-ci-strict
+	@pre-commit run --hook-stage pre-push --all-files
+
+quality-ci-generated-consumer-smoke: ## Run generated-consumer template smoke lane
+	@BLUEPRINT_TEMPLATE_SMOKE_SCENARIO=local-lite-baseline \
+	BLUEPRINT_PROFILE=local-lite \
+	OBSERVABILITY_ENABLED=false \
+	WORKFLOWS_ENABLED=false \
+	LANGFUSE_ENABLED=false \
+	POSTGRES_ENABLED=false \
+	NEO4J_ENABLED=false \
+	OBJECT_STORAGE_ENABLED=false \
+	RABBITMQ_ENABLED=false \
+	DNS_ENABLED=false \
+	PUBLIC_ENDPOINTS_ENABLED=false \
+	SECRETS_MANAGER_ENABLED=false \
+	KMS_ENABLED=false \
+	IDENTITY_AWARE_PROXY_ENABLED=false \
+	BLUEPRINT_REPO_NAME=ci-smoke-blueprint \
+	BLUEPRINT_GITHUB_ORG=ci-smoke-org \
+	BLUEPRINT_GITHUB_REPO=ci-smoke-blueprint \
+	BLUEPRINT_DEFAULT_BRANCH=main \
+	$(MAKE) blueprint-template-smoke
 
 quality-docs-lint: ## Lint markdown docs, governance links, and make target references
 	@python3 scripts/bin/quality/lint_docs.py

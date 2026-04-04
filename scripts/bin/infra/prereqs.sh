@@ -21,6 +21,9 @@ Environment variables:
 Canonical required tools:
   bash git make python3 pre-commit shellcheck
 
+Canonical required Python modules:
+  pytest
+
 STACKIT/operator tools (optional by default):
   terraform kubectl helm docker kind uv gh jq pnpm kustomize nc
 USAGE
@@ -308,6 +311,61 @@ check_or_install() {
   fi
 }
 
+python_module_available() {
+  local module="$1"
+  python3 - "$module" <<'PY'
+import importlib.util
+import sys
+
+sys.exit(0 if importlib.util.find_spec(sys.argv[1]) else 1)
+PY
+}
+
+install_python_module() {
+  local module="$1"
+  if ! python3 -m pip --version >/dev/null 2>&1; then
+    run_cmd python3 -m ensurepip --upgrade
+  fi
+  run_cmd python3 -m pip install --user "$module"
+}
+
+check_or_install_python_module() {
+  local module="$1"
+  local bucket="$2"
+  local label="python-module:${module}"
+
+  if ! shell_has_cmd python3; then
+    log_warn "cannot verify required python module because python3 is missing: $module"
+    if [[ "$bucket" == "required" ]]; then
+      missing_required+=("$label")
+    else
+      missing_optional+=("$label")
+    fi
+    return 1
+  fi
+
+  if python_module_available "$module"; then
+    log_info "found required python module: $module"
+    return 0
+  fi
+
+  log_warn "missing required python module: $module"
+  if [[ "$PREREQS_AUTO_INSTALL" == "true" ]]; then
+    if install_python_module "$module" && python_module_available "$module"; then
+      log_info "installed required python module: $module"
+      return 0
+    fi
+    log_warn "auto-install attempted but still missing required python module: $module"
+  fi
+
+  if [[ "$bucket" == "required" ]]; then
+    missing_required+=("$label")
+  else
+    missing_optional+=("$label")
+  fi
+  return 1
+}
+
 platform="$(shell_detect_platform)"
 ARCH="$(shell_detect_arch)"
 required_tools=(bash git make python3 pre-commit shellcheck)
@@ -318,6 +376,8 @@ missing_optional=()
 for tool in "${required_tools[@]}"; do
   check_or_install "$tool" "$platform" "required"
 done
+
+check_or_install_python_module "pytest" "required"
 
 for tool in "${stackit_tools[@]}"; do
   if [[ "$PREREQS_REQUIRE_STACKIT_TOOLS" == "true" ]]; then

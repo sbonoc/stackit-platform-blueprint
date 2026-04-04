@@ -107,6 +107,17 @@
 - CI now separates fast and full e2e intent:
   - pull requests run the fast e2e lane by default.
   - branch update lanes run the full dry-run e2e lane.
+- CI lane orchestration is make-target driven (no inline workflow command graphs):
+  - composite action `.github/actions/prepare-blueprint-ci/action.yml` delegates dependency bootstrap to `make apps-ci-bootstrap`.
+  - canonical CI lane targets are `quality-ci-fast`, `quality-ci-full-e2e`, `quality-ci-strict`, `quality-ci-blueprint`, and `quality-ci-generated-consumer-smoke`.
+  - source and consumer workflow templates now invoke those targets directly, so CI behavior changes happen through Make/contract surfaces instead of editing workflow shell blocks.
+  - dependency bootstrap policy is explicit and consumer-owned in `make/platform.mk` via `apps-ci-bootstrap` (no implicit path discovery in workflow code).
+  - source CI keeps the push-only full e2e lane (`make quality-ci-full-e2e`) as an explicit workflow step rendered by `scripts/lib/quality/render_ci_workflow.py`.
+  - shared CI baseline invokes `apps-ci-bootstrap` with `BLUEPRINT_PROFILE=local-lite OBSERVABILITY_ENABLED=false` so bootstrap profile and test-lane profile remain deterministic.
+  - `make infra-prereqs` now enforces `pytest` as a required Python module, and consumer CI templates run tooling tests via `python3 -m pytest -q tests` for interpreter-path determinism.
+  - `apps-ci-bootstrap-consumer` is now a generated-consumer fail-fast placeholder in `make/platform.mk`; blueprint no longer assumes consumer app paths for dependency install.
+  - generated-consumer maintainers must replace that target with deterministic repository-specific dependency bootstrap commands; template-source mode skips the placeholder to keep source CI deterministic.
+  - upgrade planning/preflight now emits required-manual-action diagnostics when platform-owned Make targets required by blueprint CI surfaces (for example `apps-ci-bootstrap`) are missing in generated-consumer repositories.
 - Helm chart pin coverage is guarded against repo-prefix drift:
   - tests assert every non-OCI chart pin in `infra/audit_version.sh` has a matching repo-prefix mapping in `scripts/lib/infra/tooling.sh`.
 - Async message-contract testing is an opt-in Pact contract lane:
