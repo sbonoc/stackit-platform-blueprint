@@ -94,6 +94,7 @@ This file is auto-generated. Do not edit it manually.
 | `auth-reconcile-eso-runtime-secrets` | Reconcile generic ESO runtime source-to-target credentials contract |
 | `apps-bootstrap` | Bootstrap app build/deploy prerequisites |
 | `apps-ci-bootstrap` | Bootstrap CI runner dependencies for app/test lanes (consumer-owned override point) |
+| `apps-ci-bootstrap-consumer` | Consumer-owned dependency install hook for app/test lanes (required in generated-consumer repos) |
 | `apps-smoke` | App-level smoke checks |
 | `apps-audit-versions` | Audit app/base-image dependency versions |
 | `apps-audit-versions-cached` | Audit app/base-image dependency versions with local success cache |

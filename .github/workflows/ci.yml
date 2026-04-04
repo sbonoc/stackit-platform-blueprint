@@ -20,6 +20,11 @@ jobs:
         run: |
           make quality-ci-blueprint
 
+      - name: Run canonical full e2e lane on main updates
+        if: github.event_name == 'push'
+        run: |
+          make quality-ci-full-e2e
+
   generated-consumer-smoke:
     runs-on: ubuntu-latest
     steps:

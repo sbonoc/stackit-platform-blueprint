@@ -3,7 +3,7 @@
 
 .PHONY: \
   auth-reconcile-eso-runtime-secrets \
-  apps-bootstrap apps-ci-bootstrap apps-smoke apps-audit-versions apps-audit-versions-cached apps-publish-ghcr \
+  apps-bootstrap apps-ci-bootstrap apps-ci-bootstrap-consumer apps-smoke apps-audit-versions apps-audit-versions-cached apps-publish-ghcr \
   backend-test-unit backend-test-integration backend-test-contracts backend-test-e2e \
   touchpoints-test-unit touchpoints-test-integration touchpoints-test-contracts touchpoints-test-e2e \
   test-unit-all test-integration-all test-contracts-all test-e2e-all-local test-e2e-all-local-full test-e2e-all-local-execute
@@ -16,6 +16,15 @@ apps-bootstrap: ## Bootstrap app build/deploy prerequisites
 
 apps-ci-bootstrap: ## Bootstrap CI runner dependencies for app/test lanes (consumer-owned override point)
 	@$(MAKE) apps-bootstrap
+	@$(MAKE) apps-ci-bootstrap-consumer
+
+apps-ci-bootstrap-consumer: ## Consumer-owned dependency install hook for app/test lanes (required in generated-consumer repos)
+	@# blueprint-consumer-contract: apps-ci-bootstrap-consumer must be replaced by generated-consumer maintainers.
+	@if grep -qE '^[[:space:]]*repo_mode:[[:space:]]*generated-consumer$$' blueprint/contract.yaml; then \
+		echo "[blueprint] apps-ci-bootstrap-consumer placeholder active; implement deterministic dependency bootstrap commands for your repository layout in make/platform.mk" >&2; \
+		exit 1; \
+	fi
+	@echo "[blueprint] apps-ci-bootstrap-consumer placeholder skipped in template-source repo mode"
 
 apps-smoke: ## App-level smoke checks
 	@scripts/bin/platform/apps/smoke.sh

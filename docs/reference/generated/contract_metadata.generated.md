@@ -88,6 +88,7 @@
 - `infra-audit-version-cached`
 - `apps-bootstrap`
 - `apps-ci-bootstrap`
+- `apps-ci-bootstrap-consumer`
 - `apps-smoke`
 - `apps-audit-versions`
 - `apps-audit-versions-cached`

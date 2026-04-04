@@ -175,11 +175,16 @@ Common first-day issues for generated repositories.
 
 ## CI test lanes fail on clean runners with missing `fastapi`, `vitest`, or Playwright browsers
 - Ensure your workflow uses `.github/actions/prepare-blueprint-ci/action.yml` before test lanes.
-- The current action bootstrap contract delegates dependency installation to `make apps-ci-bootstrap`.
-- `apps-ci-bootstrap` is platform-owned in `make/platform.mk`; update it explicitly for your repository layout and package managers.
-- Keep dependency wiring deterministic (explicit paths/commands), for example:
-  - backend Python services: `uv sync` or `pip install -r` per service directory
-  - touchpoints: `pnpm install` and `playwright install` in the intended package/workspace
+- The current action bootstrap contract delegates dependency installation to `BLUEPRINT_PROFILE=local-lite OBSERVABILITY_ENABLED=false make apps-ci-bootstrap`.
+- CI toolchain/OS dependencies are handled by `make infra-prereqs` in the shared action.
+- App/runtime dependencies are handled by `make apps-ci-bootstrap`, which composes:
+  - `make apps-bootstrap` (baseline app scaffolding/state)
+  - `make apps-ci-bootstrap-consumer` (consumer-owned dependency install contract)
+- In generated-consumer mode, the seeded `apps-ci-bootstrap-consumer` is an intentional fail-fast placeholder. Replace it with deterministic commands for your repository layout (no directory scanning/discovery), for example:
+  - backend Python dependency install from your fixed backend path(s)
+  - touchpoints/package-manager dependency install from your fixed frontend/workspace path(s)
+  - optional browser/runtime bootstrap only when your package metadata declares that dependency
+- Keep all consumer-specific CI bootstrap commands in `apps-ci-bootstrap-consumer` in `make/platform.mk` (or `make/platform/*.mk`) as the single consumer-owned hook.
 - If your repository still fails with errors such as `ModuleNotFoundError: fastapi`, `vitest: command not found`, or `Executable doesn't exist ... chrome-headless-shell`, resync and upgrade from repository root:
   ```bash
   make blueprint-resync-consumer-seeds

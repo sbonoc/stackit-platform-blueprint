@@ -9,12 +9,6 @@ runs:
       with:
         python-version: "3.13"
 
-    - name: Install Python tooling
-      shell: bash
-      run: |
-        python3 -m pip install --upgrade pip
-        python3 -m pip install pytest pre-commit
-
     - name: Setup Node
       uses: actions/setup-node@v6
       with:
@@ -26,11 +20,13 @@ runs:
         corepack enable
         pnpm --version
 
-    - name: Install shellcheck
+    - name: Ensure CI CLI prerequisites
       shell: bash
       run: |
-        sudo apt-get update
-        sudo apt-get install -y shellcheck
+        PREREQS_AUTO_INSTALL=true \
+        PREREQS_INSTALL_OPTIONAL=false \
+        PREREQS_REQUIRE_STACKIT_TOOLS=false \
+        make infra-prereqs
 
     - name: Bootstrap blueprint and infra baseline
       shell: bash
@@ -41,4 +37,4 @@ runs:
     - name: Bootstrap project dependencies for clean runners
       shell: bash
       run: |
-        make apps-ci-bootstrap
+        BLUEPRINT_PROFILE=local-lite OBSERVABILITY_ENABLED=false make apps-ci-bootstrap

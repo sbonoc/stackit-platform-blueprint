@@ -49,6 +49,9 @@ BLUEPRINT_MAKE_TARGET_REFERENCE_PATHS = (
     "scripts/templates/consumer/init/.github/workflows/ci.yml.tmpl",
     "scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl",
 )
+APPS_CI_BOOTSTRAP_TARGET = "apps-ci-bootstrap"
+APPS_CI_BOOTSTRAP_CONSUMER_TARGET = "apps-ci-bootstrap-consumer"
+APPS_CI_BOOTSTRAP_CONSUMER_PLACEHOLDER_TOKEN = "apps-ci-bootstrap-consumer placeholder active"
 
 
 @dataclass(frozen=True)
@@ -714,6 +717,12 @@ def _make_target_definitions(paths: list[tuple[str, Path]]) -> dict[str, str]:
     return definitions
 
 
+def _file_contains_literal(path: Path, token: str) -> bool:
+    if not path.is_file():
+        return False
+    return token in _read_text(path)
+
+
 def _source_make_target_reference(source_repo: Path, target_name: str) -> str | None:
     needles = (f"make {target_name}", f"$(MAKE) {target_name}")
     for rel_path in BLUEPRINT_MAKE_TARGET_REFERENCE_PATHS:
@@ -762,6 +771,39 @@ def _collect_missing_platform_make_target_actions(
                 required_follow_up_commands=("make blueprint-upgrade-consumer-validate",),
             )
         )
+
+    if APPS_CI_BOOTSTRAP_TARGET in target_targets and APPS_CI_BOOTSTRAP_CONSUMER_TARGET in required_targets:
+        bootstrap_reference_path = _source_make_target_reference(source_repo, APPS_CI_BOOTSTRAP_TARGET) or platform_makefile
+        bootstrap_dependency_of = f"{bootstrap_reference_path}: make {APPS_CI_BOOTSTRAP_TARGET}"
+        consumer_target_path = target_target_definitions.get(APPS_CI_BOOTSTRAP_CONSUMER_TARGET)
+        if consumer_target_path is None:
+            actions.append(
+                RequiredManualAction(
+                    dependency_path=platform_makefile,
+                    dependency_of=bootstrap_dependency_of,
+                    reason=(
+                        f"required consumer-owned make target `{APPS_CI_BOOTSTRAP_CONSUMER_TARGET}` is missing; "
+                        f"`{APPS_CI_BOOTSTRAP_TARGET}` invokes it and CI dependency bootstrap cannot be completed "
+                        "until the target is implemented"
+                    ),
+                    required_follow_up_commands=("make blueprint-upgrade-consumer-validate",),
+                )
+            )
+        elif _file_contains_literal(
+            repo_root / consumer_target_path,
+            APPS_CI_BOOTSTRAP_CONSUMER_PLACEHOLDER_TOKEN,
+        ):
+            actions.append(
+                RequiredManualAction(
+                    dependency_path=consumer_target_path,
+                    dependency_of=bootstrap_dependency_of,
+                    reason=(
+                        f"required consumer-owned make target `{APPS_CI_BOOTSTRAP_CONSUMER_TARGET}` is still "
+                        "placeholder; replace it with deterministic repository-specific dependency bootstrap commands"
+                    ),
+                    required_follow_up_commands=("make blueprint-upgrade-consumer-validate",),
+                )
+            )
     return actions
 
 

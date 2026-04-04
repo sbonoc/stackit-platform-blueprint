@@ -18,6 +18,7 @@ from scripts.lib.blueprint.contract_schema import load_blueprint_contract  # noq
 
 DEFAULT_OUTPUT = Path(".github/workflows/ci.yml")
 BLUEPRINT_QUALITY_LANE = ("make quality-ci-blueprint",)
+BLUEPRINT_FULL_PUSH_LANE = ("make quality-ci-full-e2e",)
 GENERATED_CONSUMER_SMOKE_LANE = ("make quality-ci-generated-consumer-smoke",)
 
 
@@ -45,6 +46,10 @@ def _render_ci(default_branch: str) -> str:
         "      - name: Run quality gates\n"
         "        run: |\n"
         f"{_indent_block(BLUEPRINT_QUALITY_LANE, spaces=10)}\n\n"
+        f"      - name: Run canonical full e2e lane on {default_branch} updates\n"
+        "        if: github.event_name == 'push'\n"
+        "        run: |\n"
+        f"{_indent_block(BLUEPRINT_FULL_PUSH_LANE, spaces=10)}\n\n"
         "  generated-consumer-smoke:\n"
         "    runs-on: ubuntu-latest\n"
         "    steps:\n"

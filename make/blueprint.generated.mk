@@ -15,6 +15,11 @@ SHELL := /bin/bash
   infra-argocd-topology-render infra-argocd-topology-validate \
   infra-doctor infra-context infra-status infra-status-json \
   infra-audit-version infra-audit-version-cached \
+  apps-bootstrap apps-ci-bootstrap apps-ci-bootstrap-consumer apps-smoke apps-audit-versions apps-audit-versions-cached apps-publish-ghcr \
+  backend-test-unit backend-test-integration backend-test-contracts backend-test-e2e \
+  touchpoints-test-unit touchpoints-test-integration touchpoints-test-contracts touchpoints-test-e2e \
+  test-unit-all test-integration-all test-contracts-all test-e2e-all-local test-e2e-all-local-full test-e2e-all-local-execute \
+  auth-reconcile-eso-runtime-secrets \
   docs-install docs-run docs-build docs-smoke
 
 help: ## Show targets
@@ -88,7 +93,7 @@ quality-ci-check-sync: ## Fail when source CI workflow is out of date
 
 quality-ci-fast: ## Run canonical fast CI lane bundle
 	@$(MAKE) quality-hooks-fast
-	@BLUEPRINT_PROFILE=local-lite OBSERVABILITY_ENABLED=false $(MAKE) apps-bootstrap
+	@BLUEPRINT_PROFILE=local-lite OBSERVABILITY_ENABLED=false $(MAKE) apps-ci-bootstrap
 	@BLUEPRINT_PROFILE=local-lite OBSERVABILITY_ENABLED=false $(MAKE) apps-smoke
 	@$(MAKE) docs-install
 	@$(MAKE) docs-build
