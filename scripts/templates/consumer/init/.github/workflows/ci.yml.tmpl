@@ -24,7 +24,7 @@ jobs:
         run: |
           make quality-ci-fast
 
-      - name: Run canonical full e2e lane on branch updates
+      - name: Run canonical full e2e lane on non-PR events
         if: github.event_name != 'pull_request'
         run: |
           make quality-ci-full-e2e
