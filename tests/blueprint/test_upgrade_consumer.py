@@ -6,7 +6,9 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
+from scripts.lib.blueprint import upgrade_consumer
 from scripts.lib.blueprint.contract_schema import load_blueprint_contract
 from tests._shared.exec import run_command
 from tests._shared.json_schema import assert_json_matches_schema, load_json_schema
@@ -738,6 +740,20 @@ class UpgradeConsumerTests(unittest.TestCase):
 
             # Target content must remain untouched on conflict.
             self.assertEqual((target_repo / MANAGED_TEST_PATH).read_text(encoding="utf-8"), "local-change\n")
+
+    def test_three_way_merge_accepts_git_conflict_exit_codes_above_one(self) -> None:
+        merge_result = subprocess.CompletedProcess(
+            args=["git", "merge-file", "-p", "ours", "base", "theirs"],
+            returncode=3,
+            stdout="<<<<<<< ours\nlocal\n=======\nremote\n>>>>>>> theirs\n",
+            stderr="",
+        )
+
+        with mock.patch.object(upgrade_consumer, "_run", return_value=merge_result):
+            merged_content, has_conflicts = upgrade_consumer._three_way_merge("base\n", "ours\n", "theirs\n")
+
+        self.assertTrue(has_conflicts)
+        self.assertIn("<<<<<<<", merged_content)
 
     def test_relative_report_paths_cannot_escape_repo(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

@@ -836,9 +836,11 @@ def _three_way_merge(base: str, ours: str, theirs: str) -> tuple[str, bool]:
         _write_text(theirs_path, theirs)
 
         merge = _run(["git", "merge-file", "-p", str(ours_path), str(base_path), str(theirs_path)])
-        if merge.returncode not in (0, 1):
+        if merge.returncode < 0:
             raise RuntimeError(f"git merge-file failed: {merge.stderr.strip()}")
-        return merge.stdout, merge.returncode == 1
+        # `git merge-file` may return conflict counts greater than 1 when multiple
+        # conflict hunks are present. Any positive code means conflicts were detected.
+        return merge.stdout, merge.returncode > 0
 
 
 def _write_conflict_artifact(
