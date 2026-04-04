@@ -143,3 +143,7 @@
   - `make blueprint-install-codex-skill` is the canonical wrapper to sync the bundled skill into `${CODEX_HOME:-$HOME/.codex}/skills`.
   - the bundled resolver helper (`resolve_latest_stable_ref.sh`) selects latest stable semantic tags and resolves the peeled commit SHA for annotated tags.
 - ArgoCD topology validation now runs `kustomize build --load-restrictor=LoadRestrictionsNone` for base and overlay paths because stackit overlays intentionally reference shared manifests under `infra/gitops/argocd/core/<env>/`; this keeps `infra-argocd-topology-validate` deterministic across kustomize v5+ CI defaults.
+- Ownership triage for generated-consumer CI failures is now explicit and command-driven:
+  - `make blueprint-ownership-check OWNERSHIP_PATHS="..."` resolves ownership for failing paths directly from `blueprint/contract.yaml`.
+  - `make blueprint-ownership-metadata` prints machine-readable ownership rules (`pattern -> owner`) for agent triage tooling.
+  - seeded platform-owned files now include inline ownership markers so maintainers can identify consumer-owned implementation surfaces without opening governance docs first.

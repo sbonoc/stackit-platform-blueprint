@@ -1,5 +1,6 @@
 # Platform-owned Make targets.
 # Safe to edit in generated repositories.
+# ownership: platform-owned (generated-consumer maintainers are the implementation owners).
 
 .PHONY: \
   auth-reconcile-eso-runtime-secrets \

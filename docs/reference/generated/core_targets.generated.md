@@ -15,6 +15,8 @@ This file is auto-generated. Do not edit it manually.
 | `blueprint-upgrade-consumer-preflight` | Plan-only generated-consumer upgrade preflight report with auto/manual guidance |
 | `blueprint-upgrade-consumer-validate` | Run post-upgrade validation bundle and strict merge-marker checks |
 | `blueprint-install-codex-skill` | Install/sync bundled Codex upgrade skill into local CODEX_HOME skills directory |
+| `blueprint-ownership-check` | Resolve path ownership classes (set OWNERSHIP_PATHS=\"path/one path/two\") |
+| `blueprint-ownership-metadata` | Print machine-readable ownership metadata (pattern -> owner) |
 | `blueprint-check-placeholders` | Verify generated repository identity placeholders are resolved |
 | `blueprint-template-smoke` | Run generated-repo conformance smoke in a temp copy |
 | `blueprint-bootstrap` | Bootstrap blueprint-scoped templates, docs, and Makefile rendering |
