@@ -26,6 +26,10 @@ Environment variables:
   BLUEPRINT_UPGRADE_PLAN_PATH             Default: artifacts/blueprint/upgrade_plan.json
   BLUEPRINT_UPGRADE_APPLY_PATH            Default: artifacts/blueprint/upgrade_apply.json
   BLUEPRINT_UPGRADE_SUMMARY_PATH          Default: artifacts/blueprint/upgrade_summary.md
+  BLUEPRINT_UPGRADE_ENGINE_MODE           Default: source-ref
+                                          local: run repository-local upgrade engine.
+                                          source-ref: run upgrade engine resolved from
+                                          BLUEPRINT_UPGRADE_SOURCE@BLUEPRINT_UPGRADE_REF.
 
 Notes:
   - Apply mode enforces non-destructive 3-way merge behavior for diverged blueprint-managed files.
@@ -147,12 +151,36 @@ resolve_default_upgrade_source() {
   printf '%s\n' "$origin"
 }
 
+resolve_upgrade_engine_from_source_ref() {
+  local source="$1"
+  local ref="$2"
+  local temp_checkout
+  temp_checkout="$(mktemp -d "${TMPDIR:-/tmp}/blueprint-upgrade-engine-XXXXXX")"
+
+  if ! git clone --quiet --no-checkout "$source" "$temp_checkout" >/dev/null 2>&1; then
+    rm -rf "$temp_checkout"
+    log_fatal "failed to clone BLUEPRINT_UPGRADE_SOURCE for source-ref upgrade engine mode: $source"
+  fi
+  if ! git -C "$temp_checkout" checkout --quiet "$ref" >/dev/null 2>&1; then
+    rm -rf "$temp_checkout"
+    log_fatal "failed to resolve BLUEPRINT_UPGRADE_REF in source checkout: $ref"
+  fi
+
+  local engine_script="$temp_checkout/scripts/lib/blueprint/upgrade_consumer.py"
+  if [[ ! -f "$engine_script" ]]; then
+    rm -rf "$temp_checkout"
+    log_fatal "missing upgrade engine in source checkout: scripts/lib/blueprint/upgrade_consumer.py"
+  fi
+  printf '%s\n' "$engine_script"
+}
+
 set_default_env BLUEPRINT_UPGRADE_APPLY false
 set_default_env BLUEPRINT_UPGRADE_ALLOW_DIRTY false
 set_default_env BLUEPRINT_UPGRADE_ALLOW_DELETE false
 set_default_env BLUEPRINT_UPGRADE_PLAN_PATH "artifacts/blueprint/upgrade_plan.json"
 set_default_env BLUEPRINT_UPGRADE_APPLY_PATH "artifacts/blueprint/upgrade_apply.json"
 set_default_env BLUEPRINT_UPGRADE_SUMMARY_PATH "artifacts/blueprint/upgrade_summary.md"
+set_default_env BLUEPRINT_UPGRADE_ENGINE_MODE "source-ref"
 
 upgrade_source="${BLUEPRINT_UPGRADE_SOURCE:-}"
 if [[ -z "$upgrade_source" ]]; then
@@ -175,6 +203,7 @@ allow_delete="false"
 if is_truthy "${BLUEPRINT_UPGRADE_ALLOW_DELETE:-false}"; then
   allow_delete="true"
 fi
+upgrade_engine_mode="${BLUEPRINT_UPGRADE_ENGINE_MODE:-source-ref}"
 
 while [[ "$#" -gt 0 ]]; do
   case "$1" in
@@ -235,6 +264,12 @@ fi
 if [[ -z "$upgrade_ref" ]]; then
   log_fatal "BLUEPRINT_UPGRADE_REF is required (set env var or pass --ref)"
 fi
+case "$upgrade_engine_mode" in
+local | source-ref) ;;
+*)
+  log_fatal "unsupported BLUEPRINT_UPGRADE_ENGINE_MODE: $upgrade_engine_mode (expected: local|source-ref)"
+  ;;
+esac
 
 upgrade_args=(
   --repo-root "$ROOT_DIR"
@@ -259,14 +294,26 @@ log_info "running blueprint consumer upgrade source=${upgrade_source} ref=${upgr
 log_metric "blueprint_upgrade_apply_enabled" "$apply_enabled"
 log_metric "blueprint_upgrade_allow_dirty" "$allow_dirty"
 log_metric "blueprint_upgrade_allow_delete" "$allow_delete"
+log_metric "blueprint_upgrade_engine_mode" "$upgrade_engine_mode"
 
 plan_report="$(resolve_report_path "$plan_path")"
 apply_report="$(resolve_report_path "$apply_path")"
+upgrade_engine_script="$ROOT_DIR/scripts/lib/blueprint/upgrade_consumer.py"
+upgrade_engine_checkout=""
 
-if run_cmd "$ROOT_DIR/scripts/lib/blueprint/upgrade_consumer.py" "${upgrade_args[@]}"; then
+if [[ "$upgrade_engine_mode" == "source-ref" ]]; then
+  upgrade_engine_script="$(resolve_upgrade_engine_from_source_ref "$upgrade_source" "$upgrade_ref")"
+  upgrade_engine_checkout="${upgrade_engine_script%/scripts/lib/blueprint/upgrade_consumer.py}"
+fi
+
+if run_cmd python3 "$upgrade_engine_script" "${upgrade_args[@]}"; then
   upgrade_rc=0
 else
   upgrade_rc=$?
+fi
+
+if [[ -n "$upgrade_engine_checkout" ]]; then
+  rm -rf "$upgrade_engine_checkout"
 fi
 
 emit_upgrade_report_metrics "$plan_report" "$apply_report"
