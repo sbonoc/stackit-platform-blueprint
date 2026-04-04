@@ -42,6 +42,9 @@ else
 fi
 versions_content=$'PYTHON_RUNTIME_BASE_IMAGE_VERSION='"$PYTHON_RUNTIME_BASE_IMAGE_VERSION"$'\nNODE_RUNTIME_BASE_IMAGE_VERSION='"$NODE_RUNTIME_BASE_IMAGE_VERSION"$'\nNGINX_RUNTIME_BASE_IMAGE_VERSION='"$NGINX_RUNTIME_BASE_IMAGE_VERSION"$'\nFASTAPI_VERSION='"$FASTAPI_VERSION"$'\nPYDANTIC_VERSION='"$PYDANTIC_VERSION"$'\nVUE_VERSION='"$VUE_VERSION"$'\nVUE_ROUTER_VERSION='"$VUE_ROUTER_VERSION"$'\nPINIA_VERSION='"$PINIA_VERSION"$'\n'
 
+# Keep lockfile EOF deterministic for quality hooks and downstream generated repos.
+versions_content="${versions_content%$'\n'}"$'\n'
+
 printf '%s' "$manifest_content" >"$ROOT_DIR/apps/catalog/manifest.yaml"
 printf '%s' "$versions_content" >"$ROOT_DIR/apps/catalog/versions.lock"
 

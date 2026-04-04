@@ -598,6 +598,22 @@ render_optional_module_secret_manifests "messaging" "blueprint-rabbitmq-auth" "r
         self.assertIn("aggregate_e2e_budget_total", script)
         self.assertIn("touchpoints-test-e2e", script)
 
+    def test_apps_bootstrap_versions_lock_keeps_trailing_newline(self) -> None:
+        result = run(
+            ["make", "apps-bootstrap"],
+            {
+                "BLUEPRINT_PROFILE": "local-lite",
+                "OBSERVABILITY_ENABLED": "false",
+            },
+        )
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        versions_lock = REPO_ROOT / "apps" / "catalog" / "versions.lock"
+        self.assertTrue(versions_lock.exists(), msg="apps/catalog/versions.lock should be created by apps-bootstrap")
+        self.assertTrue(
+            versions_lock.read_bytes().endswith(b"\n"),
+            msg="apps/catalog/versions.lock must end with a trailing newline",
+        )
+
     def test_argocd_local_overlay_resolves_with_default_kustomize_load_restrictions(self) -> None:
         kubectl_check = run(["bash", "-lc", "command -v kubectl >/dev/null 2>&1"])
         if kubectl_check.returncode != 0:
