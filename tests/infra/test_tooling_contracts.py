@@ -610,6 +610,11 @@ render_optional_module_secret_manifests "messaging" "blueprint-rabbitmq-auth" "r
         self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
         self.assertIn("name: platform-keycloak-local", result.stdout)
 
+    def test_argocd_topology_validate_uses_explicit_load_restrictor_none(self) -> None:
+        script = (REPO_ROOT / "scripts/bin/infra/argocd_topology_validate.sh").read_text(encoding="utf-8")
+        self.assertIn("kustomize build --load-restrictor=LoadRestrictionsNone \"$base_dir\"", script)
+        self.assertIn("kustomize build --load-restrictor=LoadRestrictionsNone \"$overlay_dir\"", script)
+
     def test_kustomize_apply_contract_avoids_load_restrictions_none_fallback(self) -> None:
         tooling = (REPO_ROOT / "scripts/lib/infra/tooling.sh").read_text(encoding="utf-8")
         match = re.search(

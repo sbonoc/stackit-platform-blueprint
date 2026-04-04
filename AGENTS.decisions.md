@@ -142,3 +142,4 @@
   - consumer template fallback copies of that skill now live under `scripts/templates/consumer/init/.agents/skills/blueprint-consumer-upgrade/**` so generated-consumer install flows remain repairable when repo-local skill assets are missing.
   - `make blueprint-install-codex-skill` is the canonical wrapper to sync the bundled skill into `${CODEX_HOME:-$HOME/.codex}/skills`.
   - the bundled resolver helper (`resolve_latest_stable_ref.sh`) selects latest stable semantic tags and resolves the peeled commit SHA for annotated tags.
+- ArgoCD topology validation now runs `kustomize build --load-restrictor=LoadRestrictionsNone` for base and overlay paths because stackit overlays intentionally reference shared manifests under `infra/gitops/argocd/core/<env>/`; this keeps `infra-argocd-topology-validate` deterministic across kustomize v5+ CI defaults.

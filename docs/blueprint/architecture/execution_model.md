@@ -40,9 +40,9 @@ The execution flow is always the same:
 ### 2) Deploy
 - Bootstraps runtime core components (ArgoCD + External Secrets Operator) via Helm.
 - Applies ArgoCD base + environment overlay.
-- ArgoCD overlay kustomizations must resolve with default kubectl/kustomize load restrictions:
-  - keep referenced manifests inside or below the overlay directory tree,
-  - do not rely on `--load-restrictor=LoadRestrictionsNone` fallback behavior.
+- ArgoCD topology validation uses `kustomize build --load-restrictor=LoadRestrictionsNone`:
+  - STACKIT overlays intentionally reference shared manifests under `infra/gitops/argocd/core/<env>/`,
+  - keep references inside the `infra/gitops/argocd/**` tree (do not reference paths outside the GitOps root).
 - Bootstraps application catalog contract.
 - Runs optional module deployment/reconciliation steps.
 - Writes state artifacts to `artifacts/infra/deploy.env`.

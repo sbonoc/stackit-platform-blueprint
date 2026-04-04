@@ -39,8 +39,11 @@ fi
 
 validation_mode="kustomization-file"
 if command -v kustomize >/dev/null 2>&1; then
-  run_cmd_capture kustomize build "$base_dir" >/dev/null
-  run_cmd_capture kustomize build "$overlay_dir" >/dev/null
+  # Stackit overlays intentionally reference shared ArgoCD core manifests
+  # (for example ../../core/<env>/keycloak.yaml), so kustomize must allow
+  # cross-directory file resources for deterministic validation on CI runners.
+  run_cmd_capture kustomize build --load-restrictor=LoadRestrictionsNone "$base_dir" >/dev/null
+  run_cmd_capture kustomize build --load-restrictor=LoadRestrictionsNone "$overlay_dir" >/dev/null
   validation_mode="kustomize-build"
 else
   if ! kustomize_dir_has_config "$base_dir"; then
