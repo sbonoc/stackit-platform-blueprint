@@ -382,7 +382,7 @@ check_or_install_python_module "pytest" "required"
 for tool in "${stackit_tools[@]}"; do
   if [[ "$PREREQS_REQUIRE_STACKIT_TOOLS" == "true" ]]; then
     check_or_install "$tool" "$platform" "required"
-  elif [[ "$PREREQS_INSTALL_OPTIONAL" == "true" || "$PREREQS_AUTO_INSTALL" == "true" ]]; then
+  elif [[ "$PREREQS_INSTALL_OPTIONAL" == "true" ]]; then
     check_or_install "$tool" "$platform" "optional"
   else
     if shell_has_cmd "$tool"; then
