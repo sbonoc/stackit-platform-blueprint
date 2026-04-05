@@ -616,6 +616,14 @@ render_optional_module_secret_manifests "messaging" "blueprint-rabbitmq-auth" "r
         self.assertIn("E2E_FULL_BUDGET_SECONDS", script)
         self.assertIn("aggregate_e2e_budget_total", script)
         self.assertIn("touchpoints-test-e2e", script)
+        self.assertIn(
+            'run_cmd make -C "$ROOT_DIR" DRY_RUN=true BLUEPRINT_PROFILE="$BLUEPRINT_PROFILE" OBSERVABILITY_ENABLED="$OBSERVABILITY_ENABLED" infra-provision-deploy',
+            script,
+        )
+        self.assertIn(
+            'run_cmd make -C "$ROOT_DIR" DRY_RUN=false BLUEPRINT_PROFILE="$BLUEPRINT_PROFILE" OBSERVABILITY_ENABLED="$OBSERVABILITY_ENABLED" infra-provision-deploy',
+            script,
+        )
 
     def test_apps_bootstrap_versions_lock_keeps_trailing_newline(self) -> None:
         versions_lock = REPO_ROOT / "apps" / "catalog" / "versions.lock"
