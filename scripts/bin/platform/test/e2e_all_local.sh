@@ -95,8 +95,8 @@ if [[ "$execute_mode" == "true" ]]; then
   log_info "running local execute-mode infra chain before aggregate e2e test lanes"
   run_cmd make -C "$ROOT_DIR" DRY_RUN=false BLUEPRINT_PROFILE="$BLUEPRINT_PROFILE" OBSERVABILITY_ENABLED="$OBSERVABILITY_ENABLED" infra-provision-deploy
 else
-  log_info "running local dry-run-state infra chain before aggregate e2e test lanes"
-  run_cmd make -C "$ROOT_DIR" BLUEPRINT_PROFILE="$BLUEPRINT_PROFILE" OBSERVABILITY_ENABLED="$OBSERVABILITY_ENABLED" infra-provision-deploy
+  log_info "running local dry-run infra chain before aggregate e2e test lanes"
+  run_cmd make -C "$ROOT_DIR" DRY_RUN=true BLUEPRINT_PROFILE="$BLUEPRINT_PROFILE" OBSERVABILITY_ENABLED="$OBSERVABILITY_ENABLED" infra-provision-deploy
 fi
 
 run_cmd make -C "$ROOT_DIR" backend-test-e2e
