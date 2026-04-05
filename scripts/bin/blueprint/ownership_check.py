@@ -30,8 +30,15 @@ class OwnershipRule:
     regex: re.Pattern[str]
 
 
+def _normalize_contract_pattern(pattern: str) -> str:
+    normalized = pattern.strip()
+    if normalized.startswith("./"):
+        normalized = normalized[2:]
+    return normalized
+
+
 def _pattern_to_regex(pattern: str, *, is_directory: bool) -> re.Pattern[str]:
-    normalized = pattern.strip().lstrip("./")
+    normalized = _normalize_contract_pattern(pattern)
     if normalized.endswith("/"):
         normalized = normalized[:-1]
     escaped = re.escape(normalized)
@@ -55,7 +62,7 @@ def _normalize_relative_path(raw_path: str, repo_root: Path) -> tuple[str, bool]
 
 
 def _pattern_is_directory(pattern: str, repo_root: Path) -> bool:
-    normalized = pattern.strip().lstrip("./")
+    normalized = _normalize_contract_pattern(pattern)
     if normalized.endswith("/"):
         return True
 
