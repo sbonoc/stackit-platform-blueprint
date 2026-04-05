@@ -578,6 +578,25 @@ render_optional_module_secret_manifests "messaging" "blueprint-rabbitmq-auth" "r
         self.assertIn('check_or_install_python_module "pytest" "required"', script)
         self.assertIn("python_module_available()", script)
 
+    def test_prereqs_optional_stackit_gate_is_controlled_only_by_install_optional(self) -> None:
+        script = (REPO_ROOT / "scripts/bin/infra/prereqs.sh").read_text(encoding="utf-8")
+        self.assertIn('elif [[ "$PREREQS_INSTALL_OPTIONAL" == "true" ]]; then', script)
+        self.assertNotIn(
+            'elif [[ "$PREREQS_INSTALL_OPTIONAL" == "true" || "$PREREQS_AUTO_INSTALL" == "true" ]]; then',
+            script,
+        )
+
+    def test_prereqs_selected_bucket_still_honors_auto_install_for_missing_tools(self) -> None:
+        script = (REPO_ROOT / "scripts/bin/infra/prereqs.sh").read_text(encoding="utf-8")
+        match = re.search(
+            r"^check_or_install\(\)\s*\{(?P<body>.*?)(?=^\})",
+            script,
+            re.MULTILINE | re.DOTALL,
+        )
+        self.assertIsNotNone(match, msg="check_or_install() definition not found in prereqs.sh")
+        function_body = match.group("body")
+        self.assertIn('if [[ "$PREREQS_AUTO_INSTALL" == "true" ]]; then', function_body)
+
     def test_audit_version_chart_refs_have_known_helm_repo_prefixes(self) -> None:
         chart_repo_prefixes, known_repo_prefixes = audit_helm_chart_repo_prefix_contract()
         missing = sorted(chart_repo_prefixes - known_repo_prefixes)
