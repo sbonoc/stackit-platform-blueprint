@@ -46,7 +46,7 @@ blueprint-upgrade-consumer-validate: ## Run post-upgrade validation bundle and s
 blueprint-install-codex-skill: ## Install/sync bundled Codex upgrade skill into local CODEX_HOME skills directory
 	@scripts/bin/blueprint/install_codex_skill.sh
 
-blueprint-ownership-check: ## Resolve path ownership classes (set OWNERSHIP_PATHS=\"path/one path/two\")
+blueprint-ownership-check: ## Resolve path ownership classes (set OWNERSHIP_PATHS="path/one path/two")
 	@if [[ -z "$(strip $(OWNERSHIP_PATHS))" ]]; then \
 		echo "[blueprint] set OWNERSHIP_PATHS to one or more paths (space-separated)" >&2; \
 		exit 1; \

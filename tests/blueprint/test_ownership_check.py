@@ -52,6 +52,12 @@ class OwnershipCheckTests(unittest.TestCase):
         payload = json.loads(result.stdout)
         self.assertEqual(payload["results"][0]["owner"], "source-only")
 
+    def test_checker_resolves_dot_prefixed_consumer_seeded_paths(self) -> None:
+        result = _run_checker("--json", ".github/CODEOWNERS")
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertEqual(payload["results"][0]["owner"], "consumer-seeded")
+
     def test_checker_marks_parent_traversal_as_outside_repository(self) -> None:
         result = _run_checker("--json", "../make/platform.mk")
         self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
@@ -69,6 +75,16 @@ class OwnershipCheckTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
         self.assertIn("owner=platform-owned", result.stdout)
+
+    def test_ownership_help_text_uses_plain_quotes(self) -> None:
+        makefile_text = (REPO_ROOT / "make" / "blueprint.generated.mk").read_text(encoding="utf-8")
+        self.assertIn('OWNERSHIP_PATHS="path/one path/two"', makefile_text)
+        self.assertNotIn('OWNERSHIP_PATHS=\\"path/one path/two\\"', makefile_text)
+
+        help_result = run_command(["make", "help"], cwd=REPO_ROOT)
+        self.assertEqual(help_result.returncode, 0, msg=help_result.stdout + help_result.stderr)
+        self.assertIn('OWNERSHIP_PATHS="path/one path/two"', help_result.stdout)
+        self.assertNotIn('OWNERSHIP_PATHS=\\"path/one path/two\\"', help_result.stdout)
 
 
 if __name__ == "__main__":
