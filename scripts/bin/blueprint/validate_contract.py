@@ -20,6 +20,7 @@ from scripts.lib.blueprint.contract_schema import (  # noqa: E402
     load_blueprint_contract,
 )
 from scripts.lib.blueprint.runtime_dependency_edges import RUNTIME_DEPENDENCY_EDGES  # noqa: E402
+from scripts.lib.infra.argocd_repo_contract import validate_argocd_https_repo_url_contract  # noqa: E402
 from scripts.lib.infra.runtime_identity_contract import (  # noqa: E402
     load_runtime_identity_contract,
     render_eso_external_secrets_manifest,
@@ -303,8 +304,52 @@ def _validate_runtime_credentials_contract(repo_root: Path) -> list[str]:
         except Exception as exc:  # pragma: no cover - defensive guard for contract parsing
             errors.append(f"invalid runtime identity contract: {exc}")
             rendered_eso_manifest = ""
+            runtime_identity_contract = None
 
-        if rendered_eso_manifest:
+        if rendered_eso_manifest and runtime_identity_contract is not None:
+            runtime_default_names = {item.name for item in runtime_identity_contract.runtime_env_defaults}
+            for required_default in ("ARGOCD_REPO_USERNAME", "ARGOCD_REPO_CREDENTIALS_REQUIRED"):
+                if required_default not in runtime_default_names:
+                    errors.append(
+                        "blueprint/runtime_identity_contract.yaml missing required runtime env default: "
+                        f"{required_default}"
+                    )
+
+            argocd_repo_contract = next(
+                (item for item in runtime_identity_contract.eso_contracts if item.contract_id == "argocd-gitops-repo"),
+                None,
+            )
+            if argocd_repo_contract is None:
+                errors.append("blueprint/runtime_identity_contract.yaml missing ESO contract id=argocd-gitops-repo")
+            else:
+                if argocd_repo_contract.namespace != "argocd":
+                    errors.append("argocd-gitops-repo ESO contract must target namespace=argocd")
+                if argocd_repo_contract.external_secret_name != "argocd-gitops-repo":
+                    errors.append(
+                        "argocd-gitops-repo ESO contract must use external_secret_name=argocd-gitops-repo"
+                    )
+                if argocd_repo_contract.target_secret_name != "argocd-gitops-repo":
+                    errors.append("argocd-gitops-repo ESO contract must use target_secret_name=argocd-gitops-repo")
+                expected_repo_keys = {"type", "url", "username", "password"}
+                actual_repo_keys = {item.secret_key for item in argocd_repo_contract.data_mappings}
+                missing_repo_keys = sorted(expected_repo_keys - actual_repo_keys)
+                if missing_repo_keys:
+                    errors.append(
+                        "argocd-gitops-repo ESO contract missing required target secret keys: "
+                        + ", ".join(missing_repo_keys)
+                    )
+                secret_type_label = argocd_repo_contract.target_template_labels.get(
+                    "argocd.argoproj.io/secret-type",
+                    "",
+                )
+                if secret_type_label != "repository":
+                    errors.append(
+                        "argocd-gitops-repo ESO contract must set target_template_labels."
+                        "argocd.argoproj.io/secret-type=repository"
+                    )
+
+            errors.extend(validate_argocd_https_repo_url_contract(repo_root))
+
             for relative_path in (
                 "infra/gitops/platform/base/security/runtime-external-secrets-core.yaml",
                 "scripts/templates/infra/bootstrap/infra/gitops/platform/base/security/runtime-external-secrets-core.yaml",
