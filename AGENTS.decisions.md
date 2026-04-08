@@ -78,7 +78,7 @@
   - blueprint-owned manifests live under `infra/gitops/platform/base/security/**`
   - runtime ESO manifests and renderer target `external-secrets.io/v1` (no `v1beta1`) to match pinned External Secrets CRDs.
   - a drift-safe consumer extension surface lives under `infra/gitops/platform/base/extensions/kustomization.yaml`
-  - canonical execution entrypoint is `make auth-reconcile-eso-runtime-secrets`
+  - canonical core-ESO execution entrypoint is `make auth-reconcile-eso-runtime-secrets` (also invoked by runtime identity orchestration)
   - `infra-smoke` includes this reconciliation path so CRD/readiness/target-secret checks are exercised in the canonical smoke flow.
   - `infra-validate` and post-upgrade validation enforce runtime dependency edges (for example `scripts/bin/infra/smoke.sh` referencing `scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh`) so mixed upgrade states fail early.
   - Core ESO reconciliation is mandatory; there is no feature toggle to disable `auth-reconcile-eso-runtime-secrets`.
@@ -147,3 +147,26 @@
   - `make blueprint-ownership-check OWNERSHIP_PATHS="..."` resolves ownership for failing paths directly from `blueprint/contract.yaml`.
   - `make blueprint-ownership-metadata` prints machine-readable ownership rules (`pattern -> owner`) for agent triage tooling.
   - seeded platform-owned files now include inline ownership markers so maintainers can identify consumer-owned implementation surfaces without opening governance docs first.
+- ArgoCD repository access is now part of the runtime identity contract:
+  - canonical runtime reconcile entrypoint is `make auth-reconcile-argocd-repo-credentials`.
+  - the runtime identity ESO contract now declares `argocd-gitops-repo` with required repository-secret labels (`argocd.argoproj.io/secret-type=repository`) and secret keys (`type`, `url`, `username`, `password`).
+  - `infra-smoke` executes runtime identity reconciliation, which includes the Argo repo reconcile path and writes a dedicated Argo state artifact (`artifacts/infra/argocd_repo_credentials_reconcile.env`).
+  - `infra-validate` now enforces static Argo managed-manifest URL consistency (HTTPS GitHub URL shape + single canonical URL) plus runtime identity contract/default invariants for Argo repo credentials.
+  - upgrade/runtime dependency edge guards now include `infra/smoke -> reconcile_argocd_repo_credentials -> reconcile_eso_runtime_secrets`.
+- Runtime identity reconciliation now has one contract-driven orchestrator:
+  - canonical operator entrypoint is `make auth-reconcile-runtime-identity` (ESO + Argo repo + Keycloak/module contract checks).
+  - `infra-smoke` now calls runtime identity orchestration (`infra/smoke -> reconcile_runtime_identity`), and runtime dependency edges enforce this path for upgrade/validation diagnostics.
+  - standalone Argo repo reconciliation remains supported; when called from orchestrator it skips duplicate generic ESO execution through `RUNTIME_IDENTITY_SKIP_GENERIC_RECONCILE=true`.
+- State artifacts now use a dual-write contract:
+  - every `write_state_file` emits both `.env` and canonical `.json` payloads.
+  - JSON sidecars are validated against `scripts/lib/infra/schemas/state_artifact.schema.json` via `scripts/lib/infra/state_artifact_contract.py`.
+  - state cleanup primitives (`remove_state_file`, `remove_state_files_by_prefix`) now remove `.json` sidecars alongside `.env` files.
+- Argo repository URL policy is now centralized in one reusable library surface:
+  - init repo rendering, runtime validation, and reconcile flows share `scripts/lib/infra/argocd_repo_contract.py` helpers for canonical URL rendering/validation.
+- Fast validation and docs-sync ergonomics were tightened:
+  - `make infra-contract-test-fast` runs focused infra contract helper CLI tests.
+  - `make quality-docs-sync-all` provides one deterministic docs sync aggregator target for all generated docs/summaries.
+  - `quality-hooks-fast` now includes `infra-contract-test-fast` to keep helper-contract drift visible in the default lane.
+- Infra validation now enforces a lightweight import-boundary rule for `scripts/lib/**/*.py`:
+  - `scripts/lib` modules may not import `scripts/bin` modules.
+  - blueprint-managed `scripts/lib/blueprint/**` may not import platform-owned `scripts/lib/platform/**`.

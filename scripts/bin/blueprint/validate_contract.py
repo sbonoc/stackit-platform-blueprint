@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import ast
 import argparse
 import os
 from pathlib import Path, PurePosixPath
@@ -1974,6 +1975,56 @@ def _validate_bootstrap_template_sync(repo_root: Path, contract: BlueprintContra
     return errors
 
 
+def _validate_python_import_boundaries(repo_root: Path) -> list[str]:
+    errors: list[str] = []
+    scripts_lib_root = repo_root / "scripts/lib"
+    if not scripts_lib_root.is_dir():
+        return errors
+
+    for path in sorted(scripts_lib_root.rglob("*.py")):
+        relative_path = path.relative_to(repo_root).as_posix()
+        content = path.read_text(encoding="utf-8")
+        try:
+            tree = ast.parse(content, filename=str(path))
+        except SyntaxError as exc:
+            errors.append(f"{relative_path} has invalid python syntax: {exc.msg} (line {exc.lineno})")
+            continue
+
+        for node in ast.walk(tree):
+            imported_module = ""
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    imported_module = alias.name
+                    if imported_module.startswith("scripts.bin."):
+                        errors.append(
+                            f"{relative_path} must not import execution-layer module {imported_module}; "
+                            "scripts/lib must remain free of scripts/bin dependencies"
+                        )
+                    if relative_path.startswith("scripts/lib/blueprint/") and imported_module.startswith(
+                        "scripts.lib.platform."
+                    ):
+                        errors.append(
+                            f"{relative_path} must not import platform-owned library module {imported_module}; "
+                            "blueprint-managed libraries must not depend on platform-owned scripts/lib/platform"
+                        )
+            elif isinstance(node, ast.ImportFrom):
+                imported_module = (node.module or "").strip()
+                if imported_module.startswith("scripts.bin."):
+                    errors.append(
+                        f"{relative_path} must not import execution-layer module {imported_module}; "
+                        "scripts/lib must remain free of scripts/bin dependencies"
+                    )
+                if relative_path.startswith("scripts/lib/blueprint/") and imported_module.startswith(
+                    "scripts.lib.platform."
+                ):
+                    errors.append(
+                        f"{relative_path} must not import platform-owned library module {imported_module}; "
+                        "blueprint-managed libraries must not depend on platform-owned scripts/lib/platform"
+                    )
+
+    return errors
+
+
 def parse_args() -> argparse.Namespace:
     repo_root = _resolve_repo_root()
     parser = argparse.ArgumentParser(description=__doc__)
@@ -2034,6 +2085,7 @@ def main() -> int:
     errors.extend(_validate_zero_downtime_evolution_contract(repo_root, contract))
     errors.extend(_validate_tenant_context_contract(contract))
     errors.extend(_validate_bootstrap_template_sync(repo_root, contract))
+    errors.extend(_validate_python_import_boundaries(repo_root))
 
     if errors:
         for error in errors:
