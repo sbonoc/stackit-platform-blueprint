@@ -37,6 +37,7 @@ This file is auto-generated. Do not edit it manually.
 | `quality-ci-blueprint` | Run source blueprint CI lane bundle |
 | `quality-ci-generated-consumer-smoke` | Run generated-consumer template smoke lane |
 | `quality-docs-lint` | Lint markdown docs, governance links, and make target references |
+| `quality-docs-sync-all` | Run all docs sync generators in canonical order |
 | `quality-docs-sync-blueprint-template` | Sync docs/blueprint/** into bootstrap template blueprint docs mirror |
 | `quality-docs-check-blueprint-template-sync` | Fail when docs/blueprint/** and bootstrap template blueprint docs drift |
 | `quality-docs-sync-platform-seed` | Sync docs/platform/** into bootstrap template platform docs seed mirror |
@@ -52,6 +53,7 @@ This file is auto-generated. Do not edit it manually.
 | `quality-test-pyramid` | Enforce repository test-pyramid ratios from canonical classification contract |
 | `infra-prereqs` | Verify local prerequisites and optionally auto-install missing tools |
 | `infra-help-reference` | Show full Make targets and variable defaults reference |
+| `infra-contract-test-fast` | Run fast infra contract helper CLI tests |
 | `infra-bootstrap` | Bootstrap infra-only tooling/scaffolding |
 | `infra-local-destroy-all` | Destroy blueprint-managed resources from the selected local cluster and preserve the cluster itself |
 | `infra-destroy-disabled-modules` | Destroy resources for currently disabled optional modules |
@@ -94,6 +96,8 @@ This file is auto-generated. Do not edit it manually.
 | `docs-build` | Build docs site |
 | `docs-smoke` | Smoke docs site output |
 | `auth-reconcile-eso-runtime-secrets` | Reconcile generic ESO runtime source-to-target credentials contract |
+| `auth-reconcile-argocd-repo-credentials` | Reconcile ArgoCD Git repository credentials and validate URL/auth contract |
+| `auth-reconcile-runtime-identity` | Reconcile runtime identity contracts (ESO, Argo repo access, Keycloak/module coverage) |
 | `apps-bootstrap` | Bootstrap app build/deploy prerequisites |
 | `apps-ci-bootstrap` | Bootstrap CI runner dependencies for app/test lanes (consumer-owned override point) |
 | `apps-ci-bootstrap-consumer` | Consumer-owned dependency install hook for app/test lanes (required in generated-consumer repos) |

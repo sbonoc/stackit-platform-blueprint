@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Infra State Artifact",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "artifact",
+    "entryCount",
+    "entryOrder",
+    "entries"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "enum": [
+        "1.0.0"
+      ]
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "namespace",
+        "envPath",
+        "jsonPath"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string",
+          "enum": [
+            "infra",
+            "apps",
+            "docs"
+          ]
+        },
+        "envPath": {
+          "type": "string"
+        },
+        "jsonPath": {
+          "type": "string"
+        }
+      }
+    },
+    "entryCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "entryOrder": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "entries": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    }
+  }
+}

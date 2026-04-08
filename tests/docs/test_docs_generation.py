@@ -38,6 +38,9 @@ class DocsGenerationTests(unittest.TestCase):
         smoke = run(["make", "docs-smoke"])
         self.assertEqual(smoke.returncode, 0, msg=smoke.stdout + smoke.stderr)
 
+        docs_sync_all = run(["make", "quality-docs-sync-all"])
+        self.assertEqual(docs_sync_all.returncode, 0, msg=docs_sync_all.stdout + docs_sync_all.stderr)
+
         core_targets_check = run(["make", "quality-docs-check-core-targets-sync"])
         self.assertEqual(core_targets_check.returncode, 0, msg=core_targets_check.stdout + core_targets_check.stderr)
 

@@ -146,6 +146,7 @@ class ScriptsRefactorCases(RefactorContractBase):
         self.assertIn("quality-docs-check-module-contract-summaries-sync", hooks_fast)
         self.assertIn("quality-test-pyramid", hooks_fast)
         self.assertIn("infra-validate", hooks_fast)
+        self.assertIn("infra-contract-test-fast", hooks_fast)
         self.assertIn("infra-audit-version", hooks_strict)
         self.assertIn("apps-audit-versions", hooks_strict)
         self.assertIn("hooks_fast.sh", hooks_run)
@@ -199,6 +200,12 @@ class ScriptsRefactorCases(RefactorContractBase):
         self.assertIn("module_action_script_count", module_lifecycle)
         self.assertIn("module_action_disabled_count", module_lifecycle)
         self.assertIn("module_action_disabled_script_count", module_lifecycle)
+
+    def test_argocd_reconcile_does_not_capture_kubectl_stdout_into_state_mode(self) -> None:
+        reconcile = _read("scripts/bin/platform/auth/reconcile_argocd_repo_credentials.sh")
+        self.assertIn("SOURCE_SECRET_SYNC_MODE_RESULT", reconcile)
+        self.assertIn("if seed_argocd_source_secret_properties", reconcile)
+        self.assertNotIn('source_secret_sync_mode="$(seed_argocd_source_secret_properties', reconcile)
 
     def test_bootstrap_preserves_disabled_optional_scaffolding(self) -> None:
         bootstrap = _read("scripts/bin/infra/bootstrap.sh")

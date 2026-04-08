@@ -23,6 +23,7 @@ Runs the fast local quality gate:
 - generated module contract summary sync checks
 - test pyramid
 - infra validation
+- fast infra contract helper CLI tests
 EOF
 }
 
@@ -63,5 +64,6 @@ run_cmd make -C "$ROOT_DIR" quality-docs-check-runtime-identity-summary-sync
 run_cmd make -C "$ROOT_DIR" quality-docs-check-module-contract-summaries-sync
 run_cmd make -C "$ROOT_DIR" quality-test-pyramid
 run_cmd make -C "$ROOT_DIR" infra-validate
+run_cmd make -C "$ROOT_DIR" infra-contract-test-fast
 
 log_info "quality hooks fast gate completed"

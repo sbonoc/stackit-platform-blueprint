@@ -162,7 +162,7 @@ if ! state_file_exists deploy; then
 fi
 
 run_cmd "$ROOT_DIR/scripts/bin/infra/core_runtime_smoke.sh"
-run_cmd "$ROOT_DIR/scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh"
+run_cmd "$ROOT_DIR/scripts/bin/platform/auth/reconcile_runtime_identity.sh"
 
 run_enabled_modules_action smoke observability
 
@@ -201,6 +201,11 @@ if state_file_exists runtime_credentials_eso_reconcile; then
   runtime_credentials_state="$(state_file_path runtime_credentials_eso_reconcile)"
 fi
 
+runtime_identity_state="none"
+if state_file_exists runtime_identity_reconcile; then
+  runtime_identity_state="$(state_file_path runtime_identity_reconcile)"
+fi
+
 state_file="$(
   write_state_file "smoke" \
     "profile=$BLUEPRINT_PROFILE" \
@@ -208,6 +213,7 @@ state_file="$(
     "tooling_mode=$(tooling_execution_mode)" \
     "core_runtime_smoke_state=$core_runtime_smoke_state" \
     "runtime_credentials_state=$runtime_credentials_state" \
+    "runtime_identity_state=$runtime_identity_state" \
     "apps_smoke_state=$apps_smoke_state" \
     "observability_enabled=$OBSERVABILITY_ENABLED_NORMALIZED" \
     "enabled_modules=$(enabled_modules_csv)" \

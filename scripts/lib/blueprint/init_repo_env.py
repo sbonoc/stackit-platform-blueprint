@@ -18,6 +18,7 @@ from scripts.lib.infra.runtime_identity_contract import load_runtime_identity_co
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
 CORE_SENSITIVE_ENV_NAMES = {
+    "ARGOCD_REPO_TOKEN",
     "STACKIT_SERVICE_ACCOUNT_KEY",
     "STACKIT_SERVICE_ACCOUNT_TOKEN",
     "STACKIT_TFSTATE_ACCESS_KEY_ID",
@@ -195,6 +196,7 @@ def render_defaults_env_file_content(
 
 def core_sensitive_env_specs() -> list[tuple[str, str]]:
     return [
+        ("ARGOCD_REPO_TOKEN", os.environ.get("ARGOCD_REPO_TOKEN", "")),
         ("STACKIT_SERVICE_ACCOUNT_KEY", os.environ.get("STACKIT_SERVICE_ACCOUNT_KEY", "")),
         ("STACKIT_SERVICE_ACCOUNT_TOKEN", os.environ.get("STACKIT_SERVICE_ACCOUNT_TOKEN", "")),
         ("STACKIT_TFSTATE_ACCESS_KEY_ID", os.environ.get("STACKIT_TFSTATE_ACCESS_KEY_ID", "")),
@@ -246,6 +248,9 @@ def render_secrets_example_env_file_content(
         "# Keep this file non-sensitive and placeholder-only.\n",
         "# blueprint-check-placeholders and infra targets load blueprint/repo.init.secrets.env when present.\n",
         "\n",
+        "# Runtime GitOps credentials (optional for private repository sync)\n",
+        "ARGOCD_REPO_TOKEN=\n",
+        "\n",
         "# Core STACKIT credentials (required for live STACKIT execution)\n",
         "STACKIT_SERVICE_ACCOUNT_KEY=\n",
         "STACKIT_SERVICE_ACCOUNT_TOKEN=\n",
@@ -272,6 +277,9 @@ def render_local_secrets_env_file_content(
         "# Local sensitive defaults for this generated consumer.\n",
         "# This file is gitignored and loaded after blueprint/repo.init.env.\n",
         "# Explicit shell environment variables still take precedence.\n",
+        "\n",
+        "# Runtime GitOps credentials (optional for private repository sync)\n",
+        shell_assignment("ARGOCD_REPO_TOKEN", os.environ.get("ARGOCD_REPO_TOKEN", "")),
         "\n",
         "# Core STACKIT credentials (required for live STACKIT execution)\n",
     ]

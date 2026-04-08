@@ -4,6 +4,11 @@ from __future__ import annotations
 
 import re
 
+from scripts.lib.infra.argocd_repo_contract import (
+    canonical_github_https_repo_url,
+    render_argocd_repo_url_replacements,
+)
+
 
 def _replace_scalar_once(content: str, pattern: str, replacement: str, label: str) -> str:
     compiled = re.compile(pattern, flags=re.MULTILINE)
@@ -97,21 +102,8 @@ def render_argocd_repo_urls(
     github_org: str,
     github_repo: str,
 ) -> str:
-    repo_url = f"https://github.com/{github_org}/{github_repo}.git"
-
-    content = re.sub(
-        r"(^\s*repoURL:\s*)https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\.git(\s*$)",
-        rf"\g<1>{repo_url}\g<2>",
-        content,
-        flags=re.MULTILINE,
-    )
-    content = re.sub(
-        r"(^\s*-\s*)https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\.git(\s*$)",
-        rf"\g<1>{repo_url}\g<2>",
-        content,
-        flags=re.MULTILINE,
-    )
-    return content
+    repo_url = canonical_github_https_repo_url(github_org, github_repo)
+    return render_argocd_repo_url_replacements(content, repo_url)
 
 
 def render_stackit_bootstrap_tfvars(

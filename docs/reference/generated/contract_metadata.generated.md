@@ -34,6 +34,7 @@
 - `quality-ci-sync`
 - `quality-ci-check-sync`
 - `quality-docs-lint`
+- `quality-docs-sync-all`
 - `quality-docs-sync-blueprint-template`
 - `quality-docs-check-blueprint-template-sync`
 - `quality-docs-sync-platform-seed`
@@ -49,6 +50,7 @@
 - `quality-test-pyramid`
 - `infra-prereqs`
 - `infra-help-reference`
+- `infra-contract-test-fast`
 - `infra-bootstrap`
 - `infra-local-destroy-all`
 - `infra-destroy-disabled-modules`
@@ -99,6 +101,8 @@
 - `quality-ci-blueprint`
 - `quality-ci-generated-consumer-smoke`
 - `auth-reconcile-eso-runtime-secrets`
+- `auth-reconcile-argocd-repo-credentials`
+- `auth-reconcile-runtime-identity`
 - `backend-test-unit`
 - `backend-test-integration`
 - `backend-test-contracts`

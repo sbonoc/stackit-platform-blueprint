@@ -47,6 +47,7 @@ class EsoSecretContract:
     external_secret_name: str
     target_secret_name: str
     data_mappings: list[EsoDataMapping]
+    target_template_labels: dict[str, str]
 
     @property
     def target_secret_keys(self) -> list[str]:
@@ -130,6 +131,20 @@ def _as_list_of_str(value: object, path: str) -> list[str]:
     return [_as_str(item, f"{path}[{idx}]").strip() for idx, item in enumerate(_as_list(value, path))]
 
 
+def _as_str_mapping(value: object, path: str) -> dict[str, str]:
+    mapping = _as_mapping(value, path)
+    rendered: dict[str, str] = {}
+    for key, raw_value in mapping.items():
+        rendered_key = _as_str(key, f"{path}.<key>").strip()
+        if not rendered_key:
+            raise ValueError(f"{path} contains an empty key")
+        rendered_value = _as_str(raw_value, f"{path}.{rendered_key}").strip()
+        if not rendered_value:
+            raise ValueError(f"{path}.{rendered_key} is required")
+        rendered[rendered_key] = rendered_value
+    return rendered
+
+
 def _parse_runtime_env_defaults(raw_items: list[object], path: str) -> list[RuntimeEnvDefault]:
     defaults: list[RuntimeEnvDefault] = []
     for idx, item in enumerate(raw_items):
@@ -168,6 +183,10 @@ def _parse_eso_contracts(raw_items: list[object], path: str) -> list[EsoSecretCo
                 external_secret_name=_required_str(entry, "external_secret_name", item_path),
                 target_secret_name=_required_str(entry, "target_secret_name", item_path),
                 data_mappings=mappings,
+                target_template_labels=_as_str_mapping(
+                    entry.get("target_template_labels", {}),
+                    f"{item_path}.target_template_labels",
+                ),
             )
         )
     return contracts
@@ -235,6 +254,12 @@ def _render_external_secret_doc(
     contract: RuntimeIdentityContract,
     secret_contract: EsoSecretContract,
 ) -> str:
+    labels = [
+        ("app.kubernetes.io/part-of", "platform-blueprint"),
+        ("app.kubernetes.io/component", secret_contract.contract_id),
+    ]
+    labels.extend(sorted(secret_contract.target_template_labels.items()))
+
     lines: list[str] = [
         f"apiVersion: {EXTERNAL_SECRETS_API_VERSION}",
         "kind: ExternalSecret",
@@ -253,10 +278,11 @@ def _render_external_secret_doc(
         "      engineVersion: v2",
         "      metadata:",
         "        labels:",
-        "          app.kubernetes.io/part-of: platform-blueprint",
-        f"          app.kubernetes.io/component: {secret_contract.contract_id}",
-        "  data:",
     ]
+    for label_key, label_value in labels:
+        lines.append(f"          {label_key}: {label_value}")
+
+    lines.append("  data:")
     for mapping in secret_contract.data_mappings:
         lines.extend(
             [
@@ -291,6 +317,24 @@ def iter_eso_contract_rows(contract: RuntimeIdentityContract) -> Iterable[tuple[
         )
 
 
+def iter_keycloak_realm_rows(
+    contract: RuntimeIdentityContract,
+) -> Iterable[tuple[str, str, str, str, str, str, str, str, str, str]]:
+    for realm in contract.keycloak_realms:
+        yield (
+            realm.realm_id,
+            realm.module_id,
+            realm.realm_env,
+            realm.default_realm_name,
+            realm.resolved_realm_name(),
+            realm.client_display_name,
+            realm.client_id_env,
+            realm.client_secret_env,
+            realm.admin_username_env,
+            realm.admin_password_env,
+        )
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -314,6 +358,10 @@ def parse_args() -> argparse.Namespace:
     subparsers.add_parser(
         "eso-contracts",
         help="Print ESO secret contracts as tab-separated rows.",
+    )
+    subparsers.add_parser(
+        "keycloak-realms",
+        help="Print Keycloak realm contracts as tab-separated rows.",
     )
 
     keycloak_parser = subparsers.add_parser(
@@ -365,6 +413,12 @@ def _emit_eso_contracts(contract: RuntimeIdentityContract) -> int:
     return 0
 
 
+def _emit_keycloak_realms(contract: RuntimeIdentityContract) -> int:
+    for row in iter_keycloak_realm_rows(contract):
+        print("\t".join(row))
+    return 0
+
+
 def _render_manifest(contract: RuntimeIdentityContract, output_path: Path, check: bool, repo_root: Path) -> int:
     rendered = render_eso_external_secrets_manifest(contract)
     if check:
@@ -399,6 +453,8 @@ def main() -> int:
         return _emit_runtime_env_defaults(contract)
     if args.command == "eso-contracts":
         return _emit_eso_contracts(contract)
+    if args.command == "keycloak-realms":
+        return _emit_keycloak_realms(contract)
     if args.command == "keycloak-realm":
         return _emit_keycloak_realm(contract, args.realm_id)
     if args.command == "render-eso-manifest":

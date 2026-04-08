@@ -32,6 +32,7 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn("quality-ci-sync", make_template)
         self.assertIn("quality-ci-check-sync", make_template)
         self.assertIn("quality-docs-lint", make_template)
+        self.assertIn("quality-docs-sync-all", make_template)
         self.assertIn("quality-docs-sync-blueprint-template", make_template)
         self.assertIn("quality-docs-check-blueprint-template-sync", make_template)
         self.assertIn("quality-docs-sync-platform-seed", make_template)
@@ -45,6 +46,7 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn("quality-docs-sync-module-contract-summaries", make_template)
         self.assertIn("quality-docs-check-module-contract-summaries-sync", make_template)
         self.assertIn("quality-test-pyramid", make_template)
+        self.assertIn("infra-contract-test-fast", make_template)
 
     def test_generated_makefile_exposes_quality_docs_targets(self) -> None:
         generated_make = _read("make/blueprint.generated.mk")
@@ -53,6 +55,7 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn("quality-ci-sync", generated_make)
         self.assertIn("quality-ci-check-sync", generated_make)
         self.assertIn("quality-docs-lint", generated_make)
+        self.assertIn("quality-docs-sync-all", generated_make)
         self.assertIn("quality-docs-sync-blueprint-template", generated_make)
         self.assertIn("quality-docs-check-blueprint-template-sync", generated_make)
         self.assertIn("quality-docs-sync-platform-seed", generated_make)
@@ -66,6 +69,7 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn("quality-docs-sync-module-contract-summaries", generated_make)
         self.assertIn("quality-docs-check-module-contract-summaries-sync", generated_make)
         self.assertIn("quality-test-pyramid", generated_make)
+        self.assertIn("infra-contract-test-fast", generated_make)
 
     def test_docs_generator_supports_check_mode(self) -> None:
         generator = _read("scripts/lib/docs/generate_contract_docs.py")
@@ -192,6 +196,48 @@ class QualityContractsTests(unittest.TestCase):
             "infra/local/helm/core/cert-manager.values.yaml missing required values key mapping: crds.enabled",
             errors,
         )
+
+    def test_validate_contract_rejects_scripts_lib_importing_scripts_bin(self) -> None:
+        validate_script = REPO_ROOT / "scripts/bin/blueprint/validate_contract.py"
+        spec = importlib.util.spec_from_file_location("validate_contract_module", validate_script)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)  # type: ignore[union-attr]
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            violating_file = tmp_root / "scripts/lib/example/violating.py"
+            violating_file.parent.mkdir(parents=True, exist_ok=True)
+            violating_file.write_text("from scripts.bin.infra import validate\n", encoding="utf-8")
+
+            errors = module._validate_python_import_boundaries(tmp_root)
+
+        self.assertTrue(
+            any("must not import execution-layer module scripts.bin.infra" in error for error in errors),
+            msg="\n".join(errors),
+        )
+
+    def test_validate_contract_allows_scripts_lib_internal_imports(self) -> None:
+        validate_script = REPO_ROOT / "scripts/bin/blueprint/validate_contract.py"
+        spec = importlib.util.spec_from_file_location("validate_contract_module", validate_script)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)  # type: ignore[union-attr]
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            compliant_file = tmp_root / "scripts/lib/example/compliant.py"
+            compliant_file.parent.mkdir(parents=True, exist_ok=True)
+            compliant_file.write_text(
+                "from scripts.lib.blueprint.cli_support import resolve_repo_root\n",
+                encoding="utf-8",
+            )
+
+            errors = module._validate_python_import_boundaries(tmp_root)
+
+        self.assertEqual(errors, [])
 
     def test_keycloak_local_manifest_defaults_to_manual_sync_policy(self) -> None:
         local_core_manifest = _read("infra/gitops/argocd/core/local/keycloak.yaml")

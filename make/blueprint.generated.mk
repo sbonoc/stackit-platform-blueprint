@@ -4,8 +4,8 @@ SHELL := /bin/bash
 .PHONY: help \
   blueprint-init-repo blueprint-init-repo-interactive blueprint-resync-consumer-seeds blueprint-upgrade-consumer blueprint-upgrade-consumer-preflight blueprint-upgrade-consumer-validate blueprint-install-codex-skill blueprint-ownership-check blueprint-ownership-metadata blueprint-check-placeholders blueprint-template-smoke blueprint-bootstrap blueprint-render-makefile blueprint-clean-generated blueprint-render-module-wrapper-skeletons \
   test-contracts-async-producer test-contracts-async-consumer test-contracts-async-all \
-  quality-hooks-fast quality-hooks-strict quality-hooks-run quality-ci-sync quality-ci-check-sync quality-ci-fast quality-ci-full-e2e quality-ci-strict quality-ci-blueprint quality-ci-generated-consumer-smoke quality-docs-lint quality-docs-sync-blueprint-template quality-docs-check-blueprint-template-sync quality-docs-sync-platform-seed quality-docs-check-platform-seed-sync quality-docs-sync-core-targets quality-docs-check-core-targets-sync quality-docs-sync-contract-metadata quality-docs-check-contract-metadata-sync quality-docs-sync-runtime-identity-summary quality-docs-check-runtime-identity-summary-sync quality-docs-sync-module-contract-summaries quality-docs-check-module-contract-summaries-sync quality-test-pyramid \
-  infra-prereqs infra-help-reference infra-bootstrap infra-local-destroy-all infra-destroy-disabled-modules infra-validate infra-smoke infra-provision infra-deploy infra-provision-deploy \
+  quality-hooks-fast quality-hooks-strict quality-hooks-run quality-ci-sync quality-ci-check-sync quality-ci-fast quality-ci-full-e2e quality-ci-strict quality-ci-blueprint quality-ci-generated-consumer-smoke quality-docs-lint quality-docs-sync-all quality-docs-sync-blueprint-template quality-docs-check-blueprint-template-sync quality-docs-sync-platform-seed quality-docs-check-platform-seed-sync quality-docs-sync-core-targets quality-docs-check-core-targets-sync quality-docs-sync-contract-metadata quality-docs-check-contract-metadata-sync quality-docs-sync-runtime-identity-summary quality-docs-check-runtime-identity-summary-sync quality-docs-sync-module-contract-summaries quality-docs-check-module-contract-summaries-sync quality-test-pyramid \
+  infra-prereqs infra-help-reference infra-contract-test-fast infra-bootstrap infra-local-destroy-all infra-destroy-disabled-modules infra-validate infra-smoke infra-provision infra-deploy infra-provision-deploy \
   infra-stackit-bootstrap-preflight infra-stackit-bootstrap-plan infra-stackit-bootstrap-apply infra-stackit-bootstrap-destroy \
   infra-stackit-foundation-preflight infra-stackit-foundation-plan infra-stackit-foundation-apply infra-stackit-foundation-destroy \
   infra-stackit-foundation-fetch-kubeconfig infra-stackit-foundation-refresh-kubeconfig infra-stackit-foundation-seed-runtime-secret \
@@ -19,7 +19,7 @@ SHELL := /bin/bash
   backend-test-unit backend-test-integration backend-test-contracts backend-test-e2e \
   touchpoints-test-unit touchpoints-test-integration touchpoints-test-contracts touchpoints-test-e2e \
   test-unit-all test-integration-all test-contracts-all test-e2e-all-local test-e2e-all-local-full test-e2e-all-local-execute \
-  auth-reconcile-eso-runtime-secrets \
+  auth-reconcile-eso-runtime-secrets auth-reconcile-argocd-repo-credentials auth-reconcile-runtime-identity \
   docs-install docs-run docs-build docs-smoke
 
 help: ## Show targets
@@ -148,6 +148,14 @@ quality-ci-generated-consumer-smoke: ## Run generated-consumer template smoke la
 quality-docs-lint: ## Lint markdown docs, governance links, and make target references
 	@python3 scripts/bin/quality/lint_docs.py
 
+quality-docs-sync-all: ## Run all docs sync generators in canonical order
+	@$(MAKE) quality-docs-sync-blueprint-template
+	@$(MAKE) quality-docs-sync-platform-seed
+	@$(MAKE) quality-docs-sync-core-targets
+	@$(MAKE) quality-docs-sync-contract-metadata
+	@$(MAKE) quality-docs-sync-runtime-identity-summary
+	@$(MAKE) quality-docs-sync-module-contract-summaries
+
 quality-docs-sync-blueprint-template: ## Sync docs/blueprint/** into bootstrap template blueprint docs mirror
 	@python3 scripts/lib/docs/sync_blueprint_template_docs.py
 
@@ -200,8 +208,11 @@ infra-prereqs: ## Verify local prerequisites and optionally auto-install missing
 infra-help-reference: ## Show full Make targets and variable defaults reference
 	@scripts/bin/infra/help_reference.sh $(MAKEFILE_LIST)
 
+infra-contract-test-fast: ## Run fast infra contract helper CLI tests
+	@scripts/bin/infra/contract_test_fast.sh
+
 INFRA_ENV_GUARDED_TARGETS := \
-	infra-bootstrap infra-local-destroy-all infra-destroy-disabled-modules infra-validate infra-smoke infra-provision infra-deploy infra-provision-deploy \
+	infra-contract-test-fast infra-bootstrap infra-local-destroy-all infra-destroy-disabled-modules infra-validate infra-smoke infra-provision infra-deploy infra-provision-deploy \
 	infra-stackit-bootstrap-preflight infra-stackit-bootstrap-plan infra-stackit-bootstrap-apply infra-stackit-bootstrap-destroy \
 	infra-stackit-foundation-preflight infra-stackit-foundation-plan infra-stackit-foundation-apply infra-stackit-foundation-destroy \
 	infra-stackit-foundation-fetch-kubeconfig infra-stackit-foundation-refresh-kubeconfig infra-stackit-foundation-seed-runtime-secret \

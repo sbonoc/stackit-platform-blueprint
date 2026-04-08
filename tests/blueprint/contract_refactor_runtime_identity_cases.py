@@ -115,7 +115,9 @@ class RuntimeIdentityRefactorCases(RefactorContractBase):
         validate_py = _read("scripts/bin/blueprint/validate_contract.py")
         self.assertIn("RUNTIME_DEPENDENCY_EDGES", runtime_dependency_edges)
         self.assertIn("scripts/bin/infra/smoke.sh", runtime_dependency_edges)
+        self.assertIn("scripts/bin/platform/auth/reconcile_runtime_identity.sh", runtime_dependency_edges)
         self.assertIn("scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh", runtime_dependency_edges)
+        self.assertIn("scripts/bin/platform/auth/reconcile_argocd_repo_credentials.sh", runtime_dependency_edges)
         self.assertIn("from scripts.lib.blueprint.runtime_dependency_edges import RUNTIME_DEPENDENCY_EDGES", validate_py)
         self.assertIn("reconcile runtime identity artifacts before infra-smoke/upgrade validation", validate_py)
 

@@ -271,17 +271,17 @@ class UpgradeConsumerTests(unittest.TestCase):
             _init_git_repo(source_repo)
             _write(
                 source_repo / "scripts/bin/infra/smoke.sh",
-                "run_cmd \"$ROOT_DIR/scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh\"\n",
+                "run_cmd \"$ROOT_DIR/scripts/bin/platform/auth/reconcile_runtime_identity.sh\"\n",
             )
             _write(
-                source_repo / "scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh",
+                source_repo / "scripts/bin/platform/auth/reconcile_runtime_identity.sh",
                 "#!/usr/bin/env bash\necho ok\n",
             )
             _commit_all(source_repo, "baseline")
             _require_success(_git(source_repo, "tag", f"v{_template_version()}"), "git tag template version")
             _write(
                 source_repo / "scripts/bin/infra/smoke.sh",
-                "echo warmup\nrun_cmd \"$ROOT_DIR/scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh\"\n",
+                "echo warmup\nrun_cmd \"$ROOT_DIR/scripts/bin/platform/auth/reconcile_runtime_identity.sh\"\n",
             )
             _commit_all(source_repo, "head")
 
@@ -304,7 +304,7 @@ class UpgradeConsumerTests(unittest.TestCase):
             plan = _load_json(target_repo / "artifacts/blueprint/upgrade_plan.json")
             dependency_entry = _plan_entry(
                 plan,
-                "scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh",
+                "scripts/bin/platform/auth/reconcile_runtime_identity.sh",
             )
             self.assertEqual(dependency_entry.get("action"), "skip")
             self.assertIn("required-manual-action", str(dependency_entry.get("reason", "")))
@@ -313,7 +313,7 @@ class UpgradeConsumerTests(unittest.TestCase):
             self.assertEqual(len(required_manual_actions), 1)
             self.assertEqual(
                 required_manual_actions[0].get("dependency_path"),
-                "scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh",
+                "scripts/bin/platform/auth/reconcile_runtime_identity.sh",
             )
             self.assertEqual(
                 required_manual_actions[0].get("dependency_of"),
@@ -334,7 +334,7 @@ class UpgradeConsumerTests(unittest.TestCase):
             summary_content = summary_path.read_text(encoding="utf-8")
             self.assertIn("## Required Manual Actions", summary_content)
             self.assertIn("scripts/bin/infra/smoke.sh", summary_content)
-            self.assertIn("scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh", summary_content)
+            self.assertIn("scripts/bin/platform/auth/reconcile_runtime_identity.sh", summary_content)
             self.assertIn("- Applied paths: `0`", summary_content)
             self.assertNotIn("| applied_count |", summary_content)
             self.assertNotIn("| required_manual_action_count |", summary_content)
@@ -893,7 +893,7 @@ class UpgradeConsumerValidateTests(unittest.TestCase):
             repo = self._create_validation_repo(tmp_root)
             _write(
                 repo / "scripts/bin/infra/smoke.sh",
-                "run_cmd \"$ROOT_DIR/scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh\"\n",
+                "run_cmd \"$ROOT_DIR/scripts/bin/platform/auth/reconcile_runtime_identity.sh\"\n",
             )
 
             result = _run(
@@ -918,7 +918,7 @@ class UpgradeConsumerValidateTests(unittest.TestCase):
             self.assertEqual(missing.get("consumer_path"), "scripts/bin/infra/smoke.sh")
             self.assertEqual(
                 missing.get("dependency_path"),
-                "scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh",
+                "scripts/bin/platform/auth/reconcile_runtime_identity.sh",
             )
             _assert_json_schema(report, VALIDATE_SCHEMA)
 

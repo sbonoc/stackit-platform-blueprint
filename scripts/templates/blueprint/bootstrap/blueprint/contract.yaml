@@ -91,7 +91,10 @@ spec:
       - scripts/bin/infra/identity_aware_proxy_deploy.sh
       - scripts/bin/infra/stackit_foundation_seed_runtime_secret.sh
       - scripts/bin/infra/workload_health_check.py
+      - scripts/bin/infra/contract_test_fast.sh
       - scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh
+      - scripts/bin/platform/auth/reconcile_argocd_repo_credentials.sh
+      - scripts/bin/platform/auth/reconcile_runtime_identity.sh
       - scripts/bin/quality/check_test_pyramid.py
       - scripts/bin/quality/hooks_fast.sh
       - scripts/bin/quality/lint_docs.py
@@ -127,7 +130,10 @@ spec:
       - scripts/lib/docs/sync_runtime_identity_contract_summary.py
       - scripts/lib/infra/k8s_wait.sh
       - scripts/lib/infra/keycloak_identity_contract.sh
+      - scripts/lib/infra/argocd_repo_contract.py
       - scripts/lib/infra/runtime_identity_contract.py
+      - scripts/lib/infra/state_artifact_contract.py
+      - scripts/lib/infra/schemas/state_artifact.schema.json
       - scripts/lib/infra/module_execution.sh
       - scripts/lib/quality/semver.sh
       - scripts/lib/quality/render_ci_workflow.py
@@ -760,6 +766,7 @@ spec:
       - quality-ci-sync
       - quality-ci-check-sync
       - quality-docs-lint
+      - quality-docs-sync-all
       - quality-docs-sync-blueprint-template
       - quality-docs-check-blueprint-template-sync
       - quality-docs-sync-platform-seed
@@ -775,6 +782,7 @@ spec:
       - quality-test-pyramid
       - infra-prereqs
       - infra-help-reference
+      - infra-contract-test-fast
       - infra-bootstrap
       - infra-local-destroy-all
       - infra-destroy-disabled-modules
@@ -825,6 +833,8 @@ spec:
       - quality-ci-blueprint
       - quality-ci-generated-consumer-smoke
       - auth-reconcile-eso-runtime-secrets
+      - auth-reconcile-argocd-repo-credentials
+      - auth-reconcile-runtime-identity
       - backend-test-unit
       - backend-test-integration
       - backend-test-contracts
