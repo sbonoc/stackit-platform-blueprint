@@ -93,6 +93,82 @@ class StateArtifactContractTests(unittest.TestCase):
             self.assertEqual(render.returncode, 1)
             self.assertIn("duplicates key", render.stderr)
 
+    def test_validate_fails_when_numeric_minimum_is_violated(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            json_file = tmp_root / "sample.json"
+            json_file.write_text(
+                json.dumps(
+                    {
+                        "schemaVersion": "1.0.0",
+                        "artifact": {
+                            "name": "sample",
+                            "namespace": "infra",
+                            "envPath": "artifacts/infra/sample.env",
+                            "jsonPath": "artifacts/infra/sample.json",
+                        },
+                        "entryCount": -1,
+                        "entryOrder": [],
+                        "entries": {},
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            validate = run_command(
+                [
+                    sys.executable,
+                    str(SCRIPT),
+                    "--repo-root",
+                    str(REPO_ROOT),
+                    "validate",
+                    "--json-file",
+                    str(json_file),
+                ],
+                cwd=REPO_ROOT,
+            )
+
+            self.assertEqual(validate.returncode, 1)
+            self.assertIn("$.entryCount: expected value >= 0", validate.stderr)
+
+    def test_validate_fails_when_entry_order_and_entries_keys_drift(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            json_file = tmp_root / "sample.json"
+            json_file.write_text(
+                json.dumps(
+                    {
+                        "schemaVersion": "1.0.0",
+                        "artifact": {
+                            "name": "sample",
+                            "namespace": "infra",
+                            "envPath": "artifacts/infra/sample.env",
+                            "jsonPath": "artifacts/infra/sample.json",
+                        },
+                        "entryCount": 1,
+                        "entryOrder": ["status"],
+                        "entries": {"status": "success", "extra": "unexpected"},
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            validate = run_command(
+                [
+                    sys.executable,
+                    str(SCRIPT),
+                    "--repo-root",
+                    str(REPO_ROOT),
+                    "validate",
+                    "--json-file",
+                    str(json_file),
+                ],
+                cwd=REPO_ROOT,
+            )
+
+            self.assertEqual(validate.returncode, 1)
+            self.assertIn("$.entryOrder/$.entries key mismatch", validate.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()

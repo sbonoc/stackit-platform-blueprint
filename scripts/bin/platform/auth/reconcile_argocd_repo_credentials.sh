@@ -106,6 +106,7 @@ seed_argocd_source_secret_properties() {
   local namespace="$1"
   local secret_name="$2"
   local source_env_file patch_file secret_manifest_file namespace_manifest_file
+  SOURCE_SECRET_SYNC_MODE_RESULT=""
   source_env_file="$(mktemp)"
   patch_file="$(mktemp)"
   secret_manifest_file="$(mktemp)"
@@ -140,7 +141,7 @@ payload = {
 Path(sys.argv[1]).write_text(json.dumps(payload), encoding="utf-8")
 PY
     run_cmd kubectl -n "$namespace" patch secret "$secret_name" --type merge --patch-file "$patch_file"
-    echo "patched-existing-secret"
+    SOURCE_SECRET_SYNC_MODE_RESULT="patched-existing-secret"
     return 0
   fi
 
@@ -148,7 +149,7 @@ PY
     --from-env-file="$source_env_file" \
     --dry-run=client -o yaml >"$secret_manifest_file"
   run_cmd kubectl apply -f "$secret_manifest_file"
-  echo "created-source-secret"
+  SOURCE_SECRET_SYNC_MODE_RESULT="created-source-secret"
 }
 
 validate_argocd_target_secret() {
@@ -210,6 +211,7 @@ resolved_repo_url=""
 runtime_reconcile_status="skipped"
 source_secret_sync_mode="skipped"
 target_secret_live_check_status="skipped"
+SOURCE_SECRET_SYNC_MODE_RESULT=""
 
 canonical_repo_output=""
 # argparse global options must be placed before the subcommand; keep this order
@@ -258,9 +260,10 @@ if tooling_is_execution_enabled; then
   prepare_cluster_access
   require_command kubectl
   if [[ -n "$resolved_repo_url" && -n "$ARGOCD_REPO_USERNAME" && -n "$ARGOCD_REPO_TOKEN" ]]; then
-    if source_secret_sync_mode="$(seed_argocd_source_secret_properties \
+    if seed_argocd_source_secret_properties \
       "$RUNTIME_CREDENTIALS_SOURCE_NAMESPACE" \
-      "$RUNTIME_CREDENTIALS_SOURCE_SECRET_NAME")"; then
+      "$RUNTIME_CREDENTIALS_SOURCE_SECRET_NAME"; then
+      source_secret_sync_mode="${SOURCE_SECRET_SYNC_MODE_RESULT:-unknown}"
       log_info \
         "argocd source secret properties synced namespace=$RUNTIME_CREDENTIALS_SOURCE_NAMESPACE name=$RUNTIME_CREDENTIALS_SOURCE_SECRET_NAME mode=$source_secret_sync_mode"
     else

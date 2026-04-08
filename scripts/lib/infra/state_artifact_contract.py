@@ -71,10 +71,36 @@ def _validate_json_schema(instance: Any, schema: dict[str, Any], *, path: str = 
         errors.append(f"{path}: expected one of enum {enum_values}, got {instance!r}")
         return errors
 
+    errors.extend(_validate_numeric_keywords(instance, schema, path=path))
+
     if isinstance(instance, dict):
         errors.extend(_validate_object(instance, schema, path=path))
     elif isinstance(instance, list):
         errors.extend(_validate_array(instance, schema, path=path))
+    return errors
+
+
+def _validate_numeric_keywords(instance: Any, schema: dict[str, Any], *, path: str) -> list[str]:
+    errors: list[str] = []
+    if isinstance(instance, bool) or not isinstance(instance, (int, float)):
+        return errors
+
+    minimum = schema.get("minimum")
+    if isinstance(minimum, (int, float)) and instance < minimum:
+        errors.append(f"{path}: expected value >= {minimum}, got {instance}")
+
+    maximum = schema.get("maximum")
+    if isinstance(maximum, (int, float)) and instance > maximum:
+        errors.append(f"{path}: expected value <= {maximum}, got {instance}")
+
+    exclusive_minimum = schema.get("exclusiveMinimum")
+    if isinstance(exclusive_minimum, (int, float)) and instance <= exclusive_minimum:
+        errors.append(f"{path}: expected value > {exclusive_minimum}, got {instance}")
+
+    exclusive_maximum = schema.get("exclusiveMaximum")
+    if isinstance(exclusive_maximum, (int, float)) and instance >= exclusive_maximum:
+        errors.append(f"{path}: expected value < {exclusive_maximum}, got {instance}")
+
     return errors
 
 
@@ -162,6 +188,50 @@ def render_state_artifact_payload(
     }
 
 
+def _validate_state_artifact_invariants(payload: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+
+    entry_count = payload.get("entryCount")
+    entry_order = payload.get("entryOrder")
+    entries = payload.get("entries")
+    if not isinstance(entry_count, int) or isinstance(entry_count, bool):
+        return errors
+    if not isinstance(entry_order, list) or not isinstance(entries, dict):
+        return errors
+
+    if entry_count != len(entry_order):
+        errors.append(
+            f"$.entryCount must equal len($.entryOrder); "
+            f"found entryCount={entry_count}, len(entryOrder)={len(entry_order)}"
+        )
+
+    key_counts: dict[str, int] = {}
+    for key in entry_order:
+        if not isinstance(key, str):
+            continue
+        key_counts[key] = key_counts.get(key, 0) + 1
+    duplicate_keys = sorted(key for key, count in key_counts.items() if count > 1)
+    if duplicate_keys:
+        errors.append(
+            "$.entryOrder must not contain duplicate keys; found duplicates: "
+            + ", ".join(duplicate_keys)
+        )
+
+    order_key_set = {key for key in entry_order if isinstance(key, str)}
+    entries_key_set = set(entries.keys())
+    missing_from_entries = sorted(order_key_set - entries_key_set)
+    extra_in_entries = sorted(entries_key_set - order_key_set)
+    if missing_from_entries or extra_in_entries:
+        issues: list[str] = []
+        if missing_from_entries:
+            issues.append("missing from $.entries: " + ", ".join(missing_from_entries))
+        if extra_in_entries:
+            issues.append("extra in $.entries: " + ", ".join(extra_in_entries))
+        errors.append("$.entryOrder/$.entries key mismatch (" + "; ".join(issues) + ")")
+
+    return errors
+
+
 def _write_json(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(f"{json.dumps(payload, indent=2, sort_keys=True)}\n", encoding="utf-8")
@@ -181,6 +251,7 @@ def _render_command(args: argparse.Namespace, repo_root: Path) -> int:
         json_path=json_path,
     )
     errors = _validate_json_schema(payload, schema)
+    errors.extend(_validate_state_artifact_invariants(payload))
     if errors:
         for error in errors:
             print(error, file=sys.stderr)
@@ -211,6 +282,7 @@ def _validate_command(args: argparse.Namespace, repo_root: Path) -> int:
 
     payload = _load_json(json_path)
     errors = _validate_json_schema(payload, schema)
+    errors.extend(_validate_state_artifact_invariants(payload))
     if errors:
         for error in errors:
             print(error, file=sys.stderr)
