@@ -6,15 +6,24 @@ import shlex
 import sys
 import tempfile
 import unittest
+import json
 
 from tests._shared.helpers import REPO_ROOT, module_flags_env, run_make
 
 
 class RuntimeCredentialsEsoTests(unittest.TestCase):
     def tearDown(self) -> None:
-        state_path = REPO_ROOT / "artifacts" / "infra" / "runtime_credentials_eso_reconcile.env"
-        if state_path.exists():
-            state_path.unlink()
+        state_paths = (
+            REPO_ROOT / "artifacts" / "infra" / "runtime_credentials_eso_reconcile.env",
+            REPO_ROOT / "artifacts" / "infra" / "runtime_credentials_eso_reconcile.json",
+            REPO_ROOT / "artifacts" / "infra" / "argocd_repo_credentials_reconcile.env",
+            REPO_ROOT / "artifacts" / "infra" / "argocd_repo_credentials_reconcile.json",
+            REPO_ROOT / "artifacts" / "infra" / "runtime_identity_reconcile.env",
+            REPO_ROOT / "artifacts" / "infra" / "runtime_identity_reconcile.json",
+        )
+        for state_path in state_paths:
+            if state_path.exists():
+                state_path.unlink()
 
     def test_dry_run_reconcile_writes_success_state_and_renders_source_secret(self) -> None:
         env = module_flags_env(profile="local-full")
@@ -36,6 +45,13 @@ class RuntimeCredentialsEsoTests(unittest.TestCase):
         self.assertIn("source_secret_seed_mode=manifest-rendered", state)
         self.assertIn("target_namespace=apps", state)
         self.assertIn("target_secret_name=runtime-credentials", state)
+        state_json_path = REPO_ROOT / "artifacts" / "infra" / "runtime_credentials_eso_reconcile.json"
+        self.assertTrue(state_json_path.exists(), msg="runtime credentials JSON state artifact was not created")
+        state_json = json.loads(state_json_path.read_text(encoding="utf-8"))
+        self.assertEqual(state_json.get("artifact", {}).get("name"), "runtime_credentials_eso_reconcile")
+        self.assertEqual(state_json.get("artifact", {}).get("namespace"), "infra")
+        self.assertEqual(state_json.get("entryCount"), len(state_json.get("entryOrder", [])))
+        self.assertEqual(state_json.get("entries", {}).get("status"), "success")
 
         rendered_secret_path = (
             REPO_ROOT
@@ -118,6 +134,53 @@ class RuntimeCredentialsEsoTests(unittest.TestCase):
         self.assertIn("status=noop-empty-contract-set", state)
         self.assertIn("source_secret_seed_mode=skipped-empty-contract-set", state)
         self.assertIn("issue_count=0", state)
+
+    def test_argocd_reconcile_resolves_repo_contract_without_argparse_errors(self) -> None:
+        env = module_flags_env(profile="local-full")
+        env.update(
+            {
+                "ARGOCD_REPO_CREDENTIALS_REQUIRED": "true",
+                "ARGOCD_REPO_TOKEN": "ghp_exampletoken",
+            }
+        )
+
+        result = run_make("auth-reconcile-argocd-repo-credentials", env)
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+
+        combined_output = result.stdout + result.stderr
+        self.assertNotIn("argocd_repo_contract.py: error: unrecognized arguments", combined_output)
+
+        state_path = REPO_ROOT / "artifacts" / "infra" / "argocd_repo_credentials_reconcile.env"
+        self.assertTrue(state_path.exists(), msg="argocd repo credentials state artifact was not created")
+        state = state_path.read_text(encoding="utf-8")
+        self.assertIn("status=success", state)
+        self.assertIn("runtime_reconcile_status=success", state)
+        state_json_path = REPO_ROOT / "artifacts" / "infra" / "argocd_repo_credentials_reconcile.json"
+        self.assertTrue(state_json_path.exists(), msg="argocd repo credentials JSON state artifact was not created")
+
+    def test_runtime_identity_orchestrator_writes_plugin_state(self) -> None:
+        env = module_flags_env(profile="local-full")
+        env.update(
+            {
+                "ARGOCD_REPO_TOKEN": "ghp_exampletoken",
+            }
+        )
+
+        result = run_make("auth-reconcile-runtime-identity", env)
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+
+        state_path = REPO_ROOT / "artifacts" / "infra" / "runtime_identity_reconcile.env"
+        self.assertTrue(state_path.exists(), msg="runtime identity reconcile state artifact was not created")
+        state = state_path.read_text(encoding="utf-8")
+        self.assertIn("status=success", state)
+        self.assertIn("plugin_eso_status=success", state)
+        self.assertIn("plugin_argocd_repo_status=success", state)
+        self.assertRegex(state, r"plugin_keycloak_contract_status=(success|skipped-no-enabled-realm-contracts)")
+        self.assertIn("runtime_credentials_state=", state)
+        self.assertIn("argocd_repo_state=", state)
+
+        state_json_path = REPO_ROOT / "artifacts" / "infra" / "runtime_identity_reconcile.json"
+        self.assertTrue(state_json_path.exists(), msg="runtime identity reconcile JSON state artifact was not created")
 
 
 if __name__ == "__main__":
