@@ -106,6 +106,14 @@ Examples:
 - platform-owned targets live in `make/platform.mk` and `make/platform/*.mk` (seeded if missing, then editable).
 - platform-owned scripts live in `scripts/bin/platform/**` and `scripts/lib/platform/**`.
 
+## Shell Bootstrap Contract
+- Managed shell entrypoints must use the canonical prelude:
+  - `SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"`
+  - `source "$SCRIPT_DIR/.../lib/shell/bootstrap.sh"`
+- `ROOT_DIR` resolution is centralized in `scripts/lib/shell/root_dir.sh` via `resolve_root_dir`.
+- Do not add inline per-script `ROOT_DIR` resolver blocks.
+- Non-git temp-copy execution (for quality/docs render paths) is supported through marker walk-up fallback (`Makefile` + `scripts/lib`) in the shared resolver.
+
 ## Observability Module Behavior
 - `OBSERVABILITY_ENABLED=false` by default.
 - When enabled, observability runs as a standard optional module with:

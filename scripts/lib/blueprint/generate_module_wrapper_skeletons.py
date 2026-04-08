@@ -37,8 +37,7 @@ def _render_template(module_id: str, enable_flag: str, action_key: str, make_tar
         "#!/usr/bin/env bash\n"
         "set -euo pipefail\n"
         "SCRIPT_DIR=\"$(cd \"$(dirname \"${BASH_SOURCE[0]}\")\" && pwd)\"\n"
-        "ROOT_DIR=\"$(cd \"$SCRIPT_DIR/../../..\" && pwd)\"\n"
-        "source \"$ROOT_DIR/scripts/lib/shell/bootstrap.sh\"\n"
+        "source \"$SCRIPT_DIR/../../lib/shell/bootstrap.sh\"\n"
         "source \"$ROOT_DIR/scripts/lib/infra/state.sh\"\n"
         "\n"
         f"start_script_metric_trap \"infra_{script_basename}\"\n"
@@ -98,8 +97,8 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
-    # Shell wrappers resolve their own ROOT_DIR, so this generator must resolve
-    # relative paths from the repository root rather than the caller cwd.
+    # Shell wrappers source bootstrap through a relative prelude and resolve
+    # ROOT_DIR at runtime, so the generator resolves paths from repo root.
     repo_root = resolve_repo_root(args.repo_root, __file__)
     modules_dir = resolve_repo_path(repo_root, args.modules_dir)
     output_root = resolve_repo_path(repo_root, args.output_root)

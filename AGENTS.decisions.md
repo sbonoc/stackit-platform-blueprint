@@ -178,3 +178,8 @@
 - Infra validation now enforces a lightweight import-boundary rule for `scripts/lib/**/*.py`:
   - `scripts/lib` modules may not import `scripts/bin` modules.
   - blueprint-managed `scripts/lib/blueprint/**` may not import platform-owned `scripts/lib/platform/**`.
+- Shell root-resolution bootstrap is now standardized as a shared contract:
+  - `scripts/lib/shell/root_dir.sh` is the canonical resolver (`resolve_root_dir`) with resolution order `ROOT_DIR env` -> `git top-level` -> marker walk-up fallback.
+  - blueprint-managed shell entrypoints/templates must source bootstrap only through `SCRIPT_DIR`-relative preludes (no inline `ROOT_DIR` resolver blocks).
+  - `quality-root-dir-prelude-check` is part of the fast quality lane to block resolver/prelude drift.
+  - temp-copy non-git quality/docs flows rely on shared marker fallback and are covered by automated tests.

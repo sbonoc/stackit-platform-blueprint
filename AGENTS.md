@@ -131,6 +131,9 @@ A task is done only when all applicable items pass:
 - Enforce script ownership boundaries:
   - `scripts/bin/platform/**` and `scripts/lib/platform/**` are platform-owned.
   - blueprint-managed wrappers/libraries must remain under non-platform namespaces.
+  - blueprint-managed shell entrypoints and rendered shell templates must source bootstrap via `SCRIPT_DIR`-relative paths only.
+  - repository root resolution must remain centralized in `scripts/lib/shell/root_dir.sh`; do not add inline per-script `ROOT_DIR` resolver blocks.
+  - any bootstrap prelude change must update templates and root-resolution drift checks/tests in the same change.
 - Keep `blueprint/contract.yaml` and module contracts aligned with implementation.
 
 ## Naming and Operational Conventions

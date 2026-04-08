@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
+source "$SCRIPT_DIR/../../lib/shell/bootstrap.sh"
 source "$ROOT_DIR/scripts/lib/blueprint/contract_runtime.sh"
 
 start_script_metric_trap "quality_hooks_fast"
@@ -14,6 +13,7 @@ Usage: hooks_fast.sh
 Runs the fast local quality gate:
 - pre-commit (if available)
 - shellcheck (required)
+- root-resolution prelude drift check
 - CI workflow sync checks (template-source only)
 - docs lint
 - blueprint docs/template sync checks
@@ -48,6 +48,7 @@ if [[ "${#shell_scripts[@]}" -gt 0 ]]; then
   run_cmd shellcheck --severity=error --exclude=SC1090,SC1091 "${shell_scripts[@]}"
 fi
 
+run_cmd make -C "$ROOT_DIR" quality-root-dir-prelude-check
 run_cmd make -C "$ROOT_DIR" quality-docs-lint
 if blueprint_repo_is_generated_consumer; then
   log_metric "quality_ci_check_sync_total" "1" "status=skipped repo_mode=generated-consumer"

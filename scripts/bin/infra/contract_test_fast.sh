@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
+source "$SCRIPT_DIR/../../lib/shell/bootstrap.sh"
 
 start_script_metric_trap "infra_contract_test_fast"
 
