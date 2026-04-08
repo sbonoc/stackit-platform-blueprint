@@ -481,6 +481,91 @@ def _validate_runtime_credentials_contract(repo_root: Path) -> list[str]:
     return errors
 
 
+def _validate_app_catalog_scaffold_contract(repo_root: Path, contract: BlueprintContract) -> list[str]:
+    errors: list[str] = []
+    spec_raw = _mapping_or_error(contract.raw.get("spec"), "spec", errors)
+    raw_contract_section = spec_raw.get("app_catalog_scaffold_contract")
+    if raw_contract_section is None:
+        errors.append("spec.app_catalog_scaffold_contract is required")
+        return errors
+    contract_section = _mapping_or_error(
+        raw_contract_section,
+        "spec.app_catalog_scaffold_contract",
+        errors,
+    )
+
+    enabled_by_default = _bool_or_error(
+        contract_section.get("enabled_by_default"),
+        "spec.app_catalog_scaffold_contract.enabled_by_default",
+        errors,
+    )
+    if enabled_by_default:
+        errors.append("spec.app_catalog_scaffold_contract.enabled_by_default must be false")
+
+    enable_flag = _string_or_error(
+        contract_section.get("enable_flag"),
+        "spec.app_catalog_scaffold_contract.enable_flag",
+        errors,
+    )
+    toggles_raw = spec_raw.get("toggles")
+    if isinstance(toggles_raw, dict) and enable_flag and enable_flag not in toggles_raw:
+        errors.append(
+            "spec.app_catalog_scaffold_contract.enable_flag must reference an existing toggle: "
+            f"{enable_flag}"
+        )
+
+    required_paths = _list_of_str_or_error(
+        contract_section.get("required_paths_when_enabled"),
+        "spec.app_catalog_scaffold_contract.required_paths_when_enabled",
+        errors,
+    )
+    if not required_paths:
+        errors.append("spec.app_catalog_scaffold_contract.required_paths_when_enabled must not be empty")
+
+    docs_paths = _list_of_str_or_error(
+        contract_section.get("docs_paths"),
+        "spec.app_catalog_scaffold_contract.docs_paths",
+        errors,
+    )
+    for docs_path in docs_paths:
+        if not (repo_root / docs_path).is_file():
+            errors.append(f"missing app catalog scaffold docs path: {docs_path}")
+
+    test_lane_targets = _list_of_str_or_error(
+        contract_section.get("test_lane_targets"),
+        "spec.app_catalog_scaffold_contract.test_lane_targets",
+        errors,
+    )
+    if not test_lane_targets:
+        errors.append("spec.app_catalog_scaffold_contract.test_lane_targets must not be empty")
+    else:
+        existing_targets = _make_targets(repo_root)
+        for target in test_lane_targets:
+            if target not in existing_targets:
+                errors.append(f"missing app catalog scaffold test-lane target: {target}")
+
+    if _is_optional_contract_enabled(spec_raw, contract_section):
+        errors.extend(_validate_required_paths(repo_root, required_paths))
+
+    apps_bootstrap_script = repo_root / "scripts/bin/platform/apps/bootstrap.sh"
+    if apps_bootstrap_script.is_file():
+        bootstrap_content = apps_bootstrap_script.read_text(encoding="utf-8")
+        if "APP_CATALOG_SCAFFOLD_ENABLED" not in bootstrap_content:
+            errors.append(
+                "scripts/bin/platform/apps/bootstrap.sh must honor APP_CATALOG_SCAFFOLD_ENABLED contract toggle"
+            )
+
+    apps_smoke_script = repo_root / "scripts/bin/platform/apps/smoke.sh"
+    if apps_smoke_script.is_file():
+        smoke_content = apps_smoke_script.read_text(encoding="utf-8")
+        if "APP_CATALOG_SCAFFOLD_ENABLED" not in smoke_content:
+            errors.append(
+                "scripts/bin/platform/apps/smoke.sh must honor APP_CATALOG_SCAFFOLD_ENABLED contract toggle"
+            )
+
+    return errors
+
+
 def _validate_event_messaging_contract(repo_root: Path, contract: BlueprintContract) -> list[str]:
     errors: list[str] = []
     spec_raw = _mapping_or_error(contract.raw.get("spec"), "spec", errors)
@@ -2081,6 +2166,7 @@ def main() -> int:
     errors.extend(_validate_platform_docs_seed_contract(repo_root, contract))
     errors.extend(_validate_core_chart_values_contract(repo_root))
     errors.extend(_validate_runtime_credentials_contract(repo_root))
+    errors.extend(_validate_app_catalog_scaffold_contract(repo_root, contract))
     errors.extend(_validate_event_messaging_contract(repo_root, contract))
     errors.extend(_validate_zero_downtime_evolution_contract(repo_root, contract))
     errors.extend(_validate_tenant_context_contract(contract))

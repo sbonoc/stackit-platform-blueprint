@@ -36,6 +36,7 @@ make infra-bootstrap
 Expected outcome:
 - `make/blueprint.generated.mk` is rendered for the current contract-selected module set.
 - Optional scaffolding is materialized for enabled modules while disabled-module scaffold files stay available for later enablement.
+- App catalog scaffold (`apps/catalog/*`) stays disabled unless `APP_CATALOG_SCAFFOLD_ENABLED=true`.
 
 ## 3) Validate Baseline (10 min)
 ```bash

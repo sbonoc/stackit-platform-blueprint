@@ -233,6 +233,7 @@ class ScriptsRefactorCases(RefactorContractBase):
         init_contract_helpers = _read("scripts/lib/blueprint/init_repo_contract.py")
         self.assertIn("seed_consumer_owned_files", init_python)
         self.assertIn("prune_disabled_optional_scaffolding", init_contract_helpers)
+        self.assertIn("resolve_app_catalog_scaffold_contract", init_contract_helpers)
         self.assertIn("consumer-owned seed already applied", init_contract_helpers)
         self.assertIn("expand_optional_module_path(", init_contract_helpers)
 
@@ -241,7 +242,16 @@ class ScriptsRefactorCases(RefactorContractBase):
         self.assertIn('ensure_dir "$ROOT_DIR/apps/backend"', apps_bootstrap)
         self.assertIn('ensure_dir "$ROOT_DIR/apps/touchpoints"', apps_bootstrap)
         self.assertIn('ensure_dir "$ROOT_DIR/apps/catalog"', apps_bootstrap)
+        self.assertIn("APP_CATALOG_SCAFFOLD_ENABLED", apps_bootstrap)
+        self.assertIn("app catalog scaffold disabled", apps_bootstrap)
+        self.assertIn("app_catalog_scaffold_enabled_total", apps_bootstrap)
         self.assertNotIn('ensure_dir "$ROOT_DIR/apps/ingestion"', apps_bootstrap)
+
+    def test_apps_smoke_honors_app_catalog_toggle(self) -> None:
+        apps_smoke = _read("scripts/bin/platform/apps/smoke.sh")
+        self.assertIn("APP_CATALOG_SCAFFOLD_ENABLED", apps_smoke)
+        self.assertIn("app catalog scaffold disabled; skipping apps/catalog smoke assertions", apps_smoke)
+        self.assertIn("check_mode=skipped", apps_smoke)
 
     def test_crossplane_scaffold_is_placeholder_free(self) -> None:
         crossplane_kustomization = _read("infra/local/crossplane/kustomization.yaml")

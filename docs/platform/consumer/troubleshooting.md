@@ -195,6 +195,15 @@ Common first-day issues for generated repositories.
 - Temporary fallback only if you cannot upgrade immediately:
   - set `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true` in workflow/job env.
 
+## `apps-smoke` fails with missing `apps/catalog/manifest.yaml`
+- The app catalog scaffold is opt-in and controlled by `APP_CATALOG_SCAFFOLD_ENABLED`.
+- Enable and materialize the scaffold before running smoke:
+  ```bash
+  APP_CATALOG_SCAFFOLD_ENABLED=true make apps-bootstrap
+  APP_CATALOG_SCAFFOLD_ENABLED=true make apps-smoke
+  ```
+- If you intentionally run a minimal repo without app catalog scaffold, keep `APP_CATALOG_SCAFFOLD_ENABLED=false`; `apps-smoke` records a skipped catalog check and still succeeds.
+
 ## CI test lanes fail on clean runners with missing `fastapi`, `vitest`, or Playwright browsers
 - Ensure your workflow uses `.github/actions/prepare-blueprint-ci/action.yml` before test lanes.
 - The current action bootstrap contract delegates dependency installation to `BLUEPRINT_PROFILE=local-lite OBSERVABILITY_ENABLED=false make apps-ci-bootstrap`.

@@ -27,6 +27,7 @@ Environment variables:
   SECRETS_MANAGER_ENABLED             Optional module flag
   KMS_ENABLED                         Optional module flag
   IDENTITY_AWARE_PROXY_ENABLED        Optional module flag
+  APP_CATALOG_SCAFFOLD_ENABLED        Opt-in app catalog scaffold contract
 EOF
 }
 
@@ -55,6 +56,7 @@ set_default_env PUBLIC_ENDPOINTS_ENABLED "false"
 set_default_env SECRETS_MANAGER_ENABLED "false"
 set_default_env KMS_ENABLED "false"
 set_default_env IDENTITY_AWARE_PROXY_ENABLED "false"
+set_default_env APP_CATALOG_SCAFFOLD_ENABLED "false"
 
 source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
@@ -211,6 +213,7 @@ scenario = os.environ.get("BLUEPRINT_TEMPLATE_SMOKE_SCENARIO", "default")
 profile = os.environ["BLUEPRINT_PROFILE"]
 expected_stack, expected_environment = profile_environment(profile)
 observability_enabled = normalize_bool(os.environ.get("OBSERVABILITY_ENABLED", "false"))
+app_catalog_scaffold_enabled = normalize_bool(os.environ.get("APP_CATALOG_SCAFFOLD_ENABLED", "false"))
 
 contract = load_blueprint_contract(repo_root / "blueprint/contract.yaml")
 if contract.repository.repo_mode != "generated-consumer":
@@ -267,14 +270,24 @@ else:
     ):
         assert_path_exists(repo_root, artifact, scenario)
 
-manifest_text = (repo_root / "apps/catalog/manifest.yaml").read_text(encoding="utf-8")
-expected_manifest_line = "enabled: true" if observability_enabled else "enabled: false"
-if expected_manifest_line not in manifest_text:
-    raise AssertionError(
-        f"{scenario}: apps/catalog/manifest.yaml drifted from OBSERVABILITY_ENABLED={observability_enabled}"
-    )
-if observability_enabled and "endpoint: http" not in manifest_text:
-    raise AssertionError(f"{scenario}: observability-enabled app manifest is missing OTEL endpoint wiring")
+manifest_path = repo_root / "apps/catalog/manifest.yaml"
+versions_lock_path = repo_root / "apps/catalog/versions.lock"
+if app_catalog_scaffold_enabled:
+    assert_path_exists(repo_root, "apps/catalog/manifest.yaml", scenario)
+    assert_path_exists(repo_root, "apps/catalog/versions.lock", scenario)
+    manifest_text = manifest_path.read_text(encoding="utf-8")
+    expected_manifest_line = "enabled: true" if observability_enabled else "enabled: false"
+    if expected_manifest_line not in manifest_text:
+        raise AssertionError(
+            f"{scenario}: apps/catalog/manifest.yaml drifted from OBSERVABILITY_ENABLED={observability_enabled}"
+        )
+    if observability_enabled and "endpoint: http" not in manifest_text:
+        raise AssertionError(f"{scenario}: observability-enabled app manifest is missing OTEL endpoint wiring")
+else:
+    if manifest_path.exists() or versions_lock_path.exists():
+        raise AssertionError(
+            f"{scenario}: app catalog scaffold disabled but apps/catalog manifest/lock still exist"
+        )
 
 smoke_result = json.loads((repo_root / "artifacts/infra/smoke_result.json").read_text(encoding="utf-8"))
 if smoke_result.get("status") != "success":
