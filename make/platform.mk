@@ -3,7 +3,7 @@
 # ownership: platform-owned (generated-consumer maintainers are the implementation owners).
 
 .PHONY: \
-  auth-reconcile-eso-runtime-secrets \
+  auth-reconcile-eso-runtime-secrets auth-reconcile-argocd-repo-credentials auth-reconcile-runtime-identity \
   apps-bootstrap apps-ci-bootstrap apps-ci-bootstrap-consumer apps-smoke apps-audit-versions apps-audit-versions-cached apps-publish-ghcr \
   backend-test-unit backend-test-integration backend-test-contracts backend-test-e2e \
   touchpoints-test-unit touchpoints-test-integration touchpoints-test-contracts touchpoints-test-e2e \
@@ -11,6 +11,12 @@
 
 auth-reconcile-eso-runtime-secrets: ## Reconcile generic ESO runtime source-to-target credentials contract
 	@scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh
+
+auth-reconcile-argocd-repo-credentials: ## Reconcile ArgoCD Git repository credentials and validate URL/auth contract
+	@scripts/bin/platform/auth/reconcile_argocd_repo_credentials.sh
+
+auth-reconcile-runtime-identity: ## Reconcile runtime identity contracts (ESO, Argo repo access, Keycloak/module coverage)
+	@scripts/bin/platform/auth/reconcile_runtime_identity.sh
 
 apps-bootstrap: ## Bootstrap app build/deploy prerequisites
 	@scripts/bin/platform/apps/bootstrap.sh

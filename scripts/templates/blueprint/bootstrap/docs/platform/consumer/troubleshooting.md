@@ -292,10 +292,12 @@ Common first-day issues for generated repositories.
 ## Runtime credentials ESO reconciliation is not converging
 - Run the canonical reconciliation command directly:
   ```bash
-  make auth-reconcile-eso-runtime-secrets
+  make auth-reconcile-runtime-identity
   ```
 - Inspect reconciliation state:
   - `artifacts/infra/runtime_credentials_eso_reconcile.env`
+  - `artifacts/infra/argocd_repo_credentials_reconcile.env`
+  - `artifacts/infra/runtime_identity_reconcile.env`
 - Common failure modes:
   - source secret missing:
     - seed with `RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS='username=...,password=...'`

@@ -15,6 +15,10 @@ spec:
       default: "180"
     - name: RUNTIME_CREDENTIALS_REQUIRED
       default: "false"
+    - name: ARGOCD_REPO_USERNAME
+      default: x-access-token
+    - name: ARGOCD_REPO_CREDENTIALS_REQUIRED
+      default: "false"
 
   eso:
     source_secret_key: runtime-credentials-source
@@ -61,6 +65,22 @@ spec:
             source_property: KEYCLOAK_CLIENT_SECRET
           - secret_key: cookie-secret
             source_property: IAP_COOKIE_SECRET
+      - id: argocd-gitops-repo
+        module_id: ""
+        namespace: argocd
+        external_secret_name: argocd-gitops-repo
+        target_secret_name: argocd-gitops-repo
+        target_template_labels:
+          argocd.argoproj.io/secret-type: repository
+        data:
+          - secret_key: type
+            source_property: ARGOCD_REPO_TYPE
+          - secret_key: url
+            source_property: ARGOCD_REPO_URL
+          - secret_key: username
+            source_property: ARGOCD_REPO_USERNAME
+          - secret_key: password
+            source_property: ARGOCD_REPO_TOKEN
       - id: postgres-runtime-credentials
         module_id: postgres
         namespace: data
