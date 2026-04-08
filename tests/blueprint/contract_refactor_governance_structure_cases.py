@@ -427,6 +427,7 @@ class GovernanceStructureCases(RefactorContractBase):
                 "quality-ci-blueprint",
                 "quality-ci-generated-consumer-smoke",
                 "auth-reconcile-eso-runtime-secrets",
+                "auth-reconcile-runtime-identity",
                 "docs-build",
                 "docs-smoke",
                 "test-contracts-async-producer",

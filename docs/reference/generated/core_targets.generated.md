@@ -96,6 +96,8 @@ This file is auto-generated. Do not edit it manually.
 | `docs-build` | Build docs site |
 | `docs-smoke` | Smoke docs site output |
 | `auth-reconcile-eso-runtime-secrets` | Reconcile generic ESO runtime source-to-target credentials contract |
+| `auth-reconcile-argocd-repo-credentials` | Reconcile ArgoCD Git repository credentials and validate URL/auth contract |
+| `auth-reconcile-runtime-identity` | Reconcile runtime identity contracts (ESO, Argo repo access, Keycloak/module coverage) |
 | `apps-bootstrap` | Bootstrap app build/deploy prerequisites |
 | `apps-ci-bootstrap` | Bootstrap CI runner dependencies for app/test lanes (consumer-owned override point) |
 | `apps-ci-bootstrap-consumer` | Consumer-owned dependency install hook for app/test lanes (required in generated-consumer repos) |

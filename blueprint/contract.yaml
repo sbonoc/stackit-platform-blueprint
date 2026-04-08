@@ -93,6 +93,8 @@ spec:
       - scripts/bin/infra/workload_health_check.py
       - scripts/bin/infra/contract_test_fast.sh
       - scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh
+      - scripts/bin/platform/auth/reconcile_argocd_repo_credentials.sh
+      - scripts/bin/platform/auth/reconcile_runtime_identity.sh
       - scripts/bin/quality/check_test_pyramid.py
       - scripts/bin/quality/hooks_fast.sh
       - scripts/bin/quality/lint_docs.py
@@ -828,6 +830,8 @@ spec:
       - quality-ci-blueprint
       - quality-ci-generated-consumer-smoke
       - auth-reconcile-eso-runtime-secrets
+      - auth-reconcile-argocd-repo-credentials
+      - auth-reconcile-runtime-identity
       - backend-test-unit
       - backend-test-integration
       - backend-test-contracts

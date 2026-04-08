@@ -19,7 +19,7 @@ SHELL := /bin/bash
   backend-test-unit backend-test-integration backend-test-contracts backend-test-e2e \
   touchpoints-test-unit touchpoints-test-integration touchpoints-test-contracts touchpoints-test-e2e \
   test-unit-all test-integration-all test-contracts-all test-e2e-all-local test-e2e-all-local-full test-e2e-all-local-execute \
-  auth-reconcile-eso-runtime-secrets \
+  auth-reconcile-eso-runtime-secrets auth-reconcile-argocd-repo-credentials auth-reconcile-runtime-identity \
   docs-install docs-run docs-build docs-smoke
 
 help: ## Show targets

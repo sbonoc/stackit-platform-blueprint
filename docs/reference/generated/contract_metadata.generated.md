@@ -101,6 +101,8 @@
 - `quality-ci-blueprint`
 - `quality-ci-generated-consumer-smoke`
 - `auth-reconcile-eso-runtime-secrets`
+- `auth-reconcile-argocd-repo-credentials`
+- `auth-reconcile-runtime-identity`
 - `backend-test-unit`
 - `backend-test-integration`
 - `backend-test-contracts`
