@@ -45,6 +45,7 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn("quality-docs-sync-module-contract-summaries", make_template)
         self.assertIn("quality-docs-check-module-contract-summaries-sync", make_template)
         self.assertIn("quality-test-pyramid", make_template)
+        self.assertIn("infra-contract-test-fast", make_template)
 
     def test_generated_makefile_exposes_quality_docs_targets(self) -> None:
         generated_make = _read("make/blueprint.generated.mk")
@@ -66,6 +67,7 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn("quality-docs-sync-module-contract-summaries", generated_make)
         self.assertIn("quality-docs-check-module-contract-summaries-sync", generated_make)
         self.assertIn("quality-test-pyramid", generated_make)
+        self.assertIn("infra-contract-test-fast", generated_make)
 
     def test_docs_generator_supports_check_mode(self) -> None:
         generator = _read("scripts/lib/docs/generate_contract_docs.py")

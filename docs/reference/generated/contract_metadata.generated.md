@@ -49,6 +49,7 @@
 - `quality-test-pyramid`
 - `infra-prereqs`
 - `infra-help-reference`
+- `infra-contract-test-fast`
 - `infra-bootstrap`
 - `infra-local-destroy-all`
 - `infra-destroy-disabled-modules`

@@ -200,8 +200,11 @@ infra-prereqs: ## Verify local prerequisites and optionally auto-install missing
 infra-help-reference: ## Show full Make targets and variable defaults reference
 	@scripts/bin/infra/help_reference.sh $(MAKEFILE_LIST)
 
+infra-contract-test-fast: ## Run fast infra contract helper CLI tests
+	@scripts/bin/infra/contract_test_fast.sh
+
 INFRA_ENV_GUARDED_TARGETS := \
-	infra-bootstrap infra-local-destroy-all infra-destroy-disabled-modules infra-validate infra-smoke infra-provision infra-deploy infra-provision-deploy \
+	infra-contract-test-fast infra-bootstrap infra-local-destroy-all infra-destroy-disabled-modules infra-validate infra-smoke infra-provision infra-deploy infra-provision-deploy \
 	infra-stackit-bootstrap-preflight infra-stackit-bootstrap-plan infra-stackit-bootstrap-apply infra-stackit-bootstrap-destroy \
 	infra-stackit-foundation-preflight infra-stackit-foundation-plan infra-stackit-foundation-apply infra-stackit-foundation-destroy \
 	infra-stackit-foundation-fetch-kubeconfig infra-stackit-foundation-refresh-kubeconfig infra-stackit-foundation-seed-runtime-secret \

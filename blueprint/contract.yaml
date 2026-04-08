@@ -91,6 +91,7 @@ spec:
       - scripts/bin/infra/identity_aware_proxy_deploy.sh
       - scripts/bin/infra/stackit_foundation_seed_runtime_secret.sh
       - scripts/bin/infra/workload_health_check.py
+      - scripts/bin/infra/contract_test_fast.sh
       - scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh
       - scripts/bin/quality/check_test_pyramid.py
       - scripts/bin/quality/hooks_fast.sh
@@ -775,6 +776,7 @@ spec:
       - quality-test-pyramid
       - infra-prereqs
       - infra-help-reference
+      - infra-contract-test-fast
       - infra-bootstrap
       - infra-local-destroy-all
       - infra-destroy-disabled-modules

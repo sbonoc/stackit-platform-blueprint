@@ -146,6 +146,7 @@ class ScriptsRefactorCases(RefactorContractBase):
         self.assertIn("quality-docs-check-module-contract-summaries-sync", hooks_fast)
         self.assertIn("quality-test-pyramid", hooks_fast)
         self.assertIn("infra-validate", hooks_fast)
+        self.assertIn("infra-contract-test-fast", hooks_fast)
         self.assertIn("infra-audit-version", hooks_strict)
         self.assertIn("apps-audit-versions", hooks_strict)
         self.assertIn("hooks_fast.sh", hooks_run)

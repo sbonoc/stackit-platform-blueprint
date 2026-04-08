@@ -52,6 +52,7 @@ This file is auto-generated. Do not edit it manually.
 | `quality-test-pyramid` | Enforce repository test-pyramid ratios from canonical classification contract |
 | `infra-prereqs` | Verify local prerequisites and optionally auto-install missing tools |
 | `infra-help-reference` | Show full Make targets and variable defaults reference |
+| `infra-contract-test-fast` | Run fast infra contract helper CLI tests |
 | `infra-bootstrap` | Bootstrap infra-only tooling/scaffolding |
 | `infra-local-destroy-all` | Destroy blueprint-managed resources from the selected local cluster and preserve the cluster itself |
 | `infra-destroy-disabled-modules` | Destroy resources for currently disabled optional modules |

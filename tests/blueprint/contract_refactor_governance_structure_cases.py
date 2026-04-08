@@ -412,6 +412,7 @@ class GovernanceStructureCases(RefactorContractBase):
                 "quality-test-pyramid",
                 "infra-prereqs",
                 "infra-help-reference",
+                "infra-contract-test-fast",
                 "infra-local-destroy-all",
                 "infra-destroy-disabled-modules",
                 "infra-stackit-ci-github-setup",
