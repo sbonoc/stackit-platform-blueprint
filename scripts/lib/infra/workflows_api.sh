@@ -71,136 +71,19 @@ workflows_api_json_pick() {
   local default_value="$2"
   shift 2 || true
 
-  python3 - "$json_file" "$default_value" "$@" <<'PY'
-import json
-import sys
-from pathlib import Path
-
-json_path = Path(sys.argv[1])
-default = sys.argv[2]
-keys = sys.argv[3:]
-
-try:
-    payload = json.loads(json_path.read_text(encoding="utf-8"))
-except Exception:
-    print(default)
-    raise SystemExit(0)
-
-
-def pick_key(value, dotted):
-    current = value
-    for part in dotted.split("."):
-        if isinstance(current, dict):
-            if part not in current:
-                return None
-            current = current[part]
-            continue
-        if isinstance(current, list):
-            if not part.isdigit():
-                return None
-            idx = int(part)
-            if idx < 0 or idx >= len(current):
-                return None
-            current = current[idx]
-            continue
-        return None
-    return current
-
-for key in keys:
-    value = pick_key(payload, key)
-    if value is None:
-        continue
-    if isinstance(value, str):
-        if value.strip() == "":
-            continue
-        print(value)
-        raise SystemExit(0)
-    if isinstance(value, (int, float, bool)):
-        print(str(value))
-        raise SystemExit(0)
-
-print(default)
-PY
+  python3 "$ROOT_DIR/scripts/lib/infra/workflows_api_json.py" pick "$json_file" "$default_value" "$@"
 }
 
 workflows_api_count_instances_with_status() {
   local json_file="$1"
   local expected_status="$2"
 
-  python3 - "$json_file" "$expected_status" <<'PY'
-import json
-import sys
-from pathlib import Path
-
-json_path = Path(sys.argv[1])
-expected = sys.argv[2].strip().lower()
-
-try:
-    payload = json.loads(json_path.read_text(encoding="utf-8"))
-except Exception:
-    print("0")
-    raise SystemExit(0)
-
-if isinstance(payload, list):
-    items = payload
-elif isinstance(payload, dict):
-    items = payload.get("items") or payload.get("instances") or payload.get("data") or []
-else:
-    items = []
-
-count = 0
-for item in items:
-    if not isinstance(item, dict):
-        continue
-    status = item.get("status")
-    if status is None and isinstance(item.get("state"), str):
-        status = item.get("state")
-    if not isinstance(status, str):
-        continue
-    if status.strip().lower() == expected:
-        count += 1
-
-print(str(count))
-PY
+  python3 "$ROOT_DIR/scripts/lib/infra/workflows_api_json.py" count-status "$json_file" "$expected_status"
 }
 
 workflows_api_find_instance_id_by_display_name() {
   local json_file="$1"
   local display_name="$2"
 
-  python3 - "$json_file" "$display_name" <<'PY'
-import json
-import sys
-from pathlib import Path
-
-json_path = Path(sys.argv[1])
-expected_name = sys.argv[2]
-
-try:
-    payload = json.loads(json_path.read_text(encoding="utf-8"))
-except Exception:
-    print("")
-    raise SystemExit(0)
-
-if isinstance(payload, list):
-    items = payload
-elif isinstance(payload, dict):
-    items = payload.get("items") or payload.get("instances") or payload.get("data") or []
-else:
-    items = []
-
-for item in items:
-    if not isinstance(item, dict):
-        continue
-    actual_name = item.get("displayName") or item.get("name") or item.get("instanceName")
-    if actual_name != expected_name:
-        continue
-    for key in ("id", "instanceId", "instance_id"):
-        value = item.get(key)
-        if isinstance(value, str) and value.strip():
-            print(value)
-            raise SystemExit(0)
-
-print("")
-PY
+  python3 "$ROOT_DIR/scripts/lib/infra/workflows_api_json.py" find-instance-id "$json_file" "$display_name"
 }

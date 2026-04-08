@@ -50,6 +50,11 @@ class SmokeStatusDiagnosticsTests(unittest.TestCase):
                 self.assertTrue(status_snapshot_payload["latestSmoke"]["diagnosticsPresent"])
                 self.assertIn("workloadHealth", smoke_diagnostics_payload)
                 self.assertEqual(smoke_diagnostics_payload["workloadHealth"]["reportPath"], str(REPO_ROOT / "artifacts" / "infra" / "workload_health.json"))
+                self.assertEqual(smoke_diagnostics_payload["appRuntime"]["gitopsEnabled"], True)
+                self.assertEqual(smoke_diagnostics_payload["appRuntime"]["minimumExpectedWorkloads"], 1)
+                self.assertIn("requiredNamespaceMinimumPods", smoke_diagnostics_payload["workloadHealth"])
+                self.assertIn("emptyRuntimeNamespaceCount", smoke_diagnostics_payload["workloadHealth"])
+                self.assertIn("emptyRuntimeNamespaces", smoke_diagnostics_payload["workloadHealth"])
                 self.assertIn("workloadHealth", status_snapshot_payload["latestSmoke"])
 
                 if expected_observability:

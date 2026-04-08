@@ -59,53 +59,7 @@ export STATUS_SMOKE_RESULT_PATH="$ROOT_DIR/artifacts/infra/smoke_result.json"
 export STATUS_SMOKE_DIAGNOSTICS_PATH="$ROOT_DIR/artifacts/infra/smoke_diagnostics.json"
 
 json_payload="$(
-  python3 - <<'PY'
-import json
-import os
-from pathlib import Path
-
-modules = [value for value in os.environ.get("STATUS_ENABLED_MODULES", "").split(",") if value]
-smoke_result_path = Path(os.environ.get("STATUS_SMOKE_RESULT_PATH", ""))
-smoke_diagnostics_path = Path(os.environ.get("STATUS_SMOKE_DIAGNOSTICS_PATH", ""))
-latest_smoke = {
-    "resultPath": str(smoke_result_path) if smoke_result_path else "",
-    "diagnosticsPath": str(smoke_diagnostics_path) if smoke_diagnostics_path else "",
-    "resultPresent": smoke_result_path.is_file(),
-    "diagnosticsPresent": smoke_diagnostics_path.is_file(),
-    "status": "",
-    "workloadHealth": {},
-}
-# Keep the latest-smoke shape stable even when the most recent run failed before
-# writing both artifacts; callers can rely on presence flags instead of guessing.
-if smoke_result_path.is_file():
-    result_payload = json.loads(smoke_result_path.read_text(encoding="utf-8"))
-    latest_smoke["status"] = str(result_payload.get("status", ""))
-if smoke_diagnostics_path.is_file():
-    diagnostics_payload = json.loads(smoke_diagnostics_path.read_text(encoding="utf-8"))
-    latest_smoke["workloadHealth"] = diagnostics_payload.get("workloadHealth", {})
-payload = {
-    "profile": os.environ.get("STATUS_PROFILE", ""),
-    "stack": os.environ.get("STATUS_STACK", ""),
-    "environment": os.environ.get("STATUS_ENVIRONMENT", ""),
-    "toolingMode": os.environ.get("STATUS_TOOLING_MODE", ""),
-    "observabilityEnabled": os.environ.get("STATUS_OBSERVABILITY_ENABLED", "false") == "true",
-    "enabledModules": modules,
-    "kubectlContext": os.environ.get("STATUS_KUBECTL_CONTEXT", "") or None,
-    "kubeconfigPath": os.environ.get("STATUS_KUBECONFIG_PATH", "") or None,
-    "kubeAccessSource": os.environ.get("STATUS_KUBE_ACCESS_SOURCE", "") or None,
-    "latestSmoke": latest_smoke,
-    "artifacts": {
-        "provision": os.environ.get("STATUS_PROVISION_PRESENT", "false") == "true",
-        "deploy": os.environ.get("STATUS_DEPLOY_PRESENT", "false") == "true",
-        "smoke": os.environ.get("STATUS_SMOKE_PRESENT", "false") == "true",
-        "stackitBootstrapApply": os.environ.get("STATUS_STACKIT_BOOTSTRAP_APPLY_PRESENT", "false") == "true",
-        "stackitFoundationApply": os.environ.get("STATUS_STACKIT_FOUNDATION_APPLY_PRESENT", "false") == "true",
-        "stackitRuntimeDeploy": os.environ.get("STATUS_STACKIT_RUNTIME_DEPLOY_PRESENT", "false") == "true",
-        "stackitSmokeRuntime": os.environ.get("STATUS_STACKIT_SMOKE_RUNTIME_PRESENT", "false") == "true",
-    },
-}
-print(json.dumps(payload, indent=2, sort_keys=True))
-PY
+  python3 "$ROOT_DIR/scripts/lib/infra/status_json_payload.py"
 )"
 
 snapshot_path="$ROOT_DIR/artifacts/infra/infra_status_snapshot.json"

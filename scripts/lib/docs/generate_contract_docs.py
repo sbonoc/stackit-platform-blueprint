@@ -91,6 +91,7 @@ def render_markdown(
     modules: list[ModuleMetadata],
     optional_runtime_contracts: list[OptionalRuntimeContractMetadata],
     event_contract: dict[str, Any],
+    app_runtime_gitops_contract: dict[str, Any],
     zero_downtime_contract: dict[str, Any],
     tenant_context_contract: dict[str, Any],
 ) -> str:
@@ -173,6 +174,35 @@ def render_markdown(
     retry = _mapping(event_reliability.get("retry"))
     if retry:
         lines.append(f"- `retry.strategy`: `{_string(retry.get('strategy'))}`")
+    lines.append("")
+
+    app_runtime_required_paths = _list_of_str(app_runtime_gitops_contract.get("required_paths_when_enabled"))
+    app_runtime_required_kinds = _list_of_str(app_runtime_gitops_contract.get("workload_kinds_required_when_enabled"))
+    app_runtime_smoke_guardrails = _mapping(app_runtime_gitops_contract.get("smoke_guardrails"))
+    lines.append("## Runtime Contract: `app_runtime_gitops_contract`")
+    lines.append("")
+    lines.append(f"- Mode: `{_string(app_runtime_gitops_contract.get('mode'))}`")
+    lines.append(f"- App catalog manifest path: `{_string(app_runtime_gitops_contract.get('app_catalog_manifest_path'))}`")
+    lines.append("")
+    lines.append("### Required Runtime Paths (When Enabled)")
+    for path in app_runtime_required_paths:
+        lines.append(f"- `{path}`")
+    lines.append("")
+    lines.append("### Required Workload Kinds (When Enabled)")
+    for kind in app_runtime_required_kinds:
+        lines.append(f"- `{kind}`")
+    lines.append("")
+    lines.append("### Smoke Guardrails")
+    lines.append(f"- App namespace: `{_string(app_runtime_smoke_guardrails.get('app_namespace'))}`")
+    lines.append(
+        f"- Minimum workloads env var: `{_string(app_runtime_smoke_guardrails.get('minimum_workloads_env'))}`"
+    )
+    lines.append(
+        f"- Minimum workloads default: `{_string(app_runtime_smoke_guardrails.get('minimum_workloads_default'))}`"
+    )
+    lines.append(f"- Diagnostics reason: `{_string(app_runtime_smoke_guardrails.get('diagnostics_reason'))}`")
+    for kind in _list_of_str(app_runtime_smoke_guardrails.get("workload_kinds")):
+        lines.append(f"- Smoke workload kind: `{kind}`")
     lines.append("")
 
     zero_lifecycle = _mapping(zero_downtime_contract.get("lifecycle"))
@@ -302,6 +332,7 @@ def main() -> int:
 
     spec_raw = _mapping(contract.raw.get("spec"))
     event_contract = _mapping(spec_raw.get("event_messaging_contract"))
+    app_runtime_gitops_contract = _mapping(spec_raw.get("app_runtime_gitops_contract"))
     zero_downtime_contract = _mapping(spec_raw.get("zero_downtime_evolution_contract"))
     tenant_context_contract = _mapping(spec_raw.get("tenant_context_contract"))
     optional_runtime_contracts = [
@@ -310,6 +341,12 @@ def main() -> int:
             enabled_by_default=_bool_text(event_contract.get("enabled_by_default")),
             enable_flag=_string(event_contract.get("enable_flag")),
             summary="Canonical async envelope, versioning, outbox/inbox, and idempotency baseline.",
+        ),
+        OptionalRuntimeContractMetadata(
+            contract_id="app_runtime_gitops_contract",
+            enabled_by_default=_bool_text(app_runtime_gitops_contract.get("enabled_by_default")),
+            enable_flag=_string(app_runtime_gitops_contract.get("enable_flag")),
+            summary="Baseline app runtime GitOps workload scaffold and app-catalog delivery mapping contract.",
         ),
         OptionalRuntimeContractMetadata(
             contract_id="zero_downtime_evolution_contract",
@@ -336,6 +373,7 @@ def main() -> int:
         modules=modules,
         optional_runtime_contracts=optional_runtime_contracts,
         event_contract=event_contract,
+        app_runtime_gitops_contract=app_runtime_gitops_contract,
         zero_downtime_contract=zero_downtime_contract,
         tenant_context_contract=tenant_context_contract,
     )

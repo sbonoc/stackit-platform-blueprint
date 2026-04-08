@@ -100,6 +100,33 @@ Keep these surfaces synchronized after changes:
 - `apps/catalog/versions.lock` (script-friendly pin mirror)
 - app test lanes in `make/platform.mk` (`backend-*`, `touchpoints-*`, and aggregate `test-*-all` targets)
 
+### App Runtime GitOps Scaffold (Enabled by Default)
+`APP_RUNTIME_GITOPS_ENABLED` defaults to `true` and keeps the baseline app runtime workload path active under:
+- `infra/gitops/platform/base/apps/kustomization.yaml`
+- `infra/gitops/platform/base/apps/backend-api-*.yaml`
+- `infra/gitops/platform/base/apps/touchpoints-web-*.yaml`
+
+Validate scaffold and runtime-path wiring:
+```bash
+APP_RUNTIME_GITOPS_ENABLED=true make infra-bootstrap
+APP_RUNTIME_GITOPS_ENABLED=true make infra-validate
+```
+
+In execute mode (`DRY_RUN=false`), runtime smoke guardrails also assert live workload presence:
+- `APP_RUNTIME_MIN_WORKLOADS` controls the minimum expected `Deployment`/`StatefulSet` count in namespace `apps` (default `1`).
+- `make apps-smoke` performs the live check directly.
+- The `infra-smoke` wrapper records the same assertion and emits explicit empty-runtime diagnostics in `artifacts/infra/smoke_diagnostics.json`.
+
+When app catalog scaffold is also enabled, `apps/catalog/manifest.yaml` includes:
+- `deliveryTopology` for baseline workload/service mapping
+- `runtimeDeliveryContract` with canonical GitOps manifest paths and default image contract values
+
+To replace scaffold defaults with real runtime images and wiring:
+1. Publish images (`make apps-publish-ghcr`).
+2. Update `apps/catalog/manifest.yaml` (`runtimeDeliveryContract.gitopsWorkloads[*].defaultImage`) and mirror those image refs in `infra/gitops/platform/base/apps/*deployment.yaml`.
+3. Add app env/secret references in deployment manifests (`env`, `envFrom`, secret/configMap refs) using your runtime credential contract outputs.
+4. Reconcile runtime (`make infra-deploy` or Argo sync of `platform-<env>-core`).
+
 ## 5) Continue with Delivery Flow
 ```bash
 make infra-context

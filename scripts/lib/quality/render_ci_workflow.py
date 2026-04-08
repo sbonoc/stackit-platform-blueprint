@@ -18,6 +18,7 @@ from scripts.lib.blueprint.contract_schema import load_blueprint_contract  # noq
 
 DEFAULT_OUTPUT = Path(".github/workflows/ci.yml")
 BLUEPRINT_QUALITY_LANE = ("make quality-ci-blueprint",)
+BLUEPRINT_SLOW_INTEGRATION_LANE = ("make quality-ci-slow-integration",)
 BLUEPRINT_FULL_PUSH_LANE = ("make quality-ci-full-e2e",)
 GENERATED_CONSUMER_SMOKE_LANE = ("make quality-ci-generated-consumer-smoke",)
 
@@ -46,10 +47,21 @@ def _render_ci(default_branch: str) -> str:
         "      - name: Run quality gates\n"
         "        run: |\n"
         f"{_indent_block(BLUEPRINT_QUALITY_LANE, spaces=10)}\n\n"
+        f"      - name: Run canonical slow integration lane on {default_branch} updates\n"
+        "        if: github.event_name == 'push'\n"
+        "        run: |\n"
+        f"{_indent_block(BLUEPRINT_SLOW_INTEGRATION_LANE, spaces=10)}\n\n"
         f"      - name: Run canonical full e2e lane on {default_branch} updates\n"
         "        if: github.event_name == 'push'\n"
         "        run: |\n"
         f"{_indent_block(BLUEPRINT_FULL_PUSH_LANE, spaces=10)}\n\n"
+        "      - name: Upload runtime contract drift report artifact\n"
+        "        if: always()\n"
+        "        uses: actions/upload-artifact@v4\n"
+        "        with:\n"
+        "          name: runtime-contract-drift-report\n"
+        "          path: artifacts/blueprint/runtime_contract_drift_report.json\n"
+        "          if-no-files-found: warn\n\n"
         "  generated-consumer-smoke:\n"
         "    runs-on: ubuntu-latest\n"
         "    steps:\n"

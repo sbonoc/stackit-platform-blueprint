@@ -44,6 +44,9 @@ require_command bash
 require_command git
 require_command make
 require_command python3
+set_default_env APP_RUNTIME_GITOPS_ENABLED "true"
+app_runtime_gitops_enabled="$(shell_normalize_bool_truefalse "$APP_RUNTIME_GITOPS_ENABLED")"
+log_metric "app_runtime_gitops_enabled_total" "1" "enabled=$app_runtime_gitops_enabled"
 
 infra_bootstrap_init_managed_skip_count=0
 
@@ -148,6 +151,7 @@ bootstrap_infra_directories() {
   ensure_dir "$ROOT_DIR/infra/gitops/argocd/environments/stage"
   ensure_dir "$ROOT_DIR/infra/gitops/argocd/environments/prod"
   ensure_dir "$ROOT_DIR/infra/gitops/platform/base"
+  ensure_dir "$ROOT_DIR/infra/gitops/platform/base/apps"
   ensure_dir "$ROOT_DIR/infra/gitops/platform/base/security"
   ensure_dir "$ROOT_DIR/infra/gitops/platform/base/extensions"
   ensure_dir "$ROOT_DIR/infra/gitops/platform/environments/local"
@@ -174,6 +178,11 @@ bootstrap_infra_static_templates() {
   ensure_infra_template_file "infra/gitops/argocd/base/namespace.yaml"
   ensure_infra_template_file "infra/gitops/platform/base/kustomization.yaml"
   ensure_infra_template_file "infra/gitops/platform/base/namespaces.yaml"
+  ensure_infra_template_file "infra/gitops/platform/base/apps/kustomization.yaml"
+  ensure_infra_template_file "infra/gitops/platform/base/apps/backend-api-deployment.yaml"
+  ensure_infra_template_file "infra/gitops/platform/base/apps/backend-api-service.yaml"
+  ensure_infra_template_file "infra/gitops/platform/base/apps/touchpoints-web-deployment.yaml"
+  ensure_infra_template_file "infra/gitops/platform/base/apps/touchpoints-web-service.yaml"
   ensure_infra_template_file "infra/gitops/platform/base/security/kustomization.yaml"
   ensure_infra_template_file "infra/gitops/platform/base/security/runtime-source-store.yaml"
   ensure_infra_template_file "infra/gitops/platform/base/security/runtime-external-secrets-core.yaml"

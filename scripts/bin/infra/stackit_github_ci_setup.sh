@@ -96,27 +96,15 @@ if [[ -z "${STACKIT_GITHUB_CI_REPO:-}" ]]; then
 fi
 
 default_envs="$(
-  python3 - <<'PY' "$STACKIT_GITHUB_CI_CONTRACT_PATH"
-import json
-import sys
-from pathlib import Path
-
-payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
-for value in payload.get("default_environments", []):
-    print(str(value).strip())
-PY
+  python3 "$ROOT_DIR/scripts/lib/infra/stackit_github_ci_contract.py" \
+    "$STACKIT_GITHUB_CI_CONTRACT_PATH" \
+    default_environments
 )"
 
 required_secrets="$(
-  python3 - <<'PY' "$STACKIT_GITHUB_CI_CONTRACT_PATH"
-import json
-import sys
-from pathlib import Path
-
-payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
-for value in payload.get("required_repository_secrets", []):
-    print(str(value).strip())
-PY
+  python3 "$ROOT_DIR/scripts/lib/infra/stackit_github_ci_contract.py" \
+    "$STACKIT_GITHUB_CI_CONTRACT_PATH" \
+    required_repository_secrets
 )"
 
 if [[ -z "${STACKIT_GITHUB_CI_ENVIRONMENTS:-}" ]]; then

@@ -9,7 +9,12 @@ from tests._shared.helpers import REPO_ROOT, run
 
 
 class WorkloadHealthCheckTests(unittest.TestCase):
-    def _run_health_check(self, payload: dict, *namespaces: str) -> tuple[int, dict, str]:
+    def _run_health_check(
+        self,
+        payload: dict,
+        *namespaces: str,
+        required_namespace_min_pods: dict[str, int] | None = None,
+    ) -> tuple[int, dict, str]:
         with tempfile.TemporaryDirectory() as tmpdir:
             input_path = Path(tmpdir) / "pods.json"
             output_path = Path(tmpdir) / "workload-health.json"
@@ -25,6 +30,8 @@ class WorkloadHealthCheckTests(unittest.TestCase):
             ]
             for namespace in namespaces:
                 cmd.extend(["--namespace", namespace])
+            for namespace, minimum_pods in sorted((required_namespace_min_pods or {}).items()):
+                cmd.extend(["--required-namespace-min-pods", f"{namespace}={minimum_pods}"])
 
             result = run(cmd)
             report = json.loads(output_path.read_text(encoding="utf-8"))
@@ -126,6 +133,69 @@ class WorkloadHealthCheckTests(unittest.TestCase):
         self.assertEqual(code, 0, msg=output)
         self.assertEqual(report["status"], "healthy")
         self.assertEqual(report["checkedNamespaces"], ["apps"])
+
+    def test_required_namespace_min_pods_fails_when_runtime_namespace_is_empty(self) -> None:
+        payload = {
+            "items": [
+                {
+                    "metadata": {"namespace": "security", "name": "keycloak-0"},
+                    "status": {
+                        "phase": "Running",
+                        "containerStatuses": [
+                            {
+                                "name": "keycloak",
+                                "ready": True,
+                                "restartCount": 0,
+                                "state": {"running": {"startedAt": "2026-04-08T18:30:00Z"}},
+                            }
+                        ],
+                    },
+                }
+            ]
+        }
+
+        code, report, output = self._run_health_check(
+            payload,
+            "apps",
+            required_namespace_min_pods={"apps": 1},
+        )
+        self.assertNotEqual(code, 0, msg=output)
+        self.assertEqual(report["status"], "unhealthy")
+        self.assertEqual(report["statusReason"], "empty-runtime-workloads")
+        self.assertEqual(report["emptyRuntimeNamespaceCount"], 1)
+        self.assertEqual(report["emptyRuntimeNamespaces"], ["apps"])
+        self.assertEqual(report["requiredNamespaceMinimumPods"][0]["status"], "missing")
+
+    def test_required_namespace_min_pods_passes_when_threshold_is_met(self) -> None:
+        payload = {
+            "items": [
+                {
+                    "metadata": {"namespace": "apps", "name": "backend-api-5b95b7fbd8-w2jv6"},
+                    "status": {
+                        "phase": "Running",
+                        "containerStatuses": [
+                            {
+                                "name": "backend-api",
+                                "ready": True,
+                                "restartCount": 0,
+                                "state": {"running": {"startedAt": "2026-04-08T18:30:00Z"}},
+                            }
+                        ],
+                    },
+                }
+            ]
+        }
+
+        code, report, output = self._run_health_check(
+            payload,
+            "apps",
+            required_namespace_min_pods={"apps": 1},
+        )
+        self.assertEqual(code, 0, msg=output)
+        self.assertEqual(report["status"], "healthy")
+        self.assertEqual(report["statusReason"], "healthy")
+        self.assertEqual(report["emptyRuntimeNamespaceCount"], 0)
+        self.assertEqual(report["requiredNamespaceMinimumPods"][0]["status"], "ok")
 
 
 if __name__ == "__main__":

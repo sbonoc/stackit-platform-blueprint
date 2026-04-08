@@ -204,6 +204,39 @@ Common first-day issues for generated repositories.
   ```
 - If you intentionally run a minimal repo without app catalog scaffold, keep `APP_CATALOG_SCAFFOLD_ENABLED=false`; `apps-smoke` records a skipped catalog check and still succeeds.
 
+## Argo core app syncs but `apps` runtime workloads are missing
+- Baseline app runtime GitOps scaffold is controlled by `APP_RUNTIME_GITOPS_ENABLED` (default `true`).
+- Reconcile and validate scaffold contract explicitly:
+  ```bash
+  APP_RUNTIME_GITOPS_ENABLED=true make infra-bootstrap
+  APP_RUNTIME_GITOPS_ENABLED=true make infra-validate
+  ```
+- Confirm runtime path includes workload manifests:
+  - `infra/gitops/platform/base/kustomization.yaml` has `- apps`
+  - `infra/gitops/platform/base/apps/*` contains `Deployment` and `Service` manifests
+- If `APP_CATALOG_SCAFFOLD_ENABLED=true`, keep `apps/catalog/manifest.yaml` synchronized with runtime paths:
+  - `deliveryTopology`
+  - `runtimeDeliveryContract.gitopsWorkloads`
+  - `runtimeDeliveryContract.manifestsRoot`
+- If you replaced scaffold images, ensure the same refs are updated in:
+  - `apps/catalog/manifest.yaml`
+  - `infra/gitops/platform/base/apps/*deployment.yaml`
+
+## `infra-smoke` fails with `empty-runtime-workloads`
+- Execute-mode smoke (`DRY_RUN=false`) now fails deterministically when app runtime is declared enabled but expected runtime workloads are absent.
+- Guardrail contract defaults:
+  - `APP_RUNTIME_GITOPS_ENABLED=true`
+  - `APP_RUNTIME_MIN_WORKLOADS=1` (minimum `Deployment`/`StatefulSet` objects in namespace `apps`)
+- Inspect:
+  - `artifacts/apps/apps_smoke.env` (`runtime_workload_check_*` markers)
+  - `artifacts/infra/workload_health.json` (`statusReason`, `requiredNamespaceMinimumPods`, `emptyRuntimeNamespaces`)
+  - `artifacts/infra/smoke_diagnostics.json` (`workloadHealth.emptyRuntimeNamespaceCount`, `appRuntime.minimumExpectedWorkloads`)
+- If runtime should be intentionally empty during a transition window, set an explicit override for that run:
+  ```bash
+  APP_RUNTIME_MIN_WORKLOADS=0 DRY_RUN=false make infra-smoke
+  ```
+  Then restore `APP_RUNTIME_MIN_WORKLOADS=1` once workload deployment is expected again.
+
 ## CI test lanes fail on clean runners with missing `fastapi`, `vitest`, or Playwright browsers
 - Ensure your workflow uses `.github/actions/prepare-blueprint-ci/action.yml` before test lanes.
 - The current action bootstrap contract delegates dependency installation to `BLUEPRINT_PROFILE=local-lite OBSERVABILITY_ENABLED=false make apps-ci-bootstrap`.

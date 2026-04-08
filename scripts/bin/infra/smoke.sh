@@ -32,6 +32,20 @@ SMOKE_WORKLOAD_HEALTH_PATH="$ROOT_DIR/artifacts/infra/workload_health.json"
 SMOKE_POD_SNAPSHOT_PATH="$ROOT_DIR/artifacts/infra/workload_pods.json"
 SMOKE_STARTED_AT="$(date +%s)"
 SMOKE_STATUS="failure"
+set_default_env APP_RUNTIME_GITOPS_ENABLED "true"
+app_runtime_gitops_enabled="$(shell_normalize_bool_truefalse "$APP_RUNTIME_GITOPS_ENABLED")"
+set_default_env APP_RUNTIME_MIN_WORKLOADS "1"
+if ! [[ "$APP_RUNTIME_MIN_WORKLOADS" =~ ^[0-9]+$ ]]; then
+  log_fatal "APP_RUNTIME_MIN_WORKLOADS must be a non-negative integer; got: $APP_RUNTIME_MIN_WORKLOADS"
+fi
+app_runtime_min_workloads="$APP_RUNTIME_MIN_WORKLOADS"
+if [[ "$app_runtime_gitops_enabled" != "true" ]]; then
+  app_runtime_min_workloads="0"
+fi
+log_metric \
+  "infra_smoke_expected_runtime_min_workloads_total" \
+  "$app_runtime_min_workloads" \
+  "gitops_enabled=$app_runtime_gitops_enabled"
 
 workload_health_namespaces() {
   cat <<'EOF'
@@ -76,62 +90,9 @@ write_smoke_json_artifacts() {
   SMOKE_WORKLOAD_HEALTH_PATH="$SMOKE_WORKLOAD_HEALTH_PATH" \
   SMOKE_POD_SNAPSHOT_PATH="$SMOKE_POD_SNAPSHOT_PATH" \
   SMOKE_WORKLOAD_NAMESPACES="$(workload_health_namespaces | paste -sd, -)" \
-  python3 - <<'PY'
-import json
-import os
-from pathlib import Path
-
-modules = [value for value in os.environ.get("SMOKE_ENABLED_MODULES", "").split(",") if value]
-workload_health_path = Path(os.environ.get("SMOKE_WORKLOAD_HEALTH_PATH", ""))
-pod_snapshot_path = Path(os.environ.get("SMOKE_POD_SNAPSHOT_PATH", ""))
-workload_report = {}
-if workload_health_path.is_file():
-    workload_report = json.loads(workload_health_path.read_text(encoding="utf-8"))
-result_payload = {
-    "status": os.environ.get("SMOKE_RESULT_STATUS", ""),
-    "profile": os.environ.get("SMOKE_PROFILE", ""),
-    "stack": os.environ.get("SMOKE_STACK", ""),
-    "environment": os.environ.get("SMOKE_ENVIRONMENT", ""),
-    "toolingMode": os.environ.get("SMOKE_TOOLING_MODE", ""),
-    "observabilityEnabled": os.environ.get("SMOKE_OBSERVABILITY_ENABLED", "false") == "true",
-    "enabledModules": modules,
-    "startedAtEpoch": int(os.environ.get("SMOKE_STARTED_AT", "0")),
-    "finishedAtEpoch": int(os.environ.get("SMOKE_FINISHED_AT", "0")),
-}
-diagnostics_payload = {
-    "profile": os.environ.get("SMOKE_PROFILE", ""),
-    "stack": os.environ.get("SMOKE_STACK", ""),
-    "environment": os.environ.get("SMOKE_ENVIRONMENT", ""),
-    "toolingMode": os.environ.get("SMOKE_TOOLING_MODE", ""),
-    "observabilityEnabled": os.environ.get("SMOKE_OBSERVABILITY_ENABLED", "false") == "true",
-    "enabledModules": modules,
-    "kubectlContext": os.environ.get("SMOKE_KUBECTL_CONTEXT", "") or None,
-    "artifacts": {
-        "provision": os.environ.get("SMOKE_PROVISION_PRESENT", "false") == "true",
-        "deploy": os.environ.get("SMOKE_DEPLOY_PRESENT", "false") == "true",
-        "coreRuntimeSmoke": os.environ.get("SMOKE_CORE_RUNTIME_PRESENT", "false") == "true",
-        "appsSmoke": os.environ.get("SMOKE_APPS_PRESENT", "false") == "true",
-    },
-    "workloadHealth": {
-        "reportPath": str(workload_health_path) if workload_health_path else "",
-        "reportPresent": workload_health_path.is_file(),
-        "podSnapshotPath": str(pod_snapshot_path) if pod_snapshot_path else "",
-        "podSnapshotPresent": pod_snapshot_path.is_file(),
-        "monitoredNamespaces": [
-            value for value in os.environ.get("SMOKE_WORKLOAD_NAMESPACES", "").split(",") if value
-        ],
-        "status": workload_report.get("status"),
-        "checkedPodCount": workload_report.get("checkedPodCount"),
-        "unhealthyPodCount": workload_report.get("unhealthyPodCount"),
-    },
-}
-with open(os.environ["SMOKE_RESULT_PATH"], "w", encoding="utf-8") as handle:
-    json.dump(result_payload, handle, indent=2, sort_keys=True)
-    handle.write("\n")
-with open(os.environ["SMOKE_DIAGNOSTICS_PATH"], "w", encoding="utf-8") as handle:
-    json.dump(diagnostics_payload, handle, indent=2, sort_keys=True)
-    handle.write("\n")
-PY
+  SMOKE_APP_RUNTIME_GITOPS_ENABLED="$app_runtime_gitops_enabled" \
+  SMOKE_APP_RUNTIME_MIN_WORKLOADS="$app_runtime_min_workloads" \
+  python3 "$ROOT_DIR/scripts/lib/infra/smoke_artifacts.py"
 }
 
 smoke_exit_handler() {
@@ -166,7 +127,13 @@ run_cmd "$ROOT_DIR/scripts/bin/platform/auth/reconcile_runtime_identity.sh"
 
 run_enabled_modules_action smoke observability
 
-run_cmd "$ROOT_DIR/scripts/bin/platform/apps/smoke.sh"
+apps_smoke_failed="0"
+if ! run_cmd "$ROOT_DIR/scripts/bin/platform/apps/smoke.sh"; then
+  apps_smoke_failed="1"
+  log_metric "infra_smoke_component_failure_total" "1" "component=apps-smoke"
+  log_error \
+    "apps smoke failed; continuing with workload diagnostics so smoke_diagnostics.json captures empty-runtime/unhealthy context"
+fi
 
 run_enabled_modules_action smoke \
   workflows langfuse postgres neo4j \
@@ -179,11 +146,16 @@ if [[ "$(tooling_execution_mode)" == "execute" ]] && command -v kubectl >/dev/nu
     [[ -n "$namespace" ]] || continue
     namespace_args+=(--namespace "$namespace")
   done < <(workload_health_namespaces)
+  required_namespace_args=()
+  if [[ "$app_runtime_min_workloads" -gt 0 ]]; then
+    required_namespace_args+=(--required-namespace-min-pods "apps=$app_runtime_min_workloads")
+  fi
   run_cmd_capture kubectl get pods -A -o json >"$SMOKE_POD_SNAPSHOT_PATH"
   run_cmd python3 "$ROOT_DIR/scripts/bin/infra/workload_health_check.py" \
     --input "$SMOKE_POD_SNAPSHOT_PATH" \
     --output "$SMOKE_WORKLOAD_HEALTH_PATH" \
-    "${namespace_args[@]}"
+    "${namespace_args[@]}" \
+    "${required_namespace_args[@]}"
 fi
 
 core_runtime_smoke_state="none"
@@ -206,6 +178,15 @@ if state_file_exists runtime_identity_reconcile; then
   runtime_identity_state="$(state_file_path runtime_identity_reconcile)"
 fi
 
+apps_smoke_status="success"
+if [[ "$apps_smoke_failed" -ne 0 ]]; then
+  apps_smoke_status="failure"
+fi
+log_metric \
+  "infra_smoke_component_status_total" \
+  "1" \
+  "component=apps-smoke status=$apps_smoke_status app_runtime_gitops_enabled=$app_runtime_gitops_enabled"
+
 state_file="$(
   write_state_file "smoke" \
     "profile=$BLUEPRINT_PROFILE" \
@@ -215,6 +196,9 @@ state_file="$(
     "runtime_credentials_state=$runtime_credentials_state" \
     "runtime_identity_state=$runtime_identity_state" \
     "apps_smoke_state=$apps_smoke_state" \
+    "apps_smoke_status=$apps_smoke_status" \
+    "app_runtime_gitops_enabled=$app_runtime_gitops_enabled" \
+    "app_runtime_min_workloads=$app_runtime_min_workloads" \
     "observability_enabled=$OBSERVABILITY_ENABLED_NORMALIZED" \
     "enabled_modules=$(enabled_modules_csv)" \
     "smoke_result_path=$SMOKE_RESULT_PATH" \
@@ -223,4 +207,7 @@ state_file="$(
     "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 )"
 log_info "smoke state written to $state_file"
+if [[ "$apps_smoke_failed" -ne 0 ]]; then
+  log_fatal "infra smoke failed because apps smoke checks failed; inspect artifacts/apps/apps_smoke.env and artifacts/infra/smoke_diagnostics.json"
+fi
 log_info "infra smoke complete"

@@ -84,6 +84,9 @@ class DocsGenerationTests(unittest.TestCase):
         self.assertIn("## Optional Modules", contract_content)
         self.assertIn("## Optional Runtime Contracts", contract_content)
         self.assertIn("Runtime Contract: `event_messaging_contract`", contract_content)
+        self.assertIn("Runtime Contract: `app_runtime_gitops_contract`", contract_content)
+        self.assertIn("### Smoke Guardrails", contract_content)
+        self.assertIn("APP_RUNTIME_MIN_WORKLOADS", contract_content)
         self.assertIn("Runtime Contract: `zero_downtime_evolution_contract`", contract_content)
         self.assertIn("Runtime Contract: `tenant_context_contract`", contract_content)
 

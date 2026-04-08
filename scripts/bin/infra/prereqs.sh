@@ -160,16 +160,7 @@ install_terraform_linux() {
   tmp_dir="$(mktemp -d)"
   ensure_local_bin
   download_file "https://releases.hashicorp.com/terraform/${version}/terraform_${version}_linux_${ARCH}.zip" "$zipball"
-  python3 - <<'PY' "$zipball" "$tmp_dir"
-import pathlib
-import sys
-import zipfile
-
-archive = pathlib.Path(sys.argv[1])
-destination = pathlib.Path(sys.argv[2])
-with zipfile.ZipFile(archive) as zf:
-    zf.extractall(destination)
-PY
+  python3 "$ROOT_DIR/scripts/lib/infra/prereqs_helpers.py" extract-zip "$zipball" "$tmp_dir"
   install -m 0755 "$tmp_dir/terraform" "$LOCAL_BIN/terraform"
   rm -rf "$tmp_dir" "$zipball"
 }
@@ -313,12 +304,7 @@ check_or_install() {
 
 python_module_available() {
   local module="$1"
-  python3 - "$module" <<'PY'
-import importlib.util
-import sys
-
-sys.exit(0 if importlib.util.find_spec(sys.argv[1]) else 1)
-PY
+  python3 "$ROOT_DIR/scripts/lib/infra/prereqs_helpers.py" python-module-available "$module"
 }
 
 install_python_module() {

@@ -30,6 +30,12 @@ fi
 set_default_env APP_CATALOG_SCAFFOLD_ENABLED "false"
 app_catalog_scaffold_enabled="$(shell_normalize_bool_truefalse "$APP_CATALOG_SCAFFOLD_ENABLED")"
 log_metric "app_catalog_scaffold_enabled_total" "1" "enabled=$app_catalog_scaffold_enabled"
+set_default_env APP_RUNTIME_GITOPS_ENABLED "true"
+app_runtime_gitops_enabled="$(shell_normalize_bool_truefalse "$APP_RUNTIME_GITOPS_ENABLED")"
+log_metric "app_runtime_gitops_enabled_total" "1" "enabled=$app_runtime_gitops_enabled"
+
+backend_runtime_image="python:${PYTHON_RUNTIME_BASE_IMAGE_VERSION}"
+touchpoints_runtime_image="nginx:${NGINX_RUNTIME_BASE_IMAGE_VERSION}"
 
 ensure_dir "$ROOT_DIR/apps/backend"
 ensure_dir "$ROOT_DIR/apps/touchpoints"
@@ -39,27 +45,59 @@ if [[ "$app_catalog_scaffold_enabled" == "true" ]]; then
   ensure_dir "$ROOT_DIR/apps/catalog"
   manifest_path="$ROOT_DIR/apps/catalog/manifest.yaml"
   versions_lock_path="$ROOT_DIR/apps/catalog/versions.lock"
-
-  manifest_content=$'schemaVersion: v1\nappVersionContract:\n  appVersionEnv: APP_VERSION\n  appBuildIdEnv: APP_BUILD_ID\n  appReleaseEnv: APP_RELEASE\nruntimePinnedVersions:\n  python: '"$PYTHON_RUNTIME_BASE_IMAGE_VERSION"$'\n  node: '"$NODE_RUNTIME_BASE_IMAGE_VERSION"$'\n  nginx: '"$NGINX_RUNTIME_BASE_IMAGE_VERSION"$'\nframeworkPinnedVersions:\n  fastapi: '"$FASTAPI_VERSION"$'\n  pydantic: '"$PYDANTIC_VERSION"$'\n  vue: '"$VUE_VERSION"$'\n  vue_router: '"$VUE_ROUTER_VERSION"$'\n  pinia: '"$PINIA_VERSION"$'\n'
-  # Keep observability wiring explicit in the app catalog contract so runtime consumers
-  # (backend/UI) can be configured consistently from one canonical source.
+  observability_enabled_literal=""
+  otel_exporter_otlp_endpoint=""
+  otel_protocol=""
+  otel_traces_enabled=""
+  otel_metrics_enabled=""
+  otel_logs_enabled=""
+  faro_enabled=""
+  faro_collect_path=""
   if is_module_enabled observability; then
     observability_init_env
-    manifest_content+=$'observabilityRuntimeContract:\n  enabled: true\n  otel:\n    endpoint: '"$OTEL_EXPORTER_OTLP_ENDPOINT"$'\n    protocol: '"$OTEL_PROTOCOL"$'\n    tracesEnabled: '"$OTEL_TRACES_ENABLED"$'\n    metricsEnabled: '"$OTEL_METRICS_ENABLED"$'\n    logsEnabled: '"$OTEL_LOGS_ENABLED"$'\n  faro:\n    enabled: '"$FARO_ENABLED"$'\n    collectPath: '"$FARO_COLLECT_PATH"$'\n'
+    observability_enabled_literal="true"
+    otel_exporter_otlp_endpoint="$OTEL_EXPORTER_OTLP_ENDPOINT"
+    otel_protocol="$OTEL_PROTOCOL"
+    otel_traces_enabled="$OTEL_TRACES_ENABLED"
+    otel_metrics_enabled="$OTEL_METRICS_ENABLED"
+    otel_logs_enabled="$OTEL_LOGS_ENABLED"
+    faro_enabled="$FARO_ENABLED"
+    faro_collect_path="$FARO_COLLECT_PATH"
   else
-    manifest_content+=$'observabilityRuntimeContract:\n  enabled: false\n  otel:\n    endpoint: ""\n    protocol: ""\n    tracesEnabled: false\n    metricsEnabled: false\n    logsEnabled: false\n  faro:\n    enabled: false\n    collectPath: ""\n'
+    observability_enabled_literal="false"
+    otel_exporter_otlp_endpoint=""
+    otel_protocol=""
+    otel_traces_enabled="false"
+    otel_metrics_enabled="false"
+    otel_logs_enabled="false"
+    faro_enabled="false"
+    faro_collect_path=""
   fi
-  versions_content=$'PYTHON_RUNTIME_BASE_IMAGE_VERSION='"$PYTHON_RUNTIME_BASE_IMAGE_VERSION"$'\nNODE_RUNTIME_BASE_IMAGE_VERSION='"$NODE_RUNTIME_BASE_IMAGE_VERSION"$'\nNGINX_RUNTIME_BASE_IMAGE_VERSION='"$NGINX_RUNTIME_BASE_IMAGE_VERSION"$'\nFASTAPI_VERSION='"$FASTAPI_VERSION"$'\nPYDANTIC_VERSION='"$PYDANTIC_VERSION"$'\nVUE_VERSION='"$VUE_VERSION"$'\nVUE_ROUTER_VERSION='"$VUE_ROUTER_VERSION"$'\nPINIA_VERSION='"$PINIA_VERSION"$'\n'
 
-  # Keep lockfile EOF deterministic for quality hooks and downstream generated repos.
-  # Normalize to exactly one trailing newline.
-  while [[ "$versions_content" == *$'\n' ]]; do
-    versions_content="${versions_content%$'\n'}"
-  done
-  versions_content+=$'\n'
-
-  printf '%s' "$manifest_content" >"$manifest_path"
-  printf '%s' "$versions_content" >"$versions_lock_path"
+  run_cmd python3 "$ROOT_DIR/scripts/lib/platform/apps/catalog_scaffold_renderer.py" render \
+    --manifest-template "$ROOT_DIR/scripts/templates/platform/apps/catalog/manifest.yaml.tmpl" \
+    --versions-template "$ROOT_DIR/scripts/templates/platform/apps/catalog/versions.lock.tmpl" \
+    --manifest-output "$manifest_path" \
+    --versions-output "$versions_lock_path" \
+    --python-runtime-base-image-version "$PYTHON_RUNTIME_BASE_IMAGE_VERSION" \
+    --node-runtime-base-image-version "$NODE_RUNTIME_BASE_IMAGE_VERSION" \
+    --nginx-runtime-base-image-version "$NGINX_RUNTIME_BASE_IMAGE_VERSION" \
+    --fastapi-version "$FASTAPI_VERSION" \
+    --pydantic-version "$PYDANTIC_VERSION" \
+    --vue-version "$VUE_VERSION" \
+    --vue-router-version "$VUE_ROUTER_VERSION" \
+    --pinia-version "$PINIA_VERSION" \
+    --app-runtime-gitops-enabled "$app_runtime_gitops_enabled" \
+    --app-runtime-backend-image "$backend_runtime_image" \
+    --app-runtime-touchpoints-image "$touchpoints_runtime_image" \
+    --observability-enabled "$observability_enabled_literal" \
+    --otel-exporter-otlp-endpoint "$otel_exporter_otlp_endpoint" \
+    --otel-protocol "$otel_protocol" \
+    --otel-traces-enabled "$otel_traces_enabled" \
+    --otel-metrics-enabled "$otel_metrics_enabled" \
+    --otel-logs-enabled "$otel_logs_enabled" \
+    --faro-enabled "$faro_enabled" \
+    --faro-collect-path "$faro_collect_path"
 else
   log_info "app catalog scaffold disabled; skipping apps/catalog manifest and lock generation"
 fi
@@ -69,6 +107,9 @@ state_file="$(
     "profile=$BLUEPRINT_PROFILE" \
     "stack=$(active_stack)" \
     "app_catalog_scaffold_enabled=$app_catalog_scaffold_enabled" \
+    "app_runtime_gitops_enabled=$app_runtime_gitops_enabled" \
+    "app_runtime_backend_image=$backend_runtime_image" \
+    "app_runtime_touchpoints_image=$touchpoints_runtime_image" \
     "observability_enabled=$OBSERVABILITY_ENABLED_NORMALIZED" \
     "observability_module_enabled=$(is_module_enabled observability && echo true || echo false)" \
     "otel_endpoint=${OTEL_EXPORTER_OTLP_ENDPOINT:-}" \

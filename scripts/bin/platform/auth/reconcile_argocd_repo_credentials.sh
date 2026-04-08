@@ -39,6 +39,7 @@ fi
 require_command python3
 runtime_identity_contract_cli="$ROOT_DIR/scripts/lib/infra/runtime_identity_contract.py"
 argocd_repo_contract_cli="$ROOT_DIR/scripts/lib/infra/argocd_repo_contract.py"
+argocd_repo_json_helpers="$ROOT_DIR/scripts/lib/platform/auth/argocd_repo_credentials_json.py"
 generic_reconcile_script="$ROOT_DIR/scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh"
 
 while IFS=$'\t' read -r env_name env_default; do
@@ -124,22 +125,12 @@ EOF
   run_cmd kubectl apply -f "$namespace_manifest_file"
 
   if kubectl -n "$namespace" get secret "$secret_name" >/dev/null 2>&1; then
-    python3 - "$patch_file" <<'PY'
-import json
-import os
-from pathlib import Path
-import sys
-
-payload = {
-    "stringData": {
-        "ARGOCD_REPO_TYPE": os.environ["ARGOCD_REPO_TYPE"],
-        "ARGOCD_REPO_URL": os.environ["ARGOCD_REPO_URL"],
-        "ARGOCD_REPO_USERNAME": os.environ["ARGOCD_REPO_USERNAME"],
-        "ARGOCD_REPO_TOKEN": os.environ["ARGOCD_REPO_TOKEN"],
-    }
-}
-Path(sys.argv[1]).write_text(json.dumps(payload), encoding="utf-8")
-PY
+    run_cmd python3 "$argocd_repo_json_helpers" render-source-patch \
+      "$patch_file" \
+      "$ARGOCD_REPO_TYPE" \
+      "$ARGOCD_REPO_URL" \
+      "$ARGOCD_REPO_USERNAME" \
+      "$ARGOCD_REPO_TOKEN"
     run_cmd kubectl -n "$namespace" patch secret "$secret_name" --type merge --patch-file "$patch_file"
     SOURCE_SECRET_SYNC_MODE_RESULT="patched-existing-secret"
     return 0
@@ -159,43 +150,7 @@ validate_argocd_target_secret() {
   local validation_output
   if ! validation_output="$(
     kubectl -n "$namespace" get secret "$secret_name" -o json | \
-      python3 -c '
-import base64
-import json
-import sys
-
-expected_url = sys.argv[1]
-secret = json.load(sys.stdin)
-errors = []
-
-labels = secret.get("metadata", {}).get("labels", {})
-if labels.get("argocd.argoproj.io/secret-type") != "repository":
-    errors.append(
-        "target secret metadata.labels.argocd.argoproj.io/secret-type must equal repository"
-    )
-
-data = secret.get("data", {})
-for key in ("type", "url", "username", "password"):
-    if not data.get(key):
-        errors.append(f"target secret missing required data key: {key}")
-
-if data.get("type"):
-    decoded_type = base64.b64decode(data["type"]).decode("utf-8")
-    if decoded_type != "git":
-        errors.append(f"target secret key '"'"'type'"'"' must decode to git; found {decoded_type}")
-
-if data.get("url"):
-    decoded_url = base64.b64decode(data["url"]).decode("utf-8")
-    if decoded_url != expected_url:
-        errors.append(f"target secret key '"'"'url'"'"' must decode to {expected_url}; found {decoded_url}")
-
-if errors:
-    for error in errors:
-        print(error)
-    raise SystemExit(1)
-
-print("ok")
-' "$expected_url" 2>&1
+      python3 "$argocd_repo_json_helpers" validate-target-secret "$expected_url" 2>&1
   )"; then
     while IFS= read -r line; do
       [[ -n "$line" ]] || continue

@@ -20,6 +20,7 @@ class GovernanceRuntimePolicyCases(RefactorContractBase):
             "_validate_platform_docs_seed_contract",
             "_validate_async_message_contract",
             "_validate_app_catalog_scaffold_contract",
+            "_validate_app_runtime_gitops_contract",
             "_validate_event_messaging_contract",
             "_validate_zero_downtime_evolution_contract",
             "_validate_tenant_context_contract",
@@ -33,7 +34,13 @@ class GovernanceRuntimePolicyCases(RefactorContractBase):
         self.assertIn("ZERO_DOWNTIME_EVOLUTION_ENABLED:", contract_yaml)
         self.assertIn("TENANT_CONTEXT_PROPAGATION_ENABLED:", contract_yaml)
         self.assertIn("APP_CATALOG_SCAFFOLD_ENABLED:", contract_yaml)
+        self.assertIn("APP_RUNTIME_GITOPS_ENABLED:", contract_yaml)
+        self.assertIn("APP_RUNTIME_MIN_WORKLOADS:", contract_yaml)
         self.assertIn("app_catalog_scaffold_contract:", contract_yaml)
+        self.assertIn("app_runtime_gitops_contract:", contract_yaml)
+        self.assertIn("smoke_guardrails:", contract_yaml)
+        self.assertIn("minimum_workloads_env: APP_RUNTIME_MIN_WORKLOADS", contract_yaml)
+        self.assertIn("diagnostics_reason: empty-runtime-workloads", contract_yaml)
         self.assertIn("event_messaging_contract:", contract_yaml)
         self.assertIn("zero_downtime_evolution_contract:", contract_yaml)
         self.assertIn("tenant_context_contract:", contract_yaml)

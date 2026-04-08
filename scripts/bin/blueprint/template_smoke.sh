@@ -28,6 +28,8 @@ Environment variables:
   KMS_ENABLED                         Optional module flag
   IDENTITY_AWARE_PROXY_ENABLED        Optional module flag
   APP_CATALOG_SCAFFOLD_ENABLED        Opt-in app catalog scaffold contract
+  APP_RUNTIME_GITOPS_ENABLED          App runtime GitOps scaffold contract (enabled by default)
+  APP_RUNTIME_MIN_WORKLOADS           Execute-mode minimum expected app runtime workloads (default: 1)
 EOF
 }
 
@@ -57,6 +59,8 @@ set_default_env SECRETS_MANAGER_ENABLED "false"
 set_default_env KMS_ENABLED "false"
 set_default_env IDENTITY_AWARE_PROXY_ENABLED "false"
 set_default_env APP_CATALOG_SCAFFOLD_ENABLED "false"
+set_default_env APP_RUNTIME_GITOPS_ENABLED "true"
+set_default_env APP_RUNTIME_MIN_WORKLOADS "1"
 
 source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
@@ -168,171 +172,7 @@ run_template_smoke_reset_generated_make_surface() {
 
 assert_template_smoke_repo_state() {
   local repo_root="$1"
-  python3 - "$repo_root" <<'PY'
-from __future__ import annotations
-
-import json
-import os
-from pathlib import Path
-import re
-import sys
-
-repo_root = Path(sys.argv[1]).resolve()
-sys.path.insert(0, str(repo_root))
-
-from scripts.lib.blueprint.contract_schema import load_blueprint_contract
-
-
-def normalize_bool(value: str) -> bool:
-    return value.lower() in {"1", "true", "yes", "on"}
-
-
-def profile_environment(profile: str) -> tuple[str, str]:
-    if profile.startswith("local-"):
-        return "local", "local"
-    if profile.startswith("stackit-"):
-        return "stackit", profile.split("-", 1)[1]
-    raise AssertionError(f"unsupported BLUEPRINT_PROFILE={profile}")
-
-
-def assert_path_exists(repo_root: Path, relative_path: str, scenario: str) -> None:
-    path = repo_root / relative_path
-    if not path.exists():
-        raise AssertionError(f"{scenario}: expected path to exist: {relative_path}")
-
-
-def assert_make_target_presence(makefile_text: str, target: str, expected: bool, scenario: str) -> None:
-    pattern = re.compile(rf"^{re.escape(target)}:", re.MULTILINE)
-    present = bool(pattern.search(makefile_text))
-    if present != expected:
-        state = "present" if expected else "absent"
-        raise AssertionError(f"{scenario}: expected target to be {state}: {target}")
-
-
-scenario = os.environ.get("BLUEPRINT_TEMPLATE_SMOKE_SCENARIO", "default")
-profile = os.environ["BLUEPRINT_PROFILE"]
-expected_stack, expected_environment = profile_environment(profile)
-observability_enabled = normalize_bool(os.environ.get("OBSERVABILITY_ENABLED", "false"))
-app_catalog_scaffold_enabled = normalize_bool(os.environ.get("APP_CATALOG_SCAFFOLD_ENABLED", "false"))
-
-contract = load_blueprint_contract(repo_root / "blueprint/contract.yaml")
-if contract.repository.repo_mode != "generated-consumer":
-    raise AssertionError(
-        f"{scenario}: expected repo_mode=generated-consumer after blueprint-init-repo, "
-        f"got {contract.repository.repo_mode}"
-    )
-
-makefile_path = repo_root / contract.make_contract.ownership.blueprint_generated_file
-makefile_text = makefile_path.read_text(encoding="utf-8")
-
-expected_modules: list[str] = []
-for module_name, module in sorted(contract.optional_modules.modules.items()):
-    enabled = normalize_bool(os.environ.get(module.enable_flag, "false"))
-    if enabled:
-        expected_modules.append(module_name)
-
-    for target in module.make_targets:
-        assert_make_target_presence(makefile_text, target, enabled, scenario)
-
-    for path_key in module.paths_required_when_enabled:
-        raw_path = module.paths[path_key].replace("${ENV}", expected_environment)
-        relative_path = raw_path.rstrip("/")
-        path = repo_root / relative_path
-        if enabled:
-            assert_path_exists(repo_root, relative_path, scenario)
-        elif path.exists():
-            raise AssertionError(
-                f"{scenario}: expected disabled conditional scaffold to stay pruned in generated repo: {relative_path}"
-            )
-
-required_artifacts = [
-    "artifacts/infra/provision.env",
-    "artifacts/infra/deploy.env",
-    "artifacts/infra/smoke.env",
-    "artifacts/infra/smoke_result.json",
-    "artifacts/infra/smoke_diagnostics.json",
-    "artifacts/infra/infra_status_snapshot.json",
-    "artifacts/apps/apps_bootstrap.env",
-    "artifacts/apps/apps_smoke.env",
-]
-for artifact in required_artifacts:
-    assert_path_exists(repo_root, artifact, scenario)
-
-if expected_stack == "local":
-    assert_path_exists(repo_root, "artifacts/infra/local_crossplane_bootstrap.env", scenario)
-else:
-    for artifact in (
-        "artifacts/infra/stackit_bootstrap_apply.env",
-        "artifacts/infra/stackit_foundation_apply.env",
-        "artifacts/infra/stackit_foundation_kubeconfig.env",
-        "artifacts/infra/stackit_runtime_prerequisites.env",
-        "artifacts/infra/stackit_foundation_runtime_secret.env",
-    ):
-        assert_path_exists(repo_root, artifact, scenario)
-
-manifest_path = repo_root / "apps/catalog/manifest.yaml"
-versions_lock_path = repo_root / "apps/catalog/versions.lock"
-if app_catalog_scaffold_enabled:
-    assert_path_exists(repo_root, "apps/catalog/manifest.yaml", scenario)
-    assert_path_exists(repo_root, "apps/catalog/versions.lock", scenario)
-    manifest_text = manifest_path.read_text(encoding="utf-8")
-    expected_manifest_line = "enabled: true" if observability_enabled else "enabled: false"
-    if expected_manifest_line not in manifest_text:
-        raise AssertionError(
-            f"{scenario}: apps/catalog/manifest.yaml drifted from OBSERVABILITY_ENABLED={observability_enabled}"
-        )
-    if observability_enabled and "endpoint: http" not in manifest_text:
-        raise AssertionError(f"{scenario}: observability-enabled app manifest is missing OTEL endpoint wiring")
-else:
-    if manifest_path.exists() or versions_lock_path.exists():
-        raise AssertionError(
-            f"{scenario}: app catalog scaffold disabled but apps/catalog manifest/lock still exist"
-        )
-
-smoke_result = json.loads((repo_root / "artifacts/infra/smoke_result.json").read_text(encoding="utf-8"))
-if smoke_result.get("status") != "success":
-    raise AssertionError(f"{scenario}: smoke result status is not success")
-if smoke_result.get("profile") != profile:
-    raise AssertionError(f"{scenario}: smoke result profile drifted from BLUEPRINT_PROFILE")
-if smoke_result.get("stack") != expected_stack:
-    raise AssertionError(f"{scenario}: smoke result stack drifted from BLUEPRINT_PROFILE")
-if smoke_result.get("environment") != expected_environment:
-    raise AssertionError(f"{scenario}: smoke result environment drifted from BLUEPRINT_PROFILE")
-if bool(smoke_result.get("observabilityEnabled")) != observability_enabled:
-    raise AssertionError(f"{scenario}: smoke result observability flag drifted from input")
-if sorted(smoke_result.get("enabledModules", [])) != expected_modules:
-    raise AssertionError(f"{scenario}: smoke result enabledModules drifted from input flags")
-
-smoke_diagnostics = json.loads((repo_root / "artifacts/infra/smoke_diagnostics.json").read_text(encoding="utf-8"))
-for artifact_name in ("provision", "deploy", "coreRuntimeSmoke", "appsSmoke"):
-    if not smoke_diagnostics.get("artifacts", {}).get(artifact_name):
-        raise AssertionError(f"{scenario}: smoke diagnostics missing artifact flag {artifact_name}=true")
-
-status_snapshot = json.loads((repo_root / "artifacts/infra/infra_status_snapshot.json").read_text(encoding="utf-8"))
-if status_snapshot.get("profile") != profile:
-    raise AssertionError(f"{scenario}: infra status snapshot profile drifted from BLUEPRINT_PROFILE")
-if status_snapshot.get("environment") != expected_environment:
-    raise AssertionError(f"{scenario}: infra status snapshot environment drifted from BLUEPRINT_PROFILE")
-if bool(status_snapshot.get("observabilityEnabled")) != observability_enabled:
-    raise AssertionError(f"{scenario}: infra status snapshot observability flag drifted from input")
-if sorted(status_snapshot.get("enabledModules", [])) != expected_modules:
-    raise AssertionError(f"{scenario}: infra status snapshot enabledModules drifted from input flags")
-if status_snapshot.get("latestSmoke", {}).get("status") != "success":
-    raise AssertionError(f"{scenario}: infra status snapshot latestSmoke.status is not success")
-
-status_artifacts = status_snapshot.get("artifacts", {})
-for artifact_name in ("provision", "deploy", "smoke"):
-    if not status_artifacts.get(artifact_name):
-        raise AssertionError(f"{scenario}: infra status snapshot missing artifact flag {artifact_name}=true")
-if expected_stack == "stackit":
-    for artifact_name in ("stackitBootstrapApply", "stackitFoundationApply"):
-        if not status_artifacts.get(artifact_name):
-            raise AssertionError(f"{scenario}: expected STACKIT artifact flag {artifact_name}=true")
-else:
-    for artifact_name in ("stackitBootstrapApply", "stackitFoundationApply"):
-        if status_artifacts.get(artifact_name):
-            raise AssertionError(f"{scenario}: local profile should not report {artifact_name}=true")
-PY
+  python3 "$ROOT_DIR/scripts/lib/blueprint/template_smoke_assertions.py" "$repo_root"
 }
 
 tmp_root="$(mktemp -d)"
