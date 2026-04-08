@@ -36,6 +36,20 @@ if ! state_file_exists apps_bootstrap; then
   log_fatal "missing apps bootstrap state artifact; run make apps-bootstrap first"
 fi
 
+bootstrap_state_file="$(state_file_path apps_bootstrap)"
+bootstrap_scaffold_enabled_raw="$(
+  awk -F= '$1=="app_catalog_scaffold_enabled"{print $2}' "$bootstrap_state_file" | tail -n 1
+)"
+if [[ -z "$bootstrap_scaffold_enabled_raw" ]]; then
+  log_fatal \
+    "apps bootstrap state missing app_catalog_scaffold_enabled marker; rerun make apps-bootstrap before apps-smoke"
+fi
+bootstrap_scaffold_enabled="$(shell_normalize_bool_truefalse "$bootstrap_scaffold_enabled_raw")"
+if [[ "$bootstrap_scaffold_enabled" != "$app_catalog_scaffold_enabled" ]]; then
+  log_fatal \
+    "app catalog scaffold mode mismatch: apps_bootstrap used APP_CATALOG_SCAFFOLD_ENABLED=${bootstrap_scaffold_enabled}, apps-smoke is using ${app_catalog_scaffold_enabled}; rerun make apps-bootstrap with the current mode"
+fi
+
 if [[ "$app_catalog_scaffold_enabled" != "true" ]]; then
   state_file="$(
     write_state_file "apps_smoke" \

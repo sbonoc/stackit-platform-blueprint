@@ -54,7 +54,8 @@ def resolve_app_catalog_scaffold_contract(repo_root: Path) -> tuple[bool, list[s
     if not isinstance(scaffold_raw, dict):
         return True, []
 
-    enabled_by_default = bool(scaffold_raw.get("enabled_by_default", False))
+    enabled_by_default_raw = scaffold_raw.get("enabled_by_default")
+    enabled_by_default = enabled_by_default_raw if isinstance(enabled_by_default_raw, bool) else False
     enable_flag_raw = scaffold_raw.get("enable_flag")
     enable_flag = enable_flag_raw if isinstance(enable_flag_raw, str) else ""
     env_value = os.environ.get(enable_flag) if enable_flag else None

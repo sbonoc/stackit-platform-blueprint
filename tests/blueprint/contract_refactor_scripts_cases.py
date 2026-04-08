@@ -250,6 +250,8 @@ class ScriptsRefactorCases(RefactorContractBase):
     def test_apps_smoke_honors_app_catalog_toggle(self) -> None:
         apps_smoke = _read("scripts/bin/platform/apps/smoke.sh")
         self.assertIn("APP_CATALOG_SCAFFOLD_ENABLED", apps_smoke)
+        self.assertIn("app catalog scaffold mode mismatch", apps_smoke)
+        self.assertIn("state_file_path apps_bootstrap", apps_smoke)
         self.assertIn("app catalog scaffold disabled; skipping apps/catalog smoke assertions", apps_smoke)
         self.assertIn("check_mode=skipped", apps_smoke)
 
