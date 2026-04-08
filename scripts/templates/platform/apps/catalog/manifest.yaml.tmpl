@@ -48,11 +48,11 @@ runtimeDeliveryContract:
 observabilityRuntimeContract:
   enabled: ${OBSERVABILITY_ENABLED}
   otel:
-    endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT}
-    protocol: ${OTEL_PROTOCOL}
+    endpoint: "${OTEL_EXPORTER_OTLP_ENDPOINT}"
+    protocol: "${OTEL_PROTOCOL}"
     tracesEnabled: ${OTEL_TRACES_ENABLED}
     metricsEnabled: ${OTEL_METRICS_ENABLED}
     logsEnabled: ${OTEL_LOGS_ENABLED}
   faro:
     enabled: ${FARO_ENABLED}
-    collectPath: ${FARO_COLLECT_PATH}
+    collectPath: "${FARO_COLLECT_PATH}"

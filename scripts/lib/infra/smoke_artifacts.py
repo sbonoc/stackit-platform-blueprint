@@ -12,15 +12,22 @@ def _env_bool(name: str) -> bool:
     return os.environ.get(name, "false") == "true"
 
 
+def _optional_path_from_env(name: str) -> Path | None:
+    raw_value = os.environ.get(name, "").strip()
+    if raw_value == "":
+        return None
+    return Path(raw_value)
+
+
 def main() -> int:
     modules = [value for value in os.environ.get("SMOKE_ENABLED_MODULES", "").split(",") if value]
-    workload_health_path = Path(os.environ.get("SMOKE_WORKLOAD_HEALTH_PATH", ""))
-    pod_snapshot_path = Path(os.environ.get("SMOKE_POD_SNAPSHOT_PATH", ""))
+    workload_health_path = _optional_path_from_env("SMOKE_WORKLOAD_HEALTH_PATH")
+    pod_snapshot_path = _optional_path_from_env("SMOKE_POD_SNAPSHOT_PATH")
     app_runtime_gitops_enabled = _env_bool("SMOKE_APP_RUNTIME_GITOPS_ENABLED")
     app_runtime_min_workloads = int(os.environ.get("SMOKE_APP_RUNTIME_MIN_WORKLOADS", "0") or "0")
 
     workload_report: dict[str, object] = {}
-    if workload_health_path.is_file():
+    if workload_health_path and workload_health_path.is_file():
         workload_report = json.loads(workload_health_path.read_text(encoding="utf-8"))
 
     result_payload = {
@@ -54,9 +61,9 @@ def main() -> int:
         },
         "workloadHealth": {
             "reportPath": str(workload_health_path) if workload_health_path else "",
-            "reportPresent": workload_health_path.is_file(),
+            "reportPresent": workload_health_path.is_file() if workload_health_path else False,
             "podSnapshotPath": str(pod_snapshot_path) if pod_snapshot_path else "",
-            "podSnapshotPresent": pod_snapshot_path.is_file(),
+            "podSnapshotPresent": pod_snapshot_path.is_file() if pod_snapshot_path else False,
             "monitoredNamespaces": [
                 value for value in os.environ.get("SMOKE_WORKLOAD_NAMESPACES", "").split(",") if value
             ],

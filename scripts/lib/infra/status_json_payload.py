@@ -12,26 +12,33 @@ def _env_bool(name: str) -> bool:
     return os.environ.get(name, "false") == "true"
 
 
+def _optional_path_from_env(name: str) -> Path | None:
+    raw_value = os.environ.get(name, "").strip()
+    if raw_value == "":
+        return None
+    return Path(raw_value)
+
+
 def main() -> int:
     modules = [value for value in os.environ.get("STATUS_ENABLED_MODULES", "").split(",") if value]
-    smoke_result_path = Path(os.environ.get("STATUS_SMOKE_RESULT_PATH", ""))
-    smoke_diagnostics_path = Path(os.environ.get("STATUS_SMOKE_DIAGNOSTICS_PATH", ""))
+    smoke_result_path = _optional_path_from_env("STATUS_SMOKE_RESULT_PATH")
+    smoke_diagnostics_path = _optional_path_from_env("STATUS_SMOKE_DIAGNOSTICS_PATH")
 
     latest_smoke: dict[str, object] = {
         "resultPath": str(smoke_result_path) if smoke_result_path else "",
         "diagnosticsPath": str(smoke_diagnostics_path) if smoke_diagnostics_path else "",
-        "resultPresent": smoke_result_path.is_file(),
-        "diagnosticsPresent": smoke_diagnostics_path.is_file(),
+        "resultPresent": smoke_result_path.is_file() if smoke_result_path else False,
+        "diagnosticsPresent": smoke_diagnostics_path.is_file() if smoke_diagnostics_path else False,
         "status": "",
         "workloadHealth": {},
     }
 
     # Keep the latest-smoke shape stable even when the most recent run failed
     # before writing both artifacts; callers can rely on presence flags.
-    if smoke_result_path.is_file():
+    if smoke_result_path and smoke_result_path.is_file():
         result_payload = json.loads(smoke_result_path.read_text(encoding="utf-8"))
         latest_smoke["status"] = str(result_payload.get("status", ""))
-    if smoke_diagnostics_path.is_file():
+    if smoke_diagnostics_path and smoke_diagnostics_path.is_file():
         diagnostics_payload = json.loads(smoke_diagnostics_path.read_text(encoding="utf-8"))
         latest_smoke["workloadHealth"] = diagnostics_payload.get("workloadHealth", {})
 

@@ -6,13 +6,26 @@ from __future__ import annotations
 import argparse
 import importlib.util
 from pathlib import Path
+import sys
 import zipfile
 
 
 def cmd_extract_zip(args: argparse.Namespace) -> int:
     archive = Path(args.archive)
     destination = Path(args.destination)
+    destination.mkdir(parents=True, exist_ok=True)
+    destination_root = destination.resolve()
     with zipfile.ZipFile(archive) as zf:
+        for member in zf.infolist():
+            target_path = (destination / member.filename).resolve()
+            try:
+                target_path.relative_to(destination_root)
+            except ValueError:
+                print(
+                    f"refusing to extract archive member outside destination: {member.filename}",
+                    file=sys.stderr,
+                )
+                return 1
         zf.extractall(destination)
     return 0
 

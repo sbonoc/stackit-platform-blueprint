@@ -99,6 +99,31 @@ class PythonHelperExtractionsTests(unittest.TestCase):
             self.assertEqual(payload["latestSmoke"]["status"], "success")
             self.assertEqual(payload["enabledModules"], ["postgres", "neo4j"])
 
+            without_paths = run(
+                [sys.executable, str(script)],
+                {
+                    "STATUS_PROFILE": "local-lite",
+                    "STATUS_STACK": "local",
+                    "STATUS_ENVIRONMENT": "local",
+                    "STATUS_TOOLING_MODE": "dry-run",
+                    "STATUS_OBSERVABILITY_ENABLED": "false",
+                    "STATUS_ENABLED_MODULES": "",
+                    "STATUS_SMOKE_RESULT_PATH": "",
+                    "STATUS_SMOKE_DIAGNOSTICS_PATH": "",
+                    "STATUS_PROVISION_PRESENT": "false",
+                    "STATUS_DEPLOY_PRESENT": "false",
+                    "STATUS_SMOKE_PRESENT": "false",
+                    "STATUS_STACKIT_BOOTSTRAP_APPLY_PRESENT": "false",
+                    "STATUS_STACKIT_FOUNDATION_APPLY_PRESENT": "false",
+                    "STATUS_STACKIT_RUNTIME_DEPLOY_PRESENT": "false",
+                    "STATUS_STACKIT_SMOKE_RUNTIME_PRESENT": "false",
+                },
+            )
+            self.assertEqual(without_paths.returncode, 0, msg=without_paths.stdout + without_paths.stderr)
+            without_paths_payload = json.loads(without_paths.stdout)
+            self.assertEqual(without_paths_payload["latestSmoke"]["resultPath"], "")
+            self.assertEqual(without_paths_payload["latestSmoke"]["diagnosticsPath"], "")
+
     def test_stackit_foundation_outputs_helpers(self) -> None:
         script = REPO_ROOT / "scripts/lib/infra/stackit_foundation_outputs_json.py"
         outputs_payload = json.dumps(
@@ -168,6 +193,29 @@ class PythonHelperExtractionsTests(unittest.TestCase):
             )
             self.assertEqual(process.returncode, 0, msg=process.stdout + process.stderr)
 
+            invalid_json = subprocess.run(
+                [sys.executable, str(script), "validate-target-secret", "https://github.com/acme/demo.git"],
+                input="{",
+                text=True,
+                capture_output=True,
+                cwd=REPO_ROOT,
+            )
+            self.assertEqual(invalid_json.returncode, 1)
+            self.assertIn("failed to parse target secret JSON from stdin", invalid_json.stderr)
+
+            invalid_base64_secret = dict(secret)
+            invalid_base64_secret["data"] = dict(secret["data"])
+            invalid_base64_secret["data"]["url"] = "not-base64"
+            invalid_base64 = subprocess.run(
+                [sys.executable, str(script), "validate-target-secret", "https://github.com/acme/demo.git"],
+                input=json.dumps(invalid_base64_secret),
+                text=True,
+                capture_output=True,
+                cwd=REPO_ROOT,
+            )
+            self.assertEqual(invalid_base64.returncode, 1)
+            self.assertIn("contains invalid base64 content", invalid_base64.stderr)
+
     def test_prereqs_helpers_and_runtime_workload_helpers(self) -> None:
         prereqs_script = REPO_ROOT / "scripts/lib/infra/prereqs_helpers.py"
         workload_script = REPO_ROOT / "scripts/lib/platform/apps/runtime_workload_helpers.py"
@@ -183,6 +231,15 @@ class PythonHelperExtractionsTests(unittest.TestCase):
             unzip = run([sys.executable, str(prereqs_script), "extract-zip", str(archive), str(extracted)])
             self.assertEqual(unzip.returncode, 0, msg=unzip.stdout + unzip.stderr)
             self.assertTrue((extracted / "sample.txt").is_file())
+
+            malicious_archive = Path(tmpdir) / "malicious.zip"
+            with zipfile.ZipFile(malicious_archive, "w") as handle:
+                handle.writestr("../escape.txt", "escape")
+            blocked = run(
+                [sys.executable, str(prereqs_script), "extract-zip", str(malicious_archive), str(extracted)]
+            )
+            self.assertEqual(blocked.returncode, 1)
+            self.assertIn("outside destination", blocked.stderr)
 
         import subprocess
 
@@ -260,6 +317,10 @@ class PythonHelperExtractionsTests(unittest.TestCase):
             self.assertEqual(render.returncode, 0, msg=render.stdout + render.stderr)
             self.assertTrue(manifest_out.is_file())
             self.assertTrue(versions_out.is_file())
+            manifest_text = manifest_out.read_text(encoding="utf-8")
+            self.assertIn('endpoint: ""', manifest_text)
+            self.assertIn('protocol: ""', manifest_text)
+            self.assertIn('collectPath: ""', manifest_text)
 
             validate = run(
                 [
@@ -292,6 +353,43 @@ class PythonHelperExtractionsTests(unittest.TestCase):
             readiness_payload = json.loads(readiness_out.read_text(encoding="utf-8"))
             self.assertIn("status", readiness_payload)
             self.assertIn("runtimeDependencyEdges", readiness_payload)
+
+    def test_smoke_artifacts_script_uses_empty_paths_when_env_is_empty(self) -> None:
+        script = REPO_ROOT / "scripts/lib/infra/smoke_artifacts.py"
+        with tempfile.TemporaryDirectory() as tmpdir:
+            result_path = Path(tmpdir) / "smoke_result.json"
+            diagnostics_path = Path(tmpdir) / "smoke_diagnostics.json"
+            run_result = run(
+                [sys.executable, str(script)],
+                {
+                    "SMOKE_ENABLED_MODULES": "postgres",
+                    "SMOKE_WORKLOAD_HEALTH_PATH": "",
+                    "SMOKE_POD_SNAPSHOT_PATH": "",
+                    "SMOKE_APP_RUNTIME_GITOPS_ENABLED": "true",
+                    "SMOKE_APP_RUNTIME_MIN_WORKLOADS": "1",
+                    "SMOKE_RESULT_STATUS": "success",
+                    "SMOKE_PROFILE": "local-lite",
+                    "SMOKE_STACK": "local",
+                    "SMOKE_ENVIRONMENT": "local",
+                    "SMOKE_TOOLING_MODE": "dry-run",
+                    "SMOKE_OBSERVABILITY_ENABLED": "false",
+                    "SMOKE_STARTED_AT": "1",
+                    "SMOKE_FINISHED_AT": "2",
+                    "SMOKE_KUBECTL_CONTEXT": "",
+                    "SMOKE_PROVISION_PRESENT": "false",
+                    "SMOKE_DEPLOY_PRESENT": "false",
+                    "SMOKE_CORE_RUNTIME_PRESENT": "false",
+                    "SMOKE_APPS_PRESENT": "false",
+                    "SMOKE_WORKLOAD_NAMESPACES": "apps",
+                    "SMOKE_RESULT_PATH": str(result_path),
+                    "SMOKE_DIAGNOSTICS_PATH": str(diagnostics_path),
+                },
+            )
+            self.assertEqual(run_result.returncode, 0, msg=run_result.stdout + run_result.stderr)
+            diagnostics_payload = json.loads(diagnostics_path.read_text(encoding="utf-8"))
+            workload_health = diagnostics_payload["workloadHealth"]
+            self.assertEqual(workload_health["reportPath"], "")
+            self.assertEqual(workload_health["podSnapshotPath"], "")
 
 
 if __name__ == "__main__":

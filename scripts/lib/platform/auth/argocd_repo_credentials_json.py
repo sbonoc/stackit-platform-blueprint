@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import binascii
 import json
 from pathlib import Path
 import sys
@@ -27,11 +28,23 @@ def _decode_secret_data(data: dict[str, object], key: str) -> str | None:
     raw = data.get(key)
     if not isinstance(raw, str) or raw == "":
         return None
-    return base64.b64decode(raw).decode("utf-8")
+    try:
+        return base64.b64decode(raw, validate=True).decode("utf-8")
+    except (binascii.Error, UnicodeDecodeError):
+        raise ValueError(f"target secret key '{key}' contains invalid base64 content")
 
 
 def cmd_validate_target_secret(args: argparse.Namespace) -> int:
-    secret = json.load(sys.stdin)
+    try:
+        secret = json.load(sys.stdin)
+    except json.JSONDecodeError as exc:
+        print(f"failed to parse target secret JSON from stdin: {exc.msg}", file=sys.stderr)
+        return 1
+
+    if not isinstance(secret, dict):
+        print("failed to parse target secret JSON from stdin: expected top-level object", file=sys.stderr)
+        return 1
+
     errors: list[str] = []
 
     labels = secret.get("metadata", {}).get("labels", {})
@@ -43,17 +56,25 @@ def cmd_validate_target_secret(args: argparse.Namespace) -> int:
         if not data.get(key):
             errors.append(f"target secret missing required data key: {key}")
 
-    decoded_type = _decode_secret_data(data, "type")
+    try:
+        decoded_type = _decode_secret_data(data, "type")
+    except ValueError as exc:
+        errors.append(str(exc))
+        decoded_type = None
     if decoded_type is not None and decoded_type != "git":
         errors.append(f"target secret key 'type' must decode to git; found {decoded_type}")
 
-    decoded_url = _decode_secret_data(data, "url")
+    try:
+        decoded_url = _decode_secret_data(data, "url")
+    except ValueError as exc:
+        errors.append(str(exc))
+        decoded_url = None
     if decoded_url is not None and decoded_url != args.expected_url:
         errors.append(f"target secret key 'url' must decode to {args.expected_url}; found {decoded_url}")
 
     if errors:
         for error in errors:
-            print(error)
+            print(error, file=sys.stderr)
         return 1
 
     print("ok")
