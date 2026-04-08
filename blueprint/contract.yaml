@@ -130,6 +130,7 @@ spec:
       - scripts/lib/docs/sync_runtime_identity_contract_summary.py
       - scripts/lib/infra/k8s_wait.sh
       - scripts/lib/infra/keycloak_identity_contract.sh
+      - scripts/lib/infra/argocd_repo_contract.py
       - scripts/lib/infra/runtime_identity_contract.py
       - scripts/lib/infra/module_execution.sh
       - scripts/lib/quality/semver.sh
