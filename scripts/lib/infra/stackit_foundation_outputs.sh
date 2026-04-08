@@ -53,22 +53,8 @@ stackit_foundation_output_value() {
     return 1
   fi
 
-  STACKIT_FOUNDATION_OUTPUT_NAME="$output_name" STACKIT_FOUNDATION_OUTPUTS_JSON="$STACKIT_FOUNDATION_OUTPUTS_JSON" python3 - <<'PY'
-import json
-import os
-payload = json.loads(os.environ["STACKIT_FOUNDATION_OUTPUTS_JSON"])
-entry = payload.get(os.environ["STACKIT_FOUNDATION_OUTPUT_NAME"])
-if not isinstance(entry, dict) or entry.get("value") is None:
-    raise SystemExit(1)
-
-value = entry["value"]
-if isinstance(value, bool):
-    print("true" if value else "false")
-elif isinstance(value, (int, float, str)):
-    print(value)
-else:
-    raise SystemExit(1)
-PY
+  STACKIT_FOUNDATION_OUTPUTS_JSON="$STACKIT_FOUNDATION_OUTPUTS_JSON" \
+    python3 "$ROOT_DIR/scripts/lib/infra/stackit_foundation_outputs_json.py" value "$output_name"
 }
 
 stackit_foundation_output_map_value() {
@@ -78,26 +64,8 @@ stackit_foundation_output_map_value() {
     return 1
   fi
 
-  STACKIT_FOUNDATION_OUTPUT_NAME="$output_name" STACKIT_FOUNDATION_OUTPUT_MAP_KEY="$map_key" STACKIT_FOUNDATION_OUTPUTS_JSON="$STACKIT_FOUNDATION_OUTPUTS_JSON" python3 - <<'PY'
-import json
-import os
-
-payload = json.loads(os.environ["STACKIT_FOUNDATION_OUTPUTS_JSON"])
-entry = payload.get(os.environ["STACKIT_FOUNDATION_OUTPUT_NAME"])
-if not isinstance(entry, dict) or not isinstance(entry.get("value"), dict):
-    raise SystemExit(1)
-
-value = entry["value"].get(os.environ["STACKIT_FOUNDATION_OUTPUT_MAP_KEY"])
-if value is None:
-    raise SystemExit(1)
-
-if isinstance(value, bool):
-    print("true" if value else "false")
-elif isinstance(value, (int, float, str)):
-    print(value)
-else:
-    raise SystemExit(1)
-PY
+  STACKIT_FOUNDATION_OUTPUTS_JSON="$STACKIT_FOUNDATION_OUTPUTS_JSON" \
+    python3 "$ROOT_DIR/scripts/lib/infra/stackit_foundation_outputs_json.py" map-value "$output_name" "$map_key"
 }
 
 stackit_foundation_output_value_or_default() {

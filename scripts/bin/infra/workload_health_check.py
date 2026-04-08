@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import re
 import sys
 
 
@@ -90,11 +91,14 @@ def evaluate_pod_health(
     payload: dict,
     ignored_namespaces: set[str],
     monitored_namespaces: set[str] | None = None,
+    required_namespace_min_pods: dict[str, int] | None = None,
 ) -> dict:
     items = payload.get("items", []) or []
     unhealthy_pods: list[dict] = []
     checked_namespaces: set[str] = set()
     checked_pod_count = 0
+    namespace_pod_counts: dict[str, int] = {}
+    required_namespace_min_pods = required_namespace_min_pods or {}
 
     for pod in items:
         metadata = pod.get("metadata", {}) or {}
@@ -106,6 +110,7 @@ def evaluate_pod_health(
 
         checked_namespaces.add(namespace)
         checked_pod_count += 1
+        namespace_pod_counts[namespace] = namespace_pod_counts.get(namespace, 0) + 1
 
         phase = pod.get("status", {}).get("phase", "Unknown")
         if phase == "Succeeded":
@@ -148,15 +153,73 @@ def evaluate_pod_health(
                 }
             )
 
-    status = "healthy" if not unhealthy_pods else "unhealthy"
+    required_namespace_results: list[dict[str, str | int]] = []
+    empty_runtime_namespaces: list[str] = []
+    for namespace, minimum_pods in sorted(required_namespace_min_pods.items()):
+        observed_pods = namespace_pod_counts.get(namespace, 0)
+        requirement_status = "ok" if observed_pods >= minimum_pods else "missing"
+        required_namespace_results.append(
+            {
+                "namespace": namespace,
+                "minimumPods": minimum_pods,
+                "observedPods": observed_pods,
+                "status": requirement_status,
+            }
+        )
+        if requirement_status != "ok":
+            empty_runtime_namespaces.append(namespace)
+
+    has_unhealthy_pods = bool(unhealthy_pods)
+    has_empty_runtime = bool(empty_runtime_namespaces)
+    if has_unhealthy_pods and has_empty_runtime:
+        status_reason = "unhealthy-pods-and-empty-runtime"
+    elif has_unhealthy_pods:
+        status_reason = "unhealthy-pods"
+    elif has_empty_runtime:
+        status_reason = "empty-runtime-workloads"
+    else:
+        status_reason = "healthy"
+
+    status = "healthy" if status_reason == "healthy" else "unhealthy"
     return {
         "status": status,
+        "statusReason": status_reason,
         "monitoredNamespaces": sorted(monitored_namespaces) if monitored_namespaces is not None else [],
         "checkedNamespaces": sorted(checked_namespaces),
+        "namespacePodCounts": {namespace: namespace_pod_counts[namespace] for namespace in sorted(namespace_pod_counts)},
+        "requiredNamespaceMinimumPods": required_namespace_results,
         "checkedPodCount": checked_pod_count,
+        "emptyRuntimeNamespaceCount": len(empty_runtime_namespaces),
+        "emptyRuntimeNamespaces": sorted(empty_runtime_namespaces),
         "unhealthyPodCount": len(unhealthy_pods),
         "unhealthyPods": unhealthy_pods,
     }
+
+
+def _parse_required_namespace_min_pods(raw_values: list[str]) -> tuple[dict[str, int], list[str]]:
+    requirements: dict[str, int] = {}
+    errors: list[str] = []
+    for raw_value in raw_values:
+        if "=" not in raw_value:
+            errors.append(f"invalid --required-namespace-min-pods value {raw_value!r}; expected namespace=minPods")
+            continue
+
+        namespace, minimum_raw = raw_value.split("=", 1)
+        namespace = namespace.strip()
+        minimum_raw = minimum_raw.strip()
+
+        if not namespace:
+            errors.append(f"invalid --required-namespace-min-pods value {raw_value!r}; namespace cannot be empty")
+            continue
+        if not re.fullmatch(r"\d+", minimum_raw):
+            errors.append(
+                f"invalid --required-namespace-min-pods value {raw_value!r}; minPods must be a non-negative integer"
+            )
+            continue
+
+        requirements[namespace] = int(minimum_raw)
+
+    return requirements, errors
 
 
 def main() -> int:
@@ -175,14 +238,30 @@ def main() -> int:
         default=[],
         help="Restrict checks to blueprint-managed namespaces. May be repeated.",
     )
+    parser.add_argument(
+        "--required-namespace-min-pods",
+        action="append",
+        default=[],
+        help="Require namespace pod presence as namespace=minPods. May be repeated.",
+    )
     args = parser.parse_args()
 
     ignored_namespaces = set(DEFAULT_IGNORED_NAMESPACES)
     ignored_namespaces.update(args.ignore_namespace)
     monitored_namespaces = set(args.namespace) if args.namespace else None
+    required_namespace_min_pods, requirement_errors = _parse_required_namespace_min_pods(args.required_namespace_min_pods)
+    if requirement_errors:
+        for error in requirement_errors:
+            print(f"[workload-health] error: {error}", file=sys.stderr)
+        return 2
 
     payload = json.loads(Path(args.input).read_text(encoding="utf-8"))
-    report = evaluate_pod_health(payload, ignored_namespaces, monitored_namespaces)
+    report = evaluate_pod_health(
+        payload,
+        ignored_namespaces,
+        monitored_namespaces,
+        required_namespace_min_pods,
+    )
 
     output_path = Path(args.output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -190,7 +269,8 @@ def main() -> int:
 
     print(
         f"[workload-health] status={report['status']} checked_pods={report['checkedPodCount']} "
-        f"unhealthy_pods={report['unhealthyPodCount']}"
+        f"unhealthy_pods={report['unhealthyPodCount']} "
+        f"empty_runtime_namespaces={report['emptyRuntimeNamespaceCount']}"
     )
 
     if report["status"] != "healthy":

@@ -14,6 +14,7 @@ This file is auto-generated. Do not edit it manually.
 | `blueprint-upgrade-consumer` | Plan/apply non-destructive generated-consumer upgrade from pinned blueprint source ref |
 | `blueprint-upgrade-consumer-preflight` | Plan-only generated-consumer upgrade preflight report with auto/manual guidance |
 | `blueprint-upgrade-consumer-validate` | Run post-upgrade validation bundle and strict merge-marker checks |
+| `blueprint-upgrade-readiness-doctor` | Generate generated-consumer upgrade readiness diagnostics and manual-action hints |
 | `blueprint-install-codex-skill` | Install/sync bundled Codex upgrade skill into local CODEX_HOME skills directory |
 | `blueprint-ownership-check` | Resolve path ownership classes (set OWNERSHIP_PATHS="path/one path/two") |
 | `blueprint-ownership-metadata` | Print machine-readable ownership metadata (pattern -> owner) |
@@ -29,9 +30,11 @@ This file is auto-generated. Do not edit it manually.
 | `quality-hooks-fast` | Run fast local quality checks |
 | `quality-hooks-strict` | Run slower audit-focused quality checks |
 | `quality-hooks-run` | Run pre-commit hooks and quality gates |
+| `quality-runtime-contract-drift-report` | Generate runtime contract drift report artifact under artifacts/blueprint |
 | `quality-ci-sync` | Regenerate source CI workflow from contract and canonical lane metadata |
 | `quality-ci-check-sync` | Fail when source CI workflow is out of date |
 | `quality-ci-fast` | Run canonical fast CI lane bundle |
+| `quality-ci-slow-integration` | Run canonical slow integration+local e2e CI lane |
 | `quality-ci-full-e2e` | Run canonical full local E2E CI lane |
 | `quality-ci-strict` | Run canonical strict CI audit lane |
 | `quality-ci-blueprint` | Run source blueprint CI lane bundle |

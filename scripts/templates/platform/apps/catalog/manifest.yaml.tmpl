@@ -1,0 +1,58 @@
+schemaVersion: v1
+appVersionContract:
+  appVersionEnv: APP_VERSION
+  appBuildIdEnv: APP_BUILD_ID
+  appReleaseEnv: APP_RELEASE
+runtimePinnedVersions:
+  python: ${PYTHON_RUNTIME_BASE_IMAGE_VERSION}
+  node: ${NODE_RUNTIME_BASE_IMAGE_VERSION}
+  nginx: ${NGINX_RUNTIME_BASE_IMAGE_VERSION}
+frameworkPinnedVersions:
+  fastapi: ${FASTAPI_VERSION}
+  pydantic: ${PYDANTIC_VERSION}
+  vue: ${VUE_VERSION}
+  vue_router: ${VUE_ROUTER_VERSION}
+  pinia: ${PINIA_VERSION}
+deliveryTopology:
+  workloads:
+    - workloadId: backend-api
+      layer: backend
+      kind: Deployment
+      namespace: apps
+      serviceName: backend-api
+      servicePort: 8080
+      image: ${APP_RUNTIME_BACKEND_IMAGE}
+    - workloadId: touchpoints-web
+      layer: touchpoints
+      kind: Deployment
+      namespace: apps
+      serviceName: touchpoints-web
+      servicePort: 80
+      image: ${APP_RUNTIME_TOUCHPOINTS_IMAGE}
+runtimeDeliveryContract:
+  gitopsEnabled: ${APP_RUNTIME_GITOPS_ENABLED}
+  mode: k8s-manifests
+  environmentPathPattern: infra/gitops/platform/environments/<env>
+  manifestsRoot: infra/gitops/platform/base/apps
+  gitopsWorkloads:
+    - id: backend-api
+      deploymentManifest: infra/gitops/platform/base/apps/backend-api-deployment.yaml
+      serviceManifest: infra/gitops/platform/base/apps/backend-api-service.yaml
+      imageEnvVar: APP_RUNTIME_BACKEND_IMAGE
+      defaultImage: ${APP_RUNTIME_BACKEND_IMAGE}
+    - id: touchpoints-web
+      deploymentManifest: infra/gitops/platform/base/apps/touchpoints-web-deployment.yaml
+      serviceManifest: infra/gitops/platform/base/apps/touchpoints-web-service.yaml
+      imageEnvVar: APP_RUNTIME_TOUCHPOINTS_IMAGE
+      defaultImage: ${APP_RUNTIME_TOUCHPOINTS_IMAGE}
+observabilityRuntimeContract:
+  enabled: ${OBSERVABILITY_ENABLED}
+  otel:
+    endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT}
+    protocol: ${OTEL_PROTOCOL}
+    tracesEnabled: ${OTEL_TRACES_ENABLED}
+    metricsEnabled: ${OTEL_METRICS_ENABLED}
+    logsEnabled: ${OTEL_LOGS_ENABLED}
+  faro:
+    enabled: ${FARO_ENABLED}
+    collectPath: ${FARO_COLLECT_PATH}

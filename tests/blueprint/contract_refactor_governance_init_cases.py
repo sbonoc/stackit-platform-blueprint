@@ -50,6 +50,7 @@ class GovernanceInitRepoCases(RefactorContractBase):
         self.assertIn("blueprint_sanitize_init_placeholder_defaults", smoke_script)
         self.assertIn("BLUEPRINT_TEMPLATE_SMOKE_SCENARIO", smoke_script)
         self.assertIn("assert_template_smoke_repo_state", smoke_script)
+        self.assertIn("APP_RUNTIME_MIN_WORKLOADS", smoke_script)
         self.assertIn("blueprint_check_placeholders", placeholder_script)
         self.assertIn("BLUEPRINT_GITHUB_ORG", placeholder_script)
         self.assertIn("BLUEPRINT_REPO_NAME=", init_env_defaults)
@@ -67,6 +68,8 @@ class GovernanceInitRepoCases(RefactorContractBase):
         self.assertIn("ZERO_DOWNTIME_EVOLUTION_ENABLED=false", init_env_defaults)
         self.assertIn("TENANT_CONTEXT_PROPAGATION_ENABLED=false", init_env_defaults)
         self.assertIn("APP_CATALOG_SCAFFOLD_ENABLED=false", init_env_defaults)
+        self.assertIn("APP_RUNTIME_GITOPS_ENABLED=true", init_env_defaults)
+        self.assertIn("APP_RUNTIME_MIN_WORKLOADS=1", init_env_defaults)
         self.assertIn("RUNTIME_CREDENTIALS_SOURCE_NAMESPACE=security", init_env_defaults)
         self.assertIn("RUNTIME_CREDENTIALS_TARGET_NAMESPACE=apps", init_env_defaults)
         self.assertIn("RUNTIME_CREDENTIALS_ESO_WAIT_TIMEOUT=180", init_env_defaults)
@@ -90,6 +93,7 @@ class GovernanceInitRepoCases(RefactorContractBase):
         self.assertIn("consumer_init:", _read("blueprint/contract.yaml"))
         self.assertIn("ownership_path_classes:", _read("blueprint/contract.yaml"))
         self.assertIn("app_catalog_scaffold_contract:", _read("blueprint/contract.yaml"))
+        self.assertIn("app_runtime_gitops_contract:", _read("blueprint/contract.yaml"))
 
     def test_blueprint_init_python_updates_contract_and_docs(self) -> None:
         init_python_path = REPO_ROOT / "scripts/lib/blueprint/init_repo.py"

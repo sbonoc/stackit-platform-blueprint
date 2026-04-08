@@ -239,21 +239,48 @@ class ScriptsRefactorCases(RefactorContractBase):
 
     def test_apps_bootstrap_keeps_only_canonical_app_dirs(self) -> None:
         apps_bootstrap = _read("scripts/bin/platform/apps/bootstrap.sh")
+        catalog_template = _read("scripts/templates/platform/apps/catalog/manifest.yaml.tmpl")
         self.assertIn('ensure_dir "$ROOT_DIR/apps/backend"', apps_bootstrap)
         self.assertIn('ensure_dir "$ROOT_DIR/apps/touchpoints"', apps_bootstrap)
         self.assertIn('ensure_dir "$ROOT_DIR/apps/catalog"', apps_bootstrap)
         self.assertIn("APP_CATALOG_SCAFFOLD_ENABLED", apps_bootstrap)
+        self.assertIn("APP_RUNTIME_GITOPS_ENABLED", apps_bootstrap)
+        self.assertIn("catalog_scaffold_renderer.py", apps_bootstrap)
+        self.assertIn("scripts/templates/platform/apps/catalog/manifest.yaml.tmpl", apps_bootstrap)
+        self.assertIn("scripts/templates/platform/apps/catalog/versions.lock.tmpl", apps_bootstrap)
+        self.assertIn("runtimeDeliveryContract", catalog_template)
+        self.assertIn("--app-runtime-backend-image", apps_bootstrap)
         self.assertIn("app catalog scaffold disabled", apps_bootstrap)
         self.assertIn("app_catalog_scaffold_enabled_total", apps_bootstrap)
+        self.assertIn("app_runtime_gitops_enabled_total", apps_bootstrap)
         self.assertNotIn('ensure_dir "$ROOT_DIR/apps/ingestion"', apps_bootstrap)
 
     def test_apps_smoke_honors_app_catalog_toggle(self) -> None:
         apps_smoke = _read("scripts/bin/platform/apps/smoke.sh")
         self.assertIn("APP_CATALOG_SCAFFOLD_ENABLED", apps_smoke)
+        self.assertIn("APP_RUNTIME_GITOPS_ENABLED", apps_smoke)
+        self.assertIn("APP_RUNTIME_MIN_WORKLOADS", apps_smoke)
         self.assertIn("app catalog scaffold mode mismatch", apps_smoke)
+        self.assertIn("app runtime GitOps mode mismatch", apps_smoke)
+        self.assertIn("run_runtime_workload_presence_check", apps_smoke)
+        self.assertIn("empty-runtime-workloads", apps_smoke)
+        self.assertIn("app-runtime-gitops-disabled", apps_smoke)
+        self.assertIn("app_runtime_live_workload_presence_total", apps_smoke)
+        self.assertIn("runtime_workload_check_reason", apps_smoke)
         self.assertIn("state_file_path apps_bootstrap", apps_smoke)
         self.assertIn("app catalog scaffold disabled; skipping apps/catalog smoke assertions", apps_smoke)
         self.assertIn("check_mode=skipped", apps_smoke)
+
+    def test_infra_smoke_emits_empty_runtime_diagnostics(self) -> None:
+        infra_smoke = _read("scripts/bin/infra/smoke.sh")
+        smoke_artifacts = _read("scripts/lib/infra/smoke_artifacts.py")
+        self.assertIn("APP_RUNTIME_MIN_WORKLOADS", infra_smoke)
+        self.assertIn("--required-namespace-min-pods", infra_smoke)
+        self.assertIn("smoke_artifacts.py", infra_smoke)
+        self.assertIn("emptyRuntimeNamespaceCount", smoke_artifacts)
+        self.assertIn("emptyRuntimeNamespaces", smoke_artifacts)
+        self.assertIn("apps_smoke_failed", infra_smoke)
+        self.assertIn("infra_smoke_component_status_total", infra_smoke)
 
     def test_crossplane_scaffold_is_placeholder_free(self) -> None:
         crossplane_kustomization = _read("infra/local/crossplane/kustomization.yaml")
@@ -429,6 +456,7 @@ class ScriptsRefactorCases(RefactorContractBase):
 
     def test_touchpoints_test_lanes_support_frontend_frameworks(self) -> None:
         testing = _read("scripts/lib/platform/testing.sh")
+        pnpm_discovery = _read("scripts/lib/platform/pnpm_script_discovery.py")
         unit = _read("scripts/bin/platform/touchpoints/test_unit.sh")
         integration = _read("scripts/bin/platform/touchpoints/test_integration.sh")
         contracts = _read("scripts/bin/platform/touchpoints/test_contracts.sh")
@@ -437,7 +465,8 @@ class ScriptsRefactorCases(RefactorContractBase):
         self.assertIn("_discover_pnpm_script_project_entries()", testing)
         self.assertIn("run_touchpoints_pnpm_lane()", testing)
         self.assertIn("pnpm_lane_duration_seconds", testing)
-        self.assertIn('"node_modules"', testing)
+        self.assertIn("pnpm_script_discovery.py", testing)
+        self.assertIn('"node_modules"', pnpm_discovery)
         self.assertIn("script_mode=per_package", testing)
 
         self.assertIn("run_touchpoints_pnpm_lane", unit)

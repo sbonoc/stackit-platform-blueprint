@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: touchpoints-web
+  namespace: apps
+  labels:
+    app.kubernetes.io/name: touchpoints-web
+    app.kubernetes.io/component: web
+    app.kubernetes.io/part-of: platform-blueprint
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: touchpoints-web
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: touchpoints-web
+        app.kubernetes.io/component: web
+        app.kubernetes.io/part-of: platform-blueprint
+    spec:
+      containers:
+        - name: touchpoints-web
+          image: nginx:1.29.2
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+              name: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi

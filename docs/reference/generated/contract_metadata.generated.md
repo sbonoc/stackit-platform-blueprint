@@ -21,6 +21,7 @@
 - `blueprint-upgrade-consumer`
 - `blueprint-upgrade-consumer-preflight`
 - `blueprint-upgrade-consumer-validate`
+- `blueprint-upgrade-readiness-doctor`
 - `blueprint-install-codex-skill`
 - `blueprint-check-placeholders`
 - `blueprint-template-smoke`
@@ -31,6 +32,7 @@
 - `quality-hooks-fast`
 - `quality-hooks-strict`
 - `quality-hooks-run`
+- `quality-runtime-contract-drift-report`
 - `quality-ci-sync`
 - `quality-ci-check-sync`
 - `quality-docs-lint`
@@ -96,6 +98,7 @@
 - `apps-audit-versions-cached`
 - `apps-publish-ghcr`
 - `quality-ci-fast`
+- `quality-ci-slow-integration`
 - `quality-ci-full-e2e`
 - `quality-ci-strict`
 - `quality-ci-blueprint`
@@ -145,6 +148,7 @@
 | Contract | Enabled by default | Enable flag | Summary |
 |---|---:|---|---|
 | `event_messaging_contract` | `false` | `EVENT_MESSAGING_BASELINE_ENABLED` | Canonical async envelope, versioning, outbox/inbox, and idempotency baseline. |
+| `app_runtime_gitops_contract` | `true` | `APP_RUNTIME_GITOPS_ENABLED` | Baseline app runtime GitOps workload scaffold and app-catalog delivery mapping contract. |
 | `zero_downtime_evolution_contract` | `false` | `ZERO_DOWNTIME_EVOLUTION_ENABLED` | Expand/migrate/contract policy for schema, API, and event rollouts. |
 | `tenant_context_contract` | `false` | `TENANT_CONTEXT_PROPAGATION_ENABLED` | Tenant/organization context propagation across identity, HTTP, async, and telemetry. |
 
@@ -178,6 +182,31 @@
 - `inbox_template_path`: `scripts/templates/consumer/scaffold/messaging/sql/inbox.sql.tmpl`
 - `idempotency_template_path`: `scripts/templates/consumer/scaffold/messaging/sql/idempotency_keys.sql.tmpl`
 - `retry.strategy`: `exponential-backoff-with-jitter`
+
+## Runtime Contract: `app_runtime_gitops_contract`
+
+- Mode: `k8s-manifests`
+- App catalog manifest path: `apps/catalog/manifest.yaml`
+
+### Required Runtime Paths (When Enabled)
+- `infra/gitops/platform/base/apps`
+- `infra/gitops/platform/base/apps/kustomization.yaml`
+- `infra/gitops/platform/base/apps/backend-api-deployment.yaml`
+- `infra/gitops/platform/base/apps/backend-api-service.yaml`
+- `infra/gitops/platform/base/apps/touchpoints-web-deployment.yaml`
+- `infra/gitops/platform/base/apps/touchpoints-web-service.yaml`
+
+### Required Workload Kinds (When Enabled)
+- `Deployment`
+- `Service`
+
+### Smoke Guardrails
+- App namespace: `apps`
+- Minimum workloads env var: `APP_RUNTIME_MIN_WORKLOADS`
+- Minimum workloads default: `1`
+- Diagnostics reason: `empty-runtime-workloads`
+- Smoke workload kind: `Deployment`
+- Smoke workload kind: `StatefulSet`
 
 ## Runtime Contract: `zero_downtime_evolution_contract`
 

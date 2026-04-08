@@ -42,6 +42,7 @@ class OptionalRuntimeContractValidationTests(unittest.TestCase):
             {
                 "BLUEPRINT_BRANCH_NAME": "main",
                 "APP_CATALOG_SCAFFOLD_ENABLED": "false",
+                "APP_RUNTIME_GITOPS_ENABLED": "false",
                 "EVENT_MESSAGING_BASELINE_ENABLED": "false",
                 "ZERO_DOWNTIME_EVOLUTION_ENABLED": "false",
                 "TENANT_CONTEXT_PROPAGATION_ENABLED": "false",
@@ -53,6 +54,7 @@ class OptionalRuntimeContractValidationTests(unittest.TestCase):
             {
                 "BLUEPRINT_BRANCH_NAME": "main",
                 "APP_CATALOG_SCAFFOLD_ENABLED": "true",
+                "APP_RUNTIME_GITOPS_ENABLED": "true",
                 "EVENT_MESSAGING_BASELINE_ENABLED": "true",
                 "ZERO_DOWNTIME_EVOLUTION_ENABLED": "true",
                 "TENANT_CONTEXT_PROPAGATION_ENABLED": "true",
@@ -102,6 +104,52 @@ class OptionalRuntimeContractValidationTests(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
             self.assertIn(
                 "missing path: apps/catalog/missing-manifest.yaml",
+                result.stdout + result.stderr,
+            )
+
+    def test_app_runtime_gitops_contract_missing_fails_validation(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            contract_path = Path(tmpdir) / "contract.yaml"
+            content = CONTRACT_PATH.read_text(encoding="utf-8")
+            content = re.sub(
+                r"(?ms)^  app_runtime_gitops_contract:\n.*?(?=^  tech_preferences:\n)",
+                "",
+                content,
+                count=1,
+            )
+            contract_path.write_text(content, encoding="utf-8")
+            result = self._run_validate_result(
+                contract_path,
+                {
+                    "BLUEPRINT_BRANCH_NAME": "main",
+                },
+            )
+            self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            self.assertIn(
+                "spec.app_runtime_gitops_contract is required",
+                result.stdout + result.stderr,
+            )
+
+    def test_app_runtime_gitops_contract_enabled_missing_path_fails_validation(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            contract_path = Path(tmpdir) / "contract.yaml"
+            content = CONTRACT_PATH.read_text(encoding="utf-8")
+            content = content.replace(
+                "      - infra/gitops/platform/base/apps/backend-api-deployment.yaml",
+                "      - infra/gitops/platform/base/apps/missing-backend-deployment.yaml",
+                1,
+            )
+            contract_path.write_text(content, encoding="utf-8")
+            result = self._run_validate_result(
+                contract_path,
+                {
+                    "BLUEPRINT_BRANCH_NAME": "main",
+                    "APP_RUNTIME_GITOPS_ENABLED": "true",
+                },
+            )
+            self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            self.assertIn(
+                "missing file: infra/gitops/platform/base/apps/missing-backend-deployment.yaml",
                 result.stdout + result.stderr,
             )
 
@@ -159,6 +207,7 @@ class OptionalRuntimeContractValidationTests(unittest.TestCase):
                 {
                     "BLUEPRINT_BRANCH_NAME": "codex/upgrade-consumer-blueprint",
                     "EVENT_MESSAGING_BASELINE_ENABLED": "false",
+                    "APP_RUNTIME_GITOPS_ENABLED": "true",
                     "ZERO_DOWNTIME_EVOLUTION_ENABLED": "false",
                     "TENANT_CONTEXT_PROPAGATION_ENABLED": "false",
                 },
@@ -175,6 +224,7 @@ class OptionalRuntimeContractValidationTests(unittest.TestCase):
                 {
                     "BLUEPRINT_BRANCH_NAME": "assistant/upgrade-consumer-blueprint",
                     "EVENT_MESSAGING_BASELINE_ENABLED": "false",
+                    "APP_RUNTIME_GITOPS_ENABLED": "true",
                     "ZERO_DOWNTIME_EVOLUTION_ENABLED": "false",
                     "TENANT_CONTEXT_PROPAGATION_ENABLED": "false",
                 },

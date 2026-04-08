@@ -44,6 +44,7 @@ The execution flow is always the same:
   - STACKIT overlays intentionally reference shared manifests under `infra/gitops/argocd/core/<env>/`,
   - keep references inside the `infra/gitops/argocd/**` tree (do not reference paths outside the GitOps root).
 - Bootstraps application catalog contract.
+- Maintains baseline app runtime GitOps workload scaffold under `infra/gitops/platform/base/apps` when `APP_RUNTIME_GITOPS_ENABLED=true` (default), so Argo runtime paths include deployable `Deployment`/`Service` workloads from day one.
 - Runs optional module deployment/reconciliation steps.
 - Writes state artifacts to `artifacts/infra/deploy.env`.
 

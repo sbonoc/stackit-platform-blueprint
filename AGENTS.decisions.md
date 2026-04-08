@@ -100,6 +100,14 @@
   - `zero_downtime_evolution_contract` defines expand/migrate/contract rollout policy and optional destructive-SQL guard checks.
   - `tenant_context_contract` standardizes tenant/organization claim, HTTP header, async event, and observability field propagation.
   - Corresponding toggles (`EVENT_MESSAGING_BASELINE_ENABLED`, `ZERO_DOWNTIME_EVOLUTION_ENABLED`, `TENANT_CONTEXT_PROPAGATION_ENABLED`) are opt-in and additive for generated consumers.
+- App runtime GitOps scaffold is now a first-class runtime contract:
+  - `APP_RUNTIME_GITOPS_ENABLED` is the canonical toggle and defaults to `true`.
+  - `APP_RUNTIME_MIN_WORKLOADS` is the canonical execute-mode smoke guardrail for minimum app runtime workload presence (default `1`).
+  - `app_runtime_gitops_contract` defines required baseline scaffold paths under `infra/gitops/platform/base/apps`, required workload kinds (`Deployment`, `Service`), and app-catalog linkage (`apps/catalog/manifest.yaml` runtime delivery section).
+  - `app_runtime_gitops_contract.smoke_guardrails` defines the monitored namespace (`apps`), workload kinds (`Deployment`, `StatefulSet`), minimum-workload env/default linkage, and canonical diagnostics reason (`empty-runtime-workloads`).
+  - Baseline workload manifests now include deployable `backend-api` and `touchpoints-web` runtime stubs so Argo `platform-<env>-core` paths can materialize app workloads from generated defaults.
+  - `apps-smoke` now performs execute-mode live workload presence checks, and `infra-smoke` always emits explicit empty-runtime diagnostics (`emptyRuntimeNamespaceCount`, `emptyRuntimeNamespaces`) in addition to unhealthy-pod diagnostics.
+  - `infra-validate` now fails when runtime scaffold is enabled but required app workload scaffolding/kinds/smoke guardrail wiring are missing.
 - Runtime identity docs are now contract-generated:
   - `scripts/lib/docs/sync_runtime_identity_contract_summary.py` owns the generated summary block in `docs/platform/consumer/runtime_credentials_eso.md` and its bootstrap template counterpart.
   - Fast quality gate now enforces this via `quality-docs-check-runtime-identity-summary-sync`.

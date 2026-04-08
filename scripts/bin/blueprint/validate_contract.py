@@ -20,6 +20,21 @@ from scripts.lib.blueprint.contract_schema import (  # noqa: E402
     BlueprintContract,
     load_blueprint_contract,
 )
+from scripts.lib.blueprint.contract_validators.app_runtime_gitops import (  # noqa: E402
+    validate_app_runtime_gitops_contract as _validate_app_runtime_gitops_contract_delegate,
+)
+from scripts.lib.blueprint.contract_validators.docs_sync import (  # noqa: E402
+    validate_bootstrap_template_sync as _validate_bootstrap_template_sync_delegate,
+    validate_docs_edit_link as _validate_docs_edit_link_delegate,
+    validate_platform_docs_seed_contract as _validate_platform_docs_seed_contract_delegate,
+)
+from scripts.lib.blueprint.contract_validators.messaging import (  # noqa: E402
+    validate_event_messaging_contract as _validate_event_messaging_contract_delegate,
+)
+from scripts.lib.blueprint.contract_validators.runtime_identity import (  # noqa: E402
+    validate_runtime_credentials_contract as _validate_runtime_credentials_contract_delegate,
+)
+from scripts.lib.blueprint.contract_validators.shared import ContractValidationHelpers  # noqa: E402
 from scripts.lib.blueprint.runtime_dependency_edges import RUNTIME_DEPENDENCY_EDGES  # noqa: E402
 from scripts.lib.infra.argocd_repo_contract import validate_argocd_https_repo_url_contract  # noqa: E402
 from scripts.lib.infra.runtime_identity_contract import (  # noqa: E402
@@ -561,6 +576,233 @@ def _validate_app_catalog_scaffold_contract(repo_root: Path, contract: Blueprint
         if "APP_CATALOG_SCAFFOLD_ENABLED" not in smoke_content:
             errors.append(
                 "scripts/bin/platform/apps/smoke.sh must honor APP_CATALOG_SCAFFOLD_ENABLED contract toggle"
+            )
+
+    return errors
+
+
+def _manifest_kinds_under_path(path: Path) -> set[str]:
+    if not path.exists():
+        return set()
+
+    manifest_paths: list[Path] = []
+    if path.is_file():
+        manifest_paths = [path]
+    elif path.is_dir():
+        manifest_paths = sorted(
+            candidate for candidate in path.rglob("*") if candidate.is_file() and candidate.suffix in {".yaml", ".yml"}
+        )
+
+    kinds: set[str] = set()
+    kind_pattern = re.compile(r"(?m)^kind:\s*([A-Za-z0-9]+)\s*$")
+    for manifest_path in manifest_paths:
+        content = manifest_path.read_text(encoding="utf-8", errors="surrogateescape")
+        for match in kind_pattern.finditer(content):
+            kinds.add(match.group(1))
+    return kinds
+
+
+def _validate_app_runtime_gitops_contract(repo_root: Path, contract: BlueprintContract) -> list[str]:
+    errors: list[str] = []
+    spec_raw = _mapping_or_error(contract.raw.get("spec"), "spec", errors)
+    raw_contract_section = spec_raw.get("app_runtime_gitops_contract")
+    if raw_contract_section is None:
+        errors.append("spec.app_runtime_gitops_contract is required")
+        return errors
+    contract_section = _mapping_or_error(
+        raw_contract_section,
+        "spec.app_runtime_gitops_contract",
+        errors,
+    )
+
+    enabled_by_default = _bool_or_error(
+        contract_section.get("enabled_by_default"),
+        "spec.app_runtime_gitops_contract.enabled_by_default",
+        errors,
+    )
+    if enabled_by_default is not True:
+        errors.append("spec.app_runtime_gitops_contract.enabled_by_default must be true")
+
+    enable_flag = _string_or_error(
+        contract_section.get("enable_flag"),
+        "spec.app_runtime_gitops_contract.enable_flag",
+        errors,
+    )
+    toggles_raw = spec_raw.get("toggles")
+    if isinstance(toggles_raw, dict) and enable_flag and enable_flag not in toggles_raw:
+        errors.append(
+            "spec.app_runtime_gitops_contract.enable_flag must reference an existing toggle: "
+            f"{enable_flag}"
+        )
+
+    required_paths = _list_of_str_or_error(
+        contract_section.get("required_paths_when_enabled"),
+        "spec.app_runtime_gitops_contract.required_paths_when_enabled",
+        errors,
+    )
+    if not required_paths:
+        errors.append("spec.app_runtime_gitops_contract.required_paths_when_enabled must not be empty")
+
+    workload_kinds = _list_of_str_or_error(
+        contract_section.get("workload_kinds_required_when_enabled"),
+        "spec.app_runtime_gitops_contract.workload_kinds_required_when_enabled",
+        errors,
+    )
+    if not workload_kinds:
+        errors.append("spec.app_runtime_gitops_contract.workload_kinds_required_when_enabled must not be empty")
+
+    docs_paths = _list_of_str_or_error(
+        contract_section.get("docs_paths"),
+        "spec.app_runtime_gitops_contract.docs_paths",
+        errors,
+    )
+    for docs_path in docs_paths:
+        if not (repo_root / docs_path).is_file():
+            errors.append(f"missing app runtime GitOps docs path: {docs_path}")
+
+    app_catalog_manifest_path = _string_or_error(
+        contract_section.get("app_catalog_manifest_path"),
+        "spec.app_runtime_gitops_contract.app_catalog_manifest_path",
+        errors,
+    )
+    smoke_guardrails = _mapping_or_error(
+        contract_section.get("smoke_guardrails"),
+        "spec.app_runtime_gitops_contract.smoke_guardrails",
+        errors,
+    )
+    app_namespace = _string_or_error(
+        smoke_guardrails.get("app_namespace"),
+        "spec.app_runtime_gitops_contract.smoke_guardrails.app_namespace",
+        errors,
+    )
+    live_workload_kinds = _list_of_str_or_error(
+        smoke_guardrails.get("workload_kinds"),
+        "spec.app_runtime_gitops_contract.smoke_guardrails.workload_kinds",
+        errors,
+    )
+    if not live_workload_kinds:
+        errors.append("spec.app_runtime_gitops_contract.smoke_guardrails.workload_kinds must not be empty")
+    minimum_workloads_env = _string_or_error(
+        smoke_guardrails.get("minimum_workloads_env"),
+        "spec.app_runtime_gitops_contract.smoke_guardrails.minimum_workloads_env",
+        errors,
+    )
+    minimum_workloads_default = _int_or_error(
+        smoke_guardrails.get("minimum_workloads_default"),
+        "spec.app_runtime_gitops_contract.smoke_guardrails.minimum_workloads_default",
+        errors,
+    )
+    if minimum_workloads_default is not None and minimum_workloads_default < 1:
+        errors.append(
+            "spec.app_runtime_gitops_contract.smoke_guardrails.minimum_workloads_default must be >= 1"
+        )
+    diagnostics_reason = _string_or_error(
+        smoke_guardrails.get("diagnostics_reason"),
+        "spec.app_runtime_gitops_contract.smoke_guardrails.diagnostics_reason",
+        errors,
+    )
+    if diagnostics_reason != "empty-runtime-workloads":
+        errors.append(
+            "spec.app_runtime_gitops_contract.smoke_guardrails.diagnostics_reason must be empty-runtime-workloads"
+        )
+    if isinstance(toggles_raw, dict) and minimum_workloads_env and minimum_workloads_env not in toggles_raw:
+        errors.append(
+            "spec.app_runtime_gitops_contract.smoke_guardrails.minimum_workloads_env must reference an existing "
+            f"toggle: {minimum_workloads_env}"
+        )
+    if (
+        isinstance(toggles_raw, dict)
+        and minimum_workloads_env
+        and minimum_workloads_default is not None
+        and isinstance(toggles_raw.get(minimum_workloads_env), dict)
+    ):
+        toggle_default = toggles_raw.get(minimum_workloads_env, {}).get("default")
+        if toggle_default != minimum_workloads_default:
+            errors.append(
+                "spec.app_runtime_gitops_contract.smoke_guardrails.minimum_workloads_default must match "
+                f"spec.toggles.{minimum_workloads_env}.default"
+            )
+
+    if not _is_optional_contract_enabled(spec_raw, contract_section):
+        return errors
+
+    errors.extend(_validate_required_paths(repo_root, required_paths))
+
+    base_kustomization_path = repo_root / "infra/gitops/platform/base/kustomization.yaml"
+    base_resources = _kustomization_resources(base_kustomization_path)
+    if "apps" not in base_resources:
+        errors.append(
+            "infra/gitops/platform/base/kustomization.yaml missing required app runtime resource: apps "
+            "(set APP_RUNTIME_GITOPS_ENABLED=true and reconcile scaffold)"
+        )
+
+    app_runtime_manifest_root = repo_root / "infra/gitops/platform/base/apps"
+    manifest_kinds = _manifest_kinds_under_path(app_runtime_manifest_root)
+    if not manifest_kinds:
+        errors.append(
+            "app runtime GitOps scaffold enabled but no Kubernetes manifests were detected under "
+            "infra/gitops/platform/base/apps"
+        )
+    else:
+        for required_kind in workload_kinds:
+            if required_kind not in manifest_kinds:
+                errors.append(
+                    "app runtime GitOps scaffold enabled but required workload kind is missing under "
+                    f"infra/gitops/platform/base/apps: {required_kind}"
+                )
+
+    app_catalog_section_raw = spec_raw.get("app_catalog_scaffold_contract")
+    app_catalog_enabled = False
+    if isinstance(app_catalog_section_raw, dict):
+        app_catalog_enabled = _is_optional_contract_enabled(spec_raw, app_catalog_section_raw)
+    if app_catalog_enabled:
+        manifest_path = repo_root / app_catalog_manifest_path
+        if not manifest_path.is_file():
+            errors.append(f"missing app runtime GitOps manifest contract path: {app_catalog_manifest_path}")
+        else:
+            manifest_content = manifest_path.read_text(encoding="utf-8")
+            for marker in (
+                "deliveryTopology:",
+                "runtimeDeliveryContract:",
+                "gitopsWorkloads:",
+                "manifestsRoot: infra/gitops/platform/base/apps",
+                "gitopsEnabled: true",
+            ):
+                if marker not in manifest_content:
+                    errors.append(
+                        "apps/catalog/manifest.yaml missing runtime delivery contract marker while "
+                        "APP_RUNTIME_GITOPS_ENABLED=true and APP_CATALOG_SCAFFOLD_ENABLED=true: "
+                        f"{marker}"
+                    )
+
+    apps_smoke_script = repo_root / "scripts/bin/platform/apps/smoke.sh"
+    if apps_smoke_script.is_file():
+        apps_smoke_content = apps_smoke_script.read_text(encoding="utf-8")
+        for marker in ("APP_RUNTIME_MIN_WORKLOADS", "run_runtime_workload_presence_check"):
+            if marker not in apps_smoke_content:
+                errors.append(
+                    "scripts/bin/platform/apps/smoke.sh must enforce app runtime live workload presence guardrails: "
+                    f"missing marker {marker}"
+                )
+
+    infra_smoke_script = repo_root / "scripts/bin/infra/smoke.sh"
+    if infra_smoke_script.is_file():
+        infra_smoke_content = infra_smoke_script.read_text(encoding="utf-8")
+        for marker in (
+            "APP_RUNTIME_MIN_WORKLOADS",
+            "--required-namespace-min-pods",
+            "emptyRuntimeNamespaceCount",
+            "emptyRuntimeNamespaces",
+        ):
+            if marker not in infra_smoke_content:
+                errors.append(
+                    "scripts/bin/infra/smoke.sh must propagate runtime empty-workload diagnostics and guardrails: "
+                    f"missing marker {marker}"
+                )
+        if app_namespace and app_namespace not in infra_smoke_content:
+            errors.append(
+                "scripts/bin/infra/smoke.sh must include app runtime smoke namespace from contract "
+                f"spec.app_runtime_gitops_contract.smoke_guardrails.app_namespace={app_namespace}"
             )
 
     return errors
@@ -2110,6 +2352,56 @@ def _validate_python_import_boundaries(repo_root: Path) -> list[str]:
     return errors
 
 
+def _contract_validation_helpers() -> ContractValidationHelpers:
+    return ContractValidationHelpers(
+        validate_required_files=_validate_required_files,
+        validate_required_paths=_validate_required_paths,
+        mapping_or_error=_mapping_or_error,
+        list_of_str_or_error=_list_of_str_or_error,
+        string_or_error=_string_or_error,
+        bool_or_error=_bool_or_error,
+        int_or_error=_int_or_error,
+        is_optional_contract_enabled=_is_optional_contract_enabled,
+        kustomization_resources=_kustomization_resources,
+        manifest_kinds_under_path=_manifest_kinds_under_path,
+        make_targets=_make_targets,
+        manifest_sync_policy_has_automated=_manifest_sync_policy_has_automated,
+        validate_argocd_https_repo_url_contract=validate_argocd_https_repo_url_contract,
+        load_runtime_identity_contract=load_runtime_identity_contract,
+        render_eso_external_secrets_manifest=render_eso_external_secrets_manifest,
+        runtime_dependency_edges=tuple(RUNTIME_DEPENDENCY_EDGES),
+    )
+
+
+_RUNTIME_IDENTITY_DEPENDENCY_HINT = (
+    "reconcile runtime identity artifacts before infra-smoke/upgrade validation"
+)
+
+
+def _validate_runtime_credentials_contract(repo_root: Path) -> list[str]:
+    return _validate_runtime_credentials_contract_delegate(repo_root, _contract_validation_helpers())
+
+
+def _validate_app_runtime_gitops_contract(repo_root: Path, contract: BlueprintContract) -> list[str]:
+    return _validate_app_runtime_gitops_contract_delegate(repo_root, contract, _contract_validation_helpers())
+
+
+def _validate_event_messaging_contract(repo_root: Path, contract: BlueprintContract) -> list[str]:
+    return _validate_event_messaging_contract_delegate(repo_root, contract, _contract_validation_helpers())
+
+
+def _validate_docs_edit_link(repo_root: Path, contract: BlueprintContract) -> list[str]:
+    return _validate_docs_edit_link_delegate(repo_root, contract)
+
+
+def _validate_platform_docs_seed_contract(repo_root: Path, contract: BlueprintContract) -> list[str]:
+    return _validate_platform_docs_seed_contract_delegate(repo_root, contract, _contract_validation_helpers())
+
+
+def _validate_bootstrap_template_sync(repo_root: Path, contract: BlueprintContract) -> list[str]:
+    return _validate_bootstrap_template_sync_delegate(repo_root, contract)
+
+
 def parse_args() -> argparse.Namespace:
     repo_root = _resolve_repo_root()
     parser = argparse.ArgumentParser(description=__doc__)
@@ -2167,6 +2459,7 @@ def main() -> int:
     errors.extend(_validate_core_chart_values_contract(repo_root))
     errors.extend(_validate_runtime_credentials_contract(repo_root))
     errors.extend(_validate_app_catalog_scaffold_contract(repo_root, contract))
+    errors.extend(_validate_app_runtime_gitops_contract(repo_root, contract))
     errors.extend(_validate_event_messaging_contract(repo_root, contract))
     errors.extend(_validate_zero_downtime_evolution_contract(repo_root, contract))
     errors.extend(_validate_tenant_context_contract(contract))
