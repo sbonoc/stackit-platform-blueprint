@@ -397,6 +397,7 @@ class GovernanceStructureCases(RefactorContractBase):
                 "quality-ci-sync",
                 "quality-ci-check-sync",
                 "quality-docs-lint",
+                "quality-docs-sync-all",
                 "quality-docs-sync-blueprint-template",
                 "quality-docs-check-blueprint-template-sync",
                 "quality-docs-sync-platform-seed",

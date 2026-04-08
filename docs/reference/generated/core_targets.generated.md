@@ -37,6 +37,7 @@ This file is auto-generated. Do not edit it manually.
 | `quality-ci-blueprint` | Run source blueprint CI lane bundle |
 | `quality-ci-generated-consumer-smoke` | Run generated-consumer template smoke lane |
 | `quality-docs-lint` | Lint markdown docs, governance links, and make target references |
+| `quality-docs-sync-all` | Run all docs sync generators in canonical order |
 | `quality-docs-sync-blueprint-template` | Sync docs/blueprint/** into bootstrap template blueprint docs mirror |
 | `quality-docs-check-blueprint-template-sync` | Fail when docs/blueprint/** and bootstrap template blueprint docs drift |
 | `quality-docs-sync-platform-seed` | Sync docs/platform/** into bootstrap template platform docs seed mirror |
