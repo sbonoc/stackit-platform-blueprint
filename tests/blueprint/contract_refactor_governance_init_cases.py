@@ -66,6 +66,7 @@ class GovernanceInitRepoCases(RefactorContractBase):
         self.assertIn("EVENT_MESSAGING_BASELINE_ENABLED=false", init_env_defaults)
         self.assertIn("ZERO_DOWNTIME_EVOLUTION_ENABLED=false", init_env_defaults)
         self.assertIn("TENANT_CONTEXT_PROPAGATION_ENABLED=false", init_env_defaults)
+        self.assertIn("APP_CATALOG_SCAFFOLD_ENABLED=false", init_env_defaults)
         self.assertIn("RUNTIME_CREDENTIALS_SOURCE_NAMESPACE=security", init_env_defaults)
         self.assertIn("RUNTIME_CREDENTIALS_TARGET_NAMESPACE=apps", init_env_defaults)
         self.assertIn("RUNTIME_CREDENTIALS_ESO_WAIT_TIMEOUT=180", init_env_defaults)
@@ -88,6 +89,7 @@ class GovernanceInitRepoCases(RefactorContractBase):
         self.assertIn("force_env_var: BLUEPRINT_INIT_FORCE", _read("blueprint/contract.yaml"))
         self.assertIn("consumer_init:", _read("blueprint/contract.yaml"))
         self.assertIn("ownership_path_classes:", _read("blueprint/contract.yaml"))
+        self.assertIn("app_catalog_scaffold_contract:", _read("blueprint/contract.yaml"))
 
     def test_blueprint_init_python_updates_contract_and_docs(self) -> None:
         init_python_path = REPO_ROOT / "scripts/lib/blueprint/init_repo.py"

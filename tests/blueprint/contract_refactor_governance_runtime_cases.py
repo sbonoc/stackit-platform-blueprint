@@ -19,6 +19,7 @@ class GovernanceRuntimePolicyCases(RefactorContractBase):
             "_validate_script_ownership_contract",
             "_validate_platform_docs_seed_contract",
             "_validate_async_message_contract",
+            "_validate_app_catalog_scaffold_contract",
             "_validate_event_messaging_contract",
             "_validate_zero_downtime_evolution_contract",
             "_validate_tenant_context_contract",
@@ -31,6 +32,8 @@ class GovernanceRuntimePolicyCases(RefactorContractBase):
         self.assertIn("EVENT_MESSAGING_BASELINE_ENABLED:", contract_yaml)
         self.assertIn("ZERO_DOWNTIME_EVOLUTION_ENABLED:", contract_yaml)
         self.assertIn("TENANT_CONTEXT_PROPAGATION_ENABLED:", contract_yaml)
+        self.assertIn("APP_CATALOG_SCAFFOLD_ENABLED:", contract_yaml)
+        self.assertIn("app_catalog_scaffold_contract:", contract_yaml)
         self.assertIn("event_messaging_contract:", contract_yaml)
         self.assertIn("zero_downtime_evolution_contract:", contract_yaml)
         self.assertIn("tenant_context_contract:", contract_yaml)

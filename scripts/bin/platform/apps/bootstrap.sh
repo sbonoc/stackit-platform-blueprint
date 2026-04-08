@@ -27,40 +27,54 @@ if [[ "${1:-}" == "--help" ]]; then
   exit 0
 fi
 
+set_default_env APP_CATALOG_SCAFFOLD_ENABLED "false"
+app_catalog_scaffold_enabled="$(shell_normalize_bool_truefalse "$APP_CATALOG_SCAFFOLD_ENABLED")"
+log_metric "app_catalog_scaffold_enabled_total" "1" "enabled=$app_catalog_scaffold_enabled"
+
 ensure_dir "$ROOT_DIR/apps/backend"
 ensure_dir "$ROOT_DIR/apps/touchpoints"
-ensure_dir "$ROOT_DIR/apps/catalog"
+manifest_path="none"
+versions_lock_path="none"
+if [[ "$app_catalog_scaffold_enabled" == "true" ]]; then
+  ensure_dir "$ROOT_DIR/apps/catalog"
+  manifest_path="$ROOT_DIR/apps/catalog/manifest.yaml"
+  versions_lock_path="$ROOT_DIR/apps/catalog/versions.lock"
 
-manifest_content=$'schemaVersion: v1\nappVersionContract:\n  appVersionEnv: APP_VERSION\n  appBuildIdEnv: APP_BUILD_ID\n  appReleaseEnv: APP_RELEASE\nruntimePinnedVersions:\n  python: '"$PYTHON_RUNTIME_BASE_IMAGE_VERSION"$'\n  node: '"$NODE_RUNTIME_BASE_IMAGE_VERSION"$'\n  nginx: '"$NGINX_RUNTIME_BASE_IMAGE_VERSION"$'\nframeworkPinnedVersions:\n  fastapi: '"$FASTAPI_VERSION"$'\n  pydantic: '"$PYDANTIC_VERSION"$'\n  vue: '"$VUE_VERSION"$'\n  vue_router: '"$VUE_ROUTER_VERSION"$'\n  pinia: '"$PINIA_VERSION"$'\n'
-# Keep observability wiring explicit in the app catalog contract so runtime consumers
-# (backend/UI) can be configured consistently from one canonical source.
-if is_module_enabled observability; then
-  observability_init_env
-  manifest_content+=$'observabilityRuntimeContract:\n  enabled: true\n  otel:\n    endpoint: '"$OTEL_EXPORTER_OTLP_ENDPOINT"$'\n    protocol: '"$OTEL_PROTOCOL"$'\n    tracesEnabled: '"$OTEL_TRACES_ENABLED"$'\n    metricsEnabled: '"$OTEL_METRICS_ENABLED"$'\n    logsEnabled: '"$OTEL_LOGS_ENABLED"$'\n  faro:\n    enabled: '"$FARO_ENABLED"$'\n    collectPath: '"$FARO_COLLECT_PATH"$'\n'
+  manifest_content=$'schemaVersion: v1\nappVersionContract:\n  appVersionEnv: APP_VERSION\n  appBuildIdEnv: APP_BUILD_ID\n  appReleaseEnv: APP_RELEASE\nruntimePinnedVersions:\n  python: '"$PYTHON_RUNTIME_BASE_IMAGE_VERSION"$'\n  node: '"$NODE_RUNTIME_BASE_IMAGE_VERSION"$'\n  nginx: '"$NGINX_RUNTIME_BASE_IMAGE_VERSION"$'\nframeworkPinnedVersions:\n  fastapi: '"$FASTAPI_VERSION"$'\n  pydantic: '"$PYDANTIC_VERSION"$'\n  vue: '"$VUE_VERSION"$'\n  vue_router: '"$VUE_ROUTER_VERSION"$'\n  pinia: '"$PINIA_VERSION"$'\n'
+  # Keep observability wiring explicit in the app catalog contract so runtime consumers
+  # (backend/UI) can be configured consistently from one canonical source.
+  if is_module_enabled observability; then
+    observability_init_env
+    manifest_content+=$'observabilityRuntimeContract:\n  enabled: true\n  otel:\n    endpoint: '"$OTEL_EXPORTER_OTLP_ENDPOINT"$'\n    protocol: '"$OTEL_PROTOCOL"$'\n    tracesEnabled: '"$OTEL_TRACES_ENABLED"$'\n    metricsEnabled: '"$OTEL_METRICS_ENABLED"$'\n    logsEnabled: '"$OTEL_LOGS_ENABLED"$'\n  faro:\n    enabled: '"$FARO_ENABLED"$'\n    collectPath: '"$FARO_COLLECT_PATH"$'\n'
+  else
+    manifest_content+=$'observabilityRuntimeContract:\n  enabled: false\n  otel:\n    endpoint: ""\n    protocol: ""\n    tracesEnabled: false\n    metricsEnabled: false\n    logsEnabled: false\n  faro:\n    enabled: false\n    collectPath: ""\n'
+  fi
+  versions_content=$'PYTHON_RUNTIME_BASE_IMAGE_VERSION='"$PYTHON_RUNTIME_BASE_IMAGE_VERSION"$'\nNODE_RUNTIME_BASE_IMAGE_VERSION='"$NODE_RUNTIME_BASE_IMAGE_VERSION"$'\nNGINX_RUNTIME_BASE_IMAGE_VERSION='"$NGINX_RUNTIME_BASE_IMAGE_VERSION"$'\nFASTAPI_VERSION='"$FASTAPI_VERSION"$'\nPYDANTIC_VERSION='"$PYDANTIC_VERSION"$'\nVUE_VERSION='"$VUE_VERSION"$'\nVUE_ROUTER_VERSION='"$VUE_ROUTER_VERSION"$'\nPINIA_VERSION='"$PINIA_VERSION"$'\n'
+
+  # Keep lockfile EOF deterministic for quality hooks and downstream generated repos.
+  # Normalize to exactly one trailing newline.
+  while [[ "$versions_content" == *$'\n' ]]; do
+    versions_content="${versions_content%$'\n'}"
+  done
+  versions_content+=$'\n'
+
+  printf '%s' "$manifest_content" >"$manifest_path"
+  printf '%s' "$versions_content" >"$versions_lock_path"
 else
-  manifest_content+=$'observabilityRuntimeContract:\n  enabled: false\n  otel:\n    endpoint: ""\n    protocol: ""\n    tracesEnabled: false\n    metricsEnabled: false\n    logsEnabled: false\n  faro:\n    enabled: false\n    collectPath: ""\n'
+  log_info "app catalog scaffold disabled; skipping apps/catalog manifest and lock generation"
 fi
-versions_content=$'PYTHON_RUNTIME_BASE_IMAGE_VERSION='"$PYTHON_RUNTIME_BASE_IMAGE_VERSION"$'\nNODE_RUNTIME_BASE_IMAGE_VERSION='"$NODE_RUNTIME_BASE_IMAGE_VERSION"$'\nNGINX_RUNTIME_BASE_IMAGE_VERSION='"$NGINX_RUNTIME_BASE_IMAGE_VERSION"$'\nFASTAPI_VERSION='"$FASTAPI_VERSION"$'\nPYDANTIC_VERSION='"$PYDANTIC_VERSION"$'\nVUE_VERSION='"$VUE_VERSION"$'\nVUE_ROUTER_VERSION='"$VUE_ROUTER_VERSION"$'\nPINIA_VERSION='"$PINIA_VERSION"$'\n'
-
-# Keep lockfile EOF deterministic for quality hooks and downstream generated repos.
-# Normalize to exactly one trailing newline.
-while [[ "$versions_content" == *$'\n' ]]; do
-  versions_content="${versions_content%$'\n'}"
-done
-versions_content+=$'\n'
-
-printf '%s' "$manifest_content" >"$ROOT_DIR/apps/catalog/manifest.yaml"
-printf '%s' "$versions_content" >"$ROOT_DIR/apps/catalog/versions.lock"
 
 state_file="$(
   write_state_file "apps_bootstrap" \
     "profile=$BLUEPRINT_PROFILE" \
     "stack=$(active_stack)" \
+    "app_catalog_scaffold_enabled=$app_catalog_scaffold_enabled" \
     "observability_enabled=$OBSERVABILITY_ENABLED_NORMALIZED" \
     "observability_module_enabled=$(is_module_enabled observability && echo true || echo false)" \
     "otel_endpoint=${OTEL_EXPORTER_OTLP_ENDPOINT:-}" \
     "faro_collect_path=${FARO_COLLECT_PATH:-}" \
-    "app_manifest=$ROOT_DIR/apps/catalog/manifest.yaml" \
+    "app_manifest=$manifest_path" \
+    "app_versions_lock=$versions_lock_path" \
     "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 )"
 

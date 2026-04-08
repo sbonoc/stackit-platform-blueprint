@@ -41,6 +41,7 @@ class OptionalRuntimeContractValidationTests(unittest.TestCase):
         self._run_validate(
             {
                 "BLUEPRINT_BRANCH_NAME": "main",
+                "APP_CATALOG_SCAFFOLD_ENABLED": "false",
                 "EVENT_MESSAGING_BASELINE_ENABLED": "false",
                 "ZERO_DOWNTIME_EVOLUTION_ENABLED": "false",
                 "TENANT_CONTEXT_PROPAGATION_ENABLED": "false",
@@ -51,11 +52,58 @@ class OptionalRuntimeContractValidationTests(unittest.TestCase):
         self._run_validate(
             {
                 "BLUEPRINT_BRANCH_NAME": "main",
+                "APP_CATALOG_SCAFFOLD_ENABLED": "true",
                 "EVENT_MESSAGING_BASELINE_ENABLED": "true",
                 "ZERO_DOWNTIME_EVOLUTION_ENABLED": "true",
                 "TENANT_CONTEXT_PROPAGATION_ENABLED": "true",
             }
         )
+
+    def test_app_catalog_scaffold_contract_missing_fails_validation(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            contract_path = Path(tmpdir) / "contract.yaml"
+            content = CONTRACT_PATH.read_text(encoding="utf-8")
+            content = re.sub(
+                r"(?ms)^  app_catalog_scaffold_contract:\n.*?(?=^  tech_preferences:\n)",
+                "",
+                content,
+                count=1,
+            )
+            contract_path.write_text(content, encoding="utf-8")
+            result = self._run_validate_result(
+                contract_path,
+                {
+                    "BLUEPRINT_BRANCH_NAME": "main",
+                },
+            )
+            self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            self.assertIn(
+                "spec.app_catalog_scaffold_contract is required",
+                result.stdout + result.stderr,
+            )
+
+    def test_app_catalog_scaffold_contract_enabled_missing_path_fails_validation(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            contract_path = Path(tmpdir) / "contract.yaml"
+            content = CONTRACT_PATH.read_text(encoding="utf-8")
+            content = content.replace(
+                "      - apps/catalog/manifest.yaml",
+                "      - apps/catalog/missing-manifest.yaml",
+                1,
+            )
+            contract_path.write_text(content, encoding="utf-8")
+            result = self._run_validate_result(
+                contract_path,
+                {
+                    "BLUEPRINT_BRANCH_NAME": "main",
+                    "APP_CATALOG_SCAFFOLD_ENABLED": "true",
+                },
+            )
+            self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            self.assertIn(
+                "missing path: apps/catalog/missing-manifest.yaml",
+                result.stdout + result.stderr,
+            )
 
     def test_event_messaging_contract_empty_mapping_fails_validation(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

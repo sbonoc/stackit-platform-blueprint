@@ -44,6 +44,36 @@ def resolve_optional_module_enablement(repo_root: Path) -> dict[str, bool]:
     return module_enablement
 
 
+def resolve_app_catalog_scaffold_contract(repo_root: Path) -> tuple[bool, list[str]]:
+    contract = load_blueprint_contract_for_init(repo_root)
+    spec_raw = contract.raw.get("spec")
+    if not isinstance(spec_raw, dict):
+        return True, []
+
+    scaffold_raw = spec_raw.get("app_catalog_scaffold_contract")
+    if not isinstance(scaffold_raw, dict):
+        return True, []
+
+    enabled_by_default_raw = scaffold_raw.get("enabled_by_default")
+    enabled_by_default = enabled_by_default_raw if isinstance(enabled_by_default_raw, bool) else False
+    enable_flag_raw = scaffold_raw.get("enable_flag")
+    enable_flag = enable_flag_raw if isinstance(enable_flag_raw, str) else ""
+    env_value = os.environ.get(enable_flag) if enable_flag else None
+    enabled = enabled_by_default if env_value is None else normalize_bool(env_value)
+
+    required_paths_raw = scaffold_raw.get("required_paths_when_enabled")
+    required_paths: list[str] = []
+    if isinstance(required_paths_raw, list):
+        for raw_path in required_paths_raw:
+            if not isinstance(raw_path, str):
+                continue
+            stripped = raw_path.strip().rstrip("/")
+            if stripped:
+                required_paths.append(stripped)
+
+    return enabled, required_paths
+
+
 def seed_consumer_owned_files(
     repo_root: Path,
     dry_run: bool,
@@ -82,6 +112,11 @@ def seed_consumer_owned_files(
         for path_key in module.paths_required_when_enabled:
             for expanded in expand_optional_module_path(module.paths[path_key]):
                 remove_path(repo_root / expanded.rstrip("/"), dry_run, summary)
+
+    app_catalog_enabled, app_catalog_required_paths = resolve_app_catalog_scaffold_contract(repo_root)
+    if not app_catalog_enabled:
+        for relative_path in app_catalog_required_paths:
+            remove_path(repo_root / relative_path, dry_run, summary)
 
 
 def target_repo_mode(repo_root: Path) -> str:

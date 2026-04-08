@@ -25,11 +25,46 @@ if [[ "${1:-}" == "--help" ]]; then
   exit 0
 fi
 
+set_default_env APP_CATALOG_SCAFFOLD_ENABLED "false"
+app_catalog_scaffold_enabled="$(shell_normalize_bool_truefalse "$APP_CATALOG_SCAFFOLD_ENABLED")"
+log_metric "app_catalog_scaffold_enabled_total" "1" "enabled=$app_catalog_scaffold_enabled"
+
 manifest="$ROOT_DIR/apps/catalog/manifest.yaml"
 versions_lock="$ROOT_DIR/apps/catalog/versions.lock"
 
 if ! state_file_exists apps_bootstrap; then
   log_fatal "missing apps bootstrap state artifact; run make apps-bootstrap first"
+fi
+
+bootstrap_state_file="$(state_file_path apps_bootstrap)"
+bootstrap_scaffold_enabled_raw="$(
+  awk -F= '$1=="app_catalog_scaffold_enabled"{print $2}' "$bootstrap_state_file" | tail -n 1
+)"
+if [[ -z "$bootstrap_scaffold_enabled_raw" ]]; then
+  log_fatal \
+    "apps bootstrap state missing app_catalog_scaffold_enabled marker; rerun make apps-bootstrap before apps-smoke"
+fi
+bootstrap_scaffold_enabled="$(shell_normalize_bool_truefalse "$bootstrap_scaffold_enabled_raw")"
+if [[ "$bootstrap_scaffold_enabled" != "$app_catalog_scaffold_enabled" ]]; then
+  log_fatal \
+    "app catalog scaffold mode mismatch: apps_bootstrap used APP_CATALOG_SCAFFOLD_ENABLED=${bootstrap_scaffold_enabled}, apps-smoke is using ${app_catalog_scaffold_enabled}; rerun make apps-bootstrap with the current mode"
+fi
+
+if [[ "$app_catalog_scaffold_enabled" != "true" ]]; then
+  state_file="$(
+    write_state_file "apps_smoke" \
+      "profile=$BLUEPRINT_PROFILE" \
+      "stack=$(active_stack)" \
+      "app_catalog_scaffold_enabled=false" \
+      "manifest_path=none" \
+      "versions_lock_path=none" \
+      "check_mode=skipped" \
+      "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+  )"
+  log_info "app catalog scaffold disabled; skipping apps/catalog smoke assertions"
+  log_info "apps smoke state written to $state_file"
+  log_info "apps smoke passed"
+  exit 0
 fi
 
 if [[ ! -f "$manifest" ]]; then
@@ -70,8 +105,10 @@ state_file="$(
   write_state_file "apps_smoke" \
     "profile=$BLUEPRINT_PROFILE" \
     "stack=$(active_stack)" \
+    "app_catalog_scaffold_enabled=true" \
     "manifest_path=$manifest" \
     "versions_lock_path=$versions_lock" \
+    "check_mode=enabled" \
     "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 )"
 

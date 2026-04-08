@@ -567,6 +567,11 @@ spec:
       default: false
       required: false
       description: "Optional-module switch for Identity-Aware Proxy provisioning/deployment; requires Keycloak OIDC configuration."
+    APP_CATALOG_SCAFFOLD_ENABLED:
+      type: boolean
+      default: false
+      required: false
+      description: "Opt-in scaffold switch for app catalog artifacts and app test-lane contract checks."
     EVENT_MESSAGING_BASELINE_ENABLED:
       type: boolean
       default: false
@@ -666,6 +671,32 @@ spec:
       consumer_verify_command_env_var: ASYNC_PACT_CONSUMER_VERIFY_CMD
       producer_publish_command_env_var: ASYNC_PACT_BROKER_PUBLISH_CMD
       can_i_deploy_command_env_var: ASYNC_PACT_CAN_I_DEPLOY_CMD
+
+  app_catalog_scaffold_contract:
+    enabled_by_default: false
+    enable_flag: APP_CATALOG_SCAFFOLD_ENABLED
+    required_paths_when_enabled:
+      - apps/catalog
+      - apps/catalog/manifest.yaml
+      - apps/catalog/versions.lock
+    docs_paths:
+      - docs/platform/consumer/quickstart.md
+      - docs/platform/consumer/troubleshooting.md
+    test_lane_targets:
+      - backend-test-unit
+      - backend-test-integration
+      - backend-test-contracts
+      - backend-test-e2e
+      - touchpoints-test-unit
+      - touchpoints-test-integration
+      - touchpoints-test-contracts
+      - touchpoints-test-e2e
+      - test-unit-all
+      - test-integration-all
+      - test-contracts-all
+      - test-e2e-all-local
+      - test-e2e-all-local-full
+      - test-e2e-all-local-execute
 
   tech_preferences:
     frontend:

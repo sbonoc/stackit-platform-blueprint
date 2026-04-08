@@ -86,6 +86,20 @@ make blueprint-template-smoke
 
 `make blueprint-template-smoke` respects exported `BLUEPRINT_PROFILE` and optional-module flags, so you can dry-run the exact generated-repo scenario you want to validate before provisioning live infrastructure.
 
+### App Catalog/Test-Lane Scaffold (Opt-In)
+`APP_CATALOG_SCAFFOLD_ENABLED` is disabled by default so minimal generated repos are not forced into a multi-app catalog layout.
+
+Enable it when you want the canonical app contract (`apps/catalog/manifest.yaml` + `apps/catalog/versions.lock`) and the test-lane baseline to stay synchronized:
+```bash
+APP_CATALOG_SCAFFOLD_ENABLED=true make apps-bootstrap
+APP_CATALOG_SCAFFOLD_ENABLED=true make apps-smoke
+```
+
+Keep these surfaces synchronized after changes:
+- `apps/catalog/manifest.yaml` (topology + runtime/framework pin contract)
+- `apps/catalog/versions.lock` (script-friendly pin mirror)
+- app test lanes in `make/platform.mk` (`backend-*`, `touchpoints-*`, and aggregate `test-*-all` targets)
+
 ## 5) Continue with Delivery Flow
 ```bash
 make infra-context
