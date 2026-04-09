@@ -149,14 +149,48 @@ class RuntimeCredentialsEsoTests(unittest.TestCase):
 
         combined_output = result.stdout + result.stderr
         self.assertNotIn("argocd_repo_contract.py: error: unrecognized arguments", combined_output)
+        self.assertNotIn("ghp_exampletoken", combined_output)
 
         state_path = REPO_ROOT / "artifacts" / "infra" / "argocd_repo_credentials_reconcile.env"
         self.assertTrue(state_path.exists(), msg="argocd repo credentials state artifact was not created")
         state = state_path.read_text(encoding="utf-8")
         self.assertIn("status=success", state)
         self.assertIn("runtime_reconcile_status=success", state)
+        self.assertNotIn("ghp_exampletoken", state)
         state_json_path = REPO_ROOT / "artifacts" / "infra" / "argocd_repo_credentials_reconcile.json"
         self.assertTrue(state_json_path.exists(), msg="argocd repo credentials JSON state artifact was not created")
+        state_json = state_json_path.read_text(encoding="utf-8")
+        self.assertNotIn("ghp_exampletoken", state_json)
+
+    def test_argocd_reconcile_ignores_unrelated_env_vars_and_fails_required_without_argocd_token(self) -> None:
+        env = module_flags_env(profile="local-full")
+        env.update(
+            {
+                "ARGOCD_REPO_CREDENTIALS_REQUIRED": "true",
+                "ARGOCD_REPO_USERNAME": "",
+                "ARGOCD_REPO_TOKEN": "",
+                "UNRELATED_GITOPS_REPO_USERNAME": "x-access-token",
+                "UNRELATED_GITOPS_REPO_TOKEN": "ghp_unrelatedtoken",
+            }
+        )
+
+        result = run_make("auth-reconcile-argocd-repo-credentials", env)
+        self.assertNotEqual(result.returncode, 0, msg="required mode must fail when ARGOCD_REPO_TOKEN is unset")
+
+        combined_output = result.stdout + result.stderr
+        self.assertNotIn("ghp_unrelatedtoken", combined_output)
+        self.assertIn("ARGOCD_REPO_TOKEN is empty", combined_output)
+
+        state_path = REPO_ROOT / "artifacts" / "infra" / "argocd_repo_credentials_reconcile.env"
+        self.assertTrue(state_path.exists(), msg="argocd repo credentials state artifact was not created")
+        state = state_path.read_text(encoding="utf-8")
+        self.assertIn("status=failed-required", state)
+        self.assertNotIn("ghp_unrelatedtoken", state)
+
+        state_json_path = REPO_ROOT / "artifacts" / "infra" / "argocd_repo_credentials_reconcile.json"
+        self.assertTrue(state_json_path.exists(), msg="argocd repo credentials JSON state artifact was not created")
+        state_json = state_json_path.read_text(encoding="utf-8")
+        self.assertNotIn("ghp_unrelatedtoken", state_json)
 
     def test_runtime_identity_orchestrator_writes_plugin_state(self) -> None:
         env = module_flags_env(profile="local-full")

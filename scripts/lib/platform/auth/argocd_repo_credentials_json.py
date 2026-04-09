@@ -7,17 +7,26 @@ import argparse
 import base64
 import binascii
 import json
+import os
 from pathlib import Path
 import sys
 
 
 def cmd_render_source_patch(args: argparse.Namespace) -> int:
+    repo_token = os.environ.get(args.repo_token_env, "")
+    if repo_token == "":
+        print(
+            f"required repo token env var is empty or unset: {args.repo_token_env}",
+            file=sys.stderr,
+        )
+        return 1
+
     payload = {
         "stringData": {
             "ARGOCD_REPO_TYPE": args.repo_type,
             "ARGOCD_REPO_URL": args.repo_url,
             "ARGOCD_REPO_USERNAME": args.repo_username,
-            "ARGOCD_REPO_TOKEN": args.repo_token,
+            "ARGOCD_REPO_TOKEN": repo_token,
         }
     }
     Path(args.output_path).write_text(json.dumps(payload), encoding="utf-8")
@@ -90,7 +99,11 @@ def main() -> int:
     patch_parser.add_argument("repo_type")
     patch_parser.add_argument("repo_url")
     patch_parser.add_argument("repo_username")
-    patch_parser.add_argument("repo_token")
+    patch_parser.add_argument(
+        "--repo-token-env",
+        default="ARGOCD_REPO_TOKEN",
+        help="Environment variable containing repo token (default: ARGOCD_REPO_TOKEN)",
+    )
     patch_parser.set_defaults(func=cmd_render_source_patch)
 
     validate_parser = subparsers.add_parser("validate-target-secret")

@@ -160,12 +160,27 @@ class PythonHelperExtractionsTests(unittest.TestCase):
                     "git",
                     "https://github.com/acme/demo.git",
                     "x-access-token",
-                    "github_pat_abc",
-                ]
+                ],
+                {"ARGOCD_REPO_TOKEN": "github_pat_abc"},
             )
             self.assertEqual(render.returncode, 0, msg=render.stdout + render.stderr)
             patch_payload = json.loads(patch_file.read_text(encoding="utf-8"))
             self.assertEqual(patch_payload["stringData"]["ARGOCD_REPO_TYPE"], "git")
+            self.assertEqual(patch_payload["stringData"]["ARGOCD_REPO_TOKEN"], "github_pat_abc")
+
+            missing_token = run(
+                [
+                    sys.executable,
+                    str(script),
+                    "render-source-patch",
+                    str(patch_file),
+                    "git",
+                    "https://github.com/acme/demo.git",
+                    "x-access-token",
+                ]
+            )
+            self.assertEqual(missing_token.returncode, 1)
+            self.assertIn("required repo token env var is empty or unset", missing_token.stderr)
 
             secret = {
                 "metadata": {"labels": {"argocd.argoproj.io/secret-type": "repository"}},
