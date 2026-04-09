@@ -277,6 +277,8 @@ class ScriptsRefactorCases(RefactorContractBase):
         self.assertIn("local_lite_postgres_runtime_ready()", reconcile)
         self.assertIn("should_skip_eso_contract_check()", reconcile)
         self.assertIn("runtime_credentials_eso_contract_skip_total", reconcile)
+        self.assertIn("'^profile=local-lite$'", reconcile)
+        self.assertIn("'^stack=local$'", reconcile)
         self.assertIn(
             'if [[ "$contract_id" == "postgres-runtime-credentials" && "$contract_module" == "postgres" ]]; then',
             reconcile,

@@ -173,6 +173,38 @@ class RuntimeCredentialsEsoTests(unittest.TestCase):
             state,
         )
 
+    def test_local_lite_postgres_runtime_contract_skip_requires_owned_local_state(self) -> None:
+        env = module_flags_env(profile="local-lite", postgres="true")
+        postgres_runtime_state = REPO_ROOT / "artifacts" / "infra" / "postgres_runtime.env"
+        postgres_runtime_state.parent.mkdir(parents=True, exist_ok=True)
+        postgres_runtime_state.write_text(
+            "\n".join(
+                [
+                    "profile=stackit-dev",
+                    "stack=stackit",
+                    "tooling_mode=execute",
+                    "dsn=postgresql://platform:platform-password@blueprint-postgres.data.svc.cluster.local:5432/platform",
+                ]
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+
+        result = run_make("auth-reconcile-eso-runtime-secrets", env)
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+
+        combined_output = result.stdout + result.stderr
+        self.assertNotIn(
+            "runtime credentials contract check skipped contract_id=postgres-runtime-credentials",
+            combined_output,
+        )
+
+        state_path = REPO_ROOT / "artifacts" / "infra" / "runtime_credentials_eso_reconcile.env"
+        self.assertTrue(state_path.exists(), msg="runtime credentials state artifact was not created")
+        state = state_path.read_text(encoding="utf-8")
+        self.assertIn("skipped_contract_count=0", state)
+        self.assertIn("skipped_contracts=none", state)
+
     def test_argocd_reconcile_resolves_repo_contract_without_argparse_errors(self) -> None:
         env = module_flags_env(profile="local-full")
         env.update(

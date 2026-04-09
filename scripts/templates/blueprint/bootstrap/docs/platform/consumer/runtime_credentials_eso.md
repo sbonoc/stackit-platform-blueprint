@@ -137,7 +137,7 @@ make auth-reconcile-runtime-identity
 ```
 
 Local-lite Postgres note:
-- When `BLUEPRINT_PROFILE=local-lite`, `POSTGRES_ENABLED=true`, and `artifacts/infra/postgres_runtime.env` contains a valid PostgreSQL DSN, runtime-credentials reconciliation skips the ESO readiness/target checks for `data/postgres-runtime-credentials`.
+- When `BLUEPRINT_PROFILE=local-lite`, `POSTGRES_ENABLED=true`, and `artifacts/infra/postgres_runtime.env` is owned by local-lite/local runtime (`profile=local-lite`, `stack=local`) with a valid PostgreSQL DSN, runtime-credentials reconciliation skips the ESO readiness/target checks for `data/postgres-runtime-credentials`.
 - This prevents false `warn-and-skip` noise when local Postgres runtime is already healthy through the local Helm/runtime-state path.
 - Reconcile state artifacts surface this as `skipped_contract_count` and `skipped_contracts`.
 

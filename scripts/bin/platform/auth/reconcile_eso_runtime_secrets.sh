@@ -157,6 +157,13 @@ local_lite_postgres_runtime_ready() {
   fi
   local runtime_state_file
   runtime_state_file="$(state_file_path postgres_runtime)"
+  # Guard against stale cross-profile artifacts: only trust local-lite/local state ownership.
+  if ! grep -q '^profile=local-lite$' "$runtime_state_file" 2>/dev/null; then
+    return 1
+  fi
+  if ! grep -q '^stack=local$' "$runtime_state_file" 2>/dev/null; then
+    return 1
+  fi
   if ! grep -q '^dsn=postgresql://' "$runtime_state_file" 2>/dev/null; then
     return 1
   fi
