@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: touchpoints-web
+  namespace: apps
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: touchpoints-web
+  template:
+    metadata:
+      labels:
+        app: touchpoints-web
+    spec:
+      containers:
+        - name: touchpoints-web
+          image: ghcr.io/example/touchpoints-web:latest

@@ -148,6 +148,18 @@ For local profiles, it also supports an optional post-deploy hook contract:
 `artifacts/infra/infra_status_snapshot.json`.
 For local live execution, the blueprint prefers the `docker-desktop` Kubernetes context when it exists.
 Set `LOCAL_KUBE_CONTEXT` before running `infra-provision-deploy` if you want to override that default.
+For consumer-maintained scripts that need direct cluster/Helm access, use shared wrappers instead of raw `kubectl`/`helm` calls:
+```bash
+source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
+source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
+source "$ROOT_DIR/scripts/lib/infra/port_forward.sh"
+
+run_helm_with_active_access list --all-namespaces
+start_port_forward "example" "apps" "svc/backend-api" "18080" "8080"
+wait_for_local_port "example" "18080" "20"
+stop_port_forward "example"
+```
+Use `cleanup_port_forwards` in `trap` handlers for long-running scripts.
 Use `make auth-reconcile-runtime-identity` whenever you need an explicit runtime identity reconciliation pass
 (ESO source-to-target checks + Argo repo access + Keycloak/module contract coverage).
 For local profiles, Keycloak Argo sync is manual by default; after a successful reconcile run,

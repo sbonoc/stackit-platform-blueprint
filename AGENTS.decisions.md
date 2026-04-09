@@ -193,3 +193,13 @@
 - Local post-deploy hook upgrade/preflight and artifact contracts are now explicit:
   - generated-consumer upgrade planning now emits a required manual action when `LOCAL_POST_DEPLOY_HOOK_ENABLED=true` and `LOCAL_POST_DEPLOY_HOOK_CMD` still points to `infra-post-deploy-consumer` while that target remains a placeholder.
   - local hook state artifacts now have a dedicated schema (`scripts/lib/infra/schemas/local_post_deploy_hook_state.schema.json`) validated on every hook run, with explicit validation telemetry (`local_post_deploy_hook_state_contract_validation_total`).
+- Context-safe Kubernetes/Helm helper contract is now explicit and reusable:
+  - `scripts/lib/infra/tooling.sh` now provides canonical active-access wrappers (`run_kubectl_with_active_access`, `run_kubectl_capture_with_active_access`, `run_helm_with_active_access`) that propagate resolved `--kubeconfig` and context arguments from one shared cluster-access path.
+  - core kubectl helpers (`cluster_crd_exists`, kustomize/manifest apply+delete, managed namespace cleanup) now route through those active-access wrappers so kubectl and helm execution both avoid implicit context selection.
+  - Helm repo refresh now uses shared bounded retry/backoff (`run_cmd_with_retry_backoff`) with explicit knobs (`HELM_REPO_UPDATE_RETRY_*`) and retry metrics.
+  - shared generic port-forward lifecycle primitives now live in `scripts/lib/infra/port_forward.sh` (`start_port_forward`, `wait_for_local_port`, `stop_port_forward`, `cleanup_port_forwards`) with context-safe execution, persistent registry tracking, stale-PID pruning, and lifecycle metrics.
+- Generated-consumer upgrade safety now includes fixture-matrix regression coverage:
+  - added `tests/blueprint/test_upgrade_fixture_matrix.py` with legacy generated-consumer snapshot fixtures that exercise `resync_consumer_seeds.py` + `upgrade_consumer.py` end-to-end in two scenarios (`features-disabled`, `features-enabled`).
+  - the matrix now validates that legacy snapshots can be upgraded non-destructively, required runtime contract artifacts are materialized, and strict runtime drift reporting remains in-sync when toggles are disabled and when enabled.
+  - fast contract lane now executes this matrix through `scripts/bin/infra/contract_test_fast.sh` so CI catches upgrade/resync regressions before release tagging.
+  - deferred simplification/refactor proposals (declarative module action manifest, shared validation package, script trace-id propagation, docs snippet generation, path-aware CI partitioning) were intentionally moved to `AGENTS.backlog.md` as explicit priorities rather than bundled into this change.

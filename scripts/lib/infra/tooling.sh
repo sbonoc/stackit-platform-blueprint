@@ -3,6 +3,9 @@ set -euo pipefail
 
 TOOLING_ENV_DEFAULTS_LOADED="${TOOLING_ENV_DEFAULTS_LOADED:-false}"
 HELM_PREPARED_REPOS_CACHE="|"
+TOOLING_RETRY_DEFAULTS_LOADED="${TOOLING_RETRY_DEFAULTS_LOADED:-false}"
+KUBECTL_ACTIVE_ACCESS_ARGS=()
+HELM_ACTIVE_ACCESS_ARGS=()
 
 tooling_load_blueprint_env_defaults() {
   if [[ "$TOOLING_ENV_DEFAULTS_LOADED" == "true" ]]; then
@@ -36,6 +39,21 @@ tooling_load_blueprint_env_defaults() {
 }
 
 tooling_load_blueprint_env_defaults
+
+tooling_load_retry_env_defaults() {
+  if [[ "$TOOLING_RETRY_DEFAULTS_LOADED" == "true" ]]; then
+    return 0
+  fi
+  TOOLING_RETRY_DEFAULTS_LOADED="true"
+
+  # Shared retry/backoff defaults used by transient command wrappers.
+  set_default_env TOOLING_RETRY_MAX_ATTEMPTS "3"
+  set_default_env TOOLING_RETRY_BASE_DELAY_SECONDS "2"
+  set_default_env TOOLING_RETRY_MAX_DELAY_SECONDS "20"
+  set_default_env TOOLING_RETRY_BACKOFF_MULTIPLIER "2"
+}
+
+tooling_load_retry_env_defaults
 
 tooling_normalize_bool() {
   local value="${1:-false}"
@@ -299,6 +317,104 @@ active_kube_access_source() {
   printf 'current-context\n'
 }
 
+tooling_require_positive_integer() {
+  local value="$1"
+  local name="$2"
+  if [[ ! "$value" =~ ^[0-9]+$ || "$value" -le 0 ]]; then
+    log_fatal "$name must be a positive integer (got '$value')"
+  fi
+}
+
+resolve_active_kube_access_args() {
+  KUBECTL_ACTIVE_ACCESS_ARGS=()
+  HELM_ACTIVE_ACCESS_ARGS=()
+
+  prepare_cluster_access
+
+  local kubeconfig_path context_name
+  kubeconfig_path="$(active_kubeconfig_path)"
+  context_name="$(active_kube_context_name)"
+
+  if [[ -n "$kubeconfig_path" ]]; then
+    KUBECTL_ACTIVE_ACCESS_ARGS+=(--kubeconfig "$kubeconfig_path")
+    HELM_ACTIVE_ACCESS_ARGS+=(--kubeconfig "$kubeconfig_path")
+  fi
+  if [[ -n "$context_name" && "$context_name" != "unset" ]]; then
+    KUBECTL_ACTIVE_ACCESS_ARGS+=(--context "$context_name")
+    HELM_ACTIVE_ACCESS_ARGS+=(--kube-context "$context_name")
+  fi
+
+  local kubeconfig_set="false"
+  if [[ -n "$kubeconfig_path" ]]; then
+    kubeconfig_set="true"
+  fi
+  log_metric \
+    "kube_access_args_resolve_total" \
+    "1" \
+    "profile=${BLUEPRINT_PROFILE:-unset} kubeconfig_set=$kubeconfig_set context=${context_name:-unset}"
+}
+
+run_kubectl_with_active_access() {
+  resolve_active_kube_access_args
+  local -a kubectl_cmd=(kubectl "${KUBECTL_ACTIVE_ACCESS_ARGS[@]}" "$@")
+  run_cmd "${kubectl_cmd[@]}"
+}
+
+run_kubectl_capture_with_active_access() {
+  resolve_active_kube_access_args
+  local -a kubectl_cmd=(kubectl "${KUBECTL_ACTIVE_ACCESS_ARGS[@]}" "$@")
+  run_cmd_capture "${kubectl_cmd[@]}"
+}
+
+run_helm_with_active_access() {
+  resolve_active_kube_access_args
+  local -a helm_cmd=(helm "${HELM_ACTIVE_ACCESS_ARGS[@]}" "$@")
+  run_cmd "${helm_cmd[@]}"
+}
+
+run_cmd_with_retry_backoff() {
+  local operation="$1"
+  local max_attempts="$2"
+  local base_delay_seconds="$3"
+  local max_delay_seconds="$4"
+  local backoff_multiplier="$5"
+  shift 5 || true
+  local -a cmd=("$@")
+
+  tooling_require_positive_integer "$max_attempts" "max_attempts"
+  tooling_require_positive_integer "$base_delay_seconds" "base_delay_seconds"
+  tooling_require_positive_integer "$max_delay_seconds" "max_delay_seconds"
+  tooling_require_positive_integer "$backoff_multiplier" "backoff_multiplier"
+
+  local attempt=1
+  local delay_seconds="$base_delay_seconds"
+  local status=0
+
+  while true; do
+    if run_cmd "${cmd[@]}"; then
+      log_metric "${operation}_attempt_total" "1" "status=success attempt=$attempt retries=$((attempt - 1))"
+      return 0
+    fi
+    status=$?
+
+    if [[ "$attempt" -ge "$max_attempts" ]]; then
+      log_metric "${operation}_attempt_total" "1" "status=failure attempt=$attempt retries=$((attempt - 1)) exit_code=$status"
+      return "$status"
+    fi
+
+    log_metric "${operation}_attempt_total" "1" "status=retry attempt=$attempt retries=$((attempt - 1)) exit_code=$status"
+    log_metric "${operation}_retry_total" "1" "attempt=$attempt delay_seconds=$delay_seconds"
+    log_warn "transient command failure operation=$operation attempt=$attempt/$max_attempts exit_code=$status; retrying in ${delay_seconds}s"
+    sleep "$delay_seconds"
+
+    attempt=$((attempt + 1))
+    delay_seconds=$((delay_seconds * backoff_multiplier))
+    if [[ "$delay_seconds" -gt "$max_delay_seconds" ]]; then
+      delay_seconds="$max_delay_seconds"
+    fi
+  done
+}
+
 cluster_crd_exists() {
   local crd_name="$1"
 
@@ -306,9 +422,8 @@ cluster_crd_exists() {
     return 0
   fi
 
-  prepare_cluster_access
   require_command kubectl
-  kubectl get crd "$crd_name" >/dev/null 2>&1
+  run_kubectl_with_active_access get crd "$crd_name" >/dev/null 2>&1
 }
 
 blueprint_managed_namespaces() {
@@ -346,14 +461,14 @@ wait_for_namespace_deletion() {
 
   started_at="$(date +%s)"
   while true; do
-    if ! kubectl get namespace "$namespace" >/dev/null 2>&1; then
+    if ! run_kubectl_with_active_access get namespace "$namespace" >/dev/null 2>&1; then
       log_metric "$metric_name" "1" "namespace=$namespace status=deleted"
       return 0
     fi
 
     now="$(date +%s)"
     if ((now - started_at >= timeout_seconds)); then
-      phase="$(kubectl get namespace "$namespace" -o jsonpath='{.status.phase}' 2>/dev/null || true)"
+      phase="$(run_kubectl_capture_with_active_access get namespace "$namespace" -o jsonpath='{.status.phase}' 2>/dev/null || true)"
       log_metric "$metric_name" "1" "namespace=$namespace status=timeout"
       log_warn "namespace did not finish deleting before timeout namespace=$namespace phase=${phase:-unknown}"
       return 0
@@ -377,11 +492,12 @@ delete_blueprint_managed_namespaces() {
     return 0
   fi
 
+  prepare_cluster_access
   require_command kubectl
 
   while IFS= read -r namespace; do
     [[ -n "$namespace" ]] || continue
-    run_cmd kubectl delete namespace "$namespace" --ignore-not-found --wait=false
+    run_kubectl_with_active_access delete namespace "$namespace" --ignore-not-found --wait=false
     log_metric "${metric_prefix}_delete_total" "1" "namespace=$namespace status=requested"
   done < <(blueprint_managed_namespaces)
 
@@ -577,9 +693,8 @@ run_kustomize_apply() {
   fi
 
   if tooling_is_execution_enabled; then
-    prepare_cluster_access
     require_command kubectl
-    run_cmd kubectl apply -k "$kustomize_dir"
+    run_kubectl_with_active_access apply -k "$kustomize_dir"
     return 0
   fi
 
@@ -594,9 +709,8 @@ run_kustomize_delete() {
   fi
 
   if tooling_is_execution_enabled; then
-    prepare_cluster_access
     require_command kubectl
-    run_cmd kubectl delete -k "$kustomize_dir" --ignore-not-found
+    run_kubectl_with_active_access delete -k "$kustomize_dir" --ignore-not-found
     return 0
   fi
 
@@ -611,9 +725,8 @@ run_manifest_apply() {
   fi
 
   if tooling_is_execution_enabled; then
-    prepare_cluster_access
     require_command kubectl
-    run_cmd kubectl apply -f "$manifest_file"
+    run_kubectl_with_active_access apply -f "$manifest_file"
     return 0
   fi
 
@@ -628,9 +741,8 @@ run_manifest_delete() {
   fi
 
   if tooling_is_execution_enabled; then
-    prepare_cluster_access
     require_command kubectl
-    run_cmd kubectl delete -f "$manifest_file" --ignore-not-found
+    run_kubectl_with_active_access delete -f "$manifest_file" --ignore-not-found
     return 0
   fi
 
@@ -650,10 +762,9 @@ run_helm_upgrade_install() {
   fi
 
   if tooling_is_execution_enabled; then
-    prepare_cluster_access
     require_command helm
     prepare_helm_repo_for_chart "$chart_ref"
-    run_cmd helm upgrade --install \
+    run_helm_with_active_access upgrade --install \
       "$release_name" \
       "$chart_ref" \
       --namespace "$namespace" \
@@ -671,9 +782,8 @@ run_helm_uninstall() {
   local namespace="$2"
 
   if tooling_is_execution_enabled; then
-    prepare_cluster_access
     require_command helm
-    run_cmd helm uninstall "$release_name" --namespace "$namespace" --ignore-not-found
+    run_helm_with_active_access uninstall "$release_name" --namespace "$namespace" --ignore-not-found
     return 0
   fi
 
@@ -693,10 +803,9 @@ run_helm_template() {
   fi
 
   if tooling_is_execution_enabled; then
-    prepare_cluster_access
     require_command helm
     prepare_helm_repo_for_chart "$chart_ref"
-    run_cmd helm template \
+    run_helm_with_active_access template \
       "$release_name" \
       "$chart_ref" \
       --namespace "$namespace" \
@@ -762,10 +871,22 @@ prepare_helm_repo_for_chart() {
     return 0
   fi
 
+  local max_attempts base_delay max_delay backoff_multiplier
+  max_attempts="${HELM_REPO_UPDATE_RETRY_MAX_ATTEMPTS:-$TOOLING_RETRY_MAX_ATTEMPTS}"
+  base_delay="${HELM_REPO_UPDATE_RETRY_BASE_DELAY_SECONDS:-$TOOLING_RETRY_BASE_DELAY_SECONDS}"
+  max_delay="${HELM_REPO_UPDATE_RETRY_MAX_DELAY_SECONDS:-$TOOLING_RETRY_MAX_DELAY_SECONDS}"
+  backoff_multiplier="${HELM_REPO_UPDATE_RETRY_BACKOFF_MULTIPLIER:-$TOOLING_RETRY_BACKOFF_MULTIPLIER}"
+
   run_cmd helm repo add "$repo_name" "$repo_url"
   # Refresh each repo only once per process to reduce strict-lane runtime and
   # external flakiness while preserving deterministic pin checks.
-  run_cmd helm repo update "$repo_name"
+  run_cmd_with_retry_backoff \
+    "helm_repo_update" \
+    "$max_attempts" \
+    "$base_delay" \
+    "$max_delay" \
+    "$backoff_multiplier" \
+    helm repo update "$repo_name"
   HELM_PREPARED_REPOS_CACHE="${HELM_PREPARED_REPOS_CACHE}${repo_name}|"
   log_metric "helm_repo_prepare_total" "1" "repo=$repo_name status=updated"
 }

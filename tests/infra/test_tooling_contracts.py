@@ -78,6 +78,345 @@ printf 'source=%s\\n' "$(resolve_local_kube_context_source)"
         return result.stdout + result.stderr
 
 
+def run_helm_upgrade_with_context_contract() -> str:
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp_path = Path(tmpdir)
+        values_file = tmp_path / "values.yaml"
+        values_file.write_text("auth:\n  enablePostgresUser: true\n", encoding="utf-8")
+
+        helm_log = tmp_path / "helm.log"
+        kubectl = tmp_path / "kubectl"
+        kubectl.write_text(
+            "\n".join(
+                [
+                    "#!/bin/sh",
+                    'if [ "$1" = "--context=docker-desktop" ] && [ "$2" = "config" ] && [ "$3" = "view" ] && [ "$4" = "--raw" ] && [ "$5" = "--minify" ] && [ "$6" = "--flatten" ]; then',
+                    "  cat <<'EOF'",
+                    "apiVersion: v1",
+                    "kind: Config",
+                    "clusters:",
+                    "- cluster:",
+                    "    server: https://docker-desktop.example:6443",
+                    "  name: docker-desktop",
+                    "contexts:",
+                    "- context:",
+                    "    cluster: docker-desktop",
+                    "    user: docker-desktop",
+                    "  name: docker-desktop",
+                    "current-context: docker-desktop",
+                    "users:",
+                    "- name: docker-desktop",
+                    "  user:",
+                    "    token: placeholder",
+                    "EOF",
+                    "  exit 0",
+                    "fi",
+                    'if [ "$1" = "config" ] && [ "$2" = "get-contexts" ] && [ "$3" = "-o" ] && [ "$4" = "name" ]; then',
+                    "  printf '%s\\n' docker-desktop",
+                    "  exit 0",
+                    "fi",
+                    'if [ "$1" = "config" ] && [ "$2" = "current-context" ]; then',
+                    "  printf '%s\\n' docker-desktop",
+                    "  exit 0",
+                    "fi",
+                    'printf \'unexpected kubectl call: %s\\n\' \"$*\" >&2',
+                    "exit 1",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        kubectl.chmod(0o755)
+
+        helm = tmp_path / "helm"
+        helm.write_text(
+            "\n".join(
+                [
+                    "#!/bin/sh",
+                    f'printf "%s\\n" "$*" >> "{helm_log}"',
+                    "exit 0",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        helm.chmod(0o755)
+
+        script = f"""
+export PATH="{tmp_path}:$PATH"
+export ROOT_DIR="{REPO_ROOT}"
+export BLUEPRINT_PROFILE="local-full"
+export LOCAL_KUBE_CONTEXT="docker-desktop"
+export DRY_RUN="false"
+source "{REPO_ROOT}/scripts/lib/shell/bootstrap.sh"
+source "{REPO_ROOT}/scripts/lib/infra/tooling.sh"
+run_helm_upgrade_install "contract-postgres" "data" "bitnami/postgresql" "16.7.13" "{values_file}"
+cat "{helm_log}"
+"""
+        result = run(["bash", "-lc", script])
+        if result.returncode != 0:
+            raise AssertionError(result.stdout + result.stderr)
+        return result.stdout + result.stderr
+
+
+def helm_repo_update_retry_contract(*, failures_before_success: int, max_attempts: int) -> str:
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp_path = Path(tmpdir)
+        attempts_file = tmp_path / "attempts.txt"
+        attempts_file.write_text("0\n", encoding="utf-8")
+        helm = tmp_path / "helm"
+        helm.write_text(
+            "\n".join(
+                [
+                    "#!/bin/sh",
+                    f'ATTEMPTS_FILE="{attempts_file}"',
+                    f"FAILURES_BEFORE_SUCCESS={failures_before_success}",
+                    'if [ "$1" = "repo" ] && [ "$2" = "add" ]; then',
+                    "  exit 0",
+                    "fi",
+                    'if [ "$1" = "repo" ] && [ "$2" = "update" ]; then',
+                    '  attempts="$(cat "$ATTEMPTS_FILE" 2>/dev/null || printf \'0\')"',
+                    "  attempts=$((attempts + 1))",
+                    '  printf "%s\\n" "$attempts" > "$ATTEMPTS_FILE"',
+                    '  if [ "$attempts" -le "$FAILURES_BEFORE_SUCCESS" ]; then',
+                    "    exit 17",
+                    "  fi",
+                    "  exit 0",
+                    "fi",
+                    "exit 0",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        helm.chmod(0o755)
+
+        script = f"""
+export PATH="{tmp_path}:$PATH"
+export ROOT_DIR="{REPO_ROOT}"
+export DRY_RUN="false"
+export HELM_REPO_UPDATE_RETRY_MAX_ATTEMPTS="{max_attempts}"
+export HELM_REPO_UPDATE_RETRY_BASE_DELAY_SECONDS="1"
+export HELM_REPO_UPDATE_RETRY_MAX_DELAY_SECONDS="1"
+export HELM_REPO_UPDATE_RETRY_BACKOFF_MULTIPLIER="2"
+source "{REPO_ROOT}/scripts/lib/shell/bootstrap.sh"
+source "{REPO_ROOT}/scripts/lib/infra/tooling.sh"
+prepare_helm_repo_for_chart "bitnami/postgresql"
+printf 'attempts=%s\\n' "$(cat "{attempts_file}")"
+"""
+        result = run(["bash", "-lc", script])
+        if result.returncode != 0:
+            raise AssertionError(result.stdout + result.stderr)
+        return result.stdout + result.stderr
+
+
+def port_forward_lifecycle_contract() -> tuple[str, str]:
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp_path = Path(tmpdir)
+        ready_file = tmp_path / "port-ready"
+        kubectl_log = tmp_path / "kubectl.log"
+        pf_log = tmp_path / "port-forward.log"
+
+        kubectl = tmp_path / "kubectl"
+        kubectl.write_text(
+            "\n".join(
+                [
+                    "#!/bin/sh",
+                    f'READY_FILE="{ready_file}"',
+                    f'KUBECTL_LOG="{kubectl_log}"',
+                    'if [ "$1" = "--context=docker-desktop" ] && [ "$2" = "config" ] && [ "$3" = "view" ] && [ "$4" = "--raw" ] && [ "$5" = "--minify" ] && [ "$6" = "--flatten" ]; then',
+                    "  cat <<'EOF'",
+                    "apiVersion: v1",
+                    "kind: Config",
+                    "clusters:",
+                    "- cluster:",
+                    "    server: https://docker-desktop.example:6443",
+                    "  name: docker-desktop",
+                    "contexts:",
+                    "- context:",
+                    "    cluster: docker-desktop",
+                    "    user: docker-desktop",
+                    "  name: docker-desktop",
+                    "current-context: docker-desktop",
+                    "users:",
+                    "- name: docker-desktop",
+                    "  user:",
+                    "    token: placeholder",
+                    "EOF",
+                    "  exit 0",
+                    "fi",
+                    'if [ "$1" = "config" ] && [ "$2" = "get-contexts" ] && [ "$3" = "-o" ] && [ "$4" = "name" ]; then',
+                    "  printf '%s\\n' docker-desktop",
+                    "  exit 0",
+                    "fi",
+                    'if [ "$1" = "config" ] && [ "$2" = "current-context" ]; then',
+                    "  printf '%s\\n' docker-desktop",
+                    "  exit 0",
+                    "fi",
+                    'if [ "$1" = "--kubeconfig" ]; then',
+                    '  printf "%s\\n" "$*" >> "$KUBECTL_LOG"',
+                    '  printf "ready\\n" > "$READY_FILE"',
+                    '  trap "rm -f \"$READY_FILE\"; exit 0" TERM INT EXIT',
+                    "  while true; do sleep 1; done",
+                    "fi",
+                    'printf \'unexpected kubectl call: %s\\n\' \"$*\" >&2',
+                    "exit 1",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        kubectl.chmod(0o755)
+
+        nc = tmp_path / "nc"
+        nc.write_text(
+            "\n".join(
+                [
+                    "#!/bin/sh",
+                    f'READY_FILE="{ready_file}"',
+                    'if [ "$1" = "-z" ] && [ "$2" = "127.0.0.1" ] && [ "$3" = "18080" ]; then',
+                    '  if [ -f "$READY_FILE" ]; then',
+                    "    exit 0",
+                    "  fi",
+                    "  exit 1",
+                    "fi",
+                    "exit 1",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        nc.chmod(0o755)
+
+        script = f"""
+export PATH="{tmp_path}:$PATH"
+export ROOT_DIR="{REPO_ROOT}"
+export BLUEPRINT_PROFILE="local-full"
+export LOCAL_KUBE_CONTEXT="docker-desktop"
+export DRY_RUN="false"
+export PORT_FORWARD_WAIT_TIMEOUT_SECONDS="5"
+export PORT_FORWARD_WAIT_POLL_SECONDS="1"
+export PORT_FORWARD_STOP_TIMEOUT_SECONDS="2"
+source "{REPO_ROOT}/scripts/lib/shell/bootstrap.sh"
+source "{REPO_ROOT}/scripts/lib/infra/tooling.sh"
+source "{REPO_ROOT}/scripts/lib/infra/port_forward.sh"
+start_port_forward "contract-pf" "apps" "svc/demo" "18080" "8080" "{pf_log}"
+wait_for_local_port "contract-pf" "18080" "5"
+stop_port_forward "contract-pf"
+cleanup_port_forwards
+printf 'last_pid=%s\\n' "$PORT_FORWARD_LAST_PID"
+printf 'remaining=%s\\n' "$(port_forward_registry_names | wc -l | tr -d '[:space:]')"
+"""
+        result = run(["bash", "-lc", script])
+        if result.returncode != 0:
+            raise AssertionError(result.stdout + result.stderr)
+        calls = kubectl_log.read_text(encoding="utf-8") if kubectl_log.exists() else ""
+        return result.stdout + result.stderr, calls
+
+
+def port_forward_stop_timeout_contract() -> str:
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp_path = Path(tmpdir)
+        ready_file = tmp_path / "port-ready"
+        pf_log = tmp_path / "port-forward.log"
+
+        kubectl = tmp_path / "kubectl"
+        kubectl.write_text(
+            "\n".join(
+                [
+                    "#!/bin/sh",
+                    f'READY_FILE="{ready_file}"',
+                    'if [ "$1" = "--context=docker-desktop" ] && [ "$2" = "config" ] && [ "$3" = "view" ] && [ "$4" = "--raw" ] && [ "$5" = "--minify" ] && [ "$6" = "--flatten" ]; then',
+                    "  cat <<'EOF'",
+                    "apiVersion: v1",
+                    "kind: Config",
+                    "clusters:",
+                    "- cluster:",
+                    "    server: https://docker-desktop.example:6443",
+                    "  name: docker-desktop",
+                    "contexts:",
+                    "- context:",
+                    "    cluster: docker-desktop",
+                    "    user: docker-desktop",
+                    "  name: docker-desktop",
+                    "current-context: docker-desktop",
+                    "users:",
+                    "- name: docker-desktop",
+                    "  user:",
+                    "    token: placeholder",
+                    "EOF",
+                    "  exit 0",
+                    "fi",
+                    'if [ "$1" = "config" ] && [ "$2" = "get-contexts" ] && [ "$3" = "-o" ] && [ "$4" = "name" ]; then',
+                    "  printf '%s\\n' docker-desktop",
+                    "  exit 0",
+                    "fi",
+                    'if [ "$1" = "config" ] && [ "$2" = "current-context" ]; then',
+                    "  printf '%s\\n' docker-desktop",
+                    "  exit 0",
+                    "fi",
+                    'if [ "$1" = "--kubeconfig" ]; then',
+                    '  printf "ready\\n" > "$READY_FILE"',
+                    '  trap "" TERM',
+                    "  while true; do sleep 1; done",
+                    "fi",
+                    "exit 1",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        kubectl.chmod(0o755)
+
+        nc = tmp_path / "nc"
+        nc.write_text(
+            "\n".join(
+                [
+                    "#!/bin/sh",
+                    f'READY_FILE="{ready_file}"',
+                    'if [ "$1" = "-z" ] && [ "$2" = "127.0.0.1" ] && [ "$3" = "18081" ]; then',
+                    '  if [ -f "$READY_FILE" ]; then',
+                    "    exit 0",
+                    "  fi",
+                    "  exit 1",
+                    "fi",
+                    "exit 1",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        nc.chmod(0o755)
+
+        script = f"""
+export PATH="{tmp_path}:$PATH"
+export ROOT_DIR="{REPO_ROOT}"
+export BLUEPRINT_PROFILE="local-full"
+export LOCAL_KUBE_CONTEXT="docker-desktop"
+export DRY_RUN="false"
+export PORT_FORWARD_WAIT_TIMEOUT_SECONDS="5"
+export PORT_FORWARD_WAIT_POLL_SECONDS="1"
+export PORT_FORWARD_STOP_TIMEOUT_SECONDS="1"
+source "{REPO_ROOT}/scripts/lib/shell/bootstrap.sh"
+source "{REPO_ROOT}/scripts/lib/infra/tooling.sh"
+source "{REPO_ROOT}/scripts/lib/infra/port_forward.sh"
+start_port_forward "timeout-pf" "apps" "svc/demo" "18081" "8081" "{pf_log}"
+wait_for_local_port "timeout-pf" "18081" "5"
+set +e
+stop_port_forward "timeout-pf" "false"
+status="$?"
+set -e
+printf 'stop_status=%s\\n' "$status"
+printf 'registry_after_stop=%s\\n' "$(port_forward_registry_names | wc -l | tr -d '[:space:]')"
+cleanup_port_forwards "true"
+printf 'registry_after_cleanup=%s\\n' "$(port_forward_registry_names | wc -l | tr -d '[:space:]')"
+"""
+        result = run(["bash", "-lc", script])
+        if result.returncode != 0:
+            raise AssertionError(result.stdout + result.stderr)
+        return result.stdout + result.stderr
+
+
 def cluster_crd_exists_contract(crds: list[str], query: str) -> bool:
     with tempfile.TemporaryDirectory() as tmpdir:
         kubectl = Path(tmpdir) / "kubectl"
@@ -114,6 +453,9 @@ def cluster_crd_exists_contract(crds: list[str], query: str) -> bool:
                     "  printf '%s\\n' docker-desktop",
                     "  exit 0",
                     "fi",
+                    'while [ "$1" = "--kubeconfig" ] || [ "$1" = "--context" ]; do',
+                    "  shift 2",
+                    "done",
                     'if [ \"$1\" = \"get\" ] && [ \"$2\" = \"crd\" ]; then',
                     "  case \"$3\" in",
                     *[f"    {crd}) exit 0 ;;" for crd in crds],
@@ -444,6 +786,30 @@ def blueprint_namespace_cleanup_contract() -> str:
                 [
                     "#!/bin/sh",
                     f'STATE_DIR="{state_dir}"',
+                    'if [ "$1" = "--context=docker-desktop" ] && [ "$2" = "config" ] && [ "$3" = "view" ] && [ "$4" = "--raw" ] && [ "$5" = "--minify" ] && [ "$6" = "--flatten" ]; then',
+                    "  cat <<'EOF'",
+                    "apiVersion: v1",
+                    "kind: Config",
+                    "clusters:",
+                    "- cluster:",
+                    "    server: https://docker-desktop.example:6443",
+                    "  name: docker-desktop",
+                    "contexts:",
+                    "- context:",
+                    "    cluster: docker-desktop",
+                    "    user: docker-desktop",
+                    "  name: docker-desktop",
+                    "current-context: docker-desktop",
+                    "users:",
+                    "- name: docker-desktop",
+                    "  user:",
+                    "    token: placeholder",
+                    "EOF",
+                    "  exit 0",
+                    "fi",
+                    'while [ "$1" = "--kubeconfig" ] || [ "$1" = "--context" ]; do',
+                    "  shift 2",
+                    "done",
                     'if [ "$1" = "delete" ] && [ "$2" = "namespace" ]; then',
                     '  touch "$STATE_DIR/$3.deleted"',
                     "  exit 0",
@@ -468,6 +834,7 @@ def blueprint_namespace_cleanup_contract() -> str:
 export PATH="{tmpdir}:$PATH"
 export ROOT_DIR="{REPO_ROOT}"
 export DRY_RUN="false"
+export LOCAL_KUBE_CONTEXT="docker-desktop"
 source "{REPO_ROOT}/scripts/lib/shell/bootstrap.sh"
 source "{REPO_ROOT}/scripts/lib/infra/tooling.sh"
 delete_blueprint_managed_namespaces 5 "contract_namespace_cleanup"
@@ -786,7 +1153,7 @@ render_optional_module_secret_manifests "messaging" "blueprint-rabbitmq-auth" "r
         self.assertIsNotNone(match, msg="run_kustomize_apply() definition not found in tooling.sh")
         function_body = match.group("body")
 
-        self.assertRegex(function_body, r"\bkubectl\s+apply\b.*\s-k\b")
+        self.assertIn("run_kubectl_with_active_access apply -k", function_body)
         self.assertNotIn("LoadRestrictionsNone", function_body)
         self.assertNotIn("--load-restrictor", function_body)
 
@@ -1185,6 +1552,29 @@ printf 'dsn=%s\\n' "$(postgres_dsn)"
         )
         self.assertIn("context=kind-blueprint-e2e", resolved)
         self.assertIn("source=env", resolved)
+
+    def test_helm_upgrade_uses_explicit_active_kube_access_args(self) -> None:
+        output = run_helm_upgrade_with_context_contract()
+        self.assertIn("--kubeconfig", output)
+        self.assertIn("--kube-context docker-desktop", output)
+        self.assertIn("upgrade --install contract-postgres bitnami/postgresql", output)
+
+    def test_helm_repo_update_retries_until_success(self) -> None:
+        output = helm_repo_update_retry_contract(failures_before_success=2, max_attempts=4)
+        self.assertIn("attempts=3", output)
+        self.assertIn("helm_repo_update_retry_total", output)
+
+    def test_port_forward_helpers_are_context_safe_and_cleanup_registry(self) -> None:
+        output, calls = port_forward_lifecycle_contract()
+        self.assertIn("remaining=0", output)
+        self.assertIn("--kubeconfig", calls)
+        self.assertIn("--context docker-desktop -n apps port-forward svc/demo 18080:8080", calls)
+
+    def test_port_forward_stop_timeout_keeps_registry_until_forced_cleanup(self) -> None:
+        output = port_forward_stop_timeout_contract()
+        self.assertIn("stop_status=1", output)
+        self.assertIn("registry_after_stop=1", output)
+        self.assertIn("registry_after_cleanup=0", output)
 
     def test_public_endpoints_destroy_clears_stuck_gatewayclass_finalizer(self) -> None:
         result = public_endpoints_delete_contract(require_finalizer_patch=True)

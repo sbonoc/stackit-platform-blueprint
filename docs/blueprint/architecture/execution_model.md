@@ -73,6 +73,25 @@ Local context routing:
 - Set `LOCAL_KUBE_CONTEXT` to override the local default explicitly.
 - Run `make infra-context` to see the resolved context and selection source before live execution.
 
+## Context-Safe Kubernetes/Helm Helper Contract
+- Source shared helpers from:
+  - `scripts/lib/infra/tooling.sh`
+  - `scripts/lib/infra/port_forward.sh` (for port-forward lifecycle primitives)
+- `run_helm_upgrade_install`, `run_helm_template`, and `run_helm_uninstall` now execute Helm with explicit `--kubeconfig` and `--kube-context` resolved from the canonical cluster-access path.
+- Consumers can call shared wrappers directly for custom scripts:
+  - `run_kubectl_with_active_access ...`
+  - `run_helm_with_active_access ...`
+- Helm repo refresh retries are standardized via shared retry/backoff helpers:
+  - `HELM_REPO_UPDATE_RETRY_MAX_ATTEMPTS` (default `3`)
+  - `HELM_REPO_UPDATE_RETRY_BASE_DELAY_SECONDS` (default `2`)
+  - `HELM_REPO_UPDATE_RETRY_MAX_DELAY_SECONDS` (default `20`)
+  - `HELM_REPO_UPDATE_RETRY_BACKOFF_MULTIPLIER` (default `2`)
+- Generic port-forward primitives are service-agnostic and reusable:
+  - `start_port_forward <name> <namespace> <resource> <local_port> <remote_port> [log_path]`
+  - `wait_for_local_port <name> <local_port> [timeout_seconds]`
+  - `stop_port_forward <name> [force_kill]`
+  - `cleanup_port_forwards [force_kill]`
+
 ## Optional Modules
 Optional modules are controlled by canonical flags:
 - `OBSERVABILITY_ENABLED`
