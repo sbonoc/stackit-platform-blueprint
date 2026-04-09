@@ -20,6 +20,8 @@ class RuntimeCredentialsEsoTests(unittest.TestCase):
             REPO_ROOT / "artifacts" / "infra" / "argocd_repo_credentials_reconcile.json",
             REPO_ROOT / "artifacts" / "infra" / "runtime_identity_reconcile.env",
             REPO_ROOT / "artifacts" / "infra" / "runtime_identity_reconcile.json",
+            REPO_ROOT / "artifacts" / "infra" / "postgres_runtime.env",
+            REPO_ROOT / "artifacts" / "infra" / "postgres_runtime.json",
         )
         for state_path in state_paths:
             if state_path.exists():
@@ -134,6 +136,74 @@ class RuntimeCredentialsEsoTests(unittest.TestCase):
         self.assertIn("status=noop-empty-contract-set", state)
         self.assertIn("source_secret_seed_mode=skipped-empty-contract-set", state)
         self.assertIn("issue_count=0", state)
+
+    def test_local_lite_postgres_runtime_contract_is_skipped_when_runtime_state_exists(self) -> None:
+        env = module_flags_env(profile="local-lite", postgres="true")
+        postgres_runtime_state = REPO_ROOT / "artifacts" / "infra" / "postgres_runtime.env"
+        postgres_runtime_state.parent.mkdir(parents=True, exist_ok=True)
+        postgres_runtime_state.write_text(
+            "\n".join(
+                [
+                    "profile=local-lite",
+                    "stack=local",
+                    "tooling_mode=execute",
+                    "dsn=postgresql://platform:platform-password@blueprint-postgres.data.svc.cluster.local:5432/platform",
+                ]
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+
+        result = run_make("auth-reconcile-eso-runtime-secrets", env)
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+
+        combined_output = result.stdout + result.stderr
+        self.assertIn(
+            "runtime credentials contract check skipped contract_id=postgres-runtime-credentials",
+            combined_output,
+        )
+
+        state_path = REPO_ROOT / "artifacts" / "infra" / "runtime_credentials_eso_reconcile.env"
+        self.assertTrue(state_path.exists(), msg="runtime credentials state artifact was not created")
+        state = state_path.read_text(encoding="utf-8")
+        self.assertIn("status=success", state)
+        self.assertIn("skipped_contract_count=1", state)
+        self.assertIn(
+            "skipped_contracts=data/postgres-runtime-credentials:local-lite-postgres-runtime",
+            state,
+        )
+
+    def test_local_lite_postgres_runtime_contract_skip_requires_owned_local_state(self) -> None:
+        env = module_flags_env(profile="local-lite", postgres="true")
+        postgres_runtime_state = REPO_ROOT / "artifacts" / "infra" / "postgres_runtime.env"
+        postgres_runtime_state.parent.mkdir(parents=True, exist_ok=True)
+        postgres_runtime_state.write_text(
+            "\n".join(
+                [
+                    "profile=stackit-dev",
+                    "stack=stackit",
+                    "tooling_mode=execute",
+                    "dsn=postgresql://platform:platform-password@blueprint-postgres.data.svc.cluster.local:5432/platform",
+                ]
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+
+        result = run_make("auth-reconcile-eso-runtime-secrets", env)
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+
+        combined_output = result.stdout + result.stderr
+        self.assertNotIn(
+            "runtime credentials contract check skipped contract_id=postgres-runtime-credentials",
+            combined_output,
+        )
+
+        state_path = REPO_ROOT / "artifacts" / "infra" / "runtime_credentials_eso_reconcile.env"
+        self.assertTrue(state_path.exists(), msg="runtime credentials state artifact was not created")
+        state = state_path.read_text(encoding="utf-8")
+        self.assertIn("skipped_contract_count=0", state)
+        self.assertIn("skipped_contracts=none", state)
 
     def test_argocd_reconcile_resolves_repo_contract_without_argparse_errors(self) -> None:
         env = module_flags_env(profile="local-full")

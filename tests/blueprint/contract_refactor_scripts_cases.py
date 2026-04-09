@@ -272,6 +272,22 @@ class ScriptsRefactorCases(RefactorContractBase):
             reconcile,
         )
 
+    def test_runtime_credentials_reconcile_skips_local_lite_postgres_eso_contract_checks(self) -> None:
+        reconcile = _read("scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh")
+        self.assertIn("local_lite_postgres_runtime_ready()", reconcile)
+        self.assertIn("should_skip_eso_contract_check()", reconcile)
+        self.assertIn("runtime_credentials_eso_contract_skip_total", reconcile)
+        self.assertIn("'^profile=local-lite$'", reconcile)
+        self.assertIn("'^stack=local$'", reconcile)
+        self.assertIn(
+            'if [[ "$contract_id" == "postgres-runtime-credentials" && "$contract_module" == "postgres" ]]; then',
+            reconcile,
+        )
+        self.assertIn("contract_id=$contract_id module=$contract_module", reconcile)
+        self.assertIn("reason=local-lite-postgres-runtime", reconcile)
+        self.assertIn("skipped_contract_count", reconcile)
+        self.assertIn("skipped_contracts", reconcile)
+
     def test_bootstrap_preserves_disabled_optional_scaffolding(self) -> None:
         bootstrap = _read("scripts/bin/infra/bootstrap.sh")
         self.assertIn(
