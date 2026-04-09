@@ -177,7 +177,8 @@ class PythonHelperExtractionsTests(unittest.TestCase):
                     "git",
                     "https://github.com/acme/demo.git",
                     "x-access-token",
-                ]
+                ],
+                {"ARGOCD_REPO_TOKEN": ""},
             )
             self.assertEqual(missing_token.returncode, 1)
             self.assertIn("required repo token env var is empty or unset", missing_token.stderr)
