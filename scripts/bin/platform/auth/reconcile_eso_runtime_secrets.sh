@@ -145,6 +145,36 @@ verify_target_secret_keys() {
   return 0
 }
 
+local_lite_postgres_runtime_ready() {
+  if [[ "${BLUEPRINT_PROFILE:-}" != "local-lite" ]]; then
+    return 1
+  fi
+  if ! is_module_enabled postgres; then
+    return 1
+  fi
+  if ! state_file_exists postgres_runtime; then
+    return 1
+  fi
+  local runtime_state_file
+  runtime_state_file="$(state_file_path postgres_runtime)"
+  if ! grep -q '^dsn=postgresql://' "$runtime_state_file" 2>/dev/null; then
+    return 1
+  fi
+  return 0
+}
+
+should_skip_eso_contract_check() {
+  local contract_id="$1"
+  local contract_module="$2"
+
+  if [[ "$contract_id" == "postgres-runtime-credentials" && "$contract_module" == "postgres" ]]; then
+    if local_lite_postgres_runtime_ready; then
+      return 0
+    fi
+  fi
+  return 1
+}
+
 parse_literal_pairs() {
   local literals_csv="$1"
   local pair key value
@@ -203,11 +233,25 @@ source_secret_present="unknown"
 external_secret_checked=""
 target_secret_checked=""
 declare -a ESO_SECRET_CONTRACTS=()
+declare -a ESO_SECRET_CONTRACTS_SKIPPED=()
+skipped_contract_count="0"
+skipped_contracts="none"
 
 while IFS='|' read -r contract_id contract_module contract_namespace contract_external_secret contract_target_secret contract_target_keys; do
   [[ -n "$contract_id" ]] || continue
 
   if [[ -n "$contract_module" ]] && ! is_module_enabled "$contract_module"; then
+    continue
+  fi
+
+  if should_skip_eso_contract_check "$contract_id" "$contract_module"; then
+    ESO_SECRET_CONTRACTS_SKIPPED+=("${contract_namespace}/${contract_target_secret}:local-lite-postgres-runtime")
+    log_metric \
+      "runtime_credentials_eso_contract_skip_total" \
+      "1" \
+      "contract_id=$contract_id module=$contract_module profile=${BLUEPRINT_PROFILE:-unset} reason=local-lite-postgres-runtime"
+    log_info \
+      "runtime credentials contract check skipped contract_id=$contract_id module=$contract_module reason=local-lite-postgres-runtime"
     continue
   fi
 
@@ -217,6 +261,11 @@ while IFS='|' read -r contract_id contract_module contract_namespace contract_ex
     "$contract_target_secret" \
     "$contract_target_keys"
 done < <(python3 "$runtime_identity_contract_cli" eso-contracts | tr $'\t' '|')
+
+if (( ${#ESO_SECRET_CONTRACTS_SKIPPED[@]} > 0 )); then
+  skipped_contract_count="${#ESO_SECRET_CONTRACTS_SKIPPED[@]}"
+  skipped_contracts="$(IFS=,; printf '%s' "${ESO_SECRET_CONTRACTS_SKIPPED[*]}")"
+fi
 
 eso_contract_count="$(eso_secret_contract_count)"
 status="success"
@@ -374,6 +423,8 @@ state_file="$(
     "externalsecret_name=$RUNTIME_CREDENTIALS_ESO_EXTERNAL_SECRET_NAME" \
     "externalsecret_checked=$external_secret_checked" \
     "target_secret_checked=$target_secret_checked" \
+    "skipped_contract_count=$skipped_contract_count" \
+    "skipped_contracts=$skipped_contracts" \
     "wait_timeout_seconds=$runtime_wait_timeout" \
     "apply_mode=$apply_mode" \
     "crd_status=$crd_status" \
