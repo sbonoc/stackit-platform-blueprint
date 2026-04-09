@@ -255,6 +255,22 @@ class ScriptsRefactorCases(RefactorContractBase):
         self.assertIn("SOURCE_SECRET_SYNC_MODE_RESULT", reconcile)
         self.assertIn("if seed_argocd_source_secret_properties", reconcile)
         self.assertNotIn('source_secret_sync_mode="$(seed_argocd_source_secret_properties', reconcile)
+        self.assertIn('log_warn "shell xtrace disabled for secret-safe ArgoCD credential reconciliation"', reconcile)
+        self.assertNotIn("STACKIT_RUNTIME_GITOPS_REPO_TOKEN", reconcile)
+        self.assertNotIn("STACKIT_RUNTIME_GITOPS_REPO_USERNAME", reconcile)
+        self.assertIn(
+            'run_cmd python3 "$argocd_repo_json_helpers" render-source-patch \\',
+            reconcile,
+        )
+        self.assertNotIn(
+            'run_cmd python3 "$argocd_repo_json_helpers" render-source-patch \\\n'
+            '      "$patch_file" \\\n'
+            '      "$ARGOCD_REPO_TYPE" \\\n'
+            '      "$ARGOCD_REPO_URL" \\\n'
+            '      "$ARGOCD_REPO_USERNAME" \\\n'
+            '      "$ARGOCD_REPO_TOKEN"',
+            reconcile,
+        )
 
     def test_bootstrap_preserves_disabled_optional_scaffolding(self) -> None:
         bootstrap = _read("scripts/bin/infra/bootstrap.sh")

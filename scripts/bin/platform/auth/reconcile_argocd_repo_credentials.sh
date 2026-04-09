@@ -36,6 +36,13 @@ if [[ "${1:-}" == "--help" ]]; then
   exit 0
 fi
 
+if [[ "$-" == *x* ]]; then
+  # This reconcile flow handles repo access credentials; disable xtrace to avoid
+  # leaking secret values through shell command traces.
+  set +x
+  log_warn "shell xtrace disabled for secret-safe ArgoCD credential reconciliation"
+fi
+
 require_command python3
 runtime_identity_contract_cli="$ROOT_DIR/scripts/lib/infra/runtime_identity_contract.py"
 argocd_repo_contract_cli="$ROOT_DIR/scripts/lib/infra/argocd_repo_contract.py"
@@ -129,8 +136,7 @@ EOF
       "$patch_file" \
       "$ARGOCD_REPO_TYPE" \
       "$ARGOCD_REPO_URL" \
-      "$ARGOCD_REPO_USERNAME" \
-      "$ARGOCD_REPO_TOKEN"
+      "$ARGOCD_REPO_USERNAME"
     run_cmd kubectl -n "$namespace" patch secret "$secret_name" --type merge --patch-file "$patch_file"
     SOURCE_SECRET_SYNC_MODE_RESULT="patched-existing-secret"
     return 0
