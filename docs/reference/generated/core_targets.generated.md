@@ -30,6 +30,7 @@ This file is auto-generated. Do not edit it manually.
 | `quality-hooks-fast` | Run fast local quality checks |
 | `quality-hooks-strict` | Run slower audit-focused quality checks |
 | `quality-hooks-run` | Run pre-commit hooks and quality gates |
+| `quality-root-dir-prelude-check` | Fail when shell entrypoints reintroduce inline ROOT_DIR resolver drift |
 | `quality-runtime-contract-drift-report` | Generate runtime contract drift report artifact under artifacts/blueprint |
 | `quality-ci-sync` | Regenerate source CI workflow from contract and canonical lane metadata |
 | `quality-ci-check-sync` | Fail when source CI workflow is out of date |

@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
+source "$SCRIPT_DIR/../../lib/shell/bootstrap.sh"
 source "$ROOT_DIR/scripts/lib/blueprint/contract_runtime.sh"
 blueprint_load_env_defaults
 if blueprint_repo_is_generated_consumer; then

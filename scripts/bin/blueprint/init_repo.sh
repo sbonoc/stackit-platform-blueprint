@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"
+source "$SCRIPT_DIR/../../lib/shell/bootstrap.sh"
 export BLUEPRINT_CONTRACT_RUNTIME_ALLOW_DEFAULTS="true"
 source "$ROOT_DIR/scripts/lib/blueprint/contract_runtime.sh"
 unset BLUEPRINT_CONTRACT_RUNTIME_ALLOW_DEFAULTS

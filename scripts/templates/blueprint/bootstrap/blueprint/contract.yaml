@@ -96,6 +96,7 @@ spec:
       - scripts/bin/platform/auth/reconcile_argocd_repo_credentials.sh
       - scripts/bin/platform/auth/reconcile_runtime_identity.sh
       - scripts/bin/quality/check_test_pyramid.py
+      - scripts/bin/quality/check_root_dir_prelude.py
       - scripts/bin/quality/hooks_fast.sh
       - scripts/bin/quality/lint_docs.py
       - scripts/bin/quality/hooks_run.sh
@@ -141,6 +142,7 @@ spec:
       - scripts/lib/shell/bootstrap.sh
       - scripts/lib/shell/exec.sh
       - scripts/lib/shell/logging.sh
+      - scripts/lib/shell/root_dir.sh
       - scripts/lib/shell/utils.sh
       - scripts/templates/blueprint/bootstrap/Makefile
       - scripts/templates/blueprint/bootstrap/blueprint/contract.yaml
@@ -842,6 +844,7 @@ spec:
       - quality-hooks-fast
       - quality-hooks-strict
       - quality-hooks-run
+      - quality-root-dir-prelude-check
       - quality-runtime-contract-drift-report
       - quality-ci-sync
       - quality-ci-check-sync
