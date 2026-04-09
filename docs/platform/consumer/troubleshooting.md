@@ -335,6 +335,18 @@ Common first-day issues for generated repositories.
   - re-run `make infra-stackit-foundation-apply`
   - if the PostgreSQL instance is visible in STACKIT but Terraform still cannot reconcile it, stop and inspect provider/service health before running destroy
 
+## Helm repo update is flaky in live runs
+- Helm repository updates are retried with bounded backoff in shared tooling.
+- Tune retry budget when running on constrained CI runners or unstable networks:
+  - `HELM_REPO_UPDATE_RETRY_MAX_ATTEMPTS` (default `3`)
+  - `HELM_REPO_UPDATE_RETRY_BASE_DELAY_SECONDS` (default `2`)
+  - `HELM_REPO_UPDATE_RETRY_MAX_DELAY_SECONDS` (default `20`)
+  - `HELM_REPO_UPDATE_RETRY_BACKOFF_MULTIPLIER` (default `2`)
+- Example:
+  ```bash
+  HELM_REPO_UPDATE_RETRY_MAX_ATTEMPTS=5 HELM_REPO_UPDATE_RETRY_BASE_DELAY_SECONDS=3 make infra-deploy
+  ```
+
 ## STACKIT runtime deploy fails on missing `platform-foundation-contract` secret
 - Regenerate runtime secret contract from foundation outputs:
   ```bash

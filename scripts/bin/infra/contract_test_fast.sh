@@ -14,6 +14,7 @@ Runs fast infra contract helper CLI/unit tests:
 - ArgoCD repo contract helper CLI
 - state artifact env/json contract renderer + schema validation
 - shell root-resolution helper + prelude drift assertions
+- generated-consumer upgrade fixture matrix safety coverage
 EOF
 }
 
@@ -24,6 +25,7 @@ fi
 
 require_command pytest
 run_cmd pytest -q \
+  "$ROOT_DIR/tests/blueprint/test_upgrade_fixture_matrix.py" \
   "$ROOT_DIR/tests/infra/test_runtime_identity_contract_cli.py" \
   "$ROOT_DIR/tests/infra/test_argocd_repo_contract_cli.py" \
   "$ROOT_DIR/tests/infra/test_state_artifact_contract.py" \
