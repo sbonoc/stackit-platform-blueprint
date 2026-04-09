@@ -47,10 +47,10 @@ blueprint-upgrade-readiness-doctor: ## Generate generated-consumer upgrade readi
 	@scripts/bin/blueprint/upgrade_readiness_doctor.sh
 
 blueprint-install-codex-skill: ## Install/sync bundled Codex upgrade skill into local CODEX_HOME skills directory
-	@scripts/bin/blueprint/install_codex_skill.sh
+	@scripts/bin/blueprint/install_codex_skill.sh --skill-name blueprint-consumer-upgrade
 
 blueprint-install-codex-skill-consumer-ops: ## Install/sync bundled Codex consumer operations skill into local CODEX_HOME skills directory
-	@BLUEPRINT_CODEX_SKILL_NAME=blueprint-consumer-ops scripts/bin/blueprint/install_codex_skill.sh
+	@scripts/bin/blueprint/install_codex_skill.sh --skill-name blueprint-consumer-ops
 
 blueprint-install-codex-skills: ## Install/sync all bundled Codex skills into local CODEX_HOME skills directory
 	@$(MAKE) blueprint-install-codex-skill
