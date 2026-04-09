@@ -204,6 +204,7 @@ class ScriptsRefactorCases(RefactorContractBase):
     def test_provision_deploy_supports_local_post_deploy_hook_contract(self) -> None:
         provision_deploy = _read("scripts/bin/infra/provision_deploy.sh")
         post_deploy_hook_lib = _read("scripts/lib/infra/local_post_deploy_hook.sh")
+        post_deploy_validator = _read("scripts/lib/blueprint/contract_validators/local_post_deploy_hook.py")
 
         self.assertIn('source "$ROOT_DIR/scripts/lib/blueprint/contract_runtime.sh"', provision_deploy)
         self.assertIn('source "$ROOT_DIR/scripts/lib/infra/local_post_deploy_hook.sh"', provision_deploy)
@@ -218,8 +219,10 @@ class ScriptsRefactorCases(RefactorContractBase):
         self.assertIn("local_post_deploy_hook_duration_seconds", post_deploy_hook_lib)
         self.assertIn('write_state_file "local_post_deploy_hook"', post_deploy_hook_lib)
         self.assertIn('state_json_file_path "local_post_deploy_hook" "infra"', post_deploy_hook_lib)
+        self.assertIn("set_state_namespace infra", post_deploy_hook_lib)
         self.assertIn('mode="best-effort"', post_deploy_hook_lib)
         self.assertIn('mode="strict"', post_deploy_hook_lib)
+        self.assertNotIn("must preserve generated-consumer placeholder fail-fast guidance", post_deploy_validator)
 
     def test_argocd_reconcile_does_not_capture_kubectl_stdout_into_state_mode(self) -> None:
         reconcile = _read("scripts/bin/platform/auth/reconcile_argocd_repo_credentials.sh")

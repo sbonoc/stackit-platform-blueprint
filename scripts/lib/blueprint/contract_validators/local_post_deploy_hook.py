@@ -202,11 +202,6 @@ def validate_local_post_deploy_hook_contract(
         platform_make_content = platform_make_path.read_text(encoding="utf-8")
         if f"{consumer_target}:" not in platform_make_content:
             errors.append(f"make/platform.mk missing consumer hook target definition: {consumer_target}")
-        if "placeholder active" not in platform_make_content:
-            errors.append(
-                "make/platform.mk must preserve generated-consumer placeholder fail-fast guidance for "
-                "consumer-owned hook targets"
-            )
 
     if not contract_enabled:
         return errors

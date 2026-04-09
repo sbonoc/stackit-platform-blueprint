@@ -249,18 +249,27 @@ def run_local_post_deploy_hook_contract(
     enabled: str,
     required: str,
     hook_cmd: str,
+    state_namespace: str | None = None,
 ) -> tuple[int, str]:
+    state_namespace_export = ""
+    if state_namespace:
+        state_namespace_export = f'export STATE_NAMESPACE="{state_namespace}"\n'
     script = f"""
 export ROOT_DIR="{REPO_ROOT}"
 source "{REPO_ROOT}/scripts/lib/shell/bootstrap.sh"
 source "{REPO_ROOT}/scripts/lib/infra/profile.sh"
 source "{REPO_ROOT}/scripts/lib/infra/state.sh"
 source "{REPO_ROOT}/scripts/lib/infra/local_post_deploy_hook.sh"
-remove_state_file local_post_deploy_hook
+rm -f "$ROOT_DIR/artifacts/infra/local_post_deploy_hook.env" "$ROOT_DIR/artifacts/infra/local_post_deploy_hook.json"
+rm -f "$ROOT_DIR/artifacts/apps/local_post_deploy_hook.env" "$ROOT_DIR/artifacts/apps/local_post_deploy_hook.json"
+{state_namespace_export}
 local_post_deploy_hook_run
 state_file="$ROOT_DIR/artifacts/infra/local_post_deploy_hook.env"
 if [[ -f "$state_file" ]]; then
   cat "$state_file"
+fi
+if [[ -f "$ROOT_DIR/artifacts/apps/local_post_deploy_hook.env" ]]; then
+  echo "unexpected_apps_state_file=true"
 fi
 """
     result = run(
@@ -632,6 +641,19 @@ render_optional_module_secret_manifests "messaging" "blueprint-rabbitmq-auth" "r
         self.assertEqual(payload["artifact"]["jsonPath"], "artifacts/infra/local_post_deploy_hook.json")
         self.assertIn(payload["entries"]["status"], {"success", "failure", "skipped"})
         self.assertIn(payload["entries"]["reason"], {"executed", "command_failed", "disabled", "non_local_profile"})
+
+    def test_local_post_deploy_hook_forces_infra_namespace_even_when_state_namespace_is_overridden(self) -> None:
+        exit_code, output = run_local_post_deploy_hook_contract(
+            profile="local-full",
+            enabled="false",
+            required="false",
+            hook_cmd="echo should-not-run",
+            state_namespace="apps",
+        )
+        self.assertEqual(exit_code, 0, msg=output)
+        self.assertNotIn("unexpected_apps_state_file=true", output)
+        self.assertTrue((REPO_ROOT / "artifacts" / "infra" / "local_post_deploy_hook.env").exists())
+        self.assertFalse((REPO_ROOT / "artifacts" / "apps" / "local_post_deploy_hook.env").exists())
 
     def test_local_post_deploy_hook_strict_failure_is_fail_fast(self) -> None:
         exit_code, output = run_local_post_deploy_hook_contract(

@@ -33,6 +33,9 @@ local_post_deploy_hook_validate_state_contract() {
 local_post_deploy_hook_run() {
   local start_epoch status reason
   start_epoch="$(now_epoch_seconds)"
+  # Hook state artifacts are part of infra namespace contract regardless of
+  # external STATE_NAMESPACE overrides in caller environment.
+  set_state_namespace infra
   local_post_deploy_hook_init_env
 
   local enabled required mode hook_command command_configured
