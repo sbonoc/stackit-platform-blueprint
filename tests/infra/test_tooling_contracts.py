@@ -243,6 +243,47 @@ fi
         return result.stdout + result.stderr
 
 
+def run_local_post_deploy_hook_contract(
+    *,
+    profile: str,
+    enabled: str,
+    required: str,
+    hook_cmd: str,
+    state_namespace: str | None = None,
+) -> tuple[int, str]:
+    state_namespace_export = ""
+    if state_namespace:
+        state_namespace_export = f'export STATE_NAMESPACE="{state_namespace}"\n'
+    script = f"""
+export ROOT_DIR="{REPO_ROOT}"
+source "{REPO_ROOT}/scripts/lib/shell/bootstrap.sh"
+source "{REPO_ROOT}/scripts/lib/infra/profile.sh"
+source "{REPO_ROOT}/scripts/lib/infra/state.sh"
+source "{REPO_ROOT}/scripts/lib/infra/local_post_deploy_hook.sh"
+rm -f "$ROOT_DIR/artifacts/infra/local_post_deploy_hook.env" "$ROOT_DIR/artifacts/infra/local_post_deploy_hook.json"
+rm -f "$ROOT_DIR/artifacts/apps/local_post_deploy_hook.env" "$ROOT_DIR/artifacts/apps/local_post_deploy_hook.json"
+{state_namespace_export}
+local_post_deploy_hook_run
+state_file="$ROOT_DIR/artifacts/infra/local_post_deploy_hook.env"
+if [[ -f "$state_file" ]]; then
+  cat "$state_file"
+fi
+if [[ -f "$ROOT_DIR/artifacts/apps/local_post_deploy_hook.env" ]]; then
+  echo "unexpected_apps_state_file=true"
+fi
+"""
+    result = run(
+        ["bash", "-lc", script],
+        {
+            "BLUEPRINT_PROFILE": profile,
+            "LOCAL_POST_DEPLOY_HOOK_ENABLED": enabled,
+            "LOCAL_POST_DEPLOY_HOOK_REQUIRED": required,
+            "LOCAL_POST_DEPLOY_HOOK_CMD": hook_cmd,
+        },
+    )
+    return result.returncode, result.stdout + result.stderr
+
+
 def terraform_backend_init_contract(*, bucket: str, region: str) -> str:
     with tempfile.TemporaryDirectory() as tmpdir:
         bin_dir = Path(tmpdir) / "bin"
@@ -554,6 +595,77 @@ render_optional_module_secret_manifests "messaging" "blueprint-rabbitmq-auth" "r
             f"{REPO_ROOT}/artifacts/infra/rendered/secrets/secret-messaging-blueprint-rabbitmq-auth.yaml",
         )
         self.assertIn("optional_module_secret_render_total", result.stderr)
+
+    def test_local_post_deploy_hook_skips_when_disabled(self) -> None:
+        exit_code, output = run_local_post_deploy_hook_contract(
+            profile="local-full",
+            enabled="false",
+            required="false",
+            hook_cmd="echo should-not-run",
+        )
+        self.assertEqual(exit_code, 0, msg=output)
+        self.assertIn("status=skipped", output)
+        self.assertIn("reason=disabled", output)
+        self.assertIn("mode=best-effort", output)
+        self.assertIn("local_post_deploy_hook_duration_seconds", output)
+
+    def test_local_post_deploy_hook_best_effort_failure_continues(self) -> None:
+        exit_code, output = run_local_post_deploy_hook_contract(
+            profile="local-full",
+            enabled="true",
+            required="false",
+            hook_cmd="exit 12",
+        )
+        self.assertEqual(exit_code, 0, msg=output)
+        self.assertIn("status=failure", output)
+        self.assertIn("reason=command_failed", output)
+        self.assertIn("mode=best-effort", output)
+        self.assertIn("continuing chain", output)
+
+    def test_local_post_deploy_hook_state_artifact_schema_contract_is_enforced(self) -> None:
+        exit_code, output = run_local_post_deploy_hook_contract(
+            profile="local-full",
+            enabled="true",
+            required="false",
+            hook_cmd="echo post-deploy-ok",
+        )
+        self.assertEqual(exit_code, 0, msg=output)
+        self.assertIn("local_post_deploy_hook_state_contract_validation_total", output)
+
+        state_json = REPO_ROOT / "artifacts" / "infra" / "local_post_deploy_hook.json"
+        self.assertTrue(state_json.exists(), msg=f"missing post-deploy hook state json: {state_json}")
+        payload = json.loads(state_json.read_text(encoding="utf-8"))
+        self.assertEqual(payload["artifact"]["name"], "local_post_deploy_hook")
+        self.assertEqual(payload["artifact"]["namespace"], "infra")
+        self.assertEqual(payload["artifact"]["envPath"], "artifacts/infra/local_post_deploy_hook.env")
+        self.assertEqual(payload["artifact"]["jsonPath"], "artifacts/infra/local_post_deploy_hook.json")
+        self.assertIn(payload["entries"]["status"], {"success", "failure", "skipped"})
+        self.assertIn(payload["entries"]["reason"], {"executed", "command_failed", "disabled", "non_local_profile"})
+
+    def test_local_post_deploy_hook_forces_infra_namespace_even_when_state_namespace_is_overridden(self) -> None:
+        exit_code, output = run_local_post_deploy_hook_contract(
+            profile="local-full",
+            enabled="false",
+            required="false",
+            hook_cmd="echo should-not-run",
+            state_namespace="apps",
+        )
+        self.assertEqual(exit_code, 0, msg=output)
+        self.assertNotIn("unexpected_apps_state_file=true", output)
+        self.assertTrue((REPO_ROOT / "artifacts" / "infra" / "local_post_deploy_hook.env").exists())
+        self.assertFalse((REPO_ROOT / "artifacts" / "apps" / "local_post_deploy_hook.env").exists())
+
+    def test_local_post_deploy_hook_strict_failure_is_fail_fast(self) -> None:
+        exit_code, output = run_local_post_deploy_hook_contract(
+            profile="local-full",
+            enabled="true",
+            required="true",
+            hook_cmd="exit 9",
+        )
+        self.assertNotEqual(exit_code, 0, msg=output)
+        self.assertIn("status=failure", output)
+        self.assertIn("reason=command_failed", output)
+        self.assertIn("LOCAL_POST_DEPLOY_HOOK_REQUIRED=true", output)
 
     def test_help_reference_includes_primary_workflows(self) -> None:
         result = run(["make", "infra-help-reference"])

@@ -31,6 +31,9 @@ from scripts.lib.blueprint.contract_validators.docs_sync import (  # noqa: E402
 from scripts.lib.blueprint.contract_validators.messaging import (  # noqa: E402
     validate_event_messaging_contract as _validate_event_messaging_contract_delegate,
 )
+from scripts.lib.blueprint.contract_validators.local_post_deploy_hook import (  # noqa: E402
+    validate_local_post_deploy_hook_contract as _validate_local_post_deploy_hook_contract_delegate,
+)
 from scripts.lib.blueprint.contract_validators.runtime_identity import (  # noqa: E402
     validate_runtime_credentials_contract as _validate_runtime_credentials_contract_delegate,
 )
@@ -2390,6 +2393,10 @@ def _validate_event_messaging_contract(repo_root: Path, contract: BlueprintContr
     return _validate_event_messaging_contract_delegate(repo_root, contract, _contract_validation_helpers())
 
 
+def _validate_local_post_deploy_hook_contract(repo_root: Path, contract: BlueprintContract) -> list[str]:
+    return _validate_local_post_deploy_hook_contract_delegate(repo_root, contract, _contract_validation_helpers())
+
+
 def _validate_docs_edit_link(repo_root: Path, contract: BlueprintContract) -> list[str]:
     return _validate_docs_edit_link_delegate(repo_root, contract)
 
@@ -2460,6 +2467,7 @@ def main() -> int:
     errors.extend(_validate_runtime_credentials_contract(repo_root))
     errors.extend(_validate_app_catalog_scaffold_contract(repo_root, contract))
     errors.extend(_validate_app_runtime_gitops_contract(repo_root, contract))
+    errors.extend(_validate_local_post_deploy_hook_contract(repo_root, contract))
     errors.extend(_validate_event_messaging_contract(repo_root, contract))
     errors.extend(_validate_zero_downtime_evolution_contract(repo_root, contract))
     errors.extend(_validate_tenant_context_contract(contract))

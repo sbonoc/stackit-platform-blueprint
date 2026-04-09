@@ -3,6 +3,7 @@
 
 .PHONY: \
   auth-reconcile-eso-runtime-secrets auth-reconcile-argocd-repo-credentials auth-reconcile-runtime-identity \
+  infra-post-deploy-consumer \
   apps-bootstrap apps-ci-bootstrap apps-ci-bootstrap-consumer apps-smoke apps-audit-versions apps-audit-versions-cached apps-publish-ghcr \
   backend-test-unit backend-test-integration backend-test-contracts backend-test-e2e \
   touchpoints-test-unit touchpoints-test-integration touchpoints-test-contracts touchpoints-test-e2e \
@@ -16,6 +17,14 @@ auth-reconcile-argocd-repo-credentials: ## Reconcile ArgoCD Git repository crede
 
 auth-reconcile-runtime-identity: ## Reconcile runtime identity contracts (ESO, Argo repo access, Keycloak/module coverage)
 	@scripts/bin/platform/auth/reconcile_runtime_identity.sh
+
+infra-post-deploy-consumer: ## Consumer-owned local infra post-deploy hook contract target (optional)
+	@# blueprint-consumer-contract: infra-post-deploy-consumer must be replaced by generated-consumer maintainers.
+	@if grep -qE '^[[:space:]]*repo_mode:[[:space:]]*generated-consumer$$' blueprint/contract.yaml; then \
+		echo "[blueprint] infra-post-deploy-consumer placeholder active; implement deterministic local post-deploy reconciliation commands in make/platform.mk and set LOCAL_POST_DEPLOY_HOOK_ENABLED=true when ready" >&2; \
+		exit 1; \
+	fi
+	@echo "[blueprint] infra-post-deploy-consumer placeholder skipped in template-source repo mode"
 
 apps-bootstrap: ## Bootstrap app build/deploy prerequisites
 	@scripts/bin/platform/apps/bootstrap.sh

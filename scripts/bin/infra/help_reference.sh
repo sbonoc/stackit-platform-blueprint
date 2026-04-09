@@ -42,6 +42,7 @@ printf '  make quality-hooks-strict     # slower audit gate for protected-branch
 printf '  make quality-hooks-run        # composite fast+strict quality gate\n'
 printf '  make blueprint-bootstrap      # refresh blueprint-managed templates/docs/make surface\n'
 printf '  make infra-bootstrap          # bootstrap infra scaffolding and prune disabled module scope\n'
+printf '  make infra-provision-deploy   # canonical provision->deploy->smoke chain (supports optional local post-deploy hook contract)\n'
 printf '  make infra-smoke              # run canonical infra smoke chain and write diagnostics artifacts\n'
 printf '  make docs-build               # regenerate tracked docs metadata and build the docs site\n'
 printf '  make apps-bootstrap           # bootstrap platform app build/deploy prerequisites\n'

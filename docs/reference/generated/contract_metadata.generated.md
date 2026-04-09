@@ -62,6 +62,7 @@
 - `infra-provision`
 - `infra-deploy`
 - `infra-provision-deploy`
+- `infra-post-deploy-consumer`
 - `infra-stackit-bootstrap-preflight`
 - `infra-stackit-bootstrap-plan`
 - `infra-stackit-bootstrap-apply`
@@ -150,6 +151,7 @@
 |---|---:|---|---|
 | `event_messaging_contract` | `false` | `EVENT_MESSAGING_BASELINE_ENABLED` | Canonical async envelope, versioning, outbox/inbox, and idempotency baseline. |
 | `app_runtime_gitops_contract` | `true` | `APP_RUNTIME_GITOPS_ENABLED` | Baseline app runtime GitOps workload scaffold and app-catalog delivery mapping contract. |
+| `local_post_deploy_hook_contract` | `false` | `LOCAL_POST_DEPLOY_HOOK_ENABLED` | Local post-deploy extension point with strict/best-effort execution contract. |
 | `zero_downtime_evolution_contract` | `false` | `ZERO_DOWNTIME_EVOLUTION_ENABLED` | Expand/migrate/contract policy for schema, API, and event rollouts. |
 | `tenant_context_contract` | `false` | `TENANT_CONTEXT_PROPAGATION_ENABLED` | Tenant/organization context propagation across identity, HTTP, async, and telemetry. |
 
@@ -208,6 +210,25 @@
 - Diagnostics reason: `empty-runtime-workloads`
 - Smoke workload kind: `Deployment`
 - Smoke workload kind: `StatefulSet`
+
+## Runtime Contract: `local_post_deploy_hook_contract`
+
+- Invocation target: `infra-provision-deploy`
+- Invocation script: `scripts/bin/infra/provision_deploy.sh`
+- Consumer target: `infra-post-deploy-consumer`
+- Command env var: `LOCAL_POST_DEPLOY_HOOK_CMD`
+- Strict-mode env var: `LOCAL_POST_DEPLOY_HOOK_REQUIRED`
+- State artifact path: `artifacts/infra/local_post_deploy_hook.env`
+
+### Run Profiles
+- `local-lite`
+- `local-full`
+
+### Required Paths (When Enabled)
+- `scripts/bin/infra/provision_deploy.sh`
+- `scripts/lib/infra/local_post_deploy_hook.sh`
+- `scripts/lib/infra/schemas/local_post_deploy_hook_state.schema.json`
+- `make/platform.mk`
 
 ## Runtime Contract: `zero_downtime_evolution_contract`
 

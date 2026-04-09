@@ -23,6 +23,7 @@ The execution flow is always the same:
 3. `infra-smoke`
 
 `infra-provision-deploy` runs those three in order.
+For local profiles, `infra-provision-deploy` can run an optional post-deploy hook contract after smoke (`LOCAL_POST_DEPLOY_HOOK_ENABLED`, `LOCAL_POST_DEPLOY_HOOK_CMD`, `LOCAL_POST_DEPLOY_HOOK_REQUIRED`).
 
 ## What Each Phase Does
 ### 1) Provision
@@ -53,6 +54,7 @@ The execution flow is always the same:
 - Verifies optional modules (if enabled).
 - In live mode, captures pod inventory plus workload readiness for blueprint-managed namespaces only (`apps`, `data`, `messaging`, `network`, `security`, `observability`, `argocd`, `external-secrets`, `crossplane-system`, `envoy-gateway-system`).
 - Writes state artifacts to `artifacts/infra/smoke.env`.
+- When local post-deploy hook contract is enabled, writes hook outcome to `artifacts/infra/local_post_deploy_hook.env` after smoke.
 
 ## Profile Routing
 `BLUEPRINT_PROFILE` selects the execution path:

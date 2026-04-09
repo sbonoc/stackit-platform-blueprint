@@ -52,6 +52,11 @@ BLUEPRINT_MAKE_TARGET_REFERENCE_PATHS = (
 APPS_CI_BOOTSTRAP_TARGET = "apps-ci-bootstrap"
 APPS_CI_BOOTSTRAP_CONSUMER_TARGET = "apps-ci-bootstrap-consumer"
 APPS_CI_BOOTSTRAP_CONSUMER_PLACEHOLDER_TOKEN = "apps-ci-bootstrap-consumer placeholder active"
+LOCAL_POST_DEPLOY_HOOK_ENABLE_FLAG = "LOCAL_POST_DEPLOY_HOOK_ENABLED"
+LOCAL_POST_DEPLOY_HOOK_COMMAND_ENV = "LOCAL_POST_DEPLOY_HOOK_CMD"
+LOCAL_POST_DEPLOY_HOOK_CONSUMER_TARGET = "infra-post-deploy-consumer"
+LOCAL_POST_DEPLOY_HOOK_CONSUMER_PLACEHOLDER_TOKEN = "infra-post-deploy-consumer placeholder active"
+LOCAL_POST_DEPLOY_HOOK_REFERENCE_PATH = "scripts/bin/infra/provision_deploy.sh"
 
 
 @dataclass(frozen=True)
@@ -723,6 +728,47 @@ def _file_contains_literal(path: Path, token: str) -> bool:
     return token in _read_text(path)
 
 
+def _strip_wrapping_quotes(value: str) -> str:
+    stripped = value.strip()
+    if len(stripped) >= 2 and stripped[0] == stripped[-1] and stripped[0] in {'"', "'"}:
+        return stripped[1:-1]
+    return stripped
+
+
+def _read_repo_init_defaults(path: Path) -> dict[str, str]:
+    if not path.is_file():
+        return {}
+    defaults: dict[str, str] = {}
+    for raw_line in path.read_text(encoding="utf-8", errors="surrogateescape").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("export "):
+            line = line[len("export ") :].strip()
+        if "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        if not key:
+            continue
+        defaults[key] = _strip_wrapping_quotes(value)
+    return defaults
+
+
+def _value_is_true(value: str) -> bool:
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _local_post_deploy_consumer_target_required(repo_root: Path) -> bool:
+    defaults = _read_repo_init_defaults(repo_root / "blueprint/repo.init.env")
+    if not _value_is_true(defaults.get(LOCAL_POST_DEPLOY_HOOK_ENABLE_FLAG, "false")):
+        return False
+    hook_cmd = defaults.get(LOCAL_POST_DEPLOY_HOOK_COMMAND_ENV, "")
+    if not hook_cmd:
+        return False
+    return LOCAL_POST_DEPLOY_HOOK_CONSUMER_TARGET in hook_cmd
+
+
 def _source_make_target_reference(source_repo: Path, target_name: str) -> str | None:
     needles = (f"make {target_name}", f"$(MAKE) {target_name}")
     for rel_path in BLUEPRINT_MAKE_TARGET_REFERENCE_PATHS:
@@ -800,6 +846,45 @@ def _collect_missing_platform_make_target_actions(
                     reason=(
                         f"required consumer-owned make target `{APPS_CI_BOOTSTRAP_CONSUMER_TARGET}` is still "
                         "placeholder; replace it with deterministic repository-specific dependency bootstrap commands"
+                    ),
+                    required_follow_up_commands=("make blueprint-upgrade-consumer-validate",),
+                )
+            )
+
+    if (
+        _local_post_deploy_consumer_target_required(repo_root)
+        and LOCAL_POST_DEPLOY_HOOK_CONSUMER_TARGET in required_targets
+    ):
+        hook_dependency_of = (
+            f"{LOCAL_POST_DEPLOY_HOOK_REFERENCE_PATH}: "
+            f"{LOCAL_POST_DEPLOY_HOOK_COMMAND_ENV} -> make {LOCAL_POST_DEPLOY_HOOK_CONSUMER_TARGET}"
+        )
+        post_deploy_target_path = target_target_definitions.get(LOCAL_POST_DEPLOY_HOOK_CONSUMER_TARGET)
+        if post_deploy_target_path is None:
+            actions.append(
+                RequiredManualAction(
+                    dependency_path=platform_makefile,
+                    dependency_of=hook_dependency_of,
+                    reason=(
+                        f"required consumer-owned make target `{LOCAL_POST_DEPLOY_HOOK_CONSUMER_TARGET}` is missing "
+                        f"while {LOCAL_POST_DEPLOY_HOOK_ENABLE_FLAG}=true; "
+                        f"{LOCAL_POST_DEPLOY_HOOK_COMMAND_ENV} invokes it by default"
+                    ),
+                    required_follow_up_commands=("make blueprint-upgrade-consumer-validate",),
+                )
+            )
+        elif _file_contains_literal(
+            repo_root / post_deploy_target_path,
+            LOCAL_POST_DEPLOY_HOOK_CONSUMER_PLACEHOLDER_TOKEN,
+        ):
+            actions.append(
+                RequiredManualAction(
+                    dependency_path=post_deploy_target_path,
+                    dependency_of=hook_dependency_of,
+                    reason=(
+                        f"required consumer-owned make target `{LOCAL_POST_DEPLOY_HOOK_CONSUMER_TARGET}` is still "
+                        f"placeholder while {LOCAL_POST_DEPLOY_HOOK_ENABLE_FLAG}=true; replace it with deterministic "
+                        "repository-specific post-deploy reconciliation commands"
                     ),
                     required_follow_up_commands=("make blueprint-upgrade-consumer-validate",),
                 )
