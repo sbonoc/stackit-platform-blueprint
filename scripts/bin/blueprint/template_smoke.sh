@@ -220,9 +220,11 @@ log_info "template smoke workspace: $tmp_repo"
   run_cmd make blueprint-bootstrap
   run_cmd make infra-bootstrap
   run_cmd make infra-validate
-  run_cmd env BLUEPRINT_CODEX_SKILLS_DIR="$tmp_root/codex-skills" make blueprint-install-codex-skill
+  run_cmd env BLUEPRINT_CODEX_SKILLS_DIR="$tmp_root/codex-skills" make blueprint-install-codex-skills
   run_cmd test -f "$tmp_root/codex-skills/blueprint-consumer-upgrade/SKILL.md"
   run_cmd test -x "$tmp_root/codex-skills/blueprint-consumer-upgrade/scripts/resolve_latest_stable_ref.sh"
+  run_cmd test -f "$tmp_root/codex-skills/blueprint-consumer-ops/SKILL.md"
+  run_cmd test -f "$tmp_root/codex-skills/blueprint-consumer-ops/references/consumer_ops_checklist.md"
   run_cmd make blueprint-check-placeholders
 
   # Validate the full generated-repo operator chain so scenario coverage checks

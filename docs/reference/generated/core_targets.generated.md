@@ -16,6 +16,8 @@ This file is auto-generated. Do not edit it manually.
 | `blueprint-upgrade-consumer-validate` | Run post-upgrade validation bundle and strict merge-marker checks |
 | `blueprint-upgrade-readiness-doctor` | Generate generated-consumer upgrade readiness diagnostics and manual-action hints |
 | `blueprint-install-codex-skill` | Install/sync bundled Codex upgrade skill into local CODEX_HOME skills directory |
+| `blueprint-install-codex-skill-consumer-ops` | Install/sync bundled Codex consumer operations skill into local CODEX_HOME skills directory |
+| `blueprint-install-codex-skills` | Install/sync all bundled Codex skills into local CODEX_HOME skills directory |
 | `blueprint-ownership-check` | Resolve path ownership classes (set OWNERSHIP_PATHS="path/one path/two") |
 | `blueprint-ownership-metadata` | Print machine-readable ownership metadata (pattern -> owner) |
 | `blueprint-check-placeholders` | Verify generated repository identity placeholders are resolved |

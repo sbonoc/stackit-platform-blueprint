@@ -1,0 +1,4 @@
+interface:
+  display_name: "Blueprint Consumer Ops"
+  short_description: "Deterministic generated-consumer operations runbook"
+  default_prompt: "Use $blueprint-consumer-ops to run deterministic generated-consumer operations (preflight, profile runbooks, module lifecycle, runtime identity reconciliation, app onboarding, upgrade/resync bridge, validation matrix, release readiness, troubleshooting, and defect escalation) while preserving ownership boundaries."

@@ -65,13 +65,22 @@ When `LOCAL_POST_DEPLOY_HOOK_ENABLED=true`, preflight also flags a blocking manu
 Set `BLUEPRINT_UPGRADE_SOURCE` when the blueprint source repository differs from your default `origin` remote.
 By default, the upgrade target resolves `BLUEPRINT_UPGRADE_SOURCE` from `remote.upstream.url`
 when present, and falls back to `remote.origin.url`.
-To install/sync the bundled Codex upgrade skill into your local Codex skills directory:
+To install/sync all bundled Codex skills into your local Codex skills directory:
+```bash
+make blueprint-install-codex-skills
+```
+Install only the upgrade skill when needed:
 ```bash
 make blueprint-install-codex-skill
+```
+Install only the consumer operations skill when needed:
+```bash
+make blueprint-install-codex-skill-consumer-ops
 ```
 Override install location when needed:
 ```bash
 BLUEPRINT_CODEX_SKILLS_DIR="${CODEX_HOME:-$HOME/.codex}/skills" make blueprint-install-codex-skill
+BLUEPRINT_CODEX_SKILLS_DIR="${CODEX_HOME:-$HOME/.codex}/skills" make blueprint-install-codex-skill-consumer-ops
 ```
 
 ## 3) Bootstrap and Validate
