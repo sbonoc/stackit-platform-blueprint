@@ -108,6 +108,13 @@
   - Baseline workload manifests now include deployable `backend-api` and `touchpoints-web` runtime stubs so Argo `platform-<env>-core` paths can materialize app workloads from generated defaults.
   - `apps-smoke` now performs execute-mode live workload presence checks, and `infra-smoke` always emits explicit empty-runtime diagnostics (`emptyRuntimeNamespaceCount`, `emptyRuntimeNamespaces`) in addition to unhealthy-pod diagnostics.
   - `infra-validate` now fails when runtime scaffold is enabled but required app workload scaffolding/kinds/smoke guardrail wiring are missing.
+- Local post-deploy reconciliation is now a contract-backed local extension point:
+  - `local_post_deploy_hook_contract` is opt-in (`LOCAL_POST_DEPLOY_HOOK_ENABLED=false` by default).
+  - canonical local wrapper path is `infra-provision-deploy`, which executes the hook after successful smoke.
+  - strict vs best-effort failure behavior is standardized through `LOCAL_POST_DEPLOY_HOOK_REQUIRED` (`false` default, `true` fail-fast).
+  - canonical hook command env is `LOCAL_POST_DEPLOY_HOOK_CMD` (default `make -C "$ROOT_DIR" infra-post-deploy-consumer`).
+  - generated-consumer extension ownership is explicit in `make/platform.mk` target `infra-post-deploy-consumer`; seeded target remains an intentional fail-fast placeholder until implemented by consumer maintainers.
+  - hook outcomes persist to `artifacts/infra/local_post_deploy_hook.env` and emit `local_post_deploy_hook_duration_seconds` metrics.
 - Runtime identity docs are now contract-generated:
   - `scripts/lib/docs/sync_runtime_identity_contract_summary.py` owns the generated summary block in `docs/platform/consumer/runtime_credentials_eso.md` and its bootstrap template counterpart.
   - Fast quality gate now enforces this via `quality-docs-check-runtime-identity-summary-sync`.
@@ -183,3 +190,6 @@
   - blueprint-managed shell entrypoints/templates must source bootstrap only through `SCRIPT_DIR`-relative preludes (no inline `ROOT_DIR` resolver blocks).
   - `quality-root-dir-prelude-check` is part of the fast quality lane to block resolver/prelude drift.
   - temp-copy non-git quality/docs flows rely on shared marker fallback and are covered by automated tests.
+- Local post-deploy hook upgrade/preflight and artifact contracts are now explicit:
+  - generated-consumer upgrade planning now emits a required manual action when `LOCAL_POST_DEPLOY_HOOK_ENABLED=true` and `LOCAL_POST_DEPLOY_HOOK_CMD` still points to `infra-post-deploy-consumer` while that target remains a placeholder.
+  - local hook state artifacts now have a dedicated schema (`scripts/lib/infra/schemas/local_post_deploy_hook_state.schema.json`) validated on every hook run, with explicit validation telemetry (`local_post_deploy_hook_state_contract_validation_total`).

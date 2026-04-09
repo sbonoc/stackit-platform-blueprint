@@ -135,7 +135,9 @@ spec:
       - scripts/lib/infra/runtime_identity_contract.py
       - scripts/lib/infra/state_artifact_contract.py
       - scripts/lib/infra/schemas/state_artifact.schema.json
+      - scripts/lib/infra/schemas/local_post_deploy_hook_state.schema.json
       - scripts/lib/infra/module_execution.sh
+      - scripts/lib/infra/local_post_deploy_hook.sh
       - scripts/lib/quality/semver.sh
       - scripts/lib/quality/render_ci_workflow.py
       - scripts/lib/quality/test_pyramid_contract.json
@@ -594,6 +596,21 @@ spec:
       default: 1
       required: false
       description: "Minimum Deployment/StatefulSet workload objects expected in apps namespace during execute-mode smoke when APP_RUNTIME_GITOPS_ENABLED=true."
+    LOCAL_POST_DEPLOY_HOOK_ENABLED:
+      type: boolean
+      default: false
+      required: false
+      description: "Enable local-only post-deploy reconciliation hook after successful infra-provision-deploy."
+    LOCAL_POST_DEPLOY_HOOK_REQUIRED:
+      type: boolean
+      default: false
+      required: false
+      description: "When true, local post-deploy hook failures are fail-fast; when false they are warn-and-continue."
+    LOCAL_POST_DEPLOY_HOOK_CMD:
+      type: string
+      default: "make -C \"$ROOT_DIR\" infra-post-deploy-consumer"
+      required: false
+      description: "Shell command invoked by local post-deploy hook contract when enabled."
     EVENT_MESSAGING_BASELINE_ENABLED:
       type: boolean
       default: false
@@ -747,6 +764,27 @@ spec:
       - docs/platform/consumer/quickstart.md
       - docs/platform/consumer/troubleshooting.md
 
+  local_post_deploy_hook_contract:
+    enabled_by_default: false
+    enable_flag: LOCAL_POST_DEPLOY_HOOK_ENABLED
+    command_env_var: LOCAL_POST_DEPLOY_HOOK_CMD
+    strict_mode_env_var: LOCAL_POST_DEPLOY_HOOK_REQUIRED
+    invocation_target: infra-provision-deploy
+    invocation_script: scripts/bin/infra/provision_deploy.sh
+    consumer_target: infra-post-deploy-consumer
+    run_profiles:
+      - local-lite
+      - local-full
+    required_paths_when_enabled:
+      - scripts/bin/infra/provision_deploy.sh
+      - scripts/lib/infra/local_post_deploy_hook.sh
+      - scripts/lib/infra/schemas/local_post_deploy_hook_state.schema.json
+      - make/platform.mk
+    state_artifact_path: artifacts/infra/local_post_deploy_hook.env
+    docs_paths:
+      - docs/platform/consumer/quickstart.md
+      - docs/platform/consumer/troubleshooting.md
+
   tech_preferences:
     frontend:
       required:
@@ -874,6 +912,7 @@ spec:
       - infra-provision
       - infra-deploy
       - infra-provision-deploy
+      - infra-post-deploy-consumer
       - infra-stackit-bootstrap-preflight
       - infra-stackit-bootstrap-plan
       - infra-stackit-bootstrap-apply

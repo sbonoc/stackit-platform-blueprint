@@ -169,7 +169,7 @@ class ScriptsRefactorCases(RefactorContractBase):
 
         self.assertIn("MODULE_WRAPPER_STUB_EXIT_CODE=64", generator)
         self.assertIn("optional_module_wrapper_stub_invocation", generator)
-        self.assertIn('scripts/lib/shell/bootstrap.sh', generator)
+        self.assertIn("$SCRIPT_DIR/../../lib/shell/bootstrap.sh", generator)
         self.assertNotIn("TODO: implement module-specific logic for this action.", workflows_apply_template)
         self.assertIn("status=not_implemented", workflows_apply_template)
         self.assertIn("module wrapper not implemented", workflows_apply_template)
@@ -200,6 +200,26 @@ class ScriptsRefactorCases(RefactorContractBase):
         self.assertIn("module_action_script_count", module_lifecycle)
         self.assertIn("module_action_disabled_count", module_lifecycle)
         self.assertIn("module_action_disabled_script_count", module_lifecycle)
+
+    def test_provision_deploy_supports_local_post_deploy_hook_contract(self) -> None:
+        provision_deploy = _read("scripts/bin/infra/provision_deploy.sh")
+        post_deploy_hook_lib = _read("scripts/lib/infra/local_post_deploy_hook.sh")
+
+        self.assertIn('source "$ROOT_DIR/scripts/lib/blueprint/contract_runtime.sh"', provision_deploy)
+        self.assertIn('source "$ROOT_DIR/scripts/lib/infra/local_post_deploy_hook.sh"', provision_deploy)
+        self.assertIn("blueprint_load_env_defaults", provision_deploy)
+        self.assertIn("local_post_deploy_hook_run", provision_deploy)
+
+        self.assertIn("LOCAL_POST_DEPLOY_HOOK_ENABLED", post_deploy_hook_lib)
+        self.assertIn("LOCAL_POST_DEPLOY_HOOK_REQUIRED", post_deploy_hook_lib)
+        self.assertIn("LOCAL_POST_DEPLOY_HOOK_CMD", post_deploy_hook_lib)
+        self.assertIn("local_post_deploy_hook_state.schema.json", post_deploy_hook_lib)
+        self.assertIn("local_post_deploy_hook_state_contract_validation_total", post_deploy_hook_lib)
+        self.assertIn("local_post_deploy_hook_duration_seconds", post_deploy_hook_lib)
+        self.assertIn('write_state_file "local_post_deploy_hook"', post_deploy_hook_lib)
+        self.assertIn('state_json_file_path "local_post_deploy_hook" "infra"', post_deploy_hook_lib)
+        self.assertIn('mode="best-effort"', post_deploy_hook_lib)
+        self.assertIn('mode="strict"', post_deploy_hook_lib)
 
     def test_argocd_reconcile_does_not_capture_kubectl_stdout_into_state_mode(self) -> None:
         reconcile = _read("scripts/bin/platform/auth/reconcile_argocd_repo_credentials.sh")

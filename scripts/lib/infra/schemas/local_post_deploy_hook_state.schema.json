@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Local Post-Deploy Hook State Artifact",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "artifact",
+    "entryCount",
+    "entryOrder",
+    "entries"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "enum": [
+        "1.0.0"
+      ]
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "namespace",
+        "envPath",
+        "jsonPath"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "enum": [
+            "local_post_deploy_hook"
+          ]
+        },
+        "namespace": {
+          "type": "string",
+          "enum": [
+            "infra"
+          ]
+        },
+        "envPath": {
+          "type": "string",
+          "enum": [
+            "artifacts/infra/local_post_deploy_hook.env"
+          ]
+        },
+        "jsonPath": {
+          "type": "string",
+          "enum": [
+            "artifacts/infra/local_post_deploy_hook.json"
+          ]
+        }
+      }
+    },
+    "entryCount": {
+      "type": "integer",
+      "minimum": 9,
+      "maximum": 9
+    },
+    "entryOrder": {
+      "type": "array",
+      "minItems": 9,
+      "items": {
+        "type": "string",
+        "enum": [
+          "profile",
+          "stack",
+          "enabled",
+          "required",
+          "mode",
+          "status",
+          "reason",
+          "command_configured",
+          "timestamp_utc"
+        ]
+      }
+    },
+    "entries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "stack",
+        "enabled",
+        "required",
+        "mode",
+        "status",
+        "reason",
+        "command_configured",
+        "timestamp_utc"
+      ],
+      "properties": {
+        "profile": {
+          "type": "string"
+        },
+        "stack": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "string",
+          "enum": [
+            "true",
+            "false"
+          ]
+        },
+        "required": {
+          "type": "string",
+          "enum": [
+            "true",
+            "false"
+          ]
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "best-effort",
+            "strict"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "success",
+            "failure",
+            "skipped"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "enum": [
+            "disabled",
+            "non_local_profile",
+            "command_missing",
+            "executed",
+            "command_failed"
+          ]
+        },
+        "command_configured": {
+          "type": "string",
+          "enum": [
+            "true",
+            "false"
+          ]
+        },
+        "timestamp_utc": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

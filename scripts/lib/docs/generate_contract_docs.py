@@ -92,6 +92,7 @@ def render_markdown(
     optional_runtime_contracts: list[OptionalRuntimeContractMetadata],
     event_contract: dict[str, Any],
     app_runtime_gitops_contract: dict[str, Any],
+    local_post_deploy_hook_contract: dict[str, Any],
     zero_downtime_contract: dict[str, Any],
     tenant_context_contract: dict[str, Any],
 ) -> str:
@@ -203,6 +204,26 @@ def render_markdown(
     lines.append(f"- Diagnostics reason: `{_string(app_runtime_smoke_guardrails.get('diagnostics_reason'))}`")
     for kind in _list_of_str(app_runtime_smoke_guardrails.get("workload_kinds")):
         lines.append(f"- Smoke workload kind: `{kind}`")
+    lines.append("")
+
+    post_deploy_profiles = _list_of_str(local_post_deploy_hook_contract.get("run_profiles"))
+    post_deploy_required_paths = _list_of_str(local_post_deploy_hook_contract.get("required_paths_when_enabled"))
+    lines.append("## Runtime Contract: `local_post_deploy_hook_contract`")
+    lines.append("")
+    lines.append(f"- Invocation target: `{_string(local_post_deploy_hook_contract.get('invocation_target'))}`")
+    lines.append(f"- Invocation script: `{_string(local_post_deploy_hook_contract.get('invocation_script'))}`")
+    lines.append(f"- Consumer target: `{_string(local_post_deploy_hook_contract.get('consumer_target'))}`")
+    lines.append(f"- Command env var: `{_string(local_post_deploy_hook_contract.get('command_env_var'))}`")
+    lines.append(f"- Strict-mode env var: `{_string(local_post_deploy_hook_contract.get('strict_mode_env_var'))}`")
+    lines.append(f"- State artifact path: `{_string(local_post_deploy_hook_contract.get('state_artifact_path'))}`")
+    lines.append("")
+    lines.append("### Run Profiles")
+    for profile in post_deploy_profiles:
+        lines.append(f"- `{profile}`")
+    lines.append("")
+    lines.append("### Required Paths (When Enabled)")
+    for path in post_deploy_required_paths:
+        lines.append(f"- `{path}`")
     lines.append("")
 
     zero_lifecycle = _mapping(zero_downtime_contract.get("lifecycle"))
@@ -333,6 +354,7 @@ def main() -> int:
     spec_raw = _mapping(contract.raw.get("spec"))
     event_contract = _mapping(spec_raw.get("event_messaging_contract"))
     app_runtime_gitops_contract = _mapping(spec_raw.get("app_runtime_gitops_contract"))
+    local_post_deploy_hook_contract = _mapping(spec_raw.get("local_post_deploy_hook_contract"))
     zero_downtime_contract = _mapping(spec_raw.get("zero_downtime_evolution_contract"))
     tenant_context_contract = _mapping(spec_raw.get("tenant_context_contract"))
     optional_runtime_contracts = [
@@ -347,6 +369,12 @@ def main() -> int:
             enabled_by_default=_bool_text(app_runtime_gitops_contract.get("enabled_by_default")),
             enable_flag=_string(app_runtime_gitops_contract.get("enable_flag")),
             summary="Baseline app runtime GitOps workload scaffold and app-catalog delivery mapping contract.",
+        ),
+        OptionalRuntimeContractMetadata(
+            contract_id="local_post_deploy_hook_contract",
+            enabled_by_default=_bool_text(local_post_deploy_hook_contract.get("enabled_by_default")),
+            enable_flag=_string(local_post_deploy_hook_contract.get("enable_flag")),
+            summary="Local post-deploy extension point with strict/best-effort execution contract.",
         ),
         OptionalRuntimeContractMetadata(
             contract_id="zero_downtime_evolution_contract",
@@ -374,6 +402,7 @@ def main() -> int:
         optional_runtime_contracts=optional_runtime_contracts,
         event_contract=event_contract,
         app_runtime_gitops_contract=app_runtime_gitops_contract,
+        local_post_deploy_hook_contract=local_post_deploy_hook_contract,
         zero_downtime_contract=zero_downtime_contract,
         tenant_context_contract=tenant_context_contract,
     )

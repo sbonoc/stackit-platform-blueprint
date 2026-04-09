@@ -237,6 +237,22 @@ Common first-day issues for generated repositories.
   ```
   Then restore `APP_RUNTIME_MIN_WORKLOADS=1` once workload deployment is expected again.
 
+## `infra-provision-deploy` local post-deploy hook fails or is skipped unexpectedly
+- The hook contract runs only for local profiles (`local-full`, `local-lite`) and only after `infra-provision`, `infra-deploy`, and `infra-smoke` succeed.
+- Contract toggles:
+  - `LOCAL_POST_DEPLOY_HOOK_ENABLED=false` by default (skip with `reason=disabled`).
+  - `LOCAL_POST_DEPLOY_HOOK_CMD='make -C "$ROOT_DIR" infra-post-deploy-consumer'` by default.
+  - `LOCAL_POST_DEPLOY_HOOK_REQUIRED=false` by default (best-effort warn-and-continue).
+- Inspect the state artifact:
+  - `artifacts/infra/local_post_deploy_hook.env` (`status`, `reason`, `mode`, `enabled`, `command_configured`)
+  - `artifacts/infra/local_post_deploy_hook.json` (schema-validated canonical state payload)
+- Common outcomes:
+  - `status=skipped reason=non_local_profile`: expected for `stackit-*` profiles.
+  - `status=skipped reason=disabled`: set `LOCAL_POST_DEPLOY_HOOK_ENABLED=true` to execute the hook.
+  - `status=failure reason=command_failed`: hook command failed; with `LOCAL_POST_DEPLOY_HOOK_REQUIRED=false` chain continues, with `true` it fails fast.
+- In generated-consumer repositories, implement deterministic commands in `make/platform.mk` target `infra-post-deploy-consumer` (the seeded target is an intentional fail-fast placeholder until you replace it).
+- Upgrade preflight guardrail: when `LOCAL_POST_DEPLOY_HOOK_ENABLED=true`, `make blueprint-upgrade-consumer-preflight` reports a required manual action if `infra-post-deploy-consumer` is still placeholder.
+
 ## CI test lanes fail on clean runners with missing `fastapi`, `vitest`, or Playwright browsers
 - Ensure your workflow uses `.github/actions/prepare-blueprint-ci/action.yml` before test lanes.
 - The current action bootstrap contract delegates dependency installation to `BLUEPRINT_PROFILE=local-lite OBSERVABILITY_ENABLED=false make apps-ci-bootstrap`.

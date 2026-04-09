@@ -43,6 +43,7 @@ class OptionalRuntimeContractValidationTests(unittest.TestCase):
                 "BLUEPRINT_BRANCH_NAME": "main",
                 "APP_CATALOG_SCAFFOLD_ENABLED": "false",
                 "APP_RUNTIME_GITOPS_ENABLED": "false",
+                "LOCAL_POST_DEPLOY_HOOK_ENABLED": "false",
                 "EVENT_MESSAGING_BASELINE_ENABLED": "false",
                 "ZERO_DOWNTIME_EVOLUTION_ENABLED": "false",
                 "TENANT_CONTEXT_PROPAGATION_ENABLED": "false",
@@ -55,11 +56,78 @@ class OptionalRuntimeContractValidationTests(unittest.TestCase):
                 "BLUEPRINT_BRANCH_NAME": "main",
                 "APP_CATALOG_SCAFFOLD_ENABLED": "true",
                 "APP_RUNTIME_GITOPS_ENABLED": "true",
+                "LOCAL_POST_DEPLOY_HOOK_ENABLED": "true",
                 "EVENT_MESSAGING_BASELINE_ENABLED": "true",
                 "ZERO_DOWNTIME_EVOLUTION_ENABLED": "true",
                 "TENANT_CONTEXT_PROPAGATION_ENABLED": "true",
             }
         )
+
+    def test_local_post_deploy_hook_contract_missing_fails_validation(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            contract_path = Path(tmpdir) / "contract.yaml"
+            content = CONTRACT_PATH.read_text(encoding="utf-8")
+            content = re.sub(
+                r"(?ms)^  local_post_deploy_hook_contract:\n.*?(?=^  tech_preferences:\n)",
+                "",
+                content,
+                count=1,
+            )
+            contract_path.write_text(content, encoding="utf-8")
+            result = self._run_validate_result(
+                contract_path,
+                {
+                    "BLUEPRINT_BRANCH_NAME": "main",
+                },
+            )
+            self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            self.assertIn(
+                "spec.local_post_deploy_hook_contract is required",
+                result.stdout + result.stderr,
+            )
+
+    def test_local_post_deploy_hook_command_toggle_reference_must_exist(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            contract_path = Path(tmpdir) / "contract.yaml"
+            content = CONTRACT_PATH.read_text(encoding="utf-8")
+            content = content.replace(
+                "    command_env_var: LOCAL_POST_DEPLOY_HOOK_CMD",
+                "    command_env_var: LOCAL_POST_DEPLOY_HOOK_CMD_MISSING",
+                1,
+            )
+            contract_path.write_text(content, encoding="utf-8")
+            result = self._run_validate_result(
+                contract_path,
+                {
+                    "BLUEPRINT_BRANCH_NAME": "main",
+                },
+            )
+            self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            self.assertIn(
+                "spec.local_post_deploy_hook_contract.command_env_var must reference an existing toggle",
+                result.stdout + result.stderr,
+            )
+
+    def test_local_post_deploy_hook_disabled_allows_missing_consumer_target(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            contract_path = Path(tmpdir) / "contract.yaml"
+            content = CONTRACT_PATH.read_text(encoding="utf-8")
+            content = re.sub(
+                r"(?m)^    consumer_target:\s*.+\n",
+                "",
+                content,
+                count=1,
+            )
+            contract_path.write_text(content, encoding="utf-8")
+            result = self._run_validate_result(
+                contract_path,
+                {
+                    "BLUEPRINT_BRANCH_NAME": "main",
+                    "LOCAL_POST_DEPLOY_HOOK_ENABLED": "false",
+                },
+            )
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            self.assertIn("[infra-validate] contract validation passed", result.stdout)
 
     def test_app_catalog_scaffold_contract_missing_fails_validation(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

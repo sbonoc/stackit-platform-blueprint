@@ -19,6 +19,7 @@ from scripts.lib.blueprint.runtime_dependency_edges import RUNTIME_DEPENDENCY_ED
 
 RUNTIME_CONTRACT_KEYS: tuple[str, ...] = (
     "app_runtime_gitops_contract",
+    "local_post_deploy_hook_contract",
     "event_messaging_contract",
     "zero_downtime_evolution_contract",
     "tenant_context_contract",

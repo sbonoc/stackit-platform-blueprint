@@ -60,6 +60,8 @@ manual-merge/conflict paths, and required follow-up commands before apply mode.
 Inspect `artifacts/blueprint/upgrade_plan.json`, `artifacts/blueprint/upgrade_apply.json`, and
 `artifacts/blueprint/upgrade_summary.md` after each run. When `required_manual_actions` is non-empty,
 resolve the listed platform-owned dependency paths first, then re-run `make blueprint-upgrade-consumer-validate`.
+When `LOCAL_POST_DEPLOY_HOOK_ENABLED=true`, preflight also flags a blocking manual action if
+`infra-post-deploy-consumer` is still placeholder in `make/platform.mk`.
 Set `BLUEPRINT_UPGRADE_SOURCE` when the blueprint source repository differs from your default `origin` remote.
 By default, the upgrade target resolves `BLUEPRINT_UPGRADE_SOURCE` from `remote.upstream.url`
 when present, and falls back to `remote.origin.url`.
@@ -137,6 +139,11 @@ make infra-status-json
 
 `make infra-provision-deploy` already runs the canonical smoke stage and writes
 `artifacts/infra/smoke_result.json`, `artifacts/infra/smoke_diagnostics.json`, and `artifacts/infra/workload_health.json`.
+For local profiles, it also supports an optional post-deploy hook contract:
+- set `LOCAL_POST_DEPLOY_HOOK_ENABLED=true` to invoke a consumer-owned hook command after successful smoke.
+- default command is `LOCAL_POST_DEPLOY_HOOK_CMD='make -C "$ROOT_DIR" infra-post-deploy-consumer'`.
+- set `LOCAL_POST_DEPLOY_HOOK_REQUIRED=true` for strict fail-fast behavior; keep `false` for best-effort warn-and-continue behavior.
+- hook outcomes are persisted in `artifacts/infra/local_post_deploy_hook.env` and emitted as `local_post_deploy_hook_duration_seconds` metrics.
 `make infra-status-json` captures the latest consolidated snapshot at
 `artifacts/infra/infra_status_snapshot.json`.
 For local live execution, the blueprint prefers the `docker-desktop` Kubernetes context when it exists.
