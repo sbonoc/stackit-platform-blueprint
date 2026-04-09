@@ -3,7 +3,7 @@ set -euo pipefail
 
 SCRIPT_SHELL_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_SHELL_LIB_DIR/root_dir.sh"
-ROOT_DIR="$(resolve_root_dir "${SCRIPT_DIR:-$PWD}")"
+ROOT_DIR="$(resolve_root_dir "${SCRIPT_DIR:-$SCRIPT_SHELL_LIB_DIR}")"
 export ROOT_DIR
 
 source "$SCRIPT_SHELL_LIB_DIR/utils.sh"

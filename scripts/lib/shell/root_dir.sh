@@ -3,8 +3,7 @@
 _root_dir_abs_dir() {
   local dir="$1"
   (
-    cd "$dir" >/dev/null 2>&1
-    pwd
+    cd "$dir" >/dev/null 2>&1 && pwd
   )
 }
 

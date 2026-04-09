@@ -82,6 +82,20 @@ class RootDirResolutionTests(unittest.TestCase):
             self.assertEqual(_normalized_path(result.stdout), repo_root.resolve())
             self.assertIn("ROOT_DIR is set but invalid", result.stderr)
 
+    def test_resolve_root_dir_ignores_nonexistent_env_path_and_falls_back_to_marker_walk(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir) / "repo"
+            _write_repo_markers(repo_root)
+            start_dir = repo_root / "nested" / "deep"
+            start_dir.mkdir(parents=True, exist_ok=True)
+
+            missing_root = Path(tmpdir) / "missing-root"
+
+            result = _resolve_root_dir(start_dir, env={"ROOT_DIR": str(missing_root)})
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            self.assertEqual(_normalized_path(result.stdout), repo_root.resolve())
+            self.assertIn("ROOT_DIR is set but invalid", result.stderr)
+
     def test_resolve_root_dir_ignores_valid_env_when_start_dir_is_outside_env_root(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             env_root = Path(tmpdir) / "env-root"
@@ -151,6 +165,20 @@ class RootDirResolutionTests(unittest.TestCase):
     def test_quality_root_dir_prelude_check_passes_on_repository(self) -> None:
         result = run([sys.executable, str(QUALITY_ROOT_DIR_PRELUDE_CHECK)], cwd=REPO_ROOT)
         self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+
+    def test_bootstrap_resolves_root_from_shell_lib_when_script_dir_is_unset(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            outside = Path(tmpdir) / "outside"
+            outside.mkdir(parents=True, exist_ok=True)
+            bootstrap_path = REPO_ROOT / "scripts/lib/shell/bootstrap.sh"
+            command = (
+                "unset SCRIPT_DIR; "
+                f"source {shlex.quote(str(bootstrap_path))}; "
+                "printf '%s\\n' \"$ROOT_DIR\""
+            )
+            result = run(["bash", "-lc", command], cwd=outside)
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            self.assertEqual(_normalized_path(result.stdout), REPO_ROOT.resolve())
 
     def test_quality_root_dir_prelude_check_blocks_inline_resolver_drift(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
