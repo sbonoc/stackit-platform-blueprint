@@ -64,10 +64,19 @@ make blueprint-upgrade-consumer-validate
 `BLUEPRINT_UPGRADE_ENGINE_MODE` defaults to `source-ref`, so upgrade runs execute the engine script resolved
 from `BLUEPRINT_UPGRADE_SOURCE@BLUEPRINT_UPGRADE_REF` (instead of a potentially stale local engine copy).
 Set `BLUEPRINT_UPGRADE_ENGINE_MODE=local` only for explicit local debugging.
-Install/sync the bundled Codex consumer-upgrade skill locally when you want repeatable AI-driven upgrade runs:
+Install/sync bundled Codex skills locally when you want repeatable AI-driven operations:
+```bash
+make blueprint-install-codex-skills
+```
+Install only the upgrade skill:
 ```bash
 make blueprint-install-codex-skill
 BLUEPRINT_CODEX_SKILLS_DIR="${CODEX_HOME:-$HOME/.codex}/skills" make blueprint-install-codex-skill
+```
+Install only the consumer operations skill:
+```bash
+make blueprint-install-codex-skill-consumer-ops
+BLUEPRINT_CODEX_SKILLS_DIR="${CODEX_HOME:-$HOME/.codex}/skills" make blueprint-install-codex-skill-consumer-ops
 ```
 
 ## If You Maintain the Blueprint (Maintainer Track)
@@ -110,6 +119,8 @@ Common baseline flow:
 - `make blueprint-upgrade-consumer-preflight`
 - `make blueprint-upgrade-consumer-validate`
 - `make blueprint-install-codex-skill`
+- `make blueprint-install-codex-skill-consumer-ops`
+- `make blueprint-install-codex-skills`
 - `make blueprint-bootstrap`
 - `make blueprint-render-module-wrapper-skeletons`
 - `make blueprint-clean-generated`

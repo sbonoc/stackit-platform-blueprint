@@ -11,8 +11,9 @@ from tests._shared.helpers import REPO_ROOT
 
 INSTALL_SCRIPT_REL = Path("scripts/bin/blueprint/install_codex_skill.sh")
 SHELL_LIB_DIR_REL = Path("scripts/lib/shell")
-SKILL_NAME = "blueprint-consumer-upgrade"
-TEMPLATE_SKILL_DIR_REL = Path(f"scripts/templates/consumer/init/.agents/skills/{SKILL_NAME}")
+MAKEFILE_REL = Path("Makefile")
+UPGRADE_SKILL_NAME = "blueprint-consumer-upgrade"
+OPS_SKILL_NAME = "blueprint-consumer-ops"
 
 
 def _copy_file(relative_path: Path, destination_root: Path) -> None:
@@ -27,9 +28,11 @@ class InstallCodexSkillTests(unittest.TestCase):
         self,
         tmp_root: Path,
         *,
+        skill_name: str,
         include_repo_local_skill: bool,
         include_template_skill: bool,
     ) -> None:
+        _copy_file(MAKEFILE_REL, tmp_root)
         _copy_file(INSTALL_SCRIPT_REL, tmp_root)
         for shell_lib_path in sorted((REPO_ROOT / SHELL_LIB_DIR_REL).glob("*.sh")):
             relative_path = shell_lib_path.relative_to(REPO_ROOT)
@@ -37,59 +40,68 @@ class InstallCodexSkillTests(unittest.TestCase):
 
         if include_repo_local_skill:
             shutil.copytree(
-                REPO_ROOT / f".agents/skills/{SKILL_NAME}",
-                tmp_root / f".agents/skills/{SKILL_NAME}",
+                REPO_ROOT / f".agents/skills/{skill_name}",
+                tmp_root / f".agents/skills/{skill_name}",
                 dirs_exist_ok=True,
             )
 
         if include_template_skill:
+            template_skill_dir = Path(f"scripts/templates/consumer/init/.agents/skills/{skill_name}")
             shutil.copytree(
-                REPO_ROOT / TEMPLATE_SKILL_DIR_REL,
-                tmp_root / TEMPLATE_SKILL_DIR_REL,
+                REPO_ROOT / template_skill_dir,
+                tmp_root / template_skill_dir,
                 dirs_exist_ok=True,
             )
 
-    def _run_install(self, tmp_root: Path):
+    def _run_install(self, tmp_root: Path, *, skill_name: str):
         return run_command(
             ["bash", str(tmp_root / INSTALL_SCRIPT_REL)],
             cwd=tmp_root,
             env={
+                "BLUEPRINT_CODEX_SKILL_NAME": skill_name,
                 "BLUEPRINT_CODEX_SKILLS_DIR": str(tmp_root / "codex-skills"),
             },
         )
 
-    def test_template_fallback_installs_skill_when_repo_local_source_missing(self) -> None:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            tmp_root = Path(tmpdir)
-            self._prepare_minimal_repo(
-                tmp_root,
-                include_repo_local_skill=False,
-                include_template_skill=True,
-            )
+    def test_template_fallback_installs_supported_skills_when_repo_local_source_missing(self) -> None:
+        for skill_name in (UPGRADE_SKILL_NAME, OPS_SKILL_NAME):
+            with self.subTest(skill_name=skill_name):
+                with tempfile.TemporaryDirectory() as tmpdir:
+                    tmp_root = Path(tmpdir)
+                    self._prepare_minimal_repo(
+                        tmp_root,
+                        skill_name=skill_name,
+                        include_repo_local_skill=False,
+                        include_template_skill=True,
+                    )
 
-            result = self._run_install(tmp_root)
+                    result = self._run_install(tmp_root, skill_name=skill_name)
 
-            combined = f"{result.stdout}\n{result.stderr}"
-            self.assertEqual(result.returncode, 0, msg=combined)
-            self.assertIn("consumer template fallback", combined)
-            installed_root = tmp_root / "codex-skills" / SKILL_NAME
-            self.assertTrue((installed_root / "SKILL.md").is_file())
-            self.assertTrue((installed_root / "agents/openai.yaml").is_file())
-            self.assertTrue((installed_root / "references/manual_merge_checklist.md").is_file())
-            script_path = installed_root / "scripts/resolve_latest_stable_ref.sh"
-            self.assertTrue(script_path.is_file())
-            self.assertTrue(script_path.stat().st_mode & 0o111)
+                    combined = f"{result.stdout}\n{result.stderr}"
+                    self.assertEqual(result.returncode, 0, msg=combined)
+                    self.assertIn("consumer template fallback", combined)
+                    installed_root = tmp_root / "codex-skills" / skill_name
+                    self.assertTrue((installed_root / "SKILL.md").is_file())
+                    self.assertTrue((installed_root / "agents/openai.yaml").is_file())
+                    if skill_name == UPGRADE_SKILL_NAME:
+                        self.assertTrue((installed_root / "references/manual_merge_checklist.md").is_file())
+                        script_path = installed_root / "scripts/resolve_latest_stable_ref.sh"
+                        self.assertTrue(script_path.is_file())
+                        self.assertTrue(script_path.stat().st_mode & 0o111)
+                    else:
+                        self.assertTrue((installed_root / "references/consumer_ops_checklist.md").is_file())
 
     def test_missing_sources_fail_with_remediation_hint(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp_root = Path(tmpdir)
             self._prepare_minimal_repo(
                 tmp_root,
+                skill_name=OPS_SKILL_NAME,
                 include_repo_local_skill=False,
                 include_template_skill=False,
             )
 
-            result = self._run_install(tmp_root)
+            result = self._run_install(tmp_root, skill_name=OPS_SKILL_NAME)
 
             combined = f"{result.stdout}\n{result.stderr}"
             self.assertNotEqual(result.returncode, 0)

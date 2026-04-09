@@ -23,6 +23,8 @@
 - `blueprint-upgrade-consumer-validate`
 - `blueprint-upgrade-readiness-doctor`
 - `blueprint-install-codex-skill`
+- `blueprint-install-codex-skill-consumer-ops`
+- `blueprint-install-codex-skills`
 - `blueprint-check-placeholders`
 - `blueprint-template-smoke`
 - `blueprint-bootstrap`

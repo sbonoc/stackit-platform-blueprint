@@ -85,6 +85,9 @@ Common first-day issues for generated repositories.
   BLUEPRINT_RESYNC_APPLY_SAFE=true make blueprint-resync-consumer-seeds
   make blueprint-install-codex-skill
   ```
+- The same remediation applies to:
+  - `make blueprint-install-codex-skill-consumer-ops`
+  - `make blueprint-install-codex-skills`
 
 ## `make blueprint-upgrade-consumer` fails with `RuntimeError: git merge-file failed:` (empty detail)
 - This usually means the repository is still executing a stale local upgrade engine from an older consumer baseline.
