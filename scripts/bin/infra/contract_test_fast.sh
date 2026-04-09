@@ -13,6 +13,7 @@ Runs fast infra contract helper CLI/unit tests:
 - runtime identity contract helper CLI
 - ArgoCD repo contract helper CLI
 - state artifact env/json contract renderer + schema validation
+- shell root-resolution helper + prelude drift assertions
 EOF
 }
 
@@ -25,4 +26,5 @@ require_command pytest
 run_cmd pytest -q \
   "$ROOT_DIR/tests/infra/test_runtime_identity_contract_cli.py" \
   "$ROOT_DIR/tests/infra/test_argocd_repo_contract_cli.py" \
-  "$ROOT_DIR/tests/infra/test_state_artifact_contract.py"
+  "$ROOT_DIR/tests/infra/test_state_artifact_contract.py" \
+  "$ROOT_DIR/tests/infra/test_root_dir_resolution.py"

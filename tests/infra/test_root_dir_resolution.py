@@ -60,10 +60,10 @@ class RootDirResolutionTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir) / "repo"
             _write_repo_markers(repo_root)
-            outside = Path(tmpdir) / "outside"
-            outside.mkdir(parents=True, exist_ok=True)
+            start_dir = repo_root / "nested" / "inside"
+            start_dir.mkdir(parents=True, exist_ok=True)
 
-            result = _resolve_root_dir(outside, env={"ROOT_DIR": str(repo_root)})
+            result = _resolve_root_dir(start_dir, env={"ROOT_DIR": str(repo_root)})
             self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
             self.assertEqual(_normalized_path(result.stdout), repo_root.resolve())
 
@@ -81,6 +81,21 @@ class RootDirResolutionTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
             self.assertEqual(_normalized_path(result.stdout), repo_root.resolve())
             self.assertIn("ROOT_DIR is set but invalid", result.stderr)
+
+    def test_resolve_root_dir_ignores_valid_env_when_start_dir_is_outside_env_root(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            env_root = Path(tmpdir) / "env-root"
+            _write_repo_markers(env_root)
+
+            target_root = Path(tmpdir) / "target-root"
+            _write_repo_markers(target_root)
+            start_dir = target_root / "nested"
+            start_dir.mkdir(parents=True, exist_ok=True)
+
+            result = _resolve_root_dir(start_dir, env={"ROOT_DIR": str(env_root)})
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            self.assertEqual(_normalized_path(result.stdout), target_root.resolve())
+            self.assertIn("ROOT_DIR is valid but ignored because start_dir is outside that root", result.stderr)
 
     def test_resolve_root_dir_uses_git_toplevel_when_available(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
