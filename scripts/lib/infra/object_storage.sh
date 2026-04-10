@@ -3,6 +3,7 @@ set -euo pipefail
 
 source "$ROOT_DIR/scripts/lib/infra/stackit_foundation_outputs.sh"
 source "$ROOT_DIR/scripts/lib/infra/versions.sh"
+source "$ROOT_DIR/scripts/lib/infra/fallback_runtime.sh"
 
 object_storage_init_env() {
   set_default_env OBJECT_STORAGE_BUCKET_NAME "marketplace-assets"

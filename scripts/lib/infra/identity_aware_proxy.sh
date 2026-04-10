@@ -3,6 +3,7 @@ set -euo pipefail
 
 source "$ROOT_DIR/scripts/lib/infra/versions.sh"
 source "$ROOT_DIR/scripts/lib/infra/keycloak.sh"
+source "$ROOT_DIR/scripts/lib/infra/fallback_runtime.sh"
 
 identity_aware_proxy_seed_env_defaults() {
   keycloak_seed_env_defaults

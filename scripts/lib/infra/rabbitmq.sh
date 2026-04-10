@@ -3,6 +3,7 @@ set -euo pipefail
 
 source "$ROOT_DIR/scripts/lib/infra/stackit_foundation_outputs.sh"
 source "$ROOT_DIR/scripts/lib/infra/versions.sh"
+source "$ROOT_DIR/scripts/lib/infra/fallback_runtime.sh"
 
 rabbitmq_seed_env_defaults() {
   set_default_env RABBITMQ_INSTANCE_NAME "marketplace-rabbitmq"

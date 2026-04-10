@@ -78,8 +78,10 @@ Local context routing:
   - `scripts/lib/infra/tooling.sh`
   - `scripts/lib/infra/port_forward.sh` (for port-forward lifecycle primitives)
 - `run_helm_upgrade_install`, `run_helm_template`, and `run_helm_uninstall` now execute Helm with explicit `--kubeconfig` and `--kube-context` resolved from the canonical cluster-access path.
+- Shared runtime helpers for optional-module secrets, public endpoint Gateway lifecycle, and Keycloak runtime identity reconciliation now route kubectl calls through the same active-access wrappers (no implicit-context kubectl calls in those helper paths).
 - Consumers can call shared wrappers directly for custom scripts:
   - `run_kubectl_with_active_access ...`
+  - `run_kubectl_capture_with_active_access ...`
   - `run_helm_with_active_access ...`
 - Helm repo refresh retries are standardized via shared retry/backoff helpers:
   - `HELM_REPO_UPDATE_RETRY_MAX_ATTEMPTS` (default `3`)

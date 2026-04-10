@@ -55,7 +55,9 @@ keycloak_find_runtime_pod() {
   local namespace="$1"
   local release_name="$2"
 
-  kubectl -n "$namespace" get pod \
+  run_kubectl_capture_with_active_access \
+    -n "$namespace" \
+    get pod \
     -l "app.kubernetes.io/instance=$release_name" \
     -o jsonpath='{range .items[?(@.status.phase=="Running")]}{.metadata.name}{"\n"}{end}' 2>/dev/null \
     | head -n 1
@@ -92,7 +94,9 @@ keycloak_wait_for_runtime_pod() {
     pod_name="$(keycloak_find_runtime_pod "$namespace" "$release_name")"
     if [[ -n "$pod_name" ]]; then
       elapsed=$(( $(date +%s) - started_at ))
-      log_metric "keycloak_runtime_pod_wait_seconds" "$elapsed" "namespace=$namespace release=$release_name status=ready"
+      # This helper is consumed via command substitution, so metrics must not
+      # pollute stdout payload (pod name).
+      log_metric "keycloak_runtime_pod_wait_seconds" "$elapsed" "namespace=$namespace release=$release_name status=ready" >&2
       printf '%s' "$pod_name"
       return 0
     fi
@@ -103,7 +107,7 @@ keycloak_wait_for_runtime_pod() {
       log_metric \
         "keycloak_runtime_pod_wait_seconds" \
         "$elapsed" \
-        "namespace=$namespace release=$release_name status=timeout"
+        "namespace=$namespace release=$release_name status=timeout" >&2
       return 1
     fi
     sleep "$poll_seconds"
@@ -116,7 +120,7 @@ keycloak_read_secret_key() {
   local key_name="$3"
   local encoded=""
 
-  encoded="$(kubectl -n "$namespace" get secret "$secret_name" -o "jsonpath={.data.${key_name}}" 2>/dev/null || true)"
+  encoded="$(run_kubectl_capture_with_active_access -n "$namespace" get secret "$secret_name" -o "jsonpath={.data.${key_name}}" 2>/dev/null || true)"
   if [[ -z "$encoded" ]]; then
     return 1
   fi
@@ -188,7 +192,7 @@ keycloak_reconcile_oidc_identity_contract() {
 
   # Reconcile directly inside the Keycloak runtime pod so identity bootstrap does
   # not depend on external ingress/DNS readiness.
-  kubectl -n "$namespace" exec "$pod_name" -- env \
+  run_kubectl_with_active_access -n "$namespace" exec "$pod_name" -- env \
     KC_REALM_NAME="$realm_name" \
     KC_CLIENT_ID="$client_id" \
     KC_CLIENT_SECRET="$client_secret" \

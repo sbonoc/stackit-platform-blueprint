@@ -155,7 +155,8 @@ cat "{helm_log}"
 """
         result = run(["bash", "-lc", script])
         if result.returncode != 0:
-            raise AssertionError(result.stdout + result.stderr)
+            kubectl_calls = kubectl_log.read_text(encoding="utf-8") if kubectl_log.exists() else "<missing kubectl log>"
+            raise AssertionError(result.stdout + result.stderr + "\n[kubectl-calls]\n" + kubectl_calls)
         return result.stdout + result.stderr
 
 
@@ -206,7 +207,8 @@ printf 'attempts=%s\\n' "$(cat "{attempts_file}")"
 """
         result = run(["bash", "-lc", script])
         if result.returncode != 0:
-            raise AssertionError(result.stdout + result.stderr)
+            kubectl_calls = kubectl_log.read_text(encoding="utf-8") if kubectl_log.exists() else "<missing kubectl log>"
+            raise AssertionError(result.stdout + result.stderr + "\n[kubectl-calls]\n" + kubectl_calls)
         return result.stdout + result.stderr
 
 
@@ -413,7 +415,8 @@ printf 'registry_after_cleanup=%s\\n' "$(port_forward_registry_names | wc -l | t
 """
         result = run(["bash", "-lc", script])
         if result.returncode != 0:
-            raise AssertionError(result.stdout + result.stderr)
+            kubectl_calls = kubectl_log.read_text(encoding="utf-8") if kubectl_log.exists() else "<missing kubectl log>"
+            raise AssertionError(result.stdout + result.stderr + "\n[kubectl-calls]\n" + kubectl_calls)
         return result.stdout + result.stderr
 
 
@@ -528,6 +531,19 @@ def public_endpoints_delete_contract(*, require_finalizer_patch: bool) -> str:
                     "  printf '%s\\n' docker-desktop",
                     "  exit 0",
                     "fi",
+                    "while [ \"$#\" -gt 0 ]; do",
+                    "  case \"$1\" in",
+                    "    --kubeconfig|--context)",
+                    "      shift 2",
+                    "      continue",
+                    "      ;;",
+                    "    --kubeconfig=*|--context=*)",
+                    "      shift",
+                    "      continue",
+                    "      ;;",
+                    "  esac",
+                    "  break",
+                    "done",
                     'if [ "$1" = "delete" ] && [ "$2" = "gateway" ]; then',
                     "  exit 0",
                     "fi",
@@ -582,6 +598,143 @@ fi
         result = run(["bash", "-lc", script])
         if result.returncode != 0:
             raise AssertionError(result.stdout + result.stderr)
+        return result.stdout + result.stderr
+
+
+def keycloak_exec_active_access_contract(*, profile: str, context_name: str) -> str:
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp_path = Path(tmpdir)
+        kubectl_log = tmp_path / "kubectl.log"
+        stackit_kubeconfig = tmp_path / "stackit-kubeconfig.yaml"
+        stackit_kubeconfig.write_text(
+            "\n".join(
+                [
+                    "apiVersion: v1",
+                    "kind: Config",
+                    "clusters:",
+                    "- cluster:",
+                    "    server: https://stackit.example:6443",
+                    f"  name: {context_name}",
+                    "contexts:",
+                    "- context:",
+                    f"    cluster: {context_name}",
+                    f"    user: {context_name}",
+                    f"  name: {context_name}",
+                    f"current-context: {context_name}",
+                    "users:",
+                    f"- name: {context_name}",
+                    "  user:",
+                    "    token: placeholder",
+                ]
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+
+        kubectl = tmp_path / "kubectl"
+        kubectl.write_text(
+            "\n".join(
+                [
+                    "#!/bin/sh",
+                    f'KUBECTL_LOG="{kubectl_log}"',
+                    f'CONTEXT_NAME="{context_name}"',
+                    'printf "%s\\n" "$*" >> "$KUBECTL_LOG"',
+                    "set -- \"$@\"",
+                    "while [ \"$#\" -gt 0 ]; do",
+                    "  case \"$1\" in",
+                    "    --kubeconfig|--context)",
+                    "      shift 2",
+                    "      continue",
+                    "      ;;",
+                    "    --kubeconfig=*|--context=*)",
+                    "      shift",
+                    "      continue",
+                    "      ;;",
+                    "  esac",
+                    "  break",
+                    "done",
+                    'if [ "$1" = "config" ] && [ "$2" = "get-contexts" ] && [ "$3" = "-o" ] && [ "$4" = "name" ]; then',
+                    '  printf "%s\\n" "$CONTEXT_NAME"',
+                    "  exit 0",
+                    "fi",
+                    'if [ "$1" = "config" ] && [ "$2" = "current-context" ]; then',
+                    '  printf "%s\\n" "$CONTEXT_NAME"',
+                    "  exit 0",
+                    "fi",
+                    'if [ "$1" = "config" ] && [ "$2" = "view" ] && [ "$3" = "--raw" ] && [ "$4" = "--minify" ] && [ "$5" = "--flatten" ]; then',
+                    "  cat <<EOF",
+                    "apiVersion: v1",
+                    "kind: Config",
+                    "clusters:",
+                    "- cluster:",
+                    "    server: https://docker-desktop.example:6443",
+                    "  name: docker-desktop",
+                    "contexts:",
+                    "- context:",
+                    "    cluster: docker-desktop",
+                    "    user: docker-desktop",
+                    "  name: docker-desktop",
+                    "current-context: docker-desktop",
+                    "users:",
+                    "- name: docker-desktop",
+                    "  user:",
+                    "    token: placeholder",
+                    "EOF",
+                    "  exit 0",
+                    "fi",
+                    'if [ "$1" = "-n" ] && [ "$2" = "security" ] && [ "$3" = "get" ] && [ "$4" = "pod" ]; then',
+                    "  printf '%s\\n' keycloak-0",
+                    "  exit 0",
+                    "fi",
+                    'if [ "$1" = "-n" ] && [ "$2" = "security" ] && [ "$3" = "get" ] && [ "$4" = "secret" ]; then',
+                    "  printf '%s' 'cnVudGltZS1hZG1pbi1wYXNz'",
+                    "  exit 0",
+                    "fi",
+                    'if [ "$1" = "-n" ] && [ "$2" = "security" ] && [ "$3" = "exec" ] && [ "$4" = "keycloak-0" ]; then',
+                    "  exit 0",
+                    "fi",
+                    'printf \'unexpected kubectl call: %s\\n\' \"$*\" >&2',
+                    "exit 1",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        kubectl.chmod(0o755)
+
+        profile_env = ""
+        if profile.startswith("local-"):
+            profile_env = f'export LOCAL_KUBE_CONTEXT="{context_name}"\n'
+        else:
+            profile_env = f'export STACKIT_FOUNDATION_KUBECONFIG_OUTPUT="{stackit_kubeconfig}"\n'
+
+        script = f"""
+export PATH="{tmp_path}:$PATH"
+export ROOT_DIR="{REPO_ROOT}"
+export BLUEPRINT_PROFILE="{profile}"
+export DRY_RUN="false"
+{profile_env}source "{REPO_ROOT}/scripts/lib/shell/bootstrap.sh"
+source "{REPO_ROOT}/scripts/lib/infra/keycloak_identity_contract.sh"
+keycloak_reconcile_oidc_identity_contract \
+  "security" \
+  "blueprint-keycloak" \
+  "keycloak-runtime-credentials" \
+  "iap" \
+  "iap-client" \
+  "iap-client-secret" \
+  "https://iap.local/oauth2/callback" \
+  "https://iap.local" \
+  "Admin,Viewer" \
+  "iap-admin" \
+  "iap-admin-password" \
+  "Admin" \
+  "IAP Client"
+cat "{kubectl_log}"
+"""
+        result = run(["bash", "-lc", script])
+        if result.returncode != 0:
+            kubectl_calls = kubectl_log.read_text(encoding="utf-8") if kubectl_log.exists() else "<missing kubectl log>"
+            raise AssertionError(result.stdout + result.stderr + "\n[kubectl-calls]\n" + kubectl_calls)
         return result.stdout + result.stderr
 
 
@@ -913,6 +1066,11 @@ def audit_helm_chart_repo_prefix_contract() -> tuple[set[str], set[str]]:
 
 
 class ToolingContractsTests(unittest.TestCase):
+    def test_quality_infra_shell_source_graph_check_passes(self) -> None:
+        result = run(["python3", "scripts/bin/quality/check_infra_shell_source_graph.py"])
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        self.assertIn("quality-infra-shell-source-graph-check", result.stdout)
+
     def test_load_env_file_defaults_preserves_explicit_env(self) -> None:
         output = env_file_defaults_contract()
         self.assertIn("repo=repo-from-file", output)
@@ -1585,6 +1743,20 @@ printf 'dsn=%s\\n' "$(postgres_dsn)"
         result = public_endpoints_delete_contract(require_finalizer_patch=False)
         self.assertIn("patch_state=none", result)
         self.assertNotIn("public_endpoints_gatewayclass_finalizer_clear_total", result)
+
+    def test_keycloak_identity_reconcile_exec_uses_active_access_args_local_profile(self) -> None:
+        result = keycloak_exec_active_access_contract(profile="local-full", context_name="docker-desktop")
+        self.assertIn("--kubeconfig", result)
+        self.assertIn("--context docker-desktop -n security get pod", result)
+        self.assertIn("--context docker-desktop -n security get secret keycloak-runtime-credentials", result)
+        self.assertIn("--context docker-desktop -n security exec keycloak-0 -- env", result)
+
+    def test_keycloak_identity_reconcile_exec_uses_active_access_args_stackit_profile(self) -> None:
+        result = keycloak_exec_active_access_contract(profile="stackit-dev", context_name="stackit-dev-cluster")
+        self.assertIn("--kubeconfig", result)
+        self.assertIn("--context stackit-dev-cluster -n security get pod", result)
+        self.assertIn("--context stackit-dev-cluster -n security get secret keycloak-runtime-credentials", result)
+        self.assertIn("--context stackit-dev-cluster -n security exec keycloak-0 -- env", result)
 
     def test_cluster_crd_exists_detects_present_crd(self) -> None:
         self.assertTrue(cluster_crd_exists_contract(["applications.argoproj.io"], "applications.argoproj.io"))

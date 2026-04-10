@@ -228,6 +228,7 @@ class RuntimeIdentityRefactorCases(RefactorContractBase):
         workflows_lib = _read("scripts/lib/infra/workflows.sh")
         workflows_reconcile = _read("scripts/bin/infra/stackit_workflows_keycloak_reconcile.sh")
         foundation_seed = _read("scripts/bin/infra/stackit_foundation_seed_runtime_secret.sh")
+        runtime_secret_env = _read("scripts/lib/infra/stackit_runtime_secret_env.py")
 
         self.assertIn("keycloak_wait_for_runtime_pod()", keycloak_identity_contract)
         self.assertIn("KEYCLOAK_RUNTIME_WAIT_TIMEOUT_SECONDS", keycloak_identity_contract)
@@ -236,7 +237,9 @@ class RuntimeIdentityRefactorCases(RefactorContractBase):
         self.assertIn("keycloak_extra_manifests_block()", keycloak_lib)
         self.assertIn('set_default_env STACKIT_WORKFLOWS_ADMIN_PASSWORD ""', workflows_lib)
         self.assertIn('set_default_env STACKIT_WORKFLOWS_ADMIN_PASSWORD ""', workflows_reconcile)
-        self.assertIn("KEYCLOAK_ADMIN_PASSWORD", foundation_seed)
+        self.assertIn("stackit_runtime_secret_env.py", foundation_seed)
+        self.assertIn('os.environ.get("KEYCLOAK_ADMIN_PASSWORD", "")', runtime_secret_env)
+        self.assertIn('lines.append(f"KEYCLOAK_ADMIN_PASSWORD={keycloak_admin_password}")', runtime_secret_env)
 
     def test_workflows_scaffolding_is_contract_conditional(self) -> None:
         contract = _read("blueprint/contract.yaml")

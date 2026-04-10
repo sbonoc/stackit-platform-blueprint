@@ -3,6 +3,7 @@ set -euo pipefail
 
 source "$ROOT_DIR/scripts/lib/infra/stackit_foundation_outputs.sh"
 source "$ROOT_DIR/scripts/lib/infra/versions.sh"
+source "$ROOT_DIR/scripts/lib/infra/fallback_runtime.sh"
 
 postgres_init_env() {
   set_default_env POSTGRES_VERSION "16"
