@@ -361,9 +361,19 @@ run_kubectl_with_active_access() {
 }
 
 run_kubectl_capture_with_active_access() {
-  resolve_active_kube_access_args
+  # Capture helpers must keep stdout machine-readable for command substitution
+  # callers, so active-access resolution diagnostics are redirected to stderr.
+  resolve_active_kube_access_args >&2
   local -a kubectl_cmd=(kubectl "${KUBECTL_ACTIVE_ACCESS_ARGS[@]}" "$@")
   run_cmd_capture "${kubectl_cmd[@]}"
+}
+
+run_kubectl_capture_stdout_with_active_access() {
+  # Some jsonpath callers parse payloads as strict machine-readable output
+  # (for example base64-encoded Secret keys), so stderr must stay isolated.
+  resolve_active_kube_access_args >&2
+  local -a kubectl_cmd=(kubectl "${KUBECTL_ACTIVE_ACCESS_ARGS[@]}" "$@")
+  "${kubectl_cmd[@]}"
 }
 
 run_helm_with_active_access() {

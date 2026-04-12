@@ -60,6 +60,7 @@ class ScriptsRefactorCases(RefactorContractBase):
         self.assertIn("run_helm_with_active_access()", tooling)
         self.assertIn("run_kubectl_with_active_access()", tooling)
         self.assertIn("run_kubectl_capture_with_active_access()", tooling)
+        self.assertIn("run_kubectl_capture_stdout_with_active_access()", tooling)
         self.assertIn("run_kubectl_with_active_access apply -k", tooling)
         self.assertIn("run_kubectl_with_active_access delete -k", tooling)
         self.assertIn("run_kubectl_with_active_access apply -f", tooling)
@@ -82,6 +83,28 @@ class ScriptsRefactorCases(RefactorContractBase):
         self.assertIn("resolve_active_kube_access_args", port_forward)
         self.assertIn('kubectl', port_forward)
         self.assertIn("port_forward_start_total", port_forward)
+
+    def test_runtime_helpers_route_kubectl_calls_through_active_access_wrappers(self) -> None:
+        fallback_runtime = _read("scripts/lib/infra/fallback_runtime.sh")
+        public_endpoints = _read("scripts/lib/infra/public_endpoints.sh")
+        keycloak_identity_contract = _read("scripts/lib/infra/keycloak_identity_contract.sh")
+
+        self.assertIn("run_kubectl_with_active_access apply -f", fallback_runtime)
+        self.assertIn("run_kubectl_with_active_access -n \"$namespace\" delete secret", fallback_runtime)
+        self.assertNotIn("run_cmd kubectl apply -f", fallback_runtime)
+
+        self.assertIn('source "$ROOT_DIR/scripts/lib/infra/tooling.sh"', public_endpoints)
+        self.assertIn('source "$ROOT_DIR/scripts/lib/infra/fallback_runtime.sh"', public_endpoints)
+        self.assertIn("run_kubectl_with_active_access get crd", public_endpoints)
+        self.assertIn("run_kubectl_capture_with_active_access get crd", public_endpoints)
+        self.assertIn("run_kubectl_with_active_access delete gateway", public_endpoints)
+        self.assertIn("run_kubectl_with_active_access patch gatewayclass", public_endpoints)
+        self.assertNotIn("run_cmd kubectl patch gatewayclass", public_endpoints)
+
+        self.assertIn("run_kubectl_capture_with_active_access \\", keycloak_identity_contract)
+        self.assertIn("run_kubectl_capture_stdout_with_active_access -n \"$namespace\" get secret", keycloak_identity_contract)
+        self.assertIn("run_kubectl_with_active_access -n \"$namespace\" exec \"$pod_name\" -- env", keycloak_identity_contract)
+        self.assertNotIn("kubectl -n \"$namespace\" exec \"$pod_name\" -- env", keycloak_identity_contract)
 
     def test_pre_commit_hooks_include_cached_audits_and_shell_syntax(self) -> None:
         pre_commit = _read(".pre-commit-config.yaml")
@@ -173,6 +196,7 @@ class ScriptsRefactorCases(RefactorContractBase):
         self.assertIn("quality-test-pyramid", hooks_fast)
         self.assertIn("infra-validate", hooks_fast)
         self.assertIn("infra-contract-test-fast", hooks_fast)
+        self.assertIn("quality-infra-shell-source-graph-check", hooks_fast)
         self.assertIn("infra-audit-version", hooks_strict)
         self.assertIn("apps-audit-versions", hooks_strict)
         self.assertIn("hooks_fast.sh", hooks_run)

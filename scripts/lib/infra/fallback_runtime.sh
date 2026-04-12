@@ -83,10 +83,9 @@ apply_optional_module_secret_from_literals() {
   namespace_manifest_file="$(optional_module_namespace_manifest_file "$namespace")"
 
   if tooling_is_execution_enabled; then
-    prepare_cluster_access
     require_command kubectl
-    run_cmd kubectl apply -f "$namespace_manifest_file"
-    run_cmd kubectl apply -f "$secret_manifest_file"
+    run_kubectl_with_active_access apply -f "$namespace_manifest_file"
+    run_kubectl_with_active_access apply -f "$secret_manifest_file"
   else
     # Dry-run still writes deterministic manifests so tests and operators can
     # inspect the exact runtime secret contract without requiring kubectl.
@@ -103,9 +102,8 @@ delete_optional_module_secret() {
   secret_manifest_file="$(optional_module_secret_manifest_file "$namespace" "$name")"
 
   if tooling_is_execution_enabled; then
-    prepare_cluster_access
     require_command kubectl
-    run_cmd kubectl -n "$namespace" delete secret "$name" --ignore-not-found
+    run_kubectl_with_active_access -n "$namespace" delete secret "$name" --ignore-not-found
   else
     log_info "dry-run secret delete namespace=$namespace secret=$name (set DRY_RUN=false to execute)"
   fi

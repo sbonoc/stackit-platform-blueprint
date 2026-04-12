@@ -19,7 +19,7 @@ def _read(path: str) -> str:
 class QualityContractsTests(unittest.TestCase):
     def test_root_bootstrap_delegates_to_shell_bootstrap(self) -> None:
         bootstrap = _read("scripts/lib/bootstrap.sh")
-        self.assertIn('scripts/lib/shell/bootstrap.sh', bootstrap)
+        self.assertIn('source "$SCRIPT_LIB_DIR/shell/bootstrap.sh"', bootstrap)
 
     def test_root_semver_delegates_to_quality_semver(self) -> None:
         semver = _read("scripts/lib/semver.sh")
@@ -29,6 +29,7 @@ class QualityContractsTests(unittest.TestCase):
         make_template = _read("scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl")
         self.assertIn("quality-hooks-fast", make_template)
         self.assertIn("quality-hooks-strict", make_template)
+        self.assertIn("quality-infra-shell-source-graph-check", make_template)
         self.assertIn("quality-ci-sync", make_template)
         self.assertIn("quality-ci-check-sync", make_template)
         self.assertIn("quality-docs-lint", make_template)
@@ -52,6 +53,7 @@ class QualityContractsTests(unittest.TestCase):
         generated_make = _read("make/blueprint.generated.mk")
         self.assertIn("quality-hooks-fast", generated_make)
         self.assertIn("quality-hooks-strict", generated_make)
+        self.assertIn("quality-infra-shell-source-graph-check", generated_make)
         self.assertIn("quality-ci-sync", generated_make)
         self.assertIn("quality-ci-check-sync", generated_make)
         self.assertIn("quality-docs-lint", generated_make)
@@ -84,6 +86,7 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn("load_blueprint_contract", renderer)
         self.assertIn("default_branch", renderer)
         self.assertIn("quality-ci-check-sync", _read("scripts/bin/quality/hooks_fast.sh"))
+        self.assertIn("quality-infra-shell-source-graph-check", _read("scripts/bin/quality/hooks_fast.sh"))
         self.assertIn("branches:", workflow)
         self.assertIn("  push:", workflow)
         self.assertIn("default_branch: main", contract)

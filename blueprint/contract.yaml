@@ -100,6 +100,7 @@ spec:
       - scripts/bin/platform/auth/reconcile_runtime_identity.sh
       - scripts/bin/quality/check_test_pyramid.py
       - scripts/bin/quality/check_root_dir_prelude.py
+      - scripts/bin/quality/check_infra_shell_source_graph.py
       - scripts/bin/quality/hooks_fast.sh
       - scripts/bin/quality/lint_docs.py
       - scripts/bin/quality/hooks_run.sh
@@ -891,6 +892,7 @@ spec:
       - quality-hooks-strict
       - quality-hooks-run
       - quality-root-dir-prelude-check
+      - quality-infra-shell-source-graph-check
       - quality-runtime-contract-drift-report
       - quality-ci-sync
       - quality-ci-check-sync

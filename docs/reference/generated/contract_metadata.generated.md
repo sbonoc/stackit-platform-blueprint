@@ -35,6 +35,7 @@
 - `quality-hooks-strict`
 - `quality-hooks-run`
 - `quality-root-dir-prelude-check`
+- `quality-infra-shell-source-graph-check`
 - `quality-runtime-contract-drift-report`
 - `quality-ci-sync`
 - `quality-ci-check-sync`

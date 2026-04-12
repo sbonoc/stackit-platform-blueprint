@@ -2,7 +2,9 @@
 set -euo pipefail
 
 source "$ROOT_DIR/scripts/lib/blueprint/bootstrap_templates.sh"
+source "$ROOT_DIR/scripts/lib/infra/fallback_runtime.sh"
 source "$ROOT_DIR/scripts/lib/infra/stack_paths.sh"
+source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
 source "$ROOT_DIR/scripts/lib/infra/versions.sh"
 
 public_endpoints_seed_env_defaults() {
@@ -84,12 +86,9 @@ public_endpoints_gateway_api_crds_available() {
     return 0
   fi
 
-  prepare_cluster_access
-  require_command kubectl
-
   local crd_name
   while IFS= read -r crd_name; do
-    if ! kubectl get crd "$crd_name" >/dev/null 2>&1; then
+    if ! run_kubectl_with_active_access get crd "$crd_name" >/dev/null 2>&1; then
       return 1
     fi
   done < <(public_endpoints_gateway_api_crd_names)
@@ -105,9 +104,6 @@ public_endpoints_wait_for_gateway_api_crds() {
     return 0
   fi
 
-  prepare_cluster_access
-  require_command kubectl
-
   local crd_name started_at now conditions
   while IFS= read -r crd_name; do
     started_at="$(date +%s)"
@@ -115,8 +111,8 @@ public_endpoints_wait_for_gateway_api_crds() {
     # Gateway baseline must wait until the Gateway API CRDs actually exist.
     log_info "waiting for Gateway API CRD to report Established=True: $crd_name"
     while true; do
-      if kubectl get crd "$crd_name" >/dev/null 2>&1; then
-        conditions="$(kubectl get crd "$crd_name" -o jsonpath='{range .status.conditions[*]}{.type}={.status}{"\n"}{end}' 2>/dev/null || true)"
+      if run_kubectl_with_active_access get crd "$crd_name" >/dev/null 2>&1; then
+        conditions="$(run_kubectl_capture_with_active_access get crd "$crd_name" -o jsonpath='{range .status.conditions[*]}{.type}={.status}{"\n"}{end}' 2>/dev/null || true)"
         if printf '%s\n' "$conditions" | grep -qx 'Established=True'; then
           log_metric "public_endpoints_gateway_api_crd_wait_total" "1" "crd=$crd_name status=ready"
           break
@@ -144,11 +140,11 @@ public_endpoints_wait_for_resource_absence() {
   started_at="$(date +%s)"
   while true; do
     if [[ -n "$namespace" ]]; then
-      if ! kubectl get "$kind" "$name" -n "$namespace" >/dev/null 2>&1; then
+      if ! run_kubectl_with_active_access get "$kind" "$name" -n "$namespace" >/dev/null 2>&1; then
         log_metric "public_endpoints_destroy_wait_total" "1" "kind=$kind name=$name status=deleted"
         return 0
       fi
-    elif ! kubectl get "$kind" "$name" >/dev/null 2>&1; then
+    elif ! run_kubectl_with_active_access get "$kind" "$name" >/dev/null 2>&1; then
       log_metric "public_endpoints_destroy_wait_total" "1" "kind=$kind name=$name status=deleted"
       return 0
     fi
@@ -165,7 +161,7 @@ public_endpoints_wait_for_resource_absence() {
 }
 
 public_endpoints_gatewayclass_finalizers() {
-  kubectl get gatewayclass "$PUBLIC_ENDPOINTS_GATEWAY_CLASS_NAME" -o jsonpath='{.metadata.finalizers[*]}' 2>/dev/null || true
+  run_kubectl_capture_with_active_access get gatewayclass "$PUBLIC_ENDPOINTS_GATEWAY_CLASS_NAME" -o jsonpath='{.metadata.finalizers[*]}' 2>/dev/null || true
 }
 
 public_endpoints_force_clear_gatewayclass_finalizers() {
@@ -180,7 +176,7 @@ public_endpoints_force_clear_gatewayclass_finalizers() {
   # Local destroy must stay idempotent even if the Envoy Gateway controller has
   # already disappeared. In that case the GatewayClass finalizer can never clear
   # itself, so we remove the known class finalizer only after a bounded wait.
-  run_cmd kubectl patch gatewayclass "$PUBLIC_ENDPOINTS_GATEWAY_CLASS_NAME" --type=merge -p '{"metadata":{"finalizers":[]}}'
+  run_kubectl_with_active_access patch gatewayclass "$PUBLIC_ENDPOINTS_GATEWAY_CLASS_NAME" --type=merge -p '{"metadata":{"finalizers":[]}}'
   log_metric "public_endpoints_gatewayclass_finalizer_clear_total" "1" "status=executed"
   log_warn "cleared stuck GatewayClass finalizers for public-endpoints: $PUBLIC_ENDPOINTS_GATEWAY_CLASS_NAME"
   return 0
@@ -193,13 +189,10 @@ public_endpoints_delete_helm_gateway_baseline() {
     return 0
   fi
 
-  prepare_cluster_access
-  require_command kubectl
-
-  run_cmd kubectl delete gateway "$PUBLIC_ENDPOINTS_GATEWAY_NAME" -n "$PUBLIC_ENDPOINTS_NAMESPACE" --ignore-not-found --wait=false
+  run_kubectl_with_active_access delete gateway "$PUBLIC_ENDPOINTS_GATEWAY_NAME" -n "$PUBLIC_ENDPOINTS_NAMESPACE" --ignore-not-found --wait=false
   public_endpoints_wait_for_resource_absence "gateway" "$PUBLIC_ENDPOINTS_GATEWAY_NAME" 30 "$PUBLIC_ENDPOINTS_NAMESPACE" || true
 
-  run_cmd kubectl delete gatewayclass "$PUBLIC_ENDPOINTS_GATEWAY_CLASS_NAME" --ignore-not-found --wait=false
+  run_kubectl_with_active_access delete gatewayclass "$PUBLIC_ENDPOINTS_GATEWAY_CLASS_NAME" --ignore-not-found --wait=false
   if public_endpoints_wait_for_resource_absence "gatewayclass" "$PUBLIC_ENDPOINTS_GATEWAY_CLASS_NAME" 30; then
     return 0
   fi

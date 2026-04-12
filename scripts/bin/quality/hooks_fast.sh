@@ -14,6 +14,7 @@ Runs the fast local quality gate:
 - pre-commit (if available)
 - shellcheck (required)
 - root-resolution prelude drift check
+- infra shell source-edge graph check
 - CI workflow sync checks (template-source only)
 - docs lint
 - blueprint docs/template sync checks
@@ -49,6 +50,7 @@ if [[ "${#shell_scripts[@]}" -gt 0 ]]; then
 fi
 
 run_cmd make -C "$ROOT_DIR" quality-root-dir-prelude-check
+run_cmd make -C "$ROOT_DIR" quality-infra-shell-source-graph-check
 run_cmd make -C "$ROOT_DIR" quality-docs-lint
 if blueprint_repo_is_generated_consumer; then
   log_metric "quality_ci_check_sync_total" "1" "status=skipped repo_mode=generated-consumer"

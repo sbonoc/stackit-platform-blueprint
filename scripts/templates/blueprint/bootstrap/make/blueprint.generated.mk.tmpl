@@ -4,7 +4,7 @@ SHELL := /bin/bash
 .PHONY: help \
   blueprint-init-repo blueprint-init-repo-interactive blueprint-resync-consumer-seeds blueprint-upgrade-consumer blueprint-upgrade-consumer-preflight blueprint-upgrade-consumer-validate blueprint-upgrade-readiness-doctor blueprint-install-codex-skill blueprint-install-codex-skill-consumer-ops blueprint-install-codex-skills blueprint-ownership-check blueprint-ownership-metadata blueprint-check-placeholders blueprint-template-smoke blueprint-bootstrap blueprint-render-makefile blueprint-clean-generated blueprint-render-module-wrapper-skeletons \
   test-contracts-async-producer test-contracts-async-consumer test-contracts-async-all \
-  quality-hooks-fast quality-hooks-strict quality-hooks-run quality-root-dir-prelude-check quality-runtime-contract-drift-report quality-ci-sync quality-ci-check-sync quality-ci-fast quality-ci-slow-integration quality-ci-full-e2e quality-ci-strict quality-ci-blueprint quality-ci-generated-consumer-smoke quality-docs-lint quality-docs-sync-all quality-docs-sync-blueprint-template quality-docs-check-blueprint-template-sync quality-docs-sync-platform-seed quality-docs-check-platform-seed-sync quality-docs-sync-core-targets quality-docs-check-core-targets-sync quality-docs-sync-contract-metadata quality-docs-check-contract-metadata-sync quality-docs-sync-runtime-identity-summary quality-docs-check-runtime-identity-summary-sync quality-docs-sync-module-contract-summaries quality-docs-check-module-contract-summaries-sync quality-test-pyramid \
+  quality-hooks-fast quality-hooks-strict quality-hooks-run quality-root-dir-prelude-check quality-infra-shell-source-graph-check quality-runtime-contract-drift-report quality-ci-sync quality-ci-check-sync quality-ci-fast quality-ci-slow-integration quality-ci-full-e2e quality-ci-strict quality-ci-blueprint quality-ci-generated-consumer-smoke quality-docs-lint quality-docs-sync-all quality-docs-sync-blueprint-template quality-docs-check-blueprint-template-sync quality-docs-sync-platform-seed quality-docs-check-platform-seed-sync quality-docs-sync-core-targets quality-docs-check-core-targets-sync quality-docs-sync-contract-metadata quality-docs-check-contract-metadata-sync quality-docs-sync-runtime-identity-summary quality-docs-check-runtime-identity-summary-sync quality-docs-sync-module-contract-summaries quality-docs-check-module-contract-summaries-sync quality-test-pyramid \
   infra-prereqs infra-help-reference infra-contract-test-fast infra-bootstrap infra-local-destroy-all infra-destroy-disabled-modules infra-validate infra-smoke infra-provision infra-deploy infra-provision-deploy \
   infra-stackit-bootstrap-preflight infra-stackit-bootstrap-plan infra-stackit-bootstrap-apply infra-stackit-bootstrap-destroy \
   infra-stackit-foundation-preflight infra-stackit-foundation-plan infra-stackit-foundation-apply infra-stackit-foundation-destroy \
@@ -107,6 +107,9 @@ quality-hooks-run: ## Run pre-commit hooks and quality gates
 
 quality-root-dir-prelude-check: ## Fail when shell entrypoints reintroduce inline ROOT_DIR resolver drift
 	@python3 scripts/bin/quality/check_root_dir_prelude.py
+
+quality-infra-shell-source-graph-check: ## Fail when infra helper source-edge contract drifts into caller-side implicit sourcing
+	@python3 scripts/bin/quality/check_infra_shell_source_graph.py
 
 quality-runtime-contract-drift-report: ## Generate runtime contract drift report artifact under artifacts/blueprint
 	@python3 scripts/lib/blueprint/runtime_contract_drift_report.py
