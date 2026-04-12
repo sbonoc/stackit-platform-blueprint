@@ -60,6 +60,7 @@ class ScriptsRefactorCases(RefactorContractBase):
         self.assertIn("run_helm_with_active_access()", tooling)
         self.assertIn("run_kubectl_with_active_access()", tooling)
         self.assertIn("run_kubectl_capture_with_active_access()", tooling)
+        self.assertIn("run_kubectl_capture_stdout_with_active_access()", tooling)
         self.assertIn("run_kubectl_with_active_access apply -k", tooling)
         self.assertIn("run_kubectl_with_active_access delete -k", tooling)
         self.assertIn("run_kubectl_with_active_access apply -f", tooling)
@@ -101,7 +102,7 @@ class ScriptsRefactorCases(RefactorContractBase):
         self.assertNotIn("run_cmd kubectl patch gatewayclass", public_endpoints)
 
         self.assertIn("run_kubectl_capture_with_active_access \\", keycloak_identity_contract)
-        self.assertIn("run_kubectl_capture_with_active_access -n \"$namespace\" get secret", keycloak_identity_contract)
+        self.assertIn("run_kubectl_capture_stdout_with_active_access -n \"$namespace\" get secret", keycloak_identity_contract)
         self.assertIn("run_kubectl_with_active_access -n \"$namespace\" exec \"$pod_name\" -- env", keycloak_identity_contract)
         self.assertNotIn("kubectl -n \"$namespace\" exec \"$pod_name\" -- env", keycloak_identity_contract)
 

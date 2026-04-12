@@ -120,7 +120,7 @@ keycloak_read_secret_key() {
   local key_name="$3"
   local encoded=""
 
-  encoded="$(run_kubectl_capture_with_active_access -n "$namespace" get secret "$secret_name" -o "jsonpath={.data.${key_name}}" 2>/dev/null || true)"
+  encoded="$(run_kubectl_capture_stdout_with_active_access -n "$namespace" get secret "$secret_name" -o "jsonpath={.data.${key_name}}" 2>/dev/null || true)"
   if [[ -z "$encoded" ]]; then
     return 1
   fi

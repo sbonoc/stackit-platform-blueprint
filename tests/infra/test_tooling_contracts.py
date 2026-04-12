@@ -155,8 +155,8 @@ cat "{helm_log}"
 """
         result = run(["bash", "-lc", script])
         if result.returncode != 0:
-            kubectl_calls = kubectl_log.read_text(encoding="utf-8") if kubectl_log.exists() else "<missing kubectl log>"
-            raise AssertionError(result.stdout + result.stderr + "\n[kubectl-calls]\n" + kubectl_calls)
+            helm_calls = helm_log.read_text(encoding="utf-8") if helm_log.exists() else "<missing helm log>"
+            raise AssertionError(result.stdout + result.stderr + "\n[helm-calls]\n" + helm_calls)
         return result.stdout + result.stderr
 
 
@@ -165,13 +165,16 @@ def helm_repo_update_retry_contract(*, failures_before_success: int, max_attempt
         tmp_path = Path(tmpdir)
         attempts_file = tmp_path / "attempts.txt"
         attempts_file.write_text("0\n", encoding="utf-8")
+        helm_log = tmp_path / "helm.log"
         helm = tmp_path / "helm"
         helm.write_text(
             "\n".join(
                 [
                     "#!/bin/sh",
                     f'ATTEMPTS_FILE="{attempts_file}"',
+                    f'HELM_LOG="{helm_log}"',
                     f"FAILURES_BEFORE_SUCCESS={failures_before_success}",
+                    'printf "%s\\n" "$*" >> "$HELM_LOG"',
                     'if [ "$1" = "repo" ] && [ "$2" = "add" ]; then',
                     "  exit 0",
                     "fi",
@@ -204,11 +207,11 @@ source "{REPO_ROOT}/scripts/lib/shell/bootstrap.sh"
 source "{REPO_ROOT}/scripts/lib/infra/tooling.sh"
 prepare_helm_repo_for_chart "bitnami/postgresql"
 printf 'attempts=%s\\n' "$(cat "{attempts_file}")"
-"""
+        """
         result = run(["bash", "-lc", script])
         if result.returncode != 0:
-            kubectl_calls = kubectl_log.read_text(encoding="utf-8") if kubectl_log.exists() else "<missing kubectl log>"
-            raise AssertionError(result.stdout + result.stderr + "\n[kubectl-calls]\n" + kubectl_calls)
+            helm_calls = helm_log.read_text(encoding="utf-8") if helm_log.exists() else "<missing helm log>"
+            raise AssertionError(result.stdout + result.stderr + "\n[helm-calls]\n" + helm_calls)
         return result.stdout + result.stderr
 
 
@@ -320,6 +323,7 @@ def port_forward_stop_timeout_contract() -> str:
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp_path = Path(tmpdir)
         ready_file = tmp_path / "port-ready"
+        kubectl_log = tmp_path / "kubectl.log"
         pf_log = tmp_path / "port-forward.log"
 
         kubectl = tmp_path / "kubectl"
@@ -328,6 +332,8 @@ def port_forward_stop_timeout_contract() -> str:
                 [
                     "#!/bin/sh",
                     f'READY_FILE="{ready_file}"',
+                    f'KUBECTL_LOG="{kubectl_log}"',
+                    'printf "%s\\n" "$*" >> "$KUBECTL_LOG"',
                     'if [ "$1" = "--context=docker-desktop" ] && [ "$2" = "config" ] && [ "$3" = "view" ] && [ "$4" = "--raw" ] && [ "$5" = "--minify" ] && [ "$6" = "--flatten" ]; then',
                     "  cat <<'EOF'",
                     "apiVersion: v1",
@@ -687,6 +693,7 @@ def keycloak_exec_active_access_contract(*, profile: str, context_name: str) -> 
                     "  exit 0",
                     "fi",
                     'if [ "$1" = "-n" ] && [ "$2" = "security" ] && [ "$3" = "get" ] && [ "$4" = "secret" ]; then',
+                    "  printf '%s\\n' 'W0400 key warning emitted on stderr' >&2",
                     "  printf '%s' 'cnVudGltZS1hZG1pbi1wYXNz'",
                     "  exit 0",
                     "fi",
