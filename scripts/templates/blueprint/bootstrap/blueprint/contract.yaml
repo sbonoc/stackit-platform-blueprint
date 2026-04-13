@@ -98,6 +98,7 @@ spec:
       - scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh
       - scripts/bin/platform/auth/reconcile_argocd_repo_credentials.sh
       - scripts/bin/platform/auth/reconcile_runtime_identity.sh
+      - scripts/bin/platform/auth/runtime_identity_doctor.sh
       - scripts/bin/quality/check_test_pyramid.py
       - scripts/bin/quality/check_root_dir_prelude.py
       - scripts/bin/quality/check_infra_shell_source_graph.py
@@ -138,6 +139,7 @@ spec:
       - scripts/lib/infra/argocd_repo_contract.py
       - scripts/lib/infra/runtime_identity_contract.py
       - scripts/lib/infra/state_artifact_contract.py
+      - scripts/lib/platform/auth/runtime_identity_doctor_json.py
       - scripts/lib/infra/schemas/state_artifact.schema.json
       - scripts/lib/infra/schemas/local_post_deploy_hook_state.schema.json
       - scripts/lib/infra/module_execution.sh
@@ -968,6 +970,7 @@ spec:
       - auth-reconcile-eso-runtime-secrets
       - auth-reconcile-argocd-repo-credentials
       - auth-reconcile-runtime-identity
+      - auth-runtime-identity-doctor
       - backend-test-unit
       - backend-test-integration
       - backend-test-contracts

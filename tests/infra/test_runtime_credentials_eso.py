@@ -22,6 +22,9 @@ class RuntimeCredentialsEsoTests(unittest.TestCase):
             REPO_ROOT / "artifacts" / "infra" / "argocd_repo_credentials_reconcile.json",
             REPO_ROOT / "artifacts" / "infra" / "runtime_identity_reconcile.env",
             REPO_ROOT / "artifacts" / "infra" / "runtime_identity_reconcile.json",
+            REPO_ROOT / "artifacts" / "infra" / "runtime_identity_doctor.env",
+            REPO_ROOT / "artifacts" / "infra" / "runtime_identity_doctor.json",
+            REPO_ROOT / "artifacts" / "infra" / "runtime_identity_doctor_report.json",
             REPO_ROOT / "artifacts" / "infra" / "postgres_runtime.env",
             REPO_ROOT / "artifacts" / "infra" / "postgres_runtime.json",
         )
@@ -465,6 +468,42 @@ class RuntimeCredentialsEsoTests(unittest.TestCase):
 
         state_json_path = REPO_ROOT / "artifacts" / "infra" / "runtime_identity_reconcile.json"
         self.assertTrue(state_json_path.exists(), msg="runtime identity reconcile JSON state artifact was not created")
+
+    def test_runtime_identity_doctor_writes_consolidated_diagnostics_state(self) -> None:
+        env = module_flags_env(profile="local-full")
+        env.update({"ARGOCD_REPO_TOKEN": "ghp_exampletoken"})
+
+        result = run_make("auth-runtime-identity-doctor", env)
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+
+        state_path = REPO_ROOT / "artifacts" / "infra" / "runtime_identity_doctor.env"
+        self.assertTrue(state_path.exists(), msg="runtime identity doctor state artifact was not created")
+        state = state_path.read_text(encoding="utf-8")
+        self.assertIn("status=success", state)
+        self.assertIn("refresh_status=success", state)
+        self.assertIn("runtime_identity_state=", state)
+        self.assertIn("runtime_credentials_state=", state)
+        self.assertIn("argocd_repo_state=", state)
+        self.assertIn("contract_eso_expected_count=", state)
+        self.assertIn("contract_keycloak_enabled_count=", state)
+
+        state_json_path = REPO_ROOT / "artifacts" / "infra" / "runtime_identity_doctor.json"
+        self.assertTrue(state_json_path.exists(), msg="runtime identity doctor JSON state artifact was not created")
+        state_json = json.loads(state_json_path.read_text(encoding="utf-8"))
+        self.assertEqual(state_json.get("artifact", {}).get("name"), "runtime_identity_doctor")
+        self.assertEqual(state_json.get("entries", {}).get("status"), "success")
+
+        report_path = REPO_ROOT / "artifacts" / "infra" / "runtime_identity_doctor_report.json"
+        self.assertTrue(report_path.exists(), msg="runtime identity doctor report was not created")
+        report = json.loads(report_path.read_text(encoding="utf-8"))
+        self.assertEqual(report.get("kind"), "runtime-identity-doctor-report")
+        self.assertEqual(report.get("schemaVersion"), "v1")
+        self.assertEqual(report.get("summary", {}).get("status"), "success")
+        self.assertEqual(report.get("summary", {}).get("issueCount"), 0)
+        self.assertEqual(report.get("execution", {}).get("refreshStatus"), "success")
+        self.assertEqual(report.get("artifacts", {}).get("runtimeIdentityReconcile", {}).get("present"), True)
+        self.assertEqual(report.get("contract", {}).get("keycloak", {}).get("enabledRealmCount"), 0)
+        self.assertEqual(report.get("contract", {}).get("keycloak", {}).get("enabledRealms"), [])
 
 
 if __name__ == "__main__":

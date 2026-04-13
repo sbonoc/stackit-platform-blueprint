@@ -309,6 +309,8 @@ def _validate_runtime_credentials_contract(repo_root: Path) -> list[str]:
         "scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh",
         "scripts/bin/platform/auth/reconcile_argocd_repo_credentials.sh",
         "scripts/bin/platform/auth/reconcile_runtime_identity.sh",
+        "scripts/bin/platform/auth/runtime_identity_doctor.sh",
+        "scripts/lib/platform/auth/runtime_identity_doctor_json.py",
         "scripts/lib/infra/state_artifact_contract.py",
         "scripts/lib/infra/schemas/state_artifact.schema.json",
         "scripts/templates/blueprint/bootstrap/docs/platform/consumer/runtime_credentials_eso.md",

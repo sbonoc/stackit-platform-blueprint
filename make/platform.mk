@@ -3,7 +3,7 @@
 # ownership: platform-owned (generated-consumer maintainers are the implementation owners).
 
 .PHONY: \
-  auth-reconcile-eso-runtime-secrets auth-reconcile-argocd-repo-credentials auth-reconcile-runtime-identity \
+  auth-reconcile-eso-runtime-secrets auth-reconcile-argocd-repo-credentials auth-reconcile-runtime-identity auth-runtime-identity-doctor \
   infra-post-deploy-consumer \
   apps-bootstrap apps-ci-bootstrap apps-ci-bootstrap-consumer apps-smoke apps-audit-versions apps-audit-versions-cached apps-publish-ghcr \
   backend-test-unit backend-test-integration backend-test-contracts backend-test-e2e \
@@ -18,6 +18,9 @@ auth-reconcile-argocd-repo-credentials: ## Reconcile ArgoCD Git repository crede
 
 auth-reconcile-runtime-identity: ## Reconcile runtime identity contracts (ESO, Argo repo access, Keycloak/module coverage)
 	@scripts/bin/platform/auth/reconcile_runtime_identity.sh
+
+auth-runtime-identity-doctor: ## Diagnose runtime identity readiness with consolidated Argo/ESO/contract diagnostics
+	@scripts/bin/platform/auth/runtime_identity_doctor.sh
 
 infra-post-deploy-consumer: ## Consumer-owned local infra post-deploy hook contract target (optional)
 	@# blueprint-consumer-contract: infra-post-deploy-consumer must be replaced by generated-consumer maintainers.
