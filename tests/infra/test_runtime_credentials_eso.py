@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+import shutil
 import shlex
 import sys
 import tempfile
@@ -16,6 +17,7 @@ class RuntimeCredentialsEsoTests(unittest.TestCase):
         state_paths = (
             REPO_ROOT / "artifacts" / "infra" / "runtime_credentials_eso_reconcile.env",
             REPO_ROOT / "artifacts" / "infra" / "runtime_credentials_eso_reconcile.json",
+            REPO_ROOT / "artifacts" / "infra" / "runtime_credentials_eso_target_secret_checks.json",
             REPO_ROOT / "artifacts" / "infra" / "argocd_repo_credentials_reconcile.env",
             REPO_ROOT / "artifacts" / "infra" / "argocd_repo_credentials_reconcile.json",
             REPO_ROOT / "artifacts" / "infra" / "runtime_identity_reconcile.env",
@@ -26,6 +28,9 @@ class RuntimeCredentialsEsoTests(unittest.TestCase):
         for state_path in state_paths:
             if state_path.exists():
                 state_path.unlink()
+        target_secret_checks_dir = REPO_ROOT / "artifacts" / "infra" / "runtime_credentials_eso_target_secret_checks"
+        if target_secret_checks_dir.exists():
+            shutil.rmtree(target_secret_checks_dir)
 
     def test_dry_run_reconcile_writes_success_state_and_renders_source_secret(self) -> None:
         env = module_flags_env(profile="local-full")
@@ -359,6 +364,26 @@ class RuntimeCredentialsEsoTests(unittest.TestCase):
         self.assertIn("target_secret_status=ready", state)
         self.assertIn("target_secret_missing_keys=none", state)
         self.assertIn("target_secret_checked=security/iap-runtime-credentials", state)
+        self.assertIn("target_secret_diagnostics_count=1", state)
+        self.assertIn(
+            f"target_secret_diagnostics_report={REPO_ROOT}/artifacts/infra/runtime_credentials_eso_target_secret_checks.json",
+            state,
+        )
+
+        diagnostics_path = REPO_ROOT / "artifacts" / "infra" / "runtime_credentials_eso_target_secret_checks.json"
+        self.assertTrue(diagnostics_path.exists(), msg="target secret diagnostics report was not created")
+        diagnostics = json.loads(diagnostics_path.read_text(encoding="utf-8"))
+        self.assertEqual(diagnostics.get("kind"), "runtime-target-secret-contract-check-report")
+        self.assertEqual(diagnostics.get("schemaVersion"), "v1")
+        counts = diagnostics.get("counts", {})
+        self.assertEqual(counts.get("total"), 1)
+        self.assertEqual(counts.get("ready"), 1)
+        checks = diagnostics.get("checks", [])
+        self.assertEqual(len(checks), 1)
+        self.assertEqual(checks[0].get("status"), "ready")
+        self.assertEqual(checks[0].get("namespace"), "security")
+        self.assertEqual(checks[0].get("secretName"), "iap-runtime-credentials")
+        self.assertEqual(checks[0].get("requiredKeys"), ["client-id", "client-secret"])
 
     def test_argocd_reconcile_resolves_repo_contract_without_argparse_errors(self) -> None:
         env = module_flags_env(profile="local-full")
