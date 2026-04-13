@@ -9,6 +9,34 @@ keycloak_reconciliation_enabled() {
   [[ "$(normalize_bool "$KEYCLOAK_OPTIONAL_MODULE_RECONCILIATION_ENABLED")" == "true" ]]
 }
 
+# Canonical gate used by optional-module reconcile wrappers (Workflows/Langfuse
+# today, generated-consumer extensions in the future).
+keycloak_optional_module_reconcile_should_run() {
+  local module_id="$1"
+  local module_enabled_env_name="$2"
+  local state_artifact_name="$3"
+  local module_label="$4"
+  local state_file=""
+
+  if ! is_module_enabled "$module_id"; then
+    log_info "$module_enabled_env_name=false; skipping $module_label Keycloak reconciliation"
+    return 1
+  fi
+
+  if ! keycloak_reconciliation_enabled; then
+    state_file="$(
+      write_state_file "$state_artifact_name" \
+        "status=disabled" \
+        "reason=keycloak_optional_module_reconciliation_toggle_off" \
+        "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+    )"
+    log_info "$module_label Keycloak reconciliation disabled; state written to $state_file"
+    return 1
+  fi
+
+  return 0
+}
+
 keycloak_identity_contract_load_realm() {
   local realm_id="$1"
   local cli="$ROOT_DIR/scripts/lib/infra/runtime_identity_contract.py"
@@ -49,6 +77,62 @@ keycloak_identity_contract_load_realm() {
   if [[ -z "$KEYCLOAK_IDENTITY_CONTRACT_REALM_ID" || -z "$KEYCLOAK_IDENTITY_CONTRACT_REALM_NAME" ]]; then
     log_fatal "failed loading Keycloak realm contract for realm_id=$realm_id"
   fi
+}
+
+# Load realm contract rows and resolve script-level fallbacks in one place so
+# module wrappers do not duplicate contract/default wiring.
+keycloak_identity_contract_resolve_effective_realm_settings() {
+  local realm_id="$1"
+  local default_realm_name="$2"
+  local default_role_names_csv="$3"
+  local default_admin_role="$4"
+  local default_client_display_name="$5"
+
+  keycloak_identity_contract_load_realm "$realm_id"
+
+  KEYCLOAK_IDENTITY_EFFECTIVE_REALM_NAME="${KEYCLOAK_IDENTITY_CONTRACT_REALM_NAME:-$default_realm_name}"
+  KEYCLOAK_IDENTITY_EFFECTIVE_ROLE_NAMES_CSV="${KEYCLOAK_IDENTITY_CONTRACT_ROLE_NAMES_CSV:-$default_role_names_csv}"
+  KEYCLOAK_IDENTITY_EFFECTIVE_ADMIN_ROLE="${KEYCLOAK_IDENTITY_CONTRACT_ADMIN_ROLE:-$default_admin_role}"
+  KEYCLOAK_IDENTITY_EFFECTIVE_CLIENT_DISPLAY_NAME="${KEYCLOAK_IDENTITY_CONTRACT_CLIENT_DISPLAY_NAME:-$default_client_display_name}"
+}
+
+keycloak_csv_append_unique() {
+  local csv_value="$1"
+  local item="$2"
+  local token=""
+  [[ -n "$item" ]] || {
+    printf '%s' "$csv_value"
+    return 0
+  }
+
+  IFS=',' read -r -a tokens <<<"$csv_value"
+  for token in "${tokens[@]}"; do
+    if [[ "$token" == "$item" ]]; then
+      printf '%s' "$csv_value"
+      return 0
+    fi
+  done
+
+  if [[ -z "$csv_value" ]]; then
+    printf '%s' "$item"
+    return 0
+  fi
+  printf '%s,%s' "$csv_value" "$item"
+}
+
+keycloak_url_origin() {
+  local url="$1"
+  printf '%s' "$url" | sed -E 's#^(https?://[^/]+).*$#\1#'
+}
+
+# Shared state writer for module-scoped Keycloak reconcile wrappers.
+keycloak_optional_module_write_reconciled_state() {
+  local state_artifact_name="$1"
+  shift
+  write_state_file "$state_artifact_name" \
+    "status=reconciled" \
+    "$@" \
+    "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 }
 
 keycloak_find_runtime_pod() {
