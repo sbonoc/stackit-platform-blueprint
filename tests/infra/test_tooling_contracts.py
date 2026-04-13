@@ -745,6 +745,98 @@ cat "{kubectl_log}"
         return result.stdout + result.stderr
 
 
+def keycloak_optional_module_guard_contract(
+    *,
+    module_id: str,
+    module_enabled_env_name: str,
+    module_label: str,
+    state_artifact_name: str,
+    env_overrides: dict[str, str],
+) -> str:
+    state_env = REPO_ROOT / "artifacts" / "infra" / f"{state_artifact_name}.env"
+    state_json = REPO_ROOT / "artifacts" / "infra" / f"{state_artifact_name}.json"
+    for path in (state_env, state_json):
+        if path.exists():
+            path.unlink()
+
+    script = f"""
+export ROOT_DIR="{REPO_ROOT}"
+source "{REPO_ROOT}/scripts/lib/shell/bootstrap.sh"
+source "{REPO_ROOT}/scripts/lib/infra/profile.sh"
+source "{REPO_ROOT}/scripts/lib/infra/state.sh"
+source "{REPO_ROOT}/scripts/lib/infra/keycloak_identity_contract.sh"
+if keycloak_optional_module_reconcile_should_run \
+  "{module_id}" \
+  "{module_enabled_env_name}" \
+  "{state_artifact_name}" \
+  "{module_label}"; then
+  echo "proceed=true"
+else
+  echo "proceed=false"
+fi
+if [[ -f "{state_env}" ]]; then
+  cat "{state_env}"
+else
+  echo "state_file=missing"
+fi
+"""
+    result = run(["bash", "-lc", script], env_overrides)
+    for path in (state_env, state_json):
+        if path.exists():
+            path.unlink()
+    if result.returncode != 0:
+        raise AssertionError(result.stdout + result.stderr)
+    return result.stdout + result.stderr
+
+
+def keycloak_optional_module_helper_primitives_contract() -> str:
+    state_artifact_name = "test_keycloak_helper_primitives"
+    state_env = REPO_ROOT / "artifacts" / "infra" / f"{state_artifact_name}.env"
+    state_json = REPO_ROOT / "artifacts" / "infra" / f"{state_artifact_name}.json"
+    for path in (state_env, state_json):
+        if path.exists():
+            path.unlink()
+
+    script = f"""
+export ROOT_DIR="{REPO_ROOT}"
+source "{REPO_ROOT}/scripts/lib/shell/bootstrap.sh"
+source "{REPO_ROOT}/scripts/lib/infra/state.sh"
+source "{REPO_ROOT}/scripts/lib/infra/keycloak_identity_contract.sh"
+# Override contract loading to make fallback/override behavior deterministic.
+keycloak_identity_contract_load_realm() {{
+  KEYCLOAK_IDENTITY_CONTRACT_REALM_NAME=""
+  KEYCLOAK_IDENTITY_CONTRACT_ROLE_NAMES_CSV="Reader"
+  KEYCLOAK_IDENTITY_CONTRACT_ADMIN_ROLE=""
+  KEYCLOAK_IDENTITY_CONTRACT_CLIENT_DISPLAY_NAME=""
+}}
+keycloak_identity_contract_resolve_effective_realm_settings \
+  "workflows" \
+  "default-realm" \
+  "Admin,User" \
+  "Admin" \
+  "Default Display"
+printf 'effective_realm=%s\\n' "$KEYCLOAK_IDENTITY_EFFECTIVE_REALM_NAME"
+printf 'effective_roles=%s\\n' "$KEYCLOAK_IDENTITY_EFFECTIVE_ROLE_NAMES_CSV"
+printf 'effective_admin_role=%s\\n' "$KEYCLOAK_IDENTITY_EFFECTIVE_ADMIN_ROLE"
+printf 'effective_display=%s\\n' "$KEYCLOAK_IDENTITY_EFFECTIVE_CLIENT_DISPLAY_NAME"
+tokens="global-token-sentinel"
+printf 'csv_append=%s\\n' "$(keycloak_csv_append_unique "Admin,User" "Viewer")"
+printf 'csv_duplicate=%s\\n' "$(keycloak_csv_append_unique "Admin,User" "User")"
+printf 'tokens_after=%s\\n' "$tokens"
+printf 'origin=%s\\n' "$(keycloak_url_origin "https://example.com/path/to/callback")"
+state_file="$(keycloak_optional_module_write_reconciled_state "{state_artifact_name}" "sample_key=sample_value")"
+printf 'state_file=%s\\n' "$state_file"
+cat "$state_file"
+"""
+    result = run(["bash", "-lc", script], {"BLUEPRINT_PROFILE": "stackit-dev"})
+    for path in (state_env, state_json):
+        if path.exists():
+            path.unlink()
+    if result.returncode != 0:
+        raise AssertionError(result.stdout + result.stderr)
+    return result.stdout + result.stderr
+
+
 def run_local_post_deploy_hook_contract(
     *,
     profile: str,
@@ -1764,6 +1856,65 @@ printf 'dsn=%s\\n' "$(postgres_dsn)"
         self.assertIn("--context stackit-dev-cluster -n security get pod", result)
         self.assertIn("--context stackit-dev-cluster -n security get secret keycloak-runtime-credentials", result)
         self.assertIn("--context stackit-dev-cluster -n security exec keycloak-0 -- env", result)
+
+    def test_keycloak_optional_module_guard_writes_disabled_state_when_toggle_off(self) -> None:
+        result = keycloak_optional_module_guard_contract(
+            module_id="workflows",
+            module_enabled_env_name="WORKFLOWS_ENABLED",
+            module_label="workflows",
+            state_artifact_name="test_keycloak_guard",
+            env_overrides={
+                "BLUEPRINT_PROFILE": "stackit-dev",
+                "WORKFLOWS_ENABLED": "true",
+                "KEYCLOAK_OPTIONAL_MODULE_RECONCILIATION_ENABLED": "false",
+            },
+        )
+        self.assertIn("proceed=false", result)
+        self.assertIn("status=disabled", result)
+        self.assertIn("reason=keycloak_optional_module_reconciliation_toggle_off", result)
+
+    def test_keycloak_optional_module_guard_skips_without_state_when_module_disabled(self) -> None:
+        result = keycloak_optional_module_guard_contract(
+            module_id="langfuse",
+            module_enabled_env_name="LANGFUSE_ENABLED",
+            module_label="langfuse",
+            state_artifact_name="test_keycloak_guard_module_disabled",
+            env_overrides={
+                "BLUEPRINT_PROFILE": "stackit-dev",
+                "LANGFUSE_ENABLED": "false",
+                "KEYCLOAK_OPTIONAL_MODULE_RECONCILIATION_ENABLED": "true",
+            },
+        )
+        self.assertIn("proceed=false", result)
+        self.assertIn("state_file=missing", result)
+
+    def test_keycloak_optional_module_guard_proceeds_when_enabled(self) -> None:
+        result = keycloak_optional_module_guard_contract(
+            module_id="workflows",
+            module_enabled_env_name="WORKFLOWS_ENABLED",
+            module_label="workflows",
+            state_artifact_name="test_keycloak_guard_enabled",
+            env_overrides={
+                "BLUEPRINT_PROFILE": "stackit-dev",
+                "WORKFLOWS_ENABLED": "true",
+                "KEYCLOAK_OPTIONAL_MODULE_RECONCILIATION_ENABLED": "true",
+            },
+        )
+        self.assertIn("proceed=true", result)
+        self.assertIn("state_file=missing", result)
+
+    def test_keycloak_optional_module_helper_primitives_contract(self) -> None:
+        result = keycloak_optional_module_helper_primitives_contract()
+        self.assertIn("effective_realm=default-realm", result)
+        self.assertIn("effective_roles=Reader", result)
+        self.assertIn("effective_admin_role=Admin", result)
+        self.assertIn("effective_display=Default Display", result)
+        self.assertIn("csv_append=Admin,User,Viewer", result)
+        self.assertIn("csv_duplicate=Admin,User", result)
+        self.assertIn("tokens_after=global-token-sentinel", result)
+        self.assertIn("origin=https://example.com", result)
+        self.assertIn("status=reconciled", result)
+        self.assertIn("sample_key=sample_value", result)
 
     def test_cluster_crd_exists_detects_present_crd(self) -> None:
         self.assertTrue(cluster_crd_exists_contract(["applications.argoproj.io"], "applications.argoproj.io"))

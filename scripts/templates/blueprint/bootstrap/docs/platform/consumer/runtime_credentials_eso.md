@@ -116,6 +116,13 @@ make auth-reconcile-argocd-repo-credentials
 
 Defaults live in `blueprint/repo.init.env`.
 `KEYCLOAK_OPTIONAL_MODULE_RECONCILIATION_ENABLED` gates optional-module Keycloak reconciliation (Workflows/Langfuse) during module deploy flows.
+Generated-consumer module reconcile wrappers should reuse canonical helper primitives from
+`scripts/lib/infra/keycloak_identity_contract.sh`:
+- `keycloak_optional_module_reconcile_should_run`
+- `keycloak_identity_contract_resolve_effective_realm_settings`
+- `keycloak_optional_module_write_reconciled_state`
+- `keycloak_csv_append_unique`
+- `keycloak_url_origin`
 `RUNTIME_CREDENTIALS_REQUIRED` does not disable reconciliation; it only switches reconcile failures from warning mode (`false`) to hard-fail mode (`true`).
 If the effective contract set resolves to empty (`contracts=0`), reconciliation exits as a no-op success (`status=noop-empty-contract-set`) and skips source-secret checks.
 

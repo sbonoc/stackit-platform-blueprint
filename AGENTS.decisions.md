@@ -92,6 +92,7 @@
   - Identity-aware-proxy stackit path consumes ESO-issued `security/iap-runtime-credentials` instead of direct env-rendered secret upserts.
   - Runtime ESO contract now includes module-scoped credential targets for keycloak/iap/workflows and enabled optional modules (`langfuse`, `neo4j`, `postgres`).
   - Optional-module Keycloak reconciliation (for example Workflows/Langfuse) is feature-gated by `KEYCLOAK_OPTIONAL_MODULE_RECONCILIATION_ENABLED`.
+  - Optional-module Keycloak wrappers now share generic helper primitives in `scripts/lib/infra/keycloak_identity_contract.sh` (`keycloak_optional_module_reconcile_should_run`, `keycloak_identity_contract_resolve_effective_realm_settings`, `keycloak_optional_module_write_reconciled_state`) so generated-consumer module extensions can reuse deterministic reconciliation and state-writing flows.
 - Runtime inventory now has profile-aware and local-specific entrypoints:
   - `make infra-runtime-inventory` routes by active profile.
   - `make infra-local-runtime-inventory` prints local-only runtime inventory exports/state hints.

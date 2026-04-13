@@ -10,56 +10,31 @@ source "$ROOT_DIR/scripts/lib/infra/keycloak_identity_contract.sh"
 
 start_script_metric_trap "infra_stackit_workflows_keycloak_reconcile"
 
-if ! is_module_enabled workflows; then
-  log_info "WORKFLOWS_ENABLED=false; skipping workflows Keycloak reconciliation"
-  exit 0
-fi
-
-if ! keycloak_reconciliation_enabled; then
-  state_file="$(write_state_file "workflows_keycloak_reconcile" \
-    "status=disabled" \
-    "reason=keycloak_optional_module_reconciliation_toggle_off" \
-    "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")")"
-  log_info "workflows Keycloak reconciliation disabled; state written to $state_file"
+if ! keycloak_optional_module_reconcile_should_run \
+  "workflows" \
+  "WORKFLOWS_ENABLED" \
+  "workflows_keycloak_reconcile" \
+  "workflows"; then
   exit 0
 fi
 
 keycloak_seed_env_defaults
 workflows_init_env
 
-keycloak_identity_contract_load_realm "workflows"
+keycloak_identity_contract_resolve_effective_realm_settings \
+  "workflows" \
+  "$KEYCLOAK_REALM_WORKFLOWS" \
+  "Admin,User,Viewer,Op" \
+  "Admin" \
+  "STACKIT Workflows"
 
 set_default_env STACKIT_WORKFLOWS_ADMIN_USERNAME "workflows-admin"
 set_default_env STACKIT_WORKFLOWS_ADMIN_PASSWORD ""
 
-workflows_realm_name="${KEYCLOAK_IDENTITY_CONTRACT_REALM_NAME:-$KEYCLOAK_REALM_WORKFLOWS}"
-workflows_role_names="${KEYCLOAK_IDENTITY_CONTRACT_ROLE_NAMES_CSV:-Admin,User,Viewer,Op}"
-workflows_admin_role="${KEYCLOAK_IDENTITY_CONTRACT_ADMIN_ROLE:-Admin}"
-workflows_client_display_name="${KEYCLOAK_IDENTITY_CONTRACT_CLIENT_DISPLAY_NAME:-STACKIT Workflows}"
-
-csv_append_unique() {
-  local csv_value="$1"
-  local item="$2"
-  local token=""
-  [[ -n "$item" ]] || {
-    printf '%s' "$csv_value"
-    return 0
-  }
-
-  IFS=',' read -r -a tokens <<<"$csv_value"
-  for token in "${tokens[@]}"; do
-    if [[ "$token" == "$item" ]]; then
-      printf '%s' "$csv_value"
-      return 0
-    fi
-  done
-
-  if [[ -z "$csv_value" ]]; then
-    printf '%s' "$item"
-    return 0
-  fi
-  printf '%s,%s' "$csv_value" "$item"
-}
+workflows_realm_name="$KEYCLOAK_IDENTITY_EFFECTIVE_REALM_NAME"
+workflows_role_names="$KEYCLOAK_IDENTITY_EFFECTIVE_ROLE_NAMES_CSV"
+workflows_admin_role="$KEYCLOAK_IDENTITY_EFFECTIVE_ADMIN_ROLE"
+workflows_client_display_name="$KEYCLOAK_IDENTITY_EFFECTIVE_CLIENT_DISPLAY_NAME"
 
 redirect_uris="https://*.workflows.${STACKIT_REGION}.stackit.cloud/*"
 web_origins="https://*.workflows.${STACKIT_REGION}.stackit.cloud"
@@ -73,11 +48,11 @@ if state_file_exists workflows_instance; then
 fi
 
 if [[ -n "$resolved_web_url" ]]; then
-  web_origin="$(printf '%s' "$resolved_web_url" | sed -E 's#^(https?://[^/]+).*$#\1#')"
-  web_origins="$(csv_append_unique "$web_origins" "$web_origin")"
+  web_origin="$(keycloak_url_origin "$resolved_web_url")"
+  web_origins="$(keycloak_csv_append_unique "$web_origins" "$web_origin")"
 fi
 if [[ -n "$resolved_redirect_uri" ]]; then
-  redirect_uris="$(csv_append_unique "$redirect_uris" "$resolved_redirect_uri")"
+  redirect_uris="$(keycloak_csv_append_unique "$redirect_uris" "$resolved_redirect_uri")"
 fi
 
 keycloak_reconcile_oidc_identity_contract \
@@ -95,13 +70,11 @@ keycloak_reconcile_oidc_identity_contract \
   "$workflows_admin_role" \
   "$workflows_client_display_name"
 
-state_file="$(write_state_file "workflows_keycloak_reconcile" \
-  "status=reconciled" \
+state_file="$(keycloak_optional_module_write_reconciled_state "workflows_keycloak_reconcile" \
   "realm=$workflows_realm_name" \
   "client_id=$STACKIT_WORKFLOWS_OIDC_CLIENT_ID" \
   "redirect_uris=$redirect_uris" \
   "web_origins=$web_origins" \
-  "admin_username=$STACKIT_WORKFLOWS_ADMIN_USERNAME" \
-  "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")")"
+  "admin_username=$STACKIT_WORKFLOWS_ADMIN_USERNAME")"
 
 log_info "workflows Keycloak reconciliation complete; state written to $state_file"
