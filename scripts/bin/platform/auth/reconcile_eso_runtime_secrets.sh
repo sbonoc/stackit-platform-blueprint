@@ -115,37 +115,94 @@ wait_for_external_secret_ready() {
   done
 }
 
+sanitize_diagnostics_token() {
+  local value="$1"
+  printf '%s' "${value//[^a-zA-Z0-9_.-]/_}"
+}
+
+target_secret_check_diagnostics_path() {
+  local namespace="$1"
+  local secret_name="$2"
+  local namespace_token secret_token
+  namespace_token="$(sanitize_diagnostics_token "$namespace")"
+  secret_token="$(sanitize_diagnostics_token "$secret_name")"
+  printf '%s/%s__%s.json' "$target_secret_diagnostics_dir" "$namespace_token" "$secret_token"
+}
+
 verify_target_secret_keys() {
   local namespace="$1"
   local secret_name="$2"
   local keys_csv="$3"
-  local secret_json verification_output
+  local diagnostics_output_path="$4"
+  local secret_json checker_output checker_status
+  local check_status check_missing_keys check_reason
 
-  if ! run_kubectl_with_active_access -n "$namespace" get secret "$secret_name" >/dev/null 2>&1; then
-    printf '__missing_secret__\n'
+  set +e
+  if run_kubectl_with_active_access -n "$namespace" get secret "$secret_name" >/dev/null 2>&1; then
+    secret_json="$(run_kubectl_capture_stdout_with_active_access -n "$namespace" get secret "$secret_name" -o json 2>/dev/null || true)"
+    checker_output="$(
+      printf '%s' "$secret_json" | \
+        python3 "$runtime_secret_json_helpers" check-target-secret \
+          --namespace "$namespace" \
+          --secret-name "$secret_name" \
+          --required-keys "$keys_csv" \
+          --summary \
+          --output-json "$diagnostics_output_path" 2>/dev/null
+    )"
+    checker_status=$?
+  else
+    checker_output="$(
+      python3 "$runtime_secret_json_helpers" check-target-secret \
+        --namespace "$namespace" \
+        --secret-name "$secret_name" \
+        --required-keys "$keys_csv" \
+        --secret-present false \
+        --summary \
+        --output-json "$diagnostics_output_path" 2>/dev/null
+    )"
+    checker_status=$?
+  fi
+  set -e
+
+  if [[ -z "$checker_output" ]]; then
+    printf '__verify_error__:target-secret-checker-empty-output\n'
     return 1
   fi
 
-  secret_json="$(run_kubectl_capture_stdout_with_active_access -n "$namespace" get secret "$secret_name" -o json 2>/dev/null || true)"
-  if [[ -z "$secret_json" ]]; then
-    printf '__verify_error__:empty-secret-json\n'
-    return 1
-  fi
+  IFS=$'\t' read -r check_status check_missing_keys check_reason <<<"$checker_output"
+  check_status="${check_status:-verify-error}"
+  check_missing_keys="${check_missing_keys:-none}"
+  check_reason="${check_reason:-unknown-checker-error}"
 
-  if ! verification_output="$(
-    printf '%s' "$secret_json" | python3 "$runtime_secret_json_helpers" verify-required-keys "$keys_csv" 2>&1
-  )"; then
-    printf '%s\n' "$verification_output"
-    return 1
-  fi
-
-  if [[ "$verification_output" != "ok" ]]; then
-    printf '__verify_error__:unexpected-verifier-output\n'
-    return 1
-  fi
-
-  printf '%s\n' "$verification_output"
-  return 0
+  case "$check_status" in
+    ready)
+      printf 'ok\n'
+      return 0
+      ;;
+    missing-secret)
+      printf '__missing_secret__\n'
+      return 1
+      ;;
+    missing-keys)
+      if [[ "$check_missing_keys" == "none" ]]; then
+        printf '__verify_error__:missing-keys-without-list\n'
+        return 1
+      fi
+      printf '%s\n' "${check_missing_keys//,/ }"
+      return 1
+      ;;
+    verify-error)
+      printf '__verify_error__:%s\n' "$check_reason"
+      return 1
+      ;;
+    *)
+      printf '__verify_error__:unexpected-checker-status:%s\n' "$check_status"
+      if (( checker_status != 0 )); then
+        return "$checker_status"
+      fi
+      return 1
+      ;;
+  esac
 }
 
 local_lite_postgres_runtime_ready() {
@@ -242,10 +299,17 @@ target_missing_keys=""
 source_secret_present="unknown"
 external_secret_checked=""
 target_secret_checked=""
+target_secret_diagnostics_dir="$ROOT_DIR/artifacts/infra/runtime_credentials_eso_target_secret_checks"
+target_secret_diagnostics_report="$ROOT_DIR/artifacts/infra/runtime_credentials_eso_target_secret_checks.json"
+target_secret_diagnostics_count="0"
 declare -a ESO_SECRET_CONTRACTS=()
 declare -a ESO_SECRET_CONTRACTS_SKIPPED=()
+declare -a TARGET_SECRET_CHECK_DIAGNOSTIC_FILES=()
 skipped_contract_count="0"
 skipped_contracts="none"
+
+mkdir -p "$target_secret_diagnostics_dir"
+rm -f "$target_secret_diagnostics_dir"/*.json "$target_secret_diagnostics_report"
 
 while IFS='|' read -r contract_id contract_module contract_namespace contract_external_secret contract_target_secret contract_target_keys; do
   [[ -n "$contract_id" ]] || continue
@@ -364,10 +428,15 @@ else
           "ExternalSecret ${contract_namespace}/${contract_external_secret} not Ready within ${runtime_wait_timeout}s"
       fi
 
+      target_secret_check_diagnostics_file="$(target_secret_check_diagnostics_path "$contract_namespace" "$contract_target_secret")"
       target_check_output="$(verify_target_secret_keys \
         "$contract_namespace" \
         "$contract_target_secret" \
-        "$contract_target_keys" || true)"
+        "$contract_target_keys" \
+        "$target_secret_check_diagnostics_file" || true)"
+      if [[ -f "$target_secret_check_diagnostics_file" ]]; then
+        TARGET_SECRET_CHECK_DIAGNOSTIC_FILES+=("$target_secret_check_diagnostics_file")
+      fi
       if [[ "$target_check_output" == "ok" ]]; then
         if [[ "$target_secret_checked" == "none" ]]; then
           target_secret_checked="${contract_namespace}/${contract_target_secret}"
@@ -421,6 +490,22 @@ else
   fi
 fi
 
+target_secret_diagnostics_count="${#TARGET_SECRET_CHECK_DIAGNOSTIC_FILES[@]}"
+if (( target_secret_diagnostics_count > 0 )); then
+  if ! python3 "$runtime_secret_json_helpers" render-check-report \
+    --output "$target_secret_diagnostics_report" \
+    "${TARGET_SECRET_CHECK_DIAGNOSTIC_FILES[@]}" >/dev/null; then
+    target_secret_status="verify-error"
+    record_reconcile_issue "failed to render runtime target-secret diagnostics report at $target_secret_diagnostics_report"
+  fi
+else
+  if ! python3 "$runtime_secret_json_helpers" render-check-report \
+    --output "$target_secret_diagnostics_report" >/dev/null; then
+    target_secret_status="verify-error"
+    record_reconcile_issue "failed to render runtime target-secret diagnostics report at $target_secret_diagnostics_report"
+  fi
+fi
+
 log_metric \
   "runtime_credentials_eso_reconcile_total" \
   "1" \
@@ -453,6 +538,9 @@ state_file="$(
     "externalsecret_status=$external_secret_status" \
     "target_secret_status=$target_secret_status" \
     "target_secret_missing_keys=$target_missing_keys" \
+    "target_secret_diagnostics_dir=$target_secret_diagnostics_dir" \
+    "target_secret_diagnostics_report=$target_secret_diagnostics_report" \
+    "target_secret_diagnostics_count=$target_secret_diagnostics_count" \
     "issue_count=${#RUNTIME_RECONCILE_ISSUES[@]}" \
     "status=$status" \
     "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")"

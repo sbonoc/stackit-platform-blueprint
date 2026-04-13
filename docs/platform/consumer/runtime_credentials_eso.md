@@ -144,6 +144,8 @@ Local-lite Postgres note:
 Resulting state artifacts:
 - `artifacts/infra/runtime_credentials_eso_reconcile.env`
 - `artifacts/infra/runtime_credentials_eso_reconcile.json`
+- `artifacts/infra/runtime_credentials_eso_target_secret_checks.json` (aggregated typed target-secret diagnostics)
+- `artifacts/infra/runtime_credentials_eso_target_secret_checks/*.json` (per-contract typed target-secret diagnostics)
 - `artifacts/infra/argocd_repo_credentials_reconcile.env`
 - `artifacts/infra/argocd_repo_credentials_reconcile.json`
 - `artifacts/infra/runtime_identity_reconcile.env`

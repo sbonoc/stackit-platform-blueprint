@@ -237,70 +237,152 @@ class PythonHelperExtractionsTests(unittest.TestCase):
 
         import subprocess
 
-        valid_secret = {"apiVersion": "v1", "kind": "Secret", "data": {"client-id": "YQ==", "client-secret": "Yg=="}}
-        valid = subprocess.run(
-            [sys.executable, str(script), "verify-required-keys", "client-id,client-secret"],
-            input=json.dumps(valid_secret),
-            text=True,
-            capture_output=True,
-            cwd=REPO_ROOT,
-        )
-        self.assertEqual(valid.returncode, 0, msg=valid.stdout + valid.stderr)
-        self.assertEqual(valid.stdout.strip(), "ok")
+        with tempfile.TemporaryDirectory() as tmpdir:
+            check_ready_path = Path(tmpdir) / "check-ready.json"
+            check_missing_path = Path(tmpdir) / "check-missing.json"
+            report_path = Path(tmpdir) / "report.json"
 
-        missing = subprocess.run(
-            [sys.executable, str(script), "verify-required-keys", "client-id,client-secret"],
-            input=json.dumps({"data": {"client-id": "YQ=="}}),
-            text=True,
-            capture_output=True,
-            cwd=REPO_ROOT,
-        )
-        self.assertEqual(missing.returncode, 1, msg=missing.stdout + missing.stderr)
-        self.assertEqual(missing.stdout.strip(), "client-secret")
+            valid_secret = {"apiVersion": "v1", "kind": "Secret", "data": {"client-id": "YQ==", "client-secret": "Yg=="}}
+            valid = subprocess.run(
+                [sys.executable, str(script), "verify-required-keys", "client-id,client-secret"],
+                input=json.dumps(valid_secret),
+                text=True,
+                capture_output=True,
+                cwd=REPO_ROOT,
+            )
+            self.assertEqual(valid.returncode, 0, msg=valid.stdout + valid.stderr)
+            self.assertEqual(valid.stdout.strip(), "ok")
 
-        noisy_input = subprocess.run(
-            [sys.executable, str(script), "verify-required-keys", "client-id,client-secret"],
-            input=(
-                "INFO bootstrap complete\n"
-                + json.dumps({"data": {"client-id": "YQ==", "client-secret": "Yg=="}})
-                + "\nINFO done\n"
-            ),
-            text=True,
-            capture_output=True,
-            cwd=REPO_ROOT,
-        )
-        self.assertEqual(noisy_input.returncode, 0, msg=noisy_input.stdout + noisy_input.stderr)
-        self.assertEqual(noisy_input.stdout.strip(), "ok")
+            missing = subprocess.run(
+                [sys.executable, str(script), "verify-required-keys", "client-id,client-secret"],
+                input=json.dumps({"data": {"client-id": "YQ=="}}),
+                text=True,
+                capture_output=True,
+                cwd=REPO_ROOT,
+            )
+            self.assertEqual(missing.returncode, 1, msg=missing.stdout + missing.stderr)
+            self.assertEqual(missing.stdout.strip(), "client-secret")
 
-        missing_data_map = subprocess.run(
-            [sys.executable, str(script), "verify-required-keys", "client-id"],
-            input=json.dumps({"kind": "Secret"}),
-            text=True,
-            capture_output=True,
-            cwd=REPO_ROOT,
-        )
-        self.assertEqual(missing_data_map.returncode, 2, msg=missing_data_map.stdout + missing_data_map.stderr)
-        self.assertEqual(missing_data_map.stdout.strip(), "__verify_error__:missing-secret-data-map")
+            noisy_input = subprocess.run(
+                [sys.executable, str(script), "verify-required-keys", "client-id,client-secret"],
+                input=(
+                    "INFO bootstrap complete\n"
+                    + json.dumps({"data": {"client-id": "YQ==", "client-secret": "Yg=="}})
+                    + "\nINFO done\n"
+                ),
+                text=True,
+                capture_output=True,
+                cwd=REPO_ROOT,
+            )
+            self.assertEqual(noisy_input.returncode, 0, msg=noisy_input.stdout + noisy_input.stderr)
+            self.assertEqual(noisy_input.stdout.strip(), "ok")
 
-        invalid_json = subprocess.run(
-            [sys.executable, str(script), "verify-required-keys", "client-id"],
-            input="{",
-            text=True,
-            capture_output=True,
-            cwd=REPO_ROOT,
-        )
-        self.assertEqual(invalid_json.returncode, 2, msg=invalid_json.stdout + invalid_json.stderr)
-        self.assertEqual(invalid_json.stdout.strip(), "__verify_error__:invalid-secret-json")
+            missing_data_map = subprocess.run(
+                [sys.executable, str(script), "verify-required-keys", "client-id"],
+                input=json.dumps({"kind": "Secret"}),
+                text=True,
+                capture_output=True,
+                cwd=REPO_ROOT,
+            )
+            self.assertEqual(missing_data_map.returncode, 2, msg=missing_data_map.stdout + missing_data_map.stderr)
+            self.assertEqual(missing_data_map.stdout.strip(), "__verify_error__:missing-secret-data-map")
 
-        empty_input = subprocess.run(
-            [sys.executable, str(script), "verify-required-keys", "client-id"],
-            input="",
-            text=True,
-            capture_output=True,
-            cwd=REPO_ROOT,
-        )
-        self.assertEqual(empty_input.returncode, 2, msg=empty_input.stdout + empty_input.stderr)
-        self.assertEqual(empty_input.stdout.strip(), "__verify_error__:empty-secret-json")
+            invalid_json = subprocess.run(
+                [sys.executable, str(script), "verify-required-keys", "client-id"],
+                input="{",
+                text=True,
+                capture_output=True,
+                cwd=REPO_ROOT,
+            )
+            self.assertEqual(invalid_json.returncode, 2, msg=invalid_json.stdout + invalid_json.stderr)
+            self.assertEqual(invalid_json.stdout.strip(), "__verify_error__:invalid-secret-json")
+
+            empty_input = subprocess.run(
+                [sys.executable, str(script), "verify-required-keys", "client-id"],
+                input="",
+                text=True,
+                capture_output=True,
+                cwd=REPO_ROOT,
+            )
+            self.assertEqual(empty_input.returncode, 2, msg=empty_input.stdout + empty_input.stderr)
+            self.assertEqual(empty_input.stdout.strip(), "__verify_error__:empty-secret-json")
+
+            check_ready = subprocess.run(
+                [
+                    sys.executable,
+                    str(script),
+                    "check-target-secret",
+                    "--namespace",
+                    "security",
+                    "--secret-name",
+                    "iap-runtime-credentials",
+                    "--required-keys",
+                    "client-id,client-secret",
+                    "--summary",
+                    "--output-json",
+                    str(check_ready_path),
+                ],
+                input=json.dumps(valid_secret),
+                text=True,
+                capture_output=True,
+                cwd=REPO_ROOT,
+            )
+            self.assertEqual(check_ready.returncode, 0, msg=check_ready.stdout + check_ready.stderr)
+            self.assertEqual(check_ready.stdout.strip(), "ready\tnone\tok")
+            check_ready_payload = json.loads(check_ready_path.read_text(encoding="utf-8"))
+            self.assertEqual(check_ready_payload["kind"], "runtime-target-secret-contract-check")
+            self.assertEqual(check_ready_payload["schemaVersion"], "v1")
+            self.assertEqual(check_ready_payload["status"], "ready")
+
+            check_missing = subprocess.run(
+                [
+                    sys.executable,
+                    str(script),
+                    "check-target-secret",
+                    "--namespace",
+                    "security",
+                    "--secret-name",
+                    "iap-runtime-credentials",
+                    "--required-keys",
+                    "client-id,client-secret",
+                    "--secret-present",
+                    "false",
+                    "--summary",
+                    "--output-json",
+                    str(check_missing_path),
+                ],
+                text=True,
+                capture_output=True,
+                cwd=REPO_ROOT,
+            )
+            self.assertEqual(check_missing.returncode, 1, msg=check_missing.stdout + check_missing.stderr)
+            self.assertEqual(check_missing.stdout.strip(), "missing-secret\tclient-id,client-secret\tmissing-target-secret")
+            check_missing_payload = json.loads(check_missing_path.read_text(encoding="utf-8"))
+            self.assertEqual(check_missing_payload["status"], "missing-secret")
+            self.assertEqual(check_missing_payload["missingKeys"], ["client-id", "client-secret"])
+
+            report = subprocess.run(
+                [
+                    sys.executable,
+                    str(script),
+                    "render-check-report",
+                    "--output",
+                    str(report_path),
+                    str(check_ready_path),
+                    str(check_missing_path),
+                ],
+                text=True,
+                capture_output=True,
+                cwd=REPO_ROOT,
+            )
+            self.assertEqual(report.returncode, 0, msg=report.stdout + report.stderr)
+            report_payload = json.loads(report_path.read_text(encoding="utf-8"))
+            self.assertEqual(report_payload["kind"], "runtime-target-secret-contract-check-report")
+            self.assertEqual(report_payload["schemaVersion"], "v1")
+            self.assertEqual(report_payload["counts"]["total"], 2)
+            self.assertEqual(report_payload["counts"]["ready"], 1)
+            self.assertEqual(report_payload["counts"]["missingSecret"], 1)
+            self.assertEqual(len(report_payload["checks"]), 2)
 
     def test_prereqs_helpers_and_runtime_workload_helpers(self) -> None:
         prereqs_script = REPO_ROOT / "scripts/lib/infra/prereqs_helpers.py"
