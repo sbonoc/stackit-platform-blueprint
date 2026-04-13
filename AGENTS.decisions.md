@@ -176,6 +176,11 @@
   - every `write_state_file` emits both `.env` and canonical `.json` payloads.
   - JSON sidecars are validated against `scripts/lib/infra/schemas/state_artifact.schema.json` via `scripts/lib/infra/state_artifact_contract.py`.
   - state cleanup primitives (`remove_state_file`, `remove_state_files_by_prefix`) now remove `.json` sidecars alongside `.env` files.
+- Runtime identity now has a dedicated consolidated doctor command:
+  - canonical operator entrypoint is `make auth-runtime-identity-doctor`.
+  - the command can refresh runtime identity reconciliation (default) or reuse existing artifacts (`RUNTIME_IDENTITY_DOCTOR_REFRESH=false`).
+  - diagnostics are consolidated into `artifacts/infra/runtime_identity_doctor_report.json` and mirrored through canonical state artifacts (`runtime_identity_doctor.env/.json`).
+  - report composition is centralized in `scripts/lib/platform/auth/runtime_identity_doctor_json.py` so shell wrappers avoid inline JSON parsing/rendering logic.
 - Argo repository URL policy is now centralized in one reusable library surface:
   - init repo rendering, runtime validation, and reconcile flows share `scripts/lib/infra/argocd_repo_contract.py` helpers for canonical URL rendering/validation.
 - Fast validation and docs-sync ergonomics were tightened:

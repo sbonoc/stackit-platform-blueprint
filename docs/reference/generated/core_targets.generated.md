@@ -105,6 +105,7 @@ This file is auto-generated. Do not edit it manually.
 | `auth-reconcile-eso-runtime-secrets` | Reconcile generic ESO runtime source-to-target credentials contract |
 | `auth-reconcile-argocd-repo-credentials` | Reconcile ArgoCD Git repository credentials and validate URL/auth contract |
 | `auth-reconcile-runtime-identity` | Reconcile runtime identity contracts (ESO, Argo repo access, Keycloak/module coverage) |
+| `auth-runtime-identity-doctor` | Diagnose runtime identity readiness with consolidated Argo/ESO/contract diagnostics |
 | `infra-post-deploy-consumer` | Consumer-owned local infra post-deploy hook contract target (optional) |
 | `apps-bootstrap` | Bootstrap app build/deploy prerequisites |
 | `apps-ci-bootstrap` | Bootstrap CI runner dependencies for app/test lanes (consumer-owned override point) |

@@ -111,6 +111,7 @@
 - `auth-reconcile-eso-runtime-secrets`
 - `auth-reconcile-argocd-repo-credentials`
 - `auth-reconcile-runtime-identity`
+- `auth-runtime-identity-doctor`
 - `backend-test-unit`
 - `backend-test-integration`
 - `backend-test-contracts`

@@ -17,6 +17,11 @@ Canonical reconciliation command:
 make auth-reconcile-runtime-identity
 ```
 
+Consolidated diagnostics command:
+```bash
+make auth-runtime-identity-doctor
+```
+
 Direct ESO-only reconciliation command:
 ```bash
 make auth-reconcile-eso-runtime-secrets
@@ -150,6 +155,20 @@ Resulting state artifacts:
 - `artifacts/infra/argocd_repo_credentials_reconcile.json`
 - `artifacts/infra/runtime_identity_reconcile.env`
 - `artifacts/infra/runtime_identity_reconcile.json`
+- `artifacts/infra/runtime_identity_doctor.env`
+- `artifacts/infra/runtime_identity_doctor.json`
+- `artifacts/infra/runtime_identity_doctor_report.json` (consolidated Argo/ESO/contract diagnostics)
+
+To diagnose using the latest reconcile state by default:
+```bash
+make auth-runtime-identity-doctor
+```
+
+To diagnose from existing artifacts without re-running reconciliation:
+```bash
+export RUNTIME_IDENTITY_DOCTOR_REFRESH=false
+make auth-runtime-identity-doctor
+```
 
 After local runtime credentials are ready, manually sync the local Keycloak Argo application (UI or CLI):
 ```bash

@@ -384,6 +384,105 @@ class PythonHelperExtractionsTests(unittest.TestCase):
             self.assertEqual(report_payload["counts"]["missingSecret"], 1)
             self.assertEqual(len(report_payload["checks"]), 2)
 
+    def test_runtime_identity_doctor_helpers(self) -> None:
+        script = REPO_ROOT / "scripts/lib/platform/auth/runtime_identity_doctor_json.py"
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp = Path(tmpdir)
+            runtime_identity_state = tmp / "runtime_identity_reconcile.env"
+            runtime_credentials_state = tmp / "runtime_credentials_eso_reconcile.env"
+            argocd_state = tmp / "argocd_repo_credentials_reconcile.env"
+            target_secret_report = tmp / "runtime_credentials_eso_target_secret_checks.json"
+            report_path = tmp / "runtime_identity_doctor_report.json"
+
+            runtime_identity_state.write_text(
+                "\n".join(
+                    [
+                        "status=success",
+                        "keycloak_realm_check_count=1",
+                        "keycloak_expected_contract_count=1",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            runtime_credentials_state.write_text(
+                "\n".join(
+                    [
+                        "status=success-with-warnings",
+                        "tooling_mode=execute",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            argocd_state.write_text("status=success\n", encoding="utf-8")
+            target_secret_report.write_text(
+                json.dumps(
+                    {
+                        "counts": {
+                            "total": 2,
+                            "ready": 1,
+                            "missingSecret": 1,
+                            "missingKeys": 0,
+                            "verifyError": 0,
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            render = run(
+                [
+                    sys.executable,
+                    str(script),
+                    "render-report",
+                    "--output",
+                    str(report_path),
+                    "--profile",
+                    "local-full",
+                    "--stack",
+                    "local",
+                    "--tooling-mode",
+                    "execute",
+                    "--refresh-status",
+                    "success",
+                    "--runtime-identity-state",
+                    str(runtime_identity_state),
+                    "--runtime-credentials-state",
+                    str(runtime_credentials_state),
+                    "--argocd-state",
+                    str(argocd_state),
+                    "--target-secret-report",
+                    str(target_secret_report),
+                    "--contract-eso-expected",
+                    "2",
+                    "--contract-eso-enabled",
+                    "2",
+                    "--contract-keycloak-expected",
+                    "1",
+                    "--contract-keycloak-enabled",
+                    "1",
+                    "--contract-eso-enabled-contracts",
+                    "runtime-credentials,argocd-gitops-repo",
+                    "--contract-keycloak-enabled-realms",
+                    "workflows",
+                ],
+                cwd=REPO_ROOT,
+            )
+            self.assertEqual(render.returncode, 0, msg=render.stdout + render.stderr)
+            summary_fields = render.stdout.strip().split("\t")
+            self.assertEqual(summary_fields[0], "success-with-warnings")
+            self.assertEqual(summary_fields[4], "2")
+            self.assertEqual(summary_fields[6], "1")
+
+            report_payload = json.loads(report_path.read_text(encoding="utf-8"))
+            self.assertEqual(report_payload["kind"], "runtime-identity-doctor-report")
+            self.assertEqual(report_payload["schemaVersion"], "v1")
+            self.assertEqual(report_payload["summary"]["status"], "success-with-warnings")
+            self.assertEqual(report_payload["contract"]["keycloak"]["enabledRealmCount"], 1)
+            self.assertEqual(report_payload["artifacts"]["targetSecretCheckReport"]["counts"]["missingSecret"], 1)
+            self.assertGreaterEqual(report_payload["summary"]["warningCount"], 1)
+
     def test_prereqs_helpers_and_runtime_workload_helpers(self) -> None:
         prereqs_script = REPO_ROOT / "scripts/lib/infra/prereqs_helpers.py"
         workload_script = REPO_ROOT / "scripts/lib/platform/apps/runtime_workload_helpers.py"
