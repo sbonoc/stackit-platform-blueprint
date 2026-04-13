@@ -100,6 +100,7 @@ keycloak_csv_append_unique() {
   local csv_value="$1"
   local item="$2"
   local token=""
+  local -a tokens=()
   [[ -n "$item" ]] || {
     printf '%s' "$csv_value"
     return 0
