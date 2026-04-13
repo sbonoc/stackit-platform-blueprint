@@ -205,6 +205,161 @@ class RuntimeCredentialsEsoTests(unittest.TestCase):
         self.assertIn("skipped_contract_count=0", state)
         self.assertIn("skipped_contracts=none", state)
 
+    def test_required_mode_does_not_false_flag_hyphenated_target_keys_as_missing(self) -> None:
+        env = module_flags_env(profile="local-full")
+        env.update(
+            {
+                "DRY_RUN": "false",
+                "RUNTIME_CREDENTIALS_REQUIRED": "true",
+                "RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS": "username=dev-user,password=dev-password",
+            }
+        )
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            shim_dir = Path(tmpdir)
+
+            python_shim = shim_dir / "python3"
+            python_shim.write_text(
+                "\n".join(
+                    [
+                        "#!/usr/bin/env bash",
+                        "set -euo pipefail",
+                        f'target_contract_cli="{REPO_ROOT}/scripts/lib/infra/runtime_identity_contract.py"',
+                        'if [[ "${1:-}" == "$target_contract_cli" ]]; then',
+                        '  case "${2:-}" in',
+                        "    runtime-env-defaults)",
+                        "      cat <<'EOF'",
+                        "KEYCLOAK_OPTIONAL_MODULE_RECONCILIATION_ENABLED\ttrue",
+                        "RUNTIME_CREDENTIALS_SOURCE_NAMESPACE\tsecurity",
+                        "RUNTIME_CREDENTIALS_TARGET_NAMESPACE\tapps",
+                        "RUNTIME_CREDENTIALS_ESO_WAIT_TIMEOUT\t15",
+                        "RUNTIME_CREDENTIALS_REQUIRED\tfalse",
+                        "EOF",
+                        "      exit 0",
+                        "      ;;",
+                        "    eso-contracts)",
+                        "      cat <<'EOF'",
+                        "iap-runtime-credentials\t\tsecurity\tiap-runtime-credentials\tiap-runtime-credentials\tclient-id,client-secret",
+                        "EOF",
+                        "      exit 0",
+                        "      ;;",
+                        "  esac",
+                        "fi",
+                        f"exec {shlex.quote(sys.executable)} \"$@\"",
+                        "",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            python_shim.chmod(0o755)
+
+            kubectl_shim = shim_dir / "kubectl"
+            kubectl_shim.write_text(
+                "\n".join(
+                    [
+                        "#!/usr/bin/env bash",
+                        "set -euo pipefail",
+                        'if [[ "${1:-}" == "--context=docker-desktop" && "${2:-}" == "config" && "${3:-}" == "view" && "${4:-}" == "--raw" && "${5:-}" == "--minify" && "${6:-}" == "--flatten" ]]; then',
+                        "  cat <<'EOF'",
+                        "apiVersion: v1",
+                        "kind: Config",
+                        "clusters:",
+                        "- cluster:",
+                        "    server: https://docker-desktop.example:6443",
+                        "  name: docker-desktop",
+                        "contexts:",
+                        "- context:",
+                        "    cluster: docker-desktop",
+                        "    user: docker-desktop",
+                        "  name: docker-desktop",
+                        "current-context: docker-desktop",
+                        "users:",
+                        "- name: docker-desktop",
+                        "  user:",
+                        "    token: placeholder",
+                        "EOF",
+                        "  exit 0",
+                        "fi",
+                        'if [[ "${1:-}" == "config" && "${2:-}" == "get-contexts" && "${3:-}" == "-o" && "${4:-}" == "name" ]]; then',
+                        "  printf 'docker-desktop\\n'",
+                        "  exit 0",
+                        "fi",
+                        'if [[ "${1:-}" == "config" && "${2:-}" == "current-context" ]]; then',
+                        "  printf 'docker-desktop\\n'",
+                        "  exit 0",
+                        "fi",
+                        'while [[ "$#" -gt 0 ]]; do',
+                        '  case "$1" in',
+                        "    --kubeconfig|--context)",
+                        "      shift 2",
+                        "      continue",
+                        "      ;;",
+                        "    --kubeconfig=*|--context=*)",
+                        "      shift",
+                        "      continue",
+                        "      ;;",
+                        "  esac",
+                        "  break",
+                        "done",
+                        'if [[ "${1:-}" == "apply" && "${2:-}" == "-k" ]]; then',
+                        "  exit 0",
+                        "fi",
+                        'if [[ "${1:-}" == "apply" && "${2:-}" == "-f" ]]; then',
+                        "  exit 0",
+                        "fi",
+                        'if [[ "${1:-}" == "get" && "${2:-}" == "crd/clustersecretstores.external-secrets.io" ]]; then',
+                        "  printf 'Established=True\\n'",
+                        "  exit 0",
+                        "fi",
+                        'if [[ "${1:-}" == "get" && "${2:-}" == "crd/externalsecrets.external-secrets.io" ]]; then',
+                        "  printf 'Established=True\\n'",
+                        "  exit 0",
+                        "fi",
+                        'if [[ "${1:-}" == "-n" && "${2:-}" == "security" && "${3:-}" == "get" && "${4:-}" == "externalsecret" && "${5:-}" == "iap-runtime-credentials" && "${6:-}" == "-o" ]]; then',
+                        "  printf 'Ready=True\\n'",
+                        "  exit 0",
+                        "fi",
+                        'if [[ "${1:-}" == "-n" && "${2:-}" == "security" && "${3:-}" == "get" && "${4:-}" == "externalsecret" && "${5:-}" == "iap-runtime-credentials" ]]; then',
+                        "  exit 0",
+                        "fi",
+                        'if [[ "${1:-}" == "-n" && "${2:-}" == "security" && "${3:-}" == "get" && "${4:-}" == "secret" && "${5:-}" == "iap-runtime-credentials" && "${6:-}" == "-o" && "${7:-}" == "json" ]]; then',
+                        "  cat <<'EOF'",
+                        '{"apiVersion":"v1","kind":"Secret","metadata":{"name":"iap-runtime-credentials","namespace":"security"},"data":{"client-id":"Y2xpZW50LWlk","client-secret":"Y2xpZW50LXNlY3JldA=="}}',
+                        "EOF",
+                        "  exit 0",
+                        "fi",
+                        'if [[ "${1:-}" == "-n" && "${2:-}" == "security" && "${3:-}" == "get" && "${4:-}" == "secret" && "${5:-}" == "iap-runtime-credentials" && "${6:-}" == "-o" ]]; then',
+                        "  printf 'simulated jsonpath parser mismatch\\n' >&2",
+                        "  exit 1",
+                        "fi",
+                        'if [[ "${1:-}" == "-n" && "${2:-}" == "security" && "${3:-}" == "get" && "${4:-}" == "secret" && "${5:-}" == "iap-runtime-credentials" ]]; then',
+                        "  exit 0",
+                        "fi",
+                        'printf "unexpected kubectl call: %s\\n" "$*" >&2',
+                        "exit 1",
+                        "",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            kubectl_shim.chmod(0o755)
+
+            env["PATH"] = f"{shim_dir}:{os.environ.get('PATH', '')}"
+            result = run_make("auth-reconcile-eso-runtime-secrets", env)
+
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        combined_output = result.stdout + result.stderr
+        self.assertNotIn("missing key(s)", combined_output)
+        self.assertNotIn("verification error", combined_output)
+
+        state_path = REPO_ROOT / "artifacts" / "infra" / "runtime_credentials_eso_reconcile.env"
+        self.assertTrue(state_path.exists(), msg="runtime credentials state artifact was not created")
+        state = state_path.read_text(encoding="utf-8")
+        self.assertIn("status=success", state)
+        self.assertIn("target_secret_status=ready", state)
+        self.assertIn("target_secret_missing_keys=none", state)
+        self.assertIn("target_secret_checked=security/iap-runtime-credentials", state)
+
     def test_argocd_reconcile_resolves_repo_contract_without_argparse_errors(self) -> None:
         env = module_flags_env(profile="local-full")
         env.update(

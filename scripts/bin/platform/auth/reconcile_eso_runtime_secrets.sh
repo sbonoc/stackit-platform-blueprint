@@ -42,6 +42,7 @@ fi
 
 require_command python3
 runtime_identity_contract_cli="$ROOT_DIR/scripts/lib/infra/runtime_identity_contract.py"
+runtime_secret_json_helpers="$ROOT_DIR/scripts/lib/platform/auth/runtime_secret_keys_json.py"
 
 while IFS=$'\t' read -r env_name env_default; do
   [[ -n "$env_name" ]] || continue
@@ -118,30 +119,32 @@ verify_target_secret_keys() {
   local namespace="$1"
   local secret_name="$2"
   local keys_csv="$3"
+  local secret_json verification_output
 
-  if ! kubectl -n "$namespace" get secret "$secret_name" >/dev/null 2>&1; then
+  if ! run_kubectl_with_active_access -n "$namespace" get secret "$secret_name" >/dev/null 2>&1; then
     printf '__missing_secret__\n'
     return 1
   fi
 
-  local raw_key key value
-  local -a missing_keys=()
-  IFS=',' read -r -a requested_keys <<<"$keys_csv"
-  for raw_key in "${requested_keys[@]}"; do
-    key="$(trim_whitespace "$raw_key")"
-    [[ -n "$key" ]] || continue
-    value="$(kubectl -n "$namespace" get secret "$secret_name" -o "jsonpath={.data[\"$key\"]}" 2>/dev/null || true)"
-    if [[ -z "$value" ]]; then
-      missing_keys+=("$key")
-    fi
-  done
-
-  if (( ${#missing_keys[@]} > 0 )); then
-    printf '%s\n' "${missing_keys[*]}"
+  secret_json="$(run_kubectl_capture_stdout_with_active_access -n "$namespace" get secret "$secret_name" -o json 2>/dev/null || true)"
+  if [[ -z "$secret_json" ]]; then
+    printf '__verify_error__:empty-secret-json\n'
     return 1
   fi
 
-  printf 'ok\n'
+  if ! verification_output="$(
+    printf '%s' "$secret_json" | python3 "$runtime_secret_json_helpers" verify-required-keys "$keys_csv" 2>&1
+  )"; then
+    printf '%s\n' "$verification_output"
+    return 1
+  fi
+
+  if [[ "$verification_output" != "ok" ]]; then
+    printf '__verify_error__:unexpected-verifier-output\n'
+    return 1
+  fi
+
+  printf '%s\n' "$verification_output"
   return 0
 }
 
@@ -383,6 +386,18 @@ else
         fi
         record_reconcile_issue \
           "target secret ${contract_namespace}/${contract_target_secret} is missing"
+        continue
+      fi
+
+      if [[ "$target_check_output" == "__verify_error__:"* ]]; then
+        target_secret_status="verify-error"
+        if [[ "$target_missing_keys" == "none" ]]; then
+          target_missing_keys="${contract_namespace}/${contract_target_secret}:verify-error"
+        else
+          target_missing_keys+=",${contract_namespace}/${contract_target_secret}:verify-error"
+        fi
+        record_reconcile_issue \
+          "target secret ${contract_namespace}/${contract_target_secret} verification error: ${target_check_output#__verify_error__:}"
         continue
       fi
 
