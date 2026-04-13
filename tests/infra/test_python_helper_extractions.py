@@ -483,6 +483,86 @@ class PythonHelperExtractionsTests(unittest.TestCase):
             self.assertEqual(report_payload["artifacts"]["targetSecretCheckReport"]["counts"]["missingSecret"], 1)
             self.assertGreaterEqual(report_payload["summary"]["warningCount"], 1)
 
+            runtime_identity_state.write_text(
+                "\n".join(
+                    [
+                        "status=success",
+                        "keycloak_realm_check_count=0",
+                        "keycloak_expected_contract_count=0",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            runtime_credentials_state.write_text(
+                "\n".join(
+                    [
+                        "status=success",
+                        "tooling_mode=dry-run",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            target_secret_report.write_text(
+                json.dumps(
+                    {
+                        "counts": {
+                            "total": 0,
+                            "ready": 0,
+                            "missingSecret": 0,
+                            "missingKeys": 0,
+                            "verifyError": 0,
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            render_empty = run(
+                [
+                    sys.executable,
+                    str(script),
+                    "render-report",
+                    "--output",
+                    str(report_path),
+                    "--profile",
+                    "local-full",
+                    "--stack",
+                    "local",
+                    "--tooling-mode",
+                    "dry-run",
+                    "--refresh-status",
+                    "skipped",
+                    "--runtime-identity-state",
+                    str(runtime_identity_state),
+                    "--runtime-credentials-state",
+                    str(runtime_credentials_state),
+                    "--argocd-state",
+                    str(argocd_state),
+                    "--target-secret-report",
+                    str(target_secret_report),
+                    "--contract-eso-expected",
+                    "0",
+                    "--contract-eso-enabled",
+                    "0",
+                    "--contract-keycloak-expected",
+                    "0",
+                    "--contract-keycloak-enabled",
+                    "0",
+                    "--contract-eso-enabled-contracts",
+                    "none",
+                    "--contract-keycloak-enabled-realms",
+                    "N/A",
+                ],
+                cwd=REPO_ROOT,
+            )
+            self.assertEqual(render_empty.returncode, 0, msg=render_empty.stdout + render_empty.stderr)
+            report_empty_payload = json.loads(report_path.read_text(encoding="utf-8"))
+            self.assertEqual(report_empty_payload["summary"]["status"], "success")
+            self.assertEqual(report_empty_payload["contract"]["eso"]["enabledContracts"], [])
+            self.assertEqual(report_empty_payload["contract"]["keycloak"]["enabledRealms"], [])
+
     def test_prereqs_helpers_and_runtime_workload_helpers(self) -> None:
         prereqs_script = REPO_ROOT / "scripts/lib/infra/prereqs_helpers.py"
         workload_script = REPO_ROOT / "scripts/lib/platform/apps/runtime_workload_helpers.py"

@@ -180,10 +180,12 @@ def _summarize_state_health(issues: list[DoctorIssue], state: ArtifactState) -> 
 
 
 def _split_csv(csv_value: str) -> list[str]:
+    sentinel_empty_values = {"none", "n/a", "na", "null"}
     values: list[str] = []
     for raw in csv_value.split(","):
         normalized = raw.strip()
-        if normalized == "" or normalized in values:
+        normalized_token = normalized.lower()
+        if normalized == "" or normalized_token in sentinel_empty_values or normalized in values:
             continue
         values.append(normalized)
     return values

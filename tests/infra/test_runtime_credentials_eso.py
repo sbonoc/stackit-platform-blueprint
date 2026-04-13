@@ -502,6 +502,8 @@ class RuntimeCredentialsEsoTests(unittest.TestCase):
         self.assertEqual(report.get("summary", {}).get("issueCount"), 0)
         self.assertEqual(report.get("execution", {}).get("refreshStatus"), "success")
         self.assertEqual(report.get("artifacts", {}).get("runtimeIdentityReconcile", {}).get("present"), True)
+        self.assertEqual(report.get("contract", {}).get("keycloak", {}).get("enabledRealmCount"), 0)
+        self.assertEqual(report.get("contract", {}).get("keycloak", {}).get("enabledRealms"), [])
 
 
 if __name__ == "__main__":
