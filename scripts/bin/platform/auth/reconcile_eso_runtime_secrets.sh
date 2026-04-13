@@ -481,13 +481,6 @@ else
     done
   fi
 
-  if (( ${#RUNTIME_RECONCILE_ISSUES[@]} > 0 )); then
-    if [[ "$RUNTIME_CREDENTIALS_REQUIRED_NORMALIZED" == "true" ]]; then
-      status="failed-required"
-    else
-      status="warn-and-skip"
-    fi
-  fi
 fi
 
 target_secret_diagnostics_count="${#TARGET_SECRET_CHECK_DIAGNOSTIC_FILES[@]}"
@@ -504,6 +497,18 @@ else
     target_secret_status="verify-error"
     record_reconcile_issue "failed to render runtime target-secret diagnostics report at $target_secret_diagnostics_report"
   fi
+fi
+
+if (( ${#RUNTIME_RECONCILE_ISSUES[@]} > 0 )); then
+  if [[ "$RUNTIME_CREDENTIALS_REQUIRED_NORMALIZED" == "true" ]]; then
+    status="failed-required"
+  else
+    status="warn-and-skip"
+  fi
+elif (( eso_contract_count == 0 )); then
+  status="noop-empty-contract-set"
+else
+  status="success"
 fi
 
 log_metric \
