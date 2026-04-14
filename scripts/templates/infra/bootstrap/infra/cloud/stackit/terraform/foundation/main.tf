@@ -167,6 +167,22 @@ resource "stackit_rabbitmq_credential" "foundation" {
   instance_id = stackit_rabbitmq_instance.foundation[0].instance_id
 }
 
+resource "stackit_opensearch_instance" "foundation" {
+  count = var.opensearch_enabled ? 1 : 0
+
+  project_id = var.stackit_project_id
+  name       = local.opensearch_instance_name
+  version    = var.opensearch_version
+  plan_name  = var.opensearch_plan_name
+}
+
+resource "stackit_opensearch_credential" "foundation" {
+  count = var.opensearch_enabled ? 1 : 0
+
+  project_id  = var.stackit_project_id
+  instance_id = stackit_opensearch_instance.foundation[0].instance_id
+}
+
 resource "stackit_secretsmanager_instance" "foundation" {
   count = var.secrets_manager_enabled ? 1 : 0
 

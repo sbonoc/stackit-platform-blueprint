@@ -102,6 +102,7 @@ bootstrap_blueprint_templates() {
     "docs/platform/modules/neo4j/README.md"
     "docs/platform/modules/object-storage/README.md"
     "docs/platform/modules/rabbitmq/README.md"
+    "docs/platform/modules/opensearch/README.md"
     "docs/platform/modules/dns/README.md"
     "docs/platform/modules/public-endpoints/README.md"
     "docs/platform/modules/secrets-manager/README.md"

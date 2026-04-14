@@ -47,6 +47,12 @@ locals {
     ? local.secrets_manager_instance_name_override
     : "${local.naming_prefix}-${var.secrets_manager_instance_name_suffix}"
   )
+  opensearch_instance_name_override = try(trimspace(var.opensearch_instance_name), "")
+  opensearch_instance_name = (
+    local.opensearch_instance_name_override != ""
+    ? local.opensearch_instance_name_override
+    : "${local.naming_prefix}-${var.opensearch_instance_name_suffix}"
+  )
 
   dns_zone_fqdns = sort(distinct(var.dns_zone_fqdns))
   dns_zone_dns_names = {
@@ -61,6 +67,7 @@ locals {
     neo4j                = var.neo4j_enabled
     object-storage       = var.object_storage_enabled
     rabbitmq             = var.rabbitmq_enabled
+    opensearch           = var.opensearch_enabled
     dns                  = var.dns_enabled
     public-endpoints     = var.public_endpoints_enabled
     secrets-manager      = var.secrets_manager_enabled
@@ -115,6 +122,14 @@ locals {
       stackit_resource_types = [
         "stackit_rabbitmq_instance",
         "stackit_rabbitmq_credential",
+      ]
+      fallback_strategy = "none"
+    }
+    opensearch = {
+      stackit_provider_supported = true
+      stackit_resource_types = [
+        "stackit_opensearch_instance",
+        "stackit_opensearch_credential",
       ]
       fallback_strategy = "none"
     }

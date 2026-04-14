@@ -24,6 +24,7 @@ def module_flags_env(
     neo4j: str = "false",
     object_storage: str = "false",
     rabbitmq: str = "false",
+    opensearch: str = "false",
     dns: str = "false",
     public_endpoints: str = "false",
     secrets_manager: str = "false",
@@ -39,6 +40,7 @@ def module_flags_env(
         "NEO4J_ENABLED": neo4j,
         "OBJECT_STORAGE_ENABLED": object_storage,
         "RABBITMQ_ENABLED": rabbitmq,
+        "OPENSEARCH_ENABLED": opensearch,
         "DNS_ENABLED": dns,
         "PUBLIC_ENDPOINTS_ENABLED": public_endpoints,
         "SECRETS_MANAGER_ENABLED": secrets_manager,
@@ -53,6 +55,11 @@ def module_flags_env(
         env.setdefault("POSTGRES_DB_NAME", "platform")
         env.setdefault("POSTGRES_USER", "platform")
         env.setdefault("POSTGRES_PASSWORD", "platform-password")
+
+    if opensearch == "true":
+        env.setdefault("OPENSEARCH_INSTANCE_NAME", "marketplace-opensearch")
+        env.setdefault("OPENSEARCH_VERSION", "2.17")
+        env.setdefault("OPENSEARCH_PLAN_NAME", "stackit-opensearch-single")
 
     return env
 

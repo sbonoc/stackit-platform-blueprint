@@ -333,6 +333,36 @@ variable "rabbitmq_plan_name" {
   default     = "stackit-rabbitmq-2.4.10-replica"
 }
 
+variable "opensearch_enabled" {
+  description = "Enable managed OpenSearch provisioning contract."
+  type        = bool
+  default     = false
+}
+
+variable "opensearch_instance_name_suffix" {
+  description = "Suffix used when naming OpenSearch instance."
+  type        = string
+  default     = "opensearch"
+}
+
+variable "opensearch_instance_name" {
+  description = "Canonical OpenSearch instance name sourced from module env inputs."
+  type        = string
+  default     = null
+}
+
+variable "opensearch_version" {
+  description = "Managed OpenSearch service version."
+  type        = string
+  default     = "2.17"
+}
+
+variable "opensearch_plan_name" {
+  description = "Managed OpenSearch plan name."
+  type        = string
+  default     = "stackit-opensearch-single"
+}
+
 variable "public_endpoints_enabled" {
   description = "Enable public endpoints contract in foundation outputs (fallback mode in MVP)."
   type        = bool

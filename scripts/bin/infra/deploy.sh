@@ -82,7 +82,7 @@ run_cmd "$ROOT_DIR/scripts/bin/platform/apps/bootstrap.sh"
 
 run_enabled_modules_action deploy \
   workflows langfuse neo4j postgres \
-  object-storage rabbitmq dns public-endpoints secrets-manager kms identity-aware-proxy
+  object-storage rabbitmq opensearch dns public-endpoints secrets-manager kms identity-aware-proxy
 
 core_runtime_state="none"
 if state_file_exists core_runtime_bootstrap; then

@@ -1480,6 +1480,8 @@ render_optional_module_secret_manifests "messaging" "blueprint-rabbitmq-auth" "r
                     "-u",
                     "RABBITMQ_ENABLED",
                     "-u",
+                    "OPENSEARCH_ENABLED",
+                    "-u",
                     "DNS_ENABLED",
                     "-u",
                     "PUBLIC_ENDPOINTS_ENABLED",
@@ -1651,6 +1653,7 @@ stackit_layer_var_args foundation
                 "BLUEPRINT_PROFILE": "stackit-dev",
                 "POSTGRES_ENABLED": "true",
                 "OBJECT_STORAGE_ENABLED": "true",
+                "OPENSEARCH_ENABLED": "true",
                 "DNS_ENABLED": "true",
                 "SECRETS_MANAGER_ENABLED": "true",
                 "POSTGRES_INSTANCE_NAME": "bp-postgres-stackit",
@@ -1659,6 +1662,9 @@ stackit_layer_var_args foundation
                 "POSTGRES_VERSION": "16",
                 "POSTGRES_EXTRA_ALLOWED_CIDRS": "10.0.0.0/24, 10.0.1.0/24",
                 "OBJECT_STORAGE_BUCKET_NAME": "bp-assets-stackit",
+                "OPENSEARCH_INSTANCE_NAME": "bp-opensearch-stackit",
+                "OPENSEARCH_VERSION": "2.17",
+                "OPENSEARCH_PLAN_NAME": "stackit-opensearch-single",
                 "DNS_ZONE_NAME": "marketplace-stackit",
                 "DNS_ZONE_FQDN": "marketplace-stackit.example.",
                 "SECRETS_MANAGER_INSTANCE_NAME": "bp-secrets-stackit",
@@ -1671,6 +1677,9 @@ stackit_layer_var_args foundation
         self.assertIn("-var=postgres_version=16", result.stdout)
         self.assertIn('-var=postgres_acl=["10.0.0.0/24", "10.0.1.0/24"]', result.stdout)
         self.assertIn("-var=object_storage_bucket_name=bp-assets-stackit", result.stdout)
+        self.assertIn("-var=opensearch_instance_name=bp-opensearch-stackit", result.stdout)
+        self.assertIn("-var=opensearch_version=2.17", result.stdout)
+        self.assertIn("-var=opensearch_plan_name=stackit-opensearch-single", result.stdout)
         self.assertIn('-var=dns_zone_fqdns=["marketplace-stackit.example."]', result.stdout)
         self.assertIn("-var=secrets_manager_instance_name=bp-secrets-stackit", result.stdout)
 
@@ -1709,6 +1718,14 @@ printf 'vars=%s\\n' "$(stackit_layer_var_file foundation)"
                 "rabbitmq_port": {"value": 5671},
                 "rabbitmq_username": {"value": "managed-user"},
                 "rabbitmq_password": {"value": "managed-password"},
+                "opensearch_host": {"value": "managed-opensearch.eu01.onstackit.cloud"},
+                "opensearch_hosts": {"value": "managed-opensearch-1.eu01.onstackit.cloud,managed-opensearch-2.eu01.onstackit.cloud"},
+                "opensearch_port": {"value": 443},
+                "opensearch_scheme": {"value": "https"},
+                "opensearch_uri": {"value": "https://managed-opensearch.eu01.onstackit.cloud:443"},
+                "opensearch_dashboard_url": {"value": "https://managed-opensearch.eu01.onstackit.cloud"},
+                "opensearch_username": {"value": "managed-opensearch-user"},
+                "opensearch_password": {"value": "managed-opensearch-password"},
             }
         )
         script = f"""
@@ -1719,7 +1736,9 @@ source "{REPO_ROOT}/scripts/lib/infra/postgres.sh"
 source "{REPO_ROOT}/scripts/lib/infra/object_storage.sh"
 source "{REPO_ROOT}/scripts/lib/infra/dns.sh"
 source "{REPO_ROOT}/scripts/lib/infra/rabbitmq.sh"
+source "{REPO_ROOT}/scripts/lib/infra/opensearch.sh"
 rabbitmq_init_env
+opensearch_init_env
 printf 'postgres_host=%s\\n' "$(postgres_host)"
 printf 'postgres_port=%s\\n' "$(postgres_port)"
 printf 'postgres_user=%s\\n' "$(postgres_username)"
@@ -1734,6 +1753,14 @@ printf 'rabbitmq_host=%s\\n' "$(rabbitmq_host)"
 printf 'rabbitmq_port=%s\\n' "$(rabbitmq_port)"
 printf 'rabbitmq_user=%s\\n' "$(rabbitmq_username)"
 printf 'rabbitmq_password=%s\\n' "$(rabbitmq_password)"
+printf 'opensearch_host=%s\\n' "$(opensearch_host)"
+printf 'opensearch_hosts=%s\\n' "$(opensearch_hosts)"
+printf 'opensearch_port=%s\\n' "$(opensearch_port)"
+printf 'opensearch_scheme=%s\\n' "$(opensearch_scheme)"
+printf 'opensearch_uri=%s\\n' "$(opensearch_uri)"
+printf 'opensearch_dashboard=%s\\n' "$(opensearch_dashboard_url)"
+printf 'opensearch_user=%s\\n' "$(opensearch_username)"
+printf 'opensearch_password=%s\\n' "$(opensearch_password)"
 printf 'dsn=%s\\n' "$(postgres_dsn)"
 """
         result = run(
@@ -1751,6 +1778,9 @@ printf 'dsn=%s\\n' "$(postgres_dsn)"
                 "OBJECT_STORAGE_SECRET_KEY": "placeholder-secret",
                 "DNS_ZONE_NAME": "placeholder-zone",
                 "DNS_ZONE_FQDN": "marketplace-stackit.example.",
+                "OPENSEARCH_INSTANCE_NAME": "placeholder-opensearch",
+                "OPENSEARCH_VERSION": "2.17",
+                "OPENSEARCH_PLAN_NAME": "stackit-opensearch-single",
                 "STACKIT_FOUNDATION_OUTPUTS_LOADED": "true",
                 "STACKIT_FOUNDATION_OUTPUTS_JSON": payload,
             },
@@ -1773,6 +1803,17 @@ printf 'dsn=%s\\n' "$(postgres_dsn)"
         self.assertIn("rabbitmq_port=5671", result.stdout)
         self.assertIn("rabbitmq_user=managed-user", result.stdout)
         self.assertIn("rabbitmq_password=managed-password", result.stdout)
+        self.assertIn("opensearch_host=managed-opensearch.eu01.onstackit.cloud", result.stdout)
+        self.assertIn(
+            "opensearch_hosts=managed-opensearch-1.eu01.onstackit.cloud,managed-opensearch-2.eu01.onstackit.cloud",
+            result.stdout,
+        )
+        self.assertIn("opensearch_port=443", result.stdout)
+        self.assertIn("opensearch_scheme=https", result.stdout)
+        self.assertIn("opensearch_uri=https://managed-opensearch.eu01.onstackit.cloud:443", result.stdout)
+        self.assertIn("opensearch_dashboard=https://managed-opensearch.eu01.onstackit.cloud", result.stdout)
+        self.assertIn("opensearch_user=managed-opensearch-user", result.stdout)
+        self.assertIn("opensearch_password=managed-opensearch-password", result.stdout)
         self.assertIn(
             "dsn=postgresql://managed-user:managed-password@managed-postgres.eu01.onstackit.cloud:15432/managed-db",
             result.stdout,
@@ -1783,6 +1824,12 @@ printf 'dsn=%s\\n' "$(postgres_dsn)"
         self.assertIn("class=fallback_runtime", resolved)
         self.assertIn("driver=helm", resolved)
         self.assertIn(f"path={REPO_ROOT}/artifacts/infra/rendered/rabbitmq.values.yaml", resolved)
+
+    def test_optional_module_execution_resolves_local_provider_noop_mode_for_opensearch(self) -> None:
+        resolved = resolve_optional_module_execution("opensearch", "plan", profile="local-full")
+        self.assertIn("class=provider_backed", resolved)
+        self.assertIn("driver=noop", resolved)
+        self.assertIn("path=none", resolved)
 
     def test_local_context_prefers_docker_desktop_on_workstations(self) -> None:
         resolved = resolve_local_kube_context_contract(

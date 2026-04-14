@@ -12,6 +12,7 @@ source "$ROOT_DIR/scripts/lib/blueprint/bootstrap_templates.sh"
 source "$ROOT_DIR/scripts/lib/infra/postgres.sh"
 source "$ROOT_DIR/scripts/lib/infra/object_storage.sh"
 source "$ROOT_DIR/scripts/lib/infra/rabbitmq.sh"
+source "$ROOT_DIR/scripts/lib/infra/opensearch.sh"
 source "$ROOT_DIR/scripts/lib/infra/public_endpoints.sh"
 source "$ROOT_DIR/scripts/lib/infra/identity_aware_proxy.sh"
 source "$ROOT_DIR/scripts/lib/infra/keycloak.sh"
@@ -406,6 +407,11 @@ bootstrap_optional_module_scaffolding() {
     scaffolded_modules+=("rabbitmq")
   fi
 
+  if is_module_enabled opensearch; then
+    bootstrap_module_scaffold opensearch false false
+    scaffolded_modules+=("opensearch")
+  fi
+
   if is_module_enabled dns; then
     bootstrap_module_scaffold dns false false
     scaffolded_modules+=("dns")
@@ -589,6 +595,7 @@ report_disabled_module_scaffolding_preserved() {
     neo4j
     object-storage
     rabbitmq
+    opensearch
     dns
     public-endpoints
     secrets-manager
