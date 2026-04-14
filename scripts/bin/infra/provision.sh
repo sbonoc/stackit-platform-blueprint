@@ -52,10 +52,10 @@ fi
 
 run_enabled_modules_action plan \
   observability workflows langfuse postgres neo4j \
-  object-storage rabbitmq dns public-endpoints secrets-manager kms identity-aware-proxy
+  object-storage rabbitmq opensearch dns public-endpoints secrets-manager kms identity-aware-proxy
 run_enabled_modules_action apply \
   observability workflows langfuse postgres neo4j \
-  object-storage rabbitmq dns public-endpoints secrets-manager kms identity-aware-proxy
+  object-storage rabbitmq opensearch dns public-endpoints secrets-manager kms identity-aware-proxy
 
 local_crossplane_state="none"
 if state_file_exists local_crossplane_bootstrap; then

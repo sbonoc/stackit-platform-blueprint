@@ -136,7 +136,7 @@ fi
 
 run_enabled_modules_action smoke \
   workflows langfuse postgres neo4j \
-  object-storage rabbitmq dns public-endpoints secrets-manager kms identity-aware-proxy
+  object-storage rabbitmq opensearch dns public-endpoints secrets-manager kms identity-aware-proxy
 
 if [[ "$(tooling_execution_mode)" == "execute" ]] && command -v kubectl >/dev/null 2>&1; then
   ensure_dir "$(dirname "$SMOKE_POD_SNAPSHOT_PATH")"

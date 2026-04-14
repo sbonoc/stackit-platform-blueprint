@@ -500,6 +500,7 @@ class QualityContractsTests(unittest.TestCase):
         fallback_runtime = _read("scripts/lib/infra/fallback_runtime.sh")
         postgres_apply = _read("scripts/bin/infra/postgres_apply.sh")
         rabbitmq_plan = _read("scripts/bin/infra/rabbitmq_plan.sh")
+        opensearch_apply = _read("scripts/bin/infra/opensearch_apply.sh")
         kms_destroy = _read("scripts/bin/infra/kms_destroy.sh")
 
         self.assertIn("resolve_optional_module_execution", module_execution)
@@ -512,6 +513,9 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn('resolve_optional_module_execution "rabbitmq" "plan"', rabbitmq_plan)
         self.assertIn('scripts/lib/infra/fallback_runtime.sh', rabbitmq_plan)
         self.assertNotIn("elif is_local_profile; then", rabbitmq_plan)
+        self.assertIn('scripts/lib/infra/module_execution.sh', opensearch_apply)
+        self.assertIn('resolve_optional_module_execution "opensearch" "apply"', opensearch_apply)
+        self.assertNotIn("if is_stackit_profile; then", opensearch_apply)
         self.assertIn('resolve_optional_module_execution "kms" "destroy"', kms_destroy)
 
     def test_runtime_credentials_reconcile_uses_nounset_safe_contract_iteration(self) -> None:

@@ -65,6 +65,9 @@
   - runtime/API modules: `workflows`, `langfuse`, `neo4j`, `public-endpoints`, `identity-aware-proxy`
   - generated repositories persist their chosen optional-module set in `blueprint/contract.yaml` during `make blueprint-init-repo`; later commands read that contract by default, and env flags act as explicit overrides
   - OpenSearch is a blueprint-owned platform capability target; OpenMetadata remains consumer/product-owned and is out of blueprint scope unless a future decision records otherwise
+  - OpenSearch is now a first-class optional module surface with canonical contract/docs/tests/make targets and profile-aware execution:
+    - `stackit-*` profiles execute through foundation-contract reconciliation and runtime secrets export from foundation outputs
+    - `local-*` profiles keep deterministic no-op plan/apply/destroy behavior (no managed local OpenSearch fallback runtime)
 - Runtime dependency policy keeps pinned latest-stable versions, with one explicit vendor exception:
   - current multi-arch Bitnami images published under `bitnamilegacy/*` are allowed when the pinned tag is the supported stable line validated by this repo
 - Quality gates are split by operator intent:

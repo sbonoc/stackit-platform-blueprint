@@ -73,6 +73,12 @@ OUT
   infra-rabbitmq-plan infra-rabbitmq-apply infra-rabbitmq-smoke infra-rabbitmq-destroy
 OUT
     ;;
+  opensearch)
+    cat <<'OUT'
+ \
+  infra-opensearch-plan infra-opensearch-apply infra-opensearch-smoke infra-opensearch-destroy
+OUT
+    ;;
   dns)
     cat <<'OUT'
  \
@@ -246,6 +252,22 @@ infra-rabbitmq-destroy: ## Destroy RabbitMQ resources
 	@scripts/bin/infra/rabbitmq_destroy.sh
 OUT
     ;;
+  opensearch)
+    cat <<'OUT'
+
+infra-opensearch-plan: ## Plan OpenSearch resources
+	@scripts/bin/infra/opensearch_plan.sh
+
+infra-opensearch-apply: ## Apply OpenSearch resources
+	@scripts/bin/infra/opensearch_apply.sh
+
+infra-opensearch-smoke: ## OpenSearch smoke checks
+	@scripts/bin/infra/opensearch_smoke.sh
+
+infra-opensearch-destroy: ## Destroy OpenSearch resources
+	@scripts/bin/infra/opensearch_destroy.sh
+OUT
+    ;;
   dns)
     cat <<'OUT'
 
@@ -340,7 +362,7 @@ OUT
 
 render_makefile() {
   local phony_observability phony_workflows phony_langfuse phony_postgres phony_neo4j
-  local phony_object_storage phony_rabbitmq phony_dns phony_public_endpoints phony_secrets_manager phony_kms
+  local phony_object_storage phony_rabbitmq phony_opensearch phony_dns phony_public_endpoints phony_secrets_manager phony_kms
   local phony_identity_aware_proxy
   phony_observability="$(makefile_module_phony_suffix observability)"
   phony_workflows="$(makefile_module_phony_suffix workflows)"
@@ -349,6 +371,7 @@ render_makefile() {
   phony_neo4j="$(makefile_module_phony_suffix neo4j)"
   phony_object_storage="$(makefile_module_phony_suffix object-storage)"
   phony_rabbitmq="$(makefile_module_phony_suffix rabbitmq)"
+  phony_opensearch="$(makefile_module_phony_suffix opensearch)"
   phony_dns="$(makefile_module_phony_suffix dns)"
   phony_public_endpoints="$(makefile_module_phony_suffix public-endpoints)"
   phony_secrets_manager="$(makefile_module_phony_suffix secrets-manager)"
@@ -356,7 +379,7 @@ render_makefile() {
   phony_identity_aware_proxy="$(makefile_module_phony_suffix identity-aware-proxy)"
 
   local targets_observability targets_workflows targets_langfuse targets_postgres targets_neo4j
-  local targets_object_storage targets_rabbitmq targets_dns targets_public_endpoints targets_secrets_manager
+  local targets_object_storage targets_rabbitmq targets_opensearch targets_dns targets_public_endpoints targets_secrets_manager
   local targets_kms targets_identity_aware_proxy
   targets_observability="$(makefile_module_target_block observability)"
   targets_workflows="$(makefile_module_target_block workflows)"
@@ -365,6 +388,7 @@ render_makefile() {
   targets_neo4j="$(makefile_module_target_block neo4j)"
   targets_object_storage="$(makefile_module_target_block object-storage)"
   targets_rabbitmq="$(makefile_module_target_block rabbitmq)"
+  targets_opensearch="$(makefile_module_target_block opensearch)"
   targets_dns="$(makefile_module_target_block dns)"
   targets_public_endpoints="$(makefile_module_target_block public-endpoints)"
   targets_secrets_manager="$(makefile_module_target_block secrets-manager)"
@@ -386,6 +410,7 @@ render_makefile() {
     "PHONY_NEO4J=$phony_neo4j" \
     "PHONY_OBJECT_STORAGE=$phony_object_storage" \
     "PHONY_RABBITMQ=$phony_rabbitmq" \
+    "PHONY_OPENSEARCH=$phony_opensearch" \
     "PHONY_DNS=$phony_dns" \
     "PHONY_PUBLIC_ENDPOINTS=$phony_public_endpoints" \
     "PHONY_SECRETS_MANAGER=$phony_secrets_manager" \
@@ -398,6 +423,7 @@ render_makefile() {
     "INFRA_ENV_GUARDED_NEO4J=$phony_neo4j" \
     "INFRA_ENV_GUARDED_OBJECT_STORAGE=$phony_object_storage" \
     "INFRA_ENV_GUARDED_RABBITMQ=$phony_rabbitmq" \
+    "INFRA_ENV_GUARDED_OPENSEARCH=$phony_opensearch" \
     "INFRA_ENV_GUARDED_DNS=$phony_dns" \
     "INFRA_ENV_GUARDED_PUBLIC_ENDPOINTS=$phony_public_endpoints" \
     "INFRA_ENV_GUARDED_SECRETS_MANAGER=$phony_secrets_manager" \
@@ -410,6 +436,7 @@ render_makefile() {
     "TARGETS_NEO4J=$targets_neo4j" \
     "TARGETS_OBJECT_STORAGE=$targets_object_storage" \
     "TARGETS_RABBITMQ=$targets_rabbitmq" \
+    "TARGETS_OPENSEARCH=$targets_opensearch" \
     "TARGETS_DNS=$targets_dns" \
     "TARGETS_PUBLIC_ENDPOINTS=$targets_public_endpoints" \
     "TARGETS_SECRETS_MANAGER=$targets_secrets_manager" \
@@ -452,6 +479,9 @@ optional_target_count() {
     count=$((count + 4))
   fi
   if is_module_enabled rabbitmq; then
+    count=$((count + 4))
+  fi
+  if is_module_enabled opensearch; then
     count=$((count + 4))
   fi
   if is_module_enabled dns; then

@@ -102,6 +102,18 @@ module_action_scripts() {
   rabbitmq:destroy)
     echo "$ROOT_DIR/scripts/bin/infra/rabbitmq_destroy.sh"
     ;;
+  opensearch:plan)
+    echo "$ROOT_DIR/scripts/bin/infra/opensearch_plan.sh"
+    ;;
+  opensearch:apply)
+    echo "$ROOT_DIR/scripts/bin/infra/opensearch_apply.sh"
+    ;;
+  opensearch:smoke)
+    echo "$ROOT_DIR/scripts/bin/infra/opensearch_smoke.sh"
+    ;;
+  opensearch:destroy)
+    echo "$ROOT_DIR/scripts/bin/infra/opensearch_destroy.sh"
+    ;;
   dns:plan)
     echo "$ROOT_DIR/scripts/bin/infra/dns_plan.sh"
     ;;
@@ -182,6 +194,7 @@ postgres
 neo4j
 object-storage
 rabbitmq
+opensearch
 dns
 public-endpoints
 secrets-manager

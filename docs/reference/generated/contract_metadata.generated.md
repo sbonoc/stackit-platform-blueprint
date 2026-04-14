@@ -144,6 +144,7 @@
 | `neo4j` | `false` | `NEO4J_ENABLED` | `blueprint/modules/neo4j/module.contract.yaml` |
 | `object-storage` | `false` | `OBJECT_STORAGE_ENABLED` | `blueprint/modules/object-storage/module.contract.yaml` |
 | `observability` | `false` | `OBSERVABILITY_ENABLED` | `blueprint/modules/observability/module.contract.yaml` |
+| `opensearch` | `false` | `OPENSEARCH_ENABLED` | `blueprint/modules/opensearch/module.contract.yaml` |
 | `postgres` | `false` | `POSTGRES_ENABLED` | `blueprint/modules/postgres/module.contract.yaml` |
 | `public-endpoints` | `false` | `PUBLIC_ENDPOINTS_ENABLED` | `blueprint/modules/public-endpoints/module.contract.yaml` |
 | `rabbitmq` | `false` | `RABBITMQ_ENABLED` | `blueprint/modules/rabbitmq/module.contract.yaml` |
@@ -436,6 +437,33 @@
 - `FARO_COLLECT_PATH`
 - `STACKIT_OBSERVABILITY_INSTANCE_ID`
 - `STACKIT_OBSERVABILITY_GRAFANA_URL`
+
+## Module: `opensearch`
+
+- Purpose: Provision managed OpenSearch and expose canonical endpoint/credentials for runtime consumers.
+- Enabled by default: `false`
+- Enable flag: `OPENSEARCH_ENABLED`
+
+### Required Environment Variables
+- `OPENSEARCH_INSTANCE_NAME`
+- `OPENSEARCH_VERSION`
+- `OPENSEARCH_PLAN_NAME`
+
+### Make Targets
+- `infra-opensearch-plan`
+- `infra-opensearch-apply`
+- `infra-opensearch-smoke`
+- `infra-opensearch-destroy`
+
+### Produced Outputs
+- `OPENSEARCH_HOST`
+- `OPENSEARCH_HOSTS`
+- `OPENSEARCH_PORT`
+- `OPENSEARCH_SCHEME`
+- `OPENSEARCH_URI`
+- `OPENSEARCH_DASHBOARD_URL`
+- `OPENSEARCH_USERNAME`
+- `OPENSEARCH_PASSWORD`
 
 ## Module: `postgres`
 

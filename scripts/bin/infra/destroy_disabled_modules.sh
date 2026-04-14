@@ -36,6 +36,7 @@ all_modules=(
   neo4j
   object-storage
   rabbitmq
+  opensearch
   dns
   public-endpoints
   secrets-manager

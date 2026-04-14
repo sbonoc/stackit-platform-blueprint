@@ -156,6 +156,7 @@ quality-ci-generated-consumer-smoke: ## Run generated-consumer template smoke la
 	NEO4J_ENABLED=false \
 	OBJECT_STORAGE_ENABLED=false \
 	RABBITMQ_ENABLED=false \
+	OPENSEARCH_ENABLED=false \
 	DNS_ENABLED=false \
 	PUBLIC_ENDPOINTS_ENABLED=false \
 	SECRETS_MANAGER_ENABLED=false \

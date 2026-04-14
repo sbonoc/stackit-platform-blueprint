@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+set -euo pipefail
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/../../lib/shell/bootstrap.sh"
+source "$ROOT_DIR/scripts/lib/infra/state.sh"
+
+start_script_metric_trap "infra_opensearch_destroy"
+
+# Generated wrapper skeleton from blueprint/modules/*/module.contract.yaml.
+# Copy into scripts/bin/infra/ and replace placeholders with module-specific implementation.
+
+if ! is_module_enabled opensearch; then
+  log_info "OPENSEARCH_ENABLED=false; skipping opensearch destroy"
+  exit 0
+fi
+
+set_state_namespace infra
+
+readonly MODULE_WRAPPER_STUB_EXIT_CODE=64
+
+# Explicit stub: template consumers must replace this block with module-specific logic.
+log_metric "optional_module_wrapper_stub_invocation" "1" "module=opensearch action=destroy target=infra-opensearch-destroy"
+state_file="$(
+  write_state_file "opensearch_destroy" \
+    "status=not_implemented" \
+    "module=opensearch" \
+    "action=destroy" \
+    "target=infra-opensearch-destroy" \
+    "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+)"
+log_error "module wrapper not implemented: module=opensearch action=destroy target=infra-opensearch-destroy"
+log_error "copy this skeleton into scripts/bin/infra/opensearch_destroy.sh and replace the stub implementation"
+log_info "opensearch destroy stub state written to $state_file"
+exit "$MODULE_WRAPPER_STUB_EXIT_CODE"

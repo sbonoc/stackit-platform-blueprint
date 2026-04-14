@@ -23,6 +23,7 @@ This section is the platform-facing documentation baseline for a generated repos
 - [Neo4j](modules/neo4j/README.md)
 - [Object Storage](modules/object-storage/README.md)
 - [RabbitMQ](modules/rabbitmq/README.md)
+- [OpenSearch](modules/opensearch/README.md)
 - [DNS](modules/dns/README.md)
 - [Public Endpoints](modules/public-endpoints/README.md)
 - [Secrets Manager](modules/secrets-manager/README.md)

@@ -178,6 +178,7 @@ stackit_layer_var_args() {
   printf '%s\n' "-var=neo4j_enabled=$(stackit_module_enabled_tf_bool neo4j)"
   printf '%s\n' "-var=object_storage_enabled=$(stackit_module_enabled_tf_bool object-storage)"
   printf '%s\n' "-var=rabbitmq_enabled=$(stackit_module_enabled_tf_bool rabbitmq)"
+  printf '%s\n' "-var=opensearch_enabled=$(stackit_module_enabled_tf_bool opensearch)"
   printf '%s\n' "-var=dns_enabled=$(stackit_module_enabled_tf_bool dns)"
   printf '%s\n' "-var=public_endpoints_enabled=$(stackit_module_enabled_tf_bool public-endpoints)"
   printf '%s\n' "-var=secrets_manager_enabled=$(stackit_module_enabled_tf_bool secrets-manager)"
@@ -193,6 +194,13 @@ stackit_layer_var_args() {
     if [[ -n "${RABBITMQ_PLAN_NAME:-}" ]]; then
       printf '%s\n' "-var=rabbitmq_plan_name=$RABBITMQ_PLAN_NAME"
     fi
+  fi
+
+  if is_module_enabled opensearch; then
+    require_env_vars OPENSEARCH_INSTANCE_NAME OPENSEARCH_VERSION OPENSEARCH_PLAN_NAME
+    printf '%s\n' "-var=opensearch_instance_name=$OPENSEARCH_INSTANCE_NAME"
+    printf '%s\n' "-var=opensearch_version=$OPENSEARCH_VERSION"
+    printf '%s\n' "-var=opensearch_plan_name=$OPENSEARCH_PLAN_NAME"
   fi
 
   if is_module_enabled postgres; then

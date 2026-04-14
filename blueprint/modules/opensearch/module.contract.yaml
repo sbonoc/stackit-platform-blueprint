@@ -1,0 +1,49 @@
+apiVersion: blueprint.module.contract/v1alpha1
+kind: OptionalModuleContract
+metadata:
+  name: opensearch
+  version: 1.0.0
+spec:
+  module_id: opensearch
+  purpose: "Provision managed OpenSearch and expose canonical endpoint/credentials for runtime consumers."
+  enabled_by_default: false
+  enable_flag: OPENSEARCH_ENABLED
+
+  paths:
+    terraform: infra/cloud/stackit/terraform/modules/opensearch
+    docs: docs/platform/modules/opensearch/README.md
+    tests: tests/infra/modules/opensearch
+
+  dependencies:
+    required_core_capabilities:
+      - stackit_project_access
+
+  inputs:
+    required_env:
+      - OPENSEARCH_INSTANCE_NAME
+      - OPENSEARCH_VERSION
+      - OPENSEARCH_PLAN_NAME
+
+  outputs:
+    produced:
+      - OPENSEARCH_HOST
+      - OPENSEARCH_HOSTS
+      - OPENSEARCH_PORT
+      - OPENSEARCH_SCHEME
+      - OPENSEARCH_URI
+      - OPENSEARCH_DASHBOARD_URL
+      - OPENSEARCH_USERNAME
+      - OPENSEARCH_PASSWORD
+
+  make_targets:
+    plan: infra-opensearch-plan
+    apply: infra-opensearch-apply
+    smoke: infra-opensearch-smoke
+    destroy: infra-opensearch-destroy
+
+  smoke_checks:
+    - "Endpoint URI is present and HTTPS-formatted"
+    - "Dashboard URL contract is present"
+
+  cleanup_contract:
+    destroy_target: infra-opensearch-destroy

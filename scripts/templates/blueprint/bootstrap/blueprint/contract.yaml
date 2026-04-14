@@ -302,6 +302,7 @@ spec:
       - docs/platform/modules/neo4j/README.md
       - docs/platform/modules/object-storage/README.md
       - docs/platform/modules/rabbitmq/README.md
+      - docs/platform/modules/opensearch/README.md
       - docs/platform/modules/dns/README.md
       - docs/platform/modules/public-endpoints/README.md
       - docs/platform/modules/secrets-manager/README.md
@@ -384,6 +385,8 @@ spec:
         - infra/cloud/stackit/terraform/modules/rabbitmq
         - infra/local/helm/rabbitmq/values.yaml
         - tests/infra/modules/rabbitmq
+        - infra/cloud/stackit/terraform/modules/opensearch
+        - tests/infra/modules/opensearch
         - infra/cloud/stackit/terraform/modules/dns
         - tests/infra/modules/dns
         - infra/cloud/stackit/terraform/modules/public-endpoints
@@ -565,6 +568,11 @@ spec:
       default: false
       required: false
       description: "Optional-module switch for RabbitMQ provisioning/deployment."
+    OPENSEARCH_ENABLED:
+      type: boolean
+      default: false
+      required: false
+      description: "Optional-module switch for OpenSearch provisioning/deployment."
     DNS_ENABLED:
       type: boolean
       default: false
@@ -855,6 +863,7 @@ spec:
         - docs/platform/modules/neo4j/README.md
         - docs/platform/modules/object-storage/README.md
         - docs/platform/modules/rabbitmq/README.md
+        - docs/platform/modules/opensearch/README.md
         - docs/platform/modules/dns/README.md
         - docs/platform/modules/public-endpoints/README.md
         - docs/platform/modules/secrets-manager/README.md
@@ -1296,6 +1305,23 @@ spec:
           - infra-rabbitmq-apply
           - infra-rabbitmq-smoke
           - infra-rabbitmq-destroy
+      opensearch:
+        enabled_by_default: false
+        enable_flag: OPENSEARCH_ENABLED
+        scaffolding_mode: conditional
+        paths_required_when_enabled:
+          - terraform_path
+          - tests_path
+        contract_path: blueprint/modules/opensearch/module.contract.yaml
+        terraform_path: infra/cloud/stackit/terraform/modules/opensearch
+        docs_path: docs/platform/modules/opensearch/README.md
+        tests_path: tests/infra/modules/opensearch
+        make_targets_mode: conditional
+        make_targets:
+          - infra-opensearch-plan
+          - infra-opensearch-apply
+          - infra-opensearch-smoke
+          - infra-opensearch-destroy
       dns:
         enabled_by_default: false
         enable_flag: DNS_ENABLED

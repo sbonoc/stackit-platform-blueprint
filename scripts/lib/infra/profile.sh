@@ -130,6 +130,9 @@ module_flag_name() {
   rabbitmq)
     echo "RABBITMQ_ENABLED"
     ;;
+  opensearch)
+    echo "OPENSEARCH_ENABLED"
+    ;;
   dns)
     echo "DNS_ENABLED"
     ;;
@@ -173,6 +176,7 @@ enabled_modules_csv() {
     neo4j
     object-storage
     rabbitmq
+    opensearch
     dns
     public-endpoints
     secrets-manager

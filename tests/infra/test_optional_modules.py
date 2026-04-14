@@ -30,6 +30,7 @@ class OptionalModulesTests(unittest.TestCase):
         self.assertNotIn("infra-neo4j-plan", disabled_help.stdout)
         self.assertNotIn("infra-object-storage-plan", disabled_help.stdout)
         self.assertNotIn("infra-rabbitmq-plan", disabled_help.stdout)
+        self.assertNotIn("infra-opensearch-plan", disabled_help.stdout)
         self.assertNotIn("infra-dns-plan", disabled_help.stdout)
         self.assertNotIn("infra-public-endpoints-plan", disabled_help.stdout)
         self.assertNotIn("infra-secrets-manager-plan", disabled_help.stdout)
@@ -49,6 +50,7 @@ class OptionalModulesTests(unittest.TestCase):
         self.assertNotIn("infra-neo4j-plan", langfuse_help.stdout)
         self.assertNotIn("infra-object-storage-plan", langfuse_help.stdout)
         self.assertNotIn("infra-rabbitmq-plan", langfuse_help.stdout)
+        self.assertNotIn("infra-opensearch-plan", langfuse_help.stdout)
         self.assertNotIn("infra-dns-plan", langfuse_help.stdout)
         self.assertNotIn("infra-public-endpoints-plan", langfuse_help.stdout)
         self.assertNotIn("infra-secrets-manager-plan", langfuse_help.stdout)
@@ -85,7 +87,7 @@ class OptionalModulesTests(unittest.TestCase):
         state_content = state_file.read_text(encoding="utf-8")
         self.assertIn("destroy_scope=local_cluster_resources", state_content)
         self.assertIn(
-            "destroyed_modules=observability,langfuse,postgres,neo4j,object-storage,rabbitmq,dns,public-endpoints,secrets-manager,kms,identity-aware-proxy",
+            "destroyed_modules=observability,langfuse,postgres,neo4j,object-storage,rabbitmq,opensearch,dns,public-endpoints,secrets-manager,kms,identity-aware-proxy",
             state_content,
         )
 
@@ -98,6 +100,7 @@ class OptionalModulesTests(unittest.TestCase):
             neo4j="true",
             object_storage="true",
             rabbitmq="true",
+            opensearch="true",
             dns="true",
             public_endpoints="true",
             secrets_manager="true",
@@ -115,6 +118,7 @@ class OptionalModulesTests(unittest.TestCase):
             "infra/cloud/stackit/terraform/modules/neo4j",
             "infra/cloud/stackit/terraform/modules/object-storage",
             "infra/cloud/stackit/terraform/modules/rabbitmq",
+            "infra/cloud/stackit/terraform/modules/opensearch",
             "infra/cloud/stackit/terraform/modules/dns",
             "infra/cloud/stackit/terraform/modules/public-endpoints",
             "infra/cloud/stackit/terraform/modules/secrets-manager",
@@ -133,6 +137,7 @@ class OptionalModulesTests(unittest.TestCase):
             "tests/infra/modules/neo4j",
             "tests/infra/modules/object-storage",
             "tests/infra/modules/rabbitmq",
+            "tests/infra/modules/opensearch",
             "tests/infra/modules/dns",
             "tests/infra/modules/public-endpoints",
             "tests/infra/modules/secrets-manager",
@@ -160,6 +165,7 @@ class OptionalModulesTests(unittest.TestCase):
             "infra/cloud/stackit/terraform/modules/neo4j",
             "infra/cloud/stackit/terraform/modules/object-storage",
             "infra/cloud/stackit/terraform/modules/rabbitmq",
+            "infra/cloud/stackit/terraform/modules/opensearch",
             "infra/cloud/stackit/terraform/modules/dns",
             "infra/cloud/stackit/terraform/modules/public-endpoints",
             "infra/cloud/stackit/terraform/modules/secrets-manager",
@@ -178,6 +184,7 @@ class OptionalModulesTests(unittest.TestCase):
             "tests/infra/modules/neo4j",
             "tests/infra/modules/object-storage",
             "tests/infra/modules/rabbitmq",
+            "tests/infra/modules/opensearch",
             "tests/infra/modules/dns",
             "tests/infra/modules/public-endpoints",
             "tests/infra/modules/secrets-manager",
@@ -449,6 +456,36 @@ class OptionalModulesTests(unittest.TestCase):
         destroy = run(["make", "infra-rabbitmq-destroy"], env)
         self.assertEqual(destroy.returncode, 0, msg=destroy.stdout + destroy.stderr)
 
+    def test_opensearch_module_flow(self) -> None:
+        env = module_flags_env(opensearch="true")
+        env.update(
+            {
+                "OPENSEARCH_INSTANCE_NAME": "marketplace-opensearch",
+                "OPENSEARCH_VERSION": "2.17",
+                "OPENSEARCH_PLAN_NAME": "stackit-opensearch-single",
+            }
+        )
+        bootstrap = run_render_and_infra_bootstrap(env)
+        self.assertEqual(bootstrap.returncode, 0, msg=bootstrap.stdout + bootstrap.stderr)
+
+        steps = [
+            "infra-opensearch-plan",
+            "infra-opensearch-apply",
+            "infra-opensearch-smoke",
+        ]
+        for step in steps:
+            result = run(["make", step], env)
+            self.assertEqual(result.returncode, 0, msg=f"{step}\n{result.stdout}\n{result.stderr}")
+
+        runtime_file = REPO_ROOT / "artifacts" / "infra" / "opensearch_runtime.env"
+        self.assertTrue(runtime_file.exists())
+        runtime_content = runtime_file.read_text(encoding="utf-8")
+        self.assertIn("uri=https://", runtime_content)
+        self.assertIn("dashboard_url=https://", runtime_content)
+
+        destroy = run(["make", "infra-opensearch-destroy"], env)
+        self.assertEqual(destroy.returncode, 0, msg=destroy.stdout + destroy.stderr)
+
     def test_dns_module_flow(self) -> None:
         env = module_flags_env(dns="true")
         env.update(
@@ -597,6 +634,31 @@ class OptionalModulesTests(unittest.TestCase):
         self.assertIn("username=provider-generated", runtime_content)
 
         destroy = run(["make", "infra-rabbitmq-destroy"], env)
+        self.assertEqual(destroy.returncode, 0, msg=destroy.stdout + destroy.stderr)
+
+    def test_stackit_opensearch_module_flow_uses_foundation_contract(self) -> None:
+        env = module_flags_env(profile="stackit-dev", opensearch="true")
+        env.update(
+            {
+                "OPENSEARCH_INSTANCE_NAME": "marketplace-opensearch",
+                "OPENSEARCH_VERSION": "2.17",
+                "OPENSEARCH_PLAN_NAME": "stackit-opensearch-single",
+            }
+        )
+        bootstrap = run_render_and_infra_bootstrap(env)
+        self.assertEqual(bootstrap.returncode, 0, msg=bootstrap.stdout + bootstrap.stderr)
+
+        for step in ("infra-opensearch-plan", "infra-opensearch-apply", "infra-opensearch-smoke"):
+            result = run(["make", step], env)
+            self.assertEqual(result.returncode, 0, msg=f"{step}\n{result.stdout}\n{result.stderr}")
+
+        runtime_file = REPO_ROOT / "artifacts" / "infra" / "opensearch_runtime.env"
+        runtime_content = runtime_file.read_text(encoding="utf-8")
+        self.assertIn("provision_driver=foundation_contract", runtime_content)
+        self.assertIn("host=marketplace-opensearch.opensearch.eu01.stackit.invalid", runtime_content)
+        self.assertIn("username=provider-generated", runtime_content)
+
+        destroy = run(["make", "infra-opensearch-destroy"], env)
         self.assertEqual(destroy.returncode, 0, msg=destroy.stdout + destroy.stderr)
 
     def test_stackit_kms_module_flow_uses_foundation_contract(self) -> None:

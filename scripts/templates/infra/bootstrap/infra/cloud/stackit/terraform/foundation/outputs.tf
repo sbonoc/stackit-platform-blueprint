@@ -140,6 +140,53 @@ output "rabbitmq_uri" {
   value       = var.rabbitmq_enabled ? stackit_rabbitmq_credential.foundation[0].uri : null
 }
 
+output "opensearch_instance_id" {
+  description = "Provisioned OpenSearch instance identifier."
+  value       = var.opensearch_enabled ? stackit_opensearch_instance.foundation[0].instance_id : null
+}
+
+output "opensearch_dashboard_url" {
+  description = "Provisioned OpenSearch dashboard URL."
+  value       = var.opensearch_enabled ? stackit_opensearch_instance.foundation[0].dashboard_url : null
+}
+
+output "opensearch_host" {
+  description = "Provisioned OpenSearch endpoint host."
+  value       = var.opensearch_enabled ? stackit_opensearch_credential.foundation[0].host : null
+}
+
+output "opensearch_hosts" {
+  description = "Provisioned OpenSearch endpoint hosts list."
+  value       = var.opensearch_enabled ? join(",", stackit_opensearch_credential.foundation[0].hosts) : null
+}
+
+output "opensearch_port" {
+  description = "Provisioned OpenSearch endpoint port."
+  value       = var.opensearch_enabled ? stackit_opensearch_credential.foundation[0].port : null
+}
+
+output "opensearch_scheme" {
+  description = "Provisioned OpenSearch endpoint scheme."
+  value       = var.opensearch_enabled ? stackit_opensearch_credential.foundation[0].scheme : null
+}
+
+output "opensearch_uri" {
+  description = "Provisioned OpenSearch endpoint URI."
+  sensitive   = true
+  value       = var.opensearch_enabled ? stackit_opensearch_credential.foundation[0].uri : null
+}
+
+output "opensearch_username" {
+  description = "Provisioned OpenSearch runtime username."
+  value       = var.opensearch_enabled ? stackit_opensearch_credential.foundation[0].username : null
+}
+
+output "opensearch_password" {
+  description = "Provisioned OpenSearch runtime password."
+  sensitive   = true
+  value       = var.opensearch_enabled ? stackit_opensearch_credential.foundation[0].password : null
+}
+
 output "secrets_manager_instance_id" {
   description = "Provisioned Secrets Manager instance identifier."
   value       = var.secrets_manager_enabled ? stackit_secretsmanager_instance.foundation[0].instance_id : null
