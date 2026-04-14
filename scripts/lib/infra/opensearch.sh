@@ -52,10 +52,10 @@ opensearch_uri() {
   if is_stackit_profile; then
     stackit_foundation_output_value_or_default \
       "opensearch_uri" \
-      "https://provider-generated:provider-generated@$(opensearch_stackit_placeholder_host):443"
+      "https://$(opensearch_stackit_placeholder_host):443"
     return 0
   fi
-  printf 'https://provider-generated:provider-generated@%s:%s' "$(opensearch_host)" "$(opensearch_port)"
+  printf 'https://%s:%s' "$(opensearch_host)" "$(opensearch_port)"
 }
 
 opensearch_dashboard_url() {
