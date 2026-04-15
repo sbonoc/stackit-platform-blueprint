@@ -17,6 +17,9 @@ This file is auto-generated. Do not edit it manually.
 | `blueprint-upgrade-readiness-doctor` | Generate generated-consumer upgrade readiness diagnostics and manual-action hints |
 | `blueprint-install-codex-skill` | Install/sync bundled Codex upgrade skill into local CODEX_HOME skills directory |
 | `blueprint-install-codex-skill-consumer-ops` | Install/sync bundled Codex consumer operations skill into local CODEX_HOME skills directory |
+| `blueprint-install-codex-skill-sdd-plan-slicer` | Install/sync bundled Codex SDD plan-slicer skill into local CODEX_HOME skills directory |
+| `blueprint-install-codex-skill-sdd-document-sync` | Install/sync bundled Codex SDD document-sync skill into local CODEX_HOME skills directory |
+| `blueprint-install-codex-skill-sdd-pr-packager` | Install/sync bundled Codex SDD PR-packager skill into local CODEX_HOME skills directory |
 | `blueprint-install-codex-skills` | Install/sync all bundled Codex skills into local CODEX_HOME skills directory |
 | `blueprint-ownership-check` | Resolve path ownership classes (set OWNERSHIP_PATHS="path/one path/two") |
 | `blueprint-ownership-metadata` | Print machine-readable ownership metadata (pattern -> owner) |
@@ -26,6 +29,11 @@ This file is auto-generated. Do not edit it manually.
 | `blueprint-render-makefile` | Render blueprint-generated make targets from template and enabled module flags |
 | `blueprint-clean-generated` | Remove generated runtime/build/cache artifacts |
 | `blueprint-render-module-wrapper-skeletons` | Render optional-module wrapper skeleton templates from module contracts |
+| `spec-scaffold` | Scaffold SDD work-item documents under specs/YYYY-MM-DD-work-item-slug (set SPEC_SLUG, optional SPEC_TRACK/SPEC_DATE/SPEC_FORCE=true) |
+| `spec-impact` | Render graph-driven impact summary for a work item (optional SPEC_WORK_ITEM, SPEC_IMPACT_OUTPUT) |
+| `spec-evidence-manifest` | Render deterministic evidence manifest checksums for a work item (optional SPEC_WORK_ITEM, SPEC_EVIDENCE_OUTPUT) |
+| `spec-context-pack` | Render deterministic context pack markdown for a work item (optional SPEC_WORK_ITEM, SPEC_CONTEXT_OUTPUT) |
+| `spec-pr-context` | Render deterministic PR context markdown for a work item (optional SPEC_WORK_ITEM, SPEC_PR_CONTEXT_OUTPUT) |
 | `test-contracts-async-producer` | Run async Pact message-contract producer lane (opt-in) |
 | `test-contracts-async-consumer` | Run async Pact message-contract consumer lane (opt-in) |
 | `test-contracts-async-all` | Run async Pact message-contract producer+consumer lanes (opt-in) |
@@ -34,6 +42,16 @@ This file is auto-generated. Do not edit it manually.
 | `quality-hooks-run` | Run pre-commit hooks and quality gates |
 | `quality-root-dir-prelude-check` | Fail when shell entrypoints reintroduce inline ROOT_DIR resolver drift |
 | `quality-infra-shell-source-graph-check` | Fail when infra helper source-edge contract drifts into caller-side implicit sourcing |
+| `quality-sdd-sync-control-catalog` | Render SDD control catalog markdown from machine-readable source |
+| `quality-sdd-check-control-catalog-sync` | Fail when SDD control catalog markdown is out of sync with machine-readable source |
+| `quality-sdd-sync-consumer-init-assets` | Sync consumer-init SDD assets from canonical .spec-kit and specs sources |
+| `quality-sdd-check-consumer-init-assets-sync` | Fail when consumer-init SDD assets drift from canonical source |
+| `quality-sdd-sync-policy-snippets` | Render generated SDD policy snapshots from contract into AGENTS/docs surfaces |
+| `quality-sdd-check-policy-snippets-sync` | Fail when generated SDD policy snapshots drift from contract |
+| `quality-sdd-sync-all` | Run all SDD sync generators in canonical order |
+| `quality-sdd-check-all` | Run all SDD sync drift checks and SDD governance validation |
+| `quality-sdd-check` | Validate canonical Spec-Driven Development assets and governance wiring |
+| `quality-hardening-review` | Validate hardening-review/publish packaging artifacts for SDD work items |
 | `quality-runtime-contract-drift-report` | Generate runtime contract drift report artifact under artifacts/blueprint |
 | `quality-ci-sync` | Regenerate source CI workflow from contract and canonical lane metadata |
 | `quality-ci-check-sync` | Fail when source CI workflow is out of date |
@@ -45,6 +63,7 @@ This file is auto-generated. Do not edit it manually.
 | `quality-ci-generated-consumer-smoke` | Run generated-consumer template smoke lane |
 | `quality-docs-lint` | Lint markdown docs, governance links, and make target references |
 | `quality-docs-sync-all` | Run all docs sync generators in canonical order |
+| `quality-docs-check-changed` | Run docs drift checks only for sync steps that match current changed paths |
 | `quality-docs-sync-blueprint-template` | Sync docs/blueprint/** into bootstrap template blueprint docs mirror |
 | `quality-docs-check-blueprint-template-sync` | Fail when docs/blueprint/** and bootstrap template blueprint docs drift |
 | `quality-docs-sync-platform-seed` | Sync docs/platform/** into bootstrap template platform docs seed mirror |
@@ -61,6 +80,9 @@ This file is auto-generated. Do not edit it manually.
 | `infra-prereqs` | Verify local prerequisites and optionally auto-install missing tools |
 | `infra-help-reference` | Show full Make targets and variable defaults reference |
 | `infra-contract-test-fast` | Run fast infra contract helper CLI tests |
+| `infra-port-forward-start` | Start named local port-forward using canonical infra wrapper (set PF_NAME/PF_NAMESPACE/PF_RESOURCE/PF_LOCAL_PORT/PF_REMOTE_PORT) |
+| `infra-port-forward-stop` | Stop named local port-forward using canonical infra wrapper (set PF_NAME, optional PF_FORCE_KILL=true) |
+| `infra-port-forward-cleanup` | Stop all tracked local port-forwards using canonical infra wrapper (optional PF_FORCE_KILL=true) |
 | `infra-bootstrap` | Bootstrap infra-only tooling/scaffolding |
 | `infra-local-destroy-all` | Destroy blueprint-managed resources from the selected local cluster and preserve the cluster itself |
 | `infra-destroy-disabled-modules` | Destroy resources for currently disabled optional modules |

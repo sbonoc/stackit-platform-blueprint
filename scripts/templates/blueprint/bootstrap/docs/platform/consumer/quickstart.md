@@ -82,15 +82,44 @@ Override install location when needed:
 BLUEPRINT_CODEX_SKILLS_DIR="${CODEX_HOME:-$HOME/.codex}/skills" make blueprint-install-codex-skill
 BLUEPRINT_CODEX_SKILLS_DIR="${CODEX_HOME:-$HOME/.codex}/skills" make blueprint-install-codex-skill-consumer-ops
 ```
+Install SDD-specialized skills when needed:
+```bash
+make blueprint-install-codex-skill-sdd-intake-decompose
+make blueprint-install-codex-skill-sdd-clarification-gate
+make blueprint-install-codex-skill-sdd-plan-slicer
+make blueprint-install-codex-skill-sdd-traceability-keeper
+make blueprint-install-codex-skill-sdd-document-sync
+make blueprint-install-codex-skill-sdd-pr-packager
+```
 
-## 3) Bootstrap and Validate
+## 3) Start Spec-Driven Work Item Before Implementation
+Create a work-item folder first:
+```bash
+make spec-scaffold SPEC_SLUG=<work-item-slug>
+```
+
+Then enforce the readiness gate before writing implementation code:
+- complete `Discover`, `High-Level Architecture`, `Specify`, and `Plan` in `specs/<YYYY-MM-DD>-<work-item-slug>/`
+- if requirements are incomplete, record `BLOCKED_MISSING_INPUTS` and keep `SPEC_READY=false`
+- map applicable `SDD-C-###` controls from `.spec-kit/control-catalog.md` in `spec.md`
+- use `Managed service preference: stackit-managed-first` by default for `stackit-*` runtime capabilities; if you choose an alternative, record `explicit-consumer-exception` with rationale and approved ADR/decision-log entry
+- start implementation only after `spec.md` records `SPEC_READY=true`
+
+Before closing the work item, run `Document` and `Publish` phases:
+- update affected `docs/platform/**`
+- run `make docs-build` and `make docs-smoke`
+- run `make quality-sdd-check-all`
+- run `make quality-hardening-review`
+- run `make spec-pr-context`
+
+## 4) Bootstrap and Validate
 ```bash
 make blueprint-bootstrap
 make infra-bootstrap
 make infra-validate
 ```
 
-## 4) Optional Consumer Smoke
+## 5) Optional Consumer Smoke
 ```bash
 make blueprint-template-smoke
 ```
@@ -110,6 +139,7 @@ Keep these surfaces synchronized after changes:
 - `apps/catalog/manifest.yaml` (topology + runtime/framework pin contract)
 - `apps/catalog/versions.lock` (script-friendly pin mirror)
 - app test lanes in `make/platform.mk` (`backend-*`, `touchpoints-*`, and aggregate `test-*-all` targets)
+- onboarding/target baseline in [App Onboarding Contract](app_onboarding.md)
 
 ### App Runtime GitOps Scaffold (Enabled by Default)
 `APP_RUNTIME_GITOPS_ENABLED` defaults to `true` and keeps the baseline app runtime workload path active under:
@@ -138,7 +168,7 @@ To replace scaffold defaults with real runtime images and wiring:
 3. Add app env/secret references in deployment manifests (`env`, `envFrom`, secret/configMap refs) using your runtime credential contract outputs.
 4. Reconcile runtime (`make infra-deploy` or Argo sync of `platform-<env>-core`).
 
-## 5) Continue with Delivery Flow
+## 6) Continue with Delivery Flow
 ```bash
 make infra-context
 make infra-provision-deploy
@@ -169,6 +199,12 @@ wait_for_local_port "example" "18080" "20"
 stop_port_forward "example"
 ```
 Use `cleanup_port_forwards` in `trap` handlers for long-running scripts.
+For deterministic operator workflows, prefer make wrappers:
+```bash
+PF_NAME=backend-api PF_NAMESPACE=apps PF_RESOURCE=svc/backend-api PF_LOCAL_PORT=18080 PF_REMOTE_PORT=8080 make infra-port-forward-start
+make infra-port-forward-stop PF_NAME=backend-api
+make infra-port-forward-cleanup
+```
 Use `make auth-reconcile-runtime-identity` whenever you need an explicit runtime identity reconciliation pass
 (ESO source-to-target checks + Argo repo access + Keycloak/module contract coverage).
 For local profiles, Keycloak Argo sync is manual by default; after a successful reconcile run,
@@ -184,7 +220,7 @@ For async choreography and tenant-aware service boundaries, also review:
 - [Zero-Downtime Evolution](zero_downtime_evolution.md)
 - [Tenant Context Propagation](tenant_context_propagation.md)
 
-## 6) STACKIT MVP Provision/Deploy (Optional)
+## 7) STACKIT MVP Provision/Deploy (Optional)
 For managed STACKIT execution (`BLUEPRINT_PROFILE=stackit-dev|stackit-stage|stackit-prod`), export:
 - `STACKIT_PROJECT_ID`
 - `STACKIT_REGION` (for example `eu01`)

@@ -87,6 +87,11 @@ Common first-day issues for generated repositories.
   ```
 - The same remediation applies to:
   - `make blueprint-install-codex-skill-consumer-ops`
+  - `make blueprint-install-codex-skill-sdd-intake-decompose`
+  - `make blueprint-install-codex-skill-sdd-clarification-gate`
+  - `make blueprint-install-codex-skill-sdd-plan-slicer`
+  - `make blueprint-install-codex-skill-sdd-traceability-keeper`
+  - `make blueprint-install-codex-skill-sdd-document-sync`
   - `make blueprint-install-codex-skills`
 
 ## `make blueprint-upgrade-consumer` fails with `RuntimeError: git merge-file failed:` (empty detail)

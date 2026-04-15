@@ -4,9 +4,12 @@ This section is the platform-facing documentation baseline for a generated repos
 
 `make blueprint-bootstrap` creates missing files in this section and leaves existing consumer edits in place.
 
+For `stackit-*` profiles, runtime capabilities follow a managed-service-first policy by default; deviations require explicit approved exceptions in SDD artifacts and decisions logs.
+
 ## Consumer Guides
 - [First 30 Minutes](consumer/first_30_minutes.md)
 - [Quickstart](consumer/quickstart.md)
+- [App Onboarding Contract](consumer/app_onboarding.md)
 - [Endpoint Exposure Model](consumer/endpoint_exposure_model.md)
 - [Protected API Routes](consumer/protected_api_routes.md)
 - [Event Messaging Baseline](consumer/event_messaging_baseline.md)
@@ -14,6 +17,9 @@ This section is the platform-facing documentation baseline for a generated repos
 - [Tenant Context Propagation](consumer/tenant_context_propagation.md)
 - [Runtime Credentials (ESO)](consumer/runtime_credentials_eso.md)
 - [Troubleshooting](consumer/troubleshooting.md)
+- [Architecture and ADRs](architecture/README.md)
+- [Architecture North Star](architecture/north_star.md)
+- [Technology Stack Baseline](architecture/tech_stack.md)
 
 ## Optional Modules
 - [Observability](modules/observability/README.md)

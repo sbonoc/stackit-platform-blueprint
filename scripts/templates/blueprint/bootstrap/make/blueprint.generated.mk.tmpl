@@ -2,10 +2,10 @@ SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
 .PHONY: help \
-  blueprint-init-repo blueprint-init-repo-interactive blueprint-resync-consumer-seeds blueprint-upgrade-consumer blueprint-upgrade-consumer-preflight blueprint-upgrade-consumer-validate blueprint-upgrade-readiness-doctor blueprint-install-codex-skill blueprint-install-codex-skill-consumer-ops blueprint-install-codex-skills blueprint-ownership-check blueprint-ownership-metadata blueprint-check-placeholders blueprint-template-smoke blueprint-bootstrap blueprint-render-makefile blueprint-clean-generated blueprint-render-module-wrapper-skeletons \
+  blueprint-init-repo blueprint-init-repo-interactive blueprint-resync-consumer-seeds blueprint-upgrade-consumer blueprint-upgrade-consumer-preflight blueprint-upgrade-consumer-validate blueprint-upgrade-readiness-doctor blueprint-install-codex-skill blueprint-install-codex-skill-consumer-ops blueprint-install-codex-skill-sdd-intake-decompose blueprint-install-codex-skill-sdd-clarification-gate blueprint-install-codex-skill-sdd-plan-slicer blueprint-install-codex-skill-sdd-traceability-keeper blueprint-install-codex-skill-sdd-document-sync blueprint-install-codex-skill-sdd-pr-packager blueprint-install-codex-skills blueprint-ownership-check blueprint-ownership-metadata blueprint-check-placeholders blueprint-template-smoke blueprint-bootstrap blueprint-render-makefile blueprint-clean-generated blueprint-render-module-wrapper-skeletons spec-scaffold spec-impact spec-evidence-manifest spec-context-pack spec-pr-context \
   test-contracts-async-producer test-contracts-async-consumer test-contracts-async-all \
-  quality-hooks-fast quality-hooks-strict quality-hooks-run quality-root-dir-prelude-check quality-infra-shell-source-graph-check quality-runtime-contract-drift-report quality-ci-sync quality-ci-check-sync quality-ci-fast quality-ci-slow-integration quality-ci-full-e2e quality-ci-strict quality-ci-blueprint quality-ci-generated-consumer-smoke quality-docs-lint quality-docs-sync-all quality-docs-sync-blueprint-template quality-docs-check-blueprint-template-sync quality-docs-sync-platform-seed quality-docs-check-platform-seed-sync quality-docs-sync-core-targets quality-docs-check-core-targets-sync quality-docs-sync-contract-metadata quality-docs-check-contract-metadata-sync quality-docs-sync-runtime-identity-summary quality-docs-check-runtime-identity-summary-sync quality-docs-sync-module-contract-summaries quality-docs-check-module-contract-summaries-sync quality-test-pyramid \
-  infra-prereqs infra-help-reference infra-contract-test-fast infra-bootstrap infra-local-destroy-all infra-destroy-disabled-modules infra-validate infra-smoke infra-provision infra-deploy infra-provision-deploy \
+  quality-hooks-fast quality-hooks-strict quality-hooks-run quality-root-dir-prelude-check quality-infra-shell-source-graph-check quality-sdd-sync-control-catalog quality-sdd-check-control-catalog-sync quality-sdd-sync-consumer-init-assets quality-sdd-check-consumer-init-assets-sync quality-sdd-sync-policy-snippets quality-sdd-check-policy-snippets-sync quality-sdd-sync-all quality-sdd-check-all quality-sdd-check quality-hardening-review quality-runtime-contract-drift-report quality-ci-sync quality-ci-check-sync quality-ci-fast quality-ci-slow-integration quality-ci-full-e2e quality-ci-strict quality-ci-blueprint quality-ci-generated-consumer-smoke quality-docs-lint quality-docs-sync-all quality-docs-check-changed quality-docs-sync-blueprint-template quality-docs-check-blueprint-template-sync quality-docs-sync-platform-seed quality-docs-check-platform-seed-sync quality-docs-sync-core-targets quality-docs-check-core-targets-sync quality-docs-sync-contract-metadata quality-docs-check-contract-metadata-sync quality-docs-sync-runtime-identity-summary quality-docs-check-runtime-identity-summary-sync quality-docs-sync-module-contract-summaries quality-docs-check-module-contract-summaries-sync quality-test-pyramid \
+  infra-prereqs infra-help-reference infra-contract-test-fast infra-port-forward-start infra-port-forward-stop infra-port-forward-cleanup infra-bootstrap infra-local-destroy-all infra-destroy-disabled-modules infra-validate infra-smoke infra-provision infra-deploy infra-provision-deploy \
   infra-stackit-bootstrap-preflight infra-stackit-bootstrap-plan infra-stackit-bootstrap-apply infra-stackit-bootstrap-destroy \
   infra-stackit-foundation-preflight infra-stackit-foundation-plan infra-stackit-foundation-apply infra-stackit-foundation-destroy \
   infra-stackit-foundation-fetch-kubeconfig infra-stackit-foundation-refresh-kubeconfig infra-stackit-foundation-seed-runtime-secret \
@@ -52,9 +52,33 @@ blueprint-install-codex-skill: ## Install/sync bundled Codex upgrade skill into 
 blueprint-install-codex-skill-consumer-ops: ## Install/sync bundled Codex consumer operations skill into local CODEX_HOME skills directory
 	@scripts/bin/blueprint/install_codex_skill.sh --skill-name blueprint-consumer-ops
 
+blueprint-install-codex-skill-sdd-intake-decompose: ## Install/sync bundled Codex SDD intake and decomposition skill into local CODEX_HOME skills directory
+	@scripts/bin/blueprint/install_codex_skill.sh --skill-name blueprint-sdd-intake-decompose
+
+blueprint-install-codex-skill-sdd-clarification-gate: ## Install/sync bundled Codex SDD clarification-gate skill into local CODEX_HOME skills directory
+	@scripts/bin/blueprint/install_codex_skill.sh --skill-name blueprint-sdd-clarification-gate
+
+blueprint-install-codex-skill-sdd-plan-slicer: ## Install/sync bundled Codex SDD plan-slicer skill into local CODEX_HOME skills directory
+	@scripts/bin/blueprint/install_codex_skill.sh --skill-name blueprint-sdd-plan-slicer
+
+blueprint-install-codex-skill-sdd-traceability-keeper: ## Install/sync bundled Codex SDD traceability-keeper skill into local CODEX_HOME skills directory
+	@scripts/bin/blueprint/install_codex_skill.sh --skill-name blueprint-sdd-traceability-keeper
+
+blueprint-install-codex-skill-sdd-document-sync: ## Install/sync bundled Codex SDD document-sync skill into local CODEX_HOME skills directory
+	@scripts/bin/blueprint/install_codex_skill.sh --skill-name blueprint-sdd-document-sync
+
+blueprint-install-codex-skill-sdd-pr-packager: ## Install/sync bundled Codex SDD PR-packager skill into local CODEX_HOME skills directory
+	@scripts/bin/blueprint/install_codex_skill.sh --skill-name blueprint-sdd-pr-packager
+
 blueprint-install-codex-skills: ## Install/sync all bundled Codex skills into local CODEX_HOME skills directory
 	@$(MAKE) blueprint-install-codex-skill
 	@$(MAKE) blueprint-install-codex-skill-consumer-ops
+	@$(MAKE) blueprint-install-codex-skill-sdd-intake-decompose
+	@$(MAKE) blueprint-install-codex-skill-sdd-clarification-gate
+	@$(MAKE) blueprint-install-codex-skill-sdd-plan-slicer
+	@$(MAKE) blueprint-install-codex-skill-sdd-traceability-keeper
+	@$(MAKE) blueprint-install-codex-skill-sdd-document-sync
+	@$(MAKE) blueprint-install-codex-skill-sdd-pr-packager
 
 blueprint-ownership-check: ## Resolve path ownership classes (set OWNERSHIP_PATHS="path/one path/two")
 	@if [[ -z "$(strip $(OWNERSHIP_PATHS))" ]]; then \
@@ -84,6 +108,37 @@ blueprint-clean-generated: ## Remove generated runtime/build/cache artifacts
 blueprint-render-module-wrapper-skeletons: ## Render optional-module wrapper skeleton templates from module contracts
 	@scripts/bin/blueprint/render_module_wrapper_skeletons.sh
 
+spec-scaffold: ## Scaffold SDD work-item documents under specs/YYYY-MM-DD-work-item-slug (set SPEC_SLUG, optional SPEC_TRACK/SPEC_DATE/SPEC_FORCE=true)
+	@if [[ -z "$(strip $(SPEC_SLUG))" ]]; then \
+		echo "[spec-scaffold] set SPEC_SLUG=<work-item-slug>" >&2; \
+		exit 1; \
+	fi
+	@python3 scripts/bin/blueprint/spec_scaffold.py \
+		--slug "$(SPEC_SLUG)" \
+		--track "$(or $(SPEC_TRACK),blueprint)" \
+		$(if $(strip $(SPEC_DATE)),--date "$(SPEC_DATE)",) \
+		$(if $(filter true,$(SPEC_FORCE)),--force,)
+
+spec-impact: ## Render graph-driven impact summary for a work item (optional SPEC_WORK_ITEM, SPEC_IMPACT_OUTPUT)
+	@python3 scripts/bin/blueprint/spec_work_item_tools.py impact \
+		$(if $(strip $(SPEC_WORK_ITEM)),--work-item "$(SPEC_WORK_ITEM)",) \
+		$(if $(strip $(SPEC_IMPACT_OUTPUT)),--output "$(SPEC_IMPACT_OUTPUT)",)
+
+spec-evidence-manifest: ## Render deterministic evidence manifest checksums for a work item (optional SPEC_WORK_ITEM, SPEC_EVIDENCE_OUTPUT)
+	@python3 scripts/bin/blueprint/spec_work_item_tools.py evidence-manifest \
+		$(if $(strip $(SPEC_WORK_ITEM)),--work-item "$(SPEC_WORK_ITEM)",) \
+		$(if $(strip $(SPEC_EVIDENCE_OUTPUT)),--output "$(SPEC_EVIDENCE_OUTPUT)",)
+
+spec-context-pack: ## Render deterministic context pack markdown for a work item (optional SPEC_WORK_ITEM, SPEC_CONTEXT_OUTPUT)
+	@python3 scripts/bin/blueprint/spec_work_item_tools.py context-pack \
+		$(if $(strip $(SPEC_WORK_ITEM)),--work-item "$(SPEC_WORK_ITEM)",) \
+		$(if $(strip $(SPEC_CONTEXT_OUTPUT)),--output "$(SPEC_CONTEXT_OUTPUT)",)
+
+spec-pr-context: ## Render deterministic PR context markdown for a work item (optional SPEC_WORK_ITEM, SPEC_PR_CONTEXT_OUTPUT)
+	@python3 scripts/bin/blueprint/spec_work_item_tools.py pr-context \
+		$(if $(strip $(SPEC_WORK_ITEM)),--work-item "$(SPEC_WORK_ITEM)",) \
+		$(if $(strip $(SPEC_PR_CONTEXT_OUTPUT)),--output "$(SPEC_PR_CONTEXT_OUTPUT)",)
+
 test-contracts-async-producer: ## Run async Pact message-contract producer lane (opt-in)
 	@scripts/bin/blueprint/test_async_message_contracts_producer.sh
 
@@ -110,6 +165,41 @@ quality-root-dir-prelude-check: ## Fail when shell entrypoints reintroduce inlin
 
 quality-infra-shell-source-graph-check: ## Fail when infra helper source-edge contract drifts into caller-side implicit sourcing
 	@python3 scripts/bin/quality/check_infra_shell_source_graph.py
+
+quality-sdd-sync-control-catalog: ## Render SDD control catalog markdown from machine-readable source
+	@python3 scripts/lib/spec_kit/render_control_catalog.py
+
+quality-sdd-check-control-catalog-sync: ## Fail when SDD control catalog markdown is out of sync with machine-readable source
+	@python3 scripts/lib/spec_kit/render_control_catalog.py --check
+
+quality-sdd-sync-consumer-init-assets: ## Sync consumer-init SDD assets from canonical .spec-kit and specs sources
+	@python3 scripts/lib/spec_kit/sync_consumer_init_sdd_assets.py
+
+quality-sdd-check-consumer-init-assets-sync: ## Fail when consumer-init SDD assets drift from canonical source
+	@python3 scripts/lib/spec_kit/sync_consumer_init_sdd_assets.py --check
+
+quality-sdd-sync-policy-snippets: ## Render generated SDD policy snapshots from contract into AGENTS/docs surfaces
+	@python3 scripts/lib/spec_kit/render_policy_snippets.py
+
+quality-sdd-check-policy-snippets-sync: ## Fail when generated SDD policy snapshots drift from contract
+	@python3 scripts/lib/spec_kit/render_policy_snippets.py --check
+
+quality-sdd-sync-all: ## Run all SDD sync generators in canonical order
+	@$(MAKE) quality-sdd-sync-control-catalog
+	@$(MAKE) quality-sdd-sync-consumer-init-assets
+	@$(MAKE) quality-sdd-sync-policy-snippets
+
+quality-sdd-check-all: ## Run all SDD sync drift checks and SDD governance validation
+	@$(MAKE) quality-sdd-check-control-catalog-sync
+	@$(MAKE) quality-sdd-check-consumer-init-assets-sync
+	@$(MAKE) quality-sdd-check-policy-snippets-sync
+	@$(MAKE) quality-sdd-check
+
+quality-sdd-check: ## Validate canonical Spec-Driven Development assets and governance wiring
+	@python3 scripts/bin/quality/check_sdd_assets.py
+
+quality-hardening-review: ## Validate hardening-review/publish packaging artifacts for SDD work items
+	@scripts/bin/quality/hardening_review.sh
 
 quality-runtime-contract-drift-report: ## Generate runtime contract drift report artifact under artifacts/blueprint
 	@python3 scripts/lib/blueprint/runtime_contract_drift_report.py
@@ -172,55 +262,46 @@ quality-docs-lint: ## Lint markdown docs, governance links, and make target refe
 	@python3 scripts/bin/quality/lint_docs.py
 
 quality-docs-sync-all: ## Run all docs sync generators in canonical order
-	@$(MAKE) quality-docs-sync-blueprint-template
-	@$(MAKE) quality-docs-sync-platform-seed
-	@$(MAKE) quality-docs-sync-core-targets
-	@$(MAKE) quality-docs-sync-contract-metadata
-	@$(MAKE) quality-docs-sync-runtime-identity-summary
-	@$(MAKE) quality-docs-sync-module-contract-summaries
+	@python3 scripts/lib/docs/orchestrate_sync.py --mode sync
+
+quality-docs-check-changed: ## Run docs drift checks only for sync steps that match current changed paths
+	@python3 scripts/lib/docs/orchestrate_sync.py --mode check --changed-only
 
 quality-docs-sync-blueprint-template: ## Sync docs/blueprint/** into bootstrap template blueprint docs mirror
-	@python3 scripts/lib/docs/sync_blueprint_template_docs.py
+	@python3 scripts/lib/docs/orchestrate_sync.py --mode sync --step blueprint-template
 
 quality-docs-check-blueprint-template-sync: ## Fail when docs/blueprint/** and bootstrap template blueprint docs drift
-	@python3 scripts/lib/docs/sync_blueprint_template_docs.py --check
+	@python3 scripts/lib/docs/orchestrate_sync.py --mode check --step blueprint-template
 
 quality-docs-sync-platform-seed: ## Sync docs/platform/** into bootstrap template platform docs seed mirror
-	@python3 scripts/lib/docs/sync_platform_seed_docs.py
+	@python3 scripts/lib/docs/orchestrate_sync.py --mode sync --step platform-seed
 
 quality-docs-check-platform-seed-sync: ## Fail when docs/platform/** and bootstrap template platform docs drift
-	@python3 scripts/lib/docs/sync_platform_seed_docs.py --check
+	@python3 scripts/lib/docs/orchestrate_sync.py --mode check --step platform-seed
 
 quality-docs-sync-core-targets: ## Regenerate tracked core Make targets reference doc
-	@python3 scripts/bin/quality/render_core_targets_doc.py
+	@python3 scripts/lib/docs/orchestrate_sync.py --mode sync --step core-targets
 
 quality-docs-check-core-targets-sync: ## Fail when tracked core Make targets doc is out of date
-	@python3 scripts/bin/quality/render_core_targets_doc.py --check
+	@python3 scripts/lib/docs/orchestrate_sync.py --mode check --step core-targets
 
 quality-docs-sync-contract-metadata: ## Regenerate tracked contract metadata reference doc
-	@python3 scripts/lib/docs/generate_contract_docs.py \
-		--contract blueprint/contract.yaml \
-		--modules-dir blueprint/modules \
-		--output docs/reference/generated/contract_metadata.generated.md
+	@python3 scripts/lib/docs/orchestrate_sync.py --mode sync --step contract-metadata
 
 quality-docs-check-contract-metadata-sync: ## Fail when tracked contract metadata doc is out of date
-	@python3 scripts/lib/docs/generate_contract_docs.py \
-		--contract blueprint/contract.yaml \
-		--modules-dir blueprint/modules \
-		--output docs/reference/generated/contract_metadata.generated.md \
-		--check
+	@python3 scripts/lib/docs/orchestrate_sync.py --mode check --step contract-metadata
 
 quality-docs-sync-runtime-identity-summary: ## Regenerate runtime identity summary blocks in source and template docs
-	@python3 scripts/lib/docs/sync_runtime_identity_contract_summary.py
+	@python3 scripts/lib/docs/orchestrate_sync.py --mode sync --step runtime-identity-summary
 
 quality-docs-check-runtime-identity-summary-sync: ## Fail when runtime identity summary docs are out of date
-	@python3 scripts/lib/docs/sync_runtime_identity_contract_summary.py --check
+	@python3 scripts/lib/docs/orchestrate_sync.py --mode check --step runtime-identity-summary
 
 quality-docs-sync-module-contract-summaries: ## Regenerate module contract summary blocks in source and template docs
-	@python3 scripts/lib/docs/sync_module_contract_summaries.py
+	@python3 scripts/lib/docs/orchestrate_sync.py --mode sync --step module-contract-summaries
 
 quality-docs-check-module-contract-summaries-sync: ## Fail when module contract summary blocks are out of date
-	@python3 scripts/lib/docs/sync_module_contract_summaries.py --check
+	@python3 scripts/lib/docs/orchestrate_sync.py --mode check --step module-contract-summaries
 
 quality-test-pyramid: ## Enforce repository test-pyramid ratios from canonical classification contract
 	@python3 scripts/bin/quality/check_test_pyramid.py
@@ -234,8 +315,17 @@ infra-help-reference: ## Show full Make targets and variable defaults reference
 infra-contract-test-fast: ## Run fast infra contract helper CLI tests
 	@scripts/bin/infra/contract_test_fast.sh
 
+infra-port-forward-start: ## Start named local port-forward using canonical infra wrapper (set PF_NAME/PF_NAMESPACE/PF_RESOURCE/PF_LOCAL_PORT/PF_REMOTE_PORT)
+	@scripts/bin/infra/port_forward.sh start
+
+infra-port-forward-stop: ## Stop named local port-forward using canonical infra wrapper (set PF_NAME, optional PF_FORCE_KILL=true)
+	@scripts/bin/infra/port_forward.sh stop
+
+infra-port-forward-cleanup: ## Stop all tracked local port-forwards using canonical infra wrapper (optional PF_FORCE_KILL=true)
+	@scripts/bin/infra/port_forward.sh cleanup
+
 INFRA_ENV_GUARDED_TARGETS := \
-	infra-contract-test-fast infra-bootstrap infra-local-destroy-all infra-destroy-disabled-modules infra-validate infra-smoke infra-provision infra-deploy infra-provision-deploy \
+	infra-contract-test-fast infra-port-forward-start infra-port-forward-stop infra-port-forward-cleanup infra-bootstrap infra-local-destroy-all infra-destroy-disabled-modules infra-validate infra-smoke infra-provision infra-deploy infra-provision-deploy \
 	infra-stackit-bootstrap-preflight infra-stackit-bootstrap-plan infra-stackit-bootstrap-apply infra-stackit-bootstrap-destroy \
 	infra-stackit-foundation-preflight infra-stackit-foundation-plan infra-stackit-foundation-apply infra-stackit-foundation-destroy \
 	infra-stackit-foundation-fetch-kubeconfig infra-stackit-foundation-refresh-kubeconfig infra-stackit-foundation-seed-runtime-secret \

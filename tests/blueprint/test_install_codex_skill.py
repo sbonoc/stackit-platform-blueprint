@@ -14,6 +14,23 @@ SHELL_LIB_DIR_REL = Path("scripts/lib/shell")
 MAKEFILE_REL = Path("Makefile")
 UPGRADE_SKILL_NAME = "blueprint-consumer-upgrade"
 OPS_SKILL_NAME = "blueprint-consumer-ops"
+SDD_INTAKE_SKILL_NAME = "blueprint-sdd-intake-decompose"
+SDD_CLARIFICATION_SKILL_NAME = "blueprint-sdd-clarification-gate"
+SDD_PLAN_SKILL_NAME = "blueprint-sdd-plan-slicer"
+SDD_TRACEABILITY_SKILL_NAME = "blueprint-sdd-traceability-keeper"
+SDD_DOCUMENT_SKILL_NAME = "blueprint-sdd-document-sync"
+SDD_PR_PACKAGER_SKILL_NAME = "blueprint-sdd-pr-packager"
+
+SKILL_REFERENCE_FILES: dict[str, tuple[str, ...]] = {
+    UPGRADE_SKILL_NAME: ("references/manual_merge_checklist.md",),
+    OPS_SKILL_NAME: ("references/consumer_ops_checklist.md",),
+    SDD_INTAKE_SKILL_NAME: ("references/intake_checklist.md",),
+    SDD_CLARIFICATION_SKILL_NAME: ("references/clarification_categories.md",),
+    SDD_PLAN_SKILL_NAME: ("references/plan_slice_checklist.md",),
+    SDD_TRACEABILITY_SKILL_NAME: ("references/traceability_matrix_template.md",),
+    SDD_DOCUMENT_SKILL_NAME: ("references/document_phase_checklist.md",),
+    SDD_PR_PACKAGER_SKILL_NAME: ("references/pr_packaging_checklist.md",),
+}
 
 
 def _copy_file(relative_path: Path, destination_root: Path) -> None:
@@ -64,7 +81,7 @@ class InstallCodexSkillTests(unittest.TestCase):
         )
 
     def test_template_fallback_installs_supported_skills_when_repo_local_source_missing(self) -> None:
-        for skill_name in (UPGRADE_SKILL_NAME, OPS_SKILL_NAME):
+        for skill_name in SKILL_REFERENCE_FILES:
             with self.subTest(skill_name=skill_name):
                 with tempfile.TemporaryDirectory() as tmpdir:
                     tmp_root = Path(tmpdir)
@@ -88,8 +105,8 @@ class InstallCodexSkillTests(unittest.TestCase):
                         script_path = installed_root / "scripts/resolve_latest_stable_ref.sh"
                         self.assertTrue(script_path.is_file())
                         self.assertTrue(script_path.stat().st_mode & 0o111)
-                    else:
-                        self.assertTrue((installed_root / "references/consumer_ops_checklist.md").is_file())
+                    for reference_path in SKILL_REFERENCE_FILES[skill_name]:
+                        self.assertTrue((installed_root / reference_path).is_file())
 
     def test_missing_sources_fail_with_remediation_hint(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

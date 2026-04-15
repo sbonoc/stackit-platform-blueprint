@@ -31,6 +31,7 @@
         "tests/infra/test_argocd_repo_contract_cli.py",
         "tests/infra/test_state_artifact_contract.py",
         "tests/infra/test_stackit_layers.py",
+        "tests/infra/test_sdd_asset_checker.py",
         "tests/infra/test_tooling_contracts.py",
         "tests/infra/test_workload_health_check.py",
         "tests/infra/test_python_helper_extractions.py",

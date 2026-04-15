@@ -10,5 +10,6 @@ artifacts/
 blueprint/repo.init.secrets.env
 docs/build/
 docs/.docusaurus/
+.codex/
 **/.terraform/
 infra/cloud/stackit/terraform/**/.terraform.lock.hcl

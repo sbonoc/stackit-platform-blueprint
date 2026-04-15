@@ -28,6 +28,11 @@ Use this skill when working in a **generated-consumer** repo and the user asks f
 5. For drift-sensitive flows, report exact commands and artifacts.
 6. Keep operations deterministic: no directory scanning/discovery scripts in consumer overrides.
 7. In generated-consumer mode, fail fast when contract placeholders are still active (for example `apps-ci-bootstrap-consumer` and optional `infra-post-deploy-consumer`).
+8. For non-trivial behavioral/code changes, follow SDD lifecycle in consumer `AGENTS.md`:
+   `Discover -> High-Level Architecture -> Specify -> Plan -> Implement -> Verify -> Document -> Operate`.
+9. During `Discover`, `High-Level Architecture`, `Specify`, and `Plan`, do not resolve missing requirements with assumptions.
+10. Keep `SPEC_READY=false` until all required inputs are explicit; if unresolved, mark `BLOCKED_MISSING_INPUTS`.
+11. Require applicable `SDD-C-###` control IDs in `spec.md` for each non-trivial work item.
 
 ## Operating Modes
 

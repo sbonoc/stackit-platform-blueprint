@@ -1170,6 +1170,11 @@ class ToolingContractsTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
         self.assertIn("quality-infra-shell-source-graph-check", result.stdout)
 
+    def test_quality_sdd_check_passes(self) -> None:
+        result = run(["python3", "scripts/bin/quality/check_sdd_assets.py"])
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        self.assertIn("quality-sdd-check", result.stdout)
+
     def test_load_env_file_defaults_preserves_explicit_env(self) -> None:
         output = env_file_defaults_contract()
         self.assertIn("repo=repo-from-file", output)
@@ -1298,8 +1303,21 @@ render_optional_module_secret_manifests "messaging" "blueprint-rabbitmq-auth" "r
         self.assertIn("make quality-hooks-fast", result.stdout)
         self.assertIn("make quality-hooks-strict", result.stdout)
         self.assertIn("make quality-hooks-run", result.stdout)
+        self.assertIn("make quality-sdd-check", result.stdout)
+        self.assertIn("make quality-sdd-check-all", result.stdout)
+        self.assertIn("make quality-docs-check-changed", result.stdout)
+        self.assertIn("make blueprint-install-codex-skills", result.stdout)
+        self.assertIn("make spec-scaffold SPEC_SLUG=<slug>", result.stdout)
+        self.assertIn("make spec-impact", result.stdout)
+        self.assertIn("make spec-evidence-manifest", result.stdout)
+        self.assertIn("make spec-context-pack", result.stdout)
+        self.assertIn("make spec-pr-context", result.stdout)
+        self.assertIn("make quality-hardening-review", result.stdout)
         self.assertIn("make blueprint-bootstrap", result.stdout)
         self.assertIn("make infra-bootstrap", result.stdout)
+        self.assertIn("make infra-port-forward-start", result.stdout)
+        self.assertIn("make infra-port-forward-stop", result.stdout)
+        self.assertIn("make infra-port-forward-cleanup", result.stdout)
         self.assertIn("quality-docs-sync-core-targets", result.stdout)
 
     def test_prereqs_help_mentions_extended_optional_tooling(self) -> None:

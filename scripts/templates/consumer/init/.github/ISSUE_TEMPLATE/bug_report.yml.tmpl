@@ -36,3 +36,35 @@ body:
       label: Expected behavior
     validations:
       required: true
+  - type: input
+    id: upstream_issue_url
+    attributes:
+      label: Upstream blueprint issue URL (if applicable)
+      description: Link to the blueprint issue when defect is blueprint-managed, otherwise `none`.
+      placeholder: https://github.com/<org>/stackit-platform-blueprint/issues/<id>
+    validations:
+      required: true
+  - type: input
+    id: workaround_path
+    attributes:
+      label: Temporary workaround path (if any)
+      description: Repository path(s) where temporary workaround is applied, or `none`.
+      placeholder: docs/platform/consumer/troubleshooting.md
+    validations:
+      required: true
+  - type: input
+    id: replacement_trigger
+    attributes:
+      label: Replacement trigger
+      description: What condition marks the workaround as removable?
+      placeholder: merged PR in blueprint repo
+    validations:
+      required: true
+  - type: input
+    id: workaround_review_date
+    attributes:
+      label: Workaround review date
+      description: Date to revisit and remove/refresh workaround if upstream fix is pending.
+      placeholder: YYYY-MM-DD
+    validations:
+      required: true
