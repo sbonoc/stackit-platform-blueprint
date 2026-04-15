@@ -63,6 +63,15 @@ make quality-hooks-run
 - Preserve consumer-owned files; do not force overwrite unless the user explicitly asks.
 - Keep source and ref pinned for the whole run (`BLUEPRINT_UPGRADE_SOURCE` + `BLUEPRINT_UPGRADE_REF`).
 
+## SDD Guardrails
+
+- Treat consumer `AGENTS.md` as the governance source for lifecycle and contracts.
+- If upgrade findings require behavioral/code changes, execute SDD order exactly:
+  `Discover -> High-Level Architecture -> Specify -> Plan -> Implement -> Verify -> Document -> Operate`.
+- During `Discover`, `High-Level Architecture`, `Specify`, and `Plan`, do not fill gaps with assumptions.
+- Keep `SPEC_READY=false` until missing inputs are resolved explicitly; if unresolved, mark the work item `BLOCKED_MISSING_INPUTS`.
+- Require applicable `SDD-C-###` control IDs in `spec.md` for each non-trivial change triggered by upgrade work.
+
 ## Reporting Format
 
 Always return:

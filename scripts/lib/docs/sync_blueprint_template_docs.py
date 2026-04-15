@@ -15,8 +15,12 @@ if str(REPO_ROOT) not in sys.path:
 from scripts.lib.blueprint.cli_support import ChangeSummary, display_repo_path, resolve_repo_root  # noqa: E402
 
 
-SOURCE_ROOT = Path("docs/blueprint")
-TEMPLATE_ROOT = Path("scripts/templates/blueprint/bootstrap/docs/blueprint")
+SINGLE_FILE_MIRRORS: tuple[tuple[Path, Path], ...] = (
+    (Path("docs/README.md"), Path("scripts/templates/blueprint/bootstrap/docs/README.md")),
+)
+DIRECTORY_MIRRORS: tuple[tuple[Path, Path], ...] = (
+    (Path("docs/blueprint"), Path("scripts/templates/blueprint/bootstrap/docs/blueprint")),
+)
 
 
 def _list_files(root: Path) -> dict[str, Path]:
@@ -29,17 +33,51 @@ def _list_files(root: Path) -> dict[str, Path]:
     }
 
 
-def _sync(repo_root: Path, check: bool) -> int:
-    source_root = repo_root / SOURCE_ROOT
-    template_root = repo_root / TEMPLATE_ROOT
+def _sync_single_file(
+    *,
+    repo_root: Path,
+    source_path: Path,
+    target_path: Path,
+    check: bool,
+    summary: ChangeSummary,
+    out_of_sync: list[str],
+) -> None:
+    if not source_path.is_file():
+        raise ValueError(f"missing source blueprint docs file: {source_path}")
+    source_content = source_path.read_text(encoding="utf-8")
+    if target_path.is_file():
+        target_content = target_path.read_text(encoding="utf-8")
+        if target_content == source_content:
+            summary.skipped_path(target_path, "already synchronized")
+            return
+        if check:
+            out_of_sync.append(display_repo_path(repo_root, target_path))
+            return
+        target_path.write_text(source_content, encoding="utf-8")
+        summary.updated_path(target_path)
+        return
+    if check:
+        out_of_sync.append(display_repo_path(repo_root, target_path))
+        return
+    target_path.parent.mkdir(parents=True, exist_ok=True)
+    target_path.write_text(source_content, encoding="utf-8")
+    summary.created_path(target_path)
 
+
+def _sync_directory(
+    *,
+    repo_root: Path,
+    source_root: Path,
+    template_root: Path,
+    check: bool,
+    summary: ChangeSummary,
+    out_of_sync: list[str],
+) -> None:
     if not source_root.is_dir():
         raise ValueError(f"missing source blueprint docs root: {source_root}")
 
     source_files = _list_files(source_root)
     template_files = _list_files(template_root)
-    summary = ChangeSummary("quality-docs-sync-blueprint-template")
-    out_of_sync: list[str] = []
 
     for relative, source_path in source_files.items():
         target_path = template_root / relative
@@ -71,6 +109,31 @@ def _sync(repo_root: Path, check: bool) -> int:
             continue
         target_path.unlink()
         summary.removed_path(target_path)
+
+
+def _sync(repo_root: Path, check: bool) -> int:
+    summary = ChangeSummary("quality-docs-sync-blueprint-template")
+    out_of_sync: list[str] = []
+
+    for source_rel, target_rel in SINGLE_FILE_MIRRORS:
+        _sync_single_file(
+            repo_root=repo_root,
+            source_path=repo_root / source_rel,
+            target_path=repo_root / target_rel,
+            check=check,
+            summary=summary,
+            out_of_sync=out_of_sync,
+        )
+
+    for source_rel, target_rel in DIRECTORY_MIRRORS:
+        _sync_directory(
+            repo_root=repo_root,
+            source_root=repo_root / source_rel,
+            template_root=repo_root / target_rel,
+            check=check,
+            summary=summary,
+            out_of_sync=out_of_sync,
+        )
 
     if check:
         if out_of_sync:

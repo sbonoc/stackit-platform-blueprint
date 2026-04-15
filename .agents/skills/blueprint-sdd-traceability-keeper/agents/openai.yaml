@@ -1,0 +1,4 @@
+interface:
+  display_name: "Blueprint SDD Traceability"
+  short_description: "Enforce requirement-to-test-to-doc coverage"
+  default_prompt: "Use $blueprint-sdd-traceability-keeper to verify and maintain REQ-to-spec-to-code-to-test-to-doc traceability and report any blocking coverage gaps."

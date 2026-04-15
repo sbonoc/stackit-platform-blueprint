@@ -15,13 +15,10 @@ Runs the fast local quality gate:
 - shellcheck (required)
 - root-resolution prelude drift check
 - infra shell source-edge graph check
+- Spec-Driven Development sync drift checks + governance wiring check
 - CI workflow sync checks (template-source only)
 - docs lint
-- blueprint docs/template sync checks
-- platform docs/template sync checks
-- generated docs sync checks
-- runtime identity summary sync checks
-- generated module contract summary sync checks
+- docs sync drift checks for changed scope
 - test pyramid
 - infra validation
 - fast infra contract helper CLI tests
@@ -51,6 +48,7 @@ fi
 
 run_cmd make -C "$ROOT_DIR" quality-root-dir-prelude-check
 run_cmd make -C "$ROOT_DIR" quality-infra-shell-source-graph-check
+run_cmd make -C "$ROOT_DIR" quality-sdd-check-all
 run_cmd make -C "$ROOT_DIR" quality-docs-lint
 if blueprint_repo_is_generated_consumer; then
   log_metric "quality_ci_check_sync_total" "1" "status=skipped repo_mode=generated-consumer"
@@ -59,12 +57,7 @@ else
   run_cmd make -C "$ROOT_DIR" quality-ci-check-sync
   log_metric "quality_ci_check_sync_total" "1" "status=success repo_mode=template-source"
 fi
-run_cmd make -C "$ROOT_DIR" quality-docs-check-blueprint-template-sync
-run_cmd make -C "$ROOT_DIR" quality-docs-check-platform-seed-sync
-run_cmd make -C "$ROOT_DIR" quality-docs-check-core-targets-sync
-run_cmd make -C "$ROOT_DIR" quality-docs-check-contract-metadata-sync
-run_cmd make -C "$ROOT_DIR" quality-docs-check-runtime-identity-summary-sync
-run_cmd make -C "$ROOT_DIR" quality-docs-check-module-contract-summaries-sync
+run_cmd make -C "$ROOT_DIR" quality-docs-check-changed
 run_cmd make -C "$ROOT_DIR" quality-test-pyramid
 run_cmd make -C "$ROOT_DIR" infra-validate
 run_cmd make -C "$ROOT_DIR" infra-contract-test-fast

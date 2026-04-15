@@ -22,14 +22,154 @@ This file is the canonical governance source for human and agent contributors.
 
 ## Mandatory Workflow
 1. Read `AGENTS.md` before starting work.
-2. Clarify only when ambiguity risks incorrect implementation; otherwise proceed with explicit assumptions.
-3. Implement with strict boundary contracts and deterministic behavior.
-4. Update/add automated tests for every behavior change.
-5. Refactor touched scope immediately (code/tests/docs/scripts/contracts).
-6. Run required validation bundles for changed scope before finishing.
-7. Update `AGENTS.decisions.md` when scope/contracts/priorities change.
-8. Update `AGENTS.backlog.md` when status/priorities change.
-9. Do not run `git commit`/`git push` unless explicitly requested in the current conversation.
+2. During `Discover`, `High-Level Architecture`, `Specify`, and `Plan`, do not use assumptions as substitutes for missing requirements; resolve ambiguity explicitly or mark the work item blocked.
+3. For non-trivial changes, execute the Spec-Driven Development lifecycle in this order: `Discover -> High-Level Architecture -> Specify -> Plan -> Implement -> Verify -> Document -> Operate -> Publish`.
+4. Implement with strict boundary contracts and deterministic behavior.
+5. Update/add automated tests for every behavior change.
+6. Refactor touched scope immediately (code/tests/docs/scripts/contracts).
+7. Run required validation bundles for changed scope before finishing.
+8. Update `AGENTS.decisions.md` when scope/contracts/priorities change.
+9. Update `AGENTS.backlog.md` when status/priorities change.
+10. Do not run `git commit`/`git push` unless explicitly requested in the current conversation.
+
+## Spec-Driven Development (SDD) Lifecycle
+- Canonical phase order:
+  - `Discover`: define user/problem context, scope boundaries, assumptions, constraints, and cross-cutting non-functional requirements.
+  - `High-Level Architecture`: decide bounded contexts, module boundaries, integration edges, and technology-specific architecture shape before low-level specs.
+  - `Specify`: define behavioral contracts, acceptance criteria, data/API/event contracts, and guardrail constraints.
+  - `Plan`: define executable work slices, sequence, ownership, risks, and validation strategy.
+  - `Implement`: deliver code/scripts/docs/contracts according to the approved plan.
+  - `Verify`: run shift-left validation at the lowest valid test layer first, then boundary/integration/e2e checks as required.
+  - `Document`: update and synchronize blueprint and consumer docs (Docusaurus + Mermaid) to reflect the implemented and verified behavior.
+  - `Operate`: define operational readiness (runbooks, dashboards/alerts, diagnostics, rollback guidance).
+  - `Publish`: package reviewer-ready PR context with key files, requirement/contract coverage, validation evidence, risk/rollback notes, and deferred proposals.
+- Trivial typo-only or wording-only updates may use a lightweight subset, but any behavioral, architectural, or contract change must follow the full lifecycle.
+
+## Generated SDD Policy Snapshot
+<!-- BEGIN GENERATED:SDD_POLICY_SNAPSHOT -->
+- Lifecycle order (contract): Discover -> High-Level Architecture -> Specify -> Plan -> Implement -> Verify -> Document -> Operate -> Publish
+- Readiness gate: `SPEC_READY=true`
+- Missing-input blocker token: `BLOCKED_MISSING_INPUTS`
+- Required zero-count fields: `Open questions count`, `Unresolved alternatives count`, `Unresolved TODO markers count`, `Pending assumptions count`, `Open clarification markers count`
+- Required sign-offs: `Product`, `Architecture`, `Security`, `Operations`
+- Allowed normative keywords: `MUST`, `MUST NOT`, `SHALL`, `EXACTLY ONE OF`
+- Forbidden ambiguous terms: `should`, `may`, `could`, `might`, `either`, `and/or`, `as needed`, `approximately`, `etc.`
+<!-- END GENERATED:SDD_POLICY_SNAPSHOT -->
+
+## SDD Readiness Gate (Mandatory Before Implementation)
+- `Implement` may start only when `SPEC_READY=true` is explicitly recorded in the work-item spec.
+- A work item is implementation-ready only when all are true:
+  - Open questions count is `0`.
+  - Unresolved alternatives count is `0`.
+  - Unresolved TODO/TBD/TBC markers count is `0`.
+  - Pending assumptions count is `0`.
+  - Required sign-offs are recorded as approved (`Product`, `Architecture`, `Security`, `Operations`).
+  - `ADR path` points to an existing ADR file and `ADR status` is approved.
+  - Requirement IDs and acceptance criteria IDs are mapped in traceability artifacts.
+- If required inputs are missing, the work item must be marked with `BLOCKED_MISSING_INPUTS` and remain `SPEC_READY=false`.
+- Code assistants must not silently fill missing business or non-functional requirements in spec artifacts.
+
+## SDD Artifact Contract
+- Canonical work-item location: `specs/<YYYY-MM-DD>-<work-item-slug>/`.
+- Required work-item documents:
+  - `architecture.md`
+  - `spec.md`
+  - `plan.md`
+  - `tasks.md`
+  - `traceability.md`
+  - `graph.yaml`
+  - `evidence_manifest.json`
+  - `context_pack.md`
+  - `pr_context.md`
+  - `hardening_review.md`
+- Optional (complex work): `research.md`, `data-model.md`, `contracts/`, `quickstart.md`.
+- Canonical template packs:
+  - blueprint maintainer track: `.spec-kit/templates/blueprint/`
+  - generated-consumer track: `.spec-kit/templates/consumer/`
+- `.spec-kit/policy-mapping.md` defines how governance guardrails map into SDD artifacts and must stay aligned with this file and `blueprint/contract.yaml`.
+- `.spec-kit/control-catalog.yaml` is the machine-readable control source; `.spec-kit/control-catalog.md` is generated from it.
+- `architecture.md` is the high-level exploration workspace for each work item.
+- Finalized architecture outcomes are recorded as ADRs:
+  - blueprint track: `docs/blueprint/architecture/decisions/`
+  - generated-consumer track: `docs/platform/architecture/decisions/`
+- North-star reference docs for architecture/stack baselines:
+  - blueprint track: `docs/blueprint/architecture/north_star.md`, `docs/blueprint/architecture/tech_stack.md`
+  - generated-consumer track: `docs/platform/architecture/north_star.md`, `docs/platform/architecture/tech_stack.md`
+
+## Guardrail Control Statements (Mandatory)
+- Guardrails must be written and maintained as control statements with stable IDs (`SDD-C-###`) in `.spec-kit/control-catalog.yaml` and rendered to `.spec-kit/control-catalog.md`.
+- Every control statement must include:
+  - deterministic normative requirement text (`MUST`/`MUST NOT`/`SHALL`)
+  - phase scope
+  - validation command
+  - expected evidence artifact(s)
+  - owner
+  - gate severity (`fail` or `warn`)
+- Work-item `spec.md` files must declare applicable control IDs in the normative controls section.
+
+## Cross-Cutting Guardrails (Must Be Captured in Discover + Specify)
+- Security and privacy controls (authn/authz, secret handling, least privilege, data protection).
+- Observability baseline (structured logs, metrics, traces, audit fields where applicable).
+- Monitoring and alerting expectations (signals, thresholds/SLO alignment, ownership).
+- Reliability/resilience and rollback policy (failure modes, blast radius, recovery strategy).
+- Operability and diagnostics (runbooks, troubleshooting artifacts, deterministic commands).
+- Compliance with architecture style mandates (SOLID, Clean Architecture, Clean Code, DDD) adapted to the selected runtime stack.
+- Local-first baseline for local execution (Docker Desktop Kubernetes context policy + Crossplane/Helm provisioning + ESO/Argo/Keycloak runtime identity) with explicit approved exception rationale when deviating.
+- App-onboarding minimum Make-target contract (including canonical `infra-port-forward-start|stop|cleanup` wrappers) in `plan.md` and `tasks.md` when app delivery scope is affected.
+- Managed-service-first policy for generated-consumer runtime capabilities: when `BLUEPRINT_PROFILE=stackit-*`, prefer STACKIT managed services by default; any non-managed/self-managed alternative requires an explicit normative option decision, rationale, and approval record in `spec.md` + ADR + `AGENTS.decisions.md`.
+- Blueprint-defect escalation policy for generated-consumer work: when a defect is attributable to blueprint-managed behavior, record an upstream issue plus workaround lifecycle fields (`Upstream issue URL`, `Temporary workaround path`, `Replacement trigger`, `Workaround review date`) in the work-item spec and consumer docs until replaced by upstream fix.
+
+## Normative Language Policy (Spec Artifacts)
+- Normative sections must use deterministic language: `MUST`, `MUST NOT`, `SHALL`, `EXACTLY ONE OF`.
+- In normative sections, ambiguous wording is forbidden, including:
+  - `should`
+  - `may`
+  - `could`
+  - `might`
+  - `either`
+  - `and/or`
+  - `as needed`
+  - `approximately`
+  - `etc.`
+- Informative sections may explain context and tradeoffs, but implementation behavior is defined only by normative statements and selected options.
+
+## Clarification Marker Policy
+- Use `[NEEDS CLARIFICATION: ...]` markers during `Discover`, `High-Level Architecture`, `Specify`, and `Plan` whenever requirements are not explicit.
+- Do not replace missing inputs with assumptions; unresolved clarification markers keep `SPEC_READY=false`.
+- `Open clarification markers count` in the readiness gate must be `0` before implementation starts.
+
+## Hardening Review Gate
+- After implementation and before publish, run a repository-wide hardening review and capture results in `hardening_review.md`.
+- Hardening review must include:
+  - `Repository-Wide Findings Fixed`
+  - `Observability and Diagnostics Changes`
+  - `Architecture and Code Quality Compliance`
+  - `Proposals Only (Not Implemented)`
+- Canonical execution target: `make quality-hardening-review`.
+
+## Publish Gate
+- `Publish` is required before requesting review/merge.
+- Generate and maintain `pr_context.md` containing:
+  - `Summary`
+  - `Requirement Coverage`
+  - `Key Reviewer Files`
+  - `Validation Evidence`
+  - `Risk and Rollback`
+  - `Deferred Proposals`
+- Pull requests must follow repository templates and include equivalent sections for deterministic review context.
+
+## Specialized Agent Collaboration (When Used)
+- Partition ownership by bounded context and dependency direction, not by arbitrary files.
+- Backend/API contributors (for example FastAPI stacks) should preserve `domain -> application -> infrastructure -> presentation` flow and explicit contract boundaries.
+- Frontend contributors (for example Vue stacks) should preserve feature boundaries, typed API contracts, state/event flow clarity, and testability.
+- Always preserve deterministic handoffs: each task must map to SDD artifacts, validation evidence, and a clear owner.
+
+## Assistant Interoperability
+- SDD artifacts (`specs/**`, `.spec-kit/**`) and Make targets are the canonical, tool-agnostic execution contract for any code assistant.
+- Bundled Codex skills under `.agents/skills/**` are accelerators, not alternative governance; they must resolve to the same lifecycle/order/validation contract.
+- For assistants that do not support Codex skill loading (for example Claude Code), use the corresponding `SKILL.md` files as plain-text runbooks and still execute canonical repository commands.
+- When specialized subagents are used, assign each one to an isolated worktree and bounded-context ownership slice to prevent write collisions.
+- The work-item spec must explicitly declare the selected stack profile and agent execution model before implementation.
 
 ## Definition of Done (DoD)
 A task is done only when all applicable items pass:

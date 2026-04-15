@@ -16,24 +16,107 @@ This file is the canonical governance source for this generated platform reposit
 
 ## Mandatory Workflow
 1. Read `AGENTS.md` before starting work.
-2. Change code, tests, docs, and contract-adjacent files together.
-3. Keep platform-owned work in `make/platform.mk`, `make/platform/*.mk`, `scripts/bin/platform/**`, `scripts/lib/platform/**`, `apps/**`, and `docs/platform/**`.
-4. Treat blueprint-managed paths as controlled surfaces and update them only intentionally:
+2. During `Discover`, `High-Level Architecture`, `Specify`, and `Plan`, do not use assumptions as substitutes for missing requirements; resolve ambiguity explicitly or mark the work item blocked.
+3. For non-trivial work, execute the Spec-Driven Development lifecycle in order: `Discover -> High-Level Architecture -> Specify -> Plan -> Implement -> Verify -> Document -> Operate -> Publish`.
+4. Change code, tests, docs, and contract-adjacent files together.
+5. Keep platform-owned work in `make/platform.mk`, `make/platform/*.mk`, `scripts/bin/platform/**`, `scripts/lib/platform/**`, `apps/**`, and `docs/platform/**`.
+6. Treat blueprint-managed paths as controlled surfaces and update them only intentionally:
    - `blueprint/**`
    - `docs/blueprint/**`
    - `scripts/bin/blueprint/**`
    - `scripts/lib/blueprint/**`
    - `scripts/templates/**`
    - `make/blueprint.generated.mk`
-5. Run the required validation bundle for the changed scope before finishing.
-6. Update `AGENTS.decisions.md` when scope, contracts, or operating policy change.
-7. Update `AGENTS.backlog.md` when priorities or status change.
-8. Do not run `git commit` or `git push` unless explicitly requested in the current conversation.
+7. Run the required validation bundle for the changed scope before finishing.
+8. Update `AGENTS.decisions.md` when scope, contracts, or operating policy change.
+9. Update `AGENTS.backlog.md` when priorities or status change.
+10. Do not run `git commit` or `git push` unless explicitly requested in the current conversation.
+
+## SDD Artifacts
+- Use `specs/<YYYY-MM-DD>-<work-item-slug>/` for work-item artifacts.
+- Required documents per work item:
+  - `architecture.md`
+  - `spec.md`
+  - `plan.md`
+  - `tasks.md`
+  - `traceability.md`
+  - `graph.yaml`
+  - `evidence_manifest.json`
+  - `context_pack.md`
+  - `pr_context.md`
+  - `hardening_review.md`
+- Start from `.spec-kit/templates/consumer/*`.
+- Keep `.spec-kit/policy-mapping.md` aligned with this governance file and repository contracts.
+- Keep `.spec-kit/control-catalog.yaml` as the control source and `.spec-kit/control-catalog.md` rendered from it.
+- `architecture.md` is the high-level exploration workspace for each work item.
+- Finalized architecture outcomes are recorded as ADRs under `docs/platform/architecture/decisions/`.
+- Use the north-star architecture references:
+  - `docs/platform/architecture/north_star.md`
+  - `docs/platform/architecture/tech_stack.md`
+
+## SDD Readiness Gate
+- `Implement` may start only when `SPEC_READY=true` is explicitly recorded in the work-item spec.
+- A work item is implementation-ready only when all are true:
+  - Open questions count is `0`.
+  - Unresolved alternatives count is `0`.
+  - Unresolved TODO/TBD/TBC markers count is `0`.
+  - Pending assumptions count is `0`.
+  - Required sign-offs are approved (`Product`, `Architecture`, `Security`, `Operations`).
+  - `ADR path` points to an existing ADR file and `ADR status` is approved.
+- If required inputs are missing, mark the work item with `BLOCKED_MISSING_INPUTS` and keep `SPEC_READY=false`.
+- Code assistants must not silently fill missing business or non-functional requirements in spec artifacts.
+
+## Generated SDD Policy Snapshot
+<!-- BEGIN GENERATED:SDD_POLICY_SNAPSHOT -->
+- Lifecycle order (contract): Discover -> High-Level Architecture -> Specify -> Plan -> Implement -> Verify -> Document -> Operate -> Publish
+- Readiness gate: `SPEC_READY=true`
+- Missing-input blocker token: `BLOCKED_MISSING_INPUTS`
+- Required zero-count fields: `Open questions count`, `Unresolved alternatives count`, `Unresolved TODO markers count`, `Pending assumptions count`, `Open clarification markers count`
+- Required sign-offs: `Product`, `Architecture`, `Security`, `Operations`
+- Allowed normative keywords: `MUST`, `MUST NOT`, `SHALL`, `EXACTLY ONE OF`
+- Forbidden ambiguous terms: `should`, `may`, `could`, `might`, `either`, `and/or`, `as needed`, `approximately`, `etc.`
+<!-- END GENERATED:SDD_POLICY_SNAPSHOT -->
+
+## SDD Guardrails
+- Capture non-functional requirements in `Discover` and `Specify` (security, observability, monitoring/alerting, reliability, operability).
+- Keep architecture/style compliant with SOLID, Clean Architecture/Clean Code, and DDD adapted to your technology stack.
+- Follow shift-left test automation: validate with the lowest valid test layer first, then escalate to integration/e2e only when boundary interactions require it.
+- Define applicable `SDD-C-###` control IDs in each work-item spec and keep validation/evidence aligned with `.spec-kit/control-catalog.md`.
+- Define stack profile and agent execution model explicitly before implementation.
+- Apply managed-service-first policy for runtime capabilities in `stackit-*` profiles: prefer STACKIT managed services unless `spec.md` + ADR + `AGENTS.decisions.md` explicitly record an approved exception rationale.
+- Define local-first runtime baseline explicitly (`Runtime profile`, local kube context policy, local provisioning stack, runtime identity baseline) and record approved exception rationale when deviating.
+- Define and maintain the app onboarding minimum make-target contract in `plan.md` and `tasks.md`, including `infra-port-forward-start`, `infra-port-forward-stop`, and `infra-port-forward-cleanup`.
+- For blueprint-caused defects, track upstream escalation lifecycle in the spec (`Upstream issue URL`, `Temporary workaround path`, `Replacement trigger`, `Workaround review date`) and remove workaround once upstream fix is adopted.
+
+## Clarification Marker Policy
+- Use `[NEEDS CLARIFICATION: ...]` markers when requirements are incomplete.
+- Keep `SPEC_READY=false` until clarification markers are resolved.
+- `Open clarification markers count` must be `0` before implementation.
+
+## Hardening Review and Publish Gate
+- Complete a repository-wide hardening review before publish and capture it in `hardening_review.md`.
+- Required hardening sections:
+  - `Repository-Wide Findings Fixed`
+  - `Observability and Diagnostics Changes`
+  - `Architecture and Code Quality Compliance`
+  - `Proposals Only (Not Implemented)`
+- Generate `pr_context.md` before opening PRs with:
+  - `Summary`
+  - `Requirement Coverage`
+  - `Key Reviewer Files`
+  - `Validation Evidence`
+  - `Risk and Rollback`
+  - `Deferred Proposals`
+- Canonical hardening target: `make quality-hardening-review`.
+
+## Normative Language Policy
+- Normative sections must use deterministic language: `MUST`, `MUST NOT`, `SHALL`, `EXACTLY ONE OF`.
+- Forbidden in normative sections: `should`, `may`, `could`, `might`, `either`, `and/or`, `as needed`, `approximately`, `etc.`.
 
 ## Definition of Done
 - Behavior works in affected paths.
 - Tests cover the behavior at the lowest valid layer.
-- Docs and Make targets stay synchronized.
+- Docs (including Docusaurus/Mermaid views) and Make targets stay synchronized.
 - Validation passes for the touched scope.
 - No avoidable debt is left in touched consumer-owned areas.
 
@@ -71,3 +154,8 @@ This file is the canonical governance source for this generated platform reposit
   - `scripts/lib/blueprint/**`
   - `scripts/templates/**`
   - `make/blueprint.generated.mk`
+
+## Assistant Interoperability
+- Treat SDD artifacts and Make targets as the canonical contract across all assistants.
+- Codex skill bundles under `.agents/skills/**` are optional accelerators; they do not replace governance.
+- If an assistant cannot load Codex skills directly, follow the corresponding `SKILL.md` files as runbooks and execute the same repository commands.

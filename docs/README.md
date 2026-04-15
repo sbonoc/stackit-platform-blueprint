@@ -12,12 +12,16 @@ In the source blueprint repository this page is maintainer-oriented. Generated c
 Recommended reading order:
 1. [First 30 Minutes](platform/consumer/first_30_minutes.md)
 2. [Platform Quickstart](platform/consumer/quickstart.md)
-3. [Endpoint Exposure Model](platform/consumer/endpoint_exposure_model.md)
-4. [Protected API Routes](platform/consumer/protected_api_routes.md)
-5. [Event Messaging Baseline](platform/consumer/event_messaging_baseline.md)
-6. [Zero-Downtime Evolution](platform/consumer/zero_downtime_evolution.md)
-7. [Tenant Context Propagation](platform/consumer/tenant_context_propagation.md)
-8. [Platform Troubleshooting](platform/consumer/troubleshooting.md)
+3. [App Onboarding Contract](platform/consumer/app_onboarding.md)
+4. [Endpoint Exposure Model](platform/consumer/endpoint_exposure_model.md)
+5. [Protected API Routes](platform/consumer/protected_api_routes.md)
+6. [Event Messaging Baseline](platform/consumer/event_messaging_baseline.md)
+7. [Zero-Downtime Evolution](platform/consumer/zero_downtime_evolution.md)
+8. [Tenant Context Propagation](platform/consumer/tenant_context_propagation.md)
+9. [Platform Troubleshooting](platform/consumer/troubleshooting.md)
+10. [Platform Architecture and ADRs](platform/architecture/README.md)
+
+Default policy reminder: for `stackit-*` runtime capabilities, use managed STACKIT services unless an approved explicit exception is recorded in SDD artifacts and decisions.
 
 Fast path:
 ```bash
@@ -78,13 +82,36 @@ Install only the consumer operations skill:
 make blueprint-install-codex-skill-consumer-ops
 BLUEPRINT_CODEX_SKILLS_DIR="${CODEX_HOME:-$HOME/.codex}/skills" make blueprint-install-codex-skill-consumer-ops
 ```
+Install SDD-specialized skills when needed:
+```bash
+make blueprint-install-codex-skill-sdd-intake-decompose
+make blueprint-install-codex-skill-sdd-clarification-gate
+make blueprint-install-codex-skill-sdd-plan-slicer
+make blueprint-install-codex-skill-sdd-traceability-keeper
+make blueprint-install-codex-skill-sdd-document-sync
+make blueprint-install-codex-skill-sdd-pr-packager
+```
+
+### SDD + Skills Adoption (Consumer Track)
+Use this baseline sequence so agents follow SDD deterministically:
+1. Install/sync bundled skills:
+   - `make blueprint-install-codex-skills`
+2. Start a work item:
+   - `make spec-scaffold SPEC_SLUG=<work-item-slug>`
+3. Complete `Discover -> High-Level Architecture -> Specify -> Plan` and keep `SPEC_READY=false` until all required inputs are explicit.
+4. Record applicable `SDD-C-###` control IDs from `.spec-kit/control-catalog.md` in the work-item `spec.md`.
+5. Start implementation only when `SPEC_READY=true`, then run `Verify`, `Document`, and `Publish` (`make docs-build`, `make docs-smoke`, `make quality-sdd-check-all`, `make quality-hardening-review`, `make spec-pr-context`) before closing.
 
 ## If You Maintain the Blueprint (Maintainer Track)
 Read:
 1. [Blueprint README](blueprint/README.md)
 2. [Blueprint Execution Model](blueprint/architecture/execution_model.md)
 3. [Blueprint System Overview](blueprint/architecture/system_overview.md)
-4. [Ownership Matrix](blueprint/governance/ownership_matrix.md)
+4. [Blueprint Architecture North Star](blueprint/architecture/north_star.md)
+5. [Blueprint Technology Stack Baseline](blueprint/architecture/tech_stack.md)
+6. [Ownership Matrix](blueprint/governance/ownership_matrix.md)
+7. [Spec-Driven Development](blueprint/governance/spec_driven_development.md)
+8. [Assistant Compatibility](blueprint/governance/assistant_compatibility.md)
 
 ## Canonical Infra Paths
 - STACKIT Terraform: `infra/cloud/stackit/terraform/`
@@ -121,7 +148,19 @@ Common baseline flow:
 - `make blueprint-upgrade-consumer-validate`
 - `make blueprint-install-codex-skill`
 - `make blueprint-install-codex-skill-consumer-ops`
+- `make blueprint-install-codex-skill-sdd-intake-decompose`
+- `make blueprint-install-codex-skill-sdd-clarification-gate`
+- `make blueprint-install-codex-skill-sdd-plan-slicer`
+- `make blueprint-install-codex-skill-sdd-traceability-keeper`
+- `make blueprint-install-codex-skill-sdd-document-sync`
+- `make blueprint-install-codex-skill-sdd-pr-packager`
 - `make blueprint-install-codex-skills`
+- `make spec-scaffold SPEC_SLUG=<work-item-slug>`
+- `make spec-impact`
+- `make spec-evidence-manifest`
+- `make spec-context-pack`
+- `make spec-pr-context`
+- `make quality-hardening-review`
 - `make blueprint-bootstrap`
 - `make blueprint-render-module-wrapper-skeletons`
 - `make blueprint-clean-generated`
@@ -144,8 +183,13 @@ Quality and docs flow:
 - `make quality-hooks-fast`
 - `make quality-hooks-strict`
 - `make quality-hooks-run`
+- `make quality-sdd-check`
+- `make quality-sdd-check-all`
+- `make quality-sdd-sync-all`
+- `make quality-hardening-review`
 - `make quality-ci-check-sync`
 - `make quality-docs-lint`
+- `make quality-docs-check-changed`
 - `make quality-docs-check-blueprint-template-sync`
 - `make quality-docs-check-platform-seed-sync`
 - `make quality-test-pyramid`
@@ -159,6 +203,9 @@ Quality and docs flow:
 Operational diagnostics and teardown:
 - `make infra-context`
 - `make infra-status-json`
+- `make infra-port-forward-start`
+- `make infra-port-forward-stop`
+- `make infra-port-forward-cleanup`
 - `make infra-local-destroy-all`
 - `make infra-stackit-destroy-all`
 - `artifacts/infra/smoke_result.json`

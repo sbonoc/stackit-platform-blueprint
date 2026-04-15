@@ -216,3 +216,53 @@
   - the matrix now validates that legacy snapshots can be upgraded non-destructively, required runtime contract artifacts are materialized, and strict runtime drift reporting remains in-sync when toggles are disabled and when enabled.
   - fast contract lane now executes this matrix through `scripts/bin/infra/contract_test_fast.sh` so CI catches upgrade/resync regressions before release tagging.
   - deferred simplification/refactor proposals (declarative module action manifest, shared validation package, script trace-id propagation, docs snippet generation, path-aware CI partitioning) were intentionally moved to `AGENTS.backlog.md` as explicit priorities rather than bundled into this change.
+- Spec-Driven Development is now a first-class governance contract:
+  - canonical lifecycle is `Discover -> High-Level Architecture -> Specify -> Plan -> Implement -> Verify -> Operate`.
+  - canonical SDD assets live under `.spec-kit/**` and `specs/**` for blueprint maintainers, with consumer-seeded `.spec-kit/**` + `specs/README.md` templates.
+  - cross-cutting guardrails (security, observability, monitoring/alerting, reliability, operability, architecture style, shift-left testing) are now explicitly mapped into SDD artifacts.
+  - fast quality lane now includes `quality-sdd-check` (`scripts/bin/quality/check_sdd_assets.py`) to enforce SDD asset presence and governance wiring.
+  - readiness-gate policy now blocks implementation until `SPEC_READY=true` with explicit zero unresolved counts and approved Product/Architecture/Security/Operations sign-offs.
+  - assumption policy is explicit: missing requirements must be resolved or marked `BLOCKED_MISSING_INPUTS`; assistants must not fill spec gaps via assumptions.
+  - normative spec language is now linted for ambiguity in normative sections (`should/may/could/might/either/and-or/as needed/approximately/etc.` forbidden).
+- ADR governance is now an executable SDD contract, not only documentation:
+  - canonical ADR templates are required for both tracks (`.spec-kit/templates/blueprint/adr.md`, `.spec-kit/templates/consumer/adr.md`) including consumer init templating.
+  - platform architecture seed docs now include ADR landing pages/templates (`docs/platform/architecture/README.md`, `docs/platform/architecture/decisions/ADR-0000-template.md`) and are enforced in bootstrap seed contracts.
+  - readiness-gate contract now mandates `ADR path` and `ADR status`, with `approved` status required when `SPEC_READY=true` and ADR paths restricted to approved decisions roots.
+  - `quality-sdd-check` validates ADR readiness fields, approved status, and repository-relative ADR path existence for implementation-ready specs.
+- SDD execution governance now explicitly includes documentation and executable control-catalog constraints:
+  - canonical lifecycle is `Discover -> High-Level Architecture -> Specify -> Plan -> Implement -> Verify -> Document -> Operate`.
+  - `.spec-kit/control-catalog.md` is now a required contract artifact and consumer-seeded template surface.
+  - work-item specs must include explicit `Applicable Guardrail Controls` (`SDD-C-###`) and `Implementation Stack Profile` sections before implementation.
+  - `quality-sdd-check` now validates control-catalog table structure, control-id format/gates, spec-declared control IDs, stack profile fields, and allowed agent execution model values.
+  - architecture north-star and technology-stack baselines are now required docs for both blueprint and generated-consumer tracks and are synced into bootstrap/seed template mirrors.
+  - bootstrap seed list now includes SDD governance docs and architecture north-star/stack references so generated repos materialize these docs on bootstrap.
+- SDD operations are now source-driven and orchestrated to reduce drift:
+  - `.spec-kit/control-catalog.yaml` is the machine-readable source of truth and `.spec-kit/control-catalog.md` is rendered from it (`scripts/lib/spec_kit/render_control_catalog.py`).
+  - consumer-init SDD seed assets are synchronized from canonical `.spec-kit/**` and `specs/README.md` via `scripts/lib/spec_kit/sync_consumer_init_sdd_assets.py`.
+  - generated SDD policy snapshot blocks in `AGENTS.md`, consumer-init `AGENTS.md.tmpl`, and blueprint governance docs are rendered from contract fields via `scripts/lib/spec_kit/render_policy_snippets.py`.
+  - canonical make targets now include `spec-scaffold` and SDD sync/check aggregators (`quality-sdd-sync-all`, `quality-sdd-check-all`).
+  - docs sync/check recipes are centralized through `scripts/lib/docs/orchestrate_sync.py`, including changed-scope fast checks (`quality-docs-check-changed`) used by `quality-hooks-fast`.
+- SDD agent workflows are now first-class bundled Codex skills for generated-consumer execution:
+  - added canonical skills (source + consumer-template fallback) for intake/decomposition, clarification gate, plan slicing, traceability upkeep, and document-phase sync.
+  - canonical install targets now include:
+    - `blueprint-install-codex-skill-sdd-intake-decompose`
+    - `blueprint-install-codex-skill-sdd-clarification-gate`
+    - `blueprint-install-codex-skill-sdd-plan-slicer`
+    - `blueprint-install-codex-skill-sdd-traceability-keeper`
+    - `blueprint-install-codex-skill-sdd-document-sync`
+  - `make blueprint-install-codex-skills` now installs consumer upgrade/ops plus all bundled SDD skills in one deterministic command.
+- Managed-service-first and multi-assistant SDD execution policy is now explicit:
+  - `AGENTS.md` and consumer `AGENTS.md.tmpl` now define managed-service-first behavior for `stackit-*` runtime capabilities with explicit exception recording requirements.
+  - SDD spec contract now requires managed-service decision fields in `Implementation Stack Profile` and validates explicit exception rationale when `explicit-consumer-exception` is selected.
+  - governance docs now include lifecycle-to-skill mapping and tool-agnostic assistant compatibility guidance (`docs/blueprint/governance/assistant_compatibility.md`).
+- SDD lifecycle now includes explicit `Publish` governance:
+  - canonical phase order is `Discover -> High-Level Architecture -> Specify -> Plan -> Implement -> Verify -> Document -> Operate -> Publish`.
+  - Publish requires deterministic artifacts `pr_context.md` and `hardening_review.md` for every work item, with template parity for blueprint and generated-consumer tracks.
+  - readiness now includes clarification-marker accounting (`Open clarification markers count` + `NEEDS CLARIFICATION` token consistency checks).
+  - `spec.md` now carries a required `Blueprint Upstream Defect Escalation` section with workaround lifecycle fields for consumer-side temporary blueprint defects.
+  - PR templates are contract-validated for review headings (`Summary`, requirement coverage, key reviewer files, validation evidence, risk/rollback, deferred proposals).
+  - new operational entrypoints:
+    - `make blueprint-install-codex-skill-sdd-pr-packager`
+    - `make spec-pr-context`
+    - `make quality-hardening-review`
+  - added canonical skill `blueprint-sdd-pr-packager` (source + consumer template fallback) to package Publish-phase review context consistently.

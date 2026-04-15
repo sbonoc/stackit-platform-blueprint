@@ -166,6 +166,32 @@ class GovernanceStructureCases(RefactorContractBase):
                 ".editorconfig",
                 ".pre-commit-config.yaml",
                 "README.md",
+                ".spec-kit/policy-mapping.md",
+                ".spec-kit/control-catalog.yaml",
+                ".spec-kit/control-catalog.md",
+                ".spec-kit/templates/blueprint/architecture.md",
+                ".spec-kit/templates/blueprint/adr.md",
+                ".spec-kit/templates/blueprint/spec.md",
+                ".spec-kit/templates/blueprint/plan.md",
+                ".spec-kit/templates/blueprint/tasks.md",
+                ".spec-kit/templates/blueprint/traceability.md",
+                ".spec-kit/templates/blueprint/graph.yaml",
+                ".spec-kit/templates/blueprint/evidence_manifest.json",
+                ".spec-kit/templates/blueprint/context_pack.md",
+                ".spec-kit/templates/blueprint/pr_context.md",
+                ".spec-kit/templates/blueprint/hardening_review.md",
+                ".spec-kit/templates/consumer/architecture.md",
+                ".spec-kit/templates/consumer/adr.md",
+                ".spec-kit/templates/consumer/spec.md",
+                ".spec-kit/templates/consumer/plan.md",
+                ".spec-kit/templates/consumer/tasks.md",
+                ".spec-kit/templates/consumer/traceability.md",
+                ".spec-kit/templates/consumer/graph.yaml",
+                ".spec-kit/templates/consumer/evidence_manifest.json",
+                ".spec-kit/templates/consumer/context_pack.md",
+                ".spec-kit/templates/consumer/pr_context.md",
+                ".spec-kit/templates/consumer/hardening_review.md",
+                "specs/README.md",
                 ".agents/skills/blueprint-consumer-upgrade/SKILL.md",
                 ".agents/skills/blueprint-consumer-upgrade/agents/openai.yaml",
                 ".agents/skills/blueprint-consumer-upgrade/references/manual_merge_checklist.md",
@@ -173,15 +199,41 @@ class GovernanceStructureCases(RefactorContractBase):
                 ".agents/skills/blueprint-consumer-ops/SKILL.md",
                 ".agents/skills/blueprint-consumer-ops/agents/openai.yaml",
                 ".agents/skills/blueprint-consumer-ops/references/consumer_ops_checklist.md",
+                ".agents/skills/blueprint-sdd-intake-decompose/SKILL.md",
+                ".agents/skills/blueprint-sdd-intake-decompose/agents/openai.yaml",
+                ".agents/skills/blueprint-sdd-intake-decompose/references/intake_checklist.md",
+                ".agents/skills/blueprint-sdd-clarification-gate/SKILL.md",
+                ".agents/skills/blueprint-sdd-clarification-gate/agents/openai.yaml",
+                ".agents/skills/blueprint-sdd-clarification-gate/references/clarification_categories.md",
+                ".agents/skills/blueprint-sdd-plan-slicer/SKILL.md",
+                ".agents/skills/blueprint-sdd-plan-slicer/agents/openai.yaml",
+                ".agents/skills/blueprint-sdd-plan-slicer/references/plan_slice_checklist.md",
+                ".agents/skills/blueprint-sdd-traceability-keeper/SKILL.md",
+                ".agents/skills/blueprint-sdd-traceability-keeper/agents/openai.yaml",
+                ".agents/skills/blueprint-sdd-traceability-keeper/references/traceability_matrix_template.md",
+                ".agents/skills/blueprint-sdd-document-sync/SKILL.md",
+                ".agents/skills/blueprint-sdd-document-sync/agents/openai.yaml",
+                ".agents/skills/blueprint-sdd-document-sync/references/document_phase_checklist.md",
+                ".agents/skills/blueprint-sdd-pr-packager/SKILL.md",
+                ".agents/skills/blueprint-sdd-pr-packager/agents/openai.yaml",
+                ".agents/skills/blueprint-sdd-pr-packager/references/pr_packaging_checklist.md",
                 "make/blueprint.generated.mk",
                 "make/platform.mk",
                 "docs/blueprint/README.md",
                 "docs/blueprint/architecture/system_overview.md",
                 "docs/blueprint/architecture/execution_model.md",
+                "docs/blueprint/architecture/decisions/README.md",
+                "docs/blueprint/architecture/north_star.md",
+                "docs/blueprint/architecture/tech_stack.md",
                 "docs/blueprint/governance/ownership_matrix.md",
                 "docs/platform/README.md",
+                "docs/platform/architecture/README.md",
+                "docs/platform/architecture/decisions/ADR-0000-template.md",
+                "docs/platform/architecture/north_star.md",
+                "docs/platform/architecture/tech_stack.md",
                 "docs/platform/consumer/first_30_minutes.md",
                 "docs/platform/consumer/quickstart.md",
+                "docs/platform/consumer/app_onboarding.md",
                 "docs/platform/consumer/endpoint_exposure_model.md",
                 "docs/platform/consumer/protected_api_routes.md",
                 "docs/platform/consumer/event_messaging_baseline.md",
@@ -204,6 +256,13 @@ class GovernanceStructureCases(RefactorContractBase):
                 "scripts/templates/blueprint/bootstrap/Makefile",
                 "scripts/templates/blueprint/bootstrap/blueprint/contract.yaml",
                 "scripts/templates/blueprint/bootstrap/docs/docusaurus.config.js",
+                "scripts/templates/blueprint/bootstrap/docs/blueprint/architecture/decisions/README.md",
+                "scripts/templates/blueprint/bootstrap/docs/blueprint/architecture/north_star.md",
+                "scripts/templates/blueprint/bootstrap/docs/blueprint/architecture/tech_stack.md",
+                "scripts/templates/blueprint/bootstrap/docs/platform/architecture/README.md",
+                "scripts/templates/blueprint/bootstrap/docs/platform/architecture/decisions/ADR-0000-template.md",
+                "scripts/templates/blueprint/bootstrap/docs/platform/architecture/north_star.md",
+                "scripts/templates/blueprint/bootstrap/docs/platform/architecture/tech_stack.md",
                 "scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl",
                 "scripts/templates/blueprint/bootstrap/make/platform.mk",
                 "scripts/templates/consumer/init/README.md.tmpl",
@@ -211,6 +270,7 @@ class GovernanceStructureCases(RefactorContractBase):
                 "scripts/templates/consumer/init/AGENTS.backlog.md.tmpl",
                 "scripts/templates/consumer/init/AGENTS.decisions.md.tmpl",
                 "scripts/templates/consumer/init/docs/README.md.tmpl",
+                "scripts/templates/consumer/init/specs/README.md.tmpl",
                 "scripts/templates/consumer/init/.github/CODEOWNERS.tmpl",
                 "scripts/templates/consumer/init/.github/ISSUE_TEMPLATE/bug_report.yml.tmpl",
                 "scripts/templates/consumer/init/.github/ISSUE_TEMPLATE/feature_request.yml.tmpl",
@@ -224,6 +284,38 @@ class GovernanceStructureCases(RefactorContractBase):
                 "scripts/templates/consumer/init/.agents/skills/blueprint-consumer-ops/SKILL.md.tmpl",
                 "scripts/templates/consumer/init/.agents/skills/blueprint-consumer-ops/agents/openai.yaml.tmpl",
                 "scripts/templates/consumer/init/.agents/skills/blueprint-consumer-ops/references/consumer_ops_checklist.md.tmpl",
+                "scripts/templates/consumer/init/.agents/skills/blueprint-sdd-intake-decompose/SKILL.md.tmpl",
+                "scripts/templates/consumer/init/.agents/skills/blueprint-sdd-intake-decompose/agents/openai.yaml.tmpl",
+                "scripts/templates/consumer/init/.agents/skills/blueprint-sdd-intake-decompose/references/intake_checklist.md.tmpl",
+                "scripts/templates/consumer/init/.agents/skills/blueprint-sdd-clarification-gate/SKILL.md.tmpl",
+                "scripts/templates/consumer/init/.agents/skills/blueprint-sdd-clarification-gate/agents/openai.yaml.tmpl",
+                "scripts/templates/consumer/init/.agents/skills/blueprint-sdd-clarification-gate/references/clarification_categories.md.tmpl",
+                "scripts/templates/consumer/init/.agents/skills/blueprint-sdd-plan-slicer/SKILL.md.tmpl",
+                "scripts/templates/consumer/init/.agents/skills/blueprint-sdd-plan-slicer/agents/openai.yaml.tmpl",
+                "scripts/templates/consumer/init/.agents/skills/blueprint-sdd-plan-slicer/references/plan_slice_checklist.md.tmpl",
+                "scripts/templates/consumer/init/.agents/skills/blueprint-sdd-traceability-keeper/SKILL.md.tmpl",
+                "scripts/templates/consumer/init/.agents/skills/blueprint-sdd-traceability-keeper/agents/openai.yaml.tmpl",
+                "scripts/templates/consumer/init/.agents/skills/blueprint-sdd-traceability-keeper/references/traceability_matrix_template.md.tmpl",
+                "scripts/templates/consumer/init/.agents/skills/blueprint-sdd-document-sync/SKILL.md.tmpl",
+                "scripts/templates/consumer/init/.agents/skills/blueprint-sdd-document-sync/agents/openai.yaml.tmpl",
+                "scripts/templates/consumer/init/.agents/skills/blueprint-sdd-document-sync/references/document_phase_checklist.md.tmpl",
+                "scripts/templates/consumer/init/.agents/skills/blueprint-sdd-pr-packager/SKILL.md.tmpl",
+                "scripts/templates/consumer/init/.agents/skills/blueprint-sdd-pr-packager/agents/openai.yaml.tmpl",
+                "scripts/templates/consumer/init/.agents/skills/blueprint-sdd-pr-packager/references/pr_packaging_checklist.md.tmpl",
+                "scripts/templates/consumer/init/.spec-kit/policy-mapping.md.tmpl",
+                "scripts/templates/consumer/init/.spec-kit/control-catalog.yaml.tmpl",
+                "scripts/templates/consumer/init/.spec-kit/control-catalog.md.tmpl",
+                "scripts/templates/consumer/init/.spec-kit/templates/consumer/architecture.md.tmpl",
+                "scripts/templates/consumer/init/.spec-kit/templates/consumer/adr.md.tmpl",
+                "scripts/templates/consumer/init/.spec-kit/templates/consumer/spec.md.tmpl",
+                "scripts/templates/consumer/init/.spec-kit/templates/consumer/plan.md.tmpl",
+                "scripts/templates/consumer/init/.spec-kit/templates/consumer/tasks.md.tmpl",
+                "scripts/templates/consumer/init/.spec-kit/templates/consumer/traceability.md.tmpl",
+                "scripts/templates/consumer/init/.spec-kit/templates/consumer/graph.yaml.tmpl",
+                "scripts/templates/consumer/init/.spec-kit/templates/consumer/evidence_manifest.json.tmpl",
+                "scripts/templates/consumer/init/.spec-kit/templates/consumer/context_pack.md.tmpl",
+                "scripts/templates/consumer/init/.spec-kit/templates/consumer/pr_context.md.tmpl",
+                "scripts/templates/consumer/init/.spec-kit/templates/consumer/hardening_review.md.tmpl",
                 "scripts/templates/consumer/scaffold/messaging/contracts/producer/.gitkeep",
                 "scripts/templates/consumer/scaffold/messaging/contracts/consumer/.gitkeep",
                 "scripts/templates/consumer/scaffold/messaging/sql/outbox.sql.tmpl",
@@ -233,6 +325,8 @@ class GovernanceStructureCases(RefactorContractBase):
                 "scripts/templates/blueprint/bootstrap/docs/platform/consumer/zero_downtime_evolution.md",
                 "scripts/templates/blueprint/bootstrap/docs/platform/consumer/tenant_context_propagation.md",
                 "scripts/templates/blueprint/bootstrap/docs/platform/consumer/runtime_credentials_eso.md",
+                "scripts/templates/blueprint/bootstrap/docs/platform/consumer/app_onboarding.md",
+                "scripts/templates/blueprint/bootstrap/docs/blueprint/governance/spec_driven_development.md",
                 "scripts/lib/blueprint/bootstrap_templates.sh",
                 "scripts/lib/blueprint/contract_schema.py",
                 "scripts/lib/blueprint/contract_runtime.sh",
@@ -247,6 +341,8 @@ class GovernanceStructureCases(RefactorContractBase):
                 "scripts/lib/blueprint/merge_markers.py",
                 "scripts/lib/blueprint/resync_consumer_seeds.py",
                 "scripts/lib/blueprint/runtime_dependency_edges.py",
+                "scripts/bin/blueprint/spec_work_item_tools.py",
+                "scripts/bin/infra/port_forward.sh",
                 "scripts/lib/blueprint/upgrade_consumer.py",
                 "scripts/lib/blueprint/upgrade_preflight.py",
                 "scripts/lib/blueprint/upgrade_consumer_validate.py",
@@ -255,9 +351,13 @@ class GovernanceStructureCases(RefactorContractBase):
                 "scripts/lib/blueprint/schemas/upgrade_apply.schema.json",
                 "scripts/lib/blueprint/schemas/upgrade_validate.schema.json",
                 "scripts/lib/docs/generate_contract_docs.py",
+                "scripts/lib/docs/orchestrate_sync.py",
                 "scripts/lib/docs/sync_blueprint_template_docs.py",
                 "scripts/lib/docs/sync_platform_seed_docs.py",
                 "scripts/lib/docs/sync_module_contract_summaries.py",
+                "scripts/lib/spec_kit/render_control_catalog.py",
+                "scripts/lib/spec_kit/sync_consumer_init_sdd_assets.py",
+                "scripts/lib/spec_kit/render_policy_snippets.py",
                 "scripts/lib/infra/k8s_wait.sh",
                 "scripts/lib/infra/module_execution.sh",
                 "scripts/lib/quality/semver.sh",
@@ -271,6 +371,7 @@ class GovernanceStructureCases(RefactorContractBase):
                 "scripts/bin/blueprint/install_codex_skill.sh",
                 "scripts/bin/blueprint/init_repo_interactive.sh",
                 "scripts/bin/blueprint/resync_consumer_seeds.sh",
+                "scripts/bin/blueprint/spec_scaffold.py",
                 "scripts/bin/blueprint/upgrade_consumer.sh",
                 "scripts/bin/blueprint/upgrade_consumer_preflight.sh",
                 "scripts/bin/blueprint/upgrade_consumer_validate.sh",
@@ -286,6 +387,8 @@ class GovernanceStructureCases(RefactorContractBase):
                 "scripts/bin/infra/workload_health_check.py",
                 "scripts/bin/quality/check_test_pyramid.py",
                 "scripts/bin/quality/check_infra_shell_source_graph.py",
+                "scripts/bin/quality/check_sdd_assets.py",
+                "scripts/bin/quality/hardening_review.sh",
                 "scripts/bin/quality/hooks_fast.sh",
                 "scripts/bin/quality/hooks_run.sh",
                 "scripts/bin/quality/hooks_strict.sh",
@@ -293,6 +396,11 @@ class GovernanceStructureCases(RefactorContractBase):
                 "scripts/bin/quality/render_core_targets_doc.py",
                 "docs/docusaurus.config.js",
                 "docs/blueprint/contracts/async_message_contracts.md",
+                "docs/blueprint/governance/spec_driven_development.md",
+                "docs/blueprint/architecture/north_star.md",
+                "docs/blueprint/architecture/tech_stack.md",
+                "docs/platform/architecture/north_star.md",
+                "docs/platform/architecture/tech_stack.md",
                 "contracts/async/pact/messages/producer/README.md",
                 "contracts/async/pact/messages/consumer/README.md",
                 "docs/reference/generated/contract_metadata.generated.md",
@@ -318,6 +426,16 @@ class GovernanceStructureCases(RefactorContractBase):
                 "AGENTS.md",
                 "AGENTS.backlog.md",
                 "AGENTS.decisions.md",
+                ".spec-kit/policy-mapping.md",
+                ".spec-kit/control-catalog.yaml",
+                ".spec-kit/control-catalog.md",
+                ".spec-kit/templates/consumer/architecture.md",
+                ".spec-kit/templates/consumer/adr.md",
+                ".spec-kit/templates/consumer/spec.md",
+                ".spec-kit/templates/consumer/plan.md",
+                ".spec-kit/templates/consumer/tasks.md",
+                ".spec-kit/templates/consumer/traceability.md",
+                "specs/README.md",
                 "docs/README.md",
                 ".github/CODEOWNERS",
                 ".github/ISSUE_TEMPLATE/bug_report.yml",
@@ -397,6 +515,12 @@ class GovernanceStructureCases(RefactorContractBase):
                 "blueprint-upgrade-consumer-validate",
                 "blueprint-install-codex-skill",
                 "blueprint-install-codex-skill-consumer-ops",
+                "blueprint-install-codex-skill-sdd-intake-decompose",
+                "blueprint-install-codex-skill-sdd-clarification-gate",
+                "blueprint-install-codex-skill-sdd-plan-slicer",
+                "blueprint-install-codex-skill-sdd-traceability-keeper",
+                "blueprint-install-codex-skill-sdd-document-sync",
+                "blueprint-install-codex-skill-sdd-pr-packager",
                 "blueprint-install-codex-skills",
                 "blueprint-check-placeholders",
                 "blueprint-template-smoke",
@@ -404,13 +528,29 @@ class GovernanceStructureCases(RefactorContractBase):
                 "blueprint-clean-generated",
                 "blueprint-render-makefile",
                 "blueprint-render-module-wrapper-skeletons",
+                "spec-scaffold",
+                "spec-impact",
+                "spec-evidence-manifest",
+                "spec-context-pack",
+                "spec-pr-context",
                 "quality-hooks-fast",
                 "quality-hooks-strict",
                 "quality-infra-shell-source-graph-check",
+                "quality-sdd-sync-control-catalog",
+                "quality-sdd-check-control-catalog-sync",
+                "quality-sdd-sync-consumer-init-assets",
+                "quality-sdd-check-consumer-init-assets-sync",
+                "quality-sdd-sync-policy-snippets",
+                "quality-sdd-check-policy-snippets-sync",
+                "quality-sdd-sync-all",
+                "quality-sdd-check-all",
+                "quality-sdd-check",
+                "quality-hardening-review",
                 "quality-ci-sync",
                 "quality-ci-check-sync",
                 "quality-docs-lint",
                 "quality-docs-sync-all",
+                "quality-docs-check-changed",
                 "quality-docs-sync-blueprint-template",
                 "quality-docs-check-blueprint-template-sync",
                 "quality-docs-sync-platform-seed",
@@ -427,6 +567,9 @@ class GovernanceStructureCases(RefactorContractBase):
                 "infra-prereqs",
                 "infra-help-reference",
                 "infra-contract-test-fast",
+                "infra-port-forward-start",
+                "infra-port-forward-stop",
+                "infra-port-forward-cleanup",
                 "infra-local-destroy-all",
                 "infra-destroy-disabled-modules",
                 "infra-stackit-ci-github-setup",
@@ -467,3 +610,260 @@ class GovernanceStructureCases(RefactorContractBase):
             _extract_yaml_scalar(async_hooks, "consumer_verify_command_env_var"),
             "ASYNC_PACT_CONSUMER_VERIFY_CMD",
         )
+
+        sdd_contract = _extract_yaml_section(contract_lines, "spec_driven_development_contract")
+        sdd_lifecycle = _extract_yaml_section(sdd_contract, "lifecycle")
+        sdd_artifacts = _extract_yaml_section(sdd_contract, "artifacts")
+        sdd_readiness = _extract_yaml_section(sdd_contract, "readiness_gate")
+        sdd_normative = _extract_yaml_section(sdd_contract, "normative_language")
+        self.assertEqual(_extract_yaml_scalar(sdd_contract, "enabled_by_default"), "true")
+        self.assertEqual(
+            _extract_yaml_list(sdd_lifecycle, "phases"),
+            [
+                "Discover",
+                "High-Level Architecture",
+                "Specify",
+                "Plan",
+                "Implement",
+                "Verify",
+                "Document",
+                "Operate",
+                "Publish",
+            ],
+        )
+        self.assertEqual(_extract_yaml_scalar(sdd_artifacts, "policy_mapping_file"), ".spec-kit/policy-mapping.md")
+        self.assertEqual(
+            _extract_yaml_scalar(sdd_artifacts, "control_catalog_source_file"),
+            ".spec-kit/control-catalog.yaml",
+        )
+        self.assertEqual(_extract_yaml_scalar(sdd_artifacts, "control_catalog_file"), ".spec-kit/control-catalog.md")
+        self.assertIn("graph.yaml", _extract_yaml_list(sdd_artifacts, "required_work_item_documents"))
+        self.assertIn("evidence_manifest.json", _extract_yaml_list(sdd_artifacts, "required_work_item_documents"))
+        self.assertIn("context_pack.md", _extract_yaml_list(sdd_artifacts, "required_work_item_documents"))
+        self.assertIn("pr_context.md", _extract_yaml_list(sdd_artifacts, "required_work_item_documents"))
+        self.assertIn("hardening_review.md", _extract_yaml_list(sdd_artifacts, "required_work_item_documents"))
+        self.assertIn(".spec-kit/templates/blueprint/adr.md", _extract_yaml_list(sdd_artifacts, "required_paths"))
+        self.assertIn(".spec-kit/templates/consumer/adr.md", _extract_yaml_list(sdd_artifacts, "required_paths"))
+        self.assertIn(".spec-kit/control-catalog.yaml", _extract_yaml_list(sdd_artifacts, "required_paths"))
+        self.assertIn(".spec-kit/control-catalog.md", _extract_yaml_list(sdd_artifacts, "required_paths"))
+        self.assertIn(
+            "scripts/templates/consumer/init/.spec-kit/templates/consumer/adr.md.tmpl",
+            _extract_yaml_list(sdd_artifacts, "required_paths"),
+        )
+        self.assertIn(
+            "scripts/templates/consumer/init/.spec-kit/control-catalog.yaml.tmpl",
+            _extract_yaml_list(sdd_artifacts, "required_paths"),
+        )
+        self.assertIn(
+            "scripts/templates/consumer/init/.spec-kit/control-catalog.md.tmpl",
+            _extract_yaml_list(sdd_artifacts, "required_paths"),
+        )
+        self.assertIn(
+            "scripts/bin/blueprint/spec_scaffold.py",
+            _extract_yaml_list(sdd_artifacts, "required_paths"),
+        )
+        self.assertIn(
+            "scripts/bin/blueprint/spec_work_item_tools.py",
+            _extract_yaml_list(sdd_artifacts, "required_paths"),
+        )
+        self.assertIn(".spec-kit/templates/blueprint/graph.yaml", _extract_yaml_list(sdd_artifacts, "required_paths"))
+        self.assertIn(
+            ".spec-kit/templates/blueprint/evidence_manifest.json",
+            _extract_yaml_list(sdd_artifacts, "required_paths"),
+        )
+        self.assertIn(
+            ".spec-kit/templates/blueprint/context_pack.md",
+            _extract_yaml_list(sdd_artifacts, "required_paths"),
+        )
+        self.assertIn(
+            ".spec-kit/templates/blueprint/pr_context.md",
+            _extract_yaml_list(sdd_artifacts, "required_paths"),
+        )
+        self.assertIn(
+            ".spec-kit/templates/blueprint/hardening_review.md",
+            _extract_yaml_list(sdd_artifacts, "required_paths"),
+        )
+        self.assertIn(".spec-kit/templates/consumer/graph.yaml", _extract_yaml_list(sdd_artifacts, "required_paths"))
+        self.assertIn(
+            ".spec-kit/templates/consumer/evidence_manifest.json",
+            _extract_yaml_list(sdd_artifacts, "required_paths"),
+        )
+        self.assertIn(
+            ".spec-kit/templates/consumer/context_pack.md",
+            _extract_yaml_list(sdd_artifacts, "required_paths"),
+        )
+        self.assertIn(
+            ".spec-kit/templates/consumer/pr_context.md",
+            _extract_yaml_list(sdd_artifacts, "required_paths"),
+        )
+        self.assertIn(
+            ".spec-kit/templates/consumer/hardening_review.md",
+            _extract_yaml_list(sdd_artifacts, "required_paths"),
+        )
+        self.assertIn(
+            "scripts/templates/consumer/init/.spec-kit/templates/consumer/graph.yaml.tmpl",
+            _extract_yaml_list(sdd_artifacts, "required_paths"),
+        )
+        self.assertIn(
+            "scripts/templates/consumer/init/.spec-kit/templates/consumer/evidence_manifest.json.tmpl",
+            _extract_yaml_list(sdd_artifacts, "required_paths"),
+        )
+        self.assertIn(
+            "scripts/templates/consumer/init/.spec-kit/templates/consumer/context_pack.md.tmpl",
+            _extract_yaml_list(sdd_artifacts, "required_paths"),
+        )
+        self.assertIn(
+            "scripts/templates/consumer/init/.spec-kit/templates/consumer/pr_context.md.tmpl",
+            _extract_yaml_list(sdd_artifacts, "required_paths"),
+        )
+        self.assertIn(
+            "scripts/templates/consumer/init/.spec-kit/templates/consumer/hardening_review.md.tmpl",
+            _extract_yaml_list(sdd_artifacts, "required_paths"),
+        )
+        self.assertIn(
+            "scripts/lib/spec_kit/render_control_catalog.py",
+            _extract_yaml_list(sdd_artifacts, "required_paths"),
+        )
+        self.assertIn(
+            "docs/blueprint/architecture/decisions/README.md",
+            _extract_yaml_list(sdd_artifacts, "required_paths"),
+        )
+        self.assertIn("docs/blueprint/architecture/north_star.md", _extract_yaml_list(sdd_artifacts, "required_paths"))
+        self.assertIn("docs/blueprint/architecture/tech_stack.md", _extract_yaml_list(sdd_artifacts, "required_paths"))
+        self.assertIn("docs/platform/architecture/README.md", _extract_yaml_list(sdd_artifacts, "required_paths"))
+        self.assertIn("docs/platform/architecture/north_star.md", _extract_yaml_list(sdd_artifacts, "required_paths"))
+        self.assertIn("docs/platform/architecture/tech_stack.md", _extract_yaml_list(sdd_artifacts, "required_paths"))
+        self.assertIn(
+            "docs/platform/architecture/decisions/ADR-0000-template.md",
+            _extract_yaml_list(sdd_artifacts, "required_paths"),
+        )
+        sdd_governance = _extract_yaml_section(sdd_contract, "governance")
+        sdd_control_catalog = _extract_yaml_section(sdd_governance, "control_catalog")
+        sdd_spec_requirements = _extract_yaml_section(sdd_governance, "spec_requirements")
+        self.assertEqual(_extract_yaml_scalar(sdd_control_catalog, "id_pattern"), "^SDD-C-[0-9]{3}$")
+        self.assertIn("Control ID", _extract_yaml_list(sdd_control_catalog, "required_columns"))
+        self.assertIn("fail", _extract_yaml_list(sdd_control_catalog, "allowed_gate_values"))
+        self.assertEqual(
+            _extract_yaml_scalar(sdd_spec_requirements, "control_section_heading_keyword"),
+            "Applicable Guardrail Controls",
+        )
+        self.assertEqual(
+            _extract_yaml_scalar(sdd_spec_requirements, "stack_profile_section_heading_keyword"),
+            "Implementation Stack Profile",
+        )
+        self.assertIn(
+            "Agent execution model",
+            _extract_yaml_list(sdd_spec_requirements, "stack_profile_required_fields"),
+        )
+        self.assertIn(
+            "Managed service preference",
+            _extract_yaml_list(sdd_spec_requirements, "stack_profile_required_fields"),
+        )
+        self.assertIn(
+            "Managed service exception rationale",
+            _extract_yaml_list(sdd_spec_requirements, "stack_profile_required_fields"),
+        )
+        self.assertIn(
+            "Runtime profile",
+            _extract_yaml_list(sdd_spec_requirements, "stack_profile_required_fields"),
+        )
+        self.assertIn(
+            "Local Kubernetes context policy",
+            _extract_yaml_list(sdd_spec_requirements, "stack_profile_required_fields"),
+        )
+        self.assertIn(
+            "Local provisioning stack",
+            _extract_yaml_list(sdd_spec_requirements, "stack_profile_required_fields"),
+        )
+        self.assertIn(
+            "Runtime identity baseline",
+            _extract_yaml_list(sdd_spec_requirements, "stack_profile_required_fields"),
+        )
+        self.assertIn(
+            "Local-first exception rationale",
+            _extract_yaml_list(sdd_spec_requirements, "stack_profile_required_fields"),
+        )
+        self.assertIn(
+            "specialized-subagents-isolated-worktrees",
+            _extract_yaml_list(sdd_spec_requirements, "stack_profile_allowed_agent_execution_models"),
+        )
+        self.assertIn(
+            "stackit-managed-first",
+            _extract_yaml_list(sdd_spec_requirements, "managed_service_preference_allowed_values"),
+        )
+        self.assertIn(
+            "local-first-docker-desktop-kubernetes",
+            _extract_yaml_list(sdd_spec_requirements, "runtime_profile_allowed_values"),
+        )
+        self.assertIn(
+            "docker-desktop-preferred",
+            _extract_yaml_list(sdd_spec_requirements, "local_kube_context_policy_allowed_values"),
+        )
+        self.assertIn(
+            "crossplane-plus-helm",
+            _extract_yaml_list(sdd_spec_requirements, "local_provisioning_stack_allowed_values"),
+        )
+        self.assertIn(
+            "eso-plus-argocd-plus-keycloak",
+            _extract_yaml_list(sdd_spec_requirements, "runtime_identity_baseline_allowed_values"),
+        )
+        app_onboarding_contract = _extract_yaml_section(sdd_governance, "app_onboarding_contract")
+        self.assertEqual(
+            _extract_yaml_scalar(app_onboarding_contract, "required_plan_section_keyword"),
+            "App Onboarding Contract",
+        )
+        self.assertEqual(
+            _extract_yaml_scalar(app_onboarding_contract, "required_tasks_section_keyword"),
+            "App Onboarding Minimum Targets",
+        )
+        self.assertIn(
+            "infra-port-forward-start",
+            _extract_yaml_list(app_onboarding_contract, "required_make_targets"),
+        )
+        publish_contract = _extract_yaml_section(sdd_governance, "publish_contract")
+        self.assertIn("Summary", _extract_yaml_list(publish_contract, "required_pr_context_sections"))
+        self.assertIn(
+            "Repository-Wide Findings Fixed",
+            _extract_yaml_list(publish_contract, "required_hardening_review_sections"),
+        )
+        self.assertIn("Validation Evidence", _extract_yaml_list(publish_contract, "required_pr_template_headings"))
+        self.assertIn(
+            ".github/pull_request_template.md",
+            _extract_yaml_list(publish_contract, "required_pr_template_paths"),
+        )
+        escalation_contract = _extract_yaml_section(sdd_governance, "blueprint_defect_escalation_contract")
+        self.assertEqual(
+            _extract_yaml_scalar(escalation_contract, "required_spec_section_keyword"),
+            "Blueprint Upstream Defect Escalation",
+        )
+        self.assertIn("Upstream issue URL", _extract_yaml_list(escalation_contract, "required_fields"))
+        self.assertEqual(_extract_yaml_scalar(sdd_readiness, "status_field"), "SPEC_READY")
+        self.assertEqual(_extract_yaml_scalar(sdd_readiness, "required_value"), "true")
+        self.assertEqual(_extract_yaml_scalar(sdd_readiness, "blocked_marker"), "BLOCKED_MISSING_INPUTS")
+        self.assertIn("Open questions count", _extract_yaml_list(sdd_readiness, "required_zero_fields"))
+        self.assertIn("Pending assumptions count", _extract_yaml_list(sdd_readiness, "required_zero_fields"))
+        self.assertIn("Open clarification markers count", _extract_yaml_list(sdd_readiness, "required_zero_fields"))
+        self.assertIn("Product", _extract_yaml_list(sdd_readiness, "required_signoffs"))
+        self.assertEqual(_extract_yaml_scalar(sdd_readiness, "adr_path_field"), "ADR path")
+        self.assertEqual(_extract_yaml_scalar(sdd_readiness, "adr_status_field"), "ADR status")
+        self.assertIn("approved", _extract_yaml_list(sdd_readiness, "adr_status_approved_values"))
+        self.assertIn(
+            "docs/blueprint/architecture/decisions/",
+            _extract_yaml_list(sdd_readiness, "adr_path_allowed_prefixes"),
+        )
+        self.assertIn(
+            "docs/platform/architecture/decisions/",
+            _extract_yaml_list(sdd_readiness, "adr_path_allowed_prefixes"),
+        )
+        self.assertIn("Implementation", _extract_yaml_list(sdd_readiness, "implementation_sections"))
+        self.assertEqual(_extract_yaml_scalar(sdd_readiness, "clarification_marker_token"), "NEEDS CLARIFICATION")
+        self.assertEqual(_extract_yaml_scalar(sdd_readiness, "documentation_sync_required"), "true")
+        self.assertIn("make docs-build", _extract_yaml_list(sdd_readiness, "documentation_validation_commands"))
+        self.assertIn("make docs-smoke", _extract_yaml_list(sdd_readiness, "documentation_validation_commands"))
+        self.assertEqual(_extract_yaml_scalar(sdd_normative, "normative_heading_keyword"), "Normative")
+        self.assertEqual(_extract_yaml_scalar(sdd_normative, "informative_heading_keyword"), "Informative")
+        self.assertIn(
+            "should",
+            _extract_yaml_list(sdd_normative, "forbidden_ambiguous_terms_in_normative_sections"),
+        )
+        self.assertIn("TBD", _extract_yaml_list(sdd_normative, "unresolved_marker_tokens"))

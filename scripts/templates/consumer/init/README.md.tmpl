@@ -13,12 +13,19 @@ make infra-validate
 Use `blueprint/repo.init.secrets.env` (gitignored) for sensitive values, scaffolded from
 `blueprint/repo.init.secrets.example.env`.
 
+## Spec-Driven Development
+- Use `.spec-kit/templates/consumer/*` to start work-item specs.
+- Use `.spec-kit/control-catalog.md` and map applicable `SDD-C-###` IDs in each work-item `spec.md`.
+- Keep each work item under `specs/<YYYY-MM-DD>-<work-item-slug>/` with `architecture.md`, `spec.md`, `plan.md`, `tasks.md`, and `traceability.md`.
+- Promote finalized architecture decisions to ADRs under `docs/platform/architecture/decisions/` using `.spec-kit/templates/consumer/adr.md`.
+- Complete `Document` phase updates for affected `docs/platform/**` and run `make docs-build && make docs-smoke`.
+
 ## Default Work Scope
 - Work in `apps/**`, `docs/platform/**`, `make/platform.mk`, `make/platform/*.mk`, `scripts/bin/platform/**`, and `scripts/lib/platform/**` by default.
 - Consult blueprint-managed paths only when the task explicitly mentions bootstrap, contract, validation, or inherited blueprint behavior.
 
 ## Ownership Split
-- Consumer-owned after first init: `README.md`, `AGENTS.md`, `AGENTS.backlog.md`, `AGENTS.decisions.md`, `docs/README.md`, `.github/CODEOWNERS`, `.github/pull_request_template.md`, `.github/ISSUE_TEMPLATE/**`, `.github/workflows/ci.yml`, `docs/platform/**`, `make/platform.mk`, `make/platform/*.mk`, `scripts/bin/platform/**`, and `scripts/lib/platform/**`.
+- Consumer-owned after first init: `README.md`, `AGENTS.md`, `AGENTS.backlog.md`, `AGENTS.decisions.md`, `docs/README.md`, `.spec-kit/**`, `specs/**`, `.github/CODEOWNERS`, `.github/pull_request_template.md`, `.github/ISSUE_TEMPLATE/**`, `.github/workflows/ci.yml`, `docs/platform/**`, `make/platform.mk`, `make/platform/*.mk`, `scripts/bin/platform/**`, and `scripts/lib/platform/**`.
 - Local operator config: `blueprint/repo.init.secrets.env` is gitignored and auto-loaded (after `blueprint/repo.init.env`) by selected bootstrap/validation commands.
 - Blueprint-managed reference and automation live under `blueprint/**`, `docs/blueprint/**`, `.github/actions/**`, `scripts/bin/blueprint/**`, `scripts/lib/blueprint/**`, `scripts/templates/**`, and `make/blueprint.generated.mk`.
 
@@ -27,3 +34,8 @@ Use `blueprint/repo.init.secrets.env` (gitignored) for sensitive values, scaffol
 - `.github/CODEOWNERS`, `.github/pull_request_template.md`, and `.github/ISSUE_TEMPLATE/**` are starter governance assets and should be customized early.
 - `make quality-hooks-fast` is the default PR-quality gate.
 - `make quality-hooks-strict` is the slower audit bundle for protected-branch or scheduled lanes.
+- `make quality-sdd-check` validates SDD assets and governance wiring.
+
+## Architecture North Star
+- `docs/platform/architecture/north_star.md`
+- `docs/platform/architecture/tech_stack.md`

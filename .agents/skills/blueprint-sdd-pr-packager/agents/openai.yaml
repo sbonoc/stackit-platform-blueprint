@@ -1,0 +1,4 @@
+interface:
+  display_name: "Blueprint SDD PR Packager"
+  short_description: "Complete SDD Publish phase with deterministic PR context"
+  default_prompt: "Use $blueprint-sdd-pr-packager to complete the Publish phase: generate `pr_context.md`, validate hardening review completeness, and prepare PR reviewer context aligned with the PR template."
