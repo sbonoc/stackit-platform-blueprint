@@ -66,7 +66,11 @@ def resolve_file_scopes(repo_root: Path, contract: dict[str, object]) -> dict[Pa
 
     uncategorized = [str(path.relative_to(repo_root)) for path in test_files if path not in file_scopes]
     if uncategorized:
-        raise ValueError("uncategorized test files: " + ", ".join(uncategorized))
+        raise ValueError(
+            "uncategorized test files: "
+            + ", ".join(uncategorized)
+            + " (update scripts/lib/quality/test_pyramid_contract.json classifications)"
+        )
 
     return file_scopes
 

@@ -26,6 +26,7 @@
         "tests/blueprint/test_optional_runtime_contract_validation.py",
         "tests/blueprint/test_ownership_check.py",
         "tests/docs/test_docs_lint.py",
+        "tests/docs/test_orchestrate_sync.py",
         "tests/infra/test_runtime_credentials_eso.py",
         "tests/infra/test_runtime_identity_contract_cli.py",
         "tests/infra/test_argocd_repo_contract_cli.py",

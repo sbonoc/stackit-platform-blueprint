@@ -66,6 +66,10 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn("quality-docs-sync-module-contract-summaries", make_template)
         self.assertIn("quality-docs-check-module-contract-summaries-sync", make_template)
         self.assertIn("quality-test-pyramid", make_template)
+        self.assertIn(
+            "@python3 scripts/lib/docs/orchestrate_sync.py --mode check --changed-only\n\t@python3 scripts/bin/quality/check_test_pyramid.py",
+            make_template,
+        )
         self.assertIn("infra-contract-test-fast", make_template)
 
     def test_generated_makefile_exposes_quality_docs_targets(self) -> None:
@@ -109,6 +113,10 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn("quality-docs-sync-module-contract-summaries", generated_make)
         self.assertIn("quality-docs-check-module-contract-summaries-sync", generated_make)
         self.assertIn("quality-test-pyramid", generated_make)
+        self.assertIn(
+            "@python3 scripts/lib/docs/orchestrate_sync.py --mode check --changed-only\n\t@python3 scripts/bin/quality/check_test_pyramid.py",
+            generated_make,
+        )
         self.assertIn("infra-contract-test-fast", generated_make)
 
     def test_docs_generator_supports_check_mode(self) -> None:
@@ -521,6 +529,7 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn("tests/blueprint/test_upgrade_consumer.py", contract)
         self.assertIn("tests/infra/test_async_message_contracts.py", contract)
         self.assertIn("tests/blueprint/test_optional_runtime_contract_validation.py", contract)
+        self.assertIn("tests/docs/test_orchestrate_sync.py", contract)
         self.assertIn("tests/infra/test_workload_health_check.py", contract)
         self.assertIn("tests/e2e/test_vertical_slice.py", contract)
 

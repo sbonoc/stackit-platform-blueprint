@@ -266,6 +266,7 @@ quality-docs-sync-all: ## Run all docs sync generators in canonical order
 
 quality-docs-check-changed: ## Run docs drift checks only for sync steps that match current changed paths
 	@python3 scripts/lib/docs/orchestrate_sync.py --mode check --changed-only
+	@python3 scripts/bin/quality/check_test_pyramid.py
 
 quality-docs-sync-blueprint-template: ## Sync docs/blueprint/** into bootstrap template blueprint docs mirror
 	@python3 scripts/lib/docs/orchestrate_sync.py --mode sync --step blueprint-template
