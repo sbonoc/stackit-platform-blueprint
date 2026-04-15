@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 from dataclasses import dataclass
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -119,7 +120,35 @@ def _run_git(repo_root: Path, *args: str) -> list[str]:
     return [line.strip() for line in result.stdout.splitlines() if line.strip()]
 
 
-def _changed_paths(repo_root: Path) -> list[str]:
+def _resolve_base_ref(repo_root: Path, explicit_base_ref: str | None) -> str | None:
+    candidates: list[str] = []
+    if explicit_base_ref:
+        candidates.append(explicit_base_ref)
+
+    env_base_ref = os.environ.get("BLUEPRINT_DOCS_CHANGED_BASE_REF", "").strip()
+    if env_base_ref:
+        candidates.append(env_base_ref)
+
+    github_base_ref = os.environ.get("GITHUB_BASE_REF", "").strip()
+    if github_base_ref:
+        # Prefer remote-tracking reference when available in CI checkouts.
+        candidates.append(f"origin/{github_base_ref}")
+        candidates.append(github_base_ref)
+
+    # Deterministic fallback for default branch workflows.
+    candidates.append("origin/main")
+
+    seen: set[str] = set()
+    for candidate in candidates:
+        if not candidate or candidate in seen:
+            continue
+        seen.add(candidate)
+        if _run_git(repo_root, "rev-parse", "--verify", candidate):
+            return candidate
+    return None
+
+
+def _changed_paths(repo_root: Path, *, base_ref: str | None = None) -> list[str]:
     paths: set[str] = set()
     for entry in _run_git(repo_root, "diff", "--name-only", "--relative", "HEAD"):
         paths.add(entry)
@@ -127,6 +156,15 @@ def _changed_paths(repo_root: Path) -> list[str]:
         paths.add(entry)
     for entry in _run_git(repo_root, "ls-files", "--others", "--exclude-standard"):
         paths.add(entry)
+
+    if paths:
+        return sorted(paths)
+
+    resolved_base_ref = _resolve_base_ref(repo_root, base_ref)
+    if resolved_base_ref:
+        for entry in _run_git(repo_root, "diff", "--name-only", "--relative", f"{resolved_base_ref}...HEAD"):
+            paths.add(entry)
+
     return sorted(paths)
 
 
@@ -177,11 +215,27 @@ def main() -> int:
         action="store_true",
         help="Run only steps whose configured triggers match changed repository paths.",
     )
+    parser.add_argument(
+        "--base-ref",
+        help=(
+            "Optional git base ref used for changed-scope detection in clean worktrees "
+            "(for example origin/main or origin/<base-branch>)."
+        ),
+    )
     args = parser.parse_args()
 
     repo_root = resolve_repo_root(args.repo_root, __file__)
-    changed_paths = _changed_paths(repo_root) if args.changed_only else []
+    changed_paths = _changed_paths(repo_root, base_ref=args.base_ref) if args.changed_only else []
     steps = _select_steps(step_names=args.steps, changed_only=args.changed_only, changed_paths=changed_paths)
+
+    if args.changed_only and not changed_paths and os.environ.get("CI", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }:
+        print("[docs-orchestrator] CI detected with empty changed-path set; falling back to all selected steps")
+        steps = _select_steps(step_names=args.steps, changed_only=False, changed_paths=[])
 
     if args.changed_only:
         if changed_paths:
