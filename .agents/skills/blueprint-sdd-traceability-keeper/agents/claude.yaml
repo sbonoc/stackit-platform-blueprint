@@ -1,0 +1,5 @@
+interface:
+  display_name: "Blueprint SDD Traceability"
+  short_description: "Enforce requirement-to-test-to-doc coverage"
+  slash_command: "/blueprint-sdd-traceability-keeper"
+  command_file: ".claude/commands/blueprint-sdd-traceability-keeper.md"

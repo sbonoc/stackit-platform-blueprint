@@ -1,0 +1,5 @@
+interface:
+  display_name: "Blueprint SDD Plan Slicer"
+  short_description: "Turn approved specs into executable slices"
+  slash_command: "/blueprint-sdd-plan-slicer"
+  command_file: ".claude/commands/blueprint-sdd-plan-slicer.md"

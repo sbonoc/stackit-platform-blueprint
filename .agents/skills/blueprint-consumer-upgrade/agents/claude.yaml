@@ -1,0 +1,5 @@
+interface:
+  display_name: "Blueprint Consumer Upgrade"
+  short_description: "Safe consumer upgrade from latest blueprint tag"
+  slash_command: "/blueprint-consumer-upgrade"
+  command_file: ".claude/commands/blueprint-consumer-upgrade.md"

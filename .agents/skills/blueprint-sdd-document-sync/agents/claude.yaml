@@ -1,0 +1,5 @@
+interface:
+  display_name: "Blueprint SDD Document Sync"
+  short_description: "Complete SDD Document phase with sync checks"
+  slash_command: "/blueprint-sdd-document-sync"
+  command_file: ".claude/commands/blueprint-sdd-document-sync.md"

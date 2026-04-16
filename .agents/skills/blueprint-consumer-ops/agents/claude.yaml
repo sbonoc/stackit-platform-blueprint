@@ -1,0 +1,5 @@
+interface:
+  display_name: "Blueprint Consumer Ops"
+  short_description: "Deterministic generated-consumer operations runbook"
+  slash_command: "/blueprint-consumer-ops"
+  command_file: ".claude/commands/blueprint-consumer-ops.md"

@@ -20,6 +20,27 @@ This file is the canonical governance source for human and agent contributors.
 - You use mature, high-adoption open-source tooling only.
 - You avoid experimental libraries/frameworks in runtime paths.
 
+## Platform Context
+This section provides context for code assistants to understand the blueprint before starting work.
+
+**Purpose:** `stackit-platform-blueprint` is the upstream platform blueprint. It defines governance, tooling, skill catalog, spec-kit templates, and contract validation for all generated consumers.
+
+**Blueprint-managed paths (source of truth here, propagated to consumers on upgrade):**
+- `scripts/templates/consumer/init/` — consumer bootstrap templates (new consumers)
+- `scripts/templates/blueprint/bootstrap/` — consumer in-repo managed-file templates (drift-checked on upgrade)
+- `.agents/skills/` — canonical skill runbooks (`SKILL.md`) and agent wiring (`openai.yaml`, `claude.yaml`)
+- `scripts/bin/blueprint/` — validation, bootstrap, and upgrade tooling
+- `docs/blueprint/` — blueprint reference documentation
+
+**Key tooling:**
+- `scripts/bin/blueprint/validate_contract.py` — contract validation (branch naming, template drift, make targets, shell scripts); `--branch-only` for fast pre-push checks
+- `scripts/bin/blueprint/bootstrap_repo.sh` — new consumer initialization
+- `.spec-kit/` — SDD template packs and control catalog
+
+**Key make targets:**
+- `make infra-validate` — run full contract validation
+- `make quality-hooks-fast` — fast pre-commit hook suite
+
 ## Mandatory Workflow
 1. Read `AGENTS.md` before starting work.
 2. During `Discover`, `High-Level Architecture`, `Specify`, and `Plan`, do not use assumptions as substitutes for missing requirements; resolve ambiguity explicitly or mark the work item blocked.
