@@ -2419,6 +2419,15 @@ def parse_args() -> argparse.Namespace:
         default=str(repo_root / "blueprint/contract.yaml"),
         help="Path to blueprint contract YAML.",
     )
+    parser.add_argument(
+        "--branch-only",
+        action="store_true",
+        help=(
+            "Run only branch naming validation against the contract. "
+            "Fast and read-only — intended for pre-push hooks to catch "
+            "branch naming violations before they reach CI."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -2427,8 +2436,28 @@ def main() -> int:
     repo_root = _resolve_repo_root()
     contract_path = Path(args.contract_path).resolve()
 
+    # Load contract first; both fast and full paths need it.
     try:
         contract = load_blueprint_contract(contract_path)
+    except ValueError as exc:
+        print(f"[infra-validate] contract error: {exc}", file=sys.stderr)
+        return 1
+
+    if args.branch_only:
+        # Fast, read-only path: validates only branch naming against the contract.
+        # Does not render makefiles, run shellcheck, or touch the working tree.
+        # Catches the most common pre-push violation (wrong branch prefix) in <1 s.
+        errors = _validate_branch_naming_contract(contract)
+        if errors:
+            for error in errors:
+                print(f"[infra-validate] error: {error}", file=sys.stderr)
+            print(f"[infra-validate] failed with {len(errors)} issue(s)", file=sys.stderr)
+            return 1
+        print("[infra-validate] branch naming validation passed")
+        return 0
+
+    # Full validation path: runs all contract checks.
+    try:
         required_files = _required_files_for_repo_mode(contract)
         required_paths = contract.structure.required_paths
         required_diagrams = contract.docs_contract.required_diagrams
