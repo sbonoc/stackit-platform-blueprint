@@ -15,6 +15,12 @@ repos:
         language: system
         entry: bash -n
         files: \.sh$
+      - id: quality-docs-lint
+        name: quality docs lint (markdown targets and links)
+        language: system
+        entry: make quality-docs-lint
+        pass_filenames: false
+        always_run: true
       - id: quality-validate-branch
         name: quality validate branch naming (pre-push)
         language: system

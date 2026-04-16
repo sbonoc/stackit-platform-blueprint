@@ -86,29 +86,45 @@ spec:
       - specs/README.md
       - .agents/skills/blueprint-consumer-upgrade/SKILL.md
       - .agents/skills/blueprint-consumer-upgrade/agents/openai.yaml
+      - .agents/skills/blueprint-consumer-upgrade/agents/claude.yaml
       - .agents/skills/blueprint-consumer-upgrade/references/manual_merge_checklist.md
       - .agents/skills/blueprint-consumer-upgrade/scripts/resolve_latest_stable_ref.sh
       - .agents/skills/blueprint-consumer-ops/SKILL.md
       - .agents/skills/blueprint-consumer-ops/agents/openai.yaml
+      - .agents/skills/blueprint-consumer-ops/agents/claude.yaml
       - .agents/skills/blueprint-consumer-ops/references/consumer_ops_checklist.md
       - .agents/skills/blueprint-sdd-intake-decompose/SKILL.md
       - .agents/skills/blueprint-sdd-intake-decompose/agents/openai.yaml
+      - .agents/skills/blueprint-sdd-intake-decompose/agents/claude.yaml
       - .agents/skills/blueprint-sdd-intake-decompose/references/intake_checklist.md
       - .agents/skills/blueprint-sdd-clarification-gate/SKILL.md
       - .agents/skills/blueprint-sdd-clarification-gate/agents/openai.yaml
+      - .agents/skills/blueprint-sdd-clarification-gate/agents/claude.yaml
       - .agents/skills/blueprint-sdd-clarification-gate/references/clarification_categories.md
       - .agents/skills/blueprint-sdd-plan-slicer/SKILL.md
       - .agents/skills/blueprint-sdd-plan-slicer/agents/openai.yaml
+      - .agents/skills/blueprint-sdd-plan-slicer/agents/claude.yaml
       - .agents/skills/blueprint-sdd-plan-slicer/references/plan_slice_checklist.md
       - .agents/skills/blueprint-sdd-traceability-keeper/SKILL.md
       - .agents/skills/blueprint-sdd-traceability-keeper/agents/openai.yaml
+      - .agents/skills/blueprint-sdd-traceability-keeper/agents/claude.yaml
       - .agents/skills/blueprint-sdd-traceability-keeper/references/traceability_matrix_template.md
       - .agents/skills/blueprint-sdd-document-sync/SKILL.md
       - .agents/skills/blueprint-sdd-document-sync/agents/openai.yaml
+      - .agents/skills/blueprint-sdd-document-sync/agents/claude.yaml
       - .agents/skills/blueprint-sdd-document-sync/references/document_phase_checklist.md
       - .agents/skills/blueprint-sdd-pr-packager/SKILL.md
       - .agents/skills/blueprint-sdd-pr-packager/agents/openai.yaml
+      - .agents/skills/blueprint-sdd-pr-packager/agents/claude.yaml
       - .agents/skills/blueprint-sdd-pr-packager/references/pr_packaging_checklist.md
+      - .claude/commands/blueprint-consumer-upgrade.md
+      - .claude/commands/blueprint-consumer-ops.md
+      - .claude/commands/blueprint-sdd-intake-decompose.md
+      - .claude/commands/blueprint-sdd-clarification-gate.md
+      - .claude/commands/blueprint-sdd-plan-slicer.md
+      - .claude/commands/blueprint-sdd-traceability-keeper.md
+      - .claude/commands/blueprint-sdd-document-sync.md
+      - .claude/commands/blueprint-sdd-pr-packager.md
       - Makefile
       - make/blueprint.generated.mk
       - make/platform.mk
@@ -239,29 +255,45 @@ spec:
       - scripts/templates/consumer/init/.github/workflows/ci.yml.tmpl
       - scripts/templates/consumer/init/.agents/skills/blueprint-consumer-upgrade/SKILL.md.tmpl
       - scripts/templates/consumer/init/.agents/skills/blueprint-consumer-upgrade/agents/openai.yaml.tmpl
+      - scripts/templates/consumer/init/.agents/skills/blueprint-consumer-upgrade/agents/claude.yaml.tmpl
       - scripts/templates/consumer/init/.agents/skills/blueprint-consumer-upgrade/references/manual_merge_checklist.md.tmpl
       - scripts/templates/consumer/init/.agents/skills/blueprint-consumer-upgrade/scripts/resolve_latest_stable_ref.sh.tmpl
       - scripts/templates/consumer/init/.agents/skills/blueprint-consumer-ops/SKILL.md.tmpl
       - scripts/templates/consumer/init/.agents/skills/blueprint-consumer-ops/agents/openai.yaml.tmpl
+      - scripts/templates/consumer/init/.agents/skills/blueprint-consumer-ops/agents/claude.yaml.tmpl
       - scripts/templates/consumer/init/.agents/skills/blueprint-consumer-ops/references/consumer_ops_checklist.md.tmpl
       - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-intake-decompose/SKILL.md.tmpl
       - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-intake-decompose/agents/openai.yaml.tmpl
+      - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-intake-decompose/agents/claude.yaml.tmpl
       - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-intake-decompose/references/intake_checklist.md.tmpl
       - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-clarification-gate/SKILL.md.tmpl
       - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-clarification-gate/agents/openai.yaml.tmpl
+      - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-clarification-gate/agents/claude.yaml.tmpl
       - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-clarification-gate/references/clarification_categories.md.tmpl
       - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-plan-slicer/SKILL.md.tmpl
       - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-plan-slicer/agents/openai.yaml.tmpl
+      - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-plan-slicer/agents/claude.yaml.tmpl
       - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-plan-slicer/references/plan_slice_checklist.md.tmpl
       - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-traceability-keeper/SKILL.md.tmpl
       - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-traceability-keeper/agents/openai.yaml.tmpl
+      - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-traceability-keeper/agents/claude.yaml.tmpl
       - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-traceability-keeper/references/traceability_matrix_template.md.tmpl
       - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-document-sync/SKILL.md.tmpl
       - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-document-sync/agents/openai.yaml.tmpl
+      - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-document-sync/agents/claude.yaml.tmpl
       - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-document-sync/references/document_phase_checklist.md.tmpl
       - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-pr-packager/SKILL.md.tmpl
       - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-pr-packager/agents/openai.yaml.tmpl
+      - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-pr-packager/agents/claude.yaml.tmpl
       - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-pr-packager/references/pr_packaging_checklist.md.tmpl
+      - scripts/templates/consumer/init/.claude/commands/blueprint-consumer-upgrade.md.tmpl
+      - scripts/templates/consumer/init/.claude/commands/blueprint-consumer-ops.md.tmpl
+      - scripts/templates/consumer/init/.claude/commands/blueprint-sdd-intake-decompose.md.tmpl
+      - scripts/templates/consumer/init/.claude/commands/blueprint-sdd-clarification-gate.md.tmpl
+      - scripts/templates/consumer/init/.claude/commands/blueprint-sdd-plan-slicer.md.tmpl
+      - scripts/templates/consumer/init/.claude/commands/blueprint-sdd-traceability-keeper.md.tmpl
+      - scripts/templates/consumer/init/.claude/commands/blueprint-sdd-document-sync.md.tmpl
+      - scripts/templates/consumer/init/.claude/commands/blueprint-sdd-pr-packager.md.tmpl
       - scripts/templates/consumer/init/.spec-kit/policy-mapping.md.tmpl
       - scripts/templates/consumer/init/.spec-kit/control-catalog.yaml.tmpl
       - scripts/templates/consumer/init/.spec-kit/control-catalog.md.tmpl

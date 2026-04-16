@@ -1,0 +1,5 @@
+interface:
+  display_name: "Blueprint SDD Intake"
+  short_description: "Decompose high-level requirements into independent SDD specs"
+  slash_command: "/blueprint-sdd-intake-decompose"
+  command_file: ".claude/commands/blueprint-sdd-intake-decompose.md"
