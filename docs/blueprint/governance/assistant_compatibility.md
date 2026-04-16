@@ -11,14 +11,41 @@ Every assistant (Codex, Claude Code, Copilot, others) must treat these as author
 - `specs/**` work-item artifacts
 - canonical Make/validation commands
 
+## Assistant Integration
+
+### Codex
+
+- Reads `AGENTS.md` natively.
+- Skills are loaded from `.agents/skills/**` via `agents/openai.yaml` wiring files.
+- Skills can be invoked by slash command or natural language.
+
+### Claude Code
+
+- Reads `CLAUDE.md` at startup, which delegates to `AGENTS.md`.
+- Skills are invoked via slash commands defined in `.claude/commands/`.
+- Each `.claude/commands/<skill-name>.md` file reads and executes the corresponding `.agents/skills/<skill-name>/SKILL.md` runbook.
+- Supports both argument mode (`/skill-name <input>`) and conversational mode (no argument — Claude asks).
+- Branch naming violations are caught locally via the `quality-validate-branch` pre-push hook
+  (`python3 scripts/bin/blueprint/validate_contract.py --branch-only`) before reaching CI.
+
+### Other assistants
+
+- If an assistant cannot load skills natively, open the corresponding `SKILL.md` and use it as a plain-text runbook.
+- Execute the same repository commands and quality gates regardless of assistant.
+- Skill availability must not change lifecycle gates, evidence requirements, or validation standards.
+
 ## Skill Interoperability
 
-- Codex skills under `.agents/skills/**` are optional accelerators.
-- If an assistant cannot load Codex skills natively:
-  - open the corresponding `SKILL.md`
-  - use it as a plain-text runbook
-  - execute the same repository commands and quality gates
-- Skill availability must not change lifecycle gates, evidence requirements, or validation standards.
+| Skill | Codex | Claude Code | Plain runbook |
+|---|---|---|---|
+| `blueprint-consumer-ops` | `agents/openai.yaml` | `.claude/commands/` | `SKILL.md` |
+| `blueprint-consumer-upgrade` | `agents/openai.yaml` | `.claude/commands/` | `SKILL.md` |
+| `blueprint-sdd-clarification-gate` | `agents/openai.yaml` | `.claude/commands/` | `SKILL.md` |
+| `blueprint-sdd-document-sync` | `agents/openai.yaml` | `.claude/commands/` | `SKILL.md` |
+| `blueprint-sdd-intake-decompose` | `agents/openai.yaml` | `.claude/commands/` | `SKILL.md` |
+| `blueprint-sdd-plan-slicer` | `agents/openai.yaml` | `.claude/commands/` | `SKILL.md` |
+| `blueprint-sdd-pr-packager` | `agents/openai.yaml` | `.claude/commands/` | `SKILL.md` |
+| `blueprint-sdd-traceability-keeper` | `agents/openai.yaml` | `.claude/commands/` | `SKILL.md` |
 
 ## Recommended Cross-Assistant Workflow
 
