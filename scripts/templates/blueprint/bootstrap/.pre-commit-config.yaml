@@ -15,6 +15,13 @@ repos:
         language: system
         entry: bash -n
         files: \.sh$
+      - id: quality-validate-branch
+        name: quality validate branch naming (pre-push)
+        language: system
+        entry: python3 scripts/bin/blueprint/validate_contract.py --branch-only
+        pass_filenames: false
+        stages: [pre-push]
+        always_run: true
       - id: infra-audit-version-cached
         name: infra audit version cached (pre-push)
         language: system

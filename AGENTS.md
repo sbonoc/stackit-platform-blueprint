@@ -69,6 +69,14 @@ This file is the canonical governance source for human and agent contributors.
 - If required inputs are missing, the work item must be marked with `BLOCKED_MISSING_INPUTS` and remain `SPEC_READY=false`.
 - Code assistants must not silently fill missing business or non-functional requirements in spec artifacts.
 
+## Sign-off Policy
+- Sign-offs (`Product`, `Architecture`, `Security`, `Operations`) are granted explicitly
+  by the user or designated reviewers via conversation or pull request review.
+- Code assistants MUST NOT self-approve or assume any sign-off is granted.
+- Keep `SPEC_READY=false` until each required sign-off is explicitly stated.
+- In single-author mode the user holds all sign-off roles. In multi-author mode,
+  each sign-off should be traceable to the reviewer's git identity.
+
 ## SDD Artifact Contract
 - Canonical work-item location: `specs/<YYYY-MM-DD>-<work-item-slug>/`.
 - Required work-item documents:
