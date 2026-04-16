@@ -18,7 +18,7 @@ repos:
       - id: quality-validate-branch
         name: quality validate branch naming (pre-push)
         language: system
-        entry: python scripts/bin/blueprint/validate_contract.py --branch-only
+        entry: python3 scripts/bin/blueprint/validate_contract.py --branch-only
         pass_filenames: false
         stages: [pre-push]
         always_run: true
