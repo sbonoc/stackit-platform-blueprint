@@ -1,0 +1,58 @@
+{
+  "manifest_version": 1,
+  "work_item": "specs/2026-04-17-upgrade-preflight-required-make-target-checklist",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-04-17T20:54:58Z",
+  "files": [
+    {
+      "path": "specs/2026-04-17-upgrade-preflight-required-make-target-checklist/architecture.md",
+      "sha256": "41563e693d4aa84817242aaf4e52edc3ec5f2949bc57332a62c6eb399e888075",
+      "bytes": 3363
+    },
+    {
+      "path": "specs/2026-04-17-upgrade-preflight-required-make-target-checklist/context_pack.md",
+      "sha256": "fc4202ba5c452d01242241131cffb0e409bf1bd63022e3d3fdcb7b8a1a43c1ea",
+      "bytes": 975
+    },
+    {
+      "path": "specs/2026-04-17-upgrade-preflight-required-make-target-checklist/evidence_manifest.json",
+      "sha256": "cab4b60c60b26d63a987c44b0a963f3c5ddd16014d1b2120689dd4b8383289fa",
+      "bytes": 2357
+    },
+    {
+      "path": "specs/2026-04-17-upgrade-preflight-required-make-target-checklist/graph.yaml",
+      "sha256": "8c8a3fc5162242373d2d3184e1eb1a1b417d81e8debb0926939aa54ef94a5ead",
+      "bytes": 2953
+    },
+    {
+      "path": "specs/2026-04-17-upgrade-preflight-required-make-target-checklist/hardening_review.md",
+      "sha256": "8104eacc672ca0beb2093f2d20a571b64717b07be237f93b3bf2a91d068b6637",
+      "bytes": 1629
+    },
+    {
+      "path": "specs/2026-04-17-upgrade-preflight-required-make-target-checklist/plan.md",
+      "sha256": "dcd42493857941f8c562932a3ef55fa0123b85c1e7303ca769d483b5510dc75b",
+      "bytes": 4463
+    },
+    {
+      "path": "specs/2026-04-17-upgrade-preflight-required-make-target-checklist/pr_context.md",
+      "sha256": "f9d873de2b19c8615eaf967ca9ee8418a661f9952c1df8c2c8139c2778973dc0",
+      "bytes": 2247
+    },
+    {
+      "path": "specs/2026-04-17-upgrade-preflight-required-make-target-checklist/spec.md",
+      "sha256": "aea707d3bca943ba21d039d2d5ac0994e55c55115868f63853443fbdbf889a19",
+      "bytes": 5919
+    },
+    {
+      "path": "specs/2026-04-17-upgrade-preflight-required-make-target-checklist/tasks.md",
+      "sha256": "77fedde3546afcf489ea2c6b8496c31591ad271c432f16933c2a166297352b6d",
+      "bytes": 2885
+    },
+    {
+      "path": "specs/2026-04-17-upgrade-preflight-required-make-target-checklist/traceability.md",
+      "sha256": "992f3a1b57c5d8da50266b2daafb584b1a6c52a9e2c24e467b8dde5ea8b4dd61",
+      "bytes": 6141
+    }
+  ]
+}

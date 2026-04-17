@@ -56,10 +56,12 @@ BLUEPRINT_UPGRADE_REF=<tag|branch|commit> BLUEPRINT_UPGRADE_APPLY=true make blue
 make blueprint-upgrade-consumer-validate
 ```
 Use the preflight report `artifacts/blueprint/upgrade_preflight.json` to inspect auto-apply candidates,
-manual-merge/conflict paths, and required follow-up commands before apply mode.
+manual-merge/conflict paths, required follow-up commands, and missing contract-required consumer-owned Make targets before apply mode.
 Inspect `artifacts/blueprint/upgrade_plan.json`, `artifacts/blueprint/upgrade_apply.json`, and
 `artifacts/blueprint/upgrade_summary.md` after each run. When `required_manual_actions` is non-empty,
-resolve the listed platform-owned dependency paths first, then re-run `make blueprint-upgrade-consumer-validate`.
+resolve the listed dependency paths first, then re-run `make blueprint-upgrade-consumer-validate`.
+For missing required consumer-owned Make targets, define the target in `make/platform.mk` or linked includes under `make/platform/*.mk`
+using the exact target name from the manual-action reason.
 When `LOCAL_POST_DEPLOY_HOOK_ENABLED=true`, preflight also flags a blocking manual action if
 `infra-post-deploy-consumer` is still placeholder in `make/platform.mk`.
 Set `BLUEPRINT_UPGRADE_SOURCE` when the blueprint source repository differs from your default `origin` remote.
