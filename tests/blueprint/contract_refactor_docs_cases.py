@@ -25,6 +25,7 @@ class DocsRefactorCases(RefactorContractBase):
             "docs/blueprint/contracts/async_message_contracts.md",
             "docs/blueprint/governance/ownership_matrix.md",
             "docs/blueprint/governance/spec_driven_development.md",
+            "docs/blueprint/governance/assistant_compatibility.md",
         ]
         for rel_path in synced_docs:
             self.assertEqual(
@@ -32,6 +33,9 @@ class DocsRefactorCases(RefactorContractBase):
                 (template_root / rel_path).read_text(encoding="utf-8"),
                 msg=f"bootstrap template drift for {rel_path}",
             )
+        self.assertFalse(
+            (template_root / "docs/blueprint/architecture/decisions/ADR-20260417-sdd-default-enforcement.md").exists()
+        )
 
     def test_platform_docs_are_seeded_but_not_template_synced(self) -> None:
         contract_lines = _read("blueprint/contract.yaml").splitlines()

@@ -74,6 +74,62 @@ def resolve_app_catalog_scaffold_contract(repo_root: Path) -> tuple[bool, list[s
     return enabled, required_paths
 
 
+def _is_safe_relative_glob_pattern(pattern: str) -> bool:
+    candidate = pattern.strip()
+    if not candidate:
+        return False
+
+    parsed = Path(candidate)
+    if parsed.is_absolute():
+        return False
+
+    if any(part == ".." for part in parsed.parts):
+        return False
+
+    if any(part == ".." for part in candidate.replace("\\", "/").split("/")):
+        return False
+
+    return True
+
+
+def _is_within_repo_root(path: Path, repo_root: Path) -> bool:
+    try:
+        path.relative_to(repo_root)
+        return True
+    except ValueError:
+        return False
+
+
+def prune_source_artifacts_on_initial_init(
+    repo_root: Path,
+    summary: ChangeSummary,
+    *,
+    dry_run: bool,
+    repo_mode: str,
+    mode_from: str,
+    prune_globs: list[str],
+) -> None:
+    if repo_mode != mode_from:
+        return
+
+    repo_root_resolved = repo_root.resolve()
+    for raw_pattern in prune_globs:
+        pattern = raw_pattern.strip()
+        if not pattern:
+            continue
+
+        if not _is_safe_relative_glob_pattern(pattern):
+            summary.skipped_path(repo_root / pattern, "unsafe prune glob ignored")
+            continue
+
+        for matched_path in sorted(repo_root.glob(pattern)):
+            resolved_path = matched_path.resolve(strict=False)
+            if not _is_within_repo_root(resolved_path, repo_root_resolved):
+                summary.skipped_path(matched_path, "prune candidate resolves outside repository root")
+                continue
+            remove_path(matched_path, dry_run, summary)
+
+
 def seed_consumer_owned_files(
     repo_root: Path,
     dry_run: bool,
@@ -100,6 +156,15 @@ def seed_consumer_owned_files(
 
     for relative_path in repository.source_only_paths:
         remove_path(repo_root / relative_path, dry_run, summary)
+
+    prune_source_artifacts_on_initial_init(
+        repo_root=repo_root,
+        summary=summary,
+        dry_run=dry_run,
+        repo_mode=repository.repo_mode,
+        mode_from=consumer_init.mode_from,
+        prune_globs=consumer_init.source_artifact_prune_globs_on_init,
+    )
 
     if not consumer_init.prune_disabled_optional_scaffolding:
         return

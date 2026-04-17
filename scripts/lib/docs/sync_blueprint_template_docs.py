@@ -13,14 +13,27 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from scripts.lib.blueprint.cli_support import ChangeSummary, display_repo_path, resolve_repo_root  # noqa: E402
+from scripts.lib.blueprint.contract_schema import load_blueprint_contract  # noqa: E402
 
 
 SINGLE_FILE_MIRRORS: tuple[tuple[Path, Path], ...] = (
     (Path("docs/README.md"), Path("scripts/templates/blueprint/bootstrap/docs/README.md")),
 )
+BLUEPRINT_DOCS_ROOT = Path("docs/blueprint")
 DIRECTORY_MIRRORS: tuple[tuple[Path, Path], ...] = (
-    (Path("docs/blueprint"), Path("scripts/templates/blueprint/bootstrap/docs/blueprint")),
+    (BLUEPRINT_DOCS_ROOT, Path("scripts/templates/blueprint/bootstrap/docs/blueprint")),
 )
+
+
+def resolve_blueprint_docs_template_allowlist(repo_root: Path) -> tuple[str, ...]:
+    contract = load_blueprint_contract(repo_root / "blueprint/contract.yaml")
+    allowlist = tuple(contract.docs_contract.blueprint_docs.template_sync_allowlist)
+    if not allowlist:
+        raise ValueError(
+            "missing spec.docs_contract.blueprint_docs.template_sync_allowlist "
+            "in blueprint/contract.yaml"
+        )
+    return allowlist
 
 
 def _list_files(root: Path) -> dict[str, Path]:
@@ -69,6 +82,7 @@ def _sync_directory(
     repo_root: Path,
     source_root: Path,
     template_root: Path,
+    allowlist: tuple[str, ...] | None,
     check: bool,
     summary: ChangeSummary,
     out_of_sync: list[str],
@@ -77,6 +91,13 @@ def _sync_directory(
         raise ValueError(f"missing source blueprint docs root: {source_root}")
 
     source_files = _list_files(source_root)
+    if allowlist is not None:
+        allowed = set(allowlist)
+        source_files = {relative: path for relative, path in source_files.items() if relative in allowed}
+        missing = sorted(allowed - set(source_files))
+        if missing:
+            missing_joined = ", ".join(missing)
+            raise ValueError(f"missing required blueprint docs source files for template sync: {missing_joined}")
     template_files = _list_files(template_root)
 
     for relative, source_path in source_files.items():
@@ -114,6 +135,7 @@ def _sync_directory(
 def _sync(repo_root: Path, check: bool) -> int:
     summary = ChangeSummary("quality-docs-sync-blueprint-template")
     out_of_sync: list[str] = []
+    blueprint_docs_allowlist = resolve_blueprint_docs_template_allowlist(repo_root)
 
     for source_rel, target_rel in SINGLE_FILE_MIRRORS:
         _sync_single_file(
@@ -130,6 +152,7 @@ def _sync(repo_root: Path, check: bool) -> int:
             repo_root=repo_root,
             source_root=repo_root / source_rel,
             template_root=repo_root / target_rel,
+            allowlist=blueprint_docs_allowlist if source_rel == BLUEPRINT_DOCS_ROOT else None,
             check=check,
             summary=summary,
             out_of_sync=out_of_sync,

@@ -470,6 +470,13 @@ class GovernanceStructureCases(RefactorContractBase):
         self.assertEqual(_extract_yaml_scalar(consumer_init, "template_root"), "scripts/templates/consumer/init")
         self.assertEqual(_extract_yaml_scalar(consumer_init, "mode_from"), "template-source")
         self.assertEqual(_extract_yaml_scalar(consumer_init, "mode_to"), "generated-consumer")
+        self.assertEqual(
+            set(_extract_yaml_list(consumer_init, "source_artifact_prune_globs_on_init")),
+            {
+                "specs/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-*",
+                "docs/blueprint/architecture/decisions/ADR-*.md",
+            },
+        )
 
         required_namespaces = set(_extract_yaml_list(contract_lines, "required_namespaces"))
         self.assertTrue(

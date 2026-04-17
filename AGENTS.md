@@ -295,7 +295,7 @@ A task is done only when all applicable items pass:
   - `make blueprint-init-repo` must replace the consumer-owned root files in generated repos and remove blueprint-source-only workflow leftovers
 - Keep docs synchronized with Make targets and script behavior.
 - Enforce docs ownership boundaries:
-  - `docs/blueprint/**` must remain template-synchronized.
+  - `docs/blueprint/**` is canonical in source mode; bootstrap template sync MUST include ONLY the consumer-facing allowlisted subset defined by blueprint docs-sync contract.
   - `docs/platform/**` must be seeded at bootstrap if missing, then remain consumer-editable.
 - Enforce Make ownership boundaries:
   - `Makefile` is a blueprint-managed loader.

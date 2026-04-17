@@ -16,6 +16,7 @@ This matrix clarifies which areas are blueprint-managed and which are platform-o
 | `blueprint/repo.init.secrets.env` | Consumer local | Editable, gitignored | Local sensitive overrides loaded after `blueprint/repo.init.env`; explicit shell env still wins. |
 | `blueprint/contract.yaml`, `docs/docusaurus.config.js`, repo identity files under `infra/gitops/argocd/**`, STACKIT tfvars/backend files | Blueprint init-managed in generated repos | Controlled | `make blueprint-init-repo` owns these files. `make blueprint-bootstrap` and `make infra-bootstrap` validate presence but do not recreate them in generated repos. |
 | `tests/blueprint/**`, `tests/docs/**` | Blueprint source only | Controlled | Maintainer-only blueprint contract and docs test suites; pruned from generated repos during first init. |
+| `specs/<YYYY-MM-DD>-*`, `docs/blueprint/architecture/decisions/ADR-*.md` | Blueprint source only | Controlled | Maintainer-only SDD work-item history and blueprint ADR records; pruned from generated repos during first init. |
 | `.github/actions/**` | Blueprint | Controlled | Shared local GitHub Actions support for source and generated-repo CI workflows. |
 | `make/platform.mk`, `make/platform/*.mk` | Platform | Editable | Consumer-facing project targets. |
 | `scripts/bin/platform/**`, `scripts/lib/platform/**` | Platform | Editable | Application/runtime-specific automation (for example `scripts/bin/platform/touchpoints/test_e2e.sh`). |
