@@ -1,9 +1,61 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 from scripts.lib.blueprint.contract_schema import BlueprintContract
 from scripts.lib.blueprint.contract_validators.shared import ContractValidationHelpers
+
+
+def _extract_area_tokens(area_cell: str) -> set[str]:
+    tokens = {match.strip() for match in re.findall(r"`([^`]+)`", area_cell) if match.strip()}
+    if tokens:
+        return tokens
+    return {token.strip() for token in area_cell.split(",") if token.strip()}
+
+
+def validate_source_artifact_prune_globs_documented(repo_root: Path, contract: BlueprintContract) -> list[str]:
+    errors: list[str] = []
+    prune_globs = contract.repository.consumer_init.source_artifact_prune_globs_on_init
+    if not prune_globs:
+        return errors
+
+    blueprint_docs_root = contract.docs_contract.blueprint_docs.root
+    ownership_matrix_relative = f"{blueprint_docs_root}/governance/ownership_matrix.md"
+    ownership_matrix_path = repo_root / ownership_matrix_relative
+    if not ownership_matrix_path.is_file():
+        return [f"missing ownership matrix file: {ownership_matrix_relative}"]
+
+    source_only_area_tokens: set[str] = set()
+    for line in ownership_matrix_path.read_text(encoding="utf-8").splitlines():
+        stripped = line.strip()
+        if not stripped.startswith("|"):
+            continue
+
+        cells = [cell.strip() for cell in stripped.strip("|").split("|")]
+        if len(cells) < 2:
+            continue
+
+        area_cell, ownership_cell = cells[0], cells[1]
+        if "source only" not in ownership_cell.lower():
+            continue
+        source_only_area_tokens.update(_extract_area_tokens(area_cell))
+
+    if not source_only_area_tokens:
+        errors.append(
+            "ownership matrix must include at least one 'source only' row for prune-glob documentation checks"
+        )
+        return errors
+
+    for pattern in prune_globs:
+        if pattern in source_only_area_tokens:
+            continue
+        errors.append(
+            "repository.consumer_init.source_artifact_prune_globs_on_init pattern must be documented "
+            f"in ownership matrix source-only rows ({ownership_matrix_relative}): {pattern}"
+        )
+
+    return errors
 
 
 def validate_docs_edit_link(repo_root: Path, contract: BlueprintContract) -> list[str]:

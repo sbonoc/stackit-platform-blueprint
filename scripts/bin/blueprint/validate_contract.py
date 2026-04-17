@@ -27,6 +27,7 @@ from scripts.lib.blueprint.contract_validators.docs_sync import (  # noqa: E402
     validate_bootstrap_template_sync as _validate_bootstrap_template_sync_delegate,
     validate_docs_edit_link as _validate_docs_edit_link_delegate,
     validate_platform_docs_seed_contract as _validate_platform_docs_seed_contract_delegate,
+    validate_source_artifact_prune_globs_documented as _validate_source_artifact_prune_globs_documented_delegate,
 )
 from scripts.lib.blueprint.contract_validators.messaging import (  # noqa: E402
     validate_event_messaging_contract as _validate_event_messaging_contract_delegate,
@@ -2407,6 +2408,10 @@ def _validate_platform_docs_seed_contract(repo_root: Path, contract: BlueprintCo
     return _validate_platform_docs_seed_contract_delegate(repo_root, contract, _contract_validation_helpers())
 
 
+def _validate_source_artifact_prune_globs_documented(repo_root: Path, contract: BlueprintContract) -> list[str]:
+    return _validate_source_artifact_prune_globs_documented_delegate(repo_root, contract)
+
+
 def _validate_bootstrap_template_sync(repo_root: Path, contract: BlueprintContract) -> list[str]:
     return _validate_bootstrap_template_sync_delegate(repo_root, contract)
 
@@ -2494,6 +2499,7 @@ def main() -> int:
     errors.extend(_validate_airflow_contract(repo_root, contract))
     errors.extend(_validate_docs_edit_link(repo_root, contract))
     errors.extend(_validate_platform_docs_seed_contract(repo_root, contract))
+    errors.extend(_validate_source_artifact_prune_globs_documented(repo_root, contract))
     errors.extend(_validate_core_chart_values_contract(repo_root))
     errors.extend(_validate_runtime_credentials_contract(repo_root))
     errors.extend(_validate_app_catalog_scaffold_contract(repo_root, contract))

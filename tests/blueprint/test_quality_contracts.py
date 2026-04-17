@@ -494,6 +494,64 @@ class QualityContractsTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
         self.assertIn("resolve_repo_root", _read("scripts/lib/docs/sync_blueprint_template_docs.py"))
 
+    def test_prune_globs_must_be_documented_in_ownership_matrix_source_only_rows(self) -> None:
+        from scripts.lib.blueprint.contract_schema import load_blueprint_contract
+        from scripts.lib.blueprint.contract_validators.docs_sync import validate_source_artifact_prune_globs_documented
+
+        contract_text = _read("blueprint/contract.yaml")
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            contract_path = repo_root / "blueprint/contract.yaml"
+            contract_path.parent.mkdir(parents=True, exist_ok=True)
+            contract_path.write_text(contract_text, encoding="utf-8")
+
+            ownership_path = repo_root / "docs/blueprint/governance/ownership_matrix.md"
+            ownership_path.parent.mkdir(parents=True, exist_ok=True)
+            ownership_path.write_text(
+                (
+                    "| Area | Ownership | Edit Mode | Notes |\n"
+                    "|---|---|---|---|\n"
+                    "| `docs/blueprint/architecture/decisions/ADR-*.md` | Blueprint source only | Controlled | test |\n"
+                ),
+                encoding="utf-8",
+            )
+
+            contract = load_blueprint_contract(contract_path)
+            errors = validate_source_artifact_prune_globs_documented(repo_root, contract)
+            self.assertTrue(
+                any("source_artifact_prune_globs_on_init pattern must be documented" in error for error in errors),
+                msg=f"expected ownership matrix documentation error, got: {errors}",
+            )
+
+            ownership_path.write_text(
+                (
+                    "| Area | Ownership | Edit Mode | Notes |\n"
+                    "|---|---|---|---|\n"
+                    "| `foo/specs/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-*.bak`, "
+                    "`docs/blueprint/architecture/decisions/ADR-*.md` | "
+                    "Blueprint source only | Controlled | test |\n"
+                ),
+                encoding="utf-8",
+            )
+            errors = validate_source_artifact_prune_globs_documented(repo_root, contract)
+            self.assertTrue(
+                any("source_artifact_prune_globs_on_init pattern must be documented" in error for error in errors),
+                msg=f"expected exact-token ownership matrix documentation error, got: {errors}",
+            )
+
+            ownership_path.write_text(
+                (
+                    "| Area | Ownership | Edit Mode | Notes |\n"
+                    "|---|---|---|---|\n"
+                    "| `specs/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-*`, "
+                    "`docs/blueprint/architecture/decisions/ADR-*.md` | "
+                    "Blueprint source only | Controlled | test |\n"
+                ),
+                encoding="utf-8",
+            )
+            errors = validate_source_artifact_prune_globs_documented(repo_root, contract)
+            self.assertEqual(errors, [])
+
     def test_blueprint_docs_template_sync_prunes_source_only_docs(self) -> None:
         checker = REPO_ROOT / "scripts/lib/docs/sync_blueprint_template_docs.py"
         spec = importlib.util.spec_from_file_location("sync_blueprint_template_docs_module", checker)
