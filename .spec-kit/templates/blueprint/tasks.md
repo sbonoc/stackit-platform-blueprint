@@ -16,7 +16,9 @@
 ## Test Automation
 - [ ] T-101 Add or update unit tests
 - [ ] T-102 Add or update contract tests
-- [ ] T-103 Add boundary/integration tests where required
+- [ ] T-103 For any new or modified filter/payload-transform route, verify a positive-path unit test exists (matching fixture value returns record and output fields remain intact); capture evidence in `pr_context.md`
+- [ ] T-104 Translate any reproducible pre-PR smoke/`curl` finding into a failing automated test first, then turn it green with the fix in the same work item (or document deterministic exception in publish artifacts)
+- [ ] T-105 Add boundary/integration tests where required
 
 ## Validation and Release Readiness
 - [ ] T-201 Run required Make validation bundles

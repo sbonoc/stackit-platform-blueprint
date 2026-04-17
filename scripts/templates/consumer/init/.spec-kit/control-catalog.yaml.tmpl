@@ -190,6 +190,33 @@
       "evidence_artifacts": ["blueprint/contract.yaml", "scripts/bin/blueprint/spec_scaffold.py", "make/blueprint.generated.mk"],
       "owner": "Architecture + Engineering",
       "gate": "fail"
+    },
+    {
+      "id": "SDD-C-022",
+      "normative_control": "For work touching HTTP route handlers, query/filter logic, or new API endpoints, plan and publish artifacts MUST include a local smoke gate with positive-path curl assertions and explicit pr_context evidence (`Endpoint / Method / Auth / Result`).",
+      "phases": ["Plan", "Verify", "Publish"],
+      "validation_command": "make quality-sdd-check",
+      "evidence_artifacts": ["specs/<work-item>/plan.md", "specs/<work-item>/pr_context.md", "specs/<work-item>/traceability.md"],
+      "owner": "Architecture + Operations",
+      "gate": "fail"
+    },
+    {
+      "id": "SDD-C-023",
+      "normative_control": "For filter or payload-transform logic, test planning and implementation MUST include at least one positive-path unit assertion with matching fixture/request values and preserved output fields; empty-result-only assertions MUST NOT satisfy this gate.",
+      "phases": ["Plan", "Implement", "Verify"],
+      "validation_command": "make quality-sdd-check",
+      "evidence_artifacts": ["specs/<work-item>/plan.md", "specs/<work-item>/tasks.md", "specs/<work-item>/traceability.md"],
+      "owner": "Architecture + Engineering",
+      "gate": "fail"
+    },
+    {
+      "id": "SDD-C-024",
+      "normative_control": "Any reproducible pre-PR smoke/curl/deterministic-check finding MUST be translated into a failing automated regression test first and turned green with the implementation fix in the same work item; deterministic exceptions MUST be explicitly documented in publish artifacts.",
+      "phases": ["Plan", "Implement", "Verify", "Publish"],
+      "validation_command": "make quality-sdd-check",
+      "evidence_artifacts": ["specs/<work-item>/plan.md", "specs/<work-item>/tasks.md", "specs/<work-item>/traceability.md", "specs/<work-item>/hardening_review.md"],
+      "owner": "Architecture + Engineering",
+      "gate": "fail"
     }
   ]
 }

@@ -105,6 +105,7 @@ Informative sections can explain context/tradeoffs, but they do not override nor
 | Monitoring and alerting | `spec.md`, `traceability.md` | Alert rules, thresholds, routing and ownership |
 | Reliability and resilience | `architecture.md`, `plan.md` | Failure modes, rollback strategy, blast-radius controls |
 | Operability and runbooks | `plan.md`, `traceability.md` | Deterministic runbook commands and diagnostics artifacts |
+| Local smoke gate (HTTP/filter scope) | `plan.md`, `tasks.md`, `pr_context.md` | Positive-path `curl` evidence (`Endpoint | Method | Auth | Result`) before publish |
 
 ## Architecture and Code Policy Mapping
 
@@ -121,6 +122,8 @@ Informative sections can explain context/tradeoffs, but they do not override nor
 | Shift-left strategy | `plan.md` | Lowest valid test layer first |
 | Test pyramid | `plan.md`, `traceability.md` | Unit > 60%, Integration <= 30%, E2E <= 10% |
 | Requirement-to-test mapping | `traceability.md` | Every requirement ID mapped to automated evidence |
+| Positive-path filter/payload-transform coverage | `plan.md`, `tasks.md`, `traceability.md` | Matching fixture/request value returns record and preserved output fields; empty-result-only assertions rejected |
+| Reproducible-finding translation (red->green) | `plan.md`, `tasks.md`, `traceability.md`, `hardening_review.md` | Pre-PR smoke/`curl`/deterministic failure becomes failing automated test first, then green with fix, or explicit deterministic exception rationale |
 
 ## Graph and Evidence Mapping
 

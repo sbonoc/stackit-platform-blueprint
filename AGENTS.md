@@ -146,6 +146,9 @@ This section provides context for code assistants to understand the blueprint be
 - Reliability/resilience and rollback policy (failure modes, blast radius, recovery strategy).
 - Operability and diagnostics (runbooks, troubleshooting artifacts, deterministic commands).
 - Compliance with architecture style mandates (SOLID, Clean Architecture, Clean Code, DDD) adapted to the selected runtime stack.
+- Positive-path filter/payload-transform test coverage: any filter or payload-transform logic MUST include at least one unit test with a matching fixture/request value that returns a record and preserves relevant output fields; empty-result-only assertions MUST NOT satisfy coverage.
+- Local smoke gate for HTTP/filter scope: work touching HTTP route handlers, query/filter logic, or new API endpoints MUST run local smoke with positive-path `curl` assertions before publish and capture `Endpoint | Method | Auth | Result` evidence in `pr_context.md`.
+- Reproducible-finding translation gate: any reproducible pre-PR smoke/`curl`/deterministic-check failure MUST be captured as a failing automated test first and turned green with the implementation fix in the same work item; deterministic exceptions MUST be documented in publish artifacts.
 - Local-first baseline for local execution (Docker Desktop Kubernetes context policy + Crossplane/Helm provisioning + ESO/Argo/Keycloak runtime identity) with explicit approved exception rationale when deviating.
 - App-onboarding minimum Make-target contract (including canonical `infra-port-forward-start|stop|cleanup` wrappers) in `plan.md` and `tasks.md` when app delivery scope is affected.
 - Managed-service-first policy for generated-consumer runtime capabilities: when `BLUEPRINT_PROFILE=stackit-*`, prefer STACKIT managed services by default; any non-managed/self-managed alternative requires an explicit normative option decision, rationale, and approval record in `spec.md` + ADR + `AGENTS.decisions.md`.

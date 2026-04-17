@@ -100,6 +100,9 @@ Each work-item `spec.md` must define:
 - Operability and diagnostics
 - Architecture quality (SOLID, Clean Architecture/Clean Code, DDD adapted to stack)
 - Shift-left test automation and test-pyramid adherence
+- Positive-path filter/payload-transform coverage (matching fixture/request value returns record and output fields are preserved; empty-result-only assertions are insufficient)
+- Local smoke gate for HTTP route/filter scope with positive-path `curl` assertions and explicit `pr_context.md` evidence
+- Reproducible-finding translation gate (pre-PR smoke/`curl`/deterministic-check failures become failing automated tests first, then green with the fix in the same work item; deterministic exceptions are documented)
 - Managed-service-first runtime posture (`stackit-*` profiles default to managed STACKIT services; exceptions require explicit approved rationale)
 - Local-first runtime baseline for local execution (`docker-desktop` context policy + Crossplane/Helm provisioning + ESO/Argo/Keycloak runtime identity), with explicit approved exception rationale when deviating
 - App onboarding minimum Make-target contract, including canonical port-forward wrappers

@@ -281,3 +281,15 @@
   - `infra-validate` now fails when any `repository.consumer_init.source_artifact_prune_globs_on_init` pattern is missing from source-only rows in `docs/blueprint/governance/ownership_matrix.md`.
   - ownership matrix source-only row now documents the exact prune glob patterns from contract.
   - init prune hardening now rejects unsafe glob patterns (absolute or traversal), skips out-of-root resolved candidates, and avoids following symlinked directories during deletion.
+- SDD UX guardrails now include positive-path, local-smoke, and red->green finding translation requirements:
+  - canonical blueprint and consumer `plan.md` templates now require:
+    - positive-path filter/payload-transform test assertions (matching fixture/request values + output field integrity)
+    - local smoke publish gate for HTTP/filter/new-endpoint scope with evidence schema `Endpoint | Method | Auth | Result`
+    - translation of reproducible pre-PR smoke/`curl`/deterministic findings into failing automated tests first, then green with the fix (or explicit deterministic exception documentation)
+  - canonical blueprint and consumer `tasks.md` templates now include explicit positive-path verification and finding-translation task items.
+  - governance/interoperability policy now codifies these gates across assistant surfaces (`AGENTS.md`, consumer-init `AGENTS.md.tmpl`, `CLAUDE.md`, `docs/blueprint/governance/spec_driven_development.md`, `docs/blueprint/governance/assistant_compatibility.md`).
+- Control catalog expanded with dedicated SDD controls for these gates:
+  - `SDD-C-022`: local smoke gate with positive-path curl evidence.
+  - `SDD-C-023`: positive-path filter/payload-transform test coverage.
+  - `SDD-C-024`: reproducible finding translation to red->green automated regression tests.
+  - rendered catalog and consumer-init mirror artifacts are synchronized in the same change.
