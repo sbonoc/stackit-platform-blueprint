@@ -33,6 +33,12 @@ class DocsRefactorCases(RefactorContractBase):
                 (template_root / rel_path).read_text(encoding="utf-8"),
                 msg=f"bootstrap template drift for {rel_path}",
             )
+        contract_lines = _read("blueprint/contract.yaml").splitlines()
+        consumer_init = _extract_yaml_section(contract_lines, "consumer_init")
+        prune_globs = _extract_yaml_list(consumer_init, "source_artifact_prune_globs_on_init")
+        ownership_matrix = _read("docs/blueprint/governance/ownership_matrix.md")
+        for prune_glob in prune_globs:
+            self.assertIn(prune_glob, ownership_matrix)
         self.assertFalse(
             (template_root / "docs/blueprint/architecture/decisions/ADR-20260417-sdd-default-enforcement.md").exists()
         )
@@ -98,6 +104,7 @@ class DocsRefactorCases(RefactorContractBase):
         self.assertIn('"docs/platform/consumer/app_onboarding.md"', bootstrap)
         self.assertIn("if [[ -f \"$path\" ]]; then", bootstrap_lib)
         self.assertIn("_validate_platform_docs_seed_contract", validate_py)
+        self.assertIn("_validate_source_artifact_prune_globs_documented", validate_py)
         self.assertNotIn('"docs/platform/consumer/quickstart.md",', validate_py)
         platform_readme = _read("docs/platform/README.md")
         self.assertIn("[Event Messaging Baseline](consumer/event_messaging_baseline.md)", platform_readme)

@@ -1,0 +1,133 @@
+{
+  "manifest_version": 1,
+  "work_item": "specs/2026-04-17-prune-glob-ownership-check",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-04-17T14:56:18Z",
+  "files": [
+    {
+      "path": "AGENTS.backlog.md",
+      "sha256": "199694d72db434df69b7853ef315906d5d3255abc7439048341d9c659d5cc4d7",
+      "bytes": 5486
+    },
+    {
+      "path": "AGENTS.decisions.md",
+      "sha256": "696ef1127d109b6490af58e0462ef741545fb2e0ca5ab7eab239e449bd9b9459",
+      "bytes": 38621
+    },
+    {
+      "path": "blueprint/contract.yaml",
+      "sha256": "1bcf385cbf9a9d62c16a0c36176e5c8eedac3231451424ebf5c557bd6fe1f29c",
+      "bytes": 82819
+    },
+    {
+      "path": "docs/blueprint/architecture/decisions/ADR-20260417-prune-glob-ownership-check.md",
+      "sha256": "25d2ad0cc7247c17bea0596a25bf4eddbddd1157aa7dd00147009669eda84bc9",
+      "bytes": 3726
+    },
+    {
+      "path": "docs/blueprint/governance/ownership_matrix.md",
+      "sha256": "6ab838b45d6f22a5b2a6a8463f377c8e7d02db54a4446ab12e7d00fd63e31e7f",
+      "bytes": 3885
+    },
+    {
+      "path": "scripts/bin/blueprint/validate_contract.py",
+      "sha256": "8002aeee97d0356ace9dc74b6ccf24b2f0ccf7c9059c5f4bdb5d315c81eb7fc8",
+      "bytes": 108691
+    },
+    {
+      "path": "scripts/lib/blueprint/contract_schema.py",
+      "sha256": "2a076eb187c62082d8a4604cff5aca9a150a52c3e7a88c8aef1bc5db94f7204d",
+      "bytes": 26908
+    },
+    {
+      "path": "scripts/lib/blueprint/contract_validators/docs_sync.py",
+      "sha256": "e33f64d9e3e260abb223b833fffd179c90e3139700e6597e350a5cce2025297d",
+      "bytes": 9479
+    },
+    {
+      "path": "scripts/lib/blueprint/init_repo_contract.py",
+      "sha256": "4b39ea2c345d0adf5004bd27b82550b8d8dfa844f346a20efa6e46eceec5c7d5",
+      "bytes": 7417
+    },
+    {
+      "path": "scripts/lib/blueprint/init_repo_io.py",
+      "sha256": "da9c8606323e902abc38f81e50a8918e6667e62c4ead28a7d47e4762f831e4d5",
+      "bytes": 1851
+    },
+    {
+      "path": "scripts/lib/docs/sync_blueprint_template_docs.py",
+      "sha256": "3622dca8e0908ab70108ba5430e000146f12ff199972d83212e7b439f0b1a7dc",
+      "bytes": 6696
+    },
+    {
+      "path": "scripts/templates/blueprint/bootstrap/blueprint/contract.yaml",
+      "sha256": "1bcf385cbf9a9d62c16a0c36176e5c8eedac3231451424ebf5c557bd6fe1f29c",
+      "bytes": 82819
+    },
+    {
+      "path": "specs/2026-04-17-prune-glob-ownership-check/architecture.md",
+      "sha256": "b3a29e3069006c0769e5a36f575d12081590164f9ffe30c36da6fb4d5dea4afa",
+      "bytes": 2512
+    },
+    {
+      "path": "specs/2026-04-17-prune-glob-ownership-check/context_pack.md",
+      "sha256": "0619e454d7710792f02f92668d8ef276d44fd3ae77f757834b42c7f26c1c159f",
+      "bytes": 577
+    },
+    {
+      "path": "specs/2026-04-17-prune-glob-ownership-check/evidence_manifest.json",
+      "sha256": "ecb0eea40122794ca8f062212e022ba451f6d0a543b88db3d7c15e65a071e7f7",
+      "bytes": 161
+    },
+    {
+      "path": "specs/2026-04-17-prune-glob-ownership-check/graph.yaml",
+      "sha256": "daba964d95701628b7ee086188e152e6fa74072cb5c92f30885efff11cbe2a57",
+      "bytes": 1800
+    },
+    {
+      "path": "specs/2026-04-17-prune-glob-ownership-check/hardening_review.md",
+      "sha256": "56cfbcffd9a3e208e3caefe2f577fbc8cf72dedab81889738f7c159f835810a4",
+      "bytes": 1421
+    },
+    {
+      "path": "specs/2026-04-17-prune-glob-ownership-check/plan.md",
+      "sha256": "d74b6eb4fcdf633a84c5e0cbecf9981c20d4af09bcb96d2f380995768163ee76",
+      "bytes": 4480
+    },
+    {
+      "path": "specs/2026-04-17-prune-glob-ownership-check/pr_context.md",
+      "sha256": "26b7a261f5f07f472d3d30b255eb9d1b35c3633cb84be062b9e5f461c488d33c",
+      "bytes": 465
+    },
+    {
+      "path": "specs/2026-04-17-prune-glob-ownership-check/spec.md",
+      "sha256": "31dca93811a620f9fdbeb1e173355db34955f5c14f0cf092cfb45cc5d564a444",
+      "bytes": 4639
+    },
+    {
+      "path": "specs/2026-04-17-prune-glob-ownership-check/tasks.md",
+      "sha256": "3555f4782dea2528703d2014586eb4278836eaa8ee2e934394e07b18f3ff9ef6",
+      "bytes": 2225
+    },
+    {
+      "path": "specs/2026-04-17-prune-glob-ownership-check/traceability.md",
+      "sha256": "c5a9882028d8bcf1f2c3e5eb687c91fba3026855ac17ecc37a7992377bde7348",
+      "bytes": 5635
+    },
+    {
+      "path": "tests/blueprint/contract_refactor_docs_cases.py",
+      "sha256": "13773fcf68f6ea697c8adec3400246c6de16cafc67f8b4998c8bab3678270685",
+      "bytes": 31350
+    },
+    {
+      "path": "tests/blueprint/contract_refactor_governance_init_cases.py",
+      "sha256": "31f865a5c8d070bba09dded8e13cfa11d239fb54f79677a22227a25915238248",
+      "bytes": 33700
+    },
+    {
+      "path": "tests/blueprint/test_quality_contracts.py",
+      "sha256": "2e6df863a33431cce88cd3c6dbebe847403416aced2143889c94fb1b6d145e0f",
+      "bytes": 46034
+    }
+  ]
+}

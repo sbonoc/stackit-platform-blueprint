@@ -277,3 +277,7 @@
   - consumer-init contract now defines `source_artifact_prune_globs_on_init`, applied only on the initial `template-source -> generated-consumer` transition.
   - blueprint docs template sync now reads `spec.docs_contract.blueprint_docs.template_sync_allowlist` from `blueprint/contract.yaml` as the single declarative source and removes non-allowlisted source-only blueprint docs from the bootstrap template mirror.
   - governance ownership policy now documents this boundary so contract/docs/tests remain aligned.
+- Prune-glob ownership governance is now contract-validated:
+  - `infra-validate` now fails when any `repository.consumer_init.source_artifact_prune_globs_on_init` pattern is missing from source-only rows in `docs/blueprint/governance/ownership_matrix.md`.
+  - ownership matrix source-only row now documents the exact prune glob patterns from contract.
+  - init prune hardening now rejects unsafe glob patterns (absolute or traversal), skips out-of-root resolved candidates, and avoids following symlinked directories during deletion.
