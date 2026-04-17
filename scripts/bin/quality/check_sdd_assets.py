@@ -219,6 +219,24 @@ def _section_contains_all_targets(section_content: str, required_targets: list[s
     return missing
 
 
+def _strip_readiness_gate_labels_for_marker_scan(
+    aggregate_content: str,
+    *,
+    readiness_field_names: list[str],
+) -> str:
+    sanitized = aggregate_content
+    for field_name in readiness_field_names:
+        if not field_name:
+            continue
+        sanitized = re.sub(
+            rf"^\s*[-*]\s+{re.escape(field_name)}\s*:\s*.*$",
+            "",
+            sanitized,
+            flags=re.IGNORECASE | re.MULTILINE,
+        )
+    return sanitized
+
+
 def _work_item_dirs(specs_root: Path) -> list[Path]:
     if not specs_root.is_dir():
         return []
@@ -664,6 +682,18 @@ def _validate_work_item_specs(
                 )
 
         aggregate = "\n".join((spec_content, tasks_content, traceability_content)).lower()
+        readiness_field_names_for_marker_scan = [
+            status_field,
+            adr_path_field,
+            adr_status_field,
+            "Missing input blocker token",
+            *required_zero_fields,
+            *[f"{signoff} sign-off" for signoff in required_signoffs],
+        ]
+        aggregate_for_marker_scan = _strip_readiness_gate_labels_for_marker_scan(
+            aggregate,
+            readiness_field_names=readiness_field_names_for_marker_scan,
+        )
 
         clarification_count = 0
         if clarification_count_field:
@@ -682,7 +712,7 @@ def _validate_work_item_specs(
 
         clarification_token_present = False
         if clarification_marker_token:
-            clarification_token_present = _contains_term(aggregate, clarification_marker_token)
+            clarification_token_present = _contains_term(aggregate_for_marker_scan, clarification_marker_token)
             if spec_ready and clarification_token_present:
                 violations.append(
                     Violation(
@@ -717,7 +747,7 @@ def _validate_work_item_specs(
 
         if spec_ready and unresolved_tokens:
             for token in unresolved_tokens:
-                if _contains_term(aggregate, token):
+                if _contains_term(aggregate_for_marker_scan, token):
                     violations.append(
                         Violation(
                             path=str(work_item_dir.relative_to(repo_root)),

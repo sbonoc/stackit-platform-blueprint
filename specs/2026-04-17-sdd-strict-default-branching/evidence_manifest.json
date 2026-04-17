@@ -2,7 +2,7 @@
   "manifest_version": 1,
   "work_item": "specs/2026-04-17-sdd-strict-default-branching",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "2026-04-17T08:56:06Z",
+  "generated_at_utc": "2026-04-17T09:01:14Z",
   "files": [
     {
       "path": ".spec-kit/control-catalog.yaml",
@@ -26,8 +26,8 @@
     },
     {
       "path": "docs/blueprint/architecture/decisions/ADR-20260417-sdd-default-enforcement.md",
-      "sha256": "38e74f3f49e0fb2cdc01f759da3e00bc994f9f5a62e5b92e98c15016d7ebcf06",
-      "bytes": 3551
+      "sha256": "f7673cbc6628887a19ed9e2047bb98bd01a3f09d746c0dc3bd08cb79dba96bff",
+      "bytes": 3558
     },
     {
       "path": "make/blueprint.generated.mk",
@@ -41,8 +41,8 @@
     },
     {
       "path": "scripts/bin/quality/check_sdd_assets.py",
-      "sha256": "6d868604e5475f053998a8dab289f4f54375a924ae445f7cf9570c1cefc0c093",
-      "bytes": 72227
+      "sha256": "27617d470081bb52531bfebaf654fe837f21a3656971e6c238bd8ba580a47090",
+      "bytes": 73210
     },
     {
       "path": "specs/2026-04-17-sdd-strict-default-branching/architecture.md",
@@ -51,13 +51,13 @@
     },
     {
       "path": "specs/2026-04-17-sdd-strict-default-branching/context_pack.md",
-      "sha256": "af90fcc075fb02cc5314bdda7f221c46bf17d3b4542ea32a2db847da477bfbf4",
-      "bytes": 986
+      "sha256": "16a04a04bd1fe7037a71f3517018cb3f28c3a3e6af94ea5fc2827457333dca5d",
+      "bytes": 985
     },
     {
       "path": "specs/2026-04-17-sdd-strict-default-branching/evidence_manifest.json",
-      "sha256": "ecb0eea40122794ca8f062212e022ba451f6d0a543b88db3d7c15e65a071e7f7",
-      "bytes": 161
+      "sha256": "0cd6150d925f40f13b33ef7a387356d2aadfe0c5437d0092c230cb2e0955217a",
+      "bytes": 3970
     },
     {
       "path": "specs/2026-04-17-sdd-strict-default-branching/graph.yaml",
@@ -81,8 +81,8 @@
     },
     {
       "path": "specs/2026-04-17-sdd-strict-default-branching/spec.md",
-      "sha256": "90e09e1791b216b8d415526bdb36b532469112589a0b9488974b7955ed00baaf",
-      "bytes": 4513
+      "sha256": "08b3215a65df17898310d9fc64573b7586c17c99ccdde7ef5f2300c0b05b57c8",
+      "bytes": 4516
     },
     {
       "path": "specs/2026-04-17-sdd-strict-default-branching/tasks.md",
@@ -106,8 +106,8 @@
     },
     {
       "path": "tests/infra/test_sdd_asset_checker.py",
-      "sha256": "847f73de3063bfacaf5e30cb593d39ddd071ba42df8fa3669eb8e3fedf0f16cc",
-      "bytes": 28705
+      "sha256": "e7c7824ae9f70171602b478cf7131e022d3d70be03055ff2dce3965e26867c11",
+      "bytes": 30953
     }
   ]
 }

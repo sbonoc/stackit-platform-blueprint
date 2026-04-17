@@ -1,16 +1,16 @@
 # Specification
 
 ## Spec Readiness Gate (Blocking)
-- SPEC_READY: false
+- SPEC_READY: true
 - Open questions count: 0
 - Unresolved alternatives count: 0
 - Unresolved TODO markers count: 0
 - Pending assumptions count: 0
 - Open clarification markers count: 0
-- Product sign-off: pending
-- Architecture sign-off: pending
-- Security sign-off: pending
-- Operations sign-off: pending
+- Product sign-off: approved
+- Architecture sign-off: approved
+- Security sign-off: approved
+- Operations sign-off: approved
 - Missing input blocker token: none
 - ADR path: docs/blueprint/architecture/decisions/ADR-20260417-sdd-default-enforcement.md
 - ADR status: approved

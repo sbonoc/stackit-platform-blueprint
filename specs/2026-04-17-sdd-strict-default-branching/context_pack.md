@@ -3,7 +3,7 @@
 ## Context Snapshot
 - Work item: `specs/2026-04-17-sdd-strict-default-branching`
 - Track: blueprint
-- SPEC_READY: false
+- SPEC_READY: true
 - ADR path: `docs/blueprint/architecture/decisions/ADR-20260417-sdd-default-enforcement.md`
 - ADR status: approved
 

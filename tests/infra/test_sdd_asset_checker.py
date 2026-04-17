@@ -622,6 +622,43 @@ class SddAssetCheckerTests(unittest.TestCase):
                 msg=[violation.message for violation in spec_violations],
             )
 
+    def test_spec_ready_true_ignores_readiness_field_marker_labels(self) -> None:
+        checker = _load_checker_module()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _write_valid_control_catalog(repo_root / ".spec-kit/control-catalog.md")
+            _write_work_item(repo_root)
+
+            adr_relative_path = "docs/blueprint/architecture/decisions/ADR-20260415-fixture.md"
+            adr_path = repo_root / adr_relative_path
+            adr_path.parent.mkdir(parents=True, exist_ok=True)
+            adr_path.write_text("# ADR fixture\n", encoding="utf-8")
+
+            spec_path = repo_root / "specs/2026-04-15-fixture/spec.md"
+            spec_content = spec_path.read_text(encoding="utf-8")
+            spec_content = spec_content.replace("- SPEC_READY: false", "- SPEC_READY: true")
+            spec_content = spec_content.replace("- Product sign-off: pending", "- Product sign-off: approved")
+            spec_content = spec_content.replace(
+                "- Architecture sign-off: pending",
+                "- Architecture sign-off: approved",
+            )
+            spec_content = spec_content.replace("- Security sign-off: pending", "- Security sign-off: approved")
+            spec_content = spec_content.replace("- Operations sign-off: pending", "- Operations sign-off: approved")
+            spec_content = spec_content.replace(
+                "- Missing input blocker token: BLOCKED_MISSING_INPUTS",
+                "- Missing input blocker token: none",
+            )
+            spec_content = spec_content.replace("- ADR path:", f"- ADR path: {adr_relative_path}")
+            spec_content = spec_content.replace("- ADR status: proposed", "- ADR status: approved")
+            spec_path.write_text(spec_content, encoding="utf-8")
+
+            contract_raw = _contract_raw()
+            catalog_violations, catalog_ids = checker._load_control_catalog(contract_raw=contract_raw, repo_root=repo_root)
+            self.assertEqual(catalog_violations, [])
+
+            spec_violations = checker._validate_work_item_specs(contract_raw, repo_root, catalog_ids)
+            self.assertEqual(spec_violations, [], msg=[violation.message for violation in spec_violations])
+
 
 if __name__ == "__main__":
     unittest.main()
