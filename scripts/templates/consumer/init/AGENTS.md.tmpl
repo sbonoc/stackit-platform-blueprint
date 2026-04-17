@@ -89,6 +89,9 @@ This file is the canonical governance source for this generated platform reposit
 - Capture non-functional requirements in `Discover` and `Specify` (security, observability, monitoring/alerting, reliability, operability).
 - Keep architecture/style compliant with SOLID, Clean Architecture/Clean Code, and DDD adapted to your technology stack.
 - Follow shift-left test automation: validate with the lowest valid test layer first, then escalate to integration/e2e only when boundary interactions require it.
+- For filter or payload-transform logic, require positive-path unit coverage: a matching fixture/request value MUST return a record and preserve relevant output fields; empty-result-only assertions MUST NOT satisfy this gate.
+- For work touching HTTP route handlers, query/filter logic, or new API endpoints, run local smoke with positive-path `curl` assertions before publish and capture `Endpoint | Method | Auth | Result` evidence in `pr_context.md`.
+- Translate reproducible pre-PR smoke/`curl`/deterministic-check failures into failing automated tests first and turn them green with the fix in the same work item; document deterministic exceptions in publish artifacts.
 - Define applicable `SDD-C-###` control IDs in each work-item spec and keep validation/evidence aligned with `.spec-kit/control-catalog.md`.
 - Define stack profile and agent execution model explicitly before implementation.
 - Apply managed-service-first policy for runtime capabilities in `stackit-*` profiles: prefer STACKIT managed services unless `spec.md` + ADR + `AGENTS.decisions.md` explicitly record an approved exception rationale.

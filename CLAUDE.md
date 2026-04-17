@@ -11,6 +11,15 @@ When starting a new SDD work item, begin with `make spec-scaffold
 SPEC_SLUG=<work-item-slug>` so work starts on a dedicated non-default branch.
 Only skip branch creation when the user explicitly requests that opt-out.
 
+For filter or payload-transform changes, require positive-path unit assertions
+with matching fixture/request values; empty-result-only assertions are
+insufficient. For HTTP route/query/filter/new-endpoint scope, require local
+smoke with positive-path `curl` assertions and capture
+`Endpoint | Method | Auth | Result` evidence in `pr_context.md`.
+Translate reproducible pre-PR smoke/`curl`/deterministic-check failures into
+failing automated tests first, then turn them green with the fix, or document
+a deterministic exception rationale and follow-up owner in publish artifacts.
+
 ## Skills
 
 Skill runbooks are in `.agents/skills/<name>/SKILL.md`. Apply them proactively

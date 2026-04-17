@@ -67,6 +67,9 @@ Every assistant (Codex, Claude Code, Copilot, others) must treat these as author
 - No assistant may fill missing requirements with assumptions during `Discover`, `High-Level Architecture`, `Specify`, or `Plan`.
 - No assistant may bypass SDD unless the user explicitly asks to bypass it for the current task.
 - No assistant should start a new SDD work item directly on the default branch; use `make spec-scaffold` branch creation or an equivalent dedicated-branch flow.
+- For filter/payload-transform changes, assistants must require positive-path unit assertions (matching fixture/request values) and must reject empty-result-only evidence as sufficient.
+- For work touching HTTP route handlers, query/filter logic, or new API endpoints, assistants must run local smoke with positive-path `curl` assertions and capture `Endpoint | Method | Auth | Result` evidence in `pr_context.md`.
+- For reproducible pre-PR smoke/`curl`/deterministic-check failures, assistants must require a failing automated regression test first and a green result after the fix, or capture a deterministic exception rationale and follow-up owner in publish artifacts.
 - Normative sections must avoid ambiguous language.
 - Managed-service-first policy applies for `stackit-*` runtime capabilities unless an approved explicit exception is recorded.
 - Any deviation from contract/gate policy is a blocking condition, not a warning.

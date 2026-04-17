@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 from pathlib import Path
 import re
 import shutil
@@ -118,6 +119,68 @@ class QualityContractsTests(unittest.TestCase):
             generated_make,
         )
         self.assertIn("infra-contract-test-fast", generated_make)
+
+    def test_sdd_plan_and_tasks_templates_include_local_smoke_and_positive_path_gates(self) -> None:
+        blueprint_plan = _read(".spec-kit/templates/blueprint/plan.md")
+        consumer_plan = _read(".spec-kit/templates/consumer/plan.md")
+        blueprint_tasks = _read(".spec-kit/templates/blueprint/tasks.md")
+        consumer_tasks = _read(".spec-kit/templates/consumer/tasks.md")
+        consumer_init_plan_template = _read("scripts/templates/consumer/init/.spec-kit/templates/consumer/plan.md.tmpl")
+        consumer_init_tasks_template = _read(
+            "scripts/templates/consumer/init/.spec-kit/templates/consumer/tasks.md.tmpl"
+        )
+
+        expected_plan_markers = (
+            "Positive-path filter/transform test gate",
+            "Empty-result-only assertions MUST NOT satisfy this gate.",
+            "Finding-to-test translation gate",
+            "failing automated test first",
+            "Local smoke gate (HTTP route/filter changes)",
+            "Endpoint | Method | Auth | Result",
+        )
+        expected_tasks_markers = (
+            "T-103 For any new or modified filter/payload-transform route",
+            "T-104 Translate any reproducible pre-PR smoke/`curl`/deterministic-check finding",
+            "capture evidence in `pr_context.md`",
+        )
+
+        for marker in expected_plan_markers:
+            self.assertIn(marker, blueprint_plan)
+            self.assertIn(marker, consumer_plan)
+            self.assertIn(marker, consumer_init_plan_template)
+
+        for marker in expected_tasks_markers:
+            self.assertIn(marker, blueprint_tasks)
+            self.assertIn(marker, consumer_tasks)
+            self.assertIn(marker, consumer_init_tasks_template)
+
+    def test_sdd_control_catalog_includes_local_smoke_and_positive_path_controls(self) -> None:
+        catalog_payload = json.loads(_read(".spec-kit/control-catalog.yaml"))
+        self.assertIsInstance(catalog_payload, dict)
+        controls = catalog_payload.get("controls", [])
+        self.assertIsInstance(controls, list)
+
+        controls_by_id = {str(item.get("id", "")).strip(): item for item in controls if isinstance(item, dict)}
+        self.assertIn("SDD-C-022", controls_by_id)
+        self.assertIn("SDD-C-023", controls_by_id)
+        self.assertIn("SDD-C-024", controls_by_id)
+
+        smoke_control = controls_by_id["SDD-C-022"]
+        self.assertIn("local smoke gate", str(smoke_control.get("normative_control", "")).lower())
+        self.assertIn("pr_context", str(smoke_control.get("normative_control", "")))
+
+        positive_path_control = controls_by_id["SDD-C-023"]
+        self.assertIn("positive-path", str(positive_path_control.get("normative_control", "")).lower())
+        self.assertIn("empty-result-only", str(positive_path_control.get("normative_control", "")).lower())
+
+        translation_control = controls_by_id["SDD-C-024"]
+        self.assertIn("failing automated regression test first", str(translation_control.get("normative_control", "")).lower())
+        self.assertIn("deterministic exceptions", str(translation_control.get("normative_control", "")).lower())
+
+        rendered_catalog = _read(".spec-kit/control-catalog.md")
+        self.assertIn("SDD-C-022", rendered_catalog)
+        self.assertIn("SDD-C-023", rendered_catalog)
+        self.assertIn("SDD-C-024", rendered_catalog)
 
     def test_docs_generator_supports_check_mode(self) -> None:
         generator = _read("scripts/lib/docs/generate_contract_docs.py")
