@@ -36,3 +36,7 @@
 - [ ] A-003 Frontend app lanes (`touchpoints-test-unit`, `touchpoints-test-integration`, `touchpoints-test-contracts`, `touchpoints-test-e2e`) are available
 - [ ] A-004 Aggregate gates (`test-unit-all`, `test-integration-all`, `test-contracts-all`, `test-e2e-all-local`) are available
 - [ ] A-005 Port-forward operational wrappers (`infra-port-forward-start`, `infra-port-forward-stop`, `infra-port-forward-cleanup`) are available
+
+## Execution Evidence (Informative)
+- Implementation was delivered in commit `df7595c` on branch `codex/sdd-default-enforcement-and-branching`.
+- Validation evidence is recorded in `traceability.md`, `evidence_manifest.json`, and `pr_context.md`.
