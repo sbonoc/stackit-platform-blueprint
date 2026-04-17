@@ -275,5 +275,5 @@
   - `SDD-C-021` codifies dedicated non-default branch creation for new SDD work-item scaffolds.
 - Blueprint source-only SDD/ADR history is now explicitly excluded from generated-consumer templates:
   - consumer-init contract now defines `source_artifact_prune_globs_on_init`, applied only on the initial `template-source -> generated-consumer` transition.
-  - blueprint docs template sync now mirrors an explicit consumer-facing allowlist and removes non-allowlisted source-only blueprint docs from the bootstrap template mirror.
+  - blueprint docs template sync now reads `spec.docs_contract.blueprint_docs.template_sync_allowlist` from `blueprint/contract.yaml` as the single declarative source and removes non-allowlisted source-only blueprint docs from the bootstrap template mirror.
   - governance ownership policy now documents this boundary so contract/docs/tests remain aligned.

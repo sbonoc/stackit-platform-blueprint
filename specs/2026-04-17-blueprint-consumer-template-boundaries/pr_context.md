@@ -2,7 +2,7 @@
 
 ## Summary
 - Work item: `specs/2026-04-17-blueprint-consumer-template-boundaries`
-- Generated at (UTC): `2026-04-17T14:16:15Z`
+- Generated at (UTC): `2026-04-17T14:38:56Z`
 - Scope: SDD lifecycle artifact packaging for reviewer handoff.
 
 ## Requirement Coverage
@@ -37,7 +37,6 @@
 - `tests/blueprint/test_quality_contracts.py`
 
 ## Validation Evidence
-- Result summary: docs/SDD/contract checks passed; one later strict-lane rerun of `make quality-hooks-run` failed on external image lookup (`quay.io/oauth2-proxy/oauth2-proxy:v7.15.0`) after an earlier successful run.
 - `make docs-build`
 - `make docs-smoke`
 - `make infra-validate`
@@ -56,5 +55,4 @@
   - Re-run `make quality-docs-sync-all` after rollback to restore deleted template docs from reverted source state.
 
 ## Deferred Proposals
-- Move blueprint docs template allowlist into `blueprint/contract.yaml` to keep one declarative source for docs template inclusion.
 - Add a dedicated contract checker that verifies every `source_artifact_prune_globs_on_init` pattern is documented in ownership matrix source-only rows.

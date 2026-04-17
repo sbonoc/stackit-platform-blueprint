@@ -8,7 +8,6 @@
 - [ ] P1 (Fixture-contract hardening): Issue #130 — enforce optional-module `required_env` fixture parity in fast infra contract checks.
 - [ ] P1 (Generated-consumer upgrade regressions): Issues #103, #104, #106, #107 — fix repo-mode test selection, additive-file conflict classification, and missing helper distribution.
 - [ ] P1 (Runtime operability correctness): Issues #105, #108, #109, #110, #111, #112, #118, #137 — resolve runtime identity, Argo health/project policy, image-lane, and target migration friction.
-- [ ] P1 (Template boundary declarative source): externalize blueprint docs template allowlist into `blueprint/contract.yaml` so docs sync scope is contract-driven and single-sourced.
 - [ ] P2 (Capability enhancements): Issues #56, #131 — expand app dependency pin auditing and add blueprint uplift convergence status command.
 - [ ] Add an automated bundled-skill contract verifier to enforce parity across `.agents/skills/**`, consumer-template fallbacks, install make targets, and docs references.
 - [ ] Add a contract-level traceability verifier that checks every declared requirement ID in `spec.md` maps to implementation paths and at least one automated test assertion.

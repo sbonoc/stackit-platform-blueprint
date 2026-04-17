@@ -2,7 +2,9 @@
 
 ## Repository-Wide Findings Fixed
 - Added contract-governed `source_artifact_prune_globs_on_init` in source and bootstrap contract surfaces.
+- Added contract-governed blueprint docs template allowlist (`spec.docs_contract.blueprint_docs.template_sync_allowlist`) as the single source for docs mirror scope.
 - Added initial-mode-only prune helper in init flow so consumer-owned artifacts remain safe after transition.
+- Hardened prune logic to reject unsafe glob patterns, skip out-of-root resolved candidates, and avoid following symlinked directories during deletion.
 - Refactored blueprint docs template sync to explicit allowlist and deterministic missing-source failure behavior.
 - Removed source-only docs from bootstrap template mirror to prevent blueprint-history duplication in generated repositories.
 - Updated governance ownership matrix to document source-only SDD/ADR boundary.
@@ -24,5 +26,4 @@
   - PR packaging and hardening gates validated via canonical make targets.
 
 ## Proposals Only (Not Implemented)
-- Move blueprint docs template allowlist into `blueprint/contract.yaml` to keep one declarative source for docs template inclusion.
 - Add a dedicated contract checker that verifies every `source_artifact_prune_globs_on_init` pattern is documented in ownership matrix source-only rows.

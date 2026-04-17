@@ -51,7 +51,7 @@ def apply_file_update(
 
 
 def remove_path(path: Path, dry_run: bool, summary: ChangeSummary) -> bool:
-    if not path.exists():
+    if not path.exists() and not path.is_symlink():
         summary.skipped_path(path, "already absent")
         return False
 
@@ -59,7 +59,10 @@ def remove_path(path: Path, dry_run: bool, summary: ChangeSummary) -> bool:
         summary.removed_path(path)
         return True
 
-    if path.is_dir():
+    # Never follow symlinked directories while pruning scaffolded paths.
+    if path.is_symlink():
+        path.unlink()
+    elif path.is_dir():
         shutil.rmtree(path)
     else:
         path.unlink()

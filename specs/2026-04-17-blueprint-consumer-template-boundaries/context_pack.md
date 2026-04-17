@@ -2,7 +2,7 @@
 
 ## Context Snapshot
 - Work item: `specs/2026-04-17-blueprint-consumer-template-boundaries`
-- Generated at (UTC): `2026-04-17T14:16:15Z`
+- Generated at (UTC): `2026-04-17T14:38:56Z`
 - SPEC_READY: `true`
 - ADR path: `docs/blueprint/architecture/decisions/ADR-20260417-blueprint-consumer-template-boundaries.md`
 - ADR status: `approved`

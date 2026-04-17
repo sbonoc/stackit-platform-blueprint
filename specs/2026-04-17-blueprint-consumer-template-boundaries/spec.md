@@ -40,7 +40,7 @@
 
 ### Functional Requirements (Normative)
 - FR-001: consumer-init contract MUST declare `source_artifact_prune_globs_on_init` with deterministic patterns for blueprint-source-only artifacts.
-- FR-002: init-repo runtime MUST remove paths matched by `source_artifact_prune_globs_on_init` ONLY when `repository.repo_mode == consumer_init.mode_from`.
+- FR-002: init-repo runtime MUST remove paths matched by `source_artifact_prune_globs_on_init` ONLY when `repository.repo_mode == consumer_init.mode_from`, MUST reject unsafe prune patterns (absolute paths or parent traversal), and MUST skip any matched candidate that resolves outside repository root.
 - FR-003: blueprint docs template sync MUST mirror ONLY an explicit consumer-facing allowlist and MUST remove non-allowlisted files from `scripts/templates/blueprint/bootstrap/docs/blueprint/**`.
 
 ### Non-Functional Requirements (Normative)
@@ -70,7 +70,7 @@
 
 ## Normative Acceptance Criteria
 - AC-001: when prune helper runs with `repo_mode=template-source`, matching paths under `specs/<YYYY-MM-DD>-*` and `docs/blueprint/architecture/decisions/ADR-*.md` are removed.
-- AC-002: when prune helper runs with `repo_mode=generated-consumer`, matching source-artifact paths remain unchanged.
+- AC-002: when prune helper runs with `repo_mode=generated-consumer`, matching source-artifact paths remain unchanged, and unsafe/out-of-root prune candidates are ignored without deleting external content.
 - AC-003: blueprint docs sync keeps every allowlisted path in template mirror in byte-for-byte sync and removes non-allowlisted source-only blueprint docs from the template mirror.
 
 ## Informative Notes (Non-Normative)

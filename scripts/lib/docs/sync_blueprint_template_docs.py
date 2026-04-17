@@ -13,29 +13,27 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from scripts.lib.blueprint.cli_support import ChangeSummary, display_repo_path, resolve_repo_root  # noqa: E402
+from scripts.lib.blueprint.contract_schema import load_blueprint_contract  # noqa: E402
 
 
 SINGLE_FILE_MIRRORS: tuple[tuple[Path, Path], ...] = (
     (Path("docs/README.md"), Path("scripts/templates/blueprint/bootstrap/docs/README.md")),
 )
-BLUEPRINT_DOC_TEMPLATE_ALLOWLIST: tuple[str, ...] = (
-    "README.md",
-    "architecture/system_overview.md",
-    "architecture/execution_model.md",
-    "architecture/decisions/README.md",
-    "architecture/north_star.md",
-    "architecture/tech_stack.md",
-    "contracts/async_message_contracts.md",
-    "governance/ownership_matrix.md",
-    "governance/spec_driven_development.md",
+BLUEPRINT_DOCS_ROOT = Path("docs/blueprint")
+DIRECTORY_MIRRORS: tuple[tuple[Path, Path], ...] = (
+    (BLUEPRINT_DOCS_ROOT, Path("scripts/templates/blueprint/bootstrap/docs/blueprint")),
 )
-DIRECTORY_MIRRORS: tuple[tuple[Path, Path, tuple[str, ...] | None], ...] = (
-    (
-        Path("docs/blueprint"),
-        Path("scripts/templates/blueprint/bootstrap/docs/blueprint"),
-        BLUEPRINT_DOC_TEMPLATE_ALLOWLIST,
-    ),
-)
+
+
+def resolve_blueprint_docs_template_allowlist(repo_root: Path) -> tuple[str, ...]:
+    contract = load_blueprint_contract(repo_root / "blueprint/contract.yaml")
+    allowlist = tuple(contract.docs_contract.blueprint_docs.template_sync_allowlist)
+    if not allowlist:
+        raise ValueError(
+            "missing spec.docs_contract.blueprint_docs.template_sync_allowlist "
+            "in blueprint/contract.yaml"
+        )
+    return allowlist
 
 
 def _list_files(root: Path) -> dict[str, Path]:
@@ -137,6 +135,7 @@ def _sync_directory(
 def _sync(repo_root: Path, check: bool) -> int:
     summary = ChangeSummary("quality-docs-sync-blueprint-template")
     out_of_sync: list[str] = []
+    blueprint_docs_allowlist = resolve_blueprint_docs_template_allowlist(repo_root)
 
     for source_rel, target_rel in SINGLE_FILE_MIRRORS:
         _sync_single_file(
@@ -148,12 +147,12 @@ def _sync(repo_root: Path, check: bool) -> int:
             out_of_sync=out_of_sync,
         )
 
-    for source_rel, target_rel, allowlist in DIRECTORY_MIRRORS:
+    for source_rel, target_rel in DIRECTORY_MIRRORS:
         _sync_directory(
             repo_root=repo_root,
             source_root=repo_root / source_rel,
             template_root=repo_root / target_rel,
-            allowlist=allowlist,
+            allowlist=blueprint_docs_allowlist if source_rel == BLUEPRINT_DOCS_ROOT else None,
             check=check,
             summary=summary,
             out_of_sync=out_of_sync,

@@ -995,6 +995,17 @@ spec:
     blueprint_docs:
       root: docs/blueprint
       sync_policy: strict_template_sync
+      template_sync_allowlist:
+        - README.md
+        - architecture/system_overview.md
+        - architecture/execution_model.md
+        - architecture/decisions/README.md
+        - architecture/north_star.md
+        - architecture/tech_stack.md
+        - contracts/async_message_contracts.md
+        - governance/ownership_matrix.md
+        - governance/spec_driven_development.md
+        - governance/assistant_compatibility.md
     platform_docs:
       root: docs/platform
       seed_mode: create_if_missing

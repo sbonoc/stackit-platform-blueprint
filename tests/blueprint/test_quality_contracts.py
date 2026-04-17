@@ -508,13 +508,17 @@ class QualityContractsTests(unittest.TestCase):
             source_blueprint_root = docs_root / "blueprint"
             template_blueprint_root = repo_root / "scripts/templates/blueprint/bootstrap/docs/blueprint"
             template_docs_root = repo_root / "scripts/templates/blueprint/bootstrap/docs"
+            contract_path = repo_root / "blueprint/contract.yaml"
 
             (docs_root / "README.md").parent.mkdir(parents=True, exist_ok=True)
             (docs_root / "README.md").write_text("# docs index\n", encoding="utf-8")
             (template_docs_root / "README.md").parent.mkdir(parents=True, exist_ok=True)
             (template_docs_root / "README.md").write_text("# stale docs index\n", encoding="utf-8")
+            contract_path.parent.mkdir(parents=True, exist_ok=True)
+            contract_path.write_text((REPO_ROOT / "blueprint/contract.yaml").read_text(encoding="utf-8"), encoding="utf-8")
 
-            for relative in module.BLUEPRINT_DOC_TEMPLATE_ALLOWLIST:
+            allowlist = module.resolve_blueprint_docs_template_allowlist(repo_root)
+            for relative in allowlist:
                 source_path = source_blueprint_root / relative
                 source_path.parent.mkdir(parents=True, exist_ok=True)
                 source_path.write_text(f"# source {relative}\n", encoding="utf-8")
@@ -524,7 +528,7 @@ class QualityContractsTests(unittest.TestCase):
 
             source_only_paths = (
                 "architecture/decisions/ADR-20260417-source-only.md",
-                "governance/assistant_compatibility.md",
+                "governance/non_allowlisted_source_only.md",
             )
             for relative in source_only_paths:
                 source_path = source_blueprint_root / relative
@@ -540,7 +544,7 @@ class QualityContractsTests(unittest.TestCase):
             )
             self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
 
-            for relative in module.BLUEPRINT_DOC_TEMPLATE_ALLOWLIST:
+            for relative in allowlist:
                 self.assertEqual(
                     (source_blueprint_root / relative).read_text(encoding="utf-8"),
                     (template_blueprint_root / relative).read_text(encoding="utf-8"),
@@ -600,6 +604,48 @@ class QualityContractsTests(unittest.TestCase):
 
             self.assertTrue(specs_path.exists())
             self.assertTrue(adr_path.exists())
+
+    def test_init_repo_source_artifact_prune_blocks_unsafe_patterns_and_out_of_root_symlinks(self) -> None:
+        helper = REPO_ROOT / "scripts/lib/blueprint/init_repo_contract.py"
+        spec = importlib.util.spec_from_file_location("init_repo_contract_module", helper)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)  # type: ignore[union-attr]
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            repo_root = tmp_root / "repo"
+            outside_root = tmp_root / "outside"
+            repo_root.mkdir(parents=True, exist_ok=True)
+            outside_root.mkdir(parents=True, exist_ok=True)
+
+            inside_keep = repo_root / "keep.txt"
+            inside_keep.write_text("keep", encoding="utf-8")
+            outside_file = outside_root / "escape.txt"
+            outside_file.write_text("outside", encoding="utf-8")
+
+            symlink_to_outside = repo_root / "escape-link"
+            symlink_to_outside.symlink_to(outside_root, target_is_directory=True)
+
+            module.prune_source_artifacts_on_initial_init(
+                repo_root=repo_root,
+                summary=module.ChangeSummary("test"),
+                dry_run=False,
+                repo_mode="template-source",
+                mode_from="template-source",
+                prune_globs=[
+                    "../outside/*",
+                    "..\\outside\\*",
+                    str(outside_root / "*"),
+                    "escape-link",
+                ],
+            )
+
+            self.assertTrue(inside_keep.exists())
+            self.assertTrue(outside_root.exists())
+            self.assertTrue(outside_file.exists())
+            self.assertTrue(symlink_to_outside.exists())
 
     def test_core_targets_generator_uses_make_help(self) -> None:
         generator = _read("scripts/bin/quality/render_core_targets_doc.py")

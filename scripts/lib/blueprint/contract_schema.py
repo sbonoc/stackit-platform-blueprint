@@ -125,6 +125,7 @@ class PlatformDocsContract:
 class BlueprintDocsContract:
     root: str
     sync_policy: str
+    template_sync_allowlist: list[str]
 
 
 @dataclass(frozen=True)
@@ -541,6 +542,10 @@ def load_blueprint_contract(path: Path) -> BlueprintContract:
             sync_policy=_as_str(
                 blueprint_docs_raw.get("sync_policy"),
                 "spec.docs_contract.blueprint_docs.sync_policy",
+            ),
+            template_sync_allowlist=_as_list_of_str(
+                blueprint_docs_raw.get("template_sync_allowlist", []),
+                "spec.docs_contract.blueprint_docs.template_sync_allowlist",
             ),
         ),
         platform_docs=PlatformDocsContract(
