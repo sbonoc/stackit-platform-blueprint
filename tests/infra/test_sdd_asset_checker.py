@@ -25,6 +25,13 @@ def _contract_raw(*, catalog_file: str = ".spec-kit/control-catalog.md") -> dict
     return {
         "spec": {
             "spec_driven_development_contract": {
+                "branch_contract": {
+                    "dedicated_branch_required_by_default": True,
+                    "explicit_opt_out_flag": "--no-create-branch",
+                    "default_prefix": "codex/",
+                    "branch_name_pattern": "<prefix><YYYY-MM-DD>-<work-item-slug>",
+                    "enforce_non_default_branch": True,
+                },
                 "artifacts": {
                     "control_catalog_file": catalog_file,
                     "specs_workspace_readme": "specs/README.md",

@@ -14,7 +14,7 @@ Opinionated GitHub template for teams that want deterministic platform delivery 
   - strict dependency direction and bounded-context thinking
   - typed contracts and deterministic wrappers
 - Delivery lifecycle:
-  - `Discover -> High-Level Architecture -> Specify -> Plan -> Implement -> Verify -> Document -> Operate`
+  - `Discover -> High-Level Architecture -> Specify -> Plan -> Implement -> Verify -> Document -> Operate -> Publish`
 - Runtime posture:
   - managed-service-first for `stackit-*` profiles
   - explicit approved exception required for non-managed alternatives
@@ -40,8 +40,11 @@ Opinionated GitHub template for teams that want deterministic platform delivery 
    ```
 
 ## Working Model (Consumer or Maintainer)
-- Start each non-trivial change from SDD artifacts under `specs/**` using:
+- SDD is default-required for assistant-executed work unless the user explicitly opts out for that task.
+- Start each new SDD work item from `specs/**` using:
   - `make spec-scaffold SPEC_SLUG=<work-item-slug>`
+  - default behavior creates and checks out a dedicated branch (`codex/<YYYY-MM-DD>-<slug>`)
+  - explicit opt-out requires `SPEC_NO_BRANCH=true`
 - Keep `SPEC_READY=false` until requirements and sign-offs are explicit.
 - Run canonical validation before handoff/review:
   - `make quality-hooks-run`

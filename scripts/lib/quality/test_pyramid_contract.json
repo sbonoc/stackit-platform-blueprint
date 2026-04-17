@@ -21,6 +21,7 @@
         "tests/blueprint/test_upgrade_preflight.py",
         "tests/blueprint/test_bootstrap_templates.py",
         "tests/blueprint/test_install_codex_skill.py",
+        "tests/blueprint/test_spec_scaffold.py",
         "tests/blueprint/test_resync_consumer_seeds.py",
         "tests/blueprint/test_quality_contracts.py",
         "tests/blueprint/test_optional_runtime_contract_validation.py",

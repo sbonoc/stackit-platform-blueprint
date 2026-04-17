@@ -44,14 +44,16 @@ This section provides context for code assistants to understand the blueprint be
 ## Mandatory Workflow
 1. Read `AGENTS.md` before starting work.
 2. During `Discover`, `High-Level Architecture`, `Specify`, and `Plan`, do not use assumptions as substitutes for missing requirements; resolve ambiguity explicitly or mark the work item blocked.
-3. For non-trivial changes, execute the Spec-Driven Development lifecycle in this order: `Discover -> High-Level Architecture -> Specify -> Plan -> Implement -> Verify -> Document -> Operate -> Publish`.
-4. Implement with strict boundary contracts and deterministic behavior.
-5. Update/add automated tests for every behavior change.
-6. Refactor touched scope immediately (code/tests/docs/scripts/contracts).
-7. Run required validation bundles for changed scope before finishing.
-8. Update `AGENTS.decisions.md` when scope/contracts/priorities change.
-9. Update `AGENTS.backlog.md` when status/priorities change.
-10. Do not run `git commit`/`git push` unless explicitly requested in the current conversation.
+3. Spec-Driven Development is mandatory by default for assistant-executed work; bypass only when the user explicitly says not to follow SDD for the requested task.
+4. Start each new SDD work item with `make spec-scaffold ...`, which creates a dedicated non-default branch by default (`codex/<YYYY-MM-DD>-<slug>` unless overridden).
+5. Execute the Spec-Driven Development lifecycle in this order: `Discover -> High-Level Architecture -> Specify -> Plan -> Implement -> Verify -> Document -> Operate -> Publish`.
+6. Implement with strict boundary contracts and deterministic behavior.
+7. Update/add automated tests for every behavior change.
+8. Refactor touched scope immediately (code/tests/docs/scripts/contracts).
+9. Run required validation bundles for changed scope before finishing.
+10. Update `AGENTS.decisions.md` when scope/contracts/priorities change.
+11. Update `AGENTS.backlog.md` when status/priorities change.
+12. Do not run `git commit`/`git push` unless explicitly requested in the current conversation.
 
 ## Spec-Driven Development (SDD) Lifecycle
 - Canonical phase order:
@@ -64,7 +66,7 @@ This section provides context for code assistants to understand the blueprint be
   - `Document`: update and synchronize blueprint and consumer docs (Docusaurus + Mermaid) to reflect the implemented and verified behavior.
   - `Operate`: define operational readiness (runbooks, dashboards/alerts, diagnostics, rollback guidance).
   - `Publish`: package reviewer-ready PR context with key files, requirement/contract coverage, validation evidence, risk/rollback notes, and deferred proposals.
-- Trivial typo-only or wording-only updates may use a lightweight subset, but any behavioral, architectural, or contract change must follow the full lifecycle.
+- Lightweight subsets are allowed only with explicit user opt-out in the current task context; otherwise the full lifecycle is required.
 
 ## Generated SDD Policy Snapshot
 <!-- BEGIN GENERATED:SDD_POLICY_SNAPSHOT -->
@@ -100,6 +102,7 @@ This section provides context for code assistants to understand the blueprint be
 
 ## SDD Artifact Contract
 - Canonical work-item location: `specs/<YYYY-MM-DD>-<work-item-slug>/`.
+- Canonical start command: `make spec-scaffold SPEC_SLUG=<work-item-slug>` (auto-creates and checks out a dedicated branch by default; explicit opt-out requires `SPEC_NO_BRANCH=true`).
 - Required work-item documents:
   - `architecture.md`
   - `spec.md`
@@ -195,6 +198,7 @@ This section provides context for code assistants to understand the blueprint be
 
 ## Assistant Interoperability
 - SDD artifacts (`specs/**`, `.spec-kit/**`) and Make targets are the canonical, tool-agnostic execution contract for any code assistant.
+- Assistants MUST default to SDD-enabled execution unless the user explicitly opts out in the current request.
 - Bundled Codex skills under `.agents/skills/**` are accelerators, not alternative governance; they must resolve to the same lifecycle/order/validation contract.
 - For assistants that do not support Codex skill loading (for example Claude Code), use the corresponding `SKILL.md` files as plain-text runbooks and still execute canonical repository commands.
 - When specialized subagents are used, assign each one to an isolated worktree and bounded-context ownership slice to prevent write collisions.

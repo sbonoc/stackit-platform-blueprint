@@ -6,7 +6,7 @@
 - Unresolved alternatives count: 0
 - Unresolved TODO markers count: 0
 - Pending assumptions count: 0
-- Open clarification markers count: 0
+- Open clarification markers count: 1
 - Product sign-off: pending
 - Architecture sign-off: pending
 - Security sign-off: pending
@@ -33,13 +33,14 @@
 - Local-first exception rationale: none
 
 ## Objective
-- Outcome:
+- Business outcome:
 - Success metric:
 
 ## Normative Requirements
 
 ### Functional Requirements (Normative)
 - FR-001 MUST define one deterministic behavior.
+- FR-002 MUST define one deterministic behavior.
 
 ### Non-Functional Requirements (Normative)
 - NFR-SEC-001 MUST define enforceable security behavior.
@@ -53,10 +54,12 @@
 - Selected option: OPTION_A
 - Rationale:
 
-## Contract Impacts (Normative)
+## Contract Changes (Normative)
+- Config/Env contract:
 - API contract:
-- Data/event contract:
-- Configuration contract:
+- Event contract:
+- Make/CLI contract:
+- Docs contract:
 
 ## Blueprint Upstream Defect Escalation (Normative)
 - Upstream issue URL: none
@@ -66,9 +69,13 @@
 
 ## Normative Acceptance Criteria
 - AC-001 MUST be objectively testable.
+- AC-002 MUST be objectively testable.
 
 ## Informative Notes (Non-Normative)
 - Context:
 - Tradeoffs:
 - Clarifications:
   - [NEEDS CLARIFICATION: replace or remove before `SPEC_READY=true`]
+
+## Explicit Exclusions
+- Excluded item 1:

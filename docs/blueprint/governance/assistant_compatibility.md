@@ -10,6 +10,8 @@ Every assistant (Codex, Claude Code, Copilot, others) must treat these as author
 - `.spec-kit/**` template packs and control catalog
 - `specs/**` work-item artifacts
 - canonical Make/validation commands
+- default SDD behavior: enabled unless the user explicitly opts out
+- default work-item branching: `make spec-scaffold` creates a dedicated non-default branch unless explicit opt-out is requested
 
 ## Assistant Integration
 
@@ -63,6 +65,8 @@ Every assistant (Codex, Claude Code, Copilot, others) must treat these as author
 ## Determinism Rules
 
 - No assistant may fill missing requirements with assumptions during `Discover`, `High-Level Architecture`, `Specify`, or `Plan`.
+- No assistant may bypass SDD unless the user explicitly asks to bypass it for the current task.
+- No assistant should start a new SDD work item directly on the default branch; use `make spec-scaffold` branch creation or an equivalent dedicated-branch flow.
 - Normative sections must avoid ambiguous language.
 - Managed-service-first policy applies for `stackit-*` runtime capabilities unless an approved explicit exception is recorded.
 - Any deviation from contract/gate policy is a blocking condition, not a warning.

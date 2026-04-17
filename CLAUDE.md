@@ -4,6 +4,13 @@ Read `AGENTS.md` before starting any work. All lifecycle rules, SDD guardrails,
 quality gates, ownership boundaries, and the sign-off policy are defined there
 and apply to this assistant without exception.
 
+SDD is enabled by default. Do not bypass the SDD lifecycle unless the user
+explicitly says not to follow SDD for the current task.
+
+When starting a new SDD work item, begin with `make spec-scaffold
+SPEC_SLUG=<work-item-slug>` so work starts on a dedicated non-default branch.
+Only skip branch creation when the user explicitly requests that opt-out.
+
 ## Skills
 
 Skill runbooks are in `.agents/skills/<name>/SKILL.md`. Apply them proactively

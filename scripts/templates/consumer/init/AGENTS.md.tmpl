@@ -22,23 +22,26 @@ This file is the canonical governance source for this generated platform reposit
 ## Mandatory Workflow
 1. Read `AGENTS.md` before starting work.
 2. During `Discover`, `High-Level Architecture`, `Specify`, and `Plan`, do not use assumptions as substitutes for missing requirements; resolve ambiguity explicitly or mark the work item blocked.
-3. For non-trivial work, execute the Spec-Driven Development lifecycle in order: `Discover -> High-Level Architecture -> Specify -> Plan -> Implement -> Verify -> Document -> Operate -> Publish`.
-4. Change code, tests, docs, and contract-adjacent files together.
-5. Keep platform-owned work in `make/platform.mk`, `make/platform/*.mk`, `scripts/bin/platform/**`, `scripts/lib/platform/**`, `apps/**`, and `docs/platform/**`.
-6. Treat blueprint-managed paths as controlled surfaces and update them only intentionally:
+3. Spec-Driven Development is mandatory by default for assistant-executed work; bypass only when the user explicitly says not to follow SDD for the requested task.
+4. Start each new SDD work item with `make spec-scaffold ...`, which creates a dedicated non-default branch by default (`codex/<YYYY-MM-DD>-<slug>` unless overridden).
+5. Execute the Spec-Driven Development lifecycle in order: `Discover -> High-Level Architecture -> Specify -> Plan -> Implement -> Verify -> Document -> Operate -> Publish`.
+6. Change code, tests, docs, and contract-adjacent files together.
+7. Keep platform-owned work in `make/platform.mk`, `make/platform/*.mk`, `scripts/bin/platform/**`, `scripts/lib/platform/**`, `apps/**`, and `docs/platform/**`.
+8. Treat blueprint-managed paths as controlled surfaces and update them only intentionally:
    - `blueprint/**`
    - `docs/blueprint/**`
    - `scripts/bin/blueprint/**`
    - `scripts/lib/blueprint/**`
    - `scripts/templates/**`
    - `make/blueprint.generated.mk`
-7. Run the required validation bundle for the changed scope before finishing.
-8. Update `AGENTS.decisions.md` when scope, contracts, or operating policy change.
-9. Update `AGENTS.backlog.md` when priorities or status change.
-10. Do not run `git commit` or `git push` unless explicitly requested in the current conversation.
+9. Run the required validation bundle for the changed scope before finishing.
+10. Update `AGENTS.decisions.md` when scope, contracts, or operating policy change.
+11. Update `AGENTS.backlog.md` when priorities or status change.
+12. Do not run `git commit` or `git push` unless explicitly requested in the current conversation.
 
 ## SDD Artifacts
 - Use `specs/<YYYY-MM-DD>-<work-item-slug>/` for work-item artifacts.
+- Start new work items with `make spec-scaffold SPEC_SLUG=<work-item-slug>`; dedicated-branch creation is default and explicit opt-out requires `SPEC_NO_BRANCH=true`.
 - Required documents per work item:
   - `architecture.md`
   - `spec.md`
@@ -162,5 +165,6 @@ This file is the canonical governance source for this generated platform reposit
 
 ## Assistant Interoperability
 - Treat SDD artifacts and Make targets as the canonical contract across all assistants.
+- Assistants MUST default to SDD-enabled execution unless the user explicitly opts out in the current request.
 - Codex skill bundles under `.agents/skills/**` are optional accelerators; they do not replace governance.
 - If an assistant cannot load Codex skills directly, follow the corresponding `SKILL.md` files as runbooks and execute the same repository commands.

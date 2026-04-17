@@ -1208,6 +1208,12 @@ spec:
         - Document
         - Operate
         - Publish
+    branch_contract:
+      dedicated_branch_required_by_default: true
+      explicit_opt_out_flag: --no-create-branch
+      default_prefix: codex/
+      branch_name_pattern: "<prefix><YYYY-MM-DD>-<work-item-slug>"
+      enforce_non_default_branch: true
     artifacts:
       policy_mapping_file: .spec-kit/policy-mapping.md
       control_catalog_source_file: .spec-kit/control-catalog.yaml
