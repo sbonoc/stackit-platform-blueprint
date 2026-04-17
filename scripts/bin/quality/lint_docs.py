@@ -42,6 +42,8 @@ RABBITMQ_DOC_PATHS = (
     Path("docs/platform/modules/rabbitmq/README.md"),
     Path("scripts/templates/blueprint/bootstrap/docs/platform/modules/rabbitmq/README.md"),
 )
+CORE_TARGETS_GENERATED_DOC_PATH = Path("docs/reference/generated/core_targets.generated.md")
+RAW_ANGLE_BRACKET_PATTERN = re.compile(r"<[^>\n]+>")
 
 
 @dataclass(frozen=True, slots=True)
@@ -221,6 +223,28 @@ def lint_rabbitmq_doc_family(repo_root: Path) -> list[LintIssue]:
     return issues
 
 
+def lint_generated_core_targets_mdx_safety(repo_root: Path) -> list[LintIssue]:
+    doc_path = repo_root / CORE_TARGETS_GENERATED_DOC_PATH
+    if not doc_path.is_file():
+        return []
+
+    issues: list[LintIssue] = []
+    for line_no, line in enumerate(doc_path.read_text(encoding="utf-8").splitlines(), start=1):
+        if not line.startswith("|"):
+            continue
+        for match in RAW_ANGLE_BRACKET_PATTERN.finditer(line):
+            issues.append(
+                LintIssue(
+                    doc_path,
+                    line_no,
+                    "raw angle-bracket token in generated core targets row; "
+                    "escape MDX-sensitive values as &lt;...&gt;",
+                )
+            )
+
+    return issues
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Lint repository markdown docs.")
     parser.add_argument(
@@ -246,6 +270,7 @@ def main() -> int:
     for file_path in markdown_files:
         issues.extend(lint_markdown_file(repo_root, file_path, make_targets))
     issues.extend(lint_rabbitmq_doc_family(repo_root))
+    issues.extend(lint_generated_core_targets_mdx_safety(repo_root))
 
     if issues:
         for issue in issues:
