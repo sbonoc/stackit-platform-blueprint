@@ -1,0 +1,128 @@
+{
+  "manifest_version": 1,
+  "work_item": "specs/2026-04-17-blueprint-consumer-template-boundaries",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-04-17T14:20:44Z",
+  "files": [
+    {
+      "path": "AGENTS.backlog.md",
+      "sha256": "13f468e4ff06295104c3641fbff5c14728c58f67da3d110d12ef80bb37770835",
+      "bytes": 5506
+    },
+    {
+      "path": "AGENTS.decisions.md",
+      "sha256": "df2c381c725ecea9f206ba353eb7ebeea79b323960e3ced56594febde54e7417",
+      "bytes": 38002
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "1d679ade015a76b3eef781908f9eaaa734e1da170de6f36a6b3b1d441785b161",
+      "bytes": 20243
+    },
+    {
+      "path": "blueprint/contract.yaml",
+      "sha256": "20c50fa06723b3d96db7abc3374fafae7f0290de8f434b70de0c23abaec8774d",
+      "bytes": 82383
+    },
+    {
+      "path": "docs/blueprint/architecture/decisions/ADR-20260417-blueprint-consumer-template-boundaries.md",
+      "sha256": "94263ebb89a34c6cfc806ce3b29a135ea28e165920b7925a6a8ea7cab3d25fba",
+      "bytes": 4062
+    },
+    {
+      "path": "docs/blueprint/governance/ownership_matrix.md",
+      "sha256": "500145177b91d5b1c2efd47115833d41836fc9e4c5780ba55372e778cd9ce50a",
+      "bytes": 3855
+    },
+    {
+      "path": "scripts/lib/blueprint/contract_schema.py",
+      "sha256": "f0cd47e3a57fa49deb611c733e23bf8014fba8bc5be441eeb838f0de8f3b4c98",
+      "bytes": 26653
+    },
+    {
+      "path": "scripts/lib/blueprint/init_repo_contract.py",
+      "sha256": "9da043d95dde9b4231a81457a3c551af2689dd5e59d482d2951c5b137dc91e09",
+      "bytes": 6277
+    },
+    {
+      "path": "scripts/lib/docs/sync_blueprint_template_docs.py",
+      "sha256": "65f07abdf9dff9b58f8c318e73c5d094c0dab64d326d2d9a85491c815f09382e",
+      "bytes": 6457
+    },
+    {
+      "path": "scripts/templates/blueprint/bootstrap/blueprint/contract.yaml",
+      "sha256": "20c50fa06723b3d96db7abc3374fafae7f0290de8f434b70de0c23abaec8774d",
+      "bytes": 82383
+    },
+    {
+      "path": "specs/2026-04-17-blueprint-consumer-template-boundaries/architecture.md",
+      "sha256": "108bee025ddb8a56499b9330c2b895af751a18478acf4c254531ab270d6ef6e1",
+      "bytes": 2945
+    },
+    {
+      "path": "specs/2026-04-17-blueprint-consumer-template-boundaries/context_pack.md",
+      "sha256": "8670438a193534f27cbbf9f02f09eca0ee11226a1a699324bfb2189fc559902e",
+      "bytes": 1007
+    },
+    {
+      "path": "specs/2026-04-17-blueprint-consumer-template-boundaries/evidence_manifest.json",
+      "sha256": "d43d543574cd91a0e06e39c0aedfc7776ae14b86efe275270e7097adf0cd46b2",
+      "bytes": 4755
+    },
+    {
+      "path": "specs/2026-04-17-blueprint-consumer-template-boundaries/graph.yaml",
+      "sha256": "3344814dfbdd0f1ce92977777101cd495fa91e688788b4de9163879b39c9a80c",
+      "bytes": 2352
+    },
+    {
+      "path": "specs/2026-04-17-blueprint-consumer-template-boundaries/hardening_review.md",
+      "sha256": "bcaf2a2c934d01997761a089b3414889da1b097bca094c6a9fbd5bdd4307c86f",
+      "bytes": 1982
+    },
+    {
+      "path": "specs/2026-04-17-blueprint-consumer-template-boundaries/plan.md",
+      "sha256": "89871300c3d500e5d85dc31f7ab1e1a6aa9de5b203c288ee3db92d9ee3246747",
+      "bytes": 5293
+    },
+    {
+      "path": "specs/2026-04-17-blueprint-consumer-template-boundaries/pr_context.md",
+      "sha256": "2cdff0adc6e2bef31cf44f9dd0fc4e4c44e4b3044d280f97b299cdc04bbd0888",
+      "bytes": 3331
+    },
+    {
+      "path": "specs/2026-04-17-blueprint-consumer-template-boundaries/spec.md",
+      "sha256": "73e44dc391c1c6e6b811f543867351085ddd1fe734e633e013605d7721b5654e",
+      "bytes": 5117
+    },
+    {
+      "path": "specs/2026-04-17-blueprint-consumer-template-boundaries/tasks.md",
+      "sha256": "3555f4782dea2528703d2014586eb4278836eaa8ee2e934394e07b18f3ff9ef6",
+      "bytes": 2225
+    },
+    {
+      "path": "specs/2026-04-17-blueprint-consumer-template-boundaries/traceability.md",
+      "sha256": "caefb5647631665e453eb240ad0f29eb88e4463fe0262520c73f4f8cf95e05c0",
+      "bytes": 5186
+    },
+    {
+      "path": "tests/blueprint/contract_refactor_docs_cases.py",
+      "sha256": "540fc80d9127e2d12169f4a86d4d2b914142ac744e76cafaf8f4bdb63c0e66dc",
+      "bytes": 30881
+    },
+    {
+      "path": "tests/blueprint/contract_refactor_governance_init_cases.py",
+      "sha256": "ff8b7ac17b3620cd583abb8d2d9e4242342591a03d10609eff8725f2dc2307e6",
+      "bytes": 33616
+    },
+    {
+      "path": "tests/blueprint/contract_refactor_governance_structure_cases.py",
+      "sha256": "71e354406426a37e2bee4a8805f6dba3b47cefbf147f7a321a8dae692d20fb9e",
+      "bytes": 52731
+    },
+    {
+      "path": "tests/blueprint/test_quality_contracts.py",
+      "sha256": "924445043b391390315354dd9fa0b3396c92892c59398a432d836e3fedf9d8f7",
+      "bytes": 41759
+    }
+  ]
+}

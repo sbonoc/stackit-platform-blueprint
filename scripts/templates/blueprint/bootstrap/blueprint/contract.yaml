@@ -555,6 +555,9 @@ spec:
       mode_from: template-source
       mode_to: generated-consumer
       prune_disabled_optional_scaffolding: true
+      source_artifact_prune_globs_on_init:
+        - specs/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-*
+        - docs/blueprint/architecture/decisions/ADR-*.md
 
   governance:
     canonical_policy_source: AGENTS.md

@@ -74,6 +74,23 @@ def resolve_app_catalog_scaffold_contract(repo_root: Path) -> tuple[bool, list[s
     return enabled, required_paths
 
 
+def prune_source_artifacts_on_initial_init(
+    repo_root: Path,
+    summary: ChangeSummary,
+    *,
+    dry_run: bool,
+    repo_mode: str,
+    mode_from: str,
+    prune_globs: list[str],
+) -> None:
+    if repo_mode != mode_from:
+        return
+
+    for pattern in prune_globs:
+        for matched_path in sorted(repo_root.glob(pattern)):
+            remove_path(matched_path, dry_run, summary)
+
+
 def seed_consumer_owned_files(
     repo_root: Path,
     dry_run: bool,
@@ -100,6 +117,15 @@ def seed_consumer_owned_files(
 
     for relative_path in repository.source_only_paths:
         remove_path(repo_root / relative_path, dry_run, summary)
+
+    prune_source_artifacts_on_initial_init(
+        repo_root=repo_root,
+        summary=summary,
+        dry_run=dry_run,
+        repo_mode=repository.repo_mode,
+        mode_from=consumer_init.mode_from,
+        prune_globs=consumer_init.source_artifact_prune_globs_on_init,
+    )
 
     if not consumer_init.prune_disabled_optional_scaffolding:
         return

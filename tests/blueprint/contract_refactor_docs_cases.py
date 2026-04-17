@@ -32,6 +32,10 @@ class DocsRefactorCases(RefactorContractBase):
                 (template_root / rel_path).read_text(encoding="utf-8"),
                 msg=f"bootstrap template drift for {rel_path}",
             )
+        self.assertFalse(
+            (template_root / "docs/blueprint/architecture/decisions/ADR-20260417-sdd-default-enforcement.md").exists()
+        )
+        self.assertFalse((template_root / "docs/blueprint/governance/assistant_compatibility.md").exists())
 
     def test_platform_docs_are_seeded_but_not_template_synced(self) -> None:
         contract_lines = _read("blueprint/contract.yaml").splitlines()

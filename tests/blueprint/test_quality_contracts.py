@@ -494,6 +494,113 @@ class QualityContractsTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
         self.assertIn("resolve_repo_root", _read("scripts/lib/docs/sync_blueprint_template_docs.py"))
 
+    def test_blueprint_docs_template_sync_prunes_source_only_docs(self) -> None:
+        checker = REPO_ROOT / "scripts/lib/docs/sync_blueprint_template_docs.py"
+        spec = importlib.util.spec_from_file_location("sync_blueprint_template_docs_module", checker)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)  # type: ignore[union-attr]
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            docs_root = repo_root / "docs"
+            source_blueprint_root = docs_root / "blueprint"
+            template_blueprint_root = repo_root / "scripts/templates/blueprint/bootstrap/docs/blueprint"
+            template_docs_root = repo_root / "scripts/templates/blueprint/bootstrap/docs"
+
+            (docs_root / "README.md").parent.mkdir(parents=True, exist_ok=True)
+            (docs_root / "README.md").write_text("# docs index\n", encoding="utf-8")
+            (template_docs_root / "README.md").parent.mkdir(parents=True, exist_ok=True)
+            (template_docs_root / "README.md").write_text("# stale docs index\n", encoding="utf-8")
+
+            for relative in module.BLUEPRINT_DOC_TEMPLATE_ALLOWLIST:
+                source_path = source_blueprint_root / relative
+                source_path.parent.mkdir(parents=True, exist_ok=True)
+                source_path.write_text(f"# source {relative}\n", encoding="utf-8")
+                template_path = template_blueprint_root / relative
+                template_path.parent.mkdir(parents=True, exist_ok=True)
+                template_path.write_text(f"# stale {relative}\n", encoding="utf-8")
+
+            source_only_paths = (
+                "architecture/decisions/ADR-20260417-source-only.md",
+                "governance/assistant_compatibility.md",
+            )
+            for relative in source_only_paths:
+                source_path = source_blueprint_root / relative
+                source_path.parent.mkdir(parents=True, exist_ok=True)
+                source_path.write_text(f"# source-only {relative}\n", encoding="utf-8")
+                template_path = template_blueprint_root / relative
+                template_path.parent.mkdir(parents=True, exist_ok=True)
+                template_path.write_text(f"# stale source-only {relative}\n", encoding="utf-8")
+
+            result = run(
+                [sys.executable, str(checker), "--repo-root", str(repo_root)],
+                cwd=repo_root,
+            )
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+
+            for relative in module.BLUEPRINT_DOC_TEMPLATE_ALLOWLIST:
+                self.assertEqual(
+                    (source_blueprint_root / relative).read_text(encoding="utf-8"),
+                    (template_blueprint_root / relative).read_text(encoding="utf-8"),
+                )
+
+            self.assertFalse((template_blueprint_root / source_only_paths[0]).exists())
+            self.assertFalse((template_blueprint_root / source_only_paths[1]).exists())
+
+    def test_init_repo_source_artifact_prune_globs_apply_only_on_initial_mode(self) -> None:
+        helper = REPO_ROOT / "scripts/lib/blueprint/init_repo_contract.py"
+        spec = importlib.util.spec_from_file_location("init_repo_contract_module", helper)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)  # type: ignore[union-attr]
+
+        prune_globs = [
+            "specs/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-*",
+            "docs/blueprint/architecture/decisions/ADR-*.md",
+        ]
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            specs_path = repo_root / "specs/2026-04-17-blueprint-source-only"
+            adr_path = repo_root / "docs/blueprint/architecture/decisions/ADR-20260417-source-only.md"
+
+            specs_path.mkdir(parents=True, exist_ok=True)
+            (specs_path / "spec.md").write_text("source-only spec", encoding="utf-8")
+            adr_path.parent.mkdir(parents=True, exist_ok=True)
+            adr_path.write_text("source-only adr", encoding="utf-8")
+
+            module.prune_source_artifacts_on_initial_init(
+                repo_root=repo_root,
+                summary=module.ChangeSummary("test"),
+                dry_run=False,
+                repo_mode="template-source",
+                mode_from="template-source",
+                prune_globs=prune_globs,
+            )
+
+            self.assertFalse(specs_path.exists())
+            self.assertFalse(adr_path.exists())
+
+            specs_path.mkdir(parents=True, exist_ok=True)
+            (specs_path / "spec.md").write_text("consumer-owned spec", encoding="utf-8")
+            adr_path.parent.mkdir(parents=True, exist_ok=True)
+            adr_path.write_text("consumer-owned adr", encoding="utf-8")
+
+            module.prune_source_artifacts_on_initial_init(
+                repo_root=repo_root,
+                summary=module.ChangeSummary("test"),
+                dry_run=False,
+                repo_mode="generated-consumer",
+                mode_from="template-source",
+                prune_globs=prune_globs,
+            )
+
+            self.assertTrue(specs_path.exists())
+            self.assertTrue(adr_path.exists())
+
     def test_core_targets_generator_uses_make_help(self) -> None:
         generator = _read("scripts/bin/quality/render_core_targets_doc.py")
         self.assertIn('["make", "help"]', generator)

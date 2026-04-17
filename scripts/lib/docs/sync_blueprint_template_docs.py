@@ -18,8 +18,23 @@ from scripts.lib.blueprint.cli_support import ChangeSummary, display_repo_path, 
 SINGLE_FILE_MIRRORS: tuple[tuple[Path, Path], ...] = (
     (Path("docs/README.md"), Path("scripts/templates/blueprint/bootstrap/docs/README.md")),
 )
-DIRECTORY_MIRRORS: tuple[tuple[Path, Path], ...] = (
-    (Path("docs/blueprint"), Path("scripts/templates/blueprint/bootstrap/docs/blueprint")),
+BLUEPRINT_DOC_TEMPLATE_ALLOWLIST: tuple[str, ...] = (
+    "README.md",
+    "architecture/system_overview.md",
+    "architecture/execution_model.md",
+    "architecture/decisions/README.md",
+    "architecture/north_star.md",
+    "architecture/tech_stack.md",
+    "contracts/async_message_contracts.md",
+    "governance/ownership_matrix.md",
+    "governance/spec_driven_development.md",
+)
+DIRECTORY_MIRRORS: tuple[tuple[Path, Path, tuple[str, ...] | None], ...] = (
+    (
+        Path("docs/blueprint"),
+        Path("scripts/templates/blueprint/bootstrap/docs/blueprint"),
+        BLUEPRINT_DOC_TEMPLATE_ALLOWLIST,
+    ),
 )
 
 
@@ -69,6 +84,7 @@ def _sync_directory(
     repo_root: Path,
     source_root: Path,
     template_root: Path,
+    allowlist: tuple[str, ...] | None,
     check: bool,
     summary: ChangeSummary,
     out_of_sync: list[str],
@@ -77,6 +93,13 @@ def _sync_directory(
         raise ValueError(f"missing source blueprint docs root: {source_root}")
 
     source_files = _list_files(source_root)
+    if allowlist is not None:
+        allowed = set(allowlist)
+        source_files = {relative: path for relative, path in source_files.items() if relative in allowed}
+        missing = sorted(allowed - set(source_files))
+        if missing:
+            missing_joined = ", ".join(missing)
+            raise ValueError(f"missing required blueprint docs source files for template sync: {missing_joined}")
     template_files = _list_files(template_root)
 
     for relative, source_path in source_files.items():
@@ -125,11 +148,12 @@ def _sync(repo_root: Path, check: bool) -> int:
             out_of_sync=out_of_sync,
         )
 
-    for source_rel, target_rel in DIRECTORY_MIRRORS:
+    for source_rel, target_rel, allowlist in DIRECTORY_MIRRORS:
         _sync_directory(
             repo_root=repo_root,
             source_root=repo_root / source_rel,
             template_root=repo_root / target_rel,
+            allowlist=allowlist,
             check=check,
             summary=summary,
             out_of_sync=out_of_sync,

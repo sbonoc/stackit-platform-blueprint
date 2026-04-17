@@ -37,6 +37,7 @@ class ConsumerInitContract:
     mode_from: str
     mode_to: str
     prune_disabled_optional_scaffolding: bool
+    source_artifact_prune_globs_on_init: list[str]
 
 
 @dataclass(frozen=True)
@@ -497,6 +498,10 @@ def load_blueprint_contract(path: Path) -> BlueprintContract:
                 consumer_init_raw.get("prune_disabled_optional_scaffolding"),
                 "spec.repository.consumer_init.prune_disabled_optional_scaffolding",
                 default=False,
+            ),
+            source_artifact_prune_globs_on_init=_as_list_of_str(
+                consumer_init_raw.get("source_artifact_prune_globs_on_init", []),
+                "spec.repository.consumer_init.source_artifact_prune_globs_on_init",
             ),
         ),
     )

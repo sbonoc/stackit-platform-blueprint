@@ -91,6 +91,7 @@ class GovernanceInitRepoCases(RefactorContractBase):
         self.assertIn("secrets_env_file: blueprint/repo.init.secrets.env", _read("blueprint/contract.yaml"))
         self.assertIn("force_env_var: BLUEPRINT_INIT_FORCE", _read("blueprint/contract.yaml"))
         self.assertIn("consumer_init:", _read("blueprint/contract.yaml"))
+        self.assertIn("source_artifact_prune_globs_on_init:", _read("blueprint/contract.yaml"))
         self.assertIn("ownership_path_classes:", _read("blueprint/contract.yaml"))
         self.assertIn("app_catalog_scaffold_contract:", _read("blueprint/contract.yaml"))
         self.assertIn("app_runtime_gitops_contract:", _read("blueprint/contract.yaml"))
@@ -351,7 +352,6 @@ class GovernanceInitRepoCases(RefactorContractBase):
             self.assertFalse((tmp_root / "dags").exists())
             self.assertFalse((tmp_root / "infra/cloud/stackit/terraform/modules/workflows").exists())
             self.assertFalse((tmp_root / "tests/infra/modules/workflows").exists())
-
             custom_defaults_env = defaults_env.replace(
                 "PUBLIC_ENDPOINTS_BASE_DOMAIN=apps.local",
                 "PUBLIC_ENDPOINTS_BASE_DOMAIN=apps.acme.local",
