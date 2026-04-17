@@ -16,6 +16,10 @@ This blueprint follows an explicit SDD lifecycle for non-trivial work.
 
 Implementation should not start before the first four phases are materially captured.
 
+SDD is mandatory by default for assistant-executed work. A lightweight or non-SDD path is valid only when the user explicitly opts out in the current request.
+
+When starting a new work item, use `make spec-scaffold SPEC_SLUG=<work-item-slug>`; it creates and checks out a dedicated non-default branch by default. Explicit opt-out requires `SPEC_NO_BRANCH=true`.
+
 ## Generated SDD Policy Snapshot
 <!-- BEGIN GENERATED:SDD_POLICY_SNAPSHOT -->
 - Lifecycle order (contract): Discover -> High-Level Architecture -> Specify -> Plan -> Implement -> Verify -> Document -> Operate -> Publish

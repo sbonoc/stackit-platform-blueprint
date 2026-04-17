@@ -45,7 +45,7 @@ printf '  make quality-sdd-check-all    # run SDD sync drift checks and governan
 printf '  make quality-docs-check-changed # run docs drift checks only for changed-scope docs generators\n'
 printf '  make blueprint-bootstrap      # refresh blueprint-managed templates/docs/make surface\n'
 printf '  make blueprint-install-codex-skills # install bundled Codex consumer + SDD skills into CODEX_HOME\n'
-printf '  make spec-scaffold SPEC_SLUG=<slug> # scaffold canonical SDD work-item documents under specs/\n'
+printf '  make spec-scaffold SPEC_SLUG=<slug> # scaffold canonical SDD work-item docs under specs/ (default creates dedicated branch)\n'
 printf '  make spec-impact              # render graph-driven impact summary for the selected SDD work item\n'
 printf '  make spec-evidence-manifest   # render deterministic checksum manifest for selected SDD work item\n'
 printf '  make spec-context-pack        # render normalized SDD context pack for selected work item\n'

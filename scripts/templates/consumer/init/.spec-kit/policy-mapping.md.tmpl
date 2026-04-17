@@ -31,6 +31,19 @@ Before implementation, every work item must satisfy the blocking gate in `spec.m
 
 If required inputs are missing, mark the spec with `BLOCKED_MISSING_INPUTS` and keep `SPEC_READY=false`.
 
+## Assistant Default Enforcement Mapping
+
+- SDD is mandatory by default for assistant-driven work; bypass is valid only when the user explicitly opts out.
+- Assistant policy surfaces (`AGENTS.md`, `CLAUDE.md`, skill runbooks, and work-item context) must keep this default/opt-out behavior explicit and consistent.
+- A missing explicit opt-out instruction MUST be treated as "SDD enabled" for lifecycle execution and validation.
+
+## Work-Item Branch Mapping
+
+- Starting a new work item with `make spec-scaffold` must create and check out a dedicated non-default branch by default.
+- Canonical branch generation uses contract-configured prefix + date + slug (`<prefix><YYYY-MM-DD>-<work-item-slug>`).
+- Explicit opt-out is permitted only with the scaffold CLI flag defined in contract (`--no-create-branch`).
+- Make and scaffold wrappers must expose deterministic passthroughs for branch override (`SPEC_BRANCH`) and explicit opt-out (`SPEC_NO_BRANCH=true`).
+
 ## Assumption Policy
 
 - Code assistants MUST NOT invent missing requirements during `Discover`, `High-Level Architecture`, `Specify`, or `Plan`.

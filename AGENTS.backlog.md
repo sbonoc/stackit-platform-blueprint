@@ -1,6 +1,14 @@
 # Blueprint Backlog
 
 ## Current Priorities
+- [ ] P0 (SDD UX): Issue #138 — add local smoke and positive-path filter/transform guardrails to SDD `plan.md`/`tasks.md` templates and governance docs.
+- [ ] P0 (Upgrade preflight ergonomics): Issue #102 — detect missing consumer-owned required Make targets in preflight with explicit remediation guidance.
+- [ ] P0 (Upgrade validation determinism): Issue #129 — add repo-mode-aware required-file reconciliation checks and deterministic remediation hints.
+- [ ] P1 (Upgrade convergence safety): Issue #128 — add ownership-aware reconcile report artifact and `blueprint-upgrade-consumer-postcheck` gate.
+- [ ] P1 (Fixture-contract hardening): Issue #130 — enforce optional-module `required_env` fixture parity in fast infra contract checks.
+- [ ] P1 (Generated-consumer upgrade regressions): Issues #103, #104, #106, #107 — fix repo-mode test selection, additive-file conflict classification, and missing helper distribution.
+- [ ] P1 (Runtime operability correctness): Issues #105, #108, #109, #110, #111, #112, #118, #137 — resolve runtime identity, Argo health/project policy, image-lane, and target migration friction.
+- [ ] P2 (Capability enhancements): Issues #56, #131 — expand app dependency pin auditing and add blueprint uplift convergence status command.
 - [ ] Add an automated bundled-skill contract verifier to enforce parity across `.agents/skills/**`, consumer-template fallbacks, install make targets, and docs references.
 - [ ] Add a contract-level traceability verifier that checks every declared requirement ID in `spec.md` maps to implementation paths and at least one automated test assertion.
 - [ ] Add a declarative module action manifest (`apply/plan/smoke/destroy`) to replace duplicated wrapper branching and keep runtime/CI execution paths deterministic.

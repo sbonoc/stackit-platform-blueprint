@@ -14,6 +14,8 @@ Use `blueprint/repo.init.secrets.env` (gitignored) for sensitive values, scaffol
 `blueprint/repo.init.secrets.example.env`.
 
 ## Spec-Driven Development
+- SDD is default-required for assistant-executed work unless the user explicitly opts out for the current task.
+- Start work items with `make spec-scaffold SPEC_SLUG=<work-item-slug>` (default creates a dedicated branch; explicit opt-out uses `SPEC_NO_BRANCH=true`).
 - Use `.spec-kit/templates/consumer/*` to start work-item specs.
 - Use `.spec-kit/control-catalog.md` and map applicable `SDD-C-###` IDs in each work-item `spec.md`.
 - Keep each work item under `specs/<YYYY-MM-DD>-<work-item-slug>/` with `architecture.md`, `spec.md`, `plan.md`, `tasks.md`, and `traceability.md`.

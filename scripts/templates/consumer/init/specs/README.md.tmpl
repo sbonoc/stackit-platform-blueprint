@@ -22,16 +22,20 @@ specs/<YYYY-MM-DD>-<work-item-slug>/
 
 ## How To Start
 
-1. Pick the template pack:
+1. SDD is default-required unless the user explicitly opts out for the current task.
+2. Scaffold the work item with dedicated branch creation:
+   - `make spec-scaffold SPEC_SLUG=<work-item-slug> [SPEC_TRACK=blueprint|consumer]`
+   - default branch shape: `codex/<YYYY-MM-DD>-<work-item-slug>`
+   - explicit opt-out: `SPEC_NO_BRANCH=true`
+3. Pick the template pack:
    - Blueprint maintainer work: `.spec-kit/templates/blueprint/*`
    - Consumer delivery work: `.spec-kit/templates/consumer/*`
-2. Copy templates into the new work-item folder.
-3. Fill `Discover` and `High-Level Architecture` before implementation.
-4. Keep `traceability.md` updated as code/tests/docs change.
-5. Start implementation only when the readiness gate in `spec.md` has `SPEC_READY=true`.
-6. Record the finalized architecture choice as an ADR using `.spec-kit/templates/<track>/adr.md`.
-7. Run the `Document` phase before closing the work item by updating `docs/blueprint/**` and/or `docs/platform/**` as applicable.
-8. Run the `Publish` phase by completing `hardening_review.md` and `pr_context.md` before opening a PR.
+4. Fill `Discover` and `High-Level Architecture` before implementation.
+5. Keep `traceability.md` updated as code/tests/docs change.
+6. Start implementation only when the readiness gate in `spec.md` has `SPEC_READY=true`.
+7. Record the finalized architecture choice as an ADR using `.spec-kit/templates/<track>/adr.md`.
+8. Run the `Document` phase before closing the work item by updating `docs/blueprint/**` and/or `docs/platform/**` as applicable.
+9. Run the `Publish` phase by completing `hardening_review.md` and `pr_context.md` before opening a PR.
 
 Reference baseline:
 - `specs/2026-04-15-sdd-golden-example/` is a canonical template-expanded work item you can copy/adapt when starting new specs.

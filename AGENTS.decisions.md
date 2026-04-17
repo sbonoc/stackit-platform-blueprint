@@ -266,3 +266,10 @@
     - `make spec-pr-context`
     - `make quality-hardening-review`
   - added canonical skill `blueprint-sdd-pr-packager` (source + consumer template fallback) to package Publish-phase review context consistently.
+- SDD enforcement defaults are now explicit and executable:
+  - assistant execution defaults to full SDD lifecycle unless the user explicitly opts out.
+  - `spec_scaffold` now enforces dedicated branch creation by default using contract-driven settings (`branch_contract`) and supports explicit opt-out (`--no-create-branch` / `SPEC_NO_BRANCH=true`).
+  - branch-contract wiring is validated by `quality-sdd-check` across contract, scaffold CLI, and generated/template make targets.
+- SDD control catalog now includes assistant/branching controls:
+  - `SDD-C-020` codifies default SDD enforcement with explicit opt-out only.
+  - `SDD-C-021` codifies dedicated non-default branch creation for new SDD work-item scaffolds.

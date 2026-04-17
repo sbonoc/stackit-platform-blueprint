@@ -28,6 +28,13 @@ repos:
         pass_filenames: false
         stages: [pre-push]
         always_run: true
+      - id: quality-docs-check-changed-pre-push
+        name: quality docs check changed scope (pre-push)
+        language: system
+        entry: make quality-docs-check-changed
+        pass_filenames: false
+        stages: [pre-push]
+        always_run: true
       - id: infra-audit-version-cached
         name: infra audit version cached (pre-push)
         language: system

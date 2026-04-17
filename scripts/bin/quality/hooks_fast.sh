@@ -57,7 +57,12 @@ else
   run_cmd make -C "$ROOT_DIR" quality-ci-check-sync
   log_metric "quality_ci_check_sync_total" "1" "status=success repo_mode=template-source"
 fi
-run_cmd make -C "$ROOT_DIR" quality-docs-check-changed
+if run_cmd make -C "$ROOT_DIR" quality-docs-check-changed; then
+  log_metric "quality_docs_check_changed_total" "1" "status=success"
+else
+  log_metric "quality_docs_check_changed_total" "1" "status=failure"
+  exit 1
+fi
 run_cmd make -C "$ROOT_DIR" quality-test-pyramid
 run_cmd make -C "$ROOT_DIR" infra-validate
 run_cmd make -C "$ROOT_DIR" infra-contract-test-fast

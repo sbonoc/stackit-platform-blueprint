@@ -158,6 +158,63 @@ class DocsLintTests(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
             self.assertIn("unable to derive RabbitMQ managed-service major family", result.stderr)
 
+    def test_generated_core_targets_fails_when_raw_angle_bracket_tokens_exist(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _write(
+                repo_root / "docs/reference/generated/core_targets.generated.md",
+                "\n".join(
+                    [
+                        "# Core Make Targets",
+                        "| Target | Description |",
+                        "| --- | --- |",
+                        "| `spec-scaffold` | set SPEC_BRANCH=<name> |",
+                    ]
+                )
+                + "\n",
+            )
+            result = run(
+                [
+                    sys.executable,
+                    str(LINTER),
+                    "--repo-root",
+                    str(repo_root),
+                    "--doc-glob",
+                    "docs/**/*.md",
+                ],
+                cwd=repo_root,
+            )
+            self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            self.assertIn("raw angle-bracket token in generated core targets row", result.stderr)
+
+    def test_generated_core_targets_passes_when_angle_bracket_tokens_are_escaped(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _write(
+                repo_root / "docs/reference/generated/core_targets.generated.md",
+                "\n".join(
+                    [
+                        "# Core Make Targets",
+                        "| Target | Description |",
+                        "| --- | --- |",
+                        "| `spec-scaffold` | set SPEC_BRANCH=&lt;name&gt; |",
+                    ]
+                )
+                + "\n",
+            )
+            result = run(
+                [
+                    sys.executable,
+                    str(LINTER),
+                    "--repo-root",
+                    str(repo_root),
+                    "--doc-glob",
+                    "docs/**/*.md",
+                ],
+                cwd=repo_root,
+            )
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()

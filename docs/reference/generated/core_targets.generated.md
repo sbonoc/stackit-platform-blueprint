@@ -22,14 +22,14 @@ This file is auto-generated. Do not edit it manually.
 | `blueprint-install-codex-skill-sdd-pr-packager` | Install/sync bundled Codex SDD PR-packager skill into local CODEX_HOME skills directory |
 | `blueprint-install-codex-skills` | Install/sync all bundled Codex skills into local CODEX_HOME skills directory |
 | `blueprint-ownership-check` | Resolve path ownership classes (set OWNERSHIP_PATHS="path/one path/two") |
-| `blueprint-ownership-metadata` | Print machine-readable ownership metadata (pattern -> owner) |
+| `blueprint-ownership-metadata` | Print machine-readable ownership metadata (pattern -&gt; owner) |
 | `blueprint-check-placeholders` | Verify generated repository identity placeholders are resolved |
 | `blueprint-template-smoke` | Run generated-repo conformance smoke in a temp copy |
 | `blueprint-bootstrap` | Bootstrap blueprint-scoped templates, docs, and Makefile rendering |
 | `blueprint-render-makefile` | Render blueprint-generated make targets from template and enabled module flags |
 | `blueprint-clean-generated` | Remove generated runtime/build/cache artifacts |
 | `blueprint-render-module-wrapper-skeletons` | Render optional-module wrapper skeleton templates from module contracts |
-| `spec-scaffold` | Scaffold SDD work-item documents under specs/YYYY-MM-DD-work-item-slug (set SPEC_SLUG, optional SPEC_TRACK/SPEC_DATE/SPEC_FORCE=true) |
+| `spec-scaffold` | Scaffold SDD work-item documents under specs/YYYY-MM-DD-work-item-slug (set SPEC_SLUG; optional SPEC_TRACK/SPEC_DATE/SPEC_FORCE=true/SPEC_BRANCH=&lt;name&gt;/SPEC_NO_BRANCH=true) |
 | `spec-impact` | Render graph-driven impact summary for a work item (optional SPEC_WORK_ITEM, SPEC_IMPACT_OUTPUT) |
 | `spec-evidence-manifest` | Render deterministic evidence manifest checksums for a work item (optional SPEC_WORK_ITEM, SPEC_EVIDENCE_OUTPUT) |
 | `spec-context-pack` | Render deterministic context pack markdown for a work item (optional SPEC_WORK_ITEM, SPEC_CONTEXT_OUTPUT) |

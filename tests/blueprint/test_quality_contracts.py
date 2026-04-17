@@ -499,6 +499,21 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn('["make", "help"]', generator)
         self.assertIn("--check", generator)
 
+    def test_core_targets_generator_escapes_mdx_sensitive_table_tokens(self) -> None:
+        generator = REPO_ROOT / "scripts/bin/quality/render_core_targets_doc.py"
+        spec = importlib.util.spec_from_file_location("render_core_targets_doc_module", generator)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)  # type: ignore[union-attr]
+
+        rendered = module._render_markdown(
+            [("spec-scaffold", "set SPEC_BRANCH=<name>|A&B for scaffold contract checks")]
+        )
+
+        self.assertIn("SPEC_BRANCH=&lt;name&gt;\\|A&amp;B", rendered)
+        self.assertNotIn("SPEC_BRANCH=<name>", rendered)
+
     def test_core_targets_generator_uses_default_module_surface(self) -> None:
         generator = REPO_ROOT / "scripts/bin/quality/render_core_targets_doc.py"
         with tempfile.TemporaryDirectory() as tmpdir:

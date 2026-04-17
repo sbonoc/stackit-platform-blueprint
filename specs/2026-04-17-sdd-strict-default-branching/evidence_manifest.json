@@ -1,0 +1,113 @@
+{
+  "manifest_version": 1,
+  "work_item": "specs/2026-04-17-sdd-strict-default-branching",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-04-17T09:01:14Z",
+  "files": [
+    {
+      "path": ".spec-kit/control-catalog.yaml",
+      "sha256": "aecb97aca51f7d85f6f803b109dcac6a5f03f97f726e3d03e5fa3a03421878a7",
+      "bytes": 9869
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "e385e2ecb55ef92dbadd626cd9c117b5974be27d4e8bcf72f61fa16ea5665ca9",
+      "bytes": 20127
+    },
+    {
+      "path": "README.md",
+      "sha256": "2ffafff224b2f835494718250eae9f4114114ce70788a6fe9fe7435d4bac7a42",
+      "bytes": 4202
+    },
+    {
+      "path": "blueprint/contract.yaml",
+      "sha256": "b92d63b2b4dd476264651152e6a723187431dd1b3f13afa07497fb1645966e35",
+      "bytes": 82222
+    },
+    {
+      "path": "docs/blueprint/architecture/decisions/ADR-20260417-sdd-default-enforcement.md",
+      "sha256": "f7673cbc6628887a19ed9e2047bb98bd01a3f09d746c0dc3bd08cb79dba96bff",
+      "bytes": 3558
+    },
+    {
+      "path": "make/blueprint.generated.mk",
+      "sha256": "15aede7d0201394b201f716d47ce3523ec1f60632035b731badcb80542aec542",
+      "bytes": 26371
+    },
+    {
+      "path": "scripts/bin/blueprint/spec_scaffold.py",
+      "sha256": "4a0e82182c159891790ea6cd278e09cc74bfdfb2ceeb1ba1ecff8582bef706e7",
+      "bytes": 10031
+    },
+    {
+      "path": "scripts/bin/quality/check_sdd_assets.py",
+      "sha256": "27617d470081bb52531bfebaf654fe837f21a3656971e6c238bd8ba580a47090",
+      "bytes": 73210
+    },
+    {
+      "path": "specs/2026-04-17-sdd-strict-default-branching/architecture.md",
+      "sha256": "206a33f96c7db001839d3856e46b1f5a4a4e6f6eb880500c5bfb73c1222d18d0",
+      "bytes": 3145
+    },
+    {
+      "path": "specs/2026-04-17-sdd-strict-default-branching/context_pack.md",
+      "sha256": "16a04a04bd1fe7037a71f3517018cb3f28c3a3e6af94ea5fc2827457333dca5d",
+      "bytes": 985
+    },
+    {
+      "path": "specs/2026-04-17-sdd-strict-default-branching/evidence_manifest.json",
+      "sha256": "0cd6150d925f40f13b33ef7a387356d2aadfe0c5437d0092c230cb2e0955217a",
+      "bytes": 3970
+    },
+    {
+      "path": "specs/2026-04-17-sdd-strict-default-branching/graph.yaml",
+      "sha256": "f473c57270542540923faac7819dc02fef27027eaf1919b2f4687a8766d07b15",
+      "bytes": 1820
+    },
+    {
+      "path": "specs/2026-04-17-sdd-strict-default-branching/hardening_review.md",
+      "sha256": "9680e9fcc55ef62c1da888114ad6bbbd48348690b14b698038f87fe21336b80a",
+      "bytes": 1672
+    },
+    {
+      "path": "specs/2026-04-17-sdd-strict-default-branching/plan.md",
+      "sha256": "8d13d7378476d1aa7607efa0592cdf4c88d77275b489a5352284366cf6cc5f2f",
+      "bytes": 4469
+    },
+    {
+      "path": "specs/2026-04-17-sdd-strict-default-branching/pr_context.md",
+      "sha256": "60cc15e7aa75e276ac98c8647d7c1e826e4b3ced5623a1686cce117a927e05d7",
+      "bytes": 2532
+    },
+    {
+      "path": "specs/2026-04-17-sdd-strict-default-branching/spec.md",
+      "sha256": "08b3215a65df17898310d9fc64573b7586c17c99ccdde7ef5f2300c0b05b57c8",
+      "bytes": 4516
+    },
+    {
+      "path": "specs/2026-04-17-sdd-strict-default-branching/tasks.md",
+      "sha256": "018926c50c7b9d3151c7d1965470fb5661d38a2e9220ec9ab22e5efecca32c77",
+      "bytes": 2458
+    },
+    {
+      "path": "specs/2026-04-17-sdd-strict-default-branching/traceability.md",
+      "sha256": "0e2a1d76dd2a6e6564edc0376c57a39ffca23799f90c411b78eaeda97b5b80d4",
+      "bytes": 4138
+    },
+    {
+      "path": "specs/README.md",
+      "sha256": "5bbea7153a62d7cca9f36cf693d7f2ccc54427c24eed2894c3a2c8ae850ac631",
+      "bytes": 3444
+    },
+    {
+      "path": "tests/blueprint/test_spec_scaffold.py",
+      "sha256": "1a8dfec51f4413961c23427c9afcb2b1587d33a9b39e9213f026e1c73288cd12",
+      "bytes": 5012
+    },
+    {
+      "path": "tests/infra/test_sdd_asset_checker.py",
+      "sha256": "e7c7824ae9f70171602b478cf7131e022d3d70be03055ff2dce3965e26867c11",
+      "bytes": 30953
+    }
+  ]
+}

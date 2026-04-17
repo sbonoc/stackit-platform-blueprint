@@ -1,0 +1,78 @@
+{
+  "graph_version": 1,
+  "work_item": "specs/2026-04-17-sdd-strict-default-branching",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "SDD is default-required unless explicit user opt-out"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "spec-scaffold creates dedicated non-default branch by default"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "Bypass paths require explicit intent and preserve safe defaults"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "Scaffold/checker diagnostics are deterministic"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "Contract-to-tooling branch wiring is quality-gated"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "Operator make/CLI controls remain explicit and deterministic"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "Default scaffold branch behavior and explicit modes verified"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "Branch contract validations enforce synchronization"
+    }
+  ],
+  "edges": [
+    {
+      "from": "FR-001",
+      "to": "AC-002",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-002",
+      "to": "AC-001",
+      "relation": "validated_by"
+    },
+    {
+      "from": "NFR-SEC-001",
+      "to": "AC-001",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-OBS-001",
+      "to": "AC-002",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-REL-001",
+      "to": "AC-002",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-OPS-001",
+      "to": "AC-001",
+      "relation": "constrains"
+    }
+  ]
+}

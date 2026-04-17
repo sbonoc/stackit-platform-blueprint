@@ -172,6 +172,24 @@
       "evidence_artifacts": ["specs/<work-item>/spec.md"],
       "owner": "Product + Architecture",
       "gate": "fail"
+    },
+    {
+      "id": "SDD-C-020",
+      "normative_control": "Code-assistant execution MUST follow the full SDD lifecycle by default; any SDD bypass MUST be an explicit user opt-out instruction captured in work-item context.",
+      "phases": ["Discover", "High-Level Architecture", "Specify", "Plan", "Implement", "Verify", "Document", "Operate", "Publish"],
+      "validation_command": "make quality-sdd-check",
+      "evidence_artifacts": ["AGENTS.md", "CLAUDE.md", "specs/<work-item>/context_pack.md"],
+      "owner": "Product + Architecture",
+      "gate": "fail"
+    },
+    {
+      "id": "SDD-C-021",
+      "normative_control": "Starting a new SDD work item via canonical scaffold tooling MUST create and checkout a dedicated non-default branch unless an explicit opt-out flag is provided.",
+      "phases": ["Discover", "Plan"],
+      "validation_command": "make quality-sdd-check",
+      "evidence_artifacts": ["blueprint/contract.yaml", "scripts/bin/blueprint/spec_scaffold.py", "make/blueprint.generated.mk"],
+      "owner": "Architecture + Engineering",
+      "gate": "fail"
     }
   ]
 }

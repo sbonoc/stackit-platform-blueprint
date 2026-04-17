@@ -219,6 +219,24 @@ def _section_contains_all_targets(section_content: str, required_targets: list[s
     return missing
 
 
+def _strip_readiness_gate_labels_for_marker_scan(
+    aggregate_content: str,
+    *,
+    readiness_field_names: list[str],
+) -> str:
+    sanitized = aggregate_content
+    for field_name in readiness_field_names:
+        if not field_name:
+            continue
+        sanitized = re.sub(
+            rf"^\s*[-*]\s+{re.escape(field_name)}\s*:\s*.*$",
+            "",
+            sanitized,
+            flags=re.IGNORECASE | re.MULTILINE,
+        )
+    return sanitized
+
+
 def _work_item_dirs(specs_root: Path) -> list[Path]:
     if not specs_root.is_dir():
         return []
@@ -664,6 +682,18 @@ def _validate_work_item_specs(
                 )
 
         aggregate = "\n".join((spec_content, tasks_content, traceability_content)).lower()
+        readiness_field_names_for_marker_scan = [
+            status_field,
+            adr_path_field,
+            adr_status_field,
+            "Missing input blocker token",
+            *required_zero_fields,
+            *[f"{signoff} sign-off" for signoff in required_signoffs],
+        ]
+        aggregate_for_marker_scan = _strip_readiness_gate_labels_for_marker_scan(
+            aggregate,
+            readiness_field_names=readiness_field_names_for_marker_scan,
+        )
 
         clarification_count = 0
         if clarification_count_field:
@@ -682,7 +712,7 @@ def _validate_work_item_specs(
 
         clarification_token_present = False
         if clarification_marker_token:
-            clarification_token_present = _contains_term(aggregate, clarification_marker_token)
+            clarification_token_present = _contains_term(aggregate_for_marker_scan, clarification_marker_token)
             if spec_ready and clarification_token_present:
                 violations.append(
                     Violation(
@@ -717,7 +747,7 @@ def _validate_work_item_specs(
 
         if spec_ready and unresolved_tokens:
             for token in unresolved_tokens:
-                if _contains_term(aggregate, token):
+                if _contains_term(aggregate_for_marker_scan, token):
                     violations.append(
                         Violation(
                             path=str(work_item_dir.relative_to(repo_root)),
@@ -1264,6 +1294,60 @@ def _validate_contract_assets(contract_raw: dict[str, Any], repo_root: Path) -> 
     if not phases:
         violations.append(Violation(path="blueprint/contract.yaml", message="SDD lifecycle phases must be declared"))
 
+    branch_contract_raw = _as_mapping(sdd_raw.get("branch_contract"))
+    for required_key in (
+        "dedicated_branch_required_by_default",
+        "explicit_opt_out_flag",
+        "default_prefix",
+        "branch_name_pattern",
+        "enforce_non_default_branch",
+    ):
+        if required_key not in branch_contract_raw:
+            violations.append(
+                Violation(
+                    path="blueprint/contract.yaml",
+                    message=f"branch_contract.{required_key} is required",
+                )
+            )
+
+    repository_raw = _as_mapping(spec_raw.get("repository"))
+    branch_naming_raw = _as_mapping(repository_raw.get("branch_naming"))
+    allowed_prefixes = _as_list_of_str(branch_naming_raw.get("purpose_prefixes"))
+
+    default_prefix = str(branch_contract_raw.get("default_prefix", "")).strip()
+    if default_prefix and allowed_prefixes and default_prefix not in allowed_prefixes:
+        violations.append(
+            Violation(
+                path="blueprint/contract.yaml",
+                message="branch_contract.default_prefix must be declared in repository.branch_naming.purpose_prefixes",
+            )
+        )
+
+    explicit_opt_out_flag = str(branch_contract_raw.get("explicit_opt_out_flag", "")).strip()
+    if explicit_opt_out_flag and not explicit_opt_out_flag.startswith("--"):
+        violations.append(
+            Violation(
+                path="blueprint/contract.yaml",
+                message="branch_contract.explicit_opt_out_flag must be a long-form CLI flag (for example --no-create-branch)",
+            )
+        )
+
+    branch_pattern = str(branch_contract_raw.get("branch_name_pattern", "")).strip()
+    if branch_pattern and "<work-item-slug>" not in branch_pattern:
+        violations.append(
+            Violation(
+                path="blueprint/contract.yaml",
+                message="branch_contract.branch_name_pattern must document <work-item-slug>",
+            )
+        )
+    if branch_pattern and "<YYYY-MM-DD>" not in branch_pattern:
+        violations.append(
+            Violation(
+                path="blueprint/contract.yaml",
+                message="branch_contract.branch_name_pattern must document <YYYY-MM-DD>",
+            )
+        )
+
     artifacts_raw = _as_mapping(sdd_raw.get("artifacts"))
     for required_key in (
         "policy_mapping_file",
@@ -1543,6 +1627,74 @@ def _validate_contract_assets(contract_raw: dict[str, Any], repo_root: Path) -> 
             violations.append(Violation(path=check_script, message="declared SDD quality check script is missing"))
     else:
         violations.append(Violation(path="blueprint/contract.yaml", message="quality.check_script must be set"))
+
+    spec_scaffold_path = repo_root / "scripts/bin/blueprint/spec_scaffold.py"
+    if not spec_scaffold_path.is_file():
+        violations.append(Violation(path="scripts/bin/blueprint/spec_scaffold.py", message="SDD scaffold script is missing"))
+    else:
+        scaffold_content = spec_scaffold_path.read_text(encoding="utf-8", errors="surrogateescape")
+        if "dedicated_branch_required_by_default" not in scaffold_content:
+            violations.append(
+                Violation(
+                    path="scripts/bin/blueprint/spec_scaffold.py",
+                    message="must enforce branch_contract.dedicated_branch_required_by_default",
+                )
+            )
+        if explicit_opt_out_flag and explicit_opt_out_flag not in scaffold_content:
+            violations.append(
+                Violation(
+                    path="scripts/bin/blueprint/spec_scaffold.py",
+                    message=(
+                        "must support branch_contract.explicit_opt_out_flag: "
+                        f"{explicit_opt_out_flag}"
+                    ),
+                )
+            )
+        if "--branch" not in scaffold_content:
+            violations.append(
+                Violation(
+                    path="scripts/bin/blueprint/spec_scaffold.py",
+                    message="must support explicit branch override flag (--branch)",
+                )
+            )
+
+    make_paths = [
+        ("make/blueprint.generated.mk", "generated"),
+        ("scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl", "template"),
+    ]
+    for make_path, label in make_paths:
+        candidate = repo_root / make_path
+        if not candidate.is_file():
+            violations.append(Violation(path=make_path, message=f"{label} makefile is missing"))
+            continue
+        content = candidate.read_text(encoding="utf-8", errors="surrogateescape")
+        if "spec-scaffold:" not in content:
+            violations.append(Violation(path=make_path, message="missing spec-scaffold target"))
+            continue
+        if "SPEC_BRANCH" not in content:
+            violations.append(
+                Violation(
+                    path=make_path,
+                    message="spec-scaffold target must expose SPEC_BRANCH passthrough",
+                )
+            )
+        if "SPEC_NO_BRANCH" not in content:
+            violations.append(
+                Violation(
+                    path=make_path,
+                    message="spec-scaffold target must expose SPEC_NO_BRANCH passthrough",
+                )
+            )
+        if explicit_opt_out_flag and explicit_opt_out_flag not in content:
+            violations.append(
+                Violation(
+                    path=make_path,
+                    message=(
+                        "spec-scaffold target must pass branch_contract.explicit_opt_out_flag to CLI: "
+                        f"{explicit_opt_out_flag}"
+                    ),
+                )
+            )
 
     return violations
 
