@@ -692,7 +692,9 @@ def _collect_platform_make_paths(root: Path, contract: BlueprintContract) -> lis
     if editable_include_dir:
         include_root = root / editable_include_dir
         if include_root.is_dir():
-            for include_file in sorted(include_root.rglob("*.mk")):
+            # Keep discovery aligned with root Makefile include contract:
+            # -include $(wildcard $(PLATFORM_MAKEFILES_DIR)/*.mk)
+            for include_file in sorted(include_root.glob("*.mk")):
                 if not include_file.is_file():
                     continue
                 rel_path = include_file.relative_to(root).as_posix()
