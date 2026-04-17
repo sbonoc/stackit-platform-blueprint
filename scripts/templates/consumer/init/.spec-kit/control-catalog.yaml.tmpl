@@ -193,7 +193,7 @@
     },
     {
       "id": "SDD-C-022",
-      "normative_control": "For work touching HTTP route handlers, query/filter logic, or new API endpoints, plan and publish artifacts MUST include a local smoke gate with positive-path curl assertions and explicit pr_context evidence (`Endpoint / Method / Auth / Result`).",
+      "normative_control": "For work touching HTTP route handlers, query/filter logic, or new API endpoints, plan and publish artifacts MUST include a local smoke gate with positive-path curl assertions and explicit pr_context.md evidence (`Endpoint | Method | Auth | Result`).",
       "phases": ["Plan", "Verify", "Publish"],
       "validation_command": "make quality-sdd-check",
       "evidence_artifacts": ["specs/<work-item>/plan.md", "specs/<work-item>/pr_context.md", "specs/<work-item>/traceability.md"],

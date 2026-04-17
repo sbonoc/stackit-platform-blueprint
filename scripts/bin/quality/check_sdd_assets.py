@@ -69,7 +69,9 @@ def _split_table_cells(line: str) -> list[str]:
     stripped = line.strip()
     if not stripped.startswith("|"):
         return []
-    return [cell.strip() for cell in stripped.strip("|").split("|")]
+    inner = stripped.strip("|")
+    cells = re.split(r"(?<!\\)\|", inner)
+    return [cell.strip().replace("\\|", "|") for cell in cells]
 
 
 def _is_markdown_table_delimiter(line: str) -> bool:

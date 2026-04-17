@@ -15,7 +15,7 @@
 - [ ] T-101 Update unit tests
 - [ ] T-102 Update contract/integration tests as required
 - [ ] T-103 For any new or modified filter/payload-transform route, verify a positive-path unit test exists (matching fixture value returns record and output fields remain intact); capture evidence in `pr_context.md`
-- [ ] T-104 Translate any reproducible pre-PR smoke/`curl` finding into a failing automated test first, then turn it green with the fix in the same work item (or document deterministic exception in publish artifacts)
+- [ ] T-104 Translate any reproducible pre-PR smoke/`curl`/deterministic-check finding into a failing automated test first, then turn it green with the fix in the same work item (or document deterministic exception in publish artifacts)
 
 ## Validate
 - [ ] T-201 Run required quality gates

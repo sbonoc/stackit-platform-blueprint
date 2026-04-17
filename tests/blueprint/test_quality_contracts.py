@@ -140,7 +140,7 @@ class QualityContractsTests(unittest.TestCase):
         )
         expected_tasks_markers = (
             "T-103 For any new or modified filter/payload-transform route",
-            "T-104 Translate any reproducible pre-PR smoke/`curl` finding",
+            "T-104 Translate any reproducible pre-PR smoke/`curl`/deterministic-check finding",
             "capture evidence in `pr_context.md`",
         )
 
