@@ -527,6 +527,22 @@ class QualityContractsTests(unittest.TestCase):
                 (
                     "| Area | Ownership | Edit Mode | Notes |\n"
                     "|---|---|---|---|\n"
+                    "| `foo/specs/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-*.bak`, "
+                    "`docs/blueprint/architecture/decisions/ADR-*.md` | "
+                    "Blueprint source only | Controlled | test |\n"
+                ),
+                encoding="utf-8",
+            )
+            errors = validate_source_artifact_prune_globs_documented(repo_root, contract)
+            self.assertTrue(
+                any("source_artifact_prune_globs_on_init pattern must be documented" in error for error in errors),
+                msg=f"expected exact-token ownership matrix documentation error, got: {errors}",
+            )
+
+            ownership_path.write_text(
+                (
+                    "| Area | Ownership | Edit Mode | Notes |\n"
+                    "|---|---|---|---|\n"
                     "| `specs/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-*`, "
                     "`docs/blueprint/architecture/decisions/ADR-*.md` | "
                     "Blueprint source only | Controlled | test |\n"
