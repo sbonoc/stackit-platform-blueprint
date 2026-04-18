@@ -1,0 +1,108 @@
+{
+  "manifest_version": 1,
+  "work_item": "specs/2026-04-18-upgrade-validation-required-file-reconciliation",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-04-18T06:52:00Z",
+  "files": [
+    {
+      "path": "scripts/lib/blueprint/upgrade_consumer_validate.py",
+      "sha256": "a358f296f579b5dca69ea5fafd6b07f4f8edc5990d5385d56fc4d835400229c5",
+      "bytes": 18370
+    },
+    {
+      "path": "scripts/lib/blueprint/upgrade_preflight.py",
+      "sha256": "ebc834762b599bb6a92e6fdb212a3c4b404d49430a773d76df14f1ec899ba986",
+      "bytes": 11892
+    },
+    {
+      "path": "scripts/lib/blueprint/upgrade_report_metrics.py",
+      "sha256": "b147f4fb2c109c981bf84408d4f30f66cc1696e915f33b655a460429de123848",
+      "bytes": 5116
+    },
+    {
+      "path": "scripts/bin/blueprint/upgrade_consumer_validate.sh",
+      "sha256": "ce2674df1628c3c9804ea131ee4e988fc60363d094313b4a7f8c46b0f5e65af1",
+      "bytes": 3768
+    },
+    {
+      "path": "scripts/lib/blueprint/schemas/upgrade_validate.schema.json",
+      "sha256": "cc0fd4a67bf88f6715b176eda4b43a1582b711476d3d6ff21086c43f413007d9",
+      "bytes": 8466
+    },
+    {
+      "path": "tests/blueprint/test_upgrade_consumer.py",
+      "sha256": "59daa15612fa4608feb90a8059330f7cee8c725594fef13df9dcbec21c929515",
+      "bytes": 63926
+    },
+    {
+      "path": "tests/blueprint/test_upgrade_preflight.py",
+      "sha256": "eb2bd5cbb3179204e6b064b292bd1145bb19f3b976b8b408b049754638fd7f75",
+      "bytes": 9756
+    },
+    {
+      "path": "tests/blueprint/test_upgrade_consumer_wrapper.py",
+      "sha256": "6937bb0625f17f2f9a47ec4ba7fad9934cff5afcb5d1ae6d9d16e0c1a2fb6a3f",
+      "bytes": 7046
+    },
+    {
+      "path": "docs/blueprint/architecture/decisions/ADR-20260418-upgrade-validation-required-file-reconciliation.md",
+      "sha256": "12d1a713afc5585cfd45b0c4d5aa354ea4aeab758425b5e57138b4ff0a3d84c8",
+      "bytes": 4036
+    },
+    {
+      "path": "specs/2026-04-18-upgrade-validation-required-file-reconciliation/architecture.md",
+      "sha256": "35b98853570010c2432757a3827c991a0a3857d6a269faea1c835a1f26c186f3",
+      "bytes": 4020
+    },
+    {
+      "path": "specs/2026-04-18-upgrade-validation-required-file-reconciliation/spec.md",
+      "sha256": "f79da5d5980dd23eb44913b3f2d33de79dca7c7d385c33112f40869ad9f448c7",
+      "bytes": 5616
+    },
+    {
+      "path": "specs/2026-04-18-upgrade-validation-required-file-reconciliation/plan.md",
+      "sha256": "f4d88a613960e873fec63b7f45d80218b1a07115be7b9925c5457e005bd3fc3e",
+      "bytes": 5452
+    },
+    {
+      "path": "specs/2026-04-18-upgrade-validation-required-file-reconciliation/tasks.md",
+      "sha256": "72c7ddc5169fc2aedfd07219936d444113c645c1828ae4d43dcaa526e54f1136",
+      "bytes": 2724
+    },
+    {
+      "path": "specs/2026-04-18-upgrade-validation-required-file-reconciliation/traceability.md",
+      "sha256": "2fb61388df58d3181bf232d316095ed542abfd8e2c2df3dd5e2e8d2acb9a2ab2",
+      "bytes": 6671
+    },
+    {
+      "path": "specs/2026-04-18-upgrade-validation-required-file-reconciliation/graph.yaml",
+      "sha256": "9aa41f3718561cd47ca2091fc442923c772d39144ae4675e7b5e17be645dd1da",
+      "bytes": 2552
+    },
+    {
+      "path": "specs/2026-04-18-upgrade-validation-required-file-reconciliation/context_pack.md",
+      "sha256": "bb7290e5d79a7cfc3f379ce08cb02f4f7a3a99e433b8f1f15ce5fd57901b6cbd",
+      "bytes": 1188
+    },
+    {
+      "path": "specs/2026-04-18-upgrade-validation-required-file-reconciliation/pr_context.md",
+      "sha256": "b549d3f6a6690d78af828b8aa2c0d70bf7f495ce5bde18aaa7b40a4dfc3e6307",
+      "bytes": 2657
+    },
+    {
+      "path": "specs/2026-04-18-upgrade-validation-required-file-reconciliation/hardening_review.md",
+      "sha256": "49fb5cadf6c13ea2264a7dd4f7c73ad3f51f03fe004542ceda033b2fee09f447",
+      "bytes": 1872
+    },
+    {
+      "path": "AGENTS.backlog.md",
+      "sha256": "e42c8a5ec9b918c7aaf1bd20cb43db1908dc77a7e1dc63f17c74c21e2d056167",
+      "bytes": 5534
+    },
+    {
+      "path": "AGENTS.decisions.md",
+      "sha256": "c7f29d9852165637a8815e103c29e1ff2c62f927df91919269cc3913224cbff7",
+      "bytes": 41067
+    }
+  ]
+}

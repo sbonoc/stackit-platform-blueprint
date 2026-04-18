@@ -65,6 +65,21 @@ emit_validate_report_metrics() {
     validate_runtime_dependency_missing_total)
       log_metric "blueprint_upgrade_validate_runtime_dependency_missing_total" "$value"
       ;;
+    validate_required_files_expected_total)
+      log_metric "blueprint_upgrade_validate_required_files_expected_total" "$value"
+      ;;
+    validate_required_files_missing_total)
+      log_metric "blueprint_upgrade_validate_required_files_missing_total" "$value"
+      ;;
+    validate_generated_reference_missing_paths_total)
+      log_metric "blueprint_upgrade_validate_generated_reference_missing_paths_total" "$value"
+      ;;
+    validate_generated_reference_missing_targets_total)
+      log_metric "blueprint_upgrade_validate_generated_reference_missing_targets_total" "$value"
+      ;;
+    validate_generated_reference_failed_targets_total)
+      log_metric "blueprint_upgrade_validate_generated_reference_failed_targets_total" "$value"
+      ;;
     esac
   done < <(
     python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_report_metrics.py" \

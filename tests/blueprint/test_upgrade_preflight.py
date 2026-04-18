@@ -6,12 +6,40 @@ import sys
 import tempfile
 import unittest
 
+from scripts.lib.blueprint.contract_schema import load_blueprint_contract
 from tests._shared.exec import DEFAULT_TEST_COMMAND_TIMEOUT_SECONDS, run_command
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 UPGRADE_PREFLIGHT_SCRIPT = REPO_ROOT / "scripts/lib/blueprint/upgrade_preflight.py"
 UPGRADE_PREFLIGHT_WRAPPER = REPO_ROOT / "scripts/bin/blueprint/upgrade_consumer_preflight.sh"
+
+
+def _contract_text_for_repo_mode(repo_mode: str, *, drop_paths: tuple[str, ...] = ()) -> str:
+    content = (REPO_ROOT / "blueprint/contract.yaml").read_text(encoding="utf-8").replace(
+        "repo_mode: template-source",
+        f"repo_mode: {repo_mode}",
+        1,
+    )
+    drop_set = set(drop_paths)
+    filtered_lines: list[str] = []
+    in_required_files = False
+    for line in content.splitlines(keepends=True):
+        if line.startswith("    required_files:"):
+            in_required_files = True
+            filtered_lines.append(line)
+            continue
+
+        if in_required_files and line.startswith("    ") and not line.startswith("      - "):
+            in_required_files = False
+
+        if in_required_files and line.startswith("      - "):
+            candidate = line.strip()[2:].strip()
+            if candidate in drop_set:
+                continue
+
+        filtered_lines.append(line)
+    return "".join(filtered_lines)
 
 
 class UpgradePreflightTests(unittest.TestCase):
@@ -33,13 +61,26 @@ class UpgradePreflightTests(unittest.TestCase):
             repo_root = Path(tmpdir)
             artifacts_dir = repo_root / "artifacts/blueprint"
             artifacts_dir.mkdir(parents=True, exist_ok=True)
+            contract = load_blueprint_contract(REPO_ROOT / "blueprint/contract.yaml")
+            keep_required_paths = {
+                "README.md",
+                "docs/reference/generated/contract_metadata.generated.md",
+            }
+            drop_required_paths = tuple(
+                path for path in contract.repository.required_files if path not in keep_required_paths
+            )
+            (repo_root / "blueprint").mkdir(parents=True, exist_ok=True)
+            (repo_root / "blueprint/contract.yaml").write_text(
+                _contract_text_for_repo_mode("generated-consumer", drop_paths=drop_required_paths),
+                encoding="utf-8",
+            )
 
             plan_payload = {
                 "entries": [
                     {"path": "README.md", "action": "create"},
                     {"path": "scripts/bin/blueprint/upgrade_consumer.sh", "action": "update"},
                     {"path": "docs/platform/consumer/quickstart.md", "action": "merge-required"},
-                    {"path": "blueprint/contract.yaml", "action": "conflict"},
+                    {"path": "docs/reference/generated/contract_metadata.generated.md", "action": "conflict"},
                     {"path": "docs/legacy.md", "action": "skip"},
                 ],
                 "required_manual_actions": [
@@ -92,6 +133,9 @@ class UpgradePreflightTests(unittest.TestCase):
             self.assertEqual(summary["required_manual_action_count"], 2)
             self.assertEqual(summary["required_follow_up_command_count"], 3)
             self.assertEqual(summary["blocking_path_count"], 4)
+            self.assertEqual(summary["required_surface_delta_count"], 2)
+            self.assertEqual(summary["required_surface_auto_apply_count"], 1)
+            self.assertEqual(summary["required_surface_at_risk_count"], 1)
             self.assertEqual(
                 report["required_follow_up_commands"],
                 [
@@ -103,10 +147,26 @@ class UpgradePreflightTests(unittest.TestCase):
             self.assertEqual(
                 report["blocking_paths"],
                 [
-                    "blueprint/contract.yaml",
                     "blueprint/runtime_identity_contract.yaml",
                     "docs/platform/consumer/quickstart.md",
                     "docs/platform/consumer/runtime_credentials_eso.md",
+                    "docs/reference/generated/contract_metadata.generated.md",
+                ],
+            )
+            required_surfaces = report["required_surface_reconciliation"]
+            self.assertTrue(required_surfaces["contract_available"])
+            self.assertEqual(required_surfaces["repo_mode"], "generated-consumer")
+            self.assertEqual(required_surfaces["required_files_expected_count"], 2)
+            self.assertEqual(len(required_surfaces["required_surface_deltas"]), 2)
+            self.assertEqual(required_surfaces["required_surfaces_auto_apply"], ["README.md"])
+            self.assertEqual(
+                required_surfaces["required_surfaces_at_risk"],
+                [
+                    {
+                        "action": "conflict",
+                        "path": "docs/reference/generated/contract_metadata.generated.md",
+                        "risk_reasons": ["plan-action:conflict"],
+                    }
                 ],
             )
 

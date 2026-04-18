@@ -41,6 +41,9 @@
   - unresolved merge-marker detection is centralized in `scripts/lib/blueprint/merge_markers.py`.
   - wrapper metric extraction for plan/apply/validate reports is centralized in `scripts/lib/blueprint/upgrade_report_metrics.py` (no inline Python heredocs in shell wrappers).
   - upgrade artifacts (`upgrade_plan.json`, `upgrade_apply.json`, `upgrade_validate.json`) have canonical JSON Schema definitions under `scripts/lib/blueprint/schemas/`.
+  - post-upgrade validate now enforces repo-mode-aware required-file reconciliation derived from `blueprint/contract.yaml`, writes `artifacts/blueprint/upgrade/required_files_status.json`, and fails deterministically when active-mode required files are missing.
+  - generated reference docs (`docs/reference/generated/core_targets.generated.md` and `docs/reference/generated/contract_metadata.generated.md`) are now validated as a coupled contract in validate output, with explicit missing/failed-target diagnostics.
+  - preflight output now includes `required_surface_reconciliation` and `required_surfaces_at_risk` so required-surface risk is visible before apply.
 - Blueprint docs/template mirror drift is explicitly checked:
   - `make quality-docs-check-blueprint-template-sync` verifies `docs/blueprint/**` and `scripts/templates/blueprint/bootstrap/docs/blueprint/**` remain synchronized.
   - `make quality-hooks-fast` includes this check in the default fast quality lane.

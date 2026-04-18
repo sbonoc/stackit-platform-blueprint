@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+from pathlib import PurePosixPath
 import sys
 from typing import Any
 
@@ -15,6 +16,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from scripts.lib.blueprint.cli_support import display_repo_path, resolve_repo_root  # noqa: E402
+from scripts.lib.blueprint.contract_schema import BlueprintContract, load_blueprint_contract  # noqa: E402
 
 
 def _resolve_repo_scoped_path(repo_root: Path, value: str, arg_name: str) -> Path:
@@ -46,6 +48,65 @@ def _collect_entries(payload: dict[str, Any], key: str) -> list[dict[str, Any]]:
     if not isinstance(value, list):
         return []
     return [entry for entry in value if isinstance(entry, dict)]
+
+
+def _path_is_same_or_child(path: str, parent: str) -> bool:
+    path_parts = PurePosixPath(path).parts
+    parent_parts = PurePosixPath(parent).parts
+    if not parent_parts:
+        return False
+    if len(path_parts) < len(parent_parts):
+        return False
+    return path_parts[: len(parent_parts)] == parent_parts
+
+
+def _required_files_for_repo_mode(contract: BlueprintContract) -> tuple[list[str], list[str]]:
+    required_files = list(contract.repository.required_files)
+    repository = contract.repository
+    if repository.repo_mode != repository.consumer_init.mode_to:
+        return sorted(required_files), []
+
+    source_only_paths = repository.source_only_paths
+    filtered: list[str] = []
+    excluded: list[str] = []
+    for relative_path in required_files:
+        if any(_path_is_same_or_child(relative_path, source_only_path) for source_only_path in source_only_paths):
+            excluded.append(relative_path)
+            continue
+        filtered.append(relative_path)
+    return sorted(filtered), sorted(excluded)
+
+
+def _required_files_contract_context(repo_root: Path) -> dict[str, Any]:
+    contract_path = repo_root / "blueprint/contract.yaml"
+    if not contract_path.is_file():
+        return {
+            "contract_available": False,
+            "contract_error": f"missing blueprint contract: {contract_path}",
+            "repo_mode": "unknown",
+            "required_files": [],
+            "excluded_by_repo_mode": [],
+        }
+
+    try:
+        contract = load_blueprint_contract(contract_path)
+    except Exception as exc:
+        return {
+            "contract_available": False,
+            "contract_error": f"unable to load blueprint contract: {exc}",
+            "repo_mode": "unknown",
+            "required_files": [],
+            "excluded_by_repo_mode": [],
+        }
+
+    required_files, excluded_by_repo_mode = _required_files_for_repo_mode(contract)
+    return {
+        "contract_available": True,
+        "contract_error": "",
+        "repo_mode": contract.repository.repo_mode,
+        "required_files": required_files,
+        "excluded_by_repo_mode": excluded_by_repo_mode,
+    }
 
 
 def _build_report(
@@ -99,6 +160,59 @@ def _build_report(
             if isinstance(action.get("dependency_path"), str) and str(action.get("dependency_path", "")).strip()
         }
     )
+    contract_context = _required_files_contract_context(repo_root)
+    required_files_set = set(contract_context["required_files"])
+
+    required_surface_deltas: list[dict[str, Any]] = []
+    for entry in plan_entries:
+        path = str(entry.get("path", "")).strip()
+        if not path or path not in required_files_set:
+            continue
+        required_surface_deltas.append(entry)
+
+    manual_dependency_paths = {
+        str(action.get("dependency_path", "")).strip()
+        for action in required_manual_actions
+        if isinstance(action.get("dependency_path"), str) and str(action.get("dependency_path", "")).strip()
+    }
+
+    required_surfaces_at_risk: list[dict[str, Any]] = []
+    for entry in required_surface_deltas:
+        path = str(entry.get("path", "")).strip()
+        action = str(entry.get("action", "")).strip()
+        risk_reasons: list[str] = []
+        if action in {"merge-required", "conflict", "skip"}:
+            risk_reasons.append(f"plan-action:{action}")
+        if path in manual_dependency_paths:
+            risk_reasons.append("required-manual-action")
+        if risk_reasons:
+            required_surfaces_at_risk.append(
+                {
+                    "path": path,
+                    "action": action,
+                    "risk_reasons": risk_reasons,
+                }
+            )
+
+    required_surface_paths = {str(entry.get("path", "")).strip() for entry in required_surface_deltas}
+    for dependency_path in sorted(manual_dependency_paths & required_files_set):
+        if dependency_path in required_surface_paths:
+            continue
+        required_surfaces_at_risk.append(
+            {
+                "path": dependency_path,
+                "action": "required-manual-action",
+                "risk_reasons": ["required-manual-action"],
+            }
+        )
+
+    required_surfaces_auto_apply = [
+        str(entry.get("path", "")).strip()
+        for entry in required_surface_deltas
+        if str(entry.get("action", "")).strip() in {"create", "update"}
+    ]
+    required_surfaces_auto_apply = sorted(path for path in required_surfaces_auto_apply if path)
+    required_surfaces_at_risk = sorted(required_surfaces_at_risk, key=lambda entry: str(entry.get("path", "")))
 
     summary = {
         "plan_entry_count": len(plan_entries),
@@ -110,6 +224,9 @@ def _build_report(
         "required_manual_action_count": len(required_manual_actions),
         "required_follow_up_command_count": len(required_follow_up_commands),
         "blocking_path_count": len(blocking_paths),
+        "required_surface_delta_count": len(required_surface_deltas),
+        "required_surface_auto_apply_count": len(required_surfaces_auto_apply),
+        "required_surface_at_risk_count": len(required_surfaces_at_risk),
     }
 
     return {
@@ -123,6 +240,16 @@ def _build_report(
         "required_manual_actions": required_manual_actions,
         "required_follow_up_commands": required_follow_up_commands,
         "blocking_paths": blocking_paths,
+        "required_surface_reconciliation": {
+            "contract_available": contract_context["contract_available"],
+            "contract_error": contract_context["contract_error"],
+            "repo_mode": contract_context["repo_mode"],
+            "required_files_expected_count": len(contract_context["required_files"]),
+            "required_files_excluded_by_repo_mode": contract_context["excluded_by_repo_mode"],
+            "required_surface_deltas": required_surface_deltas,
+            "required_surfaces_auto_apply": required_surfaces_auto_apply,
+            "required_surfaces_at_risk": required_surfaces_at_risk,
+        },
     }
 
 
@@ -170,7 +297,8 @@ def main() -> int:
         f"(auto_apply={summary.get('auto_apply_count', 0)} "
         f"manual_merge={summary.get('manual_merge_count', 0)} "
         f"conflicts={summary.get('conflict_count', 0)} "
-        f"required_manual_actions={summary.get('required_manual_action_count', 0)})"
+        f"required_manual_actions={summary.get('required_manual_action_count', 0)} "
+        f"required_surfaces_at_risk={summary.get('required_surface_at_risk_count', 0)})"
     )
     return 0
 
