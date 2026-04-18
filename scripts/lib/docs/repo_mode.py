@@ -36,9 +36,10 @@ def resolve_docs_repo_context(repo_root: Path) -> DocsRepoContext:
 
     allowed_modes = set(contract.repository.allowed_repo_modes)
     if allowed_modes and repo_mode not in allowed_modes:
+        allowed_display = ", ".join(sorted(allowed_modes))
         raise ValueError(
             "spec.repository.repo_mode must be one of "
-            f"spec.repository.allowed_repo_modes: {repo_mode}"
+            f"spec.repository.allowed_repo_modes [{allowed_display}]; got: {repo_mode}"
         )
     if repo_mode not in _SUPPORTED_REPO_MODES:
         raise ValueError(f"unsupported repository repo_mode for docs sync: {repo_mode}")

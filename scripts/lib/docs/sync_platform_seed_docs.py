@@ -20,36 +20,104 @@ from scripts.lib.docs.repo_mode import (  # noqa: E402
 )
 
 
+def _validate_repo_relative_contract_path(*, repo_root: Path, path_value: Path, field_name: str) -> Path:
+    normalized = path_value.as_posix().strip()
+    if not normalized:
+        raise ValueError(f"{field_name} must be set")
+    if path_value.is_absolute():
+        raise ValueError(f"{field_name} must be a repository-relative path, not an absolute path")
+    if ".." in path_value.parts:
+        raise ValueError(f"{field_name} must not contain parent-directory traversal")
+
+    repo_root_resolved = repo_root.resolve()
+    candidate_resolved = (repo_root / path_value).resolve()
+    try:
+        relative_candidate = candidate_resolved.relative_to(repo_root_resolved)
+    except ValueError as exc:  # pragma: no cover - defensive path safety guard.
+        raise ValueError(f"{field_name} must resolve inside repository root: {path_value.as_posix()}") from exc
+    return relative_candidate
+
+
+def _validate_required_seed_file_relative(
+    *,
+    repo_root: Path,
+    source_root: Path,
+    required_entry: str,
+) -> str:
+    normalized = required_entry.strip()
+    if not normalized:
+        raise ValueError("docs_contract.platform_docs.required_seed_files entries must be non-empty")
+
+    contract_path = Path(normalized)
+    if contract_path.is_absolute():
+        raise ValueError(
+            "docs_contract.platform_docs.required_seed_files entries must be repository-relative paths: "
+            f"{normalized}"
+        )
+    if ".." in contract_path.parts:
+        raise ValueError(
+            "docs_contract.platform_docs.required_seed_files entries must not contain parent-directory traversal: "
+            f"{normalized}"
+        )
+
+    repo_root_resolved = repo_root.resolve()
+    source_root_resolved = (repo_root / source_root).resolve()
+    contract_path_resolved = (repo_root / contract_path).resolve()
+    try:
+        contract_path_resolved.relative_to(repo_root_resolved)
+    except ValueError as exc:  # pragma: no cover - defensive path safety guard.
+        raise ValueError(
+            "docs_contract.platform_docs.required_seed_files entries must resolve inside repository root: "
+            f"{normalized}"
+        ) from exc
+
+    try:
+        relative_path = contract_path_resolved.relative_to(source_root_resolved)
+    except ValueError as exc:
+        raise ValueError(
+            "docs_contract.platform_docs.required_seed_files entry must be under configured root "
+            f"{source_root.as_posix()}: {normalized}"
+        ) from exc
+
+    if relative_path == Path(".") or not relative_path.as_posix().strip():
+        raise ValueError(
+            "docs_contract.platform_docs.required_seed_files entry must resolve to a file under "
+            f"{source_root.as_posix()}: {normalized}"
+        )
+    if relative_path.is_absolute() or ".." in relative_path.parts:
+        raise ValueError(
+            "docs_contract.platform_docs.required_seed_files entry resolved to an unsafe relative path under "
+            f"{source_root.as_posix()}: {normalized}"
+        )
+    return relative_path.as_posix()
+
+
 def _resolve_platform_docs_contract(repo_root: Path) -> tuple[str, Path, Path, tuple[str, ...]]:
     context = resolve_docs_repo_context(repo_root)
     platform_docs = context.contract.docs_contract.platform_docs
-    source_root = Path(platform_docs.root)
-    template_root = Path(platform_docs.template_root)
-    if not source_root.as_posix().strip():
-        raise ValueError("docs_contract.platform_docs.root must be set")
-    if not template_root.as_posix().strip():
-        raise ValueError("docs_contract.platform_docs.template_root must be set")
+    source_root = _validate_repo_relative_contract_path(
+        repo_root=repo_root,
+        path_value=Path(platform_docs.root),
+        field_name="docs_contract.platform_docs.root",
+    )
+    template_root = _validate_repo_relative_contract_path(
+        repo_root=repo_root,
+        path_value=Path(platform_docs.template_root),
+        field_name="docs_contract.platform_docs.template_root",
+    )
 
     required_seed_files = tuple(platform_docs.required_seed_files)
     if not required_seed_files:
         raise ValueError("docs_contract.platform_docs.required_seed_files must define at least one file")
 
-    required_relative: list[str] = []
-    source_prefix = f"{source_root.as_posix().rstrip('/')}/"
-    for absolute_path in required_seed_files:
-        normalized = absolute_path.strip()
-        if not normalized.startswith(source_prefix):
-            raise ValueError(
-                "docs_contract.platform_docs.required_seed_files entry must be under configured root "
-                f"{source_root.as_posix()}: {normalized}"
-            )
-        relative = normalized.removeprefix(source_prefix).strip("/")
-        if not relative:
-            raise ValueError(
-                "docs_contract.platform_docs.required_seed_files entry must resolve to a file under "
-                f"{source_root.as_posix()}: {normalized}"
-            )
-        required_relative.append(relative)
+    required_relative = [
+        _validate_required_seed_file_relative(
+            repo_root=repo_root,
+            source_root=source_root,
+            required_entry=required_path,
+        )
+        for required_path in required_seed_files
+    ]
 
     return (
         context.repo_mode,
@@ -162,7 +230,7 @@ def _sync_generated_consumer(
             for relative in orphan_relatives:
                 template_path = template_root / relative
                 source_path = source_root / relative
-                if source_path.is_file():
+                if source_path.exists():
                     print(
                         "generated-consumer template orphan (remove template copy): "
                         f"{display_repo_path(repo_root, template_path)}",
@@ -185,7 +253,7 @@ def _sync_generated_consumer(
     for relative in orphan_relatives:
         template_path = template_root / relative
         source_path = source_root / relative
-        if source_path.is_file():
+        if source_path.exists():
             template_path.unlink()
             summary.removed_path(template_path)
             continue

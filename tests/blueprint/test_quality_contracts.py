@@ -654,8 +654,48 @@ class QualityContractsTests(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            with self.assertRaisesRegex(ValueError, "spec.repository.repo_mode"):
+            with self.assertRaisesRegex(ValueError, "spec.repository.repo_mode") as exc:
                 resolve_docs_repo_context(repo_root)
+            self.assertIn("template-source", str(exc.exception))
+            self.assertIn("generated-consumer", str(exc.exception))
+
+    def test_platform_seed_sync_rejects_non_repo_relative_contract_roots(self) -> None:
+        generator = REPO_ROOT / "scripts/lib/docs/sync_platform_seed_docs.py"
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            contract_path = repo_root / "blueprint/contract.yaml"
+            contract_path.parent.mkdir(parents=True, exist_ok=True)
+            contract_text = _contract_text_for_repo_mode("generated-consumer")
+            contract_path.write_text(
+                contract_text.replace("root: docs/platform", "root: ../outside-platform", 1),
+                encoding="utf-8",
+            )
+
+            result = run([sys.executable, str(generator), "--repo-root", str(repo_root), "--check"])
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("docs_contract.platform_docs.root must not contain parent-directory traversal", result.stderr)
+
+    def test_platform_seed_sync_rejects_required_seed_file_traversal(self) -> None:
+        generator = REPO_ROOT / "scripts/lib/docs/sync_platform_seed_docs.py"
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            contract_path = repo_root / "blueprint/contract.yaml"
+            contract_path.parent.mkdir(parents=True, exist_ok=True)
+            contract_text = _contract_text_for_repo_mode("generated-consumer")
+            modified_contract_text = contract_text.replace(
+                "      required_seed_files:\n        - docs/platform/consumer/first_30_minutes.md",
+                "      required_seed_files:\n        - docs/platform/../outside.md",
+                1,
+            )
+            self.assertIn("docs/platform/../outside.md", modified_contract_text)
+            contract_path.write_text(
+                modified_contract_text,
+                encoding="utf-8",
+            )
+
+            result = run([sys.executable, str(generator), "--repo-root", str(repo_root), "--check"])
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("required_seed_files entries must not contain parent-directory traversal", result.stderr)
 
     def test_platform_seed_sync_generated_consumer_moves_orphan_template_docs(self) -> None:
         generator = REPO_ROOT / "scripts/lib/docs/sync_platform_seed_docs.py"
@@ -679,10 +719,15 @@ class QualityContractsTests(unittest.TestCase):
             orphan_missing_source_template.write_text("# custom guide from template orphan\n", encoding="utf-8")
             orphan_existing_source_template = template_root / "consumer/manual-notes.md"
             orphan_existing_source_template.write_text("# duplicated manual notes copy\n", encoding="utf-8")
+            orphan_directory_template = template_root / "consumer/folderized-guide"
+            orphan_directory_template.write_text("# stale template file that must be removed\n", encoding="utf-8")
 
             existing_source = source_root / "consumer/manual-notes.md"
             existing_source.parent.mkdir(parents=True, exist_ok=True)
             existing_source.write_text("# canonical source manual notes\n", encoding="utf-8")
+            existing_directory_source = source_root / "consumer/folderized-guide"
+            existing_directory_source.mkdir(parents=True, exist_ok=True)
+            (existing_directory_source / "README.md").write_text("# consumer-owned directory\n", encoding="utf-8")
 
             result = run([sys.executable, str(generator), "--repo-root", str(repo_root)])
             self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
@@ -695,6 +740,8 @@ class QualityContractsTests(unittest.TestCase):
             )
             self.assertFalse(orphan_missing_source_template.exists())
             self.assertFalse(orphan_existing_source_template.exists())
+            self.assertFalse(orphan_directory_template.exists())
+            self.assertTrue(existing_directory_source.is_dir())
             self.assertTrue(quickstart_template.exists(), msg="required seed template file must be preserved")
 
     def test_platform_seed_check_generated_consumer_reports_orphan_template_docs(self) -> None:
