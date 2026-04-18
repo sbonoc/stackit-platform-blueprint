@@ -1246,6 +1246,7 @@ class UpgradeConsumerValidateTests(unittest.TestCase):
             self.assertEqual(summary.get("runtime_dependency_missing_count"), 0)
             self.assertEqual(summary.get("required_files_missing_count"), 0)
             self.assertEqual(summary.get("generated_reference_missing_path_count"), 0)
+            self.assertEqual(summary.get("contract_load_error_count"), 0)
             runtime_dependency_check = report.get("runtime_dependency_edge_check", {})
             self.assertIsInstance(runtime_dependency_check, dict)
             self.assertGreaterEqual(len(runtime_dependency_check.get("required_edges", [])), 1)
@@ -1282,6 +1283,7 @@ class UpgradeConsumerValidateTests(unittest.TestCase):
             summary = report.get("summary", {})
             self.assertEqual(summary.get("status"), "failure")
             self.assertGreater(summary.get("merge_markers_pre_count", 0), 0)
+            self.assertEqual(summary.get("contract_load_error_count"), 0)
             _assert_json_schema(report, VALIDATE_SCHEMA)
 
     def test_validate_fails_when_runtime_dependency_edge_is_missing(self) -> None:
@@ -1309,6 +1311,7 @@ class UpgradeConsumerValidateTests(unittest.TestCase):
             summary = report.get("summary", {})
             self.assertEqual(summary.get("status"), "failure")
             self.assertEqual(summary.get("runtime_dependency_missing_count"), 1)
+            self.assertEqual(summary.get("contract_load_error_count"), 0)
             runtime_dependency_check = report.get("runtime_dependency_edge_check", {})
             self.assertEqual(len(runtime_dependency_check.get("missing", [])), 1)
             missing = runtime_dependency_check.get("missing", [])[0]
@@ -1341,6 +1344,7 @@ class UpgradeConsumerValidateTests(unittest.TestCase):
             summary = report.get("summary", {})
             self.assertEqual(summary.get("status"), "failure")
             self.assertEqual(summary.get("required_files_missing_count"), 1)
+            self.assertEqual(summary.get("contract_load_error_count"), 0)
             required_reconciliation = report.get("required_file_reconciliation", {})
             self.assertEqual(required_reconciliation.get("missing_paths"), [missing_path])
             entries = required_reconciliation.get("entries", [])
@@ -1377,6 +1381,7 @@ class UpgradeConsumerValidateTests(unittest.TestCase):
             report = _load_json(repo / "artifacts/blueprint/upgrade_validate.json")
             required_reconciliation = report.get("required_file_reconciliation", {})
             self.assertEqual(required_reconciliation.get("missing_count"), 0)
+            self.assertEqual(report.get("summary", {}).get("contract_load_error_count"), 0)
             excluded = required_reconciliation.get("excluded_by_repo_mode", [])
             self.assertIn(source_only_required_path, excluded)
             _assert_json_schema(report, VALIDATE_SCHEMA)
@@ -1406,7 +1411,43 @@ class UpgradeConsumerValidateTests(unittest.TestCase):
             report = _load_json(repo / "artifacts/blueprint/upgrade_validate.json")
             required_reconciliation = report.get("required_file_reconciliation", {})
             self.assertEqual(required_reconciliation.get("missing_count"), 1)
+            self.assertEqual(report.get("summary", {}).get("contract_load_error_count"), 0)
             self.assertEqual(required_reconciliation.get("missing_paths"), [source_only_required_path])
+            _assert_json_schema(report, VALIDATE_SCHEMA)
+
+    def test_validate_writes_failure_artifacts_when_contract_cannot_be_loaded(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            repo = self._create_validation_repo(tmp_root)
+            _write(repo / "blueprint/contract.yaml", "<<<<<<< HEAD\n")
+
+            result = _run(
+                [
+                    sys.executable,
+                    str(VALIDATE_SCRIPT),
+                    "--repo-root",
+                    str(repo),
+                ],
+                cwd=REPO_ROOT,
+            )
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("unable to load blueprint contract for required-files reconciliation", result.stderr)
+
+            report = _load_json(repo / "artifacts/blueprint/upgrade_validate.json")
+            summary = report.get("summary", {})
+            self.assertEqual(summary.get("status"), "failure")
+            self.assertEqual(summary.get("commands_total"), 0)
+            self.assertEqual(summary.get("contract_load_error_count"), 1)
+            self.assertGreaterEqual(summary.get("generated_reference_missing_target_count"), 1)
+            self.assertGreater(summary.get("merge_markers_pre_count", 0), 0)
+            self.assertIsInstance(report.get("contract_load_error"), str)
+
+            required_files_status = _load_json(repo / "artifacts/blueprint/upgrade/required_files_status.json")
+            self.assertIsInstance(required_files_status.get("contract_load_error"), str)
+            self.assertEqual(
+                required_files_status.get("required_file_reconciliation", {}).get("repo_mode"),
+                "unknown",
+            )
             _assert_json_schema(report, VALIDATE_SCHEMA)
 
 

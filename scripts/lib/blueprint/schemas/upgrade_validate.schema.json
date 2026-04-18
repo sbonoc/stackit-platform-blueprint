@@ -253,8 +253,17 @@
               }
             }
           }
+        },
+        "contract_load_error": {
+          "type": "string"
         }
       }
+    },
+    "contract_load_error": {
+      "type": [
+        "string",
+        "null"
+      ]
     },
     "command_results": {
       "type": "array",
@@ -314,6 +323,7 @@
         "generated_reference_missing_path_count",
         "generated_reference_missing_target_count",
         "generated_reference_failed_target_count",
+        "contract_load_error_count",
         "commands_total"
       ],
       "properties": {
@@ -352,6 +362,9 @@
           "type": "integer"
         },
         "generated_reference_failed_target_count": {
+          "type": "integer"
+        },
+        "contract_load_error_count": {
           "type": "integer"
         },
         "commands_total": {

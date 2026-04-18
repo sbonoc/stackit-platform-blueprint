@@ -88,6 +88,7 @@ def _emit_validate_metrics(report_path: Path) -> Iterable[str]:
             "validate_generated_reference_failed_targets_total="
             + str(_as_int(summary.get("generated_reference_failed_target_count", 0)))
         ),
+        f"validate_contract_load_error_total={_as_int(summary.get('contract_load_error_count', 0))}",
     ]
 
 

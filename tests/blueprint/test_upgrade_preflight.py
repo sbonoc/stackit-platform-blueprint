@@ -170,6 +170,63 @@ class UpgradePreflightTests(unittest.TestCase):
                 ],
             )
 
+    def test_preflight_excludes_benign_skip_and_keeps_missing_target_skip_as_risk(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            artifacts_dir = repo_root / "artifacts/blueprint"
+            artifacts_dir.mkdir(parents=True, exist_ok=True)
+            contract = load_blueprint_contract(REPO_ROOT / "blueprint/contract.yaml")
+            keep_required_paths = {"README.md"}
+            drop_required_paths = tuple(path for path in contract.repository.required_files if path not in keep_required_paths)
+            (repo_root / "blueprint").mkdir(parents=True, exist_ok=True)
+            (repo_root / "blueprint/contract.yaml").write_text(
+                _contract_text_for_repo_mode("generated-consumer", drop_paths=drop_required_paths),
+                encoding="utf-8",
+            )
+
+            plan_payload = {
+                "entries": [
+                    {
+                        "path": "README.md",
+                        "action": "skip",
+                        "reason": "path already matches upgrade source content",
+                        "source_exists": True,
+                        "target_exists": True,
+                    },
+                    {
+                        "path": "README.md",
+                        "action": "skip",
+                        "reason": "path is consumer-owned and excluded from blueprint upgrade apply",
+                        "source_exists": True,
+                        "target_exists": False,
+                    },
+                ],
+                "required_manual_actions": [],
+            }
+            apply_payload = {"results": []}
+            (artifacts_dir / "upgrade_plan.json").write_text(json.dumps(plan_payload), encoding="utf-8")
+            (artifacts_dir / "upgrade_apply.json").write_text(json.dumps(apply_payload), encoding="utf-8")
+
+            report_path = artifacts_dir / "upgrade_preflight.json"
+            result = self._run_preflight(repo_root)
+
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            report = json.loads(report_path.read_text(encoding="utf-8"))
+            summary = report["summary"]
+            self.assertEqual(summary["required_surface_delta_count"], 2)
+            self.assertEqual(summary["required_surface_at_risk_count"], 1)
+            required_surfaces = report["required_surface_reconciliation"]
+            self.assertEqual(
+                required_surfaces["required_surfaces_at_risk"],
+                [
+                    {
+                        "action": "skip",
+                        "path": "README.md",
+                        "risk_reasons": ["plan-action:skip-missing-target"],
+                    }
+                ],
+            )
+
     def test_preflight_fails_when_apply_report_is_missing(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)

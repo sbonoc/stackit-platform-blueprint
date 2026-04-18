@@ -80,6 +80,9 @@ emit_validate_report_metrics() {
     validate_generated_reference_failed_targets_total)
       log_metric "blueprint_upgrade_validate_generated_reference_failed_targets_total" "$value"
       ;;
+    validate_contract_load_error_total)
+      log_metric "blueprint_upgrade_validate_contract_load_error_total" "$value"
+      ;;
     esac
   done < <(
     python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_report_metrics.py" \

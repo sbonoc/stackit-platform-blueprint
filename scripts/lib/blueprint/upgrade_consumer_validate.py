@@ -297,6 +297,19 @@ def _build_generated_reference_contract_check(
     }
 
 
+def _empty_required_file_reconciliation(*, contract_load_error: str) -> dict[str, Any]:
+    return {
+        "repo_mode": "unknown",
+        "expected_count": 0,
+        "present_count": 0,
+        "missing_count": 0,
+        "missing_paths": [],
+        "excluded_by_repo_mode": [],
+        "entries": [],
+        "contract_load_error": contract_load_error,
+    }
+
+
 def _detect_missing_runtime_dependency_edges(repo_root: Path) -> list[dict[str, str]]:
     missing: list[dict[str, str]] = []
     for consumer_path, dependency_path in RUNTIME_DEPENDENCY_EDGES:
@@ -338,26 +351,36 @@ def main() -> int:
         print(str(exc), file=sys.stderr)
         return 1
 
+    merge_markers_pre = find_merge_markers(repo_root)
+    contract: BlueprintContract | None = None
+    contract_load_error = ""
     try:
         contract = load_blueprint_contract(repo_root / "blueprint/contract.yaml")
     except Exception as exc:
-        print(f"unable to load blueprint contract for required-files reconciliation: {exc}", file=sys.stderr)
-        return 1
+        contract_load_error = f"unable to load blueprint contract for required-files reconciliation: {exc}"
 
-    merge_markers_pre = find_merge_markers(repo_root)
-    command_results = [_run_make_target(repo_root, target) for target in VALIDATION_TARGETS]
+    command_results: list[ValidationCommandResult] = []
+    if not contract_load_error:
+        command_results = [_run_make_target(repo_root, target) for target in VALIDATION_TARGETS]
     merge_markers_post = find_merge_markers(repo_root)
     missing_runtime_dependencies = _detect_missing_runtime_dependency_edges(repo_root)
-    required_file_reconciliation = _build_required_file_reconciliation(repo_root=repo_root, contract=contract)
+    if contract is None:
+        required_file_reconciliation = _empty_required_file_reconciliation(contract_load_error=contract_load_error)
+    else:
+        required_file_reconciliation = _build_required_file_reconciliation(repo_root=repo_root, contract=contract)
     generated_reference_contract = _build_generated_reference_contract_check(
         repo_root=repo_root,
         command_results=command_results,
     )
+    if contract_load_error:
+        generated_reference_contract["status"] = "failure"
+        generated_reference_contract["contract_load_error"] = contract_load_error
 
     failed_targets = [result.target for result in command_results if result.returncode != 0]
     status = "success"
     if (
-        failed_targets
+        contract_load_error
+        or failed_targets
         or merge_markers_pre
         or merge_markers_post
         or missing_runtime_dependencies
@@ -383,6 +406,7 @@ def main() -> int:
         },
         "required_file_reconciliation": required_file_reconciliation,
         "generated_reference_contract_check": generated_reference_contract,
+        "contract_load_error": contract_load_error or None,
         "command_results": [result.as_dict() for result in command_results],
         "summary": {
             "status": status,
@@ -395,6 +419,7 @@ def main() -> int:
             "generated_reference_missing_path_count": len(generated_reference_contract["missing_paths"]),
             "generated_reference_missing_target_count": len(generated_reference_contract["missing_targets"]),
             "generated_reference_failed_target_count": len(generated_reference_contract["failed_targets"]),
+            "contract_load_error_count": 1 if contract_load_error else 0,
             "commands_total": len(command_results),
         },
     }
@@ -403,6 +428,7 @@ def main() -> int:
         "report_generated_at": payload["report_generated_at"],
         "required_file_reconciliation": required_file_reconciliation,
         "generated_reference_contract_check": generated_reference_contract,
+        "contract_load_error": payload["contract_load_error"],
     }
 
     _write_json(required_files_status_path, required_files_status_payload)
@@ -434,6 +460,8 @@ def main() -> int:
             "upgrade validation runtime dependency edges missing required files: " + diagnostics,
             file=sys.stderr,
         )
+    if contract_load_error:
+        print(contract_load_error, file=sys.stderr)
     if required_file_reconciliation["missing_count"] > 0:
         missing_entries = [
             entry

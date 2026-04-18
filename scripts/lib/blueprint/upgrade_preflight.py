@@ -50,6 +50,16 @@ def _collect_entries(payload: dict[str, Any], key: str) -> list[dict[str, Any]]:
     return [entry for entry in value if isinstance(entry, dict)]
 
 
+def _skip_action_is_required_surface_risk(entry: dict[str, Any]) -> bool:
+    # Skip actions are noisy by default because many are benign no-ops
+    # (`path already matches upgrade source content`). Treat them as risky
+    # only when the required surface is absent and therefore unreconciled.
+    target_exists = entry.get("target_exists")
+    if isinstance(target_exists, bool):
+        return not target_exists
+    return False
+
+
 def _path_is_same_or_child(path: str, parent: str) -> bool:
     path_parts = PurePosixPath(path).parts
     parent_parts = PurePosixPath(parent).parts
@@ -181,8 +191,10 @@ def _build_report(
         path = str(entry.get("path", "")).strip()
         action = str(entry.get("action", "")).strip()
         risk_reasons: list[str] = []
-        if action in {"merge-required", "conflict", "skip"}:
+        if action in {"merge-required", "conflict"}:
             risk_reasons.append(f"plan-action:{action}")
+        elif action == "skip" and _skip_action_is_required_surface_risk(entry):
+            risk_reasons.append("plan-action:skip-missing-target")
         if path in manual_dependency_paths:
             risk_reasons.append("required-manual-action")
         if risk_reasons:
