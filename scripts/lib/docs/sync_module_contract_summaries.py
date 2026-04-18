@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Sync generated module contract summary blocks into source and template docs."""
+"""Sync generated module contract summaries with repo-mode-aware template behavior."""
 
 from __future__ import annotations
 
@@ -18,6 +18,7 @@ from scripts.lib.blueprint.cli_support import (  # noqa: E402
     resolve_repo_root,
 )
 from scripts.lib.blueprint.contract_schema import load_module_contract  # noqa: E402
+from scripts.lib.docs.repo_mode import resolve_docs_repo_context  # noqa: E402
 
 
 BEGIN_MARKER = "<!-- BEGIN GENERATED MODULE CONTRACT SUMMARY -->"
@@ -91,6 +92,8 @@ def main() -> int:
     args = parse_args()
     repo_root = resolve_repo_root(args.repo_root, __file__)
     summary = ChangeSummary("quality-docs-sync-module-contract-summaries")
+    repo_context = resolve_docs_repo_context(repo_root)
+    template_sync_enabled = repo_context.template_sync_enabled
     modules_dir = repo_root / "blueprint/modules"
     module_contracts = sorted(modules_dir.glob("*/module.contract.yaml"))
     if not module_contracts:
@@ -112,17 +115,17 @@ def main() -> int:
             outputs=module_contract.outputs,
         )
         rendered_source = _replace_marked_block(source_doc.read_text(encoding="utf-8"), rendered_block, source_doc)
-        rendered_template = rendered_source
 
         if args.check:
             if source_doc.read_text(encoding="utf-8") != rendered_source:
                 out_of_date.append(display_repo_path(repo_root, source_doc))
-            if template_doc.read_text(encoding="utf-8") != rendered_template:
+            if template_sync_enabled and template_doc.read_text(encoding="utf-8") != rendered_source:
                 out_of_date.append(display_repo_path(repo_root, template_doc))
             continue
 
         _apply(source_doc, rendered_source, dry_run=False, summary=summary)
-        _apply(template_doc, rendered_template, dry_run=False, summary=summary)
+        if template_sync_enabled:
+            _apply(template_doc, rendered_source, dry_run=False, summary=summary)
 
     if args.check:
         if out_of_date:

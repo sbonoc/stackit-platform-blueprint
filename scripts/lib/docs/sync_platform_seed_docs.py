@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Sync/check docs/platform seed docs mirrored into bootstrap template docs."""
+"""Sync/check platform docs ownership boundaries across repo modes."""
 
 from __future__ import annotations
 
@@ -13,10 +13,118 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from scripts.lib.blueprint.cli_support import ChangeSummary, display_repo_path, resolve_repo_root  # noqa: E402
+from scripts.lib.docs.repo_mode import (  # noqa: E402
+    REPO_MODE_GENERATED_CONSUMER,
+    REPO_MODE_TEMPLATE_SOURCE,
+    resolve_docs_repo_context,
+)
 
 
-SOURCE_ROOT = Path("docs/platform")
-TEMPLATE_ROOT = Path("scripts/templates/blueprint/bootstrap/docs/platform")
+def _validate_repo_relative_contract_path(*, repo_root: Path, path_value: Path, field_name: str) -> Path:
+    normalized = path_value.as_posix().strip()
+    if not normalized:
+        raise ValueError(f"{field_name} must be set")
+    if path_value.is_absolute():
+        raise ValueError(f"{field_name} must be a repository-relative path, not an absolute path")
+    if ".." in path_value.parts:
+        raise ValueError(f"{field_name} must not contain parent-directory traversal")
+
+    repo_root_resolved = repo_root.resolve()
+    candidate_resolved = (repo_root / path_value).resolve()
+    try:
+        relative_candidate = candidate_resolved.relative_to(repo_root_resolved)
+    except ValueError as exc:  # pragma: no cover - defensive path safety guard.
+        raise ValueError(f"{field_name} must resolve inside repository root: {path_value.as_posix()}") from exc
+    return relative_candidate
+
+
+def _validate_required_seed_file_relative(
+    *,
+    repo_root: Path,
+    source_root: Path,
+    required_entry: str,
+) -> str:
+    normalized = required_entry.strip()
+    if not normalized:
+        raise ValueError("docs_contract.platform_docs.required_seed_files entries must be non-empty")
+
+    contract_path = Path(normalized)
+    if contract_path.is_absolute():
+        raise ValueError(
+            "docs_contract.platform_docs.required_seed_files entries must be repository-relative paths: "
+            f"{normalized}"
+        )
+    if ".." in contract_path.parts:
+        raise ValueError(
+            "docs_contract.platform_docs.required_seed_files entries must not contain parent-directory traversal: "
+            f"{normalized}"
+        )
+
+    repo_root_resolved = repo_root.resolve()
+    source_root_resolved = (repo_root / source_root).resolve()
+    contract_path_resolved = (repo_root / contract_path).resolve()
+    try:
+        contract_path_resolved.relative_to(repo_root_resolved)
+    except ValueError as exc:  # pragma: no cover - defensive path safety guard.
+        raise ValueError(
+            "docs_contract.platform_docs.required_seed_files entries must resolve inside repository root: "
+            f"{normalized}"
+        ) from exc
+
+    try:
+        relative_path = contract_path_resolved.relative_to(source_root_resolved)
+    except ValueError as exc:
+        raise ValueError(
+            "docs_contract.platform_docs.required_seed_files entry must be under configured root "
+            f"{source_root.as_posix()}: {normalized}"
+        ) from exc
+
+    if relative_path == Path(".") or not relative_path.as_posix().strip():
+        raise ValueError(
+            "docs_contract.platform_docs.required_seed_files entry must resolve to a file under "
+            f"{source_root.as_posix()}: {normalized}"
+        )
+    if relative_path.is_absolute() or ".." in relative_path.parts:
+        raise ValueError(
+            "docs_contract.platform_docs.required_seed_files entry resolved to an unsafe relative path under "
+            f"{source_root.as_posix()}: {normalized}"
+        )
+    return relative_path.as_posix()
+
+
+def _resolve_platform_docs_contract(repo_root: Path) -> tuple[str, Path, Path, tuple[str, ...]]:
+    context = resolve_docs_repo_context(repo_root)
+    platform_docs = context.contract.docs_contract.platform_docs
+    source_root = _validate_repo_relative_contract_path(
+        repo_root=repo_root,
+        path_value=Path(platform_docs.root),
+        field_name="docs_contract.platform_docs.root",
+    )
+    template_root = _validate_repo_relative_contract_path(
+        repo_root=repo_root,
+        path_value=Path(platform_docs.template_root),
+        field_name="docs_contract.platform_docs.template_root",
+    )
+
+    required_seed_files = tuple(platform_docs.required_seed_files)
+    if not required_seed_files:
+        raise ValueError("docs_contract.platform_docs.required_seed_files must define at least one file")
+
+    required_relative = [
+        _validate_required_seed_file_relative(
+            repo_root=repo_root,
+            source_root=source_root,
+            required_entry=required_path,
+        )
+        for required_path in required_seed_files
+    ]
+
+    return (
+        context.repo_mode,
+        source_root,
+        template_root,
+        tuple(sorted(set(required_relative))),
+    )
 
 
 def _list_files(root: Path) -> dict[str, Path]:
@@ -29,19 +137,31 @@ def _list_files(root: Path) -> dict[str, Path]:
     }
 
 
-def _sync(repo_root: Path, check: bool) -> int:
-    source_root = repo_root / SOURCE_ROOT
-    template_root = repo_root / TEMPLATE_ROOT
-
+def _sync_template_source(
+    *,
+    repo_root: Path,
+    source_root: Path,
+    template_root: Path,
+    required_relative_files: tuple[str, ...],
+    check: bool,
+) -> int:
     if not source_root.is_dir():
         raise ValueError(f"missing source platform docs root: {source_root}")
+    if not template_root.is_dir():
+        raise ValueError(f"missing template platform docs root: {template_root}")
 
-    source_files = _list_files(source_root)
+    required_set = set(required_relative_files)
     template_files = _list_files(template_root)
     summary = ChangeSummary("quality-docs-sync-platform-seed")
     out_of_sync: list[str] = []
 
-    for relative, source_path in source_files.items():
+    for relative in required_relative_files:
+        source_path = source_root / relative
+        if not source_path.is_file():
+            raise ValueError(
+                "missing required platform docs source file for template sync: "
+                f"{display_repo_path(repo_root, source_path)}"
+            )
         target_path = template_root / relative
         source_content = source_path.read_text(encoding="utf-8")
         if target_path.is_file():
@@ -63,7 +183,7 @@ def _sync(repo_root: Path, check: bool) -> int:
         target_path.write_text(source_content, encoding="utf-8")
         summary.created_path(target_path)
 
-    extra_template = sorted(set(template_files) - set(source_files))
+    extra_template = sorted(set(template_files) - required_set)
     for relative in extra_template:
         target_path = template_root / relative
         if check:
@@ -85,6 +205,92 @@ def _sync(repo_root: Path, check: bool) -> int:
 
     summary.emit(dry_run=False)
     return 0
+
+
+def _sync_generated_consumer(
+    *,
+    repo_root: Path,
+    source_root: Path,
+    template_root: Path,
+    required_relative_files: tuple[str, ...],
+    check: bool,
+) -> int:
+    if not source_root.is_dir():
+        raise ValueError(f"missing source platform docs root: {source_root}")
+    if not template_root.is_dir():
+        raise ValueError(f"missing template platform docs root: {template_root}")
+
+    summary = ChangeSummary("quality-docs-clean-generated-consumer-platform-template")
+    template_files = _list_files(template_root)
+    required_set = set(required_relative_files)
+    orphan_relatives = sorted(set(template_files) - required_set)
+
+    if check:
+        if orphan_relatives:
+            for relative in orphan_relatives:
+                template_path = template_root / relative
+                source_path = source_root / relative
+                if source_path.exists():
+                    print(
+                        "generated-consumer template orphan (remove template copy): "
+                        f"{display_repo_path(repo_root, template_path)}",
+                        file=sys.stderr,
+                    )
+                else:
+                    print(
+                        "generated-consumer template orphan (move to source and remove template): "
+                        f"{display_repo_path(repo_root, template_path)} -> "
+                        f"{display_repo_path(repo_root, source_path)}",
+                        file=sys.stderr,
+                    )
+            print(
+                "Run: python3 scripts/lib/docs/sync_platform_seed_docs.py",
+                file=sys.stderr,
+            )
+            return 1
+        return 0
+
+    for relative in orphan_relatives:
+        template_path = template_root / relative
+        source_path = source_root / relative
+        if source_path.exists():
+            template_path.unlink()
+            summary.removed_path(template_path)
+            continue
+
+        source_path.parent.mkdir(parents=True, exist_ok=True)
+        template_path.replace(source_path)
+        summary.created_path(source_path)
+        summary.removed_path(template_path)
+
+    summary.emit(dry_run=False)
+    return 0
+
+
+def _sync(repo_root: Path, check: bool) -> int:
+    repo_mode, source_root_rel, template_root_rel, required_relative_files = _resolve_platform_docs_contract(repo_root)
+    source_root = repo_root / source_root_rel
+    template_root = repo_root / template_root_rel
+
+    if repo_mode == REPO_MODE_TEMPLATE_SOURCE:
+        return _sync_template_source(
+            repo_root=repo_root,
+            source_root=source_root,
+            template_root=template_root,
+            required_relative_files=required_relative_files,
+            check=check,
+        )
+
+    if repo_mode == REPO_MODE_GENERATED_CONSUMER:
+        return _sync_generated_consumer(
+            repo_root=repo_root,
+            source_root=source_root,
+            template_root=template_root,
+            required_relative_files=required_relative_files,
+            check=check,
+        )
+
+    raise ValueError(f"unsupported repository repo_mode for platform docs sync: {repo_mode}")
 
 
 def main() -> int:

@@ -297,3 +297,9 @@
   - `SDD-C-023`: positive-path filter/payload-transform test coverage.
   - `SDD-C-024`: reproducible finding translation to red->green automated regression tests.
   - rendered catalog and consumer-init mirror artifacts are synchronized in the same change.
+- Platform docs ownership boundaries are now repo-mode-aware to prevent generated-consumer duplication:
+  - `sync_platform_seed_docs.py` now enforces strict `required_seed_files` synchronization only in `template-source` mode.
+  - `generated-consumer` mode now treats template paths as blueprint seeds only and performs deterministic orphan cleanup under `scripts/templates/blueprint/bootstrap/docs/platform/**` for files outside `required_seed_files` (move-to-source when missing, otherwise remove template copy).
+  - runtime and module summary docs generators now skip template synchronization/check coupling in `generated-consumer` mode and continue source-doc validation.
+  - upgrade/bootstrap workflows inherit cleanup behavior through existing `make blueprint-bootstrap` execution without introducing new targets.
+  - docs sync scripts now share centralized repo-mode resolution in `scripts/lib/docs/repo_mode.py`, so mode validation and template-sync toggling are implemented once and reused consistently.
