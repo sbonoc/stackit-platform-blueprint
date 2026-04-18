@@ -141,6 +141,7 @@
   - `apps-ci-bootstrap-consumer` is now a generated-consumer fail-fast placeholder in `make/platform.mk`; blueprint no longer assumes consumer app paths for dependency install.
   - generated-consumer maintainers must replace that target with deterministic repository-specific dependency bootstrap commands; template-source mode skips the placeholder to keep source CI deterministic.
   - upgrade planning/preflight now emits required-manual-action diagnostics when platform-owned Make targets required by blueprint CI surfaces (for example `apps-ci-bootstrap`) are missing in generated-consumer repositories.
+  - upgrade planning/preflight now also emits required-manual-action diagnostics for contract-required consumer-owned Make targets even when no known invoker path is present, using deterministic fallback dependency context (`blueprint/contract.yaml: spec.make_contract.required_targets -> <target>`) and location guidance (`make/platform.mk` or `make/platform/*.mk`).
 - Helm chart pin coverage is guarded against repo-prefix drift:
   - tests assert every non-OCI chart pin in `infra/audit_version.sh` has a matching repo-prefix mapping in `scripts/lib/infra/tooling.sh`.
 - Async message-contract testing is an opt-in Pact contract lane:

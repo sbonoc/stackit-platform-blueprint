@@ -1,0 +1,123 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-04-17-upgrade-preflight-required-make-target-checklist",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "Emit manual action for each missing contract-required consumer-owned make target"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "Emit missing-target action even without known invoker reference"
+    },
+    {
+      "id": "FR-003",
+      "type": "requirement",
+      "summary": "Include deterministic target-location guidance in reason"
+    },
+    {
+      "id": "FR-004",
+      "type": "requirement",
+      "summary": "Use invoker dependency context when available, fallback to contract reference otherwise"
+    },
+    {
+      "id": "FR-005",
+      "type": "requirement",
+      "summary": "Retain placeholder safeguards with location guidance"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "No new privileged operations in detection path"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "Deterministic machine-readable diagnostics"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "Regression-safe preservation of existing behavior"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "Operator remediation flow remains deterministic"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "Red-green regression test covers missing required target gap"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "Reason includes target and expected location guidance"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "Dependency context uses invoker or contract fallback"
+    },
+    {
+      "id": "AC-004",
+      "type": "acceptance",
+      "summary": "Existing placeholder safeguards stay green"
+    },
+    {
+      "id": "AC-005",
+      "type": "acceptance",
+      "summary": "Consumer docs explain required-target checklist behavior"
+    }
+  ],
+  "edges": [
+    {
+      "from": "FR-001",
+      "to": "AC-001",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-002",
+      "to": "AC-001",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-003",
+      "to": "AC-002",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-004",
+      "to": "AC-003",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-005",
+      "to": "AC-004",
+      "relation": "validated_by"
+    },
+    {
+      "from": "NFR-SEC-001",
+      "to": "AC-004",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-OBS-001",
+      "to": "AC-002",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-REL-001",
+      "to": "AC-004",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-OPS-001",
+      "to": "AC-005",
+      "relation": "constrains"
+    }
+  ]
+}

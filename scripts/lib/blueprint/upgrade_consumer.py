@@ -692,7 +692,9 @@ def _collect_platform_make_paths(root: Path, contract: BlueprintContract) -> lis
     if editable_include_dir:
         include_root = root / editable_include_dir
         if include_root.is_dir():
-            for include_file in sorted(include_root.rglob("*.mk")):
+            # Keep discovery aligned with root Makefile include contract:
+            # -include $(wildcard $(PLATFORM_MAKEFILES_DIR)/*.mk)
+            for include_file in sorted(include_root.glob("*.mk")):
                 if not include_file.is_file():
                     continue
                 rel_path = include_file.relative_to(root).as_posix()
@@ -781,6 +783,19 @@ def _source_make_target_reference(source_repo: Path, target_name: str) -> str | 
     return None
 
 
+def _platform_make_location_hint(contract: BlueprintContract) -> str:
+    ownership = contract.make_contract.ownership
+    platform_makefile = ownership.platform_editable_file.strip()
+    include_dir = ownership.platform_editable_include_dir.strip()
+    if platform_makefile and include_dir:
+        return f"`{platform_makefile}` or linked includes under `{include_dir}/*.mk`"
+    if platform_makefile:
+        return f"`{platform_makefile}`"
+    if include_dir:
+        return f"linked includes under `{include_dir}/*.mk`"
+    return "platform-owned make surfaces"
+
+
 def _collect_missing_platform_make_target_actions(
     repo_root: Path,
     source_repo: Path,
@@ -796,6 +811,7 @@ def _collect_missing_platform_make_target_actions(
     target_targets = set(target_target_definitions.keys())
     required_targets = set(source_scope_contract.make_contract.required_targets)
     platform_makefile = contract.make_contract.ownership.platform_editable_file
+    location_hint = _platform_make_location_hint(contract)
 
     actions: list[RequiredManualAction] = []
     for target_name in sorted(source_target_definitions.keys()):
@@ -804,15 +820,24 @@ def _collect_missing_platform_make_target_actions(
         if target_name in target_targets:
             continue
         reference_path = _source_make_target_reference(source_repo, target_name)
-        if reference_path is None:
-            continue
+        dependency_of = (
+            f"{reference_path}: make {target_name}"
+            if reference_path is not None
+            else f"blueprint/contract.yaml: spec.make_contract.required_targets -> {target_name}"
+        )
+        reference_reason = (
+            f"; `{reference_path}` invokes it and validation will fail until the target is added"
+            if reference_path is not None
+            else "; contract validation enforces this target for generated-consumer repositories"
+        )
         actions.append(
             RequiredManualAction(
                 dependency_path=platform_makefile,
-                dependency_of=f"{reference_path}: make {target_name}",
+                dependency_of=dependency_of,
                 reason=(
-                    f"required make target `{target_name}` is missing from platform-owned make surfaces; "
-                    f"{reference_path} invokes it and validation will fail until the target is added"
+                    f"required make target `{target_name}` is missing from consumer-owned platform make surfaces; "
+                    f"define `{target_name}` in {location_hint} before running upgrade validation"
+                    f"{reference_reason}"
                 ),
                 required_follow_up_commands=("make blueprint-upgrade-consumer-validate",),
             )
@@ -830,7 +855,7 @@ def _collect_missing_platform_make_target_actions(
                     reason=(
                         f"required consumer-owned make target `{APPS_CI_BOOTSTRAP_CONSUMER_TARGET}` is missing; "
                         f"`{APPS_CI_BOOTSTRAP_TARGET}` invokes it and CI dependency bootstrap cannot be completed "
-                        "until the target is implemented"
+                        f"until the target is implemented; define it in {location_hint}"
                     ),
                     required_follow_up_commands=("make blueprint-upgrade-consumer-validate",),
                 )
@@ -845,7 +870,8 @@ def _collect_missing_platform_make_target_actions(
                     dependency_of=bootstrap_dependency_of,
                     reason=(
                         f"required consumer-owned make target `{APPS_CI_BOOTSTRAP_CONSUMER_TARGET}` is still "
-                        "placeholder; replace it with deterministic repository-specific dependency bootstrap commands"
+                        "placeholder; replace it with deterministic repository-specific dependency bootstrap commands "
+                        f"in {location_hint}"
                     ),
                     required_follow_up_commands=("make blueprint-upgrade-consumer-validate",),
                 )
@@ -868,7 +894,7 @@ def _collect_missing_platform_make_target_actions(
                     reason=(
                         f"required consumer-owned make target `{LOCAL_POST_DEPLOY_HOOK_CONSUMER_TARGET}` is missing "
                         f"while {LOCAL_POST_DEPLOY_HOOK_ENABLE_FLAG}=true; "
-                        f"{LOCAL_POST_DEPLOY_HOOK_COMMAND_ENV} invokes it by default"
+                        f"{LOCAL_POST_DEPLOY_HOOK_COMMAND_ENV} invokes it by default; define it in {location_hint}"
                     ),
                     required_follow_up_commands=("make blueprint-upgrade-consumer-validate",),
                 )
@@ -884,7 +910,7 @@ def _collect_missing_platform_make_target_actions(
                     reason=(
                         f"required consumer-owned make target `{LOCAL_POST_DEPLOY_HOOK_CONSUMER_TARGET}` is still "
                         f"placeholder while {LOCAL_POST_DEPLOY_HOOK_ENABLE_FLAG}=true; replace it with deterministic "
-                        "repository-specific post-deploy reconciliation commands"
+                        f"repository-specific post-deploy reconciliation commands in {location_hint}"
                     ),
                     required_follow_up_commands=("make blueprint-upgrade-consumer-validate",),
                 )
