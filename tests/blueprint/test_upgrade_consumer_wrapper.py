@@ -63,6 +63,7 @@ class UpgradeConsumerWrapperTests(unittest.TestCase):
             tmp_root = Path(tmpdir)
             consumer_repo = tmp_root / "consumer"
             consumer_repo.mkdir(parents=True, exist_ok=True)
+            _write(consumer_repo / "Makefile", ".PHONY: noop\nnoop:\n\t@:\n")
 
             _copy_file(UPGRADE_WRAPPER_REL, consumer_repo)
             _copy_file(CONTRACT_RUNTIME_REL, consumer_repo)

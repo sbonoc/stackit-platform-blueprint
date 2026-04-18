@@ -56,15 +56,35 @@ def _commit_all(repo: Path, message: str) -> None:
     _require_success(_git(repo, "commit", "-m", message), f"git commit -m {message}")
 
 
-def _generated_contract_text(*, drop_paths: tuple[str, ...] = ()) -> str:
+def _contract_text_for_repo_mode(repo_mode: str, *, drop_paths: tuple[str, ...] = ()) -> str:
     content = (REPO_ROOT / "blueprint/contract.yaml").read_text(encoding="utf-8").replace(
         "repo_mode: template-source",
-        "repo_mode: generated-consumer",
+        f"repo_mode: {repo_mode}",
         1,
     )
-    for path in drop_paths:
-        content = content.replace(f"      - {path}\n", "")
-    return content
+    drop_set = set(drop_paths)
+    filtered_lines: list[str] = []
+    in_required_files = False
+    for line in content.splitlines(keepends=True):
+        if line.startswith("    required_files:"):
+            in_required_files = True
+            filtered_lines.append(line)
+            continue
+
+        if in_required_files and line.startswith("    ") and not line.startswith("      - "):
+            in_required_files = False
+
+        if in_required_files and line.startswith("      - "):
+            candidate = line.strip()[2:].strip()
+            if candidate in drop_set:
+                continue
+
+        filtered_lines.append(line)
+    return "".join(filtered_lines)
+
+
+def _generated_contract_text(*, drop_paths: tuple[str, ...] = ()) -> str:
+    return _contract_text_for_repo_mode("generated-consumer", drop_paths=drop_paths)
 
 
 def _template_version() -> str:
@@ -1142,7 +1162,15 @@ class UpgradeConsumerTests(unittest.TestCase):
 
 
 class UpgradeConsumerValidateTests(unittest.TestCase):
-    def _create_validation_repo(self, tmp_root: Path, *, include_marker: bool = False) -> Path:
+    def _create_validation_repo(
+        self,
+        tmp_root: Path,
+        *,
+        include_marker: bool = False,
+        repo_mode: str = "generated-consumer",
+        missing_required_paths: tuple[str, ...] = (),
+        include_source_only_required_path: str | None = None,
+    ) -> Path:
         repo = tmp_root / "validate"
         _init_git_repo(repo)
 
@@ -1159,7 +1187,34 @@ class UpgradeConsumerValidateTests(unittest.TestCase):
             lines.append(f"{target}:")
             lines.append("\t@mkdir -p artifacts/blueprint")
             lines.append(f"\t@echo {target} >> artifacts/blueprint/validate_targets.log")
-        _write(repo / "Makefile", "\n".join(lines) + "\n")
+
+        contract = load_blueprint_contract(REPO_ROOT / "blueprint/contract.yaml")
+        keep_required_paths = {
+            "Makefile",
+            "blueprint/contract.yaml",
+            "docs/reference/generated/core_targets.generated.md",
+            "docs/reference/generated/contract_metadata.generated.md",
+        }
+        if include_source_only_required_path:
+            keep_required_paths.add(include_source_only_required_path)
+        drop_required_paths = tuple(
+            path for path in contract.repository.required_files if path not in keep_required_paths
+        )
+        _write(
+            repo / "blueprint/contract.yaml",
+            _contract_text_for_repo_mode(repo_mode, drop_paths=drop_required_paths),
+        )
+
+        for required_path in sorted(keep_required_paths):
+            if required_path == "blueprint/contract.yaml":
+                continue
+            if required_path in missing_required_paths:
+                continue
+            if required_path == "Makefile":
+                _write(repo / "Makefile", "\n".join(lines) + "\n")
+                continue
+            _write(repo / required_path, f"{required_path}\n")
+
         if include_marker:
             _write(repo / "marker.txt", "<<<<<<< HEAD\n")
 
@@ -1189,10 +1244,18 @@ class UpgradeConsumerValidateTests(unittest.TestCase):
             self.assertEqual(summary.get("merge_markers_pre_count"), 0)
             self.assertEqual(summary.get("merge_markers_post_count"), 0)
             self.assertEqual(summary.get("runtime_dependency_missing_count"), 0)
+            self.assertEqual(summary.get("required_files_missing_count"), 0)
+            self.assertEqual(summary.get("generated_reference_missing_path_count"), 0)
+            self.assertEqual(summary.get("contract_load_error_count"), 0)
             runtime_dependency_check = report.get("runtime_dependency_edge_check", {})
             self.assertIsInstance(runtime_dependency_check, dict)
             self.assertGreaterEqual(len(runtime_dependency_check.get("required_edges", [])), 1)
             self.assertEqual(runtime_dependency_check.get("missing", []), [])
+            required_files_report = _load_json(repo / "artifacts/blueprint/upgrade/required_files_status.json")
+            self.assertEqual(
+                required_files_report.get("required_file_reconciliation", {}).get("missing_count"),
+                0,
+            )
             _assert_json_schema(report, VALIDATE_SCHEMA)
 
             command_results = report.get("command_results", [])
@@ -1220,6 +1283,7 @@ class UpgradeConsumerValidateTests(unittest.TestCase):
             summary = report.get("summary", {})
             self.assertEqual(summary.get("status"), "failure")
             self.assertGreater(summary.get("merge_markers_pre_count", 0), 0)
+            self.assertEqual(summary.get("contract_load_error_count"), 0)
             _assert_json_schema(report, VALIDATE_SCHEMA)
 
     def test_validate_fails_when_runtime_dependency_edge_is_missing(self) -> None:
@@ -1247,6 +1311,7 @@ class UpgradeConsumerValidateTests(unittest.TestCase):
             summary = report.get("summary", {})
             self.assertEqual(summary.get("status"), "failure")
             self.assertEqual(summary.get("runtime_dependency_missing_count"), 1)
+            self.assertEqual(summary.get("contract_load_error_count"), 0)
             runtime_dependency_check = report.get("runtime_dependency_edge_check", {})
             self.assertEqual(len(runtime_dependency_check.get("missing", [])), 1)
             missing = runtime_dependency_check.get("missing", [])[0]
@@ -1254,6 +1319,134 @@ class UpgradeConsumerValidateTests(unittest.TestCase):
             self.assertEqual(
                 missing.get("dependency_path"),
                 "scripts/bin/platform/auth/reconcile_runtime_identity.sh",
+            )
+            _assert_json_schema(report, VALIDATE_SCHEMA)
+
+    def test_validate_fails_when_required_file_is_missing(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            missing_path = "docs/reference/generated/core_targets.generated.md"
+            repo = self._create_validation_repo(tmp_root, missing_required_paths=(missing_path,))
+
+            result = _run(
+                [
+                    sys.executable,
+                    str(VALIDATE_SCRIPT),
+                    "--repo-root",
+                    str(repo),
+                ],
+                cwd=REPO_ROOT,
+            )
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("missing required files for active repo_mode", result.stderr)
+
+            report = _load_json(repo / "artifacts/blueprint/upgrade_validate.json")
+            summary = report.get("summary", {})
+            self.assertEqual(summary.get("status"), "failure")
+            self.assertEqual(summary.get("required_files_missing_count"), 1)
+            self.assertEqual(summary.get("contract_load_error_count"), 0)
+            required_reconciliation = report.get("required_file_reconciliation", {})
+            self.assertEqual(required_reconciliation.get("missing_paths"), [missing_path])
+            entries = required_reconciliation.get("entries", [])
+            self.assertIsInstance(entries, list)
+            missing_entries = [entry for entry in entries if isinstance(entry, dict) and entry.get("status") == "missing"]
+            self.assertEqual(len(missing_entries), 1)
+            self.assertEqual(missing_entries[0].get("path"), missing_path)
+            remediation = missing_entries[0].get("remediation", {})
+            self.assertEqual(remediation.get("action"), "render")
+            _assert_json_schema(report, VALIDATE_SCHEMA)
+
+    def test_validate_generated_consumer_repo_mode_excludes_source_only_required_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            source_only_required_path = "tests/blueprint/contract_refactor_governance_structure_cases.py"
+            repo = self._create_validation_repo(
+                tmp_root,
+                repo_mode="generated-consumer",
+                include_source_only_required_path=source_only_required_path,
+                missing_required_paths=(source_only_required_path,),
+            )
+
+            result = _run(
+                [
+                    sys.executable,
+                    str(VALIDATE_SCRIPT),
+                    "--repo-root",
+                    str(repo),
+                ],
+                cwd=REPO_ROOT,
+            )
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+
+            report = _load_json(repo / "artifacts/blueprint/upgrade_validate.json")
+            required_reconciliation = report.get("required_file_reconciliation", {})
+            self.assertEqual(required_reconciliation.get("missing_count"), 0)
+            self.assertEqual(report.get("summary", {}).get("contract_load_error_count"), 0)
+            excluded = required_reconciliation.get("excluded_by_repo_mode", [])
+            self.assertIn(source_only_required_path, excluded)
+            _assert_json_schema(report, VALIDATE_SCHEMA)
+
+    def test_validate_template_source_repo_mode_requires_source_only_required_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            source_only_required_path = "tests/blueprint/contract_refactor_governance_structure_cases.py"
+            repo = self._create_validation_repo(
+                tmp_root,
+                repo_mode="template-source",
+                include_source_only_required_path=source_only_required_path,
+                missing_required_paths=(source_only_required_path,),
+            )
+
+            result = _run(
+                [
+                    sys.executable,
+                    str(VALIDATE_SCRIPT),
+                    "--repo-root",
+                    str(repo),
+                ],
+                cwd=REPO_ROOT,
+            )
+            self.assertEqual(result.returncode, 1)
+
+            report = _load_json(repo / "artifacts/blueprint/upgrade_validate.json")
+            required_reconciliation = report.get("required_file_reconciliation", {})
+            self.assertEqual(required_reconciliation.get("missing_count"), 1)
+            self.assertEqual(report.get("summary", {}).get("contract_load_error_count"), 0)
+            self.assertEqual(required_reconciliation.get("missing_paths"), [source_only_required_path])
+            _assert_json_schema(report, VALIDATE_SCHEMA)
+
+    def test_validate_writes_failure_artifacts_when_contract_cannot_be_loaded(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            repo = self._create_validation_repo(tmp_root)
+            _write(repo / "blueprint/contract.yaml", "<<<<<<< HEAD\n")
+
+            result = _run(
+                [
+                    sys.executable,
+                    str(VALIDATE_SCRIPT),
+                    "--repo-root",
+                    str(repo),
+                ],
+                cwd=REPO_ROOT,
+            )
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("unable to load blueprint contract for required-files reconciliation", result.stderr)
+
+            report = _load_json(repo / "artifacts/blueprint/upgrade_validate.json")
+            summary = report.get("summary", {})
+            self.assertEqual(summary.get("status"), "failure")
+            self.assertEqual(summary.get("commands_total"), 0)
+            self.assertEqual(summary.get("contract_load_error_count"), 1)
+            self.assertGreaterEqual(summary.get("generated_reference_missing_target_count"), 1)
+            self.assertGreater(summary.get("merge_markers_pre_count", 0), 0)
+            self.assertIsInstance(report.get("contract_load_error"), str)
+
+            required_files_status = _load_json(repo / "artifacts/blueprint/upgrade/required_files_status.json")
+            self.assertIsInstance(required_files_status.get("contract_load_error"), str)
+            self.assertEqual(
+                required_files_status.get("required_file_reconciliation", {}).get("repo_mode"),
+                "unknown",
             )
             _assert_json_schema(report, VALIDATE_SCHEMA)
 

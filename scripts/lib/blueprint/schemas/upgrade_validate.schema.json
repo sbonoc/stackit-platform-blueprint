@@ -8,6 +8,8 @@
     "required_validation_targets",
     "merge_marker_check",
     "runtime_dependency_edge_check",
+    "required_file_reconciliation",
+    "generated_reference_contract_check",
     "command_results",
     "summary"
   ],
@@ -95,6 +97,174 @@
         }
       }
     },
+    "required_file_reconciliation": {
+      "type": "object",
+      "required": [
+        "repo_mode",
+        "expected_count",
+        "present_count",
+        "missing_count",
+        "missing_paths",
+        "excluded_by_repo_mode",
+        "entries"
+      ],
+      "properties": {
+        "repo_mode": {
+          "type": "string"
+        },
+        "expected_count": {
+          "type": "integer"
+        },
+        "present_count": {
+          "type": "integer"
+        },
+        "missing_count": {
+          "type": "integer"
+        },
+        "missing_paths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "excluded_by_repo_mode": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "path",
+              "status",
+              "exists"
+            ],
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "present",
+                  "missing"
+                ]
+              },
+              "exists": {
+                "type": "boolean"
+              },
+              "remediation": {
+                "type": "object",
+                "required": [
+                  "action",
+                  "hint",
+                  "command"
+                ],
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "render",
+                      "sync",
+                      "restore",
+                      "manual-review"
+                    ]
+                  },
+                  "hint": {
+                    "type": "string"
+                  },
+                  "command": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "generated_reference_contract_check": {
+      "type": "object",
+      "required": [
+        "status",
+        "missing_paths",
+        "missing_targets",
+        "failed_targets",
+        "required_checks"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "success",
+            "failure"
+          ]
+        },
+        "missing_paths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "missing_targets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "failed_targets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "required_checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "path",
+              "target",
+              "path_exists",
+              "target_returncode",
+              "remediation_command"
+            ],
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "target": {
+                "type": "string"
+              },
+              "path_exists": {
+                "type": "boolean"
+              },
+              "target_returncode": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "remediation_command": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "contract_load_error": {
+          "type": "string"
+        }
+      }
+    },
+    "contract_load_error": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "command_results": {
       "type": "array",
       "items": {
@@ -148,6 +318,12 @@
         "merge_markers_pre_count",
         "merge_markers_post_count",
         "runtime_dependency_missing_count",
+        "required_files_expected_count",
+        "required_files_missing_count",
+        "generated_reference_missing_path_count",
+        "generated_reference_missing_target_count",
+        "generated_reference_failed_target_count",
+        "contract_load_error_count",
         "commands_total"
       ],
       "properties": {
@@ -171,6 +347,24 @@
           "type": "integer"
         },
         "runtime_dependency_missing_count": {
+          "type": "integer"
+        },
+        "required_files_expected_count": {
+          "type": "integer"
+        },
+        "required_files_missing_count": {
+          "type": "integer"
+        },
+        "generated_reference_missing_path_count": {
+          "type": "integer"
+        },
+        "generated_reference_missing_target_count": {
+          "type": "integer"
+        },
+        "generated_reference_failed_target_count": {
+          "type": "integer"
+        },
+        "contract_load_error_count": {
           "type": "integer"
         },
         "commands_total": {

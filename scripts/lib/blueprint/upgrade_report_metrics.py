@@ -74,6 +74,21 @@ def _emit_validate_metrics(report_path: Path) -> Iterable[str]:
         f"validate_merge_markers_pre_total={_as_int(summary.get('merge_markers_pre_count', 0))}",
         f"validate_merge_markers_post_total={_as_int(summary.get('merge_markers_post_count', 0))}",
         f"validate_runtime_dependency_missing_total={_as_int(summary.get('runtime_dependency_missing_count', 0))}",
+        f"validate_required_files_expected_total={_as_int(summary.get('required_files_expected_count', 0))}",
+        f"validate_required_files_missing_total={_as_int(summary.get('required_files_missing_count', 0))}",
+        (
+            "validate_generated_reference_missing_paths_total="
+            + str(_as_int(summary.get("generated_reference_missing_path_count", 0)))
+        ),
+        (
+            "validate_generated_reference_missing_targets_total="
+            + str(_as_int(summary.get("generated_reference_missing_target_count", 0)))
+        ),
+        (
+            "validate_generated_reference_failed_targets_total="
+            + str(_as_int(summary.get("generated_reference_failed_target_count", 0)))
+        ),
+        f"validate_contract_load_error_total={_as_int(summary.get('contract_load_error_count', 0))}",
     ]
 
 
