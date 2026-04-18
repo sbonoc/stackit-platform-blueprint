@@ -17,6 +17,10 @@ def _read(path: str) -> str:
     return (REPO_ROOT / path).read_text(encoding="utf-8")
 
 
+def _contract_text_for_repo_mode(repo_mode: str) -> str:
+    return _read("blueprint/contract.yaml").replace("repo_mode: template-source", f"repo_mode: {repo_mode}", 1)
+
+
 class QualityContractsTests(unittest.TestCase):
     def test_root_bootstrap_delegates_to_shell_bootstrap(self) -> None:
         bootstrap = _read("scripts/lib/bootstrap.sh")
@@ -541,6 +545,28 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn("## Contract Summary", postgres_doc)
         self.assertEqual(postgres_doc, postgres_template)
 
+    def test_module_doc_summary_generator_generated_consumer_skips_template_updates(self) -> None:
+        generator = REPO_ROOT / "scripts/lib/docs/sync_module_contract_summaries.py"
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            contract_path = repo_root / "blueprint/contract.yaml"
+            modules_root = repo_root / "blueprint/modules"
+            docs_modules_root = repo_root / "docs/platform/modules"
+            template_postgres = repo_root / "scripts/templates/blueprint/bootstrap/docs/platform/modules/postgres/README.md"
+
+            contract_path.parent.mkdir(parents=True, exist_ok=True)
+            contract_path.write_text(_contract_text_for_repo_mode("generated-consumer"), encoding="utf-8")
+            shutil.copytree(REPO_ROOT / "blueprint/modules", modules_root)
+            shutil.copytree(REPO_ROOT / "docs/platform/modules", docs_modules_root)
+
+            stale_template = "stale template copy that generated-consumer sync must ignore\n"
+            template_postgres.parent.mkdir(parents=True, exist_ok=True)
+            template_postgres.write_text(stale_template, encoding="utf-8")
+
+            result = run([sys.executable, str(generator), "--repo-root", str(repo_root)])
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            self.assertEqual(template_postgres.read_text(encoding="utf-8"), stale_template)
+
     def test_runtime_identity_summary_generator_syncs_source_and_template_docs(self) -> None:
         generator = REPO_ROOT / "scripts/lib/docs/sync_runtime_identity_contract_summary.py"
         result = run([sys.executable, str(generator), "--check"])
@@ -550,6 +576,149 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn("BEGIN GENERATED RUNTIME IDENTITY CONTRACT SUMMARY", source_doc)
         self.assertIn("## Contract Summary (Generated)", source_doc)
         self.assertEqual(source_doc, template_doc)
+
+    def test_runtime_identity_summary_generator_generated_consumer_skips_template_updates(self) -> None:
+        generator = REPO_ROOT / "scripts/lib/docs/sync_runtime_identity_contract_summary.py"
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            contract_path = repo_root / "blueprint/contract.yaml"
+            runtime_contract = repo_root / "blueprint/runtime_identity_contract.yaml"
+            source_doc = repo_root / "docs/platform/consumer/runtime_credentials_eso.md"
+            template_doc = repo_root / "scripts/templates/blueprint/bootstrap/docs/platform/consumer/runtime_credentials_eso.md"
+
+            contract_path.parent.mkdir(parents=True, exist_ok=True)
+            contract_path.write_text(_contract_text_for_repo_mode("generated-consumer"), encoding="utf-8")
+            runtime_contract.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(REPO_ROOT / "blueprint/runtime_identity_contract.yaml", runtime_contract)
+            source_doc.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(REPO_ROOT / "docs/platform/consumer/runtime_credentials_eso.md", source_doc)
+
+            stale_template = "stale template copy that generated-consumer sync must ignore\n"
+            template_doc.parent.mkdir(parents=True, exist_ok=True)
+            template_doc.write_text(stale_template, encoding="utf-8")
+
+            result = run([sys.executable, str(generator), "--repo-root", str(repo_root)])
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            self.assertEqual(template_doc.read_text(encoding="utf-8"), stale_template)
+
+    def test_docs_repo_mode_helper_resolves_mode_specific_doc_paths(self) -> None:
+        from scripts.lib.docs.repo_mode import resolve_docs_paths_for_context, resolve_docs_repo_context
+
+        source_doc = Path("docs/platform/consumer/runtime_credentials_eso.md")
+        template_doc = Path("scripts/templates/blueprint/bootstrap/docs/platform/consumer/runtime_credentials_eso.md")
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            generated_repo = Path(tmpdir) / "generated-consumer"
+            generated_contract = generated_repo / "blueprint/contract.yaml"
+            generated_contract.parent.mkdir(parents=True, exist_ok=True)
+            generated_contract.write_text(_contract_text_for_repo_mode("generated-consumer"), encoding="utf-8")
+
+            generated_context = resolve_docs_repo_context(generated_repo)
+            self.assertEqual(generated_context.repo_mode, "generated-consumer")
+            self.assertFalse(generated_context.template_sync_enabled)
+            self.assertEqual(
+                resolve_docs_paths_for_context(
+                    context=generated_context,
+                    source_path=source_doc,
+                    template_path=template_doc,
+                ),
+                (source_doc,),
+            )
+
+            source_repo = Path(tmpdir) / "template-source"
+            source_contract = source_repo / "blueprint/contract.yaml"
+            source_contract.parent.mkdir(parents=True, exist_ok=True)
+            source_contract.write_text(_contract_text_for_repo_mode("template-source"), encoding="utf-8")
+
+            source_context = resolve_docs_repo_context(source_repo)
+            self.assertEqual(source_context.repo_mode, "template-source")
+            self.assertTrue(source_context.template_sync_enabled)
+            self.assertEqual(
+                resolve_docs_paths_for_context(
+                    context=source_context,
+                    source_path=source_doc,
+                    template_path=template_doc,
+                ),
+                (source_doc, template_doc),
+            )
+
+    def test_docs_repo_mode_helper_rejects_unsupported_repo_mode(self) -> None:
+        from scripts.lib.docs.repo_mode import resolve_docs_repo_context
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            contract_path = repo_root / "blueprint/contract.yaml"
+            contract_path.parent.mkdir(parents=True, exist_ok=True)
+            contract_path.write_text(
+                _read("blueprint/contract.yaml").replace("repo_mode: template-source", "repo_mode: invalid-mode", 1),
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(ValueError, "spec.repository.repo_mode"):
+                resolve_docs_repo_context(repo_root)
+
+    def test_platform_seed_sync_generated_consumer_moves_orphan_template_docs(self) -> None:
+        generator = REPO_ROOT / "scripts/lib/docs/sync_platform_seed_docs.py"
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            contract_path = repo_root / "blueprint/contract.yaml"
+            source_root = repo_root / "docs/platform"
+            template_root = repo_root / "scripts/templates/blueprint/bootstrap/docs/platform"
+
+            contract_path.parent.mkdir(parents=True, exist_ok=True)
+            contract_path.write_text(_contract_text_for_repo_mode("generated-consumer"), encoding="utf-8")
+
+            quickstart_source = source_root / "consumer/quickstart.md"
+            quickstart_source.parent.mkdir(parents=True, exist_ok=True)
+            quickstart_source.write_text("# quickstart source\n", encoding="utf-8")
+            quickstart_template = template_root / "consumer/quickstart.md"
+            quickstart_template.parent.mkdir(parents=True, exist_ok=True)
+            quickstart_template.write_text("# quickstart template seed\n", encoding="utf-8")
+
+            orphan_missing_source_template = template_root / "consumer/custom-guide.md"
+            orphan_missing_source_template.write_text("# custom guide from template orphan\n", encoding="utf-8")
+            orphan_existing_source_template = template_root / "consumer/manual-notes.md"
+            orphan_existing_source_template.write_text("# duplicated manual notes copy\n", encoding="utf-8")
+
+            existing_source = source_root / "consumer/manual-notes.md"
+            existing_source.parent.mkdir(parents=True, exist_ok=True)
+            existing_source.write_text("# canonical source manual notes\n", encoding="utf-8")
+
+            result = run([sys.executable, str(generator), "--repo-root", str(repo_root)])
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+
+            moved_source = source_root / "consumer/custom-guide.md"
+            self.assertTrue(moved_source.exists())
+            self.assertEqual(
+                moved_source.read_text(encoding="utf-8"),
+                "# custom guide from template orphan\n",
+            )
+            self.assertFalse(orphan_missing_source_template.exists())
+            self.assertFalse(orphan_existing_source_template.exists())
+            self.assertTrue(quickstart_template.exists(), msg="required seed template file must be preserved")
+
+    def test_platform_seed_check_generated_consumer_reports_orphan_template_docs(self) -> None:
+        checker = REPO_ROOT / "scripts/lib/docs/sync_platform_seed_docs.py"
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            contract_path = repo_root / "blueprint/contract.yaml"
+            source_root = repo_root / "docs/platform"
+            template_root = repo_root / "scripts/templates/blueprint/bootstrap/docs/platform"
+
+            contract_path.parent.mkdir(parents=True, exist_ok=True)
+            contract_path.write_text(_contract_text_for_repo_mode("generated-consumer"), encoding="utf-8")
+            (source_root / "consumer").mkdir(parents=True, exist_ok=True)
+            (template_root / "consumer").mkdir(parents=True, exist_ok=True)
+
+            (source_root / "consumer/quickstart.md").write_text("# quickstart source\n", encoding="utf-8")
+            (template_root / "consumer/quickstart.md").write_text("# quickstart template seed\n", encoding="utf-8")
+            orphan_template = template_root / "consumer/custom-guide.md"
+            orphan_template.write_text("# orphan\n", encoding="utf-8")
+
+            result = run([sys.executable, str(checker), "--repo-root", str(repo_root), "--check"])
+            self.assertEqual(result.returncode, 1, msg=result.stdout + result.stderr)
+            self.assertIn("generated-consumer template orphan", result.stderr)
+            self.assertTrue(orphan_template.exists(), msg="check mode must not mutate files")
 
     def test_blueprint_docs_template_sync_checker_is_repo_rooted(self) -> None:
         checker = REPO_ROOT / "scripts/lib/docs/sync_blueprint_template_docs.py"

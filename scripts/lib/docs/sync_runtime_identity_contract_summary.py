@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Sync generated runtime identity contract summary blocks in docs."""
+"""Sync runtime identity contract summary blocks with repo-mode-aware template behavior."""
 
 from __future__ import annotations
 
@@ -13,6 +13,11 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from scripts.lib.blueprint.cli_support import ChangeSummary, display_repo_path, resolve_repo_root  # noqa: E402
+from scripts.lib.docs.repo_mode import (  # noqa: E402
+    DocsRepoContext,
+    resolve_docs_paths_for_context,
+    resolve_docs_repo_context,
+)
 from scripts.lib.infra.runtime_identity_contract import load_runtime_identity_contract  # noqa: E402
 
 
@@ -20,10 +25,8 @@ BEGIN_MARKER = "<!-- BEGIN GENERATED RUNTIME IDENTITY CONTRACT SUMMARY -->"
 END_MARKER = "<!-- END GENERATED RUNTIME IDENTITY CONTRACT SUMMARY -->"
 
 
-DOC_PATHS = (
-    Path("docs/platform/consumer/runtime_credentials_eso.md"),
-    Path("scripts/templates/blueprint/bootstrap/docs/platform/consumer/runtime_credentials_eso.md"),
-)
+SOURCE_DOC_PATH = Path("docs/platform/consumer/runtime_credentials_eso.md")
+TEMPLATE_DOC_PATH = Path("scripts/templates/blueprint/bootstrap/docs/platform/consumer/runtime_credentials_eso.md")
 
 
 def _replace_marked_block(content: str, replacement: str, path: Path) -> str:
@@ -110,14 +113,24 @@ def _apply(path: Path, updated: str, check: bool, summary: ChangeSummary, repo_r
     return []
 
 
+def _doc_paths_for_repo_mode(context: DocsRepoContext) -> tuple[Path, ...]:
+    return resolve_docs_paths_for_context(
+        context=context,
+        source_path=SOURCE_DOC_PATH,
+        template_path=TEMPLATE_DOC_PATH,
+    )
+
+
 def main() -> int:
     args = parse_args()
     repo_root = resolve_repo_root(args.repo_root, __file__)
     summary = ChangeSummary("quality-docs-sync-runtime-identity-contract-summary")
     rendered_block = _render_summary(repo_root)
+    context = resolve_docs_repo_context(repo_root)
+    doc_paths = _doc_paths_for_repo_mode(context)
 
     out_of_date: list[str] = []
-    for relative_path in DOC_PATHS:
+    for relative_path in doc_paths:
         path = repo_root / relative_path
         updated = _replace_marked_block(path.read_text(encoding="utf-8"), rendered_block, path)
         out_of_date.extend(_apply(path, updated, args.check, summary, repo_root))
