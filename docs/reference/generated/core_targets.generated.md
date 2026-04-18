@@ -14,6 +14,7 @@ This file is auto-generated. Do not edit it manually.
 | `blueprint-upgrade-consumer` | Plan/apply non-destructive generated-consumer upgrade from pinned blueprint source ref |
 | `blueprint-upgrade-consumer-preflight` | Plan-only generated-consumer upgrade preflight report with auto/manual guidance |
 | `blueprint-upgrade-consumer-validate` | Run post-upgrade validation bundle and strict merge-marker checks |
+| `blueprint-upgrade-consumer-postcheck` | Run deterministic post-upgrade convergence gate (validate + reconcile + merge-marker checks) |
 | `blueprint-upgrade-readiness-doctor` | Generate generated-consumer upgrade readiness diagnostics and manual-action hints |
 | `blueprint-install-codex-skill` | Install/sync bundled Codex upgrade skill into local CODEX_HOME skills directory |
 | `blueprint-install-codex-skill-consumer-ops` | Install/sync bundled Codex consumer operations skill into local CODEX_HOME skills directory |

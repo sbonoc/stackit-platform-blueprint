@@ -10,7 +10,7 @@ usage() {
   cat <<'USAGE'
 Usage: upgrade_consumer_preflight.sh [--source URL|PATH] [--ref REF] [--allow-dirty] [--allow-delete]
                                     [--plan-path PATH] [--apply-path PATH] [--summary-path PATH]
-                                    [--preflight-path PATH]
+                                    [--preflight-path PATH] [--reconcile-report-path PATH]
 
 Run a plan-only generated-consumer upgrade preflight and emit machine-readable guidance:
 - auto-apply candidates
@@ -25,6 +25,7 @@ Environment variables:
   BLUEPRINT_UPGRADE_APPLY_PATH            Default: artifacts/blueprint/upgrade_apply.json
   BLUEPRINT_UPGRADE_SUMMARY_PATH          Default: artifacts/blueprint/upgrade_summary.md
   BLUEPRINT_UPGRADE_PREFLIGHT_PATH        Default: artifacts/blueprint/upgrade_preflight.json
+  BLUEPRINT_UPGRADE_RECONCILE_REPORT_PATH Default: artifacts/blueprint/upgrade/upgrade_reconcile_report.json
 USAGE
 }
 
@@ -41,11 +42,13 @@ set_default_env BLUEPRINT_UPGRADE_PLAN_PATH "artifacts/blueprint/upgrade_plan.js
 set_default_env BLUEPRINT_UPGRADE_APPLY_PATH "artifacts/blueprint/upgrade_apply.json"
 set_default_env BLUEPRINT_UPGRADE_SUMMARY_PATH "artifacts/blueprint/upgrade_summary.md"
 set_default_env BLUEPRINT_UPGRADE_PREFLIGHT_PATH "artifacts/blueprint/upgrade_preflight.json"
+set_default_env BLUEPRINT_UPGRADE_RECONCILE_REPORT_PATH "artifacts/blueprint/upgrade/upgrade_reconcile_report.json"
 
 plan_path="$BLUEPRINT_UPGRADE_PLAN_PATH"
 apply_path="$BLUEPRINT_UPGRADE_APPLY_PATH"
 summary_path="$BLUEPRINT_UPGRADE_SUMMARY_PATH"
 preflight_path="$BLUEPRINT_UPGRADE_PREFLIGHT_PATH"
+reconcile_report_path="$BLUEPRINT_UPGRADE_RECONCILE_REPORT_PATH"
 
 forward_args=()
 while [[ "$#" -gt 0 ]]; do
@@ -79,6 +82,11 @@ while [[ "$#" -gt 0 ]]; do
     preflight_path="$2"
     shift 2
     ;;
+  --reconcile-report-path)
+    [[ "$#" -ge 2 ]] || log_fatal "--reconcile-report-path requires a value"
+    reconcile_report_path="$2"
+    shift 2
+    ;;
   --help)
     usage
     exit 0
@@ -97,19 +105,22 @@ if [[ "${#forward_args[@]}" -gt 0 ]]; then
     --plan-path "$plan_path" \
     --apply-path "$apply_path" \
     --summary-path "$summary_path" \
+    --reconcile-report-path "$reconcile_report_path" \
     "${forward_args[@]}"
 else
   run_cmd "$ROOT_DIR/scripts/bin/blueprint/upgrade_consumer.sh" \
     --dry-run \
     --plan-path "$plan_path" \
     --apply-path "$apply_path" \
-    --summary-path "$summary_path"
+    --summary-path "$summary_path" \
+    --reconcile-report-path "$reconcile_report_path"
 fi
 
 run_cmd python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_preflight.py" \
   --repo-root "$ROOT_DIR" \
   --plan-path "$plan_path" \
   --apply-path "$apply_path" \
+  --reconcile-report-path "$reconcile_report_path" \
   --output-path "$preflight_path"
 
 log_metric "blueprint_upgrade_preflight_report_total" "1" "status=success"

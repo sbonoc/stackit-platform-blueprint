@@ -136,6 +136,7 @@ class UpgradePreflightTests(unittest.TestCase):
             self.assertEqual(summary["required_surface_delta_count"], 2)
             self.assertEqual(summary["required_surface_auto_apply_count"], 1)
             self.assertEqual(summary["required_surface_at_risk_count"], 1)
+            self.assertEqual(summary["merge_risk_blocking_bucket_count"], 3)
             self.assertEqual(
                 report["required_follow_up_commands"],
                 [
@@ -153,6 +154,22 @@ class UpgradePreflightTests(unittest.TestCase):
                     "docs/reference/generated/contract_metadata.generated.md",
                 ],
             )
+            merge_risk = report["merge_risk_classification"]
+            self.assertEqual(merge_risk["status"], "blocked")
+            self.assertEqual(
+                merge_risk["blocking_buckets"],
+                [
+                    "consumer_owned_manual_review",
+                    "generated_references_regenerate",
+                    "conflicts_unresolved",
+                ],
+            )
+            self.assertEqual(merge_risk["blocking_bucket_count"], 3)
+            buckets = {row["bucket"]: row for row in merge_risk["buckets"]}
+            self.assertEqual(buckets["blueprint_managed_safe_to_take"]["count"], 2)
+            self.assertEqual(buckets["consumer_owned_manual_review"]["count"], 2)
+            self.assertEqual(buckets["generated_references_regenerate"]["count"], 1)
+            self.assertEqual(buckets["conflicts_unresolved"]["count"], 2)
             required_surfaces = report["required_surface_reconciliation"]
             self.assertTrue(required_surfaces["contract_available"])
             self.assertEqual(required_surfaces["repo_mode"], "generated-consumer")
@@ -215,6 +232,8 @@ class UpgradePreflightTests(unittest.TestCase):
             summary = report["summary"]
             self.assertEqual(summary["required_surface_delta_count"], 2)
             self.assertEqual(summary["required_surface_at_risk_count"], 1)
+            self.assertEqual(summary["merge_risk_blocking_bucket_count"], 1)
+            self.assertEqual(report["merge_risk_classification"]["status"], "blocked")
             required_surfaces = report["required_surface_reconciliation"]
             self.assertEqual(
                 required_surfaces["required_surfaces_at_risk"],

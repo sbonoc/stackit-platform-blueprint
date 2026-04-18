@@ -146,6 +146,7 @@ Common baseline flow:
 - `make blueprint-upgrade-consumer`
 - `make blueprint-upgrade-consumer-preflight`
 - `make blueprint-upgrade-consumer-validate`
+- `make blueprint-upgrade-consumer-postcheck`
 - `make blueprint-install-codex-skill`
 - `make blueprint-install-codex-skill-consumer-ops`
 - `make blueprint-install-codex-skill-sdd-intake-decompose`
@@ -175,6 +176,7 @@ Upgrade guardrails:
 - When this happens, choose an upgrade ref newer than the baseline tag (or bump `template_bootstrap.template_version` first) before re-running.
 - Upgrade plan/apply reports include explicit `required_manual_actions` diagnostics when platform-owned dependency paths are missing (for example runtime-identity edges).
 - Treat non-empty `required_manual_actions` as blocking and re-run `make blueprint-upgrade-consumer-validate` after reconciliation.
+- Treat `artifacts/blueprint/upgrade/upgrade_reconcile_report.json` with non-zero blocking buckets as blocking and run `make blueprint-upgrade-consumer-postcheck` before merge.
 
 If you intentionally need to re-apply consumer-seeded or init-managed files after first init, rerun:
 - `BLUEPRINT_INIT_FORCE=true make blueprint-init-repo`

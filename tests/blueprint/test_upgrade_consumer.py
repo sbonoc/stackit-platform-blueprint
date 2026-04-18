@@ -19,6 +19,7 @@ UPGRADE_SCRIPT = REPO_ROOT / "scripts/lib/blueprint/upgrade_consumer.py"
 VALIDATE_SCRIPT = REPO_ROOT / "scripts/lib/blueprint/upgrade_consumer_validate.py"
 PLAN_SCHEMA = REPO_ROOT / "scripts/lib/blueprint/schemas/upgrade_plan.schema.json"
 APPLY_SCHEMA = REPO_ROOT / "scripts/lib/blueprint/schemas/upgrade_apply.schema.json"
+RECONCILE_SCHEMA = REPO_ROOT / "scripts/lib/blueprint/schemas/upgrade_reconcile_report.schema.json"
 VALIDATE_SCHEMA = REPO_ROOT / "scripts/lib/blueprint/schemas/upgrade_validate.schema.json"
 MANAGED_TEST_PATH = "scripts/bin/blueprint/bootstrap.sh"
 PROTECTED_TEST_PATH = "docs/platform/consumer/quickstart.md"
@@ -182,6 +183,14 @@ class UpgradeConsumerTests(unittest.TestCase):
             self.assertEqual(apply_report.get("required_manual_actions"), [])
             self.assertEqual(apply_report.get("summary", {}).get("required_manual_action_count"), 0)
             _assert_json_schema(apply_report, APPLY_SCHEMA)
+            reconcile_report = _load_json(target_repo / "artifacts/blueprint/upgrade/upgrade_reconcile_report.json")
+            self.assertEqual(reconcile_report.get("summary", {}).get("blocked"), False)
+            self.assertEqual(reconcile_report.get("summary", {}).get("conflicts_unresolved_count"), 0)
+            self.assertEqual(
+                reconcile_report.get("summary", {}).get("blueprint_managed_safe_to_take_count"),
+                1,
+            )
+            _assert_json_schema(reconcile_report, RECONCILE_SCHEMA)
 
     def test_dirty_worktree_requires_allow_dirty_opt_in(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -348,6 +357,20 @@ class UpgradeConsumerTests(unittest.TestCase):
             apply_report = _load_json(target_repo / "artifacts/blueprint/upgrade_apply.json")
             self.assertEqual(len(apply_report.get("required_manual_actions", [])), 1)
             self.assertEqual(apply_report.get("summary", {}).get("required_manual_action_count"), 1)
+            reconcile_report = _load_json(target_repo / "artifacts/blueprint/upgrade/upgrade_reconcile_report.json")
+            reconcile_summary = reconcile_report.get("summary", {})
+            self.assertEqual(reconcile_summary.get("blocked"), True)
+            self.assertEqual(reconcile_summary.get("consumer_owned_manual_review_count"), 2)
+            self.assertEqual(reconcile_summary.get("conflicts_unresolved_count"), 1)
+            manual_bucket = reconcile_report.get("buckets", {}).get("consumer_owned_manual_review", [])
+            self.assertTrue(
+                any(
+                    isinstance(item, dict)
+                    and item.get("path") == "scripts/bin/platform/auth/reconcile_runtime_identity.sh"
+                    for item in manual_bucket
+                ),
+                msg=f"missing dependency path in consumer_owned_manual_review: {manual_bucket}",
+            )
 
             summary_path = target_repo / "artifacts/blueprint/upgrade_summary.md"
             self.assertTrue(summary_path.is_file())

@@ -1,0 +1,206 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Blueprint Upgrade Postcheck Report",
+  "type": "object",
+  "required": [
+    "repo_root",
+    "report_generated_at",
+    "validate_report_path",
+    "reconcile_report_path",
+    "repo_mode",
+    "validate_status",
+    "merge_marker_check",
+    "reconcile_summary",
+    "docs_hook_checks",
+    "contract_load_error",
+    "summary"
+  ],
+  "properties": {
+    "repo_root": {
+      "type": "string"
+    },
+    "report_generated_at": {
+      "type": "string"
+    },
+    "validate_report_path": {
+      "type": "string"
+    },
+    "reconcile_report_path": {
+      "type": "string"
+    },
+    "repo_mode": {
+      "type": "string"
+    },
+    "validate_status": {
+      "type": "string"
+    },
+    "merge_marker_check": {
+      "type": "object",
+      "required": [
+        "count",
+        "paths"
+      ],
+      "properties": {
+        "count": {
+          "type": "integer"
+        },
+        "paths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "reconcile_summary": {
+      "type": "object",
+      "required": [
+        "conflicts_unresolved_count",
+        "blocking_bucket_count",
+        "blocked"
+      ],
+      "properties": {
+        "conflicts_unresolved_count": {
+          "type": "integer"
+        },
+        "blocking_bucket_count": {
+          "type": "integer"
+        },
+        "blocked": {
+          "type": "boolean"
+        }
+      }
+    },
+    "docs_hook_checks": {
+      "type": "object",
+      "required": [
+        "mode",
+        "targets",
+        "reason",
+        "failed_targets",
+        "command_results"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string"
+        },
+        "targets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "reason": {
+          "type": "string"
+        },
+        "failed_targets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "command_results": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "target",
+              "command",
+              "returncode",
+              "duration_seconds",
+              "stdout",
+              "stderr",
+              "stdout_truncated",
+              "stderr_truncated"
+            ],
+            "properties": {
+              "target": {
+                "type": "string"
+              },
+              "command": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "returncode": {
+                "type": "integer"
+              },
+              "duration_seconds": {
+                "type": "number"
+              },
+              "stdout": {
+                "type": "string"
+              },
+              "stderr": {
+                "type": "string"
+              },
+              "stdout_truncated": {
+                "type": "boolean"
+              },
+              "stderr_truncated": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      }
+    },
+    "contract_load_error": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "status",
+        "blocked_reason_count",
+        "blocked_reasons",
+        "commands_total",
+        "merge_marker_count",
+        "conflicts_unresolved_count",
+        "docs_hook_failed_target_count",
+        "validate_failure_count",
+        "contract_load_error_count"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "success",
+            "failure"
+          ]
+        },
+        "blocked_reason_count": {
+          "type": "integer"
+        },
+        "blocked_reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "commands_total": {
+          "type": "integer"
+        },
+        "merge_marker_count": {
+          "type": "integer"
+        },
+        "conflicts_unresolved_count": {
+          "type": "integer"
+        },
+        "docs_hook_failed_target_count": {
+          "type": "integer"
+        },
+        "validate_failure_count": {
+          "type": "integer"
+        },
+        "contract_load_error_count": {
+          "type": "integer"
+        }
+      }
+    }
+  }
+}

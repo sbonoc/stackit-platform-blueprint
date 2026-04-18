@@ -1,0 +1,248 @@
+{
+  "manifest_version": 1,
+  "work_item": "specs/2026-04-18-upgrade-convergence-postcheck-gate",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-04-18T22:56:03Z",
+  "files": [
+    {
+      "path": ".agents/skills/blueprint-consumer-upgrade/SKILL.md",
+      "sha256": "a5f2729f3d452dcbc2ae0cef6bdf5bd7a7e4119b9a0b4b7ea7dda5d13d3c3185",
+      "bytes": 4203
+    },
+    {
+      "path": ".agents/skills/blueprint-consumer-upgrade/references/manual_merge_checklist.md",
+      "sha256": "41bd91a2b853fba769980034b7e77e7636265a5b9ed977942d4a71169bd0f219",
+      "bytes": 1260
+    },
+    {
+      "path": "AGENTS.backlog.md",
+      "sha256": "b48cd7c41843002cbc3e1de7e84530e462d9769e90369180d3ad5969db8ddaa7",
+      "bytes": 6028
+    },
+    {
+      "path": "AGENTS.decisions.md",
+      "sha256": "cd9e4140f7c6535ea5d4f9aac54e6486f3be62b70b1446685c6749082f501e4c",
+      "bytes": 43136
+    },
+    {
+      "path": "blueprint/contract.yaml",
+      "sha256": "fec9c3f3eaa7091474b339def27e17cc96f45e50f6cdc4350d276dc995b9ed97",
+      "bytes": 83185
+    },
+    {
+      "path": "docs/README.md",
+      "sha256": "975fff8d8ad46770615d3103209be453607ffb3ef8d334b4f33780c6a4535a5d",
+      "bytes": 11049
+    },
+    {
+      "path": "docs/blueprint/architecture/decisions/ADR-20260418-upgrade-convergence-postcheck-gate.md",
+      "sha256": "a31030fcc0aea087a31789c9d96313329636daf46eda3b33785f56fc9480ddc7",
+      "bytes": 4825
+    },
+    {
+      "path": "docs/blueprint/architecture/execution_model.md",
+      "sha256": "293f6bb390df74317716b8db94740ca53eba1c3e2636a13be7c0e3fe54ffd6e3",
+      "bytes": 12962
+    },
+    {
+      "path": "docs/platform/consumer/quickstart.md",
+      "sha256": "91826d5f4eee2ccece39c4c0188cd193b6a1f45721e78e110b50c15d8670f207",
+      "bytes": 13564
+    },
+    {
+      "path": "docs/platform/consumer/troubleshooting.md",
+      "sha256": "339dabd3b675a0b4b0a219425e255e04218edbd47ec4b19130f8aafde84e9082",
+      "bytes": 24604
+    },
+    {
+      "path": "docs/reference/generated/contract_metadata.generated.md",
+      "sha256": "ad66bbfd27ad9676f9ad7762ca1e935a62c1489520fb0c766ad490ee3995024e",
+      "bytes": 18259
+    },
+    {
+      "path": "docs/reference/generated/core_targets.generated.md",
+      "sha256": "23468eb21e87f362c00885319ea3fc025f625cb8948e8d0d003634c0d0091a79",
+      "bytes": 13890
+    },
+    {
+      "path": "make/blueprint.generated.mk",
+      "sha256": "66f4fa427f20b7c471fa8a7720a9cf3dfea8d327358876096ee03ab55bac4109",
+      "bytes": 26597
+    },
+    {
+      "path": "scripts/bin/blueprint/upgrade_consumer.sh",
+      "sha256": "13f8e83e64b8e330734db99ed29d88c52f5db3cd6037914d6f5a70296d93002e",
+      "bytes": 12635
+    },
+    {
+      "path": "scripts/bin/blueprint/upgrade_consumer_postcheck.sh",
+      "sha256": "d3936646c240442e40fe3fd5ba887508927fe7b5e17010869c062663f6592618",
+      "bytes": 4735
+    },
+    {
+      "path": "scripts/bin/blueprint/upgrade_consumer_preflight.sh",
+      "sha256": "431d10fa4a3a64e1772f556016369ad8d1e4f520fcfbab6fece05cecc58b781d",
+      "bytes": 4452
+    },
+    {
+      "path": "scripts/lib/blueprint/schemas/upgrade_postcheck.schema.json",
+      "sha256": "27062466eec64b1a5af4c669ea6b046e36b73d5d4c30f0612219c09992137e2a",
+      "bytes": 4529
+    },
+    {
+      "path": "scripts/lib/blueprint/schemas/upgrade_reconcile_report.schema.json",
+      "sha256": "5576e9b2ab3b60b38513f521d0140083e0fdbee0988bac58450504c3d2f25f28",
+      "bytes": 5342
+    },
+    {
+      "path": "scripts/lib/blueprint/upgrade_consumer.py",
+      "sha256": "c20f358745d89e4e7b69a60e3628f02b595698859117fb3e4e67a81ce1eab7de",
+      "bytes": 62204
+    },
+    {
+      "path": "scripts/lib/blueprint/upgrade_consumer_postcheck.py",
+      "sha256": "2d9769710364b86bcd870f23a324eb77879c3d62102ef2bd4ddc2fbebe9e3527",
+      "bytes": 10506
+    },
+    {
+      "path": "scripts/lib/blueprint/upgrade_preflight.py",
+      "sha256": "2d386a778c7941fba1760abfa5b82d897cb687b0e9b4f506e4771e52445c9a9c",
+      "bytes": 13931
+    },
+    {
+      "path": "scripts/lib/blueprint/upgrade_reconcile_report.py",
+      "sha256": "0a6e789f7aea801995e87385d9b5d2a7cbee473ae8b9a12a3769a5c58460ec5c",
+      "bytes": 13876
+    },
+    {
+      "path": "scripts/lib/blueprint/upgrade_report_metrics.py",
+      "sha256": "024332801da15436de7e68a770784416e136bc7576284723e06fa1e05b4d29b8",
+      "bytes": 7953
+    },
+    {
+      "path": "scripts/lib/quality/test_pyramid_contract.json",
+      "sha256": "1bf4c796d7c24bf2dc98ecf60ff776ff5ad62fbd06ce20bb88a95fbc967c354e",
+      "bytes": 2361
+    },
+    {
+      "path": "scripts/templates/blueprint/bootstrap/blueprint/contract.yaml",
+      "sha256": "fec9c3f3eaa7091474b339def27e17cc96f45e50f6cdc4350d276dc995b9ed97",
+      "bytes": 83185
+    },
+    {
+      "path": "scripts/templates/blueprint/bootstrap/docs/README.md",
+      "sha256": "975fff8d8ad46770615d3103209be453607ffb3ef8d334b4f33780c6a4535a5d",
+      "bytes": 11049
+    },
+    {
+      "path": "scripts/templates/blueprint/bootstrap/docs/blueprint/architecture/execution_model.md",
+      "sha256": "293f6bb390df74317716b8db94740ca53eba1c3e2636a13be7c0e3fe54ffd6e3",
+      "bytes": 12962
+    },
+    {
+      "path": "scripts/templates/blueprint/bootstrap/docs/platform/consumer/quickstart.md",
+      "sha256": "91826d5f4eee2ccece39c4c0188cd193b6a1f45721e78e110b50c15d8670f207",
+      "bytes": 13564
+    },
+    {
+      "path": "scripts/templates/blueprint/bootstrap/docs/platform/consumer/troubleshooting.md",
+      "sha256": "339dabd3b675a0b4b0a219425e255e04218edbd47ec4b19130f8aafde84e9082",
+      "bytes": 24604
+    },
+    {
+      "path": "scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl",
+      "sha256": "0766d9806e2b95faec43390387979df0eede32947184a8a4344664cb722b907e",
+      "bytes": 27567
+    },
+    {
+      "path": "scripts/templates/consumer/init/.agents/skills/blueprint-consumer-upgrade/SKILL.md.tmpl",
+      "sha256": "a5f2729f3d452dcbc2ae0cef6bdf5bd7a7e4119b9a0b4b7ea7dda5d13d3c3185",
+      "bytes": 4203
+    },
+    {
+      "path": "scripts/templates/consumer/init/.agents/skills/blueprint-consumer-upgrade/references/manual_merge_checklist.md.tmpl",
+      "sha256": "41bd91a2b853fba769980034b7e77e7636265a5b9ed977942d4a71169bd0f219",
+      "bytes": 1260
+    },
+    {
+      "path": "specs/2026-04-18-upgrade-convergence-postcheck-gate/architecture.md",
+      "sha256": "30622bb43cbe4609be8d26ff081e79c63d0954b25fc42002c40c908fb213dc66",
+      "bytes": 4741
+    },
+    {
+      "path": "specs/2026-04-18-upgrade-convergence-postcheck-gate/context_pack.md",
+      "sha256": "5273287867ad3a366c2b17334aa6d3dd2737ced96bfd8f213ac260994a2ebdc2",
+      "bytes": 999
+    },
+    {
+      "path": "specs/2026-04-18-upgrade-convergence-postcheck-gate/evidence_manifest.json",
+      "sha256": "3b0f1825d7d0b4dfa33eab8b086a19a2d5e45b79c146015955f92f19a2f913b7",
+      "bytes": 9343
+    },
+    {
+      "path": "specs/2026-04-18-upgrade-convergence-postcheck-gate/graph.yaml",
+      "sha256": "62b555daf20d3cbd5487479e3abf418a26348577b52b399de319c149b0787ef5",
+      "bytes": 3174
+    },
+    {
+      "path": "specs/2026-04-18-upgrade-convergence-postcheck-gate/hardening_review.md",
+      "sha256": "41f2dc4bf92a6f3112f33ebb13011f1ffc1de2903302c0a279d73b0e5b4ba6bc",
+      "bytes": 2882
+    },
+    {
+      "path": "specs/2026-04-18-upgrade-convergence-postcheck-gate/plan.md",
+      "sha256": "7b52f73bf0e974fa09730a71036c931aaf30d8f9e83badb5526b8abb9ec882ee",
+      "bytes": 5954
+    },
+    {
+      "path": "specs/2026-04-18-upgrade-convergence-postcheck-gate/pr_context.md",
+      "sha256": "8083fbfc2af203edae10d7fd71185c155db02fac50049cf75bdba0df664cc2ef",
+      "bytes": 3468
+    },
+    {
+      "path": "specs/2026-04-18-upgrade-convergence-postcheck-gate/spec.md",
+      "sha256": "efc56b93db3a2eb66c19321bc641abb64a426214b8ca7e52f25ab901e563c055",
+      "bytes": 6636
+    },
+    {
+      "path": "specs/2026-04-18-upgrade-convergence-postcheck-gate/tasks.md",
+      "sha256": "8c6d4b6616cc665228150a6768e99aa48d24ab9cbf2b5cc6f0da4e64f1f1d8d7",
+      "bytes": 2809
+    },
+    {
+      "path": "specs/2026-04-18-upgrade-convergence-postcheck-gate/traceability.md",
+      "sha256": "13141b47d76bd233ec49d43d92cf08416850119ee5248bc9dfd94d1492869149",
+      "bytes": 6721
+    },
+    {
+      "path": "tests/blueprint/contract_refactor_governance_structure_cases.py",
+      "sha256": "cd18693ced7fbcff2e9a075cd1728bbbca8b754aed19be87f5a2ba5589344679",
+      "bytes": 53107
+    },
+    {
+      "path": "tests/blueprint/test_quality_contracts.py",
+      "sha256": "cbdf57ad4b074430bdef774a04556e866a585438be54c414b2b75b95187cf467",
+      "bytes": 64253
+    },
+    {
+      "path": "tests/blueprint/test_upgrade_consumer.py",
+      "sha256": "9f4fe39278b51db1600847bf0f484c8e17fd3ebc1918bb5208aa5637e8f4ad9f",
+      "bytes": 67685
+    },
+    {
+      "path": "tests/blueprint/test_upgrade_consumer_wrapper.py",
+      "sha256": "1a1729b716493b8bfbbe98b85a4a973d86b17ebfacf28409910fbe3393f5f5b9",
+      "bytes": 7315
+    },
+    {
+      "path": "tests/blueprint/test_upgrade_postcheck.py",
+      "sha256": "ea6d910d73c7b4c38e4568b4841e3e95017b91c2728855f4dbf66eeb9e9f229c",
+      "bytes": 7916
+    },
+    {
+      "path": "tests/blueprint/test_upgrade_preflight.py",
+      "sha256": "6b9a3a0fb6031979fb9c6bbfef8df52de6b310cf6a86661fc813d246a36c4b33",
+      "bytes": 13655
+    }
+  ]
+}

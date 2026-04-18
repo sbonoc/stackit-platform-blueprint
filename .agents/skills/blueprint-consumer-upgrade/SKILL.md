@@ -1,6 +1,6 @@
 ---
 name: blueprint-consumer-upgrade
-description: Upgrade existing generated-consumer repositories from https://github.com/sbonoc/stackit-platform-blueprint using the latest stable tag (or an explicit ref) with blueprint preflight, non-destructive apply, and post-upgrade validation. Use when asked to run blueprint-resync-consumer-seeds, blueprint-upgrade-consumer-preflight, blueprint-upgrade-consumer, or blueprint-upgrade-consumer-validate while preserving consumer-owned changes.
+description: Upgrade existing generated-consumer repositories from https://github.com/sbonoc/stackit-platform-blueprint using the latest stable tag (or an explicit ref) with blueprint preflight, non-destructive apply, and post-upgrade validation/postcheck. Use when asked to run blueprint-resync-consumer-seeds, blueprint-upgrade-consumer-preflight, blueprint-upgrade-consumer, blueprint-upgrade-consumer-validate, or blueprint-upgrade-consumer-postcheck while preserving consumer-owned changes.
 ---
 
 # Blueprint Consumer Upgrade
@@ -14,7 +14,7 @@ description: Upgrade existing generated-consumer repositories from https://githu
 5. Run upgrade preflight and review manual actions before apply mode.
 6. Run upgrade plan mode and then apply mode with the same source/ref.
 7. Resolve required manual merges if preflight/apply reports blocking actions.
-8. Run post-upgrade validation and quality bundles.
+8. Run post-upgrade validation and deterministic postcheck gate.
 9. Report selected tag/SHA, changed files, manual actions, and exact commands.
 10. Do not commit or push unless the user explicitly requests it.
 
@@ -50,8 +50,9 @@ BLUEPRINT_UPGRADE_REF=<tag> \
 BLUEPRINT_UPGRADE_APPLY=true \
 make blueprint-upgrade-consumer
 
-# 5) validate
+# 5) validate + postcheck
 make blueprint-upgrade-consumer-validate
+make blueprint-upgrade-consumer-postcheck
 make infra-validate
 make quality-hooks-run
 ```
@@ -59,9 +60,12 @@ make quality-hooks-run
 ## Required Checks
 
 - Treat non-empty `required_manual_actions` in `artifacts/blueprint/upgrade_preflight.json` as blocking.
+- Treat reconcile report blocking buckets in `artifacts/blueprint/upgrade/upgrade_reconcile_report.json` as blocking.
 - Treat unresolved merge markers as blocking.
 - Preserve consumer-owned files; do not force overwrite unless the user explicitly asks.
 - Keep source and ref pinned for the whole run (`BLUEPRINT_UPGRADE_SOURCE` + `BLUEPRINT_UPGRADE_REF`).
+- Safe-to-continue contract: proceed only when `make blueprint-upgrade-consumer-postcheck` exits `0` and postcheck summary status is `success`.
+- Blocked contract: stop and report exact blocked reasons when postcheck exits non-zero.
 
 ## SDD Guardrails
 

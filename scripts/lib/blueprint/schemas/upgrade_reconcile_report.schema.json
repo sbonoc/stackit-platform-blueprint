@@ -1,0 +1,245 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Blueprint Upgrade Reconcile Report",
+  "type": "object",
+  "required": [
+    "repo_root",
+    "report_generated_at",
+    "repo_mode",
+    "source",
+    "upgrade_ref",
+    "resolved_upgrade_commit",
+    "template_ref_from",
+    "template_ref_to",
+    "command_plan",
+    "bucket_policy",
+    "buckets",
+    "required_manual_actions",
+    "summary"
+  ],
+  "properties": {
+    "repo_root": {
+      "type": "string"
+    },
+    "report_generated_at": {
+      "type": "string"
+    },
+    "repo_mode": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "upgrade_ref": {
+      "type": "string"
+    },
+    "resolved_upgrade_commit": {
+      "type": "string"
+    },
+    "template_ref_from": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "template_ref_to": {
+      "type": "string"
+    },
+    "command_plan": {
+      "type": "object",
+      "required": [
+        "preflight",
+        "plan",
+        "apply",
+        "validate",
+        "postcheck"
+      ],
+      "properties": {
+        "preflight": {
+          "type": "string"
+        },
+        "plan": {
+          "type": "string"
+        },
+        "apply": {
+          "type": "string"
+        },
+        "validate": {
+          "type": "string"
+        },
+        "postcheck": {
+          "type": "string"
+        }
+      }
+    },
+    "bucket_policy": {
+      "type": "object",
+      "required": [
+        "blueprint_managed_safe_to_take",
+        "consumer_owned_manual_review",
+        "generated_references_regenerate",
+        "conflicts_unresolved"
+      ],
+      "properties": {
+        "blueprint_managed_safe_to_take": {
+          "$ref": "#/$defs/policyEntry"
+        },
+        "consumer_owned_manual_review": {
+          "$ref": "#/$defs/policyEntry"
+        },
+        "generated_references_regenerate": {
+          "$ref": "#/$defs/policyEntry"
+        },
+        "conflicts_unresolved": {
+          "$ref": "#/$defs/policyEntry"
+        }
+      }
+    },
+    "buckets": {
+      "type": "object",
+      "required": [
+        "blueprint_managed_safe_to_take",
+        "consumer_owned_manual_review",
+        "generated_references_regenerate",
+        "conflicts_unresolved"
+      ],
+      "properties": {
+        "blueprint_managed_safe_to_take": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/bucketItem"
+          }
+        },
+        "consumer_owned_manual_review": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/bucketItem"
+          }
+        },
+        "generated_references_regenerate": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/bucketItem"
+          }
+        },
+        "conflicts_unresolved": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/bucketItem"
+          }
+        }
+      }
+    },
+    "required_manual_actions": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "plan_entry_count",
+        "apply_result_count",
+        "required_manual_action_count",
+        "blueprint_managed_safe_to_take_count",
+        "consumer_owned_manual_review_count",
+        "generated_references_regenerate_count",
+        "conflicts_unresolved_count",
+        "blocking_bucket_count",
+        "blocked"
+      ],
+      "properties": {
+        "plan_entry_count": {
+          "type": "integer"
+        },
+        "apply_result_count": {
+          "type": "integer"
+        },
+        "required_manual_action_count": {
+          "type": "integer"
+        },
+        "blueprint_managed_safe_to_take_count": {
+          "type": "integer"
+        },
+        "consumer_owned_manual_review_count": {
+          "type": "integer"
+        },
+        "generated_references_regenerate_count": {
+          "type": "integer"
+        },
+        "conflicts_unresolved_count": {
+          "type": "integer"
+        },
+        "blocking_bucket_count": {
+          "type": "integer"
+        },
+        "blocked": {
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "policyEntry": {
+      "type": "object",
+      "required": [
+        "blocking",
+        "hint",
+        "next_commands"
+      ],
+      "properties": {
+        "blocking": {
+          "type": "boolean"
+        },
+        "hint": {
+          "type": "string"
+        },
+        "next_commands": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "bucketItem": {
+      "type": "object",
+      "required": [
+        "path",
+        "source",
+        "action",
+        "reason",
+        "blocking",
+        "remediation_hint",
+        "next_commands"
+      ],
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "action": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "blocking": {
+          "type": "boolean"
+        },
+        "remediation_hint": {
+          "type": "string"
+        },
+        "next_commands": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
