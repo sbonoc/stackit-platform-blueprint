@@ -21,12 +21,18 @@ if str(REPO_ROOT) not in sys.path:
 from scripts.lib.blueprint.cli_support import display_repo_path, resolve_repo_root  # noqa: E402
 from scripts.lib.blueprint.contract_schema import load_blueprint_contract  # noqa: E402
 from scripts.lib.blueprint.merge_markers import find_merge_markers  # noqa: E402
-from scripts.lib.blueprint.upgrade_reconcile_report import RECONCILE_REPORT_DEFAULT_PATH  # noqa: E402
+from scripts.lib.blueprint.upgrade_reconcile_report import (  # noqa: E402
+    RECONCILE_REPORT_DEFAULT_PATH,
+    build_upgrade_reconcile_report,
+    reconcile_report_stale_reasons,
+)
 
 
 MAX_CAPTURE_CHARS = 20000
 POSTCHECK_REPORT_DEFAULT_PATH = "artifacts/blueprint/upgrade_postcheck.json"
 VALIDATE_REPORT_DEFAULT_PATH = "artifacts/blueprint/upgrade_validate.json"
+PLAN_REPORT_DEFAULT_PATH = "artifacts/blueprint/upgrade_plan.json"
+APPLY_REPORT_DEFAULT_PATH = "artifacts/blueprint/upgrade_apply.json"
 
 
 @dataclass(frozen=True)
@@ -65,6 +71,16 @@ def _parse_args() -> argparse.Namespace:
         "--reconcile-report-path",
         default=RECONCILE_REPORT_DEFAULT_PATH,
         help="Upgrade reconcile report path (absolute or repo-relative).",
+    )
+    parser.add_argument(
+        "--plan-path",
+        default=PLAN_REPORT_DEFAULT_PATH,
+        help="Upgrade plan report path (absolute or repo-relative).",
+    )
+    parser.add_argument(
+        "--apply-path",
+        default=APPLY_REPORT_DEFAULT_PATH,
+        help="Upgrade apply report path (absolute or repo-relative).",
     )
     parser.add_argument(
         "--output-path",
@@ -171,6 +187,8 @@ def main() -> int:
             args.reconcile_report_path,
             "--reconcile-report-path",
         )
+        plan_path = _resolve_repo_scoped_path(repo_root, args.plan_path, "--plan-path")
+        apply_path = _resolve_repo_scoped_path(repo_root, args.apply_path, "--apply-path")
         output_path = _resolve_repo_scoped_path(repo_root, args.output_path, "--output-path")
     except ValueError as exc:
         print(str(exc), file=sys.stderr)
@@ -179,10 +197,25 @@ def main() -> int:
     try:
         _ensure_git_repo(repo_root)
         validate_payload = _load_json(validate_report_path, label="upgrade validate report")
-        reconcile_payload = _load_json(reconcile_report_path, label="upgrade reconcile report")
     except (RuntimeError, FileNotFoundError, ValueError) as exc:
         print(str(exc), file=sys.stderr)
         return 1
+
+    plan_payload: dict[str, Any] | None = None
+    apply_payload: dict[str, Any] | None = None
+    plan_apply_load_error = ""
+    if plan_path.is_file() and apply_path.is_file():
+        try:
+            plan_payload = _load_json(plan_path, label="upgrade plan report")
+            apply_payload = _load_json(apply_path, label="upgrade apply report")
+        except (FileNotFoundError, ValueError) as exc:
+            plan_apply_load_error = str(exc)
+    elif plan_path.is_file() or apply_path.is_file():
+        plan_apply_load_error = (
+            "upgrade plan/apply reports must both exist for reconcile freshness checks: "
+            f"plan={display_repo_path(repo_root, plan_path)} "
+            f"apply={display_repo_path(repo_root, apply_path)}"
+        )
 
     contract_load_error = ""
     repo_mode = "unknown"
@@ -192,11 +225,58 @@ def main() -> int:
     except Exception as exc:
         contract_load_error = f"unable to load blueprint contract for postcheck repo-mode hooks: {exc}"
 
+    reconcile_source = "artifact"
+    reconcile_stale_reason_list: list[str] = []
+    reconcile_payload: dict[str, Any]
+    reconcile_load_error = ""
+    if reconcile_report_path.is_file():
+        try:
+            reconcile_candidate = _load_json(reconcile_report_path, label="upgrade reconcile report")
+        except (FileNotFoundError, ValueError) as exc:
+            reconcile_load_error = str(exc)
+        else:
+            reconcile_payload = reconcile_candidate
+    else:
+        reconcile_load_error = f"missing upgrade reconcile report: {reconcile_report_path}"
+
+    if reconcile_load_error:
+        if isinstance(plan_payload, dict) and isinstance(apply_payload, dict):
+            reconcile_payload = build_upgrade_reconcile_report(
+                repo_root=repo_root,
+                plan_payload=plan_payload,
+                apply_payload=apply_payload,
+                repo_mode=repo_mode,
+            )
+            reconcile_source = "recomputed-missing-or-invalid-artifact"
+            reconcile_stale_reason_list = [reconcile_load_error]
+        else:
+            print(reconcile_load_error, file=sys.stderr)
+            return 1
+
+    if isinstance(plan_payload, dict) and isinstance(apply_payload, dict):
+        stale_reasons = reconcile_report_stale_reasons(
+            reconcile_report=reconcile_payload,
+            plan_payload=plan_payload,
+            apply_payload=apply_payload,
+            reconcile_path=reconcile_report_path,
+            plan_path=plan_path,
+            apply_path=apply_path,
+        )
+        if stale_reasons:
+            reconcile_payload = build_upgrade_reconcile_report(
+                repo_root=repo_root,
+                plan_payload=plan_payload,
+                apply_payload=apply_payload,
+                repo_mode=repo_mode,
+            )
+            reconcile_source = "recomputed-stale-artifact"
+            reconcile_stale_reason_list = stale_reasons
+
     validate_status = str(validate_payload.get("summary", {}).get("status", "unknown"))
     reconcile_summary_raw = reconcile_payload.get("summary", {})
     reconcile_summary = reconcile_summary_raw if isinstance(reconcile_summary_raw, dict) else {}
     conflicts_unresolved_count = _as_int(reconcile_summary.get("conflicts_unresolved_count", 0))
-    merge_markers = find_merge_markers(repo_root)
+    merge_markers = sorted(find_merge_markers(repo_root))
 
     docs_hook_targets, docs_hook_reason = _docs_hook_targets_for_repo_mode(repo_mode)
     docs_hook_results: list[PostcheckCommandResult] = []
@@ -215,13 +295,19 @@ def main() -> int:
         blocked_reasons.append("docs-hook-target-failure")
     if contract_load_error:
         blocked_reasons.append("contract-load-error")
+    if plan_apply_load_error:
+        blocked_reasons.append("plan-apply-report-load-failure")
 
     status = "failure" if blocked_reasons else "success"
     payload = {
         "repo_root": str(repo_root),
         "report_generated_at": datetime.now(timezone.utc).isoformat(),
+        "plan_path": display_repo_path(repo_root, plan_path),
+        "apply_path": display_repo_path(repo_root, apply_path),
         "validate_report_path": display_repo_path(repo_root, validate_report_path),
         "reconcile_report_path": display_repo_path(repo_root, reconcile_report_path),
+        "reconcile_report_source": reconcile_source,
+        "reconcile_report_stale_reasons": reconcile_stale_reason_list,
         "repo_mode": repo_mode,
         "validate_status": validate_status,
         "merge_marker_check": {
@@ -240,6 +326,7 @@ def main() -> int:
             "failed_targets": docs_hook_failed_targets,
             "command_results": [result.as_dict() for result in docs_hook_results],
         },
+        "plan_apply_report_load_error": plan_apply_load_error or None,
         "contract_load_error": contract_load_error or None,
         "summary": {
             "status": status,
@@ -249,7 +336,9 @@ def main() -> int:
             "merge_marker_count": len(merge_markers),
             "conflicts_unresolved_count": conflicts_unresolved_count,
             "docs_hook_failed_target_count": len(docs_hook_failed_targets),
+            "reconcile_stale_reason_count": len(reconcile_stale_reason_list),
             "validate_failure_count": 0 if validate_status == "success" else 1,
+            "plan_apply_report_load_error_count": 1 if plan_apply_load_error else 0,
             "contract_load_error_count": 1 if contract_load_error else 0,
         },
     }
@@ -272,6 +361,8 @@ def main() -> int:
         )
     if contract_load_error:
         print(contract_load_error, file=sys.stderr)
+    if plan_apply_load_error:
+        print(plan_apply_load_error, file=sys.stderr)
     return 0 if status == "success" else 1
 
 

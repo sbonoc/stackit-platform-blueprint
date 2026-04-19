@@ -21,6 +21,7 @@ from scripts.lib.blueprint.upgrade_reconcile_report import (  # noqa: E402
     RECONCILE_REPORT_DEFAULT_PATH,
     build_merge_risk_classification,
     build_upgrade_reconcile_report,
+    reconcile_report_stale_reasons,
 )
 
 
@@ -232,8 +233,31 @@ def _build_report(
     required_surfaces_auto_apply = sorted(path for path in required_surfaces_auto_apply if path)
     required_surfaces_at_risk = sorted(required_surfaces_at_risk, key=lambda entry: str(entry.get("path", "")))
 
+    reconcile_report_source = "recomputed-missing-artifact"
+    reconcile_report_stale_reason_list = ["reconcile-artifact-missing"]
     if reconcile_path.is_file():
-        reconcile_report = _load_json(reconcile_path, label="upgrade reconcile report")
+        reconcile_report_candidate = _load_json(reconcile_path, label="upgrade reconcile report")
+        stale_reasons = reconcile_report_stale_reasons(
+            reconcile_report=reconcile_report_candidate,
+            plan_payload=plan_payload,
+            apply_payload=apply_payload,
+            reconcile_path=reconcile_path,
+            plan_path=plan_path,
+            apply_path=apply_path,
+        )
+        if stale_reasons:
+            reconcile_report = build_upgrade_reconcile_report(
+                repo_root=repo_root,
+                plan_payload=plan_payload,
+                apply_payload=apply_payload,
+                repo_mode=str(contract_context.get("repo_mode", "unknown")),
+            )
+            reconcile_report_source = "recomputed-stale-artifact"
+            reconcile_report_stale_reason_list = stale_reasons
+        else:
+            reconcile_report = reconcile_report_candidate
+            reconcile_report_source = "artifact"
+            reconcile_report_stale_reason_list = []
     else:
         reconcile_report = build_upgrade_reconcile_report(
             repo_root=repo_root,
@@ -263,6 +287,8 @@ def _build_report(
         "plan_path": display_repo_path(repo_root, plan_path),
         "apply_path": display_repo_path(repo_root, apply_path),
         "reconcile_report_path": display_repo_path(repo_root, reconcile_path),
+        "reconcile_report_source": reconcile_report_source,
+        "reconcile_report_stale_reasons": reconcile_report_stale_reason_list,
         "summary": summary,
         "auto_apply": auto_apply,
         "manual_merge": manual_merge,

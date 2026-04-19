@@ -9,6 +9,7 @@ start_script_metric_trap "blueprint_upgrade_consumer_postcheck"
 usage() {
   cat <<'USAGE'
 Usage: upgrade_consumer_postcheck.sh [--validate-report-path PATH] [--reconcile-report-path PATH] [--report-path PATH]
+                                   [--plan-path PATH] [--apply-path PATH]
 
 Run deterministic post-upgrade convergence checks after blueprint consumer upgrade.
 This wrapper composes:
@@ -19,6 +20,8 @@ This wrapper composes:
 Environment variables:
   BLUEPRINT_UPGRADE_VALIDATE_PATH         Default: artifacts/blueprint/upgrade_validate.json
   BLUEPRINT_UPGRADE_RECONCILE_REPORT_PATH Default: artifacts/blueprint/upgrade/upgrade_reconcile_report.json
+  BLUEPRINT_UPGRADE_PLAN_PATH             Default: artifacts/blueprint/upgrade_plan.json
+  BLUEPRINT_UPGRADE_APPLY_PATH            Default: artifacts/blueprint/upgrade_apply.json
   BLUEPRINT_UPGRADE_POSTCHECK_PATH        Default: artifacts/blueprint/upgrade_postcheck.json
 USAGE
 }
@@ -35,10 +38,14 @@ require_command git
 blueprint_load_env_defaults
 set_default_env BLUEPRINT_UPGRADE_VALIDATE_PATH "artifacts/blueprint/upgrade_validate.json"
 set_default_env BLUEPRINT_UPGRADE_RECONCILE_REPORT_PATH "artifacts/blueprint/upgrade/upgrade_reconcile_report.json"
+set_default_env BLUEPRINT_UPGRADE_PLAN_PATH "artifacts/blueprint/upgrade_plan.json"
+set_default_env BLUEPRINT_UPGRADE_APPLY_PATH "artifacts/blueprint/upgrade_apply.json"
 set_default_env BLUEPRINT_UPGRADE_POSTCHECK_PATH "artifacts/blueprint/upgrade_postcheck.json"
 
 validate_report_path="$BLUEPRINT_UPGRADE_VALIDATE_PATH"
 reconcile_report_path="$BLUEPRINT_UPGRADE_RECONCILE_REPORT_PATH"
+plan_path="$BLUEPRINT_UPGRADE_PLAN_PATH"
+apply_path="$BLUEPRINT_UPGRADE_APPLY_PATH"
 postcheck_report_path="$BLUEPRINT_UPGRADE_POSTCHECK_PATH"
 
 resolve_report_path() {
@@ -110,6 +117,16 @@ while [[ "$#" -gt 0 ]]; do
     postcheck_report_path="$2"
     shift 2
     ;;
+  --plan-path)
+    [[ "$#" -ge 2 ]] || log_fatal "--plan-path requires a value"
+    plan_path="$2"
+    shift 2
+    ;;
+  --apply-path)
+    [[ "$#" -ge 2 ]] || log_fatal "--apply-path requires a value"
+    apply_path="$2"
+    shift 2
+    ;;
   --help)
     usage
     exit 0
@@ -134,6 +151,8 @@ if run_cmd python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_consumer_postcheck.p
   --repo-root "$ROOT_DIR" \
   --validate-report-path "$validate_report_path" \
   --reconcile-report-path "$reconcile_report_path" \
+  --plan-path "$plan_path" \
+  --apply-path "$apply_path" \
   --output-path "$postcheck_report_path"; then
   postcheck_rc=0
 else

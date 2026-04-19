@@ -51,7 +51,7 @@ _BUCKET_POLICY = {
         "blocking": True,
         "hint": "Resolve merge conflicts and conflict markers before postcheck.",
         "next_commands": (
-            "make blueprint-upgrade-consumer BLUEPRINT_UPGRADE_APPLY=true",
+            "BLUEPRINT_UPGRADE_APPLY=true make blueprint-upgrade-consumer",
             "make blueprint-upgrade-consumer-postcheck",
         ),
     },
@@ -69,6 +69,13 @@ def _as_str(value: Any) -> str:
     if value is None:
         return ""
     return str(value).strip()
+
+
+def _as_int(value: Any) -> int:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return 0
 
 
 def _is_generated_reference_path(path: str) -> bool:
@@ -270,6 +277,72 @@ def _sorted_bucket_items(bucket_items: list[dict[str, Any]]) -> list[dict[str, A
             _as_str(item.get("reason")),
         ),
     )
+
+
+def reconcile_report_stale_reasons(
+    *,
+    reconcile_report: dict[str, Any],
+    plan_payload: dict[str, Any] | None = None,
+    apply_payload: dict[str, Any] | None = None,
+    reconcile_path: Path | None = None,
+    plan_path: Path | None = None,
+    apply_path: Path | None = None,
+) -> list[str]:
+    summary_raw = reconcile_report.get("summary", {})
+    summary = summary_raw if isinstance(summary_raw, dict) else {}
+    reasons: list[str] = []
+
+    if isinstance(plan_payload, dict):
+        expected_source = _as_str(plan_payload.get("source"))
+        expected_upgrade_ref = _as_str(plan_payload.get("upgrade_ref"))
+        expected_commit = _as_str(plan_payload.get("resolved_upgrade_commit"))
+        expected_baseline = _as_str(plan_payload.get("baseline_ref"))
+
+        if expected_source and _as_str(reconcile_report.get("source")) != expected_source:
+            reasons.append("metadata-source-mismatch")
+        if expected_upgrade_ref and _as_str(reconcile_report.get("upgrade_ref")) != expected_upgrade_ref:
+            reasons.append("metadata-upgrade-ref-mismatch")
+        if expected_commit and _as_str(reconcile_report.get("resolved_upgrade_commit")) != expected_commit:
+            reasons.append("metadata-resolved-commit-mismatch")
+        if expected_baseline != _as_str(reconcile_report.get("template_ref_from")):
+            reasons.append("metadata-baseline-ref-mismatch")
+
+        expected_plan_entry_count = len(_collect_entries(plan_payload, "entries"))
+        expected_required_manual_action_count = len(_collect_entries(plan_payload, "required_manual_actions"))
+        if "plan_entry_count" not in summary:
+            reasons.append("summary-plan-entry-count-missing")
+        elif _as_int(summary.get("plan_entry_count")) != expected_plan_entry_count:
+            reasons.append("summary-plan-entry-count-mismatch")
+        if "required_manual_action_count" not in summary:
+            reasons.append("summary-required-manual-action-count-missing")
+        elif _as_int(summary.get("required_manual_action_count")) != expected_required_manual_action_count:
+            reasons.append("summary-required-manual-action-count-mismatch")
+
+    if isinstance(apply_payload, dict):
+        expected_apply_result_count = len(_collect_entries(apply_payload, "results"))
+        if "apply_result_count" not in summary:
+            reasons.append("summary-apply-result-count-missing")
+        elif _as_int(summary.get("apply_result_count")) != expected_apply_result_count:
+            reasons.append("summary-apply-result-count-mismatch")
+
+    if (
+        reconcile_path is not None
+        and plan_path is not None
+        and apply_path is not None
+        and reconcile_path.is_file()
+        and plan_path.is_file()
+        and apply_path.is_file()
+    ):
+        try:
+            reconcile_mtime = reconcile_path.stat().st_mtime
+            latest_input_mtime = max(plan_path.stat().st_mtime, apply_path.stat().st_mtime)
+        except OSError:
+            pass
+        else:
+            if reconcile_mtime < latest_input_mtime:
+                reasons.append("artifact-mtime-older-than-plan-apply")
+
+    return sorted(set(reasons))
 
 
 def build_upgrade_reconcile_report(

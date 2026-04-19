@@ -258,6 +258,65 @@ class UpgradePreflightTests(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("missing upgrade apply report", result.stderr)
 
+    def test_preflight_recomputes_stale_reconcile_report_when_plan_apply_do_not_match(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            artifacts_dir = repo_root / "artifacts/blueprint"
+            reconcile_path = artifacts_dir / "upgrade/upgrade_reconcile_report.json"
+            artifacts_dir.mkdir(parents=True, exist_ok=True)
+            (repo_root / "blueprint").mkdir(parents=True, exist_ok=True)
+            (repo_root / "blueprint/contract.yaml").write_text(
+                _contract_text_for_repo_mode("generated-consumer"),
+                encoding="utf-8",
+            )
+
+            stale_reconcile_payload = {
+                "source": "git@github.com:example/old-source.git",
+                "upgrade_ref": "v0.9.0",
+                "resolved_upgrade_commit": "old-commit",
+                "template_ref_from": "v0.8.0",
+                "summary": {
+                    "plan_entry_count": 0,
+                    "apply_result_count": 0,
+                    "required_manual_action_count": 0,
+                    "blocking_bucket_count": 0,
+                    "blocked": False,
+                },
+            }
+            reconcile_path.parent.mkdir(parents=True, exist_ok=True)
+            reconcile_path.write_text(json.dumps(stale_reconcile_payload), encoding="utf-8")
+
+            plan_payload = {
+                "source": "git@github.com:example/new-source.git",
+                "upgrade_ref": "v1.1.0",
+                "resolved_upgrade_commit": "new-commit",
+                "baseline_ref": "v1.0.0",
+                "entries": [
+                    {"path": "README.md", "action": "update"},
+                    {"path": "docs/platform/consumer/quickstart.md", "action": "conflict"},
+                ],
+                "required_manual_actions": [],
+            }
+            apply_payload = {
+                "results": [
+                    {
+                        "path": "docs/platform/consumer/quickstart.md",
+                        "result": "conflict",
+                    }
+                ]
+            }
+            (artifacts_dir / "upgrade_plan.json").write_text(json.dumps(plan_payload), encoding="utf-8")
+            (artifacts_dir / "upgrade_apply.json").write_text(json.dumps(apply_payload), encoding="utf-8")
+
+            result = self._run_preflight(repo_root)
+
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            report = json.loads((artifacts_dir / "upgrade_preflight.json").read_text(encoding="utf-8"))
+            self.assertEqual(report["reconcile_report_source"], "recomputed-stale-artifact")
+            self.assertIn("metadata-source-mismatch", report["reconcile_report_stale_reasons"])
+            self.assertEqual(report["merge_risk_classification"]["status"], "blocked")
+            self.assertIn("conflicts_unresolved", report["merge_risk_classification"]["blocking_buckets"])
+
     def test_preflight_rejects_relative_paths_outside_repo_root(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)
