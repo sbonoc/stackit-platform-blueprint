@@ -139,6 +139,7 @@ spec:
       - scripts/bin/blueprint/upgrade_consumer.sh
       - scripts/bin/blueprint/upgrade_consumer_preflight.sh
       - scripts/bin/blueprint/upgrade_consumer_validate.sh
+      - scripts/bin/blueprint/upgrade_consumer_postcheck.sh
       - scripts/bin/blueprint/render_module_wrapper_skeletons.sh
       - scripts/bin/blueprint/render_makefile.sh
       - scripts/bin/blueprint/test_async_message_contracts_producer.sh
@@ -188,11 +189,15 @@ spec:
       - scripts/lib/blueprint/resync_consumer_seeds.py
       - scripts/lib/blueprint/runtime_dependency_edges.py
       - scripts/lib/blueprint/upgrade_consumer.py
+      - scripts/lib/blueprint/upgrade_consumer_postcheck.py
       - scripts/lib/blueprint/upgrade_preflight.py
+      - scripts/lib/blueprint/upgrade_reconcile_report.py
       - scripts/lib/blueprint/upgrade_consumer_validate.py
       - scripts/lib/blueprint/upgrade_report_metrics.py
       - scripts/lib/blueprint/schemas/upgrade_plan.schema.json
       - scripts/lib/blueprint/schemas/upgrade_apply.schema.json
+      - scripts/lib/blueprint/schemas/upgrade_reconcile_report.schema.json
+      - scripts/lib/blueprint/schemas/upgrade_postcheck.schema.json
       - scripts/lib/blueprint/schemas/upgrade_validate.schema.json
       - scripts/lib/docs/generate_contract_docs.py
       - scripts/lib/docs/orchestrate_sync.py
@@ -1060,6 +1065,7 @@ spec:
       - blueprint-upgrade-consumer
       - blueprint-upgrade-consumer-preflight
       - blueprint-upgrade-consumer-validate
+      - blueprint-upgrade-consumer-postcheck
       - blueprint-upgrade-readiness-doctor
       - blueprint-install-codex-skill
       - blueprint-install-codex-skill-consumer-ops

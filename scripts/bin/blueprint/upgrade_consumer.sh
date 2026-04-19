@@ -9,7 +9,7 @@ start_script_metric_trap "blueprint_upgrade_consumer"
 usage() {
   cat <<'USAGE'
 Usage: upgrade_consumer.sh [--source URL|PATH] [--ref REF] [--apply | --dry-run] [--allow-dirty] [--allow-delete]
-                         [--plan-path PATH] [--apply-path PATH] [--summary-path PATH]
+                         [--plan-path PATH] [--apply-path PATH] [--summary-path PATH] [--reconcile-report-path PATH]
 
 Plan/apply a non-destructive generated-consumer blueprint upgrade from a pinned source ref.
 
@@ -25,6 +25,7 @@ Environment variables:
   BLUEPRINT_UPGRADE_PLAN_PATH             Default: artifacts/blueprint/upgrade_plan.json
   BLUEPRINT_UPGRADE_APPLY_PATH            Default: artifacts/blueprint/upgrade_apply.json
   BLUEPRINT_UPGRADE_SUMMARY_PATH          Default: artifacts/blueprint/upgrade_summary.md
+  BLUEPRINT_UPGRADE_RECONCILE_REPORT_PATH Default: artifacts/blueprint/upgrade/upgrade_reconcile_report.json
   BLUEPRINT_UPGRADE_ENGINE_MODE           Default: source-ref
                                           local: run repository-local upgrade engine.
                                           source-ref: run upgrade engine resolved from
@@ -33,7 +34,7 @@ Environment variables:
 Notes:
   - Apply mode enforces non-destructive 3-way merge behavior for diverged blueprint-managed files.
   - For plan-only machine-readable guidance, run `make blueprint-upgrade-consumer-preflight`.
-  - Use `make blueprint-upgrade-consumer-validate` after apply to run the post-upgrade validation bundle.
+  - Use `make blueprint-upgrade-consumer-validate` and `make blueprint-upgrade-consumer-postcheck` after apply.
 USAGE
 }
 
@@ -70,6 +71,7 @@ resolve_report_path() {
 emit_upgrade_report_metrics() {
   local plan_report_path="${1:-}"
   local apply_report_path="${2:-}"
+  local reconcile_report_path="${3:-}"
   local python_exit=0
 
   if [[ -z "$plan_report_path" || -z "$apply_report_path" ]]; then
@@ -131,12 +133,31 @@ emit_upgrade_report_metrics() {
     apply_required_manual_actions)
       log_metric "blueprint_upgrade_required_manual_action_total" "$value" "scope=apply"
       ;;
+    reconcile_blueprint_managed_safe_to_take_total)
+      log_metric "blueprint_upgrade_reconcile_bucket_total" "$value" "bucket=blueprint_managed_safe_to_take"
+      ;;
+    reconcile_consumer_owned_manual_review_total)
+      log_metric "blueprint_upgrade_reconcile_bucket_total" "$value" "bucket=consumer_owned_manual_review"
+      ;;
+    reconcile_generated_references_regenerate_total)
+      log_metric "blueprint_upgrade_reconcile_bucket_total" "$value" "bucket=generated_references_regenerate"
+      ;;
+    reconcile_conflicts_unresolved_total)
+      log_metric "blueprint_upgrade_reconcile_bucket_total" "$value" "bucket=conflicts_unresolved"
+      ;;
+    reconcile_blocked)
+      log_metric "blueprint_upgrade_reconcile_status_total" "1" "status=$( [[ "$value" == "1" ]] && echo blocked || echo safe )"
+      ;;
+    reconcile_blocking_bucket_count)
+      log_metric "blueprint_upgrade_reconcile_blocking_bucket_count" "$value"
+      ;;
     esac
   done < <(
     python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_report_metrics.py" \
       plan-apply \
       --plan-path "$plan_report_path" \
-      --apply-path "$apply_report_path"
+      --apply-path "$apply_report_path" \
+      --reconcile-path "$reconcile_report_path"
   ) || python_exit=$?
 
   if [[ "$python_exit" -ne 0 ]]; then
@@ -178,12 +199,20 @@ resolve_upgrade_engine_from_source_ref() {
   printf '%s\n' "$engine_script"
 }
 
+upgrade_engine_supports_reconcile_arg() {
+  local engine_script="$1"
+  local help_output
+  help_output="$(python3 "$engine_script" --help 2>&1 || true)"
+  [[ "$help_output" == *"--reconcile-report-path"* ]]
+}
+
 set_default_env BLUEPRINT_UPGRADE_APPLY false
 set_default_env BLUEPRINT_UPGRADE_ALLOW_DIRTY false
 set_default_env BLUEPRINT_UPGRADE_ALLOW_DELETE false
 set_default_env BLUEPRINT_UPGRADE_PLAN_PATH "artifacts/blueprint/upgrade_plan.json"
 set_default_env BLUEPRINT_UPGRADE_APPLY_PATH "artifacts/blueprint/upgrade_apply.json"
 set_default_env BLUEPRINT_UPGRADE_SUMMARY_PATH "artifacts/blueprint/upgrade_summary.md"
+set_default_env BLUEPRINT_UPGRADE_RECONCILE_REPORT_PATH "artifacts/blueprint/upgrade/upgrade_reconcile_report.json"
 set_default_env BLUEPRINT_UPGRADE_ENGINE_MODE "source-ref"
 
 upgrade_source="${BLUEPRINT_UPGRADE_SOURCE:-}"
@@ -194,6 +223,7 @@ upgrade_ref="${BLUEPRINT_UPGRADE_REF:-}"
 plan_path="$BLUEPRINT_UPGRADE_PLAN_PATH"
 apply_path="$BLUEPRINT_UPGRADE_APPLY_PATH"
 summary_path="$BLUEPRINT_UPGRADE_SUMMARY_PATH"
+reconcile_report_path="$BLUEPRINT_UPGRADE_RECONCILE_REPORT_PATH"
 
 apply_enabled="false"
 if is_truthy "${BLUEPRINT_UPGRADE_APPLY:-false}"; then
@@ -252,6 +282,11 @@ while [[ "$#" -gt 0 ]]; do
     summary_path="$2"
     shift 2
     ;;
+  --reconcile-report-path)
+    [[ "$#" -ge 2 ]] || log_fatal "--reconcile-report-path requires a value"
+    reconcile_report_path="$2"
+    shift 2
+    ;;
   --help)
     usage
     exit 0
@@ -302,12 +337,19 @@ log_metric "blueprint_upgrade_engine_mode" "$upgrade_engine_mode"
 
 plan_report="$(resolve_report_path "$plan_path")"
 apply_report="$(resolve_report_path "$apply_path")"
+reconcile_report="$(resolve_report_path "$reconcile_report_path")"
 upgrade_engine_script="$ROOT_DIR/scripts/lib/blueprint/upgrade_consumer.py"
 upgrade_engine_checkout=""
 
 if [[ "$upgrade_engine_mode" == "source-ref" ]]; then
   upgrade_engine_script="$(resolve_upgrade_engine_from_source_ref "$upgrade_source" "$upgrade_ref")"
   upgrade_engine_checkout="${upgrade_engine_script%/scripts/lib/blueprint/upgrade_consumer.py}"
+fi
+
+if upgrade_engine_supports_reconcile_arg "$upgrade_engine_script"; then
+  upgrade_args+=(--reconcile-report-path "$reconcile_report_path")
+else
+  log_warn "upgrade engine does not support --reconcile-report-path; continuing without reconcile artifact output"
 fi
 
 if run_cmd python3 "$upgrade_engine_script" "${upgrade_args[@]}"; then
@@ -320,8 +362,8 @@ if [[ -n "$upgrade_engine_checkout" ]]; then
   rm -rf "$upgrade_engine_checkout"
 fi
 
-emit_upgrade_report_metrics "$plan_report" "$apply_report"
+emit_upgrade_report_metrics "$plan_report" "$apply_report" "$reconcile_report"
 if [[ "$upgrade_rc" -ne 0 ]]; then
-  log_error "blueprint consumer upgrade failed (see ${plan_path} and ${apply_path})"
+  log_error "blueprint consumer upgrade failed (see ${plan_path}, ${apply_path}, and ${reconcile_report_path})"
 fi
 exit "$upgrade_rc"

@@ -54,12 +54,16 @@ BLUEPRINT_UPGRADE_REF=<tag|branch|commit> make blueprint-upgrade-consumer-prefli
 BLUEPRINT_UPGRADE_REF=<tag|branch|commit> make blueprint-upgrade-consumer
 BLUEPRINT_UPGRADE_REF=<tag|branch|commit> BLUEPRINT_UPGRADE_APPLY=true make blueprint-upgrade-consumer
 make blueprint-upgrade-consumer-validate
+make blueprint-upgrade-consumer-postcheck
 ```
 Use the preflight report `artifacts/blueprint/upgrade_preflight.json` to inspect auto-apply candidates,
 manual-merge/conflict paths, required follow-up commands, and missing contract-required consumer-owned Make targets before apply mode.
 Inspect `artifacts/blueprint/upgrade_plan.json`, `artifacts/blueprint/upgrade_apply.json`, and
-`artifacts/blueprint/upgrade_summary.md` after each run. When `required_manual_actions` is non-empty,
+`artifacts/blueprint/upgrade_summary.md` after each run. Inspect
+`artifacts/blueprint/upgrade/upgrade_reconcile_report.json` for blocking buckets.
+When `required_manual_actions` is non-empty,
 resolve the listed dependency paths first, then re-run `make blueprint-upgrade-consumer-validate`.
+When postcheck reports status `failure`, resolve blocked reasons and re-run `make blueprint-upgrade-consumer-postcheck`.
 For missing required consumer-owned Make targets, define the target in `make/platform.mk` or linked includes under `make/platform/*.mk`
 using the exact target name from the manual-action reason.
 When `LOCAL_POST_DEPLOY_HOOK_ENABLED=true`, preflight also flags a blocking manual action if

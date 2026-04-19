@@ -21,6 +21,7 @@
 - `blueprint-upgrade-consumer`
 - `blueprint-upgrade-consumer-preflight`
 - `blueprint-upgrade-consumer-validate`
+- `blueprint-upgrade-consumer-postcheck`
 - `blueprint-upgrade-readiness-doctor`
 - `blueprint-install-codex-skill`
 - `blueprint-install-codex-skill-consumer-ops`

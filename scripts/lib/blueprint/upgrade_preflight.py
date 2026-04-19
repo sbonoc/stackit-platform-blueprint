@@ -17,6 +17,12 @@ if str(REPO_ROOT) not in sys.path:
 
 from scripts.lib.blueprint.cli_support import display_repo_path, resolve_repo_root  # noqa: E402
 from scripts.lib.blueprint.contract_schema import BlueprintContract, load_blueprint_contract  # noqa: E402
+from scripts.lib.blueprint.upgrade_reconcile_report import (  # noqa: E402
+    RECONCILE_REPORT_DEFAULT_PATH,
+    build_merge_risk_classification,
+    build_upgrade_reconcile_report,
+    reconcile_report_stale_reasons,
+)
 
 
 def _resolve_repo_scoped_path(repo_root: Path, value: str, arg_name: str) -> Path:
@@ -124,6 +130,7 @@ def _build_report(
     repo_root: Path,
     plan_path: Path,
     apply_path: Path,
+    reconcile_path: Path,
 ) -> dict[str, Any]:
     plan_payload = _load_json(plan_path, label="upgrade plan report")
     apply_payload = _load_json(apply_path, label="upgrade apply report")
@@ -226,6 +233,40 @@ def _build_report(
     required_surfaces_auto_apply = sorted(path for path in required_surfaces_auto_apply if path)
     required_surfaces_at_risk = sorted(required_surfaces_at_risk, key=lambda entry: str(entry.get("path", "")))
 
+    reconcile_report_source = "recomputed-missing-artifact"
+    reconcile_report_stale_reason_list = ["reconcile-artifact-missing"]
+    if reconcile_path.is_file():
+        reconcile_report_candidate = _load_json(reconcile_path, label="upgrade reconcile report")
+        stale_reasons = reconcile_report_stale_reasons(
+            reconcile_report=reconcile_report_candidate,
+            plan_payload=plan_payload,
+            apply_payload=apply_payload,
+            reconcile_path=reconcile_path,
+            plan_path=plan_path,
+            apply_path=apply_path,
+        )
+        if stale_reasons:
+            reconcile_report = build_upgrade_reconcile_report(
+                repo_root=repo_root,
+                plan_payload=plan_payload,
+                apply_payload=apply_payload,
+                repo_mode=str(contract_context.get("repo_mode", "unknown")),
+            )
+            reconcile_report_source = "recomputed-stale-artifact"
+            reconcile_report_stale_reason_list = stale_reasons
+        else:
+            reconcile_report = reconcile_report_candidate
+            reconcile_report_source = "artifact"
+            reconcile_report_stale_reason_list = []
+    else:
+        reconcile_report = build_upgrade_reconcile_report(
+            repo_root=repo_root,
+            plan_payload=plan_payload,
+            apply_payload=apply_payload,
+            repo_mode=str(contract_context.get("repo_mode", "unknown")),
+        )
+    merge_risk_classification = build_merge_risk_classification(reconcile_report)
+
     summary = {
         "plan_entry_count": len(plan_entries),
         "apply_result_count": len(apply_results),
@@ -239,11 +280,15 @@ def _build_report(
         "required_surface_delta_count": len(required_surface_deltas),
         "required_surface_auto_apply_count": len(required_surfaces_auto_apply),
         "required_surface_at_risk_count": len(required_surfaces_at_risk),
+        "merge_risk_blocking_bucket_count": int(merge_risk_classification.get("blocking_bucket_count", 0)),
     }
 
     return {
         "plan_path": display_repo_path(repo_root, plan_path),
         "apply_path": display_repo_path(repo_root, apply_path),
+        "reconcile_report_path": display_repo_path(repo_root, reconcile_path),
+        "reconcile_report_source": reconcile_report_source,
+        "reconcile_report_stale_reasons": reconcile_report_stale_reason_list,
         "summary": summary,
         "auto_apply": auto_apply,
         "manual_merge": manual_merge,
@@ -252,6 +297,7 @@ def _build_report(
         "required_manual_actions": required_manual_actions,
         "required_follow_up_commands": required_follow_up_commands,
         "blocking_paths": blocking_paths,
+        "merge_risk_classification": merge_risk_classification,
         "required_surface_reconciliation": {
             "contract_available": contract_context["contract_available"],
             "contract_error": contract_context["contract_error"],
@@ -288,6 +334,11 @@ def main() -> int:
         default="artifacts/blueprint/upgrade_preflight.json",
         help="Preflight report output path (absolute or repo-relative).",
     )
+    parser.add_argument(
+        "--reconcile-report-path",
+        default=RECONCILE_REPORT_DEFAULT_PATH,
+        help="Upgrade reconcile report path (absolute or repo-relative).",
+    )
     args = parser.parse_args()
 
     repo_root = resolve_repo_root(args.repo_root, __file__)
@@ -295,7 +346,17 @@ def main() -> int:
         plan_path = _resolve_repo_scoped_path(repo_root, args.plan_path, "--plan-path")
         apply_path = _resolve_repo_scoped_path(repo_root, args.apply_path, "--apply-path")
         output_path = _resolve_repo_scoped_path(repo_root, args.output_path, "--output-path")
-        report = _build_report(repo_root=repo_root, plan_path=plan_path, apply_path=apply_path)
+        reconcile_path = _resolve_repo_scoped_path(
+            repo_root,
+            args.reconcile_report_path,
+            "--reconcile-report-path",
+        )
+        report = _build_report(
+            repo_root=repo_root,
+            plan_path=plan_path,
+            apply_path=apply_path,
+            reconcile_path=reconcile_path,
+        )
     except (FileNotFoundError, ValueError) as exc:
         print(str(exc), file=sys.stderr)
         return 1
@@ -310,7 +371,8 @@ def main() -> int:
         f"manual_merge={summary.get('manual_merge_count', 0)} "
         f"conflicts={summary.get('conflict_count', 0)} "
         f"required_manual_actions={summary.get('required_manual_action_count', 0)} "
-        f"required_surfaces_at_risk={summary.get('required_surface_at_risk_count', 0)})"
+        f"required_surfaces_at_risk={summary.get('required_surface_at_risk_count', 0)} "
+        f"merge_risk_blocking_buckets={summary.get('merge_risk_blocking_bucket_count', 0)})"
     )
     return 0
 

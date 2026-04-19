@@ -303,3 +303,9 @@
   - runtime and module summary docs generators now skip template synchronization/check coupling in `generated-consumer` mode and continue source-doc validation.
   - upgrade/bootstrap workflows inherit cleanup behavior through existing `make blueprint-bootstrap` execution without introducing new targets.
   - docs sync scripts now share centralized repo-mode resolution in `scripts/lib/docs/repo_mode.py`, so mode validation and template-sync toggling are implemented once and reused consistently.
+- Upgrade convergence safety now uses a deterministic reconcile + postcheck contract (Issue #128):
+  - upgrade plan/apply now emit `artifacts/blueprint/upgrade/upgrade_reconcile_report.json` with canonical buckets (`blueprint_managed_safe_to_take`, `consumer_owned_manual_review`, `generated_references_regenerate`, `conflicts_unresolved`) and blocked-state summary.
+  - preflight now includes `merge_risk_classification` derived from reconcile buckets with explicit remediation hints and next commands.
+  - new target `make blueprint-upgrade-consumer-postcheck` executes validate + convergence checks and writes `artifacts/blueprint/upgrade_postcheck.json`, failing on unresolved merge markers/conflicts.
+  - source-ref upgrade wrapper now detects whether historical source engines support `--reconcile-report-path` and degrades compatibly when they do not.
+  - generated-reference `conflict`/`merge-required` plan entries now classify into `generated_references_regenerate` in addition to unresolved-conflict tracking to keep regeneration risk explicit.

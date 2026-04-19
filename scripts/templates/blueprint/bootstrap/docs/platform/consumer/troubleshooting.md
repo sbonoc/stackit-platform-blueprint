@@ -113,6 +113,7 @@ Common first-day issues for generated repositories.
     --summary-path artifacts/blueprint/upgrade_summary.md
   rm -rf "${TMP_DIR}"
   make blueprint-upgrade-consumer-validate
+  make blueprint-upgrade-consumer-postcheck
   ```
 - After the upgrade lands, keep using `make blueprint-upgrade-consumer` with the default engine mode (`source-ref`) for deterministic future runs.
 
@@ -199,6 +200,7 @@ Common first-day issues for generated repositories.
   make blueprint-upgrade-consumer
   BLUEPRINT_UPGRADE_APPLY=true make blueprint-upgrade-consumer
   make blueprint-upgrade-consumer-validate
+  make blueprint-upgrade-consumer-postcheck
   ```
 - Temporary fallback only if you cannot upgrade immediately:
   - set `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true` in workflow/job env.
@@ -260,7 +262,7 @@ Common first-day issues for generated repositories.
   - `status=failure reason=command_failed`: hook command failed; with `LOCAL_POST_DEPLOY_HOOK_REQUIRED=false` chain continues, with `true` it fails fast.
 - In generated-consumer repositories, implement deterministic commands in `make/platform.mk` target `infra-post-deploy-consumer` (the seeded target is an intentional fail-fast placeholder until you replace it).
 - Upgrade preflight guardrail: when `LOCAL_POST_DEPLOY_HOOK_ENABLED=true`, `make blueprint-upgrade-consumer-preflight` reports a required manual action if `infra-post-deploy-consumer` is still placeholder.
-- Upgrade preflight required-target checklist: when a contract-required consumer-owned Make target is missing, preflight reports a required manual action with the exact target name; implement it in `make/platform.mk` or `make/platform/*.mk`, then rerun `make blueprint-upgrade-consumer-validate`.
+- Upgrade preflight required-target checklist: when a contract-required consumer-owned Make target is missing, preflight reports a required manual action with the exact target name; implement it in `make/platform.mk` or `make/platform/*.mk`, then rerun `make blueprint-upgrade-consumer-validate` and `make blueprint-upgrade-consumer-postcheck`.
 
 ## CI test lanes fail on clean runners with missing `fastapi`, `vitest`, or Playwright browsers
 - Ensure your workflow uses `.github/actions/prepare-blueprint-ci/action.yml` before test lanes.

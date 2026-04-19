@@ -26,7 +26,7 @@ def _as_int(value: Any) -> int:
         return 0
 
 
-def _emit_plan_apply_metrics(plan_path: Path, apply_path: Path) -> Iterable[str]:
+def _emit_plan_apply_metrics(plan_path: Path, apply_path: Path, reconcile_path: Path | None = None) -> Iterable[str]:
     plan = _load_json(plan_path)
     if isinstance(plan, dict):
         summary = plan.get("summary", {})
@@ -54,6 +54,30 @@ def _emit_plan_apply_metrics(plan_path: Path, apply_path: Path) -> Iterable[str]
             yield f"apply_skipped={_as_int(summary.get('skipped', 0))}"
             yield f"apply_planned_only={_as_int(summary.get('planned-only', 0))}"
             yield f"apply_required_manual_actions={_as_int(summary.get('required_manual_action_count', 0))}"
+
+    if reconcile_path is not None:
+        reconcile = _load_json(reconcile_path)
+        if isinstance(reconcile, dict):
+            summary = reconcile.get("summary", {})
+            if isinstance(summary, dict):
+                yield (
+                    "reconcile_blueprint_managed_safe_to_take_total="
+                    + str(_as_int(summary.get("blueprint_managed_safe_to_take_count", 0)))
+                )
+                yield (
+                    "reconcile_consumer_owned_manual_review_total="
+                    + str(_as_int(summary.get("consumer_owned_manual_review_count", 0)))
+                )
+                yield (
+                    "reconcile_generated_references_regenerate_total="
+                    + str(_as_int(summary.get("generated_references_regenerate_count", 0)))
+                )
+                yield (
+                    "reconcile_conflicts_unresolved_total="
+                    + str(_as_int(summary.get("conflicts_unresolved_count", 0)))
+                )
+                yield f"reconcile_blocking_bucket_count={_as_int(summary.get('blocking_bucket_count', 0))}"
+                yield f"reconcile_blocked={1 if bool(summary.get('blocked', False)) else 0}"
 
 
 def _emit_validate_metrics(report_path: Path) -> Iterable[str]:
@@ -92,6 +116,26 @@ def _emit_validate_metrics(report_path: Path) -> Iterable[str]:
     ]
 
 
+def _emit_postcheck_metrics(report_path: Path) -> Iterable[str]:
+    report = _load_json(report_path)
+    if not isinstance(report, dict):
+        return []
+    summary = report.get("summary", {})
+    if not isinstance(summary, dict):
+        return []
+    status = str(summary.get("status", "unknown"))
+    return [
+        f"postcheck_status={status}",
+        f"postcheck_commands_total={_as_int(summary.get('commands_total', 0))}",
+        f"postcheck_merge_markers_total={_as_int(summary.get('merge_marker_count', 0))}",
+        f"postcheck_conflicts_unresolved_total={_as_int(summary.get('conflicts_unresolved_count', 0))}",
+        f"postcheck_docs_hook_failed_targets_total={_as_int(summary.get('docs_hook_failed_target_count', 0))}",
+        f"postcheck_blocked_reasons_total={_as_int(summary.get('blocked_reason_count', 0))}",
+        f"postcheck_validate_failure_total={_as_int(summary.get('validate_failure_count', 0))}",
+        f"postcheck_contract_load_error_total={_as_int(summary.get('contract_load_error_count', 0))}",
+    ]
+
+
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="mode", required=True)
@@ -99,9 +143,13 @@ def _parse_args() -> argparse.Namespace:
     plan_apply = subparsers.add_parser("plan-apply", help="emit metrics for plan/apply artifacts")
     plan_apply.add_argument("--plan-path", required=True)
     plan_apply.add_argument("--apply-path", required=True)
+    plan_apply.add_argument("--reconcile-path", required=False)
 
     validate = subparsers.add_parser("validate", help="emit metrics for validate artifact")
     validate.add_argument("--report-path", required=True)
+
+    postcheck = subparsers.add_parser("postcheck", help="emit metrics for postcheck artifact")
+    postcheck.add_argument("--report-path", required=True)
     return parser.parse_args()
 
 
@@ -109,9 +157,12 @@ def main() -> int:
     args = _parse_args()
     try:
         if args.mode == "plan-apply":
-            lines = _emit_plan_apply_metrics(Path(args.plan_path), Path(args.apply_path))
-        else:
+            reconcile_path = Path(args.reconcile_path) if getattr(args, "reconcile_path", None) else None
+            lines = _emit_plan_apply_metrics(Path(args.plan_path), Path(args.apply_path), reconcile_path)
+        elif args.mode == "validate":
             lines = _emit_validate_metrics(Path(args.report_path))
+        else:
+            lines = _emit_postcheck_metrics(Path(args.report_path))
     except Exception as exc:  # pragma: no cover - wrapper handles failure logging
         print(str(exc), file=sys.stderr)
         return 1

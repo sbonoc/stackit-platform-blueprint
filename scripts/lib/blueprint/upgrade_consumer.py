@@ -26,6 +26,10 @@ from scripts.lib.blueprint.contract_schema import BlueprintContract, load_bluepr
 from scripts.lib.blueprint.init_repo_contract import expand_optional_module_path  # noqa: E402
 from scripts.lib.blueprint.merge_markers import find_merge_markers  # noqa: E402
 from scripts.lib.blueprint.runtime_dependency_edges import RUNTIME_DEPENDENCY_EDGES  # noqa: E402
+from scripts.lib.blueprint.upgrade_reconcile_report import (  # noqa: E402
+    RECONCILE_REPORT_DEFAULT_PATH,
+    build_upgrade_reconcile_report,
+)
 
 
 ACTION_CREATE = "create"
@@ -145,6 +149,11 @@ def _parse_args() -> argparse.Namespace:
         "--summary-path",
         default="artifacts/blueprint/upgrade_summary.md",
         help="Upgrade human summary path (absolute or repo-relative).",
+    )
+    parser.add_argument(
+        "--reconcile-report-path",
+        default=RECONCILE_REPORT_DEFAULT_PATH,
+        help="Ownership-aware reconcile report path (absolute or repo-relative).",
     )
     return parser.parse_args()
 
@@ -1204,6 +1213,19 @@ def _write_json(path: Path, payload: dict[str, Any]) -> None:
     path.write_text(f"{json.dumps(payload, indent=2, sort_keys=True)}\n", encoding="utf-8")
 
 
+def _command_plan(*, source: str, ref: str) -> dict[str, str]:
+    return {
+        "preflight": f"BLUEPRINT_UPGRADE_SOURCE={source} BLUEPRINT_UPGRADE_REF={ref} make blueprint-upgrade-consumer-preflight",
+        "plan": f"BLUEPRINT_UPGRADE_SOURCE={source} BLUEPRINT_UPGRADE_REF={ref} make blueprint-upgrade-consumer",
+        "apply": (
+            f"BLUEPRINT_UPGRADE_SOURCE={source} BLUEPRINT_UPGRADE_REF={ref} "
+            "BLUEPRINT_UPGRADE_APPLY=true make blueprint-upgrade-consumer"
+        ),
+        "validate": "make blueprint-upgrade-consumer-validate",
+        "postcheck": "make blueprint-upgrade-consumer-postcheck",
+    }
+
+
 def _write_summary(
     *,
     summary_path: Path,
@@ -1298,6 +1320,11 @@ def main() -> int:
         plan_path = _resolve_repo_scoped_path(repo_root, args.plan_path, "--plan-path")
         apply_path = _resolve_repo_scoped_path(repo_root, args.apply_path, "--apply-path")
         summary_path = _resolve_repo_scoped_path(repo_root, args.summary_path, "--summary-path")
+        reconcile_report_path = _resolve_repo_scoped_path(
+            repo_root,
+            args.reconcile_report_path,
+            "--reconcile-report-path",
+        )
     except ValueError as exc:
         print(str(exc), file=sys.stderr)
         return 1
@@ -1450,6 +1477,18 @@ def main() -> int:
             apply_payload["merge_markers"] = markers
             apply_payload["status"] = "failure"
             _write_json(apply_path, apply_payload)
+            reconcile_payload = build_upgrade_reconcile_report(
+                repo_root=repo_root,
+                plan_payload=plan_payload,
+                apply_payload=apply_payload,
+                repo_mode=contract.repository.repo_mode,
+                source=args.source,
+                upgrade_ref=args.ref,
+                resolved_upgrade_commit=resolved_commit,
+                baseline_ref=baseline_ref,
+                command_plan=_command_plan(source=args.source, ref=args.ref),
+            )
+            _write_json(reconcile_report_path, reconcile_payload)
             _write_summary(
                 summary_path=summary_path,
                 repo_root=repo_root,
@@ -1463,6 +1502,7 @@ def main() -> int:
                 results=results,
                 required_manual_actions=required_manual_actions,
             )
+            print(f"upgrade-reconcile-report: {display_repo_path(repo_root, reconcile_report_path)}")
             print(
                 "merge conflict markers detected after apply; resolve markers before validation",
                 file=sys.stderr,
@@ -1472,6 +1512,18 @@ def main() -> int:
         conflict_count = sum(1 for result in results if result.result == "conflict")
         apply_payload["status"] = "failure" if (args.apply and conflict_count > 0) else "success"
         _write_json(apply_path, apply_payload)
+        reconcile_payload = build_upgrade_reconcile_report(
+            repo_root=repo_root,
+            plan_payload=plan_payload,
+            apply_payload=apply_payload,
+            repo_mode=contract.repository.repo_mode,
+            source=args.source,
+            upgrade_ref=args.ref,
+            resolved_upgrade_commit=resolved_commit,
+            baseline_ref=baseline_ref,
+            command_plan=_command_plan(source=args.source, ref=args.ref),
+        )
+        _write_json(reconcile_report_path, reconcile_payload)
         _write_summary(
             summary_path=summary_path,
             repo_root=repo_root,
@@ -1487,6 +1539,7 @@ def main() -> int:
         )
         print(f"upgrade-apply: {display_repo_path(repo_root, apply_path)}")
         print(f"upgrade-summary: {display_repo_path(repo_root, summary_path)}")
+        print(f"upgrade-reconcile-report: {display_repo_path(repo_root, reconcile_report_path)}")
         if required_manual_actions:
             manual_actions_summary = ", ".join(
                 f"{action.dependency_of} -> {action.dependency_path}" for action in required_manual_actions
@@ -1494,6 +1547,18 @@ def main() -> int:
             print(
                 "upgrade requires manual actions for protected/consumer-owned dependency gaps: "
                 + manual_actions_summary,
+                file=sys.stderr,
+            )
+        if reconcile_payload.get("summary", {}).get("blocked", False):
+            blocking_buckets = [
+                bucket
+                for bucket, policy in reconcile_payload.get("bucket_policy", {}).items()
+                if isinstance(policy, dict)
+                and bool(policy.get("blocking"))
+                and len(reconcile_payload.get("buckets", {}).get(bucket, [])) > 0
+            ]
+            print(
+                "upgrade reconcile report indicates blocking buckets: " + ", ".join(sorted(blocking_buckets)),
                 file=sys.stderr,
             )
 

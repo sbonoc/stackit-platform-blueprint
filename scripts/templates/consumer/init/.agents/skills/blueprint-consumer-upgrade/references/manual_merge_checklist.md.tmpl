@@ -30,6 +30,7 @@ After merges, run in order:
 make blueprint-upgrade-consumer
 BLUEPRINT_UPGRADE_APPLY=true make blueprint-upgrade-consumer
 make blueprint-upgrade-consumer-validate
+make blueprint-upgrade-consumer-postcheck
 make infra-validate
 make quality-hooks-run
 ```
