@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 import re
 import tempfile
@@ -976,6 +977,45 @@ printf 'enabled_modules=%s\\n' "$(enabled_modules_csv)"
         return result.stdout + result.stderr
 
 
+def contract_test_fast_pytest_args_for_repo_mode(repo_mode: str) -> tuple[int, str]:
+    contract_path = REPO_ROOT / "blueprint" / "contract.yaml"
+    original_contract = contract_path.read_text(encoding="utf-8")
+    patched_contract = re.sub(
+        r"^(\s*repo_mode:\s*).+$",
+        rf"\1{repo_mode}",
+        original_contract,
+        count=1,
+        flags=re.MULTILINE,
+    )
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        stub_pytest = Path(tmpdir) / "pytest"
+        stub_pytest.write_text(
+            "\n".join(
+                [
+                    "#!/bin/sh",
+                    'printf "PYTEST_ARGS=%s\\n" "$*"',
+                    "exit 0",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        stub_pytest.chmod(0o755)
+
+        try:
+            if patched_contract != original_contract:
+                contract_path.write_text(patched_contract, encoding="utf-8")
+            result = run(
+                ["scripts/bin/infra/contract_test_fast.sh"],
+                {"PATH": f"{tmpdir}:{os.environ.get('PATH', '')}"},
+            )
+        finally:
+            contract_path.write_text(original_contract, encoding="utf-8")
+
+    return result.returncode, result.stdout + result.stderr
+
+
 def terraform_backend_apply_failure_contract() -> str:
     with tempfile.TemporaryDirectory() as tmpdir:
         bin_dir = Path(tmpdir) / "bin"
@@ -1451,6 +1491,42 @@ render_optional_module_secret_manifests "messaging" "blueprint-rabbitmq-auth" "r
         self.assertIn("postgres=false", resolved)
         self.assertIn("public_endpoints=true", resolved)
         self.assertIn("enabled_modules=public-endpoints", resolved)
+
+    def test_contract_test_fast_includes_template_source_only_tests_in_template_source_mode(self) -> None:
+        exit_code, output = contract_test_fast_pytest_args_for_repo_mode("template-source")
+        self.assertEqual(exit_code, 0, msg=output)
+        self.assertIn("tests/blueprint/test_upgrade_fixture_matrix.py", output)
+        self.assertIn("tests/infra/test_optional_module_required_env_contract.py", output)
+
+    def test_contract_test_fast_skips_template_source_only_tests_in_generated_consumer_mode(self) -> None:
+        exit_code, output = contract_test_fast_pytest_args_for_repo_mode("generated-consumer")
+        self.assertEqual(exit_code, 0, msg=output)
+        self.assertNotIn("tests/blueprint/test_upgrade_fixture_matrix.py", output)
+        self.assertNotIn("tests/infra/test_optional_module_required_env_contract.py", output)
+        self.assertIn("tests/infra/test_runtime_identity_contract_cli.py", output)
+        self.assertIn("tests/infra/test_argocd_repo_contract_cli.py", output)
+        self.assertIn("tests/infra/test_state_artifact_contract.py", output)
+        self.assertIn("tests/infra/test_root_dir_resolution.py", output)
+
+    def test_contract_test_fast_fails_fast_when_template_source_required_test_is_missing(self) -> None:
+        fixture_matrix_test = REPO_ROOT / "tests" / "blueprint" / "test_upgrade_fixture_matrix.py"
+        backup_path = fixture_matrix_test.with_name("test_upgrade_fixture_matrix.py.backup")
+        fixture_matrix_test.rename(backup_path)
+        try:
+            with tempfile.TemporaryDirectory() as tmpdir:
+                stub_pytest = Path(tmpdir) / "pytest"
+                stub_pytest.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+                stub_pytest.chmod(0o755)
+                result = run(
+                    ["scripts/bin/infra/contract_test_fast.sh"],
+                    {"PATH": f"{tmpdir}:{os.environ.get('PATH', '')}"},
+                )
+            self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            combined_output = result.stdout + result.stderr
+            self.assertIn("missing required fast contract test path(s)", combined_output)
+            self.assertIn("tests/blueprint/test_upgrade_fixture_matrix.py", combined_output)
+        finally:
+            backup_path.rename(fixture_matrix_test)
 
     def test_infra_validate_renders_makefile_from_contract_defaults(self) -> None:
         contract_path = REPO_ROOT / "blueprint" / "contract.yaml"

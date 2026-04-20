@@ -1,0 +1,58 @@
+{
+  "manifest_version": 1,
+  "work_item": "specs/2026-04-20-issue-103-generated-consumer-contract-fastlane",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-04-20T09:57:49Z",
+  "files": [
+    {
+      "path": "specs/2026-04-20-issue-103-generated-consumer-contract-fastlane/architecture.md",
+      "sha256": "886fe817f7b699363320c475f377d89a3e24265b3e8252af87eb18008d377a63",
+      "bytes": 3224
+    },
+    {
+      "path": "specs/2026-04-20-issue-103-generated-consumer-contract-fastlane/context_pack.md",
+      "sha256": "c2f32c3d3095cd39ad55db84e1a15541345db936c0ee056954068855d16dbd9e",
+      "bytes": 1039
+    },
+    {
+      "path": "specs/2026-04-20-issue-103-generated-consumer-contract-fastlane/evidence_manifest.json",
+      "sha256": "7a92b5ef0910f1b677e090b3e3107df99f7998758026255b9900880b67598a81",
+      "bytes": 2335
+    },
+    {
+      "path": "specs/2026-04-20-issue-103-generated-consumer-contract-fastlane/graph.yaml",
+      "sha256": "5ae87a28f1e541545fc132fe6d3c189ef03c7acaaa45a1f08817a53f5acd75d7",
+      "bytes": 2144
+    },
+    {
+      "path": "specs/2026-04-20-issue-103-generated-consumer-contract-fastlane/hardening_review.md",
+      "sha256": "97b6454810b4e714b7fdceb1b13fbc65f63bde3b355f078d5ec2d79e85f7e810",
+      "bytes": 1844
+    },
+    {
+      "path": "specs/2026-04-20-issue-103-generated-consumer-contract-fastlane/plan.md",
+      "sha256": "b27f63c2532297d9b90f2b557254b188c2cdf9cc84c7e7a0da661ab4f857afc4",
+      "bytes": 5753
+    },
+    {
+      "path": "specs/2026-04-20-issue-103-generated-consumer-contract-fastlane/pr_context.md",
+      "sha256": "679e5510b774ca9b371f69b3357fe310c0a511a14f2a76de207fe6c1db347e99",
+      "bytes": 2738
+    },
+    {
+      "path": "specs/2026-04-20-issue-103-generated-consumer-contract-fastlane/spec.md",
+      "sha256": "155c03559f10d907dce3a35cdbad870c16ab98d6eaeabb1cf664b3d3b0710311",
+      "bytes": 4929
+    },
+    {
+      "path": "specs/2026-04-20-issue-103-generated-consumer-contract-fastlane/tasks.md",
+      "sha256": "0e594a6f740ce49bf090e21a720552cefccebee5311b80a3c0bfb704145a96b6",
+      "bytes": 2790
+    },
+    {
+      "path": "specs/2026-04-20-issue-103-generated-consumer-contract-fastlane/traceability.md",
+      "sha256": "85cad0f44ddcb17392689a1ad68a7195217dbbf296b1b571f9a39ab99bb07ab6",
+      "bytes": 5317
+    }
+  ]
+}

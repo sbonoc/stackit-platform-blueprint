@@ -314,3 +314,8 @@
   - new target `make blueprint-upgrade-consumer-postcheck` executes validate + convergence checks and writes `artifacts/blueprint/upgrade_postcheck.json`, failing on unresolved merge markers/conflicts.
   - source-ref upgrade wrapper now detects whether historical source engines support `--reconcile-report-path` and degrades compatibly when they do not.
   - generated-reference `conflict`/`merge-required` plan entries now classify into `generated_references_regenerate` in addition to unresolved-conflict tracking to keep regeneration risk explicit.
+- Generated-consumer fast contract lane selection is now repo-mode aware (Issue #103):
+  - `scripts/bin/infra/contract_test_fast.sh` now selects deterministic test sets by `repo_mode` from contract runtime (`template-source` vs `generated-consumer`).
+  - template-source-only tests (`tests/infra/test_optional_module_required_env_contract.py`, `tests/blueprint/test_upgrade_fixture_matrix.py`) are skipped in generated-consumer mode.
+  - selected tests are now existence-validated before `pytest` execution, so template-source mode remains fail-fast when required fast-lane tests are missing.
+  - `infra_contract_test_fast_test_selection_total` metrics now expose selected/skipped counts and active repo mode for diagnostics.

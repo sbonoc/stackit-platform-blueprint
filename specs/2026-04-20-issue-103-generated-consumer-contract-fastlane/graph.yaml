@@ -1,0 +1,93 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-04-20-issue-103-generated-consumer-contract-fastlane",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "Fast lane test selection is resolved by repo mode"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "Generated-consumer mode skips template-source-only tests"
+    },
+    {
+      "id": "FR-003",
+      "type": "requirement",
+      "summary": "Template-source mode fails fast when selected test paths are missing"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "No additional secret requirements"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "Deterministic selection metrics and logs"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "Deterministic selected-test ordering"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "Explicit remediation diagnostics for missing selected tests"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "Template-source selection includes source-only tests"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "Generated-consumer selection excludes source-only tests"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "Template-source missing selected tests fail fast"
+    }
+  ],
+  "edges": [
+    {
+      "from": "FR-001",
+      "to": "AC-001",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-002",
+      "to": "AC-002",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-003",
+      "to": "AC-003",
+      "relation": "validated_by"
+    },
+    {
+      "from": "NFR-SEC-001",
+      "to": "AC-001",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-OBS-001",
+      "to": "AC-002",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-REL-001",
+      "to": "AC-002",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-OPS-001",
+      "to": "AC-003",
+      "relation": "constrains"
+    }
+  ]
+}
