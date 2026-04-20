@@ -25,6 +25,7 @@ fi
 
 require_command pytest
 run_cmd pytest -q \
+  "$ROOT_DIR/tests/infra/test_optional_module_required_env_contract.py" \
   "$ROOT_DIR/tests/blueprint/test_upgrade_fixture_matrix.py" \
   "$ROOT_DIR/tests/infra/test_runtime_identity_contract_cli.py" \
   "$ROOT_DIR/tests/infra/test_argocd_repo_contract_cli.py" \

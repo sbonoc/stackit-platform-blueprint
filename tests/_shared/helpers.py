@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from functools import lru_cache
 import hashlib
 import json
 import os
@@ -7,11 +8,33 @@ from pathlib import Path
 import shutil
 import subprocess
 
+from scripts.lib.blueprint.init_repo_contract import (
+    load_blueprint_contract_for_init,
+    normalize_bool,
+)
+from scripts.lib.blueprint.init_repo_env import enabled_module_required_env_specs
 from tests._shared.exec import DEFAULT_TEST_COMMAND_TIMEOUT_SECONDS, run_command
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FIXTURE_CACHE_DIR = REPO_ROOT / "artifacts" / "tests" / "fixture-cache"
+
+
+@lru_cache(maxsize=1)
+def _optional_module_enable_flags() -> dict[str, str]:
+    contract = load_blueprint_contract_for_init(REPO_ROOT)
+    return {
+        module.module_id: module.enable_flag
+        for module in contract.optional_modules.modules.values()
+    }
+
+
+def _is_enabled(value: str | bool | None) -> bool:
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return False
+    return normalize_bool(str(value))
 
 
 def module_flags_env(
@@ -30,6 +53,7 @@ def module_flags_env(
     secrets_manager: str = "false",
     kms: str = "false",
     identity_aware_proxy: str = "false",
+    hydrate_module_required_env: str | bool = "true",
 ) -> dict[str, str]:
     env = {
         "BLUEPRINT_PROFILE": profile,
@@ -48,18 +72,14 @@ def module_flags_env(
         "IDENTITY_AWARE_PROXY_ENABLED": identity_aware_proxy,
     }
 
-    # Tests that enable provider-backed Postgres need stable contract inputs so
-    # `infra-bootstrap` can render the local/STACKIT scaffolding deterministically.
-    if postgres == "true":
-        env.setdefault("POSTGRES_INSTANCE_NAME", "blueprint-postgres")
-        env.setdefault("POSTGRES_DB_NAME", "platform")
-        env.setdefault("POSTGRES_USER", "platform")
-        env.setdefault("POSTGRES_PASSWORD", "platform-password")
-
-    if opensearch == "true":
-        env.setdefault("OPENSEARCH_INSTANCE_NAME", "marketplace-opensearch")
-        env.setdefault("OPENSEARCH_VERSION", "2.17")
-        env.setdefault("OPENSEARCH_PLAN_NAME", "stackit-opensearch-single")
+    if _is_enabled(hydrate_module_required_env):
+        module_enablement = {
+            module_id: _is_enabled(env.get(enable_flag, "false"))
+            for module_id, enable_flag in _optional_module_enable_flags().items()
+        }
+        for env_name, env_value in enabled_module_required_env_specs(REPO_ROOT, module_enablement):
+            if env_value:
+                env.setdefault(env_name, env_value)
 
     return env
 

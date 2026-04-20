@@ -686,7 +686,7 @@ class OptionalModulesTests(unittest.TestCase):
         self.assertEqual(destroy.returncode, 0, msg=destroy.stdout + destroy.stderr)
 
     def test_identity_aware_proxy_requires_keycloak_oidc_configuration(self) -> None:
-        env = module_flags_env(identity_aware_proxy="true")
+        env = module_flags_env(identity_aware_proxy="true", hydrate_module_required_env="false")
         bootstrap = run_render_and_infra_bootstrap(env)
         self.assertEqual(bootstrap.returncode, 0, msg=bootstrap.stdout + bootstrap.stderr)
 

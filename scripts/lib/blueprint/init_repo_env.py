@@ -59,6 +59,8 @@ MODULE_REQUIRED_ENV_DEFAULTS = {
     "PUBLIC_ENDPOINTS_BASE_DOMAIN": "apps.local",
     "RABBITMQ_INSTANCE_NAME": "marketplace-rabbitmq",
     "SECRETS_MANAGER_INSTANCE_NAME": "marketplace-secrets",
+    "STACKIT_PROJECT_ID": "project-001",
+    "STACKIT_REGION": "eu01",
     "STACKIT_WORKFLOWS_DAGS_REPO_URL": "https://github.com/example-org/example-repo.git",
     "STACKIT_WORKFLOWS_DAGS_REPO_BRANCH": "main",
     "STACKIT_WORKFLOWS_DAGS_REPO_USERNAME": "workflows-user",

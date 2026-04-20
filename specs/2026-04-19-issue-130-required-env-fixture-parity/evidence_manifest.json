@@ -1,0 +1,58 @@
+{
+  "manifest_version": 1,
+  "work_item": "specs/2026-04-19-issue-130-required-env-fixture-parity",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-04-19T06:41:00Z",
+  "files": [
+    {
+      "path": "specs/2026-04-19-issue-130-required-env-fixture-parity/architecture.md",
+      "sha256": "5169a2d3199db8439cfb442f865de25ebda5067df5a243ffe02bf4af947c816c",
+      "bytes": 3473
+    },
+    {
+      "path": "specs/2026-04-19-issue-130-required-env-fixture-parity/context_pack.md",
+      "sha256": "6422f648b3da880d0663854fb9dff5c36de6ab04effcf812a2b2905e83a8868d",
+      "bytes": 982
+    },
+    {
+      "path": "specs/2026-04-19-issue-130-required-env-fixture-parity/evidence_manifest.json",
+      "sha256": "7275a71fcf249ab51c1e53ef8e89bf0496489b7acd5ad111e4feaeeefa830bc6",
+      "bytes": 2237
+    },
+    {
+      "path": "specs/2026-04-19-issue-130-required-env-fixture-parity/graph.yaml",
+      "sha256": "a06c684b69a9232da91fcebfd471b0080231fce8b93d314d1ccae4821e16b45b",
+      "bytes": 2151
+    },
+    {
+      "path": "specs/2026-04-19-issue-130-required-env-fixture-parity/hardening_review.md",
+      "sha256": "8ed1bfeb1116410643760981adc6fde3597b0184075ba46e5a276d46e6b8f97a",
+      "bytes": 2225
+    },
+    {
+      "path": "specs/2026-04-19-issue-130-required-env-fixture-parity/plan.md",
+      "sha256": "184e43b1c15d95ce164eccc3c1fe695cf5636ee949aa8c29a3e08a9ac9245a42",
+      "bytes": 5610
+    },
+    {
+      "path": "specs/2026-04-19-issue-130-required-env-fixture-parity/pr_context.md",
+      "sha256": "603a4c0887819550c2a3ab4df0a2fcfe0f62bd3f8d9a56e0663c78e92a4ebcb9",
+      "bytes": 3021
+    },
+    {
+      "path": "specs/2026-04-19-issue-130-required-env-fixture-parity/spec.md",
+      "sha256": "0f330c3d3d2eb265bcf7a75df39f30f6df3a52a687114b4474cfb3aacab6c615",
+      "bytes": 5301
+    },
+    {
+      "path": "specs/2026-04-19-issue-130-required-env-fixture-parity/tasks.md",
+      "sha256": "99ac2118af19ae6fe8c76abb47b7694170fce6d53b1ce8e28f6724a69cc728ac",
+      "bytes": 2778
+    },
+    {
+      "path": "specs/2026-04-19-issue-130-required-env-fixture-parity/traceability.md",
+      "sha256": "63db9ad8dfb9c009eb57add9698c471ffe3de166a05378aa1f0faf60e63a4e41",
+      "bytes": 5113
+    }
+  ]
+}
