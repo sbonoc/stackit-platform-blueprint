@@ -44,7 +44,11 @@ class ModuleRequiredEnvFixtureContractTests(unittest.TestCase):
             module.module_id.replace("-", "_"): "true"
             for module in self.contract.optional_modules.modules.values()
         }
-        env = module_flags_env(profile="stackit-dev", **all_enabled_kwargs)
+        env = module_flags_env(
+            profile="stackit-dev",
+            hydrate_module_required_env="true",
+            **all_enabled_kwargs,
+        )
 
         missing: list[str] = []
         for module_id, env_name in self._required_env_pairs():
@@ -67,7 +71,11 @@ class ModuleRequiredEnvFixtureContractTests(unittest.TestCase):
             module.module_id.replace("-", "_"): "true"
             for module in self.contract.optional_modules.modules.values()
         }
-        env = module_flags_env(profile="stackit-dev", **all_enabled_kwargs)
+        env = module_flags_env(
+            profile="stackit-dev",
+            hydrate_module_required_env="true",
+            **all_enabled_kwargs,
+        )
 
         missing_by_module: dict[str, list[str]] = {}
         for module in self.contract.optional_modules.modules.values():

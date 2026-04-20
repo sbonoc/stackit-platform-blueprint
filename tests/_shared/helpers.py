@@ -8,7 +8,10 @@ from pathlib import Path
 import shutil
 import subprocess
 
-from scripts.lib.blueprint.init_repo_contract import load_blueprint_contract_for_init
+from scripts.lib.blueprint.init_repo_contract import (
+    load_blueprint_contract_for_init,
+    normalize_bool,
+)
 from scripts.lib.blueprint.init_repo_env import enabled_module_required_env_specs
 from tests._shared.exec import DEFAULT_TEST_COMMAND_TIMEOUT_SECONDS, run_command
 
@@ -24,6 +27,14 @@ def _optional_module_enable_flags() -> dict[str, str]:
         module.module_id: module.enable_flag
         for module in contract.optional_modules.modules.values()
     }
+
+
+def _is_enabled(value: str | bool | None) -> bool:
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return False
+    return normalize_bool(str(value))
 
 
 def module_flags_env(
@@ -42,6 +53,7 @@ def module_flags_env(
     secrets_manager: str = "false",
     kms: str = "false",
     identity_aware_proxy: str = "false",
+    hydrate_module_required_env: str | bool = "true",
 ) -> dict[str, str]:
     env = {
         "BLUEPRINT_PROFILE": profile,
@@ -60,13 +72,14 @@ def module_flags_env(
         "IDENTITY_AWARE_PROXY_ENABLED": identity_aware_proxy,
     }
 
-    module_enablement = {
-        module_id: env.get(enable_flag, "false").strip().lower() == "true"
-        for module_id, enable_flag in _optional_module_enable_flags().items()
-    }
-    for env_name, env_value in enabled_module_required_env_specs(REPO_ROOT, module_enablement):
-        if env_value:
-            env.setdefault(env_name, env_value)
+    if _is_enabled(hydrate_module_required_env):
+        module_enablement = {
+            module_id: _is_enabled(env.get(enable_flag, "false"))
+            for module_id, enable_flag in _optional_module_enable_flags().items()
+        }
+        for env_name, env_value in enabled_module_required_env_specs(REPO_ROOT, module_enablement):
+            if env_value:
+                env.setdefault(env_name, env_value)
 
     return env
 
