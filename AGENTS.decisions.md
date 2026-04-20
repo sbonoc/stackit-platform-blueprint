@@ -195,6 +195,11 @@
   - `make infra-contract-test-fast` runs focused infra contract helper CLI tests.
   - `make quality-docs-sync-all` provides one deterministic docs sync aggregator target for all generated docs/summaries.
   - `quality-hooks-fast` now includes `infra-contract-test-fast` to keep helper-contract drift visible in the default lane.
+- Optional-module required-env fixture parity is now a fast-lane contract:
+  - `tests/infra/test_optional_module_required_env_contract.py` enforces parity between optional-module `required_env` declarations and test fixture hydration output.
+  - `tests/_shared/helpers.py::module_flags_env` now resolves enabled-module required env defaults via canonical `enabled_module_required_env_specs` instead of ad-hoc per-module branches.
+  - `scripts/bin/infra/contract_test_fast.sh` includes the parity test as a default fast contract gate.
+  - canonical module required-env defaults now include `STACKIT_PROJECT_ID` and `STACKIT_REGION` so workflows fixture parity remains deterministic.
 - Infra validation now enforces a lightweight import-boundary rule for `scripts/lib/**/*.py`:
   - `scripts/lib` modules may not import `scripts/bin` modules.
   - blueprint-managed `scripts/lib/blueprint/**` may not import platform-owned `scripts/lib/platform/**`.
