@@ -2463,5 +2463,107 @@ class RuntimeAuthBestEffortTests(unittest.TestCase):
         )
 
 
+class AppDockerfileAndRuntimeTests(unittest.TestCase):
+    """
+    AC-001 through AC-008: structural contract tests for Issues #111 and #112.
+
+    apps/backend/Dockerfile and apps/touchpoints/Dockerfile must exist and use
+    multi-stage builds with correct EXPOSE ports and CMD definitions (#111).
+
+    Deployment manifests must reference GHCR consumer images (not public Python/nginx
+    placeholders) and the backend manifest must not contain a command: override (#112).
+    """
+
+    _BACKEND_DOCKERFILE = REPO_ROOT / "apps/backend/Dockerfile"
+    _TOUCHPOINTS_DOCKERFILE = REPO_ROOT / "apps/touchpoints/Dockerfile"
+    _BACKEND_DEPLOYMENT = REPO_ROOT / "infra/gitops/platform/base/apps/backend-api-deployment.yaml"
+    _TOUCHPOINTS_DEPLOYMENT = REPO_ROOT / "infra/gitops/platform/base/apps/touchpoints-web-deployment.yaml"
+
+    def test_backend_dockerfile_multi_stage(self) -> None:
+        """AC-001, AC-002: backend Dockerfile uses multi-stage build, EXPOSE 8080, CMD."""
+        import re
+        self.assertTrue(
+            self._BACKEND_DOCKERFILE.is_file(),
+            msg="apps/backend/Dockerfile must exist (Issue #111)",
+        )
+        content = self._BACKEND_DOCKERFILE.read_text(encoding="utf-8")
+        self.assertRegex(
+            content,
+            re.compile(r"^FROM\s+\S+\s+AS\s+builder", re.MULTILINE),
+            msg="apps/backend/Dockerfile must use a named builder stage: FROM ... AS builder",
+        )
+        self.assertRegex(
+            content,
+            re.compile(r"^FROM\s+\S+\s+AS\s+runtime", re.MULTILINE),
+            msg="apps/backend/Dockerfile must use a named runtime stage: FROM ... AS runtime",
+        )
+        self.assertRegex(
+            content,
+            re.compile(r"^EXPOSE\s+8080", re.MULTILINE),
+            msg="apps/backend/Dockerfile must EXPOSE 8080",
+        )
+        self.assertRegex(
+            content,
+            re.compile(r"^CMD\s+\[", re.MULTILINE),
+            msg="apps/backend/Dockerfile must define a CMD instruction",
+        )
+
+    def test_touchpoints_dockerfile_multi_stage(self) -> None:
+        """AC-003, AC-004: touchpoints Dockerfile uses Node.js builder + nginx runtime, EXPOSE 80."""
+        import re
+        self.assertTrue(
+            self._TOUCHPOINTS_DOCKERFILE.is_file(),
+            msg="apps/touchpoints/Dockerfile must exist (Issue #111)",
+        )
+        content = self._TOUCHPOINTS_DOCKERFILE.read_text(encoding="utf-8")
+        self.assertRegex(
+            content,
+            re.compile(r"^FROM\s+node:\S+\s+AS\s+builder", re.MULTILINE),
+            msg="apps/touchpoints/Dockerfile must use a Node.js builder stage: FROM node:... AS builder",
+        )
+        self.assertRegex(
+            content,
+            re.compile(r"^FROM\s+nginx:\S+\s+AS\s+runtime", re.MULTILINE),
+            msg="apps/touchpoints/Dockerfile must use an nginx runtime stage: FROM nginx:... AS runtime",
+        )
+        self.assertRegex(
+            content,
+            re.compile(r"^EXPOSE\s+80$", re.MULTILINE),
+            msg="apps/touchpoints/Dockerfile must EXPOSE 80",
+        )
+
+    def test_backend_deployment_ghcr_image(self) -> None:
+        """AC-005, AC-006: backend deployment uses GHCR image; no command: override."""
+        content = self._BACKEND_DEPLOYMENT.read_text(encoding="utf-8")
+        self.assertIn(
+            "ghcr.io/example-org/platform-blueprint-backend:0.1.0",
+            content,
+            msg=(
+                "backend-api-deployment.yaml image must reference "
+                "ghcr.io/example-org/platform-blueprint-backend:0.1.0 (Issue #112)"
+            ),
+        )
+        self.assertNotIn(
+            "\n          command:",
+            content,
+            msg=(
+                "backend-api-deployment.yaml must not contain a command: override; "
+                "CMD is defined in apps/backend/Dockerfile (Issue #112)"
+            ),
+        )
+
+    def test_touchpoints_deployment_ghcr_image(self) -> None:
+        """AC-007: touchpoints deployment uses GHCR image."""
+        content = self._TOUCHPOINTS_DEPLOYMENT.read_text(encoding="utf-8")
+        self.assertIn(
+            "ghcr.io/example-org/platform-blueprint-touchpoints:0.1.0",
+            content,
+            msg=(
+                "touchpoints-web-deployment.yaml image must reference "
+                "ghcr.io/example-org/platform-blueprint-touchpoints:0.1.0 (Issue #112)"
+            ),
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

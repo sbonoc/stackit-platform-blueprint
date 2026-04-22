@@ -21,13 +21,8 @@ spec:
     spec:
       containers:
         - name: backend-api
-          image: python:3.13.9
+          image: ghcr.io/example-org/platform-blueprint-backend:0.1.0
           imagePullPolicy: IfNotPresent
-          command:
-            - python
-            - -m
-            - http.server
-            - "8080"
           ports:
             - containerPort: 8080
               name: http
