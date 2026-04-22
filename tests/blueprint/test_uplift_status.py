@@ -47,18 +47,20 @@ class BacklogParsingTests(unittest.TestCase):
             p = self._write_backlog(tmpdir, (
                 "- [ ] [#25](https://github.com/org/repo/issues/25) async scaffold.\n"
             ))
-            entries = _parse_backlog(p, "org/repo")
+            entries, checked_ids = _parse_backlog(p, "org/repo")
             self.assertEqual(len(entries), 1)
             self.assertEqual(entries[0].issue_id, 25)
             self.assertEqual(entries[0].line_no, 1)
+            self.assertEqual(checked_ids, set())
 
-    def test_checked_line_is_ignored(self) -> None:
+    def test_checked_line_is_ignored_for_entries_and_captured_in_checked_ids(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             p = self._write_backlog(tmpdir, (
                 "- [x] [#13](https://github.com/org/repo/issues/13) done item.\n"
             ))
-            entries = _parse_backlog(p, "org/repo")
+            entries, checked_ids = _parse_backlog(p, "org/repo")
             self.assertEqual(entries, [])
+            self.assertIn(13, checked_ids)
 
     def test_indented_unchecked_line_is_detected(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -66,7 +68,7 @@ class BacklogParsingTests(unittest.TestCase):
                 "- [ ] Track upstream issues:\n"
                 "  - [ ] [#1](https://github.com/org/repo/issues/1) OpenSearch.\n"
             ))
-            entries = _parse_backlog(p, "org/repo")
+            entries, _ = _parse_backlog(p, "org/repo")
             self.assertEqual(len(entries), 1)
             self.assertEqual(entries[0].issue_id, 1)
 
@@ -75,8 +77,9 @@ class BacklogParsingTests(unittest.TestCase):
             p = self._write_backlog(tmpdir, (
                 "- [ ] Track upstream P1 issues (can run in parallel after P0 starts landing):\n"
             ))
-            entries = _parse_backlog(p, "org/repo")
+            entries, checked_ids = _parse_backlog(p, "org/repo")
             self.assertEqual(entries, [])
+            self.assertEqual(checked_ids, set())
 
     def test_mixed_checked_and_unchecked(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -88,31 +91,45 @@ class BacklogParsingTests(unittest.TestCase):
                 "  - [x] [#12](https://github.com/org/repo/issues/12) kube helper.\n"
             )
             p = self._write_backlog(tmpdir, content)
-            entries = _parse_backlog(p, "org/repo")
+            entries, checked_ids = _parse_backlog(p, "org/repo")
             ids = [e.issue_id for e in entries]
             self.assertEqual(sorted(ids), [1, 25])
+            self.assertEqual(checked_ids, {12, 13})
 
     def test_wrong_repo_url_is_ignored(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             p = self._write_backlog(tmpdir, (
                 "- [ ] [#5](https://github.com/other/repo/issues/5) some item.\n"
             ))
-            entries = _parse_backlog(p, "org/repo")
+            entries, checked_ids = _parse_backlog(p, "org/repo")
             self.assertEqual(entries, [])
+            self.assertEqual(checked_ids, set())
 
     def test_multiple_links_on_same_line(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             p = self._write_backlog(tmpdir, (
                 "- [ ] [#3](https://github.com/org/repo/issues/3) and [#4](https://github.com/org/repo/issues/4).\n"
             ))
-            entries = _parse_backlog(p, "org/repo")
+            entries, _ = _parse_backlog(p, "org/repo")
             self.assertEqual(sorted(e.issue_id for e in entries), [3, 4])
 
     def test_missing_backlog_file_returns_empty(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             p = Path(tmpdir) / "AGENTS.backlog.md"
-            entries = _parse_backlog(p, "org/repo")
+            entries, checked_ids = _parse_backlog(p, "org/repo")
             self.assertEqual(entries, [])
+            self.assertEqual(checked_ids, set())
+
+    def test_mismatched_markdown_issue_id_and_url_issue_id_is_ignored(self) -> None:
+        """Link where anchor text ID != URL ID must not be matched (backreference guard)."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # anchor says #25 but URL says /issues/99
+            p = self._write_backlog(tmpdir, (
+                "- [ ] [#25](https://github.com/org/repo/issues/99) mismatch item.\n"
+            ))
+            entries, checked_ids = _parse_backlog(p, "org/repo")
+            self.assertEqual(entries, [])
+            self.assertEqual(checked_ids, set())
 
 
 # ---------------------------------------------------------------------------
@@ -160,9 +177,10 @@ class BuildReportTests(unittest.TestCase):
     def _entries(self, *ids: int) -> list[UpliftEntry]:
         return [UpliftEntry(i, f"- [ ] line for #{i}", i) for i in ids]
 
-    def _report(self, entries, issue_states, strict=False, query_failures=0):
+    def _report(self, entries, issue_states, strict=False, query_failures=0, checked_ids=None):
         return _build_report(
             entries=entries,
+            checked_ids=checked_ids if checked_ids is not None else set(),
             issue_states=issue_states,
             query_failures=query_failures,
             uplift_repo="org/repo",
@@ -183,6 +201,14 @@ class BuildReportTests(unittest.TestCase):
         self.assertEqual(report["action_required_count"], 1)
         self.assertIn(13, report["action_required_issues"])
 
+    def test_closed_issue_with_only_checked_lines_classified_as_aligned(self) -> None:
+        """Issue that appears only in checked lines and is CLOSED should be 'aligned'."""
+        report = self._report([], {13: "CLOSED"}, checked_ids={13})
+        self.assertEqual(len(report["issues"]), 1)
+        self.assertEqual(report["issues"][0]["classification"], "aligned")
+        self.assertEqual(report["aligned_closed_count"], 1)
+        self.assertEqual(report["action_required_count"], 0)
+
     def test_unknown_state_classified_as_none_with_unknown_count(self) -> None:
         report = self._report(self._entries(99), {99: "UNKNOWN"}, query_failures=1)
         self.assertEqual(report["issues"][0]["classification"], "none")
@@ -198,6 +224,11 @@ class BuildReportTests(unittest.TestCase):
         self.assertEqual(report["tracked_total"], 1)
         self.assertEqual(report["issues"][0]["unresolved_lines"], 2)
         self.assertEqual(report["action_required_count"], 1)
+
+    def test_tracked_total_includes_checked_only_issues(self) -> None:
+        """checked_ids that don't appear in unchecked entries still count toward tracked_total."""
+        report = self._report(self._entries(25), {25: "OPEN", 13: "CLOSED"}, checked_ids={13})
+        self.assertEqual(report["tracked_total"], 2)
 
     def test_zero_tracked_produces_success(self) -> None:
         report = self._report([], {})
@@ -242,6 +273,16 @@ class MainIntegrationTests(unittest.TestCase):
             captured = io.StringIO()
             with mock.patch("sys.stderr", captured), \
                     mock.patch("sys.argv", ["uplift_status.py", "--uplift-repo", ""]):
+                result = _m.main(repo_root=Path(tmpdir))
+            self.assertNotEqual(result, 0)
+
+    def test_bare_slash_uplift_repo_exits_nonzero(self) -> None:
+        """BLUEPRINT_UPLIFT_REPO='/' (empty ORG/REPO defaults) must be rejected."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            import io
+            captured = io.StringIO()
+            with mock.patch("sys.stderr", captured), \
+                    mock.patch("sys.argv", ["uplift_status.py", "--uplift-repo", "/"]):
                 result = _m.main(repo_root=Path(tmpdir))
             self.assertNotEqual(result, 0)
 
@@ -316,6 +357,28 @@ class MainIntegrationTests(unittest.TestCase):
                     _issue_states_override={7: "OPEN"},
                 )
             self.assertEqual(result, 0)
+
+    def test_checked_only_issue_classified_as_aligned_in_full_run(self) -> None:
+        """An issue appearing only in checked lines and CLOSED should be aligned in output."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            self._make_backlog(tmpdir, (
+                "  - [x] [#13](https://github.com/org/repo/issues/13) done item.\n"
+            ))
+            with mock.patch("sys.argv", [
+                "uplift_status.py",
+                "--uplift-repo", "org/repo",
+                "--output-path", "artifacts/blueprint/uplift_status.json",
+            ]):
+                result = _m.main(
+                    repo_root=root,
+                    _issue_states_override={13: "CLOSED"},
+                )
+            self.assertEqual(result, 0)
+            data = json.loads((root / "artifacts/blueprint/uplift_status.json").read_text())
+            self.assertEqual(data["aligned_closed_count"], 1)
+            self.assertEqual(data["action_required_count"], 0)
+            self.assertEqual(data["issues"][0]["classification"], "aligned")
 
 
 if __name__ == "__main__":

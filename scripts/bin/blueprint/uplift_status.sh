@@ -34,7 +34,6 @@ if [[ "${1:-}" == "--help" ]]; then
 fi
 
 require_command python3
-require_command gh
 
 blueprint_load_env_defaults
 
@@ -102,6 +101,7 @@ emit_uplift_metrics() {
       --backlog-path "$BLUEPRINT_UPLIFT_BACKLOG_PATH" \
       --output-path "$BLUEPRINT_UPLIFT_STATUS_PATH" \
       --emit-metrics \
+      $strict_flag \
       2>/dev/null
   ) || python_exit=$?
 

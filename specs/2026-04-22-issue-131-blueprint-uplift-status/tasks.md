@@ -14,14 +14,14 @@
 - [x] T-004 No consumer-facing docs/diagrams changed beyond core targets reference
 
 ## Test Automation
-- [x] T-101 Add 27 unit tests in `tests/blueprint/test_uplift_status.py` covering backlog parsing, query state, classification, strict mode, integration paths
+- [x] T-101 Add 32 unit tests in `tests/blueprint/test_uplift_status.py` covering backlog parsing, query state, classification, strict mode, integration paths, aligned reachability, mismatched ID guard, bare-slash repo validation
 - [x] T-102 No contract tests required; command is additive
 - [x] T-103 `test_unchecked_markdown_link_is_detected` and `test_closed_issue_with_unresolved_lines_classified_as_required` provide positive-path coverage for parsing and classification
 - [x] T-104 No reproducible pre-PR findings; command is additive
 - [x] T-105 `MainIntegrationTests` covers the full main() path end-to-end with temp dirs and state override
 
 ## Validation and Release Readiness
-- [x] T-201 `make quality-hooks-fast` green; `make infra-validate` green; `pytest tests/blueprint/test_uplift_status.py` 27/27 pass
+- [x] T-201 `make quality-hooks-fast` green; `make infra-validate` green; `pytest tests/blueprint/test_uplift_status.py` 32/32 pass
 - [x] T-202 Traceability matrix updated in `traceability.md`
 - [x] T-203 No stale TODOs or dead code introduced
 - [x] T-204 `make docs-build` and `make docs-smoke` pass

@@ -27,7 +27,7 @@
 
 ## Validation Summary
 - Required bundles executed: `make quality-sdd-check`, `make quality-sdd-check-all`, `make quality-hooks-fast`, `python3 -m pytest tests/blueprint/test_uplift_status.py -v`
-- Result summary: all 27 tests pass; quality-hooks-fast green
+- Result summary: all 32 tests pass; quality-hooks-fast green
 - Documentation validation:
   - `make docs-build`
   - `make docs-smoke`

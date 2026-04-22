@@ -9,7 +9,7 @@
 
 ## Architecture and Code Quality Compliance
 - SOLID / Clean Architecture / Clean Code / DDD checks: `_parse_backlog`, `_query_issue_state`, and `_build_report` are pure single-responsibility functions; `main()` orchestrates without duplicating logic; no premature abstractions introduced.
-- Test-automation and pyramid checks: 27 unit tests added to `tests/blueprint/test_uplift_status.py`; classified as unit scope in `test_pyramid_contract.json`; pyramid ratios remain within thresholds.
+- Test-automation and pyramid checks: 32 unit tests added to `tests/blueprint/test_uplift_status.py`; classified as unit scope in `test_pyramid_contract.json`; pyramid ratios remain within thresholds.
 - Documentation/diagram/CI/skill consistency checks: `core_targets.generated.md` updated; ADR added; no skill or CI pipeline changes required.
 
 ## Proposals Only (Not Implemented)

@@ -15,16 +15,22 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
-# Matches Markdown link form: [#NNN](https://github.com/<org>/<repo>/issues/NNN)
-# The org/repo portion is filled in at call time via _backlog_pattern().
+# Matches unchecked Markdown list items (handles indentation).
 _UNCHECKED_LINE = re.compile(r"^\s*-\s+\[ \]")
+# Matches checked Markdown list items (handles indentation, case-insensitive x).
+_CHECKED_LINE = re.compile(r"^\s*-\s+\[[xX]\]")
 
 
 def _backlog_pattern(uplift_repo: str) -> re.Pattern[str]:
-    """Return compiled regex for Markdown issue links in the given repo."""
+    """Return compiled regex for Markdown issue links in the given repo.
+
+    Uses a backreference so only links where anchor-text ID == URL ID are matched,
+    e.g. [#25](https://github.com/org/repo/issues/25) matches but
+    [#25](https://github.com/org/repo/issues/99) does not.
+    """
     escaped = re.escape(uplift_repo)
     return re.compile(
-        r"\[#(\d+)\]\(https://github\.com/" + escaped + r"/issues/\d+\)"
+        r"\[#(\d+)\]\(https://github\.com/" + escaped + r"/issues/\1\)"
     )
 
 
@@ -35,21 +41,34 @@ class UpliftEntry:
     line_no: int
 
 
-def _parse_backlog(backlog_path: Path, uplift_repo: str) -> list[UpliftEntry]:
-    """Return one UpliftEntry per unchecked Markdown issue link in the backlog."""
+def _parse_backlog(
+    backlog_path: Path, uplift_repo: str
+) -> tuple[list[UpliftEntry], set[int]]:
+    """Parse backlog for issue links.
+
+    Returns:
+        (unchecked_entries, checked_ids) where:
+        - unchecked_entries: one UpliftEntry per unchecked Markdown issue link
+        - checked_ids: set of issue IDs found on checked (already-done) lines
+          (used to classify closed issues with no remaining unchecked refs as 'aligned')
+    """
     if not backlog_path.is_file():
-        return []
+        return [], set()
     pattern = _backlog_pattern(uplift_repo)
+    try:
+        text = backlog_path.read_text(encoding="utf-8", errors="surrogateescape")
+    except (OSError, UnicodeDecodeError):
+        return [], set()
     entries: list[UpliftEntry] = []
-    for line_no, line in enumerate(
-        backlog_path.read_text(encoding="utf-8", errors="surrogateescape").splitlines(),
-        start=1,
-    ):
-        if not _UNCHECKED_LINE.match(line):
-            continue
-        for match in pattern.finditer(line):
-            entries.append(UpliftEntry(int(match.group(1)), line.strip(), line_no))
-    return entries
+    checked_ids: set[int] = set()
+    for line_no, line in enumerate(text.splitlines(), start=1):
+        if _UNCHECKED_LINE.match(line):
+            for match in pattern.finditer(line):
+                entries.append(UpliftEntry(int(match.group(1)), line.strip(), line_no))
+        elif _CHECKED_LINE.match(line):
+            for match in pattern.finditer(line):
+                checked_ids.add(int(match.group(1)))
+    return entries, checked_ids
 
 
 def _query_issue_state(issue_id: int, repo: str) -> str:
@@ -71,6 +90,7 @@ def _query_issue_state(issue_id: int, repo: str) -> str:
 
 def _build_report(
     entries: list[UpliftEntry],
+    checked_ids: set[int],
     issue_states: dict[int, str],
     query_failures: int,
     uplift_repo: str,
@@ -79,10 +99,13 @@ def _build_report(
     repo_root: Path,
 ) -> dict[str, object]:
     """Aggregate entries into the uplift status report dict."""
-    # Deduplicate: group unresolved lines per issue_id
+    # Deduplicate: group unresolved lines per issue_id (unchecked only)
     unresolved_by_id: dict[int, int] = {}
     for entry in entries:
         unresolved_by_id[entry.issue_id] = unresolved_by_id.get(entry.issue_id, 0) + 1
+
+    # All tracked IDs = unchecked issue IDs ∪ checked-only issue IDs
+    all_tracked_ids = sorted(set(unresolved_by_id.keys()) | checked_ids)
 
     issues: list[dict[str, object]] = []
     open_count = 0
@@ -92,9 +115,9 @@ def _build_report(
     action_required_count = 0
     action_required_issues: list[int] = []
 
-    for issue_id in sorted(unresolved_by_id):
+    for issue_id in all_tracked_ids:
         state = issue_states.get(issue_id, "UNKNOWN")
-        unresolved = unresolved_by_id[issue_id]
+        unresolved = unresolved_by_id.get(issue_id, 0)
 
         if state == "OPEN":
             classification = "none"
@@ -121,7 +144,7 @@ def _build_report(
             }
         )
 
-    tracked_total = len(unresolved_by_id)
+    tracked_total = len(all_tracked_ids)
     status = "failure" if (action_required_count > 0 or query_failures > 0 or unknown_count > 0) and strict_mode else "success"
 
     return {
@@ -216,13 +239,22 @@ def main(
         )
         return 1
 
+    parts = uplift_repo.split("/", 1)
+    if len(parts) != 2 or not parts[0] or not parts[1]:
+        print(
+            "[blueprint-uplift-status] BLUEPRINT_UPLIFT_REPO must be in the form <org>/<repo>; "
+            f"got: {uplift_repo!r}",
+            file=sys.stderr,
+        )
+        return 1
+
     backlog_path = repo_root / args.backlog_path
     output_path = args.output_path if args.output_path.is_absolute() else repo_root / args.output_path
 
-    entries = _parse_backlog(backlog_path, uplift_repo)
+    entries, checked_ids = _parse_backlog(backlog_path, uplift_repo)
 
-    # Collect unique issue IDs
-    unique_ids = sorted({e.issue_id for e in entries})
+    # Collect all unique issue IDs: unchecked + checked-only
+    unique_ids = sorted({e.issue_id for e in entries} | checked_ids)
 
     if _issue_states_override is not None:
         issue_states = _issue_states_override
@@ -238,6 +270,7 @@ def main(
 
     report = _build_report(
         entries=entries,
+        checked_ids=checked_ids,
         issue_states=issue_states,
         query_failures=query_failures,
         uplift_repo=uplift_repo,
@@ -250,8 +283,12 @@ def main(
 
     if args.emit_metrics:
         _emit_metrics(report)
-    else:
-        _print_table(report)
+        # Always exit 0 in emit-metrics mode; the first invocation already captured
+        # the authoritative exit code. Exiting non-zero here would trigger a spurious
+        # "failed parsing" warning in the shell wrapper.
+        return 0
+
+    _print_table(report)
 
     if args.strict and (
         report["action_required_count"] > 0
