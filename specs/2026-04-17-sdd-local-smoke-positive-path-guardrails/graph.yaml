@@ -1,35 +1,86 @@
-{
-  "graph_version": 1,
-  "work_item": "2026-04-17-sdd-local-smoke-positive-path-guardrails",
-  "nodes": [
-    {"id": "FR-001", "type": "requirement", "summary": "Plan templates enforce positive-path filter/transform gate"},
-    {"id": "FR-002", "type": "requirement", "summary": "Plan templates enforce local smoke evidence gate for HTTP/filter scope"},
-    {"id": "FR-003", "type": "requirement", "summary": "Tasks templates enforce positive-path evidence task"},
-    {"id": "FR-004", "type": "requirement", "summary": "Governance/interoperability docs encode the same guardrails"},
-    {"id": "FR-005", "type": "requirement", "summary": "Control catalog adds stable guardrail IDs and rendered sync"},
-    {"id": "FR-006", "type": "requirement", "summary": "Reproducible findings translate to red->green automated tests or documented exception"},
-    {"id": "NFR-SEC-001", "type": "requirement", "summary": "Policy blocks empty-result-only test evidence"},
-    {"id": "NFR-OBS-001", "type": "requirement", "summary": "Local smoke evidence format is explicit and deterministic"},
-    {"id": "NFR-REL-001", "type": "requirement", "summary": "Canonical and mirrored artifacts stay synchronized"},
-    {"id": "NFR-OPS-001", "type": "requirement", "summary": "Validation remains executable via canonical commands"},
-    {"id": "AC-001", "type": "acceptance", "summary": "Plan templates contain positive-path and local-smoke gates"},
-    {"id": "AC-002", "type": "acceptance", "summary": "Tasks templates contain positive-path verification task"},
-    {"id": "AC-003", "type": "acceptance", "summary": "Control catalog contains SDD-C-022 and SDD-C-023"},
-    {"id": "AC-004", "type": "acceptance", "summary": "Governance/interoperability docs include new guardrails"},
-    {"id": "AC-005", "type": "acceptance", "summary": "Validation and sync checks pass"},
-    {"id": "AC-006", "type": "acceptance", "summary": "Finding-to-test translation requirement appears in templates and controls"}
-  ],
-  "edges": [
-    {"from": "FR-001", "to": "AC-001", "relation": "validated_by"},
-    {"from": "FR-002", "to": "AC-001", "relation": "validated_by"},
-    {"from": "FR-003", "to": "AC-002", "relation": "validated_by"},
-    {"from": "FR-004", "to": "AC-004", "relation": "validated_by"},
-    {"from": "FR-005", "to": "AC-003", "relation": "validated_by"},
-    {"from": "FR-006", "to": "AC-006", "relation": "validated_by"},
-    {"from": "NFR-SEC-001", "to": "AC-001", "relation": "constrains"},
-    {"from": "NFR-SEC-001", "to": "AC-006", "relation": "constrains"},
-    {"from": "NFR-OBS-001", "to": "AC-001", "relation": "constrains"},
-    {"from": "NFR-REL-001", "to": "AC-005", "relation": "constrains"},
-    {"from": "NFR-OPS-001", "to": "AC-005", "relation": "constrains"}
-  ]
-}
+graph_version: 1
+work_item: 2026-04-17-sdd-local-smoke-positive-path-guardrails
+nodes:
+- id: FR-001
+  type: requirement
+  summary: Plan templates enforce positive-path filter/transform gate
+- id: FR-002
+  type: requirement
+  summary: Plan templates enforce local smoke evidence gate for HTTP/filter scope
+- id: FR-003
+  type: requirement
+  summary: Tasks templates enforce positive-path evidence task
+- id: FR-004
+  type: requirement
+  summary: Governance/interoperability docs encode the same guardrails
+- id: FR-005
+  type: requirement
+  summary: Control catalog adds stable guardrail IDs and rendered sync
+- id: FR-006
+  type: requirement
+  summary: Reproducible findings translate to red->green automated tests or documented
+    exception
+- id: NFR-SEC-001
+  type: requirement
+  summary: Policy blocks empty-result-only test evidence
+- id: NFR-OBS-001
+  type: requirement
+  summary: Local smoke evidence format is explicit and deterministic
+- id: NFR-REL-001
+  type: requirement
+  summary: Canonical and mirrored artifacts stay synchronized
+- id: NFR-OPS-001
+  type: requirement
+  summary: Validation remains executable via canonical commands
+- id: AC-001
+  type: acceptance
+  summary: Plan templates contain positive-path and local-smoke gates
+- id: AC-002
+  type: acceptance
+  summary: Tasks templates contain positive-path verification task
+- id: AC-003
+  type: acceptance
+  summary: Control catalog contains SDD-C-022 and SDD-C-023
+- id: AC-004
+  type: acceptance
+  summary: Governance/interoperability docs include new guardrails
+- id: AC-005
+  type: acceptance
+  summary: Validation and sync checks pass
+- id: AC-006
+  type: acceptance
+  summary: Finding-to-test translation requirement appears in templates and controls
+edges:
+- from: FR-001
+  to: AC-001
+  relation: validated_by
+- from: FR-002
+  to: AC-001
+  relation: validated_by
+- from: FR-003
+  to: AC-002
+  relation: validated_by
+- from: FR-004
+  to: AC-004
+  relation: validated_by
+- from: FR-005
+  to: AC-003
+  relation: validated_by
+- from: FR-006
+  to: AC-006
+  relation: validated_by
+- from: NFR-SEC-001
+  to: AC-001
+  relation: constrains
+- from: NFR-SEC-001
+  to: AC-006
+  relation: constrains
+- from: NFR-OBS-001
+  to: AC-001
+  relation: constrains
+- from: NFR-REL-001
+  to: AC-005
+  relation: constrains
+- from: NFR-OPS-001
+  to: AC-005
+  relation: constrains

@@ -1,113 +1,67 @@
-{
-  "graph_version": 1,
-  "work_item": "2026-04-18-docs-ownership-boundary-generated-consumer",
-  "nodes": [
-    {
-      "id": "FR-001",
-      "type": "requirement",
-      "summary": "Template-source mode keeps strict required-seed platform docs synchronization"
-    },
-    {
-      "id": "FR-002",
-      "type": "requirement",
-      "summary": "Generated-consumer mode enforces one-way platform docs ownership"
-    },
-    {
-      "id": "FR-003",
-      "type": "requirement",
-      "summary": "Generated-consumer cleanup removes or relocates template orphans"
-    },
-    {
-      "id": "FR-004",
-      "type": "requirement",
-      "summary": "Summary sync scripts apply repo-mode-aware template policy"
-    },
-    {
-      "id": "NFR-SEC-001",
-      "type": "requirement",
-      "summary": "Docs sync operations remain repository-root scoped"
-    },
-    {
-      "id": "NFR-OBS-001",
-      "type": "requirement",
-      "summary": "Cleanup/check diagnostics are deterministic"
-    },
-    {
-      "id": "NFR-REL-001",
-      "type": "requirement",
-      "summary": "Cleanup flow is idempotent"
-    },
-    {
-      "id": "NFR-OPS-001",
-      "type": "requirement",
-      "summary": "Check mode emits actionable remediation guidance"
-    },
-    {
-      "id": "AC-001",
-      "type": "acceptance",
-      "summary": "Generated-consumer docs checks pass without template mirror updates"
-    },
-    {
-      "id": "AC-002",
-      "type": "acceptance",
-      "summary": "Generated-consumer check/sync handles template orphans deterministically"
-    },
-    {
-      "id": "AC-003",
-      "type": "acceptance",
-      "summary": "Generated summary scripts skip template checks in generated-consumer mode"
-    },
-    {
-      "id": "AC-004",
-      "type": "acceptance",
-      "summary": "Template-source mode remains strict and green"
-    }
-  ],
-  "edges": [
-    {
-      "from": "FR-001",
-      "to": "AC-001",
-      "relation": "validated_by"
-    },
-    {
-      "from": "FR-002",
-      "to": "AC-002",
-      "relation": "validated_by"
-    },
-    {
-      "from": "FR-003",
-      "to": "AC-002",
-      "relation": "validated_by"
-    },
-    {
-      "from": "FR-004",
-      "to": "AC-003",
-      "relation": "validated_by"
-    },
-    {
-      "from": "NFR-SEC-001",
-      "to": "AC-001",
-      "relation": "constrains"
-    },
-    {
-      "from": "NFR-OBS-001",
-      "to": "AC-002",
-      "relation": "constrains"
-    },
-    {
-      "from": "NFR-REL-001",
-      "to": "AC-002",
-      "relation": "constrains"
-    },
-    {
-      "from": "NFR-OPS-001",
-      "to": "AC-003",
-      "relation": "constrains"
-    },
-    {
-      "from": "FR-001",
-      "to": "AC-004",
-      "relation": "validated_by"
-    }
-  ]
-}
+graph_version: 1
+work_item: 2026-04-18-docs-ownership-boundary-generated-consumer
+nodes:
+- id: FR-001
+  type: requirement
+  summary: Template-source mode keeps strict required-seed platform docs synchronization
+- id: FR-002
+  type: requirement
+  summary: Generated-consumer mode enforces one-way platform docs ownership
+- id: FR-003
+  type: requirement
+  summary: Generated-consumer cleanup removes or relocates template orphans
+- id: FR-004
+  type: requirement
+  summary: Summary sync scripts apply repo-mode-aware template policy
+- id: NFR-SEC-001
+  type: requirement
+  summary: Docs sync operations remain repository-root scoped
+- id: NFR-OBS-001
+  type: requirement
+  summary: Cleanup/check diagnostics are deterministic
+- id: NFR-REL-001
+  type: requirement
+  summary: Cleanup flow is idempotent
+- id: NFR-OPS-001
+  type: requirement
+  summary: Check mode emits actionable remediation guidance
+- id: AC-001
+  type: acceptance
+  summary: Generated-consumer docs checks pass without template mirror updates
+- id: AC-002
+  type: acceptance
+  summary: Generated-consumer check/sync handles template orphans deterministically
+- id: AC-003
+  type: acceptance
+  summary: Generated summary scripts skip template checks in generated-consumer mode
+- id: AC-004
+  type: acceptance
+  summary: Template-source mode remains strict and green
+edges:
+- from: FR-001
+  to: AC-001
+  relation: validated_by
+- from: FR-002
+  to: AC-002
+  relation: validated_by
+- from: FR-003
+  to: AC-002
+  relation: validated_by
+- from: FR-004
+  to: AC-003
+  relation: validated_by
+- from: NFR-SEC-001
+  to: AC-001
+  relation: constrains
+- from: NFR-OBS-001
+  to: AC-002
+  relation: constrains
+- from: NFR-REL-001
+  to: AC-002
+  relation: constrains
+- from: NFR-OPS-001
+  to: AC-003
+  relation: constrains
+- from: FR-001
+  to: AC-004
+  relation: validated_by
