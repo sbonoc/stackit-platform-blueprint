@@ -197,6 +197,7 @@ def _check_hardening_review(content: str, file_name: str) -> list[str]:
     in_proposals = False
 
     findings_has_content = False
+    proposals_section_seen = False
     proposals_has_content = False
     proposals_has_none_or_na = False
     has_empty_proposal = False
@@ -210,6 +211,8 @@ def _check_hardening_review(content: str, file_name: str) -> list[str]:
             in_observability = "Observability and Diagnostics Changes" in stripped
             in_architecture = "Architecture and Code Quality Compliance" in stripped
             in_proposals = "Proposals Only" in stripped
+            if in_proposals:
+                proposals_section_seen = True
             continue
 
         if in_findings:
@@ -255,7 +258,7 @@ def _check_hardening_review(content: str, file_name: str) -> list[str]:
             "at least one non-empty finding entry"
         )
 
-    if has_empty_proposal and not proposals_has_content and not proposals_has_none_or_na:
+    if proposals_section_seen and not proposals_has_content and not proposals_has_none_or_na:
         violations.append(
             f"{PREFIX} {file_name}: `Proposals Only` section contains scaffold placeholder "
             "`Proposal 1:` — add proposal content, or write `- none` if there are no proposals"
@@ -309,7 +312,11 @@ def _check_pr_context(content: str, file_name: str) -> list[str]:
                 has_sub_bullet = True
                 break
 
-    if primary_field_present and not has_sub_bullet:
+    if not primary_field_present:
+        violations.append(
+            f"{PREFIX} {file_name}: `Primary files to review first:` section is missing"
+        )
+    elif not has_sub_bullet:
         violations.append(
             f"{PREFIX} {file_name}: `Primary files to review first:` section must contain "
             "at least one non-empty bullet item"

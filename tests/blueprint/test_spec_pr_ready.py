@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import importlib.util
+import io
 import os
 from pathlib import Path
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 from tests._shared.helpers import REPO_ROOT
 
@@ -446,6 +448,27 @@ class HardeningReviewCheckTests(unittest.TestCase):
         violations = _check_hardening_review(content, "hardening_review.md")
         self.assertTrue(any("Proposals Only" in v for v in violations), violations)
 
+    def test_blank_proposals_section_produces_violation(self) -> None:
+        content = """\
+# Hardening Review
+
+## Repository-Wide Findings Fixed
+- Finding 1: a real finding with content
+
+## Observability and Diagnostics Changes
+- Metrics/logging/tracing updates: no changes
+- Operational diagnostics updates: none required
+
+## Architecture and Code Quality Compliance
+- SOLID / Clean Architecture / Clean Code / DDD checks: compliant
+- Test-automation and pyramid checks: tests added
+- Documentation/diagram/CI/skill consistency checks: docs updated
+
+## Proposals Only (Not Implemented)
+"""
+        violations = _check_hardening_review(content, "hardening_review.md")
+        self.assertTrue(any("Proposals Only" in v for v in violations), violations)
+
     def test_explicit_none_proposal_passes(self) -> None:
         content = """\
 # Hardening Review
@@ -548,6 +571,17 @@ class PrContextCheckTests(unittest.TestCase):
             msg=f"expected violation for missing sub-bullets, got: {violations}",
         )
 
+    def test_missing_primary_reviewer_section_produces_violation(self) -> None:
+        content = _FILLED_PR_CONTEXT.replace(
+            "- Primary files to review first:\n",
+            "",
+        )
+        violations = _check_pr_context(content, "pr_context.md")
+        self.assertTrue(
+            any("Primary files to review first" in v for v in violations),
+            msg=f"expected violation for missing section, got: {violations}",
+        )
+
     def test_scaffold_deferred_proposal_produces_violation(self) -> None:
         content = _FILLED_PR_CONTEXT.replace(
             "- Proposal 1 (not implemented): spec template drift test that validates allowlist against scaffold templates — deferred; requires template parser",
@@ -602,33 +636,25 @@ class BranchResolutionTests(unittest.TestCase):
 class MissingSpecDirTests(unittest.TestCase):
 
     def test_nonexistent_spec_dir_exits_nonzero(self) -> None:
-        import subprocess
         with tempfile.TemporaryDirectory() as tmpdir:
-            result = subprocess.run(
-                ["python3", str(SCRIPT_PATH)],
-                env={**os.environ, "SPEC_SLUG": "2026-04-22-does-not-exist"},
-                cwd=Path(tmpdir),
-                capture_output=True,
-                text=True,
-            )
-            self.assertNotEqual(result.returncode, 0)
-            self.assertIn(PREFIX, result.stderr + result.stdout)
+            repo_root = Path(tmpdir)
+            captured = io.StringIO()
+            with mock.patch.dict(os.environ, {"SPEC_SLUG": "2026-04-22-does-not-exist"}), \
+                    mock.patch("sys.stderr", captured):
+                result = _checker.main(repo_root=repo_root)
+            self.assertNotEqual(result, 0)
+            self.assertIn(PREFIX, captured.getvalue())
 
     def test_missing_file_in_spec_dir_exits_nonzero(self) -> None:
-        import subprocess
         with tempfile.TemporaryDirectory() as tmpdir:
-            spec_dir = Path(tmpdir) / "specs" / "2026-04-22-partial"
+            repo_root = Path(tmpdir)
+            spec_dir = repo_root / "specs" / "2026-04-22-partial"
             spec_dir.mkdir(parents=True)
             # Only create tasks.md — leave others missing
             (spec_dir / "tasks.md").write_text(_FILLED_TASKS, encoding="utf-8")
-            result = subprocess.run(
-                ["python3", str(SCRIPT_PATH)],
-                env={**os.environ, "SPEC_SLUG": "2026-04-22-partial"},
-                cwd=Path(tmpdir),
-                capture_output=True,
-                text=True,
-            )
-            self.assertNotEqual(result.returncode, 0)
+            with mock.patch.dict(os.environ, {"SPEC_SLUG": "2026-04-22-partial"}):
+                result = _checker.main(repo_root=repo_root)
+            self.assertNotEqual(result, 0)
 
 
 if __name__ == "__main__":
