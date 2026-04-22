@@ -1709,6 +1709,23 @@ class StaleModuleTargetDetectionTests(unittest.TestCase):
                 "# infra-postgres-plan is documented here\n", "infra-postgres-plan"
             )
         )
+        # Must not match a substring within a longer tool name (e.g. cmake).
+        self.assertFalse(
+            upgrade_consumer._file_content_references_make_target(
+                "cmake infra-postgres-plan\n", "infra-postgres-plan"
+            )
+        )
+        # Must not match commented-out make invocations.
+        self.assertFalse(
+            upgrade_consumer._file_content_references_make_target(
+                "# - run: make infra-postgres-plan\n", "infra-postgres-plan"
+            )
+        )
+        self.assertFalse(
+            upgrade_consumer._file_content_references_make_target(
+                "#\t$(MAKE) infra-postgres-apply\n", "infra-postgres-apply"
+            )
+        )
 
 
 if __name__ == "__main__":

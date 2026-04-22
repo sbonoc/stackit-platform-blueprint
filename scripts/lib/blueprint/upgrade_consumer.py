@@ -1118,9 +1118,22 @@ def _collect_stale_module_target_actions(
 
     actions: list[RequiredManualAction] = []
     for rel_path, abs_path in sorted(deduped_scan, key=lambda t: t[0]):
-        content = _read_text(abs_path)
+        try:
+            content = _read_text(abs_path)
+        except (OSError, UnicodeDecodeError) as exc:
+            actions.append(
+                RequiredManualAction(
+                    dependency_path=rel_path,
+                    dependency_of=f"{rel_path}: scan for stale disabled-module make target references",
+                    reason=(
+                        f"could not scan `{rel_path}` for stale disabled-module make target references: {exc}; "
+                        "review file readability and rerun upgrade validation because stale references may still exist"
+                    ),
+                    required_follow_up_commands=("make blueprint-upgrade-consumer-validate",),
+                )
+            )
+            continue
         for target in sorted(absent_targets):
-            # Match as a standalone word (not as part of a longer target name).
             if not _file_content_references_make_target(content, target):
                 continue
             actions.append(
@@ -1130,7 +1143,7 @@ def _collect_stale_module_target_actions(
                     reason=(
                         f"stale reference to `{target}` in `{rel_path}`; "
                         "this target is absent from make/blueprint.generated.mk because the module is disabled; "
-                        "remove or guard the reference before re-enabling the module"
+                        "remove or guard the reference while the module is disabled (or before running validation/CI)"
                     ),
                     required_follow_up_commands=("make blueprint-render-makefile", "make blueprint-upgrade-consumer-validate"),
                 )
@@ -1139,14 +1152,23 @@ def _collect_stale_module_target_actions(
 
 
 def _file_content_references_make_target(content: str, target: str) -> bool:
-    """Return True if content contains a reference to target as a standalone make invocation."""
+    """Return True if content contains a make invocation of target as a standalone command.
+
+    Uses a negative lookbehind for word characters to avoid matching substrings
+    (e.g. ``cmake <target>``). Scans line-by-line and skips comment-only lines.
+    """
     import re as _re
-    # Match `make <target>` or `$(MAKE) <target>` as a whole word occurrence.
+    # Negative lookbehind ensures `make` is not preceded by a word character (e.g. avoids `cmake`).
     pattern = _re.compile(
-        r"(?:make|\$\(MAKE\))\s+" + _re.escape(target) + r"(?:\s|$|[^-\w])",
-        _re.MULTILINE,
+        r"(?<!\w)(?:make|\$\(MAKE\))\s+" + _re.escape(target) + r"(?=\s|$|[^\w-])",
     )
-    return bool(pattern.search(content))
+    for line in content.splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        if pattern.search(line):
+            return True
+    return False
 
 
 def _merge_required_manual_actions(*groups: list[RequiredManualAction]) -> list[RequiredManualAction]:

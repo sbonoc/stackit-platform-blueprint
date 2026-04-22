@@ -34,7 +34,7 @@
 ## Non-Functional Architecture Notes
 - Security: All file reads are in-process Python via `pathlib`; no subprocess or shell expansion; no path traversal beyond repo root.
 - Observability: Each `RequiredManualAction` reason string includes the file path and stale target name so operators can locate and remove the reference.
-- Reliability and rollback: Stale-reference detection reads files defensively (via existing `_read_text` which returns empty string on error); failures produce no `RequiredManualAction` entries (false-negative) rather than aborting plan generation (blast radius limited).
+- Reliability and rollback: Stale-reference detection wraps `_read_text` in a try/except for `OSError`/`UnicodeDecodeError`; an unreadable file emits a `RequiredManualAction` advising the operator to check readability and rerun, rather than aborting plan generation (blast radius limited).
 - Monitoring/alerting: none; this is a local developer tooling path.
 
 ## Risks and Tradeoffs
