@@ -34,11 +34,19 @@
   - AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007
 
 ## Validation Summary
-- Required bundles executed: pending implementation
-- Result summary: pending
+- Required bundles executed: all green
+- Result summary:
+  - `python3 -m pytest tests/blueprint/test_upgrade_consumer.py -q -k "additive"` → 3 passed (T-101, T-102, T-103)
+  - `python3 -m pytest tests/blueprint/test_upgrade_consumer.py -q` → 30 passed (no regressions)
+  - `python3 -m pytest tests/infra/test_tooling_contracts.py::PlatformPythonHelperGuardTests -v` → 3 passed (T-105, T-106, AC-006)
+  - `make infra-contract-test-fast` → 24 passed
+  - `make quality-infra-shell-source-graph-check` → nodes=30 edges=34 (pass)
+  - `make quality-hooks-fast` → pass
+  - `make infra-validate` → contract validation passed
+  - `make quality-hardening-review` → pass
 - Documentation validation:
-  - `make quality-hooks-fast`
-  - `make infra-validate`
+  - `make quality-hooks-fast` → pass
+  - `make infra-validate` → pass
 
 ## Evidence Manifest
 - Manifest file: `evidence_manifest.json`
