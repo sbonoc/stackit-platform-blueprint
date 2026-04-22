@@ -971,7 +971,10 @@ printf 'postgres=%s\\n' "$(is_module_enabled postgres && echo true || echo false
 printf 'public_endpoints=%s\\n' "$(is_module_enabled public-endpoints && echo true || echo false)"
 printf 'enabled_modules=%s\\n' "$(enabled_modules_csv)"
 """
-        result = run(["bash", "-lc", script], env)
+        effective_env = {"ROOT_DIR": str(repo_root)}
+        if env:
+            effective_env.update(env)
+        result = run(["bash", "-lc", script], effective_env)
         if result.returncode != 0:
             raise AssertionError(result.stdout + result.stderr)
         return result.stdout + result.stderr
@@ -2221,6 +2224,49 @@ class PlatformPythonHelperGuardTests(unittest.TestCase):
         result = run(["python3", "scripts/bin/quality/check_infra_shell_source_graph.py"])
         self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
         self.assertIn("quality-infra-shell-source-graph-check", result.stdout)
+
+
+class AppProjectNamespacePolicyTests(unittest.TestCase):
+    """Guard: all ArgoCD AppProject overlays MUST include external-secrets in destinations.
+
+    FR-002, FR-003: infra-contract-test-fast must fail when any AppProject overlay is
+    missing external-secrets from its spec.destinations list.
+    """
+
+    _APPPROJECT_PATHS = [
+        "infra/gitops/argocd/overlays/local/appproject.yaml",
+        "infra/gitops/argocd/overlays/dev/appproject.yaml",
+        "infra/gitops/argocd/overlays/stage/appproject.yaml",
+        "infra/gitops/argocd/overlays/prod/appproject.yaml",
+        "scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/local/appproject.yaml",
+        "scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/dev/appproject.yaml",
+        "scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/stage/appproject.yaml",
+        "scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/prod/appproject.yaml",
+    ]
+    _REQUIRED_NAMESPACE = "external-secrets"
+
+    def _destination_namespaces(self, appproject_path: Path) -> list[str]:
+        import yaml as _yaml
+        doc = _yaml.safe_load(appproject_path.read_text())
+        destinations = doc.get("spec", {}).get("destinations", [])
+        return [d.get("namespace", "") for d in destinations]
+
+    def test_all_appproject_overlays_include_external_secrets_destination(self) -> None:
+        """T-101: every AppProject file must allow external-secrets as a destination namespace."""
+        missing: list[str] = []
+        for rel in self._APPPROJECT_PATHS:
+            path = REPO_ROOT / rel
+            self.assertTrue(path.is_file(), msg=f"AppProject file not found: {rel}")
+            namespaces = self._destination_namespaces(path)
+            if self._REQUIRED_NAMESPACE not in namespaces:
+                missing.append(rel)
+        self.assertFalse(
+            missing,
+            msg=(
+                f"AppProject files missing '{self._REQUIRED_NAMESPACE}' in spec.destinations: "
+                + ", ".join(missing)
+            ),
+        )
 
 
 if __name__ == "__main__":

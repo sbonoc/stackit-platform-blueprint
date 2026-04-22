@@ -37,6 +37,7 @@ base_tests=(
   "tests/infra/test_state_artifact_contract.py"
   "tests/infra/test_root_dir_resolution.py"
   "tests/infra/test_optional_module_required_env_contract.py"
+  "tests/infra/test_tooling_contracts.py"
 )
 template_source_only_tests=(
   "tests/blueprint/test_upgrade_fixture_matrix.py"

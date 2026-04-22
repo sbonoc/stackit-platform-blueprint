@@ -1,0 +1,29 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-04-22-issue-108-109-argocd-appproject-namespace-policy",
+  "nodes": [
+    {"id": "FR-001", "type": "requirement", "summary": "ALL AppProject overlays and bootstrap template MUST include external-secrets in spec.destinations"},
+    {"id": "FR-002", "type": "requirement", "summary": "infra-contract-test-fast MUST include a guard test failing when any AppProject overlay is missing external-secrets"},
+    {"id": "FR-003", "type": "requirement", "summary": "Guard MUST check all four environment overlays and bootstrap template AppProject file"},
+    {"id": "NFR-SEC-001", "type": "requirement", "summary": "Adding external-secrets destination MUST NOT expand namespaceResourceWhitelist or clusterResourceWhitelist"},
+    {"id": "NFR-OPS-001", "type": "requirement", "summary": "Guard failure message MUST identify the specific AppProject file and missing namespace"},
+    {"id": "AC-001", "type": "acceptance", "summary": "All five AppProject files contain namespace: external-secrets under spec.destinations"},
+    {"id": "AC-002", "type": "acceptance", "summary": "make infra-contract-test-fast passes with guard green"},
+    {"id": "AC-003", "type": "acceptance", "summary": "Guard fails when external-secrets removed from any AppProject destinations (regression guard)"},
+    {"id": "AC-004", "type": "acceptance", "summary": "make infra-validate passes after fix"},
+    {"id": "AC-005", "type": "acceptance", "summary": "Issue #108 sync failure resolves at next ArgoCD re-sync"},
+    {"id": "AC-006", "type": "acceptance", "summary": "Issue #109 Degraded health from AppProject namespace gap resolves at next ArgoCD re-sync"}
+  ],
+  "edges": [
+    {"from": "FR-001", "to": "AC-001", "relation": "validated_by"},
+    {"from": "FR-001", "to": "AC-005", "relation": "validated_by"},
+    {"from": "FR-001", "to": "AC-006", "relation": "validated_by"},
+    {"from": "FR-002", "to": "AC-002", "relation": "validated_by"},
+    {"from": "FR-002", "to": "AC-003", "relation": "validated_by"},
+    {"from": "FR-003", "to": "AC-001", "relation": "validated_by"},
+    {"from": "FR-003", "to": "AC-002", "relation": "validated_by"},
+    {"from": "NFR-SEC-001", "to": "AC-001", "relation": "constrains"},
+    {"from": "NFR-OPS-001", "to": "AC-002", "relation": "constrains"},
+    {"from": "NFR-OPS-001", "to": "AC-003", "relation": "constrains"}
+  ]
+}

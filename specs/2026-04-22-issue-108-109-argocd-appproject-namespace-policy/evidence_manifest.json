@@ -1,0 +1,52 @@
+{
+  "manifest_version": 1,
+  "work_item": "2026-04-22-issue-108-109-argocd-appproject-namespace-policy",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-04-22T15:20:00Z",
+  "files": [
+    {
+      "path": "infra/gitops/argocd/overlays/local/appproject.yaml",
+      "sha256": "118c1fa1df31992ae183fec531c1b8f56cfc7e20b739ef4966ec1f1c1d30a338"
+    },
+    {
+      "path": "infra/gitops/argocd/overlays/dev/appproject.yaml",
+      "sha256": "8b579dc12809ecaa1e27937222af669a9510800d0ef745c97fb566fb86dd27f6"
+    },
+    {
+      "path": "infra/gitops/argocd/overlays/stage/appproject.yaml",
+      "sha256": "2ba8e9e0b780fe42f1d013c28c36d32c258afaef1bceaba6ac088303f5a95a70"
+    },
+    {
+      "path": "infra/gitops/argocd/overlays/prod/appproject.yaml",
+      "sha256": "d59a78c3f8956e0162d44ec379620ef21ec011244a47d417a6dc36f2f14e94e1"
+    },
+    {
+      "path": "scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/local/appproject.yaml",
+      "sha256": "118c1fa1df31992ae183fec531c1b8f56cfc7e20b739ef4966ec1f1c1d30a338"
+    },
+    {
+      "path": "scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/dev/appproject.yaml",
+      "sha256": "8b579dc12809ecaa1e27937222af669a9510800d0ef745c97fb566fb86dd27f6"
+    },
+    {
+      "path": "scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/stage/appproject.yaml",
+      "sha256": "2ba8e9e0b780fe42f1d013c28c36d32c258afaef1bceaba6ac088303f5a95a70"
+    },
+    {
+      "path": "scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/prod/appproject.yaml",
+      "sha256": "d59a78c3f8956e0162d44ec379620ef21ec011244a47d417a6dc36f2f14e94e1"
+    },
+    {
+      "path": "tests/infra/test_tooling_contracts.py",
+      "sha256": "0cd1098ed546efd14d92f0985436eef2ffd623429c0cf2103e5649416bebe658"
+    },
+    {
+      "path": "scripts/bin/infra/contract_test_fast.sh",
+      "sha256": "d23e6a95b962ad323a291d889bb27a7a1dac6cd12aa09fb17b6a85bdcd19ee9c"
+    },
+    {
+      "path": "docs/blueprint/architecture/decisions/ADR-20260422-issue-108-109-argocd-appproject-namespace-policy.md",
+      "sha256": "ea30bf2e024e77f5fff32a594cd069e48ad68a81bf9858ea9242c58e5bed7578"
+    }
+  ]
+}

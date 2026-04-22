@@ -327,3 +327,10 @@
   - template-source-only tests (`tests/blueprint/test_upgrade_fixture_matrix.py`) are skipped in generated-consumer mode; `tests/infra/test_optional_module_required_env_contract.py` runs in both modes as a shared fast-lane contract gate.
   - selected tests are now existence-validated before `pytest` execution, so template-source mode remains fail-fast when required fast-lane tests are missing.
   - `infra_contract_test_fast_test_selection_total` metrics now expose selected/skipped counts and active repo mode for diagnostics.
+- ArgoCD AppProject namespace policy gap fixed (Issues #108, #109):
+  - All four ArgoCD AppProject overlay files (`local`, `dev`, `stage`, `prod`) and the bootstrap template copy were missing `external-secrets` in `spec.destinations`, blocking ArgoCD from syncing RBAC resources that the External Secrets Operator creates in the `external-secrets` namespace.
+  - `external-secrets` destination entry added to all five AppProject files.
+  - `tests/infra/test_tooling_contracts.py::AppProjectNamespacePolicyTests` added to guard against regression; test verifies all overlay files and the bootstrap template contain the required destination.
+  - `tests/infra/test_tooling_contracts.py` added to `base_tests` in `scripts/bin/infra/contract_test_fast.sh` so the guard runs in both `template-source` and `generated-consumer` fast-lane modes.
+  - Test isolation fix: `profile_module_enablement_contract` now passes `ROOT_DIR` pointing to the temp repo root so `profile.sh` resolves the patched contract from the temp dir when run inside the `make infra-contract-test-fast` process environment.
+  - Issue #109 cause #2 (optional-module ESOs NotReady when modules are not seeded) is tracked separately in Issue #137.
