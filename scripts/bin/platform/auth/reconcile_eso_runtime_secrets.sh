@@ -359,7 +359,14 @@ else
   if tooling_is_execution_enabled; then
     apply_mode="kubectl-apply-kustomize"
   fi
-  run_kustomize_apply "$ROOT_DIR/infra/gitops/platform/base/security"
+  # Guard with 'if !' so set -e cannot abort before the state file is written.
+  # On failure with RUNTIME_CREDENTIALS_REQUIRED=false the issue is captured as a
+  # warning; with RUNTIME_CREDENTIALS_REQUIRED=true the end-of-script log_fatal fires.
+  if ! run_kustomize_apply "$ROOT_DIR/infra/gitops/platform/base/security"; then
+    apply_mode="kubectl-apply-kustomize-failed"
+    record_reconcile_issue \
+      "security manifest apply failed; target namespaces may not exist yet (infra/gitops/platform/base/security)"
+  fi
 
   source_literals=()
   if literal_output="$(parse_literal_pairs "$RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS")"; then

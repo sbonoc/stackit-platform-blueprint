@@ -210,8 +210,7 @@ if [[ -z "$ARGOCD_REPO_TOKEN" ]]; then
   record_reconcile_issue \
     "ARGOCD_REPO_TOKEN is empty; set a GitHub PAT (ghp_ or github_pat_) in blueprint/repo.init.secrets.env for private repositories"
 elif [[ "$ARGOCD_REPO_TOKEN" == gho_* ]]; then
-  record_reconcile_issue \
-    "unsupported GitHub OAuth token prefix gho_ for Argo repository credentials; use a PAT (ghp_ or github_pat_)"
+  log_info "ARGOCD_REPO_TOKEN uses gho_ prefix (GitHub OAuth token); a long-lived PAT (ghp_ or github_pat_) is preferred for persistent ArgoCD repo access but gho_ is accepted"
 elif [[ "$ARGOCD_REPO_TOKEN" != ghp_* && "$ARGOCD_REPO_TOKEN" != github_pat_* ]]; then
   record_reconcile_issue \
     "ARGOCD_REPO_TOKEN must be a GitHub PAT (ghp_ or github_pat_); unsupported token format"

@@ -1,0 +1,72 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-04-22-issue-105-110-runtime-auth-best-effort-fix",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "reconcile_eso_runtime_secrets.sh must not exit non-zero on kustomize apply failure when RUNTIME_CREDENTIALS_REQUIRED=false"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "reconcile_argocd_repo_credentials.sh must accept gho_ tokens without a reconcile issue"
+    },
+    {
+      "id": "FR-003",
+      "type": "requirement",
+      "summary": "When RUNTIME_CREDENTIALS_REQUIRED=true and kustomize apply fails, the script must exit non-zero"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "reconcile_eso_runtime_secrets.sh must always write its state file before exiting"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "Fix must not affect dry-run mode"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "RUNTIME_CREDENTIALS_REQUIRED=false + kustomize apply failure => status=warn-and-skip, exit 0"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "RUNTIME_CREDENTIALS_REQUIRED=true + kustomize apply failure => status=failed-required, exit non-zero"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "gho_ token does not add a reconcile issue in reconcile_argocd_repo_credentials.sh"
+    },
+    {
+      "id": "AC-004",
+      "type": "acceptance",
+      "summary": "gho_ token emits an INFO log about PAT preference"
+    },
+    {
+      "id": "AC-005",
+      "type": "acceptance",
+      "summary": "Structural test asserts run_kustomize_apply is wrapped in 'if !' guard"
+    },
+    {
+      "id": "AC-006",
+      "type": "acceptance",
+      "summary": "Structural test asserts gho_ does not trigger record_reconcile_issue"
+    }
+  ],
+  "edges": [
+    { "from": "FR-001", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-001", "to": "AC-005", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-003", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-004", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-006", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-002", "relation": "validated_by" },
+    { "from": "NFR-OPS-001", "to": "AC-001", "relation": "constrains" },
+    { "from": "NFR-OPS-001", "to": "AC-002", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "AC-001", "relation": "constrains" }
+  ]
+}

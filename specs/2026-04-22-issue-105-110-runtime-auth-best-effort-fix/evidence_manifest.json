@@ -1,0 +1,36 @@
+{
+  "manifest_version": 1,
+  "work_item": "2026-04-22-issue-105-110-runtime-auth-best-effort-fix",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-04-22T18:08:00Z",
+  "files": [
+    {
+      "path": "scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh",
+      "sha256": "8e5e9662ec003cb9f3391fc4bd41f640ce2c712d8e1b5b12b353c5ba950064c6",
+      "bytes": 21201,
+      "role": "implementation",
+      "description": "Issue #105: run_kustomize_apply wrapped in 'if !' guard to prevent set -e abort before state file is written"
+    },
+    {
+      "path": "scripts/bin/platform/auth/reconcile_argocd_repo_credentials.sh",
+      "sha256": "2972f283efba1883be0d32ed3a7d1a193d30a9ba9135a46ee15a08f9d58d31f0",
+      "bytes": 11894,
+      "role": "implementation",
+      "description": "Issue #110: gho_ token branch changed from record_reconcile_issue to log_info"
+    },
+    {
+      "path": "tests/infra/test_tooling_contracts.py",
+      "sha256": "77740277fc4818e097b92e8506bc62890b1ca3b34eecd441fb2ce8ec8b17b2a3",
+      "bytes": 113202,
+      "role": "test",
+      "description": "RuntimeAuthBestEffortTests: 2 structural contract tests (AC-005, AC-006)"
+    },
+    {
+      "path": "docs/blueprint/architecture/decisions/ADR-20260422-issue-105-110-runtime-auth-best-effort-fix.md",
+      "sha256": "1504c9583d2c58d1f3e82ed5ef44a5ef5120dd44282672f345ad3f31fdf0e634",
+      "bytes": 1940,
+      "role": "documentation",
+      "description": "ADR documenting guard strategy and gho_ token policy decision"
+    }
+  ]
+}
