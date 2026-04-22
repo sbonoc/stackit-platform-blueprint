@@ -11,7 +11,12 @@ import sys
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 INFRA_LIB_DIR = REPO_ROOT / "scripts" / "lib" / "infra"
+PLATFORM_BIN_DIR = REPO_ROOT / "scripts" / "bin" / "platform"
 SOURCE_EDGE_RE = re.compile(r'^\s*source\s+"\$ROOT_DIR/scripts/lib/infra/([^"]+)"\s*$', re.MULTILINE)
+# Matches "$ROOT_DIR/scripts/lib/...py" in both direct python3 invocations and variable
+# assignments where the variable is later passed to python3.
+# Applied only to non-comment lines (see _validate_platform_python_refs).
+PLATFORM_PYTHON_REF_RE = re.compile(r'"\$ROOT_DIR/(scripts/lib/[^"]+\.py)"')
 
 # Contract-critical edges: helpers that are frequently sourced transitively
 # must declare their direct dependencies explicitly to avoid caller-side
@@ -66,10 +71,32 @@ def _validate_required_edges(graph: dict[str, set[str]]) -> list[Violation]:
     return violations
 
 
+def _validate_platform_python_refs() -> list[Violation]:
+    """Check that python3 "$ROOT_DIR/scripts/lib/...py" refs in scripts/bin/platform/** exist."""
+    violations: list[Violation] = []
+    for script_path in sorted(PLATFORM_BIN_DIR.rglob("*.sh")):
+        text = script_path.read_text(encoding="utf-8")
+        # Strip comment lines before searching to avoid false positives on commented-out paths.
+        non_comment_lines = "\n".join(
+            line for line in text.splitlines() if not line.lstrip().startswith("#")
+        )
+        for relative_ref in PLATFORM_PYTHON_REF_RE.findall(non_comment_lines):
+            if not (REPO_ROOT / relative_ref).is_file():
+                script_rel = script_path.relative_to(REPO_ROOT)
+                violations.append(
+                    Violation(
+                        file_name=str(script_rel),
+                        message=f"references missing Python helper: {relative_ref}",
+                    )
+                )
+    return violations
+
+
 def main() -> int:
     graph = _source_graph()
     edge_count = sum(len(edges) for edges in graph.values())
     violations = _validate_required_edges(graph)
+    violations += _validate_platform_python_refs()
 
     if violations:
         for violation in violations:

@@ -1474,5 +1474,96 @@ class UpgradeConsumerValidateTests(unittest.TestCase):
             _assert_json_schema(report, VALIDATE_SCHEMA)
 
 
+ADDITIVE_TEST_PATH = "scripts/lib/infra/additive_test_helper.py"
+
+
+def _create_source_repo_with_additive_file(
+    root: Path,
+    additive_path: str,
+    additive_content: str,
+) -> Path:
+    """Source repo where additive_path is absent at the baseline tag but present at HEAD."""
+    source_repo = root / "source"
+    _init_git_repo(source_repo)
+    _write(source_repo / MANAGED_TEST_PATH, "placeholder\n")
+    _commit_all(source_repo, "baseline")
+    _require_success(_git(source_repo, "tag", f"v{_template_version()}"), "git tag template version")
+    _write(source_repo / additive_path, additive_content)
+    _commit_all(source_repo, "add additive file post-baseline")
+    return source_repo
+
+
+class AdditiveFileClassificationTests(unittest.TestCase):
+    """Tests for FR-001–FR-004: additive-file conflict reclassification (#104)."""
+
+    def _run_plan(self, source_repo: Path, target_repo: Path) -> dict[str, object]:
+        result = _run(
+            [
+                sys.executable,
+                str(UPGRADE_SCRIPT),
+                "--repo-root",
+                str(target_repo),
+                "--source",
+                str(source_repo),
+                "--ref",
+                "HEAD",
+            ],
+            cwd=REPO_ROOT,
+        )
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        return _load_json(target_repo / "artifacts/blueprint/upgrade_plan.json")
+
+    def test_additive_file_with_matching_content_is_classified_as_skip(self) -> None:
+        """T-101 / FR-002: baseline-absent + source==target → action=skip."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            content = "# additive helper\n"
+            source_repo = _create_source_repo_with_additive_file(tmp_root, ADDITIVE_TEST_PATH, content)
+            target_repo = _create_generated_repo(tmp_root, ADDITIVE_TEST_PATH, content)
+
+            plan = self._run_plan(source_repo, target_repo)
+            entry = _plan_entry(plan, ADDITIVE_TEST_PATH)
+
+            self.assertEqual(entry.get("action"), "skip")
+            self.assertFalse(entry.get("baseline_content_available"))
+            self.assertIn("additive file already at source version", str(entry.get("reason", "")))
+
+    def test_additive_file_with_diverged_content_is_classified_as_merge_required(self) -> None:
+        """T-102 / FR-003: baseline-absent + source!=target → action=merge-required."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            source_repo = _create_source_repo_with_additive_file(
+                tmp_root, ADDITIVE_TEST_PATH, "# source version\n"
+            )
+            target_repo = _create_generated_repo(tmp_root, ADDITIVE_TEST_PATH, "# target version\n")
+
+            plan = self._run_plan(source_repo, target_repo)
+            entry = _plan_entry(plan, ADDITIVE_TEST_PATH)
+
+            self.assertEqual(entry.get("action"), "merge-required")
+            self.assertFalse(entry.get("baseline_content_available"))
+            self.assertIn("additive file", str(entry.get("reason", "")))
+            self.assertIn("manual merge advisory", str(entry.get("reason", "")))
+
+    def test_baseline_present_diverged_file_is_classified_as_merge_required(self) -> None:
+        """T-103 / FR-004: baseline-present + source!=target + target!=baseline → merge-required (3-way merge gateway)."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            # File present at baseline; upstream diverged; target also diverged from baseline.
+            source_repo = _create_source_repo(
+                tmp_root,
+                MANAGED_TEST_PATH,
+                "shared-baseline\n",
+                "upstream-change\n",
+            )
+            target_repo = _create_generated_repo(tmp_root, MANAGED_TEST_PATH, "local-change\n")
+
+            plan = self._run_plan(source_repo, target_repo)
+            entry = _plan_entry(plan, MANAGED_TEST_PATH)
+
+            self.assertEqual(entry.get("action"), "merge-required")
+            self.assertTrue(entry.get("baseline_content_available"))
+
+
 if __name__ == "__main__":
     unittest.main()

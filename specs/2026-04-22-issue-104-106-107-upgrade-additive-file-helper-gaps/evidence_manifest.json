@@ -1,0 +1,108 @@
+{
+  "manifest_version": 1,
+  "work_item": "specs/2026-04-22-issue-104-106-107-upgrade-additive-file-helper-gaps",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-04-22T13:30:00Z",
+  "files": [
+    {
+      "path": "AGENTS.backlog.md",
+      "sha256": "b57f7d243529acd39aa4d4afdbe188ab462fe87a60946b6f754cb130a8f9d3fc",
+      "bytes": 6371
+    },
+    {
+      "path": "AGENTS.decisions.md",
+      "sha256": "dfe34c959853150b304aa111bebab17043d58ddeea75a73a40c95464db54c8ac",
+      "bytes": 46194
+    },
+    {
+      "path": "docs/blueprint/architecture/decisions/ADR-20260422-issue-104-106-107-upgrade-additive-file-helper-gaps.md",
+      "sha256": "08b5e3b6c23452f81f9558bae6f51d4910a99d7e97207d81e6b9e2ff6c83c134",
+      "bytes": 6623
+    },
+    {
+      "path": "scripts/bin/platform/apps/smoke.sh",
+      "sha256": "b4e9e46c7a62e98546ea0995ea759a995364729b204162a2f3aa496d708fe483",
+      "bytes": 8935
+    },
+    {
+      "path": "scripts/bin/platform/auth/reconcile_argocd_repo_credentials.sh",
+      "sha256": "6dacd043eda6cf131f88fc0eb7dc7f99a3d0caf8b0a42101ab8c9e986c112804",
+      "bytes": 11858
+    },
+    {
+      "path": "scripts/bin/quality/check_infra_shell_source_graph.py",
+      "sha256": "22c53062b96566291646478f5137ab15ff0233c2c74342ce70e76aa0de4777a2",
+      "bytes": 4488
+    },
+    {
+      "path": "scripts/lib/blueprint/upgrade_consumer.py",
+      "sha256": "0d9907e4a3bc8eb0aeed50670a8c87c513aef0656932ba103bdfb3f5692bd872",
+      "bytes": 64710
+    },
+    {
+      "path": "scripts/lib/infra/argocd_repo_credentials_json.py",
+      "sha256": "db6200dbfb3f72bebdceb1be69e489e69adb92c43f098eae22679d225a9bc11f",
+      "bytes": 3851
+    },
+    {
+      "path": "scripts/lib/infra/runtime_workload_helpers.py",
+      "sha256": "46a13a9d0ca25f64200d18b52c87ebe3a48d3806bc51705655b8a44c286470ba",
+      "bytes": 406
+    },
+    {
+      "path": "specs/2026-04-22-issue-104-106-107-upgrade-additive-file-helper-gaps/architecture.md",
+      "sha256": "e7add870903dbc0ee0181ab704e46c40f9f2fdf15bf80f42f60a9370c1a26268",
+      "bytes": 7268
+    },
+    {
+      "path": "specs/2026-04-22-issue-104-106-107-upgrade-additive-file-helper-gaps/graph.yaml",
+      "sha256": "b32ef38e2f155f215fc2d4c60a875973527727725969676f6254b8a7f2fa4184",
+      "bytes": 4883
+    },
+    {
+      "path": "specs/2026-04-22-issue-104-106-107-upgrade-additive-file-helper-gaps/hardening_review.md",
+      "sha256": "7201605ce346ffee78d04a2886f62cd4a3bb68cc1b74cfbf712c51827dcc2bae",
+      "bytes": 3472
+    },
+    {
+      "path": "specs/2026-04-22-issue-104-106-107-upgrade-additive-file-helper-gaps/plan.md",
+      "sha256": "ed8014223ea3f4fe327b38fd22fa8d47f592535439c3d4d1e240f023b8cd079d",
+      "bytes": 6802
+    },
+    {
+      "path": "specs/2026-04-22-issue-104-106-107-upgrade-additive-file-helper-gaps/pr_context.md",
+      "sha256": "66e3b5f8fbecf7e6e9481e57e54c06dea6df0dc4bb4c588d90012a327975b293",
+      "bytes": 3469
+    },
+    {
+      "path": "specs/2026-04-22-issue-104-106-107-upgrade-additive-file-helper-gaps/spec.md",
+      "sha256": "33260b09e6cb37755de5850a3ce5f42356914a2826ede4a4ea36817607e93fa6",
+      "bytes": 8073
+    },
+    {
+      "path": "specs/2026-04-22-issue-104-106-107-upgrade-additive-file-helper-gaps/tasks.md",
+      "sha256": "b042d02a0bd966bba9796ce5e83565dfe5309ccf4d2a645162d062c73486fd30",
+      "bytes": 4060
+    },
+    {
+      "path": "specs/2026-04-22-issue-104-106-107-upgrade-additive-file-helper-gaps/traceability.md",
+      "sha256": "9afe1ac95c58f5b1616b56e77786c813b51f021d235bee6135af623cead5876f",
+      "bytes": 5304
+    },
+    {
+      "path": "tests/blueprint/test_upgrade_consumer.py",
+      "sha256": "ca6e73b8a819cfe1652d6723441db4620f088b69294d4d731516d7f5c55b35f5",
+      "bytes": 71838
+    },
+    {
+      "path": "tests/infra/test_python_helper_extractions.py",
+      "sha256": "468d1e6fd6282ba24f6a1aa5c10ff7891c2f086e74b05bb44c524967021afa88",
+      "bytes": 33343
+    },
+    {
+      "path": "tests/infra/test_tooling_contracts.py",
+      "sha256": "4200beaef93159622ad133008279be0ebae7da7120e96a071fe4e3de212afe83",
+      "bytes": 101554
+    }
+  ]
+}

@@ -395,6 +395,19 @@ def _classify_entries(
             baseline_cache[path] = show.stdout if show.returncode == 0 else None
         return baseline_cache[path]
 
+    def resolve_baseline_exists(path: str) -> bool:
+        """Cheap existence check at baseline ref without fetching file content.
+
+        Uses git cat-file -e (no content transfer) for paths not already cached.
+        Re-uses cached content result when resolve_baseline_content was called first.
+        """
+        if baseline_ref is None:
+            return False
+        if path in baseline_cache:
+            return baseline_cache[path] is not None
+        result = _run_git(source_repo, "cat-file", "-e", f"{baseline_ref}:{path}")
+        return result.returncode == 0
+
     for relative_path in all_paths:
         ownership = _ownership_class(relative_path, required_files, init_managed, conditional_entries, managed_dir_roots)
         source_path = source_repo / relative_path
@@ -515,52 +528,90 @@ def _classify_entries(
 
         source_content = _read_text(source_path)
         target_content = _read_text(target_path)
-        if source_content == target_content:
-            entries.append(
-                UpgradeEntry(
-                    path=relative_path,
-                    ownership=ownership,
-                    action=ACTION_SKIP,
-                    operation=OPERATION_NONE,
-                    reason="path already matches upgrade source content",
-                    source_exists=True,
-                    target_exists=True,
-                    baseline_ref=baseline_ref,
-                    baseline_content_available=False,
-                )
-            )
-            continue
 
         if baseline_ref is None:
-            entries.append(
-                UpgradeEntry(
-                    path=relative_path,
-                    ownership=ownership,
-                    action=ACTION_CONFLICT,
-                    operation=OPERATION_MERGE,
-                    reason=(
-                        "unable to resolve baseline ref from template version; "
-                        "cannot perform required 3-way merge safely"
-                    ),
-                    source_exists=True,
-                    target_exists=True,
-                    baseline_ref=baseline_ref,
-                    baseline_content_available=False,
+            if source_content == target_content:
+                entries.append(
+                    UpgradeEntry(
+                        path=relative_path,
+                        ownership=ownership,
+                        action=ACTION_SKIP,
+                        operation=OPERATION_NONE,
+                        reason="path already matches upgrade source content",
+                        source_exists=True,
+                        target_exists=True,
+                        baseline_ref=baseline_ref,
+                        baseline_content_available=False,
+                    )
                 )
-            )
+            else:
+                entries.append(
+                    UpgradeEntry(
+                        path=relative_path,
+                        ownership=ownership,
+                        action=ACTION_CONFLICT,
+                        operation=OPERATION_MERGE,
+                        reason=(
+                            "unable to resolve baseline ref from template version; "
+                            "cannot perform required 3-way merge safely"
+                        ),
+                        source_exists=True,
+                        target_exists=True,
+                        baseline_ref=baseline_ref,
+                        baseline_content_available=False,
+                    )
+                )
+            continue
+
+        if source_content == target_content:
+            # Fast path: content already matches. Use cheap existence check (git cat-file -e,
+            # no content transfer) to distinguish additive vs non-additive for accurate
+            # reason/baseline_content_available fields without fetching full baseline content.
+            baseline_exists = resolve_baseline_exists(relative_path)
+            if not baseline_exists:
+                entries.append(
+                    UpgradeEntry(
+                        path=relative_path,
+                        ownership=ownership,
+                        action=ACTION_SKIP,
+                        operation=OPERATION_NONE,
+                        reason="additive file already at source version; safe to take",
+                        source_exists=True,
+                        target_exists=True,
+                        baseline_ref=baseline_ref,
+                        baseline_content_available=False,
+                    )
+                )
+            else:
+                entries.append(
+                    UpgradeEntry(
+                        path=relative_path,
+                        ownership=ownership,
+                        action=ACTION_SKIP,
+                        operation=OPERATION_NONE,
+                        reason="path already matches upgrade source content",
+                        source_exists=True,
+                        target_exists=True,
+                        baseline_ref=baseline_ref,
+                        baseline_content_available=True,
+                    )
+                )
             continue
 
         baseline_content = resolve_baseline_content(relative_path)
+
         if baseline_content is None:
+            # Additive file: absent at the baseline ref, so no 3-way merge ancestor exists.
+            # Source and target content differ (same-content case handled above).
             entries.append(
                 UpgradeEntry(
                     path=relative_path,
                     ownership=ownership,
-                    action=ACTION_CONFLICT,
+                    action=ACTION_MERGE_REQUIRED,
                     operation=OPERATION_MERGE,
                     reason=(
-                        f"path not present at baseline ref {baseline_ref}; "
-                        "manual conflict resolution required"
+                        f"additive file: not present at baseline ref {baseline_ref}; "
+                        "target diverges from source; manual merge advisory"
                     ),
                     source_exists=True,
                     target_exists=True,

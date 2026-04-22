@@ -314,6 +314,14 @@
   - new target `make blueprint-upgrade-consumer-postcheck` executes validate + convergence checks and writes `artifacts/blueprint/upgrade_postcheck.json`, failing on unresolved merge markers/conflicts.
   - source-ref upgrade wrapper now detects whether historical source engines support `--reconcile-report-path` and degrades compatibly when they do not.
   - generated-reference `conflict`/`merge-required` plan entries now classify into `generated_references_regenerate` in addition to unresolved-conflict tracking to keep regeneration risk explicit.
+- Additive-file conflict reclassification and platform helper namespace correction (Issues #104, #106, #107):
+  - `_classify_entries` in `scripts/lib/blueprint/upgrade_consumer.py` no longer emits `action=conflict` when `baseline_content` is unavailable; a 3-way merge conflict requires a common ancestor.
+  - when baseline content is unavailable and source==target, the entry is classified as `action=skip` with reason "additive file already at source version; safe to take" and `baseline_content_available=false`.
+  - when baseline content is unavailable and source!=target, the entry is classified as `action=merge-required` (advisory) with reason "additive file: not present at baseline ref; target diverges from source; manual merge advisory".
+  - `action=conflict` is now reserved exclusively for cases where `baseline_ref` is unavailable and a 3-way merge cannot be attempted.
+  - `scripts/lib/platform/apps/runtime_workload_helpers.py` and `scripts/lib/platform/auth/argocd_repo_credentials_json.py` relocated to `scripts/lib/infra/` (blueprint-managed root) so the upgrade engine distributes them automatically; `scripts/lib/platform/` is a protected root and was never distributable.
+  - `scripts/bin/platform/apps/smoke.sh` and `scripts/bin/platform/auth/reconcile_argocd_repo_credentials.sh` updated to reference new helper paths.
+  - `scripts/bin/quality/check_infra_shell_source_graph.py` extended with `_validate_platform_python_refs` to detect absent `python3 "$ROOT_DIR/scripts/lib/..."` references in `scripts/bin/platform/**` and fail the fast quality lane deterministically.
 - Generated-consumer fast contract lane selection is now repo-mode aware (Issue #103):
   - `scripts/bin/infra/contract_test_fast.sh` now selects deterministic test sets by `repo_mode` from contract runtime (`template-source` vs `generated-consumer`).
   - template-source-only tests (`tests/blueprint/test_upgrade_fixture_matrix.py`) are skipped in generated-consumer mode; `tests/infra/test_optional_module_required_env_contract.py` runs in both modes as a shared fast-lane contract gate.
