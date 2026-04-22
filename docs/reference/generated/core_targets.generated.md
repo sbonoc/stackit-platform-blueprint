@@ -16,6 +16,7 @@ This file is auto-generated. Do not edit it manually.
 | `blueprint-upgrade-consumer-validate` | Run post-upgrade validation bundle and strict merge-marker checks |
 | `blueprint-upgrade-consumer-postcheck` | Run deterministic post-upgrade convergence gate (validate + reconcile + merge-marker checks) |
 | `blueprint-upgrade-readiness-doctor` | Generate generated-consumer upgrade readiness diagnostics and manual-action hints |
+| `blueprint-uplift-status` | Report blueprint uplift convergence status for tracked issues in consumer backlog (optional BLUEPRINT_UPLIFT_STRICT=true) |
 | `blueprint-install-codex-skill` | Install/sync bundled Codex upgrade skill into local CODEX_HOME skills directory |
 | `blueprint-install-codex-skill-consumer-ops` | Install/sync bundled Codex consumer operations skill into local CODEX_HOME skills directory |
 | `blueprint-install-codex-skill-sdd-plan-slicer` | Install/sync bundled Codex SDD plan-slicer skill into local CODEX_HOME skills directory |

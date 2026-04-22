@@ -1,0 +1,58 @@
+{
+  "manifest_version": 1,
+  "work_item": "specs/2026-04-22-issue-131-blueprint-uplift-status",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-04-22T22:05:34Z",
+  "files": [
+    {
+      "path": "specs/2026-04-22-issue-131-blueprint-uplift-status/architecture.md",
+      "sha256": "ac43ef1bd77f12958ad81bd14e25321c21a73778cfe9ffacb5219a120017e12d",
+      "bytes": 3335
+    },
+    {
+      "path": "specs/2026-04-22-issue-131-blueprint-uplift-status/context_pack.md",
+      "sha256": "ff583478caabbfcf2be862046c953e762c94d08701e3f802b1480423e73c58c8",
+      "bytes": 954
+    },
+    {
+      "path": "specs/2026-04-22-issue-131-blueprint-uplift-status/evidence_manifest.json",
+      "sha256": "ecb0eea40122794ca8f062212e022ba451f6d0a543b88db3d7c15e65a071e7f7",
+      "bytes": 161
+    },
+    {
+      "path": "specs/2026-04-22-issue-131-blueprint-uplift-status/graph.json",
+      "sha256": "2e7154d257cc7164f136bc1aa28343608765c2015e4722120ea9d94ca0ca3ebe",
+      "bytes": 3614
+    },
+    {
+      "path": "specs/2026-04-22-issue-131-blueprint-uplift-status/hardening_review.md",
+      "sha256": "f653711bc227132e1acb16f8f1c38a77cf043f0ac05d3020006b7b4e5b5246b4",
+      "bytes": 1771
+    },
+    {
+      "path": "specs/2026-04-22-issue-131-blueprint-uplift-status/plan.md",
+      "sha256": "8f59a0f294bebfef7f735bcb798855f755cafe34150993f536bb562c12a1acd3",
+      "bytes": 4466
+    },
+    {
+      "path": "specs/2026-04-22-issue-131-blueprint-uplift-status/pr_context.md",
+      "sha256": "45d730b52f8c197b73c7c5af06b170f9543cbbb19d6e52f941e14635550baf94",
+      "bytes": 2680
+    },
+    {
+      "path": "specs/2026-04-22-issue-131-blueprint-uplift-status/spec.md",
+      "sha256": "9a5cbb2e3c805af025f25e46ac657ccb00a4dcdf35d5addd31ad2f2782d2ec0f",
+      "bytes": 7975
+    },
+    {
+      "path": "specs/2026-04-22-issue-131-blueprint-uplift-status/tasks.md",
+      "sha256": "6ff93d769e85943352531436bd07055cd50bb9c2cfbfdfb096a69c780eba345d",
+      "bytes": 3153
+    },
+    {
+      "path": "specs/2026-04-22-issue-131-blueprint-uplift-status/traceability.md",
+      "sha256": "26a6b0998551a30209c837884f0042db41aa1d88ff6bb5432105b5c30a834337",
+      "bytes": 3734
+    }
+  ]
+}
