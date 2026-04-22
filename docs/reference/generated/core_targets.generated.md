@@ -52,6 +52,7 @@ This file is auto-generated. Do not edit it manually.
 | `quality-sdd-sync-all` | Run all SDD sync generators in canonical order |
 | `quality-sdd-check-all` | Run all SDD sync drift checks and SDD governance validation |
 | `quality-sdd-check` | Validate canonical Spec-Driven Development assets and governance wiring |
+| `quality-spec-pr-ready` | Validate SDD publish-gate files (plan.md, tasks.md, hardening_review.md, pr_context.md) for scaffold placeholders before opening a PR (optional SPEC_SLUG=&lt;dated-slug&gt;) |
 | `quality-hardening-review` | Validate hardening-review/publish packaging artifacts for SDD work items |
 | `quality-runtime-contract-drift-report` | Generate runtime contract drift report artifact under artifacts/blueprint |
 | `quality-ci-sync` | Regenerate source CI workflow from contract and canonical lane metadata |

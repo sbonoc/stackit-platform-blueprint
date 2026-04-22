@@ -49,6 +49,13 @@ fi
 run_cmd make -C "$ROOT_DIR" quality-root-dir-prelude-check
 run_cmd make -C "$ROOT_DIR" quality-infra-shell-source-graph-check
 run_cmd make -C "$ROOT_DIR" quality-sdd-check-all
+_current_branch="$(git branch --show-current 2>/dev/null || true)"
+if [[ "$_current_branch" =~ ^codex/[0-9]{4}-[0-9]{2}-[0-9]{2}- ]]; then
+  _spec_slug="${_current_branch#codex/}"
+  if [[ -d "$ROOT_DIR/specs/$_spec_slug" ]]; then
+    run_cmd make -C "$ROOT_DIR" quality-spec-pr-ready
+  fi
+fi
 run_cmd make -C "$ROOT_DIR" quality-docs-lint
 if blueprint_repo_is_generated_consumer; then
   log_metric "quality_ci_check_sync_total" "1" "status=skipped repo_mode=generated-consumer"
