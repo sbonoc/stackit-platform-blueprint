@@ -1452,6 +1452,15 @@ spec:
       documentation_validation_commands:
         - make docs-build
         - make docs-smoke
+      work_item_document_required_fields:
+        context_pack.md:
+          - Work item
+          - SPEC_READY
+          - ADR path
+          - Applicable control IDs
+        architecture.md:
+          - Work item
+          - Owner
     normative_language:
       normative_heading_keyword: Normative
       informative_heading_keyword: Informative

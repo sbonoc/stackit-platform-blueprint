@@ -333,4 +333,10 @@
   - `tests/infra/test_tooling_contracts.py::AppProjectNamespacePolicyTests` added to guard against regression; test verifies all overlay files and the bootstrap template contain the required destination.
   - `tests/infra/test_tooling_contracts.py` added to `base_tests` in `scripts/bin/infra/contract_test_fast.sh` so the guard runs in both `template-source` and `generated-consumer` fast-lane modes.
   - Test isolation fix: `profile_module_enablement_contract` now passes `ROOT_DIR` pointing to the temp repo root so `profile.sh` resolves the patched contract from the temp dir when run inside the `make infra-contract-test-fast` process environment.
+- SDD scaffold placeholder guard added (Issue #152):
+  - `check_sdd_assets.py` previously allowed `SPEC_READY=true` work items to pass `make quality-hardening-review` with scaffold placeholder (empty) values in `context_pack.md` and `architecture.md`.
+  - `blueprint/contract.yaml` now declares `readiness_gate.work_item_document_required_fields` mapping filenames to lists of required field names; bootstrap template copy is kept in sync.
+  - `check_sdd_assets.py` reads this config and asserts each required field has a non-empty value for all `spec_ready=True` work items; "none" is accepted as a valid explicit value.
+  - Violation messages name the document path and field for precise remediation.
+  - Three contract tests added (`SddPlaceholderGuardTests`): fail on empty field when SPEC_READY=true, accept "none" as valid, pass when SPEC_READY=false.
   - Issue #109 cause #2 (optional-module ESOs NotReady when modules are not seeded) is tracked separately in Issue #137.
