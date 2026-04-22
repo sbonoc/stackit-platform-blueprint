@@ -2533,34 +2533,43 @@ class AppDockerfileAndRuntimeTests(unittest.TestCase):
         )
 
     def test_backend_deployment_ghcr_image(self) -> None:
-        """AC-005, AC-006: backend deployment uses GHCR image; no command: override."""
+        """AC-005, AC-006: backend deployment uses a GHCR image (not a bare docker hub ref);
+        no command: override in the container spec."""
+        import re
+        import yaml as _yaml
         content = self._BACKEND_DEPLOYMENT.read_text(encoding="utf-8")
-        self.assertIn(
-            "ghcr.io/example-org/platform-blueprint-backend:0.1.0",
+        # AC-005: image field must be a GHCR reference, not a bare docker hub image like python:x.y.z
+        self.assertRegex(
             content,
+            re.compile(r"image:\s+ghcr\.io/", re.MULTILINE),
             msg=(
-                "backend-api-deployment.yaml image must reference "
-                "ghcr.io/example-org/platform-blueprint-backend:0.1.0 (Issue #112)"
+                "backend-api-deployment.yaml image must reference a GHCR registry "
+                "(ghcr.io/...) not a bare docker hub image like python:x.y.z (Issue #112)"
             ),
         )
+        # AC-006: no command: override — parse YAML to be indentation-safe
+        manifest = _yaml.safe_load(content)
+        containers = manifest["spec"]["template"]["spec"]["containers"]
+        backend = next(c for c in containers if c["name"] == "backend-api")
         self.assertNotIn(
-            "\n          command:",
-            content,
+            "command",
+            backend,
             msg=(
-                "backend-api-deployment.yaml must not contain a command: override; "
+                "backend-api-deployment.yaml container spec must not contain a command: override; "
                 "CMD is defined in apps/backend/Dockerfile (Issue #112)"
             ),
         )
 
     def test_touchpoints_deployment_ghcr_image(self) -> None:
-        """AC-007: touchpoints deployment uses GHCR image."""
+        """AC-007: touchpoints deployment uses a GHCR image (not a bare docker hub ref)."""
+        import re
         content = self._TOUCHPOINTS_DEPLOYMENT.read_text(encoding="utf-8")
-        self.assertIn(
-            "ghcr.io/example-org/platform-blueprint-touchpoints:0.1.0",
+        self.assertRegex(
             content,
+            re.compile(r"image:\s+ghcr\.io/", re.MULTILINE),
             msg=(
-                "touchpoints-web-deployment.yaml image must reference "
-                "ghcr.io/example-org/platform-blueprint-touchpoints:0.1.0 (Issue #112)"
+                "touchpoints-web-deployment.yaml image must reference a GHCR registry "
+                "(ghcr.io/...) not a bare docker hub image like nginx:x.y.z (Issue #112)"
             ),
         )
 

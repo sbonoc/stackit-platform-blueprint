@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: backend-api
-          image: ghcr.io/example-org/platform-blueprint-backend:0.1.0
+          image: ghcr.io/example-org/platform-blueprint-backend:0.1.0-dev
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080

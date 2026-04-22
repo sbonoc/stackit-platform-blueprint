@@ -15,9 +15,9 @@
 | AC-002 | SDD-C-012 | backend Dockerfile EXPOSE 8080 and CMD | `apps/backend/Dockerfile` | `AppDockerfileAndRuntimeTests::test_backend_dockerfile_multi_stage` | `traceability.md` | EXPOSE 8080; CMD present |
 | AC-003 | SDD-C-012 | touchpoints Dockerfile multi-stage build | `apps/touchpoints/Dockerfile` | `AppDockerfileAndRuntimeTests::test_touchpoints_dockerfile_multi_stage` | `traceability.md` | Node.js builder + nginx runtime |
 | AC-004 | SDD-C-012 | touchpoints Dockerfile EXPOSE 80 | `apps/touchpoints/Dockerfile` | `AppDockerfileAndRuntimeTests::test_touchpoints_dockerfile_multi_stage` | `traceability.md` | EXPOSE 80 present |
-| AC-005 | SDD-C-012 | backend deployment GHCR image reference | `infra/gitops/platform/base/apps/backend-api-deployment.yaml` | `AppDockerfileAndRuntimeTests::test_backend_deployment_ghcr_image` | `traceability.md` | image: ghcr.io/example-org/platform-blueprint-backend:0.1.0 |
-| AC-006 | SDD-C-012 | backend deployment no command override | `infra/gitops/platform/base/apps/backend-api-deployment.yaml` | `AppDockerfileAndRuntimeTests::test_backend_deployment_ghcr_image` | `traceability.md` | no command: key |
-| AC-007 | SDD-C-012 | touchpoints deployment GHCR image reference | `infra/gitops/platform/base/apps/touchpoints-web-deployment.yaml` | `AppDockerfileAndRuntimeTests::test_touchpoints_deployment_ghcr_image` | `traceability.md` | image: ghcr.io/example-org/platform-blueprint-touchpoints:0.1.0 |
+| AC-005 | SDD-C-012 | backend deployment GHCR image reference | `infra/gitops/platform/base/apps/backend-api-deployment.yaml` | `AppDockerfileAndRuntimeTests::test_backend_deployment_ghcr_image` | `traceability.md` | image field matches ghcr.io/ prefix (default scaffold: platform-blueprint-backend:0.1.0-dev) |
+| AC-006 | SDD-C-012 | backend deployment no command override | `infra/gitops/platform/base/apps/backend-api-deployment.yaml` | `AppDockerfileAndRuntimeTests::test_backend_deployment_ghcr_image` | `traceability.md` | no command: key in container spec (YAML-parsed) |
+| AC-007 | SDD-C-012 | touchpoints deployment GHCR image reference | `infra/gitops/platform/base/apps/touchpoints-web-deployment.yaml` | `AppDockerfileAndRuntimeTests::test_touchpoints_deployment_ghcr_image` | `traceability.md` | image field matches ghcr.io/ prefix (default scaffold: platform-blueprint-touchpoints:0.1.0-dev) |
 | AC-008 | SDD-C-012 | structural contract test class | `tests/infra/test_tooling_contracts.py` | `AppDockerfileAndRuntimeTests` | `traceability.md` | test class present and passing |
 
 ## Graph Linkage

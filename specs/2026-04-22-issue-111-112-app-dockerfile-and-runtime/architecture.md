@@ -27,7 +27,7 @@
 - Presentation/API/workflow boundaries: none changed
 
 ## Integration and Dependency Edges
-- Upstream dependencies: `scripts/lib/platform/apps/versions.sh` provides `PYTHON_RUNTIME_BASE_IMAGE_VERSION`, `NODE_RUNTIME_BASE_IMAGE_VERSION`, `NGINX_RUNTIME_BASE_IMAGE_VERSION` — used in Dockerfiles to pin base image versions.
+- Upstream dependencies: `scripts/lib/platform/apps/versions.sh` defines `PYTHON_RUNTIME_BASE_IMAGE_VERSION`, `NODE_RUNTIME_BASE_IMAGE_VERSION`, `NGINX_RUNTIME_BASE_IMAGE_VERSION` as the platform-authoritative version variables; the scaffolded Dockerfiles currently pin those base image versions directly in the `FROM` instructions, so the values are duplicated rather than consumed via build args.
 - Downstream dependencies: `publish_ghcr.sh` consumes `apps/backend/Dockerfile`; ArgoCD consumes `infra/gitops/platform/base/apps/*.yaml`.
 - Data/API/event contracts touched: none
 

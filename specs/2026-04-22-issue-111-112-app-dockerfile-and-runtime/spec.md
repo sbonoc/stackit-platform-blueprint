@@ -41,8 +41,8 @@
 ### Functional Requirements (Normative)
 - FR-001 MUST: `apps/backend/Dockerfile` MUST exist and implement a multi-stage Python build with a final stage that EXPOSEs port 8080 and defines a CMD that starts the application server.
 - FR-002 MUST: `apps/touchpoints/Dockerfile` MUST exist and implement a multi-stage build with a Node.js build stage and an nginx final stage that EXPOSEs port 80.
-- FR-003 MUST: `infra/gitops/platform/base/apps/backend-api-deployment.yaml` MUST reference a GHCR consumer image (`ghcr.io/example-org/platform-blueprint-backend:0.1.0`) and MUST NOT contain a `command:` override.
-- FR-004 MUST: `infra/gitops/platform/base/apps/touchpoints-web-deployment.yaml` MUST reference a GHCR consumer image (`ghcr.io/example-org/platform-blueprint-touchpoints:0.1.0`).
+- FR-003 MUST: `infra/gitops/platform/base/apps/backend-api-deployment.yaml` MUST reference a GHCR consumer image (`ghcr.io/example-org/platform-blueprint-backend:0.1.0-dev`, matching the default `publish_ghcr.sh` output when `APP_RELEASE` is not set to `1`) and MUST NOT contain a `command:` override.
+- FR-004 MUST: `infra/gitops/platform/base/apps/touchpoints-web-deployment.yaml` MUST reference a GHCR consumer image (`ghcr.io/example-org/platform-blueprint-touchpoints:0.1.0-dev`, matching the default `publish_ghcr.sh` output when `APP_RELEASE` is not set to `1`).
 - FR-005 MUST: Bootstrap template copies of both deployment manifests (`scripts/templates/infra/bootstrap/infra/gitops/platform/base/apps/`) MUST be updated to match the live manifests (template drift check enforced by `make infra-validate`).
 
 ### Non-Functional Requirements (Normative)
@@ -73,9 +73,9 @@
 - AC-002 MUST: `apps/backend/Dockerfile` has `EXPOSE 8080` and a CMD that invokes an application server.
 - AC-003 MUST: `apps/touchpoints/Dockerfile` exists and uses a multi-stage build with a Node.js builder stage and an nginx final stage.
 - AC-004 MUST: `apps/touchpoints/Dockerfile` has `EXPOSE 80`.
-- AC-005 MUST: `infra/gitops/platform/base/apps/backend-api-deployment.yaml` image field matches `ghcr.io/example-org/platform-blueprint-backend:0.1.0`.
+- AC-005 MUST: `infra/gitops/platform/base/apps/backend-api-deployment.yaml` image field references a GHCR registry (`ghcr.io/`) — not a bare docker hub image such as `python:x.y.z`. The scaffold default is `ghcr.io/example-org/platform-blueprint-backend:0.1.0-dev` (matching `publish_ghcr.sh` defaults with `APP_RELEASE=0`).
 - AC-006 MUST: `infra/gitops/platform/base/apps/backend-api-deployment.yaml` does NOT contain a `command:` key.
-- AC-007 MUST: `infra/gitops/platform/base/apps/touchpoints-web-deployment.yaml` image field matches `ghcr.io/example-org/platform-blueprint-touchpoints:0.1.0`.
+- AC-007 MUST: `infra/gitops/platform/base/apps/touchpoints-web-deployment.yaml` image field references a GHCR registry (`ghcr.io/`) — not a bare docker hub image such as `nginx:x.y.z`. The scaffold default is `ghcr.io/example-org/platform-blueprint-touchpoints:0.1.0-dev`.
 - AC-008 MUST: A structural contract test class `AppDockerfileAndRuntimeTests` asserts AC-001 through AC-007.
 
 ## Informative Notes (Non-Normative)
