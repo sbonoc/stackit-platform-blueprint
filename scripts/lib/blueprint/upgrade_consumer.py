@@ -395,6 +395,19 @@ def _classify_entries(
             baseline_cache[path] = show.stdout if show.returncode == 0 else None
         return baseline_cache[path]
 
+    def resolve_baseline_exists(path: str) -> bool:
+        """Cheap existence check at baseline ref without fetching file content.
+
+        Uses git cat-file -e (no content transfer) for paths not already cached.
+        Re-uses cached content result when resolve_baseline_content was called first.
+        """
+        if baseline_ref is None:
+            return False
+        if path in baseline_cache:
+            return baseline_cache[path] is not None
+        result = _run_git(source_repo, "cat-file", "-e", f"{baseline_ref}:{path}")
+        return result.returncode == 0
+
     for relative_path in all_paths:
         ownership = _ownership_class(relative_path, required_files, init_managed, conditional_entries, managed_dir_roots)
         source_path = source_repo / relative_path
@@ -550,12 +563,12 @@ def _classify_entries(
                 )
             continue
 
-        baseline_content = resolve_baseline_content(relative_path)
-
         if source_content == target_content:
-            # File content already matches source. Distinguish additive from non-additive
-            # so the reason and baseline_content_available fields are accurate.
-            if baseline_content is None:
+            # Fast path: content already matches. Use cheap existence check (git cat-file -e,
+            # no content transfer) to distinguish additive vs non-additive for accurate
+            # reason/baseline_content_available fields without fetching full baseline content.
+            baseline_exists = resolve_baseline_exists(relative_path)
+            if not baseline_exists:
                 entries.append(
                     UpgradeEntry(
                         path=relative_path,
@@ -584,6 +597,8 @@ def _classify_entries(
                     )
                 )
             continue
+
+        baseline_content = resolve_baseline_content(relative_path)
 
         if baseline_content is None:
             # Additive file: absent at the baseline ref, so no 3-way merge ancestor exists.

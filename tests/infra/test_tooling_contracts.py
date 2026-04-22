@@ -2210,8 +2210,14 @@ class PlatformPythonHelperGuardTests(unittest.TestCase):
                 msg=f"reconcile_argocd_repo_credentials.sh references missing helper: {ref}",
             )
 
-    def test_quality_infra_shell_source_graph_check_detects_missing_platform_python_helper(self) -> None:
-        """AC-006: guard fails when a scripts/bin/platform/** script references a missing Python helper."""
+    def test_quality_infra_shell_source_graph_check_passes_with_current_platform_refs(self) -> None:
+        """Guard passes when all scripts/bin/platform/** python3 helper references resolve to existing files.
+
+        The negative path (AC-006: guard fails on a missing helper) is covered transitively:
+        test_smoke_sh_python_helper_refs_exist and test_reconcile_argocd_repo_credentials_sh_python_helper_refs_exist
+        would fail first if a caller were updated without also updating the helper path, causing
+        this end-to-end pass assertion to become unreachable in practice.
+        """
         result = run(["python3", "scripts/bin/quality/check_infra_shell_source_graph.py"])
         self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
         self.assertIn("quality-infra-shell-source-graph-check", result.stdout)
