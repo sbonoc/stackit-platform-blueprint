@@ -1,0 +1,128 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-04-22-issue-118-137-preflight-module-targets-postgres-eso-key",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "Correct postgres module contract outputs key to POSTGRES_DB_NAME"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "Detect stale infra-<module>-* references in upgrade consumer plan"
+    },
+    {
+      "id": "FR-003",
+      "type": "requirement",
+      "summary": "Scope stale-reference detection to existing make and CI reference paths"
+    },
+    {
+      "id": "FR-004",
+      "type": "requirement",
+      "summary": "Gate stale-reference detection on generated-consumer repo mode"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "No shell injection or path traversal; in-process Python reads only"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "Stale references surface file path and target name in RequiredManualAction"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "Detection failures collected and surfaced, not raised as exceptions"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "Key rename requires no operator action beyond make blueprint-upgrade-consumer"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "postgres module contract outputs.produced contains POSTGRES_DB_NAME, not POSTGRES_DB"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "Contract test asserts postgres module output key matches ESO secretKey"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "Stale module target references produce RequiredManualAction in generated-consumer mode"
+    },
+    {
+      "id": "AC-004",
+      "type": "acceptance",
+      "summary": "No spurious RequiredManualAction in template-source mode or when targets present"
+    },
+    {
+      "id": "AC-005",
+      "type": "acceptance",
+      "summary": "Unit tests in test_upgrade_consumer.py cover AC-003 and AC-004"
+    }
+  ],
+  "edges": [
+    {
+      "from": "FR-001",
+      "to": "AC-001",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-001",
+      "to": "AC-002",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-002",
+      "to": "AC-003",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-002",
+      "to": "AC-005",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-003",
+      "to": "AC-005",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-004",
+      "to": "AC-004",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-004",
+      "to": "AC-005",
+      "relation": "validated_by"
+    },
+    {
+      "from": "NFR-SEC-001",
+      "to": "AC-005",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-OBS-001",
+      "to": "AC-003",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-REL-001",
+      "to": "AC-004",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-OPS-001",
+      "to": "AC-001",
+      "relation": "constrains"
+    }
+  ]
+}

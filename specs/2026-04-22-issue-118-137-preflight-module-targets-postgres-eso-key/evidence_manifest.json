@@ -1,0 +1,50 @@
+{
+  "manifest_version": 1,
+  "work_item": "2026-04-22-issue-118-137-preflight-module-targets-postgres-eso-key",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-04-22T20:15:00Z",
+  "files": [
+    {
+      "path": "blueprint/modules/postgres/module.contract.yaml",
+      "sha256": "1e3f305e589fff93242c57719593e04c185c7eb79e1a5ff8b760c62dfb874c29",
+      "bytes": 1960,
+      "role": "fix: POSTGRES_DB_NAME output key correction (Issue #137)"
+    },
+    {
+      "path": "tests/infra/test_tooling_contracts.py",
+      "sha256": "305a853212aa4e531735bbcbcb01e5dcee960bed7fcec554057ad5e96bf86d72",
+      "bytes": 121912,
+      "role": "AC-001 / AC-002: PostgresContractKeyParityTests contract tests"
+    },
+    {
+      "path": "scripts/lib/blueprint/upgrade_consumer.py",
+      "sha256": "889dccb207680ece537840f0aac6894eb6032bae811f89c3ce213bf9e7e51fc4",
+      "bytes": 71232,
+      "role": "AC-003 / AC-004: _collect_stale_module_target_actions and _file_content_references_make_target (Issue #118)"
+    },
+    {
+      "path": "tests/blueprint/test_upgrade_consumer.py",
+      "sha256": "e423092a48f96e823a90b49c483143b569d24abd56048ba6f16c6547990f4b08",
+      "bytes": 79118,
+      "role": "AC-003 / AC-004 / AC-005: StaleModuleTargetDetectionTests unit tests"
+    },
+    {
+      "path": "docs/platform/modules/postgres/README.md",
+      "sha256": "8efc219a26846b7b587f646b1a91874da0f603384914fc8d185d8e286417ae09",
+      "bytes": 2512,
+      "role": "docs: postgres module outputs synced to POSTGRES_DB_NAME"
+    },
+    {
+      "path": "scripts/templates/blueprint/bootstrap/docs/platform/modules/postgres/README.md",
+      "sha256": "8efc219a26846b7b587f646b1a91874da0f603384914fc8d185d8e286417ae09",
+      "bytes": 2512,
+      "role": "docs: bootstrap template postgres module outputs synced"
+    },
+    {
+      "path": "docs/blueprint/architecture/decisions/ADR-20260422-issue-118-137-preflight-module-targets-postgres-eso-key.md",
+      "sha256": "66e413c8f20d51355f74563804b72bb54829e7d7a038fbe7d72ce35bdf1ee6d1",
+      "bytes": 4296,
+      "role": "ADR: architecture decision record for Issues #118 and #137"
+    }
+  ]
+}

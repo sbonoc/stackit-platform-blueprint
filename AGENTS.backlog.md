@@ -14,6 +14,49 @@
 - [x] P1 (Runtime operability correctness) — Work item A: Issues #105 + #110 — fix best-effort provision hard-fail in reconcile_eso_runtime_secrets.sh and clarify gho_ token policy in reconcile_argocd_repo_credentials.sh (both in scripts/bin/platform/auth/). **Done**: `specs/2026-04-22-issue-105-110-runtime-auth-best-effort-fix/`
 - [x] P1 (Runtime operability correctness) — Work item B: Issues #111 + #112 — scaffold canonical backend/touchpoints Dockerfiles so image lanes work out of the box, and replace placeholder workloads (http.server/nginx) with real app runtime in generated consumers. **Done**: `specs/2026-04-22-issue-111-112-app-dockerfile-and-runtime/`
 - [ ] P1 (Runtime operability correctness) — Work item C: Issues #118 + #137 — add upgrade preflight detection for removed infra-<module>-* make targets (#118) and fix postgres ESO seed key mismatch causing continuous UpdateFailed events (#137, P2 in GH).
+- [ ] P1 (SDD publish-gate gap): add a `quality-spec-pr-ready` make target (new script `scripts/bin/quality/check_spec_pr_ready.py`) to detect unfilled scaffold placeholders and incomplete publish artifacts in `plan.md`, `tasks.md`, `hardening_review.md`, and `pr_context.md` before a PR is opened. Root cause: `quality-sdd-check` only validates the readiness-gate files (`spec.md`, `architecture.md`, `context_pack.md`, `traceability.md`, `graph.json`, `evidence_manifest.json`); the four publish-gate files have no machine-readable validation, so scaffold placeholders can ship undetected. **Implementation details below.**
+
+  **Script**: `scripts/bin/quality/check_spec_pr_ready.py` — same pattern as `check_sdd_assets.py` (reads active spec dir, emits `[quality-spec-pr-ready]`-prefixed errors, exits non-zero on any failure). Active spec dir resolved from `SPEC_SLUG` env var or current branch name (`codex/YYYY-MM-DD-<slug>`).
+
+  **Make target**: `quality-spec-pr-ready` in the existing quality make surface (alongside `quality-sdd-check`). Also wire into `quality-hooks-fast` as a conditional step that runs when the current branch matches the SDD branch pattern `codex/[0-9]{4}-[0-9]{2}-[0-9]{2}-*` and the spec directory exists.
+
+  **Checks — `tasks.md`**:
+  - Every `[ ]` box in G-00N, T-00N (implementation), T-10N, T-20N, P-00N, A-00N sections is `[x]` — unchecked boxes mean undone work.
+  - No task still has verbatim scaffold text (e.g. `T-001 Update contract/governance surfaces`, `T-002 Implement runtime/code changes`) — scaffold text means the task was never replaced with actual work description.
+  - All three publish tasks P-001, P-002, P-003 are explicitly `[x]`.
+
+  **Checks — `plan.md`**:
+  - Constitution gate lines each have non-empty content after the colon (not `- Simplicity gate:` alone).
+  - Delivery slice lines are concrete (not `- Slice 1:` or `- Slice 2:` with nothing after the colon).
+  - Change strategy fields non-empty (`Migration/rollout sequence:`, `Backward compatibility policy:`, `Rollback plan:`).
+  - Validation strategy fields non-empty (unit/contract/integration/E2E checks).
+  - App onboarding impact resolved: exactly one of `no-impact` or `impacted` appears without the scaffold's `(select one)` suffix.
+  - Operational readiness fields non-empty (`Logging/metrics/traces:`, `Alerts/ownership:`, `Runbook updates:`).
+  - Risk lines have content after the ` -> mitigation:` separator (not `Risk 1 -> mitigation:` alone).
+
+  **Checks — `hardening_review.md`**:
+  - At least one `Repository-Wide Findings Fixed` entry with non-empty content after the colon (not `Finding 1:` alone).
+  - `Observability and Diagnostics Changes` sub-fields non-empty.
+  - `Architecture and Code Quality Compliance` sub-fields non-empty.
+  - At least one `Proposals Only` entry with content after the colon, or an explicit `none` or `N/A` statement — scaffold default `Proposal 1:` alone is not acceptable.
+
+  **Checks — `pr_context.md`**:
+  - Required fields non-empty: `Work item:`, `Objective:`, `Scope boundaries:`, `Requirement IDs covered:`, `Acceptance criteria covered:`, `Required commands executed:`, `Result summary:`, `Main risks:`, `Rollback strategy:`.
+  - `Primary files to review first:` section has at least one non-empty bullet item.
+  - No deferred proposal line still has the scaffold default text (`Proposal 1 (not implemented):` with nothing after the colon).
+
+  **General placeholder detection** (applies to all four files):
+  - Lines matching `- <Label>:$` (label followed by colon and nothing else) where the label text is verbatim from the scaffold template (e.g. `Finding 1`, `Proposal 1`, `Slice 1`, `Slice 2`, `Risk 1`, `Follow-up 1`, `Context:`, `Tradeoffs:`) are rejected.
+  - The check must be label-aware (not a blanket "no empty bullets" rule) to avoid false positives on intentionally terse single-word fields.
+
+  **Test coverage** (new `tests/blueprint/test_spec_pr_ready.py` or extend `test_spec_scaffold.py`):
+  - Positive-path: a fully-filled spec dir passes with exit code 0.
+  - Negative-path per file: a spec dir with each type of placeholder (unchecked task, empty slice, empty finding, empty required field) fails with a descriptive error message naming the file and the offending line.
+  - Branch-name resolution: correct spec slug is derived from branch name `codex/YYYY-MM-DD-<slug>`.
+  - Missing spec dir: exits non-zero with a clear error rather than silently passing.
+
+  **Integration with `quality-hooks-fast`**: add as a step gated on `[[ "$(git branch --show-current)" =~ ^codex/[0-9]{4}-[0-9]{2}-[0-9]{2}- ]]` and spec dir exists; skip silently on non-SDD branches so the gate has zero cost for non-spec work.
+
 - [ ] P2 (Ownership checker robustness): support normalized equivalence for semantically-identical prune-glob expressions in ownership-matrix documentation checks.
 - [ ] P2 (Capability enhancements): Issues #56, #131 — expand app dependency pin auditing and add blueprint uplift convergence status command.
 - [ ] Add an automated bundled-skill contract verifier to enforce parity across `.agents/skills/**`, consumer-template fallbacks, install make targets, and docs references.

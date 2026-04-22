@@ -1565,5 +1565,168 @@ class AdditiveFileClassificationTests(unittest.TestCase):
             self.assertTrue(entry.get("baseline_content_available"))
 
 
+class StaleModuleTargetDetectionTests(unittest.TestCase):
+    """AC-003/AC-004/AC-005: stale infra-<module>-* reference detection (Issue #118)."""
+
+    def _make_generated_contract(self) -> str:
+        return _generated_contract_text()
+
+    def _write_generated_mk(self, repo: Path, *, include_postgres_targets: bool) -> None:
+        """Write make/blueprint.generated.mk with or without postgres module targets."""
+        lines = [
+            "SHELL := /bin/bash",
+            ".DEFAULT_GOAL := help",
+        ]
+        base_targets = ["blueprint-upgrade-consumer", "infra-validate", "quality-hooks-fast"]
+        postgres_targets = ["infra-postgres-plan", "infra-postgres-apply", "infra-postgres-smoke", "infra-postgres-destroy"]
+        phony_targets = base_targets + (postgres_targets if include_postgres_targets else [])
+        lines.append(".PHONY: " + " ".join(phony_targets))
+        for target in phony_targets:
+            lines.append(f"\n{target}:")
+            lines.append(f"\t@echo {target}")
+        _write(repo / "make/blueprint.generated.mk", "\n".join(lines) + "\n")
+
+    def test_stale_reference_in_ci_yml_produces_required_manual_action(self) -> None:
+        """AC-003: stale make infra-postgres-plan in CI file → RequiredManualAction."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir) / "repo"
+            _init_git_repo(repo)
+            _write(repo / "blueprint/contract.yaml", self._make_generated_contract())
+            self._write_generated_mk(repo, include_postgres_targets=False)
+            # CI workflow references a now-disabled postgres target.
+            _write(
+                repo / ".github/workflows/ci.yml",
+                "jobs:\n  deploy:\n    steps:\n      - run: make infra-postgres-plan\n",
+            )
+            _commit_all(repo, "repo with stale ci reference")
+
+            contract = load_blueprint_contract(repo / "blueprint/contract.yaml")
+            actions = upgrade_consumer._collect_stale_module_target_actions(repo, contract)
+
+        stale_action = next(
+            (a for a in actions if "infra-postgres-plan" in a.reason),
+            None,
+        )
+        self.assertIsNotNone(
+            stale_action,
+            msg=f"expected RequiredManualAction for stale infra-postgres-plan, got: {[a.reason for a in actions]}",
+        )
+        self.assertIn(".github/workflows/ci.yml", stale_action.dependency_path)
+        self.assertIn("stale reference", stale_action.reason)
+        self.assertIn("infra-postgres-plan", stale_action.reason)
+        self.assertIn("absent from make/blueprint.generated.mk", stale_action.reason)
+
+    def test_stale_reference_in_platform_mk_produces_required_manual_action(self) -> None:
+        """AC-003: stale $(MAKE) infra-postgres-apply in platform make file → RequiredManualAction."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir) / "repo"
+            _init_git_repo(repo)
+            _write(repo / "blueprint/contract.yaml", self._make_generated_contract())
+            self._write_generated_mk(repo, include_postgres_targets=False)
+            # Platform makefile references a disabled postgres target via $(MAKE).
+            _write(
+                repo / "make/platform.mk",
+                "deploy-postgres:\n\t$(MAKE) infra-postgres-apply\n",
+            )
+            _commit_all(repo, "repo with stale platform.mk reference")
+
+            contract = load_blueprint_contract(repo / "blueprint/contract.yaml")
+            actions = upgrade_consumer._collect_stale_module_target_actions(repo, contract)
+
+        stale_action = next(
+            (a for a in actions if "infra-postgres-apply" in a.reason),
+            None,
+        )
+        self.assertIsNotNone(
+            stale_action,
+            msg=f"expected RequiredManualAction for stale infra-postgres-apply, got: {[a.reason for a in actions]}",
+        )
+        self.assertIn("infra-postgres-apply", stale_action.reason)
+
+    def test_no_action_when_all_referenced_targets_present_in_generated_mk(self) -> None:
+        """AC-004: when postgres targets ARE in make/blueprint.generated.mk, no stale action is emitted."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir) / "repo"
+            _init_git_repo(repo)
+            _write(repo / "blueprint/contract.yaml", self._make_generated_contract())
+            self._write_generated_mk(repo, include_postgres_targets=True)
+            # CI workflow references postgres target, but the target IS present (module enabled).
+            _write(
+                repo / ".github/workflows/ci.yml",
+                "jobs:\n  deploy:\n    steps:\n      - run: make infra-postgres-plan\n",
+            )
+            _commit_all(repo, "repo with active postgres module")
+
+            contract = load_blueprint_contract(repo / "blueprint/contract.yaml")
+            actions = upgrade_consumer._collect_stale_module_target_actions(repo, contract)
+
+        postgres_actions = [a for a in actions if "infra-postgres" in a.reason]
+        self.assertEqual(
+            postgres_actions,
+            [],
+            msg=f"no stale action expected when postgres targets present in generated mk: {postgres_actions}",
+        )
+
+    def test_no_action_when_generated_mk_absent(self) -> None:
+        """AC-004: when make/blueprint.generated.mk does not exist, returns empty list (no crash)."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir) / "repo"
+            _init_git_repo(repo)
+            _write(repo / "blueprint/contract.yaml", self._make_generated_contract())
+            # No generated makefile at all.
+            _write(
+                repo / ".github/workflows/ci.yml",
+                "jobs:\n  deploy:\n    steps:\n      - run: make infra-postgres-plan\n",
+            )
+            _commit_all(repo, "repo without generated mk")
+
+            contract = load_blueprint_contract(repo / "blueprint/contract.yaml")
+            actions = upgrade_consumer._collect_stale_module_target_actions(repo, contract)
+
+        self.assertEqual(actions, [], msg="expected empty list when make/blueprint.generated.mk absent")
+
+    def test_file_content_references_make_target_matches_make_invocation(self) -> None:
+        """Unit test for _file_content_references_make_target helper."""
+        self.assertTrue(
+            upgrade_consumer._file_content_references_make_target(
+                "run: make infra-postgres-plan\n", "infra-postgres-plan"
+            )
+        )
+        self.assertTrue(
+            upgrade_consumer._file_content_references_make_target(
+                "\t$(MAKE) infra-postgres-apply\n", "infra-postgres-apply"
+            )
+        )
+        # Must not match a longer target name that starts with the same prefix.
+        self.assertFalse(
+            upgrade_consumer._file_content_references_make_target(
+                "make infra-postgres-plan-extended\n", "infra-postgres-plan"
+            )
+        )
+        # Must not match a bare string that is not a make invocation.
+        self.assertFalse(
+            upgrade_consumer._file_content_references_make_target(
+                "# infra-postgres-plan is documented here\n", "infra-postgres-plan"
+            )
+        )
+        # Must not match a substring within a longer tool name (e.g. cmake).
+        self.assertFalse(
+            upgrade_consumer._file_content_references_make_target(
+                "cmake infra-postgres-plan\n", "infra-postgres-plan"
+            )
+        )
+        # Must not match commented-out make invocations.
+        self.assertFalse(
+            upgrade_consumer._file_content_references_make_target(
+                "# - run: make infra-postgres-plan\n", "infra-postgres-plan"
+            )
+        )
+        self.assertFalse(
+            upgrade_consumer._file_content_references_make_target(
+                "#\t$(MAKE) infra-postgres-apply\n", "infra-postgres-apply"
+            )
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
