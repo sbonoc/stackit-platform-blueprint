@@ -246,6 +246,20 @@ class CheckCatalogConsistencyTests(unittest.TestCase):
         self.assertFalse(results[0].passed)
         self.assertIn("manifest-missing", results[0].check_id)
 
+    def test_tracked_var_missing_from_lock_fails_consistency(self) -> None:
+        """A mapped var absent from versions.lock must produce a failing result."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Remove FASTAPI_VERSION from lock so it's present in manifest but not lock
+            partial_lock = SAMPLE_LOCK.replace("FASTAPI_VERSION=0.117.1\n", "")
+            lock = _write(tmpdir, "versions.lock", partial_lock)
+            manifest = _write(tmpdir, "manifest.yaml", SAMPLE_MANIFEST)
+            results = check_catalog_consistency(lock, manifest)
+        failed = [r for r in results if not r.passed]
+        self.assertTrue(
+            any("FASTAPI_VERSION" in r.check_id for r in failed),
+            f"Expected FASTAPI_VERSION failure, got: {[r.check_id for r in failed]}",
+        )
+
 
 # ---------------------------------------------------------------------------
 # main() integration

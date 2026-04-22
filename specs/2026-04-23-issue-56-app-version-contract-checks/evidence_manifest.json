@@ -1,7 +1,58 @@
 {
   "manifest_version": 1,
-  "work_item": "<YYYY-MM-DD>-<work-item-slug>",
+  "work_item": "specs/2026-04-23-issue-56-app-version-contract-checks",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "",
-  "files": []
+  "generated_at_utc": "2026-04-22T23:05:58Z",
+  "files": [
+    {
+      "path": "specs/2026-04-23-issue-56-app-version-contract-checks/architecture.md",
+      "sha256": "6ec0d92ab1a8a2dd87af686e4eb8c422aa928b49a25144f944d64a741447f567",
+      "bytes": 3536
+    },
+    {
+      "path": "specs/2026-04-23-issue-56-app-version-contract-checks/context_pack.md",
+      "sha256": "10850d05d57fad02c024731b9ec00e10913d2f26edeeed521b191288cba9a007",
+      "bytes": 784
+    },
+    {
+      "path": "specs/2026-04-23-issue-56-app-version-contract-checks/evidence_manifest.json",
+      "sha256": "3690280a048ee0b0fbac6f9a92460145c9b84fb9883924ab0e3dcbb1abba0c87",
+      "bytes": 2226
+    },
+    {
+      "path": "specs/2026-04-23-issue-56-app-version-contract-checks/graph.json",
+      "sha256": "94076ccec5dd27355d22c4e5486b90b2a9c8a61922a1630da4e9fd9d050ae26f",
+      "bytes": 4524
+    },
+    {
+      "path": "specs/2026-04-23-issue-56-app-version-contract-checks/hardening_review.md",
+      "sha256": "e21181dc48f904af293237ae6380657f642033bc14ce222e97fc1c3c95df8324",
+      "bytes": 1913
+    },
+    {
+      "path": "specs/2026-04-23-issue-56-app-version-contract-checks/plan.md",
+      "sha256": "199c6fc50d2efd7b8c661ac7390571b76efe7e2e52af5354d58378f63a9357cc",
+      "bytes": 4091
+    },
+    {
+      "path": "specs/2026-04-23-issue-56-app-version-contract-checks/pr_context.md",
+      "sha256": "3522062ff5da12e273424bf8c790183144d85c1cc3e94cf77067ced94bd3ed3d",
+      "bytes": 2838
+    },
+    {
+      "path": "specs/2026-04-23-issue-56-app-version-contract-checks/spec.md",
+      "sha256": "47a49e4504ae14685ed4fdcb030b3d34d67e2b4c62985da7003a5773813dc2ea",
+      "bytes": 7316
+    },
+    {
+      "path": "specs/2026-04-23-issue-56-app-version-contract-checks/tasks.md",
+      "sha256": "c762eb4bb9c58c489fce89a6a7a111eb4e4487bdf9e11d58f460589dca89f1cf",
+      "bytes": 3539
+    },
+    {
+      "path": "specs/2026-04-23-issue-56-app-version-contract-checks/traceability.md",
+      "sha256": "ef93e88bde04dcaf54e8e04eb89349b3b02bfe9a9441789584b04461aece6c57",
+      "bytes": 3688
+    }
+  ]
 }

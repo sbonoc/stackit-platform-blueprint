@@ -46,15 +46,13 @@ class ContractCheckResult:
 def parse_lock_file(lock_path: Path) -> dict[str, str]:
     """Parse KEY=VALUE lines from a versions.lock file.
 
-    Returns an empty dict if the file is missing or unreadable.
+    Returns an empty dict if the file is missing.
+    Raises OSError or UnicodeDecodeError if the file exists but cannot be read.
     Lines that do not match KEY=VALUE are silently ignored.
     """
     if not lock_path.is_file():
         return {}
-    try:
-        text = lock_path.read_text(encoding="utf-8", errors="surrogateescape")
-    except (OSError, UnicodeDecodeError):
-        return {}
+    text = lock_path.read_text(encoding="utf-8", errors="surrogateescape")
     result: dict[str, str] = {}
     for line in text.splitlines():
         stripped = line.strip()
@@ -94,7 +92,7 @@ def check_versions_lock(
 
     try:
         actual = parse_lock_file(lock_path)
-    except Exception:  # noqa: BLE001
+    except (OSError, UnicodeDecodeError):
         return [
             ContractCheckResult(
                 check_id=f"lock:{var}",
@@ -255,25 +253,39 @@ def check_catalog_consistency(
             )
         ]
 
-    lock_vars = parse_lock_file(lock_path)
-    # Filter to only the vars that have a manifest key mapping
-    expected_vars = {
-        var: lock_vars[var]
-        for var in LOCK_VAR_TO_MANIFEST_KEY
-        if var in lock_vars
-    }
-    if not expected_vars:
+    try:
+        lock_vars = parse_lock_file(lock_path)
+    except (OSError, UnicodeDecodeError):
         return [
             ContractCheckResult(
-                check_id="consistency:no-tracked-vars",
+                check_id="consistency:lock-unreadable",
                 file=lock_file_str,
-                expected_snippet="at least one tracked var must be present in versions.lock",
+                expected_snippet="versions.lock must be readable for consistency check",
                 passed=False,
-                detail="no tracked vars found in lock file",
+                detail="unreadable",
             )
         ]
 
-    return check_manifest_yaml(manifest_path, expected_vars)
+    # Every var in LOCK_VAR_TO_MANIFEST_KEY must be present in the lock.
+    # A missing tracked var is itself an inconsistency — fail it explicitly.
+    results: list[ContractCheckResult] = []
+    expected_vars: dict[str, str] = {}
+    for var in LOCK_VAR_TO_MANIFEST_KEY:
+        if var in lock_vars:
+            expected_vars[var] = lock_vars[var]
+        else:
+            results.append(
+                ContractCheckResult(
+                    check_id=f"consistency:lock:{var}",
+                    file=lock_file_str,
+                    expected_snippet=f"{var}=<any tracked value>",
+                    passed=False,
+                    detail="not found in lock file",
+                )
+            )
+
+    results.extend(check_manifest_yaml(manifest_path, expected_vars))
+    return results
 
 
 def _print_report(results: list[ContractCheckResult], mode: str) -> None:
