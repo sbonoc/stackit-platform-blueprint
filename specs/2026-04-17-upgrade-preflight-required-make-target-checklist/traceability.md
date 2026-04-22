@@ -20,8 +20,8 @@
 | AC-005 | SDD-C-012 | Consumer docs clarify preflight required-target checklist behavior | `docs/platform/consumer/quickstart.md`; `docs/platform/consumer/troubleshooting.md` | docs sync checks | same paths | runbook-level guidance for operators |
 
 ## Graph Linkage
-- Graph file: `graph.yaml`
-- Every `FR-###`, `NFR-*-###`, and `AC-###` listed in this file MUST have a corresponding node in `graph.yaml`.
+- Graph file: `graph.json`
+- Every `FR-###`, `NFR-*-###`, and `AC-###` listed in this file MUST have a corresponding node in `graph.json`.
 - Node IDs referenced:
   - FR-001
   - FR-002

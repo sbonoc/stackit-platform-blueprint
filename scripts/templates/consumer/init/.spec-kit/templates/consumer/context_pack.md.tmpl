@@ -26,7 +26,7 @@
 - `plan.md`
 - `tasks.md`
 - `traceability.md`
-- `graph.yaml`
+- `graph.json`
 - `evidence_manifest.json`
 - `pr_context.md`
 - `hardening_review.md`

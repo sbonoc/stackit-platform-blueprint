@@ -42,7 +42,7 @@
   - `scripts/bin/blueprint/spec_scaffold.py`
   - `scripts/bin/quality/check_sdd_assets.py`
   - `make/blueprint.generated.mk`
-  - `.spec-kit/control-catalog.yaml`
+  - `.spec-kit/control-catalog.json`
 
 ## Architecture Diagram (Mermaid)
 ```mermaid

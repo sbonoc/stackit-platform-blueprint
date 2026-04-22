@@ -41,7 +41,7 @@ def _contract_raw(*, catalog_file: str = ".spec-kit/control-catalog.md") -> dict
                         "plan.md",
                         "tasks.md",
                         "traceability.md",
-                        "graph.yaml",
+                        "graph.json",
                         "evidence_manifest.json",
                         "context_pack.md",
                         "pr_context.md",
@@ -304,7 +304,7 @@ def _write_work_item(repo_root: Path, *, control_id: str = "SDD-C-001", include_
         + "\n",
         encoding="utf-8",
     )
-    (work_item / "graph.yaml").write_text(
+    (work_item / "graph.json").write_text(
         "\n".join(
             [
                 "{",
@@ -607,7 +607,7 @@ class SddAssetCheckerTests(unittest.TestCase):
             _write_valid_control_catalog(repo_root / ".spec-kit/control-catalog.md")
             _write_work_item(repo_root)
 
-            graph_path = repo_root / "specs/2026-04-15-fixture/graph.yaml"
+            graph_path = repo_root / "specs/2026-04-15-fixture/graph.json"
             graph_content = graph_path.read_text(encoding="utf-8")
             graph_content = graph_content.replace('"id": "FR-001"', '"id": "FR-999"', 1)
             graph_path.write_text(graph_content, encoding="utf-8")
@@ -618,7 +618,7 @@ class SddAssetCheckerTests(unittest.TestCase):
 
             spec_violations = checker._validate_work_item_specs(contract_raw, repo_root, catalog_ids)
             self.assertTrue(
-                any("graph.yaml missing requirement/acceptance node ID from spec.md" in violation.message for violation in spec_violations),
+                any("graph.json missing requirement/acceptance node ID from spec.md" in violation.message for violation in spec_violations),
                 msg=[violation.message for violation in spec_violations],
             )
 

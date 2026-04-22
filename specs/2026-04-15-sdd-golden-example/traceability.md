@@ -14,8 +14,8 @@
 | AC-002 | SDD-C-012 |  |  |  |  |  |
 
 ## Graph Linkage
-- Graph file: `graph.yaml`
-- Every `FR-###`, `NFR-*-###`, and `AC-###` listed in this file MUST have a corresponding node in `graph.yaml`.
+- Graph file: `graph.json`
+- Every `FR-###`, `NFR-*-###`, and `AC-###` listed in this file MUST have a corresponding node in `graph.json`.
 - Node IDs referenced:
   - FR-001
   - FR-002

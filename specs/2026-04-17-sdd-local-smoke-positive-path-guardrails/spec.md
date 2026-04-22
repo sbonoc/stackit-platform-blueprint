@@ -74,7 +74,7 @@
 ## Normative Acceptance Criteria
 - AC-001: `.spec-kit/templates/{blueprint,consumer}/plan.md` include the positive-path gate and local smoke gate markers.
 - AC-002: `.spec-kit/templates/{blueprint,consumer}/tasks.md` include explicit positive-path verification task wording with `pr_context.md` evidence capture.
-- AC-003: `.spec-kit/control-catalog.yaml` defines `SDD-C-022` and `SDD-C-023`, and `.spec-kit/control-catalog.md` renders both controls.
+- AC-003: `.spec-kit/control-catalog.json` defines `SDD-C-022` and `SDD-C-023`, and `.spec-kit/control-catalog.md` renders both controls.
 - AC-004: Governance/interoperability docs and consumer-init governance template include normative statements for the new gates.
 - AC-005: Sync and validation commands pass after changes (`quality-sdd-check`, docs template sync check, infra-validate, targeted unit tests).
 - AC-006: Plan/tasks templates and control catalog include explicit finding-to-test translation requirements (`failing test first`, `green after fix`, deterministic exception documentation path).

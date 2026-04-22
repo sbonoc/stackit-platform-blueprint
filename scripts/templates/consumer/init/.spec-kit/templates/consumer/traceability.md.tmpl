@@ -6,7 +6,7 @@
 | NFR-SEC-001 | SDD-C-009 |  |  |  |  |
 
 ## Graph Linkage
-- Graph file: `graph.yaml`
+- Graph file: `graph.json`
 - Node IDs referenced:
   - FR-001
   - NFR-SEC-001

@@ -26,8 +26,8 @@
 | AC-007 | SDD-C-012 | automated test coverage for all three scenarios | tests/blueprint/ + tests/infra/ | additive-skip, additive-merge-required, guard-trigger tests | — | test run output |
 
 ## Graph Linkage
-- Graph file: `graph.yaml`
-- Every `FR-###`, `NFR-*-###`, and `AC-###` listed in this file MUST have a corresponding node in `graph.yaml`.
+- Graph file: `graph.json`
+- Every `FR-###`, `NFR-*-###`, and `AC-###` listed in this file MUST have a corresponding node in `graph.json`.
 - Node IDs referenced:
   - FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-007, FR-008, FR-009
   - NFR-SEC-001, NFR-OBS-001, NFR-REL-001, NFR-OPS-001

@@ -21,8 +21,8 @@
 | AC-005 | SDD-C-012 | Skill UX and deterministic next commands | .agents/skills/blueprint-consumer-upgrade/SKILL.md | tests.blueprint.test_quality_contracts.QualityContractTests.test_upgrade_workflow_wrappers_emit_metrics_and_parse_reports | scripts/templates/consumer/init/.agents/skills/blueprint-consumer-upgrade/SKILL.md.tmpl | skill report checklist |
 
 ## Graph Linkage
-- Graph file: `graph.yaml`
-- Every `FR-###`, `NFR-*-###`, and `AC-###` listed in this file MUST have a corresponding node in `graph.yaml`.
+- Graph file: `graph.json`
+- Every `FR-###`, `NFR-*-###`, and `AC-###` listed in this file MUST have a corresponding node in `graph.json`.
 - Node IDs referenced:
   - FR-001
   - FR-002

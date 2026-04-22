@@ -145,7 +145,7 @@ def _contract_required_documents(repo_root: Path) -> list[str]:
 def _cmd_impact(*, repo_root: Path, work_item_dir: Path, output_path: Path) -> int:
     spec_path = work_item_dir / "spec.md"
     traceability_path = work_item_dir / "traceability.md"
-    graph_path = work_item_dir / "graph.yaml"
+    graph_path = work_item_dir / "graph.json"
     evidence_manifest_path = work_item_dir / "evidence_manifest.json"
 
     spec_content = spec_path.read_text(encoding="utf-8", errors="surrogateescape")

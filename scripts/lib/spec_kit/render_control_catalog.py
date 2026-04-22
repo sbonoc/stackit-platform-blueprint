@@ -140,7 +140,7 @@ def _sync(*, repo_root: Path, input_path: Path, output_path: Path, check: bool) 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-root", type=Path, default=REPO_ROOT)
-    parser.add_argument("--input", type=Path, default=Path(".spec-kit/control-catalog.yaml"))
+    parser.add_argument("--input", type=Path, default=Path(".spec-kit/control-catalog.json"))
     parser.add_argument("--output", type=Path, default=Path(".spec-kit/control-catalog.md"))
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()

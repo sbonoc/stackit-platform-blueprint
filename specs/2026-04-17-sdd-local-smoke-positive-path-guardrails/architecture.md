@@ -19,7 +19,7 @@
 ## Bounded Contexts and Responsibilities
 - Template policy context: `.spec-kit/templates/{blueprint,consumer}/plan.md` and `tasks.md` define mandatory guardrails for future work items.
 - Governance context: `AGENTS.md`, consumer-init `AGENTS.md.tmpl`, and governance docs define assistant-agnostic normative policy.
-- Control catalog context: `.spec-kit/control-catalog.yaml` and rendered `.md` codify stable guardrail IDs and expected evidence.
+- Control catalog context: `.spec-kit/control-catalog.json` and rendered `.md` codify stable guardrail IDs and expected evidence.
 - Sync context: docs and consumer-init template mirrors remain deterministic through existing sync scripts.
 
 ## High-Level Component Design

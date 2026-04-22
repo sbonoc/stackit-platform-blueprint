@@ -16,8 +16,8 @@
 | AC-003 | SDD-C-012 | Template-source fail-fast for missing selected test | scripts/bin/infra/contract_test_fast.sh | tests.infra.test_tooling_contracts.ToolingContractsTests.test_contract_test_fast_fails_fast_when_template_source_required_test_is_missing | specs/2026-04-20-issue-103-generated-consumer-contract-fastlane/pr_context.md | missing-path fatal diagnostics |
 
 ## Graph Linkage
-- Graph file: `graph.yaml`
-- Every `FR-###`, `NFR-*-###`, and `AC-###` listed in this file MUST have a corresponding node in `graph.yaml`.
+- Graph file: `graph.json`
+- Every `FR-###`, `NFR-*-###`, and `AC-###` listed in this file MUST have a corresponding node in `graph.json`.
 - Node IDs referenced:
   - FR-001
   - FR-002

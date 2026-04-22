@@ -512,7 +512,7 @@ def _validate_work_item_specs(
         spec_path = work_item_dir / "spec.md"
         tasks_path = work_item_dir / "tasks.md"
         traceability_path = work_item_dir / "traceability.md"
-        graph_path = work_item_dir / "graph.yaml"
+        graph_path = work_item_dir / "graph.json"
         evidence_manifest_path = work_item_dir / "evidence_manifest.json"
         context_pack_path = work_item_dir / "context_pack.md"
         pr_context_path = work_item_dir / "pr_context.md"
@@ -1175,7 +1175,7 @@ def _validate_work_item_specs(
             violations.append(
                 Violation(
                     path=str(graph_path.relative_to(repo_root)),
-                    message="graph.yaml must define a nodes list",
+                    message="graph.json must define a nodes list",
                 )
             )
 
@@ -1190,14 +1190,14 @@ def _validate_work_item_specs(
             violations.append(
                 Violation(
                     path=str(graph_path.relative_to(repo_root)),
-                    message=f"graph.yaml missing requirement/acceptance node ID from spec.md: {missing_id}",
+                    message=f"graph.json missing requirement/acceptance node ID from spec.md: {missing_id}",
                 )
             )
         for stale_id in sorted(graph_traceability_ids - spec_traceability_ids):
             violations.append(
                 Violation(
                     path=str(graph_path.relative_to(repo_root)),
-                    message=f"graph.yaml contains stale requirement/acceptance ID not present in spec.md: {stale_id}",
+                    message=f"graph.json contains stale requirement/acceptance ID not present in spec.md: {stale_id}",
                 )
             )
 

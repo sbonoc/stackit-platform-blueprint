@@ -17,7 +17,7 @@ from scripts.lib.blueprint.cli_support import ChangeSummary, display_repo_path, 
 FILE_MIRRORS: tuple[tuple[Path, Path], ...] = (
     (Path(".spec-kit/policy-mapping.md"), Path("scripts/templates/consumer/init/.spec-kit/policy-mapping.md.tmpl")),
     (Path(".spec-kit/control-catalog.md"), Path("scripts/templates/consumer/init/.spec-kit/control-catalog.md.tmpl")),
-    (Path(".spec-kit/control-catalog.yaml"), Path("scripts/templates/consumer/init/.spec-kit/control-catalog.yaml.tmpl")),
+    (Path(".spec-kit/control-catalog.json"), Path("scripts/templates/consumer/init/.spec-kit/control-catalog.json.tmpl")),
     (Path("specs/README.md"), Path("scripts/templates/consumer/init/specs/README.md.tmpl")),
 )
 SOURCE_TEMPLATE_DIR = Path(".spec-kit/templates/consumer")
