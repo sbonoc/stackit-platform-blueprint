@@ -5,38 +5,26 @@
 - If required inputs are missing, add `BLOCKED_MISSING_INPUTS` in `spec.md` and keep the gate closed.
 
 ## Constitution Gates (Pre-Implementation)
-- Simplicity gate:
-  - Keep initial implementation scope minimal and explicit.
-  - Avoid speculative future-proof abstractions.
-- Anti-abstraction gate:
-  - Prefer direct framework primitives over wrapper layers unless justified.
-  - Keep model representations singular unless boundary separation is required.
-- Integration-first testing gate:
-  - Define contract and boundary tests before implementation details.
-  - Ensure realistic environment coverage for integration points.
-- Positive-path filter/transform test gate:
-  - For any filter or payload-transform logic, at least one unit test MUST assert that a matching fixture value returns a record.
-  - Positive-path assertions MUST verify relevant output fields remain intact after filtering/transform.
-  - Empty-result-only assertions MUST NOT satisfy this gate.
-- Finding-to-test translation gate:
-  - Any reproducible pre-PR finding from smoke/`curl`/deterministic manual checks MUST be translated into a failing automated test first.
-  - The implementation fix MUST turn that test green in the same work item.
-  - If no deterministic automation path exists, publish artifacts MUST record the exception rationale, owner, and follow-up trigger.
+- Simplicity gate: two focused changes — one one-line YAML key rename, one new bounded helper in `upgrade_consumer.py`; no new scripts, no new abstractions beyond the helper function.
+- Anti-abstraction gate: the static `_MODULE_MAKE_TARGETS` dict mirrors `render_makefile.sh` directly; no dynamic parsing layer introduced.
+- Integration-first testing gate: `PostgresContractKeyParityTests` verifies the key contract between module contract YAML and ESO manifest; `StaleModuleTargetDetectionTests` verifies detection using in-process fixture repos.
+- Positive-path filter/transform test gate: `test_stale_reference_in_ci_yml_produces_required_manual_action` and `test_stale_reference_in_platform_mk_produces_required_manual_action` both assert a positive-path hit produces a `RequiredManualAction` with the expected fields populated.
+- Finding-to-test translation gate: Issue #137 translated into `test_postgres_module_contract_outputs_uses_postgres_db_name` and `test_postgres_eso_manifest_uses_postgres_db_name_as_secret_key`; Issue #118 translated into the `StaleModuleTargetDetectionTests` positive-path assertions.
 
 ## Delivery Slices
-1. Slice 1:
-2. Slice 2:
+1. Slice 1 — postgres key correction (#137): rename `POSTGRES_DB` → `POSTGRES_DB_NAME` in `blueprint/modules/postgres/module.contract.yaml`; add `PostgresContractKeyParityTests` in `tests/infra/test_tooling_contracts.py`; docs sync propagates to postgres README and bootstrap template copy.
+2. Slice 2 — stale module target detection (#118): add `_MODULE_MAKE_TARGETS`, `_collect_stale_module_target_actions`, and `_file_content_references_make_target` in `scripts/lib/blueprint/upgrade_consumer.py`; wire into plan assembly block; add `StaleModuleTargetDetectionTests` in `tests/blueprint/test_upgrade_consumer.py`.
 
 ## Change Strategy
-- Migration/rollout sequence:
-- Backward compatibility policy:
-- Rollback plan:
+- Migration/rollout sequence: both slices ship in one PR; no migration needed; downstream consumers who have `POSTGRES_DB` in custom docs are unaffected by this metadata-only fix.
+- Backward compatibility policy: the key rename is a module contract doc correction; no consumer env var or secret key changes (ESO already emits `POSTGRES_DB_NAME`); stale-reference detection is additive to the plan output and does not block existing upgrade flows.
+- Rollback plan: revert the single-line YAML change and the `upgrade_consumer.py` additions; the detection helper is self-contained and safe to remove.
 
 ## Validation Strategy (Shift-Left)
-- Unit checks:
-- Contract checks:
-- Integration checks:
-- E2E checks:
+- Unit checks: `PostgresContractKeyParityTests` (2 tests), `StaleModuleTargetDetectionTests` (5 tests).
+- Contract checks: `make infra-contract-test-fast` (105 tests pass including the 2 new parity tests).
+- Integration checks: `make quality-hooks-fast` (all gates pass).
+- E2E checks: N/A — no HTTP routes, no live cluster changes.
 
 ## App Onboarding Contract (Normative)
 - Required minimum make targets:
@@ -57,37 +45,31 @@
   - `infra-port-forward-start`
   - `infra-port-forward-stop`
   - `infra-port-forward-cleanup`
-- App onboarding impact: no-impact | impacted (select one)
-- Notes:
+- App onboarding impact: no-impact
+- Notes: no app delivery scope affected; changes are governance metadata and upgrade tooling only.
 
 ## Documentation Plan (Document Phase)
-- Blueprint docs updates:
-- Consumer docs updates:
-- Mermaid diagrams updated:
+- Blueprint docs updates: ADR at `docs/blueprint/architecture/decisions/ADR-20260422-issue-118-137-preflight-module-targets-postgres-eso-key.md`; `docs/platform/modules/postgres/README.md` and bootstrap template copy updated via `make quality-docs-sync-all`.
+- Consumer docs updates: `docs/reference/generated/contract_metadata.generated.md` regenerated by docs sync.
+- Mermaid diagrams updated: none.
 - Docs validation commands:
   - `make docs-build`
   - `make docs-smoke`
 
 ## Publish Preparation
-- PR context file:
-  - `pr_context.md`
-- Hardening review file:
-  - `hardening_review.md`
-- Local smoke gate (HTTP route/filter changes):
-  - For work that touches HTTP route handlers, query/filter logic, or new API endpoints, run local smoke before PR publication.
-  - Execute local smoke with deterministic wrappers (`make infra-provision`, `make infra-deploy`, `make infra-port-forward-start`), then run positive-path `curl` assertions per changed endpoint.
-  - Positive-path filter assertions MUST use non-empty fixture/request values; empty-result-only assertions MUST NOT satisfy this gate.
-  - Record evidence in `pr_context.md` as `Endpoint | Method | Auth | Result`.
-  - Stop/cleanup wrappers after smoke (`make infra-port-forward-stop`, `make infra-port-forward-cleanup`).
+- PR context file: `pr_context.md`
+- Hardening review file: `hardening_review.md`
+- Local smoke gate (HTTP route/filter changes): N/A — no HTTP routes touched.
 - Publish checklist:
   - include requirement/contract coverage
   - include key reviewer files
   - include validation evidence + rollback notes
 
 ## Operational Readiness
-- Logging/metrics/traces:
-- Alerts/ownership:
-- Runbook updates:
+- Logging/metrics/traces: no new metrics; `RequiredManualAction` entries added to upgrade plan JSON for stale references are consumed by existing preflight reporting.
+- Alerts/ownership: none.
+- Runbook updates: none.
 
 ## Risks and Mitigations
-- Risk 1 -> mitigation:
+- Risk 1: `_MODULE_MAKE_TARGETS` static dict diverges from `render_makefile.sh` if a new module is added without updating it -> mitigation: the dict is in the same repo; adding a module requires updating `render_makefile.sh` and the PR diff makes the omission visible; a follow-up issue can add a contract test asserting the two are in sync.
+- Risk 2: `_file_content_references_make_target` may miss invocations using variables or indirect make calls (e.g. `$(MODULE_TARGET)`) -> mitigation: pattern is intentionally conservative; false negatives are acceptable since the operator will learn about the stale reference at CI runtime anyway.
