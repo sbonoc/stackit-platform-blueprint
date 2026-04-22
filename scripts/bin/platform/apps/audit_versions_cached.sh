@@ -56,6 +56,12 @@ fingerprint_files=(
   "scripts/lib/platform/apps/versions.baseline.sh"
   "scripts/lib/semver.sh"
 )
+# Include catalog artifacts in fingerprint when present so cache invalidates
+# when a catalog file changes (e.g. after re-running apps-bootstrap).
+for _optional_catalog_file in "apps/catalog/versions.lock" "apps/catalog/manifest.yaml"; do
+  [[ -f "$ROOT_DIR/$_optional_catalog_file" ]] && fingerprint_files+=("$_optional_catalog_file")
+done
+unset _optional_catalog_file
 
 audit_cache_run \
   "apps-audit-versions" \
