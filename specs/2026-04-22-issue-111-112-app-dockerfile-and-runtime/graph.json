@@ -1,0 +1,102 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-04-22-issue-111-112-app-dockerfile-and-runtime",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "apps/backend/Dockerfile exists with multi-stage Python build and EXPOSE 8080"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "apps/touchpoints/Dockerfile exists with Node.js build + nginx final stage and EXPOSE 80"
+    },
+    {
+      "id": "FR-003",
+      "type": "requirement",
+      "summary": "backend deployment manifest uses GHCR consumer image, no command override"
+    },
+    {
+      "id": "FR-004",
+      "type": "requirement",
+      "summary": "touchpoints deployment manifest uses GHCR consumer image"
+    },
+    {
+      "id": "FR-005",
+      "type": "requirement",
+      "summary": "bootstrap template deployment manifest copies are synced"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "Dockerfiles must not embed secrets or credentials"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "imagePullPolicy: IfNotPresent preserved in both deployment manifests"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "apps/backend/Dockerfile multi-stage build"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "apps/backend/Dockerfile EXPOSE 8080 and CMD"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "apps/touchpoints/Dockerfile multi-stage Node.js + nginx"
+    },
+    {
+      "id": "AC-004",
+      "type": "acceptance",
+      "summary": "apps/touchpoints/Dockerfile EXPOSE 80"
+    },
+    {
+      "id": "AC-005",
+      "type": "acceptance",
+      "summary": "backend deployment image = ghcr.io/example-org/platform-blueprint-backend:0.1.0"
+    },
+    {
+      "id": "AC-006",
+      "type": "acceptance",
+      "summary": "backend deployment has no command: override"
+    },
+    {
+      "id": "AC-007",
+      "type": "acceptance",
+      "summary": "touchpoints deployment image = ghcr.io/example-org/platform-blueprint-touchpoints:0.1.0"
+    },
+    {
+      "id": "AC-008",
+      "type": "acceptance",
+      "summary": "AppDockerfileAndRuntimeTests structural contract test class passes"
+    }
+  ],
+  "edges": [
+    { "from": "FR-001", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-001", "to": "AC-002", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-003", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-004", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-005", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-006", "relation": "validated_by" },
+    { "from": "FR-004", "to": "AC-007", "relation": "validated_by" },
+    { "from": "FR-005", "to": "AC-008", "relation": "validated_by" },
+    { "from": "NFR-SEC-001", "to": "AC-001", "relation": "constrains" },
+    { "from": "NFR-SEC-001", "to": "AC-003", "relation": "constrains" },
+    { "from": "NFR-OPS-001", "to": "AC-005", "relation": "constrains" },
+    { "from": "NFR-OPS-001", "to": "AC-007", "relation": "constrains" },
+    { "from": "AC-001", "to": "AC-008", "relation": "covered_by" },
+    { "from": "AC-002", "to": "AC-008", "relation": "covered_by" },
+    { "from": "AC-003", "to": "AC-008", "relation": "covered_by" },
+    { "from": "AC-004", "to": "AC-008", "relation": "covered_by" },
+    { "from": "AC-005", "to": "AC-008", "relation": "covered_by" },
+    { "from": "AC-006", "to": "AC-008", "relation": "covered_by" },
+    { "from": "AC-007", "to": "AC-008", "relation": "covered_by" }
+  ]
+}

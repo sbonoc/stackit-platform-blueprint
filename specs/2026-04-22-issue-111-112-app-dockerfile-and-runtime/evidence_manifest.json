@@ -1,0 +1,50 @@
+{
+  "manifest_version": 1,
+  "work_item": "2026-04-22-issue-111-112-app-dockerfile-and-runtime",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-04-22T19:15:00Z",
+  "files": [
+    {
+      "path": "apps/backend/Dockerfile",
+      "sha256": "2ea89fe445c20ffb67cd3f8efde88150daf17be0668d51611242faf9c7c24402",
+      "bytes": 512,
+      "role": "implementation",
+      "description": "Issue #111: multi-stage Python/uvicorn scaffold Dockerfile with EXPOSE 8080 and CMD"
+    },
+    {
+      "path": "apps/touchpoints/Dockerfile",
+      "sha256": "ed95a7b1e5f61cfadd7406c7201272f7f48d99c431829dbbb60a1ebd993399bf",
+      "bytes": 434,
+      "role": "implementation",
+      "description": "Issue #111: multi-stage Node.js builder + nginx runtime scaffold Dockerfile with EXPOSE 80"
+    },
+    {
+      "path": "infra/gitops/platform/base/apps/backend-api-deployment.yaml",
+      "sha256": "db4a386b1b4241be7c6e699790c228a09bddcf9ef86056d6217328b46d4d380e",
+      "bytes": 1221,
+      "role": "implementation",
+      "description": "Issue #112: image updated to ghcr.io/example-org/platform-blueprint-backend:0.1.0-dev; command: override removed"
+    },
+    {
+      "path": "infra/gitops/platform/base/apps/touchpoints-web-deployment.yaml",
+      "sha256": "01f0190a085973c4b47b8f750824c11581d82d825e0c4241d130c30cf7fe2747",
+      "bytes": 1243,
+      "role": "implementation",
+      "description": "Issue #112: image updated to ghcr.io/example-org/platform-blueprint-touchpoints:0.1.0-dev"
+    },
+    {
+      "path": "tests/infra/test_tooling_contracts.py",
+      "sha256": "878ce9ddeac813f79397c2a8f9556556c55a18eae48f0e6d3fa36b84e764e0a8",
+      "bytes": 118669,
+      "role": "test",
+      "description": "AppDockerfileAndRuntimeTests: 4 structural contract tests (AC-001 through AC-008)"
+    },
+    {
+      "path": "docs/blueprint/architecture/decisions/ADR-20260422-issue-111-112-app-dockerfile-and-runtime.md",
+      "sha256": "3c3e1db2c2d21c7b607eee0703d12c504755ea4fe3508397147de7e1dda8e766",
+      "bytes": 3157,
+      "role": "documentation",
+      "description": "ADR documenting multi-stage Dockerfile scaffold decision and GHCR image tag strategy"
+    }
+  ]
+}

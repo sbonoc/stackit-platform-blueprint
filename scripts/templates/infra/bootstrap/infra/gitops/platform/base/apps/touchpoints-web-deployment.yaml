@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: touchpoints-web
-          image: nginx:1.29.2
+          image: ghcr.io/example-org/platform-blueprint-touchpoints:0.1.0-dev
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
