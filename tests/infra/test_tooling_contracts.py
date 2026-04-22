@@ -2172,5 +2172,50 @@ printf 'host=%s\\n' "$(k8s_kubeconfig_server_host "{kubeconfig}")"
             self.assertIn("host=api.example.internal", result.stdout)
 
 
+class PlatformPythonHelperGuardTests(unittest.TestCase):
+    """Guard tests for FR-009 / AC-006: platform shell scripts MUST reference existing Python helpers.
+
+    These tests ensure that python3 "$ROOT_DIR/scripts/lib/..." invocations in
+    scripts/bin/platform/** resolve to files that actually exist in the repository.
+    They fail if helper files are moved without updating the caller references.
+    """
+
+    # Matches "$ROOT_DIR/scripts/lib/...py" in both direct python3 invocations
+    # and variable assignments that are later passed to python3.
+    _PYTHON_REF_RE = re.compile(r'"\$ROOT_DIR/(scripts/lib/[^"]+\.py)"')
+
+    def _extract_python_helper_refs(self, script_path: Path) -> list[str]:
+        text = script_path.read_text(encoding="utf-8")
+        return self._PYTHON_REF_RE.findall(text)
+
+    def test_smoke_sh_python_helper_refs_exist(self) -> None:
+        """T-105: scripts/bin/platform/apps/smoke.sh python3 helper references must exist."""
+        script = REPO_ROOT / "scripts/bin/platform/apps/smoke.sh"
+        refs = self._extract_python_helper_refs(script)
+        self.assertTrue(refs, msg="expected at least one python3 helper ref in smoke.sh")
+        for ref in refs:
+            self.assertTrue(
+                (REPO_ROOT / ref).is_file(),
+                msg=f"smoke.sh references missing helper: {ref}",
+            )
+
+    def test_reconcile_argocd_repo_credentials_sh_python_helper_refs_exist(self) -> None:
+        """T-106: scripts/bin/platform/auth/reconcile_argocd_repo_credentials.sh python3 refs must exist."""
+        script = REPO_ROOT / "scripts/bin/platform/auth/reconcile_argocd_repo_credentials.sh"
+        refs = self._extract_python_helper_refs(script)
+        self.assertTrue(refs, msg="expected at least one python3 helper ref in reconcile_argocd_repo_credentials.sh")
+        for ref in refs:
+            self.assertTrue(
+                (REPO_ROOT / ref).is_file(),
+                msg=f"reconcile_argocd_repo_credentials.sh references missing helper: {ref}",
+            )
+
+    def test_quality_infra_shell_source_graph_check_detects_missing_platform_python_helper(self) -> None:
+        """AC-006: guard fails when a scripts/bin/platform/** script references a missing Python helper."""
+        result = run(["python3", "scripts/bin/quality/check_infra_shell_source_graph.py"])
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        self.assertIn("quality-infra-shell-source-graph-check", result.stdout)
+
+
 if __name__ == "__main__":
     unittest.main()

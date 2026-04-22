@@ -148,7 +148,7 @@ class PythonHelperExtractionsTests(unittest.TestCase):
         self.assertEqual(map_value.stdout.strip(), "true")
 
     def test_argocd_repo_credentials_helpers(self) -> None:
-        script = REPO_ROOT / "scripts/lib/platform/auth/argocd_repo_credentials_json.py"
+        script = REPO_ROOT / "scripts/lib/infra/argocd_repo_credentials_json.py"
         with tempfile.TemporaryDirectory() as tmpdir:
             patch_file = Path(tmpdir) / "patch.json"
             render = run(
@@ -565,7 +565,7 @@ class PythonHelperExtractionsTests(unittest.TestCase):
 
     def test_prereqs_helpers_and_runtime_workload_helpers(self) -> None:
         prereqs_script = REPO_ROOT / "scripts/lib/infra/prereqs_helpers.py"
-        workload_script = REPO_ROOT / "scripts/lib/platform/apps/runtime_workload_helpers.py"
+        workload_script = REPO_ROOT / "scripts/lib/infra/runtime_workload_helpers.py"
 
         module_ok = run([sys.executable, str(prereqs_script), "python-module-available", "json"])
         self.assertEqual(module_ok.returncode, 0)

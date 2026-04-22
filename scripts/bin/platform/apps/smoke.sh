@@ -119,7 +119,7 @@ run_runtime_workload_presence_check() {
   local observed_count
   observed_count="$(
     kubectl get deployment,statefulset --namespace "$app_runtime_namespace" -o json \
-      | python3 "$ROOT_DIR/scripts/lib/platform/apps/runtime_workload_helpers.py"
+      | python3 "$ROOT_DIR/scripts/lib/infra/runtime_workload_helpers.py"
   )"
   if ! [[ "$observed_count" =~ ^[0-9]+$ ]]; then
     log_fatal "unable to parse app runtime workload count from kubectl response: $observed_count"

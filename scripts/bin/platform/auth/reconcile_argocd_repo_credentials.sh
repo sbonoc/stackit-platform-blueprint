@@ -46,7 +46,7 @@ fi
 require_command python3
 runtime_identity_contract_cli="$ROOT_DIR/scripts/lib/infra/runtime_identity_contract.py"
 argocd_repo_contract_cli="$ROOT_DIR/scripts/lib/infra/argocd_repo_contract.py"
-argocd_repo_json_helpers="$ROOT_DIR/scripts/lib/platform/auth/argocd_repo_credentials_json.py"
+argocd_repo_json_helpers="$ROOT_DIR/scripts/lib/infra/argocd_repo_credentials_json.py"
 generic_reconcile_script="$ROOT_DIR/scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh"
 
 while IFS=$'\t' read -r env_name env_default; do
