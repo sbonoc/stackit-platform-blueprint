@@ -2411,17 +2411,18 @@ class RuntimeAuthBestEffortTests(unittest.TestCase):
     _ARGOCD_SCRIPT = REPO_ROOT / "scripts/bin/platform/auth/reconcile_argocd_repo_credentials.sh"
 
     def test_eso_kustomize_apply_is_guarded(self) -> None:
-        """AC-005: run_kustomize_apply must be preceded by 'if !' so set -e cannot
-        abort reconcile_eso_runtime_secrets.sh before the state file is written."""
+        """AC-005: the security-manifest run_kustomize_apply call must be preceded by
+        'if !' anchored to the infra/gitops/platform/base/security path so set -e
+        cannot abort reconcile_eso_runtime_secrets.sh before the state file is written."""
         import re
         content = self._ESO_SCRIPT.read_text(encoding="utf-8")
         self.assertRegex(
             content,
-            r"if\s+!\s+run_kustomize_apply",
+            re.compile(r'if\s+!\s+run_kustomize_apply\s+"?\$ROOT_DIR[^"]*?/base/security"?'),
             msg=(
-                "run_kustomize_apply in reconcile_eso_runtime_secrets.sh must be wrapped "
-                "in 'if !' so set -e cannot abort the script before the state file is "
-                "written when RUNTIME_CREDENTIALS_REQUIRED=false (Issue #105)"
+                "the run_kustomize_apply call for infra/gitops/platform/base/security in "
+                "reconcile_eso_runtime_secrets.sh must be wrapped in 'if !' so set -e "
+                "cannot abort before the state file is written (Issue #105)"
             ),
         )
 
@@ -2438,20 +2439,28 @@ class RuntimeAuthBestEffortTests(unittest.TestCase):
                 "record_reconcile_issue) for gho_ tokens (Issue #110)"
             ),
         )
-        # Verify the gho_ branch does NOT contain record_reconcile_issue
+        # Locate the gho_ conditional block — fail explicitly if not found so the
+        # assertNotIn below is never silently skipped due to a regex mismatch.
         gho_block_match = re.search(
-            r"(gho_[^\n]*\n(?:.*\n)*?)(elif|fi)\b", content
+            r'(\[\[ "\$ARGOCD_REPO_TOKEN" == gho_\*[^\n]*\]\][^\n]*\n(?:.*\n)*?)(elif|fi)\b',
+            content,
         )
-        if gho_block_match:
-            gho_block = gho_block_match.group(1)
-            self.assertNotIn(
-                "record_reconcile_issue",
-                gho_block,
-                msg=(
-                    "gho_ branch in reconcile_argocd_repo_credentials.sh must not call "
-                    "record_reconcile_issue; use log_info instead (Issue #110)"
-                ),
-            )
+        self.assertIsNotNone(
+            gho_block_match,
+            msg=(
+                "could not locate the gho_ conditional block in "
+                "reconcile_argocd_repo_credentials.sh — check script structure"
+            ),
+        )
+        gho_block = gho_block_match.group(1)  # type: ignore[union-attr]
+        self.assertNotIn(
+            "record_reconcile_issue",
+            gho_block,
+            msg=(
+                "gho_ branch in reconcile_argocd_repo_credentials.sh must not call "
+                "record_reconcile_issue; use log_info instead (Issue #110)"
+            ),
+        )
 
 
 if __name__ == "__main__":
