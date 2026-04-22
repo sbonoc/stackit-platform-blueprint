@@ -340,3 +340,7 @@
   - Violation messages name the document path and field for precise remediation.
   - Three contract tests added (`SddPlaceholderGuardTests`): fail on empty field when SPEC_READY=true, accept "none" as valid, pass when SPEC_READY=false.
   - Issue #109 cause #2 (optional-module ESOs NotReady when modules are not seeded) is tracked separately in Issue #137.
+- Runtime auth best-effort fixes (Issues #105, #110):
+  - `reconcile_eso_runtime_secrets.sh` now wraps `run_kustomize_apply` in `if !` so `set -e` cannot abort the script before the state file is written when `RUNTIME_CREDENTIALS_REQUIRED=false`. Failure is captured by `record_reconcile_issue`; the existing status logic determines `warn-and-skip` vs `failed-required`.
+  - `reconcile_argocd_repo_credentials.sh` now accepts `gho_` GitHub OAuth tokens via `log_info` instead of raising a reconcile issue. This eliminates the ambiguous `success-with-warnings` state when a `gho_` token authenticates successfully. PAT preference remains communicated via INFO log.
+  - Two structural contract tests added (`RuntimeAuthBestEffortTests`): assert the `if !` guard is present and that `gho_` does not trigger `record_reconcile_issue`.

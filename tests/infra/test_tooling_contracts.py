@@ -2396,5 +2396,63 @@ class SddPlaceholderGuardTests(unittest.TestCase):
             _shutil.rmtree(spec_dir, ignore_errors=True)
 
 
+class RuntimeAuthBestEffortTests(unittest.TestCase):
+    """
+    AC-005, AC-006: structural contract tests for runtime auth best-effort fixes.
+
+    reconcile_eso_runtime_secrets.sh must wrap run_kustomize_apply in 'if !' so
+    set -e cannot abort before the state file is written (Issue #105).
+
+    reconcile_argocd_repo_credentials.sh must NOT trigger record_reconcile_issue
+    for gho_ tokens; a log_info call is used instead (Issue #110).
+    """
+
+    _ESO_SCRIPT = REPO_ROOT / "scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh"
+    _ARGOCD_SCRIPT = REPO_ROOT / "scripts/bin/platform/auth/reconcile_argocd_repo_credentials.sh"
+
+    def test_eso_kustomize_apply_is_guarded(self) -> None:
+        """AC-005: run_kustomize_apply must be preceded by 'if !' so set -e cannot
+        abort reconcile_eso_runtime_secrets.sh before the state file is written."""
+        import re
+        content = self._ESO_SCRIPT.read_text(encoding="utf-8")
+        self.assertRegex(
+            content,
+            r"if\s+!\s+run_kustomize_apply",
+            msg=(
+                "run_kustomize_apply in reconcile_eso_runtime_secrets.sh must be wrapped "
+                "in 'if !' so set -e cannot abort the script before the state file is "
+                "written when RUNTIME_CREDENTIALS_REQUIRED=false (Issue #105)"
+            ),
+        )
+
+    def test_argocd_repo_credentials_accepts_gho_token(self) -> None:
+        """AC-006: gho_ token must NOT trigger record_reconcile_issue; log_info is used instead."""
+        import re
+        content = self._ARGOCD_SCRIPT.read_text(encoding="utf-8")
+        # Verify gho_ branch contains log_info (acceptance) — use DOTALL for multiline match
+        self.assertRegex(
+            content,
+            re.compile(r"gho_.*?log_info", re.DOTALL),
+            msg=(
+                "reconcile_argocd_repo_credentials.sh must call log_info (not "
+                "record_reconcile_issue) for gho_ tokens (Issue #110)"
+            ),
+        )
+        # Verify the gho_ branch does NOT contain record_reconcile_issue
+        gho_block_match = re.search(
+            r"(gho_[^\n]*\n(?:.*\n)*?)(elif|fi)\b", content
+        )
+        if gho_block_match:
+            gho_block = gho_block_match.group(1)
+            self.assertNotIn(
+                "record_reconcile_issue",
+                gho_block,
+                msg=(
+                    "gho_ branch in reconcile_argocd_repo_credentials.sh must not call "
+                    "record_reconcile_issue; use log_info instead (Issue #110)"
+                ),
+            )
+
+
 if __name__ == "__main__":
     unittest.main()
