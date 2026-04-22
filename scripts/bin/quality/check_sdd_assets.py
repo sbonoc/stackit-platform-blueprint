@@ -1291,21 +1291,20 @@ def _validate_work_item_specs(
         # Scaffold placeholder guard: assert required fields are non-empty in
         # work-item documents declared in readiness_gate.work_item_document_required_fields.
         # Only enforced when SPEC_READY=true — in-progress specs may still have placeholders.
+        # Document discovery is fully contract-driven: any document named in the config is
+        # read from the work-item directory; missing optional documents are skipped.
         if not spec_ready:
             continue
-        _doc_contents: dict[str, tuple[Path, str]] = {
-            "context_pack.md": (context_pack_path, context_pack_content),
-        }
-        architecture_path = work_item_dir / "architecture.md"
-        if architecture_path.is_file():
-            _doc_contents["architecture.md"] = (
-                architecture_path,
-                architecture_path.read_text(encoding="utf-8", errors="surrogateescape"),
-            )
         for _doc_name, _required_fields in work_item_document_required_fields.items():
-            if _doc_name not in _doc_contents:
-                continue
-            _doc_path, _doc_text = _doc_contents[_doc_name]
+            if _doc_name == "context_pack.md":
+                _doc_path: Path = context_pack_path
+                _doc_text: str = context_pack_content
+            else:
+                _candidate = work_item_dir / _doc_name
+                if not _candidate.is_file():
+                    continue
+                _doc_path = _candidate
+                _doc_text = _candidate.read_text(encoding="utf-8", errors="surrogateescape")
             _kv = _parse_bullet_kv(_doc_text)
             for _field in _required_fields:
                 if not _kv.get(_field.lower(), "").strip():

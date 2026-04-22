@@ -2281,8 +2281,11 @@ class SddPlaceholderGuardTests(unittest.TestCase):
 
     def _temp_spec_dir(self, slug: str, *, spec_ready: bool) -> Path:
         """Create a minimal valid spec dir inside the real specs/ workspace."""
+        import shutil as _shutil
         ref_dir = REPO_ROOT / "specs" / self._REF_WORK_ITEM
         spec_dir = REPO_ROOT / "specs" / slug
+        if spec_dir.exists():
+            _shutil.rmtree(spec_dir)
         spec_dir.mkdir()
         ref_spec = ref_dir / "spec.md"
         spec_content = ref_spec.read_text(encoding="utf-8")
@@ -2291,10 +2294,30 @@ class SddPlaceholderGuardTests(unittest.TestCase):
             f"- SPEC_READY: {'true' if spec_ready else 'false'}",
         )
         (spec_dir / "spec.md").write_text(spec_content, encoding="utf-8")
-        for artifact in ("plan.md", "tasks.md", "traceability.md", "graph.json",
+        for artifact in ("plan.md", "traceability.md", "graph.json",
                          "evidence_manifest.json", "pr_context.md", "hardening_review.md"):
             (spec_dir / artifact).write_text(
                 (ref_dir / artifact).read_text(encoding="utf-8"), encoding="utf-8"
+            )
+        # tasks.md: use unchecked scaffold when not ready so the validator does not
+        # flag implementation tasks being checked before SPEC_READY=true.
+        if spec_ready:
+            (spec_dir / "tasks.md").write_text(
+                (ref_dir / "tasks.md").read_text(encoding="utf-8"), encoding="utf-8"
+            )
+        else:
+            (spec_dir / "tasks.md").write_text(
+                "# Tasks\n\n## Gate Checks (Required Before Implementation)\n"
+                "- [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`\n\n"
+                "## Implementation\n- [ ] T-001 placeholder\n\n"
+                "## App Onboarding Minimum Targets (Normative)\n"
+                "No app delivery scope affected; all targets below remain unaffected by this work item.\n"
+                "- [x] A-001 `apps-bootstrap` and `apps-smoke` — unaffected\n"
+                "- [x] A-002 `backend-test-unit`, `backend-test-integration`, `backend-test-contracts`, `backend-test-e2e` — unaffected\n"
+                "- [x] A-003 `touchpoints-test-unit`, `touchpoints-test-integration`, `touchpoints-test-contracts`, `touchpoints-test-e2e` — unaffected\n"
+                "- [x] A-004 `test-unit-all`, `test-integration-all`, `test-contracts-all`, `test-e2e-all-local` — unaffected\n"
+                "- [x] A-005 `infra-port-forward-start`, `infra-port-forward-stop`, `infra-port-forward-cleanup` — unaffected\n",
+                encoding="utf-8",
             )
         return spec_dir
 
@@ -2341,6 +2364,7 @@ class SddPlaceholderGuardTests(unittest.TestCase):
             )
             result = run(["python3", "scripts/bin/quality/check_sdd_assets.py"])
             combined = result.stdout + result.stderr
+            self.assertEqual(result.returncode, 0, msg=combined)
             self.assertNotIn("scaffold placeholder not filled in", combined,
                              msg=f"'none' value should be accepted: {combined}")
         finally:
@@ -2363,6 +2387,8 @@ class SddPlaceholderGuardTests(unittest.TestCase):
             )
             result = run(["python3", "scripts/bin/quality/check_sdd_assets.py"])
             combined = result.stdout + result.stderr
+            self.assertEqual(result.returncode, 0,
+                             msg=f"check_sdd_assets.py should succeed when SPEC_READY=false: {combined}")
             self.assertNotIn("scaffold placeholder not filled in", combined,
                              msg=f"placeholder guard must not fire when SPEC_READY=false: {combined}")
         finally:
