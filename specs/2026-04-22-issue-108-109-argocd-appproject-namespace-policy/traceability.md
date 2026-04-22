@@ -4,12 +4,12 @@
 
 | Requirement ID | Control IDs | Design Element | Implementation Path(s) | Test Evidence | Documentation Evidence | Operational Evidence |
 |---|---|---|---|---|---|---|
-| FR-001 | SDD-C-005, SDD-C-007 | `external-secrets` destination in all AppProject overlays | `infra/gitops/argocd/overlays/*/appproject.yaml` (×4), `scripts/templates/infra/bootstrap/.../appproject.yaml` | `AppProjectNamespacePolicyTests` | ADR | ArgoCD sync result |
+| FR-001 | SDD-C-005, SDD-C-007 | `external-secrets` destination in all AppProject overlays | `infra/gitops/argocd/overlays/*/appproject.yaml` (×4), `scripts/templates/infra/bootstrap/.../appproject.yaml` (×4) | `AppProjectNamespacePolicyTests` | ADR | ArgoCD sync result |
 | FR-002 | SDD-C-005, SDD-C-012 | Guard test class `AppProjectNamespacePolicyTests` | `tests/infra/test_tooling_contracts.py` | guard fails before fix, passes after | — | `make infra-contract-test-fast` |
 | FR-003 | SDD-C-005, SDD-C-012 | Guard covers all five AppProject files | `tests/infra/test_tooling_contracts.py` | `AppProjectNamespacePolicyTests` | — | `make infra-contract-test-fast` |
 | NFR-SEC-001 | SDD-C-009 | no new resource kinds in whitelist | `infra/gitops/argocd/overlays/*/appproject.yaml` | test suite clean | — | — |
 | NFR-OPS-001 | SDD-C-012 | assertFalse message names file and namespace | `tests/infra/test_tooling_contracts.py` | guard failure message | — | `make infra-contract-test-fast` |
-| AC-001 | SDD-C-012 | five AppProject files contain external-secrets destination | five AppProject YAML files | guard test | — | — |
+| AC-001 | SDD-C-012 | eight AppProject files contain external-secrets destination | four live overlays + four bootstrap template overlays | guard test | — | — |
 | AC-002 | SDD-C-012 | infra-contract-test-fast passes | test suite | 94 passed, 2 subtests passed | — | `make infra-contract-test-fast` |
 | AC-003 | SDD-C-012 | guard fails when external-secrets removed | `tests/infra/test_tooling_contracts.py` | guard pre-fix failure confirmed | — | — |
 | AC-004 | SDD-C-012 | infra-validate passes | `scripts/bin/infra/validate.sh` | `make infra-validate` | — | `make infra-validate` |

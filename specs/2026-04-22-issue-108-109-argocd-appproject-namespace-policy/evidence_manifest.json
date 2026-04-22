@@ -25,8 +25,20 @@
       "sha256": "118c1fa1df31992ae183fec531c1b8f56cfc7e20b739ef4966ec1f1c1d30a338"
     },
     {
+      "path": "scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/dev/appproject.yaml",
+      "sha256": "8b579dc12809ecaa1e27937222af669a9510800d0ef745c97fb566fb86dd27f6"
+    },
+    {
+      "path": "scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/stage/appproject.yaml",
+      "sha256": "2ba8e9e0b780fe42f1d013c28c36d32c258afaef1bceaba6ac088303f5a95a70"
+    },
+    {
+      "path": "scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/prod/appproject.yaml",
+      "sha256": "d59a78c3f8956e0162d44ec379620ef21ec011244a47d417a6dc36f2f14e94e1"
+    },
+    {
       "path": "tests/infra/test_tooling_contracts.py",
-      "sha256": "7d1374f3fdd3a2d83da4e320d79e81e6767d9d587c741129e929ba54d73e0bbe"
+      "sha256": "0cd1098ed546efd14d92f0985436eef2ffd623429c0cf2103e5649416bebe658"
     },
     {
       "path": "scripts/bin/infra/contract_test_fast.sh",

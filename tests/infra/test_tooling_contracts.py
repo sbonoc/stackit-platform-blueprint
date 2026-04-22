@@ -2239,6 +2239,9 @@ class AppProjectNamespacePolicyTests(unittest.TestCase):
         "infra/gitops/argocd/overlays/stage/appproject.yaml",
         "infra/gitops/argocd/overlays/prod/appproject.yaml",
         "scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/local/appproject.yaml",
+        "scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/dev/appproject.yaml",
+        "scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/stage/appproject.yaml",
+        "scripts/templates/infra/bootstrap/infra/gitops/argocd/overlays/prod/appproject.yaml",
     ]
     _REQUIRED_NAMESPACE = "external-secrets"
 
