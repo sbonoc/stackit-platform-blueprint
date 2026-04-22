@@ -1,0 +1,50 @@
+{
+  "manifest_version": 1,
+  "work_item": "2026-04-22-issue-152-sdd-placeholder-guard",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-04-22T17:25:00Z",
+  "files": [
+    {
+      "path": "scripts/bin/quality/check_sdd_assets.py",
+      "sha256": "892247c4099f4715e34e98b119a8bbc1636a2058942efaa4588ce6d746b57d2b",
+      "bytes": 75229,
+      "role": "implementation",
+      "description": "Added work_item_document_required_fields parsing and per-field guard loop gated on spec_ready=True"
+    },
+    {
+      "path": "blueprint/contract.yaml",
+      "sha256": "dc87161df06bb81194ff0a296f7fb3f41d135ed162e291460abfbc9e3285ebe1",
+      "bytes": 83418,
+      "role": "config",
+      "description": "Added work_item_document_required_fields under readiness_gate"
+    },
+    {
+      "path": "scripts/templates/blueprint/bootstrap/blueprint/contract.yaml",
+      "sha256": "dc87161df06bb81194ff0a296f7fb3f41d135ed162e291460abfbc9e3285ebe1",
+      "bytes": 83418,
+      "role": "config",
+      "description": "Bootstrap template copy synced with work_item_document_required_fields"
+    },
+    {
+      "path": "tests/infra/test_tooling_contracts.py",
+      "sha256": "540ba8b8ab26b620ec370f411fa7350b0796a9ef00b4d2144b12114512638e97",
+      "bytes": 108851,
+      "role": "test",
+      "description": "SddPlaceholderGuardTests: 3 tests covering fail/pass/none scenarios"
+    },
+    {
+      "path": "specs/2026-04-22-issue-104-106-107-upgrade-additive-file-helper-gaps/context_pack.md",
+      "sha256": "044223e0073d8381f3b29ab6095930f38565ad21a3efb65688f4d88089a3bf3f",
+      "bytes": 990,
+      "role": "fix",
+      "description": "Retroactive fix: SPEC_READY=true work item had empty required fields"
+    },
+    {
+      "path": "docs/blueprint/architecture/decisions/ADR-20260422-issue-152-sdd-placeholder-guard.md",
+      "sha256": "5eadabbfc2fcf9aea29a3b3671aabf137fdf42b47c3abb1d5a079d876995cd29",
+      "bytes": 2051,
+      "role": "documentation",
+      "description": "ADR documenting Option A (required-field allowlist) selection"
+    }
+  ]
+}

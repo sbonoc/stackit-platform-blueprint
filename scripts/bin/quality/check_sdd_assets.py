@@ -483,6 +483,13 @@ def _validate_work_item_specs(
         (field for field in required_zero_fields if "clarification" in field.lower()),
         "",
     )
+    # Required fields per work-item document (scaffold placeholder guard).
+    # Keys are filename (e.g. "context_pack.md"), values are lists of field names.
+    _raw_doc_required_fields = readiness_raw.get("work_item_document_required_fields")
+    work_item_document_required_fields: dict[str, list[str]] = {}
+    if isinstance(_raw_doc_required_fields, dict):
+        for _doc_name, _fields in _raw_doc_required_fields.items():
+            work_item_document_required_fields[str(_doc_name)] = _as_list_of_str(_fields)
 
     try:
         control_id_pattern = re.compile(control_id_pattern_text)
@@ -1280,6 +1287,33 @@ def _validate_work_item_specs(
                     message="context_pack.md must include 'Context Snapshot' section",
                 )
             )
+
+        # Scaffold placeholder guard: assert required fields are non-empty in
+        # work-item documents declared in readiness_gate.work_item_document_required_fields.
+        # Only enforced when SPEC_READY=true — in-progress specs may still have placeholders.
+        # Document discovery is fully contract-driven: any document named in the config is
+        # read from the work-item directory; missing optional documents are skipped.
+        if not spec_ready:
+            continue
+        for _doc_name, _required_fields in work_item_document_required_fields.items():
+            if _doc_name == "context_pack.md":
+                _doc_path: Path = context_pack_path
+                _doc_text: str = context_pack_content
+            else:
+                _candidate = work_item_dir / _doc_name
+                if not _candidate.is_file():
+                    continue
+                _doc_path = _candidate
+                _doc_text = _candidate.read_text(encoding="utf-8", errors="surrogateescape")
+            _kv = _parse_bullet_kv(_doc_text)
+            for _field in _required_fields:
+                if not _kv.get(_field.lower(), "").strip():
+                    violations.append(
+                        Violation(
+                            path=str(_doc_path.relative_to(repo_root)),
+                            message=f"required field '{_field}' is empty or missing (scaffold placeholder not filled in)",
+                        )
+                    )
 
     return violations
 

@@ -2269,5 +2269,132 @@ class AppProjectNamespacePolicyTests(unittest.TestCase):
         )
 
 
+class SddPlaceholderGuardTests(unittest.TestCase):
+    """Guard: check_sdd_assets.py MUST detect empty required fields in context_pack.md and architecture.md.
+
+    FR-001, FR-002: make quality-hardening-review must fail when required fields
+    have empty values in SPEC_READY=true work-item documents.
+    """
+
+    _REF_WORK_ITEM = "2026-04-22-issue-152-sdd-placeholder-guard"
+    _ADR_PATH = "docs/blueprint/architecture/decisions/ADR-20260422-issue-152-sdd-placeholder-guard.md"
+
+    def _temp_spec_dir(self, slug: str, *, spec_ready: bool) -> Path:
+        """Create a minimal valid spec dir inside the real specs/ workspace."""
+        import shutil as _shutil
+        ref_dir = REPO_ROOT / "specs" / self._REF_WORK_ITEM
+        spec_dir = REPO_ROOT / "specs" / slug
+        if spec_dir.exists():
+            _shutil.rmtree(spec_dir)
+        spec_dir.mkdir()
+        ref_spec = ref_dir / "spec.md"
+        spec_content = ref_spec.read_text(encoding="utf-8")
+        spec_content = spec_content.replace(
+            "- SPEC_READY: true",
+            f"- SPEC_READY: {'true' if spec_ready else 'false'}",
+        )
+        (spec_dir / "spec.md").write_text(spec_content, encoding="utf-8")
+        for artifact in ("plan.md", "traceability.md", "graph.json",
+                         "evidence_manifest.json", "pr_context.md", "hardening_review.md"):
+            (spec_dir / artifact).write_text(
+                (ref_dir / artifact).read_text(encoding="utf-8"), encoding="utf-8"
+            )
+        # tasks.md: use unchecked scaffold when not ready so the validator does not
+        # flag implementation tasks being checked before SPEC_READY=true.
+        if spec_ready:
+            (spec_dir / "tasks.md").write_text(
+                (ref_dir / "tasks.md").read_text(encoding="utf-8"), encoding="utf-8"
+            )
+        else:
+            (spec_dir / "tasks.md").write_text(
+                "# Tasks\n\n## Gate Checks (Required Before Implementation)\n"
+                "- [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`\n\n"
+                "## Implementation\n- [ ] T-001 placeholder\n\n"
+                "## App Onboarding Minimum Targets (Normative)\n"
+                "No app delivery scope affected; all targets below remain unaffected by this work item.\n"
+                "- [x] A-001 `apps-bootstrap` and `apps-smoke` — unaffected\n"
+                "- [x] A-002 `backend-test-unit`, `backend-test-integration`, `backend-test-contracts`, `backend-test-e2e` — unaffected\n"
+                "- [x] A-003 `touchpoints-test-unit`, `touchpoints-test-integration`, `touchpoints-test-contracts`, `touchpoints-test-e2e` — unaffected\n"
+                "- [x] A-004 `test-unit-all`, `test-integration-all`, `test-contracts-all`, `test-e2e-all-local` — unaffected\n"
+                "- [x] A-005 `infra-port-forward-start`, `infra-port-forward-stop`, `infra-port-forward-cleanup` — unaffected\n",
+                encoding="utf-8",
+            )
+        return spec_dir
+
+    def test_empty_context_pack_required_field_fails_when_spec_ready(self) -> None:
+        slug = "test-placeholder-guard-empty-context-pack"
+        spec_dir = self._temp_spec_dir(slug, spec_ready=True)
+        try:
+            (spec_dir / "context_pack.md").write_text(
+                "# Work Item Context Pack\n\n## Context Snapshot\n"
+                "- Work item:\n"  # empty — should trigger violation
+                f"- SPEC_READY: true\n- ADR path: {self._ADR_PATH}\n- ADR status: approved\n\n"
+                "## Guardrail Controls\n- Applicable control IDs: SDD-C-005\n",
+                encoding="utf-8",
+            )
+            (spec_dir / "architecture.md").write_text(
+                "# Architecture\n\n## Context\n- Work item: test-item\n- Owner: bonos\n- Date: 2026-04-22\n",
+                encoding="utf-8",
+            )
+            result = run(["python3", "scripts/bin/quality/check_sdd_assets.py"])
+            self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            combined = result.stdout + result.stderr
+            self.assertIn("scaffold placeholder not filled in", combined)
+            self.assertIn("Work item", combined)
+        finally:
+            import shutil as _shutil
+            _shutil.rmtree(spec_dir, ignore_errors=True)
+
+    def test_none_value_is_accepted_for_required_field(self) -> None:
+        slug = "test-placeholder-guard-none-value"
+        spec_dir = self._temp_spec_dir(slug, spec_ready=True)
+        try:
+            (spec_dir / "context_pack.md").write_text(
+                "# Work Item Context Pack\n\n## Context Snapshot\n"
+                "- Work item: test-none-value\n"
+                "- SPEC_READY: true\n"
+                f"- ADR path: {self._ADR_PATH}\n"
+                "- ADR status: approved\n\n"
+                "## Guardrail Controls\n- Applicable control IDs: none\n",
+                encoding="utf-8",
+            )
+            (spec_dir / "architecture.md").write_text(
+                "# Architecture\n\n## Context\n- Work item: test-item\n- Owner: bonos\n- Date: 2026-04-22\n",
+                encoding="utf-8",
+            )
+            result = run(["python3", "scripts/bin/quality/check_sdd_assets.py"])
+            combined = result.stdout + result.stderr
+            self.assertEqual(result.returncode, 0, msg=combined)
+            self.assertNotIn("scaffold placeholder not filled in", combined,
+                             msg=f"'none' value should be accepted: {combined}")
+        finally:
+            import shutil as _shutil
+            _shutil.rmtree(spec_dir, ignore_errors=True)
+
+    def test_empty_fields_do_not_fail_when_spec_not_ready(self) -> None:
+        slug = "test-placeholder-guard-not-ready"
+        spec_dir = self._temp_spec_dir(slug, spec_ready=False)
+        try:
+            (spec_dir / "context_pack.md").write_text(
+                "# Work Item Context Pack\n\n## Context Snapshot\n"
+                "- Work item:\n- SPEC_READY:\n- ADR path:\n- ADR status:\n\n"
+                "## Guardrail Controls\n- Applicable control IDs:\n",
+                encoding="utf-8",
+            )
+            (spec_dir / "architecture.md").write_text(
+                "# Architecture\n\n## Context\n- Work item:\n- Owner:\n- Date:\n",
+                encoding="utf-8",
+            )
+            result = run(["python3", "scripts/bin/quality/check_sdd_assets.py"])
+            combined = result.stdout + result.stderr
+            self.assertEqual(result.returncode, 0,
+                             msg=f"check_sdd_assets.py should succeed when SPEC_READY=false: {combined}")
+            self.assertNotIn("scaffold placeholder not filled in", combined,
+                             msg=f"placeholder guard must not fire when SPEC_READY=false: {combined}")
+        finally:
+            import shutil as _shutil
+            _shutil.rmtree(spec_dir, ignore_errors=True)
+
+
 if __name__ == "__main__":
     unittest.main()

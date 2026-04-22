@@ -1,0 +1,28 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-04-22-issue-152-sdd-placeholder-guard",
+  "nodes": [
+    {"id": "FR-001", "type": "requirement", "summary": "context_pack.md required-field emptiness check"},
+    {"id": "FR-002", "type": "requirement", "summary": "architecture.md required-field emptiness check"},
+    {"id": "FR-003", "type": "requirement", "summary": "required fields declared in blueprint/contract.yaml"},
+    {"id": "NFR-OPS-001", "type": "requirement", "summary": "violation message names document and field"},
+    {"id": "NFR-REL-001", "type": "requirement", "summary": "non-empty values (including 'none') do not trigger violation"},
+    {"id": "AC-001", "type": "acceptance", "summary": "quality-hardening-review fails on empty context_pack.md field"},
+    {"id": "AC-002", "type": "acceptance", "summary": "quality-hardening-review fails on empty architecture.md field"},
+    {"id": "AC-003", "type": "acceptance", "summary": "quality-hardening-review passes when all required fields populated"},
+    {"id": "AC-004", "type": "acceptance", "summary": "violation message includes path and field name"},
+    {"id": "AC-005", "type": "acceptance", "summary": "infra-contract-test-fast remains green"}
+  ],
+  "edges": [
+    {"from": "FR-001", "to": "AC-001", "relation": "validated_by"},
+    {"from": "FR-002", "to": "AC-002", "relation": "validated_by"},
+    {"from": "FR-003", "to": "AC-001", "relation": "validated_by"},
+    {"from": "FR-003", "to": "AC-002", "relation": "validated_by"},
+    {"from": "NFR-OPS-001", "to": "AC-004", "relation": "validated_by"},
+    {"from": "NFR-REL-001", "to": "AC-003", "relation": "validated_by"},
+    {"from": "FR-001", "to": "AC-003", "relation": "validated_by"},
+    {"from": "FR-002", "to": "AC-003", "relation": "validated_by"},
+    {"from": "FR-001", "to": "AC-005", "relation": "validated_by"},
+    {"from": "FR-002", "to": "AC-005", "relation": "validated_by"}
+  ]
+}
