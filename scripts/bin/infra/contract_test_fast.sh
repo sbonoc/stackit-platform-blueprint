@@ -15,7 +15,7 @@ Runs fast infra contract helper CLI/unit tests:
 - ArgoCD repo contract helper CLI
 - state artifact env/json contract renderer + schema validation
 - shell root-resolution helper + prelude drift assertions
-- optional-module fixture required_env parity (template-source only)
+- optional-module fixture required_env parity
 - generated-consumer upgrade fixture matrix safety coverage (template-source only)
 EOF
 }
@@ -36,9 +36,9 @@ base_tests=(
   "tests/infra/test_argocd_repo_contract_cli.py"
   "tests/infra/test_state_artifact_contract.py"
   "tests/infra/test_root_dir_resolution.py"
+  "tests/infra/test_optional_module_required_env_contract.py"
 )
 template_source_only_tests=(
-  "tests/infra/test_optional_module_required_env_contract.py"
   "tests/blueprint/test_upgrade_fixture_matrix.py"
 )
 

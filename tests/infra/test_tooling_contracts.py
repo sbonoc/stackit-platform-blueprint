@@ -1498,11 +1498,11 @@ render_optional_module_secret_manifests "messaging" "blueprint-rabbitmq-auth" "r
         self.assertIn("tests/blueprint/test_upgrade_fixture_matrix.py", output)
         self.assertIn("tests/infra/test_optional_module_required_env_contract.py", output)
 
-    def test_contract_test_fast_skips_template_source_only_tests_in_generated_consumer_mode(self) -> None:
+    def test_contract_test_fast_skips_only_template_source_only_tests_in_generated_consumer_mode(self) -> None:
         exit_code, output = contract_test_fast_pytest_args_for_repo_mode("generated-consumer")
         self.assertEqual(exit_code, 0, msg=output)
         self.assertNotIn("tests/blueprint/test_upgrade_fixture_matrix.py", output)
-        self.assertNotIn("tests/infra/test_optional_module_required_env_contract.py", output)
+        self.assertIn("tests/infra/test_optional_module_required_env_contract.py", output)
         self.assertIn("tests/infra/test_runtime_identity_contract_cli.py", output)
         self.assertIn("tests/infra/test_argocd_repo_contract_cli.py", output)
         self.assertIn("tests/infra/test_state_artifact_contract.py", output)

@@ -33,7 +33,7 @@
 - Local-first exception rationale: none
 
 ## Objective
-- Business outcome: generated-consumer upgrade validation MUST not fail due template-source-only fast-contract tests while template-source remains strict for canonical lane coverage.
+- Business outcome: generated-consumer upgrade validation MUST not fail due to template-source-only fast-contract tests while template-source remains strict for canonical lane coverage.
 - Success metric: `infra-contract-test-fast` selects deterministic test sets by repo mode and passes generated-consumer scenarios without requiring source-only files.
 
 ## Normative Requirements
