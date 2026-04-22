@@ -159,7 +159,7 @@ class QualityContractsTests(unittest.TestCase):
             self.assertIn(marker, consumer_init_tasks_template)
 
     def test_sdd_control_catalog_includes_local_smoke_and_positive_path_controls(self) -> None:
-        catalog_payload = json.loads(_read(".spec-kit/control-catalog.yaml"))
+        catalog_payload = json.loads(_read(".spec-kit/control-catalog.json"))
         self.assertIsInstance(catalog_payload, dict)
         controls = catalog_payload.get("controls", [])
         self.assertIsInstance(controls, list)

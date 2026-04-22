@@ -26,7 +26,7 @@
 - `specs/2026-04-17-prune-glob-ownership-check/architecture.md`
 - `specs/2026-04-17-prune-glob-ownership-check/context_pack.md`
 - `specs/2026-04-17-prune-glob-ownership-check/evidence_manifest.json`
-- `specs/2026-04-17-prune-glob-ownership-check/graph.yaml`
+- `specs/2026-04-17-prune-glob-ownership-check/graph.json`
 - `specs/2026-04-17-prune-glob-ownership-check/hardening_review.md`
 - `specs/2026-04-17-prune-glob-ownership-check/plan.md`
 - `specs/2026-04-17-prune-glob-ownership-check/pr_context.md`

@@ -167,7 +167,7 @@ class GovernanceStructureCases(RefactorContractBase):
                 ".pre-commit-config.yaml",
                 "README.md",
                 ".spec-kit/policy-mapping.md",
-                ".spec-kit/control-catalog.yaml",
+                ".spec-kit/control-catalog.json",
                 ".spec-kit/control-catalog.md",
                 ".spec-kit/templates/blueprint/architecture.md",
                 ".spec-kit/templates/blueprint/adr.md",
@@ -175,7 +175,7 @@ class GovernanceStructureCases(RefactorContractBase):
                 ".spec-kit/templates/blueprint/plan.md",
                 ".spec-kit/templates/blueprint/tasks.md",
                 ".spec-kit/templates/blueprint/traceability.md",
-                ".spec-kit/templates/blueprint/graph.yaml",
+                ".spec-kit/templates/blueprint/graph.json",
                 ".spec-kit/templates/blueprint/evidence_manifest.json",
                 ".spec-kit/templates/blueprint/context_pack.md",
                 ".spec-kit/templates/blueprint/pr_context.md",
@@ -186,7 +186,7 @@ class GovernanceStructureCases(RefactorContractBase):
                 ".spec-kit/templates/consumer/plan.md",
                 ".spec-kit/templates/consumer/tasks.md",
                 ".spec-kit/templates/consumer/traceability.md",
-                ".spec-kit/templates/consumer/graph.yaml",
+                ".spec-kit/templates/consumer/graph.json",
                 ".spec-kit/templates/consumer/evidence_manifest.json",
                 ".spec-kit/templates/consumer/context_pack.md",
                 ".spec-kit/templates/consumer/pr_context.md",
@@ -303,7 +303,7 @@ class GovernanceStructureCases(RefactorContractBase):
                 "scripts/templates/consumer/init/.agents/skills/blueprint-sdd-pr-packager/agents/openai.yaml.tmpl",
                 "scripts/templates/consumer/init/.agents/skills/blueprint-sdd-pr-packager/references/pr_packaging_checklist.md.tmpl",
                 "scripts/templates/consumer/init/.spec-kit/policy-mapping.md.tmpl",
-                "scripts/templates/consumer/init/.spec-kit/control-catalog.yaml.tmpl",
+                "scripts/templates/consumer/init/.spec-kit/control-catalog.json.tmpl",
                 "scripts/templates/consumer/init/.spec-kit/control-catalog.md.tmpl",
                 "scripts/templates/consumer/init/.spec-kit/templates/consumer/architecture.md.tmpl",
                 "scripts/templates/consumer/init/.spec-kit/templates/consumer/adr.md.tmpl",
@@ -311,7 +311,7 @@ class GovernanceStructureCases(RefactorContractBase):
                 "scripts/templates/consumer/init/.spec-kit/templates/consumer/plan.md.tmpl",
                 "scripts/templates/consumer/init/.spec-kit/templates/consumer/tasks.md.tmpl",
                 "scripts/templates/consumer/init/.spec-kit/templates/consumer/traceability.md.tmpl",
-                "scripts/templates/consumer/init/.spec-kit/templates/consumer/graph.yaml.tmpl",
+                "scripts/templates/consumer/init/.spec-kit/templates/consumer/graph.json.tmpl",
                 "scripts/templates/consumer/init/.spec-kit/templates/consumer/evidence_manifest.json.tmpl",
                 "scripts/templates/consumer/init/.spec-kit/templates/consumer/context_pack.md.tmpl",
                 "scripts/templates/consumer/init/.spec-kit/templates/consumer/pr_context.md.tmpl",
@@ -432,7 +432,7 @@ class GovernanceStructureCases(RefactorContractBase):
                 "AGENTS.backlog.md",
                 "AGENTS.decisions.md",
                 ".spec-kit/policy-mapping.md",
-                ".spec-kit/control-catalog.yaml",
+                ".spec-kit/control-catalog.json",
                 ".spec-kit/control-catalog.md",
                 ".spec-kit/templates/consumer/architecture.md",
                 ".spec-kit/templates/consumer/adr.md",
@@ -646,24 +646,24 @@ class GovernanceStructureCases(RefactorContractBase):
         self.assertEqual(_extract_yaml_scalar(sdd_artifacts, "policy_mapping_file"), ".spec-kit/policy-mapping.md")
         self.assertEqual(
             _extract_yaml_scalar(sdd_artifacts, "control_catalog_source_file"),
-            ".spec-kit/control-catalog.yaml",
+            ".spec-kit/control-catalog.json",
         )
         self.assertEqual(_extract_yaml_scalar(sdd_artifacts, "control_catalog_file"), ".spec-kit/control-catalog.md")
-        self.assertIn("graph.yaml", _extract_yaml_list(sdd_artifacts, "required_work_item_documents"))
+        self.assertIn("graph.json", _extract_yaml_list(sdd_artifacts, "required_work_item_documents"))
         self.assertIn("evidence_manifest.json", _extract_yaml_list(sdd_artifacts, "required_work_item_documents"))
         self.assertIn("context_pack.md", _extract_yaml_list(sdd_artifacts, "required_work_item_documents"))
         self.assertIn("pr_context.md", _extract_yaml_list(sdd_artifacts, "required_work_item_documents"))
         self.assertIn("hardening_review.md", _extract_yaml_list(sdd_artifacts, "required_work_item_documents"))
         self.assertIn(".spec-kit/templates/blueprint/adr.md", _extract_yaml_list(sdd_artifacts, "required_paths"))
         self.assertIn(".spec-kit/templates/consumer/adr.md", _extract_yaml_list(sdd_artifacts, "required_paths"))
-        self.assertIn(".spec-kit/control-catalog.yaml", _extract_yaml_list(sdd_artifacts, "required_paths"))
+        self.assertIn(".spec-kit/control-catalog.json", _extract_yaml_list(sdd_artifacts, "required_paths"))
         self.assertIn(".spec-kit/control-catalog.md", _extract_yaml_list(sdd_artifacts, "required_paths"))
         self.assertIn(
             "scripts/templates/consumer/init/.spec-kit/templates/consumer/adr.md.tmpl",
             _extract_yaml_list(sdd_artifacts, "required_paths"),
         )
         self.assertIn(
-            "scripts/templates/consumer/init/.spec-kit/control-catalog.yaml.tmpl",
+            "scripts/templates/consumer/init/.spec-kit/control-catalog.json.tmpl",
             _extract_yaml_list(sdd_artifacts, "required_paths"),
         )
         self.assertIn(
@@ -678,7 +678,7 @@ class GovernanceStructureCases(RefactorContractBase):
             "scripts/bin/blueprint/spec_work_item_tools.py",
             _extract_yaml_list(sdd_artifacts, "required_paths"),
         )
-        self.assertIn(".spec-kit/templates/blueprint/graph.yaml", _extract_yaml_list(sdd_artifacts, "required_paths"))
+        self.assertIn(".spec-kit/templates/blueprint/graph.json", _extract_yaml_list(sdd_artifacts, "required_paths"))
         self.assertIn(
             ".spec-kit/templates/blueprint/evidence_manifest.json",
             _extract_yaml_list(sdd_artifacts, "required_paths"),
@@ -695,7 +695,7 @@ class GovernanceStructureCases(RefactorContractBase):
             ".spec-kit/templates/blueprint/hardening_review.md",
             _extract_yaml_list(sdd_artifacts, "required_paths"),
         )
-        self.assertIn(".spec-kit/templates/consumer/graph.yaml", _extract_yaml_list(sdd_artifacts, "required_paths"))
+        self.assertIn(".spec-kit/templates/consumer/graph.json", _extract_yaml_list(sdd_artifacts, "required_paths"))
         self.assertIn(
             ".spec-kit/templates/consumer/evidence_manifest.json",
             _extract_yaml_list(sdd_artifacts, "required_paths"),
@@ -713,7 +713,7 @@ class GovernanceStructureCases(RefactorContractBase):
             _extract_yaml_list(sdd_artifacts, "required_paths"),
         )
         self.assertIn(
-            "scripts/templates/consumer/init/.spec-kit/templates/consumer/graph.yaml.tmpl",
+            "scripts/templates/consumer/init/.spec-kit/templates/consumer/graph.json.tmpl",
             _extract_yaml_list(sdd_artifacts, "required_paths"),
         )
         self.assertIn(

@@ -24,7 +24,7 @@
 - `specs/2026-04-17-blueprint-consumer-template-boundaries/architecture.md`
 - `specs/2026-04-17-blueprint-consumer-template-boundaries/context_pack.md`
 - `specs/2026-04-17-blueprint-consumer-template-boundaries/evidence_manifest.json`
-- `specs/2026-04-17-blueprint-consumer-template-boundaries/graph.yaml`
+- `specs/2026-04-17-blueprint-consumer-template-boundaries/graph.json`
 - `specs/2026-04-17-blueprint-consumer-template-boundaries/hardening_review.md`
 - `specs/2026-04-17-blueprint-consumer-template-boundaries/plan.md`
 - `specs/2026-04-17-blueprint-consumer-template-boundaries/pr_context.md`

@@ -10,7 +10,7 @@
 - Acceptance criteria covered: `AC-001`, `AC-002`
 - Contract surfaces changed:
   - `blueprint/contract.yaml` (`spec.spec_driven_development_contract.branch_contract`)
-  - `.spec-kit/control-catalog.yaml` (`SDD-C-020`, `SDD-C-021`)
+  - `.spec-kit/control-catalog.json` (`SDD-C-020`, `SDD-C-021`)
   - `make/blueprint.generated.mk` (`spec-scaffold` branch controls)
 
 ## Key Reviewer Files
@@ -18,11 +18,11 @@
   - `scripts/bin/blueprint/spec_scaffold.py`
   - `scripts/bin/quality/check_sdd_assets.py`
   - `blueprint/contract.yaml`
-  - `.spec-kit/control-catalog.yaml`
+  - `.spec-kit/control-catalog.json`
 - High-risk files:
   - `make/blueprint.generated.mk`
   - `scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl`
-  - `scripts/templates/consumer/init/.spec-kit/control-catalog.yaml.tmpl`
+  - `scripts/templates/consumer/init/.spec-kit/control-catalog.json.tmpl`
   - `scripts/templates/consumer/init/AGENTS.md.tmpl`
 
 ## Validation Evidence

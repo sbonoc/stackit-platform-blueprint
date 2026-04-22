@@ -13,7 +13,7 @@ specs/<YYYY-MM-DD>-<work-item-slug>/
   plan.md
   tasks.md
   traceability.md
-  graph.yaml
+  graph.json
   evidence_manifest.json
   context_pack.md
   pr_context.md
@@ -56,7 +56,7 @@ Reference baseline:
   - `Runtime identity baseline`
   - `Local-first exception rationale`
 - Keep `plan.md` and `tasks.md` aligned with the app onboarding minimum target contract, including port-forward wrappers.
-- Keep `graph.yaml`, `traceability.md`, and `spec.md` requirement/acceptance IDs synchronized.
+- Keep `graph.json`, `traceability.md`, and `spec.md` requirement/acceptance IDs synchronized.
 - Use `[NEEDS CLARIFICATION: ...]` markers for unresolved requirements and keep `Open clarification markers count` at `0` before setting `SPEC_READY=true`.
 - Keep blueprint-defect escalation lifecycle fields explicit when temporary consumer workarounds are required (`Upstream issue URL`, `Temporary workaround path`, `Replacement trigger`, `Workaround review date`).
 - Complete repository-wide hardening review in `hardening_review.md` and keep proposals in a non-implemented section.

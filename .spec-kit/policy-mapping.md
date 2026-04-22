@@ -12,7 +12,7 @@ This file maps repository governance guardrails to Spec-Driven Development (SDD)
 | Plan | Sequenced slices, rollout/rollback strategy, shift-left validation strategy | `plan.md`, `tasks.md` |
 | Implement | Code/docs/contracts aligned with approved spec | Implementation diff |
 | Verify | Validation evidence + requirement traceability | `traceability.md` |
-| Verify | Graph-based dependency/evidence drift checks | `graph.yaml`, `traceability.md` |
+| Verify | Graph-based dependency/evidence drift checks | `graph.json`, `traceability.md` |
 | Document | Blueprint + consumer documentation updates and diagram sync | `docs/blueprint/**`, `docs/platform/**` |
 | Operate | Monitoring/alerting/runbook ownership and diagnostics | `traceability.md` |
 | Publish | Reviewer-ready PR packaging context and hardening report | `pr_context.md`, `hardening_review.md`, PR template |
@@ -53,8 +53,8 @@ If required inputs are missing, mark the spec with `BLOCKED_MISSING_INPUTS` and 
 
 ## Control Catalog Mapping
 
-- `.spec-kit/control-catalog.yaml` is the machine-readable source for `SDD-C-###` control statements.
-- `.spec-kit/control-catalog.md` is generated from `.spec-kit/control-catalog.yaml` for human-readable review.
+- `.spec-kit/control-catalog.json` is the machine-readable source for `SDD-C-###` control statements.
+- `.spec-kit/control-catalog.md` is generated from `.spec-kit/control-catalog.json` for human-readable review.
 - Each work-item `spec.md` MUST include an `Applicable Guardrail Controls` section listing the exact control IDs that govern the work item.
 - Each work-item `spec.md` MUST include an `Implementation Stack Profile` section with backend/frontend/test profiles, explicit agent execution model, managed-service decision fields, and local-first runtime baseline fields.
 - Each work-item `plan.md` and `tasks.md` MUST include the app onboarding minimum make-target contract (including `infra-port-forward-start`, `infra-port-forward-stop`, and `infra-port-forward-cleanup`).
@@ -127,8 +127,8 @@ Informative sections can explain context/tradeoffs, but they do not override nor
 
 ## Graph and Evidence Mapping
 
-- `graph.yaml` is the machine-readable requirement/acceptance dependency map for each work item.
-- `traceability.md` MUST stay in sync with `graph.yaml` for all requirement and acceptance IDs.
+- `graph.json` is the machine-readable requirement/acceptance dependency map for each work item.
+- `traceability.md` MUST stay in sync with `graph.json` for all requirement and acceptance IDs.
 - `evidence_manifest.json` stores deterministic file checksum evidence for work-item artifacts.
 - `context_pack.md` captures normalized context handoff metadata for implementation/review/operations.
 

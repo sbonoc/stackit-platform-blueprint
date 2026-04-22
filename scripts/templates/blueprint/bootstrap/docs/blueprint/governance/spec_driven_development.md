@@ -50,7 +50,7 @@ Use `[NEEDS CLARIFICATION: ...]` markers for unresolved inputs and keep `Open cl
 ## Canonical Artifacts
 
 - Policy mapping: `.spec-kit/policy-mapping.md`
-- Control catalog source: `.spec-kit/control-catalog.yaml`
+- Control catalog source: `.spec-kit/control-catalog.json`
 - Control catalog rendered view: `.spec-kit/control-catalog.md`
 - Template packs:
   - `.spec-kit/templates/blueprint/`
@@ -66,7 +66,7 @@ Each work item should include:
 - `plan.md`
 - `tasks.md`
 - `traceability.md`
-- `graph.yaml`
+- `graph.json`
 - `evidence_manifest.json`
 - `context_pack.md`
 - `pr_context.md`
@@ -143,8 +143,8 @@ Each work-item `spec.md` must define:
 
 ## Graph and Evidence Contract
 
-- `graph.yaml` is the machine-readable dependency map for requirement/acceptance nodes.
-- `traceability.md` MUST map the same requirement/acceptance IDs declared in `graph.yaml`.
+- `graph.json` is the machine-readable dependency map for requirement/acceptance nodes.
+- `traceability.md` MUST map the same requirement/acceptance IDs declared in `graph.json`.
 - `evidence_manifest.json` stores deterministic file checksum evidence for the work item.
 - `context_pack.md` is the normalized execution handoff summary for implementation/review/operations.
 - Canonical helper targets:

@@ -16,8 +16,8 @@
 | AC-003 | SDD-C-012 | Template mirror keeps allowlisted parity and prunes source-only docs | `scripts/lib/docs/sync_blueprint_template_docs.py` | `tests/blueprint/test_quality_contracts.py::test_blueprint_docs_template_sync_prunes_source_only_docs`; `tests/blueprint/contract_refactor_docs_cases.py` | `docs/blueprint/governance/ownership_matrix.md` | `make quality-docs-check-blueprint-template-sync` |
 
 ## Graph Linkage
-- Graph file: `graph.yaml`
-- Every `FR-###`, `NFR-*-###`, and `AC-###` listed in this file has a corresponding node in `graph.yaml`.
+- Graph file: `graph.json`
+- Every `FR-###`, `NFR-*-###`, and `AC-###` listed in this file has a corresponding node in `graph.json`.
 - Node IDs referenced:
   - FR-001
   - FR-002

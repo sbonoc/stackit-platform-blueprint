@@ -59,7 +59,7 @@ spec:
       - AGENTS.backlog.md
       - AGENTS.decisions.md
       - .spec-kit/policy-mapping.md
-      - .spec-kit/control-catalog.yaml
+      - .spec-kit/control-catalog.json
       - .spec-kit/control-catalog.md
       - .spec-kit/templates/blueprint/architecture.md
       - .spec-kit/templates/blueprint/adr.md
@@ -67,7 +67,7 @@ spec:
       - .spec-kit/templates/blueprint/plan.md
       - .spec-kit/templates/blueprint/tasks.md
       - .spec-kit/templates/blueprint/traceability.md
-      - .spec-kit/templates/blueprint/graph.yaml
+      - .spec-kit/templates/blueprint/graph.json
       - .spec-kit/templates/blueprint/evidence_manifest.json
       - .spec-kit/templates/blueprint/context_pack.md
       - .spec-kit/templates/blueprint/pr_context.md
@@ -78,7 +78,7 @@ spec:
       - .spec-kit/templates/consumer/plan.md
       - .spec-kit/templates/consumer/tasks.md
       - .spec-kit/templates/consumer/traceability.md
-      - .spec-kit/templates/consumer/graph.yaml
+      - .spec-kit/templates/consumer/graph.json
       - .spec-kit/templates/consumer/evidence_manifest.json
       - .spec-kit/templates/consumer/context_pack.md
       - .spec-kit/templates/consumer/pr_context.md
@@ -300,7 +300,7 @@ spec:
       - scripts/templates/consumer/init/.claude/commands/blueprint-sdd-document-sync.md.tmpl
       - scripts/templates/consumer/init/.claude/commands/blueprint-sdd-pr-packager.md.tmpl
       - scripts/templates/consumer/init/.spec-kit/policy-mapping.md.tmpl
-      - scripts/templates/consumer/init/.spec-kit/control-catalog.yaml.tmpl
+      - scripts/templates/consumer/init/.spec-kit/control-catalog.json.tmpl
       - scripts/templates/consumer/init/.spec-kit/control-catalog.md.tmpl
       - scripts/templates/consumer/init/.spec-kit/templates/consumer/architecture.md.tmpl
       - scripts/templates/consumer/init/.spec-kit/templates/consumer/adr.md.tmpl
@@ -308,7 +308,7 @@ spec:
       - scripts/templates/consumer/init/.spec-kit/templates/consumer/plan.md.tmpl
       - scripts/templates/consumer/init/.spec-kit/templates/consumer/tasks.md.tmpl
       - scripts/templates/consumer/init/.spec-kit/templates/consumer/traceability.md.tmpl
-      - scripts/templates/consumer/init/.spec-kit/templates/consumer/graph.yaml.tmpl
+      - scripts/templates/consumer/init/.spec-kit/templates/consumer/graph.json.tmpl
       - scripts/templates/consumer/init/.spec-kit/templates/consumer/evidence_manifest.json.tmpl
       - scripts/templates/consumer/init/.spec-kit/templates/consumer/context_pack.md.tmpl
       - scripts/templates/consumer/init/.spec-kit/templates/consumer/pr_context.md.tmpl
@@ -470,7 +470,7 @@ spec:
         - AGENTS.backlog.md
         - AGENTS.decisions.md
         - .spec-kit/policy-mapping.md
-        - .spec-kit/control-catalog.yaml
+        - .spec-kit/control-catalog.json
         - .spec-kit/control-catalog.md
         - .spec-kit/templates/consumer/architecture.md
         - .spec-kit/templates/consumer/adr.md
@@ -478,7 +478,7 @@ spec:
         - .spec-kit/templates/consumer/plan.md
         - .spec-kit/templates/consumer/tasks.md
         - .spec-kit/templates/consumer/traceability.md
-        - .spec-kit/templates/consumer/graph.yaml
+        - .spec-kit/templates/consumer/graph.json
         - .spec-kit/templates/consumer/evidence_manifest.json
         - .spec-kit/templates/consumer/context_pack.md
         - specs/README.md
@@ -1236,7 +1236,7 @@ spec:
       enforce_non_default_branch: true
     artifacts:
       policy_mapping_file: .spec-kit/policy-mapping.md
-      control_catalog_source_file: .spec-kit/control-catalog.yaml
+      control_catalog_source_file: .spec-kit/control-catalog.json
       control_catalog_file: .spec-kit/control-catalog.md
       specs_workspace_readme: specs/README.md
       blueprint_template_root: .spec-kit/templates/blueprint
@@ -1247,14 +1247,14 @@ spec:
         - plan.md
         - tasks.md
         - traceability.md
-        - graph.yaml
+        - graph.json
         - evidence_manifest.json
         - context_pack.md
         - pr_context.md
         - hardening_review.md
       required_paths:
         - .spec-kit/policy-mapping.md
-        - .spec-kit/control-catalog.yaml
+        - .spec-kit/control-catalog.json
         - .spec-kit/control-catalog.md
         - .spec-kit/templates/blueprint/architecture.md
         - .spec-kit/templates/blueprint/adr.md
@@ -1262,7 +1262,7 @@ spec:
         - .spec-kit/templates/blueprint/plan.md
         - .spec-kit/templates/blueprint/tasks.md
         - .spec-kit/templates/blueprint/traceability.md
-        - .spec-kit/templates/blueprint/graph.yaml
+        - .spec-kit/templates/blueprint/graph.json
         - .spec-kit/templates/blueprint/evidence_manifest.json
         - .spec-kit/templates/blueprint/context_pack.md
         - .spec-kit/templates/blueprint/pr_context.md
@@ -1273,7 +1273,7 @@ spec:
         - .spec-kit/templates/consumer/plan.md
         - .spec-kit/templates/consumer/tasks.md
         - .spec-kit/templates/consumer/traceability.md
-        - .spec-kit/templates/consumer/graph.yaml
+        - .spec-kit/templates/consumer/graph.json
         - .spec-kit/templates/consumer/evidence_manifest.json
         - .spec-kit/templates/consumer/context_pack.md
         - .spec-kit/templates/consumer/pr_context.md
@@ -1287,7 +1287,7 @@ spec:
         - docs/platform/architecture/decisions/ADR-0000-template.md
         - specs/README.md
         - scripts/templates/consumer/init/.spec-kit/policy-mapping.md.tmpl
-        - scripts/templates/consumer/init/.spec-kit/control-catalog.yaml.tmpl
+        - scripts/templates/consumer/init/.spec-kit/control-catalog.json.tmpl
         - scripts/templates/consumer/init/.spec-kit/control-catalog.md.tmpl
         - scripts/templates/consumer/init/.spec-kit/templates/consumer/architecture.md.tmpl
         - scripts/templates/consumer/init/.spec-kit/templates/consumer/adr.md.tmpl
@@ -1295,7 +1295,7 @@ spec:
         - scripts/templates/consumer/init/.spec-kit/templates/consumer/plan.md.tmpl
         - scripts/templates/consumer/init/.spec-kit/templates/consumer/tasks.md.tmpl
         - scripts/templates/consumer/init/.spec-kit/templates/consumer/traceability.md.tmpl
-        - scripts/templates/consumer/init/.spec-kit/templates/consumer/graph.yaml.tmpl
+        - scripts/templates/consumer/init/.spec-kit/templates/consumer/graph.json.tmpl
         - scripts/templates/consumer/init/.spec-kit/templates/consumer/evidence_manifest.json.tmpl
         - scripts/templates/consumer/init/.spec-kit/templates/consumer/context_pack.md.tmpl
         - scripts/templates/consumer/init/.spec-kit/templates/consumer/pr_context.md.tmpl

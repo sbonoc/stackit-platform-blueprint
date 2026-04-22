@@ -109,7 +109,7 @@ This section provides context for code assistants to understand the blueprint be
   - `plan.md`
   - `tasks.md`
   - `traceability.md`
-  - `graph.yaml`
+  - `graph.json`
   - `evidence_manifest.json`
   - `context_pack.md`
   - `pr_context.md`
@@ -119,7 +119,7 @@ This section provides context for code assistants to understand the blueprint be
   - blueprint maintainer track: `.spec-kit/templates/blueprint/`
   - generated-consumer track: `.spec-kit/templates/consumer/`
 - `.spec-kit/policy-mapping.md` defines how governance guardrails map into SDD artifacts and must stay aligned with this file and `blueprint/contract.yaml`.
-- `.spec-kit/control-catalog.yaml` is the machine-readable control source; `.spec-kit/control-catalog.md` is generated from it.
+- `.spec-kit/control-catalog.json` is the machine-readable control source; `.spec-kit/control-catalog.md` is generated from it.
 - `architecture.md` is the high-level exploration workspace for each work item.
 - Finalized architecture outcomes are recorded as ADRs:
   - blueprint track: `docs/blueprint/architecture/decisions/`
@@ -129,7 +129,7 @@ This section provides context for code assistants to understand the blueprint be
   - generated-consumer track: `docs/platform/architecture/north_star.md`, `docs/platform/architecture/tech_stack.md`
 
 ## Guardrail Control Statements (Mandatory)
-- Guardrails must be written and maintained as control statements with stable IDs (`SDD-C-###`) in `.spec-kit/control-catalog.yaml` and rendered to `.spec-kit/control-catalog.md`.
+- Guardrails must be written and maintained as control statements with stable IDs (`SDD-C-###`) in `.spec-kit/control-catalog.json` and rendered to `.spec-kit/control-catalog.md`.
 - Every control statement must include:
   - deterministic normative requirement text (`MUST`/`MUST NOT`/`SHALL`)
   - phase scope

@@ -208,7 +208,7 @@ class DocsRefactorCases(RefactorContractBase):
         self.assertIn("Normative Language Rules", sdd_doc)
         self.assertIn("Document", sdd_doc)
         self.assertIn("Publish", sdd_doc)
-        self.assertIn(".spec-kit/control-catalog.yaml", sdd_doc)
+        self.assertIn(".spec-kit/control-catalog.json", sdd_doc)
         self.assertIn(".spec-kit/control-catalog.md", sdd_doc)
         self.assertIn("Implementation Stack Profile", sdd_doc)
         self.assertIn("Managed-Service Decision Contract", sdd_doc)

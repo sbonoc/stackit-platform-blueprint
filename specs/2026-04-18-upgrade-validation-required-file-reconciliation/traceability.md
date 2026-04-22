@@ -18,8 +18,8 @@
 | AC-004 | SDD-C-012 | Validation bundle stays green for impacted scope | scripts/lib/blueprint/**; tests/blueprint/** | python3 -m unittest tests.blueprint.test_upgrade_consumer tests.blueprint.test_upgrade_preflight tests.blueprint.test_upgrade_consumer_wrapper tests.blueprint.test_quality_contracts | specs/2026-04-18-upgrade-validation-required-file-reconciliation/evidence_manifest.json | make infra-validate; make quality-hooks-fast |
 
 ## Graph Linkage
-- Graph file: `graph.yaml`
-- Every `FR-###`, `NFR-*-###`, and `AC-###` listed in this file MUST have a corresponding node in `graph.yaml`.
+- Graph file: `graph.json`
+- Every `FR-###`, `NFR-*-###`, and `AC-###` listed in this file MUST have a corresponding node in `graph.json`.
 - Node IDs referenced:
   - FR-001
   - FR-002

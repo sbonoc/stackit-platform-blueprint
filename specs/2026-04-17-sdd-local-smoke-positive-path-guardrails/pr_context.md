@@ -15,7 +15,7 @@
 - `.spec-kit/templates/consumer/plan.md`
 - `.spec-kit/templates/blueprint/tasks.md`
 - `.spec-kit/templates/consumer/tasks.md`
-- `.spec-kit/control-catalog.yaml`
+- `.spec-kit/control-catalog.json`
 - `.spec-kit/control-catalog.md`
 - `AGENTS.md`
 - `scripts/templates/consumer/init/AGENTS.md.tmpl`

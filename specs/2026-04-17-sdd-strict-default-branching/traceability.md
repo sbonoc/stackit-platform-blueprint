@@ -8,14 +8,14 @@
 | FR-002 | SDD-C-021, SDD-C-003 | Dedicated-branch scaffold flow | `scripts/bin/blueprint/spec_scaffold.py`, `make/blueprint.generated.mk`, `scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl`, `blueprint/contract.yaml` | `tests/blueprint/test_spec_scaffold.py` (`test_scaffold_creates_dedicated_branch_by_default`, `test_scaffold_no_create_branch_explicit_opt_out`, `test_scaffold_allows_explicit_branch_override`) | `specs/README.md`, `scripts/bin/infra/help_reference.sh` | deterministic scaffold output lines for branch status |
 | NFR-SEC-001 | SDD-C-009, SDD-C-021 | Explicit opt-out/override controls | `scripts/bin/blueprint/spec_scaffold.py`, `blueprint/contract.yaml` | `tests/blueprint/test_spec_scaffold.py` | `AGENTS.md`, `README.md` | branch enforcement prevents default-branch work-item starts |
 | NFR-OBS-001 | SDD-C-010 | Deterministic diagnostics for operators | `scripts/bin/blueprint/spec_scaffold.py`, `scripts/bin/quality/check_sdd_assets.py` | `tests/infra/test_sdd_asset_checker.py` | `docs/blueprint/governance/assistant_compatibility.md` | checker and scaffold console output is deterministic |
-| NFR-REL-001 | SDD-C-012, SDD-C-021 | Contract-to-tooling consistency checks | `scripts/bin/quality/check_sdd_assets.py`, `.spec-kit/control-catalog.yaml` | `tests/infra/test_sdd_asset_checker.py` | `.spec-kit/policy-mapping.md` | `make infra-validate`, `make quality-hooks-run` pass |
+| NFR-REL-001 | SDD-C-012, SDD-C-021 | Contract-to-tooling consistency checks | `scripts/bin/quality/check_sdd_assets.py`, `.spec-kit/control-catalog.json` | `tests/infra/test_sdd_asset_checker.py` | `.spec-kit/policy-mapping.md` | `make infra-validate`, `make quality-hooks-run` pass |
 | NFR-OPS-001 | SDD-C-010, SDD-C-018 | Deterministic operator entrypoints | `make/blueprint.generated.mk`, `scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl`, `scripts/bin/infra/help_reference.sh` | `make quality-sdd-check-all` | `specs/README.md`, consumer README templates | explicit make flags: `SPEC_BRANCH`, `SPEC_NO_BRANCH` |
 | AC-001 | SDD-C-021 | Default branch creation + explicit modes | `scripts/bin/blueprint/spec_scaffold.py` | `tests/blueprint/test_spec_scaffold.py` | `specs/README.md` | scaffold command output captured in PR evidence |
 | AC-002 | SDD-C-020, SDD-C-021 | Branch contract checker enforcement | `scripts/bin/quality/check_sdd_assets.py` | `tests/infra/test_sdd_asset_checker.py` | `.spec-kit/control-catalog.md` | `make quality-sdd-check-all` pass |
 
 ## Graph Linkage
-- Graph file: `graph.yaml`
-- Every `FR-###`, `NFR-*-###`, and `AC-###` listed in this file MUST have a corresponding node in `graph.yaml`.
+- Graph file: `graph.json`
+- Every `FR-###`, `NFR-*-###`, and `AC-###` listed in this file MUST have a corresponding node in `graph.json`.
 - Node IDs referenced:
   - FR-001
   - FR-002

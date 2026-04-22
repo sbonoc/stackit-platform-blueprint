@@ -24,7 +24,7 @@
 - `plan.md`
 - `tasks.md`
 - `traceability.md`
-- `graph.yaml`
+- `graph.json`
 - `evidence_manifest.json`
 - `context_pack.md`
 - `pr_context.md`

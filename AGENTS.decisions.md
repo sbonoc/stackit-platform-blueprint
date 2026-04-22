@@ -246,7 +246,7 @@
   - architecture north-star and technology-stack baselines are now required docs for both blueprint and generated-consumer tracks and are synced into bootstrap/seed template mirrors.
   - bootstrap seed list now includes SDD governance docs and architecture north-star/stack references so generated repos materialize these docs on bootstrap.
 - SDD operations are now source-driven and orchestrated to reduce drift:
-  - `.spec-kit/control-catalog.yaml` is the machine-readable source of truth and `.spec-kit/control-catalog.md` is rendered from it (`scripts/lib/spec_kit/render_control_catalog.py`).
+  - `.spec-kit/control-catalog.json` is the machine-readable source of truth and `.spec-kit/control-catalog.md` is rendered from it (`scripts/lib/spec_kit/render_control_catalog.py`).
   - consumer-init SDD seed assets are synchronized from canonical `.spec-kit/**` and `specs/README.md` via `scripts/lib/spec_kit/sync_consumer_init_sdd_assets.py`.
   - generated SDD policy snapshot blocks in `AGENTS.md`, consumer-init `AGENTS.md.tmpl`, and blueprint governance docs are rendered from contract fields via `scripts/lib/spec_kit/render_policy_snippets.py`.
   - canonical make targets now include `spec-scaffold` and SDD sync/check aggregators (`quality-sdd-sync-all`, `quality-sdd-check-all`).
