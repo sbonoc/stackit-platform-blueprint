@@ -1,46 +1,78 @@
-graph_version: 1
-work_item: 2026-04-15-sdd-golden-example
-nodes:
-- id: FR-001
-  type: requirement
-  summary: Deterministic functional requirement
-- id: FR-002
-  type: requirement
-  summary: Deterministic functional requirement
-- id: NFR-SEC-001
-  type: requirement
-  summary: Security requirement
-- id: NFR-OBS-001
-  type: requirement
-  summary: Observability requirement
-- id: NFR-REL-001
-  type: requirement
-  summary: Reliability requirement
-- id: NFR-OPS-001
-  type: requirement
-  summary: Operability requirement
-- id: AC-001
-  type: acceptance
-  summary: Acceptance criterion
-- id: AC-002
-  type: acceptance
-  summary: Acceptance criterion
-edges:
-- from: FR-001
-  to: AC-001
-  relation: validated_by
-- from: FR-002
-  to: AC-002
-  relation: validated_by
-- from: NFR-SEC-001
-  to: AC-001
-  relation: constrains
-- from: NFR-OBS-001
-  to: AC-002
-  relation: constrains
-- from: NFR-REL-001
-  to: AC-002
-  relation: constrains
-- from: NFR-OPS-001
-  to: AC-002
-  relation: constrains
+{
+  "graph_version": 1,
+  "work_item": "2026-04-15-sdd-golden-example",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "Deterministic functional requirement"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "Deterministic functional requirement"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "Security requirement"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "Observability requirement"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "Reliability requirement"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "Operability requirement"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "Acceptance criterion"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "Acceptance criterion"
+    }
+  ],
+  "edges": [
+    {
+      "from": "FR-001",
+      "to": "AC-001",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-002",
+      "to": "AC-002",
+      "relation": "validated_by"
+    },
+    {
+      "from": "NFR-SEC-001",
+      "to": "AC-001",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-OBS-001",
+      "to": "AC-002",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-REL-001",
+      "to": "AC-002",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-OPS-001",
+      "to": "AC-002",
+      "relation": "constrains"
+    }
+  ]
+}

@@ -1,79 +1,133 @@
-graph_version: 1
-work_item: 2026-04-18-upgrade-convergence-postcheck-gate
-nodes:
-- id: FR-001
-  type: requirement
-  summary: Upgrade emits ownership-aware reconcile report with required buckets
-- id: FR-002
-  type: requirement
-  summary: Reconcile report includes repo-mode and upgrade command metadata
-- id: FR-003
-  type: requirement
-  summary: Preflight exposes merge-risk classification with deterministic hints
-- id: FR-004
-  type: requirement
-  summary: Postcheck target enforces convergence gate against unresolved conflicts/markers
-- id: FR-005
-  type: requirement
-  summary: Postcheck docs hooks are repo-mode aware
-- id: FR-006
-  type: requirement
-  summary: Upgrade skill runbooks enforce safe-to-continue/blocked contract
-- id: NFR-SEC-001
-  type: requirement
-  summary: Repo-scoped path safety
-- id: NFR-OBS-001
-  type: requirement
-  summary: Reconcile and postcheck metrics coverage
-- id: NFR-REL-001
-  type: requirement
-  summary: Deterministic ordering and status payloads
-- id: NFR-OPS-001
-  type: requirement
-  summary: Actionable diagnostics and next-command guidance
-- id: AC-001
-  type: acceptance
-  summary: Reconcile artifact has required buckets and metadata
-- id: AC-002
-  type: acceptance
-  summary: Preflight merge-risk classification aligns with reconcile state
-- id: AC-003
-  type: acceptance
-  summary: Postcheck fails on unresolved convergence blockers and passes when clean
-- id: AC-004
-  type: acceptance
-  summary: Postcheck docs hooks branch correctly by repo_mode
-- id: AC-005
-  type: acceptance
-  summary: Skill runbook flow references reconcile/postcheck safe-blocked contract
-edges:
-- from: FR-001
-  to: AC-001
-  relation: validated_by
-- from: FR-002
-  to: AC-001
-  relation: validated_by
-- from: FR-003
-  to: AC-002
-  relation: validated_by
-- from: FR-004
-  to: AC-003
-  relation: validated_by
-- from: FR-005
-  to: AC-004
-  relation: validated_by
-- from: FR-006
-  to: AC-005
-  relation: validated_by
-- from: NFR-SEC-001
-  to: AC-001
-  relation: constrains
-- from: NFR-OBS-001
-  to: AC-003
-  relation: constrains
-- from: NFR-REL-001
-  to: AC-002
-  relation: constrains
-- from: NFR-OPS-001
-  to: AC-002
-  relation: constrains
+{
+  "graph_version": 1,
+  "work_item": "2026-04-18-upgrade-convergence-postcheck-gate",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "Upgrade emits ownership-aware reconcile report with required buckets"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "Reconcile report includes repo-mode and upgrade command metadata"
+    },
+    {
+      "id": "FR-003",
+      "type": "requirement",
+      "summary": "Preflight exposes merge-risk classification with deterministic hints"
+    },
+    {
+      "id": "FR-004",
+      "type": "requirement",
+      "summary": "Postcheck target enforces convergence gate against unresolved conflicts/markers"
+    },
+    {
+      "id": "FR-005",
+      "type": "requirement",
+      "summary": "Postcheck docs hooks are repo-mode aware"
+    },
+    {
+      "id": "FR-006",
+      "type": "requirement",
+      "summary": "Upgrade skill runbooks enforce safe-to-continue/blocked contract"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "Repo-scoped path safety"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "Reconcile and postcheck metrics coverage"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "Deterministic ordering and status payloads"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "Actionable diagnostics and next-command guidance"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "Reconcile artifact has required buckets and metadata"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "Preflight merge-risk classification aligns with reconcile state"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "Postcheck fails on unresolved convergence blockers and passes when clean"
+    },
+    {
+      "id": "AC-004",
+      "type": "acceptance",
+      "summary": "Postcheck docs hooks branch correctly by repo_mode"
+    },
+    {
+      "id": "AC-005",
+      "type": "acceptance",
+      "summary": "Skill runbook flow references reconcile/postcheck safe-blocked contract"
+    }
+  ],
+  "edges": [
+    {
+      "from": "FR-001",
+      "to": "AC-001",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-002",
+      "to": "AC-001",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-003",
+      "to": "AC-002",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-004",
+      "to": "AC-003",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-005",
+      "to": "AC-004",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-006",
+      "to": "AC-005",
+      "relation": "validated_by"
+    },
+    {
+      "from": "NFR-SEC-001",
+      "to": "AC-001",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-OBS-001",
+      "to": "AC-003",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-REL-001",
+      "to": "AC-002",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-OPS-001",
+      "to": "AC-002",
+      "relation": "constrains"
+    }
+  ]
+}

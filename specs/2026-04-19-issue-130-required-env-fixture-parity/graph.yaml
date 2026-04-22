@@ -1,56 +1,93 @@
-graph_version: 1
-work_item: 2026-04-19-issue-130-required-env-fixture-parity
-nodes:
-- id: FR-001
-  type: requirement
-  summary: Fixture helper hydrates required env for enabled optional modules via canonical
-    resolver
-- id: FR-002
-  type: requirement
-  summary: Parity test fails deterministically when required_env coverage drifts
-- id: FR-003
-  type: requirement
-  summary: Fast infra contract lane executes parity coverage checks
-- id: NFR-SEC-001
-  type: requirement
-  summary: No live-secret dependence for parity checks
-- id: NFR-OBS-001
-  type: requirement
-  summary: Deterministic, sorted parity diagnostics
-- id: NFR-REL-001
-  type: requirement
-  summary: Deterministic parity behavior across runs
-- id: NFR-OPS-001
-  type: requirement
-  summary: Explicit remediation path through fast lane
-- id: AC-001
-  type: acceptance
-  summary: Enabled-module fixture env contains all required vars
-- id: AC-002
-  type: acceptance
-  summary: Parity drift detection test fails deterministically
-- id: AC-003
-  type: acceptance
-  summary: Fast lane runs parity checks
-edges:
-- from: FR-001
-  to: AC-001
-  relation: validated_by
-- from: FR-002
-  to: AC-002
-  relation: validated_by
-- from: FR-003
-  to: AC-003
-  relation: validated_by
-- from: NFR-SEC-001
-  to: AC-001
-  relation: constrains
-- from: NFR-OBS-001
-  to: AC-002
-  relation: constrains
-- from: NFR-REL-001
-  to: AC-002
-  relation: constrains
-- from: NFR-OPS-001
-  to: AC-003
-  relation: constrains
+{
+  "graph_version": 1,
+  "work_item": "2026-04-19-issue-130-required-env-fixture-parity",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "Fixture helper hydrates required env for enabled optional modules via canonical resolver"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "Parity test fails deterministically when required_env coverage drifts"
+    },
+    {
+      "id": "FR-003",
+      "type": "requirement",
+      "summary": "Fast infra contract lane executes parity coverage checks"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "No live-secret dependence for parity checks"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "Deterministic, sorted parity diagnostics"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "Deterministic parity behavior across runs"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "Explicit remediation path through fast lane"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "Enabled-module fixture env contains all required vars"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "Parity drift detection test fails deterministically"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "Fast lane runs parity checks"
+    }
+  ],
+  "edges": [
+    {
+      "from": "FR-001",
+      "to": "AC-001",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-002",
+      "to": "AC-002",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-003",
+      "to": "AC-003",
+      "relation": "validated_by"
+    },
+    {
+      "from": "NFR-SEC-001",
+      "to": "AC-001",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-OBS-001",
+      "to": "AC-002",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-REL-001",
+      "to": "AC-002",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-OPS-001",
+      "to": "AC-003",
+      "relation": "constrains"
+    }
+  ]
+}

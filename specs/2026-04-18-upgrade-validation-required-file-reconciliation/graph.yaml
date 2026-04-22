@@ -1,67 +1,113 @@
-graph_version: 1
-work_item: 2026-04-18-upgrade-validation-required-file-reconciliation
-nodes:
-- id: FR-001
-  type: requirement
-  summary: Repo-mode required-file manifest and status artifact
-- id: FR-002
-  type: requirement
-  summary: Missing required-file validation failure with remediation
-- id: FR-003
-  type: requirement
-  summary: Coupled generated-reference contract checks in validate
-- id: FR-004
-  type: requirement
-  summary: Preflight required-surfaces-at-risk enrichment
-- id: NFR-SEC-001
-  type: requirement
-  summary: Repository-scoped path resolution guardrails
-- id: NFR-OBS-001
-  type: requirement
-  summary: Summary counters and metrics extraction coverage
-- id: NFR-REL-001
-  type: requirement
-  summary: Deterministic report ordering and repeatability
-- id: NFR-OPS-001
-  type: requirement
-  summary: Operator-facing remediation diagnostics
-- id: AC-001
-  type: acceptance
-  summary: Missing required file fails validate with remediation
-- id: AC-002
-  type: acceptance
-  summary: Repo-mode gating behavior is enforced
-- id: AC-003
-  type: acceptance
-  summary: Preflight reports required surfaces at risk
-- id: AC-004
-  type: acceptance
-  summary: Impacted validation suites pass
-edges:
-- from: FR-001
-  to: AC-001
-  relation: validated_by
-- from: FR-002
-  to: AC-001
-  relation: validated_by
-- from: FR-002
-  to: AC-002
-  relation: validated_by
-- from: FR-003
-  to: AC-001
-  relation: validated_by
-- from: FR-004
-  to: AC-003
-  relation: validated_by
-- from: NFR-SEC-001
-  to: AC-002
-  relation: constrains
-- from: NFR-OBS-001
-  to: AC-004
-  relation: constrains
-- from: NFR-REL-001
-  to: AC-004
-  relation: constrains
-- from: NFR-OPS-001
-  to: AC-002
-  relation: constrains
+{
+  "graph_version": 1,
+  "work_item": "2026-04-18-upgrade-validation-required-file-reconciliation",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "Repo-mode required-file manifest and status artifact"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "Missing required-file validation failure with remediation"
+    },
+    {
+      "id": "FR-003",
+      "type": "requirement",
+      "summary": "Coupled generated-reference contract checks in validate"
+    },
+    {
+      "id": "FR-004",
+      "type": "requirement",
+      "summary": "Preflight required-surfaces-at-risk enrichment"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "Repository-scoped path resolution guardrails"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "Summary counters and metrics extraction coverage"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "Deterministic report ordering and repeatability"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "Operator-facing remediation diagnostics"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "Missing required file fails validate with remediation"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "Repo-mode gating behavior is enforced"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "Preflight reports required surfaces at risk"
+    },
+    {
+      "id": "AC-004",
+      "type": "acceptance",
+      "summary": "Impacted validation suites pass"
+    }
+  ],
+  "edges": [
+    {
+      "from": "FR-001",
+      "to": "AC-001",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-002",
+      "to": "AC-001",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-002",
+      "to": "AC-002",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-003",
+      "to": "AC-001",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-004",
+      "to": "AC-003",
+      "relation": "validated_by"
+    },
+    {
+      "from": "NFR-SEC-001",
+      "to": "AC-002",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-OBS-001",
+      "to": "AC-004",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-REL-001",
+      "to": "AC-004",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-OPS-001",
+      "to": "AC-002",
+      "relation": "constrains"
+    }
+  ]
+}

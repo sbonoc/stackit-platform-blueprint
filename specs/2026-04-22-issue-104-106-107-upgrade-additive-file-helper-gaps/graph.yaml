@@ -1,131 +1,127 @@
-graph_version: 1
-work_item: 2026-04-22-issue-104-106-107-upgrade-additive-file-helper-gaps
-nodes:
-- id: FR-001
-  type: requirement
-  summary: upgrade_consumer.py MUST NOT emit action=conflict for baseline-absent files
-    with both source and target present
-- id: FR-002
-  type: requirement
-  summary: baseline-absent + source==target MUST classify as action=skip
-- id: FR-003
-  type: requirement
-  summary: baseline-absent + source!=target MUST classify as action=merge-required
-- id: FR-004
-  type: requirement
-  summary: action=conflict MUST be reserved for baseline-present 3-way merge conflicts
-    only
-- id: FR-005
-  type: requirement
-  summary: runtime_workload_helpers.py MUST be relocated to scripts/lib/infra/
-- id: FR-006
-  type: requirement
-  summary: argocd_repo_credentials_json.py MUST be relocated to scripts/lib/infra/
-- id: FR-007
-  type: requirement
-  summary: smoke.sh MUST reference helper at scripts/lib/infra/runtime_workload_helpers.py
-- id: FR-008
-  type: requirement
-  summary: reconcile_argocd_repo_credentials.sh MUST reference helper at scripts/lib/infra/argocd_repo_credentials_json.py
-- id: FR-009
-  type: requirement
-  summary: fast quality lane MUST fail when scripts/bin/platform/** python3 helper
-    references are absent
-- id: NFR-SEC-001
-  type: requirement
-  summary: classification change MUST NOT introduce new secret or auth surface exposure
-- id: NFR-OBS-001
-  type: requirement
-  summary: reclassified entries MUST use existing merge-required schema fields
-- id: NFR-REL-001
-  type: requirement
-  summary: classification fix MUST NOT reclassify previously merge-required paths
-    as conflict
-- id: NFR-OPS-001
-  type: requirement
-  summary: missing-helper guard MUST emit deterministic human-readable error with
-    offending paths
-- id: AC-001
-  type: acceptance
-  summary: preflight MUST NOT list additive files with matching source/target under
-    conflicts
-- id: AC-002
-  type: acceptance
-  summary: diverged baseline-absent files MUST appear under manual_merge not conflicts
-- id: AC-003
-  type: acceptance
-  summary: upgraded generated-consumer repo MUST contain runtime_workload_helpers.py
-    and argocd_repo_credentials_json.py in scripts/lib/infra/
-- id: AC-004
-  type: acceptance
-  summary: make infra-smoke MUST NOT emit missing-helper error for runtime_workload_helpers.py
-- id: AC-005
-  type: acceptance
-  summary: make auth-reconcile-argocd-repo-credentials MUST NOT emit missing-helper
-    error
-- id: AC-006
-  type: acceptance
-  summary: quality-infra-shell-source-graph-check MUST fail when scripts/bin/platform/**
-    references missing Python helper
-- id: AC-007
-  type: acceptance
-  summary: automated tests MUST cover additive-skip, additive-merge-required, and
-    missing-helper guard
-edges:
-- from: FR-001
-  to: AC-001
-  relation: validated_by
-- from: FR-002
-  to: AC-001
-  relation: validated_by
-- from: FR-002
-  to: AC-007
-  relation: validated_by
-- from: FR-003
-  to: AC-002
-  relation: validated_by
-- from: FR-003
-  to: AC-007
-  relation: validated_by
-- from: FR-004
-  to: AC-001
-  relation: validated_by
-- from: FR-005
-  to: AC-003
-  relation: validated_by
-- from: FR-005
-  to: AC-004
-  relation: validated_by
-- from: FR-006
-  to: AC-003
-  relation: validated_by
-- from: FR-006
-  to: AC-005
-  relation: validated_by
-- from: FR-007
-  to: AC-004
-  relation: validated_by
-- from: FR-008
-  to: AC-005
-  relation: validated_by
-- from: FR-009
-  to: AC-006
-  relation: validated_by
-- from: FR-009
-  to: AC-007
-  relation: validated_by
-- from: NFR-SEC-001
-  to: AC-001
-  relation: constrains
-- from: NFR-OBS-001
-  to: AC-001
-  relation: constrains
-- from: NFR-OBS-001
-  to: AC-002
-  relation: constrains
-- from: NFR-REL-001
-  to: AC-001
-  relation: constrains
-- from: NFR-OPS-001
-  to: AC-006
-  relation: constrains
+{
+  "graph_version": 1,
+  "work_item": "2026-04-22-issue-104-106-107-upgrade-additive-file-helper-gaps",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "upgrade_consumer.py MUST NOT emit action=conflict for baseline-absent files with both source and target present"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "baseline-absent + source==target MUST classify as action=skip"
+    },
+    {
+      "id": "FR-003",
+      "type": "requirement",
+      "summary": "baseline-absent + source!=target MUST classify as action=merge-required"
+    },
+    {
+      "id": "FR-004",
+      "type": "requirement",
+      "summary": "action=conflict MUST be reserved for baseline-present 3-way merge conflicts only"
+    },
+    {
+      "id": "FR-005",
+      "type": "requirement",
+      "summary": "runtime_workload_helpers.py MUST be relocated to scripts/lib/infra/"
+    },
+    {
+      "id": "FR-006",
+      "type": "requirement",
+      "summary": "argocd_repo_credentials_json.py MUST be relocated to scripts/lib/infra/"
+    },
+    {
+      "id": "FR-007",
+      "type": "requirement",
+      "summary": "smoke.sh MUST reference helper at scripts/lib/infra/runtime_workload_helpers.py"
+    },
+    {
+      "id": "FR-008",
+      "type": "requirement",
+      "summary": "reconcile_argocd_repo_credentials.sh MUST reference helper at scripts/lib/infra/argocd_repo_credentials_json.py"
+    },
+    {
+      "id": "FR-009",
+      "type": "requirement",
+      "summary": "fast quality lane MUST fail when scripts/bin/platform/** python3 helper references are absent"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "classification change MUST NOT introduce new secret or auth surface exposure"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "reclassified entries MUST use existing merge-required schema fields"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "classification fix MUST NOT reclassify previously merge-required paths as conflict"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "missing-helper guard MUST emit deterministic human-readable error with offending paths"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "preflight MUST NOT list additive files with matching source/target under conflicts"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "diverged baseline-absent files MUST appear under manual_merge not conflicts"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "upgraded generated-consumer repo MUST contain runtime_workload_helpers.py and argocd_repo_credentials_json.py in scripts/lib/infra/"
+    },
+    {
+      "id": "AC-004",
+      "type": "acceptance",
+      "summary": "make infra-smoke MUST NOT emit missing-helper error for runtime_workload_helpers.py"
+    },
+    {
+      "id": "AC-005",
+      "type": "acceptance",
+      "summary": "make auth-reconcile-argocd-repo-credentials MUST NOT emit missing-helper error"
+    },
+    {
+      "id": "AC-006",
+      "type": "acceptance",
+      "summary": "quality-infra-shell-source-graph-check MUST fail when scripts/bin/platform/** references missing Python helper"
+    },
+    {
+      "id": "AC-007",
+      "type": "acceptance",
+      "summary": "automated tests MUST cover additive-skip, additive-merge-required, and missing-helper guard"
+    }
+  ],
+  "edges": [
+    { "from": "FR-001", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-007", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-002", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-007", "relation": "validated_by" },
+    { "from": "FR-004", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-005", "to": "AC-003", "relation": "validated_by" },
+    { "from": "FR-005", "to": "AC-004", "relation": "validated_by" },
+    { "from": "FR-006", "to": "AC-003", "relation": "validated_by" },
+    { "from": "FR-006", "to": "AC-005", "relation": "validated_by" },
+    { "from": "FR-007", "to": "AC-004", "relation": "validated_by" },
+    { "from": "FR-008", "to": "AC-005", "relation": "validated_by" },
+    { "from": "FR-009", "to": "AC-006", "relation": "validated_by" },
+    { "from": "FR-009", "to": "AC-007", "relation": "validated_by" },
+    { "from": "NFR-SEC-001", "to": "AC-001", "relation": "constrains" },
+    { "from": "NFR-OBS-001", "to": "AC-001", "relation": "constrains" },
+    { "from": "NFR-OBS-001", "to": "AC-002", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "AC-001", "relation": "constrains" },
+    { "from": "NFR-OPS-001", "to": "AC-006", "relation": "constrains" }
+  ]
+}

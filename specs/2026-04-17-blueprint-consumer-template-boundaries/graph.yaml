@@ -1,58 +1,98 @@
-graph_version: 1
-work_item: 2026-04-17-blueprint-consumer-template-boundaries
-nodes:
-- id: FR-001
-  type: requirement
-  summary: Declare contract-driven source artifact prune globs for consumer init
-- id: FR-002
-  type: requirement
-  summary: Apply prune behavior only on initial mode transition
-- id: FR-003
-  type: requirement
-  summary: Mirror only allowlisted blueprint docs into bootstrap template
-- id: NFR-SEC-001
-  type: requirement
-  summary: Constrain prune operations to contract-declared patterns
-- id: NFR-OBS-001
-  type: requirement
-  summary: Provide deterministic diagnostics in existing quality output
-- id: NFR-REL-001
-  type: requirement
-  summary: Preserve consumer-owned artifacts outside initial transition
-- id: NFR-OPS-001
-  type: requirement
-  summary: Document and enforce ownership boundaries through governance checks
-- id: AC-001
-  type: acceptance
-  summary: Initial template-source mode prune removes matched source artifacts
-- id: AC-002
-  type: acceptance
-  summary: Generated-consumer mode prune preserves matched artifacts
-- id: AC-003
-  type: acceptance
-  summary: Docs allowlist sync keeps parity and removes source-only template docs
-edges:
-- from: FR-001
-  to: AC-001
-  relation: validated_by
-- from: FR-002
-  to: AC-001
-  relation: validated_by
-- from: FR-002
-  to: AC-002
-  relation: validated_by
-- from: FR-003
-  to: AC-003
-  relation: validated_by
-- from: NFR-SEC-001
-  to: AC-001
-  relation: constrains
-- from: NFR-OBS-001
-  to: AC-003
-  relation: constrains
-- from: NFR-REL-001
-  to: AC-002
-  relation: constrains
-- from: NFR-OPS-001
-  to: AC-003
-  relation: constrains
+{
+  "graph_version": 1,
+  "work_item": "2026-04-17-blueprint-consumer-template-boundaries",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "Declare contract-driven source artifact prune globs for consumer init"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "Apply prune behavior only on initial mode transition"
+    },
+    {
+      "id": "FR-003",
+      "type": "requirement",
+      "summary": "Mirror only allowlisted blueprint docs into bootstrap template"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "Constrain prune operations to contract-declared patterns"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "Provide deterministic diagnostics in existing quality output"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "Preserve consumer-owned artifacts outside initial transition"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "Document and enforce ownership boundaries through governance checks"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "Initial template-source mode prune removes matched source artifacts"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "Generated-consumer mode prune preserves matched artifacts"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "Docs allowlist sync keeps parity and removes source-only template docs"
+    }
+  ],
+  "edges": [
+    {
+      "from": "FR-001",
+      "to": "AC-001",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-002",
+      "to": "AC-001",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-002",
+      "to": "AC-002",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-003",
+      "to": "AC-003",
+      "relation": "validated_by"
+    },
+    {
+      "from": "NFR-SEC-001",
+      "to": "AC-001",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-OBS-001",
+      "to": "AC-003",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-REL-001",
+      "to": "AC-002",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-OPS-001",
+      "to": "AC-003",
+      "relation": "constrains"
+    }
+  ]
+}

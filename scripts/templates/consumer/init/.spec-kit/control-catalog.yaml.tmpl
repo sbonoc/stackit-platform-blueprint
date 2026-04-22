@@ -1,323 +1,222 @@
-catalog_version: 1
-catalog_type: sdd_controls
-controls:
-- id: SDD-C-001
-  normative_control: Work items MUST remain blocked with BLOCKED_MISSING_INPUTS when
-    required business or non-functional inputs are unresolved.
-  phases:
-  - Discover
-  - Specify
-  validation_command: make quality-sdd-check
-  evidence_artifacts:
-  - specs/<work-item>/spec.md
-  owner: Product + Architecture
-  gate: fail
-- id: SDD-C-002
-  normative_control: Implementation MUST NOT start until SPEC_READY=true and all readiness
-    counters/sign-offs satisfy the gate.
-  phases:
-  - Plan
-  - Implement
-  validation_command: make quality-sdd-check
-  evidence_artifacts:
-  - specs/<work-item>/spec.md
-  - specs/<work-item>/tasks.md
-  owner: Architecture
-  gate: fail
-- id: SDD-C-003
-  normative_control: Implementation-ready specs MUST reference an approved ADR through
-    ADR path and ADR status.
-  phases:
-  - High-Level Architecture
-  - Specify
-  validation_command: make quality-sdd-check
-  evidence_artifacts:
-  - specs/<work-item>/spec.md
-  - docs/**/architecture/decisions/*.md
-  owner: Architecture
-  gate: fail
-- id: SDD-C-004
-  normative_control: Normative requirements MUST use deterministic wording (MUST,
-    MUST NOT, SHALL, EXACTLY ONE OF) and MUST NOT use ambiguous terms.
-  phases:
-  - Specify
-  validation_command: make quality-sdd-check
-  evidence_artifacts:
-  - specs/<work-item>/spec.md
-  owner: Architecture
-  gate: fail
-- id: SDD-C-005
-  normative_control: Each work item MUST define applicable SDD-C-### controls in the
-    normative controls section.
-  phases:
-  - Specify
-  - Plan
-  validation_command: make quality-sdd-check
-  evidence_artifacts:
-  - specs/<work-item>/spec.md
-  owner: Architecture
-  gate: fail
-- id: SDD-C-006
-  normative_control: Each work item MUST declare the implementation stack profile
-    and agent execution model before code changes begin.
-  phases:
-  - High-Level Architecture
-  - Specify
-  validation_command: make quality-sdd-check
-  evidence_artifacts:
-  - specs/<work-item>/spec.md
-  owner: Architecture
-  gate: fail
-- id: SDD-C-007
-  normative_control: Architecture and implementation slices MUST preserve Clean Architecture
-    dependency direction and DDD bounded contexts.
-  phases:
-  - High-Level Architecture
-  - Implement
-  validation_command: make infra-validate
-  evidence_artifacts:
-  - specs/<work-item>/architecture.md
-  - implementation diff
-  owner: Architecture
-  gate: fail
-- id: SDD-C-008
-  normative_control: Shift-left testing MUST prioritize the lowest valid layer and
-    keep pyramid ratios aligned with governance policy.
-  phases:
-  - Plan
-  - Verify
-  validation_command: make quality-test-pyramid
-  evidence_artifacts:
-  - specs/<work-item>/traceability.md
-  - test outputs
-  owner: Engineering
-  gate: fail
-- id: SDD-C-009
-  normative_control: Security controls MUST be explicit for authn/authz, secret handling,
-    and least privilege in normative requirements.
-  phases:
-  - Discover
-  - Specify
-  validation_command: make quality-sdd-check
-  evidence_artifacts:
-  - specs/<work-item>/spec.md
-  owner: Security
-  gate: fail
-- id: SDD-C-010
-  normative_control: Observability controls MUST define logs, metrics, traces, and
-    diagnostics ownership for operated paths.
-  phases:
-  - Specify
-  - Operate
-  validation_command: make quality-sdd-check
-  evidence_artifacts:
-  - specs/<work-item>/spec.md
-  - specs/<work-item>/traceability.md
-  owner: Operations
-  gate: fail
-- id: SDD-C-011
-  normative_control: Documentation MUST be updated in the Document phase for both
-    blueprint and consumer perspectives when behavior/contracts change.
-  phases:
-  - Document
-  validation_command: make docs-build && make docs-smoke
-  evidence_artifacts:
-  - docs/blueprint/**
-  - docs/platform/**
-  owner: Documentation + Operations
-  gate: fail
-- id: SDD-C-012
-  normative_control: Deterministic validation evidence MUST be captured in traceability
-    before completion of the work item.
-  phases:
-  - Verify
-  - Operate
-  validation_command: make quality-hooks-run
-  evidence_artifacts:
-  - specs/<work-item>/traceability.md
-  owner: Engineering
-  gate: fail
-- id: SDD-C-013
-  normative_control: Runtime capability specs targeting stackit-* profiles MUST prefer
-    STACKIT managed services by default; any non-managed alternative MUST include
-    explicit approved exception rationale.
-  phases:
-  - Discover
-  - Specify
-  - High-Level Architecture
-  validation_command: make quality-sdd-check
-  evidence_artifacts:
-  - specs/<work-item>/spec.md
-  - specs/<work-item>/architecture.md
-  - AGENTS.decisions.md
-  owner: Architecture + Operations
-  gate: fail
-- id: SDD-C-014
-  normative_control: Work-item specs MUST declare the local-first runtime baseline
-    (Docker Desktop Kubernetes context policy, Crossplane/Helm provisioning, ESO+Argo+Keycloak
-    runtime identity) or record an explicit approved exception rationale.
-  phases:
-  - Discover
-  - High-Level Architecture
-  - Specify
-  validation_command: make quality-sdd-check
-  evidence_artifacts:
-  - specs/<work-item>/spec.md
-  - specs/<work-item>/architecture.md
-  - AGENTS.decisions.md
-  owner: Architecture + Operations
-  gate: fail
-- id: SDD-C-015
-  normative_control: Plan and task artifacts MUST include the app onboarding minimum
-    Make-target contract, including canonical port-forward wrappers, whenever implementation
-    scope can affect app delivery workflows.
-  phases:
-  - Plan
-  - Implement
-  - Document
-  - Operate
-  validation_command: make quality-sdd-check
-  evidence_artifacts:
-  - specs/<work-item>/plan.md
-  - specs/<work-item>/tasks.md
-  - docs/platform/consumer/app_onboarding.md
-  owner: Architecture + Platform Engineering
-  gate: fail
-- id: SDD-C-016
-  normative_control: Publish phase MUST include a deterministic PR context artifact
-    (`pr_context.md`) with requirement coverage, key reviewer files, validation evidence,
-    risk/rollback, and deferred proposals.
-  phases:
-  - Publish
-  validation_command: make quality-sdd-check
-  evidence_artifacts:
-  - specs/<work-item>/pr_context.md
-  - .github/pull_request_template.md
-  owner: Architecture + Engineering
-  gate: fail
-- id: SDD-C-017
-  normative_control: Before publish, repository-wide hardening review MUST be completed
-    and recorded in `hardening_review.md` with findings fixed, observability/diagnostics
-    changes, architecture/code-quality compliance, and proposals-only section.
-  phases:
-  - Verify
-  - Operate
-  - Publish
-  validation_command: make quality-hardening-review
-  evidence_artifacts:
-  - specs/<work-item>/hardening_review.md
-  owner: Architecture + Operations
-  gate: fail
-- id: SDD-C-018
-  normative_control: Consumer work that applies a temporary workaround for a blueprint-managed
-    defect MUST include upstream escalation lifecycle fields (issue URL, workaround
-    path, replacement trigger, review date) until upstream fix is adopted.
-  phases:
-  - Specify
-  - Plan
-  - Operate
-  - Publish
-  validation_command: make quality-sdd-check
-  evidence_artifacts:
-  - specs/<work-item>/spec.md
-  - .github/ISSUE_TEMPLATE/bug_report.yml
-  owner: Platform Engineering + Operations
-  gate: fail
-- id: SDD-C-019
-  normative_control: Specs MUST use explicit `[NEEDS CLARIFICATION]` markers for unresolved
-    inputs and MUST clear them (`Open clarification markers count = 0`) before `SPEC_READY=true`.
-  phases:
-  - Discover
-  - High-Level Architecture
-  - Specify
-  - Plan
-  validation_command: make quality-sdd-check
-  evidence_artifacts:
-  - specs/<work-item>/spec.md
-  owner: Product + Architecture
-  gate: fail
-- id: SDD-C-020
-  normative_control: Code-assistant execution MUST follow the full SDD lifecycle by
-    default; any SDD bypass MUST be an explicit user opt-out instruction captured
-    in work-item context.
-  phases:
-  - Discover
-  - High-Level Architecture
-  - Specify
-  - Plan
-  - Implement
-  - Verify
-  - Document
-  - Operate
-  - Publish
-  validation_command: make quality-sdd-check
-  evidence_artifacts:
-  - AGENTS.md
-  - CLAUDE.md
-  - specs/<work-item>/context_pack.md
-  owner: Product + Architecture
-  gate: fail
-- id: SDD-C-021
-  normative_control: Starting a new SDD work item via canonical scaffold tooling MUST
-    create and checkout a dedicated non-default branch unless an explicit opt-out
-    flag is provided.
-  phases:
-  - Discover
-  - Plan
-  validation_command: make quality-sdd-check
-  evidence_artifacts:
-  - blueprint/contract.yaml
-  - scripts/bin/blueprint/spec_scaffold.py
-  - make/blueprint.generated.mk
-  owner: Architecture + Engineering
-  gate: fail
-- id: SDD-C-022
-  normative_control: For work touching HTTP route handlers, query/filter logic, or
-    new API endpoints, plan and publish artifacts MUST include a local smoke gate
-    with positive-path curl assertions and explicit pr_context.md evidence (`Endpoint
-    | Method | Auth | Result`).
-  phases:
-  - Plan
-  - Verify
-  - Publish
-  validation_command: make quality-sdd-check
-  evidence_artifacts:
-  - specs/<work-item>/plan.md
-  - specs/<work-item>/pr_context.md
-  - specs/<work-item>/traceability.md
-  owner: Architecture + Operations
-  gate: fail
-- id: SDD-C-023
-  normative_control: For filter or payload-transform logic, test planning and implementation
-    MUST include at least one positive-path unit assertion with matching fixture/request
-    values and preserved output fields; empty-result-only assertions MUST NOT satisfy
-    this gate.
-  phases:
-  - Plan
-  - Implement
-  - Verify
-  validation_command: make quality-sdd-check
-  evidence_artifacts:
-  - specs/<work-item>/plan.md
-  - specs/<work-item>/tasks.md
-  - specs/<work-item>/traceability.md
-  owner: Architecture + Engineering
-  gate: fail
-- id: SDD-C-024
-  normative_control: Any reproducible pre-PR smoke/curl/deterministic-check finding
-    MUST be translated into a failing automated regression test first and turned green
-    with the implementation fix in the same work item; deterministic exceptions MUST
-    be explicitly documented in publish artifacts.
-  phases:
-  - Plan
-  - Implement
-  - Verify
-  - Publish
-  validation_command: make quality-sdd-check
-  evidence_artifacts:
-  - specs/<work-item>/plan.md
-  - specs/<work-item>/tasks.md
-  - specs/<work-item>/traceability.md
-  - specs/<work-item>/hardening_review.md
-  owner: Architecture + Engineering
-  gate: fail
+{
+  "catalog_version": 1,
+  "catalog_type": "sdd_controls",
+  "controls": [
+    {
+      "id": "SDD-C-001",
+      "normative_control": "Work items MUST remain blocked with BLOCKED_MISSING_INPUTS when required business or non-functional inputs are unresolved.",
+      "phases": ["Discover", "Specify"],
+      "validation_command": "make quality-sdd-check",
+      "evidence_artifacts": ["specs/<work-item>/spec.md"],
+      "owner": "Product + Architecture",
+      "gate": "fail"
+    },
+    {
+      "id": "SDD-C-002",
+      "normative_control": "Implementation MUST NOT start until SPEC_READY=true and all readiness counters/sign-offs satisfy the gate.",
+      "phases": ["Plan", "Implement"],
+      "validation_command": "make quality-sdd-check",
+      "evidence_artifacts": ["specs/<work-item>/spec.md", "specs/<work-item>/tasks.md"],
+      "owner": "Architecture",
+      "gate": "fail"
+    },
+    {
+      "id": "SDD-C-003",
+      "normative_control": "Implementation-ready specs MUST reference an approved ADR through ADR path and ADR status.",
+      "phases": ["High-Level Architecture", "Specify"],
+      "validation_command": "make quality-sdd-check",
+      "evidence_artifacts": ["specs/<work-item>/spec.md", "docs/**/architecture/decisions/*.md"],
+      "owner": "Architecture",
+      "gate": "fail"
+    },
+    {
+      "id": "SDD-C-004",
+      "normative_control": "Normative requirements MUST use deterministic wording (MUST, MUST NOT, SHALL, EXACTLY ONE OF) and MUST NOT use ambiguous terms.",
+      "phases": ["Specify"],
+      "validation_command": "make quality-sdd-check",
+      "evidence_artifacts": ["specs/<work-item>/spec.md"],
+      "owner": "Architecture",
+      "gate": "fail"
+    },
+    {
+      "id": "SDD-C-005",
+      "normative_control": "Each work item MUST define applicable SDD-C-### controls in the normative controls section.",
+      "phases": ["Specify", "Plan"],
+      "validation_command": "make quality-sdd-check",
+      "evidence_artifacts": ["specs/<work-item>/spec.md"],
+      "owner": "Architecture",
+      "gate": "fail"
+    },
+    {
+      "id": "SDD-C-006",
+      "normative_control": "Each work item MUST declare the implementation stack profile and agent execution model before code changes begin.",
+      "phases": ["High-Level Architecture", "Specify"],
+      "validation_command": "make quality-sdd-check",
+      "evidence_artifacts": ["specs/<work-item>/spec.md"],
+      "owner": "Architecture",
+      "gate": "fail"
+    },
+    {
+      "id": "SDD-C-007",
+      "normative_control": "Architecture and implementation slices MUST preserve Clean Architecture dependency direction and DDD bounded contexts.",
+      "phases": ["High-Level Architecture", "Implement"],
+      "validation_command": "make infra-validate",
+      "evidence_artifacts": ["specs/<work-item>/architecture.md", "implementation diff"],
+      "owner": "Architecture",
+      "gate": "fail"
+    },
+    {
+      "id": "SDD-C-008",
+      "normative_control": "Shift-left testing MUST prioritize the lowest valid layer and keep pyramid ratios aligned with governance policy.",
+      "phases": ["Plan", "Verify"],
+      "validation_command": "make quality-test-pyramid",
+      "evidence_artifacts": ["specs/<work-item>/traceability.md", "test outputs"],
+      "owner": "Engineering",
+      "gate": "fail"
+    },
+    {
+      "id": "SDD-C-009",
+      "normative_control": "Security controls MUST be explicit for authn/authz, secret handling, and least privilege in normative requirements.",
+      "phases": ["Discover", "Specify"],
+      "validation_command": "make quality-sdd-check",
+      "evidence_artifacts": ["specs/<work-item>/spec.md"],
+      "owner": "Security",
+      "gate": "fail"
+    },
+    {
+      "id": "SDD-C-010",
+      "normative_control": "Observability controls MUST define logs, metrics, traces, and diagnostics ownership for operated paths.",
+      "phases": ["Specify", "Operate"],
+      "validation_command": "make quality-sdd-check",
+      "evidence_artifacts": ["specs/<work-item>/spec.md", "specs/<work-item>/traceability.md"],
+      "owner": "Operations",
+      "gate": "fail"
+    },
+    {
+      "id": "SDD-C-011",
+      "normative_control": "Documentation MUST be updated in the Document phase for both blueprint and consumer perspectives when behavior/contracts change.",
+      "phases": ["Document"],
+      "validation_command": "make docs-build && make docs-smoke",
+      "evidence_artifacts": ["docs/blueprint/**", "docs/platform/**"],
+      "owner": "Documentation + Operations",
+      "gate": "fail"
+    },
+    {
+      "id": "SDD-C-012",
+      "normative_control": "Deterministic validation evidence MUST be captured in traceability before completion of the work item.",
+      "phases": ["Verify", "Operate"],
+      "validation_command": "make quality-hooks-run",
+      "evidence_artifacts": ["specs/<work-item>/traceability.md"],
+      "owner": "Engineering",
+      "gate": "fail"
+    },
+    {
+      "id": "SDD-C-013",
+      "normative_control": "Runtime capability specs targeting stackit-* profiles MUST prefer STACKIT managed services by default; any non-managed alternative MUST include explicit approved exception rationale.",
+      "phases": ["Discover", "Specify", "High-Level Architecture"],
+      "validation_command": "make quality-sdd-check",
+      "evidence_artifacts": ["specs/<work-item>/spec.md", "specs/<work-item>/architecture.md", "AGENTS.decisions.md"],
+      "owner": "Architecture + Operations",
+      "gate": "fail"
+    },
+    {
+      "id": "SDD-C-014",
+      "normative_control": "Work-item specs MUST declare the local-first runtime baseline (Docker Desktop Kubernetes context policy, Crossplane/Helm provisioning, ESO+Argo+Keycloak runtime identity) or record an explicit approved exception rationale.",
+      "phases": ["Discover", "High-Level Architecture", "Specify"],
+      "validation_command": "make quality-sdd-check",
+      "evidence_artifacts": ["specs/<work-item>/spec.md", "specs/<work-item>/architecture.md", "AGENTS.decisions.md"],
+      "owner": "Architecture + Operations",
+      "gate": "fail"
+    },
+    {
+      "id": "SDD-C-015",
+      "normative_control": "Plan and task artifacts MUST include the app onboarding minimum Make-target contract, including canonical port-forward wrappers, whenever implementation scope can affect app delivery workflows.",
+      "phases": ["Plan", "Implement", "Document", "Operate"],
+      "validation_command": "make quality-sdd-check",
+      "evidence_artifacts": ["specs/<work-item>/plan.md", "specs/<work-item>/tasks.md", "docs/platform/consumer/app_onboarding.md"],
+      "owner": "Architecture + Platform Engineering",
+      "gate": "fail"
+    },
+    {
+      "id": "SDD-C-016",
+      "normative_control": "Publish phase MUST include a deterministic PR context artifact (`pr_context.md`) with requirement coverage, key reviewer files, validation evidence, risk/rollback, and deferred proposals.",
+      "phases": ["Publish"],
+      "validation_command": "make quality-sdd-check",
+      "evidence_artifacts": ["specs/<work-item>/pr_context.md", ".github/pull_request_template.md"],
+      "owner": "Architecture + Engineering",
+      "gate": "fail"
+    },
+    {
+      "id": "SDD-C-017",
+      "normative_control": "Before publish, repository-wide hardening review MUST be completed and recorded in `hardening_review.md` with findings fixed, observability/diagnostics changes, architecture/code-quality compliance, and proposals-only section.",
+      "phases": ["Verify", "Operate", "Publish"],
+      "validation_command": "make quality-hardening-review",
+      "evidence_artifacts": ["specs/<work-item>/hardening_review.md"],
+      "owner": "Architecture + Operations",
+      "gate": "fail"
+    },
+    {
+      "id": "SDD-C-018",
+      "normative_control": "Consumer work that applies a temporary workaround for a blueprint-managed defect MUST include upstream escalation lifecycle fields (issue URL, workaround path, replacement trigger, review date) until upstream fix is adopted.",
+      "phases": ["Specify", "Plan", "Operate", "Publish"],
+      "validation_command": "make quality-sdd-check",
+      "evidence_artifacts": ["specs/<work-item>/spec.md", ".github/ISSUE_TEMPLATE/bug_report.yml"],
+      "owner": "Platform Engineering + Operations",
+      "gate": "fail"
+    },
+    {
+      "id": "SDD-C-019",
+      "normative_control": "Specs MUST use explicit `[NEEDS CLARIFICATION]` markers for unresolved inputs and MUST clear them (`Open clarification markers count = 0`) before `SPEC_READY=true`.",
+      "phases": ["Discover", "High-Level Architecture", "Specify", "Plan"],
+      "validation_command": "make quality-sdd-check",
+      "evidence_artifacts": ["specs/<work-item>/spec.md"],
+      "owner": "Product + Architecture",
+      "gate": "fail"
+    },
+    {
+      "id": "SDD-C-020",
+      "normative_control": "Code-assistant execution MUST follow the full SDD lifecycle by default; any SDD bypass MUST be an explicit user opt-out instruction captured in work-item context.",
+      "phases": ["Discover", "High-Level Architecture", "Specify", "Plan", "Implement", "Verify", "Document", "Operate", "Publish"],
+      "validation_command": "make quality-sdd-check",
+      "evidence_artifacts": ["AGENTS.md", "CLAUDE.md", "specs/<work-item>/context_pack.md"],
+      "owner": "Product + Architecture",
+      "gate": "fail"
+    },
+    {
+      "id": "SDD-C-021",
+      "normative_control": "Starting a new SDD work item via canonical scaffold tooling MUST create and checkout a dedicated non-default branch unless an explicit opt-out flag is provided.",
+      "phases": ["Discover", "Plan"],
+      "validation_command": "make quality-sdd-check",
+      "evidence_artifacts": ["blueprint/contract.yaml", "scripts/bin/blueprint/spec_scaffold.py", "make/blueprint.generated.mk"],
+      "owner": "Architecture + Engineering",
+      "gate": "fail"
+    },
+    {
+      "id": "SDD-C-022",
+      "normative_control": "For work touching HTTP route handlers, query/filter logic, or new API endpoints, plan and publish artifacts MUST include a local smoke gate with positive-path curl assertions and explicit pr_context.md evidence (`Endpoint | Method | Auth | Result`).",
+      "phases": ["Plan", "Verify", "Publish"],
+      "validation_command": "make quality-sdd-check",
+      "evidence_artifacts": ["specs/<work-item>/plan.md", "specs/<work-item>/pr_context.md", "specs/<work-item>/traceability.md"],
+      "owner": "Architecture + Operations",
+      "gate": "fail"
+    },
+    {
+      "id": "SDD-C-023",
+      "normative_control": "For filter or payload-transform logic, test planning and implementation MUST include at least one positive-path unit assertion with matching fixture/request values and preserved output fields; empty-result-only assertions MUST NOT satisfy this gate.",
+      "phases": ["Plan", "Implement", "Verify"],
+      "validation_command": "make quality-sdd-check",
+      "evidence_artifacts": ["specs/<work-item>/plan.md", "specs/<work-item>/tasks.md", "specs/<work-item>/traceability.md"],
+      "owner": "Architecture + Engineering",
+      "gate": "fail"
+    },
+    {
+      "id": "SDD-C-024",
+      "normative_control": "Any reproducible pre-PR smoke/curl/deterministic-check finding MUST be translated into a failing automated regression test first and turned green with the implementation fix in the same work item; deterministic exceptions MUST be explicitly documented in publish artifacts.",
+      "phases": ["Plan", "Implement", "Verify", "Publish"],
+      "validation_command": "make quality-sdd-check",
+      "evidence_artifacts": ["specs/<work-item>/plan.md", "specs/<work-item>/tasks.md", "specs/<work-item>/traceability.md", "specs/<work-item>/hardening_review.md"],
+      "owner": "Architecture + Engineering",
+      "gate": "fail"
+    }
+  ]
+}
