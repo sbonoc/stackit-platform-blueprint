@@ -978,6 +978,177 @@ def _collect_missing_platform_make_target_actions(
     return actions
 
 
+# Static mapping of optional module id → make targets rendered by render_makefile.sh when the module is enabled.
+# Keep in sync with scripts/bin/blueprint/render_makefile.sh:makefile_module_phony_suffix.
+_MODULE_MAKE_TARGETS: dict[str, frozenset[str]] = {
+    "observability": frozenset({
+        "infra-observability-plan",
+        "infra-observability-apply",
+        "infra-observability-deploy",
+        "infra-observability-smoke",
+        "infra-observability-destroy",
+    }),
+    "workflows": frozenset({
+        "infra-stackit-workflows-plan",
+        "infra-stackit-workflows-apply",
+        "infra-stackit-workflows-reconcile",
+        "infra-stackit-workflows-dag-deploy",
+        "infra-stackit-workflows-dag-parse-smoke",
+        "infra-stackit-workflows-smoke",
+        "infra-stackit-workflows-destroy",
+    }),
+    "langfuse": frozenset({
+        "infra-langfuse-plan",
+        "infra-langfuse-apply",
+        "infra-langfuse-deploy",
+        "infra-langfuse-smoke",
+        "infra-langfuse-destroy",
+    }),
+    "postgres": frozenset({
+        "infra-postgres-plan",
+        "infra-postgres-apply",
+        "infra-postgres-smoke",
+        "infra-postgres-destroy",
+    }),
+    "neo4j": frozenset({
+        "infra-neo4j-plan",
+        "infra-neo4j-apply",
+        "infra-neo4j-deploy",
+        "infra-neo4j-smoke",
+        "infra-neo4j-destroy",
+    }),
+    "object-storage": frozenset({
+        "infra-object-storage-plan",
+        "infra-object-storage-apply",
+        "infra-object-storage-smoke",
+        "infra-object-storage-destroy",
+    }),
+    "rabbitmq": frozenset({
+        "infra-rabbitmq-plan",
+        "infra-rabbitmq-apply",
+        "infra-rabbitmq-smoke",
+        "infra-rabbitmq-destroy",
+    }),
+    "opensearch": frozenset({
+        "infra-opensearch-plan",
+        "infra-opensearch-apply",
+        "infra-opensearch-smoke",
+        "infra-opensearch-destroy",
+    }),
+    "dns": frozenset({
+        "infra-dns-plan",
+        "infra-dns-apply",
+        "infra-dns-smoke",
+        "infra-dns-destroy",
+    }),
+    "public-endpoints": frozenset({
+        "infra-public-endpoints-plan",
+        "infra-public-endpoints-apply",
+        "infra-public-endpoints-deploy",
+        "infra-public-endpoints-smoke",
+        "infra-public-endpoints-destroy",
+    }),
+    "secrets-manager": frozenset({
+        "infra-secrets-manager-plan",
+        "infra-secrets-manager-apply",
+        "infra-secrets-manager-smoke",
+        "infra-secrets-manager-destroy",
+    }),
+    "kms": frozenset({
+        "infra-kms-plan",
+        "infra-kms-apply",
+        "infra-kms-smoke",
+        "infra-kms-destroy",
+    }),
+    "identity-aware-proxy": frozenset({
+        "infra-identity-aware-proxy-plan",
+        "infra-identity-aware-proxy-apply",
+        "infra-identity-aware-proxy-deploy",
+        "infra-identity-aware-proxy-smoke",
+        "infra-identity-aware-proxy-destroy",
+    }),
+}
+
+
+def _collect_stale_module_target_actions(
+    repo_root: Path,
+    contract: BlueprintContract,
+) -> list[RequiredManualAction]:
+    """Detect stale references to infra-<module>-* targets absent from make/blueprint.generated.mk.
+
+    When an optional module is disabled, render_makefile.sh omits its targets from the generated
+    makefile. Consumer CI workflows or make files that still invoke those targets will fail silently.
+    This helper surfaces each stale reference as a RequiredManualAction in the upgrade plan.
+    """
+    generated_mk_path = repo_root / "make/blueprint.generated.mk"
+    if not generated_mk_path.is_file():
+        return []
+
+    # Collect all target names present in the generated makefile.
+    active_targets = set(_make_target_definitions([("make/blueprint.generated.mk", generated_mk_path)]).keys())
+
+    # Find all module targets that are absent (module disabled).
+    absent_targets: set[str] = set()
+    for targets in _MODULE_MAKE_TARGETS.values():
+        for target in targets:
+            if target not in active_targets:
+                absent_targets.add(target)
+
+    if not absent_targets:
+        return []
+
+    # Build the set of consumer-owned files to scan for stale references.
+    scan_paths: list[tuple[str, Path]] = []
+    for rel_path in BLUEPRINT_MAKE_TARGET_REFERENCE_PATHS:
+        abs_path = repo_root / rel_path
+        if abs_path.is_file():
+            scan_paths.append((rel_path, abs_path))
+    for rel_path, abs_path in _collect_platform_make_paths(repo_root, contract):
+        scan_paths.append((rel_path, abs_path))
+
+    # Deduplicate scan paths (a file can appear in both lists).
+    seen_scan: set[str] = set()
+    deduped_scan: list[tuple[str, Path]] = []
+    for rel_path, abs_path in scan_paths:
+        key = abs_path.as_posix()
+        if key in seen_scan:
+            continue
+        seen_scan.add(key)
+        deduped_scan.append((rel_path, abs_path))
+
+    actions: list[RequiredManualAction] = []
+    for rel_path, abs_path in sorted(deduped_scan, key=lambda t: t[0]):
+        content = _read_text(abs_path)
+        for target in sorted(absent_targets):
+            # Match as a standalone word (not as part of a longer target name).
+            if not _file_content_references_make_target(content, target):
+                continue
+            actions.append(
+                RequiredManualAction(
+                    dependency_path=rel_path,
+                    dependency_of=f"{rel_path}: make {target}",
+                    reason=(
+                        f"stale reference to `{target}` in `{rel_path}`; "
+                        "this target is absent from make/blueprint.generated.mk because the module is disabled; "
+                        "remove or guard the reference before re-enabling the module"
+                    ),
+                    required_follow_up_commands=("make blueprint-render-makefile", "make blueprint-upgrade-consumer-validate"),
+                )
+            )
+    return actions
+
+
+def _file_content_references_make_target(content: str, target: str) -> bool:
+    """Return True if content contains a reference to target as a standalone make invocation."""
+    import re as _re
+    # Match `make <target>` or `$(MAKE) <target>` as a whole word occurrence.
+    pattern = _re.compile(
+        r"(?:make|\$\(MAKE\))\s+" + _re.escape(target) + r"(?:\s|$|[^-\w])",
+        _re.MULTILINE,
+    )
+    return bool(pattern.search(content))
+
+
 def _merge_required_manual_actions(*groups: list[RequiredManualAction]) -> list[RequiredManualAction]:
     merged: list[RequiredManualAction] = []
     seen: set[tuple[str, str, str, tuple[str, ...]]] = set()
@@ -1479,9 +1650,14 @@ def main() -> int:
             contract,
             source_contract,
         )
+        stale_module_target_actions = _collect_stale_module_target_actions(
+            repo_root,
+            contract,
+        )
         required_manual_actions = _merge_required_manual_actions(
             runtime_dependency_manual_actions,
             platform_make_target_manual_actions,
+            stale_module_target_actions,
         )
 
         plan_summary = _summarize_plan(entries, required_manual_actions)

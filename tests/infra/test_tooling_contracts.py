@@ -2574,5 +2574,81 @@ class AppDockerfileAndRuntimeTests(unittest.TestCase):
         )
 
 
+class PostgresContractKeyParityTests(unittest.TestCase):
+    """AC-001/AC-002: postgres module contract output key must match the ESO secretKey (Issue #137)."""
+
+    _MODULE_CONTRACT = REPO_ROOT / "blueprint/modules/postgres/module.contract.yaml"
+    _ESO_MANIFEST = REPO_ROOT / "infra/gitops/platform/base/security/runtime-external-secrets-core.yaml"
+
+    def test_postgres_module_contract_outputs_uses_postgres_db_name(self) -> None:
+        """AC-001: module.contract.yaml outputs.produced must list POSTGRES_DB_NAME, not POSTGRES_DB."""
+        import yaml as _yaml
+
+        self.assertTrue(
+            self._MODULE_CONTRACT.is_file(),
+            msg=f"postgres module contract not found: {self._MODULE_CONTRACT}",
+        )
+        contract = _yaml.safe_load(self._MODULE_CONTRACT.read_text(encoding="utf-8"))
+        produced = contract.get("spec", {}).get("outputs", {}).get("produced", [])
+        self.assertIn(
+            "POSTGRES_DB_NAME",
+            produced,
+            msg=(
+                "blueprint/modules/postgres/module.contract.yaml spec.outputs.produced "
+                "must contain POSTGRES_DB_NAME to match the ESO-emitted secret key (Issue #137)"
+            ),
+        )
+        self.assertNotIn(
+            "POSTGRES_DB",
+            produced,
+            msg=(
+                "blueprint/modules/postgres/module.contract.yaml spec.outputs.produced "
+                "must not contain POSTGRES_DB; the correct key is POSTGRES_DB_NAME (Issue #137)"
+            ),
+        )
+
+    def test_postgres_eso_manifest_uses_postgres_db_name_as_secret_key(self) -> None:
+        """AC-002: ESO manifest secretKey for postgres-runtime-credentials must be POSTGRES_DB_NAME."""
+        import yaml as _yaml
+
+        self.assertTrue(
+            self._ESO_MANIFEST.is_file(),
+            msg=f"ESO manifest not found: {self._ESO_MANIFEST}",
+        )
+        docs = list(_yaml.safe_load_all(self._ESO_MANIFEST.read_text(encoding="utf-8")))
+        postgres_es = next(
+            (
+                doc
+                for doc in docs
+                if isinstance(doc, dict)
+                and doc.get("kind") == "ExternalSecret"
+                and doc.get("metadata", {}).get("name") == "postgres-runtime-credentials"
+            ),
+            None,
+        )
+        self.assertIsNotNone(
+            postgres_es,
+            msg="ExternalSecret named postgres-runtime-credentials not found in runtime-external-secrets-core.yaml",
+        )
+        data_entries = postgres_es.get("spec", {}).get("data", [])  # type: ignore[union-attr]
+        secret_keys = [entry.get("secretKey") for entry in data_entries if isinstance(entry, dict)]
+        self.assertIn(
+            "POSTGRES_DB_NAME",
+            secret_keys,
+            msg=(
+                "postgres-runtime-credentials ExternalSecret must have secretKey: POSTGRES_DB_NAME; "
+                "found: " + repr(secret_keys) + " (Issue #137)"
+            ),
+        )
+        self.assertNotIn(
+            "POSTGRES_DB",
+            secret_keys,
+            msg=(
+                "postgres-runtime-credentials ExternalSecret must not have secretKey: POSTGRES_DB; "
+                "the correct key is POSTGRES_DB_NAME (Issue #137)"
+            ),
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
