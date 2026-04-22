@@ -191,6 +191,11 @@ run_cmd python3 "$ROOT_DIR/scripts/lib/platform/apps/catalog_scaffold_renderer.p
   --app-runtime-gitops-enabled "$app_runtime_gitops_enabled" \
   --observability-enabled "$OBSERVABILITY_ENABLED_NORMALIZED"
 
+run_cmd python3 "$ROOT_DIR/scripts/lib/platform/apps/version_contract_checker.py" \
+  --mode consistency \
+  --versions-lock "$versions_lock" \
+  --manifest "$manifest"
+
 state_file="$(
   write_state_file "apps_smoke" \
     "profile=$BLUEPRINT_PROFILE" \

@@ -1,0 +1,118 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-04-23-issue-56-app-version-contract-checks",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "audit-versions verifies each tracked var matches versions.lock exact VAR=value"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "audit-versions verifies each tracked var's value present under canonical YAML key in manifest"
+    },
+    {
+      "id": "FR-003",
+      "type": "requirement",
+      "summary": "audit-versions increments failures and emits apps_version_contract_check_total metric"
+    },
+    {
+      "id": "FR-004",
+      "type": "requirement",
+      "summary": "audit-versions-cached includes catalog files in fingerprint when they exist"
+    },
+    {
+      "id": "FR-005",
+      "type": "requirement",
+      "summary": "apps-smoke verifies lock and manifest are mutually consistent when catalog enabled"
+    },
+    {
+      "id": "FR-006",
+      "type": "requirement",
+      "summary": "contract checker runs without PyYAML using regex line-matching"
+    },
+    {
+      "id": "FR-007",
+      "type": "requirement",
+      "summary": "all contract check failures report file path, expected snippet, and actual value"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "checker reads only local files via pathlib; no network, subprocess, or shell injection"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "apps_version_contract_check_total metric emitted with status label per invocation"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "when catalog files absent, contract checks skipped without error; audit proceeds normally"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "human-readable per-check stdout report; non-zero exit when any check fails"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "check_versions_lock returns failing result for stale var in lock file"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "check_manifest_yaml returns failing result for missing yaml_key:value line in manifest"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "check_catalog_consistency returns failing result when lock var value mismatches manifest"
+    },
+    {
+      "id": "AC-004",
+      "type": "acceptance",
+      "summary": "stale FASTAPI_VERSION in versions.lock causes audit_versions to exit non-zero"
+    },
+    {
+      "id": "AC-005",
+      "type": "acceptance",
+      "summary": "no catalog files present: contract checks skipped, apps_version_contract_check_total not emitted"
+    },
+    {
+      "id": "AC-006",
+      "type": "acceptance",
+      "summary": "fingerprint includes catalog files when present, excludes when absent"
+    },
+    {
+      "id": "AC-007",
+      "type": "acceptance",
+      "summary": "apps-smoke (catalog enabled) exits non-zero when lock and manifest are inconsistent"
+    }
+  ],
+  "edges": [
+    { "from": "FR-001", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-001", "to": "AC-004", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-002", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-004", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-005", "relation": "validated_by" },
+    { "from": "FR-004", "to": "AC-006", "relation": "validated_by" },
+    { "from": "FR-005", "to": "AC-003", "relation": "validated_by" },
+    { "from": "FR-005", "to": "AC-007", "relation": "validated_by" },
+    { "from": "FR-006", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-006", "to": "AC-002", "relation": "validated_by" },
+    { "from": "FR-007", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-007", "to": "AC-002", "relation": "validated_by" },
+    { "from": "FR-007", "to": "AC-003", "relation": "validated_by" },
+    { "from": "NFR-SEC-001", "to": "FR-001", "relation": "constrains" },
+    { "from": "NFR-SEC-001", "to": "FR-002", "relation": "constrains" },
+    { "from": "NFR-OBS-001", "to": "FR-003", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "FR-001", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "FR-002", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "FR-003", "relation": "constrains" },
+    { "from": "NFR-OPS-001", "to": "FR-007", "relation": "constrains" }
+  ]
+}

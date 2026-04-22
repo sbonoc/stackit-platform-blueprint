@@ -112,6 +112,28 @@ for var_name in "${tracked_vars[@]}"; do
   audit_var "$var_name"
 done
 
+contract_checks_run=0
+contract_failures=0
+catalog_lock="$ROOT_DIR/apps/catalog/versions.lock"
+catalog_manifest="$ROOT_DIR/apps/catalog/manifest.yaml"
+
+if [[ -f "$catalog_lock" || -f "$catalog_manifest" ]]; then
+  contract_checker_args=(--mode catalog-check)
+  [[ -f "$catalog_lock" ]] && contract_checker_args+=(--versions-lock "$catalog_lock")
+  [[ -f "$catalog_manifest" ]] && contract_checker_args+=(--manifest "$catalog_manifest")
+  for var_name in "${tracked_vars[@]}"; do
+    contract_checker_args+=(--var "$var_name=${!var_name}")
+  done
+  contract_checks_run=1
+  if ! run_cmd python3 "$ROOT_DIR/scripts/lib/platform/apps/version_contract_checker.py" \
+      "${contract_checker_args[@]}"; then
+    contract_failures=1
+    failures=$((failures + 1))
+  fi
+fi
+log_metric "apps_version_contract_check_total" "$contract_checks_run" \
+  "status=$([ "$contract_failures" -eq 0 ] && echo success || echo failure)"
+
 summary_status="success"
 if [[ $warnings -gt 0 ]]; then
   summary_status="warning"
@@ -122,7 +144,7 @@ fi
 log_metric \
   "apps_version_audit_summary_total" \
   "1" \
-  "tracked=${#tracked_vars[@]} warnings=$warnings failures=$failures status=$summary_status"
+  "tracked=${#tracked_vars[@]} warnings=$warnings failures=$failures contract_checks=$contract_checks_run contract_failures=$contract_failures status=$summary_status"
 
 if [[ $warnings -gt 0 ]]; then
   log_warn "apps version audit completed with $warnings warning(s)"
