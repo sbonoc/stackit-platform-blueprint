@@ -1,0 +1,63 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-04-23-issue-166-run-cmd-capture-stderr-isolation",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "run_cmd_capture MUST capture stdout only; 2>&1 MUST be removed"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "run_cmd_capture MUST carry a doc comment stating the stdout-only contract"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "Fix introduces no new env vars, subprocess calls, or shell injection vectors"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "On failure, run_cmd_capture MUST still print captured stdout to stderr"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "All 12 existing call sites MUST continue to work correctly after the change"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "Body of run_cmd_capture does NOT contain 2>&1"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "run_cmd_capture carries an inline doc comment describing stdout-only contract"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "scripts/lib/shell/exec.sh passes shellcheck --severity=error after change"
+    },
+    {
+      "id": "AC-004",
+      "type": "acceptance",
+      "summary": "Structural test in contract_refactor_scripts_cases.py asserts AC-001 and AC-002"
+    }
+  ],
+  "edges": [
+    { "from": "FR-001", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-001", "to": "AC-003", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-002", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-004", "relation": "validated_by" },
+    { "from": "NFR-SEC-001", "to": "AC-001", "relation": "constrains" },
+    { "from": "NFR-SEC-001", "to": "AC-003", "relation": "constrains" },
+    { "from": "NFR-OBS-001", "to": "AC-001", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "AC-003", "relation": "validated_by" },
+    { "from": "AC-001", "to": "AC-004", "relation": "validated_by" },
+    { "from": "AC-002", "to": "AC-004", "relation": "validated_by" }
+  ]
+}

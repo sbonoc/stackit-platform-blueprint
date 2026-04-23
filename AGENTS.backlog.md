@@ -27,7 +27,7 @@ The items below form a layered programme: #166 and #169 ship first (#160 already
 #### Phase 1 — Foundation and quick wins (parallel)
 
 - [x] P1 (Consumer upgrade flow): Issue #160 — `consumer_seeded_paths` not honoured in `ensure_infra_template_file`/`ensure_infra_rendered_file`; placeholder manifests recreated on every bootstrap run. **Done**: `specs/2026-04-23-issue-160-bootstrap-consumer-seeded-paths-guard/`
-- [ ] P1 (Consumer upgrade flow): Issue #166 — `run_cmd_capture` merges stderr into stdout, corrupting parsed command output; any caller that parses the result receives injected warning lines, silently returning wrong values in environment-dependent ways. Fix: capture stdout only for parsing callers, or provide a clearly named stdout-only variant and document the hazard on the existing helper.
+- [x] P1 (Consumer upgrade flow): Issue #166 — `run_cmd_capture` merges stderr into stdout, corrupting parsed command output; any caller that parses the result receives injected warning lines, silently returning wrong values in environment-dependent ways. Fixed by removing `2>&1` from `run_cmd_capture` so it captures stdout only. **Done**: `specs/2026-04-23-issue-166-run-cmd-capture-stderr-isolation/`
 - [ ] P1 (Consumer upgrade flow): Issue #169 — add end-to-end consumer upgrade validation job in blueprint CI before tag publication; provisions a reference consumer at the previous stable tag, runs the full upgrade flow to the candidate tag, and runs post-upgrade smoke gates in a clean environment. Foundation that makes all Phase 2 correctness gates (#162, #163) automated regression tests on every release.
 
 #### Phase 2 — Correctness gates (implement inside the Phase 1 CI job)

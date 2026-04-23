@@ -639,3 +639,15 @@ class ScriptsRefactorCases(RefactorContractBase):
         # generated-consumer mode.
         self.assertIn("consumer_seeded_paths = set(repository.consumer_seeded_paths)", validate_contract)
         self.assertIn("relative_path not in consumer_seeded_paths", validate_contract)
+
+    def test_run_cmd_capture_does_not_merge_stderr_into_stdout(self) -> None:
+        exec_sh = _read("scripts/lib/shell/exec.sh")
+        # run_cmd_capture must capture stdout only; 2>&1 was removed to prevent
+        # stderr from subprocesses from corrupting parsed output (issue #166).
+        func_start = exec_sh.find("run_cmd_capture()")
+        self.assertGreater(func_start, -1, "run_cmd_capture function not found in exec.sh")
+        # Find the closing brace of the function
+        func_body = exec_sh[func_start:func_start + 300]
+        self.assertNotIn("2>&1", func_body, "run_cmd_capture must not contain 2>&1 (stdout-only contract)")
+        # A doc comment describing the stdout-only contract must be present
+        self.assertIn("stdout only", exec_sh, "run_cmd_capture must carry a doc comment stating stdout-only contract")

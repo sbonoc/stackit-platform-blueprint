@@ -1,0 +1,58 @@
+{
+  "manifest_version": 1,
+  "work_item": "specs/2026-04-23-issue-166-run-cmd-capture-stderr-isolation",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-04-23T09:43:38Z",
+  "files": [
+    {
+      "path": "specs/2026-04-23-issue-166-run-cmd-capture-stderr-isolation/architecture.md",
+      "sha256": "1b3a52aa3c10f8d4f58afbe1a87277f7d3b57665e7d9d3cbfff0f6f674397795",
+      "bytes": 3361
+    },
+    {
+      "path": "specs/2026-04-23-issue-166-run-cmd-capture-stderr-isolation/context_pack.md",
+      "sha256": "c5f24dfdc866bff1ac07e84a3fc836a366cec5b1fe4108a27a20e5ec3c1e31b1",
+      "bytes": 796
+    },
+    {
+      "path": "specs/2026-04-23-issue-166-run-cmd-capture-stderr-isolation/evidence_manifest.json",
+      "sha256": "ecb0eea40122794ca8f062212e022ba451f6d0a543b88db3d7c15e65a071e7f7",
+      "bytes": 161
+    },
+    {
+      "path": "specs/2026-04-23-issue-166-run-cmd-capture-stderr-isolation/graph.json",
+      "sha256": "770691e2ab42a058fca1e555bbb3e44ebb1c82315e11b1d394789dee82868f92",
+      "bytes": 2242
+    },
+    {
+      "path": "specs/2026-04-23-issue-166-run-cmd-capture-stderr-isolation/hardening_review.md",
+      "sha256": "30a19468553ec66808edffed4c8436aa3674adccd4178667ee2cede2a9abd946",
+      "bytes": 1267
+    },
+    {
+      "path": "specs/2026-04-23-issue-166-run-cmd-capture-stderr-isolation/plan.md",
+      "sha256": "e46234c70982aa64d78887d3f62c5a800c2f0344044a478a8ab446f1664fca90",
+      "bytes": 3892
+    },
+    {
+      "path": "specs/2026-04-23-issue-166-run-cmd-capture-stderr-isolation/pr_context.md",
+      "sha256": "b74f9bd21faa7cfaca28319629a1e94157a83a952a79fea285c0937580951dcb",
+      "bytes": 1885
+    },
+    {
+      "path": "specs/2026-04-23-issue-166-run-cmd-capture-stderr-isolation/spec.md",
+      "sha256": "2b4d44f6821387b761d905efce8f2ac61e10c59a5c4e88eafdb275a9c9e5d84b",
+      "bytes": 6323
+    },
+    {
+      "path": "specs/2026-04-23-issue-166-run-cmd-capture-stderr-isolation/tasks.md",
+      "sha256": "63c3eae13999bd414dc259ea561f3d562b497be58337f544c7d231d77aa335d8",
+      "bytes": 2689
+    },
+    {
+      "path": "specs/2026-04-23-issue-166-run-cmd-capture-stderr-isolation/traceability.md",
+      "sha256": "c8b2f9db9308800f24d2c305882e02399e4088ff49382d20f31cc9c0e298e89f",
+      "bytes": 2834
+    }
+  ]
+}

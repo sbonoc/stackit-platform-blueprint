@@ -10,9 +10,12 @@ run_cmd() {
   "$@"
 }
 
+# run_cmd_capture: captures stdout only. stderr from the subprocess passes
+# through to the shell's stderr unmodified and is directly visible to the
+# caller. Safe for output-parsing and file-redirect call sites.
 run_cmd_capture() {
   local output
-  output="$("$@" 2>&1)" || {
+  output="$("$@")" || {
     printf '%s\n' "$output" >&2
     return 1
   }
