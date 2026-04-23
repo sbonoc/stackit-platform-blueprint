@@ -644,10 +644,44 @@ class ScriptsRefactorCases(RefactorContractBase):
         exec_sh = _read("scripts/lib/shell/exec.sh")
         # run_cmd_capture must capture stdout only; 2>&1 was removed to prevent
         # stderr from subprocesses from corrupting parsed output (issue #166).
-        func_start = exec_sh.find("run_cmd_capture()")
-        self.assertGreater(func_start, -1, "run_cmd_capture function not found in exec.sh")
-        # Find the closing brace of the function
-        func_body = exec_sh[func_start:func_start + 300]
-        self.assertNotIn("2>&1", func_body, "run_cmd_capture must not contain 2>&1 (stdout-only contract)")
-        # A doc comment describing the stdout-only contract must be present
-        self.assertIn("stdout only", exec_sh, "run_cmd_capture must carry a doc comment stating stdout-only contract")
+        func_def = "run_cmd_capture() {"
+        func_start = exec_sh.find(func_def)
+        self.assertGreater(func_start, -1, "run_cmd_capture() function not found in exec.sh")
+
+        # Locate the exact end of the function body by tracking brace depth.
+        brace_start = exec_sh.index("{", func_start)
+        depth = 0
+        func_end = brace_start
+        for idx, ch in enumerate(exec_sh[brace_start:], start=brace_start):
+            if ch == "{":
+                depth += 1
+            elif ch == "}":
+                depth -= 1
+                if depth == 0:
+                    func_end = idx + 1
+                    break
+
+        # Include the doc comment block immediately preceding the function
+        # definition so the adjacency assertion is anchored to this function.
+        lines_before = exec_sh[:func_start].splitlines(keepends=True)
+        comment_start = func_start
+        for line in reversed(lines_before):
+            if line.strip().startswith("#"):
+                comment_start -= len(line)
+            else:
+                break
+
+        func_region = exec_sh[comment_start:func_end]
+
+        self.assertNotIn(
+            "2>&1",
+            func_region,
+            "run_cmd_capture must not contain 2>&1 (stdout-only contract, issue #166)",
+        )
+        # The doc comment stating the stdout-only contract must be directly
+        # above the function definition, not somewhere else in the file.
+        self.assertIn(
+            "stdout only",
+            func_region,
+            "run_cmd_capture must carry a doc comment stating stdout-only contract immediately above its definition",
+        )

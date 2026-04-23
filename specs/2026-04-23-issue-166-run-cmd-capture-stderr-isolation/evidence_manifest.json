@@ -2,7 +2,7 @@
   "manifest_version": 1,
   "work_item": "specs/2026-04-23-issue-166-run-cmd-capture-stderr-isolation",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "2026-04-23T09:43:38Z",
+  "generated_at_utc": "2026-04-23T09:53:36Z",
   "files": [
     {
       "path": "specs/2026-04-23-issue-166-run-cmd-capture-stderr-isolation/architecture.md",
@@ -16,8 +16,8 @@
     },
     {
       "path": "specs/2026-04-23-issue-166-run-cmd-capture-stderr-isolation/evidence_manifest.json",
-      "sha256": "ecb0eea40122794ca8f062212e022ba451f6d0a543b88db3d7c15e65a071e7f7",
-      "bytes": 161
+      "sha256": "8427b1b7608cbd03d19acde294ceb604901a16078e559d01ebcae5b40bb16e78",
+      "bytes": 2292
     },
     {
       "path": "specs/2026-04-23-issue-166-run-cmd-capture-stderr-isolation/graph.json",
@@ -51,8 +51,8 @@
     },
     {
       "path": "specs/2026-04-23-issue-166-run-cmd-capture-stderr-isolation/traceability.md",
-      "sha256": "c8b2f9db9308800f24d2c305882e02399e4088ff49382d20f31cc9c0e298e89f",
-      "bytes": 2834
+      "sha256": "fba3cb3930270e3f7758b4fea06bad5e7be666ec06ca26dae80c7b41e325676a",
+      "bytes": 3057
     }
   ]
 }
