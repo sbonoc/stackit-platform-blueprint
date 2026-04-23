@@ -17,9 +17,36 @@
 - [x] P1 (SDD publish-gate gap): add a `quality-spec-pr-ready` make target (new script `scripts/bin/quality/check_spec_pr_ready.py`) to detect unfilled scaffold placeholders and incomplete publish artifacts in `plan.md`, `tasks.md`, `hardening_review.md`, and `pr_context.md` before a PR is opened. **Done**: `specs/2026-04-22-quality-spec-pr-ready-publish-gate/`
 
 - [ ] P2 (Ownership checker robustness): support normalized equivalence for semantically-identical prune-glob expressions in ownership-matrix documentation checks.
-- [x] P2 (Bootstrap correctness): Issue #160 — `consumer_seeded_paths` not honoured in `ensure_infra_template_file`/`ensure_infra_rendered_file`; placeholder manifests recreated on every checkout. **Done**: `specs/2026-04-23-issue-160-bootstrap-consumer-seeded-paths-guard/`
 - [x] P2 (Capability enhancements): Issue #56 — expand app dependency pin auditing. **Done**: `specs/2026-04-23-issue-56-app-version-contract-checks/`
 - [x] P2 (Capability enhancements): Issue #131 — add blueprint uplift convergence status command. **Done**: `specs/2026-04-22-issue-131-blueprint-uplift-status/`
+
+### Consumer upgrade flow improvements
+
+The items below form a layered programme: #166 and #169 ship first (#160 already done); #162 and #163 run inside the CI job introduced by #169; #164 and #165 improve the reporting layer once the correctness foundation is solid; #167 and #168 deliver the best long-term consumer experience on top of a proven baseline.
+
+#### Phase 1 — Foundation and quick wins (parallel)
+
+- [x] P1 (Consumer upgrade flow): Issue #160 — `consumer_seeded_paths` not honoured in `ensure_infra_template_file`/`ensure_infra_rendered_file`; placeholder manifests recreated on every bootstrap run. **Done**: `specs/2026-04-23-issue-160-bootstrap-consumer-seeded-paths-guard/`
+- [ ] P1 (Consumer upgrade flow): Issue #166 — `run_cmd_capture` merges stderr into stdout, corrupting parsed command output; any caller that parses the result receives injected warning lines, silently returning wrong values in environment-dependent ways. Fix: capture stdout only for parsing callers, or provide a clearly named stdout-only variant and document the hazard on the existing helper.
+- [ ] P1 (Consumer upgrade flow): Issue #169 — add end-to-end consumer upgrade validation job in blueprint CI before tag publication; provisions a reference consumer at the previous stable tag, runs the full upgrade flow to the candidate tag, and runs post-upgrade smoke gates in a clean environment. Foundation that makes all Phase 2 correctness gates (#162, #163) automated regression tests on every release.
+
+#### Phase 2 — Correctness gates (implement inside the Phase 1 CI job)
+
+- [ ] P1 (Consumer upgrade flow): Issue #162 — add post-merge behavioral validation gate for merge-required plan entries; run `bash -n` on all modified shell scripts and resolve function call sites to verify no definition was silently dropped by a 3-way merge. Catches the most dangerous upgrade failure class: a green merge that produces `command not found` at runtime.
+- [ ] P1 (Consumer upgrade flow): Issue #163 — run the post-upgrade smoke gate in a temporary clean worktree (fresh-environment simulation) so CI-only failures — files absent on a fresh checkout but present in the developer's working tree — are surfaced during the local upgrade run, before the PR is opened.
+
+#### Phase 3 — Reporting and guidance improvements
+
+- [ ] P2 (Consumer upgrade flow): Issue #164 — in the upgrade preflight report, list all version pin changes in `versions.sh` between the two tags and map each changed pin to the template files it affects; provide an explicit action item to sync them after `infra-bootstrap` rather than leaving the consumer to discover template drift reactively via `infra-validate`.
+- [ ] P2 (Consumer upgrade flow): Issue #165 — enrich merge-required plan entries with semantic annotations describing what changed in each file and what the consumer should verify after applying the merge (e.g. "new function `foo` added — verify definition is present in merged result"); annotations appear in both the plan output and the post-apply report.
+
+#### Phase 4 — Major UX improvements (build on the stable correctness foundation)
+
+- [ ] P2 (Consumer upgrade flow): Issue #167 — add `BLUEPRINT_UPGRADE_DRY_RUN=true` flag that simulates all file mutations (copy, 3-way merge, skip, consumer-owned) and outputs a unified diff of the full change set without touching the working tree; reports the same warnings, conflicts, and behavioral failures the real apply would surface so consumers can review the exact change before committing to apply.
+- [ ] P2 (Consumer upgrade flow): Issue #168 — add incremental tag-to-tag upgrade mode (`BLUEPRINT_UPGRADE_INCREMENTAL=true`) that applies changes one release at a time, surfacing a per-release changelog and cherry-pick plan at each step with resume support on conflict; batch mode remains the default.
+
+---
+
 - [ ] Add an automated bundled-skill contract verifier to enforce parity across `.agents/skills/**`, consumer-template fallbacks, install make targets, and docs references.
 - [ ] Add a contract-level traceability verifier that checks every declared requirement ID in `spec.md` maps to implementation paths and at least one automated test assertion.
 - [ ] Add a declarative module action manifest (`apply/plan/smoke/destroy`) to replace duplicated wrapper branching and keep runtime/CI execution paths deterministic.
