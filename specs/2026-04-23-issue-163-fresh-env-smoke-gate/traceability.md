@@ -29,11 +29,16 @@
   - AC-001, AC-002, AC-003, AC-004, AC-005
 
 ## Validation Summary
-- Required bundles executed: (pending — to be filled during Verify phase)
-- Result summary: (pending)
+- Required bundles executed:
+  - `pytest tests/blueprint/test_upgrade_fresh_env_gate.py` — 16 passed in 2.44s (8 unit, 8 integration)
+  - `make quality-sdd-check` — clean
+  - `make infra-validate` — clean (make/blueprint.generated.mk and blueprint/contract.yaml validated)
+  - `make quality-hardening-review` — clean
+  - `make quality-docs-check-changed` — clean after regenerating core_targets.generated.md and classifying test file in test_pyramid_contract.json
+- Result summary: all 16 tests pass; no TODO/FIXME/dead code in touched scope; no stale artifacts
 - Documentation validation:
-  - `make docs-build`
-  - `make docs-smoke`
+  - `make docs-build` — see T-405 (pending live docs build)
+  - `make docs-smoke` — see T-406 (pending live docs smoke)
 
 ## Evidence Manifest
 - Manifest file: `evidence_manifest.json`
