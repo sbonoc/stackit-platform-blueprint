@@ -84,6 +84,9 @@ _FUNC_DEF_EXTRACT = [
 # Source directive: `source path` or `. path`
 _SOURCE_RE = re.compile(r'^\s*(?:source|\.)\s+(.+)')
 
+# Heredoc start marker: <<MARKER, <<'MARKER', <<"MARKER", <<-MARKER, etc.
+_HEREDOC_START_RE = re.compile(r'<<-?\s*[\'"]?(\w+)[\'"]?')
+
 # Comment line
 _COMMENT_RE = re.compile(r'^\s*#')
 
@@ -197,21 +200,48 @@ def _find_unresolved_call_sites(
 
     Only non-comment, non-definition, non-assignment lines are scanned.
     Only tokens not in the builtins exclusion set are checked.
+    Heredoc bodies and case-label lines are skipped to prevent false positives.
     Returns list of {"symbol": str, "line": int}.
     """
     findings: list[dict[str, Any]] = []
+    heredoc_marker: str | None = None
     for lineno, line in enumerate(content.splitlines(), start=1):
+        stripped = line.strip()
+
+        # Heredoc body tracking — skip all lines between <<MARKER and MARKER.
+        # Must come before the comment check so that body lines starting with
+        # "#" are still consumed as body content rather than treated as comments.
+        if heredoc_marker is not None:
+            if stripped == heredoc_marker:
+                heredoc_marker = None
+            continue
+
         if _COMMENT_RE.match(line):
             continue
         if _ASSIGNMENT_RE.match(line):
             continue
         if _is_definition_line(line):
             continue
+
+        # Detect heredoc start before the token checks so that lines like
+        # ``cat <<'EOF'`` correctly activate heredoc tracking even when the
+        # first token (``cat``) is an excluded builtin and would otherwise
+        # cause an early ``continue`` before the detection could run.
+        m = _HEREDOC_START_RE.search(line)
+        if m:
+            heredoc_marker = m.group(1)
+
         token = _first_token(line)
         if token is None:
             continue
         if token in _EXCLUDED_TOKENS:
             continue
+
+        # Skip case-label lines — a first token immediately followed by ")" is
+        # a case alternative pattern, not a function call.
+        if stripped.startswith(token + ")"):
+            continue
+
         if token not in available_defs:
             findings.append({"symbol": token, "line": lineno})
     return findings

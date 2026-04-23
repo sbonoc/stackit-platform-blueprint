@@ -133,6 +133,30 @@ class TestRunBehavioralCheckEmptyInput(unittest.TestCase):
         self.assertEqual(result.unresolved_symbols, [])
 
 
+class TestRunBehavioralCheckHeredocBody(unittest.TestCase):
+    """Tokens inside heredoc bodies must not be flagged as unresolved symbols."""
+
+    def test_heredoc_body_not_flagged(self) -> None:
+        """Words like Run, Usage, DESCRIPTION inside <<'EOF'...EOF are not calls."""
+        script = FIXTURE_DIR / "heredoc_script.sh"
+        result = run_behavioral_check([script], repo_root=REPO_ROOT)
+
+        self.assertEqual(result.status, "pass", msg=str(result.as_dict()))
+        self.assertEqual(result.unresolved_symbols, [])
+
+
+class TestRunBehavioralCheckCaseLabel(unittest.TestCase):
+    """Case statement labels must not be flagged as unresolved symbols."""
+
+    def test_case_label_not_flagged(self) -> None:
+        """Labels like postcheck_status) and postcheck_report) are not calls."""
+        script = FIXTURE_DIR / "case_label_script.sh"
+        result = run_behavioral_check([script], repo_root=REPO_ROOT)
+
+        self.assertEqual(result.status, "pass", msg=str(result.as_dict()))
+        self.assertEqual(result.unresolved_symbols, [])
+
+
 class TestRunBehavioralCheckAsDict(unittest.TestCase):
     """Result as_dict() must include all required fields for JSON serialisation."""
 
