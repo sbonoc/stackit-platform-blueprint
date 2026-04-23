@@ -125,6 +125,49 @@ Examples:
 - `RABBITMQ_ENABLED=true`, `PUBLIC_ENDPOINTS_ENABLED=true`, and `IDENTITY_AWARE_PROXY_ENABLED=true` materialize module-specific ArgoCD `Application` manifests under `infra/gitops/argocd/optional/${ENV}/`.
 - `POSTGRES_ENABLED=true`, `OBJECT_STORAGE_ENABLED=true`, `DNS_ENABLED=true`, `SECRETS_MANAGER_ENABLED=true`, and `OBSERVABILITY_ENABLED=true` are reconciled by the STACKIT `foundation` Terraform layer.
 
+## Merge-Required Semantic Annotations
+
+Every `merge-required` entry in the upgrade plan carries a `semantic` annotation generated from
+the baseline-to-source static diff. Annotations appear in three upgrade artifacts:
+
+- `artifacts/blueprint/upgrade_plan.json` — under each `merge-required` entry as `entry.semantic`
+- `artifacts/blueprint/upgrade_summary.md` — in the **Merge-Required Annotations** section
+- `artifacts/blueprint/upgrade_apply.json` — under each `result=merged` or `result=conflict` result item
+
+Each annotation has three fields:
+
+| Field | Type | Description |
+|---|---|---|
+| `kind` | string (closed set) | Category of change detected |
+| `description` | string | Human-readable summary naming the changed symbol and its new value |
+| `verification_hints` | string[] | Concrete actions the consumer should take after applying the merge |
+
+Closed-set `kind` values (detection order — first match wins):
+
+| `kind` | Triggered when |
+|---|---|
+| `function-added` | Source contains a shell function whose name is absent from the baseline |
+| `function-removed` | Baseline contains a shell function whose name is absent from the source |
+| `variable-changed` | A variable assignment (`VAR=value`) differs in value between baseline and source |
+| `source-directive-added` | Source adds a `source` or `.` directive that is absent from the baseline |
+| `structural-change` | No specific pattern matched, or the baseline is absent (additive file) |
+
+Detection is static regex analysis only — no file content is executed.
+Complex diffs or large refactors that match no pattern receive `kind=structural-change`,
+a safe, always-actionable fallback ("manually review the diff").
+
+Additive files (absent from the baseline tag, present at source HEAD) always receive
+`kind=structural-change` with `description="Additive file: no baseline ancestor exists"`
+because the entire file is new and a diff-based kind cannot be inferred.
+
+A per-entry annotation failure falls back silently to `structural-change` and logs a warning;
+plan generation continues uninterrupted.
+
+Annotation coverage is logged during plan generation:
+```
+semantic annotator: merge-required=N auto=M fallback=P
+```
+
 ## Make and Script Ownership
 - `Makefile` is a blueprint-managed loader.
 - blueprint-managed targets are rendered into `make/blueprint.generated.mk`.

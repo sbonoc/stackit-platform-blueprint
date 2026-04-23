@@ -61,6 +61,10 @@ manual-merge/conflict paths, required follow-up commands, and missing contract-r
 Inspect `artifacts/blueprint/upgrade_plan.json`, `artifacts/blueprint/upgrade_apply.json`, and
 `artifacts/blueprint/upgrade_summary.md` after each run. Inspect
 `artifacts/blueprint/upgrade/upgrade_reconcile_report.json` for blocking buckets.
+`merge-required` entries carry a `semantic` annotation (`kind`, `description`, `verification_hints`)
+auto-generated from the baseline-to-source diff; the **Merge-Required Annotations** section in
+`upgrade_summary.md` lists one annotated entry per merge path with the kind, description, and
+hints to verify after applying.
 When `required_manual_actions` is non-empty,
 resolve the listed dependency paths first, then re-run `make blueprint-upgrade-consumer-validate`.
 When postcheck reports status `failure`, resolve blocked reasons and re-run `make blueprint-upgrade-consumer-postcheck`.
