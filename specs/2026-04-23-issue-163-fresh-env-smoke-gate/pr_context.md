@@ -11,7 +11,10 @@
 - Contract surfaces changed: `blueprint/contract.yaml` and template — new required target `blueprint-upgrade-fresh-env-gate`; `make/blueprint.generated.mk` and template — new `.PHONY` + recipe; `SKILL.md` and template — step 6 added to upgrade sequence.
 
 ## Key Reviewer Files
-- Primary files to review first: `scripts/bin/blueprint/upgrade_fresh_env_gate.sh`, `scripts/lib/blueprint/upgrade_fresh_env_gate.py`, `tests/blueprint/test_upgrade_fresh_env_gate.py`
+- Primary files to review first:
+  - `scripts/bin/blueprint/upgrade_fresh_env_gate.sh`
+  - `scripts/lib/blueprint/upgrade_fresh_env_gate.py`
+  - `tests/blueprint/test_upgrade_fresh_env_gate.py`
 - High-risk files: `blueprint/contract.yaml` (required target list); `make/blueprint.generated.mk` and `scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl` (must stay in sync)
 
 ## Validation Evidence

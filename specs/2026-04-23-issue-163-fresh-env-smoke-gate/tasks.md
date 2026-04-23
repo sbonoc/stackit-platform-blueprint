@@ -47,13 +47,13 @@
 - [x] T-402 Document `artifacts/blueprint/fresh_env_gate.json` schema (status, worktree_path, targets_run, divergences, error, exit_code)
 - [x] T-403 Document metric `blueprint_upgrade_fresh_env_gate_status_total` and its labels
 - [x] T-404 Document failure diagnostic guidance (divergences field interpretation, how to fix a bootstrap regression)
-- [ ] T-405 Run `make docs-build` — confirm no errors
-- [ ] T-406 Run `make docs-smoke` — confirm no errors
+- [x] T-405 Run `make docs-build` — confirm no errors
+- [x] T-406 Run `make docs-smoke` — confirm no errors
 
 ## Validation and Release Readiness
 
 - [x] T-501 Run `make quality-sdd-check` — clean
-- [ ] T-502 Run `make quality-hooks-run` — clean
+- [x] T-502 Run `make quality-hooks-run` — clean
 - [x] T-503 Run `make infra-validate` — clean
 - [x] T-504 Run full test suite: `pytest tests/blueprint/test_upgrade_fresh_env_gate.py` — 16 passed in 2.44s
 - [x] T-505 Attach pytest output as validation evidence in `traceability.md`
