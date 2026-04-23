@@ -14,9 +14,9 @@ Only skip branch creation when the user explicitly requests that opt-out.
 For filter or payload-transform changes, require positive-path unit assertions
 with matching fixture/request values; empty-result-only assertions are
 insufficient. For HTTP route/query/filter/new-endpoint scope, require local
-smoke with positive-path `curl` assertions and capture
-`Endpoint | Method | Auth | Result` evidence in `pr_context.md`.
-Translate reproducible pre-PR smoke/`curl`/deterministic-check failures into
+smoke via `make test-smoke-all-local` and capture pass/fail as test evidence
+in `pr_context.md`.
+Translate reproducible pre-PR smoke/deterministic-check failures into
 failing automated tests first, then turn them green with the fix, or document
 a deterministic exception rationale and follow-up owner in publish artifacts.
 
@@ -25,13 +25,15 @@ a deterministic exception rationale and follow-up owner in publish artifacts.
 Skill runbooks are in `.agents/skills/<name>/SKILL.md`. Apply them proactively
 when the context matches. They are also available as slash commands:
 
-| Slash command | Runbook |
-|---|---|
-| `/blueprint-consumer-ops` | `.agents/skills/blueprint-consumer-ops/SKILL.md` |
-| `/blueprint-consumer-upgrade` | `.agents/skills/blueprint-consumer-upgrade/SKILL.md` |
-| `/blueprint-sdd-clarification-gate` | `.agents/skills/blueprint-sdd-clarification-gate/SKILL.md` |
-| `/blueprint-sdd-document-sync` | `.agents/skills/blueprint-sdd-document-sync/SKILL.md` |
-| `/blueprint-sdd-intake-decompose` | `.agents/skills/blueprint-sdd-intake-decompose/SKILL.md` |
-| `/blueprint-sdd-plan-slicer` | `.agents/skills/blueprint-sdd-plan-slicer/SKILL.md` |
-| `/blueprint-sdd-pr-packager` | `.agents/skills/blueprint-sdd-pr-packager/SKILL.md` |
-| `/blueprint-sdd-traceability-keeper` | `.agents/skills/blueprint-sdd-traceability-keeper/SKILL.md` |
+| Slash command | Runbook | Actor |
+|---|---|---|
+| `/blueprint-consumer-ops` | `.agents/skills/blueprint-consumer-ops/SKILL.md` | Platform Engineer |
+| `/blueprint-consumer-upgrade` | `.agents/skills/blueprint-consumer-upgrade/SKILL.md` | Platform Engineer |
+| `/blueprint-sdd-clarification-gate` | `.agents/skills/blueprint-sdd-clarification-gate/SKILL.md` | Coding Agent |
+| `/blueprint-sdd-document-sync` | `.agents/skills/blueprint-sdd-document-sync/SKILL.md` | Coding Agent |
+| `/blueprint-sdd-intake-decompose` | `.agents/skills/blueprint-sdd-intake-decompose/SKILL.md` | Coding Agent |
+| `/blueprint-sdd-plan-slicer` | `.agents/skills/blueprint-sdd-plan-slicer/SKILL.md` | Coding Agent |
+| `/blueprint-sdd-po-spec` | `.agents/skills/blueprint-sdd-po-spec/SKILL.md` | PO + Coding Agent |
+| `/blueprint-sdd-pr-packager` | `.agents/skills/blueprint-sdd-pr-packager/SKILL.md` | Coding Agent |
+| `/blueprint-sdd-spec-complete` | `.agents/skills/blueprint-sdd-spec-complete/SKILL.md` | Architect / CTO |
+| `/blueprint-sdd-traceability-keeper` | `.agents/skills/blueprint-sdd-traceability-keeper/SKILL.md` | Coding Agent |

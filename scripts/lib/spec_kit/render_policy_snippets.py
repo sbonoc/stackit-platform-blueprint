@@ -50,13 +50,17 @@ def _build_snapshot(contract_raw: dict[str, Any]) -> str:
     status_field = str(readiness_raw.get("status_field", "SPEC_READY")).strip()
     required_value = str(readiness_raw.get("required_value", "true")).strip()
     blocked_marker = str(readiness_raw.get("blocked_marker", "BLOCKED_MISSING_INPUTS")).strip()
+    intake_status_field = str(readiness_raw.get("intake_status_field", "SPEC_PRODUCT_READY")).strip()
+    intake_required_signoffs = _as_list_of_str(readiness_raw.get("intake_required_signoffs")) or ["Product"]
 
     lines: list[str] = []
     lines.append("- Lifecycle order (contract): " + " -> ".join(phases))
     lines.append(f"- Readiness gate: `{status_field}={required_value}`")
+    lines.append(f"- Intake gate: `{intake_status_field}=true`")
     lines.append(f"- Missing-input blocker token: `{blocked_marker}`")
     lines.append("- Required zero-count fields: " + ", ".join(f"`{field}`" for field in required_zero_fields))
     lines.append("- Required sign-offs: " + ", ".join(f"`{field}`" for field in required_signoffs))
+    lines.append("- Intake required sign-offs: " + ", ".join(f"`{field}`" for field in intake_required_signoffs))
     lines.append("- Allowed normative keywords: " + ", ".join(f"`{term}`" for term in allowed_keywords))
     lines.append("- Forbidden ambiguous terms: " + ", ".join(f"`{term}`" for term in forbidden_terms))
     return "\n".join(lines)

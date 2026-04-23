@@ -1,0 +1,5 @@
+interface:
+  display_name: "Blueprint SDD PO Spec"
+  short_description: "Guide PO spec intake and generate agent-drafted ADR with Mermaid diagrams"
+  slash_command: "/blueprint-sdd-po-spec"
+  command_file: ".claude/commands/blueprint-sdd-po-spec.md"
