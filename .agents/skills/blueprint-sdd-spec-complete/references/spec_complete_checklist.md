@@ -4,7 +4,7 @@
 - [ ] ADR review decision recorded (confirm / adjust / override) with rationale.
 - [ ] Mermaid diagram(s) validated — correct type, accurate component names, captions present.
 - [ ] Agent draft block quote notice removed from Technical Decision Layer.
-- [ ] `ADR technical decision sign-off: <Architect identity>` set in ADR metadata.
+- [ ] `ADR technical decision sign-off: approved` set in ADR metadata.
 - [ ] `Status: approved` set in ADR metadata.
 
 ## architecture.md
@@ -27,9 +27,9 @@
 - [ ] Publish tasks P-001, P-002, P-003 present and unchecked `[ ]`.
 
 ## spec.md sign-offs
-- [ ] `Architecture sign-off: <Architect identity>` set.
-- [ ] `Security sign-off: <approver identity>` set.
-- [ ] `Operations sign-off: <approver identity>` set.
+- [ ] `Architecture sign-off: approved` set.
+- [ ] `Security sign-off: approved` set.
+- [ ] `Operations sign-off: approved` set.
 - [ ] `ADR status: approved` set.
 - [ ] `SPEC_READY: true` set.
 

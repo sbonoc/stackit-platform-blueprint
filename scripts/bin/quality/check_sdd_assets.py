@@ -606,7 +606,46 @@ def _validate_work_item_specs(
                         message=f"{adr_path_field} must be set when SPEC_PRODUCT_READY=true",
                     )
                 )
-            elif adr_status_value and adr_status_value not in adr_status_intake_values:
+            else:
+                # Apply the same path safety and existence checks as the SPEC_READY=true gate.
+                if adr_path_allowed_prefixes and not any(
+                    adr_path_value.startswith(prefix) for prefix in adr_path_allowed_prefixes
+                ):
+                    violations.append(
+                        Violation(
+                            path=str(spec_path.relative_to(repo_root)),
+                            message=(
+                                f"{adr_path_field} must start with one of: "
+                                + ", ".join(adr_path_allowed_prefixes)
+                            ),
+                        )
+                    )
+                resolved_adr_path = (repo_root / adr_path_value).resolve()
+                try:
+                    resolved_adr_path.relative_to(repo_root.resolve())
+                except ValueError:
+                    violations.append(
+                        Violation(
+                            path=str(spec_path.relative_to(repo_root)),
+                            message=f"{adr_path_field} must resolve inside repository root",
+                        )
+                    )
+                else:
+                    if not resolved_adr_path.is_file():
+                        violations.append(
+                            Violation(
+                                path=str(spec_path.relative_to(repo_root)),
+                                message=f"{adr_path_field} points to missing file: {adr_path_value}",
+                            )
+                        )
+            if not adr_status_value:
+                violations.append(
+                    Violation(
+                        path=str(spec_path.relative_to(repo_root)),
+                        message=f"{adr_status_field} must be set when SPEC_PRODUCT_READY=true and SPEC_READY=false",
+                    )
+                )
+            elif adr_status_value not in adr_status_intake_values:
                 violations.append(
                     Violation(
                         path=str(spec_path.relative_to(repo_root)),

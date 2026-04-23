@@ -20,7 +20,7 @@ Use this skill when a Product Owner is starting a new SDD work item and wants to
   (business-framed alternatives), Contract Changes, Normative Acceptance Criteria.
   Sets `SPEC_PRODUCT_READY: true`, `Product sign-off: approved`.
 - ADR `## Product Context Layer`: Business Objective and Requirement Summary,
-  Decision Drivers. Sets `ADR product context sign-off: <PO identity>`.
+  Decision Drivers. Sets `ADR product context sign-off: approved`.
 
 ### Coding Agent generates
 - ADR `## Technical Decision Layer`: Options enumerated from codebase analysis,

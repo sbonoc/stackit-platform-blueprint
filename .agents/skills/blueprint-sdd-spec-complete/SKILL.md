@@ -34,7 +34,7 @@ Architect or CTO. This is the technical counterpart to `/blueprint-sdd-po-spec`.
    a. Validate or override the recommended option — document rationale if overriding.
    b. Validate Mermaid diagrams — correct type, accurate component names.
    c. Remove the agent draft block quote notice.
-   d. Set ADR metadata: ADR technical decision sign-off: <Architect identity>
+   d. Set ADR metadata: ADR technical decision sign-off: approved
    e. Set ADR Status: approved
 3. Write architecture.md:
    - Bounded-context decisions, module boundaries, integration edges.
@@ -55,9 +55,9 @@ Architect or CTO. This is the technical counterpart to `/blueprint-sdd-po-spec`.
    - Security sign-off: approved (self or delegate)
    - Operations sign-off: approved (self or delegate)
 7. Update spec.md:
-   - Architecture sign-off: <Architect identity>
-   - Security sign-off: <approver identity>
-   - Operations sign-off: <approver identity>
+   - Architecture sign-off: approved
+   - Security sign-off: approved
+   - Operations sign-off: approved
    - ADR status: approved
    - SPEC_READY: true
 8. make quality-sdd-check   # must pass before PR

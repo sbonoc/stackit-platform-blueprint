@@ -10,14 +10,14 @@
 - [ ] Normative Acceptance Criteria: at least two ACs, each objectively testable.
 - [ ] Open clarification markers removed or resolved.
 - [ ] `SPEC_PRODUCT_READY: true` set.
-- [ ] `Product sign-off: <PO identity>` set.
+- [ ] `Product sign-off: approved` set.
 - [ ] `ADR path` set to the draft ADR file path.
 - [ ] `ADR status: draft` set.
 
 ## ADR Product Context Layer completeness
 - [ ] Business Objective and Requirement Summary populated.
 - [ ] Decision Drivers populated (at least two drivers).
-- [ ] `ADR product context sign-off: <PO identity>` set in ADR metadata.
+- [ ] `ADR product context sign-off: approved` set in ADR metadata.
 
 ## ADR Technical Decision Layer (agent-generated)
 - [ ] Agent draft block quote notice present at top of Technical Decision Layer.
