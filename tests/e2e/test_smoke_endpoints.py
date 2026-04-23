@@ -29,10 +29,9 @@ import http.client
 import os
 import unittest
 import urllib.parse
-import urllib.request
 from typing import ClassVar
 
-from tests._shared.helpers import REPO_ROOT, run_make
+from tests._shared.helpers import run_make
 
 
 _BACKEND_BASE_URL = os.environ.get("SMOKE_BACKEND_BASE_URL", "http://localhost:18080")
@@ -41,31 +40,46 @@ _AUTH_GATE_PATH = os.environ.get("SMOKE_BACKEND_AUTH_GATE_PATH", "")
 _PF_WAIT_TIMEOUT = os.environ.get("SMOKE_PF_WAIT_TIMEOUT", "30")
 
 _PF_NAME = "smoke-backend"
+_PF_PARSED = urllib.parse.urlparse(_BACKEND_BASE_URL)
 _PF_ENV = {
     "PF_NAME": _PF_NAME,
     "PF_NAMESPACE": "apps",
     "PF_RESOURCE": "svc/backend-api",
-    "PF_LOCAL_PORT": "18080",
+    "PF_LOCAL_PORT": str(_PF_PARSED.port or 18080),
     "PF_REMOTE_PORT": "8080",
     "PF_WAIT_TIMEOUT": _PF_WAIT_TIMEOUT,
+    "DRY_RUN": "false",
 }
 
 
-def _http_get(path: str, *, timeout: int = 10) -> http.client.HTTPResponse:
-    """Issue a plain HTTP GET and return the response object.
+def _http_get(path: str, *, timeout: int = 10) -> int:
+    """Issue an HTTP(S) GET and return the response status code.
 
-    The response body is read so the connection can be reused.
+    Selects HTTPSConnection when the base URL scheme is https.
+    Prepends any base path from SMOKE_BACKEND_BASE_URL to the per-request path.
+    The connection is closed after the response body is consumed.
     """
     parsed = urllib.parse.urlparse(_BACKEND_BASE_URL)
-    conn = http.client.HTTPConnection(
+    connection_cls = (
+        http.client.HTTPSConnection
+        if parsed.scheme.lower() == "https"
+        else http.client.HTTPConnection
+    )
+    base_path = parsed.path.rstrip("/")
+    request_path = path if path.startswith("/") else f"/{path}"
+    full_path = f"{base_path}{request_path}" if base_path else request_path
+    conn = connection_cls(
         parsed.hostname or "localhost",
         parsed.port or 18080,
         timeout=timeout,
     )
-    conn.request("GET", path)
-    response = conn.getresponse()
-    response.read()  # consume body so connection drains cleanly
-    return response
+    try:
+        conn.request("GET", full_path)
+        response = conn.getresponse()
+        response.read()  # consume body so the socket drains cleanly
+        return response.status
+    finally:
+        conn.close()
 
 
 class BackendApiSmokeTests(unittest.TestCase):
@@ -106,11 +120,11 @@ class BackendApiSmokeTests(unittest.TestCase):
         This is the positive-path assertion that replaces the inferred
         `curl http://localhost:18080/health` in pr_context.md evidence tables.
         """
-        response = _http_get(_HEALTH_PATH)
+        status = _http_get(_HEALTH_PATH)
         self.assertIn(
-            response.status,
+            status,
             range(200, 300),
-            f"GET {_HEALTH_PATH} returned {response.status}; "
+            f"GET {_HEALTH_PATH} returned {status}; "
             f"expected 2xx — is the backend-api pod ready?",
         )
 
@@ -129,10 +143,10 @@ class BackendApiSmokeTests(unittest.TestCase):
             self.skipTest(
                 "SMOKE_BACKEND_AUTH_GATE_PATH not set; skipping auth-gate assertion"
             )
-        response = _http_get(_AUTH_GATE_PATH)
+        status = _http_get(_AUTH_GATE_PATH)
         self.assertIn(
-            response.status,
+            status,
             (401, 403),
-            f"GET {_AUTH_GATE_PATH} returned {response.status}; "
+            f"GET {_AUTH_GATE_PATH} returned {status}; "
             f"expected 401 or 403 for an unauthenticated request",
         )

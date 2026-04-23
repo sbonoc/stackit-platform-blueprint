@@ -84,6 +84,7 @@ log_info "step 2/3: infra-smoke"
 run_cmd make -C "$ROOT_DIR" \
   BLUEPRINT_PROFILE="$BLUEPRINT_PROFILE" \
   OBSERVABILITY_ENABLED="$OBSERVABILITY_ENABLED" \
+  DRY_RUN=false \
   infra-smoke
 
 log_info "step 3/3: endpoint smoke tests"
