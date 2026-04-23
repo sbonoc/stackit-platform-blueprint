@@ -318,6 +318,7 @@ spec:
       - scripts/templates/consumer/init/.claude/commands/blueprint-sdd-document-sync.md.tmpl
       - scripts/templates/consumer/init/.claude/commands/blueprint-sdd-pr-packager.md.tmpl
       - scripts/templates/consumer/init/.claude/commands/blueprint-sdd-po-spec.md.tmpl
+      - scripts/templates/consumer/init/.claude/commands/blueprint-sdd-spec-complete.md.tmpl
       - scripts/templates/consumer/init/.spec-kit/policy-mapping.md.tmpl
       - scripts/templates/consumer/init/.spec-kit/control-catalog.json.tmpl
       - scripts/templates/consumer/init/.spec-kit/control-catalog.md.tmpl

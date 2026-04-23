@@ -51,7 +51,7 @@ def _build_snapshot(contract_raw: dict[str, Any]) -> str:
     required_value = str(readiness_raw.get("required_value", "true")).strip()
     blocked_marker = str(readiness_raw.get("blocked_marker", "BLOCKED_MISSING_INPUTS")).strip()
     intake_status_field = str(readiness_raw.get("intake_status_field", "SPEC_PRODUCT_READY")).strip()
-    intake_required_signoffs = _as_list_of_str(readiness_raw.get("intake_required_signoffs"))
+    intake_required_signoffs = _as_list_of_str(readiness_raw.get("intake_required_signoffs")) or ["Product"]
 
     lines: list[str] = []
     lines.append("- Lifecycle order (contract): " + " -> ".join(phases))

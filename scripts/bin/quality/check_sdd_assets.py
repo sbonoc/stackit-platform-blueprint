@@ -409,7 +409,7 @@ def _validate_work_item_specs(
         adr_status_approved_values = {"approved"}
     adr_path_allowed_prefixes = _as_list_of_str(readiness_raw.get("adr_path_allowed_prefixes"))
     intake_status_field = str(readiness_raw.get("intake_status_field", "SPEC_PRODUCT_READY")).strip()
-    intake_required_signoffs = _as_list_of_str(readiness_raw.get("intake_required_signoffs"))
+    intake_required_signoffs = _as_list_of_str(readiness_raw.get("intake_required_signoffs")) or ["Product"]
     adr_status_intake_values = {
         value.strip().lower()
         for value in _as_list_of_str(readiness_raw.get("adr_status_intake_values"))

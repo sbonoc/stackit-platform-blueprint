@@ -1,6 +1,8 @@
 # Specification
 
 ## Spec Readiness Gate (Blocking)
+<!-- SPEC_PRODUCT_READY=true: intake gate — Product sign-off only; unlocks agent ADR drafting.
+     SPEC_READY=true: implementation gate — all sign-offs required; unlocks coding. -->
 - SPEC_READY: false
 - SPEC_PRODUCT_READY: false
 - Open questions count: 0
