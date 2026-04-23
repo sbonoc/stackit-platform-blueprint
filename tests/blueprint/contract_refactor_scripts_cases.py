@@ -335,6 +335,13 @@ class ScriptsRefactorCases(RefactorContractBase):
         self.assertIn("BLUEPRINT_INIT_FORCE=true make blueprint-init-repo", bootstrap)
         self.assertIn("infra_init_managed_skip_count", bootstrap)
 
+    def test_infra_bootstrap_does_not_recreate_consumer_seeded_files_in_generated_repos(self) -> None:
+        bootstrap = _read("scripts/bin/infra/bootstrap.sh")
+        self.assertIn("blueprint_path_is_consumer_seeded", bootstrap)
+        self.assertIn("skipping consumer-seeded file (consumer-owned):", bootstrap)
+        self.assertIn("infra_bootstrap_consumer_seeded_skip_count", bootstrap)
+        self.assertIn("infra_consumer_seeded_skip_count", bootstrap)
+
     def test_init_repo_prunes_disabled_optional_scaffolding_on_first_init(self) -> None:
         init_python = _read("scripts/lib/blueprint/init_repo.py")
         init_contract_helpers = _read("scripts/lib/blueprint/init_repo_contract.py")

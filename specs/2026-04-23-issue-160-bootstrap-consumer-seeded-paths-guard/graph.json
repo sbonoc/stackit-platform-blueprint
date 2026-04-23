@@ -1,0 +1,64 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-04-23-issue-160-bootstrap-consumer-seeded-paths-guard",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "ensure_infra_template_file skips consumer_seeded paths in generated-consumer repos"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "ensure_infra_rendered_file skips consumer_seeded paths in generated-consumer repos"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "uses existing blueprint_path_is_consumer_seeded helper; no new env vars or shell injection"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "infra_consumer_seeded_skip_count metric emitted; log_info diagnostic per skipped path"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "absent consumer-seeded paths do not cause bootstrap to fail or warn"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "skip diagnostic includes relative path for operator visibility"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "consumer_seeded path absent from disk is not recreated during infra-bootstrap"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "infra_consumer_seeded_skip_count appears in bootstrap stdout when paths are skipped"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "non-consumer-seeded paths still receive template files (no regression)"
+    }
+  ],
+  "edges": [
+    { "from": "FR-001", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-001", "to": "AC-003", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-003", "relation": "validated_by" },
+    { "from": "NFR-OBS-001", "to": "AC-002", "relation": "validated_by" },
+    { "from": "NFR-OPS-001", "to": "AC-002", "relation": "validated_by" },
+    { "from": "NFR-SEC-001", "to": "FR-001", "relation": "constrains" },
+    { "from": "NFR-SEC-001", "to": "FR-002", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "FR-001", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "FR-002", "relation": "constrains" },
+    { "from": "NFR-OPS-001", "to": "NFR-OBS-001", "relation": "constrains" }
+  ]
+}

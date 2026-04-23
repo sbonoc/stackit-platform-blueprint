@@ -49,6 +49,7 @@ app_runtime_gitops_enabled="$(shell_normalize_bool_truefalse "$APP_RUNTIME_GITOP
 log_metric "app_runtime_gitops_enabled_total" "1" "enabled=$app_runtime_gitops_enabled"
 
 infra_bootstrap_init_managed_skip_count=0
+infra_bootstrap_consumer_seeded_skip_count=0
 
 ensure_infra_template_file() {
   local relative_path="$1"
@@ -58,6 +59,12 @@ ensure_infra_template_file() {
       log_fatal "missing init-managed file: $relative_path; rerun with $(blueprint_init_force_env_var)=true make blueprint-init-repo"
     fi
     infra_bootstrap_init_managed_skip_count=$((infra_bootstrap_init_managed_skip_count + 1))
+    return 0
+  fi
+
+  if blueprint_repo_is_generated_consumer && blueprint_path_is_consumer_seeded "$relative_path"; then
+    log_info "skipping consumer-seeded file (consumer-owned): $relative_path"
+    infra_bootstrap_consumer_seeded_skip_count=$((infra_bootstrap_consumer_seeded_skip_count + 1))
     return 0
   fi
 
@@ -74,6 +81,12 @@ ensure_infra_rendered_file() {
       log_fatal "missing init-managed file: $relative_path; rerun with $(blueprint_init_force_env_var)=true make blueprint-init-repo"
     fi
     infra_bootstrap_init_managed_skip_count=$((infra_bootstrap_init_managed_skip_count + 1))
+    return 0
+  fi
+
+  if blueprint_repo_is_generated_consumer && blueprint_path_is_consumer_seeded "$relative_path"; then
+    log_info "skipping consumer-seeded file (consumer-owned): $relative_path"
+    infra_bootstrap_consumer_seeded_skip_count=$((infra_bootstrap_consumer_seeded_skip_count + 1))
     return 0
   fi
 
@@ -629,5 +642,6 @@ bootstrap_argocd_overlay_scaffolding
 bootstrap_optional_manifests
 report_disabled_module_scaffolding_preserved
 log_metric "infra_init_managed_skip_count" "$infra_bootstrap_init_managed_skip_count"
+log_metric "infra_consumer_seeded_skip_count" "$infra_bootstrap_consumer_seeded_skip_count"
 
 log_info "infra bootstrap complete"
