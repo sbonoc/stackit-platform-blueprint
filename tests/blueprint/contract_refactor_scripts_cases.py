@@ -639,3 +639,49 @@ class ScriptsRefactorCases(RefactorContractBase):
         # generated-consumer mode.
         self.assertIn("consumer_seeded_paths = set(repository.consumer_seeded_paths)", validate_contract)
         self.assertIn("relative_path not in consumer_seeded_paths", validate_contract)
+
+    def test_run_cmd_capture_does_not_merge_stderr_into_stdout(self) -> None:
+        exec_sh = _read("scripts/lib/shell/exec.sh")
+        # run_cmd_capture must capture stdout only; 2>&1 was removed to prevent
+        # stderr from subprocesses from corrupting parsed output (issue #166).
+        func_def = "run_cmd_capture() {"
+        func_start = exec_sh.find(func_def)
+        self.assertGreater(func_start, -1, "run_cmd_capture() function not found in exec.sh")
+
+        # Locate the exact end of the function body by tracking brace depth.
+        brace_start = exec_sh.index("{", func_start)
+        depth = 0
+        func_end = brace_start
+        for idx, ch in enumerate(exec_sh[brace_start:], start=brace_start):
+            if ch == "{":
+                depth += 1
+            elif ch == "}":
+                depth -= 1
+                if depth == 0:
+                    func_end = idx + 1
+                    break
+
+        # Include the doc comment block immediately preceding the function
+        # definition so the adjacency assertion is anchored to this function.
+        lines_before = exec_sh[:func_start].splitlines(keepends=True)
+        comment_start = func_start
+        for line in reversed(lines_before):
+            if line.strip().startswith("#"):
+                comment_start -= len(line)
+            else:
+                break
+
+        func_region = exec_sh[comment_start:func_end]
+
+        self.assertNotIn(
+            "2>&1",
+            func_region,
+            "run_cmd_capture must not contain 2>&1 (stdout-only contract, issue #166)",
+        )
+        # The doc comment stating the stdout-only contract must be directly
+        # above the function definition, not somewhere else in the file.
+        self.assertIn(
+            "stdout only",
+            func_region,
+            "run_cmd_capture must carry a doc comment stating stdout-only contract immediately above its definition",
+        )
