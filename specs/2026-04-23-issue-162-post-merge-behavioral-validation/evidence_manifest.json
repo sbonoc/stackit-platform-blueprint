@@ -1,0 +1,134 @@
+{
+  "manifest_version": 1,
+  "work_item": "2026-04-23-issue-162-post-merge-behavioral-validation",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-04-23T00:00:00Z",
+  "files": [
+    {
+      "path": "scripts/lib/blueprint/upgrade_shell_behavioral_check.py",
+      "sha256": "25ffbed18461bd06f65a5384d7bdedc97603a3017f405cd341e426ddc44966d6",
+      "role": "implementation",
+      "description": "New gate logic module: bash -n syntax check, grep-based symbol resolution, depth-1 source resolver, ShellBehavioralCheckResult dataclass"
+    },
+    {
+      "path": "scripts/lib/blueprint/upgrade_consumer_postcheck.py",
+      "sha256": "dab33e93e64d9cd0468c9feb66ddcfea0171dc16aaa39ff5cfd16bf3465b145e",
+      "role": "implementation",
+      "description": "Modified: extract result=merged .sh files from apply report, call run_behavioral_check, populate behavioral_check JSON section, append blocked_reason on failure, add --skip-behavioral-check CLI flag"
+    },
+    {
+      "path": "scripts/bin/blueprint/upgrade_consumer_postcheck.sh",
+      "sha256": "0965c1d2d8e5d33185b51a43807a5862e0b6bca8f7aa37cd36a9232408f6c3c7",
+      "role": "implementation",
+      "description": "Modified: BLUEPRINT_UPGRADE_SKIP_BEHAVIORAL_CHECK env forwarding, postcheck_behavioral_check_failures_total metric emission"
+    },
+    {
+      "path": "scripts/lib/blueprint/upgrade_report_metrics.py",
+      "sha256": "a607ffca74448248b5293e34b922aecbf12b3b69185d19396fd11df9b8346627",
+      "role": "implementation",
+      "description": "Modified: added postcheck_behavioral_check_failures_total to _emit_postcheck_metrics"
+    },
+    {
+      "path": "scripts/lib/blueprint/schemas/upgrade_postcheck.schema.json",
+      "sha256": "d4143c9ea28f2b99d1c45242edf4656161e48edef8d48af2e0181102c0bdb850",
+      "role": "schema",
+      "description": "Modified: added behavioral_check object (required), behavioral_check_skipped and behavioral_check_failure_count to summary required fields"
+    },
+    {
+      "path": "tests/blueprint/test_upgrade_shell_behavioral_check.py",
+      "sha256": "36a31070bf4ee71278de4604afcac30bf8f13ade6152590c8f2766bd74cdac0e",
+      "role": "test",
+      "description": "New: 10 unit tests covering gate logic in isolation (syntax check, symbol resolution, skip, sourced file, empty input, as_dict)"
+    },
+    {
+      "path": "tests/blueprint/test_upgrade_postcheck.py",
+      "sha256": "3fd39da584b0a8389868082aee1cb886d405df19e05edd98f139d4fcb514b8cb",
+      "role": "test",
+      "description": "Modified: 6 new BehavioralCheckPostcheckTests covering AC-001 through AC-005 via full postcheck orchestrator"
+    },
+    {
+      "path": "tests/blueprint/test_upgrade_consumer_wrapper.py",
+      "sha256": "d77b331d159ad7781e241aff52648ce15d51f5b3738750b9c7b202727f0c4bc9",
+      "role": "test",
+      "description": "Modified: PostcheckWrapperBehavioralMetricTests with 2 tests covering AC-006 (metric emission with correct failure count)"
+    },
+    {
+      "path": "tests/blueprint/fixtures/shell_behavioral_check/clean_script.sh",
+      "sha256": "23b48dacd7120d6099d1a2fa6c049b6f64fdf9e4bb67a7be6ae5ae4239628b4c",
+      "role": "fixture",
+      "description": "Positive-path fixture: function defined and called in same file"
+    },
+    {
+      "path": "tests/blueprint/fixtures/shell_behavioral_check/syntax_error_script.sh",
+      "sha256": "1db12fe16f2830e9aac0b621d45ecfd761a4cdc6bc6acd255a9d3acdc5b4e2dd",
+      "role": "fixture",
+      "description": "Syntax error fixture: unclosed function body"
+    },
+    {
+      "path": "tests/blueprint/fixtures/shell_behavioral_check/missing_def_script.sh",
+      "sha256": "fc678479f35d5bbd005e30ed4b03621bdae0e707eec5455d0ec72926fb8cbb1c",
+      "role": "fixture",
+      "description": "Negative-path fixture: calls setup_environment which is not defined"
+    },
+    {
+      "path": "tests/blueprint/fixtures/shell_behavioral_check/sourced_helper.sh",
+      "sha256": "a8e5fcff3329337f6d0637c2cc7f8ae420fa555ba3e613486dee5a436fa2c1ce",
+      "role": "fixture",
+      "description": "Helper fixture defining helper_function for depth-1 source resolution tests"
+    },
+    {
+      "path": "tests/blueprint/fixtures/shell_behavioral_check/calls_sourced_helper.sh",
+      "sha256": "a8099f27572bfa89428f8e6e6bd2d79739163c5e0a103c1f83568d060f1eff82",
+      "role": "fixture",
+      "description": "Depth-1 source resolution fixture: sources sourced_helper.sh and calls helper_function"
+    },
+    {
+      "path": "docs/blueprint/architecture/decisions/ADR-issue-162-post-merge-behavioral-validation.md",
+      "sha256": "8d2042041392c8a105545e438d6dfbcf8d83e39c94cda132349939ce7974a9b0",
+      "role": "documentation",
+      "description": "ADR: 3 options considered, Option A (standalone module + grep heuristic) selected"
+    },
+    {
+      "path": "docs/blueprint/architecture/execution_model.md",
+      "sha256": "7aacffffb1d452f93bdf07b4229e04b70c1084dfc082d60cc739606c6716c9c1",
+      "role": "documentation",
+      "description": "Updated with behavioral gate opt-out note and BLUEPRINT_UPGRADE_SKIP_BEHAVIORAL_CHECK documentation"
+    },
+    {
+      "path": "specs/2026-04-23-issue-162-post-merge-behavioral-validation/spec.md",
+      "sha256": "7b1b64c32e4549c7691bde16bd4f3902b0c2b4ae9d9421f93dd5a52964748c19",
+      "role": "spec",
+      "description": "Specification: 11 REQ-###, 4 NFR-###, 6 AC-###, SPEC_READY=true"
+    },
+    {
+      "path": "specs/2026-04-23-issue-162-post-merge-behavioral-validation/architecture.md",
+      "sha256": "82b90694d6da71e527b9b2c945d9e960edc07d1a4dd09ef8f2512a0e5ab719cd",
+      "role": "spec",
+      "description": "Architecture: 4 bounded contexts, security and reliability constraints"
+    },
+    {
+      "path": "specs/2026-04-23-issue-162-post-merge-behavioral-validation/plan.md",
+      "sha256": "1251670af6419ff456ff9abcda35f6955006a54f7faae39f3a9e32d0339fd7d2",
+      "role": "spec",
+      "description": "Implementation plan: 6 slices with dependencies"
+    },
+    {
+      "path": "specs/2026-04-23-issue-162-post-merge-behavioral-validation/tasks.md",
+      "sha256": "eddf84be81a417d11e39bde51d778d3e473e29f61d8de20465a99365000f7424",
+      "role": "spec",
+      "description": "Task list: all T-### implementation tasks and P-### publish tasks"
+    },
+    {
+      "path": "specs/2026-04-23-issue-162-post-merge-behavioral-validation/graph.json",
+      "sha256": "9af48354f7efbe412536685fd163f5a1527227924873a819d43875467c5f4596",
+      "role": "spec",
+      "description": "Traceability graph: 21 nodes (REQ, NFR, AC), edges via validated_by and constrains"
+    },
+    {
+      "path": "specs/2026-04-23-issue-162-post-merge-behavioral-validation/traceability.md",
+      "sha256": "65bdcf29620670060a15978e92b69d4cc2c321c8d8e44c053d1437c9ec4bc5aa",
+      "role": "spec",
+      "description": "Requirement-to-delivery traceability matrix"
+    }
+  ]
+}

@@ -16,13 +16,16 @@ This wrapper composes:
 1) blueprint-upgrade-consumer-validate
 2) merge-marker + reconcile bucket checks
 3) repo-mode-aware optional docs hooks
+4) post-merge behavioral validation gate (bash -n + symbol resolution)
 
 Environment variables:
-  BLUEPRINT_UPGRADE_VALIDATE_PATH         Default: artifacts/blueprint/upgrade_validate.json
-  BLUEPRINT_UPGRADE_RECONCILE_REPORT_PATH Default: artifacts/blueprint/upgrade/upgrade_reconcile_report.json
-  BLUEPRINT_UPGRADE_PLAN_PATH             Default: artifacts/blueprint/upgrade_plan.json
-  BLUEPRINT_UPGRADE_APPLY_PATH            Default: artifacts/blueprint/upgrade_apply.json
-  BLUEPRINT_UPGRADE_POSTCHECK_PATH        Default: artifacts/blueprint/upgrade_postcheck.json
+  BLUEPRINT_UPGRADE_VALIDATE_PATH              Default: artifacts/blueprint/upgrade_validate.json
+  BLUEPRINT_UPGRADE_RECONCILE_REPORT_PATH      Default: artifacts/blueprint/upgrade/upgrade_reconcile_report.json
+  BLUEPRINT_UPGRADE_PLAN_PATH                  Default: artifacts/blueprint/upgrade_plan.json
+  BLUEPRINT_UPGRADE_APPLY_PATH                 Default: artifacts/blueprint/upgrade_apply.json
+  BLUEPRINT_UPGRADE_POSTCHECK_PATH             Default: artifacts/blueprint/upgrade_postcheck.json
+  BLUEPRINT_UPGRADE_SKIP_BEHAVIORAL_CHECK      Default: false
+                                               Set to true to skip the behavioral validation gate with a warning.
 USAGE
 }
 
@@ -41,6 +44,7 @@ set_default_env BLUEPRINT_UPGRADE_RECONCILE_REPORT_PATH "artifacts/blueprint/upg
 set_default_env BLUEPRINT_UPGRADE_PLAN_PATH "artifacts/blueprint/upgrade_plan.json"
 set_default_env BLUEPRINT_UPGRADE_APPLY_PATH "artifacts/blueprint/upgrade_apply.json"
 set_default_env BLUEPRINT_UPGRADE_POSTCHECK_PATH "artifacts/blueprint/upgrade_postcheck.json"
+set_default_env BLUEPRINT_UPGRADE_SKIP_BEHAVIORAL_CHECK "false"
 
 validate_report_path="$BLUEPRINT_UPGRADE_VALIDATE_PATH"
 reconcile_report_path="$BLUEPRINT_UPGRADE_RECONCILE_REPORT_PATH"
@@ -87,6 +91,9 @@ emit_postcheck_report_metrics() {
       ;;
     postcheck_contract_load_error_total)
       log_metric "blueprint_upgrade_postcheck_contract_load_error_total" "$value"
+      ;;
+    postcheck_behavioral_check_failures_total)
+      log_metric "blueprint_upgrade_postcheck_behavioral_check_failures_total" "$value"
       ;;
     esac
   done < <(
@@ -147,13 +154,21 @@ else
   validate_rc=$?
 fi
 
+postcheck_args=(
+  --repo-root "$ROOT_DIR"
+  --validate-report-path "$validate_report_path"
+  --reconcile-report-path "$reconcile_report_path"
+  --plan-path "$plan_path"
+  --apply-path "$apply_path"
+  --output-path "$postcheck_report_path"
+)
+if [[ "${BLUEPRINT_UPGRADE_SKIP_BEHAVIORAL_CHECK:-false}" == "true" ]]; then
+  log_warn "BLUEPRINT_UPGRADE_SKIP_BEHAVIORAL_CHECK=true: post-merge behavioral check will be skipped"
+  postcheck_args+=(--skip-behavioral-check)
+fi
+
 if run_cmd python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_consumer_postcheck.py" \
-  --repo-root "$ROOT_DIR" \
-  --validate-report-path "$validate_report_path" \
-  --reconcile-report-path "$reconcile_report_path" \
-  --plan-path "$plan_path" \
-  --apply-path "$apply_path" \
-  --output-path "$postcheck_report_path"; then
+  "${postcheck_args[@]}"; then
   postcheck_rc=0
 else
   postcheck_rc=$?

@@ -32,7 +32,7 @@ The items below form a layered programme: #166 and #169 ship first (#160 already
 
 #### Phase 2 — Correctness gates (implement inside the Phase 1 CI job)
 
-- [ ] P1 (Consumer upgrade flow): Issue #162 — add post-merge behavioral validation gate for merge-required plan entries; run `bash -n` on all modified shell scripts and resolve function call sites to verify no definition was silently dropped by a 3-way merge. Catches the most dangerous upgrade failure class: a green merge that produces `command not found` at runtime.
+- [ ] P1 (Consumer upgrade flow): Issue #162 — add post-merge behavioral validation gate for merge-required plan entries; run `bash -n` on all modified shell scripts and resolve function call sites to verify no definition was silently dropped by a 3-way merge. Catches the most dangerous upgrade failure class: a green merge that produces `command not found` at runtime. **In progress**: `specs/2026-04-23-issue-162-post-merge-behavioral-validation/` — SPEC_READY=true, plan sliced, implementation ready.
 - [ ] P1 (Consumer upgrade flow): Issue #163 — run the post-upgrade smoke gate in a temporary clean worktree (fresh-environment simulation) so CI-only failures — files absent on a fresh checkout but present in the developer's working tree — are surfaced during the local upgrade run, before the PR is opened.
 
 #### Phase 3 — Reporting and guidance improvements
