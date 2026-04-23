@@ -1,0 +1,58 @@
+{
+  "manifest_version": 1,
+  "work_item": "specs/2026-04-23-issue-160-bootstrap-consumer-seeded-paths-guard",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-04-23T09:10:50Z",
+  "files": [
+    {
+      "path": "specs/2026-04-23-issue-160-bootstrap-consumer-seeded-paths-guard/architecture.md",
+      "sha256": "e6897b62106a9df5bf7ea625efd45f0608eeee79931adeb05897fd06bbb80d44",
+      "bytes": 3219
+    },
+    {
+      "path": "specs/2026-04-23-issue-160-bootstrap-consumer-seeded-paths-guard/context_pack.md",
+      "sha256": "812c31a8552e2ea9cc35fe112d4020fafa5ec590e976b7341e54c1988dfce485",
+      "bytes": 806
+    },
+    {
+      "path": "specs/2026-04-23-issue-160-bootstrap-consumer-seeded-paths-guard/evidence_manifest.json",
+      "sha256": "f6925d272143e1dcc1262b6fcbea5135c2715c4c3df07085bd4ff71c2220b2ad",
+      "bytes": 2347
+    },
+    {
+      "path": "specs/2026-04-23-issue-160-bootstrap-consumer-seeded-paths-guard/graph.json",
+      "sha256": "3ff72519a0db0da0fbd301097c59174ad401137b641e05652a15d4d0c2b3e71e",
+      "bytes": 2407
+    },
+    {
+      "path": "specs/2026-04-23-issue-160-bootstrap-consumer-seeded-paths-guard/hardening_review.md",
+      "sha256": "4bb06eea7d40efdf6b75bb8a0e908e052be17206b3b38c0226de59632d2952d0",
+      "bytes": 1599
+    },
+    {
+      "path": "specs/2026-04-23-issue-160-bootstrap-consumer-seeded-paths-guard/plan.md",
+      "sha256": "ea60539495d6a10cd5705f8ac262690e9f6ce1a679ba10b35817c4ad2e2a2bf4",
+      "bytes": 4017
+    },
+    {
+      "path": "specs/2026-04-23-issue-160-bootstrap-consumer-seeded-paths-guard/pr_context.md",
+      "sha256": "3356bab97eba32b189fd7c77066aaab35562e7a43acf50a55a89f0b50bb5e2b1",
+      "bytes": 2265
+    },
+    {
+      "path": "specs/2026-04-23-issue-160-bootstrap-consumer-seeded-paths-guard/spec.md",
+      "sha256": "2dc75a55122edd2811e80bbe2b702e8028f66b156c6bb4ce804a3ed1adec250b",
+      "bytes": 5459
+    },
+    {
+      "path": "specs/2026-04-23-issue-160-bootstrap-consumer-seeded-paths-guard/tasks.md",
+      "sha256": "996b0324a0553dd19771107d80ef3e43b0d1d250598eca61044eb1d6836c272f",
+      "bytes": 2984
+    },
+    {
+      "path": "specs/2026-04-23-issue-160-bootstrap-consumer-seeded-paths-guard/traceability.md",
+      "sha256": "39006918252062688376c50e3793557cce50fbca8caa6ca91327e44c9f5490ef",
+      "bytes": 3246
+    }
+  ]
+}
