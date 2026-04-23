@@ -21,6 +21,7 @@ BLUEPRINT_QUALITY_LANE = ("make quality-ci-blueprint",)
 BLUEPRINT_SLOW_INTEGRATION_LANE = ("make quality-ci-slow-integration",)
 BLUEPRINT_FULL_PUSH_LANE = ("make quality-ci-full-e2e",)
 GENERATED_CONSUMER_SMOKE_LANE = ("make quality-ci-generated-consumer-smoke",)
+UPGRADE_E2E_VALIDATE_LANE = ("make quality-ci-upgrade-validate",)
 
 
 def _indent_block(lines: tuple[str, ...], *, spaces: int) -> str:
@@ -71,7 +72,25 @@ def _render_ci(default_branch: str) -> str:
         "        uses: ./.github/actions/prepare-blueprint-ci\n\n"
         "      - name: Smoke generated consumer baseline\n"
         "        run: |\n"
-        f"{_indent_block(GENERATED_CONSUMER_SMOKE_LANE, spaces=10)}\n"
+        f"{_indent_block(GENERATED_CONSUMER_SMOKE_LANE, spaces=10)}\n\n"
+        "  upgrade-e2e-validation:\n"
+        "    runs-on: ubuntu-latest\n"
+        "    if: github.event_name == 'push'\n"
+        "    steps:\n"
+        "      - name: Checkout\n"
+        "        uses: actions/checkout@v6\n\n"
+        "      - name: Prepare shared CI baseline\n"
+        "        uses: ./.github/actions/prepare-blueprint-ci\n\n"
+        "      - name: Run upgrade e2e validation\n"
+        "        run: |\n"
+        f"{_indent_block(UPGRADE_E2E_VALIDATE_LANE, spaces=10)}\n\n"
+        "      - name: Upload upgrade validation junit artifact\n"
+        "        if: always()\n"
+        "        uses: actions/upload-artifact@v4\n"
+        "        with:\n"
+        "          name: upgrade-validate-junit\n"
+        "          path: artifacts/blueprint/upgrade_validate/upgrade_validate_junit.xml\n"
+        "          if-no-files-found: warn\n"
     )
 
 

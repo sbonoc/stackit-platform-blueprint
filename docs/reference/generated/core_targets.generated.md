@@ -64,6 +64,7 @@ This file is auto-generated. Do not edit it manually.
 | `quality-ci-strict` | Run canonical strict CI audit lane |
 | `quality-ci-blueprint` | Run source blueprint CI lane bundle |
 | `quality-ci-generated-consumer-smoke` | Run generated-consumer template smoke lane |
+| `quality-ci-upgrade-validate` | Run end-to-end consumer upgrade validation lane (push-to-main gate) |
 | `quality-docs-lint` | Lint markdown docs, governance links, and make target references |
 | `quality-docs-sync-all` | Run all docs sync generators in canonical order |
 | `quality-docs-check-changed` | Run docs drift checks only for sync steps that match current changed paths |

@@ -1,0 +1,58 @@
+{
+  "manifest_version": 1,
+  "work_item": "specs/2026-04-23-issue-169-upgrade-ci-e2e-validation",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-04-23T11:16:03Z",
+  "files": [
+    {
+      "path": "specs/2026-04-23-issue-169-upgrade-ci-e2e-validation/architecture.md",
+      "sha256": "ad9f0af2f74603562c338432349298be9e3fd0111b78005ae338c6a8e9ecd9fc",
+      "bytes": 4161
+    },
+    {
+      "path": "specs/2026-04-23-issue-169-upgrade-ci-e2e-validation/context_pack.md",
+      "sha256": "98b78fd4cc83018565f7dd7a600b17c0900f69ecd8539c068861ac513ddc5f54",
+      "bytes": 782
+    },
+    {
+      "path": "specs/2026-04-23-issue-169-upgrade-ci-e2e-validation/evidence_manifest.json",
+      "sha256": "ecb0eea40122794ca8f062212e022ba451f6d0a543b88db3d7c15e65a071e7f7",
+      "bytes": 161
+    },
+    {
+      "path": "specs/2026-04-23-issue-169-upgrade-ci-e2e-validation/graph.json",
+      "sha256": "936e4d40062e48c665742e90df41d1d0d8a094b4baf98fff0962ae2ff6858b19",
+      "bytes": 3213
+    },
+    {
+      "path": "specs/2026-04-23-issue-169-upgrade-ci-e2e-validation/hardening_review.md",
+      "sha256": "ed9f50582a7185606457e0782e5c48cf08e199cd600d6bbd2fecc270a2a251d8",
+      "bytes": 1771
+    },
+    {
+      "path": "specs/2026-04-23-issue-169-upgrade-ci-e2e-validation/plan.md",
+      "sha256": "c375b3371575950f90749a08cb914e1c7227cb4976a89e32693b4f308764937e",
+      "bytes": 4666
+    },
+    {
+      "path": "specs/2026-04-23-issue-169-upgrade-ci-e2e-validation/pr_context.md",
+      "sha256": "1acf21fede3e7d780a9888a4390aea944dd42bb3d875a627db76aad9414c3dd7",
+      "bytes": 3032
+    },
+    {
+      "path": "specs/2026-04-23-issue-169-upgrade-ci-e2e-validation/spec.md",
+      "sha256": "bd4d81c9afb0df3801a3adbaec987ab31de064f2248c242d2bca006f6c71e294",
+      "bytes": 7471
+    },
+    {
+      "path": "specs/2026-04-23-issue-169-upgrade-ci-e2e-validation/tasks.md",
+      "sha256": "771f381148cb028d68d1e5242fda1d9a7b05b12f545846e757b337c6217e2107",
+      "bytes": 3316
+    },
+    {
+      "path": "specs/2026-04-23-issue-169-upgrade-ci-e2e-validation/traceability.md",
+      "sha256": "e58cb722c5bac5721755f9b9c4dd73bd004e9d13e913128e5f2a3b32aa6321a1",
+      "bytes": 4308
+    }
+  ]
+}
