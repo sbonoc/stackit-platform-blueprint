@@ -264,6 +264,37 @@ Common first-day issues for generated repositories.
 - Upgrade preflight guardrail: when `LOCAL_POST_DEPLOY_HOOK_ENABLED=true`, `make blueprint-upgrade-consumer-preflight` reports a required manual action if `infra-post-deploy-consumer` is still placeholder.
 - Upgrade preflight required-target checklist: when a contract-required consumer-owned Make target is missing, preflight reports a required manual action with the exact target name; implement it in `make/platform.mk` or `make/platform/*.mk`, then rerun `make blueprint-upgrade-consumer-validate` and `make blueprint-upgrade-consumer-postcheck`.
 
+## `make blueprint-upgrade-fresh-env-gate` fails
+
+The fresh-env gate runs `make infra-validate` and `make blueprint-upgrade-consumer-postcheck` inside a clean git worktree to detect files that exist in your working tree but would be absent on a fresh CI checkout.
+
+**Diagnose:**
+```bash
+cat artifacts/blueprint/fresh_env_gate.json
+```
+
+- `status=fail`: one or more targets exited non-zero in the clean worktree. The `divergences` field lists files present locally but absent in the fresh env (reason `missing_in_fresh_env`) or created unexpectedly by the worktree targets (reason `unexpected_in_fresh_env`).
+- `status=error`: worktree creation failed (not in a git repo, git lock, or insufficient disk space).
+
+**Fix a `missing_in_fresh_env` divergence:**
+
+The file listed is present in your working tree but not in a clean checkout. This usually means a bootstrap step creates the file locally but the upgrade does not commit it. Ensure the file is either:
+1. Committed to the upgrade branch, or
+2. Generated correctly from scratch by `make infra-validate` or `make blueprint-upgrade-consumer-postcheck` when the file is absent.
+
+After fixing, re-run:
+```bash
+make blueprint-upgrade-fresh-env-gate
+```
+
+**Fix a `status=error`:**
+```bash
+git status
+git worktree list
+git worktree prune
+make blueprint-upgrade-fresh-env-gate
+```
+
 ## CI test lanes fail on clean runners with missing `fastapi`, `vitest`, or Playwright browsers
 - Ensure your workflow uses `.github/actions/prepare-blueprint-ci/action.yml` before test lanes.
 - The current action bootstrap contract delegates dependency installation to `BLUEPRINT_PROFILE=local-lite OBSERVABILITY_ENABLED=false make apps-ci-bootstrap`.

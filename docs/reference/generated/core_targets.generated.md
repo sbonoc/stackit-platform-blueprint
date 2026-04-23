@@ -15,6 +15,7 @@ This file is auto-generated. Do not edit it manually.
 | `blueprint-upgrade-consumer-preflight` | Plan-only generated-consumer upgrade preflight report with auto/manual guidance |
 | `blueprint-upgrade-consumer-validate` | Run post-upgrade validation bundle and strict merge-marker checks |
 | `blueprint-upgrade-consumer-postcheck` | Run deterministic post-upgrade convergence gate (validate + reconcile + merge-marker checks) |
+| `blueprint-upgrade-fresh-env-gate` | Run fresh-environment smoke gate — CI-equivalent worktree check after upgrade postcheck |
 | `blueprint-upgrade-readiness-doctor` | Generate generated-consumer upgrade readiness diagnostics and manual-action hints |
 | `blueprint-uplift-status` | Report blueprint uplift convergence status for tracked issues in consumer backlog (optional BLUEPRINT_UPLIFT_STRICT=true) |
 | `blueprint-install-codex-skill` | Install/sync bundled Codex upgrade skill into local CODEX_HOME skills directory |

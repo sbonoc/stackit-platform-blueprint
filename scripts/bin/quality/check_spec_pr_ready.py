@@ -82,6 +82,71 @@ _HARDENING_ARCHITECTURE_FIELDS: tuple[str, ...] = (
     "Documentation/diagram/CI/skill consistency checks:",
 )
 
+# ---------------------------------------------------------------------------
+# Marker token scanning (complements check_sdd_assets.py)
+# ---------------------------------------------------------------------------
+
+# The same three files that check_sdd_assets.py aggregates for its marker scan.
+_MARKER_SCAN_FILES: tuple[str, ...] = ("spec.md", "tasks.md", "traceability.md")
+
+# Tokens from the SDD contract's unresolved_marker_tokens list (blueprint/contract.yaml).
+# A literal occurrence of any of these as a whole word signals unfinished work.
+_UNRESOLVED_MARKER_TOKENS: tuple[str, ...] = ("TODO", "FIXME", "TBD", "TBC", "???")
+
+# Readiness-gate field lines that legitimately contain marker token words must be
+# stripped before scanning to avoid false positives.  For example, the required_zero_field
+# "Unresolved TODO markers count: 0" contains "TODO" but is not an unresolved work item.
+# Field names are drawn from the required_zero_fields list in blueprint/contract.yaml.
+_MARKER_SCAN_STRIP_RE = re.compile(
+    r"^\s*[-*]\s+Unresolved\s+TODO\s+markers\s+count\s*:",
+    re.IGNORECASE,
+)
+
+
+def _token_present(line: str, token: str) -> bool:
+    """Return True if *token* appears as a whole word in *line* (case-insensitive).
+
+    Single-word alphanumeric tokens use word-boundary anchors so that "todos" does
+    not match "TODO".  Punctuation-only tokens such as "???" fall back to plain
+    substring search because \b anchors do not apply to non-word characters.
+    """
+    needle = token.lower()
+    haystack = line.lower()
+    if re.fullmatch(r"[a-z0-9.\-]+", needle):
+        return bool(re.search(rf"\b{re.escape(needle)}\b", haystack))
+    return needle in haystack
+
+
+def _check_spec_marker_tokens(spec_dir: Path) -> list[str]:
+    """Check spec.md, tasks.md, and traceability.md for unresolved marker tokens.
+
+    This mirrors the token scan performed by check_sdd_assets.py so that
+    quality-spec-pr-ready catches the same class of errors when run directly
+    via SPEC_SLUG, without relying on check_sdd_assets.py scanning every spec
+    in the repository (which requires the spec to be on the currently checked-out
+    branch — a condition that branch-switching bugs can silently violate).
+    """
+    violations: list[str] = []
+    for file_name in _MARKER_SCAN_FILES:
+        path = spec_dir / file_name
+        if not path.is_file():
+            # Missing optional file: skip gracefully; main() reports missing required files
+            continue
+        lines = path.read_text(encoding="utf-8", errors="surrogateescape").splitlines()
+        for i, line in enumerate(lines, start=1):
+            # Strip readiness-gate field lines that legitimately contain token words.
+            if _MARKER_SCAN_STRIP_RE.match(line):
+                continue
+            for token in _UNRESOLVED_MARKER_TOKENS:
+                if _token_present(line, token):
+                    violations.append(
+                        f"{PREFIX} {file_name}:{i}: unresolved marker token `{token}` — "
+                        f"resolve or rephrase before opening a PR: {line.strip()[:100]}"
+                    )
+                    # One report per line; avoid stacking alerts for the same line.
+                    break
+    return violations
+
 
 def _resolve_spec_dir(repo_root: Path) -> Path:
     """Resolve spec directory from SPEC_SLUG env var or git branch."""
@@ -352,6 +417,12 @@ def main(repo_root: Path | None = None) -> int:
             continue
         content = path.read_text(encoding="utf-8", errors="surrogateescape")
         all_violations.extend(check_fn(content, file_name))
+
+    # Scan spec.md, tasks.md, and traceability.md for unresolved marker tokens.
+    # This check runs here (not only in check_sdd_assets.py) so that it fires
+    # when quality-spec-pr-ready is invoked directly via SPEC_SLUG, regardless
+    # of which branch is currently checked out.
+    all_violations.extend(_check_spec_marker_tokens(spec_dir))
 
     for v in all_violations:
         print(v)

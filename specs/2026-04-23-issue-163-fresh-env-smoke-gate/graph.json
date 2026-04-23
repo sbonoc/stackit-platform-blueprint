@@ -1,0 +1,97 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-04-23-issue-163-fresh-env-smoke-gate",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "Create temporary git worktree from upgrade branch HEAD after postcheck exits 0"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "Run make infra-validate and make blueprint-upgrade-consumer-postcheck inside the worktree with inherited environment"
+    },
+    {
+      "id": "FR-003",
+      "type": "requirement",
+      "summary": "Exit non-zero if either target fails; diff worktree file state vs working tree and include diagnostic divergence list"
+    },
+    {
+      "id": "FR-004",
+      "type": "requirement",
+      "summary": "Register EXIT trap to unconditionally remove the temporary worktree via git worktree remove --force"
+    },
+    {
+      "id": "FR-005",
+      "type": "requirement",
+      "summary": "Exit non-zero and block upgrade if worktree creation fails for any reason"
+    },
+    {
+      "id": "FR-006",
+      "type": "requirement",
+      "summary": "Write structured JSON report to artifacts/blueprint/fresh_env_gate.json and emit inline stdout progress"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "Worktree created from committed HEAD only; no uncommitted content executed; env inheritance accepted"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "JSON artifact with required fields; blueprint_upgrade_fresh_env_gate_status_total metric emitted"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "Gate is idempotent and must not mutate the working tree; EXIT trap ensures worktree cleanup"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "Failure output identifies diverging files, failing target, exit code, and nature of divergence"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "Gate exits non-zero with status=fail when bootstrap-managed file absent causes target failure in fresh env"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "Gate exits 0 with status=pass when all files reproduce correctly and both targets exit 0 in worktree"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "Gate exits non-zero with status=error when worktree creation fails; upgrade is blocked"
+    },
+    {
+      "id": "AC-004",
+      "type": "acceptance",
+      "summary": "EXIT trap removes worktree via git worktree remove --force on SIGINT or SIGTERM"
+    },
+    {
+      "id": "AC-005",
+      "type": "acceptance",
+      "summary": "Temporary worktree absent from git worktree list after successful gate run"
+    }
+  ],
+  "edges": [
+    { "from": "FR-001", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-001", "to": "AC-003", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-002", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-004", "to": "AC-004", "relation": "validated_by" },
+    { "from": "FR-004", "to": "AC-005", "relation": "validated_by" },
+    { "from": "FR-005", "to": "AC-003", "relation": "validated_by" },
+    { "from": "FR-006", "to": "AC-002", "relation": "validated_by" },
+    { "from": "FR-006", "to": "AC-005", "relation": "validated_by" },
+    { "from": "NFR-SEC-001", "to": "FR-002", "relation": "constrains" },
+    { "from": "NFR-OBS-001", "to": "FR-006", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "FR-004", "relation": "constrains" },
+    { "from": "NFR-OPS-001", "to": "FR-003", "relation": "constrains" }
+  ]
+}
