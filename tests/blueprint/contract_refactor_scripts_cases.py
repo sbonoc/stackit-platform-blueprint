@@ -619,3 +619,23 @@ class ScriptsRefactorCases(RefactorContractBase):
         self.assertIn("runtime-lines", runtime_cli)
         self.assertIn("required-env-vars", runtime_cli)
         self.assertIn("module-defaults", runtime_cli)
+
+    def test_validate_contract_consumer_seeded_template_check_is_mode_guarded(self) -> None:
+        validate_contract = _read("scripts/bin/blueprint/validate_contract.py")
+        # The consumer-init-template check for consumer_seeded paths must only run
+        # in template-source mode; generated-consumer repos may declare paths that
+        # have no init template (e.g. infra placeholder manifests replaced by the
+        # consumer).
+        self.assertIn("consumer_seeded_paths", validate_contract)
+        self.assertIn("mode_to", validate_contract)
+        # consumer_seeded paths must NOT be unconditionally required to be in
+        # required_files — the constraint was removed so consumers can declare
+        # ownership of absent files without triggering a validate_contract failure.
+        self.assertNotIn(
+            "consumer_seeded paths must also be included in",
+            validate_contract,
+        )
+        # _required_files_for_repo_mode must exclude consumer_seeded paths in
+        # generated-consumer mode.
+        self.assertIn("consumer_seeded_paths = set(repository.consumer_seeded_paths)", validate_contract)
+        self.assertIn("relative_path not in consumer_seeded_paths", validate_contract)

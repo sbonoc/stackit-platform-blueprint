@@ -1637,11 +1637,16 @@ def _required_files_for_repo_mode(contract: BlueprintContract) -> list[str]:
     # Generated-consumer repos intentionally prune source-only paths. Keep the
     # required-files surface mode-aware so source-only files can still be
     # validated in template-source mode without breaking consumer validation.
+    # consumer_seeded paths are consumer-owned and may be intentionally absent
+    # from disk; exclude them from the disk-presence check in generated-consumer
+    # mode.
     source_only_paths = repository.source_only_paths
+    consumer_seeded_paths = set(repository.consumer_seeded_paths)
     return [
         relative_path
         for relative_path in required_files
         if not any(_path_is_same_or_child(relative_path, source_only_path) for source_only_path in source_only_paths)
+        and relative_path not in consumer_seeded_paths
     ]
 
 
@@ -1684,18 +1689,19 @@ def _validate_repository_mode_contract(repo_root: Path, contract: BlueprintContr
     if consumer_init.mode_from == consumer_init.mode_to:
         errors.append("repository.consumer_init.mode_from and mode_to must differ")
 
-    for relative_path in consumer_seeded_paths:
-        template_path = repo_root / consumer_init.template_root / f"{relative_path}.tmpl"
-        if not template_path.is_file():
-            errors.append(
-                "missing consumer init template file for "
-                f"{relative_path}: {template_path.relative_to(repo_root).as_posix()}"
-            )
-        if relative_path not in repository.required_files:
-            errors.append(
-                "repository.ownership_path_classes.consumer_seeded paths must also be included in "
-                f"repository.required_files: {relative_path}"
-            )
+    # In template-source mode the blueprint must ship a consumer init template for
+    # every consumer_seeded path so that generated-consumer repos are properly
+    # bootstrapped during consumer-init. In generated-consumer mode, consumers
+    # may declare additional paths as consumer_seeded (e.g. infra placeholder
+    # manifests they have replaced) that have no init template — that is valid.
+    if repository.repo_mode != repository.consumer_init.mode_to:
+        for relative_path in consumer_seeded_paths:
+            template_path = repo_root / consumer_init.template_root / f"{relative_path}.tmpl"
+            if not template_path.is_file():
+                errors.append(
+                    "missing consumer init template file for "
+                    f"{relative_path}: {template_path.relative_to(repo_root).as_posix()}"
+                )
 
     overlap = set(source_only_paths) & set(repository.required_files)
     if overlap:

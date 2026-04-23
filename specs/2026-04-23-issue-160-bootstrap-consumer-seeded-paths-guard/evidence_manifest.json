@@ -2,7 +2,7 @@
   "manifest_version": 1,
   "work_item": "specs/2026-04-23-issue-160-bootstrap-consumer-seeded-paths-guard",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "2026-04-23T07:08:29Z",
+  "generated_at_utc": "2026-04-23T09:10:50Z",
   "files": [
     {
       "path": "specs/2026-04-23-issue-160-bootstrap-consumer-seeded-paths-guard/architecture.md",
@@ -16,8 +16,8 @@
     },
     {
       "path": "specs/2026-04-23-issue-160-bootstrap-consumer-seeded-paths-guard/evidence_manifest.json",
-      "sha256": "ecb0eea40122794ca8f062212e022ba451f6d0a543b88db3d7c15e65a071e7f7",
-      "bytes": 161
+      "sha256": "f6925d272143e1dcc1262b6fcbea5135c2715c4c3df07085bd4ff71c2220b2ad",
+      "bytes": 2347
     },
     {
       "path": "specs/2026-04-23-issue-160-bootstrap-consumer-seeded-paths-guard/graph.json",

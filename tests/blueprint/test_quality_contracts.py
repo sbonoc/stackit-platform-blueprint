@@ -1127,6 +1127,34 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn("runtime_dependency_edge_check", validate_lib)
         self.assertIn("RUNTIME_DEPENDENCY_EDGES", runtime_edges)
 
+    def test_required_files_excludes_consumer_seeded_paths_for_generated_repo_mode(self) -> None:
+        validate_script = REPO_ROOT / "scripts/bin/blueprint/validate_contract.py"
+        spec = importlib.util.spec_from_file_location("validate_contract_module", validate_script)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)  # type: ignore[union-attr]
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            contract_path = Path(tmpdir) / "contract.yaml"
+            contract_path.write_text(
+                _read("blueprint/contract.yaml").replace(
+                    "repo_mode: template-source",
+                    "repo_mode: generated-consumer",
+                    1,
+                ),
+                encoding="utf-8",
+            )
+            contract = load_blueprint_contract(contract_path)
+            required_files = module._required_files_for_repo_mode(contract)
+
+        # README.md is in both required_files and consumer_seeded_paths.
+        # In generated-consumer mode it must be excluded from disk-presence checks
+        # so that a consumer who has taken ownership can delete it without
+        # triggering a validate_contract failure.
+        self.assertNotIn("README.md", required_files)
+        self.assertNotIn("AGENTS.md", required_files)
+
 
 if __name__ == "__main__":
     unittest.main()
