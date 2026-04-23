@@ -1,0 +1,116 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-04-23-issue-165-semantic-annotations",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "semantic annotation object on every merge-required plan entry (kind, description, verification_hints)"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "kind field from closed set: function-added, function-removed, variable-changed, source-directive-added, structural-change"
+    },
+    {
+      "id": "FR-003",
+      "type": "requirement",
+      "summary": "static diff analysis detects shell function adds/removes, variable changes, source directive additions"
+    },
+    {
+      "id": "FR-004",
+      "type": "requirement",
+      "summary": "per-entry annotation generation failures fall back to structural-change without aborting plan generation"
+    },
+    {
+      "id": "FR-005",
+      "type": "requirement",
+      "summary": "semantic annotation serialized in upgrade_plan.json; upgrade_plan.schema.json updated"
+    },
+    {
+      "id": "FR-006",
+      "type": "requirement",
+      "summary": "upgrade_summary.md renders semantic.description and verification_hints for each merge-required entry"
+    },
+    {
+      "id": "FR-007",
+      "type": "requirement",
+      "summary": "upgrade_apply.json carries semantic annotation on merge-required result items; schema updated"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "annotation generation must not execute file content; static regex/line-by-line only"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "plan generation logs merge-required count, auto-annotated count, structural-change fallback count"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "per-entry failures caught and fallback applied; semantic field addition is backward-compatible"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "annotation readable from existing artifacts without new CLI; kind enum documented in reference docs"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "function-added: upgrade_plan.json includes semantic.kind=function-added, description naming function, verification hint"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "variable-changed: upgrade_plan.json includes semantic.kind=variable-changed, description naming var+value, verification hint"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "no-match: upgrade_plan.json includes semantic.kind=structural-change with manual review hint"
+    },
+    {
+      "id": "AC-004",
+      "type": "acceptance",
+      "summary": "annotation generation error: plan completes; affected entry carries structural-change; others unaffected"
+    },
+    {
+      "id": "AC-005",
+      "type": "acceptance",
+      "summary": "upgrade_plan.json with merge-required entries validates against updated schema with semantic object populated"
+    },
+    {
+      "id": "AC-006",
+      "type": "acceptance",
+      "summary": "upgrade_summary.md renders semantic.description and full verification_hints for each merge-required entry"
+    },
+    {
+      "id": "AC-007",
+      "type": "acceptance",
+      "summary": "upgrade_apply.json carries semantic annotation on result items with planned_action=merge-required"
+    }
+  ],
+  "edges": [
+    { "from": "FR-001", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-001", "to": "AC-002", "relation": "validated_by" },
+    { "from": "FR-001", "to": "AC-003", "relation": "validated_by" },
+    { "from": "FR-001", "to": "AC-005", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-002", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-003", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-002", "relation": "validated_by" },
+    { "from": "FR-004", "to": "AC-004", "relation": "validated_by" },
+    { "from": "FR-005", "to": "AC-005", "relation": "validated_by" },
+    { "from": "FR-006", "to": "AC-006", "relation": "validated_by" },
+    { "from": "FR-007", "to": "AC-007", "relation": "validated_by" },
+    { "from": "NFR-SEC-001", "to": "FR-003", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "FR-004", "relation": "constrains" },
+    { "from": "NFR-OBS-001", "to": "FR-001", "relation": "constrains" },
+    { "from": "NFR-OPS-001", "to": "FR-005", "relation": "constrains" },
+    { "from": "NFR-OPS-001", "to": "FR-006", "relation": "constrains" }
+  ]
+}

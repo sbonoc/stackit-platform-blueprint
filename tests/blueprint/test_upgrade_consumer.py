@@ -1728,5 +1728,199 @@ class StaleModuleTargetDetectionTests(unittest.TestCase):
         )
 
 
+class SemanticAnnotationConsumerTests(unittest.TestCase):
+    """AC-005/AC-006/AC-007: semantic annotations on merge-required entries (Issue #165)."""
+
+    def test_three_way_merge_path_has_semantic_annotation_in_plan(self) -> None:
+        """AC-005 (3-way merge site): plan entry for diverged managed file carries semantic annotation."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            baseline_content = "#!/usr/bin/env bash\nfunction bar() { echo bar; }\n"
+            source_content = (
+                "#!/usr/bin/env bash\nfunction bar() { echo bar; }\nfunction foo() { echo foo; }\n"
+            )
+            target_content = "#!/usr/bin/env bash\nfunction bar() { echo bar-local; }\n"
+
+            source_repo = _create_source_repo(tmp_root, MANAGED_TEST_PATH, baseline_content, source_content)
+            target_repo = _create_generated_repo(tmp_root, MANAGED_TEST_PATH, target_content)
+
+            result = _run(
+                [
+                    sys.executable,
+                    str(UPGRADE_SCRIPT),
+                    "--repo-root",
+                    str(target_repo),
+                    "--source",
+                    str(source_repo),
+                    "--ref",
+                    "HEAD",
+                ],
+                cwd=REPO_ROOT,
+            )
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+
+            plan = _load_json(target_repo / "artifacts/blueprint/upgrade_plan.json")
+            entry = _plan_entry(plan, MANAGED_TEST_PATH)
+            self.assertEqual(entry.get("action"), "merge-required")
+
+            semantic = entry.get("semantic")
+            self.assertIsNotNone(semantic, "expected semantic annotation on merge-required entry")
+            self.assertIsInstance(semantic, dict)
+            self.assertIn("kind", semantic)
+            self.assertIn("description", semantic)
+            self.assertIn("verification_hints", semantic)
+            self.assertIsInstance(semantic["verification_hints"], list)
+            self.assertTrue(len(semantic["verification_hints"]) > 0)
+            # function-added because foo() appears in source but not in baseline
+            self.assertEqual(semantic["kind"], "function-added")
+            self.assertIn("foo", semantic["description"])
+            _assert_json_schema(plan, PLAN_SCHEMA)
+
+    def test_additive_file_path_has_semantic_annotation_in_plan(self) -> None:
+        """AC-005 (additive file site): plan entry for additive merge-required file carries semantic annotation."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            source_repo = _create_source_repo_with_additive_file(
+                tmp_root,
+                ADDITIVE_TEST_PATH,
+                "#!/usr/bin/env bash\n# source version\nfunction helper() { echo helper; }\n",
+            )
+            target_repo = _create_generated_repo(
+                tmp_root,
+                ADDITIVE_TEST_PATH,
+                "#!/usr/bin/env bash\n# target version\n",
+            )
+
+            result = _run(
+                [
+                    sys.executable,
+                    str(UPGRADE_SCRIPT),
+                    "--repo-root",
+                    str(target_repo),
+                    "--source",
+                    str(source_repo),
+                    "--ref",
+                    "HEAD",
+                ],
+                cwd=REPO_ROOT,
+            )
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+
+            plan = _load_json(target_repo / "artifacts/blueprint/upgrade_plan.json")
+            entry = _plan_entry(plan, ADDITIVE_TEST_PATH)
+            self.assertEqual(entry.get("action"), "merge-required")
+
+            semantic = entry.get("semantic")
+            self.assertIsNotNone(semantic, "expected semantic annotation on additive merge-required entry")
+            self.assertIsInstance(semantic, dict)
+            self.assertIn("kind", semantic)
+            self.assertIn("description", semantic)
+            self.assertIn("verification_hints", semantic)
+            self.assertIsInstance(semantic["verification_hints"], list)
+            self.assertTrue(len(semantic["verification_hints"]) > 0)
+            # additive path passes "" as baseline → structural-change by design
+            self.assertEqual(semantic["kind"], "structural-change")
+            _assert_json_schema(plan, PLAN_SCHEMA)
+
+    def test_summary_renders_semantic_annotations_for_merge_required_entries(self) -> None:
+        """AC-006: upgrade_summary.md includes semantic kind, description and hints for merge-required entries."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            baseline_content = "#!/usr/bin/env bash\nFOO_VERSION=1.0\n"
+            source_content = "#!/usr/bin/env bash\nFOO_VERSION=2.0\n"
+            target_content = "#!/usr/bin/env bash\nFOO_VERSION=1.0\nlocal_addition=yes\n"
+
+            source_repo = _create_source_repo(tmp_root, MANAGED_TEST_PATH, baseline_content, source_content)
+            target_repo = _create_generated_repo(tmp_root, MANAGED_TEST_PATH, target_content)
+
+            result = _run(
+                [
+                    sys.executable,
+                    str(UPGRADE_SCRIPT),
+                    "--repo-root",
+                    str(target_repo),
+                    "--source",
+                    str(source_repo),
+                    "--ref",
+                    "HEAD",
+                ],
+                cwd=REPO_ROOT,
+            )
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+
+            summary_path = target_repo / "artifacts/blueprint/upgrade_summary.md"
+            self.assertTrue(summary_path.is_file())
+            summary = summary_path.read_text(encoding="utf-8")
+            self.assertIn("## Merge-Required Annotations", summary)
+            self.assertIn(MANAGED_TEST_PATH, summary)
+            # Annotator detects variable-changed (FOO_VERSION 1.0 → 2.0)
+            self.assertIn("variable-changed", summary)
+            self.assertIn("FOO_VERSION", summary)
+
+    def test_apply_result_carries_semantic_annotation(self) -> None:
+        """AC-007: upgrade_apply.json carries semantic annotation on merge-required result items."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            # Changes must be non-overlapping so git merge-file succeeds without conflict.
+            # Source adds function foo() at the end; target modifies LOCAL_SLOT in the middle.
+            baseline_content = (
+                "#!/usr/bin/env bash\n"
+                "function bar() { echo bar; }\n"
+                "MIDDLE=yes\n"
+                "LOCAL_SLOT=baseline\n"
+                "FOOTER=done\n"
+            )
+            source_content = (
+                "#!/usr/bin/env bash\n"
+                "function bar() { echo bar; }\n"
+                "MIDDLE=yes\n"
+                "LOCAL_SLOT=baseline\n"
+                "FOOTER=done\n"
+                "function foo() { echo foo; }\n"
+            )
+            # Target changes LOCAL_SLOT (middle) — non-overlapping with source's append at end.
+            target_content = (
+                "#!/usr/bin/env bash\n"
+                "function bar() { echo bar; }\n"
+                "MIDDLE=yes\n"
+                "LOCAL_SLOT=custom\n"
+                "FOOTER=done\n"
+            )
+
+            source_repo = _create_source_repo(tmp_root, MANAGED_TEST_PATH, baseline_content, source_content)
+            target_repo = _create_generated_repo(tmp_root, MANAGED_TEST_PATH, target_content)
+
+            result = _run(
+                [
+                    sys.executable,
+                    str(UPGRADE_SCRIPT),
+                    "--repo-root",
+                    str(target_repo),
+                    "--source",
+                    str(source_repo),
+                    "--ref",
+                    "HEAD",
+                    "--apply",
+                ],
+                cwd=REPO_ROOT,
+            )
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+
+            apply_report = _load_json(target_repo / "artifacts/blueprint/upgrade_apply.json")
+            path_result = _apply_result(apply_report, MANAGED_TEST_PATH)
+            self.assertEqual(path_result.get("result"), "merged")
+
+            semantic = path_result.get("semantic")
+            self.assertIsNotNone(semantic, "expected semantic annotation carried into apply result")
+            self.assertIsInstance(semantic, dict)
+            self.assertIn("kind", semantic)
+            self.assertIn("description", semantic)
+            self.assertIn("verification_hints", semantic)
+            self.assertIsInstance(semantic["verification_hints"], list)
+            self.assertTrue(len(semantic["verification_hints"]) > 0)
+            self.assertEqual(semantic["kind"], "function-added")
+            _assert_json_schema(apply_report, APPLY_SCHEMA)
+
+
 if __name__ == "__main__":
     unittest.main()

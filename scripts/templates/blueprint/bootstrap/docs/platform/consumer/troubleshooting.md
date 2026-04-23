@@ -117,6 +117,29 @@ Common first-day issues for generated repositories.
   ```
 - After the upgrade lands, keep using `make blueprint-upgrade-consumer` with the default engine mode (`source-ref`) for deterministic future runs.
 
+## How to read `merge-required` semantic annotations in the upgrade plan
+
+Every `merge-required` entry in `upgrade_plan.json` and `upgrade_summary.md` carries a `semantic`
+annotation with three fields:
+
+- `kind` — category of change (see table below)
+- `description` — human-readable summary naming the changed symbol and new value
+- `verification_hints` — concrete actions to verify after applying the merge
+
+| `kind` | What changed |
+|---|---|
+| `function-added` | A shell function was added to the source; check that its call sites are correct after merge |
+| `function-removed` | A shell function was removed from the source; check that no call sites still reference it |
+| `variable-changed` | A variable assignment changed value; verify the new value is correct in your merged file |
+| `source-directive-added` | A `source` or `.` directive was added; confirm the sourced file exists at the expected path |
+| `structural-change` | Complex diff or new file — manually review the full diff before resolving the merge |
+
+`structural-change` is the fallback for diffs that do not match a specific pattern; it is always
+actionable via manual review and does not indicate an error in the annotator.
+
+The **Merge-Required Annotations** section in `artifacts/blueprint/upgrade_summary.md` lists every
+annotated entry with its kind, description, and bullet hints — read it before starting manual merges.
+
 ## Pull requests are not auto-requesting reviewers
 - Generated repositories seed `.github/CODEOWNERS` as a starter file with commented examples only.
 - Replace the example owners with your real team handles before relying on GitHub review assignment.
