@@ -13,7 +13,7 @@
 | NFR-REL-001 | SDD-C-012 | set -euo pipefail propagates pytest failures | `scripts/bin/blueprint/ci_upgrade_validate.sh` | `test_quality_ci_upgrade_validate_target_and_script_exist` (`set -euo pipefail` assertion) | n/a | n/a |
 | NFR-OPS-001 | SDD-C-012 | make quality-ci-upgrade-validate runnable locally | `make/blueprint.generated.mk` target definition | `make quality-ci-upgrade-validate` local run | make target doc comment | n/a |
 | AC-001 | SDD-C-012 | ci_upgrade_validate.sh exists, executable, contains set -euo pipefail | `scripts/bin/blueprint/ci_upgrade_validate.sh` | `test_quality_ci_upgrade_validate_target_and_script_exist` | n/a | n/a |
-| AC-002 | SDD-C-012 | quality-ci-upgrade-validate target in both mk files | `make/blueprint.generated.mk`, `make/blueprint.generated.mk.tmpl` | `test_quality_ci_upgrade_validate_target_and_script_exist` | n/a | n/a |
+| AC-002 | SDD-C-012 | quality-ci-upgrade-validate target in both mk files | `make/blueprint.generated.mk`, `scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl` | `test_quality_ci_upgrade_validate_target_and_script_exist` | n/a | n/a |
 | AC-003 | SDD-C-012 | upgrade-e2e-validation job with push-only condition | `.github/workflows/ci.yml` | `make quality-ci-check-sync` | CI workflow file | n/a |
 | AC-004 | SDD-C-012 | upgrade-e2e-validation job uploads JUnit XML | `.github/workflows/ci.yml` | `make quality-ci-check-sync` | CI workflow file | n/a |
 | AC-005 | SDD-C-012 | shellcheck passes on ci_upgrade_validate.sh | `scripts/bin/blueprint/ci_upgrade_validate.sh` | `shellcheck --severity=error scripts/bin/blueprint/ci_upgrade_validate.sh` | n/a | n/a |

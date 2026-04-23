@@ -2,7 +2,7 @@
   "manifest_version": 1,
   "work_item": "specs/2026-04-23-issue-169-upgrade-ci-e2e-validation",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "2026-04-23T11:16:03Z",
+  "generated_at_utc": "2026-04-23T11:23:32Z",
   "files": [
     {
       "path": "specs/2026-04-23-issue-169-upgrade-ci-e2e-validation/architecture.md",
@@ -16,8 +16,8 @@
     },
     {
       "path": "specs/2026-04-23-issue-169-upgrade-ci-e2e-validation/evidence_manifest.json",
-      "sha256": "ecb0eea40122794ca8f062212e022ba451f6d0a543b88db3d7c15e65a071e7f7",
-      "bytes": 161
+      "sha256": "3e4cf75c6f7d2fb6f7538ede33de3b9b7afea222896523aaad39ecd01e462746",
+      "bytes": 2215
     },
     {
       "path": "specs/2026-04-23-issue-169-upgrade-ci-e2e-validation/graph.json",
@@ -51,8 +51,8 @@
     },
     {
       "path": "specs/2026-04-23-issue-169-upgrade-ci-e2e-validation/traceability.md",
-      "sha256": "e58cb722c5bac5721755f9b9c4dd73bd004e9d13e913128e5f2a3b32aa6321a1",
-      "bytes": 4308
+      "sha256": "280c8f8d78d5908546f4c33c641e2c94a0d63202364c55bba8884e54d41155e5",
+      "bytes": 4346
     }
   ]
 }
