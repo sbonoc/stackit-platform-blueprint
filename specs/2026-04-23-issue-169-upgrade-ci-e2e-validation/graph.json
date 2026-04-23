@@ -1,0 +1,89 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-04-23-issue-169-upgrade-ci-e2e-validation",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "ci_upgrade_validate.sh invokes pytest for test_upgrade_fixture_matrix.py with --junitxml output"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "quality-ci-upgrade-validate make target exists in blueprint.generated.mk.tmpl and blueprint.generated.mk"
+    },
+    {
+      "id": "FR-003",
+      "type": "requirement",
+      "summary": "render_ci_workflow.py renders upgrade-e2e-validation job on push events with artifact upload"
+    },
+    {
+      "id": "FR-004",
+      "type": "requirement",
+      "summary": "quality-ci-sync and quality-ci-check-sync validate the complete CI workflow including the new job"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "ci_upgrade_validate.sh makes no external network calls"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "upgrade-e2e-validation CI job uploads JUnit XML artifact"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "ci_upgrade_validate.sh uses set -euo pipefail and propagates pytest failures"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "make quality-ci-upgrade-validate is runnable locally without additional setup"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "ci_upgrade_validate.sh exists, is executable, and contains set -euo pipefail"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "quality-ci-upgrade-validate target exists in both blueprint.generated.mk and its template source"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": ".github/workflows/ci.yml contains upgrade-e2e-validation job with push-only condition"
+    },
+    {
+      "id": "AC-004",
+      "type": "acceptance",
+      "summary": "upgrade-e2e-validation job uploads upgrade_validate_junit.xml artifact"
+    },
+    {
+      "id": "AC-005",
+      "type": "acceptance",
+      "summary": "shellcheck --severity=error passes on ci_upgrade_validate.sh"
+    },
+    {
+      "id": "AC-006",
+      "type": "acceptance",
+      "summary": "Structural test in contract_refactor_scripts_cases.py asserts AC-001 and AC-002"
+    }
+  ],
+  "edges": [
+    { "from": "FR-001", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-001", "to": "AC-005", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-002", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-006", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-003", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-004", "relation": "validated_by" },
+    { "from": "FR-004", "to": "AC-003", "relation": "validated_by" },
+    { "from": "NFR-SEC-001", "to": "AC-001", "relation": "constrains" },
+    { "from": "NFR-OBS-001", "to": "AC-004", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "AC-001", "relation": "constrains" },
+    { "from": "NFR-OPS-001", "to": "AC-002", "relation": "constrains" }
+  ]
+}

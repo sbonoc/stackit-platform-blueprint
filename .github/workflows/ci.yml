@@ -50,3 +50,25 @@ jobs:
       - name: Smoke generated consumer baseline
         run: |
           make quality-ci-generated-consumer-smoke
+
+  upgrade-e2e-validation:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Prepare shared CI baseline
+        uses: ./.github/actions/prepare-blueprint-ci
+
+      - name: Run upgrade e2e validation
+        run: |
+          make quality-ci-upgrade-validate
+
+      - name: Upload upgrade validation junit artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: upgrade-validate-junit
+          path: artifacts/blueprint/upgrade_validate/upgrade_validate_junit.xml
+          if-no-files-found: warn

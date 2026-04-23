@@ -685,3 +685,42 @@ class ScriptsRefactorCases(RefactorContractBase):
             func_region,
             "run_cmd_capture must carry a doc comment stating stdout-only contract immediately above its definition",
         )
+
+    def test_quality_ci_upgrade_validate_target_and_script_exist(self) -> None:
+        # AC-001 / AC-002 (issue #169): dedicated upgrade CI job foundation.
+        # The script must exist, be executable, and contain set -euo pipefail;
+        # the make target must be declared in both the generated Makefile and the
+        # template source to prevent future drift between the two.
+        import stat
+
+        script_path = REPO_ROOT / "scripts/bin/blueprint/ci_upgrade_validate.sh"
+        self.assertTrue(
+            script_path.is_file(),
+            "scripts/bin/blueprint/ci_upgrade_validate.sh must exist (issue #169, AC-001)",
+        )
+        mode = script_path.stat().st_mode
+        self.assertTrue(
+            bool(mode & (stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)),
+            "ci_upgrade_validate.sh must be executable (issue #169, AC-001)",
+        )
+        script = script_path.read_text(encoding="utf-8")
+        self.assertIn(
+            "set -euo pipefail",
+            script,
+            "ci_upgrade_validate.sh must use set -euo pipefail (issue #169, AC-001)",
+        )
+
+        generated_mk = _read("make/blueprint.generated.mk")
+        self.assertIn(
+            "quality-ci-upgrade-validate",
+            generated_mk,
+            "quality-ci-upgrade-validate target must exist in make/blueprint.generated.mk (issue #169, AC-002)",
+        )
+        template_mk = _read(
+            "scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl"
+        )
+        self.assertIn(
+            "quality-ci-upgrade-validate",
+            template_mk,
+            "quality-ci-upgrade-validate target must exist in blueprint.generated.mk.tmpl (issue #169, AC-002)",
+        )
