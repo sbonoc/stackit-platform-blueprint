@@ -133,6 +133,7 @@ def _emit_postcheck_metrics(report_path: Path) -> Iterable[str]:
         f"postcheck_blocked_reasons_total={_as_int(summary.get('blocked_reason_count', 0))}",
         f"postcheck_validate_failure_total={_as_int(summary.get('validate_failure_count', 0))}",
         f"postcheck_contract_load_error_total={_as_int(summary.get('contract_load_error_count', 0))}",
+        f"postcheck_behavioral_check_failures_total={_as_int(summary.get('behavioral_check_failure_count', 0))}",
     ]
 
 

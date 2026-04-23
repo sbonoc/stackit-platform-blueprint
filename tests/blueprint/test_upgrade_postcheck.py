@@ -273,5 +273,222 @@ class UpgradePostcheckTests(unittest.TestCase):
             _assert_json_schema(report, POSTCHECK_SCHEMA)
 
 
+FIXTURE_DIR = REPO_ROOT / "tests/blueprint/fixtures/shell_behavioral_check"
+
+
+def _write_apply_report_with_merged_sh(repo: Path, sh_path_relative: str) -> None:
+    """Write plan, apply, and reconcile reports for a single result=merged .sh file.
+
+    The reconcile report includes metadata that exactly matches the plan so that
+    the stale-detection check does NOT recompute it (which would classify the
+    merge-required plan entry as conflicts_unresolved).
+    """
+    source = "git@github.com:example/source.git"
+    upgrade_ref = "v1.1.0"
+    commit = "abc123"
+    baseline = "v1.0.0"
+
+    apply_payload = {
+        "results": [
+            {
+                "path": sh_path_relative,
+                "planned_action": "merge-required",
+                "planned_operation": "update",
+                "result": "merged",
+                "reason": "diverged from baseline; 3-way merge applied",
+            }
+        ]
+    }
+    _write(repo / "artifacts/blueprint/upgrade_apply.json", json.dumps(apply_payload) + "\n")
+
+    plan_payload = {
+        "source": source,
+        "upgrade_ref": upgrade_ref,
+        "resolved_upgrade_commit": commit,
+        "baseline_ref": baseline,
+        "entries": [{"path": sh_path_relative, "action": "merge-required", "operation": "update"}],
+        "required_manual_actions": [],
+    }
+    _write(repo / "artifacts/blueprint/upgrade_plan.json", json.dumps(plan_payload) + "\n")
+
+    # Write a reconcile report whose metadata matches the plan so the stale-detection
+    # check does NOT recompute it (recomputation would classify merge-required plan
+    # entries as conflicts_unresolved, masking the behavioral gate under test).
+    reconcile_payload = {
+        "source": source,
+        "upgrade_ref": upgrade_ref,
+        "resolved_upgrade_commit": commit,
+        "template_ref_from": baseline,
+        "summary": {
+            "conflicts_unresolved_count": 0,
+            "blocking_bucket_count": 0,
+            "blocked": False,
+            "plan_entry_count": 1,
+            "required_manual_action_count": 0,
+            "apply_result_count": 1,
+        },
+        "buckets": {
+            "blueprint_managed_safe_to_take": [],
+            "consumer_owned_manual_review": [],
+            "generated_references_regenerate": [],
+            "conflicts_unresolved": [],
+        },
+    }
+    _write(
+        repo / "artifacts/blueprint/upgrade/upgrade_reconcile_report.json",
+        json.dumps(reconcile_payload) + "\n",
+    )
+
+
+class BehavioralCheckPostcheckTests(unittest.TestCase):
+    """AC-001 through AC-005: behavioral gate integration via postcheck orchestrator."""
+
+    def _base_repo(self, tmpdir: str, *, repo_mode: str = "generated-consumer") -> Path:
+        repo = Path(tmpdir) / "repo"
+        _init_git_repo(repo)
+        _write(repo / "blueprint/contract.yaml", _contract_text_for_repo_mode(repo_mode))
+        _write_validate_report(repo, status="success")
+        _write_reconcile_report(repo, conflicts_unresolved_count=0, blocked=False)
+        return repo
+
+    def _run_postcheck(self, repo: Path, *, extra_args: list[str] | None = None) -> subprocess.CompletedProcess[str]:
+        cmd = [sys.executable, str(POSTCHECK_SCRIPT), "--repo-root", str(repo)]
+        if extra_args:
+            cmd.extend(extra_args)
+        return _run(cmd, cwd=REPO_ROOT)
+
+    def test_behavioral_check_passes_for_clean_merged_script(self) -> None:
+        """AC-003: merged .sh with all defs present → postcheck succeeds."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = self._base_repo(tmpdir)
+            rel = "scripts/bin/platform/clean_script.sh"
+            dest = repo / rel
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_text((FIXTURE_DIR / "clean_script.sh").read_text())
+            _write_apply_report_with_merged_sh(repo, rel)
+
+            result = self._run_postcheck(repo)
+
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            report = _load_json(repo / "artifacts/blueprint/upgrade_postcheck.json")
+            self.assertEqual(report["summary"]["status"], "success")
+            self.assertNotIn("behavioral-check-failure", report["summary"]["blocked_reasons"])
+            bc = report["behavioral_check"]
+            self.assertEqual(bc["status"], "pass")
+            self.assertFalse(bc["skipped"])
+            self.assertEqual(bc["syntax_errors"], [])
+            self.assertEqual(bc["unresolved_symbols"], [])
+            _assert_json_schema(report, POSTCHECK_SCHEMA)
+
+    def test_behavioral_check_blocks_on_syntax_error(self) -> None:
+        """AC-001: syntax error in merged .sh → postcheck fails; error in report."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = self._base_repo(tmpdir)
+            rel = "scripts/bin/platform/syntax_error_script.sh"
+            dest = repo / rel
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_text((FIXTURE_DIR / "syntax_error_script.sh").read_text())
+            _write_apply_report_with_merged_sh(repo, rel)
+
+            result = self._run_postcheck(repo)
+
+            self.assertEqual(result.returncode, 1, msg=result.stdout + result.stderr)
+            report = _load_json(repo / "artifacts/blueprint/upgrade_postcheck.json")
+            self.assertEqual(report["summary"]["status"], "failure")
+            # AC-005: blocked_reasons contains behavioral-check-failure iff status=fail
+            self.assertIn("behavioral-check-failure", report["summary"]["blocked_reasons"])
+            bc = report["behavioral_check"]
+            self.assertEqual(bc["status"], "fail")
+            self.assertGreater(len(bc["syntax_errors"]), 0)
+            entry = bc["syntax_errors"][0]
+            # REQ-003: file path present in finding
+            self.assertIn("syntax_error_script.sh", entry["file"])
+            self.assertIn("error", entry)
+            _assert_json_schema(report, POSTCHECK_SCHEMA)
+
+    def test_behavioral_check_blocks_on_unresolved_symbol(self) -> None:
+        """AC-002: dropped function def in merged .sh → postcheck fails; symbol in report."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = self._base_repo(tmpdir)
+            rel = "scripts/bin/platform/missing_def_script.sh"
+            dest = repo / rel
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_text((FIXTURE_DIR / "missing_def_script.sh").read_text())
+            _write_apply_report_with_merged_sh(repo, rel)
+
+            result = self._run_postcheck(repo)
+
+            self.assertEqual(result.returncode, 1, msg=result.stdout + result.stderr)
+            report = _load_json(repo / "artifacts/blueprint/upgrade_postcheck.json")
+            self.assertEqual(report["summary"]["status"], "failure")
+            # AC-005
+            self.assertIn("behavioral-check-failure", report["summary"]["blocked_reasons"])
+            bc = report["behavioral_check"]
+            self.assertEqual(bc["status"], "fail")
+            self.assertGreater(len(bc["unresolved_symbols"]), 0)
+            symbols = [e["symbol"] for e in bc["unresolved_symbols"]]
+            self.assertIn("setup_environment", symbols)
+            # REQ-003: file, symbol, and line present
+            for entry in bc["unresolved_symbols"]:
+                self.assertIn("file", entry)
+                self.assertIn("symbol", entry)
+                self.assertIn("line", entry)
+            _assert_json_schema(report, POSTCHECK_SCHEMA)
+
+    def test_behavioral_check_skipped_via_flag(self) -> None:
+        """AC-004: --skip-behavioral-check → gate skipped; postcheck exits zero for that reason."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = self._base_repo(tmpdir)
+            rel = "scripts/bin/platform/missing_def_script.sh"
+            dest = repo / rel
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_text((FIXTURE_DIR / "missing_def_script.sh").read_text())
+            _write_apply_report_with_merged_sh(repo, rel)
+
+            result = self._run_postcheck(repo, extra_args=["--skip-behavioral-check"])
+
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            report = _load_json(repo / "artifacts/blueprint/upgrade_postcheck.json")
+            bc = report["behavioral_check"]
+            self.assertEqual(bc["status"], "skipped")
+            self.assertTrue(bc["skipped"])
+            self.assertNotIn("behavioral-check-failure", report["summary"]["blocked_reasons"])
+            # AC-004: warning must appear in stderr
+            self.assertIn("behavioral", result.stderr.lower())
+            _assert_json_schema(report, POSTCHECK_SCHEMA)
+
+    def test_behavioral_check_blocked_reasons_absent_when_passing(self) -> None:
+        """AC-005: behavioral-check-failure NOT in blocked_reasons when status=pass."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = self._base_repo(tmpdir)
+            rel = "scripts/bin/platform/clean_script.sh"
+            dest = repo / rel
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_text((FIXTURE_DIR / "clean_script.sh").read_text())
+            _write_apply_report_with_merged_sh(repo, rel)
+
+            result = self._run_postcheck(repo)
+
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            report = _load_json(repo / "artifacts/blueprint/upgrade_postcheck.json")
+            self.assertNotIn("behavioral-check-failure", report["summary"]["blocked_reasons"])
+
+    def test_behavioral_check_summary_fields_present(self) -> None:
+        """REQ-006: postcheck summary includes behavioral_check_skipped and behavioral_check_failure_count."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = self._base_repo(tmpdir)
+            _write_reconcile_report(repo, conflicts_unresolved_count=0, blocked=False)
+
+            result = self._run_postcheck(repo)
+
+            report = _load_json(repo / "artifacts/blueprint/upgrade_postcheck.json")
+            summary = report["summary"]
+            self.assertIn("behavioral_check_skipped", summary)
+            self.assertIn("behavioral_check_failure_count", summary)
+            self.assertIsInstance(summary["behavioral_check_skipped"], bool)
+            self.assertIsInstance(summary["behavioral_check_failure_count"], int)
+            _assert_json_schema(report, POSTCHECK_SCHEMA)
+
+
 if __name__ == "__main__":
     unittest.main()

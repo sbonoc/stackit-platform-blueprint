@@ -1,0 +1,134 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-04-23-issue-162-post-merge-behavioral-validation",
+  "nodes": [
+    {
+      "id": "REQ-001",
+      "type": "requirement",
+      "summary": "bash -n syntax check on every result=merged .sh file; non-zero exit = hard failure"
+    },
+    {
+      "id": "REQ-002",
+      "type": "requirement",
+      "summary": "Symbol resolution check: function defs vs call sites, same file + depth-1 source; unresolved = gate failure"
+    },
+    {
+      "id": "REQ-003",
+      "type": "requirement",
+      "summary": "Each failure surfaces file path, symbol name, and line number"
+    },
+    {
+      "id": "REQ-004",
+      "type": "requirement",
+      "summary": "Gate integrated into upgrade_consumer_postcheck.py, runs before upgrade declared complete"
+    },
+    {
+      "id": "REQ-005",
+      "type": "requirement",
+      "summary": "Opt-out via BLUEPRINT_UPGRADE_SKIP_BEHAVIORAL_CHECK=true with mandatory warning"
+    },
+    {
+      "id": "REQ-006",
+      "type": "requirement",
+      "summary": "Postcheck JSON behavioral_check section: skipped, files_checked, syntax_errors, unresolved_symbols, status"
+    },
+    {
+      "id": "REQ-007",
+      "type": "requirement",
+      "summary": "behavioral-check-failure added to blocked_reasons on gate fail"
+    },
+    {
+      "id": "REQ-008",
+      "type": "requirement",
+      "summary": "Shell wrapper reads and forwards BLUEPRINT_UPGRADE_SKIP_BEHAVIORAL_CHECK"
+    },
+    {
+      "id": "REQ-009",
+      "type": "requirement",
+      "summary": "Shell wrapper emits blueprint_upgrade_postcheck_behavioral_check_failures_total metric"
+    },
+    {
+      "id": "REQ-010",
+      "type": "requirement",
+      "summary": "Grep/regex heuristic sufficient for MVP; no full shell parser required"
+    },
+    {
+      "id": "REQ-011",
+      "type": "requirement",
+      "summary": "Unit tests MUST include positive-path and negative-path fixtures"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "bash -n for syntax-only parsing; no execution of merged script content"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "Gate outcomes in postcheck JSON; behavioral_check_failures_total metric; log_warn on skip"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "Gate failure must not mutate working tree; opt-out is deterministic escape hatch; gate is idempotent"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "Failure output identifies file, symbol, and line; postcheck JSON is canonical CI/CD evidence"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "Syntax error in merged .sh => postcheck exits non-zero; file and error in behavioral_check.syntax_errors"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "Dropped function definition in merged .sh => postcheck exits non-zero; symbol in behavioral_check.unresolved_symbols"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "All merged .sh files pass => postcheck exits zero; behavioral_check.status = pass"
+    },
+    {
+      "id": "AC-004",
+      "type": "acceptance",
+      "summary": "BLUEPRINT_UPGRADE_SKIP_BEHAVIORAL_CHECK=true => zero exit; skipped=true; status=skipped; warning emitted"
+    },
+    {
+      "id": "AC-005",
+      "type": "acceptance",
+      "summary": "blocked_reasons contains behavioral-check-failure iff behavioral_check.status = fail"
+    },
+    {
+      "id": "AC-006",
+      "type": "acceptance",
+      "summary": "blueprint_upgrade_postcheck_behavioral_check_failures_total metric emitted with correct count"
+    }
+  ],
+  "edges": [
+    { "from": "REQ-001", "to": "AC-001", "relation": "validated_by" },
+    { "from": "REQ-002", "to": "AC-002", "relation": "validated_by" },
+    { "from": "REQ-003", "to": "AC-002", "relation": "validated_by" },
+    { "from": "REQ-004", "to": "AC-001", "relation": "validated_by" },
+    { "from": "REQ-004", "to": "AC-002", "relation": "validated_by" },
+    { "from": "REQ-005", "to": "AC-004", "relation": "validated_by" },
+    { "from": "REQ-006", "to": "AC-001", "relation": "validated_by" },
+    { "from": "REQ-006", "to": "AC-002", "relation": "validated_by" },
+    { "from": "REQ-006", "to": "AC-003", "relation": "validated_by" },
+    { "from": "REQ-006", "to": "AC-004", "relation": "validated_by" },
+    { "from": "REQ-007", "to": "AC-005", "relation": "validated_by" },
+    { "from": "REQ-008", "to": "AC-004", "relation": "validated_by" },
+    { "from": "REQ-009", "to": "AC-006", "relation": "validated_by" },
+    { "from": "NFR-SEC-001", "to": "AC-001", "relation": "constrains" },
+    { "from": "NFR-SEC-001", "to": "AC-002", "relation": "constrains" },
+    { "from": "NFR-OBS-001", "to": "AC-004", "relation": "constrains" },
+    { "from": "NFR-OBS-001", "to": "AC-006", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "AC-003", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "AC-004", "relation": "constrains" },
+    { "from": "NFR-OPS-001", "to": "AC-001", "relation": "constrains" },
+    { "from": "NFR-OPS-001", "to": "AC-002", "relation": "constrains" }
+  ]
+}

@@ -146,6 +146,51 @@
         }
       }
     },
+    "behavioral_check": {
+      "type": "object",
+      "required": [
+        "skipped",
+        "files_checked",
+        "syntax_errors",
+        "unresolved_symbols",
+        "status"
+      ],
+      "properties": {
+        "skipped": {
+          "type": "boolean"
+        },
+        "files_checked": {
+          "type": "integer"
+        },
+        "syntax_errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["file", "error"],
+            "properties": {
+              "file": { "type": "string" },
+              "error": { "type": "string" }
+            }
+          }
+        },
+        "unresolved_symbols": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["file", "symbol", "line"],
+            "properties": {
+              "file": { "type": "string" },
+              "symbol": { "type": "string" },
+              "line": { "type": "integer" }
+            }
+          }
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pass", "fail", "skipped"]
+        }
+      }
+    },
     "contract_load_error": {
       "type": [
         "string",
@@ -163,7 +208,9 @@
         "conflicts_unresolved_count",
         "docs_hook_failed_target_count",
         "validate_failure_count",
-        "contract_load_error_count"
+        "contract_load_error_count",
+        "behavioral_check_skipped",
+        "behavioral_check_failure_count"
       ],
       "properties": {
         "status": {
@@ -198,6 +245,12 @@
           "type": "integer"
         },
         "contract_load_error_count": {
+          "type": "integer"
+        },
+        "behavioral_check_skipped": {
+          "type": "boolean"
+        },
+        "behavioral_check_failure_count": {
           "type": "integer"
         }
       }

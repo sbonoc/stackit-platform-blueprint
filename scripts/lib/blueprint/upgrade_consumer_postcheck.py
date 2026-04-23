@@ -26,6 +26,7 @@ from scripts.lib.blueprint.upgrade_reconcile_report import (  # noqa: E402
     build_upgrade_reconcile_report,
     reconcile_report_stale_reasons,
 )
+from scripts.lib.blueprint.upgrade_shell_behavioral_check import run_behavioral_check  # noqa: E402
 
 
 MAX_CAPTURE_CHARS = 20000
@@ -86,6 +87,12 @@ def _parse_args() -> argparse.Namespace:
         "--output-path",
         default=POSTCHECK_REPORT_DEFAULT_PATH,
         help="Postcheck report output path (absolute or repo-relative).",
+    )
+    parser.add_argument(
+        "--skip-behavioral-check",
+        action="store_true",
+        default=False,
+        help="Skip the post-merge behavioral validation gate (syntax + symbol resolution).",
     )
     return parser.parse_args()
 
@@ -284,6 +291,30 @@ def main() -> int:
         docs_hook_results = [_run_make_target(repo_root, target) for target in docs_hook_targets]
     docs_hook_failed_targets = [result.target for result in docs_hook_results if result.returncode != 0]
 
+    # Behavioral gate: syntax check + symbol resolution for merged .sh files
+    skip_behavioral = args.skip_behavioral_check
+    if skip_behavioral:
+        print(
+            "WARNING: post-merge behavioral check skipped via --skip-behavioral-check; "
+            "shell script correctness is not validated",
+            file=sys.stderr,
+        )
+    merged_sh_files: list[Path] = []
+    if isinstance(apply_payload, dict):
+        for entry in apply_payload.get("results", []):
+            if (
+                isinstance(entry, dict)
+                and entry.get("result") == "merged"
+                and str(entry.get("path", "")).endswith(".sh")
+            ):
+                rel = entry["path"]
+                merged_sh_files.append((repo_root / rel).resolve())
+    behavioral_check_result = run_behavioral_check(
+        merged_sh_files,
+        repo_root=repo_root,
+        skip=skip_behavioral,
+    )
+
     blocked_reasons: list[str] = []
     if validate_status != "success":
         blocked_reasons.append("validate-status-failure")
@@ -293,6 +324,8 @@ def main() -> int:
         blocked_reasons.append("reconcile-conflicts-unresolved")
     if docs_hook_failed_targets:
         blocked_reasons.append("docs-hook-target-failure")
+    if behavioral_check_result.status == "fail":
+        blocked_reasons.append("behavioral-check-failure")
     if contract_load_error:
         blocked_reasons.append("contract-load-error")
     if plan_apply_load_error:
@@ -326,6 +359,7 @@ def main() -> int:
             "failed_targets": docs_hook_failed_targets,
             "command_results": [result.as_dict() for result in docs_hook_results],
         },
+        "behavioral_check": behavioral_check_result.as_dict(),
         "plan_apply_report_load_error": plan_apply_load_error or None,
         "contract_load_error": contract_load_error or None,
         "summary": {
@@ -340,6 +374,11 @@ def main() -> int:
             "validate_failure_count": 0 if validate_status == "success" else 1,
             "plan_apply_report_load_error_count": 1 if plan_apply_load_error else 0,
             "contract_load_error_count": 1 if contract_load_error else 0,
+            "behavioral_check_skipped": behavioral_check_result.skipped,
+            "behavioral_check_failure_count": (
+                len(behavioral_check_result.syntax_errors)
+                + len(behavioral_check_result.unresolved_symbols)
+            ),
         },
     }
     _write_json(output_path, payload)
@@ -359,6 +398,17 @@ def main() -> int:
             "upgrade postcheck docs hooks failed: " + ", ".join(docs_hook_failed_targets),
             file=sys.stderr,
         )
+    if behavioral_check_result.status == "fail":
+        for entry in behavioral_check_result.syntax_errors:
+            print(
+                f"behavioral check syntax error: {entry['file']}: {entry['error']}",
+                file=sys.stderr,
+            )
+        for entry in behavioral_check_result.unresolved_symbols:
+            print(
+                f"behavioral check unresolved symbol: {entry['file']}:{entry['line']}: {entry['symbol']}",
+                file=sys.stderr,
+            )
     if contract_load_error:
         print(contract_load_error, file=sys.stderr)
     if plan_apply_load_error:
