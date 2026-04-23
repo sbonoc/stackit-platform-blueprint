@@ -30,6 +30,8 @@ _check_tasks = _checker._check_tasks
 _check_plan = _checker._check_plan
 _check_hardening_review = _checker._check_hardening_review
 _check_pr_context = _checker._check_pr_context
+_check_spec_marker_tokens = _checker._check_spec_marker_tokens
+_token_present = _checker._token_present
 _resolve_spec_dir = _checker._resolve_spec_dir
 PREFIX = _checker.PREFIX
 
@@ -593,6 +595,150 @@ class PrContextCheckTests(unittest.TestCase):
     def test_filled_pr_context_no_violations(self) -> None:
         violations = _check_pr_context(_FILLED_PR_CONTEXT, "pr_context.md")
         self.assertEqual(violations, [], msg="\n".join(violations))
+
+
+# ---------------------------------------------------------------------------
+# Marker token checks (spec.md / tasks.md / traceability.md)
+# ---------------------------------------------------------------------------
+
+class MarkerTokenTests(unittest.TestCase):
+    """_check_spec_marker_tokens must catch unresolved TODO/FIXME/TBD/TBC/??? tokens."""
+
+    def _make_spec_dir(self, tmpdir: str, **files: str) -> Path:
+        spec_dir = Path(tmpdir) / "specs" / "2026-04-23-test-marker"
+        spec_dir.mkdir(parents=True)
+        for name, content in files.items():
+            (spec_dir / name).write_text(content, encoding="utf-8")
+        return spec_dir
+
+    # --- positive paths ---
+
+    def test_clean_files_produce_no_violations(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            spec_dir = self._make_spec_dir(
+                tmpdir,
+                **{
+                    "spec.md": "# Spec\n- SPEC_READY: true\n- Unresolved TODO markers count: 0\n",
+                    "tasks.md": "# Tasks\n- [x] T-001 Confirm no stale markers or dead code\n",
+                    "traceability.md": "# Trace\n- Result summary: all tests pass; no stale markers\n",
+                },
+            )
+            violations = _check_spec_marker_tokens(spec_dir)
+            self.assertEqual(violations, [], msg="\n".join(violations))
+
+    def test_todos_plural_is_not_a_violation(self) -> None:
+        """'TODOs' (plural) must not trigger the word-boundary match for 'TODO'."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            spec_dir = self._make_spec_dir(
+                tmpdir,
+                **{"tasks.md": "- [x] T-506 Confirm no stale TODOs or dead code in touched scope\n"},
+            )
+            violations = _check_spec_marker_tokens(spec_dir)
+            self.assertEqual(violations, [], msg="\n".join(violations))
+
+    def test_readiness_field_line_is_stripped(self) -> None:
+        """'Unresolved TODO markers count: 0' must not be flagged as an unresolved token."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            spec_dir = self._make_spec_dir(
+                tmpdir,
+                **{"spec.md": "# Spec\n- Unresolved TODO markers count: 0\n"},
+            )
+            violations = _check_spec_marker_tokens(spec_dir)
+            self.assertEqual(violations, [], msg="\n".join(violations))
+
+    def test_missing_files_skip_gracefully(self) -> None:
+        """Absent spec.md / traceability.md must not raise; only present files are scanned."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            spec_dir = self._make_spec_dir(
+                tmpdir,
+                **{"tasks.md": "- [x] T-001 All done\n"},
+            )
+            violations = _check_spec_marker_tokens(spec_dir)
+            self.assertEqual(violations, [])
+
+    # --- negative paths ---
+
+    def test_todo_in_traceability_produces_violation(self) -> None:
+        """The exact pattern that caused the CI failure: literal TODO/FIXME in prose."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            spec_dir = self._make_spec_dir(
+                tmpdir,
+                **{"traceability.md": "- Result summary: all tests pass; no TODO/FIXME/dead code\n"},
+            )
+            violations = _check_spec_marker_tokens(spec_dir)
+            self.assertTrue(
+                any("TODO" in v for v in violations),
+                msg=f"expected TODO violation, got: {violations}",
+            )
+
+    def test_fixme_in_spec_produces_violation(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            spec_dir = self._make_spec_dir(
+                tmpdir,
+                **{"spec.md": "# Spec\n- Some field: FIXME fill in later\n"},
+            )
+            violations = _check_spec_marker_tokens(spec_dir)
+            self.assertTrue(
+                any("FIXME" in v for v in violations),
+                msg=f"expected FIXME violation, got: {violations}",
+            )
+
+    def test_tbd_in_tasks_produces_violation(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            spec_dir = self._make_spec_dir(
+                tmpdir,
+                **{"tasks.md": "- [ ] T-001 Owner: TBD\n"},
+            )
+            violations = _check_spec_marker_tokens(spec_dir)
+            self.assertTrue(
+                any("TBD" in v for v in violations),
+                msg=f"expected TBD violation, got: {violations}",
+            )
+
+    def test_question_marks_in_spec_produces_violation(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            spec_dir = self._make_spec_dir(
+                tmpdir,
+                **{"spec.md": "# Spec\n- Open question: ???\n"},
+            )
+            violations = _check_spec_marker_tokens(spec_dir)
+            self.assertTrue(
+                any("???" in v for v in violations),
+                msg=f"expected ??? violation, got: {violations}",
+            )
+
+    def test_only_first_token_per_line_reported(self) -> None:
+        """A line with both TODO and FIXME must generate exactly one violation."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            spec_dir = self._make_spec_dir(
+                tmpdir,
+                **{"spec.md": "- Result: TODO and FIXME both here\n"},
+            )
+            violations = _check_spec_marker_tokens(spec_dir)
+            self.assertEqual(len(violations), 1, msg=f"expected exactly 1 violation, got: {violations}")
+
+
+class TokenPresentTests(unittest.TestCase):
+    """Unit tests for the _token_present word-boundary helper."""
+
+    def test_exact_word_match(self) -> None:
+        self.assertTrue(_token_present("no TODO left", "TODO"))
+
+    def test_plural_does_not_match(self) -> None:
+        self.assertFalse(_token_present("no TODOs left", "TODO"))
+
+    def test_slash_delimited_match(self) -> None:
+        """TODO between slashes has word boundaries on both sides."""
+        self.assertTrue(_token_present("no TODO/FIXME here", "TODO"))
+
+    def test_case_insensitive(self) -> None:
+        self.assertTrue(_token_present("todo: fill in", "TODO"))
+
+    def test_punctuation_token_substring(self) -> None:
+        self.assertTrue(_token_present("open question: ???", "???"))
+
+    def test_no_false_positive_substring(self) -> None:
+        self.assertFalse(_token_present("methods", "TBD"))
 
 
 # ---------------------------------------------------------------------------
