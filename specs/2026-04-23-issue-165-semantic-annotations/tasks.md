@@ -49,19 +49,19 @@
 
 ## Slice 4 — Docs update
 
-- [ ] T-401 Update `docs/blueprint/` upgrade reference docs: document `semantic` annotation field, closed-set `kind` enum, verification hint format, structural-change fallback behaviour
-- [ ] T-402 Run `make docs-build` and confirm no errors
-- [ ] T-403 Run `make docs-smoke` and confirm no errors
+- [x] T-401 Update `docs/blueprint/` upgrade reference docs: document `semantic` annotation field, closed-set `kind` enum, verification hint format, structural-change fallback behaviour
+- [x] T-402 Run `make docs-build` and confirm no errors
+- [x] T-403 Run `make docs-smoke` and confirm no errors
 
 ## Validation and Release Readiness
 
-- [ ] T-501 Run `make quality-sdd-check` — confirm clean
-- [ ] T-502 Run `make quality-hooks-run` — confirm clean
-- [ ] T-503 Run `make infra-validate` — confirm clean
-- [ ] T-504 Run full test suite: `pytest tests/blueprint/test_upgrade_semantic_annotator.py tests/blueprint/test_upgrade_consumer.py`
-- [ ] T-505 Attach pytest output as validation evidence in `traceability.md`
-- [ ] T-506 Confirm no stale TODOs or dead code in touched scope
-- [ ] T-507 Run `make quality-hardening-review`
+- [x] T-501 Run `make quality-sdd-check` — confirm clean
+- [x] T-502 Run `make quality-hooks-run` — confirm clean
+- [x] T-503 Run `make infra-validate` — confirm clean
+- [x] T-504 Run full test suite: `pytest tests/blueprint/test_upgrade_semantic_annotator.py tests/blueprint/test_upgrade_consumer.py`
+- [x] T-505 Attach pytest output as validation evidence in `traceability.md`
+- [x] T-506 Confirm no stale TODOs or dead code in touched scope
+- [x] T-507 Run `make quality-hardening-review`
 
 ## Publish
 
