@@ -30,6 +30,11 @@ from scripts.lib.blueprint.upgrade_reconcile_report import (  # noqa: E402
     RECONCILE_REPORT_DEFAULT_PATH,
     build_upgrade_reconcile_report,
 )
+from scripts.lib.blueprint.upgrade_semantic_annotator import (  # noqa: E402
+    KIND_STRUCTURAL_CHANGE,
+    SemanticAnnotation,
+    annotate as _annotate,
+)
 
 
 ACTION_CREATE = "create"
@@ -74,9 +79,10 @@ class UpgradeEntry:
     target_exists: bool
     baseline_ref: str | None
     baseline_content_available: bool
+    semantic: SemanticAnnotation | None = None
 
     def as_dict(self) -> dict[str, Any]:
-        return {
+        payload: dict[str, Any] = {
             "path": self.path,
             "ownership": self.ownership,
             "action": self.action,
@@ -87,6 +93,9 @@ class UpgradeEntry:
             "baseline_ref": self.baseline_ref,
             "baseline_content_available": self.baseline_content_available,
         }
+        if self.semantic is not None:
+            payload["semantic"] = self.semantic.as_dict()
+        return payload
 
 
 @dataclass(frozen=True)
@@ -97,6 +106,7 @@ class ApplyResult:
     result: str
     reason: str
     conflict_artifact: str | None = None
+    semantic: SemanticAnnotation | None = None
 
     def as_dict(self) -> dict[str, Any]:
         payload: dict[str, Any] = {
@@ -108,6 +118,8 @@ class ApplyResult:
         }
         if self.conflict_artifact:
             payload["conflict_artifact"] = self.conflict_artifact
+        if self.semantic is not None:
+            payload["semantic"] = self.semantic.as_dict()
         return payload
 
 
@@ -369,6 +381,28 @@ def _ownership_class(
     return "blueprint-managed"
 
 
+def _try_annotate(baseline_content: str, source_content: str, path: str) -> SemanticAnnotation:
+    """Call the semantic annotator with a per-entry try/except fallback.
+
+    On any exception, returns a structural-change annotation and logs a warning
+    so plan generation always completes regardless of annotator errors.
+    """
+    try:
+        return _annotate(baseline_content, source_content)
+    except Exception as exc:  # noqa: BLE001
+        print(
+            f"semantic annotator: exception for {path!r}; structural-change fallback: {exc}",
+            file=sys.stderr,
+        )
+        return SemanticAnnotation(
+            kind=KIND_STRUCTURAL_CHANGE,
+            description="Annotation generation failed; structural-change fallback applied.",
+            verification_hints=(
+                "Manually review the diff between the baseline ref and the upgrade source.",
+            ),
+        )
+
+
 def _classify_entries(
     *,
     repo_root: Path,
@@ -617,6 +651,7 @@ def _classify_entries(
                     target_exists=True,
                     baseline_ref=baseline_ref,
                     baseline_content_available=False,
+                    semantic=_try_annotate("", source_content, relative_path),
                 )
             )
             continue
@@ -648,9 +683,13 @@ def _classify_entries(
                 target_exists=True,
                 baseline_ref=baseline_ref,
                 baseline_content_available=True,
+                semantic=_try_annotate(baseline_content, source_content, relative_path),
             )
         )
 
+    _mr = [e for e in entries if e.action == ACTION_MERGE_REQUIRED]
+    _auto = sum(1 for e in _mr if e.semantic and e.semantic.kind != KIND_STRUCTURAL_CHANGE)
+    print(f"semantic annotator: merge-required={len(_mr)} auto={_auto} fallback={len(_mr) - _auto}")
     return entries
 
 
@@ -1369,6 +1408,7 @@ def _apply_entries(
                         result="conflict",
                         reason="baseline content unavailable",
                         conflict_artifact=conflict_artifact,
+                        semantic=entry.semantic,
                     )
                 )
                 continue
@@ -1392,6 +1432,7 @@ def _apply_entries(
                         result="conflict",
                         reason="3-way merge conflict",
                         conflict_artifact=conflict_artifact,
+                        semantic=entry.semantic,
                     )
                 )
                 continue
@@ -1405,6 +1446,7 @@ def _apply_entries(
                     planned_operation=entry.operation,
                     result="merged",
                     reason="3-way merge applied cleanly",
+                    semantic=entry.semantic,
                 )
             )
             continue
@@ -1483,6 +1525,7 @@ def _write_summary(
     apply_enabled: bool,
     results: list[ApplyResult],
     required_manual_actions: list[RequiredManualAction],
+    entries: list[UpgradeEntry] | None = None,
 ) -> None:
     conflict_results = [result for result in results if result.result == "conflict"]
     lines = [
@@ -1506,12 +1549,27 @@ def _write_summary(
         f"| total | {plan_summary.get('total', 0)} |",
         "",
         f"- Required manual actions: `{plan_summary.get('required_manual_action_count', 0)}`",
+    ]
+
+    merge_required_entries = [e for e in (entries or []) if e.action == ACTION_MERGE_REQUIRED and e.semantic]
+    if merge_required_entries:
+        lines.extend(["", "## Merge-Required Annotations", ""])
+        for entry in merge_required_entries:
+            ann = entry.semantic
+            assert ann is not None
+            lines.append(f"**`{entry.path}`** — kind: `{ann.kind}`")
+            lines.append(f"> {ann.description}")
+            for hint in ann.verification_hints:
+                lines.append(f"- {hint}")
+            lines.append("")
+
+    lines.extend([
         "",
         "## Apply Summary",
         "",
         "| Result | Count |",
         "| --- | ---: |",
-    ]
+    ])
 
     result_keys = sorted(
         key for key in apply_summary if key not in ("total", "applied_count", "required_manual_action_count")
@@ -1750,6 +1808,7 @@ def main() -> int:
                 apply_enabled=args.apply,
                 results=results,
                 required_manual_actions=required_manual_actions,
+                entries=entries,
             )
             print(f"upgrade-reconcile-report: {display_repo_path(repo_root, reconcile_report_path)}")
             print(
@@ -1785,6 +1844,7 @@ def main() -> int:
             apply_enabled=args.apply,
             results=results,
             required_manual_actions=required_manual_actions,
+            entries=entries,
         )
         print(f"upgrade-apply: {display_repo_path(repo_root, apply_path)}")
         print(f"upgrade-summary: {display_repo_path(repo_root, summary_path)}")

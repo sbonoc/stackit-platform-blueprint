@@ -106,6 +106,30 @@
           },
           "baseline_content_available": {
             "type": "boolean"
+          },
+          "semantic": {
+            "type": ["object", "null"],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "function-added",
+                  "function-removed",
+                  "variable-changed",
+                  "source-directive-added",
+                  "structural-change"
+                ]
+              },
+              "description": {
+                "type": "string"
+              },
+              "verification_hints": {
+                "type": "array",
+                "items": {"type": "string"},
+                "minItems": 1
+              }
+            },
+            "required": ["kind", "description", "verification_hints"]
           }
         }
       }
