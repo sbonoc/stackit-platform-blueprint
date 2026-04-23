@@ -21,6 +21,15 @@ repos:
         entry: make quality-docs-lint
         pass_filenames: false
         always_run: true
+      - id: quality-test-pyramid
+        name: quality test-pyramid classification check
+        language: system
+        entry: python3 scripts/bin/quality/check_test_pyramid.py
+        pass_filenames: false
+        # Trigger whenever a test file is staged so unclassified test_*.py files
+        # are caught at commit time rather than only at pre-push or in CI.
+        files: ^tests/.*\.py$
+        always_run: false
       - id: quality-validate-branch
         name: quality validate branch naming (pre-push)
         language: system
