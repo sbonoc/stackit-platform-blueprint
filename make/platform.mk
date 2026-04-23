@@ -101,4 +101,6 @@ test-e2e-all-local-execute: ## Full local E2E chain in execute mode (DRY_RUN=fal
 	@scripts/bin/platform/test/e2e_all_local.sh --scope full --execute
 
 test-smoke-all-local: ## Full local smoke lane: provision, infra-smoke, and endpoint assertions against a local cluster
+	# Extension point: add HTTP endpoint assertions to tests/e2e/test_smoke_endpoints.py.
+	# No separate make target is needed — add test methods (or a new subclass) directly to that file.
 	@scripts/bin/platform/test/smoke_all_local.sh
