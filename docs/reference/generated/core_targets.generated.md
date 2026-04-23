@@ -154,3 +154,4 @@ This file is auto-generated. Do not edit it manually.
 | `test-e2e-all-local` | Fast local E2E chain (dry-run infra + backend e2e lane) |
 | `test-e2e-all-local-full` | Full local E2E chain in dry-run mode (backend + touchpoints e2e lanes) |
 | `test-e2e-all-local-execute` | Full local E2E chain in execute mode (DRY_RUN=false, backend + touchpoints e2e lanes) |
+| `test-smoke-all-local` | Full local smoke lane: provision, infra-smoke, and endpoint assertions against a local cluster |
