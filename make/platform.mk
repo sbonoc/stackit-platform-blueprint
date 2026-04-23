@@ -8,7 +8,8 @@
   apps-bootstrap apps-ci-bootstrap apps-ci-bootstrap-consumer apps-smoke apps-audit-versions apps-audit-versions-cached apps-publish-ghcr \
   backend-test-unit backend-test-integration backend-test-contracts backend-test-e2e \
   touchpoints-test-unit touchpoints-test-integration touchpoints-test-contracts touchpoints-test-e2e \
-  test-unit-all test-integration-all test-contracts-all test-e2e-all-local test-e2e-all-local-full test-e2e-all-local-execute
+  test-unit-all test-integration-all test-contracts-all test-e2e-all-local test-e2e-all-local-full test-e2e-all-local-execute \
+  test-smoke-all-local
 
 auth-reconcile-eso-runtime-secrets: ## Reconcile generic ESO runtime source-to-target credentials contract
 	@scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh
@@ -98,3 +99,6 @@ test-e2e-all-local-full: ## Full local E2E chain in dry-run mode (backend + touc
 
 test-e2e-all-local-execute: ## Full local E2E chain in execute mode (DRY_RUN=false, backend + touchpoints e2e lanes)
 	@scripts/bin/platform/test/e2e_all_local.sh --scope full --execute
+
+test-smoke-all-local: ## Full local smoke lane: provision, infra-smoke, and endpoint assertions against a local cluster
+	@scripts/bin/platform/test/smoke_all_local.sh

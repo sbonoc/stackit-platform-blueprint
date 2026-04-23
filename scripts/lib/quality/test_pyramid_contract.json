@@ -58,7 +58,8 @@
     {
       "scope": "e2e",
       "patterns": [
-        "tests/e2e/test_vertical_slice.py"
+        "tests/e2e/test_vertical_slice.py",
+        "tests/e2e/test_smoke_endpoints.py"
       ]
     }
   ]
