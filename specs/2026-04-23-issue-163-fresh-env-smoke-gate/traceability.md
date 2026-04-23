@@ -35,7 +35,7 @@
   - `make infra-validate` — clean (make/blueprint.generated.mk and blueprint/contract.yaml validated)
   - `make quality-hardening-review` — clean
   - `make quality-docs-check-changed` — clean after regenerating core_targets.generated.md and classifying test file in test_pyramid_contract.json
-- Result summary: all 16 tests pass; no TODO/FIXME/dead code in touched scope; no stale artifacts
+- Result summary: all 16 tests pass; no stale markers or dead code in touched scope; no stale artifacts
 - Documentation validation:
   - `make docs-build` — see T-405 (pending live docs build)
   - `make docs-smoke` — see T-406 (pending live docs smoke)
