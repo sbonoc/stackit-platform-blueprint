@@ -53,6 +53,9 @@ make blueprint-upgrade-consumer
 # 5) validate + postcheck
 make blueprint-upgrade-consumer-validate
 make blueprint-upgrade-consumer-postcheck
+
+# 6) fresh-environment smoke gate (CI-equivalent check)
+make blueprint-upgrade-fresh-env-gate
 make infra-validate
 make quality-hooks-run
 ```
@@ -64,8 +67,8 @@ make quality-hooks-run
 - Treat unresolved merge markers as blocking.
 - Preserve consumer-owned files; do not force overwrite unless the user explicitly asks.
 - Keep source and ref pinned for the whole run (`BLUEPRINT_UPGRADE_SOURCE` + `BLUEPRINT_UPGRADE_REF`).
-- Safe-to-continue contract: proceed only when `make blueprint-upgrade-consumer-postcheck` exits `0` and postcheck summary status is `success`.
-- Blocked contract: stop and report exact blocked reasons when postcheck exits non-zero.
+- Safe-to-continue contract: proceed only when `make blueprint-upgrade-consumer-postcheck` exits `0` AND `make blueprint-upgrade-fresh-env-gate` exits `0`. Both must pass before the upgrade is declared complete.
+- Blocked contract: stop and report exact blocked reasons when postcheck or fresh-env-gate exits non-zero.
 
 ## SDD Guardrails
 
