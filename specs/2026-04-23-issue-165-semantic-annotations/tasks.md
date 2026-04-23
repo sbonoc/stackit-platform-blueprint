@@ -65,9 +65,9 @@
 
 ## Publish
 
-- [ ] P-001 Fill `hardening_review.md` with repository-wide findings fixed, observability changes, proposals-only section
-- [ ] P-002 Fill `pr_context.md` with: FR-001–FR-007 and AC-001–AC-007 coverage mapping, key reviewer files (`upgrade_semantic_annotator.py`, `upgrade_consumer.py` diff, schema files, test files), pytest validation evidence, rollback notes
-- [ ] P-003 Ensure PR description follows repository template and references `pr_context.md`
+- [x] P-001 Fill `hardening_review.md` with repository-wide findings fixed, observability changes, proposals-only section
+- [x] P-002 Fill `pr_context.md` with: FR-001–FR-007 and AC-001–AC-007 coverage mapping, key reviewer files (`upgrade_semantic_annotator.py`, `upgrade_consumer.py` diff, schema files, test files), pytest validation evidence, rollback notes
+- [x] P-003 Ensure PR description follows repository template and references `pr_context.md`
 
 ## App Onboarding Minimum Targets (Normative)
 - [x] A-001 `apps-bootstrap` and `apps-smoke` are implemented and verified for the affected app scope (no-impact: pre-existing targets unaffected)
