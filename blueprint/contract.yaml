@@ -121,6 +121,10 @@ spec:
       - .agents/skills/blueprint-sdd-po-spec/agents/openai.yaml
       - .agents/skills/blueprint-sdd-po-spec/agents/claude.yaml
       - .agents/skills/blueprint-sdd-po-spec/references/po_spec_intake_checklist.md
+      - .agents/skills/blueprint-sdd-spec-complete/SKILL.md
+      - .agents/skills/blueprint-sdd-spec-complete/agents/openai.yaml
+      - .agents/skills/blueprint-sdd-spec-complete/agents/claude.yaml
+      - .agents/skills/blueprint-sdd-spec-complete/references/spec_complete_checklist.md
       - .claude/commands/blueprint-consumer-upgrade.md
       - .claude/commands/blueprint-consumer-ops.md
       - .claude/commands/blueprint-sdd-intake-decompose.md
@@ -130,6 +134,7 @@ spec:
       - .claude/commands/blueprint-sdd-document-sync.md
       - .claude/commands/blueprint-sdd-pr-packager.md
       - .claude/commands/blueprint-sdd-po-spec.md
+      - .claude/commands/blueprint-sdd-spec-complete.md
       - Makefile
       - make/blueprint.generated.mk
       - make/platform.mk
@@ -300,6 +305,10 @@ spec:
       - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-po-spec/agents/openai.yaml.tmpl
       - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-po-spec/agents/claude.yaml.tmpl
       - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-po-spec/references/po_spec_intake_checklist.md.tmpl
+      - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-spec-complete/SKILL.md.tmpl
+      - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-spec-complete/agents/openai.yaml.tmpl
+      - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-spec-complete/agents/claude.yaml.tmpl
+      - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-spec-complete/references/spec_complete_checklist.md.tmpl
       - scripts/templates/consumer/init/.claude/commands/blueprint-consumer-upgrade.md.tmpl
       - scripts/templates/consumer/init/.claude/commands/blueprint-consumer-ops.md.tmpl
       - scripts/templates/consumer/init/.claude/commands/blueprint-sdd-intake-decompose.md.tmpl
