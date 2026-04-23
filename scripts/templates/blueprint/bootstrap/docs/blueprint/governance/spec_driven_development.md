@@ -24,9 +24,11 @@ When starting a new work item, use `make spec-scaffold SPEC_SLUG=<work-item-slug
 <!-- BEGIN GENERATED:SDD_POLICY_SNAPSHOT -->
 - Lifecycle order (contract): Discover -> High-Level Architecture -> Specify -> Plan -> Implement -> Verify -> Document -> Operate -> Publish
 - Readiness gate: `SPEC_READY=true`
+- Intake gate: `SPEC_PRODUCT_READY=true`
 - Missing-input blocker token: `BLOCKED_MISSING_INPUTS`
 - Required zero-count fields: `Open questions count`, `Unresolved alternatives count`, `Unresolved TODO markers count`, `Pending assumptions count`, `Open clarification markers count`
 - Required sign-offs: `Product`, `Architecture`, `Security`, `Operations`
+- Intake required sign-offs: `Product`
 - Allowed normative keywords: `MUST`, `MUST NOT`, `SHALL`, `EXACTLY ONE OF`
 - Forbidden ambiguous terms: `should`, `may`, `could`, `might`, `either`, `and/or`, `as needed`, `approximately`, `etc.`
 <!-- END GENERATED:SDD_POLICY_SNAPSHOT -->

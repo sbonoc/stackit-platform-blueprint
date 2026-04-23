@@ -408,6 +408,15 @@ def _validate_work_item_specs(
     if not adr_status_approved_values:
         adr_status_approved_values = {"approved"}
     adr_path_allowed_prefixes = _as_list_of_str(readiness_raw.get("adr_path_allowed_prefixes"))
+    intake_status_field = str(readiness_raw.get("intake_status_field", "SPEC_PRODUCT_READY")).strip()
+    intake_required_signoffs = _as_list_of_str(readiness_raw.get("intake_required_signoffs"))
+    adr_status_intake_values = {
+        value.strip().lower()
+        for value in _as_list_of_str(readiness_raw.get("adr_status_intake_values"))
+        if value.strip()
+    }
+    if not adr_status_intake_values:
+        adr_status_intake_values = {"draft", "proposed"}
     acceptance_criteria_required = bool(readiness_raw.get("acceptance_criteria_required", False))
     requirement_traceability_required = bool(readiness_raw.get("requirement_traceability_required", False))
 
@@ -560,6 +569,10 @@ def _validate_work_item_specs(
             continue
 
         spec_ready = _is_truthy(status_value)
+        spec_product_ready = _is_truthy(
+            readiness_fields.get(intake_status_field.lower(), "")
+        )
+        is_intake_phase = spec_product_ready and not spec_ready
         if adr_path_field and adr_path_field.lower() not in readiness_fields:
             violations.append(
                 Violation(
@@ -584,6 +597,26 @@ def _validate_work_item_specs(
                     message="implementation tasks are checked while SPEC_READY is not true",
                 )
             )
+
+        if is_intake_phase:
+            if not adr_path_value:
+                violations.append(
+                    Violation(
+                        path=str(spec_path.relative_to(repo_root)),
+                        message=f"{adr_path_field} must be set when SPEC_PRODUCT_READY=true",
+                    )
+                )
+            elif adr_status_value and adr_status_value not in adr_status_intake_values:
+                violations.append(
+                    Violation(
+                        path=str(spec_path.relative_to(repo_root)),
+                        message=(
+                            f"{adr_status_field} must be one of "
+                            + str(sorted(adr_status_intake_values))
+                            + " when SPEC_PRODUCT_READY=true and SPEC_READY=false"
+                        ),
+                    )
+                )
 
         if spec_ready and blocked_marker and blocked_marker in spec_content:
             violations.append(
@@ -682,17 +715,22 @@ def _validate_work_item_specs(
                     )
                 )
                 continue
-            if spec_ready and signoff_value.strip().lower() not in APPROVED_SIGNOFF_VALUES:
+            must_be_approved = spec_ready or (
+                is_intake_phase and signoff in intake_required_signoffs
+            )
+            if must_be_approved and signoff_value.strip().lower() not in APPROVED_SIGNOFF_VALUES:
+                label = "SPEC_READY=true" if spec_ready else "SPEC_PRODUCT_READY=true"
                 violations.append(
                     Violation(
                         path=str(spec_path.relative_to(repo_root)),
-                        message=f"sign-off must be approved when SPEC_READY=true: {signoff}",
+                        message=f"sign-off must be approved when {label}: {signoff}",
                     )
                 )
 
         aggregate = "\n".join((spec_content, tasks_content, traceability_content)).lower()
         readiness_field_names_for_marker_scan = [
             status_field,
+            intake_status_field,
             adr_path_field,
             adr_status_field,
             "Missing input blocker token",
@@ -1592,6 +1630,9 @@ def _validate_contract_assets(contract_raw: dict[str, Any], repo_root: Path) -> 
         "blocked_marker",
         "required_zero_fields",
         "required_signoffs",
+        "intake_status_field",
+        "intake_required_signoffs",
+        "adr_status_intake_values",
         "adr_path_field",
         "adr_status_field",
         "adr_status_approved_values",

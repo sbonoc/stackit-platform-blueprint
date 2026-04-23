@@ -2,6 +2,7 @@
 
 ## Spec Readiness Gate (Blocking)
 - SPEC_READY: false
+- SPEC_PRODUCT_READY: false
 - Open questions count: 0
 - Unresolved alternatives count: 0
 - Unresolved TODO markers count: 0

@@ -117,6 +117,10 @@ spec:
       - .agents/skills/blueprint-sdd-pr-packager/agents/openai.yaml
       - .agents/skills/blueprint-sdd-pr-packager/agents/claude.yaml
       - .agents/skills/blueprint-sdd-pr-packager/references/pr_packaging_checklist.md
+      - .agents/skills/blueprint-sdd-po-spec/SKILL.md
+      - .agents/skills/blueprint-sdd-po-spec/agents/openai.yaml
+      - .agents/skills/blueprint-sdd-po-spec/agents/claude.yaml
+      - .agents/skills/blueprint-sdd-po-spec/references/po_spec_intake_checklist.md
       - .claude/commands/blueprint-consumer-upgrade.md
       - .claude/commands/blueprint-consumer-ops.md
       - .claude/commands/blueprint-sdd-intake-decompose.md
@@ -125,6 +129,7 @@ spec:
       - .claude/commands/blueprint-sdd-traceability-keeper.md
       - .claude/commands/blueprint-sdd-document-sync.md
       - .claude/commands/blueprint-sdd-pr-packager.md
+      - .claude/commands/blueprint-sdd-po-spec.md
       - Makefile
       - make/blueprint.generated.mk
       - make/platform.mk
@@ -291,6 +296,10 @@ spec:
       - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-pr-packager/agents/openai.yaml.tmpl
       - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-pr-packager/agents/claude.yaml.tmpl
       - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-pr-packager/references/pr_packaging_checklist.md.tmpl
+      - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-po-spec/SKILL.md.tmpl
+      - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-po-spec/agents/openai.yaml.tmpl
+      - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-po-spec/agents/claude.yaml.tmpl
+      - scripts/templates/consumer/init/.agents/skills/blueprint-sdd-po-spec/references/po_spec_intake_checklist.md.tmpl
       - scripts/templates/consumer/init/.claude/commands/blueprint-consumer-upgrade.md.tmpl
       - scripts/templates/consumer/init/.claude/commands/blueprint-consumer-ops.md.tmpl
       - scripts/templates/consumer/init/.claude/commands/blueprint-sdd-intake-decompose.md.tmpl
@@ -299,6 +308,7 @@ spec:
       - scripts/templates/consumer/init/.claude/commands/blueprint-sdd-traceability-keeper.md.tmpl
       - scripts/templates/consumer/init/.claude/commands/blueprint-sdd-document-sync.md.tmpl
       - scripts/templates/consumer/init/.claude/commands/blueprint-sdd-pr-packager.md.tmpl
+      - scripts/templates/consumer/init/.claude/commands/blueprint-sdd-po-spec.md.tmpl
       - scripts/templates/consumer/init/.spec-kit/policy-mapping.md.tmpl
       - scripts/templates/consumer/init/.spec-kit/control-catalog.json.tmpl
       - scripts/templates/consumer/init/.spec-kit/control-catalog.md.tmpl
@@ -1433,6 +1443,12 @@ spec:
         - Architecture
         - Security
         - Operations
+      intake_status_field: SPEC_PRODUCT_READY
+      intake_required_signoffs:
+        - Product
+      adr_status_intake_values:
+        - draft
+        - proposed
       adr_path_field: ADR path
       adr_status_field: ADR status
       adr_status_approved_values:
