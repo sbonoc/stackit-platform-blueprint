@@ -191,6 +191,22 @@
         }
       }
     },
+    "prune_glob_violations": {
+      "type": "object",
+      "required": [
+        "violation_count",
+        "violations"
+      ],
+      "properties": {
+        "violation_count": {
+          "type": "integer"
+        },
+        "violations": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    },
     "contract_load_error": {
       "type": [
         "string",
@@ -251,6 +267,9 @@
           "type": "boolean"
         },
         "behavioral_check_failure_count": {
+          "type": "integer"
+        },
+        "prune_glob_violation_count": {
           "type": "integer"
         }
       }

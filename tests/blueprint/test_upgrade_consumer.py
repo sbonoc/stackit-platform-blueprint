@@ -9,6 +9,7 @@ import unittest
 from unittest import mock
 
 from scripts.lib.blueprint import upgrade_consumer
+from scripts.lib.blueprint import upgrade_consumer_validate as validate_module
 from scripts.lib.blueprint.contract_schema import load_blueprint_contract
 from tests._shared.exec import run_command
 from tests._shared.json_schema import assert_json_matches_schema, load_json_schema
@@ -1471,6 +1472,96 @@ class UpgradeConsumerValidateTests(unittest.TestCase):
                 required_files_status.get("required_file_reconciliation", {}).get("repo_mode"),
                 "unknown",
             )
+            _assert_json_schema(report, VALIDATE_SCHEMA)
+
+    # --- prune glob scan unit tests (REQ-010, REQ-011, REQ-012) ---
+
+    def _load_generated_consumer_contract(self, repo: Path) -> "load_blueprint_contract":
+        return load_blueprint_contract(repo / "blueprint/contract.yaml")
+
+    def test_prune_glob_scan_returns_violations_when_file_matches(self) -> None:
+        """REQ-010: positive-path — file matching a prune glob appears in violations."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir) / "repo"
+            _init_git_repo(repo)
+            _write(repo / "blueprint/contract.yaml", _contract_text_for_repo_mode("generated-consumer"))
+            # Place a file that matches the ADR prune glob
+            adr_path = repo / "docs/blueprint/architecture/decisions/ADR-issue-99-example.md"
+            _write(adr_path, "# ADR\n")
+
+            contract = load_blueprint_contract(repo / "blueprint/contract.yaml")
+            prune_check, _ = validate_module._scan_prune_glob_violations(repo_root=repo, contract=contract)
+
+            self.assertEqual(prune_check["status"], "failure")
+            self.assertIn("docs/blueprint/architecture/decisions/ADR-issue-99-example.md", prune_check["violations"])
+            self.assertGreater(prune_check["violation_count"], 0)
+            self.assertGreater(len(prune_check["globs_checked"]), 0)
+
+    def test_prune_glob_scan_returns_empty_when_no_match(self) -> None:
+        """REQ-011: no files match any prune glob → empty violations list."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir) / "repo"
+            _init_git_repo(repo)
+            _write(repo / "blueprint/contract.yaml", _contract_text_for_repo_mode("generated-consumer"))
+            _write(repo / "docs/platform/consumer/quickstart.md", "# Guide\n")
+
+            contract = load_blueprint_contract(repo / "blueprint/contract.yaml")
+            prune_check, violations_with_glob = validate_module._scan_prune_glob_violations(
+                repo_root=repo, contract=contract
+            )
+
+            self.assertEqual(prune_check["status"], "success")
+            self.assertEqual(prune_check["violations"], [])
+            self.assertEqual(prune_check["violation_count"], 0)
+            self.assertEqual(violations_with_glob, [])
+
+    def test_prune_glob_scan_skipped_when_not_generated_consumer(self) -> None:
+        """REQ-012: repo_mode = template-source → prune_glob_check.status = skipped."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir) / "repo"
+            _init_git_repo(repo)
+            _write(repo / "blueprint/contract.yaml", _contract_text_for_repo_mode("template-source"))
+            # Place a file that would match a prune glob — must be ignored
+            _write(repo / "docs/blueprint/architecture/decisions/ADR-issue-99-example.md", "# ADR\n")
+
+            contract = load_blueprint_contract(repo / "blueprint/contract.yaml")
+            prune_check, violations_with_glob = validate_module._scan_prune_glob_violations(
+                repo_root=repo, contract=contract
+            )
+
+            self.assertEqual(prune_check["status"], "skipped")
+            self.assertEqual(prune_check["violations"], [])
+            self.assertEqual(prune_check["violation_count"], 0)
+            self.assertEqual(violations_with_glob, [])
+
+    # --- integration test: validate exits non-zero when prune glob file present (REQ-013) ---
+
+    def test_validate_fails_when_prune_glob_file_present(self) -> None:
+        """REQ-013: validate exits non-zero; report includes prune_glob_check.violations."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            repo = self._create_validation_repo(tmp_root, repo_mode="generated-consumer")
+            # Introduce a file matching the ADR prune glob
+            adr_path = repo / "docs/blueprint/architecture/decisions/ADR-issue-99-test.md"
+            _write(adr_path, "# ADR\n")
+
+            result = _run(
+                [sys.executable, str(VALIDATE_SCRIPT), "--repo-root", str(repo)],
+                cwd=REPO_ROOT,
+            )
+
+            self.assertEqual(result.returncode, 1, msg=result.stdout + result.stderr)
+            self.assertIn("prune-glob violation:", result.stderr)
+
+            report = _load_json(repo / "artifacts/blueprint/upgrade_validate.json")
+            prune_check = report.get("prune_glob_check", {})
+            self.assertEqual(prune_check.get("status"), "failure")
+            self.assertIn(
+                "docs/blueprint/architecture/decisions/ADR-issue-99-test.md",
+                prune_check.get("violations", []),
+            )
+            self.assertGreater(prune_check.get("violation_count", 0), 0)
+            self.assertEqual(report.get("summary", {}).get("status"), "failure")
             _assert_json_schema(report, VALIDATE_SCHEMA)
 
 

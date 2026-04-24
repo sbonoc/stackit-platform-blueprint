@@ -54,12 +54,26 @@ def _contract_text_for_repo_mode(repo_mode: str) -> str:
     )
 
 
-def _write_validate_report(repo: Path, *, status: str) -> None:
-    payload = {
+def _write_validate_report(
+    repo: Path,
+    *,
+    status: str,
+    prune_glob_violation_count: int = 0,
+    prune_glob_violations: list[str] | None = None,
+) -> None:
+    payload: dict[str, object] = {
         "summary": {
             "status": status,
         }
     }
+    if prune_glob_violation_count > 0:
+        payload["prune_glob_check"] = {
+            "status": "failure",
+            "globs_checked": ["docs/blueprint/architecture/decisions/ADR-*.md"],
+            "violations": prune_glob_violations or [],
+            "violation_count": prune_glob_violation_count,
+            "remediation_hint": "Remove the listed files and re-run: make blueprint-upgrade-consumer-validate",
+        }
     _write(repo / "artifacts/blueprint/upgrade_validate.json", json.dumps(payload) + "\n")
 
 
@@ -487,6 +501,42 @@ class BehavioralCheckPostcheckTests(unittest.TestCase):
             self.assertIn("behavioral_check_failure_count", summary)
             self.assertIsInstance(summary["behavioral_check_skipped"], bool)
             self.assertIsInstance(summary["behavioral_check_failure_count"], int)
+            _assert_json_schema(report, POSTCHECK_SCHEMA)
+
+    def test_postcheck_blocks_when_validate_report_has_prune_glob_violations(self) -> None:
+        """REQ-014: postcheck exits non-zero; prune-glob-violations in blocked_reasons."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir) / "repo"
+            _init_git_repo(repo)
+            _write(repo / "blueprint/contract.yaml", _contract_text_for_repo_mode("generated-consumer"))
+            _write_validate_report(
+                repo,
+                status="failure",
+                prune_glob_violation_count=1,
+                prune_glob_violations=["docs/blueprint/architecture/decisions/ADR-issue-99-test.md"],
+            )
+            _write_reconcile_report(repo, conflicts_unresolved_count=0, blocked=False)
+
+            result = _run(
+                [
+                    sys.executable,
+                    str(POSTCHECK_SCRIPT),
+                    "--repo-root",
+                    str(repo),
+                ],
+                cwd=REPO_ROOT,
+            )
+
+            self.assertEqual(result.returncode, 1, msg=result.stdout + result.stderr)
+            report = _load_json(repo / "artifacts/blueprint/upgrade_postcheck.json")
+            reasons = report.get("summary", {}).get("blocked_reasons", [])
+            self.assertIn("prune-glob-violations", reasons)
+            prune_violations = report.get("prune_glob_violations", {})
+            self.assertEqual(prune_violations.get("violation_count"), 1)
+            self.assertIn(
+                "docs/blueprint/architecture/decisions/ADR-issue-99-test.md",
+                prune_violations.get("violations", []),
+            )
             _assert_json_schema(report, POSTCHECK_SCHEMA)
 
 

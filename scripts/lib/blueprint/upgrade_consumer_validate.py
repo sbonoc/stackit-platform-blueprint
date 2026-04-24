@@ -310,6 +310,65 @@ def _empty_required_file_reconciliation(*, contract_load_error: str) -> dict[str
     }
 
 
+def _scan_prune_glob_violations(
+    *,
+    repo_root: Path,
+    contract: BlueprintContract,
+) -> tuple[dict[str, Any], list[tuple[str, str]]]:
+    """Scan the working tree for files matching source_artifact_prune_globs_on_init.
+
+    Returns (prune_glob_check, violations_with_glob) where violations_with_glob is a list
+    of (path, glob_pattern) pairs used for stderr emission (NFR-OBS-001).
+    """
+    repo_mode = contract.repository.repo_mode
+    generated_consumer_mode = contract.repository.consumer_init.mode_to
+
+    if repo_mode != generated_consumer_mode:
+        skipped: dict[str, Any] = {
+            "status": "skipped",
+            "globs_checked": [],
+            "violations": [],
+            "violation_count": 0,
+            "remediation_hint": "",
+        }
+        return skipped, []
+
+    globs = list(contract.repository.consumer_init.source_artifact_prune_globs_on_init)
+    repo_root_resolved = repo_root.resolve()
+    violations_with_glob: list[tuple[str, str]] = []
+    seen: set[str] = set()
+
+    for pattern in globs:
+        for path in sorted(repo_root.rglob(pattern)):
+            # NFR-SEC-001: skip symlinks that resolve outside repo root
+            try:
+                path.resolve().relative_to(repo_root_resolved)
+            except ValueError:
+                continue
+            rel_posix = path.relative_to(repo_root).as_posix()
+            if rel_posix not in seen:
+                seen.add(rel_posix)
+                violations_with_glob.append((rel_posix, pattern))
+
+    violations = sorted(seen)
+    violation_count = len(violations)
+    status = "failure" if violation_count > 0 else "success"
+    remediation_hint = (
+        f"Remove the following files: {', '.join(violations)}. "
+        "Then re-run: make blueprint-upgrade-consumer-validate"
+        if violation_count > 0
+        else ""
+    )
+    prune_glob_check: dict[str, Any] = {
+        "status": status,
+        "globs_checked": globs,
+        "violations": violations,
+        "violation_count": violation_count,
+        "remediation_hint": remediation_hint,
+    }
+    return prune_glob_check, violations_with_glob
+
+
 def _detect_missing_runtime_dependency_edges(repo_root: Path) -> list[dict[str, str]]:
     missing: list[dict[str, str]] = []
     for consumer_path, dependency_path in RUNTIME_DEPENDENCY_EDGES:
@@ -364,10 +423,21 @@ def main() -> int:
         command_results = [_run_make_target(repo_root, target) for target in VALIDATION_TARGETS]
     merge_markers_post = find_merge_markers(repo_root)
     missing_runtime_dependencies = _detect_missing_runtime_dependency_edges(repo_root)
+    prune_glob_violations_with_glob: list[tuple[str, str]] = []
     if contract is None:
         required_file_reconciliation = _empty_required_file_reconciliation(contract_load_error=contract_load_error)
+        prune_glob_check: dict[str, Any] = {
+            "status": "skipped",
+            "globs_checked": [],
+            "violations": [],
+            "violation_count": 0,
+            "remediation_hint": "",
+        }
     else:
         required_file_reconciliation = _build_required_file_reconciliation(repo_root=repo_root, contract=contract)
+        prune_glob_check, prune_glob_violations_with_glob = _scan_prune_glob_violations(
+            repo_root=repo_root, contract=contract
+        )
     generated_reference_contract = _build_generated_reference_contract_check(
         repo_root=repo_root,
         command_results=command_results,
@@ -386,6 +456,7 @@ def main() -> int:
         or missing_runtime_dependencies
         or required_file_reconciliation["missing_count"] > 0
         or generated_reference_contract["status"] != "success"
+        or prune_glob_check["violation_count"] > 0
     ):
         status = "failure"
 
@@ -406,6 +477,7 @@ def main() -> int:
         },
         "required_file_reconciliation": required_file_reconciliation,
         "generated_reference_contract_check": generated_reference_contract,
+        "prune_glob_check": prune_glob_check,
         "contract_load_error": contract_load_error or None,
         "command_results": [result.as_dict() for result in command_results],
         "summary": {
@@ -421,6 +493,7 @@ def main() -> int:
             "generated_reference_failed_target_count": len(generated_reference_contract["failed_targets"]),
             "contract_load_error_count": 1 if contract_load_error else 0,
             "commands_total": len(command_results),
+            "prune_glob_violation_count": prune_glob_check["violation_count"],
         },
     }
     required_files_status_payload = {
@@ -488,6 +561,8 @@ def main() -> int:
             "upgrade validation generated reference contract check failed: " + "; ".join(diagnostics),
             file=sys.stderr,
         )
+    for path, glob in prune_glob_violations_with_glob:
+        print(f"prune-glob violation: {path} (matches: {glob})", file=sys.stderr)
 
     return 0 if status == "success" else 1
 
