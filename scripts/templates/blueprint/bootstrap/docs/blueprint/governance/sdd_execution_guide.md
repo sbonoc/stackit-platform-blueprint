@@ -10,6 +10,18 @@ see [Spec-Driven Development Operating Model](spec_driven_development.md).
 
 ---
 
+## One PR per work item
+
+A single Draft PR is opened at the intake gate and remains open for the
+entire lifecycle. Every subsequent commit — sign-off resolutions,
+implementation slices, docs, publish artifacts — is pushed to the same
+branch and accumulates in the same PR. The PR transitions from Draft to
+Ready only when the work is fully implemented, verified, and published.
+It is never closed early and a second PR is never opened for the same
+work item.
+
+---
+
 ## Step 0 — Scaffold
 
 **Command:**
@@ -20,11 +32,11 @@ make spec-scaffold SPEC_SLUG=<work-item-slug>
 
 **What happens:**
 
-- Creates `specs/YYYY-MM-DD-<slug>/` with all required stub artifacts (see below).
+- Creates `specs/YYYY-MM-DD-<slug>/` with all required stub artifacts.
 - Checks out a dedicated branch `codex/YYYY-MM-DD-<slug>` automatically.
   Skip with `SPEC_NO_BRANCH=true` only when explicitly asked.
 
-**Artifacts created (all stubs at this point):**
+**Artifacts created (stubs, populated in Step 1):**
 
 | File | Purpose |
 |---|---|
@@ -36,107 +48,181 @@ make spec-scaffold SPEC_SLUG=<work-item-slug>
 | `graph.json` | Machine-readable traceability graph (nodes + edges) |
 | `context_pack.md` | Execution handoff snapshot for coding agents |
 | `evidence_manifest.json` | Deterministic file checksum evidence record |
-| `pr_context.md` | Reviewer-facing summary (filled at Publish) |
-| `hardening_review.md` | Security/quality findings (filled at Publish) |
+| `pr_context.md` | Reviewer-facing summary (completed at Publish) |
+| `hardening_review.md` | Security/quality findings (completed at Publish) |
 
-**Git:** no commit yet — files exist on disk on the new branch.  
+**Git:** no commit yet.  
 **Checks:** none.
 
 ---
 
-## Step 1 — Discover + High-Level Architecture + Specify
+## Step 1 — Populate artifacts (Discover → Plan)
 
-These three phases fill in `spec.md`, `architecture.md`, and the ADR
-before any planning or implementation begins.
+The four pre-implementation phases are executed in a single pass
+immediately after scaffolding. Every artifact must contain real content
+before the Draft PR opens. Stub placeholders are not acceptable in the
+Draft PR.
 
 ### Discover
 
 Scope boundaries, constraints, NFRs, and cross-cutting guardrails are
-written into `spec.md`. Any missing input is marked
-`[NEEDS CLARIFICATION: ...]`; the work item is set to
-`BLOCKED_MISSING_INPUTS` and stays `SPEC_READY: false` until resolved.
-Coding assistants must not fill missing requirements with assumptions.
+written into `spec.md`. Requirements (`REQ-###`), non-functional
+requirements (`NFR-###`), and acceptance criteria (`AC-###`) are defined
+using `MUST` / `MUST NOT` / `SHALL` / `EXACTLY ONE OF` only.
 
 ### High-Level Architecture
 
 Bounded contexts, module boundaries, and integration edges are captured
-in `architecture.md`. Finalized decisions are recorded as an ADR:
+in `architecture.md`. Where the core decision is clear, the ADR is
+drafted now at `Status: proposed`. Open questions do not block ADR
+creation unless they affect the central decision itself.
 
 - Blueprint maintainer track: `docs/blueprint/architecture/decisions/ADR-<slug>.md`
 - Generated-consumer track: `docs/platform/architecture/decisions/ADR-<slug>.md`
 
-The ADR starts with `Status: proposed`.
-
 ### Specify
 
-Normative requirements (`REQ-###`, `NFR-###`, `AC-###`) are written
-using `MUST` / `MUST NOT` / `SHALL` / `EXACTLY ONE OF` only.
-Forbidden terms (`should`, `may`, `could`, `might`, `etc.`) are not
-allowed in normative sections. Applicable `SDD-C-###` control IDs from
-`.spec-kit/control-catalog.md` are declared in `spec.md`.
-`SPEC_PRODUCT_READY: true` is set after the Product sign-off is granted.
+Applicable `SDD-C-###` control IDs from `.spec-kit/control-catalog.md`
+are declared. The `Implementation Stack Profile` section is fully
+populated with stack, test automation, managed-service, and local-first
+fields.
 
-**Git:** no commit at the end of this step — artifacts are still being refined.  
-**Checks:** `make quality-sdd-check` — validates language policy (forbidden
-terms), open-marker counts, readiness gate fields, and control ID presence.
+### Plan
+
+`plan.md` is written with sequenced delivery slices (red→green TDD,
+docs, runbook). `tasks.md` is populated with all task rows (all
+unchecked). `graph.json` nodes and edges are generated for every
+REQ/NFR/AC. `traceability.md` maps every requirement to design element,
+implementation path, test evidence, documentation evidence, and
+operational evidence.
+
+### Handling open questions
+
+Any input that cannot be resolved by the agent is recorded as a
+structured block directly in the relevant artifact — not left as an
+empty placeholder:
+
+```
+> **[NEEDS CLARIFICATION]** *Concise statement of what needs to be decided.*
+>
+> **Options:**
+> - **A)** Description — tradeoffs (agent recommendation)
+> - **B)** Description — tradeoffs
+>
+> **Agent recommendation:** Option A because [rationale].
+```
+
+The same block format is used in `spec.md`, `architecture.md`,
+`plan.md`, and ADRs. Open questions do not block artifact population —
+all sections that can be filled with real content are filled. The
+`[NEEDS CLARIFICATION]` token is tracked by `quality-sdd-check` and
+must reach `0` before `SPEC_READY: true`.
+
+**Git:** no commit during this step — artifact population flows directly into Step 2.  
+**Checks:** `make quality-sdd-check` (language policy, open-marker counts,
+readiness gate fields, control ID presence).
 
 ---
 
-## Step 2 — Plan
+## Step 2 — Open Draft PR (Intake gate)
 
-Delivery slices, task breakdown, and the traceability graph are defined.
-
-**Artifacts updated:**
-
-| File | Content added |
-|---|---|
-| `plan.md` | Sequenced delivery slices (red→green TDD, docs, runbook), validation strategy, rollback notes |
-| `tasks.md` | Gate tasks `G-###`, implementation tasks `T-###`, validation tasks `T-2##`, publish tasks `P-###`, app-onboarding targets `A-###` — all unchecked |
-| `graph.json` | Nodes for every REQ/NFR/AC, edges for `validated_by` and `constrains` relations |
-| `traceability.md` | Full matrix mapping each requirement to design element, implementation path, test evidence, documentation evidence, operational evidence |
-
-**Git:** no commit yet.  
-**Checks:** `make quality-sdd-check` (graph.json schema, traceability completeness).
-
----
-
-## Step 3 — Sign-off → `SPEC_READY: true`
-
-The user grants all four sign-offs explicitly in conversation or PR
-review. Coding assistants must not self-approve any sign-off.
-
-| Sign-off | What it covers |
-|---|---|
-| Product | Requirements completeness, acceptance criteria |
-| Architecture | Design decisions, ADR approval (`Status: proposed → approved`) |
-| Security | NFR-SEC controls, threat model coverage |
-| Operations | Runbook readiness, rollback strategy, observability |
-
-Once all four are recorded, `spec.md` is updated:
-`SPEC_READY: false → true`, ADR status `proposed → approved`.
-
-**Git:** commit all spec artifacts + push + open **draft PR**.
+Once all artifacts are substantively populated, commit everything and
+open the Draft PR. This is the single PR for the entire work item.
 
 ```bash
 git add specs/YYYY-MM-DD-<slug>/ docs/.../ADR-<slug>.md
-git commit -m "feat(<slug>): SDD intake — spec, architecture, plan ready for implementation"
+git commit -m "feat(<slug>): SDD intake — spec, architecture, plan ready for PO review"
 git push -u origin codex/YYYY-MM-DD-<slug>
-gh pr create --draft --title "..." --body "..."
+gh pr create --draft --title "feat(<slug>): ..." --body "..."
 ```
 
-**Checks:** `make quality-sdd-check` must pass before the draft PR is opened.
+The PR description references `specs/YYYY-MM-DD-<slug>/pr_context.md`
+and the originating issue.
+
+**Git:** commit + push + Draft PR opened.  
+**Checks:** `make quality-sdd-check` must pass before opening the PR.
 
 ---
 
-## Step 4 — Implement
+## Step 3 — Open question resolution loop
 
-Code is written in TDD slices following the sequence in `plan.md`.
+The PO and other reviewers examine the Draft PR on GitHub. This is the
+canonical review mechanism and works regardless of whether reviewers
+have Claude Code.
+
+### How reviewers answer open questions
+
+Reviewers leave answers as PR comments — inline on the relevant artifact
+section or as general PR comments referencing the question. No special
+format is required: plain language answers are sufficient.
+
+For sign-offs, the following deterministic phrase is recognized by the
+agent and recorded in `spec.md`:
+
+```
+SPEC_PRODUCT_READY: approved
+```
+
+### How the agent integrates answers
+
+The developer invokes the agent with:
+
+> *"Read the PR comments on #N and resolve the open questions in the artifacts."*
+
+The agent:
+
+1. Reads all PR comments and inline review comments.
+2. Replaces each resolved `[NEEDS CLARIFICATION]` block with the
+   decision and its rationale.
+3. Records any sign-off phrases in `spec.md`.
+4. Commits the updated artifacts and pushes to the same branch
+   (same PR auto-updates).
+5. Posts a follow-up PR comment:
+   *"Resolved N open questions. Updated: `spec.md`, `architecture.md`.
+   Commit abc1234. Remaining open: K."*
+
+This closes the feedback loop for the reviewer — they can see their
+answers were picked up and review the updated artifact inline. When
+reviewers later have Claude Code, they can trigger the same resolution
+step themselves.
+
+The loop repeats until all `[NEEDS CLARIFICATION]` markers are resolved
+and `SPEC_PRODUCT_READY: true` is recorded.
+
+**Git:** one commit per resolution round, pushed to the existing branch (same PR).  
+**Checks:** `make quality-sdd-check` after each round to confirm marker count drops.
+
+---
+
+## Step 4 — Remaining sign-offs → `SPEC_READY: true`
+
+Architecture, Security, and Operations sign-offs are collected — via PR
+review, PR comments, or conversation. Once all four sign-offs are
+recorded in `spec.md` and all zero-count fields are confirmed:
+
+- `SPEC_READY: false → true`
+- ADR status: `proposed → approved`
+
+```bash
+git add specs/YYYY-MM-DD-<slug>/spec.md docs/.../ADR-<slug>.md
+git commit -m "feat(<slug>): all sign-offs collected — SPEC_READY"
+git push
+```
+
+**Git:** commit + push (same PR).  
+**Checks:** `make quality-sdd-check` must pass with `SPEC_READY: true`.
+
+---
+
+## Step 5 — Implement
+
+Code is written in TDD slices following the sequence in `plan.md`. All
+commits go to the same branch and appear in the same Draft PR.
 
 ### Slice 1 — Failing tests (red)
 
 Write all new tests first. Confirm each fails with the expected error
-before writing any implementation. This is a hard gate — the test must
-be red before the fix goes in.
+before writing any implementation.
 
 ### Slice 2 — Implementation (green)
 
@@ -148,28 +234,17 @@ has no regressions.
 Schema updates, skill runbook changes, configuration updates — per the
 plan.
 
-**Git:** one commit per logical slice (or bundled), pushed to the feature
-branch. The draft PR updates automatically.
-
-```bash
-git add <changed files>
-git commit -m "..."
-git push
-```
-
+**Git:** one commit per logical slice, pushed to the same branch.  
 **Checks per slice:**
 
 ```bash
-# Targeted
-python3 -m pytest tests/<module>/ -v -k "<marker>"
-
-# Full suite — no regressions
-python3 -m pytest tests/ -q
+python3 -m pytest tests/<module>/ -v -k "<marker>"   # targeted
+python3 -m pytest tests/ -q                           # full suite, no regressions
 ```
 
 ---
 
-## Step 5 — Document + Operate
+## Step 6 — Document + Operate
 
 ### Document
 
@@ -185,21 +260,22 @@ python3 scripts/lib/docs/sync_blueprint_template_docs.py
 
 ### Operate
 
-- Add or update runbooks, diagnostics guidance, and rollback steps to
+- Add or update runbooks, diagnostics guidance, and rollback steps in
   the relevant `docs/` or `SKILL.md` files.
 
-**Git:** commit docs + skill updates, push.  
+**Git:** commit + push (same PR).  
 **Checks:**
 
 ```bash
-make quality-docs-check-changed   # pyramid ratios + doc drift for changed paths
+make quality-docs-check-changed
 ```
 
 ---
 
-## Step 6 — Publish
+## Step 7 — Publish
 
-Fill the remaining artifacts and run the final validation gate.
+Fill the remaining artifacts, mark all tasks complete, and pass the
+final validation gate.
 
 **Artifacts completed:**
 
@@ -209,14 +285,7 @@ Fill the remaining artifacts and run the final validation gate.
 | `pr_context.md` | Summary, full REQ/NFR/AC coverage, key reviewer files, exact validation commands + results, risk + rollback, deferred proposals |
 | `tasks.md` | All task boxes marked `[x]` |
 
-**Git:** final commit + push.
-
-```bash
-git add specs/YYYY-MM-DD-<slug>/
-git commit -m "..."
-git push
-```
-
+**Git:** final commit + push (same PR).  
 **Checks (all must pass):**
 
 ```bash
@@ -229,16 +298,17 @@ make quality-hardening-review  # hardening_review.md completeness
 
 ---
 
-## Step 7 — PR Ready + CI
+## Step 8 — Mark PR ready + CI
 
-Mark the draft PR as ready for review and request a review pass.
+The single Draft PR is marked ready for final review. No new PR is
+opened.
 
 ```bash
 gh pr ready <number>
 gh pr comment <number> --body "@codex review this PR"
 ```
 
-**CI checks triggered on push/ready:**
+**CI checks triggered:**
 
 | Check | What it runs |
 |---|---|
@@ -254,14 +324,15 @@ All must be green (or legitimately skipped) before merge.
 
 | Step | Key artifacts | Git operation | Checks |
 |---|---|---|---|
-| 0 Scaffold | All stub files in `specs/YYYY-MM-DD-<slug>/` | New branch, no commit | None |
-| 1 Discover / Arch / Specify | `spec.md`, `architecture.md`, ADR (`proposed`) | None | `quality-sdd-check` |
-| 2 Plan | `plan.md`, `tasks.md`, `graph.json`, `traceability.md` | None | `quality-sdd-check` |
-| 3 Sign-off | `spec.md` (`SPEC_READY=true`), ADR (`approved`) | Commit + push + draft PR | `quality-sdd-check` |
-| 4 Implement | Code, tests, schemas | Per-slice commits + push | `pytest` (targeted + full suite) |
-| 5 Document / Operate | `docs/`, `SKILL.md`, bootstrap template sync | Commit + push | `quality-docs-check-changed` |
-| 6 Publish | `pr_context.md`, `hardening_review.md`, `tasks.md` | Final commit + push | `quality-hooks-fast`, `quality-hardening-review` |
-| 7 PR ready | — | Mark PR ready | CI: `blueprint-quality`, `generated-consumer-smoke`, `upgrade-e2e-validation` |
+| 0 Scaffold | Stub files in `specs/YYYY-MM-DD-<slug>/` | New branch, no commit | None |
+| 1 Populate artifacts | `spec.md`, `architecture.md`, ADR, `plan.md`, `tasks.md`, `graph.json`, `traceability.md` — all with real content | None | `quality-sdd-check` |
+| 2 Draft PR (intake gate) | All populated artifacts committed | Commit + push + **Draft PR opened** | `quality-sdd-check` |
+| 3 Open question resolution | Artifacts updated with PO answers; sign-offs recorded | Commit + push per round (same PR) | `quality-sdd-check` |
+| 4 SPEC_READY | `spec.md` (`SPEC_READY=true`), ADR (`approved`) | Commit + push (same PR) | `quality-sdd-check` |
+| 5 Implement | Code, tests, schemas | Per-slice commits + push (same PR) | `pytest` targeted + full suite |
+| 6 Document / Operate | `docs/`, `SKILL.md`, bootstrap template sync | Commit + push (same PR) | `quality-docs-check-changed` |
+| 7 Publish | `pr_context.md`, `hardening_review.md`, `tasks.md` | Final commit + push (same PR) | `quality-hooks-fast`, `quality-hardening-review` |
+| 8 PR ready | — | **Draft → Ready** (same PR) | CI: `blueprint-quality`, `generated-consumer-smoke`, `upgrade-e2e-validation` |
 
 ---
 
