@@ -332,6 +332,51 @@ class TestFreshEnvGateShellWrapper(unittest.TestCase):
             self.assertIsNone(report["error"])
             self.assertIsInstance(report["exit_code"], int)
 
+    def test_gate_passes_when_artifacts_present_and_seeded(self) -> None:
+        """Gate must exit 0 when artifacts/blueprint/ exists — requires artifact seeding (REQ-001, AC-001)."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir) / "consumer"
+            _init_git_repo(repo)
+
+            # Postcheck stub checks for the artifact file; fails if absent (mirrors real postcheck behaviour)
+            content = (
+                ".PHONY: infra-validate blueprint-upgrade-consumer-postcheck\n\n"
+                "infra-validate:\n\t@exit 0\n\n"
+                "blueprint-upgrade-consumer-postcheck:\n"
+                "\t@test -f artifacts/blueprint/upgrade_apply.json"
+                " || (echo 'missing artifact' >&2 && exit 1)\n"
+            )
+            _write(repo / "Makefile", content)
+            _require_success(_git(repo, "add", "Makefile"), "git add Makefile")
+            _require_success(_git(repo, "commit", "-m", "add Makefile"), "git commit Makefile")
+
+            # Place artifact in working tree only (gitignored — not committed, absent in fresh worktree)
+            _write(repo / "artifacts" / "blueprint" / "upgrade_apply.json", '{"status": "applied"}\n')
+
+            result = _run_gate(repo)
+
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            report = _load_json(repo / GATE_REPORT_NAME)
+            self.assertEqual(report["status"], "pass")
+            self.assertEqual(report["exit_code"], 0)
+
+    def test_gate_skips_seeding_when_artifacts_absent(self) -> None:
+        """Gate must not error when artifacts/blueprint/ is absent in working tree (REQ-002, AC-002)."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir) / "consumer"
+            _init_git_repo(repo)
+            _write_makefile(repo, infra_validate_exit=0, postcheck_exit=0)
+
+            # Explicitly confirm no artifacts present
+            self.assertFalse((repo / "artifacts" / "blueprint").exists())
+
+            result = _run_gate(repo)
+
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            report = _load_json(repo / GATE_REPORT_NAME)
+            self.assertEqual(report["status"], "pass")
+            self.assertEqual(report["exit_code"], 0)
+
     def test_divergence_diff_included_in_report_on_failure(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo = Path(tmpdir) / "consumer"

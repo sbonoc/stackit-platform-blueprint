@@ -100,6 +100,17 @@ fi
 worktree_created=true
 
 # ---------------------------------------------------------------------------
+# Seed upgrade artifacts into the worktree (gitignored files absent by design)
+# ---------------------------------------------------------------------------
+if [[ -d "$consumer_root/artifacts/blueprint" ]]; then
+  log_info "fresh-env gate: seeding blueprint upgrade artifacts into worktree from ${consumer_root}/artifacts/blueprint"
+  mkdir -p "$worktree_path/artifacts"
+  cp -r "$consumer_root/artifacts/blueprint" "$worktree_path/artifacts/"
+else
+  log_info "fresh-env gate: artifacts/blueprint not found in working tree — skipping artifact seeding"
+fi
+
+# ---------------------------------------------------------------------------
 # Run targets inside the clean worktree
 # ---------------------------------------------------------------------------
 gate_exit_code=0
