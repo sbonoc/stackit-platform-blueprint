@@ -359,3 +359,30 @@
     - `blueprint-install-codex-skill-sdd-traceability-keeper` (unchanged)
   - `blueprint/contract.yaml` and its bootstrap template mirror updated to list new skill files; consumer-init skill templates updated in parallel; `infra-validate` passes with new file set.
   - `sdd_execution_guide.md` updated: swimlane actor label, agent boxes, skill map table (with "Invoked by" column), summary table (with "Who invokes" column and stack-agnostic Step 6 checks), Step 8 artifacts list.
+- SDD skill sequential renumbering — gap removed (Issue #191 continuation):
+  - skills were introduced as step01, step03, step04, step05, step06, step07, step08 (step02 was never created), leaving a visible gap that implied a missing skill.
+  - renumbered to step01–step07 (no gap): step03→step02, step04→step03, step05→step04, step06→step05, step07→step06, step08→step07; all references updated across docs, diagrams, contract.yaml, Makefile targets, and consumer templates in a single commit.
+  - H1 titles inside each SKILL.md corrected to match the new sequential numbers.
+- Governance Context pattern for SKILL.md files (Issue #191 continuation):
+  - each SKILL.md gains a `## Governance Context` block positioned between `## Actor` and `## Guardrails` listing the AGENTS.md sections that govern that specific lifecycle phase.
+  - AGENTS.md § Assistant Interoperability gains a maintenance rule: any update to cross-cutting guardrails or lifecycle policy in AGENTS.md MUST be reflected in the Governance Context of affected SKILL.md files, and vice versa.
+  - rationale: eliminates the risk of guardrails drifting silently between the canonical policy source (AGENTS.md) and the operational runbooks (SKILL.md); makes the traceability path visible to both humans and agents.
+  - step05-implement also gained two new explicit guardrails: architecture compliance (SOLID/Clean Architecture/DDD) and observability (structured logs/metrics on new code paths) — these were implicit in AGENTS.md but not surfaced at implementation time.
+- Triage-first deferred proposal flow with scope-tagged backlog triggers (Issue #191 continuation):
+  - the previous auto-file-all-as-GH-issues rule in step07-pr-packager replaced with a triage-first interaction: agent presents a table, user confirms outcome per proposal (file-issue / reject / park) before any action is taken.
+  - rationale: auto-filing creates issue noise; the PR author has the most context at step 8 and should decide which proposals are worth tracking vs. rejecting at source.
+  - parked proposals carry a mandatory trigger type — `after: <slug>`, `on-scope: <tag>`, or `triage: next-session` — enforcing event-driven re-evaluation instead of indefinite backlog limbo.
+  - `triage: next-session` entries carry `stale-after: 2` decay: after 2 triage sessions without promotion the entry requires a conscious promote-or-discard decision.
+  - all outcomes (file-issue, reject, park) are recorded explicitly in `pr_context.md` and `AGENTS.backlog.md`; no proposal may be silently omitted.
+  - step01-intake gains a Backlog Scan step that surfaces `after:` and `on-scope:` parked proposals matching the new work item before the Draft PR is opened.
+- Scope Registry in AGENTS.backlog.md (Issue #191 continuation):
+  - a `## Scope Registry` section (controlled vocabulary table) was added to AGENTS.backlog.md as the single authoritative list of `on-scope:` backlog trigger tags.
+  - initial tags: `auth`, `infra`, `observability`, `api`, `apps`, `docs`, `quality`, `blueprint`, `gitops`, `skills`.
+  - tags grow organically: new tags are appended to the registry in the same commit that introduces them, keeping the vocabulary honest without upfront over-engineering.
+  - rationale: free-form tags drift (auth vs. authentication vs. authn); a controlled vocabulary makes the step01-intake backlog scan reliable without fuzzy matching.
+- Shift-left and contract testing guardrails added to AGENTS.md (Issue #191 continuation):
+  - § Testing and Quality Ratios extended: mocks/stubs mandatory in unit and integration tests; line coverage target ≥ 70%; 100% automated coverage of business-critical acceptance criteria; CI default pipeline must complete in < 15 minutes; E2E restricted to business-critical journeys not coverable by component or contract tests.
+  - new § Contract Testing Standards: Pact (Consumer-Driven Contract Testing) is the standard for API integration across service boundaries; consumer generates .json pact files against Pact Mock Server; provider verifies in backend-test-contracts lane; Pact Stub Server during frontend development; OpenAPI/event contracts drafted in Specify phase.
+  - § Cross-Cutting Guardrails: API and event contract first — OpenAPI/Pact drafted in Specify, contract path recorded in spec.md under Contract Impacts.
+  - step05-implement: new `## Stack-specific test isolation` section documents framework-specific test utilities per stack (Vue/Nuxt @vue/test-utils, @nuxt/test-utils, mockNuxtImport; FastAPI TestClient; Kotlin/Ktor MockEngine + testApplication; Go/Gin httptest) and the Pact consumer/provider pattern.
+  - coverage enforcement: `run_python_pytest_lane` extended to apply `--cov` and `--cov-fail-under` when `BACKEND_COVERAGE_PATH` is set; opt-in by env variable to avoid breaking repos without pytest-cov installed.

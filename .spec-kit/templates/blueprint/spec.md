@@ -60,6 +60,7 @@
 ## Contract Changes (Normative)
 - Config/Env contract:
 - API contract:
+- OpenAPI / Pact contract path: none
 - Event contract:
 - Make/CLI contract:
 - Docs contract:

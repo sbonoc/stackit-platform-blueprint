@@ -71,6 +71,17 @@ make quality-hooks-run
 - Safe-to-continue contract: proceed only when `make blueprint-upgrade-consumer-postcheck` exits `0` AND `make blueprint-upgrade-fresh-env-gate` exits `0`. Both must pass before the upgrade is declared complete.
 - Blocked contract: stop and report exact blocked reasons when postcheck or fresh-env-gate exits non-zero.
 
+## Governance Context
+
+`AGENTS.md` is the canonical policy source for behavioral and code changes triggered during upgrade execution. Sections that apply:
+
+- `§ Blueprint Contract Precedence` — `blueprint/contract.yaml` governs ownership boundaries; consumer-owned platform surfaces must be preserved through the upgrade.
+- `§ Mandatory Workflow` — any behavioral or code change required by upgrade findings MUST follow SDD order before implementation begins.
+- `§ SDD Readiness Gate (Mandatory Before Implementation)` — upgrade-triggered work items must reach `SPEC_READY: true` before implementation code is written.
+- `§ Dependency and Versioning Mandates` — version pins introduced or changed by the upgrade must meet the strict latest-stable policy.
+
+> If `AGENTS.md` changes any of the above sections, update this block to reflect the affected sections.
+
 ## SDD Guardrails
 
 - Treat consumer `AGENTS.md` as the governance source for lifecycle and contracts.

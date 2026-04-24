@@ -49,7 +49,22 @@ run_python_pytest_lane() {
 
   log_info "running ${lane} pytest lane with ${#discovered[@]} discovered test file(s)"
   require_command python3
-  if ! run_cmd python3 -m pytest -q "${discovered[@]}"; then
+
+  # Coverage enforcement: opt-in via BACKEND_COVERAGE_PATH.
+  # Set BACKEND_COVERAGE_PATH to the source directory to measure (e.g. apps/backend-api/src).
+  # Set BACKEND_COVERAGE_MIN to override the minimum threshold (default: 70).
+  # Requires pytest-cov to be installed in the active Python environment.
+  local coverage_args=()
+  if [[ -n "${BACKEND_COVERAGE_PATH:-}" ]]; then
+    coverage_args+=(
+      "--cov=${BACKEND_COVERAGE_PATH}"
+      "--cov-report=term-missing"
+      "--cov-fail-under=${BACKEND_COVERAGE_MIN:-70}"
+    )
+    log_info "coverage enforcement enabled: path=${BACKEND_COVERAGE_PATH} min=${BACKEND_COVERAGE_MIN:-70}%"
+  fi
+
+  if ! run_cmd python3 -m pytest -q "${coverage_args[@]}" "${discovered[@]}"; then
     log_metric "pytest_lane_duration_seconds" \
       "$(( $(now_epoch_seconds) - lane_start_epoch ))" \
       "lane=${lane_slug} status=failure discovered_tests=${#discovered[@]}"

@@ -84,7 +84,7 @@ flowchart TD
         a4["Refine plan into\nexecutable slices"]
         a5["Read stack profile\nTDD: write failing tests\nImplement · confirm green\nCommit per slice"]
         a6["Update docs\nSync bootstrap templates"]
-        a7["Fill pr_context.md\nhardening_review.md\nFile deferred-proposal issues\nRun quality gates"]
+        a7["Fill pr_context.md\nhardening_review.md\nTriage deferred proposals\n(file / reject / park)\nRun quality gates"]
     end
 
     s1 --> a1
@@ -499,11 +499,19 @@ mark all tasks complete, and pass the final validation gate.
 | `tasks.md` | All task boxes marked `[x]` |
 | `AGENTS.backlog.md` | New entry per deferred proposal, with GitHub issue link |
 
-**Deferred proposal lifecycle:** For each entry in the proposals-only section of
-`hardening_review.md`, the agent files a GitHub issue and records the issue URL
-in `pr_context.md` and `AGENTS.backlog.md`. This turns buried PR review notes
-into traceable backlog items that are either picked up in a future work item or
-explicitly closed with a rejection rationale.
+**Deferred proposal triage:** The agent presents a triage table of all proposals
+and waits for the author to confirm an outcome per proposal before acting:
+
+| Outcome | What happens |
+|---|---|
+| **file-issue** | GitHub issue created; URL recorded in `pr_context.md` + `AGENTS.backlog.md` |
+| **reject** | Rationale recorded in `pr_context.md`; closed entry in `AGENTS.backlog.md` |
+| **park** | Recorded in `AGENTS.backlog.md` with a mandatory trigger: `after: <slug>`, `on-scope: <tag>` (from Scope Registry), or `triage: next-session` |
+
+No proposal is silently dropped — every proposal receives an explicit recorded outcome.
+Parked proposals resurface automatically: `after:` entries surface when the blocking item
+reaches Step 8; `on-scope:` entries surface when `step01-intake` scaffolds a new item in
+that scope area. `triage: next-session` entries carry a `stale-after: 2` decay counter.
 
 **Git:** final commit + push (same PR).
 **Checks (all must pass):**
@@ -556,7 +564,7 @@ All must be green (or legitimately skipped) before merge.
 | 5 Refine plan | `plan.md` updated (optional) | `step04-plan-slicer` | Software Engineer | Commit + push if changed (same PR) | None |
 | 6 Implement | Code, tests, schemas; `tasks.md` updated | `step05-implement` | Software Engineer | Per-slice commits + push (same PR) | Stack-agnostic Make targets |
 | 7 Document / Operate | `docs/`, `SKILL.md`, bootstrap template sync | `step06-document-sync` | Software Engineer | Commit + push (same PR) | `quality-docs-check-changed` |
-| 8 Publish | `pr_context.md`, `hardening_review.md`, `tasks.md`, deferred-proposal issues | `step07-pr-packager` | Software Engineer | Final commit + push (same PR) | `quality-hooks-fast`, `quality-hardening-review` |
+| 8 Publish | `pr_context.md`, `hardening_review.md`, `tasks.md`, deferred-proposal outcomes (file/reject/park) in `AGENTS.backlog.md` | `step07-pr-packager` | Software Engineer | Final commit + push (same PR) | `quality-hooks-fast`, `quality-hardening-review` |
 | 9 PR ready | — | `step07-pr-packager` | Software Engineer | **Draft → Ready** (same PR) | CI: `blueprint-quality`, `generated-consumer-smoke`, `upgrade-e2e-validation` |
 
 ---
