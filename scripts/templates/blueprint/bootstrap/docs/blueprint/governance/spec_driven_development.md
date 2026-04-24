@@ -2,6 +2,10 @@
 
 This blueprint follows an explicit SDD lifecycle for non-trivial work.
 
+For a step-by-step execution walkthrough — what command starts each step,
+what artifacts are produced, when commits and PRs are created, and what checks
+run — see the [SDD Execution Guide](sdd_execution_guide.md).
+
 ## Lifecycle
 
 1. `Discover`
@@ -208,6 +212,7 @@ The SDD contract is tool-agnostic. Any assistant must follow:
 
 For details (including non-Codex assistants such as Claude Code), see:
 - [Assistant Compatibility](assistant_compatibility.md)
+- [SDD Execution Guide](sdd_execution_guide.md) — step-by-step execution walkthrough with commands, git operations, and checks
 
 ## Normative Language Rules
 

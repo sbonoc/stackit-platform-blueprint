@@ -1030,6 +1030,7 @@ spec:
         - contracts/async_message_contracts.md
         - governance/ownership_matrix.md
         - governance/spec_driven_development.md
+        - governance/sdd_execution_guide.md
         - governance/assistant_compatibility.md
     platform_docs:
       root: docs/platform
