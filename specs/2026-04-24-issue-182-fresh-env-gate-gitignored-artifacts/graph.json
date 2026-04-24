@@ -1,0 +1,38 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-04-24-issue-182-fresh-env-gate-gitignored-artifacts",
+  "nodes": [
+    {"id": "REQ-001", "type": "requirement", "summary": "Gate seeds artifacts/blueprint/ into worktree when directory exists"},
+    {"id": "REQ-002", "type": "requirement", "summary": "Seeding step is a no-op when artifacts/blueprint/ is absent"},
+    {"id": "REQ-003", "type": "requirement", "summary": "Gate emits log_info with source path on seed"},
+    {"id": "REQ-004", "type": "requirement", "summary": "Gate emits log_info with skip reason when absent"},
+    {"id": "REQ-005", "type": "requirement", "summary": "Seeded artifacts cleaned up unconditionally by existing EXIT trap"},
+    {"id": "REQ-006", "type": "requirement", "summary": "Seeded artifacts do not appear in divergence report"},
+    {"id": "REQ-007", "type": "requirement", "summary": "New integration test: gate passes when artifacts present and seeded"},
+    {"id": "REQ-008", "type": "requirement", "summary": "New integration test: gate proceeds when artifacts absent (no-op seeding)"},
+    {"id": "NFR-SEC-001", "type": "requirement", "summary": "Seeding scoped to artifacts/blueprint/ only; no secrets copied"},
+    {"id": "NFR-OBS-001", "type": "requirement", "summary": "log_info on seed and on skip; no new metrics required"},
+    {"id": "NFR-REL-001", "type": "requirement", "summary": "EXIT trap handles cleanup unconditionally; no additional rollback"},
+    {"id": "NFR-OPS-001", "type": "requirement", "summary": "Log message includes source and destination paths"},
+    {"id": "AC-001", "type": "acceptance", "summary": "Gate exits 0 after successful upgrade when artifacts present"},
+    {"id": "AC-002", "type": "acceptance", "summary": "Gate does not error on absent artifact directory; proceeds to targets"},
+    {"id": "AC-003", "type": "acceptance", "summary": "Worktree and seeded artifacts removed on exit; git worktree list shows one entry"},
+    {"id": "AC-004", "type": "acceptance", "summary": "Log output contains seeding message with source path when seeding occurs"},
+    {"id": "AC-005", "type": "acceptance", "summary": "divergences array in fresh_env_gate.json contains no artifacts/ entries"}
+  ],
+  "edges": [
+    {"from": "REQ-001", "to": "AC-001", "relation": "validated_by"},
+    {"from": "REQ-001", "to": "AC-004", "relation": "validated_by"},
+    {"from": "REQ-002", "to": "AC-002", "relation": "validated_by"},
+    {"from": "REQ-003", "to": "AC-004", "relation": "validated_by"},
+    {"from": "REQ-004", "to": "AC-002", "relation": "validated_by"},
+    {"from": "REQ-005", "to": "AC-003", "relation": "validated_by"},
+    {"from": "REQ-006", "to": "AC-005", "relation": "validated_by"},
+    {"from": "REQ-007", "to": "AC-001", "relation": "validated_by"},
+    {"from": "REQ-008", "to": "AC-002", "relation": "validated_by"},
+    {"from": "NFR-SEC-001", "to": "AC-001", "relation": "constrains"},
+    {"from": "NFR-OBS-001", "to": "AC-004", "relation": "constrains"},
+    {"from": "NFR-REL-001", "to": "AC-003", "relation": "constrains"},
+    {"from": "NFR-OPS-001", "to": "AC-004", "relation": "constrains"}
+  ]
+}
