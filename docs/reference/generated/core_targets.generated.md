@@ -20,9 +20,7 @@ This file is auto-generated. Do not edit it manually.
 | `blueprint-uplift-status` | Report blueprint uplift convergence status for tracked issues in consumer backlog (optional BLUEPRINT_UPLIFT_STRICT=true) |
 | `blueprint-install-codex-skill` | Install/sync bundled Codex upgrade skill into local CODEX_HOME skills directory |
 | `blueprint-install-codex-skill-consumer-ops` | Install/sync bundled Codex consumer operations skill into local CODEX_HOME skills directory |
-| `blueprint-install-codex-skill-sdd-plan-slicer` | Install/sync bundled Codex SDD plan-slicer skill into local CODEX_HOME skills directory |
-| `blueprint-install-codex-skill-sdd-document-sync` | Install/sync bundled Codex SDD document-sync skill into local CODEX_HOME skills directory |
-| `blueprint-install-codex-skill-sdd-pr-packager` | Install/sync bundled Codex SDD PR-packager skill into local CODEX_HOME skills directory |
+| `blueprint-install-codex-skill-sdd-step01-intake` | Install/sync bundled Codex SDD step01-intake skill into local CODEX_HOME skills directory |
 | `blueprint-install-codex-skills` | Install/sync all bundled Codex skills into local CODEX_HOME skills directory |
 | `blueprint-ownership-check` | Resolve path ownership classes (set OWNERSHIP_PATHS="path/one path/two") |
 | `blueprint-ownership-metadata` | Print machine-readable ownership metadata (pattern -&gt; owner) |

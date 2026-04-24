@@ -14,22 +14,26 @@ SHELL_LIB_DIR_REL = Path("scripts/lib/shell")
 MAKEFILE_REL = Path("Makefile")
 UPGRADE_SKILL_NAME = "blueprint-consumer-upgrade"
 OPS_SKILL_NAME = "blueprint-consumer-ops"
-SDD_INTAKE_SKILL_NAME = "blueprint-sdd-intake-decompose"
-SDD_CLARIFICATION_SKILL_NAME = "blueprint-sdd-clarification-gate"
-SDD_PLAN_SKILL_NAME = "blueprint-sdd-plan-slicer"
+SDD_STEP01_SKILL_NAME = "blueprint-sdd-step01-intake"
+SDD_STEP02_SKILL_NAME = "blueprint-sdd-step02-resolve-questions"
+SDD_STEP03_SKILL_NAME = "blueprint-sdd-step03-spec-complete"
+SDD_STEP04_SKILL_NAME = "blueprint-sdd-step04-plan-slicer"
+SDD_STEP05_SKILL_NAME = "blueprint-sdd-step05-implement"
+SDD_STEP06_SKILL_NAME = "blueprint-sdd-step06-document-sync"
+SDD_STEP07_SKILL_NAME = "blueprint-sdd-step07-pr-packager"
 SDD_TRACEABILITY_SKILL_NAME = "blueprint-sdd-traceability-keeper"
-SDD_DOCUMENT_SKILL_NAME = "blueprint-sdd-document-sync"
-SDD_PR_PACKAGER_SKILL_NAME = "blueprint-sdd-pr-packager"
 
 SKILL_REFERENCE_FILES: dict[str, tuple[str, ...]] = {
     UPGRADE_SKILL_NAME: ("references/manual_merge_checklist.md",),
     OPS_SKILL_NAME: ("references/consumer_ops_checklist.md",),
-    SDD_INTAKE_SKILL_NAME: ("references/intake_checklist.md",),
-    SDD_CLARIFICATION_SKILL_NAME: ("references/clarification_categories.md",),
-    SDD_PLAN_SKILL_NAME: ("references/plan_slice_checklist.md",),
+    SDD_STEP01_SKILL_NAME: ("references/intake_checklist.md",),
+    SDD_STEP02_SKILL_NAME: ("references/resolution_checklist.md",),
+    SDD_STEP03_SKILL_NAME: ("references/spec_complete_checklist.md",),
+    SDD_STEP04_SKILL_NAME: ("references/plan_slice_checklist.md",),
+    SDD_STEP05_SKILL_NAME: ("references/implement_checklist.md",),
+    SDD_STEP06_SKILL_NAME: ("references/document_phase_checklist.md",),
+    SDD_STEP07_SKILL_NAME: ("references/pr_packaging_checklist.md",),
     SDD_TRACEABILITY_SKILL_NAME: ("references/traceability_matrix_template.md",),
-    SDD_DOCUMENT_SKILL_NAME: ("references/document_phase_checklist.md",),
-    SDD_PR_PACKAGER_SKILL_NAME: ("references/pr_packaging_checklist.md",),
 }
 
 

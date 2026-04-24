@@ -252,14 +252,8 @@
   - canonical make targets now include `spec-scaffold` and SDD sync/check aggregators (`quality-sdd-sync-all`, `quality-sdd-check-all`).
   - docs sync/check recipes are centralized through `scripts/lib/docs/orchestrate_sync.py`, including changed-scope fast checks (`quality-docs-check-changed`) used by `quality-hooks-fast`.
 - SDD agent workflows are now first-class bundled Codex skills for generated-consumer execution:
-  - added canonical skills (source + consumer-template fallback) for intake/decomposition, clarification gate, plan slicing, traceability upkeep, and document-phase sync.
-  - canonical install targets now include:
-    - `blueprint-install-codex-skill-sdd-intake-decompose`
-    - `blueprint-install-codex-skill-sdd-clarification-gate`
-    - `blueprint-install-codex-skill-sdd-plan-slicer`
-    - `blueprint-install-codex-skill-sdd-traceability-keeper`
-    - `blueprint-install-codex-skill-sdd-document-sync`
-  - `make blueprint-install-codex-skills` now installs consumer upgrade/ops plus all bundled SDD skills in one deterministic command.
+  - added canonical skills (source + consumer-template fallback) for intake/decomposition, clarification gate, plan slicing, traceability upkeep, and document-phase sync (superseded — see skill redesign entry below).
+  - `make blueprint-install-codex-skills` installs consumer upgrade/ops plus all bundled SDD skills in one deterministic command.
 - Managed-service-first and multi-assistant SDD execution policy is now explicit:
   - `AGENTS.md` and consumer `AGENTS.md.tmpl` now define managed-service-first behavior for `stackit-*` runtime capabilities with explicit exception recording requirements.
   - SDD spec contract now requires managed-service decision fields in `Implementation Stack Profile` and validates explicit exception rationale when `explicit-consumer-exception` is selected.
@@ -271,10 +265,9 @@
   - `spec.md` now carries a required `Blueprint Upstream Defect Escalation` section with workaround lifecycle fields for consumer-side temporary blueprint defects.
   - PR templates are contract-validated for review headings (`Summary`, requirement coverage, key reviewer files, validation evidence, risk/rollback, deferred proposals).
   - new operational entrypoints:
-    - `make blueprint-install-codex-skill-sdd-pr-packager`
     - `make spec-pr-context`
     - `make quality-hardening-review`
-  - added canonical skill `blueprint-sdd-pr-packager` (source + consumer template fallback) to package Publish-phase review context consistently.
+  - added canonical skill `blueprint-sdd-step07-pr-packager` (source + consumer template fallback) to package Publish-phase review context consistently (superseded from `blueprint-sdd-pr-packager` by skill redesign — see entry below).
 - SDD enforcement defaults are now explicit and executable:
   - assistant execution defaults to full SDD lifecycle unless the user explicitly opts out.
   - `spec_scaffold` now enforces dedicated branch creation by default using contract-driven settings (`branch_contract`) and supports explicit opt-out (`--no-create-branch` / `SPEC_NO_BRANCH=true`).
@@ -348,3 +341,48 @@
   - `apps/backend/Dockerfile` and `apps/touchpoints/Dockerfile` added as multi-stage scaffold Dockerfiles. Backend uses Python/uvicorn with `EXPOSE 8080`; touchpoints uses Node.js builder + nginx runtime with `EXPOSE 80`. Both allow `publish_ghcr.sh` to proceed with `candidate_count=2` instead of warning and skipping.
   - `infra/gitops/platform/base/apps/backend-api-deployment.yaml` updated: image changed from `python:3.13.9` to `ghcr.io/example-org/platform-blueprint-backend:0.1.0-dev` (matching default `publish_ghcr.sh` output with `APP_RELEASE=0`); hardcoded `command:` override removed (CMD is now defined in the Dockerfile). `touchpoints-web-deployment.yaml` updated: image changed from `nginx:1.29.2` to `ghcr.io/example-org/platform-blueprint-touchpoints:0.1.0-dev`. Both bootstrap template copies synced.
   - Four structural contract tests added (`AppDockerfileAndRuntimeTests`): assert Dockerfile existence, multi-stage pattern, EXPOSE ports, GHCR image references, and absence of command override.
+- SDD skills redesigned as step-numbered, alphabetically sortable lifecycle skills (Issue #191):
+  - retired skills `blueprint-sdd-intake-decompose`, `blueprint-sdd-clarification-gate`, `blueprint-sdd-plan-slicer`, `blueprint-sdd-document-sync`, `blueprint-sdd-pr-packager`, and `blueprint-sdd-po-spec`; their responsibilities are absorbed by the step-numbered skills below.
+  - new step-numbered skills introduced (source + consumer-template + Claude Code command): `blueprint-sdd-step01-intake`, `blueprint-sdd-step02-resolve-questions`, `blueprint-sdd-step03-spec-complete`, `blueprint-sdd-step04-plan-slicer`, `blueprint-sdd-step05-implement`, `blueprint-sdd-step06-document-sync`, `blueprint-sdd-step07-pr-packager`; `blueprint-sdd-traceability-keeper` retained unchanged.
+  - `step01-intake` and `step02-resolve-questions` auto-scaffold the spec directory (`make spec-scaffold SPEC_SLUG=<slug>`) when it does not yet exist, removing the need for a manual pre-step.
+  - actor expanded to `Any stakeholder` for Steps 0–3 (intake, resolve questions) from `Software Engineer` only; CPO/PO/CTO/Architect may now drive early-lifecycle steps directly.
+  - `step05-implement` is stack-agnostic: reads `Implementation Stack Profile` from `spec.md` and uses canonical Make targets (`make backend-test-unit`, `make touchpoints-test-unit`, `make test-unit-all`) as primary; stack-specific raw test runners are documented only as fallback for new apps not yet wired to Make.
+  - `step07-pr-packager` now requires filing a GitHub issue per non-trivial deferred proposal and recording the URL in `pr_context.md` Deferred Proposals and `AGENTS.backlog.md`; proposals without an issue must carry an explicit "no issue filed — [rationale]" note.
+  - canonical install targets updated to step-numbered names:
+    - `blueprint-install-codex-skill-sdd-step01-intake`
+    - `blueprint-install-codex-skill-sdd-step02-resolve-questions`
+    - `blueprint-install-codex-skill-sdd-step03-spec-complete`
+    - `blueprint-install-codex-skill-sdd-step04-plan-slicer`
+    - `blueprint-install-codex-skill-sdd-step05-implement`
+    - `blueprint-install-codex-skill-sdd-step06-document-sync`
+    - `blueprint-install-codex-skill-sdd-step07-pr-packager`
+    - `blueprint-install-codex-skill-sdd-traceability-keeper` (unchanged)
+  - `blueprint/contract.yaml` and its bootstrap template mirror updated to list new skill files; consumer-init skill templates updated in parallel; `infra-validate` passes with new file set.
+  - `sdd_execution_guide.md` updated: swimlane actor label, agent boxes, skill map table (with "Invoked by" column), summary table (with "Who invokes" column and stack-agnostic Step 6 checks), Step 8 artifacts list.
+- SDD skill sequential renumbering — gap removed (Issue #191 continuation):
+  - skills were introduced as step01, step03, step04, step05, step06, step07, step08 (step02 was never created), leaving a visible gap that implied a missing skill.
+  - renumbered to step01–step07 (no gap): step03→step02, step04→step03, step05→step04, step06→step05, step07→step06, step08→step07; all references updated across docs, diagrams, contract.yaml, Makefile targets, and consumer templates in a single commit.
+  - H1 titles inside each SKILL.md corrected to match the new sequential numbers.
+- Governance Context pattern for SKILL.md files (Issue #191 continuation):
+  - each SKILL.md gains a `## Governance Context` block positioned between `## Actor` and `## Guardrails` listing the AGENTS.md sections that govern that specific lifecycle phase.
+  - AGENTS.md § Assistant Interoperability gains a maintenance rule: any update to cross-cutting guardrails or lifecycle policy in AGENTS.md MUST be reflected in the Governance Context of affected SKILL.md files, and vice versa.
+  - rationale: eliminates the risk of guardrails drifting silently between the canonical policy source (AGENTS.md) and the operational runbooks (SKILL.md); makes the traceability path visible to both humans and agents.
+  - step05-implement also gained two new explicit guardrails: architecture compliance (SOLID/Clean Architecture/DDD) and observability (structured logs/metrics on new code paths) — these were implicit in AGENTS.md but not surfaced at implementation time.
+- Triage-first deferred proposal flow with scope-tagged backlog triggers (Issue #191 continuation):
+  - the previous auto-file-all-as-GH-issues rule in step07-pr-packager replaced with a triage-first interaction: agent presents a table, user confirms outcome per proposal (file-issue / reject / park) before any action is taken.
+  - rationale: auto-filing creates issue noise; the PR author has the most context at step 8 and should decide which proposals are worth tracking vs. rejecting at source.
+  - parked proposals carry a mandatory trigger type — `after: <slug>`, `on-scope: <tag>`, or `triage: next-session` — enforcing event-driven re-evaluation instead of indefinite backlog limbo.
+  - `triage: next-session` entries carry `stale-after: 2` decay: after 2 triage sessions without promotion the entry requires a conscious promote-or-discard decision.
+  - all outcomes (file-issue, reject, park) are recorded explicitly in `pr_context.md` and `AGENTS.backlog.md`; no proposal may be silently omitted.
+  - step01-intake gains a Backlog Scan step that surfaces `after:` and `on-scope:` parked proposals matching the new work item before the Draft PR is opened.
+- Scope Registry in AGENTS.backlog.md (Issue #191 continuation):
+  - a `## Scope Registry` section (controlled vocabulary table) was added to AGENTS.backlog.md as the single authoritative list of `on-scope:` backlog trigger tags.
+  - initial tags: `auth`, `infra`, `observability`, `api`, `apps`, `docs`, `quality`, `blueprint`, `gitops`, `skills`.
+  - tags grow organically: new tags are appended to the registry in the same commit that introduces them, keeping the vocabulary honest without upfront over-engineering.
+  - rationale: free-form tags drift (auth vs. authentication vs. authn); a controlled vocabulary makes the step01-intake backlog scan reliable without fuzzy matching.
+- Shift-left and contract testing guardrails added to AGENTS.md (Issue #191 continuation):
+  - § Testing and Quality Ratios extended: mocks/stubs mandatory in unit and integration tests; line coverage target ≥ 70%; 100% automated coverage of business-critical acceptance criteria; CI default pipeline must complete in < 15 minutes; E2E restricted to business-critical journeys not coverable by component or contract tests.
+  - new § Contract Testing Standards: Pact (Consumer-Driven Contract Testing) is the standard for API integration across service boundaries; consumer generates .json pact files against Pact Mock Server; provider verifies in backend-test-contracts lane; Pact Stub Server during frontend development; OpenAPI/event contracts drafted in Specify phase.
+  - § Cross-Cutting Guardrails: API and event contract first — OpenAPI/Pact drafted in Specify, contract path recorded in spec.md under Contract Impacts.
+  - step05-implement: new `## Stack-specific test isolation` section documents framework-specific test utilities per stack (Vue/Nuxt @vue/test-utils, @nuxt/test-utils, mockNuxtImport; FastAPI TestClient; Kotlin/Ktor MockEngine + testApplication; Go/Gin httptest) and the Pact consumer/provider pattern.
+  - coverage enforcement: `run_python_pytest_lane` extended to apply `--cov` and `--cov-fail-under` when `BACKEND_COVERAGE_PATH` is set; opt-in by env variable to avoid breaking repos without pytest-cov installed.

@@ -25,15 +25,15 @@ a deterministic exception rationale and follow-up owner in publish artifacts.
 Skill runbooks are in `.agents/skills/<name>/SKILL.md`. Apply them proactively
 when the context matches. They are also available as slash commands:
 
-| Slash command | Runbook | Actor |
-|---|---|---|
-| `/blueprint-consumer-ops` | `.agents/skills/blueprint-consumer-ops/SKILL.md` | Platform Engineer |
-| `/blueprint-consumer-upgrade` | `.agents/skills/blueprint-consumer-upgrade/SKILL.md` | Platform Engineer |
-| `/blueprint-sdd-clarification-gate` | `.agents/skills/blueprint-sdd-clarification-gate/SKILL.md` | Coding Agent |
-| `/blueprint-sdd-document-sync` | `.agents/skills/blueprint-sdd-document-sync/SKILL.md` | Coding Agent |
-| `/blueprint-sdd-intake-decompose` | `.agents/skills/blueprint-sdd-intake-decompose/SKILL.md` | Coding Agent |
-| `/blueprint-sdd-plan-slicer` | `.agents/skills/blueprint-sdd-plan-slicer/SKILL.md` | Coding Agent |
-| `/blueprint-sdd-po-spec` | `.agents/skills/blueprint-sdd-po-spec/SKILL.md` | PO + Coding Agent |
-| `/blueprint-sdd-pr-packager` | `.agents/skills/blueprint-sdd-pr-packager/SKILL.md` | Coding Agent |
-| `/blueprint-sdd-spec-complete` | `.agents/skills/blueprint-sdd-spec-complete/SKILL.md` | Architect / CTO |
-| `/blueprint-sdd-traceability-keeper` | `.agents/skills/blueprint-sdd-traceability-keeper/SKILL.md` | Coding Agent |
+| Slash command | Steps | Runbook | Actor |
+|---|---|---|---|
+| `/blueprint-consumer-ops` | — | `.agents/skills/blueprint-consumer-ops/SKILL.md` | Platform Engineer |
+| `/blueprint-consumer-upgrade` | — | `.agents/skills/blueprint-consumer-upgrade/SKILL.md` | Platform Engineer |
+| `/blueprint-sdd-step01-intake` | 1–2 | `.agents/skills/blueprint-sdd-step01-intake/SKILL.md` | Any stakeholder |
+| `/blueprint-sdd-step02-resolve-questions` | 3 | `.agents/skills/blueprint-sdd-step02-resolve-questions/SKILL.md` | Any stakeholder |
+| `/blueprint-sdd-step03-spec-complete` | 4 | `.agents/skills/blueprint-sdd-step03-spec-complete/SKILL.md` | Software Engineer · CTO / Architect |
+| `/blueprint-sdd-step04-plan-slicer` | 5 (optional) | `.agents/skills/blueprint-sdd-step04-plan-slicer/SKILL.md` | Software Engineer |
+| `/blueprint-sdd-step05-implement` | 6 | `.agents/skills/blueprint-sdd-step05-implement/SKILL.md` | Software Engineer |
+| `/blueprint-sdd-step06-document-sync` | 7 | `.agents/skills/blueprint-sdd-step06-document-sync/SKILL.md` | Software Engineer |
+| `/blueprint-sdd-step07-pr-packager` | 8–9 | `.agents/skills/blueprint-sdd-step07-pr-packager/SKILL.md` | Software Engineer |
+| `/blueprint-sdd-traceability-keeper` | Cross-cutting | `.agents/skills/blueprint-sdd-traceability-keeper/SKILL.md` | Software Engineer |

@@ -1,4 +1,0 @@
-interface:
-  display_name: "Blueprint SDD PO Spec"
-  short_description: "Guide PO spec intake and generate agent-drafted ADR with Mermaid diagrams"
-  default_prompt: "Use $blueprint-sdd-po-spec to guide spec intake: the PO writes spec.md and the ADR product context layer, and the coding agent generates the ADR technical decision layer with appropriate Mermaid diagrams."

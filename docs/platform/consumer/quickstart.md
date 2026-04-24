@@ -94,12 +94,14 @@ BLUEPRINT_CODEX_SKILLS_DIR="${CODEX_HOME:-$HOME/.codex}/skills" make blueprint-i
 ```
 Install SDD-specialized skills when needed:
 ```bash
-make blueprint-install-codex-skill-sdd-intake-decompose
-make blueprint-install-codex-skill-sdd-clarification-gate
-make blueprint-install-codex-skill-sdd-plan-slicer
+make blueprint-install-codex-skill-sdd-step01-intake
+make blueprint-install-codex-skill-sdd-step02-resolve-questions
+make blueprint-install-codex-skill-sdd-step03-spec-complete
+make blueprint-install-codex-skill-sdd-step04-plan-slicer
+make blueprint-install-codex-skill-sdd-step05-implement
+make blueprint-install-codex-skill-sdd-step06-document-sync
+make blueprint-install-codex-skill-sdd-step07-pr-packager
 make blueprint-install-codex-skill-sdd-traceability-keeper
-make blueprint-install-codex-skill-sdd-document-sync
-make blueprint-install-codex-skill-sdd-pr-packager
 ```
 
 ## 3) Start Spec-Driven Work Item Before Implementation

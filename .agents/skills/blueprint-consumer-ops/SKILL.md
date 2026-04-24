@@ -18,6 +18,17 @@ Use this skill when working in a **generated-consumer** repo and the user asks f
 - docs/quality/contract validation
 - troubleshooting artifact collection and diagnostics
 
+## Governance Context
+
+`AGENTS.md` is the canonical policy source for behavioral and code changes triggered during consumer operations. Sections that apply:
+
+- `§ Blueprint Contract Precedence` — `blueprint/contract.yaml` is the executable contract; blueprint-managed surfaces must not be overridden outside canonical flows.
+- `§ Mandatory Workflow` — any non-trivial behavioral or code change discovered during operations MUST follow the SDD lifecycle before implementation.
+- `§ Minimum Validation Bundles by Change Type` — the bundle matching the change type must pass before declaring the operation complete.
+- `§ Definition of Done (DoD)` — operations that result in code or config changes are not done until tests, docs, and contracts are synchronized.
+
+> If `AGENTS.md` changes any of the above sections, update this block to reflect the affected sections.
+
 ## Guardrails
 1. Treat `blueprint/contract.yaml` as the execution contract.
 2. Keep ownership boundaries strict:

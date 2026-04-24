@@ -1,0 +1,5 @@
+interface:
+  display_name: "Blueprint SDD Step 06 — Implement"
+  short_description: "Implement the work item in TDD slices (red→green per slice), committing each to the existing Draft PR branch"
+  slash_command: "/blueprint-sdd-step05-implement"
+  command_file: ".claude/commands/blueprint-sdd-step05-implement.md"

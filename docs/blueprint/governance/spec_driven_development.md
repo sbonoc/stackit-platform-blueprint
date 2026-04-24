@@ -2,6 +2,10 @@
 
 This blueprint follows an explicit SDD lifecycle for non-trivial work.
 
+For a step-by-step execution walkthrough — what command starts each step,
+what artifacts are produced, when commits and PRs are created, and what checks
+run — see the [SDD Execution Guide](sdd_execution_guide.md).
+
 ## Lifecycle
 
 1. `Discover`
@@ -189,13 +193,23 @@ Each work-item `spec.md` must define:
 
 ## Lifecycle Skill Mapping (Deterministic Agent Workflow)
 
-Use this mapping when Codex skills are available:
-- `Discover` + initial decomposition: `blueprint-sdd-intake-decompose`
-- Clarification/readiness gate: `blueprint-sdd-clarification-gate`
-- Slice planning and ownership: `blueprint-sdd-plan-slicer`
-- Coverage and drift control: `blueprint-sdd-traceability-keeper`
-- `Document` phase completion: `blueprint-sdd-document-sync`
-- `Publish` phase packaging: `blueprint-sdd-pr-packager`
+Each skill covers one or more execution steps from the
+[SDD Execution Guide](sdd_execution_guide.md):
+
+| Skill | Steps | Actor |
+|---|---|---|
+| `blueprint-sdd-step01-intake` | 0 (auto-scaffold) + 1–2 (Discover → Plan, Draft PR) | Any stakeholder |
+| `blueprint-sdd-step02-resolve-questions` | 0 (auto-scaffold, safety) + 3 (open question resolution loop) | Any stakeholder |
+| `blueprint-sdd-step03-spec-complete` | 4 (Architecture/Security/Ops sign-offs, SPEC_READY) | Software Engineer · CTO / Architect |
+| `blueprint-sdd-step04-plan-slicer` | 5 (plan refinement, optional) | Software Engineer |
+| `blueprint-sdd-step05-implement` | 6 (TDD implementation slices) | Software Engineer |
+| `blueprint-sdd-step06-document-sync` | 7 (Document + Operate) | Software Engineer |
+| `blueprint-sdd-step07-pr-packager` | 8–9 (Publish, mark PR ready) | Software Engineer |
+| `blueprint-sdd-traceability-keeper` | Cross-cutting (coverage and drift control) | Software Engineer |
+
+Skills retired: `blueprint-sdd-intake-decompose`, `blueprint-sdd-po-spec`,
+`blueprint-sdd-clarification-gate` — their responsibilities are covered by
+`step01-intake` and `step02-resolve-questions`.
 
 These skills accelerate execution but do not replace lifecycle gates or validation commands.
 
@@ -208,6 +222,7 @@ The SDD contract is tool-agnostic. Any assistant must follow:
 
 For details (including non-Codex assistants such as Claude Code), see:
 - [Assistant Compatibility](assistant_compatibility.md)
+- [SDD Execution Guide](sdd_execution_guide.md) — step-by-step execution walkthrough with commands, git operations, and checks
 
 ## Normative Language Rules
 

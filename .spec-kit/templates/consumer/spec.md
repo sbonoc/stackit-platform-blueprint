@@ -58,6 +58,7 @@
 
 ## Contract Impacts (Normative)
 - API contract:
+- OpenAPI / Pact contract path: none
 - Data/event contract:
 - Configuration contract:
 

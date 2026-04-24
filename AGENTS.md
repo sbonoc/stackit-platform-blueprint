@@ -148,6 +148,9 @@ This section provides context for code assistants to understand the blueprint be
 - Reliability/resilience and rollback policy (failure modes, blast radius, recovery strategy).
 - Operability and diagnostics (runbooks, troubleshooting artifacts, deterministic commands).
 - Compliance with architecture style mandates (SOLID, Clean Architecture, Clean Code, DDD) adapted to the selected runtime stack.
+- API and event contract first: OpenAPI specs and Pact consumer contracts that define new
+  or changed service interfaces MUST be drafted in the Specify phase before implementation
+  code is written. Record the contract file path in `spec.md` under Contract Impacts.
 - Positive-path filter/payload-transform test coverage: any filter or payload-transform logic MUST include at least one unit test with a matching fixture/request value that returns a record and preserves relevant output fields; empty-result-only assertions MUST NOT satisfy coverage.
 - Local smoke gate for HTTP/filter scope: work touching HTTP route handlers, query/filter logic, or new API endpoints MUST run `make test-smoke-all-local` and capture the pass/fail result as test evidence in `pr_context.md`; hand-crafted `curl` assertions are no longer sufficient as evidence.
 - Reproducible-finding translation gate: any reproducible pre-PR smoke/`curl`/deterministic-check failure MUST be captured as a failing automated test first and turned green with the implementation fix in the same work item; deterministic exceptions MUST be documented in publish artifacts.
@@ -193,7 +196,9 @@ This section provides context for code assistants to understand the blueprint be
   - `Validation Evidence`
   - `Risk and Rollback`
   - `Deferred Proposals`
+- For each entry in `Deferred Proposals`, present a triage table and wait for the user to confirm an outcome per proposal before acting: **file-issue** (create a GitHub issue and record the URL), **reject** (record rationale in `pr_context.md` and close in `AGENTS.backlog.md`), or **park** (record in `AGENTS.backlog.md` with a mandatory trigger: `after: <slug>`, `on-scope: <tag>` from the Scope Registry, or `triage: next-session`). No proposal may be silently omitted — every proposal receives an explicit recorded outcome.
 - Pull requests must follow repository templates and include equivalent sections for deterministic review context.
+- Canonical skill for this phase: `blueprint-sdd-step07-pr-packager`.
 
 ## Specialized Agent Collaboration (When Used)
 - Partition ownership by bounded context and dependency direction, not by arbitrary files.
@@ -208,6 +213,11 @@ This section provides context for code assistants to understand the blueprint be
 - For assistants that do not support Codex skill loading (for example Claude Code), use the corresponding `SKILL.md` files as plain-text runbooks and still execute canonical repository commands.
 - When specialized subagents are used, assign each one to an isolated worktree and bounded-context ownership slice to prevent write collisions.
 - The work-item spec must explicitly declare the selected stack profile and agent execution model before implementation.
+- Skill runbooks (`.agents/skills/*/SKILL.md`) are governed by this file. Any update to
+  cross-cutting guardrails, lifecycle policy, or sign-off rules in `AGENTS.md` MUST be
+  reflected in the `## Governance Context` section of the relevant skill runbooks. Conversely,
+  when a `SKILL.md` introduces new operator-facing guidance, verify that it aligns with the
+  canonical policy here and add an explicit section to `AGENTS.md` if needed.
 
 ## Definition of Done (DoD)
 A task is done only when all applicable items pass:
@@ -251,6 +261,34 @@ A task is done only when all applicable items pass:
   - e2e <= 10%
 - Do not duplicate the same behavior across pyramid levels unless testing integration/boundary concerns.
 - Prefer fast deterministic contract/unit checks in default CI lanes.
+- Unit and integration tests MUST use mocked or stubbed external dependencies. Real
+  network calls, database connections, or external services are not acceptable in unit
+  tests and require explicit justification in integration tests.
+- Target line coverage ≥ 70% for all non-trivial code paths.
+- Business-critical features (declared as acceptance criteria in `spec.md`) MUST have
+  100% automated test coverage before the DoD is signed off.
+- The full default CI pipeline (excluding execute-mode infra and e2e lanes) MUST
+  complete in under 15 minutes. Flag any addition that pushes past this budget before
+  merging.
+- E2E tests are reserved for the smallest possible set of business-critical user
+  journeys that cannot be validated by component or contract tests. Never add an E2E
+  test where a Pact contract or component test provides equivalent confidence.
+
+## Contract Testing Standards
+- Consumer-Driven Contract Testing (Pact) is the standard for verifying API integration
+  correctness across service boundaries. Direct E2E tests across service boundaries are
+  strictly discouraged.
+- The consumer side (frontend / client service) generates Pact contracts from unit-level
+  interaction tests against the Pact Mock Server. Generated `.json` pact files are the
+  contract artefacts checked into source control.
+- The provider side (backend service) verifies published contracts in isolated tests
+  (`backend-test-contracts` lane) without requiring a live frontend or full integration
+  environment.
+- During frontend development, use the Pact Stub Server to simulate provider responses
+  instead of pointing tests at a live backend service.
+- OpenAPI specs and event/message contracts that define new or changed service interfaces
+  MUST be drafted in the Specify phase before implementation code is written. Record the
+  contract file path in `spec.md` under Contract Impacts.
 
 ## Dependency and Versioning Mandates
 - Strict latest-stable policy for dependencies introduced/changed.
