@@ -66,6 +66,9 @@ make quality-hooks-run
 - Treat non-empty `required_manual_actions` in `artifacts/blueprint/upgrade_preflight.json` as blocking.
 - Treat reconcile report blocking buckets in `artifacts/blueprint/upgrade/upgrade_reconcile_report.json` as blocking.
 - Treat unresolved merge markers as blocking.
+- Treat behavioral check failures as blocking — `make blueprint-upgrade-consumer-postcheck` validates
+  shell function interfaces and command signatures that may have changed during the upgrade; a non-zero
+  exit signals a behavioral regression and the upgrade MUST NOT be declared complete until it is resolved.
 - Preserve consumer-owned files; do not force overwrite unless the user explicitly asks.
 - Keep source and ref pinned for the whole run (`BLUEPRINT_UPGRADE_SOURCE` + `BLUEPRINT_UPGRADE_REF`).
 - Safe-to-continue contract: proceed only when `make blueprint-upgrade-consumer-postcheck` exits `0` AND `make blueprint-upgrade-fresh-env-gate` exits `0`. Both must pass before the upgrade is declared complete.
@@ -79,6 +82,7 @@ make quality-hooks-run
 - `§ Mandatory Workflow` — any behavioral or code change required by upgrade findings MUST follow SDD order before implementation begins.
 - `§ SDD Readiness Gate (Mandatory Before Implementation)` — upgrade-triggered work items must reach `SPEC_READY: true` before implementation code is written.
 - `§ Dependency and Versioning Mandates` — version pins introduced or changed by the upgrade must meet the strict latest-stable policy.
+- `§ Minimum Validation Bundles by Change Type` — blueprint upgrades are classified as infrastructure changes; the full validation bundle (postcheck + fresh-env-gate) must pass before declaring the upgrade complete.
 
 > If `AGENTS.md` changes any of the above sections, update this block to reflect the affected sections.
 

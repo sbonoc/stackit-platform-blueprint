@@ -241,6 +241,24 @@ REQ/NFR/AC. `traceability.md` maps every requirement to design element,
 implementation path, test evidence, documentation evidence, and
 operational evidence.
 
+### Backlog Scan
+
+Before the Draft PR opens, `step01-intake` scans `AGENTS.backlog.md` for
+parked proposals that are ready to resurface:
+
+- **`after: <slug>`** entries — surface when `<slug>` matches the current
+  work item slug (the blocking item is now in-flight).
+- **`on-scope: <tag>`** entries — surface when `<tag>` matches any scope
+  area of the current work item (see Scope Registry in `AGENTS.backlog.md`).
+
+Matching entries are presented as a **Surfaced Backlog Proposals** table in
+the intake report. The agent does not automatically incorporate or promote
+them — the author decides the outcome (adopt / park with updated trigger /
+reject). No decision is deferred silently.
+
+`triage: next-session` entries carry a `stale-after: 2` decay counter and
+always appear in the surfaced table when the counter reaches 0.
+
 ### Handling open questions
 
 Any input that cannot be resolved by the agent is recorded as a
@@ -487,7 +505,8 @@ make quality-docs-check-changed
 
 **Skill:** `blueprint-sdd-step07-pr-packager`
 
-Fill the remaining artifacts, file a GitHub issue for each deferred proposal,
+Fill `pr_context.md` and `hardening_review.md`, triage all deferred proposals
+(file-issue / reject / park — every proposal receives an explicit recorded outcome),
 mark all tasks complete, and pass the final validation gate.
 
 **Artifacts completed:**
