@@ -1,0 +1,5 @@
+interface:
+  display_name: "Blueprint SDD Step 07 — Document + Operate"
+  short_description: "Update docs, sync bootstrap templates, update skill runbooks, validate docs build/smoke"
+  slash_command: "/blueprint-sdd-step06-document-sync"
+  command_file: ".claude/commands/blueprint-sdd-step06-document-sync.md"

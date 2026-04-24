@@ -43,12 +43,12 @@ Every assistant (Codex, Claude Code, Copilot, others) must treat these as author
 | `blueprint-consumer-ops` | — | `agents/openai.yaml` | `.claude/commands/` | `SKILL.md` |
 | `blueprint-consumer-upgrade` | — | `agents/openai.yaml` | `.claude/commands/` | `SKILL.md` |
 | `blueprint-sdd-step01-intake` | 0 + 1–2 | `agents/openai.yaml` | `.claude/commands/` | `SKILL.md` |
-| `blueprint-sdd-step03-resolve-questions` | 0 + 3 | `agents/openai.yaml` | `.claude/commands/` | `SKILL.md` |
-| `blueprint-sdd-step04-spec-complete` | 4 | `agents/openai.yaml` | `.claude/commands/` | `SKILL.md` |
-| `blueprint-sdd-step05-plan-slicer` | 5 | `agents/openai.yaml` | `.claude/commands/` | `SKILL.md` |
-| `blueprint-sdd-step06-implement` | 6 | `agents/openai.yaml` | `.claude/commands/` | `SKILL.md` |
-| `blueprint-sdd-step07-document-sync` | 7 | `agents/openai.yaml` | `.claude/commands/` | `SKILL.md` |
-| `blueprint-sdd-step08-pr-packager` | 8–9 | `agents/openai.yaml` | `.claude/commands/` | `SKILL.md` |
+| `blueprint-sdd-step02-resolve-questions` | 0 + 3 | `agents/openai.yaml` | `.claude/commands/` | `SKILL.md` |
+| `blueprint-sdd-step03-spec-complete` | 4 | `agents/openai.yaml` | `.claude/commands/` | `SKILL.md` |
+| `blueprint-sdd-step04-plan-slicer` | 5 | `agents/openai.yaml` | `.claude/commands/` | `SKILL.md` |
+| `blueprint-sdd-step05-implement` | 6 | `agents/openai.yaml` | `.claude/commands/` | `SKILL.md` |
+| `blueprint-sdd-step06-document-sync` | 7 | `agents/openai.yaml` | `.claude/commands/` | `SKILL.md` |
+| `blueprint-sdd-step07-pr-packager` | 8–9 | `agents/openai.yaml` | `.claude/commands/` | `SKILL.md` |
 | `blueprint-sdd-traceability-keeper` | cross-cutting | `agents/openai.yaml` | `.claude/commands/` | `SKILL.md` |
 
 Retired skills (no longer present): `blueprint-sdd-clarification-gate`, `blueprint-sdd-document-sync`,
@@ -61,20 +61,20 @@ Retired skills (no longer present): `blueprint-sdd-clarification-gate`, `bluepri
    - auto-scaffold if the spec directory does not exist (`make spec-scaffold SPEC_SLUG=<slug>`).
    - open a Draft PR; all spec artifacts are committed before PR opens.
    - use `[NEEDS CLARIFICATION: ...]` blocks for any unresolved inputs.
-2. Resolve questions (`step03-resolve-questions`) — any stakeholder:
+2. Resolve questions (`step02-resolve-questions`) — any stakeholder:
    - PR comment is the universal answer channel; works regardless of assistant.
    - `SPEC_PRODUCT_READY: approved` in a PR comment is the deterministic Product sign-off phrase.
    - keep `SPEC_READY=false` until all blockers are explicitly resolved.
-3. Spec complete (`step04-spec-complete`) — Software Engineer / Architect:
+3. Spec complete (`step03-spec-complete`) — Software Engineer / Architect:
    - Architecture, Security, and Operations sign-offs; set `SPEC_READY=true`.
-4. Plan (`step05-plan-slicer`) — Software Engineer (optional):
+4. Plan (`step04-plan-slicer`) — Software Engineer (optional):
    - refine implementation slices; skip for straightforward work items.
-5. Implement (`step06-implement`) — Software Engineer:
+5. Implement (`step05-implement`) — Software Engineer:
    - read `Implementation Stack Profile` from `spec.md`; use canonical Make targets.
    - TDD: write failing tests first, then implementation.
-6. Document and Operate (`step07-document-sync`) — Software Engineer:
+6. Document and Operate (`step06-document-sync`) — Software Engineer:
    - run `make quality-docs-sync-all` and `make docs-build`; fill hardening review.
-7. Publish (`step08-pr-packager`) — Software Engineer:
+7. Publish (`step07-pr-packager`) — Software Engineer:
    - fill `pr_context.md` and `hardening_review.md`; file deferred-proposal GitHub issues.
    - run quality gates; mark Draft PR ready; post `@codex review this PR`.
 

@@ -1,4 +1,0 @@
-interface:
-  display_name: "Blueprint SDD Step 08 — Publish + Mark PR Ready"
-  short_description: "Fill pr_context.md and hardening_review.md, pass quality gates, mark Draft PR ready"
-  default_prompt: "Use $blueprint-sdd-step08-pr-packager to execute Steps 8 and 9: fill pr_context.md and hardening_review.md, mark all tasks complete, pass all quality gates, mark the Draft PR as ready, and post the @codex review comment."

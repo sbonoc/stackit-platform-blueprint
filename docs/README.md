@@ -85,12 +85,12 @@ BLUEPRINT_CODEX_SKILLS_DIR="${CODEX_HOME:-$HOME/.codex}/skills" make blueprint-i
 Install SDD-specialized skills when needed:
 ```bash
 make blueprint-install-codex-skill-sdd-step01-intake
-make blueprint-install-codex-skill-sdd-step03-resolve-questions
-make blueprint-install-codex-skill-sdd-step04-spec-complete
-make blueprint-install-codex-skill-sdd-step05-plan-slicer
-make blueprint-install-codex-skill-sdd-step06-implement
-make blueprint-install-codex-skill-sdd-step07-document-sync
-make blueprint-install-codex-skill-sdd-step08-pr-packager
+make blueprint-install-codex-skill-sdd-step02-resolve-questions
+make blueprint-install-codex-skill-sdd-step03-spec-complete
+make blueprint-install-codex-skill-sdd-step04-plan-slicer
+make blueprint-install-codex-skill-sdd-step05-implement
+make blueprint-install-codex-skill-sdd-step06-document-sync
+make blueprint-install-codex-skill-sdd-step07-pr-packager
 make blueprint-install-codex-skill-sdd-traceability-keeper
 ```
 
@@ -152,12 +152,12 @@ Common baseline flow:
 - `make blueprint-install-codex-skill`
 - `make blueprint-install-codex-skill-consumer-ops`
 - `make blueprint-install-codex-skill-sdd-step01-intake`
-- `make blueprint-install-codex-skill-sdd-step03-resolve-questions`
-- `make blueprint-install-codex-skill-sdd-step04-spec-complete`
-- `make blueprint-install-codex-skill-sdd-step05-plan-slicer`
-- `make blueprint-install-codex-skill-sdd-step06-implement`
-- `make blueprint-install-codex-skill-sdd-step07-document-sync`
-- `make blueprint-install-codex-skill-sdd-step08-pr-packager`
+- `make blueprint-install-codex-skill-sdd-step02-resolve-questions`
+- `make blueprint-install-codex-skill-sdd-step03-spec-complete`
+- `make blueprint-install-codex-skill-sdd-step04-plan-slicer`
+- `make blueprint-install-codex-skill-sdd-step05-implement`
+- `make blueprint-install-codex-skill-sdd-step06-document-sync`
+- `make blueprint-install-codex-skill-sdd-step07-pr-packager`
 - `make blueprint-install-codex-skill-sdd-traceability-keeper`
 - `make blueprint-install-codex-skills`
 - `make spec-scaffold SPEC_SLUG=<work-item-slug>`

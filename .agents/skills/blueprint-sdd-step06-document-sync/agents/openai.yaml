@@ -1,0 +1,4 @@
+interface:
+  display_name: "Blueprint SDD Step 07 — Document + Operate"
+  short_description: "Update docs, sync bootstrap templates, update skill runbooks, validate docs build/smoke"
+  default_prompt: "Use $blueprint-sdd-step06-document-sync to execute Step 7: update blueprint and consumer docs for changed behavior, sync bootstrap template mirrors, update skill runbooks where guidance changed, and validate docs build and smoke checks."

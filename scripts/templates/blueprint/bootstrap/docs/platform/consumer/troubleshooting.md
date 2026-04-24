@@ -88,12 +88,12 @@ Common first-day issues for generated repositories.
 - The same remediation applies to:
   - `make blueprint-install-codex-skill-consumer-ops`
   - `make blueprint-install-codex-skill-sdd-step01-intake`
-  - `make blueprint-install-codex-skill-sdd-step03-resolve-questions`
-  - `make blueprint-install-codex-skill-sdd-step04-spec-complete`
-  - `make blueprint-install-codex-skill-sdd-step05-plan-slicer`
-  - `make blueprint-install-codex-skill-sdd-step06-implement`
-  - `make blueprint-install-codex-skill-sdd-step07-document-sync`
-  - `make blueprint-install-codex-skill-sdd-step08-pr-packager`
+  - `make blueprint-install-codex-skill-sdd-step02-resolve-questions`
+  - `make blueprint-install-codex-skill-sdd-step03-spec-complete`
+  - `make blueprint-install-codex-skill-sdd-step04-plan-slicer`
+  - `make blueprint-install-codex-skill-sdd-step05-implement`
+  - `make blueprint-install-codex-skill-sdd-step06-document-sync`
+  - `make blueprint-install-codex-skill-sdd-step07-pr-packager`
   - `make blueprint-install-codex-skill-sdd-traceability-keeper`
   - `make blueprint-install-codex-skills`
 

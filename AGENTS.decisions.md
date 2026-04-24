@@ -267,7 +267,7 @@
   - new operational entrypoints:
     - `make spec-pr-context`
     - `make quality-hardening-review`
-  - added canonical skill `blueprint-sdd-step08-pr-packager` (source + consumer template fallback) to package Publish-phase review context consistently (superseded from `blueprint-sdd-pr-packager` by skill redesign — see entry below).
+  - added canonical skill `blueprint-sdd-step07-pr-packager` (source + consumer template fallback) to package Publish-phase review context consistently (superseded from `blueprint-sdd-pr-packager` by skill redesign — see entry below).
 - SDD enforcement defaults are now explicit and executable:
   - assistant execution defaults to full SDD lifecycle unless the user explicitly opts out.
   - `spec_scaffold` now enforces dedicated branch creation by default using contract-driven settings (`branch_contract`) and supports explicit opt-out (`--no-create-branch` / `SPEC_NO_BRANCH=true`).
@@ -343,19 +343,19 @@
   - Four structural contract tests added (`AppDockerfileAndRuntimeTests`): assert Dockerfile existence, multi-stage pattern, EXPOSE ports, GHCR image references, and absence of command override.
 - SDD skills redesigned as step-numbered, alphabetically sortable lifecycle skills (Issue #191):
   - retired skills `blueprint-sdd-intake-decompose`, `blueprint-sdd-clarification-gate`, `blueprint-sdd-plan-slicer`, `blueprint-sdd-document-sync`, `blueprint-sdd-pr-packager`, and `blueprint-sdd-po-spec`; their responsibilities are absorbed by the step-numbered skills below.
-  - new step-numbered skills introduced (source + consumer-template + Claude Code command): `blueprint-sdd-step01-intake`, `blueprint-sdd-step03-resolve-questions`, `blueprint-sdd-step04-spec-complete`, `blueprint-sdd-step05-plan-slicer`, `blueprint-sdd-step06-implement`, `blueprint-sdd-step07-document-sync`, `blueprint-sdd-step08-pr-packager`; `blueprint-sdd-traceability-keeper` retained unchanged.
-  - `step01-intake` and `step03-resolve-questions` auto-scaffold the spec directory (`make spec-scaffold SPEC_SLUG=<slug>`) when it does not yet exist, removing the need for a manual pre-step.
+  - new step-numbered skills introduced (source + consumer-template + Claude Code command): `blueprint-sdd-step01-intake`, `blueprint-sdd-step02-resolve-questions`, `blueprint-sdd-step03-spec-complete`, `blueprint-sdd-step04-plan-slicer`, `blueprint-sdd-step05-implement`, `blueprint-sdd-step06-document-sync`, `blueprint-sdd-step07-pr-packager`; `blueprint-sdd-traceability-keeper` retained unchanged.
+  - `step01-intake` and `step02-resolve-questions` auto-scaffold the spec directory (`make spec-scaffold SPEC_SLUG=<slug>`) when it does not yet exist, removing the need for a manual pre-step.
   - actor expanded to `Any stakeholder` for Steps 0–3 (intake, resolve questions) from `Software Engineer` only; CPO/PO/CTO/Architect may now drive early-lifecycle steps directly.
-  - `step06-implement` is stack-agnostic: reads `Implementation Stack Profile` from `spec.md` and uses canonical Make targets (`make backend-test-unit`, `make touchpoints-test-unit`, `make test-unit-all`) as primary; stack-specific raw test runners are documented only as fallback for new apps not yet wired to Make.
-  - `step08-pr-packager` now requires filing a GitHub issue per non-trivial deferred proposal and recording the URL in `pr_context.md` Deferred Proposals and `AGENTS.backlog.md`; proposals without an issue must carry an explicit "no issue filed — [rationale]" note.
+  - `step05-implement` is stack-agnostic: reads `Implementation Stack Profile` from `spec.md` and uses canonical Make targets (`make backend-test-unit`, `make touchpoints-test-unit`, `make test-unit-all`) as primary; stack-specific raw test runners are documented only as fallback for new apps not yet wired to Make.
+  - `step07-pr-packager` now requires filing a GitHub issue per non-trivial deferred proposal and recording the URL in `pr_context.md` Deferred Proposals and `AGENTS.backlog.md`; proposals without an issue must carry an explicit "no issue filed — [rationale]" note.
   - canonical install targets updated to step-numbered names:
     - `blueprint-install-codex-skill-sdd-step01-intake`
-    - `blueprint-install-codex-skill-sdd-step03-resolve-questions`
-    - `blueprint-install-codex-skill-sdd-step04-spec-complete`
-    - `blueprint-install-codex-skill-sdd-step05-plan-slicer`
-    - `blueprint-install-codex-skill-sdd-step06-implement`
-    - `blueprint-install-codex-skill-sdd-step07-document-sync`
-    - `blueprint-install-codex-skill-sdd-step08-pr-packager`
+    - `blueprint-install-codex-skill-sdd-step02-resolve-questions`
+    - `blueprint-install-codex-skill-sdd-step03-spec-complete`
+    - `blueprint-install-codex-skill-sdd-step04-plan-slicer`
+    - `blueprint-install-codex-skill-sdd-step05-implement`
+    - `blueprint-install-codex-skill-sdd-step06-document-sync`
+    - `blueprint-install-codex-skill-sdd-step07-pr-packager`
     - `blueprint-install-codex-skill-sdd-traceability-keeper` (unchanged)
   - `blueprint/contract.yaml` and its bootstrap template mirror updated to list new skill files; consumer-init skill templates updated in parallel; `infra-validate` passes with new file set.
   - `sdd_execution_guide.md` updated: swimlane actor label, agent boxes, skill map table (with "Invoked by" column), summary table (with "Who invokes" column and stack-agnostic Step 6 checks), Step 8 artifacts list.
