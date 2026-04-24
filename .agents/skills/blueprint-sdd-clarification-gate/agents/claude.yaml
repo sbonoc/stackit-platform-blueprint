@@ -1,5 +1,0 @@
-interface:
-  display_name: "Blueprint SDD Clarification Gate"
-  short_description: "Block ambiguous specs before implementation"
-  slash_command: "/blueprint-sdd-clarification-gate"
-  command_file: ".claude/commands/blueprint-sdd-clarification-gate.md"

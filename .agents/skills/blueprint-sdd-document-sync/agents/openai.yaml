@@ -1,4 +1,0 @@
-interface:
-  display_name: "Blueprint SDD Document Sync"
-  short_description: "Complete SDD Document phase with sync checks"
-  default_prompt: "Use $blueprint-sdd-document-sync to execute the SDD Document phase: update docs, run sync/check/build/smoke commands, and report readiness evidence."

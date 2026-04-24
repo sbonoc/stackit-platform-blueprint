@@ -191,7 +191,7 @@ make spec-scaffold SPEC_SLUG=<work-item-slug>
 | `pr_context.md` | Reviewer-facing summary (completed at Step 8) |
 | `hardening_review.md` | Security/quality findings (completed at Step 8) |
 
-**Git:** no commit yet.  
+**Git:** no commit yet.
 **Checks:** none.
 
 ---
@@ -260,7 +260,7 @@ all sections that can be filled with real content are filled. The
 `[NEEDS CLARIFICATION]` token is tracked by `quality-sdd-check` and
 must reach `0` before `SPEC_READY: true`.
 
-**Git:** no commit during this step — artifact population flows directly into Step 2.  
+**Git:** no commit during this step — artifact population flows directly into Step 2.
 **Checks:** `make quality-sdd-check` (language policy, open-marker counts,
 readiness gate fields, control ID presence).
 
@@ -315,7 +315,7 @@ The **Open Questions** section is updated by the agent after each
 resolution round (Step 3) and disappears entirely once all markers are
 resolved.
 
-**Git:** commit + push + Draft PR opened.  
+**Git:** commit + push + Draft PR opened.
 **Checks:** `make quality-sdd-check` must pass before opening the PR.
 
 ---
@@ -365,7 +365,7 @@ The agent:
 The loop repeats until all `[NEEDS CLARIFICATION]` markers are resolved
 and `SPEC_PRODUCT_READY: true` is recorded.
 
-**Git:** one commit per resolution round, pushed to the existing branch (same PR).  
+**Git:** one commit per resolution round, pushed to the existing branch (same PR).
 **Checks:** `make quality-sdd-check` after each round to confirm marker count drops.
 
 ---
@@ -389,7 +389,7 @@ git commit -m "feat(<slug>): all sign-offs collected — SPEC_READY"
 git push
 ```
 
-**Git:** commit + push (same PR).  
+**Git:** commit + push (same PR).
 **Checks:** `make quality-sdd-check` must pass with `SPEC_READY: true`.
 
 ---
@@ -404,7 +404,7 @@ multiple interdependent slices or parallel ownership, this step refines
 the plan into a dependency-ordered, owner-assigned execution sequence
 before any code is written.
 
-**Git:** commit + push if plan is updated (same PR), otherwise skipped.  
+**Git:** commit + push if plan is updated (same PR), otherwise skipped.
 **Checks:** none beyond the existing `plan.md` content.
 
 ---
@@ -431,7 +431,7 @@ has no regressions.
 Schema updates, skill runbook changes, configuration updates — per the
 plan. Mark each task `[x]` in `tasks.md` as it completes.
 
-**Git:** one commit per logical slice, pushed to the same branch.  
+**Git:** one commit per logical slice, pushed to the same branch.
 **Checks per slice:**
 
 ```bash
@@ -462,7 +462,7 @@ python3 scripts/lib/docs/sync_blueprint_template_docs.py
 - Add or update runbooks, diagnostics guidance, and rollback steps in
   the relevant `docs/` or `SKILL.md` files.
 
-**Git:** commit + push (same PR).  
+**Git:** commit + push (same PR).
 **Checks:**
 
 ```bash
@@ -486,7 +486,7 @@ final validation gate.
 | `pr_context.md` | Summary, full REQ/NFR/AC coverage, key reviewer files, exact validation commands + results, risk + rollback, deferred proposals |
 | `tasks.md` | All task boxes marked `[x]` |
 
-**Git:** final commit + push (same PR).  
+**Git:** final commit + push (same PR).
 **Checks (all must pass):**
 
 ```bash

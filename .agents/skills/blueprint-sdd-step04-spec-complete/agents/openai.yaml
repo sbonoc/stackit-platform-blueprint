@@ -1,0 +1,4 @@
+interface:
+  display_name: "Blueprint SDD Step 04 — Spec Complete"
+  short_description: "Collect Architecture/Security/Operations sign-offs, finalise ADR, flip SPEC_READY=true"
+  default_prompt: "Use $blueprint-sdd-step04-spec-complete to execute Step 4: review the ADR Technical Decision Layer, record all technical sign-offs, flip SPEC_READY=true, and commit to the existing Draft PR branch."

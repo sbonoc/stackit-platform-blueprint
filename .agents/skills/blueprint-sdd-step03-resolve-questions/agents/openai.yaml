@@ -1,0 +1,4 @@
+interface:
+  display_name: "Blueprint SDD Step 03 — Resolve Open Questions"
+  short_description: "Read PR comments, resolve [NEEDS CLARIFICATION] blocks, update Open Questions table, commit and confirm"
+  default_prompt: "Use $blueprint-sdd-step03-resolve-questions to run the open question resolution loop: read all PR comments on #$ARGUMENTS, replace resolved [NEEDS CLARIFICATION] blocks in artifacts, update the Open Questions table in the PR description, commit, and post a confirmation comment."

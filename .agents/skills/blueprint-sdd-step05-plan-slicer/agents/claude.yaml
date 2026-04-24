@@ -1,0 +1,5 @@
+interface:
+  display_name: "Blueprint SDD Step 05 — Plan Slicer (Optional)"
+  short_description: "Refine approved specs into dependency-ordered implementation slices with owners and validation strategy"
+  slash_command: "/blueprint-sdd-step05-plan-slicer"
+  command_file: ".claude/commands/blueprint-sdd-step05-plan-slicer.md"

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Blueprint SDD Step 06 — Implement"
+  short_description: "Implement the work item in TDD slices (red→green per slice), committing each to the existing Draft PR branch"
+  default_prompt: "Use $blueprint-sdd-step06-implement to execute Step 6: implement the work item in TDD slices following plan.md — write failing tests first, then make them green, commit each slice to the existing Draft PR branch."

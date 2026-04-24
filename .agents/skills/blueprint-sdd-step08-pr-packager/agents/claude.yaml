@@ -1,0 +1,5 @@
+interface:
+  display_name: "Blueprint SDD Step 08 — Publish + Mark PR Ready"
+  short_description: "Fill pr_context.md and hardening_review.md, pass quality gates, mark Draft PR ready"
+  slash_command: "/blueprint-sdd-step08-pr-packager"
+  command_file: ".claude/commands/blueprint-sdd-step08-pr-packager.md"
