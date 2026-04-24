@@ -136,8 +136,40 @@ git push -u origin codex/YYYY-MM-DD-<slug>
 gh pr create --draft --title "feat(<slug>): ..." --body "..."
 ```
 
-The PR description references `specs/YYYY-MM-DD-<slug>/pr_context.md`
-and the originating issue.
+### PR description structure at intake
+
+The PR description is a **live status document** for the reviewer, not
+static boilerplate. At intake it contains:
+
+1. A one-paragraph summary of the work item and its objective.
+2. A reference to the originating issue.
+3. An **Open Questions** section listing every unresolved
+   `[NEEDS CLARIFICATION]` item across all artifacts, so the reviewer
+   can see and answer them without hunting through individual files:
+
+```markdown
+## Open Questions (N remaining)
+
+| # | Question | Artifact | Agent recommendation |
+|---|---|---|---|
+| Q-1 | Brief statement of what needs to be decided | `spec.md` § NFR-003 | Option A: ... |
+| Q-2 | Brief statement of what needs to be decided | `architecture.md` § Bounded Contexts | Option B: ... |
+
+Answer by leaving a PR comment or inline comment on the relevant file.
+The agent will update the artifacts and this table after each round.
+
+## Sign-off
+
+To grant Product sign-off, leave a PR comment with:
+`SPEC_PRODUCT_READY: approved`
+```
+
+4. A note that `pr_context.md` (the full reviewer package) will be
+   completed at the Publish step before the PR is marked ready.
+
+The **Open Questions** section is updated by the agent after each
+resolution round (see Step 3). It disappears entirely once all markers
+are resolved.
 
 **Git:** commit + push + Draft PR opened.  
 **Checks:** `make quality-sdd-check` must pass before opening the PR.
@@ -173,18 +205,21 @@ The agent:
 
 1. Reads all PR comments and inline review comments.
 2. Replaces each resolved `[NEEDS CLARIFICATION]` block with the
-   decision and its rationale.
+   decision and its rationale in the relevant artifact.
 3. Records any sign-off phrases in `spec.md`.
-4. Commits the updated artifacts and pushes to the same branch
+4. Updates the **Open Questions** table in the PR description to remove
+   resolved items and reflect the remaining count. The section is
+   removed entirely when the count reaches zero.
+5. Commits the updated artifacts and pushes to the same branch
    (same PR auto-updates).
-5. Posts a follow-up PR comment:
+6. Posts a follow-up PR comment:
    *"Resolved N open questions. Updated: `spec.md`, `architecture.md`.
    Commit abc1234. Remaining open: K."*
 
 This closes the feedback loop for the reviewer — they can see their
-answers were picked up and review the updated artifact inline. When
-reviewers later have Claude Code, they can trigger the same resolution
-step themselves.
+answers were picked up both in the PR description (updated count) and
+in the artifact itself. When reviewers later have Claude Code, they can
+trigger the same resolution step themselves.
 
 The loop repeats until all `[NEEDS CLARIFICATION]` markers are resolved
 and `SPEC_PRODUCT_READY: true` is recorded.
@@ -301,7 +336,9 @@ make quality-hardening-review  # hardening_review.md completeness
 ## Step 8 — Mark PR ready + CI
 
 The single Draft PR is marked ready for final review. No new PR is
-opened.
+opened. By this point the **Open Questions** section in the PR
+description is gone (all markers resolved) and the description reflects
+the final `pr_context.md` summary.
 
 ```bash
 gh pr ready <number>
