@@ -12,13 +12,153 @@ see [Spec-Driven Development Operating Model](spec_driven_development.md).
 
 ## One PR per work item
 
-A single Draft PR is opened at the intake gate and remains open for the
-entire lifecycle. Every subsequent commit — sign-off resolutions,
+A single Draft PR is opened at the intake gate (Step 2) and remains open
+for the entire lifecycle. Every subsequent commit — sign-off resolutions,
 implementation slices, docs, publish artifacts — is pushed to the same
 branch and accumulates in the same PR. The PR transitions from Draft to
 Ready only when the work is fully implemented, verified, and published.
 It is never closed early and a second PR is never opened for the same
 work item.
+
+---
+
+## Lifecycle overview
+
+### Work item state machine
+
+The work item moves through a defined set of states. Gates (SPEC_PRODUCT_READY,
+SPEC_READY) are explicit transitions that require sign-off before proceeding.
+The resolution loop in `DraftPROpen` repeats until all open questions reach zero.
+
+```mermaid
+stateDiagram-v2
+    direction TB
+
+    [*] --> Scaffolded : make spec-scaffold
+    Scaffolded --> ArtifactsPopulated : step01&#8209;intake\n(Discover → Plan, all artifacts)
+    ArtifactsPopulated --> DraftPROpen : commit · open Draft PR\n(Open Questions table)
+    DraftPROpen --> DraftPROpen : step03&#8209;resolve&#8209;questions\nrepeat until open = 0
+    DraftPROpen --> SpecProductReady : SPEC_PRODUCT_READY approved\n(CPO / PO)
+    SpecProductReady --> SpecReady : step04&#8209;spec&#8209;complete\nArchitecture · Security · Ops sign&#8209;offs
+    SpecReady --> Implementing : step05&#8209;plan&#8209;slicer (optional)\nstep06&#8209;implement
+    Implementing --> Implementing : slice loop — red → green → commit
+    Implementing --> Documented : step07&#8209;document&#8209;sync
+    Documented --> Published : step08&#8209;pr&#8209;packager
+    Published --> [*] : PR marked ready → CI → merge
+```
+
+### Actor responsibilities per step
+
+Each column shows what a role does at each step. Arrows represent
+handoffs between roles.
+
+```mermaid
+flowchart TD
+    subgraph PO["CPO / PO"]
+        p1["Review Draft PR\nAnswer open questions\nvia PR comments"]
+        p2["SPEC_PRODUCT_READY:\napproved"]
+    end
+
+    subgraph ARCH["CTO / Architect"]
+        c1["Review ADR &\narchitecture.md"]
+        c2["Architecture &\nSecurity sign-offs"]
+    end
+
+    subgraph SWE["Software Engineer"]
+        s0["Step 0\nmake spec-scaffold"]
+        s1["Step 1–2\nstep01-intake"]
+        s2["Step 3\nstep03-resolve-questions"]
+        s3["Step 4\nstep04-spec-complete"]
+        s4["Step 5 (optional)\nstep05-plan-slicer"]
+        s5["Step 6\nstep06-implement"]
+        s6["Step 7\nstep07-document-sync"]
+        s7["Step 8\nstep08-pr-packager"]
+        s8["Step 9\nMark PR ready"]
+        s0-->s1-->s2-->s3-->s4-->s5-->s6-->s7-->s8
+    end
+
+    subgraph AGENT["Coding Agent"]
+        a1["Populate all artifacts\nDraft ADR\nOpen Draft PR +\nOpen Questions table"]
+        a2["Read PR comments\nResolve open questions\nUpdate PR description\nCommit + post confirmation"]
+        a3["Record sign-offs\nSPEC_READY = true\nCommit"]
+        a4["Refine plan into\nexecutable slices"]
+        a5["TDD: write failing tests\nImplement · confirm green\nCommit per slice"]
+        a6["Update docs\nSync bootstrap templates"]
+        a7["Fill pr_context.md\nhardening_review.md\nRun quality gates"]
+    end
+
+    s1 --> a1
+    a1 --> p1
+    p1 --> s2
+    s2 --> a2
+    a2 --> p2
+    p2 --> c1
+    c1 --> c2
+    c2 --> s3
+    s3 --> a3
+    a3 --> s4
+    s4 --> a4
+    a4 --> s5
+    s5 --> a5
+    a5 --> s6
+    s6 --> a6
+    a6 --> s7
+    s7 --> a7
+    a7 --> s8
+```
+
+### Open question resolution loop (Step 3)
+
+Shows the message flow between roles during the resolution loop.
+The PO only needs GitHub — no local tooling required.
+
+```mermaid
+sequenceDiagram
+    actor PO as CPO / PO
+    actor SWE as Software Engineer
+    participant Agent as Coding Agent
+    participant GH as GitHub PR
+
+    SWE->>Agent: invoke step01-intake
+    Agent->>GH: open Draft PR<br/>(artifacts + Open Questions table)
+    GH-->>PO: PR notification
+
+    loop Until open questions = 0
+        PO->>GH: answer Q-N<br/>(inline comment or PR comment)
+        SWE->>Agent: read PR #N and resolve open questions
+        Agent->>GH: fetch all PR comments
+        Agent->>Agent: replace [NEEDS CLARIFICATION] blocks<br/>in relevant artifacts
+        Agent->>GH: update PR description<br/>(Open Questions count ↓)
+        Agent->>GH: commit + push
+        Agent->>GH: post confirmation comment<br/>"Resolved N. Remaining: K."
+        GH-->>PO: updated count + artifacts
+    end
+
+    PO->>GH: SPEC_PRODUCT_READY: approved
+    SWE->>Agent: record sign-off from PR #N
+    Agent->>GH: commit spec.md (SPEC_PRODUCT_READY=true) + push
+    GH-->>PO: confirmation comment
+```
+
+---
+
+## Skill map
+
+| Skill | Steps covered | Status | Invoked by |
+|---|---|---|---|
+| `blueprint-sdd-step01-intake` | 1–2 | New | Software Engineer |
+| `blueprint-sdd-step03-resolve-questions` | 3 | New | Software Engineer |
+| `blueprint-sdd-step04-spec-complete` | 4 | Adjust + rename | Software Engineer · CTO / Architect |
+| `blueprint-sdd-step05-plan-slicer` | 5 (optional) | Rename | Software Engineer |
+| `blueprint-sdd-step06-implement` | 6 | New | Software Engineer |
+| `blueprint-sdd-step07-document-sync` | 7 | Rename | Software Engineer |
+| `blueprint-sdd-step08-pr-packager` | 8–9 | Adjust + rename | Software Engineer |
+| `blueprint-sdd-traceability-keeper` | Cross-cutting | Keep (no step number) | Software Engineer |
+
+Step 0 (scaffold) is a plain `make` command — no skill.
+Skills retired: `blueprint-sdd-intake-decompose`, `blueprint-sdd-po-spec`,
+`blueprint-sdd-clarification-gate` (absorbed into `step01-intake` and
+`step03-resolve-questions`).
 
 ---
 
@@ -48,8 +188,8 @@ make spec-scaffold SPEC_SLUG=<work-item-slug>
 | `graph.json` | Machine-readable traceability graph (nodes + edges) |
 | `context_pack.md` | Execution handoff snapshot for coding agents |
 | `evidence_manifest.json` | Deterministic file checksum evidence record |
-| `pr_context.md` | Reviewer-facing summary (completed at Publish) |
-| `hardening_review.md` | Security/quality findings (completed at Publish) |
+| `pr_context.md` | Reviewer-facing summary (completed at Step 8) |
+| `hardening_review.md` | Security/quality findings (completed at Step 8) |
 
 **Git:** no commit yet.  
 **Checks:** none.
@@ -57,6 +197,8 @@ make spec-scaffold SPEC_SLUG=<work-item-slug>
 ---
 
 ## Step 1 — Populate artifacts (Discover → Plan)
+
+**Skill:** `blueprint-sdd-step01-intake`
 
 The four pre-implementation phases are executed in a single pass
 immediately after scaffolding. Every artifact must contain real content
@@ -126,6 +268,8 @@ readiness gate fields, control ID presence).
 
 ## Step 2 — Open Draft PR (Intake gate)
 
+**Skill:** `blueprint-sdd-step01-intake` (continues from Step 1)
+
 Once all artifacts are substantively populated, commit everything and
 open the Draft PR. This is the single PR for the entire work item.
 
@@ -145,7 +289,7 @@ static boilerplate. At intake it contains:
 2. A reference to the originating issue.
 3. An **Open Questions** section listing every unresolved
    `[NEEDS CLARIFICATION]` item across all artifacts, so the reviewer
-   can see and answer them without hunting through individual files:
+   can see and answer them without opening individual files:
 
 ```markdown
 ## Open Questions (N remaining)
@@ -165,11 +309,11 @@ To grant Product sign-off, leave a PR comment with:
 ```
 
 4. A note that `pr_context.md` (the full reviewer package) will be
-   completed at the Publish step before the PR is marked ready.
+   completed at Step 8 before the PR is marked ready.
 
 The **Open Questions** section is updated by the agent after each
-resolution round (see Step 3). It disappears entirely once all markers
-are resolved.
+resolution round (Step 3) and disappears entirely once all markers are
+resolved.
 
 **Git:** commit + push + Draft PR opened.  
 **Checks:** `make quality-sdd-check` must pass before opening the PR.
@@ -177,6 +321,8 @@ are resolved.
 ---
 
 ## Step 3 — Open question resolution loop
+
+**Skill:** `blueprint-sdd-step03-resolve-questions`
 
 The PO and other reviewers examine the Draft PR on GitHub. This is the
 canonical review mechanism and works regardless of whether reviewers
@@ -188,8 +334,8 @@ Reviewers leave answers as PR comments — inline on the relevant artifact
 section or as general PR comments referencing the question. No special
 format is required: plain language answers are sufficient.
 
-For sign-offs, the following deterministic phrase is recognized by the
-agent and recorded in `spec.md`:
+For Product sign-off, the following deterministic phrase is recognized
+by the agent and recorded in `spec.md`:
 
 ```
 SPEC_PRODUCT_READY: approved
@@ -197,7 +343,7 @@ SPEC_PRODUCT_READY: approved
 
 ### How the agent integrates answers
 
-The developer invokes the agent with:
+The Software Engineer invokes the agent with:
 
 > *"Read the PR comments on #N and resolve the open questions in the artifacts."*
 
@@ -216,11 +362,6 @@ The agent:
    *"Resolved N open questions. Updated: `spec.md`, `architecture.md`.
    Commit abc1234. Remaining open: K."*
 
-This closes the feedback loop for the reviewer — they can see their
-answers were picked up both in the PR description (updated count) and
-in the artifact itself. When reviewers later have Claude Code, they can
-trigger the same resolution step themselves.
-
 The loop repeats until all `[NEEDS CLARIFICATION]` markers are resolved
 and `SPEC_PRODUCT_READY: true` is recorded.
 
@@ -231,9 +372,13 @@ and `SPEC_PRODUCT_READY: true` is recorded.
 
 ## Step 4 — Remaining sign-offs → `SPEC_READY: true`
 
-Architecture, Security, and Operations sign-offs are collected — via PR
-review, PR comments, or conversation. Once all four sign-offs are
-recorded in `spec.md` and all zero-count fields are confirmed:
+**Skill:** `blueprint-sdd-step04-spec-complete`
+
+The CTO / Architect reviews `architecture.md` and the ADR, then grants
+Architecture and Security sign-offs — via PR review, PR comments, or
+conversation. The Software Engineer grants the Operations sign-off.
+Once all four sign-offs are recorded in `spec.md` and all zero-count
+fields are confirmed:
 
 - `SPEC_READY: false → true`
 - ADR status: `proposed → approved`
@@ -249,7 +394,24 @@ git push
 
 ---
 
-## Step 5 — Implement
+## Step 5 — Refine implementation plan (optional)
+
+**Skill:** `blueprint-sdd-step05-plan-slicer`
+
+For straightforward work items the plan in `plan.md` from Step 1 is
+sufficient — skip directly to Step 6. For complex work items with
+multiple interdependent slices or parallel ownership, this step refines
+the plan into a dependency-ordered, owner-assigned execution sequence
+before any code is written.
+
+**Git:** commit + push if plan is updated (same PR), otherwise skipped.  
+**Checks:** none beyond the existing `plan.md` content.
+
+---
+
+## Step 6 — Implement
+
+**Skill:** `blueprint-sdd-step06-implement`
 
 Code is written in TDD slices following the sequence in `plan.md`. All
 commits go to the same branch and appear in the same Draft PR.
@@ -267,7 +429,7 @@ has no regressions.
 ### Additional slices
 
 Schema updates, skill runbook changes, configuration updates — per the
-plan.
+plan. Mark each task `[x]` in `tasks.md` as it completes.
 
 **Git:** one commit per logical slice, pushed to the same branch.  
 **Checks per slice:**
@@ -279,7 +441,9 @@ python3 -m pytest tests/ -q                           # full suite, no regressio
 
 ---
 
-## Step 6 — Document + Operate
+## Step 7 — Document + Operate
+
+**Skill:** `blueprint-sdd-step07-document-sync`
 
 ### Document
 
@@ -307,7 +471,9 @@ make quality-docs-check-changed
 
 ---
 
-## Step 7 — Publish
+## Step 8 — Publish
+
+**Skill:** `blueprint-sdd-step08-pr-packager`
 
 Fill the remaining artifacts, mark all tasks complete, and pass the
 final validation gate.
@@ -333,7 +499,9 @@ make quality-hardening-review  # hardening_review.md completeness
 
 ---
 
-## Step 8 — Mark PR ready + CI
+## Step 9 — Mark PR ready + CI
+
+**Skill:** `blueprint-sdd-step08-pr-packager` (continues from Step 8)
 
 The single Draft PR is marked ready for final review. No new PR is
 opened. By this point the **Open Questions** section in the PR
@@ -359,17 +527,18 @@ All must be green (or legitimately skipped) before merge.
 
 ## Summary
 
-| Step | Key artifacts | Git operation | Checks |
-|---|---|---|---|
-| 0 Scaffold | Stub files in `specs/YYYY-MM-DD-<slug>/` | New branch, no commit | None |
-| 1 Populate artifacts | `spec.md`, `architecture.md`, ADR, `plan.md`, `tasks.md`, `graph.json`, `traceability.md` — all with real content | None | `quality-sdd-check` |
-| 2 Draft PR (intake gate) | All populated artifacts committed | Commit + push + **Draft PR opened** | `quality-sdd-check` |
-| 3 Open question resolution | Artifacts updated with PO answers; sign-offs recorded | Commit + push per round (same PR) | `quality-sdd-check` |
-| 4 SPEC_READY | `spec.md` (`SPEC_READY=true`), ADR (`approved`) | Commit + push (same PR) | `quality-sdd-check` |
-| 5 Implement | Code, tests, schemas | Per-slice commits + push (same PR) | `pytest` targeted + full suite |
-| 6 Document / Operate | `docs/`, `SKILL.md`, bootstrap template sync | Commit + push (same PR) | `quality-docs-check-changed` |
-| 7 Publish | `pr_context.md`, `hardening_review.md`, `tasks.md` | Final commit + push (same PR) | `quality-hooks-fast`, `quality-hardening-review` |
-| 8 PR ready | — | **Draft → Ready** (same PR) | CI: `blueprint-quality`, `generated-consumer-smoke`, `upgrade-e2e-validation` |
+| Step | Key artifacts | Skill | Git operation | Checks |
+|---|---|---|---|---|
+| 0 Scaffold | Stub files in `specs/YYYY-MM-DD-<slug>/` | — (`make spec-scaffold`) | New branch, no commit | None |
+| 1 Populate artifacts | `spec.md`, `architecture.md`, ADR, `plan.md`, `tasks.md`, `graph.json`, `traceability.md` — real content | `step01-intake` | None | `quality-sdd-check` |
+| 2 Draft PR | All populated artifacts committed | `step01-intake` | Commit + push + **Draft PR opened** | `quality-sdd-check` |
+| 3 Resolve open questions | Artifacts updated; Open Questions table updated; sign-off recorded | `step03-resolve-questions` | Commit + push per round (same PR) | `quality-sdd-check` |
+| 4 SPEC_READY | `spec.md` (`SPEC_READY=true`), ADR (`approved`) | `step04-spec-complete` | Commit + push (same PR) | `quality-sdd-check` |
+| 5 Refine plan | `plan.md` updated (optional) | `step05-plan-slicer` | Commit + push if changed (same PR) | None |
+| 6 Implement | Code, tests, schemas; `tasks.md` updated | `step06-implement` | Per-slice commits + push (same PR) | `pytest` targeted + full suite |
+| 7 Document / Operate | `docs/`, `SKILL.md`, bootstrap template sync | `step07-document-sync` | Commit + push (same PR) | `quality-docs-check-changed` |
+| 8 Publish | `pr_context.md`, `hardening_review.md`, `tasks.md` | `step08-pr-packager` | Final commit + push (same PR) | `quality-hooks-fast`, `quality-hardening-review` |
+| 9 PR ready | — | `step08-pr-packager` | **Draft → Ready** (same PR) | CI: `blueprint-quality`, `generated-consumer-smoke`, `upgrade-e2e-validation` |
 
 ---
 
