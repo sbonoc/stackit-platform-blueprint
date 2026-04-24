@@ -3,7 +3,7 @@ name: blueprint-sdd-step02-resolve-questions
 description: Execute SDD Step 3 — scaffold if not already done, read PR comments from reviewers (PO, Architect, etc.), replace [NEEDS CLARIFICATION] blocks in artifacts with resolved decisions, update the Open Questions table in the PR description, commit, and post a confirmation comment. Repeats until open question count reaches zero and SPEC_PRODUCT_READY is recorded. Can be invoked by any project stakeholder.
 ---
 
-# Blueprint SDD Step 03 — Open Question Resolution Loop
+# Blueprint SDD Step 02 — Open Question Resolution Loop
 
 ## Step covered
 
@@ -25,6 +25,16 @@ is recorded in `spec.md`.
 
 Any project stakeholder: **CPO / PO / CTO / Architect / Software Engineer**.
 Reviewers interact exclusively via GitHub PR comments — no local tooling required.
+
+## Governance Context
+
+`AGENTS.md` is the canonical policy source for this skill. Sections that apply in this phase:
+
+- `§ Clarification Marker Policy` — only fully resolved `[NEEDS CLARIFICATION]` blocks may be removed; partial resolution leaves the block intact.
+- `§ Sign-off Policy` — the exact deterministic phrase is required; plain-language approval is not sufficient; self-approval is prohibited.
+- `§ SDD Readiness Gate (Mandatory Before Implementation)` — `SPEC_PRODUCT_READY` is a prerequisite for the full sign-off gate in the next step.
+
+> If `AGENTS.md` changes any of the above sections, update this block to reflect the affected sections.
 
 ## Guardrails
 

@@ -3,7 +3,7 @@ name: blueprint-sdd-step05-implement
 description: Execute SDD Step 6 — implement the work item in TDD slices following plan.md, writing failing tests first then making them green, committing each slice to the existing Draft PR branch. Uses stack-agnostic Make targets derived from the spec's Implementation Stack Profile.
 ---
 
-# Blueprint SDD Step 06 — Implement
+# Blueprint SDD Step 05 — Implement
 
 ## Step covered
 
@@ -48,6 +48,19 @@ Then derive the canonical commands:
 Always prefer Make targets. Use the raw test runner only when the Make target
 does not yet exist for a new application being onboarded.
 
+## Governance Context
+
+`AGENTS.md` is the canonical policy source for this skill. Sections that apply in this phase:
+
+- `§ Cross-Cutting Guardrails (Must Be Captured in Discover + Specify)` — all guardrails declared in `spec.md` apply during implementation; architecture style, observability, security, and managed-service-first constraints are enforced here, not only reviewed later.
+- `§ Architecture and Design Mandates` — domain → application → infrastructure → presentation layering; no outer-layer imports into inner layers.
+- `§ Testing and Quality Ratios` — pyramid target: unit > 60%, integration ≤ 30%, e2e ≤ 10%.
+- `§ Feature-Flag Test Matrix (Mandatory)` — any behavior gated by `OBSERVABILITY_ENABLED` must be covered for both flag states.
+- `§ Hardening Review Gate` — architecture compliance, observability baseline, and security controls are evaluated in the next step; implementation must produce evidence that satisfies those checks.
+- `§ Minimum Validation Bundles by Change Type` — run the matching bundle after all slices complete.
+
+> If `AGENTS.md` changes any of the above sections, update this block to reflect the affected sections.
+
 ## Guardrails
 
 1. Implementation MUST NOT start before `SPEC_READY: true` in `spec.md`.
@@ -68,6 +81,13 @@ does not yet exist for a new application being onboarded.
 9. Mark each task `[x]` in `tasks.md` as it completes.
 10. Respect the pyramid: unit > 60%, integration ≤ 30%, e2e ≤ 10%.
     Do not duplicate behavior across pyramid levels.
+11. Architecture compliance: follow SOLID, Clean Architecture, Clean Code, and DDD
+    principles as mandated in `§ Architecture and Design Mandates` (AGENTS.md).
+    New modules follow the domain → application → infrastructure → presentation
+    layering; no cross-boundary shortcuts are allowed.
+12. Observability: new code paths MUST emit structured log entries for significant
+    operations; add metrics or trace spans where the declared observability baseline
+    in `spec.md` requires coverage.
 
 ## Workflow
 

@@ -3,7 +3,7 @@ name: blueprint-sdd-step03-spec-complete
 description: Execute SDD Step 4 — collect Architecture, Security, and Operations sign-offs, validate and finalise the ADR, flip SPEC_READY=true, and commit to the existing Draft PR branch. Renamed and adjusted from blueprint-sdd-spec-complete to fit the single-PR lifecycle model.
 ---
 
-# Blueprint SDD Step 04 — Spec Complete
+# Blueprint SDD Step 03 — Spec Complete
 
 ## Step covered
 
@@ -31,6 +31,15 @@ review, PR comments, or direct conversation.
 - ADR `Status: proposed → approved`.
 - `SPEC_READY: true` set in `spec.md`.
 - `make quality-sdd-check` passes with `SPEC_READY: true`.
+
+## Governance Context
+
+`AGENTS.md` is the canonical policy source for this skill. Sections that apply in this phase:
+
+- `§ SDD Readiness Gate (Mandatory Before Implementation)` — all conditions that must be met before `SPEC_READY: true` may be set.
+- `§ Sign-off Policy` — rules for recording Architecture, Security, Operations, and ADR sign-offs; self-approval is prohibited.
+
+> If `AGENTS.md` changes any of the above sections, update this block to reflect the affected sections.
 
 ## Guardrails
 

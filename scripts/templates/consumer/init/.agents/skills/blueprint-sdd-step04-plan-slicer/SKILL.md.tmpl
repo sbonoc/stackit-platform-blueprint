@@ -3,7 +3,7 @@ name: blueprint-sdd-step04-plan-slicer
 description: Execute SDD Step 5 (optional) — refine the approved plan into dependency-ordered implementation slices with explicit owners, validation strategy per slice, and backlog synchronisation. Skip for straightforward work items where plan.md from Step 1 is sufficient.
 ---
 
-# Blueprint SDD Step 05 — Plan Slicer (Optional)
+# Blueprint SDD Step 04 — Plan Slicer (Optional)
 
 ## Step covered
 
@@ -22,6 +22,16 @@ Step 1 is already clear and actionable — proceed directly to Step 6.
 ## Actor
 
 Software Engineer (invokes agent).
+
+## Governance Context
+
+`AGENTS.md` is the canonical policy source for this skill. Sections that apply in this phase:
+
+- `§ SDD Artifact Contract` — `plan.md` and `tasks.md` must remain aligned with all artifact path constraints.
+- `§ Cross-Cutting Guardrails (Must Be Captured in Discover + Specify)` — app-onboarding Make-target contract and managed-service-first policy must be reflected in plan slices when applicable.
+- `§ Definition of Done (DoD)` — each slice must map to SDD artifacts, validation evidence, and a clear owner.
+
+> If `AGENTS.md` changes any of the above sections, update this block to reflect the affected sections.
 
 ## Guardrails
 

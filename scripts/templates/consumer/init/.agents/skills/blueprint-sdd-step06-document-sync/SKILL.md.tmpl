@@ -3,7 +3,7 @@ name: blueprint-sdd-step06-document-sync
 description: Execute SDD Step 7 — update blueprint and consumer docs for changed behavior, sync bootstrap template mirrors, update skill runbooks, and validate docs build/smoke checks. Renamed from blueprint-sdd-document-sync.
 ---
 
-# Blueprint SDD Step 07 — Document + Operate
+# Blueprint SDD Step 06 — Document + Operate
 
 ## Step covered
 
@@ -18,6 +18,16 @@ moving to Step 8 (Publish).
 ## Actor
 
 Software Engineer (invokes agent).
+
+## Governance Context
+
+`AGENTS.md` is the canonical policy source for this skill. Sections that apply in this phase:
+
+- `§ Hardening Review Gate` — operational runbooks and alerting declarations are required inputs for the hardening review that follows; document them here.
+- `§ Repository Hygiene` — docs ownership boundaries (blueprint vs. consumer) and bootstrap template mirror sync policy.
+- `§ Naming and Operational Conventions` — Make target naming, doc path ownership, and command-reference alignment.
+
+> If `AGENTS.md` changes any of the above sections, update this block to reflect the affected sections.
 
 ## Guardrails
 

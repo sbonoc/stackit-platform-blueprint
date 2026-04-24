@@ -210,6 +210,11 @@ This section provides context for code assistants to understand the blueprint be
 - For assistants that do not support Codex skill loading (for example Claude Code), use the corresponding `SKILL.md` files as plain-text runbooks and still execute canonical repository commands.
 - When specialized subagents are used, assign each one to an isolated worktree and bounded-context ownership slice to prevent write collisions.
 - The work-item spec must explicitly declare the selected stack profile and agent execution model before implementation.
+- Skill runbooks (`.agents/skills/*/SKILL.md`) are governed by this file. Any update to
+  cross-cutting guardrails, lifecycle policy, or sign-off rules in `AGENTS.md` MUST be
+  reflected in the `## Governance Context` section of the relevant skill runbooks. Conversely,
+  when a `SKILL.md` introduces new operator-facing guidance, verify that it aligns with the
+  canonical policy here and add an explicit section to `AGENTS.md` if needed.
 
 ## Definition of Done (DoD)
 A task is done only when all applicable items pass:

@@ -23,6 +23,18 @@ it; otherwise it runs the scaffold automatically.
 Any project stakeholder: **CPO / PO / CTO / Architect / Software Engineer**.
 No local development environment is required beyond `make` and `gh` CLI access.
 
+## Governance Context
+
+`AGENTS.md` is the canonical policy source for this skill. Sections that apply in this phase:
+
+- `§ Mandatory Workflow` — SDD-enabled execution is the default; opt-out requires explicit user instruction.
+- `§ SDD Artifact Contract` — spec, architecture, plan, tasks, traceability, and graph artifacts must all be created.
+- `§ Normative Language Policy (Spec Artifacts)` — MUST / MUST NOT / SHALL / EXACTLY ONE OF are the only accepted normative terms.
+- `§ Clarification Marker Policy` — `[NEEDS CLARIFICATION]` is the only accepted form for unresolved inputs.
+- `§ Guardrail Control Statements (Mandatory)` — applicable SDD-C-### controls must be declared in `spec.md`.
+
+> If `AGENTS.md` changes any of the above sections, update this block to reflect the affected sections.
+
 ## Guardrails
 
 1. Every artifact section that can be filled with current knowledge MUST be

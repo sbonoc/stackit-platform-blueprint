@@ -3,7 +3,7 @@ name: blueprint-sdd-step07-pr-packager
 description: Execute SDD Steps 8 and 9 — fill pr_context.md and hardening_review.md, create GitHub issues for each deferred proposal, mark all tasks complete, pass all quality gates, mark the Draft PR as ready, and post the @codex review comment. Renamed and adjusted from blueprint-sdd-pr-packager to fit the single-PR lifecycle model.
 ---
 
-# Blueprint SDD Step 08 — Publish + Mark PR Ready
+# Blueprint SDD Step 07 — Publish + Mark PR Ready
 
 ## Steps covered
 
@@ -18,6 +18,17 @@ step before the PR is merged. All tasks in `tasks.md` must be marked `[x]`.
 ## Actor
 
 Software Engineer (invokes agent).
+
+## Governance Context
+
+`AGENTS.md` is the canonical policy source for this skill. Sections that apply in this phase:
+
+- `§ Publish Gate` — explicit checklist that must be satisfied before marking the PR ready.
+- `§ Hardening Review Gate` — all four sections of `hardening_review.md` must be complete; this gate directly precedes publish.
+- `§ Definition of Done (DoD)` — every DoD item must pass before the PR is marked ready.
+- `§ Sign-off Policy` — self-approval is prohibited; confirm all sign-offs were granted by the appropriate stakeholders before closing out.
+
+> If `AGENTS.md` changes any of the above sections, update this block to reflect the affected sections.
 
 ## Guardrails
 
