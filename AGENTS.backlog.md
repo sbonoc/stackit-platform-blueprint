@@ -1,5 +1,26 @@
 # Blueprint Backlog
 
+## Scope Registry
+
+Controlled vocabulary for `on-scope:` backlog trigger tags.
+When assigning a tag, pick the closest existing entry.
+To introduce a new tag, append a row here in the same commit that uses it.
+
+| Tag | Covers |
+|---|---|
+| `auth` | Authentication, authorization, identity, ESO, Keycloak |
+| `infra` | Terraform, Helm, ArgoCD, cluster provisioning |
+| `observability` | Logs, metrics, traces, alerting, dashboards |
+| `api` | HTTP routes, filters, payloads, API contracts |
+| `apps` | App delivery, build, publish, catalog, GitOps workloads |
+| `docs` | Documentation, runbooks, blueprint docs sync |
+| `quality` | Test automation, CI gates, quality hooks, SDD gates |
+| `blueprint` | Blueprint upgrade, contract, template sync, init flow |
+| `gitops` | GitOps manifests, ArgoCD sync, kustomization wiring |
+| `skills` | Agent skill runbooks, SDD lifecycle tooling |
+
+---
+
 ## Current Priorities
 - [x] P0 (SDD UX): Issue #138 — local smoke + positive-path filter/transform guardrails are now enforced in SDD templates/governance, including red->green translation for reproducible pre-PR findings.
 - [x] P0 (Upgrade preflight ergonomics): Issue #102 — detect missing consumer-owned required Make targets in preflight with explicit remediation guidance.

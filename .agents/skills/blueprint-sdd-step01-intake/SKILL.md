@@ -102,12 +102,22 @@ No local development environment is required beyond `make` and `gh` CLI access.
 
 7. make quality-sdd-check     # fix all violations before continuing
 
-8. Commit all artifacts:
+BACKLOG SCAN (surface parked proposals before opening the Draft PR)
+8. Read AGENTS.backlog.md and find all `(parked)` entries where:
+   - `trigger: after: <slug>` — and <slug> matches the current work item slug, or
+     was a recently completed item that this work item depends on or follows.
+   - `trigger: on-scope: <tag>` — and <tag> matches any scope area described in the
+     current work item's title, spec, or Implementation Stack Profile.
+   If any match, surface them in the intake report as a "Surfaced Backlog Proposals"
+   table (see Required Report Format). Do NOT automatically incorporate or promote them —
+   present them so the user can decide: incorporate into this work item's scope,
+   promote to a GitHub issue, or explicitly reject with rationale.
+
    git add specs/YYYY-MM-DD-<slug>/ docs/.../ADR-<slug>.md
    git commit -m "feat(<slug>): SDD intake — spec, architecture, plan ready for PO review"
    git push -u origin codex/YYYY-MM-DD-<slug>
 
-9. Open Draft PR:
+10. Open Draft PR:
    gh pr create --draft \
      --title "feat(<slug>): <one-line objective>" \
      --body "$(cat <<'EOF'
@@ -168,7 +178,14 @@ Return:
 5. ADR path and diagram type(s) chosen with rationale.
 6. `[NEEDS CLARIFICATION]` open questions list (count + brief description each).
 7. `make quality-sdd-check` result.
-8. Draft PR URL.
+8. Surfaced Backlog Proposals (from AGENTS.backlog.md scan):
+
+   | Proposal | Trigger | Recommended action |
+   |---|---|---|
+   | <title> | on-scope: quality | incorporate / promote to issue / reject |
+
+   If none match, state: "No parked proposals match this work item's scope."
+9. Draft PR URL.
 
 ## Useful Commands
 

@@ -35,15 +35,17 @@ Software Engineer (invokes agent).
 1. Do not mark the PR ready while any task in `tasks.md` is unchecked.
 2. Do not mark the PR ready while `hardening_review.md` or `pr_context.md`
    have unfilled sections.
-3. Every deferred proposal MUST have a corresponding GitHub issue filed and
-   its URL recorded in `pr_context.md` Deferred Proposals and `AGENTS.backlog.md`.
-   This is the mechanism that prevents proposals from being silently dropped.
-4. Do not implement deferred proposals in this phase — file them as issues and
-   move on. The issue is the action item.
-5. The PR being marked ready is the same Draft PR opened in Step 2.
+3. Every deferred proposal MUST receive an explicit outcome (file-issue / reject /
+   park). No proposal may be silently omitted. Present the triage table and wait for
+   user confirmation before acting on any proposal.
+4. Do not implement deferred proposals in this phase — triage and record them, then
+   move on. A filed issue or a parked backlog entry is the action item.
+5. For parked proposals, a trigger MUST be assigned. A proposal with no trigger is
+   not parked — it is silently dropped, which violates guardrail 3.
+6. The PR being marked ready is the same Draft PR opened in Step 2.
    No new PR is opened.
-6. All commits go to the existing branch before marking ready.
-7. `pr_context.md` headings must match the repository pull-request template.
+7. All commits go to the existing branch before marking ready.
+8. `pr_context.md` headings must match the repository pull-request template.
 
 ## Workflow
 
@@ -64,23 +66,61 @@ STEP 8 — PUBLISH ARTIFACTS
    - Risk and Rollback (explicit rollback steps)
    - Deferred Proposals (non-implemented improvements with rationale)
 
-3. FILE DEFERRED PROPOSAL ISSUES (required for every non-trivial proposal):
-   For each entry in "Proposals Only (Not Implemented)" and Deferred Proposals:
-   a. Create a GitHub issue:
-      gh issue create \
-        --title "proposal(<slug>): <brief proposal title>" \
-        --body "**Source:** PR #<number>, \`hardening_review.md\` / \`pr_context.md\`
+3. TRIAGE DEFERRED PROPOSALS (required for every proposal):
+   a. Collect all entries from "Proposals Only (Not Implemented)" in
+      hardening_review.md and "Deferred Proposals" in pr_context.md.
 
-   **Context:** <one-paragraph description of the proposal>
+   b. Present a triage table to the user and WAIT for confirmation before acting:
+      | # | Proposal | Recommendation | Rationale |
+      |---|---|---|---|
+      | 1 | <brief title> | file-issue | <one line> |
+      | 2 | <brief title> | park | on-scope: quality — low urgency, no blocker |
+      | 3 | <brief title> | reject | cosmetic only, not worth tracking |
+      The recommendation is a starting point — the user confirms or overrides each row.
 
-   **Rationale for deferral:** <why it was not implemented in this work item>
+   c. For each confirmed file-issue:
+      Create a GitHub issue:
+        gh issue create \
+          --title "proposal(<slug>): <brief proposal title>" \
+          --body "**Source:** PR #<number>, \`hardening_review.md\` / \`pr_context.md\`
 
-   **Suggested approach:** <brief notes from the hardening review>"
-   b. Record the issue URL in:
-      - pr_context.md Deferred Proposals section (inline after each proposal)
-      - AGENTS.backlog.md (new entry with issue link, priority TBD)
-   If a proposal is purely cosmetic or already tracked elsewhere, mark it
-   explicitly as "no issue filed — [rationale]" rather than silently omitting.
+        **Context:** <one-paragraph description>
+
+        **Rationale for deferral:** <why it was not implemented in this work item>
+
+        **Suggested approach:** <brief notes from the hardening review>"
+      Record the issue URL in:
+        - pr_context.md Deferred Proposals (inline after the proposal)
+        - AGENTS.backlog.md (new entry: `- [ ] proposal(<slug>): <title> — <issue URL>`)
+
+   d. For each confirmed reject:
+      Record in pr_context.md as:
+        "Rejected at PR closure — <user's rationale>"
+      Record in AGENTS.backlog.md as a checked entry with rejection note:
+        - [x] (rejected) proposal(<slug>): <title> — rejected: <rationale>
+
+   e. For each confirmed park:
+      Propose a trigger type and value to the user; wait for confirmation:
+
+      | Trigger | Format | When to use |
+      |---|---|---|
+      | `after:` | `after: <slug-or-issue-ref>` | Blocked on a specific item completing |
+      | `on-scope:` | `on-scope: <tag>` | Revisit when any work touches this scope area |
+      | `triage:` | `triage: next-session` | No dependency; pick up at next backlog triage |
+
+      For `on-scope:`: pick the tag from `## Scope Registry` in AGENTS.backlog.md.
+        If no existing tag fits, propose adding a new row to the registry in this commit.
+      For `after:`: position the backlog entry immediately after the blocking item.
+      For `triage: next-session`: include a `stale-after: 2` counter. After 2 triage
+        sessions without promotion the entry flips to `stale` status and requires an
+        explicit promote-or-discard decision.
+
+      Record in pr_context.md as:
+        "Parked — trigger: <type>: <value> — <one-line rationale>"
+      Record in AGENTS.backlog.md as:
+        - [ ] (parked) proposal(<slug>): <title>
+              trigger: <type>: <value>
+              rationale: <one line>
 
 4. Mark all tasks complete in tasks.md (P-001, P-002, P-003 last).
 
@@ -111,18 +151,25 @@ STEP 9 — MARK PR READY
 
 ## Deferred proposal lifecycle
 
-Deferred proposals are not optional documentation — they are action items. The
-GitHub issue is the contract that a proposal will be revisited or explicitly
-rejected. Without an issue, proposals disappear when the PR closes.
+Every proposal receives an explicit outcome at Step 8 — no proposal is silently dropped.
 
-The expected lifecycle of a filed deferred-proposal issue:
-1. Filed at Step 8 — appears in `AGENTS.backlog.md` with `Status: proposed`.
-2. Triaged at the next backlog review — assigned a priority or closed with rationale.
-3. Picked up as a future work item (starts a new SDD cycle) or explicitly rejected
-   with a closing comment explaining why.
+| Outcome | Recorded in | Re-evaluation trigger |
+|---|---|---|
+| **file-issue** | pr_context.md (URL) + AGENTS.backlog.md (link) | Backlog triage / next SDD cycle |
+| **reject** | pr_context.md (rationale) + AGENTS.backlog.md (checked, closed) | None — consciously discarded |
+| **park** | pr_context.md (trigger) + AGENTS.backlog.md (trigger field) | Event-driven — see trigger types |
 
-This ensures every proposal either ships in a future iteration or is consciously
-discarded — never silently forgotten.
+**Park trigger types:**
+- `after: <slug-or-issue-ref>` — proposal surfaces automatically when step07 runs
+  for the blocking item. That step's intake-scan (step01) will list it.
+- `on-scope: <tag>` — proposal surfaces whenever step01-intake scaffolds a new work
+  item whose scope matches the tag. The author sees it at the moment of highest context.
+- `triage: next-session` — reviewed at the next explicit backlog triage. Carries a
+  `stale-after: 2` counter; flips to `stale` after 2 sessions without promotion,
+  requiring a conscious promote-or-discard decision.
+
+Re-evaluation is event-driven, not calendar-driven. Limbo is prevented by the trigger,
+not by periodic reminders.
 
 ## pr_context.md section contract
 

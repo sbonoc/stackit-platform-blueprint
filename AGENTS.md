@@ -193,7 +193,7 @@ This section provides context for code assistants to understand the blueprint be
   - `Validation Evidence`
   - `Risk and Rollback`
   - `Deferred Proposals`
-- For each non-trivial entry in `Deferred Proposals`, file a GitHub issue (`gh issue create --title "proposal(<slug>): ..."`) and record the URL in the `pr_context.md` Deferred Proposals section and in `AGENTS.backlog.md`. If a proposal is purely cosmetic or already tracked elsewhere, mark it explicitly as "no issue filed — [rationale]".
+- For each entry in `Deferred Proposals`, present a triage table and wait for the user to confirm an outcome per proposal before acting: **file-issue** (create a GitHub issue and record the URL), **reject** (record rationale in `pr_context.md` and close in `AGENTS.backlog.md`), or **park** (record in `AGENTS.backlog.md` with a mandatory trigger: `after: <slug>`, `on-scope: <tag>` from the Scope Registry, or `triage: next-session`). No proposal may be silently omitted — every proposal receives an explicit recorded outcome.
 - Pull requests must follow repository templates and include equivalent sections for deterministic review context.
 - Canonical skill for this phase: `blueprint-sdd-step07-pr-packager`.
 
