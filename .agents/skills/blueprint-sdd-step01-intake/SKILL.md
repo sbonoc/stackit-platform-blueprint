@@ -32,6 +32,7 @@ No local development environment is required beyond `make` and `gh` CLI access.
 - `§ Normative Language Policy (Spec Artifacts)` — MUST / MUST NOT / SHALL / EXACTLY ONE OF are the only accepted normative terms.
 - `§ Clarification Marker Policy` — `[NEEDS CLARIFICATION]` is the only accepted form for unresolved inputs.
 - `§ Guardrail Control Statements (Mandatory)` — applicable SDD-C-### controls must be declared in `spec.md`.
+- `§ Cross-Cutting Guardrails (Must Be Captured in Discover + Specify)` — API and event contracts (OpenAPI, Pact) that define new or changed service interfaces must be drafted in Specify and recorded in `spec.md` under Contract Impacts before implementation begins.
 
 > If `AGENTS.md` changes any of the above sections, update this block to reflect the affected sections.
 

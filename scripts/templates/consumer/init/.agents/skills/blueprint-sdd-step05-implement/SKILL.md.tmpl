@@ -48,13 +48,67 @@ Then derive the canonical commands:
 Always prefer Make targets. Use the raw test runner only when the Make target
 does not yet exist for a new application being onboarded.
 
+## Stack-specific test isolation
+
+Apply the patterns below to keep tests fast and fully decoupled from live
+dependencies. These are mandatory defaults — deviate only with documented rationale.
+
+### Vue / Nuxt (`vue_router_pinia_onyx` profile)
+
+- Use `@vue/test-utils` for component tests. Test **public interfaces only**: props,
+  emitted events, and rendered DOM output. Do not assert on private component state or
+  internal refs.
+- For components that require Nuxt context use `@nuxt/test-utils` with
+  `mountSuspended` or `renderSuspended` — never plain `mount` against a real Nuxt
+  runtime in a unit test.
+- Mock composables and Nuxt auto-imports with `mockNuxtImport` so tests are
+  independent of Nuxt's runtime module resolution.
+- Use the **Pact Stub Server** for integration tests that exercise API call paths.
+  Do not point unit or component tests at a live backend service.
+
+### Python / FastAPI (`python_plus_fastapi_pydantic_v2` profile)
+
+- Test endpoints with FastAPI's `TestClient` (backed by `httpx`) — no real server
+  socket is bound and no network round-trip occurs.
+- Isolate domain and application logic from infrastructure adapters using
+  `unittest.mock` or the `pytest-mock` `mocker` fixture.
+- Unit tests MUST NOT make real HTTP calls or open real database connections.
+  Use in-memory repositories or fixture-injected fakes for integration tests.
+
+### Kotlin / Ktor
+
+- Use `MockEngine` for HTTP client tests — simulates responses without a network
+  connection.
+- Use `testApplication` for server-side tests — no real port is bound, keeping tests
+  fast and parallelisable.
+- Test application and domain logic without the Ktor engine wherever the dependency
+  direction allows.
+
+### Go / Gin
+
+- Use `net/http/httptest` (`httptest.NewRecorder` + `httptest.NewServer`) for handler
+  and endpoint tests without starting a full server.
+- Keep handler unit tests free of real database or external service calls; inject
+  interface stubs or use `testify/mock` for collaborators.
+
+### Pact contract lane (`playwright_pact` profile — `*-test-contracts` Make targets)
+
+- **Consumer side (Vue/Nuxt):** write interaction tests against the Pact Mock Server.
+  The generated `.json` pact files are the contract artefacts — commit them to source
+  control and reference them in `spec.md` under Contract Impacts.
+- **Provider side (Python/Go/Kotlin):** verify published contracts using the Pact
+  Verifier in the `backend-test-contracts` lane. No live frontend is required.
+- A Pact contract test MUST replace — not supplement — any E2E test that exists solely
+  to verify API integration across service boundaries.
+
 ## Governance Context
 
 `AGENTS.md` is the canonical policy source for this skill. Sections that apply in this phase:
 
-- `§ Cross-Cutting Guardrails (Must Be Captured in Discover + Specify)` — all guardrails declared in `spec.md` apply during implementation; architecture style, observability, security, and managed-service-first constraints are enforced here, not only reviewed later.
+- `§ Cross-Cutting Guardrails (Must Be Captured in Discover + Specify)` — all guardrails declared in `spec.md` apply during implementation; architecture style, observability, security, API-contract-first, and managed-service-first constraints are enforced here, not only reviewed later.
 - `§ Architecture and Design Mandates` — domain → application → infrastructure → presentation layering; no outer-layer imports into inner layers.
-- `§ Testing and Quality Ratios` — pyramid target: unit > 60%, integration ≤ 30%, e2e ≤ 10%.
+- `§ Testing and Quality Ratios` — pyramid target: unit > 60%, integration ≤ 30%, e2e ≤ 10%; mocks over live dependencies; ≥ 70% line coverage; CI pipeline under 15 min.
+- `§ Contract Testing Standards` — Pact is the standard for API integration; consumer generates contracts, provider verifies; Pact Stub Server during FE development.
 - `§ Feature-Flag Test Matrix (Mandatory)` — any behavior gated by `OBSERVABILITY_ENABLED` must be covered for both flag states.
 - `§ Hardening Review Gate` — architecture compliance, observability baseline, and security controls are evaluated in the next step; implementation must produce evidence that satisfies those checks.
 - `§ Minimum Validation Bundles by Change Type` — run the matching bundle after all slices complete.
