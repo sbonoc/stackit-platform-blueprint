@@ -55,7 +55,6 @@ BLUEPRINT_UPGRADE_REF=<tag|branch|commit> make blueprint-upgrade-consumer
 BLUEPRINT_UPGRADE_REF=<tag|branch|commit> BLUEPRINT_UPGRADE_APPLY=true make blueprint-upgrade-consumer
 make blueprint-upgrade-consumer-validate
 make blueprint-upgrade-consumer-postcheck
-make blueprint-upgrade-fresh-env-gate
 ```
 Use the preflight report `artifacts/blueprint/upgrade_preflight.json` to inspect auto-apply candidates,
 manual-merge/conflict paths, required follow-up commands, and missing contract-required consumer-owned Make targets before apply mode.
@@ -69,7 +68,6 @@ hints to verify after applying.
 When `required_manual_actions` is non-empty,
 resolve the listed dependency paths first, then re-run `make blueprint-upgrade-consumer-validate`.
 When postcheck reports status `failure`, resolve blocked reasons and re-run `make blueprint-upgrade-consumer-postcheck`.
-When the fresh-env gate fails, inspect `artifacts/blueprint/fresh_env_gate.json` — the `divergences` field identifies files present locally but absent in a clean checkout. Fix the bootstrap regression and re-run `make blueprint-upgrade-fresh-env-gate`.
 For missing required consumer-owned Make targets, define the target in `make/platform.mk` or linked includes under `make/platform/*.mk`
 using the exact target name from the manual-action reason.
 When `LOCAL_POST_DEPLOY_HOOK_ENABLED=true`, preflight also flags a blocking manual action if
@@ -96,12 +94,14 @@ BLUEPRINT_CODEX_SKILLS_DIR="${CODEX_HOME:-$HOME/.codex}/skills" make blueprint-i
 ```
 Install SDD-specialized skills when needed:
 ```bash
-make blueprint-install-codex-skill-sdd-intake-decompose
-make blueprint-install-codex-skill-sdd-clarification-gate
-make blueprint-install-codex-skill-sdd-plan-slicer
+make blueprint-install-codex-skill-sdd-step01-intake
+make blueprint-install-codex-skill-sdd-step03-resolve-questions
+make blueprint-install-codex-skill-sdd-step04-spec-complete
+make blueprint-install-codex-skill-sdd-step05-plan-slicer
+make blueprint-install-codex-skill-sdd-step06-implement
+make blueprint-install-codex-skill-sdd-step07-document-sync
+make blueprint-install-codex-skill-sdd-step08-pr-packager
 make blueprint-install-codex-skill-sdd-traceability-keeper
-make blueprint-install-codex-skill-sdd-document-sync
-make blueprint-install-codex-skill-sdd-pr-packager
 ```
 
 ## 3) Start Spec-Driven Work Item Before Implementation

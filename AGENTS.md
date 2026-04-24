@@ -193,7 +193,9 @@ This section provides context for code assistants to understand the blueprint be
   - `Validation Evidence`
   - `Risk and Rollback`
   - `Deferred Proposals`
+- For each non-trivial entry in `Deferred Proposals`, file a GitHub issue (`gh issue create --title "proposal(<slug>): ..."`) and record the URL in the `pr_context.md` Deferred Proposals section and in `AGENTS.backlog.md`. If a proposal is purely cosmetic or already tracked elsewhere, mark it explicitly as "no issue filed — [rationale]".
 - Pull requests must follow repository templates and include equivalent sections for deterministic review context.
+- Canonical skill for this phase: `blueprint-sdd-step08-pr-packager`.
 
 ## Specialized Agent Collaboration (When Used)
 - Partition ownership by bounded context and dependency direction, not by arbitrary files.

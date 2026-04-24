@@ -2,7 +2,7 @@ SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
 .PHONY: help \
-  blueprint-init-repo blueprint-init-repo-interactive blueprint-resync-consumer-seeds blueprint-upgrade-consumer blueprint-upgrade-consumer-preflight blueprint-upgrade-consumer-validate blueprint-upgrade-consumer-postcheck blueprint-upgrade-fresh-env-gate blueprint-upgrade-readiness-doctor blueprint-uplift-status blueprint-install-codex-skill blueprint-install-codex-skill-consumer-ops blueprint-install-codex-skill-sdd-intake-decompose blueprint-install-codex-skill-sdd-clarification-gate blueprint-install-codex-skill-sdd-plan-slicer blueprint-install-codex-skill-sdd-traceability-keeper blueprint-install-codex-skill-sdd-document-sync blueprint-install-codex-skill-sdd-pr-packager blueprint-install-codex-skills blueprint-ownership-check blueprint-ownership-metadata blueprint-check-placeholders blueprint-template-smoke blueprint-bootstrap blueprint-render-makefile blueprint-clean-generated blueprint-render-module-wrapper-skeletons spec-scaffold spec-impact spec-evidence-manifest spec-context-pack spec-pr-context \
+  blueprint-init-repo blueprint-init-repo-interactive blueprint-resync-consumer-seeds blueprint-upgrade-consumer blueprint-upgrade-consumer-preflight blueprint-upgrade-consumer-validate blueprint-upgrade-consumer-postcheck blueprint-upgrade-fresh-env-gate blueprint-upgrade-readiness-doctor blueprint-uplift-status blueprint-install-codex-skill blueprint-install-codex-skill-consumer-ops blueprint-install-codex-skill-sdd-step01-intake blueprint-install-codex-skill-sdd-step03-resolve-questions blueprint-install-codex-skill-sdd-step04-spec-complete blueprint-install-codex-skill-sdd-step05-plan-slicer blueprint-install-codex-skill-sdd-step06-implement blueprint-install-codex-skill-sdd-step07-document-sync blueprint-install-codex-skill-sdd-step08-pr-packager blueprint-install-codex-skill-sdd-traceability-keeper blueprint-install-codex-skills blueprint-ownership-check blueprint-ownership-metadata blueprint-check-placeholders blueprint-template-smoke blueprint-bootstrap blueprint-render-makefile blueprint-clean-generated blueprint-render-module-wrapper-skeletons spec-scaffold spec-impact spec-evidence-manifest spec-context-pack spec-pr-context \
   test-contracts-async-producer test-contracts-async-consumer test-contracts-async-all \
   quality-hooks-fast quality-hooks-strict quality-hooks-run quality-root-dir-prelude-check quality-infra-shell-source-graph-check quality-sdd-sync-control-catalog quality-sdd-check-control-catalog-sync quality-sdd-sync-consumer-init-assets quality-sdd-check-consumer-init-assets-sync quality-sdd-sync-policy-snippets quality-sdd-check-policy-snippets-sync quality-sdd-sync-all quality-sdd-check-all quality-sdd-check quality-spec-pr-ready quality-hardening-review quality-runtime-contract-drift-report quality-ci-sync quality-ci-check-sync quality-ci-fast quality-ci-slow-integration quality-ci-full-e2e quality-ci-strict quality-ci-blueprint quality-ci-generated-consumer-smoke quality-ci-upgrade-validate quality-docs-lint quality-docs-sync-all quality-docs-check-changed quality-docs-sync-blueprint-template quality-docs-check-blueprint-template-sync quality-docs-sync-platform-seed quality-docs-check-platform-seed-sync quality-docs-sync-core-targets quality-docs-check-core-targets-sync quality-docs-sync-contract-metadata quality-docs-check-contract-metadata-sync quality-docs-sync-runtime-identity-summary quality-docs-check-runtime-identity-summary-sync quality-docs-sync-module-contract-summaries quality-docs-check-module-contract-summaries-sync quality-test-pyramid \
   infra-prereqs infra-help-reference infra-contract-test-fast infra-port-forward-start infra-port-forward-stop infra-port-forward-cleanup infra-bootstrap infra-local-destroy-all infra-destroy-disabled-modules infra-validate infra-smoke infra-provision infra-deploy infra-provision-deploy \
@@ -61,33 +61,41 @@ blueprint-install-codex-skill: ## Install/sync bundled Codex upgrade skill into 
 blueprint-install-codex-skill-consumer-ops: ## Install/sync bundled Codex consumer operations skill into local CODEX_HOME skills directory
 	@scripts/bin/blueprint/install_codex_skill.sh --skill-name blueprint-consumer-ops
 
-blueprint-install-codex-skill-sdd-intake-decompose: ## Install/sync bundled Codex SDD intake and decomposition skill into local CODEX_HOME skills directory
-	@scripts/bin/blueprint/install_codex_skill.sh --skill-name blueprint-sdd-intake-decompose
+blueprint-install-codex-skill-sdd-step01-intake: ## Install/sync bundled Codex SDD step01-intake skill into local CODEX_HOME skills directory
+	@scripts/bin/blueprint/install_codex_skill.sh --skill-name blueprint-sdd-step01-intake
 
-blueprint-install-codex-skill-sdd-clarification-gate: ## Install/sync bundled Codex SDD clarification-gate skill into local CODEX_HOME skills directory
-	@scripts/bin/blueprint/install_codex_skill.sh --skill-name blueprint-sdd-clarification-gate
+blueprint-install-codex-skill-sdd-step03-resolve-questions: ## Install/sync bundled Codex SDD step03-resolve-questions skill into local CODEX_HOME skills directory
+	@scripts/bin/blueprint/install_codex_skill.sh --skill-name blueprint-sdd-step03-resolve-questions
 
-blueprint-install-codex-skill-sdd-plan-slicer: ## Install/sync bundled Codex SDD plan-slicer skill into local CODEX_HOME skills directory
-	@scripts/bin/blueprint/install_codex_skill.sh --skill-name blueprint-sdd-plan-slicer
+blueprint-install-codex-skill-sdd-step04-spec-complete: ## Install/sync bundled Codex SDD step04-spec-complete skill into local CODEX_HOME skills directory
+	@scripts/bin/blueprint/install_codex_skill.sh --skill-name blueprint-sdd-step04-spec-complete
+
+blueprint-install-codex-skill-sdd-step05-plan-slicer: ## Install/sync bundled Codex SDD step05-plan-slicer skill into local CODEX_HOME skills directory
+	@scripts/bin/blueprint/install_codex_skill.sh --skill-name blueprint-sdd-step05-plan-slicer
+
+blueprint-install-codex-skill-sdd-step06-implement: ## Install/sync bundled Codex SDD step06-implement skill into local CODEX_HOME skills directory
+	@scripts/bin/blueprint/install_codex_skill.sh --skill-name blueprint-sdd-step06-implement
+
+blueprint-install-codex-skill-sdd-step07-document-sync: ## Install/sync bundled Codex SDD step07-document-sync skill into local CODEX_HOME skills directory
+	@scripts/bin/blueprint/install_codex_skill.sh --skill-name blueprint-sdd-step07-document-sync
+
+blueprint-install-codex-skill-sdd-step08-pr-packager: ## Install/sync bundled Codex SDD step08-pr-packager skill into local CODEX_HOME skills directory
+	@scripts/bin/blueprint/install_codex_skill.sh --skill-name blueprint-sdd-step08-pr-packager
 
 blueprint-install-codex-skill-sdd-traceability-keeper: ## Install/sync bundled Codex SDD traceability-keeper skill into local CODEX_HOME skills directory
 	@scripts/bin/blueprint/install_codex_skill.sh --skill-name blueprint-sdd-traceability-keeper
 
-blueprint-install-codex-skill-sdd-document-sync: ## Install/sync bundled Codex SDD document-sync skill into local CODEX_HOME skills directory
-	@scripts/bin/blueprint/install_codex_skill.sh --skill-name blueprint-sdd-document-sync
-
-blueprint-install-codex-skill-sdd-pr-packager: ## Install/sync bundled Codex SDD PR-packager skill into local CODEX_HOME skills directory
-	@scripts/bin/blueprint/install_codex_skill.sh --skill-name blueprint-sdd-pr-packager
-
 blueprint-install-codex-skills: ## Install/sync all bundled Codex skills into local CODEX_HOME skills directory
 	@$(MAKE) blueprint-install-codex-skill
 	@$(MAKE) blueprint-install-codex-skill-consumer-ops
-	@$(MAKE) blueprint-install-codex-skill-sdd-intake-decompose
-	@$(MAKE) blueprint-install-codex-skill-sdd-clarification-gate
-	@$(MAKE) blueprint-install-codex-skill-sdd-plan-slicer
+	@$(MAKE) blueprint-install-codex-skill-sdd-step01-intake
+	@$(MAKE) blueprint-install-codex-skill-sdd-step03-resolve-questions
+	@$(MAKE) blueprint-install-codex-skill-sdd-step04-spec-complete
+	@$(MAKE) blueprint-install-codex-skill-sdd-step05-plan-slicer
+	@$(MAKE) blueprint-install-codex-skill-sdd-step06-implement
+	@$(MAKE) blueprint-install-codex-skill-sdd-step07-document-sync
+	@$(MAKE) blueprint-install-codex-skill-sdd-step08-pr-packager
 	@$(MAKE) blueprint-install-codex-skill-sdd-traceability-keeper
-	@$(MAKE) blueprint-install-codex-skill-sdd-document-sync
-	@$(MAKE) blueprint-install-codex-skill-sdd-pr-packager
 
 blueprint-ownership-check: ## Resolve path ownership classes (set OWNERSHIP_PATHS="path/one path/two")
 	@if [[ -z "$(strip $(OWNERSHIP_PATHS))" ]]; then \
