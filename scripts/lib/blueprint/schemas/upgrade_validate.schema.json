@@ -259,6 +259,36 @@
         }
       }
     },
+    "prune_glob_check": {
+      "type": "object",
+      "required": [
+        "status",
+        "globs_checked",
+        "violations",
+        "violation_count",
+        "remediation_hint"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["success", "failure", "skipped"]
+        },
+        "globs_checked": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "violations": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "violation_count": {
+          "type": "integer"
+        },
+        "remediation_hint": {
+          "type": "string"
+        }
+      }
+    },
     "contract_load_error": {
       "type": [
         "string",

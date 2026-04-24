@@ -280,6 +280,12 @@ def main() -> int:
             reconcile_stale_reason_list = stale_reasons
 
     validate_status = str(validate_payload.get("summary", {}).get("status", "unknown"))
+    prune_glob_check_raw = validate_payload.get("prune_glob_check", {})
+    prune_glob_check_map = prune_glob_check_raw if isinstance(prune_glob_check_raw, dict) else {}
+    prune_glob_violation_count = _as_int(prune_glob_check_map.get("violation_count", 0))
+    prune_glob_violations_list = prune_glob_check_map.get("violations", [])
+    if not isinstance(prune_glob_violations_list, list):
+        prune_glob_violations_list = []
     reconcile_summary_raw = reconcile_payload.get("summary", {})
     reconcile_summary = reconcile_summary_raw if isinstance(reconcile_summary_raw, dict) else {}
     conflicts_unresolved_count = _as_int(reconcile_summary.get("conflicts_unresolved_count", 0))
@@ -326,6 +332,8 @@ def main() -> int:
         blocked_reasons.append("docs-hook-target-failure")
     if behavioral_check_result.status == "fail":
         blocked_reasons.append("behavioral-check-failure")
+    if prune_glob_violation_count > 0:
+        blocked_reasons.append("prune-glob-violations")
     if contract_load_error:
         blocked_reasons.append("contract-load-error")
     if plan_apply_load_error:
@@ -360,6 +368,10 @@ def main() -> int:
             "command_results": [result.as_dict() for result in docs_hook_results],
         },
         "behavioral_check": behavioral_check_result.as_dict(),
+        "prune_glob_violations": {
+            "violation_count": prune_glob_violation_count,
+            "violations": prune_glob_violations_list,
+        },
         "plan_apply_report_load_error": plan_apply_load_error or None,
         "contract_load_error": contract_load_error or None,
         "summary": {
@@ -379,6 +391,7 @@ def main() -> int:
                 len(behavioral_check_result.syntax_errors)
                 + len(behavioral_check_result.unresolved_symbols)
             ),
+            "prune_glob_violation_count": prune_glob_violation_count,
         },
     }
     _write_json(output_path, payload)

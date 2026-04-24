@@ -14,6 +14,7 @@ description: Upgrade existing generated-consumer repositories from https://githu
 5. Run upgrade preflight and review manual actions before apply mode.
 6. Run upgrade plan mode and then apply mode with the same source/ref.
 7. Resolve required manual merges if preflight/apply reports blocking actions.
+7a. After resolving manual merges, verify no files matching prune globs were introduced: `specs/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-*` and `docs/blueprint/architecture/decisions/ADR-*.md`. Remove any such files before proceeding to validation. (Required — the validate gate will fail if any are present.)
 8. Run post-upgrade validation and deterministic postcheck gate.
 9. Report selected tag/SHA, changed files, manual actions, and exact commands.
 10. Do not commit or push unless the user explicitly requests it.
