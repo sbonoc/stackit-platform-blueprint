@@ -37,9 +37,10 @@ The items below form a layered programme: #166 and #169 ship first (#160 already
 
 #### Phase 2 — Bug-fix layer (correctness regressions in the gates above)
 
-Three independent tracks; all P1, can be started in parallel.
+Four independent tracks; all P1, can be started in parallel.
 
-- [ ] P1 (Consumer upgrade flow): Issue #182 — `upgrade_fresh_env_gate`: clean worktree is missing gitignored upgrade artifacts (e.g. reconcile report), causing postcheck to always fail on a fresh-env run. The gate introduced in #163 is completely non-functional until this is resolved. **Highest severity — gate 100% broken.**
+- [x] P1 (Consumer upgrade flow): Issue #182 — `upgrade_fresh_env_gate`: clean worktree missing gitignored upgrade artifacts; postcheck always fails. **Done**: `specs/2026-04-24-issue-182-fresh-env-gate-gitignored-artifacts/`
+- [ ] P1 (Consumer upgrade flow): Issue #189 — upgrade planner and postcheck do not enforce `source_artifact_prune_globs_on_init`; consumer repos can re-acquire blueprint-internal files (e.g. ADRs, specs) during upgrade with no warning. Reported from a real consumer upgrade incident (sbonoc/dhe-marketplace#40 — 25 ADRs re-introduced). Requires: planner emits `prune-glob-excluded`/`prune-glob-violation` entries; validate scans for violations; postcheck blocks on non-empty `prune_glob_violations`.
 - [ ] P1 (Consumer upgrade flow): Issues #180 + #181 — `upgrade_shell_behavioral_check`: false positives on case-label `|` alternation and array literal bare-words (#180, P1) and `_EXCLUDED_TOKENS` incomplete — blueprint runtime functions and common OS tools flagged as unresolved (#181, P2); bundle into one work item as they affect the same component. Gate is unreliable until both are resolved.
 - [ ] P1 (Consumer upgrade flow): Issue #179 — `upgrade_reconcile_report`: `conflicts_unresolved` bucket incorrectly includes files that have already been resolved; consumers receive a wrong conflict count and may act on stale data.
 
