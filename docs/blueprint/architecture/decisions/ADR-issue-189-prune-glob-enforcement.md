@@ -1,6 +1,6 @@
 # ADR: Issue #189 — Prune-Glob Enforcement in Upgrade Validate and Postcheck
 
-- **Status**: proposed
+- **Status**: approved
 - **Date**: 2026-04-24
 - **Issue**: #189
 - **Work item**: `specs/2026-04-24-issue-189-prune-glob-enforcement/`

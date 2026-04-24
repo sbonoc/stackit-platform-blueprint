@@ -3,9 +3,9 @@
 ## Context Snapshot
 - Work item: issue-189 — prune-glob enforcement in upgrade validate and postcheck
 - Track: blueprint
-- SPEC_READY: false
+- SPEC_READY: true
 - ADR path: docs/blueprint/architecture/decisions/ADR-issue-189-prune-glob-enforcement.md
-- ADR status: proposed
+- ADR status: approved
 
 ## Guardrail Controls
 - Applicable control IDs: SDD-C-001, SDD-C-002, SDD-C-003, SDD-C-004, SDD-C-007, SDD-C-008, SDD-C-009, SDD-C-011, SDD-C-014
