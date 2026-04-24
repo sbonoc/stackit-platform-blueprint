@@ -1534,6 +1534,29 @@ class UpgradeConsumerValidateTests(unittest.TestCase):
             self.assertEqual(prune_check["violation_count"], 0)
             self.assertEqual(violations_with_glob, [])
 
+    def test_prune_glob_scan_nested_file_not_flagged(self) -> None:
+        """P1 regression: glob() is root-anchored; a file nested under a subdirectory that
+        happens to match the pattern suffix must NOT be reported as a violation."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir) / "repo"
+            _init_git_repo(repo)
+            _write(repo / "blueprint/contract.yaml", _contract_text_for_repo_mode("generated-consumer"))
+            # Nested file — would match rglob but NOT root-anchored glob
+            _write(
+                repo / "some/nested/docs/blueprint/architecture/decisions/ADR-nested.md",
+                "# Nested ADR\n",
+            )
+
+            contract = load_blueprint_contract(repo / "blueprint/contract.yaml")
+            prune_check, violations_with_glob = validate_module._scan_prune_glob_violations(
+                repo_root=repo, contract=contract
+            )
+
+            self.assertEqual(prune_check["status"], "success")
+            self.assertEqual(prune_check["violations"], [])
+            self.assertEqual(prune_check["violation_count"], 0)
+            self.assertEqual(violations_with_glob, [])
+
     # --- integration test: validate exits non-zero when prune glob file present (REQ-013) ---
 
     def test_validate_fails_when_prune_glob_file_present(self) -> None:

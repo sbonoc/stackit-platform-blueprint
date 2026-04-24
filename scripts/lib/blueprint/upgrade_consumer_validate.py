@@ -339,7 +339,16 @@ def _scan_prune_glob_violations(
     seen: set[str] = set()
 
     for pattern in globs:
-        for path in sorted(repo_root.rglob(pattern)):
+        # Mirror init_repo_contract safety check: skip empty, absolute, or traversal patterns.
+        # This keeps scan semantics consistent with prune_source_artifacts_on_initial_init
+        # which uses repo_root.glob() (root-anchored, not recursive rglob).
+        raw = pattern.strip()
+        if not raw:
+            continue
+        parsed = Path(raw)
+        if parsed.is_absolute() or any(part == ".." for part in parsed.parts):
+            continue
+        for path in sorted(repo_root.glob(raw)):
             # NFR-SEC-001: skip symlinks that resolve outside repo root
             try:
                 path.resolve().relative_to(repo_root_resolved)
