@@ -29,8 +29,8 @@ when the context matches. They are also available as slash commands:
 |---|---|---|---|
 | `/blueprint-consumer-ops` | — | `.agents/skills/blueprint-consumer-ops/SKILL.md` | Platform Engineer |
 | `/blueprint-consumer-upgrade` | — | `.agents/skills/blueprint-consumer-upgrade/SKILL.md` | Platform Engineer |
-| `/blueprint-sdd-step01-intake` | 1–2 | `.agents/skills/blueprint-sdd-step01-intake/SKILL.md` | Software Engineer |
-| `/blueprint-sdd-step03-resolve-questions` | 3 | `.agents/skills/blueprint-sdd-step03-resolve-questions/SKILL.md` | Software Engineer |
+| `/blueprint-sdd-step01-intake` | 1–2 | `.agents/skills/blueprint-sdd-step01-intake/SKILL.md` | Any stakeholder |
+| `/blueprint-sdd-step03-resolve-questions` | 3 | `.agents/skills/blueprint-sdd-step03-resolve-questions/SKILL.md` | Any stakeholder |
 | `/blueprint-sdd-step04-spec-complete` | 4 | `.agents/skills/blueprint-sdd-step04-spec-complete/SKILL.md` | Software Engineer · CTO / Architect |
 | `/blueprint-sdd-step05-plan-slicer` | 5 (optional) | `.agents/skills/blueprint-sdd-step05-plan-slicer/SKILL.md` | Software Engineer |
 | `/blueprint-sdd-step06-implement` | 6 | `.agents/skills/blueprint-sdd-step06-implement/SKILL.md` | Software Engineer |

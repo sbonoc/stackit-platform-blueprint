@@ -1,25 +1,27 @@
 ---
 name: blueprint-sdd-step01-intake
-description: Execute SDD Steps 1 and 2 — populate all work-item artifacts with real content (Discover → Plan) and open the intake Draft PR with a live Open Questions table. Consolidates the retired intake-decompose, po-spec, and clarification-gate skills.
+description: Execute SDD Steps 1 and 2 — scaffold the work item if not already done, populate all artifacts with real content (Discover → Plan), and open the intake Draft PR with a live Open Questions table. Can be invoked by any project stakeholder. Consolidates the retired intake-decompose, po-spec, and clarification-gate skills.
 ---
 
 # Blueprint SDD Step 01 — Intake + Draft PR
 
 ## Steps covered
 
+- **Step 0** (auto) — Scaffold if not already done
 - **Step 1** — Populate artifacts (Discover → High-Level Architecture → Specify → Plan)
 - **Step 2** — Commit + open Draft PR with Open Questions table
 
 ## When to Use
 
-Invoke immediately after `make spec-scaffold` completes. This skill owns
-everything from artifact population through Draft PR creation. All four
-pre-implementation phases are executed in a single pass so the Draft PR
-contains real content — not stubs or placeholders.
+Invoke when starting a new work item. The skill handles everything from
+scaffolding through Draft PR creation in a single pass. If `make spec-scaffold`
+was already run by the user, the skill detects the existing directory and skips
+it; otherwise it runs the scaffold automatically.
 
 ## Actor
 
-Software Engineer (invokes agent).
+Any project stakeholder: **CPO / PO / CTO / Architect / Software Engineer**.
+No local development environment is required beyond `make` and `gh` CLI access.
 
 ## Guardrails
 
@@ -38,12 +40,19 @@ Software Engineer (invokes agent).
 ## Workflow
 
 ```
+0. AUTO-SCAFFOLD (if not already done)
+   Check whether the spec directory exists:
+     ls specs/*-<slug>/ 2>/dev/null
+   If the directory does not exist, run:
+     make spec-scaffold SPEC_SLUG=<slug>
+   If the directory already exists, skip this step — the user ran it manually.
+
 1. Confirm source requirements document(s) and scope boundaries.
 
 2. Discover
    - Extract atomic requirements as REQ-###, NFR-###, AC-###.
    - Use only MUST / MUST NOT / SHALL / EXACTLY ONE OF in normative sections.
-   - Record applicable SDD-C-### control IDs in spec.md.
+   - Declare applicable SDD-C-### control IDs in spec.md.
    - Populate Implementation Stack Profile (stack, test automation,
      managed-service, local-first fields).
 
@@ -55,8 +64,8 @@ Software Engineer (invokes agent).
      Add a one-sentence caption per diagram.
 
 4. Specify
-   - Declare all SDD-C-### control IDs in the Applicable Guardrail Controls
-     section of spec.md.
+   - Confirm all SDD-C-### control IDs are declared in the Applicable
+     Guardrail Controls section of spec.md.
    - Confirm Implementation Stack Profile is fully populated.
 
 5. Plan
@@ -140,13 +149,14 @@ diagram adds clarity, state: "No diagram required — [one-line rationale]."
 
 Return:
 
-1. Source requirements document(s) analyzed.
-2. REQ-###, NFR-###, AC-### extracted (count per type).
-3. SDD-C-### control IDs declared.
-4. ADR path and diagram type(s) chosen with rationale.
-5. `[NEEDS CLARIFICATION]` open questions list (count + brief description each).
-6. `make quality-sdd-check` result.
-7. Draft PR URL.
+1. Scaffold status (auto-run or already existed).
+2. Source requirements document(s) analyzed.
+3. REQ-###, NFR-###, AC-### extracted (count per type).
+4. SDD-C-### control IDs declared.
+5. ADR path and diagram type(s) chosen with rationale.
+6. `[NEEDS CLARIFICATION]` open questions list (count + brief description each).
+7. `make quality-sdd-check` result.
+8. Draft PR URL.
 
 ## Useful Commands
 

@@ -64,8 +64,8 @@ flowchart TD
         c2["Architecture &\nSecurity sign-offs"]
     end
 
-    subgraph SWE["Software Engineer"]
-        s0["Step 0\nmake spec-scaffold"]
+    subgraph SWE["Any stakeholder (Steps 0–3) · Software Engineer (Steps 4–9)"]
+        s0["Step 0\nmake spec-scaffold\n(auto in step01)"]
         s1["Step 1–2\nstep01-intake"]
         s2["Step 3\nstep03-resolve-questions"]
         s3["Step 4\nstep04-spec-complete"]
@@ -78,13 +78,13 @@ flowchart TD
     end
 
     subgraph AGENT["Coding Agent"]
-        a1["Populate all artifacts\nDraft ADR\nOpen Draft PR +\nOpen Questions table"]
-        a2["Read PR comments\nResolve open questions\nUpdate PR description\nCommit + post confirmation"]
+        a1["Auto-scaffold if needed\nPopulate all artifacts\nDraft ADR\nOpen Draft PR +\nOpen Questions table"]
+        a2["Auto-scaffold if needed\nRead PR comments\nResolve open questions\nUpdate PR description\nCommit + post confirmation"]
         a3["Record sign-offs\nSPEC_READY = true\nCommit"]
         a4["Refine plan into\nexecutable slices"]
-        a5["TDD: write failing tests\nImplement · confirm green\nCommit per slice"]
+        a5["Read stack profile\nTDD: write failing tests\nImplement · confirm green\nCommit per slice"]
         a6["Update docs\nSync bootstrap templates"]
-        a7["Fill pr_context.md\nhardening_review.md\nRun quality gates"]
+        a7["Fill pr_context.md\nhardening_review.md\nFile deferred-proposal issues\nRun quality gates"]
     end
 
     s1 --> a1
@@ -144,18 +144,19 @@ sequenceDiagram
 
 ## Skill map
 
-| Skill | Steps covered | Status | Invoked by |
-|---|---|---|---|
-| `blueprint-sdd-step01-intake` | 1–2 | New | Software Engineer |
-| `blueprint-sdd-step03-resolve-questions` | 3 | New | Software Engineer |
-| `blueprint-sdd-step04-spec-complete` | 4 | Adjust + rename | Software Engineer · CTO / Architect |
-| `blueprint-sdd-step05-plan-slicer` | 5 (optional) | Rename | Software Engineer |
-| `blueprint-sdd-step06-implement` | 6 | New | Software Engineer |
-| `blueprint-sdd-step07-document-sync` | 7 | Rename | Software Engineer |
-| `blueprint-sdd-step08-pr-packager` | 8–9 | Adjust + rename | Software Engineer |
-| `blueprint-sdd-traceability-keeper` | Cross-cutting | Keep (no step number) | Software Engineer |
+| Skill | Steps covered | Invoked by |
+|---|---|---|
+| `blueprint-sdd-step01-intake` | 0 (auto-scaffold) + 1–2 | Any stakeholder |
+| `blueprint-sdd-step03-resolve-questions` | 0 (auto-scaffold, safety) + 3 | Any stakeholder |
+| `blueprint-sdd-step04-spec-complete` | 4 | Software Engineer · CTO / Architect |
+| `blueprint-sdd-step05-plan-slicer` | 5 (optional) | Software Engineer |
+| `blueprint-sdd-step06-implement` | 6 | Software Engineer |
+| `blueprint-sdd-step07-document-sync` | 7 | Software Engineer |
+| `blueprint-sdd-step08-pr-packager` | 8–9 | Software Engineer |
+| `blueprint-sdd-traceability-keeper` | Cross-cutting | Software Engineer |
 
-Step 0 (scaffold) is a plain `make` command — no skill.
+Step 0 (scaffold) is normally run by `step01-intake` automatically; it can
+also be run manually with `make spec-scaffold SPEC_SLUG=<slug>`.
 Skills retired: `blueprint-sdd-intake-decompose`, `blueprint-sdd-po-spec`,
 `blueprint-sdd-clarification-gate` (absorbed into `step01-intake` and
 `step03-resolve-questions`).
@@ -164,7 +165,8 @@ Skills retired: `blueprint-sdd-intake-decompose`, `blueprint-sdd-po-spec`,
 
 ## Step 0 — Scaffold
 
-**Command:**
+**Normally handled automatically by `step01-intake`.**
+Run manually only when explicitly needed before invoking the skill:
 
 ```bash
 make spec-scaffold SPEC_SLUG=<work-item-slug>
@@ -199,11 +201,12 @@ make spec-scaffold SPEC_SLUG=<work-item-slug>
 ## Step 1 — Populate artifacts (Discover → Plan)
 
 **Skill:** `blueprint-sdd-step01-intake`
+**Invoked by:** Any stakeholder — CPO / PO / CTO / Architect / Software Engineer.
 
-The four pre-implementation phases are executed in a single pass
-immediately after scaffolding. Every artifact must contain real content
-before the Draft PR opens. Stub placeholders are not acceptable in the
-Draft PR.
+The skill auto-runs the scaffold if it has not already been done, then
+executes the four pre-implementation phases in a single pass. Every artifact
+must contain real content before the Draft PR opens. Stub placeholders are not
+acceptable in the Draft PR.
 
 ### Discover
 
@@ -323,10 +326,12 @@ resolved.
 ## Step 3 — Open question resolution loop
 
 **Skill:** `blueprint-sdd-step03-resolve-questions`
+**Invoked by:** Any stakeholder — CPO / PO / CTO / Architect / Software Engineer.
 
-The PO and other reviewers examine the Draft PR on GitHub. This is the
-canonical review mechanism and works regardless of whether reviewers
-have Claude Code.
+The skill auto-runs the scaffold as a safety check if the spec directory is
+missing, then proceeds with resolution. The PO and other reviewers examine the
+Draft PR on GitHub. This is the canonical review mechanism and works regardless
+of whether reviewers have Claude Code.
 
 ### How reviewers answer open questions
 
@@ -416,6 +421,11 @@ before any code is written.
 Code is written in TDD slices following the sequence in `plan.md`. All
 commits go to the same branch and appear in the same Draft PR.
 
+The skill reads the `Implementation Stack Profile` in `spec.md` first and
+derives the correct test commands for the declared backend, frontend, and test
+automation profiles. Canonical Make targets are used wherever they exist;
+the raw test runner is a fallback for new apps not yet wired to Make.
+
 ### Slice 1 — Failing tests (red)
 
 Write all new tests first. Confirm each fails with the expected error
@@ -432,11 +442,13 @@ Schema updates, skill runbook changes, configuration updates — per the
 plan. Mark each task `[x]` in `tasks.md` as it completes.
 
 **Git:** one commit per logical slice, pushed to the same branch.
-**Checks per slice:**
+**Checks per slice (stack-agnostic Make targets):**
 
 ```bash
-python3 -m pytest tests/<module>/ -v -k "<marker>"   # targeted
-python3 -m pytest tests/ -q                           # full suite, no regressions
+make backend-test-unit          # backend unit tests
+make touchpoints-test-unit      # frontend/touchpoints unit tests
+make test-unit-all              # full unit suite — no regressions
+make test-smoke-all-local       # HTTP route / filter / query scope only
 ```
 
 ---
@@ -475,16 +487,23 @@ make quality-docs-check-changed
 
 **Skill:** `blueprint-sdd-step08-pr-packager`
 
-Fill the remaining artifacts, mark all tasks complete, and pass the
-final validation gate.
+Fill the remaining artifacts, file a GitHub issue for each deferred proposal,
+mark all tasks complete, and pass the final validation gate.
 
 **Artifacts completed:**
 
 | File | Content |
 |---|---|
 | `hardening_review.md` | Repo-wide findings fixed, observability/diagnostics changes, quality compliance notes, proposals-only section |
-| `pr_context.md` | Summary, full REQ/NFR/AC coverage, key reviewer files, exact validation commands + results, risk + rollback, deferred proposals |
+| `pr_context.md` | Summary, full REQ/NFR/AC coverage, key reviewer files, exact validation commands + results, risk + rollback, deferred proposals with issue URLs |
 | `tasks.md` | All task boxes marked `[x]` |
+| `AGENTS.backlog.md` | New entry per deferred proposal, with GitHub issue link |
+
+**Deferred proposal lifecycle:** For each entry in the proposals-only section of
+`hardening_review.md`, the agent files a GitHub issue and records the issue URL
+in `pr_context.md` and `AGENTS.backlog.md`. This turns buried PR review notes
+into traceable backlog items that are either picked up in a future work item or
+explicitly closed with a rejection rationale.
 
 **Git:** final commit + push (same PR).
 **Checks (all must pass):**
@@ -527,18 +546,18 @@ All must be green (or legitimately skipped) before merge.
 
 ## Summary
 
-| Step | Key artifacts | Skill | Git operation | Checks |
-|---|---|---|---|---|
-| 0 Scaffold | Stub files in `specs/YYYY-MM-DD-<slug>/` | — (`make spec-scaffold`) | New branch, no commit | None |
-| 1 Populate artifacts | `spec.md`, `architecture.md`, ADR, `plan.md`, `tasks.md`, `graph.json`, `traceability.md` — real content | `step01-intake` | None | `quality-sdd-check` |
-| 2 Draft PR | All populated artifacts committed | `step01-intake` | Commit + push + **Draft PR opened** | `quality-sdd-check` |
-| 3 Resolve open questions | Artifacts updated; Open Questions table updated; sign-off recorded | `step03-resolve-questions` | Commit + push per round (same PR) | `quality-sdd-check` |
-| 4 SPEC_READY | `spec.md` (`SPEC_READY=true`), ADR (`approved`) | `step04-spec-complete` | Commit + push (same PR) | `quality-sdd-check` |
-| 5 Refine plan | `plan.md` updated (optional) | `step05-plan-slicer` | Commit + push if changed (same PR) | None |
-| 6 Implement | Code, tests, schemas; `tasks.md` updated | `step06-implement` | Per-slice commits + push (same PR) | `pytest` targeted + full suite |
-| 7 Document / Operate | `docs/`, `SKILL.md`, bootstrap template sync | `step07-document-sync` | Commit + push (same PR) | `quality-docs-check-changed` |
-| 8 Publish | `pr_context.md`, `hardening_review.md`, `tasks.md` | `step08-pr-packager` | Final commit + push (same PR) | `quality-hooks-fast`, `quality-hardening-review` |
-| 9 PR ready | — | `step08-pr-packager` | **Draft → Ready** (same PR) | CI: `blueprint-quality`, `generated-consumer-smoke`, `upgrade-e2e-validation` |
+| Step | Key artifacts | Skill | Who invokes | Git operation | Checks |
+|---|---|---|---|---|---|
+| 0 Scaffold | Stub files in `specs/YYYY-MM-DD-<slug>/` | auto in `step01-intake` | Any stakeholder | New branch, no commit | None |
+| 1 Populate artifacts | `spec.md`, `architecture.md`, ADR, `plan.md`, `tasks.md`, `graph.json`, `traceability.md` — real content | `step01-intake` | Any stakeholder | None | `quality-sdd-check` |
+| 2 Draft PR | All populated artifacts committed | `step01-intake` | Any stakeholder | Commit + push + **Draft PR opened** | `quality-sdd-check` |
+| 3 Resolve open questions | Artifacts updated; Open Questions table updated; sign-off recorded | `step03-resolve-questions` | Any stakeholder | Commit + push per round (same PR) | `quality-sdd-check` |
+| 4 SPEC_READY | `spec.md` (`SPEC_READY=true`), ADR (`approved`) | `step04-spec-complete` | Software Engineer · CTO / Architect | Commit + push (same PR) | `quality-sdd-check` |
+| 5 Refine plan | `plan.md` updated (optional) | `step05-plan-slicer` | Software Engineer | Commit + push if changed (same PR) | None |
+| 6 Implement | Code, tests, schemas; `tasks.md` updated | `step06-implement` | Software Engineer | Per-slice commits + push (same PR) | Stack-agnostic Make targets |
+| 7 Document / Operate | `docs/`, `SKILL.md`, bootstrap template sync | `step07-document-sync` | Software Engineer | Commit + push (same PR) | `quality-docs-check-changed` |
+| 8 Publish | `pr_context.md`, `hardening_review.md`, `tasks.md`, deferred-proposal issues | `step08-pr-packager` | Software Engineer | Final commit + push (same PR) | `quality-hooks-fast`, `quality-hardening-review` |
+| 9 PR ready | — | `step08-pr-packager` | Software Engineer | **Draft → Ready** (same PR) | CI: `blueprint-quality`, `generated-consumer-smoke`, `upgrade-e2e-validation` |
 
 ---
 

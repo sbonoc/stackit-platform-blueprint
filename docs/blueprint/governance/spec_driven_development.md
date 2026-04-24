@@ -198,8 +198,8 @@ Each skill covers one or more execution steps from the
 
 | Skill | Steps | Actor |
 |---|---|---|
-| `blueprint-sdd-step01-intake` | 1–2 (Discover → Plan, Draft PR) | Software Engineer |
-| `blueprint-sdd-step03-resolve-questions` | 3 (open question resolution loop) | Software Engineer |
+| `blueprint-sdd-step01-intake` | 0 (auto-scaffold) + 1–2 (Discover → Plan, Draft PR) | Any stakeholder |
+| `blueprint-sdd-step03-resolve-questions` | 0 (auto-scaffold, safety) + 3 (open question resolution loop) | Any stakeholder |
 | `blueprint-sdd-step04-spec-complete` | 4 (Architecture/Security/Ops sign-offs, SPEC_READY) | Software Engineer · CTO / Architect |
 | `blueprint-sdd-step05-plan-slicer` | 5 (plan refinement, optional) | Software Engineer |
 | `blueprint-sdd-step06-implement` | 6 (TDD implementation slices) | Software Engineer |

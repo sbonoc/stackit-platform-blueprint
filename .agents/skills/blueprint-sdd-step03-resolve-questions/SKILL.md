@@ -1,12 +1,13 @@
 ---
 name: blueprint-sdd-step03-resolve-questions
-description: Execute SDD Step 3 — read PR comments from reviewers (PO, Architect, etc.), replace [NEEDS CLARIFICATION] blocks in artifacts with resolved decisions, update the Open Questions table in the PR description, commit, and post a confirmation comment. Repeats until open question count reaches zero and SPEC_PRODUCT_READY is recorded.
+description: Execute SDD Step 3 — scaffold if not already done, read PR comments from reviewers (PO, Architect, etc.), replace [NEEDS CLARIFICATION] blocks in artifacts with resolved decisions, update the Open Questions table in the PR description, commit, and post a confirmation comment. Repeats until open question count reaches zero and SPEC_PRODUCT_READY is recorded. Can be invoked by any project stakeholder.
 ---
 
 # Blueprint SDD Step 03 — Open Question Resolution Loop
 
 ## Step covered
 
+- **Step 0** (auto) — Scaffold if not already done
 - **Step 3** — Resolve open questions from PR comments, loop until count = 0
 
 ## When to Use
@@ -22,24 +23,32 @@ is recorded in `spec.md`.
 
 ## Actor
 
-Software Engineer (invokes agent).  
-Reviewers: CPO / PO, CTO / Architect — interact exclusively via GitHub PR comments.
+Any project stakeholder: **CPO / PO / CTO / Architect / Software Engineer**.
+Reviewers interact exclusively via GitHub PR comments — no local tooling required.
 
 ## Guardrails
 
-1. Read ALL PR comments and inline review comments before beginning any edits.
-2. Replace each resolved `[NEEDS CLARIFICATION]` block with the decision text
+1. If the spec directory is missing when the skill starts, run the scaffold first.
+2. Read ALL PR comments and inline review comments before beginning any edits.
+3. Replace each resolved `[NEEDS CLARIFICATION]` block with the decision text
    and its rationale. Do not leave partial blocks.
-3. Record `SPEC_PRODUCT_READY: approved` and `Product sign-off: approved` in
+4. Record `SPEC_PRODUCT_READY: approved` and `Product sign-off: approved` in
    `spec.md` when the deterministic sign-off phrase is present in a PR comment.
-4. Do not self-approve any sign-off field — only record what reviewers explicitly stated.
-5. Do not alter unresolved questions — only remove blocks that have a reviewer answer.
-6. Run `make quality-sdd-check` after each round to confirm the marker count drops.
-7. All commits go to the same branch — the same Draft PR auto-updates.
+5. Do not self-approve any sign-off field — only record what reviewers explicitly stated.
+6. Do not alter unresolved questions — only remove blocks that have a reviewer answer.
+7. Run `make quality-sdd-check` after each round to confirm the marker count drops.
+8. All commits go to the same branch — the same Draft PR auto-updates.
 
 ## Workflow
 
 ```
+0. AUTO-SCAFFOLD (if not already done)
+   Check whether the spec directory exists:
+     ls specs/*-<slug>/ 2>/dev/null
+   If the directory does not exist, run:
+     make spec-scaffold SPEC_SLUG=<slug>
+   If the directory already exists, skip this step.
+
 1. Read all PR comments and inline review comments:
    gh pr view <number> --comments
    gh api repos/<owner>/<repo>/pulls/<number>/comments   # inline comments
@@ -99,13 +108,14 @@ comment asking them to leave a comment with the exact phrase.
 
 Return:
 
-1. PR comments read (count).
-2. Questions resolved this round (list with brief decision summary each).
-3. Questions remaining (count + brief description each).
-4. Sign-offs recorded (if any) and in which field.
-5. `make quality-sdd-check` result (marker count before → after).
-6. Commit SHA pushed.
-7. Confirmation PR comment posted (yes/no).
+1. Scaffold status (auto-run or already existed).
+2. PR comments read (count).
+3. Questions resolved this round (list with brief decision summary each).
+4. Questions remaining (count + brief description each).
+5. Sign-offs recorded (if any) and in which field.
+6. `make quality-sdd-check` result (marker count before → after).
+7. Commit SHA pushed.
+8. Confirmation PR comment posted (yes/no).
 
 ## Useful Commands
 
