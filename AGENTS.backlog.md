@@ -32,13 +32,23 @@ The items below form a layered programme: #166 and #169 ship first (#160 already
 
 #### Phase 2 — Correctness gates (implement inside the Phase 1 CI job)
 
-- [ ] P1 (Consumer upgrade flow): Issue #162 — add post-merge behavioral validation gate for merge-required plan entries; run `bash -n` on all modified shell scripts and resolve function call sites to verify no definition was silently dropped by a 3-way merge. Catches the most dangerous upgrade failure class: a green merge that produces `command not found` at runtime. **In progress**: `specs/2026-04-23-issue-162-post-merge-behavioral-validation/` — SPEC_READY=true, plan sliced, implementation ready.
-- [ ] P1 (Consumer upgrade flow): Issue #163 — run the post-upgrade smoke gate in a temporary clean worktree (fresh-environment simulation) so CI-only failures — files absent on a fresh checkout but present in the developer's working tree — are surfaced during the local upgrade run, before the PR is opened.
+- [x] P1 (Consumer upgrade flow): Issue #162 — add post-merge behavioral validation gate for merge-required plan entries; run `bash -n` on all modified shell scripts and resolve function call sites to verify no definition was silently dropped by a 3-way merge. **Done**: `specs/2026-04-23-issue-162-post-merge-behavioral-validation/`
+- [x] P1 (Consumer upgrade flow): Issue #163 — run the post-upgrade smoke gate in a temporary clean worktree (fresh-environment simulation) so CI-only failures are surfaced during the local upgrade run, before the PR is opened. **Done**: `specs/2026-04-23-issue-163-fresh-env-smoke-gate/`
+
+#### Phase 2 — Bug-fix layer (correctness regressions in the gates above)
+
+Three independent tracks; all P1, can be started in parallel.
+
+- [ ] P1 (Consumer upgrade flow): Issue #182 — `upgrade_fresh_env_gate`: clean worktree is missing gitignored upgrade artifacts (e.g. reconcile report), causing postcheck to always fail on a fresh-env run. The gate introduced in #163 is completely non-functional until this is resolved. **Highest severity — gate 100% broken.**
+- [ ] P1 (Consumer upgrade flow): Issues #180 + #181 — `upgrade_shell_behavioral_check`: false positives on case-label `|` alternation and array literal bare-words (#180, P1) and `_EXCLUDED_TOKENS` incomplete — blueprint runtime functions and common OS tools flagged as unresolved (#181, P2); bundle into one work item as they affect the same component. Gate is unreliable until both are resolved.
+- [ ] P1 (Consumer upgrade flow): Issue #179 — `upgrade_reconcile_report`: `conflicts_unresolved` bucket incorrectly includes files that have already been resolved; consumers receive a wrong conflict count and may act on stale data.
 
 #### Phase 3 — Reporting and guidance improvements
 
 - [ ] P2 (Consumer upgrade flow): Issue #164 — in the upgrade preflight report, list all version pin changes in `versions.sh` between the two tags and map each changed pin to the template files it affects; provide an explicit action item to sync them after `infra-bootstrap` rather than leaving the consumer to discover template drift reactively via `infra-validate`.
-- [ ] P2 (Consumer upgrade flow): Issue #165 — enrich merge-required plan entries with semantic annotations describing what changed in each file and what the consumer should verify after applying the merge (e.g. "new function `foo` added — verify definition is present in merged result"); annotations appear in both the plan output and the post-apply report.
+- [x] P2 (Consumer upgrade flow): Issue #165 — enrich merge-required plan entries with semantic annotations describing what changed in each file and what the consumer should verify after applying the merge. **Done**: `specs/2026-04-23-issue-165-semantic-annotations/`
+- [ ] P2 (Consumer upgrade flow): Issue #183 — `upgrade_consumer_postcheck`: detect when the reconcile report on disk was generated against a different source/target tag pair than the current run and auto-rebuild it rather than silently operating on stale data.
+- [ ] P2 (Consumer upgrade flow): Issue #184 — `upgrade_shell_behavioral_check`: make the symbol exclusion set extensible via consumer configuration (e.g. `BEHAVIORAL_CHECK_EXCLUDED_TOKENS` in `versions.sh` or a dedicated config file) so consumers can suppress project-specific false positives without patching blueprint code. Follow-on to #181.
 
 #### Phase 4 — Major UX improvements (build on the stable correctness foundation)
 
@@ -64,8 +74,12 @@ The items below form a layered programme: #166 and #169 ship first (#160 already
 - [ ] Extend the consumer seed resync workflow with optional merge-assist coverage for selected init-managed identity files without weakening customization boundaries.
 - [ ] Add pluggable async message-contract provider support beyond Pact while preserving the canonical producer/consumer lane contract and upgrade safety guarantees.
 
+## Platform Module Candidates
+- [ ] Issue #171 — managed-cache module: STACKIT Managed Redis as a first-class optional module (Helm/ArgoCD-managed); provider-backed via official STACKIT Terraform resources.
+- [ ] Issue #172 — platform-email module: Helm/ArgoCD-managed Postal for transactional email as an optional module alongside existing platform modules.
+
 ## Provider-Backed STACKIT Expansion Candidates
-- [ ] Evaluate and add a provider-backed Redis module built on official STACKIT Terraform resources.
+- [ ] Evaluate and add a provider-backed Redis module built on official STACKIT Terraform resources. *(tracked as Issue #171 — see Platform Module Candidates above)*
 - [ ] Evaluate and add provider-backed relational/NoSQL data-service modules for the currently available STACKIT Terraform resources (`mariadb`, `mongodbflex`, `sqlserverflex`).
 - [ ] Evaluate and add a provider-backed Logs/LogMe module or baseline observability extension using official STACKIT Terraform resources.
 - [ ] Evaluate and add a provider-backed File Storage module using STACKIT SFS Terraform resources.
