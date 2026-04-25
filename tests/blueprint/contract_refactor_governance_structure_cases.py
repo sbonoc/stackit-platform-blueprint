@@ -436,7 +436,21 @@ class GovernanceStructureCases(RefactorContractBase):
             }.issubset(required_files),
             msg="contract required_files is missing canonical blueprint assets",
         )
-        self.assertEqual(source_only_paths, {"tests/blueprint", "tests/docs"})
+        self.assertEqual(
+            source_only_paths,
+            {
+                "tests/blueprint",
+                "tests/docs",
+                "specs",
+                "CLAUDE.md",
+                "docs/blueprint",
+                "docs/src",
+                "docs/sidebars.js",
+                "docs/pnpm-lock.yaml",
+                "docs/package.json",
+                "blueprint/modules",
+            },
+        )
         self.assertTrue(
             {
                 "README.md",

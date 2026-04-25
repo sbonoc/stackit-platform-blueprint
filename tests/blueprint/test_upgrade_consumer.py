@@ -362,7 +362,9 @@ class UpgradeConsumerTests(unittest.TestCase):
             reconcile_summary = reconcile_report.get("summary", {})
             self.assertEqual(reconcile_summary.get("blocked"), True)
             self.assertEqual(reconcile_summary.get("consumer_owned_manual_review_count"), 2)
-            self.assertEqual(reconcile_summary.get("conflicts_unresolved_count"), 1)
+            # smoke.sh auto-merged (no active conflict markers in working tree): count is 0
+            # conflicts_unresolved now tracks live <<<<<<< markers, not plan/apply metadata
+            self.assertEqual(reconcile_summary.get("conflicts_unresolved_count"), 0)
             manual_bucket = reconcile_report.get("buckets", {}).get("consumer_owned_manual_review", [])
             self.assertTrue(
                 any(

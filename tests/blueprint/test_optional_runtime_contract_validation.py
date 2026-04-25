@@ -171,7 +171,7 @@ class OptionalRuntimeContractValidationTests(unittest.TestCase):
             )
             self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
             self.assertIn(
-                "missing path: apps/catalog/missing-manifest.yaml",
+                "missing file: apps/catalog/missing-manifest.yaml",
                 result.stdout + result.stderr,
             )
 
