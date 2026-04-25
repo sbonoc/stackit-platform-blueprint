@@ -402,5 +402,119 @@ class TestFreshEnvGateShellWrapper(unittest.TestCase):
             self.assertIn("scripts/bootstrap_output.sh", missing_files)
 
 
+class TestArtifactChecksumDivergence(unittest.TestCase):
+    """FR-012–FR-014: checksum-based divergence detection for artifacts/blueprint/."""
+
+    def test_compute_artifact_checksums_detects_content_diff(self) -> None:
+        """FR-013: files with differing checksums must appear in divergences with checksum keys."""
+        from scripts.lib.blueprint.upgrade_fresh_env_gate import compute_artifact_checksum_divergences
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            worktree = Path(tmpdir) / "worktree"
+            working = Path(tmpdir) / "working"
+            for d in (worktree, working):
+                (d / "artifacts" / "blueprint").mkdir(parents=True)
+
+            # Same filename, different content → checksum mismatch
+            (worktree / "artifacts" / "blueprint" / "upgrade_apply.json").write_text(
+                '{"status":"applied-v1"}\n', encoding="utf-8"
+            )
+            (working / "artifacts" / "blueprint" / "upgrade_apply.json").write_text(
+                '{"status":"applied-v2"}\n', encoding="utf-8"
+            )
+
+            divergences = compute_artifact_checksum_divergences(worktree, working)
+
+            self.assertEqual(len(divergences), 1)
+            d = divergences[0]
+            self.assertEqual(d["path"], "artifacts/blueprint/upgrade_apply.json")
+            self.assertIn("worktree_checksum", d)
+            self.assertIn("working_tree_checksum", d)
+            self.assertNotEqual(d["worktree_checksum"], d["working_tree_checksum"])
+
+    def test_compute_artifact_checksums_empty_when_identical(self) -> None:
+        """FR-012: identical content → no divergences."""
+        from scripts.lib.blueprint.upgrade_fresh_env_gate import compute_artifact_checksum_divergences
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            worktree = Path(tmpdir) / "worktree"
+            working = Path(tmpdir) / "working"
+            content = '{"status":"applied"}\n'
+            for d in (worktree, working):
+                p = d / "artifacts" / "blueprint"
+                p.mkdir(parents=True)
+                (p / "upgrade_apply.json").write_text(content, encoding="utf-8")
+
+            divergences = compute_artifact_checksum_divergences(worktree, working)
+            self.assertEqual(divergences, [])
+
+    def test_compute_artifact_checksums_missing_dir_returns_empty(self) -> None:
+        """No artifacts/blueprint/ directory → graceful empty result."""
+        from scripts.lib.blueprint.upgrade_fresh_env_gate import compute_artifact_checksum_divergences
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            worktree = Path(tmpdir) / "worktree"
+            working = Path(tmpdir) / "working"
+            worktree.mkdir()
+            working.mkdir()
+
+            divergences = compute_artifact_checksum_divergences(worktree, working)
+            self.assertEqual(divergences, [])
+
+    def test_gate_fails_on_artifact_checksum_divergence_even_when_targets_pass(self) -> None:
+        """FR-014: gate must set gate_status=fail when artifact checksums differ, even if both make targets exit 0."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir) / "consumer"
+            _init_git_repo(repo)
+
+            # Makefile target overwrites the seeded artifact with different content
+            content = (
+                ".PHONY: infra-validate blueprint-upgrade-consumer-postcheck\n\n"
+                "infra-validate:\n\t@exit 0\n\n"
+                "blueprint-upgrade-consumer-postcheck:\n"
+                "\t@echo '{\"status\":\"recomputed\"}' > artifacts/blueprint/upgrade_apply.json\n"
+            )
+            _write(repo / "Makefile", content)
+            _require_success(_git(repo, "add", "Makefile"), "git add Makefile")
+            _require_success(_git(repo, "commit", "-m", "add Makefile"), "git commit Makefile")
+
+            # Seed the working-tree artifact with different content from what the target produces
+            _write(repo / "artifacts" / "blueprint" / "upgrade_apply.json", '{"status":"original"}\n')
+
+            result = _run_gate(repo)
+
+            self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            report = _load_json(repo / GATE_REPORT_NAME)
+            self.assertEqual(report["status"], "fail")
+            divergences = report["divergences"]
+            paths = [d["path"] for d in divergences]
+            self.assertIn("artifacts/blueprint/upgrade_apply.json", paths)
+
+    def test_gate_passes_when_artifact_checksums_match(self) -> None:
+        """FR-014: gate must pass when artifact checksums match and targets exit 0."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir) / "consumer"
+            _init_git_repo(repo)
+
+            # The make target does not modify the seeded artifact (idempotent run)
+            content = (
+                ".PHONY: infra-validate blueprint-upgrade-consumer-postcheck\n\n"
+                "infra-validate:\n\t@exit 0\n\n"
+                "blueprint-upgrade-consumer-postcheck:\n\t@exit 0\n"
+            )
+            _write(repo / "Makefile", content)
+            _require_success(_git(repo, "add", "Makefile"), "git add Makefile")
+            _require_success(_git(repo, "commit", "-m", "add Makefile"), "git commit Makefile")
+
+            # Seed working-tree artifact; worktree will also receive a copy via seeding
+            _write(repo / "artifacts" / "blueprint" / "upgrade_apply.json", '{"status":"applied"}\n')
+
+            result = _run_gate(repo)
+
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            report = _load_json(repo / GATE_REPORT_NAME)
+            self.assertEqual(report["status"], "pass")
+
+
 if __name__ == "__main__":
     unittest.main()

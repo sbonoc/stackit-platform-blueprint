@@ -21,6 +21,7 @@ CLI usage (invoked by the shell wrapper):
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from dataclasses import dataclass
 from pathlib import Path
@@ -118,6 +119,65 @@ def compute_divergences(
 
 
 # ---------------------------------------------------------------------------
+# Artifact checksum divergence computation (FR-012 / FR-013)
+# ---------------------------------------------------------------------------
+
+_ARTIFACT_SUBDIR = "artifacts/blueprint"
+
+
+def _sha256_file(path: Path) -> str:
+    """Return the hex SHA-256 digest of a file's content."""
+    h = hashlib.sha256()
+    with path.open("rb") as f:
+        for chunk in iter(lambda: f.read(65536), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def _collect_artifact_checksums(root: Path) -> dict[str, str]:
+    """Return {relative_posix_path: sha256_hex} for all files under artifacts/blueprint/."""
+    artifact_dir = root / _ARTIFACT_SUBDIR
+    if not artifact_dir.is_dir():
+        return {}
+    result: dict[str, str] = {}
+    for path in sorted(artifact_dir.rglob("*")):
+        if not path.is_file():
+            continue
+        rel = path.relative_to(root).as_posix()
+        result[rel] = _sha256_file(path)
+    return result
+
+
+def compute_artifact_checksum_divergences(
+    worktree_path: str | Path,
+    working_tree_path: str | Path,
+) -> list[dict[str, str]]:
+    """Compare SHA-256 checksums of artifacts/blueprint/ files between worktree and working tree.
+
+    Returns a list of divergence dicts with keys:
+      - "path": repo-relative POSIX path
+      - "worktree_checksum": SHA-256 hex of the file in the clean worktree (or "" if absent)
+      - "working_tree_checksum": SHA-256 hex of the file in the working tree (or "" if absent)
+    Only files whose checksums differ (including absent-on-one-side cases) are included.
+    """
+    wt_checksums = _collect_artifact_checksums(Path(worktree_path))
+    wk_checksums = _collect_artifact_checksums(Path(working_tree_path))
+
+    all_paths = sorted(set(wt_checksums) | set(wk_checksums))
+    divergences: list[dict[str, str]] = []
+    for rel in all_paths:
+        wt_sum = wt_checksums.get(rel, "")
+        wk_sum = wk_checksums.get(rel, "")
+        if wt_sum != wk_sum:
+            divergences.append({
+                "path": rel,
+                "worktree_checksum": wt_sum,
+                "working_tree_checksum": wk_sum,
+            })
+    return divergences
+
+
+# ---------------------------------------------------------------------------
 # Report writer
 # ---------------------------------------------------------------------------
 
@@ -173,8 +233,17 @@ def main() -> None:
     if args.status == "fail" and worktree.exists():
         divergences = compute_divergences(worktree, working_tree)
 
+    # Always compute artifact checksum divergences when worktree exists.
+    # These are added to the divergences list and may upgrade the status to "fail".
+    effective_status = args.status
+    if worktree.exists():
+        checksum_divergences = compute_artifact_checksum_divergences(worktree, working_tree)
+        divergences.extend(checksum_divergences)
+        if checksum_divergences and effective_status == "pass":
+            effective_status = "fail"
+
     result = FreshEnvGateResult(
-        status=args.status,
+        status=effective_status,
         worktree_path=str(worktree),
         targets_run=args.targets_run,
         divergences=divergences,

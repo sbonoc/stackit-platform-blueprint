@@ -144,13 +144,34 @@ fi
 # ---------------------------------------------------------------------------
 if [[ "$gate_exit_code" -eq 0 ]]; then
   gate_status="pass"
-  log_info "fresh-env gate: PASS — upgrade is CI-equivalent"
 else
   gate_status="fail"
-  log_error "fresh-env gate: FAIL — CI would see a different result; check divergences in ${gate_report_path}"
+  log_error "fresh-env gate: FAIL — make targets failed; check divergences in ${gate_report_path}"
 fi
 
 _write_report "$gate_status" "$gate_exit_code"
+
+# FR-014: re-read the effective status from the written report — the Python module may
+# have upgraded "pass" to "fail" when artifact checksum divergences were detected even
+# though both make targets exited 0.
+_resolved_report_path="$consumer_root/$gate_report_path"
+if [[ "$gate_report_path" == /* ]]; then
+  _resolved_report_path="$gate_report_path"
+fi
+if [[ -f "$_resolved_report_path" ]]; then
+  effective_status="$(python3 -c "import json; print(json.load(open('$_resolved_report_path'))['status'])" 2>/dev/null || echo "$gate_status")"
+  if [[ "$effective_status" != "$gate_status" ]]; then
+    gate_status="$effective_status"
+    gate_exit_code=1
+  fi
+fi
+
+if [[ "$gate_status" == "pass" ]]; then
+  log_info "fresh-env gate: PASS — upgrade is CI-equivalent"
+else
+  log_error "fresh-env gate: FAIL — CI would see a different result; check divergences in ${gate_report_path}"
+fi
+
 log_metric "blueprint_upgrade_fresh_env_gate_status_total" "1" "status=${gate_status}"
 
 exit "$gate_exit_code"
