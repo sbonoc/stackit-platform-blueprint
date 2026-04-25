@@ -170,3 +170,76 @@ class TestRunBehavioralCheckAsDict(unittest.TestCase):
         self.assertIn("syntax_errors", d)
         self.assertIn("unresolved_symbols", d)
         self.assertIn("status", d)
+
+
+class TestRunBehavioralCheckCaseLabelAlternation(unittest.TestCase):
+    """FR-005 / AC-003: case-label alternation tokens must not be flagged."""
+
+    def test_case_alternation_not_flagged(self) -> None:
+        """build|test) and deploy | verify) labels produce zero unresolved_symbols."""
+        script = FIXTURE_DIR / "case_label_alternation_script.sh"
+        result = run_behavioral_check([script], repo_root=REPO_ROOT)
+
+        symbols = [e["symbol"] for e in result.unresolved_symbols]
+        self.assertNotIn("build", symbols, msg="'build' from 'build|test)' must not be flagged")
+        self.assertNotIn("test", symbols, msg="'test' from 'build|test)' must not be flagged")
+        self.assertNotIn("deploy", symbols, msg="'deploy' from 'deploy | verify)' must not be flagged")
+        self.assertNotIn("verify", symbols, msg="'verify' from alternation must not be flagged")
+        self.assertEqual(result.status, "pass", msg=str(result.as_dict()))
+
+
+class TestRunBehavioralCheckArrayInitializer(unittest.TestCase):
+    """FR-006 / AC-004: bare-words inside array initializers must not be flagged."""
+
+    def test_array_init_bare_words_not_flagged(self) -> None:
+        """observability, postgres, deploy, validate inside =( ... ) are not calls."""
+        script = FIXTURE_DIR / "array_init_script.sh"
+        result = run_behavioral_check([script], repo_root=REPO_ROOT)
+
+        symbols = [e["symbol"] for e in result.unresolved_symbols]
+        for bare_word in ("observability", "postgres", "rabbitmq", "deploy", "validate",
+                          "cleanup", "provision"):
+            self.assertNotIn(
+                bare_word, symbols,
+                msg=f"'{bare_word}' inside array initializer must not be flagged",
+            )
+        self.assertEqual(result.status, "pass", msg=str(result.as_dict()))
+
+
+class TestRunBehavioralCheckExcludedTokensExtended(unittest.TestCase):
+    """FR-007 / FR-008 / AC-005: tar, pnpm, and 13 blueprint runtime functions excluded."""
+
+    def test_tar_and_pnpm_not_flagged(self) -> None:
+        script = FIXTURE_DIR / "excluded_tokens_script.sh"
+        result = run_behavioral_check([script], repo_root=REPO_ROOT)
+
+        symbols = [e["symbol"] for e in result.unresolved_symbols]
+        self.assertNotIn("tar", symbols, msg="'tar' must be in _EXCLUDED_TOKENS")
+        self.assertNotIn("pnpm", symbols, msg="'pnpm' must be in _EXCLUDED_TOKENS")
+
+    def test_blueprint_runtime_functions_not_flagged(self) -> None:
+        """All 13 blueprint runtime functions from FR-008 must be excluded."""
+        script = FIXTURE_DIR / "excluded_tokens_script.sh"
+        result = run_behavioral_check([script], repo_root=REPO_ROOT)
+
+        symbols = [e["symbol"] for e in result.unresolved_symbols]
+        expected_excluded = [
+            "blueprint_require_runtime_env",
+            "blueprint_sanitize_init_placeholder_defaults",
+            "ensure_file_from_template",
+            "ensure_file_from_rendered_template",
+            "postgres_init_env",
+            "object_storage_init_env",
+            "rabbitmq_seed_env_defaults",
+            "public_endpoints_seed_env_defaults",
+            "identity_aware_proxy_seed_env_defaults",
+            "keycloak_seed_env_defaults",
+            "render_optional_module_values_file",
+            "apply_optional_module_secret_from_literals",
+            "delete_optional_module_secret",
+        ]
+        for fn in expected_excluded:
+            self.assertNotIn(
+                fn, symbols,
+                msg=f"'{fn}' must be in _EXCLUDED_TOKENS per FR-008",
+            )
