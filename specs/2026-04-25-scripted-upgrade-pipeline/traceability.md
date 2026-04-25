@@ -57,6 +57,6 @@
 - Hardening review export: `hardening_review.md`
 
 ## Open Risks and Follow-Ups
-- Follow-up 1: Q-1 (Stage 5 fetch scope) — answer determines whether FR-010 includes only plan-covered `action=create` files (Option A) or all contract-referenced absent files (Option B).
-- Follow-up 2: Q-2 (ALLOW_DELETE default) — answer determines the default value wired in `upgrade_consumer.sh` Stage 2 and documented in `make help`.
-- Follow-up 3: Issue #189 (prune glob enforcement in planner/validate/postcheck) — complementary work item that enforces `source_artifact_prune_globs_on_init` at the plan phase; Stage 5 of this work item depends on the invariant from #185 (planner audit, already merged) but not yet on #189.
+- Follow-up 1 (resolved): Q-1 → Option B selected (broad scope). FR-010 fetches any contract-referenced file absent from disk regardless of plan coverage. Decision recorded in spec.md 2026-04-25.
+- Follow-up 2 (resolved): Q-2 → Option A selected (delete ON). `BLUEPRINT_UPGRADE_ALLOW_DELETE=true` is the pipeline default; `=false` is the non-destructive override. FR-004 updated in spec.md 2026-04-25.
+- Follow-up 3: Issue #189 (prune glob enforcement in planner/validate/postcheck) — complementary work item that enforces `source_artifact_prune_globs_on_init` at the plan phase; Stage 5 of this work item is independent (broad scope option B does not rely on the #185 invariant). Keep as a separate work item.

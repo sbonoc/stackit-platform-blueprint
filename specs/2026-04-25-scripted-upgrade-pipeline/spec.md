@@ -49,7 +49,7 @@
 - FR-003 The pipeline entry script MUST abort with a non-zero exit when `blueprint/contract.yaml` is absent, unparseable, or has a `repo_mode` value other than `generated-consumer`.
 
 #### Stage 2 — Apply with delete
-- FR-004 The pipeline MUST invoke `blueprint-upgrade-consumer-apply` with `BLUEPRINT_UPGRADE_ALLOW_DELETE` set according to the open question resolution in Q-2; the flag MUST be overridable by the caller and MUST be documented in `make help` output.
+- FR-004 The pipeline MUST invoke `blueprint-upgrade-consumer-apply` with `BLUEPRINT_UPGRADE_ALLOW_DELETE=true` as the pipeline default; the flag MUST be overridable by the caller (passing `BLUEPRINT_UPGRADE_ALLOW_DELETE=false` enables non-destructive mode) and MUST be documented in `make help` output.
 
 #### Stage 3 — Contract file resolution
 - FR-005 The contract resolver MUST preserve the consumer identity fields `name`, `repo_mode`, and `description` from the consumer's existing `blueprint/contract.yaml`, regardless of the values present in the blueprint source content.
