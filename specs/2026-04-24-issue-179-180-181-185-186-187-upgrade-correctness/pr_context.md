@@ -29,3 +29,4 @@
 - Rollback strategy: git revert <merge-commit> on blueprint main; consumer repos that regenerated ci.yml would need a follow-up upgrade run to revert permissions block, but the block is benign/beneficial
 
 ## Deferred Proposals
+- none — no new proposals surfaced during implementation; follow-on issues #183 (stale reconcile report detection) and #184 (consumer-extensible exclusion set) are pre-existing backlog items tracked in AGENTS.backlog.md
