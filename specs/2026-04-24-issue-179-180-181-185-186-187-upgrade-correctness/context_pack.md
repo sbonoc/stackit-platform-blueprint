@@ -1,14 +1,14 @@
 # Work Item Context Pack
 
 ## Context Snapshot
-- Work item:
+- Work item: 2026-04-24-issue-179-180-181-185-186-187-upgrade-correctness
 - Track: blueprint
-- SPEC_READY:
-- ADR path:
-- ADR status:
+- SPEC_READY: true
+- ADR path: docs/blueprint/architecture/decisions/ADR-20260424-upgrade-correctness-bundle-179-180-181-185-186-187.md
+- ADR status: approved
 
 ## Guardrail Controls
-- Applicable control IDs:
+- Applicable control IDs: SDD-C-001, SDD-C-002, SDD-C-003, SDD-C-004, SDD-C-005, SDD-C-006, SDD-C-007, SDD-C-008, SDD-C-009, SDD-C-010, SDD-C-011, SDD-C-012, SDD-C-013, SDD-C-014, SDD-C-015, SDD-C-016, SDD-C-018
 
 ## Required Commands
 - `make quality-sdd-check`

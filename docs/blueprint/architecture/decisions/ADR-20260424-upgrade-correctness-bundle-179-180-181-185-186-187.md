@@ -1,7 +1,7 @@
 # ADR-20260424-upgrade-correctness-bundle-179-180-181-185-186-187: Fix six behavioral correctness bugs in blueprint upgrade tooling and CI renderer
 
 ## Metadata
-- Status: proposed
+- Status: approved
 - Date: 2026-04-24
 - Owners: sbonoc
 - Related spec path: specs/2026-04-24-issue-179-180-181-185-186-187-upgrade-correctness/
