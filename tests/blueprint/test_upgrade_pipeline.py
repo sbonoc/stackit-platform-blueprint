@@ -27,6 +27,11 @@ Slice 6: Residual report
   TestResidualReportPrescribedActions — FR-016
   TestResidualReportConsumerOwned     — FR-017
   TestResidualReportPyramidGaps       — FR-018
+
+Slice 7: Pipeline wiring + Makefile target
+  TestProgressLines                — NFR-OBS-001
+  TestAllowDeletePropagation       — FR-004
+  TestNoConsumerSpecificHardcoding — NFR-OPS-001
 """
 from __future__ import annotations
 
@@ -1034,3 +1039,75 @@ class TestResidualReportPyramidGaps(unittest.TestCase):
             report = (repo / "artifacts/blueprint/upgrade-residual.md").read_text(encoding="utf-8")
             # Report should mention pyramid gaps
             self.assertIn("pyramid", report.lower())
+
+
+# ===========================================================================
+# Slice 7 — Pipeline wiring + Makefile target
+# ===========================================================================
+
+_PIPELINE_SCRIPT = REPO_ROOT / "scripts/bin/blueprint/upgrade_consumer_pipeline.sh"
+_NEW_PIPELINE_SCRIPTS = [
+    REPO_ROOT / "scripts/lib/blueprint/upgrade_pipeline_preflight.py",
+    REPO_ROOT / "scripts/lib/blueprint/resolve_contract_upgrade.py",
+    REPO_ROOT / "scripts/lib/blueprint/upgrade_coverage_fetch.py",
+    REPO_ROOT / "scripts/lib/blueprint/upgrade_mirror_sync.py",
+    REPO_ROOT / "scripts/lib/blueprint/upgrade_doc_target_check.py",
+    REPO_ROOT / "scripts/lib/blueprint/upgrade_residual_report.py",
+    REPO_ROOT / "scripts/bin/blueprint/upgrade_consumer_pipeline.sh",
+]
+
+
+class TestProgressLines(unittest.TestCase):
+    """NFR-OBS-001: pipeline emits stage-labeled progress lines for all 10 stages."""
+
+    def test_pipeline_script_contains_stage_progress_for_all_stages(self) -> None:
+        script = _PIPELINE_SCRIPT.read_text(encoding="utf-8")
+        for stage_num in range(1, 11):
+            self.assertIn(
+                f"Stage {stage_num}:",
+                script,
+                f"upgrade_consumer_pipeline.sh missing progress line for Stage {stage_num}",
+            )
+
+    def test_pipeline_script_contains_pipeline_prefix(self) -> None:
+        script = _PIPELINE_SCRIPT.read_text(encoding="utf-8")
+        self.assertIn("[PIPELINE]", script)
+
+
+class TestAllowDeletePropagation(unittest.TestCase):
+    """FR-004: BLUEPRINT_UPGRADE_ALLOW_DELETE=true is the pipeline default; =false is the override."""
+
+    def test_pipeline_sets_allow_delete_default_to_true(self) -> None:
+        script = _PIPELINE_SCRIPT.read_text(encoding="utf-8")
+        # The pipeline wrapper must set BLUEPRINT_UPGRADE_ALLOW_DELETE default to true
+        self.assertIn("BLUEPRINT_UPGRADE_ALLOW_DELETE", script)
+        self.assertIn("true", script)
+
+    def test_pipeline_propagates_allow_delete_to_stage2(self) -> None:
+        script = _PIPELINE_SCRIPT.read_text(encoding="utf-8")
+        # Stage 2 must pass BLUEPRINT_UPGRADE_ALLOW_DELETE to the apply make target
+        self.assertIn("blueprint-upgrade-consumer-apply", script)
+        self.assertIn("allow_delete", script)
+
+
+class TestNoConsumerSpecificHardcoding(unittest.TestCase):
+    """NFR-OPS-001: no consumer-specific logic (names, module lists, skill dirs) in pipeline scripts."""
+
+    _FORBIDDEN_STRINGS = [
+        "dhe-marketplace",
+        "stackit-k8s-reusable-blueprint-consumer",
+        "blueprint-sdd-intake",       # old skill directory name
+        "blueprint-sdd-po-spec",      # old skill name from F-007 incident
+    ]
+
+    def test_no_consumer_specific_strings_in_pipeline_scripts(self) -> None:
+        for script_path in _NEW_PIPELINE_SCRIPTS:
+            if not script_path.exists():
+                continue
+            content = script_path.read_text(encoding="utf-8")
+            for forbidden in self._FORBIDDEN_STRINGS:
+                self.assertNotIn(
+                    forbidden,
+                    content,
+                    f"{script_path.name} contains consumer-specific string: {forbidden!r}",
+                )
