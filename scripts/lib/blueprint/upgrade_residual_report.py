@@ -88,6 +88,7 @@ def generate_residual_report(repo_root: Path, pipeline_exit: int = 0) -> None:
     decisions = _load_json_safe(repo_root / _CONTRACT_DECISIONS)
     reconcile = _load_json_safe(repo_root / _RECONCILE_REPORT)
     doc_check = _load_json_safe(repo_root / _DOC_CHECK)
+    validate_report_exists = (repo_root / _VALIDATE_REPORT).exists()
     validate = _load_json_safe(repo_root / _VALIDATE_REPORT)
     pyramid_gaps = _scan_pyramid_gaps(repo_root)
 
@@ -98,6 +99,8 @@ def generate_residual_report(repo_root: Path, pipeline_exit: int = 0) -> None:
     )
     missing_targets = doc_check.get("missing_targets", [])
     prune_glob_check = validate.get("prune_glob_check", {})
+    prune_glob_scan_ran = validate_report_exists and bool(prune_glob_check)
+    prune_glob_status = prune_glob_check.get("status", "")
     prune_glob_violations: list[dict] = prune_glob_check.get("violations", [])
     if not isinstance(prune_glob_violations, list):
         prune_glob_violations = []
@@ -192,7 +195,15 @@ def generate_residual_report(repo_root: Path, pipeline_exit: int = 0) -> None:
         "## Prune-Glob Violations — Blueprint-Internal Files in Consumer Repo",
         "",
     ]
-    if prune_glob_violations:
+    if not prune_glob_scan_ran:
+        lines.append(
+            "_Scan not run — `upgrade_validate.json` was not produced. "
+            "Stage 9 may have failed before `make blueprint-upgrade-consumer-validate` executed. "
+            "Re-run the pipeline or run `make blueprint-upgrade-consumer-validate` directly to check._"
+        )
+    elif prune_glob_status == "skipped":
+        lines.append("_Skipped — repo is not a generated-consumer; prune-glob check does not apply._")
+    elif prune_glob_violations:
         lines.append(
             "The following files match `source_artifact_prune_globs_on_init` and must not exist "
             "in generated-consumer repos. Remove them before re-running "

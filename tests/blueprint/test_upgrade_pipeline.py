@@ -1158,18 +1158,21 @@ class TestResidualReportPruneGlobViolations(unittest.TestCase):
             # When no violations, should say none or just not list any paths
             self.assertNotIn("ADR-", report)
 
-    def test_residual_report_works_when_validate_report_absent(self) -> None:
+    def test_residual_report_shows_scan_not_run_when_validate_report_absent(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo = Path(tmpdir)
             _write_decisions_json(repo, {"dropped_required_files": [], "dropped_prune_globs": [], "kept_consumer_required_files": []})
             _write_reconcile_report(repo, [])
             _write_doc_check_warnings(repo, [])
-            # No upgrade_validate.json written
+            # No upgrade_validate.json written — simulates Stage 9 failure before validate ran
 
-            generate_residual_report(repo, pipeline_exit=0)
+            generate_residual_report(repo, pipeline_exit=1)
 
-            report_path = repo / "artifacts/blueprint/upgrade-residual.md"
-            self.assertTrue(report_path.exists())
+            report = (repo / "artifacts/blueprint/upgrade-residual.md").read_text(encoding="utf-8")
+            self.assertTrue((repo / "artifacts/blueprint/upgrade-residual.md").exists())
+            # Must NOT claim "no violations found" — scan did not run
+            self.assertNotIn("no files matching prune globs were found", report)
+            self.assertIn("Scan not run", report)
 
     def test_pipeline_stage9_calls_validate(self) -> None:
         script = _PIPELINE_SCRIPT.read_text(encoding="utf-8")
