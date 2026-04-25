@@ -7,9 +7,9 @@
 - [ ] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
 - [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
 
-## Implementation — Slice 1: Pre-flight validation (Stage 1)
-- [ ] T-001 Write `scripts/bin/blueprint/upgrade_consumer.sh` with Stage 1 pre-flight logic (FR-001: dirty-tree abort, FR-002: unresolved-ref abort, FR-003: bad-contract abort)
-- [ ] T-002 Add unit tests for each pre-flight abort condition in `tests/blueprint/test_upgrade_pipeline.py`
+## Implementation — Slice 1: Pre-flight validation helper (Stage 1)
+- [ ] T-001 Write `scripts/lib/blueprint/upgrade_preflight.py` with pre-flight logic (FR-001: dirty-tree abort, FR-002: unresolved-ref abort, FR-003: bad-contract abort); write stub `scripts/bin/blueprint/upgrade_consumer.sh` that calls the helper
+- [ ] T-002 Add unit tests for each pre-flight abort condition in `tests/blueprint/test_upgrade_pipeline.py` using pytest (no bash test runner required)
 
 ## Implementation — Slice 2: Contract resolver (Stage 3)
 - [ ] T-003 Write `scripts/lib/blueprint/resolve_contract_upgrade.py` implementing FR-005 (preserve identity), FR-006 (merge required_files), FR-007 (drop prune globs), FR-008 (emit decision JSON)

@@ -20,58 +20,118 @@
 - Finding-to-test translation gate:
   - Each observed failure mode (F-001–F-010) that is addressed by a new script stage must have a corresponding unit test asserting the fix. Translate into failing tests first, then implement the fix.
 
+## Slice Dependency Map
+
+```
+Slice 1 ──────────────────────────────────────────┐
+Slice 2 ─────────────────────────────────────────┐│
+Slice 3 ────────────────────────────────────────┐││   all → Slice 7 → Slice 8
+Slice 4 ───────────────────────────────────────┐│││
+Slice 5 ──────────────────────────────────────┐││││
+Slice 6 ─────────────────────────────────────┘┘┘┘┘
+```
+
+- Slices 1–6 have no inter-dependencies and MAY be implemented in parallel.
+- Slice 7 (pipeline wiring) MUST start only after Slices 1–6 are complete.
+- Slice 8 (validation) MUST start only after Slice 7 is complete.
+
+Owner: sbonoc (all slices).
+
 ## Delivery Slices
 
-1. **Slice 1 — Pre-flight validation (Stage 1)**
-   - FR-001, FR-002, FR-003
-   - Write `scripts/bin/blueprint/upgrade_consumer.sh` stub with Stage 1 logic only.
-   - Test: unit test for each pre-flight abort condition (dirty working tree, unresolved ref, bad contract).
-   - Red→green: write failing tests for each condition, then implement.
+1. **Slice 1 — Pre-flight validation helper (Stage 1)**
+   - Requirements: FR-001, FR-002, FR-003
+   - Owner: sbonoc | Depends on: none | Blocks: Slice 7
+   - Design note: pre-flight checks are extracted into a Python helper (`scripts/lib/blueprint/upgrade_preflight.py`) so they are independently testable via pytest. The bash entry wrapper (`upgrade_consumer.sh`) calls this helper as its first action and exits non-zero if it returns failure. This avoids bash-only unit testing.
+   - Output: `scripts/lib/blueprint/upgrade_preflight.py` + stub `scripts/bin/blueprint/upgrade_consumer.sh`
+   - Red→green TDD:
+     1. Write `TestPreflightDirtyTree`, `TestPreflightInvalidRef`, `TestPreflightBadContract` — all fail (module not yet written).
+     2. Implement `upgrade_preflight.py` — tests go green.
+     3. Write stub `upgrade_consumer.sh` that calls the helper and exits on failure.
+   - Validation: `python3 -m pytest tests/blueprint/test_upgrade_pipeline.py -k "preflight"`
 
 2. **Slice 2 — Contract resolver (Stage 3)**
-   - FR-005, FR-006, FR-007, FR-008
-   - Write `scripts/lib/blueprint/resolve_contract_upgrade.py`.
-   - Test: fixture conflict JSON with known identity fields, required_files (consumer-added existing, consumer-added missing, blueprint entries), and prune globs (matching and non-matching paths).
-   - Red→green: fixture-driven unit tests assert preserved identity, merged required_files, dropped prune globs, decision JSON contents.
-   - AC-002 satisfied here.
+   - Requirements: FR-005, FR-006, FR-007, FR-008; satisfies AC-002
+   - Owner: sbonoc | Depends on: none | Blocks: Slice 7
+   - Output: `scripts/lib/blueprint/resolve_contract_upgrade.py` + fixtures under `tests/blueprint/fixtures/contract_resolver/`
+   - Red→green TDD:
+     1. Write fixture conflict JSON (consumer identity fields, mixed required_files, prune globs with matching and non-matching paths).
+     2. Write `TestContractResolverIdentityPreservation`, `TestContractResolverRequiredFilesMerge`, `TestContractResolverPruneGlobDrop`, `TestContractResolverDecisionJSON` — all fail.
+     3. Implement resolver — tests go green. Verify `name` and `repo_mode` preserved (AC-002 positive-path assertion).
+   - Validation: `python3 -m pytest tests/blueprint/test_upgrade_pipeline.py -k "ContractResolver"`
 
 3. **Slice 3 — Coverage gap detection and file fetch (Stage 5)**
-   - FR-009, FR-010, NFR-SEC-001
-   - Write `scripts/lib/blueprint/upgrade_coverage_fetch.py`.
-   - Test: fixture consumer disk state with one contract-referenced file absent; assert file is fetched via local git `git show`; assert no subprocess call to any HTTP URL.
-   - Red→green: test with mocked `git show` subprocess, then integration test against a minimal fixture source repo.
-   - AC-003 satisfied here.
+   - Requirements: FR-009, FR-010, NFR-SEC-001; satisfies AC-003
+   - Owner: sbonoc | Depends on: none | Blocks: Slice 7
+   - Output: `scripts/lib/blueprint/upgrade_coverage_fetch.py` + minimal fixture source git repo under `tests/blueprint/fixtures/coverage_fetch/`
+   - Red→green TDD:
+     1. Write `TestCoverageGapDetection` (contract refs vs disk), `TestCoverageGapFileFetch` (absent file fetched via `git show`), `TestCoverageGapNoHTTP` (assert no http/https subprocess call) — all fail.
+     2. Implement fetcher with broad-scope scan (Option B: any contract-referenced path absent from disk is fetched) — tests go green.
+     3. Integration test against minimal fixture source repo (validates AC-003 end-to-end).
+   - Validation: `python3 -m pytest tests/blueprint/test_upgrade_pipeline.py -k "CoverageGap"`
 
 4. **Slice 4 — Bootstrap template mirror sync (Stage 6)**
-   - FR-011
-   - Write `scripts/lib/blueprint/upgrade_mirror_sync.py`.
-   - Test: fixture workspace path that has a corresponding mirror; assert mirror is overwritten when workspace file is modified; assert no-op when mirror does not exist.
-   - Red→green: unit tests with temp directory fixture.
+   - Requirements: FR-011
+   - Owner: sbonoc | Depends on: none | Blocks: Slice 7
+   - Output: `scripts/lib/blueprint/upgrade_mirror_sync.py`
+   - Red→green TDD:
+     1. Write `TestMirrorSyncOverwrites` (modified workspace file with existing mirror → mirror overwritten), `TestMirrorSyncNoOp` (no mirror at path → no-op) — all fail.
+     2. Implement sync — tests go green.
+   - Validation: `python3 -m pytest tests/blueprint/test_upgrade_pipeline.py -k "MirrorSync"`
 
 5. **Slice 5 — Make target validation for new/changed docs (Stage 7)**
-   - FR-012
-   - Write `scripts/lib/blueprint/upgrade_doc_target_check.py`.
-   - Test: fixture markdown file with `make known-target` (present in `.PHONY`) and `make missing-target` (absent); assert warning emitted for missing-target only; assert stage does not abort (exit 0 with warnings).
-   - Red→green: unit tests with temp mk file fixture.
+   - Requirements: FR-012
+   - Owner: sbonoc | Depends on: none | Blocks: Slice 7
+   - Output: `scripts/lib/blueprint/upgrade_doc_target_check.py`
+   - Red→green TDD:
+     1. Write `TestDocTargetCheckKnownTarget` (target present in `.PHONY` → no warning), `TestDocTargetCheckMissingTarget` (target absent → warning in output), `TestDocTargetCheckNoAbort` (missing target → exit 0, not non-zero) — all fail.
+     2. Implement checker — tests go green.
+   - Validation: `python3 -m pytest tests/blueprint/test_upgrade_pipeline.py -k "DocTargetCheck"`
 
 6. **Slice 6 — Residual report (Stage 10)**
-   - FR-015, FR-016, FR-017, FR-018, FR-019 (independent callability preserved via separate targets)
-   - Write `scripts/lib/blueprint/upgrade_residual_report.py`.
-   - Test: fixture JSON inputs from Stages 3, 5, 7 + reconcile report consumer-owned list; assert every item in rendered Markdown has a prescribed action matching the templates in FR-016.
-   - Red→green: unit tests with fixture JSON inputs.
-   - Also verify independent callability of existing targets (no regression).
+   - Requirements: FR-015, FR-016, FR-017, FR-018, FR-019
+   - Owner: sbonoc | Depends on: none | Blocks: Slice 7
+   - Output: `scripts/lib/blueprint/upgrade_residual_report.py`
+   - Red→green TDD:
+     1. Write fixture JSON inputs: decision report (dropped required_files, dropped prune globs), reconcile report (consumer-owned files), doc-check warnings (missing targets), pyramid gap list.
+     2. Write `TestResidualReportAlwaysEmitted`, `TestResidualReportPrescribedActions`, `TestResidualReportConsumerOwned`, `TestResidualReportPyramidGaps` — all fail.
+     3. Implement reporter — tests go green. Every item in output must have a prescribed action string matching FR-016 templates.
+     4. Verify existing individual targets (`blueprint-upgrade-consumer-apply`, etc.) remain callable without modification (FR-019 regression guard, AC-006).
+   - Validation: `python3 -m pytest tests/blueprint/test_upgrade_pipeline.py -k "ResidualReport"`
 
 7. **Slice 7 — Pipeline wiring + Makefile target**
-   - FR-004, FR-013, FR-014, FR-019, NFR-REL-001, NFR-OPS-001, NFR-OBS-001
-   - Complete `scripts/bin/blueprint/upgrade_consumer.sh`: wire all 10 stages in sequence; emit stage-labeled progress lines (NFR-OBS-001); guarantee Stage 10 execution even on partial failure; propagate `BLUEPRINT_UPGRADE_ALLOW_DELETE`.
-   - Add `blueprint-upgrade-consumer` target to `make/blueprint.mk`; add `make help` entry.
-   - Update `SKILL.md` to 6-step flow.
-   - Test: idempotency test — run twice on clean fixture, assert no file changes and exit 0 on second run (NFR-REL-001).
+   - Requirements: FR-004, FR-013, FR-014, FR-019, NFR-REL-001, NFR-OPS-001, NFR-OBS-001
+   - Owner: sbonoc | Depends on: Slices 1–6 complete | Blocks: Slice 8
+   - Output: complete `scripts/bin/blueprint/upgrade_consumer.sh`; `blueprint-upgrade-consumer` target in `make/blueprint.mk`; `SKILL.md` 6-step reduction
+   - Wiring checklist:
+     - Stage 1: call `upgrade_preflight.py`; abort on non-zero.
+     - Stage 2: invoke `blueprint-upgrade-consumer-apply` with `BLUEPRINT_UPGRADE_ALLOW_DELETE=${BLUEPRINT_UPGRADE_ALLOW_DELETE:-true}`; capture exit code.
+     - Stage 3: invoke `resolve_contract_upgrade.py`; capture exit code.
+     - Stage 4: auto-resolve non-contract conflicts (existing apply behavior; no new code).
+     - Stage 5: invoke `upgrade_coverage_fetch.py`.
+     - Stage 6: invoke `upgrade_mirror_sync.py`.
+     - Stage 7: invoke `upgrade_doc_target_check.py` (non-blocking; capture warnings only).
+     - Stage 8: invoke `make quality-docs-sync-generated-reference`.
+     - Stage 9: invoke `make infra-validate` then `make quality-hooks-run`; abort with structured error on first failure.
+     - Stage 10: invoke `upgrade_residual_report.py` in a `trap ... EXIT` so it always runs even on abort.
+     - Emit `[PIPELINE] Stage N: starting / complete` progress lines before and after each stage (NFR-OBS-001).
+   - Red→green TDD:
+     1. Write `TestIdempotency` (run pipeline twice on clean fixture → no file changes, exit 0 on second run) — fails (no entry wrapper yet).
+     2. Write `TestProgressLines` (stdout contains stage-labeled lines for each stage).
+     3. Write `TestNoConsumerSpecificHardcoding` (scan new script files for hardcoded consumer names/module lists/skill dirs).
+     4. Complete wrapper implementation — tests go green.
+   - Validation: `python3 -m pytest tests/blueprint/test_upgrade_pipeline.py -k "Idempotency or ProgressLines or NoConsumerSpecific"`; `make quality-hooks-fast`
 
-8. **Slice 8 — Docs sync + validation**
-   - Generated reference docs sync, `make infra-validate`, `make quality-hooks-run`.
-   - Verify AC-001, AC-004, AC-005, AC-006.
-   - Run full test suite; attach evidence to `pr_context.md`.
+8. **Slice 8 — Full validation and docs sync**
+   - Requirements: AC-001, AC-004, AC-005, AC-006
+   - Owner: sbonoc | Depends on: Slice 7 complete | Blocks: nothing
+   - Actions:
+     1. Run `make quality-docs-sync-generated-reference` — verify generated reference docs are current.
+     2. Run `python3 -m pytest tests/blueprint/` — all new and existing tests pass (AC-006 no regression).
+     3. Run `make quality-hooks-fast` and `make infra-contract-test-fast`.
+     4. Update `references/manual_merge_checklist.md` to reference new residual report format.
+     5. Populate `pr_context.md` with validation evidence.
+   - Validation: all pytest, hooks, and contract-test commands exit 0; `make quality-sdd-check` still passes.
 
 ## Change Strategy
 - Migration/rollout sequence: all existing individual make targets remain unchanged; `blueprint-upgrade-consumer` is a new additive target. No consumer migration needed.
