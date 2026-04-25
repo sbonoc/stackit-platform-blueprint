@@ -1,7 +1,7 @@
 """Stage 10: Residual report generator for the scripted upgrade pipeline.
 
 Always emitted — even on partial failure — via the pipeline's EXIT trap.
-Aggregates JSON artifacts from Stages 3, 5, 7 plus the reconcile report
+Aggregates JSON artifacts from Stages 3, 5, 7, 9 plus the reconcile report
 and a pyramid gap scan to produce artifacts/blueprint/upgrade-residual.md.
 
 Every item in the report includes a prescribed action (FR-016).
@@ -22,6 +22,7 @@ from pathlib import Path
 _CONTRACT_DECISIONS = "artifacts/blueprint/contract_resolve_decisions.json"
 _RECONCILE_REPORT = "artifacts/blueprint/upgrade/upgrade_reconcile_report.json"
 _DOC_CHECK = "artifacts/blueprint/doc_target_check.json"
+_VALIDATE_REPORT = "artifacts/blueprint/upgrade_validate.json"
 _RESIDUAL_MD = "artifacts/blueprint/upgrade-residual.md"
 _PYRAMID_CONTRACT = "scripts/lib/quality/test_pyramid_contract.json"
 
@@ -87,6 +88,7 @@ def generate_residual_report(repo_root: Path, pipeline_exit: int = 0) -> None:
     decisions = _load_json_safe(repo_root / _CONTRACT_DECISIONS)
     reconcile = _load_json_safe(repo_root / _RECONCILE_REPORT)
     doc_check = _load_json_safe(repo_root / _DOC_CHECK)
+    validate = _load_json_safe(repo_root / _VALIDATE_REPORT)
     pyramid_gaps = _scan_pyramid_gaps(repo_root)
 
     dropped_required = decisions.get("dropped_required_files", [])
@@ -95,6 +97,10 @@ def generate_residual_report(repo_root: Path, pipeline_exit: int = 0) -> None:
         (reconcile.get("buckets") or {}).get("consumer_owned_manual_review", [])
     )
     missing_targets = doc_check.get("missing_targets", [])
+    prune_glob_check = validate.get("prune_glob_check", {})
+    prune_glob_violations: list[dict] = prune_glob_check.get("violations", [])
+    if not isinstance(prune_glob_violations, list):
+        prune_glob_violations = []
 
     lines: list[str] = [
         "# Upgrade Residual Report",
@@ -179,6 +185,29 @@ def generate_residual_report(repo_root: Path, pipeline_exit: int = 0) -> None:
             lines.append(f"- `make {target}` — **Add**: declare `{target}` in the appropriate `.mk` file with a `.PHONY` entry.")
     else:
         lines.append("_None — all make targets referenced in docs are declared._")
+    lines.append("")
+
+    # Prune-glob violations: files matching source_artifact_prune_globs_on_init that must be removed
+    lines += [
+        "## Prune-Glob Violations — Blueprint-Internal Files in Consumer Repo",
+        "",
+    ]
+    if prune_glob_violations:
+        lines.append(
+            "The following files match `source_artifact_prune_globs_on_init` and must not exist "
+            "in generated-consumer repos. Remove them before re-running "
+            "`make blueprint-upgrade-consumer-postcheck`."
+        )
+        lines.append("")
+        for entry in prune_glob_violations:
+            path = entry.get("path", str(entry)) if isinstance(entry, dict) else str(entry)
+            matched = entry.get("matched_glob", "") if isinstance(entry, dict) else ""
+            if matched:
+                lines.append(f"- `{path}` (matches `{matched}`) — **Remove**: delete this file; it is a blueprint-internal artifact forbidden in consumer repos.")
+            else:
+                lines.append(f"- `{path}` — **Remove**: delete this file; it is a blueprint-internal artifact forbidden in consumer repos.")
+    else:
+        lines.append("_None — no files matching prune globs were found in the working tree._")
     lines.append("")
 
     # FR-018: Pyramid classification gaps

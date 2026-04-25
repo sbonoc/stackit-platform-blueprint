@@ -1090,6 +1090,96 @@ class TestAllowDeletePropagation(unittest.TestCase):
         self.assertIn("allow_delete", script)
 
 
+class TestResidualReportPruneGlobViolations(unittest.TestCase):
+    """Stage 10 residual report must surface prune-glob violations from upgrade_validate.json."""
+
+    def _write_validate_report(self, repo: Path, violations: list[dict]) -> None:
+        path = repo / "artifacts/blueprint/upgrade_validate.json"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(
+            json.dumps({
+                "prune_glob_check": {
+                    "status": "failure" if violations else "ok",
+                    "globs_checked": 2,
+                    "violation_count": len(violations),
+                    "violations": violations,
+                    "remediation_hint": "Remove files listed under violations.",
+                }
+            }),
+            encoding="utf-8",
+        )
+
+    def test_prune_glob_violations_appear_in_residual_report(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            _write_decisions_json(repo, {"dropped_required_files": [], "dropped_prune_globs": [], "kept_consumer_required_files": []})
+            _write_reconcile_report(repo, [])
+            _write_doc_check_warnings(repo, [])
+            self._write_validate_report(repo, [
+                {"path": "docs/blueprint/architecture/decisions/ADR-001.md", "matched_glob": "docs/blueprint/architecture/decisions/ADR-*.md"},
+                {"path": "specs/2026-01-01-some-spec/spec.md", "matched_glob": "specs/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-*"},
+            ])
+
+            generate_residual_report(repo, pipeline_exit=0)
+
+            report = (repo / "artifacts/blueprint/upgrade-residual.md").read_text(encoding="utf-8")
+            self.assertIn("ADR-001.md", report)
+            self.assertIn("specs/2026-01-01-some-spec/spec.md", report)
+            self.assertIn("Remove", report)
+
+    def test_prune_glob_violations_have_prescribed_remove_action(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            _write_decisions_json(repo, {"dropped_required_files": [], "dropped_prune_globs": [], "kept_consumer_required_files": []})
+            _write_reconcile_report(repo, [])
+            _write_doc_check_warnings(repo, [])
+            self._write_validate_report(repo, [
+                {"path": "docs/blueprint/architecture/decisions/ADR-042.md", "matched_glob": "docs/blueprint/architecture/decisions/ADR-*.md"},
+            ])
+
+            generate_residual_report(repo, pipeline_exit=0)
+
+            report = (repo / "artifacts/blueprint/upgrade-residual.md").read_text(encoding="utf-8")
+            # Every violation must have a prescribed "Remove" action
+            self.assertIn("ADR-042.md", report)
+            self.assertIn("Remove", report)
+
+    def test_residual_report_omits_prune_glob_section_when_no_violations(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            _write_decisions_json(repo, {"dropped_required_files": [], "dropped_prune_globs": [], "kept_consumer_required_files": []})
+            _write_reconcile_report(repo, [])
+            _write_doc_check_warnings(repo, [])
+            self._write_validate_report(repo, [])
+
+            generate_residual_report(repo, pipeline_exit=0)
+
+            report = (repo / "artifacts/blueprint/upgrade-residual.md").read_text(encoding="utf-8")
+            # When no violations, should say none or just not list any paths
+            self.assertNotIn("ADR-", report)
+
+    def test_residual_report_works_when_validate_report_absent(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            _write_decisions_json(repo, {"dropped_required_files": [], "dropped_prune_globs": [], "kept_consumer_required_files": []})
+            _write_reconcile_report(repo, [])
+            _write_doc_check_warnings(repo, [])
+            # No upgrade_validate.json written
+
+            generate_residual_report(repo, pipeline_exit=0)
+
+            report_path = repo / "artifacts/blueprint/upgrade-residual.md"
+            self.assertTrue(report_path.exists())
+
+    def test_pipeline_stage9_calls_validate(self) -> None:
+        script = _PIPELINE_SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(
+            "blueprint-upgrade-consumer-validate",
+            script,
+            "Stage 9 must call make blueprint-upgrade-consumer-validate so prune-glob violations block the pipeline",
+        )
+
+
 class TestNoConsumerSpecificHardcoding(unittest.TestCase):
     """NFR-OPS-001: no consumer-specific logic (names, module lists, skill dirs) in pipeline scripts."""
 

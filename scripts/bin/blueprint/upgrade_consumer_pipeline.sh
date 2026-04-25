@@ -166,7 +166,7 @@ log_info "[PIPELINE] Stage 8: complete"
 # ---------------------------------------------------------------------------
 # Stage 9 — Gate chain
 # ---------------------------------------------------------------------------
-log_info "[PIPELINE] Stage 9: starting — gate chain (infra-validate + quality-hooks-run)"
+log_info "[PIPELINE] Stage 9: starting — gate chain (infra-validate + quality-hooks-run + blueprint-upgrade-consumer-validate)"
 stage9_rc=0
 make -C "$ROOT_DIR" infra-validate || stage9_rc=$?
 if [[ "$stage9_rc" -ne 0 ]]; then
@@ -177,6 +177,13 @@ else
   if [[ "$stage9_rc" -ne 0 ]]; then
     pipeline_exit=$stage9_rc
     log_error "[PIPELINE] Stage 9: quality-hooks-run FAILED (exit $stage9_rc)"
+  else
+    # Run validate to scan for prune-glob violations; result surfaces in Stage 10 residual report.
+    make -C "$ROOT_DIR" blueprint-upgrade-consumer-validate || stage9_rc=$?
+    if [[ "$stage9_rc" -ne 0 ]]; then
+      pipeline_exit=$stage9_rc
+      log_error "[PIPELINE] Stage 9: blueprint-upgrade-consumer-validate FAILED (exit $stage9_rc) — prune-glob violations or merge markers detected; see artifacts/blueprint/upgrade_validate.json"
+    fi
   fi
 fi
 # Stage 10 (residual report) is always executed via the EXIT trap above.
