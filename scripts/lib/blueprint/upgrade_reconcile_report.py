@@ -63,9 +63,23 @@ def find_merge_markers(repo_root: Path) -> set[str]:
 
     Scans the working tree at report-build time so that the result reflects
     current file state rather than stale plan/apply metadata.  (FR-001)
+
+    Only text-readable files are scanned; binary and unreadable files are skipped.
     """
-    # Stub — returns empty set; full implementation follows in T-008.
-    return set()
+    active_paths: set[str] = set()
+    try:
+        for path in repo_root.rglob("*"):
+            if not path.is_file():
+                continue
+            try:
+                content = path.read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                continue
+            if "<<<<<<<" in content:
+                active_paths.add(str(path.relative_to(repo_root)))
+    except OSError:
+        pass
+    return active_paths
 
 
 def _collect_entries(payload: dict[str, Any], key: str) -> list[dict[str, Any]]:
@@ -379,6 +393,25 @@ def build_upgrade_reconcile_report(
     _classify_required_manual_actions(required_manual_actions, buckets, seen)
     _classify_apply_results(apply_results, buckets, seen)
     _classify_merge_markers(merge_markers, buckets, seen)
+
+    # Rebuild conflicts_unresolved from the working-tree marker scan (FR-001–FR-004).
+    # This replaces any stale plan/apply entries with the authoritative live state:
+    # only files that currently contain <<<<<<< markers are blocking.  Double-counting
+    # is eliminated because each path appears at most once in the scan result.
+    active_marker_paths = find_merge_markers(repo_root)
+    conflict_policy = _BUCKET_POLICY["conflicts_unresolved"]
+    buckets["conflicts_unresolved"] = [
+        {
+            "path": p,
+            "source": "working-tree-scan",
+            "action": "merge-marker",
+            "reason": "unresolved merge marker present in file",
+            "blocking": bool(conflict_policy["blocking"]),
+            "remediation_hint": str(conflict_policy["hint"]),
+            "next_commands": list(conflict_policy["next_commands"]),
+        }
+        for p in sorted(active_marker_paths)
+    ]
 
     for bucket in RECONCILE_BUCKET_ORDER:
         buckets[bucket] = _sorted_bucket_items(buckets[bucket])
