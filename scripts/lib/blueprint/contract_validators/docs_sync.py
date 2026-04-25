@@ -80,16 +80,17 @@ def _extract_area_tokens(area_cell: str) -> set[str]:
 def validate_source_artifact_prune_globs_documented(repo_root: Path, contract: BlueprintContract) -> list[str]:
     """Verify that every source_artifact_prune_glob pattern is documented in the ownership matrix.
 
-    In generated-consumer mode the ownership matrix lives under docs/blueprint/,
-    which is a source-only path removed by blueprint-init-repo.  The check is
-    meaningless there (the consumer did not author the matrix) and would always
-    produce a spurious "missing ownership matrix file" error, so we skip it.
+    In generated-consumer mode this check is skipped because the prune-glob
+    configuration is a blueprint-authoring concern (governed in the template-source
+    repo) rather than a consumer responsibility.  Consumers receive the ownership
+    matrix as a seeded file; they do not maintain the source_artifact_prune_globs
+    list and should not be required to validate it.
     """
     errors: list[str] = []
     repository = contract.repository
     if repository.repo_mode == repository.consumer_init.mode_to:
-        # Generated-consumer repos do not own docs/blueprint/ — ownership matrix
-        # is absent by design after blueprint-init-repo prunes source-only paths.
+        # Prune-glob documentation is a blueprint-authoring invariant; skip in
+        # generated-consumer repos so consumers are not required to maintain it.
         return errors
 
     prune_globs = contract.repository.consumer_init.source_artifact_prune_globs_on_init
@@ -222,7 +223,7 @@ def validate_bootstrap_template_sync(repo_root: Path, contract: BlueprintContrac
     its template counterpart.  In generated-consumer mode a subset of files is
     legitimately absent because blueprint-init-repo pruned them:
 
-    * Files under source-only paths (e.g. docs/blueprint/) — removed
+    * Files under source-only paths (e.g. blueprint/modules/, specs/) — removed
       unconditionally when converting a template-source repo to a consumer repo.
     * Files under disabled conditional-module scaffold paths (e.g.
       infra/local/helm/observability/) — removed when the module's enable flag is
@@ -230,6 +231,10 @@ def validate_bootstrap_template_sync(repo_root: Path, contract: BlueprintContrac
 
     Those files are skipped in generated-consumer mode so the sync check does not
     produce false-positive "missing bootstrap target file" errors.
+
+    Note: docs/blueprint/ is NOT source-only; it is seeded by make blueprint-bootstrap
+    to both template-source and generated-consumer repos and appears in the sync
+    contract for both modes.
     """
     errors: list[str] = []
     repository = contract.repository

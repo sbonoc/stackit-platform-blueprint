@@ -1163,13 +1163,17 @@ class QualityContractsTests(unittest.TestCase):
     def test_required_paths_filters_source_only_for_generated_consumer_mode(self) -> None:
         """Regression: required_paths must not include source-only directories in generated-consumer mode.
 
-        blueprint-init-repo removes all source_only paths (docs/blueprint,
-        blueprint/modules, …) from generated-consumer repos.  If those paths
-        remain in the required_paths list, validate_contract fails with spurious
-        "missing path" errors immediately after blueprint-init-repo runs, before
-        make blueprint-bootstrap can recreate any of them.  This is the exact
-        failure mode observed in the generated-consumer-smoke CI job when new
-        source_only entries were added without updating the validation helpers.
+        blueprint-init-repo removes all source_only paths (blueprint/modules,
+        specs, tests/blueprint, …) from generated-consumer repos.  If those
+        paths remain in the required_paths list, validate_contract fails with
+        spurious "missing path" errors immediately after blueprint-init-repo
+        runs, before make blueprint-bootstrap can recreate any of them.  This
+        is the exact failure mode observed in the generated-consumer-smoke CI
+        job when new source_only entries were added without updating the
+        validation helpers.
+
+        Note: docs/blueprint/ is NOT source-only.  It is seeded by bootstrap
+        and appears in required_paths for both repo modes.
         """
         validate_script = REPO_ROOT / "scripts/bin/blueprint/validate_contract.py"
         spec = importlib.util.spec_from_file_location("validate_contract_module_rp", validate_script)
@@ -1208,10 +1212,14 @@ class QualityContractsTests(unittest.TestCase):
     def test_required_diagrams_filters_source_only_for_generated_consumer_mode(self) -> None:
         """Regression: mermaid diagram list must not include source-only files in generated-consumer mode.
 
-        Mermaid diagrams under docs/blueprint/ are source-only and pruned by
-        blueprint-init-repo.  The validate_contract mermaid check must filter
-        them in generated-consumer mode to avoid spurious "missing mermaid
-        markdown file" errors.
+        Mermaid diagrams under source-only paths (e.g. specs/, blueprint/modules/)
+        are pruned by blueprint-init-repo.  The validate_contract mermaid check
+        must filter them in generated-consumer mode to avoid spurious "missing
+        mermaid markdown file" errors.
+
+        Note: docs/blueprint/ is NOT source-only; mermaid diagrams under it
+        are seeded to consumer repos by make blueprint-bootstrap and must remain
+        in the filtered diagram list for consumer mode validation.
         """
         validate_script = REPO_ROOT / "scripts/bin/blueprint/validate_contract.py"
         spec = importlib.util.spec_from_file_location("validate_contract_module_rd", validate_script)
@@ -1245,15 +1253,18 @@ class QualityContractsTests(unittest.TestCase):
                     ),
                 )
 
-    def test_validate_bootstrap_template_sync_skips_source_only_in_consumer_mode(self) -> None:
-        """Regression: bootstrap template sync must skip source-only files in generated-consumer mode.
+    def test_validate_bootstrap_template_sync_passes_for_docs_blueprint_in_consumer_mode(self) -> None:
+        """Regression: bootstrap template sync must not report errors for docs/blueprint/* in consumer mode.
 
-        Files under docs/blueprint/ (source-only) are removed by blueprint-init-repo.
-        validate_bootstrap_template_sync must not flag their absence as a sync error
-        in generated-consumer mode — that would always fail because the files are
-        intentionally absent.  This is detected via the template sync fixture check;
-        the test was added after the CI smoke job failed with 7 "missing bootstrap
-        target file for template sync" errors for docs/blueprint/* paths.
+        docs/blueprint/ is NOT source-only — it is seeded by make blueprint-bootstrap
+        to both template-source and generated-consumer repos.  validate_bootstrap_template_sync
+        must check these files in consumer mode (they exist and must match their templates),
+        not skip them.  This test asserts no "missing bootstrap target file" errors are
+        produced for docs/blueprint/* paths in generated-consumer mode, whether via
+        skipping (source-only) or via passing the byte-identical check (seeded files).
+
+        The test was added after the CI smoke job failed with template sync errors for
+        source-only paths that were mistakenly listed in the sync contract.
         """
         from scripts.lib.blueprint.contract_validators.docs_sync import validate_bootstrap_template_sync
 
@@ -1269,22 +1280,21 @@ class QualityContractsTests(unittest.TestCase):
             )
             contract = load_blueprint_contract(contract_path)
 
-        # Run the sync check against the real REPO_ROOT in generated-consumer mode.
-        # Source-only files (docs/blueprint/*) DO exist in the template-source
-        # working tree, so a naïve check would pass.  We verify that the function
-        # does NOT raise errors for those paths regardless of their disk state.
+        # Run the sync check against REPO_ROOT (template-source working tree) with a
+        # generated-consumer contract.  docs/blueprint/* files exist here and are
+        # byte-identical to their templates, so the sync check must pass for those paths.
         errors = validate_bootstrap_template_sync(REPO_ROOT, contract)
-        source_only_errors = [
+        docs_blueprint_errors = [
             e for e in errors
             if "docs/blueprint/" in e and "missing bootstrap target file" in e
         ]
         self.assertEqual(
-            source_only_errors,
+            docs_blueprint_errors,
             [],
             msg=(
                 "validate_bootstrap_template_sync must not report missing-file errors "
                 "for docs/blueprint/* paths in generated-consumer mode; got: "
-                + str(source_only_errors)
+                + str(docs_blueprint_errors)
             ),
         )
 
