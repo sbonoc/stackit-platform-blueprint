@@ -35,6 +35,18 @@ upgrade_ref="${BLUEPRINT_UPGRADE_REF:-}"
 upgrade_source="${BLUEPRINT_UPGRADE_SOURCE:-}"
 allow_delete="${BLUEPRINT_UPGRADE_ALLOW_DELETE}"
 
+# Resolve upgrade source default (mirrors upgrade_consumer.sh resolve_default_upgrade_source).
+# Applied before Stage 1 so pre-flight receives a concrete value.
+if [[ -z "$upgrade_source" ]]; then
+  _upstream="$(git -C "$ROOT_DIR" config --get remote.upstream.url 2>/dev/null || true)"
+  if [[ -n "$_upstream" ]]; then
+    upgrade_source="$_upstream"
+  else
+    upgrade_source="$(git -C "$ROOT_DIR" config --get remote.origin.url 2>/dev/null || true)"
+  fi
+  unset _upstream
+fi
+
 residual_report_path="$ROOT_DIR/artifacts/blueprint/upgrade-residual.md"
 pipeline_exit=0
 
@@ -65,8 +77,9 @@ log_info "[PIPELINE] Stage 2: starting — apply with delete"
 stage2_rc=0
 BLUEPRINT_UPGRADE_ALLOW_DELETE="$allow_delete" \
   make -C "$ROOT_DIR" blueprint-upgrade-consumer-apply || stage2_rc=$?
-if [[ "$stage2_rc" -ne 0 && "$stage2_rc" -ne 2 ]]; then
-  # exit 2 = conflicts present (expected during upgrade); any other non-zero is a real error.
+if [[ "$stage2_rc" -gt 1 ]]; then
+  # exit 0 = clean apply; exit 1 = conflicts present (expected during upgrade, Stage 3 resolves).
+  # Any exit code > 1 is an unexpected error.
   pipeline_exit=$stage2_rc
   log_fatal "[PIPELINE] Stage 2: FAILED (exit $stage2_rc) — apply step encountered an error; aborting."
 fi
@@ -124,9 +137,18 @@ log_info "[PIPELINE] Stage 6: complete"
 # Stage 7 — Make target validation for new/changed docs
 # ---------------------------------------------------------------------------
 log_info "[PIPELINE] Stage 7: starting — make target validation for docs"
+# Collect .md files modified in the working tree by Stages 2–6 (unstaged changes).
 # Non-blocking: capture warnings but do not abort on missing targets (FR-012).
+_modified_md_json="$(mktemp)"
+git -C "$ROOT_DIR" status --porcelain -- '*.md' \
+  | sed 's/^...//' \
+  | python3 -c "import json,sys; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))" \
+  > "$_modified_md_json" 2>/dev/null || true
 python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_doc_target_check.py" \
-  --repo-root "$ROOT_DIR" || true
+  --repo-root "$ROOT_DIR" \
+  --modified-md-paths-json "$_modified_md_json" || true
+rm -f "$_modified_md_json"
+unset _modified_md_json
 log_info "[PIPELINE] Stage 7: complete"
 
 # ---------------------------------------------------------------------------
@@ -134,7 +156,7 @@ log_info "[PIPELINE] Stage 7: complete"
 # ---------------------------------------------------------------------------
 log_info "[PIPELINE] Stage 8: starting — generated reference docs regeneration"
 stage8_rc=0
-make -C "$ROOT_DIR" quality-docs-sync-generated-reference || stage8_rc=$?
+make -C "$ROOT_DIR" quality-docs-sync-core-targets quality-docs-sync-contract-metadata || stage8_rc=$?
 if [[ "$stage8_rc" -ne 0 ]]; then
   pipeline_exit=$stage8_rc
   log_fatal "[PIPELINE] Stage 8: FAILED — docs regen exited $stage8_rc; aborting."
