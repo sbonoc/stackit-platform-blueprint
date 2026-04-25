@@ -5,11 +5,11 @@
      SPEC_READY=true: implementation gate — all sign-offs required; unlocks coding. -->
 - SPEC_READY: false
 - SPEC_PRODUCT_READY: false
-- Open questions count: 2
-- Unresolved alternatives count: 2
+- Open questions count: 0
+- Unresolved alternatives count: 0
 - Unresolved TODO markers count: 0
 - Pending assumptions count: 0
-- Open clarification markers count: 2
+- Open clarification markers count: 0
 - Product sign-off: pending
 - Architecture sign-off: pending
 - Security sign-off: pending
@@ -59,18 +59,8 @@
 
 #### Stage 5 — Coverage gap detection and file fetch
 
-> **[NEEDS CLARIFICATION: Q-1 — Stage 5 fetch scope]**
->
-> The proposed pipeline states Stage 5 fetches files that are "absent from disk" AND "in the upgrade plan with action=create." The original failure mode (F-002) was a file referenced in contract sections that was entirely absent from the upgrade plan. With the new planner audit (FR-009 from the #185 fix, now merged), uncovered source files cause the planner to hard-fail, so a plan can no longer be produced for a source tree where contract-referenced files are missing. Given this dependency, two options exist:
->
-> **Options:**
-> - **A) Narrow scope — plan-recovery only:** Stage 5 fetches only files that are in the upgrade plan with `action=create` but absent from disk after apply. Relies entirely on the #185 planner audit to prevent F-002-class gaps from reaching a consumer. Simpler implementation. (Agent recommendation)
-> - **B) Broad scope — completeness guarantee:** Stage 5 fetches any file referenced in any contract section (`required_files`, `template_sync_allowlist`, `template_sync_prune_targets`, etc.) that is absent from disk after apply, regardless of plan coverage. Provides an independent safety net independent of the planner audit.
->
-> **Agent recommendation:** Option A. The #185 planner audit already hard-blocks plan production when source files are uncovered, making the F-002 scenario impossible at the plan phase. Option B would add redundant complexity for a case that cannot reach Stage 5 under the new invariant. Confirm or override.
-
 - FR-009 The pipeline MUST compare all files referenced in `blueprint/contract.yaml` sections (`required_files`, `template_sync_allowlist`, `template_sync_prune_targets`) against files present on disk after Stage 2 apply.
-- FR-010 For each referenced file that is absent from disk [and, pending Q-1 resolution, is in the upgrade plan with `action=create`], the pipeline MUST fetch the file from `BLUEPRINT_UPGRADE_SOURCE` at `BLUEPRINT_UPGRADE_REF` using a local git operation against the already-cloned source repository; no external HTTP calls are permitted.
+- FR-010 For each referenced file that is absent from disk, the pipeline MUST fetch the file from `BLUEPRINT_UPGRADE_SOURCE` at `BLUEPRINT_UPGRADE_REF` using a local git operation against the already-cloned source repository; no external HTTP calls are permitted. Fetch scope is broad — any contract-referenced file absent from disk is fetched regardless of whether it appears in the upgrade plan.
 
 #### Stage 6 — Bootstrap template mirror sync
 - FR-011 For every file modified or created by Stages 2–5, the pipeline MUST check whether a path mirror exists under `scripts/templates/blueprint/bootstrap/<path>` and, if it exists, MUST overwrite the mirror with the workspace copy.
@@ -103,28 +93,18 @@
 ### Q-1 — Stage 5 fetch scope
 - Option A: Narrow — fetch only plan-covered `action=create` files absent from disk.
 - Option B: Broad — fetch any contract-referenced file absent from disk regardless of plan coverage.
-- Selected option: [NEEDS CLARIFICATION: Q-1 — awaiting user decision]
-- Rationale: See FR-009/FR-010 clarification block above.
+- Selected option: Option B — broad scope; fetch any contract-referenced file absent from disk regardless of plan coverage.
+- Rationale: Option B provides a correct invariant independent of plan completeness, guards against partially interrupted prior runs, committed deletions of blueprint-managed files, and future contract section evolution not covered by the #185 planner audit. Decision by sbonoc PR comment 2026-04-25.
 
 ### Q-2 — BLUEPRINT_UPGRADE_ALLOW_DELETE default
 - Option A: Delete enabled by default in the pipeline (`BLUEPRINT_UPGRADE_ALLOW_DELETE=true`); `=false` is an explicit non-destructive override that lists would-be deletions in the residual report.
 - Option B: Delete disabled by default (consistent with current individual target behavior); `=true` must be set explicitly.
 
-> **[NEEDS CLARIFICATION: Q-2 — BLUEPRINT_UPGRADE_ALLOW_DELETE default for the pipeline entry point]**
->
-> The pipeline proposal describes delete as "default for pipeline" in Stage 2, while the Constraints section says "Non-destructive by default: `BLUEPRINT_UPGRADE_ALLOW_DELETE=false` should be a supported override." The two readings are: (A) the pipeline is delete-on by default because F-003 was caused by not deleting superseded files — making delete the correct default for a deterministic outcome; (B) the pipeline remains non-destructive by default because consumers may be unaware of the flag behavior and deletions are irreversible.
->
-> **Options:**
-> - **A) Delete ON by default in pipeline:** Pipeline enables delete; pass `BLUEPRINT_UPGRADE_ALLOW_DELETE=false` for cautious/dry-run mode. Resolves F-003 automatically. (Agent recommendation)
-> - **B) Delete OFF by default:** Consumer must pass `BLUEPRINT_UPGRADE_ALLOW_DELETE=true` explicitly. Safer default but does not automatically resolve F-003.
->
-> **Agent recommendation:** Option A. The primary motivation for this work item is deterministic end-to-end operation; keeping superseded files is inconsistent with that goal. The non-destructive mode (Option B behavior) is still available via override.
-
-- Selected option: [NEEDS CLARIFICATION: Q-2 — awaiting user decision]
-- Rationale: See clarification block above.
+- Selected option: Option A — delete enabled by default (`BLUEPRINT_UPGRADE_ALLOW_DELETE=true`); `=false` is the explicit non-destructive override.
+- Rationale: The primary motivation for this work item is deterministic end-to-end operation; keeping superseded files on disk is inconsistent with that goal and was the direct cause of F-003. The non-destructive mode remains available via `BLUEPRINT_UPGRADE_ALLOW_DELETE=false` override. Decision by sbonoc PR comment 2026-04-25.
 
 ## Contract Changes (Normative)
-- Config/Env contract: New env var `BLUEPRINT_UPGRADE_ALLOW_DELETE` with pipeline-default value (pending Q-2); documented in `make help` and `SKILL.md`.
+- Config/Env contract: New env var `BLUEPRINT_UPGRADE_ALLOW_DELETE` with pipeline default `true` (delete enabled); documented in `make help` and `SKILL.md`.
 - API contract: none (no HTTP API)
 - OpenAPI / Pact contract path: none
 - Event contract: none
