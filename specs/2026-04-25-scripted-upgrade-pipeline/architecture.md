@@ -19,9 +19,10 @@
 ## Bounded Contexts and Responsibilities
 
 ### Stage 1 — Pre-flight validation
-- Owned by: `scripts/bin/blueprint/upgrade_consumer.sh` (entry wrapper)
+- Owned by: `scripts/lib/blueprint/upgrade_preflight.py` (logic); called by `scripts/bin/blueprint/upgrade_consumer.sh` (entry wrapper exits non-zero on failure).
 - Verifies clean working tree, resolved `BLUEPRINT_UPGRADE_REF`, and parseable `blueprint/contract.yaml` with `repo_mode: generated-consumer`.
 - Aborts with non-zero exit and human-readable message on any violation (FR-001–FR-003).
+- Design rationale: pre-flight logic is in a Python module (not bash) so FR-001–FR-003 are unit-testable via pytest without a bash test runner.
 
 ### Stage 2 — Apply with delete
 - Owned by: existing `blueprint-upgrade-consumer-apply` make target (unchanged)
