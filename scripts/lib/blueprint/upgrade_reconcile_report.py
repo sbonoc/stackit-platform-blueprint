@@ -58,6 +58,16 @@ _BUCKET_POLICY = {
 }
 
 
+def find_merge_markers(repo_root: Path) -> set[str]:
+    """Return relative paths of files in repo_root that contain active merge conflict markers.
+
+    Scans the working tree at report-build time so that the result reflects
+    current file state rather than stale plan/apply metadata.  (FR-001)
+    """
+    # Stub — returns empty set; full implementation follows in T-008.
+    return set()
+
+
 def _collect_entries(payload: dict[str, Any], key: str) -> list[dict[str, Any]]:
     value = payload.get(key, [])
     if not isinstance(value, list):
