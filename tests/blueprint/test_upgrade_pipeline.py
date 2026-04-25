@@ -10,6 +10,11 @@ Slice 2: Contract resolver
   TestContractResolverRequiredFilesMerge   — FR-006
   TestContractResolverPruneGlobDrop        — FR-007
   TestContractResolverDecisionJSON         — FR-008
+
+Slice 3: Coverage gap detection and file fetch
+  TestCoverageGapDetection  — FR-009
+  TestCoverageGapFileFetch  — FR-010, AC-003
+  TestCoverageGapNoHTTP     — NFR-SEC-001
 """
 from __future__ import annotations
 
@@ -28,6 +33,9 @@ from scripts.lib.blueprint.upgrade_pipeline_preflight import (
 )
 from scripts.lib.blueprint.resolve_contract_upgrade import (
     resolve_contract_conflict,
+)
+from scripts.lib.blueprint.upgrade_coverage_fetch import (
+    run_coverage_fetch,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -510,3 +518,198 @@ class TestContractResolverDecisionJSON(unittest.TestCase):
             decisions = json.loads(decisions_path.read_text(encoding="utf-8"))
             kept = decisions.get("kept_consumer_required_files", [])
             self.assertIn("docs/consumer-guide.md", kept)
+
+
+# ===========================================================================
+# Slice 3 — Coverage gap detection and file fetch
+# ===========================================================================
+
+
+def _build_source_repo(path: Path, files: dict[str, str]) -> str:
+    """Build a minimal local git source repo with given files. Return the HEAD SHA."""
+    _init_git_repo(path)
+    for rel_path, content in files.items():
+        full_path = path / rel_path
+        full_path.parent.mkdir(parents=True, exist_ok=True)
+        full_path.write_text(content, encoding="utf-8")
+    sha = _commit_all(path)
+    return sha
+
+
+def _minimal_consumer_contract(required_files: list[str]) -> str:
+    """Build a minimal consumer contract.yaml string with given required_files."""
+    lines = [
+        "metadata:",
+        "  name: test-consumer",
+        "spec:",
+        "  repository:",
+        "    repo_mode: generated-consumer",
+        "    required_files:",
+    ]
+    for f in required_files:
+        lines.append(f"      - {f}")
+    lines += [
+        "  docs_contract:",
+        "    blueprint_docs:",
+        "      root: docs/blueprint",
+        "      template_sync_allowlist: []",
+    ]
+    return "\n".join(lines) + "\n"
+
+
+class TestCoverageGapDetection(unittest.TestCase):
+    """FR-009: pipeline detects files referenced in contract but absent from disk."""
+
+    def test_absent_required_file_reported_as_gap(self) -> None:
+        with tempfile.TemporaryDirectory() as td1, tempfile.TemporaryDirectory() as td2:
+            repo = Path(td1)
+            source = Path(td2)
+            sha = _build_source_repo(
+                source,
+                {
+                    "README.md": "# Blueprint",
+                    "Makefile": "all:",
+                    "missing-in-consumer.md": "# this file is missing from consumer",
+                },
+            )
+            (repo / "blueprint").mkdir(parents=True, exist_ok=True)
+            (repo / "blueprint/contract.yaml").write_text(
+                _minimal_consumer_contract(
+                    ["README.md", "Makefile", "missing-in-consumer.md"]
+                ),
+                encoding="utf-8",
+            )
+            # Only create README.md and Makefile — missing-in-consumer.md is absent
+            (repo / "README.md").write_text("# Consumer", encoding="utf-8")
+            (repo / "Makefile").write_text("all:", encoding="utf-8")
+
+            result = run_coverage_fetch(
+                repo, upgrade_source=str(source), upgrade_ref=sha
+            )
+
+            self.assertIn("missing-in-consumer.md", result.gaps_detected)
+
+    def test_present_required_file_not_reported_as_gap(self) -> None:
+        with tempfile.TemporaryDirectory() as td1, tempfile.TemporaryDirectory() as td2:
+            repo = Path(td1)
+            source = Path(td2)
+            sha = _build_source_repo(source, {"README.md": "# Blueprint"})
+            (repo / "blueprint").mkdir(parents=True, exist_ok=True)
+            (repo / "blueprint/contract.yaml").write_text(
+                _minimal_consumer_contract(["README.md"]),
+                encoding="utf-8",
+            )
+            (repo / "README.md").write_text("# Consumer", encoding="utf-8")
+
+            result = run_coverage_fetch(
+                repo, upgrade_source=str(source), upgrade_ref=sha
+            )
+
+            self.assertNotIn("README.md", result.gaps_detected)
+
+    def test_allowlist_entry_absent_from_disk_reported_as_gap(self) -> None:
+        with tempfile.TemporaryDirectory() as td1, tempfile.TemporaryDirectory() as td2:
+            repo = Path(td1)
+            source = Path(td2)
+            sha = _build_source_repo(
+                source,
+                {
+                    "docs/blueprint/governance/new_guide.md": "# Guide",
+                },
+            )
+            contract_yaml = (
+                "metadata:\n  name: test-consumer\n"
+                "spec:\n  repository:\n    repo_mode: generated-consumer\n"
+                "    required_files: []\n"
+                "  docs_contract:\n    blueprint_docs:\n"
+                "      root: docs/blueprint\n"
+                "      template_sync_allowlist:\n        - governance/new_guide.md\n"
+            )
+            (repo / "blueprint").mkdir(parents=True, exist_ok=True)
+            (repo / "blueprint/contract.yaml").write_text(contract_yaml, encoding="utf-8")
+            # docs/blueprint/governance/new_guide.md is NOT on disk
+
+            result = run_coverage_fetch(
+                repo, upgrade_source=str(source), upgrade_ref=sha
+            )
+
+            self.assertIn("docs/blueprint/governance/new_guide.md", result.gaps_detected)
+
+
+class TestCoverageGapFileFetch(unittest.TestCase):
+    """FR-010, AC-003: absent required files are auto-fetched from the local git source."""
+
+    def test_absent_file_fetched_via_git(self) -> None:
+        with tempfile.TemporaryDirectory() as td1, tempfile.TemporaryDirectory() as td2:
+            repo = Path(td1)
+            source = Path(td2)
+            sha = _build_source_repo(
+                source,
+                {"new-file.md": "# New content from blueprint"},
+            )
+            (repo / "blueprint").mkdir(parents=True, exist_ok=True)
+            (repo / "blueprint/contract.yaml").write_text(
+                _minimal_consumer_contract(["new-file.md"]),
+                encoding="utf-8",
+            )
+            # new-file.md is absent from consumer repo
+
+            run_coverage_fetch(repo, upgrade_source=str(source), upgrade_ref=sha)
+
+            fetched = repo / "new-file.md"
+            self.assertTrue(fetched.exists(), "absent file was not fetched")
+            self.assertEqual(
+                fetched.read_text(encoding="utf-8"), "# New content from blueprint"
+            )
+
+    def test_result_records_fetched_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as td1, tempfile.TemporaryDirectory() as td2:
+            repo = Path(td1)
+            source = Path(td2)
+            sha = _build_source_repo(source, {"new-file.md": "# New"})
+            (repo / "blueprint").mkdir(parents=True, exist_ok=True)
+            (repo / "blueprint/contract.yaml").write_text(
+                _minimal_consumer_contract(["new-file.md"]),
+                encoding="utf-8",
+            )
+
+            result = run_coverage_fetch(repo, upgrade_source=str(source), upgrade_ref=sha)
+
+            self.assertIn("new-file.md", result.fetched_paths)
+
+    def test_file_absent_from_source_recorded_as_unfetchable(self) -> None:
+        with tempfile.TemporaryDirectory() as td1, tempfile.TemporaryDirectory() as td2:
+            repo = Path(td1)
+            source = Path(td2)
+            sha = _build_source_repo(source, {"something_else.md": "# Other"})
+            (repo / "blueprint").mkdir(parents=True, exist_ok=True)
+            (repo / "blueprint/contract.yaml").write_text(
+                _minimal_consumer_contract(["no-such-file-anywhere.md"]),
+                encoding="utf-8",
+            )
+
+            result = run_coverage_fetch(repo, upgrade_source=str(source), upgrade_ref=sha)
+
+            # File is in contract but absent from both consumer and source → unfetchable
+            self.assertIn("no-such-file-anywhere.md", result.unfetchable_paths)
+
+
+class TestCoverageGapNoHTTP(unittest.TestCase):
+    """NFR-SEC-001: no external HTTP fetches; all file retrieval uses local git."""
+
+    def test_no_http_subprocess_calls(self) -> None:
+        """Verify upgrade_coverage_fetch.py contains no http/https subprocess literals."""
+        module_path = REPO_ROOT / "scripts/lib/blueprint/upgrade_coverage_fetch.py"
+        source = module_path.read_text(encoding="utf-8")
+        # The module must not contain hardcoded http:// or https:// URLs in subprocess calls.
+        # We check that the string 'http://' does not appear in the file.
+        self.assertNotIn(
+            "http://",
+            source,
+            "upgrade_coverage_fetch.py must not contain http:// literals",
+        )
+        self.assertNotIn(
+            "https://",
+            source,
+            "upgrade_coverage_fetch.py must not contain https:// literals",
+        )
