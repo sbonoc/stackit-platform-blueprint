@@ -61,6 +61,22 @@ _EXCLUDED_TOKENS: frozenset[str] = frozenset({
     "set_default_env", "load_env_file_defaults", "require_env_vars",
     "blueprint_load_env_defaults", "start_script_metric_trap", "is_truthy",
     "resolve_repo_root", "display_repo_path",
+    # common OS tools absent from the original set (FR-007)
+    "tar", "pnpm",
+    # blueprint bootstrap-chain runtime functions (FR-008)
+    "blueprint_require_runtime_env",
+    "blueprint_sanitize_init_placeholder_defaults",
+    "ensure_file_from_template",
+    "ensure_file_from_rendered_template",
+    "postgres_init_env",
+    "object_storage_init_env",
+    "rabbitmq_seed_env_defaults",
+    "public_endpoints_seed_env_defaults",
+    "identity_aware_proxy_seed_env_defaults",
+    "keycloak_seed_env_defaults",
+    "render_optional_module_values_file",
+    "apply_optional_module_secret_from_literals",
+    "delete_optional_module_secret",
 })
 
 # ---------------------------------------------------------------------------
@@ -95,6 +111,9 @@ _ASSIGNMENT_RE = re.compile(r'^\s*\w+=')
 
 # A valid shell identifier token
 _IDENTIFIER_RE = re.compile(r'^\w+$')
+
+# Array initializer opener: local/declare/readonly/typeset var=( (FR-006)
+_ARRAY_OPEN_RE = re.compile(r'\b(?:local|declare|readonly|typeset)\b.*\w+=\(')
 
 
 # ---------------------------------------------------------------------------
@@ -205,6 +224,7 @@ def _find_unresolved_call_sites(
     """
     findings: list[dict[str, Any]] = []
     heredoc_marker: str | None = None
+    array_depth: int = 0  # tracks depth inside multi-line array initializers
     for lineno, line in enumerate(content.splitlines(), start=1):
         stripped = line.strip()
 
@@ -214,6 +234,13 @@ def _find_unresolved_call_sites(
         if heredoc_marker is not None:
             if stripped == heredoc_marker:
                 heredoc_marker = None
+            continue
+
+        # Array initializer body tracking — skip bare-word elements between
+        # local/declare/readonly/typeset var=( and the closing ).  (FR-006)
+        if array_depth > 0:
+            if stripped == ")":
+                array_depth -= 1
             continue
 
         if _COMMENT_RE.match(line):
@@ -234,12 +261,23 @@ def _find_unresolved_call_sites(
         token = _first_token(line)
         if token is None:
             continue
+
+        # Detect array initializer opener before the excluded-token guard so
+        # that ``local/declare/readonly/typeset var=(`` lines are tracked even
+        # though their first token is already in _EXCLUDED_TOKENS.  (FR-006)
+        if _ARRAY_OPEN_RE.search(line):
+            if line.count("(") > line.count(")"):
+                array_depth += 1
+            continue  # declaration line is never a call site
+
         if token in _EXCLUDED_TOKENS:
             continue
 
-        # Skip case-label lines — a first token immediately followed by ")" is
-        # a case alternative pattern, not a function call.
-        if stripped.startswith(token + ")"):
+        # Skip case-label lines — a first token immediately followed by ")" or
+        # "|" (alternation) is a case alternative pattern, not a function call.
+        # Handles both ``build|test)`` and ``deploy | verify)`` forms.  (FR-005)
+        rest_lstripped = stripped[len(token):].lstrip()
+        if rest_lstripped.startswith(")") or rest_lstripped.startswith("|"):
             continue
 
         if token not in available_defs:
