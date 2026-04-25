@@ -1298,6 +1298,72 @@ class QualityContractsTests(unittest.TestCase):
             ),
         )
 
+    def test_validate_bootstrap_template_sync_skips_disabled_conditional_scaffold_in_template_source_mode(self) -> None:
+        """Regression: bootstrap template sync must skip disabled conditional-module scaffold in template-source mode.
+
+        In template-source mode infra-bootstrap does not create scaffold dirs/files for
+        disabled modules (e.g. infra/local/helm/observability/ when OBSERVABILITY_ENABLED is
+        unset).  The byte-identical sync check must not error on these absent files; it must
+        skip them exactly as it does in generated-consumer mode.
+
+        This regression test was added after the CI generated-consumer-smoke job failed with:
+          AssertionError: expected disabled conditional scaffold to stay pruned in generated repo:
+            infra/cloud/stackit/terraform/modules/observability
+        The root cause was that infra/bootstrap.sh unconditionally created observability dirs,
+        causing them to persist after blueprint-init-repo pruned them.  The companion fix to
+        validate_bootstrap_template_sync ensures the sync check itself also tolerates absent
+        scaffold in template-source mode (OBSERVABILITY_ENABLED not set → enabled_by_default=false).
+        """
+        import tempfile
+        from scripts.lib.blueprint.contract_validators.docs_sync import validate_bootstrap_template_sync
+        from scripts.lib.blueprint.contract_schema import load_blueprint_contract
+
+        # Simulate a minimal template-source repo that is missing the observability scaffold
+        # (as it would be in a fresh clone before infra-bootstrap has been run, or when
+        # OBSERVABILITY_ENABLED=false).  Use a temp dir that contains only the non-observability
+        # infra template files needed to satisfy other sync checks.
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+
+            # Mirror the template directory structure so that non-observability sync entries pass.
+            for rel in (
+                "scripts/templates/blueprint/bootstrap",
+                "scripts/templates/infra/bootstrap",
+            ):
+                (tmp_root / rel).mkdir(parents=True, exist_ok=True)
+
+            # Write a template-source contract (repo_mode left as template-source).
+            (tmp_root / "blueprint").mkdir(parents=True, exist_ok=True)
+            (tmp_root / "blueprint" / "contract.yaml").write_text(
+                _read("blueprint/contract.yaml"),
+                encoding="utf-8",
+            )
+            contract = load_blueprint_contract(tmp_root / "blueprint" / "contract.yaml")
+
+            # Run the sync validator against the minimal temp repo (observability scaffold absent).
+            # Only check for false-positive "missing bootstrap target file" errors on the
+            # observability paths that are in paths_required_when_enabled.
+            errors = validate_bootstrap_template_sync(tmp_root, contract)
+            observability_errors = [
+                e
+                for e in errors
+                if "missing bootstrap target file" in e
+                and (
+                    "observability" in e
+                    or "grafana" in e
+                    or "otel-collector" in e
+                )
+            ]
+            self.assertEqual(
+                observability_errors,
+                [],
+                msg=(
+                    "validate_bootstrap_template_sync must not report missing-file errors "
+                    "for disabled conditional-module scaffold (observability) in template-source mode; got: "
+                    + str(observability_errors)
+                ),
+            )
+
     def test_render_ci_includes_permissions_block(self) -> None:
         """FR-015/FR-016: generated ci.yml must contain a workflow-level permissions block with contents: read."""
         import importlib.util as _ilu

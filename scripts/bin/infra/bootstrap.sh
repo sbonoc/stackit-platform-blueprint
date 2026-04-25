@@ -140,8 +140,12 @@ bootstrap_stackit_seed_values() {
 }
 
 bootstrap_infra_directories() {
+  # Core directories always required regardless of enabled optional modules.
+  # Conditional-module scaffold directories (e.g. infra/local/helm/observability,
+  # infra/cloud/stackit/terraform/modules/observability, tests/infra/modules/observability)
+  # are created by bootstrap_optional_module_scaffolding() when the module is enabled,
+  # keeping the working tree clean for disabled modules.
   ensure_dir "$ROOT_DIR/tests/infra/modules"
-  ensure_dir "$ROOT_DIR/tests/infra/modules/observability"
   ensure_dir "$ROOT_DIR/scripts/lib/infra"
   ensure_dir "$ROOT_DIR/infra/cloud/stackit/terraform/bootstrap/env"
   ensure_dir "$ROOT_DIR/infra/cloud/stackit/terraform/bootstrap/state-backend"
@@ -150,10 +154,8 @@ bootstrap_infra_directories() {
   ensure_dir "$ROOT_DIR/infra/cloud/stackit/terraform/environments/dev"
   ensure_dir "$ROOT_DIR/infra/cloud/stackit/terraform/environments/stage"
   ensure_dir "$ROOT_DIR/infra/cloud/stackit/terraform/environments/prod"
-  ensure_dir "$ROOT_DIR/infra/cloud/stackit/terraform/modules/observability"
   ensure_dir "$ROOT_DIR/infra/local/crossplane"
   ensure_dir "$ROOT_DIR/infra/local/helm/core"
-  ensure_dir "$ROOT_DIR/infra/local/helm/observability"
   ensure_dir "$ROOT_DIR/infra/gitops/argocd/base"
   ensure_dir "$ROOT_DIR/infra/gitops/argocd/overlays/local"
   ensure_dir "$ROOT_DIR/infra/gitops/argocd/overlays/dev"
@@ -178,15 +180,15 @@ bootstrap_infra_directories() {
 }
 
 bootstrap_infra_static_templates() {
-  ensure_infra_template_file "tests/infra/modules/observability/README.md"
+  # Observability module files (tests/infra/modules/observability/, infra/local/helm/observability/)
+  # are seeded by bootstrap_observability_module_scaffold() when OBSERVABILITY_ENABLED=true.
+  # They must not be created here because blueprint-contract enforces their absence when disabled.
   ensure_infra_template_file "infra/local/crossplane/kustomization.yaml"
   ensure_infra_template_file "infra/local/crossplane/namespace.yaml"
   ensure_infra_template_file "infra/local/helm/core/argocd.values.yaml"
   ensure_infra_template_file "infra/local/helm/core/external-secrets.values.yaml"
   ensure_infra_template_file "infra/local/helm/core/cert-manager.values.yaml"
   ensure_infra_template_file "infra/local/helm/core/crossplane.values.yaml"
-  ensure_infra_template_file "infra/local/helm/observability/grafana.values.yaml"
-  ensure_infra_template_file "infra/local/helm/observability/otel-collector.values.yaml"
   ensure_infra_template_file "infra/gitops/argocd/base/kustomization.yaml"
   ensure_infra_template_file "infra/gitops/argocd/base/namespace.yaml"
   ensure_infra_template_file "infra/gitops/platform/base/kustomization.yaml"
@@ -282,9 +284,9 @@ bootstrap_stackit_terraform_scaffolding() {
       "infra/cloud/stackit/terraform/environments/$env/main.tf" \
       "infra/cloud/stackit/terraform/main.tf"
   done
-  ensure_infra_template_file \
-    "infra/cloud/stackit/terraform/modules/observability/main.tf" \
-    "infra/cloud/stackit/terraform/main.tf"
+  # Observability terraform module is seeded by bootstrap_observability_module_scaffold()
+  # when OBSERVABILITY_ENABLED=true.  Creating it here unconditionally violates the
+  # blueprint contract: paths_required_when_enabled must be absent when the module is disabled.
 }
 
 bootstrap_module_scaffold() {
@@ -387,8 +389,30 @@ bootstrap_module_scaffold() {
   fi
 }
 
+bootstrap_observability_module_scaffold() {
+  # Observability uses two Helm values files (grafana + otel-collector) rather than
+  # the single values.yaml that bootstrap_module_scaffold() produces, so it requires
+  # a dedicated scaffold function.  All paths created here correspond 1-to-1 with
+  # the paths_required_when_enabled list in the observability optional_module contract.
+  ensure_dir "$ROOT_DIR/tests/infra/modules/observability"
+  ensure_dir "$ROOT_DIR/infra/cloud/stackit/terraform/modules/observability"
+  ensure_dir "$ROOT_DIR/infra/local/helm/observability"
+  ensure_infra_template_file "tests/infra/modules/observability/README.md"
+  ensure_infra_template_file \
+    "infra/cloud/stackit/terraform/modules/observability/main.tf" \
+    "infra/cloud/stackit/terraform/main.tf"
+  ensure_infra_template_file "infra/local/helm/observability/grafana.values.yaml"
+  ensure_infra_template_file "infra/local/helm/observability/otel-collector.values.yaml"
+  log_metric "observability_module_scaffold_total" "1" "status=scaffolded"
+}
+
 bootstrap_optional_module_scaffolding() {
   local scaffolded_modules=()
+
+  if is_module_enabled observability; then
+    bootstrap_observability_module_scaffold
+    scaffolded_modules+=("observability")
+  fi
 
   if is_module_enabled workflows; then
     bootstrap_module_scaffold workflows false true
@@ -554,12 +578,21 @@ bootstrap_optional_manifest() {
 bootstrap_optional_manifests() {
   local rendered_optional_manifest_count=0
   local env
+
+  # Keycloak is a mandatory identity baseline — always rendered.
   for env in local dev stage prod; do
     bootstrap_optional_manifest keycloak "$env"
     rendered_optional_manifest_count=$((rendered_optional_manifest_count + 1))
-    bootstrap_optional_manifest observability "$env"
-    rendered_optional_manifest_count=$((rendered_optional_manifest_count + 1))
   done
+
+  # Observability manifests (infra/gitops/argocd/optional/${ENV}/observability.yaml) are
+  # listed in paths_required_when_enabled and must be absent when observability is disabled.
+  if is_module_enabled observability; then
+    for env in local dev stage prod; do
+      bootstrap_optional_manifest observability "$env"
+      rendered_optional_manifest_count=$((rendered_optional_manifest_count + 1))
+    done
+  fi
 
   if is_module_enabled workflows; then
     for env in local dev stage prod; do

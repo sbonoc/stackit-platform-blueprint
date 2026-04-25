@@ -219,18 +219,22 @@ def validate_platform_docs_seed_contract(
 def validate_bootstrap_template_sync(repo_root: Path, contract: BlueprintContract) -> list[str]:
     """Verify that files seeded by make blueprint-bootstrap match their source templates.
 
-    In template-source mode every listed file must exist and be byte-identical to
-    its template counterpart.  In generated-consumer mode a subset of files is
-    legitimately absent because blueprint-init-repo pruned them:
+    Files that legitimately do not exist are skipped before the sync check:
 
-    * Files under source-only paths (e.g. blueprint/modules/, specs/) — removed
-      unconditionally when converting a template-source repo to a consumer repo.
-    * Files under disabled conditional-module scaffold paths (e.g.
-      infra/local/helm/observability/) — removed when the module's enable flag is
-      unset (enabled_by_default=false and no override supplied).
-
-    Those files are skipped in generated-consumer mode so the sync check does not
-    produce false-positive "missing bootstrap target file" errors.
+    * **Consumer mode only** — source-only paths (e.g. blueprint/modules/, specs/) are
+      removed unconditionally by blueprint-init-repo when converting a template-source
+      repo to a consumer repo.
+    * **Consumer mode only** — consumer-seeded and init-managed paths diverge from the
+      template intentionally (repo identity rendered in) and are not byte-for-byte
+      comparable.
+    * **Both modes** — files under disabled conditional-module scaffold paths (e.g.
+      infra/local/helm/observability/, infra/cloud/stackit/terraform/modules/observability/)
+      are legitimately absent when the module's enable flag is unset
+      (enabled_by_default=false and no env-var override supplied).  In template-source mode
+      the scaffold is not created by infra-bootstrap when the module is disabled; in
+      generated-consumer mode blueprint-init-repo additionally prunes any pre-existing
+      scaffold on first init.  Skipping these files in both modes prevents false-positive
+      "missing bootstrap target file" errors.
 
     Note: docs/blueprint/ is NOT source-only; it is seeded by make blueprint-bootstrap
     to both template-source and generated-consumer repos and appears in the sync
@@ -242,7 +246,10 @@ def validate_bootstrap_template_sync(repo_root: Path, contract: BlueprintContrac
     consumer_owned_seed_paths = set(repository.consumer_seeded_paths)
     init_managed_paths = set(repository.init_managed_paths)
     source_only_paths: list[str] = repository.source_only_paths if is_generated_consumer else []
-    pruned_module_roots: set[str] = _collect_pruned_module_roots(contract) if is_generated_consumer else set()
+    # Collect disabled conditional-module roots for both repo modes: in template-source mode
+    # infra-bootstrap skips disabled module scaffold, so these files are absent even before
+    # init_repo runs; in consumer mode init_repo additionally prunes them on first init.
+    pruned_module_roots: set[str] = _collect_pruned_module_roots(contract)
 
     template_sync_contract = (
         (
@@ -306,10 +313,13 @@ def validate_bootstrap_template_sync(repo_root: Path, contract: BlueprintContrac
                 # absence in a consumer repo is correct, not a sync error.
                 if _is_under_source_only(rel_path, source_only_paths):
                     continue
-                # Conditional-module scaffold paths pruned when the module is
-                # disabled are also legitimately absent.
-                if _is_under_pruned_module_root(rel_path, pruned_module_roots):
-                    continue
+
+            # Applied in both modes: infra-bootstrap does not create conditional-module
+            # scaffold when the module is disabled, so these files are legitimately absent
+            # whether in template-source mode (never created) or consumer mode (pruned by
+            # blueprint-init-repo on first init).
+            if _is_under_pruned_module_root(rel_path, pruned_module_roots):
+                continue
 
             target_path = repo_root / rel_path
             template_path = template_root / rel_path
