@@ -1160,5 +1160,414 @@ class QualityContractsTests(unittest.TestCase):
         self.assertNotIn("AGENTS.md", required_files)
 
 
+    def test_required_paths_filters_source_only_for_generated_consumer_mode(self) -> None:
+        """Regression: required_paths must not include source-only directories in generated-consumer mode.
+
+        blueprint-init-repo removes all source_only paths (blueprint/modules,
+        specs, tests/blueprint, …) from generated-consumer repos.  If those
+        paths remain in the required_paths list, validate_contract fails with
+        spurious "missing path" errors immediately after blueprint-init-repo
+        runs, before make blueprint-bootstrap can recreate any of them.  This
+        is the exact failure mode observed in the generated-consumer-smoke CI
+        job when new source_only entries were added without updating the
+        validation helpers.
+
+        Note: docs/blueprint/ is NOT source-only.  It is seeded by bootstrap
+        and appears in required_paths for both repo modes.
+        """
+        validate_script = REPO_ROOT / "scripts/bin/blueprint/validate_contract.py"
+        spec = importlib.util.spec_from_file_location("validate_contract_module_rp", validate_script)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)  # type: ignore[union-attr]
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            contract_path = Path(tmpdir) / "contract.yaml"
+            contract_path.write_text(
+                _read("blueprint/contract.yaml").replace(
+                    "repo_mode: template-source",
+                    "repo_mode: generated-consumer",
+                    1,
+                ),
+                encoding="utf-8",
+            )
+            contract = load_blueprint_contract(contract_path)
+            required_paths = module._required_paths_for_repo_mode(contract)
+
+        source_only = contract.repository.source_only_paths
+        for so_path in source_only:
+            # No required_path entry may be the same as or a child of a source-only path
+            # in generated-consumer mode — they are removed by blueprint-init-repo.
+            violations = [p for p in required_paths if p.rstrip("/") == so_path or p.startswith(so_path + "/")]
+            self.assertEqual(
+                violations,
+                [],
+                msg=(
+                    f"required_paths in generated-consumer mode must not include source-only path "
+                    f"'{so_path}'; found: {violations}"
+                ),
+            )
+
+    def test_required_diagrams_filters_source_only_for_generated_consumer_mode(self) -> None:
+        """Regression: mermaid diagram list must not include source-only files in generated-consumer mode.
+
+        Mermaid diagrams under source-only paths (e.g. specs/, blueprint/modules/)
+        are pruned by blueprint-init-repo.  The validate_contract mermaid check
+        must filter them in generated-consumer mode to avoid spurious "missing
+        mermaid markdown file" errors.
+
+        Note: docs/blueprint/ is NOT source-only; mermaid diagrams under it
+        are seeded to consumer repos by make blueprint-bootstrap and must remain
+        in the filtered diagram list for consumer mode validation.
+        """
+        validate_script = REPO_ROOT / "scripts/bin/blueprint/validate_contract.py"
+        spec = importlib.util.spec_from_file_location("validate_contract_module_rd", validate_script)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)  # type: ignore[union-attr]
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            contract_path = Path(tmpdir) / "contract.yaml"
+            contract_path.write_text(
+                _read("blueprint/contract.yaml").replace(
+                    "repo_mode: template-source",
+                    "repo_mode: generated-consumer",
+                    1,
+                ),
+                encoding="utf-8",
+            )
+            contract = load_blueprint_contract(contract_path)
+            all_diagrams = contract.docs_contract.required_diagrams
+            filtered = module._required_diagrams_for_repo_mode(contract, all_diagrams)
+
+        source_only = contract.repository.source_only_paths
+        for diagram in filtered:
+            for so in source_only:
+                self.assertFalse(
+                    diagram == so or diagram.startswith(so + "/"),
+                    msg=(
+                        f"mermaid diagram '{diagram}' is under source-only path '{so}' "
+                        "and must not appear in the filtered diagram list for generated-consumer mode"
+                    ),
+                )
+
+    def test_validate_bootstrap_template_sync_passes_for_docs_blueprint_in_consumer_mode(self) -> None:
+        """Regression: bootstrap template sync must not report errors for docs/blueprint/* in consumer mode.
+
+        docs/blueprint/ is NOT source-only — it is seeded by make blueprint-bootstrap
+        to both template-source and generated-consumer repos.  validate_bootstrap_template_sync
+        must check these files in consumer mode (they exist and must match their templates),
+        not skip them.  This test asserts no "missing bootstrap target file" errors are
+        produced for docs/blueprint/* paths in generated-consumer mode, whether via
+        skipping (source-only) or via passing the byte-identical check (seeded files).
+
+        The test was added after the CI smoke job failed with template sync errors for
+        source-only paths that were mistakenly listed in the sync contract.
+        """
+        from scripts.lib.blueprint.contract_validators.docs_sync import validate_bootstrap_template_sync
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            contract_path = Path(tmpdir) / "contract.yaml"
+            contract_path.write_text(
+                _read("blueprint/contract.yaml").replace(
+                    "repo_mode: template-source",
+                    "repo_mode: generated-consumer",
+                    1,
+                ),
+                encoding="utf-8",
+            )
+            contract = load_blueprint_contract(contract_path)
+
+        # Run the sync check against REPO_ROOT (template-source working tree) with a
+        # generated-consumer contract.  docs/blueprint/* files exist here and are
+        # byte-identical to their templates, so the sync check must pass for those paths.
+        errors = validate_bootstrap_template_sync(REPO_ROOT, contract)
+        docs_blueprint_errors = [
+            e for e in errors
+            if "docs/blueprint/" in e and "missing bootstrap target file" in e
+        ]
+        self.assertEqual(
+            docs_blueprint_errors,
+            [],
+            msg=(
+                "validate_bootstrap_template_sync must not report missing-file errors "
+                "for docs/blueprint/* paths in generated-consumer mode; got: "
+                + str(docs_blueprint_errors)
+            ),
+        )
+
+    def test_validate_bootstrap_template_sync_skips_disabled_conditional_scaffold_in_template_source_mode(self) -> None:
+        """Regression: bootstrap template sync must skip disabled conditional-module scaffold in template-source mode.
+
+        In template-source mode infra-bootstrap does not create scaffold dirs/files for
+        disabled modules (e.g. infra/local/helm/observability/ when OBSERVABILITY_ENABLED is
+        unset).  The byte-identical sync check must not error on these absent files; it must
+        skip them exactly as it does in generated-consumer mode.
+
+        This regression test was added after the CI generated-consumer-smoke job failed with:
+          AssertionError: expected disabled conditional scaffold to stay pruned in generated repo:
+            infra/cloud/stackit/terraform/modules/observability
+        The root cause was that infra/bootstrap.sh unconditionally created observability dirs,
+        causing them to persist after blueprint-init-repo pruned them.  The companion fix to
+        validate_bootstrap_template_sync ensures the sync check itself also tolerates absent
+        scaffold in template-source mode (OBSERVABILITY_ENABLED not set → enabled_by_default=false).
+        """
+        import tempfile
+        from scripts.lib.blueprint.contract_validators.docs_sync import validate_bootstrap_template_sync
+        from scripts.lib.blueprint.contract_schema import load_blueprint_contract
+
+        # Simulate a minimal template-source repo that is missing the observability scaffold
+        # (as it would be in a fresh clone before infra-bootstrap has been run, or when
+        # OBSERVABILITY_ENABLED=false).  Use a temp dir that contains only the non-observability
+        # infra template files needed to satisfy other sync checks.
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+
+            # Mirror the template directory structure so that non-observability sync entries pass.
+            for rel in (
+                "scripts/templates/blueprint/bootstrap",
+                "scripts/templates/infra/bootstrap",
+            ):
+                (tmp_root / rel).mkdir(parents=True, exist_ok=True)
+
+            # Write a template-source contract (repo_mode left as template-source).
+            (tmp_root / "blueprint").mkdir(parents=True, exist_ok=True)
+            (tmp_root / "blueprint" / "contract.yaml").write_text(
+                _read("blueprint/contract.yaml"),
+                encoding="utf-8",
+            )
+            contract = load_blueprint_contract(tmp_root / "blueprint" / "contract.yaml")
+
+            # Run the sync validator against the minimal temp repo (observability scaffold absent).
+            # Only check for false-positive "missing bootstrap target file" errors on the
+            # observability paths that are in paths_required_when_enabled.
+            errors = validate_bootstrap_template_sync(tmp_root, contract)
+            observability_errors = [
+                e
+                for e in errors
+                if "missing bootstrap target file" in e
+                and (
+                    "observability" in e
+                    or "grafana" in e
+                    or "otel-collector" in e
+                )
+            ]
+            self.assertEqual(
+                observability_errors,
+                [],
+                msg=(
+                    "validate_bootstrap_template_sync must not report missing-file errors "
+                    "for disabled conditional-module scaffold (observability) in template-source mode; got: "
+                    + str(observability_errors)
+                ),
+            )
+
+    def test_render_ci_includes_permissions_block(self) -> None:
+        """FR-015/FR-016: generated ci.yml must contain a workflow-level permissions block with contents: read."""
+        import importlib.util as _ilu
+        spec = _ilu.spec_from_file_location(
+            "render_ci_workflow",
+            REPO_ROOT / "scripts/lib/quality/render_ci_workflow.py",
+        )
+        module = _ilu.module_from_spec(spec)  # type: ignore[arg-type]
+        spec.loader.exec_module(module)  # type: ignore[union-attr]
+
+        rendered = module._render_ci("main")
+
+        # FR-015: permissions block must be present
+        self.assertIn("permissions:", rendered, msg="generated ci.yml must contain a workflow-level permissions: block")
+        # FR-016: contents: read must be set
+        self.assertIn("contents: read", rendered, msg="permissions block must set contents: read")
+
+        # FR-015: permissions block must appear after 'on:' and before 'jobs:'
+        on_pos = rendered.index("on:\n")
+        perm_pos = rendered.index("permissions:")
+        jobs_pos = rendered.index("jobs:\n")
+        self.assertGreater(perm_pos, on_pos, msg="permissions block must appear after on: block")
+        self.assertLess(perm_pos, jobs_pos, msg="permissions block must appear before jobs: section")
+
+    def test_ci_workflow_file_contains_permissions_block(self) -> None:
+        """FR-015/FR-016: committed .github/workflows/ci.yml must contain the permissions block."""
+        workflow = _read(".github/workflows/ci.yml")
+        self.assertIn("permissions:", workflow, msg=".github/workflows/ci.yml must contain permissions: block")
+        self.assertIn("contents: read", workflow, msg=".github/workflows/ci.yml must set contents: read")
+
+    # ---------------------------------------------------------------------------
+    # Optional-module conditional scaffold regression tests
+    # ---------------------------------------------------------------------------
+
+    def test_optional_module_contract_invariants(self) -> None:
+        """Static contract invariants: every optional module must be consistently conditional.
+
+        Asserts that all modules in optional_modules.modules satisfy the invariants required
+        by the conditional-scaffold enforcement chain (blueprint-init-repo prune, infra-bootstrap
+        conditional creation, infra-validate skip, template-smoke assertion).
+
+        Catches semantic violations in blueprint/contract.yaml before any code runs — e.g.
+        adding a new module without setting scaffolding_mode=conditional, forgetting to list
+        paths in paths_required_when_enabled, or setting an incorrect enable default.
+        """
+        contract = load_blueprint_contract(REPO_ROOT / "blueprint/contract.yaml")
+        for module_id, module in sorted(contract.optional_modules.modules.items()):
+            with self.subTest(module=module_id):
+                self.assertEqual(
+                    module.scaffolding_mode,
+                    "conditional",
+                    msg=f"module {module_id}: scaffolding_mode must be 'conditional', got {module.scaffolding_mode!r}",
+                )
+                self.assertFalse(
+                    module.enabled_by_default,
+                    msg=f"module {module_id}: enabled_by_default must be False — all optional modules are opt-in",
+                )
+                self.assertEqual(
+                    module.make_targets_mode,
+                    "conditional",
+                    msg=f"module {module_id}: make_targets_mode must be 'conditional', got {module.make_targets_mode!r}",
+                )
+                self.assertGreater(
+                    len(module.paths_required_when_enabled),
+                    0,
+                    msg=f"module {module_id}: paths_required_when_enabled must not be empty — "
+                    "at least one path key must be declared so blueprint-init-repo and "
+                    "infra-bootstrap can enforce presence/absence",
+                )
+                for key in module.paths_required_when_enabled:
+                    self.assertIn(
+                        key,
+                        module.paths,
+                        msg=f"module {module_id}: paths_required_when_enabled key {key!r} not in module.paths; "
+                        "add the path definition or remove the key from the required list",
+                    )
+                    self.assertTrue(
+                        module.paths[key],
+                        msg=f"module {module_id}: module.paths[{key!r}] must be a non-empty string",
+                    )
+
+    def test_no_conditional_module_scaffold_in_unconditional_bootstrap_functions(self) -> None:
+        """Regression guard: conditional-module scaffold paths must not be created unconditionally.
+
+        Prevents recurrence of the Round 4 CI failure where infra/bootstrap.sh unconditionally
+        created observability dirs/files inside bootstrap_infra_directories(),
+        bootstrap_infra_static_templates(), and bootstrap_stackit_terraform_scaffolding().
+        blueprint-init-repo pruned those paths for disabled modules, but infra-bootstrap
+        immediately re-created them — causing template_smoke_assertions.py to fail:
+
+            AssertionError: expected disabled conditional scaffold to stay pruned in generated repo:
+              infra/cloud/stackit/terraform/modules/observability
+
+        For each module's paths_required_when_enabled, the concrete path value
+        (skipping gitops_path which contains ${ENV} and is rendered at runtime, not embedded
+        as a static string) must NOT appear as an executable line in any of the three
+        unconditional scaffold functions.  Comment lines are excluded from the check because
+        they are permitted to document why a path is NOT created there.
+        """
+        contract = load_blueprint_contract(REPO_ROOT / "blueprint/contract.yaml")
+        bootstrap_text = (REPO_ROOT / "scripts/bin/infra/bootstrap.sh").read_text(encoding="utf-8")
+
+        def extract_bash_function_body(text: str, func_name: str) -> str:
+            # Matches: funcname() {\n<body>\n^}  (closing brace at column 0)
+            pattern = rf"(?ms)^{re.escape(func_name)}\(\) \{{\n(.*?)^\}}"
+            match = re.search(pattern, text)
+            return match.group(1) if match else ""
+
+        def strip_bash_comments(body: str) -> str:
+            # Remove lines that consist solely of optional whitespace followed by '#'.
+            # These are explanatory comments documenting absent paths and must not be flagged.
+            return "\n".join(line for line in body.splitlines() if not re.match(r"^\s*#", line))
+
+        unconditional_executable = strip_bash_comments(
+            "".join([
+                extract_bash_function_body(bootstrap_text, "bootstrap_infra_directories"),
+                extract_bash_function_body(bootstrap_text, "bootstrap_infra_static_templates"),
+                extract_bash_function_body(bootstrap_text, "bootstrap_stackit_terraform_scaffolding"),
+            ])
+        )
+
+        violations: list[str] = []
+        for module_id, module in sorted(contract.optional_modules.modules.items()):
+            for key in module.paths_required_when_enabled:
+                path_value = module.paths.get(key, "")
+                if not path_value or "${ENV}" in path_value:
+                    # gitops_path values contain ${ENV} and are rendered at runtime —
+                    # they are never embedded as static strings in bootstrap functions.
+                    continue
+                clean_path = path_value.rstrip("/")
+                if clean_path in unconditional_executable:
+                    violations.append(
+                        f"module={module_id} key={key} path={clean_path!r} appears in an unconditional "
+                        "bootstrap function (bootstrap_infra_directories, bootstrap_infra_static_templates, "
+                        "or bootstrap_stackit_terraform_scaffolding); "
+                        "move to bootstrap_observability_module_scaffold() or bootstrap_module_scaffold() "
+                        "called from bootstrap_optional_module_scaffolding()"
+                    )
+
+        self.assertEqual(
+            violations,
+            [],
+            msg=(
+                "conditional-module scaffold paths must not appear in unconditional bootstrap functions:\n"
+                + "\n".join(violations)
+            ),
+        )
+
+    def test_optional_module_bootstrap_wiring_completeness(self) -> None:
+        """All optional modules must be wired in the correct conditional bootstrap functions.
+
+        Prevents the "new module added to contract but not wired in bootstrap.sh" regression.
+        If a developer adds a module to blueprint/contract.yaml but forgets to add it to
+        bootstrap_optional_module_scaffolding() (or bootstrap_optional_manifests() for modules
+        with a gitops_path), this test fires before CI instead of waiting for the slow smoke job.
+
+        Keycloak is mandatory and not in optional_modules.modules — it is correctly excluded.
+        """
+        contract = load_blueprint_contract(REPO_ROOT / "blueprint/contract.yaml")
+        bootstrap_text = (REPO_ROOT / "scripts/bin/infra/bootstrap.sh").read_text(encoding="utf-8")
+
+        def extract_bash_function_body(text: str, func_name: str) -> str:
+            pattern = rf"(?ms)^{re.escape(func_name)}\(\) \{{\n(.*?)^\}}"
+            match = re.search(pattern, text)
+            return match.group(1) if match else ""
+
+        scaffold_body = extract_bash_function_body(bootstrap_text, "bootstrap_optional_module_scaffolding")
+        manifest_body = extract_bash_function_body(bootstrap_text, "bootstrap_optional_manifests")
+
+        missing_scaffold: list[str] = []
+        missing_manifest: list[str] = []
+
+        for module_id in sorted(contract.optional_modules.modules):
+            module = contract.optional_modules.modules[module_id]
+
+            # Every optional module must appear in bootstrap_optional_module_scaffolding()
+            # so its infra scaffold (terraform, helm, tests) is created when enabled.
+            if module_id not in scaffold_body:
+                missing_scaffold.append(module_id)
+
+            # Modules with gitops_path in paths_required_when_enabled must appear in
+            # bootstrap_optional_manifests() so ArgoCD Application manifests are rendered
+            # when the module is enabled (and absent when disabled).
+            if "gitops_path" in module.paths_required_when_enabled and module_id not in manifest_body:
+                missing_manifest.append(module_id)
+
+        self.assertEqual(
+            missing_scaffold,
+            [],
+            msg=(
+                "these optional modules are defined in the contract but missing from "
+                f"bootstrap_optional_module_scaffolding() in scripts/bin/infra/bootstrap.sh: {missing_scaffold}"
+            ),
+        )
+        self.assertEqual(
+            missing_manifest,
+            [],
+            msg=(
+                "these optional modules have gitops_path in paths_required_when_enabled but are "
+                "missing from bootstrap_optional_manifests() in scripts/bin/infra/bootstrap.sh: "
+                f"{missing_manifest}"
+            ),
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -104,6 +104,20 @@ def main() -> int:
     output_root = resolve_repo_path(repo_root, args.output_root)
     output_root.mkdir(parents=True, exist_ok=True)
 
+    # blueprint/modules/ is a source-only path pruned by blueprint-init-repo in
+    # generated-consumer repos.  The shell wrapper (render_module_wrapper_skeletons.sh)
+    # guards against calling this script in consumer mode, but we also defend here
+    # so that direct invocations fail with a clear diagnostic rather than a
+    # misleading "no contracts found" error.
+    if not modules_dir.is_dir():
+        print(
+            f"[blueprint-render-module-wrapper-skeletons] SKIP: modules directory not found: {modules_dir}; "
+            "blueprint/modules is source-only and absent in generated-consumer repos — "
+            "run this script from a template-source repository",
+            file=sys.stderr,
+        )
+        return 0
+
     module_contracts = sorted(modules_dir.glob("*/module.contract.yaml"))
     if not module_contracts:
         raise ValueError(f"no module contracts found under {modules_dir}")

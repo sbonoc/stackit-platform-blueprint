@@ -480,10 +480,62 @@ spec:
       - tests/blueprint/contract_refactor_governance_runtime_cases.py
       - tests/blueprint/contract_refactor_governance_version_cases.py
       - tests/blueprint/contract_refactor_governance_init_cases.py
+      - apps/backend/Dockerfile
+      - apps/touchpoints/Dockerfile
+      - scripts/lib/bootstrap.sh
+      - scripts/lib/semver.sh
+      - infra/gitops/argocd/base/kustomization.yaml
+      - infra/gitops/argocd/base/namespace.yaml
+      - infra/gitops/argocd/environments/prod/kustomization.yaml
+      - infra/gitops/argocd/environments/prod/platform-config.yaml
+      - infra/gitops/argocd/environments/stage/kustomization.yaml
+      - infra/gitops/argocd/environments/stage/platform-config.yaml
+      - infra/gitops/argocd/overlays/dev/appproject-edge.yaml
+      - infra/gitops/argocd/overlays/dev/kustomization.yaml
+      - infra/gitops/argocd/overlays/local/appproject-edge.yaml
+      - infra/gitops/argocd/overlays/prod/appproject-edge.yaml
+      - infra/gitops/argocd/overlays/prod/kustomization.yaml
+      - infra/gitops/argocd/overlays/stage/appproject-edge.yaml
+      - infra/gitops/argocd/overlays/stage/kustomization.yaml
+      - infra/gitops/platform/environments/prod/kustomization.yaml
+      - infra/gitops/platform/environments/prod/runtime-contract-configmap.yaml
+      - infra/gitops/platform/environments/stage/kustomization.yaml
+      - infra/gitops/platform/environments/stage/runtime-contract-configmap.yaml
+      - infra/local/crossplane/kustomization.yaml
+      - infra/local/crossplane/namespace.yaml
+      - infra/local/helm/core/argocd.values.yaml
+      - infra/local/helm/core/cert-manager.values.yaml
+      - infra/local/helm/core/crossplane.values.yaml
+      - infra/local/helm/core/external-secrets.values.yaml
+      - tests/e2e/test_smoke_endpoints.py
+      - tests/e2e/test_vertical_slice.py
+      - tests/infra/test_argocd_repo_contract_cli.py
+      - tests/infra/test_async_message_contracts.py
+      - tests/infra/test_core_runtime_bootstrap.py
+      - tests/infra/test_optional_module_required_env_contract.py
+      - tests/infra/test_optional_modules.py
+      - tests/infra/test_python_helper_extractions.py
+      - tests/infra/test_root_dir_resolution.py
+      - tests/infra/test_runtime_credentials_eso.py
+      - tests/infra/test_runtime_identity_contract_cli.py
+      - tests/infra/test_sdd_asset_checker.py
+      - tests/infra/test_smoke_status_diagnostics.py
+      - tests/infra/test_stackit_layers.py
+      - tests/infra/test_state_artifact_contract.py
+      - tests/infra/test_tooling_contracts.py
+      - tests/infra/test_version_contract_checker.py
+      - tests/infra/test_workload_health_check.py
     ownership_path_classes:
       source_only:
         - tests/blueprint
         - tests/docs
+        - specs
+        - CLAUDE.md
+        - docs/src
+        - docs/sidebars.js
+        - docs/pnpm-lock.yaml
+        - docs/package.json
+        - blueprint/modules
       consumer_seeded:
         - README.md
         - AGENTS.md
@@ -538,6 +590,9 @@ spec:
         - infra/cloud/stackit/terraform/foundation/state-backend/dev.hcl
         - infra/cloud/stackit/terraform/foundation/state-backend/stage.hcl
         - infra/cloud/stackit/terraform/foundation/state-backend/prod.hcl
+        - infra/cloud/stackit/terraform/environments/dev/main.tf
+        - infra/cloud/stackit/terraform/environments/prod/main.tf
+        - infra/cloud/stackit/terraform/environments/stage/main.tf
       conditional_scaffold:
         - dags/
         - infra/cloud/stackit/terraform/modules/workflows
@@ -575,6 +630,11 @@ spec:
         - infra/local/helm/identity-aware-proxy/values.yaml
         - infra/gitops/argocd/optional/${ENV}/identity-aware-proxy.yaml
         - tests/infra/modules/identity-aware-proxy
+        - infra/cloud/stackit/terraform/modules/observability
+        - infra/gitops/argocd/optional/${ENV}/observability.yaml
+        - infra/local/helm/observability
+        - tests/infra/modules/observability
+        - infra/local/helm/langfuse/values.yaml
     consumer_init:
       template_root: scripts/templates/consumer/init
       mode_from: template-source
@@ -647,6 +707,7 @@ spec:
       - scripts/lib/shell/
       - scripts/bin/infra/
       - scripts/bin/quality/
+      - scripts/templates/
     platform_editable_roots:
       - scripts/bin/platform/
       - scripts/lib/platform/
@@ -1675,6 +1736,12 @@ spec:
       observability:
         enabled_by_default: false
         enable_flag: OBSERVABILITY_ENABLED
+        scaffolding_mode: conditional
+        paths_required_when_enabled:
+          - terraform_path
+          - gitops_path
+          - helm_path
+          - tests_path
         contract_path: blueprint/modules/observability/module.contract.yaml
         terraform_path: infra/cloud/stackit/terraform/modules/observability
         helm_path: infra/local/helm/observability
@@ -1719,10 +1786,12 @@ spec:
         paths_required_when_enabled:
           - terraform_path
           - gitops_path
+          - helm_path
           - tests_path
         contract_path: blueprint/modules/langfuse/module.contract.yaml
         terraform_path: infra/cloud/stackit/terraform/modules/langfuse
         gitops_path: infra/gitops/argocd/optional/${ENV}/langfuse.yaml
+        helm_path: infra/local/helm/langfuse/values.yaml
         docs_path: docs/platform/modules/langfuse/README.md
         tests_path: tests/infra/modules/langfuse
         make_targets_mode: conditional

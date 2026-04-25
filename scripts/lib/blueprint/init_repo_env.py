@@ -155,7 +155,14 @@ def enabled_module_required_env_specs(
     for module in contract.optional_modules.modules.values():
         if not module_enablement[module.module_id]:
             continue
-        module_contract = load_module_contract(repo_root / module.paths["contract_path"], repo_root)
+        module_contract_path = repo_root / module.paths["contract_path"]
+        if not module_contract_path.exists():
+            # blueprint/modules/ is source_only and is removed during consumer seeding.
+            # On a re-init (--force) of an already-initialized repo the module contracts
+            # are absent; skip rather than error — the env file was already seeded in the
+            # initial run.
+            continue
+        module_contract = load_module_contract(module_contract_path, repo_root)
         for env_name in module_contract.required_env:
             if env_name in seen:
                 continue

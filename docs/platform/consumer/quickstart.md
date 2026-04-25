@@ -65,9 +65,11 @@ Inspect `artifacts/blueprint/upgrade_plan.json`, `artifacts/blueprint/upgrade_ap
 auto-generated from the baseline-to-source diff; the **Merge-Required Annotations** section in
 `upgrade_summary.md` lists one annotated entry per merge path with the kind, description, and
 hints to verify after applying.
+`conflicts_unresolved` in the reconcile report reflects files that still contain active `<<<<<<<` / `=======` / `>>>>>>>` merge markers in the working tree; a file is removed from this count as soon as its markers are cleared — auto-merged and manually-resolved files are not counted.
 When `required_manual_actions` is non-empty,
 resolve the listed dependency paths first, then re-run `make blueprint-upgrade-consumer-validate`.
 When postcheck reports status `failure`, resolve blocked reasons and re-run `make blueprint-upgrade-consumer-postcheck`.
+When `fresh_env_gate.json` lists divergences with `path`/`worktree_checksum`/`working_tree_checksum` entries, the artifact content produced in the clean worktree differs from what was produced locally — inspect the listed paths to identify non-deterministic outputs or missing seeded inputs.
 For missing required consumer-owned Make targets, define the target in `make/platform.mk` or linked includes under `make/platform/*.mk`
 using the exact target name from the manual-action reason.
 When `LOCAL_POST_DEPLOY_HOOK_ENABLED=true`, preflight also flags a blocking manual action if

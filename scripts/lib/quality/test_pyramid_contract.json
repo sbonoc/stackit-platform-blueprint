@@ -22,6 +22,7 @@
         "tests/blueprint/test_upgrade_preflight.py",
         "tests/blueprint/test_upgrade_postcheck.py",
         "tests/blueprint/test_upgrade_shell_behavioral_check.py",
+        "tests/blueprint/test_upgrade_reconcile_report.py",
         "tests/blueprint/test_bootstrap_templates.py",
         "tests/blueprint/test_install_codex_skill.py",
         "tests/blueprint/test_spec_scaffold.py",

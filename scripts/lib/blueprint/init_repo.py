@@ -122,6 +122,30 @@ def main() -> int:
         (repo_root / "infra/cloud/stackit/terraform/foundation/state-backend/prod.hcl", "prod"),
     ]
 
+    # Generate env files BEFORE seeding consumer-owned files.  seed_consumer_owned_files
+    # removes source_only paths (including blueprint/modules/) which contain the per-module
+    # contract YAML that ensure_defaults_env_file needs to resolve module-specific env specs.
+    # The env files themselves are not source_only, so generating them first is safe.
+    _ensure_defaults_env_file(
+        repo_root=repo_root,
+        args=args,
+        dry_run=args.dry_run,
+        summary=summary,
+        module_enablement=module_enablement,
+    )
+    _ensure_secrets_example_env_file(
+        repo_root=repo_root,
+        dry_run=args.dry_run,
+        summary=summary,
+        module_enablement=module_enablement,
+    )
+    _ensure_local_secrets_env_file(
+        repo_root=repo_root,
+        dry_run=args.dry_run,
+        summary=summary,
+        module_enablement=module_enablement,
+    )
+
     _seed_consumer_owned_files(
         repo_root=repo_root,
         dry_run=args.dry_run,
@@ -243,26 +267,6 @@ def main() -> int:
             stackit_tfstate_key_prefix=args.stackit_tfstate_key_prefix,
         )
         _apply_file_update(backend_path, backend_original, backend_updated, args.dry_run, summary)
-
-    _ensure_defaults_env_file(
-        repo_root=repo_root,
-        args=args,
-        dry_run=args.dry_run,
-        summary=summary,
-        module_enablement=module_enablement,
-    )
-    _ensure_secrets_example_env_file(
-        repo_root=repo_root,
-        dry_run=args.dry_run,
-        summary=summary,
-        module_enablement=module_enablement,
-    )
-    _ensure_local_secrets_env_file(
-        repo_root=repo_root,
-        dry_run=args.dry_run,
-        summary=summary,
-        module_enablement=module_enablement,
-    )
 
     summary.emit(dry_run=args.dry_run)
     return 0

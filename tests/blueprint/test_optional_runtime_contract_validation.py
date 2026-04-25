@@ -170,6 +170,9 @@ class OptionalRuntimeContractValidationTests(unittest.TestCase):
                 },
             )
             self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            # apps/catalog/manifest.yaml is governed by
+            # app_catalog_scaffold_contract.required_paths_when_enabled, so
+            # validate_contract reports it as a missing path (not missing file).
             self.assertIn(
                 "missing path: apps/catalog/missing-manifest.yaml",
                 result.stdout + result.stderr,

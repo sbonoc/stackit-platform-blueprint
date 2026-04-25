@@ -61,6 +61,22 @@ _EXCLUDED_TOKENS: frozenset[str] = frozenset({
     "set_default_env", "load_env_file_defaults", "require_env_vars",
     "blueprint_load_env_defaults", "start_script_metric_trap", "is_truthy",
     "resolve_repo_root", "display_repo_path",
+    # common OS tools absent from the original set (FR-007)
+    "tar", "pnpm",
+    # blueprint bootstrap-chain runtime functions (FR-008)
+    "blueprint_require_runtime_env",
+    "blueprint_sanitize_init_placeholder_defaults",
+    "ensure_file_from_template",
+    "ensure_file_from_rendered_template",
+    "postgres_init_env",
+    "object_storage_init_env",
+    "rabbitmq_seed_env_defaults",
+    "public_endpoints_seed_env_defaults",
+    "identity_aware_proxy_seed_env_defaults",
+    "keycloak_seed_env_defaults",
+    "render_optional_module_values_file",
+    "apply_optional_module_secret_from_literals",
+    "delete_optional_module_secret",
 })
 
 # ---------------------------------------------------------------------------
@@ -95,6 +111,9 @@ _ASSIGNMENT_RE = re.compile(r'^\s*\w+=')
 
 # A valid shell identifier token
 _IDENTIFIER_RE = re.compile(r'^\w+$')
+
+# Array initializer opener: local/declare/readonly/typeset var=( (FR-006)
+_ARRAY_OPEN_RE = re.compile(r'\b(?:local|declare|readonly|typeset)\b.*\w+=\(')
 
 
 # ---------------------------------------------------------------------------
@@ -205,6 +224,7 @@ def _find_unresolved_call_sites(
     """
     findings: list[dict[str, Any]] = []
     heredoc_marker: str | None = None
+    array_depth: int = 0  # tracks depth inside multi-line array initializers
     for lineno, line in enumerate(content.splitlines(), start=1):
         stripped = line.strip()
 
@@ -214,6 +234,15 @@ def _find_unresolved_call_sites(
         if heredoc_marker is not None:
             if stripped == heredoc_marker:
                 heredoc_marker = None
+            continue
+
+        # Array initializer body tracking — skip bare-word elements between
+        # local/declare/readonly/typeset var=( and the closing ).  (FR-006)
+        if array_depth > 0:
+            # Strip trailing inline comment before comparing so that
+            # ") # end array" is correctly recognised as a close paren.
+            if stripped.split("#")[0].rstrip() == ")":
+                array_depth -= 1
             continue
 
         if _COMMENT_RE.match(line):
@@ -234,13 +263,35 @@ def _find_unresolved_call_sites(
         token = _first_token(line)
         if token is None:
             continue
+
+        # Detect array initializer opener before the excluded-token guard so
+        # that ``local/declare/readonly/typeset var=(`` lines are tracked even
+        # though their first token is already in _EXCLUDED_TOKENS.  (FR-006)
+        if _ARRAY_OPEN_RE.search(line):
+            if line.count("(") > line.count(")"):
+                array_depth += 1
+            continue  # declaration line is never a call site
+
         if token in _EXCLUDED_TOKENS:
             continue
 
-        # Skip case-label lines — a first token immediately followed by ")" is
-        # a case alternative pattern, not a function call.
-        if stripped.startswith(token + ")"):
+        # Skip case-label lines — a first token immediately followed by ")" is a
+        # case alternative pattern, not a function call.  For alternation forms
+        # like ``build|test)`` or ``deploy | verify)`` the rest starts with "|"
+        # BUT we must not also skip pipe operators (``missing_fn | tee``) or
+        # logical-or sequences (``missing_fn || fallback``).  Only treat "|" as
+        # a case alternation when a closing ")" appears before any command
+        # separator (&&, ||, ;) — the invariant for all valid case labels.
+        # (FR-005)
+        rest_lstripped = stripped[len(token):].lstrip()
+        if rest_lstripped.startswith(")"):
             continue
+        if rest_lstripped.startswith("|"):
+            paren_idx = rest_lstripped.find(")")
+            if paren_idx != -1:
+                before_paren = rest_lstripped[:paren_idx]
+                if "&&" not in before_paren and "||" not in before_paren and ";" not in before_paren:
+                    continue
 
         if token not in available_defs:
             findings.append({"symbol": token, "line": lineno})

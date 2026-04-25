@@ -51,6 +51,15 @@ BLUEPRINT_UPGRADE_REF=<tag> \
 BLUEPRINT_UPGRADE_APPLY=true \
 make blueprint-upgrade-consumer
 
+# 4a) reseed enabled module scaffold from updated templates
+# Required after apply: creates scaffold for any newly enabled module; also reseeds
+# scaffold that was deleted to resolve template drift (see Optional Module Handling below).
+# Safe to run unconditionally — uses create-if-missing semantics for existing files.
+make infra-bootstrap
+
+# 4b) clean up disabled module scaffold (run only if modules were disabled since the last upgrade)
+# make infra-destroy-disabled-modules
+
 # 5) validate + postcheck
 make blueprint-upgrade-consumer-validate
 make blueprint-upgrade-consumer-postcheck
@@ -61,18 +70,79 @@ make infra-validate
 make quality-hooks-run
 ```
 
+## Optional Module Handling
+
+### How Modules Work in Consumer Repos
+
+Blueprint optional modules have two separate concerns that are easy to confuse:
+
+| Artifact | Location | Source-only? | Purpose |
+|----------|----------|--------------|---------|
+| Module authoring metadata | `blueprint/modules/{module}/module.contract.yaml` | YES — removed by `blueprint-init-repo` | Blueprint authoring only; consumers never see this |
+| Scaffold templates | `scripts/templates/infra/bootstrap/{module}/` | **NO** — present in all consumer repos | Used by `make infra-bootstrap` to create enabled scaffold |
+| Runtime contract | `blueprint/contract.yaml` | **NO** — present in all consumer repos | `optional_modules` section drives `is_module_enabled` decisions |
+
+**Key insight:** `blueprint/modules/` being removed from consumer repos does NOT block consumers from enabling modules. Consumers enable a module by setting the module's `enable_flag` environment variable (or via `blueprint/contract.yaml` `enabled_by_default`). At runtime, `make infra-bootstrap` reads `is_module_enabled` against the contract and creates scaffold from `scripts/templates/infra/bootstrap/` using create-if-missing semantics.
+
+### Scaffold Presence Contract
+
+| Path pattern | When module disabled | When module enabled |
+|---|---|---|
+| `infra/cloud/stackit/terraform/modules/{module}/` | ABSENT | PRESENT (created by `make infra-bootstrap`) |
+| `infra/local/helm/{module}/` | ABSENT | PRESENT (created by `make infra-bootstrap`) |
+| `tests/infra/modules/{module}/` | ABSENT | PRESENT (created by `make infra-bootstrap`) |
+| `infra/gitops/argocd/optional/${ENV}/{module}.yaml` | ABSENT | PRESENT (created by `make infra-bootstrap`) |
+| `docs/platform/modules/{module}/README.md` | PRESENT | PRESENT (always seeded — product catalog) |
+
+`blueprint-init-repo` enforces the ABSENT state on first init by pruning all `paths_required_when_enabled` paths for disabled modules. `make infra-bootstrap` enforces the PRESENT state for enabled modules. `make infra-validate` catches template drift (enabled scaffold that diverges from the template source).
+
+### After Upgrade Apply (Step 4a — Always Run)
+
+```bash
+make infra-bootstrap
+```
+
+Run unconditionally after every upgrade apply. This is safe — `make infra-bootstrap` uses create-if-missing semantics for existing files, so it will not overwrite consumer-customised scaffold. It serves two purposes:
+
+1. **Newly enabled modules:** Creates scaffold for any module the consumer has since enabled.
+2. **Drift resolution reseeds:** When template drift is found (see below), the resolution is to delete the stale file and re-run `make infra-bootstrap` to reseed from the updated template.
+
+### Disabled Module Cleanup (Step 4b — Only When Modules Were Disabled)
+
+```bash
+# make infra-destroy-disabled-modules
+```
+
+This step is intentionally commented out in the command sequence. Run it only when modules have been explicitly disabled since the last upgrade. It removes scaffold for disabled modules. Do not run speculatively — it is destructive.
+
+### Template Drift Resolution
+
+`make infra-validate` (step 6) reports template drift: enabled module scaffold files whose content has diverged from the blueprint template. When drift is found for an enabled module:
+
+1. Delete the stale scaffold file(s) reported by `make infra-validate`.
+2. Re-run `make infra-bootstrap` to reseed from the updated template.
+3. Re-run `make infra-validate` to confirm the drift is cleared.
+
+Do not manually edit scaffold files to match the template — reseed via `make infra-bootstrap` instead, so create-if-missing semantics apply and no consumer customisation is lost unexpectedly.
+
+### Keycloak Is Mandatory
+
+Keycloak is not an optional module. It is always rendered in `infra/gitops/argocd/core/` and is never governed by `is_module_enabled`. Do not apply optional module logic to Keycloak paths.
+
 ## Required Checks
 
 - Treat non-empty `required_manual_actions` in `artifacts/blueprint/upgrade_preflight.json` as blocking.
-- Treat reconcile report blocking buckets in `artifacts/blueprint/upgrade/upgrade_reconcile_report.json` as blocking.
-- Treat unresolved merge markers as blocking.
+- Treat reconcile report blocking buckets in `artifacts/blueprint/upgrade/upgrade_reconcile_report.json` as blocking. `conflicts_unresolved` reflects files that still contain active `<<<<<<<` markers in the working tree; once markers are cleared the count drops automatically — auto-merged and manually-resolved files are not counted.
+- Treat unresolved merge markers as blocking — clear all `<<<<<<<` / `=======` / `>>>>>>>` markers in affected files before re-running the postcheck.
 - Treat behavioral check failures as blocking — `make blueprint-upgrade-consumer-postcheck` validates
   shell function interfaces and command signatures that may have changed during the upgrade; a non-zero
   exit signals a behavioral regression and the upgrade MUST NOT be declared complete until it is resolved.
+  The symbol resolver suppresses case-label alternation tokens (`token|)`) and bare-word elements inside
+  `local`/`declare`/`readonly`/`typeset` array blocks (`var=(`) to prevent false positives.
 - Preserve consumer-owned files; do not force overwrite unless the user explicitly asks.
 - Keep source and ref pinned for the whole run (`BLUEPRINT_UPGRADE_SOURCE` + `BLUEPRINT_UPGRADE_REF`).
 - Safe-to-continue contract: proceed only when `make blueprint-upgrade-consumer-postcheck` exits `0` AND `make blueprint-upgrade-fresh-env-gate` exits `0`. Both must pass before the upgrade is declared complete.
-- Blocked contract: stop and report exact blocked reasons when postcheck or fresh-env-gate exits non-zero.
+- Blocked contract: stop and report exact blocked reasons when postcheck or fresh-env-gate exits non-zero. `fresh_env_gate.json` includes a `divergences` array; each entry with `path`/`worktree_checksum`/`working_tree_checksum` keys identifies an artifact whose content differs between the clean worktree and the local working tree — inspect those paths to find the root cause.
 
 ## Governance Context
 

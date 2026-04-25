@@ -1650,6 +1650,52 @@ def _required_files_for_repo_mode(contract: BlueprintContract) -> list[str]:
     ]
 
 
+def _required_paths_for_repo_mode(contract: BlueprintContract) -> list[str]:
+    """Return the required_paths list filtered for the current repository mode.
+
+    In template-source mode every declared required_path is checked.  In
+    generated-consumer mode, blueprint-init-repo intentionally removes all
+    source-only directories (docs/blueprint, blueprint/modules, …) so that
+    the consumer repo is a clean platform skeleton.  Presence-checking those
+    paths in consumer mode would always fail; their *absence* is already
+    enforced by _validate_repository_mode_contract → _validate_absent_files.
+    """
+    required_paths = list(contract.structure.required_paths)
+    repository = contract.repository
+    if repository.repo_mode != repository.consumer_init.mode_to:
+        return required_paths
+
+    source_only_paths = repository.source_only_paths
+    return [
+        relative_path
+        for relative_path in required_paths
+        if not any(
+            _path_is_same_or_child(relative_path.rstrip("/"), source_only_path)
+            for source_only_path in source_only_paths
+        )
+    ]
+
+
+def _required_diagrams_for_repo_mode(contract: BlueprintContract, diagrams: list[str]) -> list[str]:
+    """Return the mermaid-diagram file list filtered for the current repository mode.
+
+    Source-only paths (e.g. docs/blueprint/) are pruned from generated-consumer
+    repos by blueprint-init-repo.  Attempting to validate those diagram files
+    in generated-consumer mode would always fail with a spurious missing-file
+    error.
+    """
+    repository = contract.repository
+    if repository.repo_mode != repository.consumer_init.mode_to:
+        return diagrams
+
+    source_only_paths = repository.source_only_paths
+    return [
+        d
+        for d in diagrams
+        if not any(_path_is_same_or_child(d, so) for so in source_only_paths)
+    ]
+
+
 def _validate_repository_mode_contract(repo_root: Path, contract: BlueprintContract) -> list[str]:
     errors: list[str] = []
     repository = contract.repository
@@ -2038,7 +2084,22 @@ def _is_optional_module_enabled(contract: BlueprintContract, module_name: str) -
 
 
 def _validate_optional_module_paths(repo_root: Path, contract: BlueprintContract) -> list[str]:
+    """Validate that all required optional-module paths exist on disk.
+
+    In generated-consumer mode the following paths are legitimately absent and
+    must be skipped to avoid spurious errors:
+
+    * Paths under source-only directories (e.g. blueprint/modules/) — removed
+      by blueprint-init-repo unconditionally when converting to consumer mode.
+    * Paths of disabled conditional modules that are pruned by
+      blueprint-init-repo when the corresponding enable flag is unset.
+
+    In template-source mode all declared paths are checked.
+    """
     errors: list[str] = []
+    repository = contract.repository
+    is_generated_consumer = repository.repo_mode == repository.consumer_init.mode_to
+    source_only_paths = repository.source_only_paths if is_generated_consumer else []
 
     for module_name, module in contract.optional_modules.modules.items():
         for key, value in module.paths.items():
@@ -2047,9 +2108,19 @@ def _validate_optional_module_paths(repo_root: Path, contract: BlueprintContract
             )
             module_enabled = _is_optional_module_enabled(contract, module_name)
             if is_conditionally_required and not module_enabled:
+                # Path will be pruned by blueprint-init-repo when module is
+                # disabled — skip the presence check in all modes.
                 continue
 
             for expanded in _expand_optional_module_path(value):
+                # Paths under source-only roots are removed by
+                # blueprint-init-repo in generated-consumer mode; their
+                # absence is correct and must not be flagged.
+                if is_generated_consumer and any(
+                    _path_is_same_or_child(expanded, so) for so in source_only_paths
+                ):
+                    continue
+
                 path = repo_root / expanded
                 if key == "helm_path" and expanded.endswith("/observability"):
                     if not path.is_dir():
@@ -2470,8 +2541,15 @@ def main() -> int:
     # Full validation path: runs all contract checks.
     try:
         required_files = _required_files_for_repo_mode(contract)
-        required_paths = contract.structure.required_paths
-        required_diagrams = contract.docs_contract.required_diagrams
+        # Source-only directories are pruned by blueprint-init-repo in
+        # generated-consumer mode; filter them from the presence check to avoid
+        # spurious "missing path" errors.  Their absence is enforced separately.
+        required_paths = _required_paths_for_repo_mode(contract)
+        # Mermaid diagrams under source-only roots (e.g. docs/blueprint/) are
+        # absent in generated-consumer mode; filter them for the same reason.
+        required_diagrams = _required_diagrams_for_repo_mode(
+            contract, contract.docs_contract.required_diagrams
+        )
         required_targets = contract.make_contract.required_targets
         required_namespaces = contract.make_contract.required_namespaces
         if not required_files:

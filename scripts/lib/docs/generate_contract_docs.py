@@ -390,7 +390,21 @@ def main() -> int:
         ),
     ]
 
-    module_files = sorted(modules_dir.glob("*/module.contract.yaml"))
+    # blueprint/modules/ is source-only and removed by blueprint-init-repo in
+    # generated-consumer repos.  Glob on a missing directory raises FileNotFoundError
+    # on Python 3.12+ (changed from silent empty return in 3.11 and earlier).
+    # Emit a diagnostic and proceed with an empty module list so generated-consumer
+    # bootstrap produces a valid (but module-free) contract metadata doc.
+    if modules_dir.is_dir():
+        module_files = sorted(modules_dir.glob("*/module.contract.yaml"))
+    else:
+        print(
+            f"[generate-contract-docs] INFO: modules directory not found: {modules_dir}; "
+            "blueprint/modules is source-only and absent in generated-consumer repos — "
+            "module metadata section will be empty",
+            file=sys.stderr,
+        )
+        module_files = []
     modules = [_to_metadata(load_module_contract(path, repo_root)) for path in module_files]
 
     output = render_markdown(

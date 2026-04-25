@@ -362,7 +362,9 @@ class UpgradeConsumerTests(unittest.TestCase):
             reconcile_summary = reconcile_report.get("summary", {})
             self.assertEqual(reconcile_summary.get("blocked"), True)
             self.assertEqual(reconcile_summary.get("consumer_owned_manual_review_count"), 2)
-            self.assertEqual(reconcile_summary.get("conflicts_unresolved_count"), 1)
+            # smoke.sh auto-merged (no active conflict markers in working tree): count is 0
+            # conflicts_unresolved now tracks live <<<<<<< markers, not plan/apply metadata
+            self.assertEqual(reconcile_summary.get("conflicts_unresolved_count"), 0)
             manual_bucket = reconcile_report.get("buckets", {}).get("consumer_owned_manual_review", [])
             self.assertTrue(
                 any(
@@ -2034,6 +2036,105 @@ class SemanticAnnotationConsumerTests(unittest.TestCase):
             self.assertTrue(len(semantic["verification_hints"]) > 0)
             self.assertEqual(semantic["kind"], "function-added")
             _assert_json_schema(apply_report, APPLY_SCHEMA)
+
+
+class TestAuditSourceTreeCoverage(unittest.TestCase):
+    """FR-009/FR-010/AC-006: audit_source_tree_coverage detects uncovered source files."""
+
+    def _make_source(self, files: dict[str, str]) -> Path:
+        tmp = Path(tempfile.mkdtemp())
+        for rel, content in files.items():
+            p = tmp / rel
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_text(content)
+        return tmp
+
+    def test_uncovered_file_detected(self) -> None:
+        """A file not in any coverage set must appear in the returned list."""
+        source = self._make_source({"scripts/uncovered.sh": "#!/bin/bash\n"})
+        uncovered = upgrade_consumer.audit_source_tree_coverage(
+            source_repo=source,
+            required_files=set(),
+            source_only=set(),
+            init_managed=set(),
+            conditional=set(),
+            managed_roots=set(),
+        )
+        self.assertIn("scripts/uncovered.sh", uncovered)
+
+    def test_required_file_not_uncovered(self) -> None:
+        """A path listed in required_files must not be flagged as uncovered."""
+        source = self._make_source({"scripts/setup.sh": "#!/bin/bash\n"})
+        uncovered = upgrade_consumer.audit_source_tree_coverage(
+            source_repo=source,
+            required_files={"scripts/setup.sh"},
+            source_only=set(),
+            init_managed=set(),
+            conditional=set(),
+            managed_roots=set(),
+        )
+        self.assertNotIn("scripts/setup.sh", uncovered)
+
+    def test_managed_root_covers_nested_file(self) -> None:
+        """A file under a blueprint_managed_roots directory must not be flagged."""
+        source = self._make_source({"scripts/bin/blueprint/setup.sh": "#!/bin/bash\n"})
+        uncovered = upgrade_consumer.audit_source_tree_coverage(
+            source_repo=source,
+            required_files=set(),
+            source_only=set(),
+            init_managed=set(),
+            conditional=set(),
+            managed_roots={"scripts/bin/blueprint"},
+        )
+        self.assertNotIn("scripts/bin/blueprint/setup.sh", uncovered)
+
+    def test_source_only_covers_nested_file(self) -> None:
+        """A file under a source_only path must not be flagged as uncovered."""
+        source = self._make_source({"tests/blueprint/test_foo.py": "# test\n"})
+        uncovered = upgrade_consumer.audit_source_tree_coverage(
+            source_repo=source,
+            required_files=set(),
+            source_only={"tests/blueprint"},
+            init_managed=set(),
+            conditional=set(),
+            managed_roots=set(),
+        )
+        self.assertNotIn("tests/blueprint/test_foo.py", uncovered)
+
+    def test_empty_source_repo_returns_empty(self) -> None:
+        """No files in source repo → no uncovered files."""
+        source = Path(tempfile.mkdtemp())
+        uncovered = upgrade_consumer.audit_source_tree_coverage(
+            source_repo=source,
+            required_files=set(),
+            source_only=set(),
+            init_managed=set(),
+            conditional=set(),
+            managed_roots=set(),
+        )
+        self.assertEqual(uncovered, [])
+
+
+class TestValidatePlanUncoveredSourceFiles(unittest.TestCase):
+    """FR-011/AC-007: validate_plan_uncovered_source_files enforces count == 0."""
+
+    def test_nonzero_count_returns_errors(self) -> None:
+        """uncovered_source_files_count > 0 must produce at least one error string."""
+        plan_payload = {"uncovered_source_files_count": 3}
+        errors = upgrade_consumer.validate_plan_uncovered_source_files(plan_payload)
+        self.assertGreater(len(errors), 0)
+
+    def test_zero_count_returns_no_errors(self) -> None:
+        """uncovered_source_files_count == 0 must produce no errors."""
+        plan_payload = {"uncovered_source_files_count": 0}
+        errors = upgrade_consumer.validate_plan_uncovered_source_files(plan_payload)
+        self.assertEqual(errors, [])
+
+    def test_missing_count_key_treated_as_zero(self) -> None:
+        """Missing uncovered_source_files_count treated as 0 (no error)."""
+        plan_payload: dict[str, object] = {}
+        errors = upgrade_consumer.validate_plan_uncovered_source_files(plan_payload)
+        self.assertEqual(errors, [])
 
 
 if __name__ == "__main__":

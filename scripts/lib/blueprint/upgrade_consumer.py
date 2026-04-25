@@ -309,6 +309,99 @@ def _merge_path_sets(*path_sets: set[str]) -> set[str]:
     return merged
 
 
+# ---------------------------------------------------------------------------
+# Source tree completeness audit (FR-009 / FR-010 / FR-011 — Issue #185)
+# ---------------------------------------------------------------------------
+
+_AUDIT_SKIP_DIRS: frozenset[str] = frozenset({
+    ".git", "node_modules", "__pycache__", ".venv",
+})
+
+
+def _source_repo_tracked_files(source_repo: Path) -> list[str] | None:
+    """Return git-tracked file paths relative to source_repo, or None if not a git repo."""
+    try:
+        result = subprocess.run(
+            ["git", "ls-files"],
+            cwd=str(source_repo),
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return [line for line in result.stdout.splitlines() if line]
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return None
+
+
+def audit_source_tree_coverage(
+    source_repo: Path,
+    required_files: set[str],
+    source_only: set[str],
+    init_managed: set[str],
+    conditional: set[str],
+    managed_roots: set[str],
+) -> list[str]:
+    """Return sorted list of source files not covered by any contract category.
+
+    Emits a WARNING to stderr for each uncovered path.  (FR-009 / FR-010)
+
+    All coverage categories support both exact-file and directory-prefix matching
+    so that directory-scoped entries (e.g. ``infra/cloud/stackit/terraform/modules/dns``)
+    cover all files nested under them.
+
+    When source_repo is a git repository, only git-tracked files are audited
+    (untracked build artifacts and local state are excluded automatically).
+    Falls back to filesystem rglob when source_repo is not a git repo (e.g. in tests).
+    """
+    all_coverage_roots = (
+        required_files
+        | source_only
+        | init_managed
+        | conditional
+        | managed_roots
+    )
+
+    # Prefer git-tracked files to exclude untracked/generated artifacts.
+    tracked = _source_repo_tracked_files(source_repo)
+    if tracked is not None:
+        candidate_rels: list[str] = sorted(tracked)
+    else:
+        # Non-git source repo (e.g. tempdir in tests) — rglob fallback.
+        candidate_rels = []
+        for path in sorted(source_repo.rglob("*")):
+            if not path.is_file():
+                continue
+            rel = path.relative_to(source_repo).as_posix()
+            if any(part in _AUDIT_SKIP_DIRS for part in path.relative_to(source_repo).parts):
+                continue
+            candidate_rels.append(rel)
+
+    uncovered: list[str] = []
+    for rel in candidate_rels:
+        # A file is covered when any contract entry equals or is a path-prefix of rel.
+        if any(rel == entry or _path_is_within(rel, entry) for entry in all_coverage_roots):
+            continue
+        print(f"WARNING: uncovered blueprint source file not in contract: {rel}", file=sys.stderr)
+        uncovered.append(rel)
+    return uncovered
+
+
+def validate_plan_uncovered_source_files(plan_payload: dict[str, Any]) -> list[str]:
+    """Belt-and-suspenders: return error strings when uncovered_source_files_count > 0.
+
+    Called by the plan step before writing the plan artifact to enforce FR-011.
+    """
+    raw = plan_payload.get("uncovered_source_files_count", 0)
+    count = raw if isinstance(raw, int) else 0
+    if count > 0:
+        return [
+            f"uncovered_source_files_count={count}: {count} blueprint source file(s) "
+            "are not reachable via required_files, init_managed, conditional_scaffold_paths, "
+            "blueprint_managed_roots, or source_only; add them to blueprint/contract.yaml"
+        ]
+    return []
+
+
 def _protected_roots(contract: BlueprintContract, source_contract: BlueprintContract | None = None) -> set[str]:
     def roots_for(value: BlueprintContract) -> set[str]:
         ownership = value.make_contract.ownership
@@ -1740,6 +1833,31 @@ def main() -> int:
             stale_module_target_actions,
         )
 
+        # Source tree completeness audit — must run before plan is written (FR-011 Option A)
+        # Include consumer_seeded files and all platform-owned roots in the coverage check.
+        # Platform-editable roots (scripts/bin/platform/, scripts/lib/platform/, make/platform/,
+        # docs/platform/) exist in the source repo but are not in blueprint_managed_roots.
+        def _platform_owned_roots(c: BlueprintContract) -> set[str]:
+            ownership = c.make_contract.ownership
+            roots: set[str] = set(c.script_contract.platform_editable_roots)
+            roots.add(ownership.platform_editable_file)
+            roots.add(ownership.platform_editable_include_dir)
+            roots.add(c.docs_contract.platform_docs.root)
+            return {r.rstrip("/") for r in roots}
+
+        _plat_owned: set[str] = _platform_owned_roots(contract)
+        if source_contract is not None:
+            _plat_owned |= _platform_owned_roots(source_contract)
+        uncovered_source_files = audit_source_tree_coverage(
+            source_repo,
+            required_files | consumer_seeded,
+            source_only,
+            init_managed,
+            conditional,
+            managed_dir_roots | _plat_owned,
+        )
+        uncovered_source_files_count = len(uncovered_source_files)
+
         plan_summary = _summarize_plan(entries, required_manual_actions)
         plan_payload = {
             "repo_root": str(repo_root),
@@ -1754,7 +1872,20 @@ def main() -> int:
             "entries": [entry.as_dict() for entry in entries],
             "required_manual_actions": [action.as_dict() for action in required_manual_actions],
             "summary": plan_summary,
+            "uncovered_source_files_count": uncovered_source_files_count,
         }
+
+        plan_errors = validate_plan_uncovered_source_files(plan_payload)
+        if plan_errors:
+            for err in plan_errors:
+                print(f"upgrade-plan: ERROR: {err}", file=sys.stderr)
+            print(
+                f"upgrade-plan: BLOCKED — resolve {uncovered_source_files_count} uncovered "
+                "source file(s) before producing a plan",
+                file=sys.stderr,
+            )
+            return 1
+
         _write_json(plan_path, plan_payload)
         print(f"upgrade-plan: {display_repo_path(repo_root, plan_path)}")
 

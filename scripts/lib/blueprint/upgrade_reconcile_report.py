@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from pathlib import Path
+import re
 from typing import Any
 
 
@@ -56,6 +57,54 @@ _BUCKET_POLICY = {
         ),
     },
 }
+
+
+# Top-level directory names excluded from merge-marker scans.  Must not include
+# artifact or cache directories that may contain serialised conflict-marker text.
+_MARKER_SCAN_EXCLUDE_TOP_DIRS: frozenset[str] = frozenset({
+    ".git",
+    "artifacts",
+    "__pycache__",
+    ".pytest_cache",
+    "node_modules",
+    ".mypy_cache",
+    ".ruff_cache",
+})
+
+# Matches an actual git merge-conflict marker at the start of a line.
+# Real markers are always "<<<<<<< " followed by a branch/tag name.
+_CONFLICT_MARKER_RE = re.compile(r"^<<<<<<<[ \t]", re.MULTILINE)
+
+
+def find_merge_markers(repo_root: Path) -> set[str]:
+    """Return relative paths of files in repo_root that contain active merge conflict markers.
+
+    Scans the working tree at report-build time so that the result reflects
+    current file state rather than stale plan/apply metadata.  (FR-001)
+
+    Only text-readable files are scanned; binary and unreadable files are skipped.
+    Top-level dirs in _MARKER_SCAN_EXCLUDE_TOP_DIRS are skipped entirely so that
+    artifact files with serialised markers (e.g. conflict JSON) and .git pack objects
+    do not produce false positives.
+    """
+    active_paths: set[str] = set()
+    try:
+        for entry in repo_root.iterdir():
+            if entry.name in _MARKER_SCAN_EXCLUDE_TOP_DIRS:
+                continue
+            paths = [entry] if entry.is_file() else entry.rglob("*")
+            for path in paths:
+                if not path.is_file():
+                    continue
+                try:
+                    content = path.read_text(encoding="utf-8", errors="replace")
+                except OSError:
+                    continue
+                if _CONFLICT_MARKER_RE.search(content):
+                    active_paths.add(str(path.relative_to(repo_root)))
+    except OSError:
+        pass
+    return active_paths
 
 
 def _collect_entries(payload: dict[str, Any], key: str) -> list[dict[str, Any]]:
@@ -369,6 +418,25 @@ def build_upgrade_reconcile_report(
     _classify_required_manual_actions(required_manual_actions, buckets, seen)
     _classify_apply_results(apply_results, buckets, seen)
     _classify_merge_markers(merge_markers, buckets, seen)
+
+    # Rebuild conflicts_unresolved from the working-tree marker scan (FR-001–FR-004).
+    # This replaces any stale plan/apply entries with the authoritative live state:
+    # only files that currently contain <<<<<<< markers are blocking.  Double-counting
+    # is eliminated because each path appears at most once in the scan result.
+    active_marker_paths = find_merge_markers(repo_root)
+    conflict_policy = _BUCKET_POLICY["conflicts_unresolved"]
+    buckets["conflicts_unresolved"] = [
+        {
+            "path": p,
+            "source": "working-tree-scan",
+            "action": "merge-marker",
+            "reason": "unresolved merge marker present in file",
+            "blocking": bool(conflict_policy["blocking"]),
+            "remediation_hint": str(conflict_policy["hint"]),
+            "next_commands": list(conflict_policy["next_commands"]),
+        }
+        for p in sorted(active_marker_paths)
+    ]
 
     for bucket in RECONCILE_BUCKET_ORDER:
         buckets[bucket] = _sorted_bucket_items(buckets[bucket])
