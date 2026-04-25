@@ -64,15 +64,17 @@ make quality-hooks-run
 ## Required Checks
 
 - Treat non-empty `required_manual_actions` in `artifacts/blueprint/upgrade_preflight.json` as blocking.
-- Treat reconcile report blocking buckets in `artifacts/blueprint/upgrade/upgrade_reconcile_report.json` as blocking.
-- Treat unresolved merge markers as blocking.
+- Treat reconcile report blocking buckets in `artifacts/blueprint/upgrade/upgrade_reconcile_report.json` as blocking. `conflicts_unresolved` reflects files that still contain active `<<<<<<<` markers in the working tree; once markers are cleared the count drops automatically — auto-merged and manually-resolved files are not counted.
+- Treat unresolved merge markers as blocking — clear all `<<<<<<<` / `=======` / `>>>>>>>` markers in affected files before re-running the postcheck.
 - Treat behavioral check failures as blocking — `make blueprint-upgrade-consumer-postcheck` validates
   shell function interfaces and command signatures that may have changed during the upgrade; a non-zero
   exit signals a behavioral regression and the upgrade MUST NOT be declared complete until it is resolved.
+  The symbol resolver suppresses case-label alternation tokens (`token|)`) and bare-word elements inside
+  `local`/`declare`/`readonly`/`typeset` array blocks (`var=(`) to prevent false positives.
 - Preserve consumer-owned files; do not force overwrite unless the user explicitly asks.
 - Keep source and ref pinned for the whole run (`BLUEPRINT_UPGRADE_SOURCE` + `BLUEPRINT_UPGRADE_REF`).
 - Safe-to-continue contract: proceed only when `make blueprint-upgrade-consumer-postcheck` exits `0` AND `make blueprint-upgrade-fresh-env-gate` exits `0`. Both must pass before the upgrade is declared complete.
-- Blocked contract: stop and report exact blocked reasons when postcheck or fresh-env-gate exits non-zero.
+- Blocked contract: stop and report exact blocked reasons when postcheck or fresh-env-gate exits non-zero. `fresh_env_gate.json` includes a `divergences` array; each entry with `path`/`worktree_checksum`/`working_tree_checksum` keys identifies an artifact whose content differs between the clean worktree and the local working tree — inspect those paths to find the root cause.
 
 ## Governance Context
 
