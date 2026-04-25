@@ -21,6 +21,12 @@ Slice 4: Bootstrap template mirror sync
 
 Slice 5: Make target validation for new/changed docs
   TestDocTargetCheck — FR-012
+
+Slice 6: Residual report
+  TestResidualReportAlwaysEmitted     — FR-015
+  TestResidualReportPrescribedActions — FR-016
+  TestResidualReportConsumerOwned     — FR-017
+  TestResidualReportPyramidGaps       — FR-018
 """
 from __future__ import annotations
 
@@ -48,6 +54,9 @@ from scripts.lib.blueprint.upgrade_mirror_sync import (
 )
 from scripts.lib.blueprint.upgrade_doc_target_check import (
     check_doc_make_targets,
+)
+from scripts.lib.blueprint.upgrade_residual_report import (
+    generate_residual_report,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -890,3 +899,138 @@ class TestDocTargetCheck(unittest.TestCase):
 
             self.assertEqual(result.missing_targets, [])
             self.assertEqual(result.exit_code, 0)
+
+
+# ===========================================================================
+# Slice 6 — Residual report
+# ===========================================================================
+
+
+def _write_decisions_json(repo: Path, payload: dict) -> None:
+    path = repo / "artifacts/blueprint/contract_resolve_decisions.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload), encoding="utf-8")
+
+
+def _write_reconcile_report(repo: Path, consumer_owned: list[str]) -> None:
+    path = repo / "artifacts/blueprint/upgrade/upgrade_reconcile_report.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "buckets": {
+            "consumer_owned_manual_review": consumer_owned,
+            "blueprint_managed_safe_to_take": [],
+            "generated_references_regenerate": [],
+            "conflicts_unresolved": [],
+        },
+        "summary": {"blocked": False},
+    }
+    path.write_text(json.dumps(payload), encoding="utf-8")
+
+
+def _write_doc_check_warnings(repo: Path, missing_targets: list[str]) -> None:
+    path = repo / "artifacts/blueprint/doc_target_check.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps({"missing_targets": missing_targets}), encoding="utf-8")
+
+
+class TestResidualReportAlwaysEmitted(unittest.TestCase):
+    """FR-015: residual report is always written to artifacts/blueprint/upgrade-residual.md."""
+
+    def test_report_file_created_on_success(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            _write_decisions_json(repo, {"dropped_required_files": [], "dropped_prune_globs": [], "kept_consumer_required_files": []})
+            _write_reconcile_report(repo, consumer_owned=[])
+            _write_doc_check_warnings(repo, missing_targets=[])
+
+            generate_residual_report(repo, pipeline_exit=0)
+
+            report_path = repo / "artifacts/blueprint/upgrade-residual.md"
+            self.assertTrue(report_path.exists())
+
+    def test_report_file_created_on_partial_failure(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            # Even with missing artifact files, report must still be created.
+
+            generate_residual_report(repo, pipeline_exit=1)
+
+            report_path = repo / "artifacts/blueprint/upgrade-residual.md"
+            self.assertTrue(report_path.exists())
+
+
+class TestResidualReportPrescribedActions(unittest.TestCase):
+    """FR-016: every item in the residual report has a prescribed action."""
+
+    def test_dropped_required_files_have_prescribed_action(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            _write_decisions_json(
+                repo,
+                {
+                    "dropped_required_files": ["old-skill/SKILL.md"],
+                    "dropped_prune_globs": [],
+                    "kept_consumer_required_files": [],
+                },
+            )
+            _write_reconcile_report(repo, [])
+            _write_doc_check_warnings(repo, [])
+
+            generate_residual_report(repo, pipeline_exit=0)
+
+            report = (repo / "artifacts/blueprint/upgrade-residual.md").read_text(encoding="utf-8")
+            # Must contain the dropped file AND a prescribed action verb
+            self.assertIn("old-skill/SKILL.md", report)
+            # A prescribed action must follow — "Remove" is the expected verb
+            self.assertIn("Remove", report)
+
+    def test_missing_make_targets_have_prescribed_action(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            _write_decisions_json(repo, {"dropped_required_files": [], "dropped_prune_globs": [], "kept_consumer_required_files": []})
+            _write_reconcile_report(repo, [])
+            _write_doc_check_warnings(repo, missing_targets=["my-custom-target"])
+
+            generate_residual_report(repo, pipeline_exit=0)
+
+            report = (repo / "artifacts/blueprint/upgrade-residual.md").read_text(encoding="utf-8")
+            self.assertIn("my-custom-target", report)
+            self.assertIn("Add", report)
+
+
+class TestResidualReportConsumerOwned(unittest.TestCase):
+    """FR-017: consumer-owned files requiring manual review are listed."""
+
+    def test_consumer_owned_files_listed(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            _write_decisions_json(repo, {"dropped_required_files": [], "dropped_prune_globs": [], "kept_consumer_required_files": []})
+            _write_reconcile_report(repo, consumer_owned=["scripts/app/custom.sh", "docs/app/custom.md"])
+            _write_doc_check_warnings(repo, [])
+
+            generate_residual_report(repo, pipeline_exit=0)
+
+            report = (repo / "artifacts/blueprint/upgrade-residual.md").read_text(encoding="utf-8")
+            self.assertIn("scripts/app/custom.sh", report)
+            self.assertIn("docs/app/custom.md", report)
+
+
+class TestResidualReportPyramidGaps(unittest.TestCase):
+    """FR-018: pyramid classification gaps are listed when test_pyramid_contract.json has unclassified paths."""
+
+    def test_unclassified_test_files_listed(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            _write_decisions_json(repo, {"dropped_required_files": [], "dropped_prune_globs": [], "kept_consumer_required_files": []})
+            _write_reconcile_report(repo, [])
+            _write_doc_check_warnings(repo, [])
+            # Create test files that would be unclassified
+            (repo / "tests/backend/unit").mkdir(parents=True, exist_ok=True)
+            (repo / "tests/backend/unit/test_app.py").write_text("", encoding="utf-8")
+            # No test_pyramid_contract.json → all test files are gaps
+
+            generate_residual_report(repo, pipeline_exit=0)
+
+            report = (repo / "artifacts/blueprint/upgrade-residual.md").read_text(encoding="utf-8")
+            # Report should mention pyramid gaps
+            self.assertIn("pyramid", report.lower())
