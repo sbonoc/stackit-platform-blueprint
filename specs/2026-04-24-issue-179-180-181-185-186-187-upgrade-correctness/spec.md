@@ -5,11 +5,11 @@
      SPEC_READY=true: implementation gate — all sign-offs required; unlocks coding. -->
 - SPEC_READY: false
 - SPEC_PRODUCT_READY: false
-- Open questions count: 1
+- Open questions count: 0
 - Unresolved alternatives count: 0
 - Unresolved TODO markers count: 0
 - Pending assumptions count: 0
-- Open clarification markers count: 1
+- Open clarification markers count: 0
 - Product sign-off: pending
 - Architecture sign-off: pending
 - Security sign-off: pending
@@ -60,15 +60,9 @@
 #### #185 — upgrade planner: source tree completeness audit
 - FR-009 The upgrade planner MUST audit every file in the blueprint source tree and identify files not reachable via `required_files`, `init_managed`, `conditional_scaffold_paths`, or `blueprint_managed_roots` (excluding `source_only` paths).
 - FR-010 Each uncovered source file MUST produce a `WARNING` line to stderr and MUST be counted in the plan report JSON under `uncovered_source_files_count`.
-- FR-011 The upgrade validate gate MUST enforce `uncovered_source_files_count == 0`; any non-zero value MUST cause the gate to fail.
+- FR-011 The upgrade planner MUST raise a hard failure (non-zero exit) when any blueprint source file is uncovered; a plan with uncovered files MUST NOT be produced. The validate gate MUST additionally enforce `uncovered_source_files_count == 0` as a belt-and-suspenders check.
 
-> **[NEEDS CLARIFICATION]** FR-011 gate severity: should uncovered source files be a hard gate failure (plan step raises an error and cannot proceed) or a warn-and-continue (plan proceeds, validate gate enforces zero count)?
->
-> **Options:**
-> - **A)** Hard failure in plan step — blueprint authors cannot produce a plan if any source file is uncovered. Zero consumer-operator impact; failure is caught before any apply step. (agent recommendation)
-> - **B)** Warn-and-continue in plan step; validate gate enforces zero — plan output is produced but validate blocks the apply if count > 0. Allows plan inspection before blocking.
->
-> **Agent recommendation:** Option A because uncovered files indicate a contract authoring error that should be caught at the earliest possible stage, before any consumer apply runs. Issue #185 also states "Preferred: treat uncovered files as a hard gate failure."
+  Decision: Option A — hard failure in plan step. Rationale: uncovered files indicate a blueprint contract authoring error that MUST be caught before any consumer apply runs; this is consistent with issue #185 preferred behavior. Decision recorded from PR comment by sbonoc, 2026-04-25.
 
 #### #186 — upgrade_fresh_env_gate: file-state divergence detection
 - FR-012 After running `make infra-validate` and `make blueprint-upgrade-consumer-postcheck` in the clean worktree, the gate MUST collect checksums of all files under `artifacts/blueprint/` from both the clean worktree and the working tree.
@@ -89,8 +83,8 @@
 ## Normative Option Decision
 - Option A: Implement FR-011 as a hard gate failure in the plan step (plan raises error when uncovered_source_files_count > 0).
 - Option B: Implement FR-011 as warn-and-continue in plan step; validate gate enforces zero count.
-- Selected option: OPTION_A (pending clarification confirmation — see [NEEDS CLARIFICATION] above)
-- Rationale: Catching uncovered files in the plan step prevents consumers from ever running an apply against an incomplete plan. The issue's preferred behavior aligns with Option A.
+- Selected option: OPTION_A
+- Rationale: Catching uncovered files in the plan step prevents consumers from ever running an apply against an incomplete plan. Consistent with issue #185 preferred behavior. Confirmed by sbonoc via PR comment 2026-04-25.
 
 ## Contract Changes (Normative)
 - Config/Env contract: none
@@ -121,7 +115,7 @@
 ## Informative Notes (Non-Normative)
 - Context: All six bugs were filed on 2026-04-24 from consumer PR sbonoc/dhe-marketplace#40 observations. Issues #180 and #181 affect the same Python module and are bundled per AGENTS.backlog.md guidance. Issue #186 is the next layer after #182 (gitignored artifact seeding, fixed in v1.5.0): seeding made the gate runnable; this fix makes the gate actually verify CI equivalence.
 - Tradeoffs: Bundling all six into one work item reduces PR overhead but increases review surface. The fixes are independent (disjoint files) and can be implemented in parallel delivery slices; the bundle is justified by the shared consumer-upgrade-flow scope and the same consumer PR that surfaced all six.
-- Clarifications: none beyond the [NEEDS CLARIFICATION] block above.
+- Clarifications: Q-1 (FR-011 gate severity) resolved 2026-04-25: Option A selected — hard failure in plan step.
 
 ## Explicit Exclusions
 - Issue #184 (consumer-extensible exclusion set for behavioral check) is explicitly excluded — it is a separate enhancement tracked as a follow-on to #181.

@@ -6,7 +6,7 @@
 - [ ] G-003 Confirm required sign-offs are approved (Product, Architecture, Security, Operations)
 - [ ] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
 - [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
-- [ ] G-006 Confirm [NEEDS CLARIFICATION] Q-1 (FR-011 gate severity: hard-fail vs warn-and-continue) is resolved before implementing Slice 4
+- [ ] G-006 Confirm FR-011 implements hard-failure-in-plan-step (Option A, resolved Q-1, decision by sbonoc 2026-04-25)
 
 ## Implementation — Slice 1: #180 behavioral_check false positives
 
