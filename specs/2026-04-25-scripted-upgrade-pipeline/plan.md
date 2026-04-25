@@ -5,20 +5,11 @@
 - If required inputs are missing, add `BLOCKED_MISSING_INPUTS` in `spec.md` and keep the gate closed.
 
 ## Constitution Gates (Pre-Implementation)
-- Simplicity gate:
-  - Each new script (resolver, coverage fetcher, mirror sync, doc checker, residual reporter) must be independently testable with fixture inputs; no shared global state between stages.
-  - The pipeline entry wrapper orchestrates by invoking existing and new scripts sequentially — no new framework or abstraction layer.
-- Anti-abstraction gate:
-  - Use Python stdlib only (no third-party libraries beyond what is already in the repo); bash for the entry wrapper.
-  - No wrapper layer around existing make targets — invoke them directly via subprocess/shell.
-- Integration-first testing gate:
-  - Contract resolver tests use representative fixture conflict JSON inputs before implementation details.
-  - Coverage gap detection tests use a minimal fixture consumer directory structure.
-- Positive-path filter/transform test gate:
-  - Contract resolver must have at least one unit test asserting that `name` and `repo_mode` from consumer input are preserved (not overwritten by source content) — AC-002.
-  - Empty-result-only assertions do not satisfy this gate.
-- Finding-to-test translation gate:
-  - Each observed failure mode (F-001–F-010) that is addressed by a new script stage must have a corresponding unit test asserting the fix. Translate into failing tests first, then implement the fix.
+- Simplicity gate: each new script (resolver, coverage fetcher, mirror sync, doc checker, residual reporter) must be independently testable with fixture inputs; no shared global state between stages; the pipeline entry wrapper orchestrates by invoking scripts sequentially with no new framework or abstraction layer
+- Anti-abstraction gate: Python stdlib only (no third-party libraries beyond what is already in the repo); bash for the entry wrapper; no wrapper layer around existing make targets — invoke them directly via subprocess/shell
+- Integration-first testing gate: contract resolver tests use representative fixture conflict JSON inputs before implementation details; coverage gap detection tests use a minimal fixture consumer directory structure
+- Positive-path filter/transform test gate: contract resolver must have at least one unit test asserting that name and repo_mode from consumer input are preserved (not overwritten by source content); empty-result-only assertions do not satisfy this gate — AC-002
+- Finding-to-test translation gate: each observed failure mode (F-001–F-010) addressed by a new script stage must have a corresponding unit test asserting the fix; translate into failing tests first, then implement the fix
 
 ## Slice Dependency Map
 

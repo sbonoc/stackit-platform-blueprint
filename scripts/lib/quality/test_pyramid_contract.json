@@ -21,6 +21,7 @@
         "tests/blueprint/test_upgrade_consumer_wrapper.py",
         "tests/blueprint/test_upgrade_preflight.py",
         "tests/blueprint/test_upgrade_postcheck.py",
+        "tests/blueprint/test_upgrade_pipeline.py",
         "tests/blueprint/test_upgrade_shell_behavioral_check.py",
         "tests/blueprint/test_upgrade_reconcile_report.py",
         "tests/blueprint/test_bootstrap_templates.py",

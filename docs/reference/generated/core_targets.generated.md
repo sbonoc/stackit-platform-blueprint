@@ -11,7 +11,8 @@ This file is auto-generated. Do not edit it manually.
 | `blueprint-init-repo` | Initialize repository identity after GitHub template creation |
 | `blueprint-init-repo-interactive` | Interactive repository identity wizard for GitHub template consumers |
 | `blueprint-resync-consumer-seeds` | Compare consumer-seeded files to templates and classify safe refresh vs manual merge |
-| `blueprint-upgrade-consumer` | Plan/apply non-destructive generated-consumer upgrade from pinned blueprint source ref |
+| `blueprint-upgrade-consumer` | Run full 10-stage scripted upgrade pipeline for a generated-consumer repository |
+| `blueprint-upgrade-consumer-apply` | Plan/apply non-destructive generated-consumer upgrade engine (Stage 2 of pipeline; also standalone) |
 | `blueprint-upgrade-consumer-preflight` | Plan-only generated-consumer upgrade preflight report with auto/manual guidance |
 | `blueprint-upgrade-consumer-validate` | Run post-upgrade validation bundle and strict merge-marker checks |
 | `blueprint-upgrade-consumer-postcheck` | Run deterministic post-upgrade convergence gate (validate + reconcile + merge-marker checks) |
