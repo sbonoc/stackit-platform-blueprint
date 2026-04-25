@@ -23,11 +23,13 @@ class BootstrapTemplateTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)
             target = repo_root / "infra/local/helm/core/cert-manager.values.yaml"
+            # ROOT_DIR must be set AFTER sourcing bootstrap.sh because bootstrap.sh
+            # unconditionally overrides ROOT_DIR to its own resolved repo root.
             snippet = "\n".join(
                 [
                     "set -euo pipefail",
-                    f"ROOT_DIR={shlex.quote(str(repo_root))}",
                     f"source {shlex.quote(str(REPO_ROOT / 'scripts/lib/shell/bootstrap.sh'))}",
+                    f"ROOT_DIR={shlex.quote(str(repo_root))}",
                     f"source {shlex.quote(str(REPO_ROOT / 'scripts/lib/blueprint/bootstrap_templates.sh'))}",
                     'ensure_file_from_template "$ROOT_DIR/infra/local/helm/core/cert-manager.values.yaml" infra "infra/local/helm/core/cert-manager.values.yaml"',
                 ]
@@ -50,11 +52,13 @@ class BootstrapTemplateTests(unittest.TestCase):
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text("", encoding="utf-8")
 
+            # ROOT_DIR must be set AFTER sourcing bootstrap.sh because bootstrap.sh
+            # unconditionally overrides ROOT_DIR to its own resolved repo root.
             snippet = "\n".join(
                 [
                     "set -euo pipefail",
-                    f"ROOT_DIR={shlex.quote(str(repo_root))}",
                     f"source {shlex.quote(str(REPO_ROOT / 'scripts/lib/shell/bootstrap.sh'))}",
+                    f"ROOT_DIR={shlex.quote(str(repo_root))}",
                     f"source {shlex.quote(str(REPO_ROOT / 'scripts/lib/blueprint/bootstrap_templates.sh'))}",
                     'ensure_file_from_template "$ROOT_DIR/infra/local/helm/core/cert-manager.values.yaml" infra "infra/local/helm/core/cert-manager.values.yaml"',
                 ]

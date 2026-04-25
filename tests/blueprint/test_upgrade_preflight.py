@@ -75,6 +75,19 @@ class UpgradePreflightTests(unittest.TestCase):
                 encoding="utf-8",
             )
 
+            # Add files with active conflict markers so conflicts_unresolved is populated
+            # by the working-tree scan (FR-001: conflicts_unresolved reflects actual
+            # marker state, not plan-entry action).
+            (repo_root / "docs/platform/consumer").mkdir(parents=True, exist_ok=True)
+            (repo_root / "docs/platform/consumer/quickstart.md").write_text(
+                "<<<<<<< HEAD\nconsumer version\n=======\nblueprint version\n>>>>>>> blueprint\n",
+                encoding="utf-8",
+            )
+            (repo_root / "docs/reference/generated").mkdir(parents=True, exist_ok=True)
+            (repo_root / "docs/reference/generated/contract_metadata.generated.md").write_text(
+                "<<<<<<< HEAD\nconsumer version\n=======\nblueprint version\n>>>>>>> blueprint\n",
+                encoding="utf-8",
+            )
             plan_payload = {
                 "entries": [
                     {"path": "README.md", "action": "create"},
@@ -286,6 +299,13 @@ class UpgradePreflightTests(unittest.TestCase):
             reconcile_path.parent.mkdir(parents=True, exist_ok=True)
             reconcile_path.write_text(json.dumps(stale_reconcile_payload), encoding="utf-8")
 
+            # Add a file with an active conflict marker so conflicts_unresolved is
+            # non-empty after the working-tree scan (FR-001 behaviour).
+            (repo_root / "docs/platform/consumer").mkdir(parents=True, exist_ok=True)
+            (repo_root / "docs/platform/consumer/quickstart.md").write_text(
+                "<<<<<<< HEAD\nconsumer version\n=======\nblueprint version\n>>>>>>> blueprint\n",
+                encoding="utf-8",
+            )
             plan_payload = {
                 "source": "git@github.com:example/new-source.git",
                 "upgrade_ref": "v1.1.0",

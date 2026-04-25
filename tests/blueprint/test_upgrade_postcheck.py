@@ -213,6 +213,14 @@ class UpgradePostcheckTests(unittest.TestCase):
                 )
                 + "\n",
             )
+            # Add a file with an active conflict marker so conflicts_unresolved is
+            # non-empty after the working-tree scan (FR-001 behaviour), causing
+            # the recomputed reconcile report to block the postcheck.
+            (repo / "docs/platform/consumer").mkdir(parents=True, exist_ok=True)
+            (repo / "docs/platform/consumer/quickstart.md").write_text(
+                "<<<<<<< HEAD\nconsumer version\n=======\nblueprint version\n>>>>>>> blueprint\n",
+                encoding="utf-8",
+            )
             _write_plan_apply_reports(
                 repo,
                 plan_payload={

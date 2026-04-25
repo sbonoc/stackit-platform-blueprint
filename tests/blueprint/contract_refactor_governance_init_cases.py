@@ -115,6 +115,8 @@ class GovernanceInitRepoCases(RefactorContractBase):
             (tmp_root / "scripts/templates/consumer/init/.github/workflows").mkdir(parents=True, exist_ok=True)
             (tmp_root / "scripts/templates/consumer/init/.github/ISSUE_TEMPLATE").mkdir(parents=True, exist_ok=True)
             (tmp_root / "scripts/templates/consumer/init/docs").mkdir(parents=True, exist_ok=True)
+            (tmp_root / "scripts/templates/consumer/init/.spec-kit/templates/consumer").mkdir(parents=True, exist_ok=True)
+            (tmp_root / "scripts/templates/consumer/init/specs").mkdir(parents=True, exist_ok=True)
             (tmp_root / "blueprint/modules").mkdir(parents=True, exist_ok=True)
             (tmp_root / "dags").mkdir(parents=True, exist_ok=True)
             (tmp_root / "infra/cloud/stackit/terraform/modules/workflows").mkdir(parents=True, exist_ok=True)
@@ -156,6 +158,21 @@ class GovernanceInitRepoCases(RefactorContractBase):
                 ".github/ISSUE_TEMPLATE/feature_request.yml.tmpl",
                 ".github/ISSUE_TEMPLATE/config.yml.tmpl",
                 ".github/workflows/ci.yml.tmpl",
+                # Consumer-seeded file templates added since the original test setup.
+                # Must be present so init_repo.py can render them (consumer_seeded_paths).
+                ".spec-kit/policy-mapping.md.tmpl",
+                ".spec-kit/control-catalog.json.tmpl",
+                ".spec-kit/control-catalog.md.tmpl",
+                ".spec-kit/templates/consumer/adr.md.tmpl",
+                ".spec-kit/templates/consumer/architecture.md.tmpl",
+                ".spec-kit/templates/consumer/context_pack.md.tmpl",
+                ".spec-kit/templates/consumer/evidence_manifest.json.tmpl",
+                ".spec-kit/templates/consumer/graph.json.tmpl",
+                ".spec-kit/templates/consumer/plan.md.tmpl",
+                ".spec-kit/templates/consumer/spec.md.tmpl",
+                ".spec-kit/templates/consumer/tasks.md.tmpl",
+                ".spec-kit/templates/consumer/traceability.md.tmpl",
+                "specs/README.md.tmpl",
             ):
                 source_path = REPO_ROOT / "scripts/templates/consumer/init" / template_path
                 target_path = tmp_root / "scripts/templates/consumer/init" / template_path
@@ -423,6 +440,8 @@ class GovernanceInitRepoCases(RefactorContractBase):
             (tmp_root / "scripts/templates/consumer/init/.github/workflows").mkdir(parents=True, exist_ok=True)
             (tmp_root / "scripts/templates/consumer/init/.github/ISSUE_TEMPLATE").mkdir(parents=True, exist_ok=True)
             (tmp_root / "scripts/templates/consumer/init/docs").mkdir(parents=True, exist_ok=True)
+            (tmp_root / "scripts/templates/consumer/init/.spec-kit/templates/consumer").mkdir(parents=True, exist_ok=True)
+            (tmp_root / "scripts/templates/consumer/init/specs").mkdir(parents=True, exist_ok=True)
             contract_original = _read("blueprint/contract.yaml")
             docs_original = _read("docs/docusaurus.config.js")
             (tmp_root / "blueprint/contract.yaml").write_text(contract_original, encoding="utf-8")
@@ -439,6 +458,21 @@ class GovernanceInitRepoCases(RefactorContractBase):
                 ".github/ISSUE_TEMPLATE/feature_request.yml.tmpl",
                 ".github/ISSUE_TEMPLATE/config.yml.tmpl",
                 ".github/workflows/ci.yml.tmpl",
+                # .spec-kit consumer-seeded file templates added to consumer_seeded_paths;
+                # must be present so init_repo.py can render them (even in --dry-run mode).
+                ".spec-kit/policy-mapping.md.tmpl",
+                ".spec-kit/control-catalog.json.tmpl",
+                ".spec-kit/control-catalog.md.tmpl",
+                ".spec-kit/templates/consumer/adr.md.tmpl",
+                ".spec-kit/templates/consumer/architecture.md.tmpl",
+                ".spec-kit/templates/consumer/context_pack.md.tmpl",
+                ".spec-kit/templates/consumer/evidence_manifest.json.tmpl",
+                ".spec-kit/templates/consumer/graph.json.tmpl",
+                ".spec-kit/templates/consumer/plan.md.tmpl",
+                ".spec-kit/templates/consumer/spec.md.tmpl",
+                ".spec-kit/templates/consumer/tasks.md.tmpl",
+                ".spec-kit/templates/consumer/traceability.md.tmpl",
+                "specs/README.md.tmpl",
             ):
                 source_path = REPO_ROOT / "scripts/templates/consumer/init" / template_path
                 target_path = tmp_root / "scripts/templates/consumer/init" / template_path
