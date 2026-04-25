@@ -1160,6 +1160,134 @@ class QualityContractsTests(unittest.TestCase):
         self.assertNotIn("AGENTS.md", required_files)
 
 
+    def test_required_paths_filters_source_only_for_generated_consumer_mode(self) -> None:
+        """Regression: required_paths must not include source-only directories in generated-consumer mode.
+
+        blueprint-init-repo removes all source_only paths (docs/blueprint,
+        blueprint/modules, …) from generated-consumer repos.  If those paths
+        remain in the required_paths list, validate_contract fails with spurious
+        "missing path" errors immediately after blueprint-init-repo runs, before
+        make blueprint-bootstrap can recreate any of them.  This is the exact
+        failure mode observed in the generated-consumer-smoke CI job when new
+        source_only entries were added without updating the validation helpers.
+        """
+        validate_script = REPO_ROOT / "scripts/bin/blueprint/validate_contract.py"
+        spec = importlib.util.spec_from_file_location("validate_contract_module_rp", validate_script)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)  # type: ignore[union-attr]
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            contract_path = Path(tmpdir) / "contract.yaml"
+            contract_path.write_text(
+                _read("blueprint/contract.yaml").replace(
+                    "repo_mode: template-source",
+                    "repo_mode: generated-consumer",
+                    1,
+                ),
+                encoding="utf-8",
+            )
+            contract = load_blueprint_contract(contract_path)
+            required_paths = module._required_paths_for_repo_mode(contract)
+
+        source_only = contract.repository.source_only_paths
+        for so_path in source_only:
+            # No required_path entry may be the same as or a child of a source-only path
+            # in generated-consumer mode — they are removed by blueprint-init-repo.
+            violations = [p for p in required_paths if p.rstrip("/") == so_path or p.startswith(so_path + "/")]
+            self.assertEqual(
+                violations,
+                [],
+                msg=(
+                    f"required_paths in generated-consumer mode must not include source-only path "
+                    f"'{so_path}'; found: {violations}"
+                ),
+            )
+
+    def test_required_diagrams_filters_source_only_for_generated_consumer_mode(self) -> None:
+        """Regression: mermaid diagram list must not include source-only files in generated-consumer mode.
+
+        Mermaid diagrams under docs/blueprint/ are source-only and pruned by
+        blueprint-init-repo.  The validate_contract mermaid check must filter
+        them in generated-consumer mode to avoid spurious "missing mermaid
+        markdown file" errors.
+        """
+        validate_script = REPO_ROOT / "scripts/bin/blueprint/validate_contract.py"
+        spec = importlib.util.spec_from_file_location("validate_contract_module_rd", validate_script)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)  # type: ignore[union-attr]
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            contract_path = Path(tmpdir) / "contract.yaml"
+            contract_path.write_text(
+                _read("blueprint/contract.yaml").replace(
+                    "repo_mode: template-source",
+                    "repo_mode: generated-consumer",
+                    1,
+                ),
+                encoding="utf-8",
+            )
+            contract = load_blueprint_contract(contract_path)
+            all_diagrams = contract.docs_contract.required_diagrams
+            filtered = module._required_diagrams_for_repo_mode(contract, all_diagrams)
+
+        source_only = contract.repository.source_only_paths
+        for diagram in filtered:
+            for so in source_only:
+                self.assertFalse(
+                    diagram == so or diagram.startswith(so + "/"),
+                    msg=(
+                        f"mermaid diagram '{diagram}' is under source-only path '{so}' "
+                        "and must not appear in the filtered diagram list for generated-consumer mode"
+                    ),
+                )
+
+    def test_validate_bootstrap_template_sync_skips_source_only_in_consumer_mode(self) -> None:
+        """Regression: bootstrap template sync must skip source-only files in generated-consumer mode.
+
+        Files under docs/blueprint/ (source-only) are removed by blueprint-init-repo.
+        validate_bootstrap_template_sync must not flag their absence as a sync error
+        in generated-consumer mode — that would always fail because the files are
+        intentionally absent.  This is detected via the template sync fixture check;
+        the test was added after the CI smoke job failed with 7 "missing bootstrap
+        target file for template sync" errors for docs/blueprint/* paths.
+        """
+        from scripts.lib.blueprint.contract_validators.docs_sync import validate_bootstrap_template_sync
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            contract_path = Path(tmpdir) / "contract.yaml"
+            contract_path.write_text(
+                _read("blueprint/contract.yaml").replace(
+                    "repo_mode: template-source",
+                    "repo_mode: generated-consumer",
+                    1,
+                ),
+                encoding="utf-8",
+            )
+            contract = load_blueprint_contract(contract_path)
+
+        # Run the sync check against the real REPO_ROOT in generated-consumer mode.
+        # Source-only files (docs/blueprint/*) DO exist in the template-source
+        # working tree, so a naïve check would pass.  We verify that the function
+        # does NOT raise errors for those paths regardless of their disk state.
+        errors = validate_bootstrap_template_sync(REPO_ROOT, contract)
+        source_only_errors = [
+            e for e in errors
+            if "docs/blueprint/" in e and "missing bootstrap target file" in e
+        ]
+        self.assertEqual(
+            source_only_errors,
+            [],
+            msg=(
+                "validate_bootstrap_template_sync must not report missing-file errors "
+                "for docs/blueprint/* paths in generated-consumer mode; got: "
+                + str(source_only_errors)
+            ),
+        )
+
     def test_render_ci_includes_permissions_block(self) -> None:
         """FR-015/FR-016: generated ci.yml must contain a workflow-level permissions block with contents: read."""
         import importlib.util as _ilu

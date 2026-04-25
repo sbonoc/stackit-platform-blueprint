@@ -481,8 +481,6 @@ spec:
       - tests/blueprint/contract_refactor_governance_version_cases.py
       - tests/blueprint/contract_refactor_governance_init_cases.py
       - apps/backend/Dockerfile
-      - apps/catalog/manifest.yaml
-      - apps/catalog/versions.lock
       - apps/touchpoints/Dockerfile
       - scripts/lib/bootstrap.sh
       - scripts/lib/semver.sh
