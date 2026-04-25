@@ -1,7 +1,7 @@
 # ADR-20260425-scripted-upgrade-pipeline: Replace blueprint-consumer-upgrade runbook with a deterministic 10-stage scripted pipeline
 
 ## Metadata
-- Status: proposed
+- Status: approved
 - Date: 2026-04-25
 - Owners: sbonoc
 - Related spec path: specs/2026-04-25-scripted-upgrade-pipeline/
