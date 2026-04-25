@@ -5,16 +5,11 @@
 - If required inputs are missing, add `BLOCKED_MISSING_INPUTS` in `spec.md` and keep the gate closed.
 
 ## Constitution Gates (Pre-Implementation)
-- Simplicity gate:
-  - Each fix is a minimal, targeted correction to an existing function. No new abstractions introduced beyond what the bug fix requires.
-- Anti-abstraction gate:
-  - All corrections use direct Python/bash primitives (frozenset extension, regex guards, checksum comparison, permissions string insertion). No wrapper layers.
-- Integration-first testing gate:
-  - Each fix starts with a failing regression test that exercises the exact bug scenario, then turns green with the implementation.
-- Positive-path filter/transform test gate:
-  - Not applicable — no filter/payload-transform routes in this work item.
-- Finding-to-test translation gate:
-  - Each bug has a documented reproduction path. Every reproduction scenario MUST be captured as a failing test before the fix is applied.
+- Simplicity gate: each fix is a minimal, targeted correction to an existing function; no new abstractions beyond what the bug fix requires
+- Anti-abstraction gate: all corrections use direct Python/bash primitives (frozenset extension, regex guards, checksum comparison, permissions string insertion); no wrapper layers
+- Integration-first testing gate: each fix starts with a failing regression test that exercises the exact bug scenario, then turns green with the implementation
+- Positive-path filter/transform test gate: not applicable — no filter/payload-transform routes in this work item
+- Finding-to-test translation gate: each bug has a documented reproduction path; every reproduction scenario captured as a failing test before the fix is applied
 
 ## Delivery Slices
 
