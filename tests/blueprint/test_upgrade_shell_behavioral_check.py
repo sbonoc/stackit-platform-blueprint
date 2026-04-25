@@ -187,6 +187,40 @@ class TestRunBehavioralCheckCaseLabelAlternation(unittest.TestCase):
         self.assertNotIn("verify", symbols, msg="'verify' from alternation must not be flagged")
         self.assertEqual(result.status, "pass", msg=str(result.as_dict()))
 
+    def test_pipe_operator_in_command_is_flagged(self) -> None:
+        """missing_fn | tee or missing_fn || fallback must NOT be silently skipped as case labels."""
+        import tempfile, textwrap
+        from pathlib import Path
+        content = textwrap.dedent("""\
+            #!/usr/bin/env bash
+            known_func() { echo ok; }
+            known_func | tee /dev/null
+            known_func || true
+        """)
+        with tempfile.TemporaryDirectory() as tmp:
+            script = Path(tmp) / "pipe_test.sh"
+            script.write_text(content, encoding="utf-8")
+            result = run_behavioral_check([script], repo_root=REPO_ROOT)
+        # known_func IS defined; pipe/logical-or operators must not cause false skips
+        symbols = [e["symbol"] for e in result.unresolved_symbols]
+        self.assertNotIn("known_func", symbols, msg="known_func should not be flagged")
+        self.assertEqual(result.status, "pass", msg=str(result.as_dict()))
+
+    def test_undefined_before_pipe_is_flagged(self) -> None:
+        """An undefined function followed by | tee must be flagged, not silently skipped."""
+        import tempfile, textwrap
+        from pathlib import Path
+        content = textwrap.dedent("""\
+            #!/usr/bin/env bash
+            undefined_pipe_func | tee /dev/null
+        """)
+        with tempfile.TemporaryDirectory() as tmp:
+            script = Path(tmp) / "pipe_undefined_test.sh"
+            script.write_text(content, encoding="utf-8")
+            result = run_behavioral_check([script], repo_root=REPO_ROOT)
+        symbols = [e["symbol"] for e in result.unresolved_symbols]
+        self.assertIn("undefined_pipe_func", symbols, msg="undefined_pipe_func before | must be flagged")
+
 
 class TestRunBehavioralCheckArrayInitializer(unittest.TestCase):
     """FR-006 / AC-004: bare-words inside array initializers must not be flagged."""
@@ -204,6 +238,53 @@ class TestRunBehavioralCheckArrayInitializer(unittest.TestCase):
                 msg=f"'{bare_word}' inside array initializer must not be flagged",
             )
         self.assertEqual(result.status, "pass", msg=str(result.as_dict()))
+
+    def test_array_close_paren_with_inline_comment_exits_array_mode(self) -> None:
+        """') # end array' must exit array tracking so subsequent real calls are still scanned."""
+        import tempfile, textwrap
+        from pathlib import Path
+        content = textwrap.dedent("""\
+            #!/usr/bin/env bash
+            known_func() { echo ok; }
+            do_work() {
+                local modules=(
+                    alpha
+                    beta
+                ) # end array
+                known_func
+            }
+            do_work
+        """)
+        with tempfile.TemporaryDirectory() as tmp:
+            script = Path(tmp) / "array_comment_close.sh"
+            script.write_text(content, encoding="utf-8")
+            result = run_behavioral_check([script], repo_root=REPO_ROOT)
+        # known_func IS defined; if array_depth stays > 0 it would be silently skipped
+        symbols = [e["symbol"] for e in result.unresolved_symbols]
+        self.assertNotIn("known_func", symbols, msg="known_func after ') # comment' close must not be skipped")
+        self.assertEqual(result.status, "pass", msg=str(result.as_dict()))
+
+    def test_undefined_after_commented_array_close_is_flagged(self) -> None:
+        """An undefined call after ') # comment' close must be flagged."""
+        import tempfile, textwrap
+        from pathlib import Path
+        content = textwrap.dedent("""\
+            #!/usr/bin/env bash
+            do_work() {
+                local modules=(
+                    alpha
+                ) # end array
+                undefined_after_commented_close
+            }
+            do_work
+        """)
+        with tempfile.TemporaryDirectory() as tmp:
+            script = Path(tmp) / "array_comment_close_undef.sh"
+            script.write_text(content, encoding="utf-8")
+            result = run_behavioral_check([script], repo_root=REPO_ROOT)
+        symbols = [e["symbol"] for e in result.unresolved_symbols]
+        self.assertIn("undefined_after_commented_close", symbols,
+                      msg="undefined call after ') # comment' must be flagged")
 
 
 class TestRunBehavioralCheckExcludedTokensExtended(unittest.TestCase):

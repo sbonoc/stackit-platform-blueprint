@@ -48,6 +48,30 @@ class TestFindMergeMarkers(unittest.TestCase):
         result = find_merge_markers(tmp)
         self.assertEqual(result, set())
 
+    def test_artifacts_dir_excluded_from_scan(self) -> None:
+        """Files under artifacts/ with serialised markers must not be counted as conflicts."""
+        conflict = "<<<<<<< HEAD\nlocal\n=======\nupstream\n>>>>>>> ref\n"
+        repo = self._make_repo({
+            "artifacts/blueprint/conflicts/foo.conflict.json": f'{{"content":"{conflict}"}}',
+            "artifacts/blueprint/upgrade_plan.json": f'{{"raw":"{conflict}"}}',
+        })
+        result = find_merge_markers(repo)
+        self.assertEqual(result, set(), msg="artifacts/ must be excluded from merge-marker scan")
+
+    def test_seven_lt_without_trailing_space_not_matched(self) -> None:
+        """A bare '<<<<<<<' substring without a trailing space/tab is NOT a real git marker."""
+        # e.g. documentation that mentions the token without actual git format
+        repo = self._make_repo({"docs/guide.md": "Resolve `<<<<<<<` lines manually.\n"})
+        result = find_merge_markers(repo)
+        self.assertNotIn("docs/guide.md", result)
+
+    def test_git_dir_excluded_from_scan(self) -> None:
+        """Files under .git/ must not be scanned (pack objects can contain marker bytes)."""
+        conflict = "<<<<<<< HEAD\nlocal\n=======\nupstream\n>>>>>>> ref\n"
+        repo = self._make_repo({".git/COMMIT_EDITMSG": conflict})
+        result = find_merge_markers(repo)
+        self.assertNotIn(".git/COMMIT_EDITMSG", result)
+
 
 class TestConflictsUnresolvedStateTracking(unittest.TestCase):
     """FR-001–FR-004 / AC-001–AC-004: conflicts_unresolved reflects active markers only."""

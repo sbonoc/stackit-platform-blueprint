@@ -239,7 +239,9 @@ def _find_unresolved_call_sites(
         # Array initializer body tracking — skip bare-word elements between
         # local/declare/readonly/typeset var=( and the closing ).  (FR-006)
         if array_depth > 0:
-            if stripped == ")":
+            # Strip trailing inline comment before comparing so that
+            # ") # end array" is correctly recognised as a close paren.
+            if stripped.split("#")[0].rstrip() == ")":
                 array_depth -= 1
             continue
 
@@ -273,12 +275,23 @@ def _find_unresolved_call_sites(
         if token in _EXCLUDED_TOKENS:
             continue
 
-        # Skip case-label lines — a first token immediately followed by ")" or
-        # "|" (alternation) is a case alternative pattern, not a function call.
-        # Handles both ``build|test)`` and ``deploy | verify)`` forms.  (FR-005)
+        # Skip case-label lines — a first token immediately followed by ")" is a
+        # case alternative pattern, not a function call.  For alternation forms
+        # like ``build|test)`` or ``deploy | verify)`` the rest starts with "|"
+        # BUT we must not also skip pipe operators (``missing_fn | tee``) or
+        # logical-or sequences (``missing_fn || fallback``).  Only treat "|" as
+        # a case alternation when a closing ")" appears before any command
+        # separator (&&, ||, ;) — the invariant for all valid case labels.
+        # (FR-005)
         rest_lstripped = stripped[len(token):].lstrip()
-        if rest_lstripped.startswith(")") or rest_lstripped.startswith("|"):
+        if rest_lstripped.startswith(")"):
             continue
+        if rest_lstripped.startswith("|"):
+            paren_idx = rest_lstripped.find(")")
+            if paren_idx != -1:
+                before_paren = rest_lstripped[:paren_idx]
+                if "&&" not in before_paren and "||" not in before_paren and ";" not in before_paren:
+                    continue
 
         if token not in available_defs:
             findings.append({"symbol": token, "line": lineno})
