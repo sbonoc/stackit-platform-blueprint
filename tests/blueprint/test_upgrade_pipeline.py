@@ -18,6 +18,9 @@ Slice 3: Coverage gap detection and file fetch
 
 Slice 4: Bootstrap template mirror sync
   TestMirrorSync — FR-011
+
+Slice 5: Make target validation for new/changed docs
+  TestDocTargetCheck — FR-012
 """
 from __future__ import annotations
 
@@ -42,6 +45,9 @@ from scripts.lib.blueprint.upgrade_coverage_fetch import (
 )
 from scripts.lib.blueprint.upgrade_mirror_sync import (
     sync_bootstrap_mirrors,
+)
+from scripts.lib.blueprint.upgrade_doc_target_check import (
+    check_doc_make_targets,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -796,3 +802,91 @@ class TestMirrorSync(unittest.TestCase):
             self.assertEqual(
                 (nested / "file.yaml").read_text(encoding="utf-8"), "new"
             )
+
+
+# ===========================================================================
+# Slice 5 — Make target validation for new/changed docs
+# ===========================================================================
+
+
+def _write_phony_mk(mk_dir: Path, targets: list[str]) -> None:
+    mk_dir.mkdir(parents=True, exist_ok=True)
+    lines = [".PHONY: " + " ".join(targets), ""] + [f"{t}:\n\t@echo {t}" for t in targets]
+    (mk_dir / "test.mk").write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+class TestDocTargetCheck(unittest.TestCase):
+    """FR-012: scan modified markdown files for make target refs; warn on missing targets; never abort."""
+
+    def test_known_target_produces_no_warning(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            make_dir = repo / "make"
+            _write_phony_mk(make_dir, ["quality-hooks-run", "infra-validate"])
+            doc = repo / "docs/new-guide.md"
+            doc.parent.mkdir(parents=True, exist_ok=True)
+            doc.write_text(
+                "# Guide\n\nRun:\n```bash\nmake quality-hooks-run\n```\n",
+                encoding="utf-8",
+            )
+
+            result = check_doc_make_targets(repo, modified_md_paths=["docs/new-guide.md"])
+
+            self.assertNotIn("quality-hooks-run", result.missing_targets)
+            self.assertEqual(result.exit_code, 0)
+
+    def test_missing_target_produces_warning(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            make_dir = repo / "make"
+            _write_phony_mk(make_dir, ["existing-target"])
+            doc = repo / "docs/new-guide.md"
+            doc.parent.mkdir(parents=True, exist_ok=True)
+            doc.write_text(
+                "# Guide\n\n```bash\nmake nonexistent-target\n```\n",
+                encoding="utf-8",
+            )
+
+            result = check_doc_make_targets(repo, modified_md_paths=["docs/new-guide.md"])
+
+            self.assertIn("nonexistent-target", result.missing_targets)
+
+    def test_missing_target_does_not_abort_pipeline(self) -> None:
+        """FR-012: stage emits warnings but must exit 0 (never abort)."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            _write_phony_mk(repo / "make", [])
+            doc = repo / "docs/new-guide.md"
+            doc.parent.mkdir(parents=True, exist_ok=True)
+            doc.write_text("```bash\nmake totally-missing\n```\n", encoding="utf-8")
+
+            result = check_doc_make_targets(repo, modified_md_paths=["docs/new-guide.md"])
+
+            # Missing target must not set a non-zero exit code
+            self.assertEqual(result.exit_code, 0)
+
+    def test_non_make_code_block_not_flagged(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            _write_phony_mk(repo / "make", [])
+            doc = repo / "docs/guide.md"
+            doc.parent.mkdir(parents=True, exist_ok=True)
+            doc.write_text(
+                "```python\nprint('make something')\n```\n",
+                encoding="utf-8",
+            )
+
+            result = check_doc_make_targets(repo, modified_md_paths=["docs/guide.md"])
+
+            # 'something' is not a real make target reference — it's inside a Python block
+            self.assertEqual(result.missing_targets, [])
+
+    def test_empty_modified_paths_is_no_op(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            _write_phony_mk(repo / "make", [])
+
+            result = check_doc_make_targets(repo, modified_md_paths=[])
+
+            self.assertEqual(result.missing_targets, [])
+            self.assertEqual(result.exit_code, 0)
