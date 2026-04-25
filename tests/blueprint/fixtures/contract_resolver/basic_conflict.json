@@ -1,0 +1,7 @@
+{
+  "path": "blueprint/contract.yaml",
+  "reason": "3-way merge produced conflicts",
+  "source_content": "metadata:\n  name: stackit-k8s-reusable-blueprint\n  version: 1.6.0\nspec:\n  repository:\n    repo_mode: template-source\n    description: Platform blueprint template\n    required_files:\n      - README.md\n      - Makefile\n      - .pre-commit-config.yaml\n    consumer_init:\n      source_artifact_prune_globs_on_init:\n        - specs/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-*\n        - docs/blueprint/architecture/decisions/ADR-*.md\n",
+  "target_content": "metadata:\n  name: dhe-marketplace\n  version: 1.0.0\nspec:\n  repository:\n    repo_mode: generated-consumer\n    description: DHE Marketplace consumer\n    required_files:\n      - README.md\n      - Makefile\n      - .pre-commit-config.yaml\n      - docs/consumer-guide.md\n      - docs/consumer-api-deleted.md\n    consumer_init:\n      source_artifact_prune_globs_on_init:\n        - specs/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-*\n        - docs/blueprint/architecture/decisions/ADR-*.md\n        - internal-consumer-artifacts/**\n",
+  "merged_content": "<<<<<<< HEAD\nmetadata:\n  name: dhe-marketplace\n  version: 1.0.0\n=======\nmetadata:\n  name: stackit-k8s-reusable-blueprint\n  version: 1.6.0\n>>>>>>> upgrade\nspec:\n  repository:\n    repo_mode: generated-consumer\n    required_files:\n      - README.md\n"
+}

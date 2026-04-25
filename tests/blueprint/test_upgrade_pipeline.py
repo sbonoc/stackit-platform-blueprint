@@ -4,18 +4,30 @@ Slice 1: Pre-flight validation helper
   TestPreflightDirtyTree   — FR-001
   TestPreflightInvalidRef  — FR-002
   TestPreflightBadContract — FR-003
+
+Slice 2: Contract resolver
+  TestContractResolverIdentityPreservation — FR-005, AC-002
+  TestContractResolverRequiredFilesMerge   — FR-006
+  TestContractResolverPruneGlobDrop        — FR-007
+  TestContractResolverDecisionJSON         — FR-008
 """
 from __future__ import annotations
 
+import json
 import subprocess
 import tempfile
 import unittest
 from pathlib import Path
 
+import yaml
+
 from scripts.lib.blueprint.upgrade_pipeline_preflight import (
     check_clean_working_tree,
     check_contract,
     check_upgrade_ref,
+)
+from scripts.lib.blueprint.resolve_contract_upgrade import (
+    resolve_contract_conflict,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -238,3 +250,263 @@ class TestPreflightBadContract(unittest.TestCase):
             result = check_contract(repo)
 
             self.assertTrue(result.success)
+
+
+# ===========================================================================
+# Slice 2 — Contract resolver
+# ===========================================================================
+
+FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures" / "contract_resolver"
+
+
+def _load_fixture(name: str) -> dict:
+    return json.loads((FIXTURES_DIR / name).read_text(encoding="utf-8"))
+
+
+def _setup_conflict_in_repo(repo_root: Path, conflict_payload: dict) -> Path:
+    """Write a conflict JSON to the canonical path under artifacts/blueprint/conflicts/."""
+    conflict_path = repo_root / "artifacts/blueprint/conflicts/blueprint/contract.yaml.conflict.json"
+    conflict_path.parent.mkdir(parents=True, exist_ok=True)
+    conflict_path.write_text(json.dumps(conflict_payload, indent=2), encoding="utf-8")
+    return conflict_path
+
+
+class TestContractResolverIdentityPreservation(unittest.TestCase):
+    """FR-005, AC-002: consumer identity fields (name, repo_mode, description) are preserved."""
+
+    def test_consumer_name_preserved_over_blueprint_name(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            payload = _load_fixture("basic_conflict.json")
+            _setup_conflict_in_repo(repo, payload)
+
+            result = resolve_contract_conflict(repo)
+
+            resolved = yaml.safe_load(
+                (repo / "blueprint/contract.yaml").read_text(encoding="utf-8")
+            )
+            # Consumer name 'dhe-marketplace' must survive, not blueprint 'stackit-k8s-reusable-blueprint'
+            self.assertEqual(resolved["metadata"]["name"], "dhe-marketplace")
+            self.assertTrue(result.success)
+
+    def test_consumer_repo_mode_preserved(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            payload = _load_fixture("basic_conflict.json")
+            _setup_conflict_in_repo(repo, payload)
+
+            resolve_contract_conflict(repo)
+
+            resolved = yaml.safe_load(
+                (repo / "blueprint/contract.yaml").read_text(encoding="utf-8")
+            )
+            self.assertEqual(resolved["spec"]["repository"]["repo_mode"], "generated-consumer")
+
+    def test_consumer_description_preserved(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            payload = _load_fixture("basic_conflict.json")
+            _setup_conflict_in_repo(repo, payload)
+
+            resolve_contract_conflict(repo)
+
+            resolved = yaml.safe_load(
+                (repo / "blueprint/contract.yaml").read_text(encoding="utf-8")
+            )
+            self.assertEqual(
+                resolved["spec"]["repository"]["description"], "DHE Marketplace consumer"
+            )
+
+    def test_no_conflict_json_is_no_op(self) -> None:
+        """When no contract conflict JSON exists, resolver exits successfully (no-op)."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            _write_valid_consumer_contract(repo)
+
+            result = resolve_contract_conflict(repo)
+
+            self.assertTrue(result.success)
+            self.assertIn("no-op", result.message.lower())
+
+
+class TestContractResolverRequiredFilesMerge(unittest.TestCase):
+    """FR-006: required_files merged additively; consumer entries missing from disk are dropped."""
+
+    def test_blueprint_required_files_all_present_in_result(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            payload = _load_fixture("basic_conflict.json")
+            _setup_conflict_in_repo(repo, payload)
+
+            resolve_contract_conflict(repo)
+
+            resolved = yaml.safe_load(
+                (repo / "blueprint/contract.yaml").read_text(encoding="utf-8")
+            )
+            required = resolved["spec"]["repository"]["required_files"]
+            self.assertIn("README.md", required)
+            self.assertIn("Makefile", required)
+            self.assertIn(".pre-commit-config.yaml", required)
+
+    def test_consumer_addition_present_on_disk_is_kept(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            payload = _load_fixture("basic_conflict.json")
+            _setup_conflict_in_repo(repo, payload)
+            # Create the file that the consumer added to required_files
+            (repo / "docs").mkdir(parents=True, exist_ok=True)
+            (repo / "docs/consumer-guide.md").write_text("# Guide", encoding="utf-8")
+
+            resolve_contract_conflict(repo)
+
+            resolved = yaml.safe_load(
+                (repo / "blueprint/contract.yaml").read_text(encoding="utf-8")
+            )
+            required = resolved["spec"]["repository"]["required_files"]
+            self.assertIn("docs/consumer-guide.md", required)
+
+    def test_consumer_addition_absent_from_disk_is_dropped(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            payload = _load_fixture("basic_conflict.json")
+            _setup_conflict_in_repo(repo, payload)
+            # docs/consumer-api-deleted.md is in target required_files but NOT created on disk
+
+            resolve_contract_conflict(repo)
+
+            resolved = yaml.safe_load(
+                (repo / "blueprint/contract.yaml").read_text(encoding="utf-8")
+            )
+            required = resolved["spec"]["repository"]["required_files"]
+            self.assertNotIn("docs/consumer-api-deleted.md", required)
+
+
+class TestContractResolverPruneGlobDrop(unittest.TestCase):
+    """FR-007: prune globs matching existing consumer paths are dropped."""
+
+    def test_matching_prune_glob_is_dropped(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            payload = _load_fixture("basic_conflict.json")
+            _setup_conflict_in_repo(repo, payload)
+            # Create a spec directory that matches the prune glob pattern
+            spec_dir = repo / "specs/2026-01-01-real-consumer-spec"
+            spec_dir.mkdir(parents=True, exist_ok=True)
+            (spec_dir / "spec.md").write_text("# Real consumer spec", encoding="utf-8")
+
+            resolve_contract_conflict(repo)
+
+            resolved = yaml.safe_load(
+                (repo / "blueprint/contract.yaml").read_text(encoding="utf-8")
+            )
+            prune_globs = (
+                resolved.get("spec", {})
+                .get("repository", {})
+                .get("consumer_init", {})
+                .get("source_artifact_prune_globs_on_init", [])
+            )
+            # The glob that matches real consumer specs must be dropped
+            self.assertNotIn("specs/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-*", prune_globs)
+
+    def test_non_matching_prune_glob_is_kept(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            payload = _load_fixture("basic_conflict.json")
+            _setup_conflict_in_repo(repo, payload)
+            # No ADR files exist on disk → ADR prune glob must be kept
+
+            resolve_contract_conflict(repo)
+
+            resolved = yaml.safe_load(
+                (repo / "blueprint/contract.yaml").read_text(encoding="utf-8")
+            )
+            prune_globs = (
+                resolved.get("spec", {})
+                .get("repository", {})
+                .get("consumer_init", {})
+                .get("source_artifact_prune_globs_on_init", [])
+            )
+            self.assertIn("docs/blueprint/architecture/decisions/ADR-*.md", prune_globs)
+
+    def test_consumer_only_prune_glob_not_carried_into_result(self) -> None:
+        """Consumer-added prune globs (not in source) are NOT merged in."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            payload = _load_fixture("basic_conflict.json")
+            _setup_conflict_in_repo(repo, payload)
+
+            resolve_contract_conflict(repo)
+
+            resolved = yaml.safe_load(
+                (repo / "blueprint/contract.yaml").read_text(encoding="utf-8")
+            )
+            prune_globs = (
+                resolved.get("spec", {})
+                .get("repository", {})
+                .get("consumer_init", {})
+                .get("source_artifact_prune_globs_on_init", [])
+            )
+            # 'internal-consumer-artifacts/**' was only in target content, not in source
+            self.assertNotIn("internal-consumer-artifacts/**", prune_globs)
+
+
+class TestContractResolverDecisionJSON(unittest.TestCase):
+    """FR-008: decision JSON is emitted at artifacts/blueprint/contract_resolve_decisions.json."""
+
+    def test_decision_json_is_emitted(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            payload = _load_fixture("basic_conflict.json")
+            _setup_conflict_in_repo(repo, payload)
+
+            resolve_contract_conflict(repo)
+
+            decisions_path = repo / "artifacts/blueprint/contract_resolve_decisions.json"
+            self.assertTrue(decisions_path.exists(), "decision JSON not created")
+
+    def test_decision_json_records_dropped_required_files(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            payload = _load_fixture("basic_conflict.json")
+            _setup_conflict_in_repo(repo, payload)
+
+            resolve_contract_conflict(repo)
+
+            decisions_path = repo / "artifacts/blueprint/contract_resolve_decisions.json"
+            decisions = json.loads(decisions_path.read_text(encoding="utf-8"))
+            dropped = decisions.get("dropped_required_files", [])
+            self.assertIn("docs/consumer-api-deleted.md", dropped)
+
+    def test_decision_json_records_dropped_prune_globs(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            payload = _load_fixture("basic_conflict.json")
+            _setup_conflict_in_repo(repo, payload)
+            # Create a spec to trigger prune glob drop
+            spec_dir = repo / "specs/2026-01-01-real-consumer-spec"
+            spec_dir.mkdir(parents=True, exist_ok=True)
+            (spec_dir / "spec.md").write_text("# Real consumer spec", encoding="utf-8")
+
+            resolve_contract_conflict(repo)
+
+            decisions_path = repo / "artifacts/blueprint/contract_resolve_decisions.json"
+            decisions = json.loads(decisions_path.read_text(encoding="utf-8"))
+            dropped_globs = decisions.get("dropped_prune_globs", [])
+            self.assertIn(
+                "specs/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-*", dropped_globs
+            )
+
+    def test_decision_json_records_kept_consumer_required_files(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            payload = _load_fixture("basic_conflict.json")
+            _setup_conflict_in_repo(repo, payload)
+            (repo / "docs").mkdir(parents=True, exist_ok=True)
+            (repo / "docs/consumer-guide.md").write_text("# Guide", encoding="utf-8")
+
+            resolve_contract_conflict(repo)
+
+            decisions_path = repo / "artifacts/blueprint/contract_resolve_decisions.json"
+            decisions = json.loads(decisions_path.read_text(encoding="utf-8"))
+            kept = decisions.get("kept_consumer_required_files", [])
+            self.assertIn("docs/consumer-guide.md", kept)
