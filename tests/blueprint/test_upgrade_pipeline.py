@@ -15,6 +15,9 @@ Slice 3: Coverage gap detection and file fetch
   TestCoverageGapDetection  — FR-009
   TestCoverageGapFileFetch  — FR-010, AC-003
   TestCoverageGapNoHTTP     — NFR-SEC-001
+
+Slice 4: Bootstrap template mirror sync
+  TestMirrorSync — FR-011
 """
 from __future__ import annotations
 
@@ -36,6 +39,9 @@ from scripts.lib.blueprint.resolve_contract_upgrade import (
 )
 from scripts.lib.blueprint.upgrade_coverage_fetch import (
     run_coverage_fetch,
+)
+from scripts.lib.blueprint.upgrade_mirror_sync import (
+    sync_bootstrap_mirrors,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -713,3 +719,80 @@ class TestCoverageGapNoHTTP(unittest.TestCase):
             source,
             "upgrade_coverage_fetch.py must not contain https:// literals",
         )
+
+
+# ===========================================================================
+# Slice 4 — Bootstrap template mirror sync
+# ===========================================================================
+
+
+class TestMirrorSync(unittest.TestCase):
+    """FR-011: for each modified workspace path, sync mirror under scripts/templates/blueprint/bootstrap/."""
+
+    def test_mirror_overwritten_when_exists(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            # Create workspace file and its mirror
+            workspace_file = repo / ".pre-commit-config.yaml"
+            workspace_file.write_text("repos: []\n# v1.6.0", encoding="utf-8")
+            mirror_dir = repo / "scripts/templates/blueprint/bootstrap"
+            mirror_dir.mkdir(parents=True, exist_ok=True)
+            mirror_file = mirror_dir / ".pre-commit-config.yaml"
+            mirror_file.write_text("repos: []\n# v1.0.0", encoding="utf-8")
+
+            sync_bootstrap_mirrors(repo, modified_paths=[".pre-commit-config.yaml"])
+
+            self.assertEqual(
+                mirror_file.read_text(encoding="utf-8"),
+                "repos: []\n# v1.6.0",
+            )
+
+    def test_no_mirror_present_is_no_op(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            workspace_file = repo / "some-file.yaml"
+            workspace_file.write_text("content", encoding="utf-8")
+            # No mirror directory exists
+
+            result = sync_bootstrap_mirrors(repo, modified_paths=["some-file.yaml"])
+
+            # No error; just returns with no mirror written
+            self.assertTrue(result.success)
+            self.assertNotIn("some-file.yaml", result.synced_paths)
+
+    def test_multiple_modified_paths_only_syncs_those_with_mirrors(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            mirror_dir = repo / "scripts/templates/blueprint/bootstrap"
+            mirror_dir.mkdir(parents=True, exist_ok=True)
+
+            # File A has a mirror
+            (repo / "file-a.txt").write_text("A v2", encoding="utf-8")
+            (mirror_dir / "file-a.txt").write_text("A v1", encoding="utf-8")
+
+            # File B has no mirror
+            (repo / "file-b.txt").write_text("B content", encoding="utf-8")
+
+            sync_bootstrap_mirrors(
+                repo, modified_paths=["file-a.txt", "file-b.txt"]
+            )
+
+            # Mirror of A is updated
+            self.assertEqual((mirror_dir / "file-a.txt").read_text(encoding="utf-8"), "A v2")
+            # Mirror of B does not exist (was not created)
+            self.assertFalse((mirror_dir / "file-b.txt").exists())
+
+    def test_nested_path_mirror_synced(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            nested = repo / "scripts/templates/blueprint/bootstrap/some/nested"
+            nested.mkdir(parents=True, exist_ok=True)
+            (nested / "file.yaml").write_text("old", encoding="utf-8")
+            (repo / "some" / "nested").mkdir(parents=True, exist_ok=True)
+            (repo / "some/nested/file.yaml").write_text("new", encoding="utf-8")
+
+            sync_bootstrap_mirrors(repo, modified_paths=["some/nested/file.yaml"])
+
+            self.assertEqual(
+                (nested / "file.yaml").read_text(encoding="utf-8"), "new"
+            )
