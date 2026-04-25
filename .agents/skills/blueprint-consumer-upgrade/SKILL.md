@@ -20,7 +20,7 @@ The upgrade is fully scripted. The agent's role is: set the ref, run the pipelin
 
 ```bash
 # Step 1 — branch + resolve ref
-git checkout -b codex/upgrade-blueprint-<tag>
+git checkout -b upgrade/blueprint-<tag>
 ./.agents/skills/blueprint-consumer-upgrade/scripts/resolve_latest_stable_ref.sh
 # output: TAG=<tag>
 
