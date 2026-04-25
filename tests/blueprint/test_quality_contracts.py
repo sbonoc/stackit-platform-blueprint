@@ -1394,6 +1394,180 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn("permissions:", workflow, msg=".github/workflows/ci.yml must contain permissions: block")
         self.assertIn("contents: read", workflow, msg=".github/workflows/ci.yml must set contents: read")
 
+    # ---------------------------------------------------------------------------
+    # Optional-module conditional scaffold regression tests
+    # ---------------------------------------------------------------------------
+
+    def test_optional_module_contract_invariants(self) -> None:
+        """Static contract invariants: every optional module must be consistently conditional.
+
+        Asserts that all modules in optional_modules.modules satisfy the invariants required
+        by the conditional-scaffold enforcement chain (blueprint-init-repo prune, infra-bootstrap
+        conditional creation, infra-validate skip, template-smoke assertion).
+
+        Catches semantic violations in blueprint/contract.yaml before any code runs — e.g.
+        adding a new module without setting scaffolding_mode=conditional, forgetting to list
+        paths in paths_required_when_enabled, or setting an incorrect enable default.
+        """
+        contract = load_blueprint_contract(REPO_ROOT / "blueprint/contract.yaml")
+        for module_id, module in sorted(contract.optional_modules.modules.items()):
+            with self.subTest(module=module_id):
+                self.assertEqual(
+                    module.scaffolding_mode,
+                    "conditional",
+                    msg=f"module {module_id}: scaffolding_mode must be 'conditional', got {module.scaffolding_mode!r}",
+                )
+                self.assertFalse(
+                    module.enabled_by_default,
+                    msg=f"module {module_id}: enabled_by_default must be False — all optional modules are opt-in",
+                )
+                self.assertEqual(
+                    module.make_targets_mode,
+                    "conditional",
+                    msg=f"module {module_id}: make_targets_mode must be 'conditional', got {module.make_targets_mode!r}",
+                )
+                self.assertGreater(
+                    len(module.paths_required_when_enabled),
+                    0,
+                    msg=f"module {module_id}: paths_required_when_enabled must not be empty — "
+                    "at least one path key must be declared so blueprint-init-repo and "
+                    "infra-bootstrap can enforce presence/absence",
+                )
+                for key in module.paths_required_when_enabled:
+                    self.assertIn(
+                        key,
+                        module.paths,
+                        msg=f"module {module_id}: paths_required_when_enabled key {key!r} not in module.paths; "
+                        "add the path definition or remove the key from the required list",
+                    )
+                    self.assertTrue(
+                        module.paths[key],
+                        msg=f"module {module_id}: module.paths[{key!r}] must be a non-empty string",
+                    )
+
+    def test_no_conditional_module_scaffold_in_unconditional_bootstrap_functions(self) -> None:
+        """Regression guard: conditional-module scaffold paths must not be created unconditionally.
+
+        Prevents recurrence of the Round 4 CI failure where infra/bootstrap.sh unconditionally
+        created observability dirs/files inside bootstrap_infra_directories(),
+        bootstrap_infra_static_templates(), and bootstrap_stackit_terraform_scaffolding().
+        blueprint-init-repo pruned those paths for disabled modules, but infra-bootstrap
+        immediately re-created them — causing template_smoke_assertions.py to fail:
+
+            AssertionError: expected disabled conditional scaffold to stay pruned in generated repo:
+              infra/cloud/stackit/terraform/modules/observability
+
+        For each module's paths_required_when_enabled, the concrete path value
+        (skipping gitops_path which contains ${ENV} and is rendered at runtime, not embedded
+        as a static string) must NOT appear as an executable line in any of the three
+        unconditional scaffold functions.  Comment lines are excluded from the check because
+        they are permitted to document why a path is NOT created there.
+        """
+        contract = load_blueprint_contract(REPO_ROOT / "blueprint/contract.yaml")
+        bootstrap_text = (REPO_ROOT / "scripts/bin/infra/bootstrap.sh").read_text(encoding="utf-8")
+
+        def extract_bash_function_body(text: str, func_name: str) -> str:
+            # Matches: funcname() {\n<body>\n^}  (closing brace at column 0)
+            pattern = rf"(?ms)^{re.escape(func_name)}\(\) \{{\n(.*?)^\}}"
+            match = re.search(pattern, text)
+            return match.group(1) if match else ""
+
+        def strip_bash_comments(body: str) -> str:
+            # Remove lines that consist solely of optional whitespace followed by '#'.
+            # These are explanatory comments documenting absent paths and must not be flagged.
+            return "\n".join(line for line in body.splitlines() if not re.match(r"^\s*#", line))
+
+        unconditional_executable = strip_bash_comments(
+            "".join([
+                extract_bash_function_body(bootstrap_text, "bootstrap_infra_directories"),
+                extract_bash_function_body(bootstrap_text, "bootstrap_infra_static_templates"),
+                extract_bash_function_body(bootstrap_text, "bootstrap_stackit_terraform_scaffolding"),
+            ])
+        )
+
+        violations: list[str] = []
+        for module_id, module in sorted(contract.optional_modules.modules.items()):
+            for key in module.paths_required_when_enabled:
+                path_value = module.paths.get(key, "")
+                if not path_value or "${ENV}" in path_value:
+                    # gitops_path values contain ${ENV} and are rendered at runtime —
+                    # they are never embedded as static strings in bootstrap functions.
+                    continue
+                clean_path = path_value.rstrip("/")
+                if clean_path in unconditional_executable:
+                    violations.append(
+                        f"module={module_id} key={key} path={clean_path!r} appears in an unconditional "
+                        "bootstrap function (bootstrap_infra_directories, bootstrap_infra_static_templates, "
+                        "or bootstrap_stackit_terraform_scaffolding); "
+                        "move to bootstrap_observability_module_scaffold() or bootstrap_module_scaffold() "
+                        "called from bootstrap_optional_module_scaffolding()"
+                    )
+
+        self.assertEqual(
+            violations,
+            [],
+            msg=(
+                "conditional-module scaffold paths must not appear in unconditional bootstrap functions:\n"
+                + "\n".join(violations)
+            ),
+        )
+
+    def test_optional_module_bootstrap_wiring_completeness(self) -> None:
+        """All optional modules must be wired in the correct conditional bootstrap functions.
+
+        Prevents the "new module added to contract but not wired in bootstrap.sh" regression.
+        If a developer adds a module to blueprint/contract.yaml but forgets to add it to
+        bootstrap_optional_module_scaffolding() (or bootstrap_optional_manifests() for modules
+        with a gitops_path), this test fires before CI instead of waiting for the slow smoke job.
+
+        Keycloak is mandatory and not in optional_modules.modules — it is correctly excluded.
+        """
+        contract = load_blueprint_contract(REPO_ROOT / "blueprint/contract.yaml")
+        bootstrap_text = (REPO_ROOT / "scripts/bin/infra/bootstrap.sh").read_text(encoding="utf-8")
+
+        def extract_bash_function_body(text: str, func_name: str) -> str:
+            pattern = rf"(?ms)^{re.escape(func_name)}\(\) \{{\n(.*?)^\}}"
+            match = re.search(pattern, text)
+            return match.group(1) if match else ""
+
+        scaffold_body = extract_bash_function_body(bootstrap_text, "bootstrap_optional_module_scaffolding")
+        manifest_body = extract_bash_function_body(bootstrap_text, "bootstrap_optional_manifests")
+
+        missing_scaffold: list[str] = []
+        missing_manifest: list[str] = []
+
+        for module_id in sorted(contract.optional_modules.modules):
+            module = contract.optional_modules.modules[module_id]
+
+            # Every optional module must appear in bootstrap_optional_module_scaffolding()
+            # so its infra scaffold (terraform, helm, tests) is created when enabled.
+            if module_id not in scaffold_body:
+                missing_scaffold.append(module_id)
+
+            # Modules with gitops_path in paths_required_when_enabled must appear in
+            # bootstrap_optional_manifests() so ArgoCD Application manifests are rendered
+            # when the module is enabled (and absent when disabled).
+            if "gitops_path" in module.paths_required_when_enabled and module_id not in manifest_body:
+                missing_manifest.append(module_id)
+
+        self.assertEqual(
+            missing_scaffold,
+            [],
+            msg=(
+                "these optional modules are defined in the contract but missing from "
+                f"bootstrap_optional_module_scaffolding() in scripts/bin/infra/bootstrap.sh: {missing_scaffold}"
+            ),
+        )
+        self.assertEqual(
+            missing_manifest,
+            [],
+            msg=(
+                "these optional modules have gitops_path in paths_required_when_enabled but are "
+                "missing from bootstrap_optional_manifests() in scripts/bin/infra/bootstrap.sh: "
+                f"{missing_manifest}"
+            ),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
