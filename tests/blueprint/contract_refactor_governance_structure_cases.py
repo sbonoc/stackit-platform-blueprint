@@ -443,7 +443,6 @@ class GovernanceStructureCases(RefactorContractBase):
                 "tests/docs",
                 "specs",
                 "CLAUDE.md",
-                "docs/blueprint",
                 "docs/src",
                 "docs/sidebars.js",
                 "docs/pnpm-lock.yaml",
