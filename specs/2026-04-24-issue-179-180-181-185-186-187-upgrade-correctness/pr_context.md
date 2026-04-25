@@ -18,10 +18,17 @@
   - scripts/lib/blueprint/upgrade_fresh_env_gate.py
   - scripts/lib/quality/render_ci_workflow.py
 - High-risk files: blueprint/contract.yaml (47 new required_files, 8 source_only, observability/langfuse conditional scaffold additions); scripts/bin/blueprint/upgrade_fresh_env_gate.sh (exit-code logic updated for checksum divergence gate)
+- Additional files (post-publish additions):
+  - scripts/bin/infra/bootstrap.sh — observability scaffold made conditional (Round 4 CI fix)
+  - scripts/lib/blueprint/contract_validators/docs_sync.py — validate_bootstrap_template_sync now skips disabled conditional scaffold in template-source mode too
+  - tests/blueprint/test_quality_contracts.py — 4 new regression tests (1 pre-CI guard + 3 module invariant guards)
+  - .agents/skills/blueprint-consumer-upgrade/SKILL.md — Optional Module Handling section added
+  - .agents/skills/blueprint-consumer-upgrade/references/manual_merge_checklist.md — module scaffold guidance added
+  - tests/blueprint/contract_refactor_governance_structure_cases.py — source_only_paths assertion synced to docs/blueprint removal
 
 ## Validation Evidence
 - Required commands executed: python3 -m pytest tests/blueprint/ -q; make quality-hooks-fast
-- Result summary: 392 tests pass (up from 385 before slices 5–6); 7 pre-existing failures unchanged (test_bootstrap_templates x2, test_contract_bootstrap_surface, test_contract_init_governance, test_upgrade_preflight x2, test_upgrade_postcheck); quality-hooks-fast passes after test_pyramid_contract.json update for test_upgrade_reconcile_report.py; audit_source_tree_coverage reports 0 uncovered files
+- Result summary: 399 tests pass (up from 392 after 6 new tests added); 7 pre-existing failures unchanged (test_bootstrap_templates x2, test_contract_bootstrap_surface, test_contract_init_governance, test_upgrade_preflight x2, test_upgrade_postcheck); quality-hooks-fast passes; CI: blueprint-quality pass, generated-consumer-smoke pass
 - Artifact references: specs/2026-04-24-issue-179-180-181-185-186-187-upgrade-correctness/
 
 ## Risk and Rollback
