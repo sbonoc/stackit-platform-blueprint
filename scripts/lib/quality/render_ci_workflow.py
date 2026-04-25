@@ -37,6 +37,8 @@ def _render_ci(default_branch: str) -> str:
         "  push:\n"
         "    branches:\n"
         f"      - {default_branch}\n\n"
+        "permissions:\n"
+        "  contents: read\n\n"
         "jobs:\n"
         "  blueprint-quality:\n"
         "    runs-on: ubuntu-latest\n"

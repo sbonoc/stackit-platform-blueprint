@@ -1160,5 +1160,36 @@ class QualityContractsTests(unittest.TestCase):
         self.assertNotIn("AGENTS.md", required_files)
 
 
+    def test_render_ci_includes_permissions_block(self) -> None:
+        """FR-015/FR-016: generated ci.yml must contain a workflow-level permissions block with contents: read."""
+        import importlib.util as _ilu
+        spec = _ilu.spec_from_file_location(
+            "render_ci_workflow",
+            REPO_ROOT / "scripts/lib/quality/render_ci_workflow.py",
+        )
+        module = _ilu.module_from_spec(spec)  # type: ignore[arg-type]
+        spec.loader.exec_module(module)  # type: ignore[union-attr]
+
+        rendered = module._render_ci("main")
+
+        # FR-015: permissions block must be present
+        self.assertIn("permissions:", rendered, msg="generated ci.yml must contain a workflow-level permissions: block")
+        # FR-016: contents: read must be set
+        self.assertIn("contents: read", rendered, msg="permissions block must set contents: read")
+
+        # FR-015: permissions block must appear after 'on:' and before 'jobs:'
+        on_pos = rendered.index("on:\n")
+        perm_pos = rendered.index("permissions:")
+        jobs_pos = rendered.index("jobs:\n")
+        self.assertGreater(perm_pos, on_pos, msg="permissions block must appear after on: block")
+        self.assertLess(perm_pos, jobs_pos, msg="permissions block must appear before jobs: section")
+
+    def test_ci_workflow_file_contains_permissions_block(self) -> None:
+        """FR-015/FR-016: committed .github/workflows/ci.yml must contain the permissions block."""
+        workflow = _read(".github/workflows/ci.yml")
+        self.assertIn("permissions:", workflow, msg=".github/workflows/ci.yml must contain permissions: block")
+        self.assertIn("contents: read", workflow, msg=".github/workflows/ci.yml must set contents: read")
+
+
 if __name__ == "__main__":
     unittest.main()

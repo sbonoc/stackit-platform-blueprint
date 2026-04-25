@@ -6,6 +6,9 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
   blueprint-quality:
     runs-on: ubuntu-latest
