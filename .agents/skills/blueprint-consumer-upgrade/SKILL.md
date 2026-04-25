@@ -1,73 +1,79 @@
 ---
 name: blueprint-consumer-upgrade
-description: Upgrade existing generated-consumer repositories from https://github.com/sbonoc/stackit-platform-blueprint using the latest stable tag (or an explicit ref) with blueprint preflight, non-destructive apply, and post-upgrade validation/postcheck. Use when asked to run blueprint-resync-consumer-seeds, blueprint-upgrade-consumer-preflight, blueprint-upgrade-consumer, blueprint-upgrade-consumer-validate, or blueprint-upgrade-consumer-postcheck while preserving consumer-owned changes.
+description: Upgrade existing generated-consumer repositories using the deterministic scripted pipeline (make blueprint-upgrade-consumer). Use when asked to upgrade, resync, or apply a new blueprint version to a consumer repository. The pipeline handles all 10 stages automatically and produces a residual report covering only items requiring human decision.
 ---
 
 # Blueprint Consumer Upgrade
 
-## Workflow
+The upgrade is fully scripted. The agent's role is: set the ref, run the pipeline, read the report, apply prescribed actions, and commit.
 
-1. Verify the repo is a generated-consumer repo and the working tree is clean.
-2. Create a dedicated branch (`codex/...`) for the upgrade.
-3. Resolve the latest stable tag from `https://github.com/sbonoc/stackit-platform-blueprint` unless the user pins a specific ref.
-4. Run consumer-seed resync in inspect mode, then safe-apply mode.
-5. Run upgrade preflight and review manual actions before apply mode.
-6. Run upgrade plan mode and then apply mode with the same source/ref.
-7. Resolve required manual merges if preflight/apply reports blocking actions.
-7a. After resolving manual merges, verify no files matching prune globs were introduced: `specs/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-*` and `docs/blueprint/architecture/decisions/ADR-*.md`. Remove any such files before proceeding to validation. (Required — the validate gate will fail if any are present.)
-8. Run post-upgrade validation and deterministic postcheck gate.
-9. Report selected tag/SHA, changed files, manual actions, and exact commands.
-10. Do not commit or push unless the user explicitly requests it.
+## Workflow (6 steps)
+
+1. **Set ref.** Resolve the target tag or accept it from the user input. Create a dedicated branch.
+2. **Run pipeline.** Execute the scripted upgrade pipeline end-to-end.
+3. **Read residual report.** Open `artifacts/blueprint/upgrade-residual.md`.
+4. **Apply prescribed actions.** For each item in the report, apply the action listed (Remove/Add/Classify/Review). Do not skip items — every item has a prescribed action.
+5. **Confirm clean.** Re-run `make quality-hooks-run` to confirm no remaining issues.
+6. **Commit and open PR.** Use the standard PR packager skill (`/blueprint-sdd-step07-pr-packager`).
 
 ## Command Sequence
 
-Use these commands from the consumer repo root.
+```bash
+# Step 1 — branch + resolve ref
+git checkout -b upgrade/blueprint-<tag>
+./.agents/skills/blueprint-consumer-upgrade/scripts/resolve_latest_stable_ref.sh
+# output: TAG=<tag>
+
+# Step 2 — run the scripted pipeline
+BLUEPRINT_UPGRADE_SOURCE=https://github.com/sbonoc/stackit-platform-blueprint \
+BLUEPRINT_UPGRADE_REF=<tag> \
+make blueprint-upgrade-consumer
+
+# Step 3 — read the residual report
+cat artifacts/blueprint/upgrade-residual.md
+
+# Step 5 — confirm clean after applying prescribed actions
+make quality-hooks-run
+```
+
+## What the Pipeline Does
+
+The `make blueprint-upgrade-consumer` target runs 10 scripted stages automatically:
+
+| Stage | What happens |
+|-------|-------------|
+| 1 | Pre-flight: clean working tree, valid ref, parseable contract |
+| 2 | Apply with delete (`BLUEPRINT_UPGRADE_ALLOW_DELETE=true` by default) |
+| 3 | Contract resolver: preserve identity, merge required_files, drop matching prune globs |
+| 4 | Auto-resolve non-contract conflicts (blueprint-managed files take source content) |
+| 5 | Coverage gap detection and file fetch from local git clone |
+| 6 | Bootstrap template mirror sync |
+| 7 | Make target validation for new/changed docs (warnings only) |
+| 8 | Generated reference docs regeneration |
+| 9 | Gate chain: `make infra-validate` then `make quality-hooks-run` |
+| 10 | Residual report (always emitted, even on partial failure) |
+
+## Override: Non-Destructive Mode
+
+To disable the default delete behavior (Stage 2):
 
 ```bash
-# 0) branch + clean working tree
-git checkout -b codex/upgrade-blueprint-<tag-or-date>
-git status --short
-
-# 1) resolve latest stable tag from fixed source
-./.agents/skills/blueprint-consumer-upgrade/scripts/resolve_latest_stable_ref.sh
-# output: TAG=<tag> and SHA=<sha>
-
-# 2) resync consumer-seeded files
-make blueprint-resync-consumer-seeds
-BLUEPRINT_RESYNC_APPLY_SAFE=true make blueprint-resync-consumer-seeds
-
-# 3) preflight (plan-only report)
 BLUEPRINT_UPGRADE_SOURCE=https://github.com/sbonoc/stackit-platform-blueprint \
 BLUEPRINT_UPGRADE_REF=<tag> \
-make blueprint-upgrade-consumer-preflight
-
-# 4) plan then apply
-BLUEPRINT_UPGRADE_SOURCE=https://github.com/sbonoc/stackit-platform-blueprint \
-BLUEPRINT_UPGRADE_REF=<tag> \
+BLUEPRINT_UPGRADE_ALLOW_DELETE=false \
 make blueprint-upgrade-consumer
+```
 
-BLUEPRINT_UPGRADE_SOURCE=https://github.com/sbonoc/stackit-platform-blueprint \
-BLUEPRINT_UPGRADE_REF=<tag> \
-BLUEPRINT_UPGRADE_APPLY=true \
-make blueprint-upgrade-consumer
+## Individual Stages (Standalone)
 
-# 4a) reseed enabled module scaffold from updated templates
-# Required after apply: creates scaffold for any newly enabled module; also reseeds
-# scaffold that was deleted to resolve template drift (see Optional Module Handling below).
-# Safe to run unconditionally — uses create-if-missing semantics for existing files.
-make infra-bootstrap
+Existing individual make targets remain independently callable:
 
-# 4b) clean up disabled module scaffold (run only if modules were disabled since the last upgrade)
-# make infra-destroy-disabled-modules
-
-# 5) validate + postcheck
-make blueprint-upgrade-consumer-validate
-make blueprint-upgrade-consumer-postcheck
-
-# 6) fresh-environment smoke gate (CI-equivalent check)
-make blueprint-upgrade-fresh-env-gate
-make infra-validate
-make quality-hooks-run
+```bash
+make blueprint-upgrade-consumer-apply     # Stage 2 only (plan/apply engine)
+make blueprint-upgrade-consumer-preflight # Plan-only preflight report
+make blueprint-upgrade-consumer-validate  # Post-upgrade validation
+make blueprint-upgrade-consumer-postcheck # Deterministic convergence gate
+make blueprint-upgrade-fresh-env-gate     # Fresh-environment smoke gate
 ```
 
 ## Optional Module Handling

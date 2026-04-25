@@ -77,6 +77,7 @@ Four independent tracks; all P1, can be started in parallel.
 
 #### Phase 4 — Major UX improvements (build on the stable correctness foundation)
 
+- [x] P2 (Consumer upgrade flow): scripted upgrade pipeline — replace `blueprint-consumer-upgrade` runbook with a deterministic 10-stage pipeline (`make blueprint-upgrade-consumer`); resolves F-001–F-010 from the v1.0.0→v1.6.0 upgrade. **In progress**: `specs/2026-04-25-scripted-upgrade-pipeline/`, PR #193.
 - [ ] P2 (Consumer upgrade flow): Issue #167 — add `BLUEPRINT_UPGRADE_DRY_RUN=true` flag that simulates all file mutations (copy, 3-way merge, skip, consumer-owned) and outputs a unified diff of the full change set without touching the working tree; reports the same warnings, conflicts, and behavioral failures the real apply would surface so consumers can review the exact change before committing to apply.
 - [ ] P2 (Consumer upgrade flow): Issue #168 — add incremental tag-to-tag upgrade mode (`BLUEPRINT_UPGRADE_INCREMENTAL=true`) that applies changes one release at a time, surfacing a per-release changelog and cherry-pick plan at each step with resume support on conflict; batch mode remains the default.
 

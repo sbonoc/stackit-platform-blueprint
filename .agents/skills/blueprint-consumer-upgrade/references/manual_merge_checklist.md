@@ -1,5 +1,15 @@
 # Manual Merge Checklist
 
+The scripted pipeline (`make blueprint-upgrade-consumer`) handles contract resolution, coverage gap
+fetch, mirror sync, and non-contract conflict auto-resolution automatically. After the pipeline
+completes, read `artifacts/blueprint/upgrade-residual.md` — every item in that report has a
+prescribed action (Remove / Add / Verify / Classify / Review). Apply prescribed actions and
+re-run `make quality-hooks-run` to confirm clean.
+
+Use the checklist below only for items surfaced in the residual report that require human judgment,
+or when running individual pipeline stages (`blueprint-upgrade-consumer-apply`, etc.) outside the
+full pipeline.
+
 Use this checklist when `required_manual_actions` is non-empty after preflight/apply.
 
 ## 1) Confirm Blocking Items
