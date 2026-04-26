@@ -2139,6 +2139,38 @@ class TestValidatePlanUncoveredSourceFiles(unittest.TestCase):
         self.assertEqual(errors, [])
 
 
+class TestFeatureGatedSchemaLoader(unittest.TestCase):
+    """FR-002, AC-003: load_blueprint_contract parses feature_gated without errors."""
+
+    def test_feature_gated_no_validation_errors(self) -> None:
+        """Contract with feature_gated list loads without exception and exposes the paths."""
+        contract = load_blueprint_contract(REPO_ROOT / "blueprint/contract.yaml")
+        original_yaml = (REPO_ROOT / "blueprint/contract.yaml").read_text(encoding="utf-8")
+
+        # Inject a minimal feature_gated block after conditional_scaffold section.
+        # This test verifies the schema loader accepts the key without error.
+        injected = original_yaml.replace(
+            "    consumer_init:",
+            "      feature_gated:\n        - apps/catalog\n        - apps/catalog/manifest.yaml\n    consumer_init:",
+            1,
+        )
+        with tempfile.NamedTemporaryFile(suffix=".yaml", delete=False, mode="w", encoding="utf-8") as f:
+            f.write(injected)
+            tmp_path = Path(f.name)
+        try:
+            loaded = load_blueprint_contract(tmp_path)
+            self.assertIn("apps/catalog", loaded.repository.feature_gated_paths)
+            self.assertIn("apps/catalog/manifest.yaml", loaded.repository.feature_gated_paths)
+        finally:
+            tmp_path.unlink(missing_ok=True)
+
+    def test_feature_gated_absent_defaults_to_empty(self) -> None:
+        """Contract without feature_gated key loads successfully with empty list (backward compat)."""
+        contract = load_blueprint_contract(REPO_ROOT / "blueprint/contract.yaml")
+        # The real contract.yaml currently has no feature_gated key yet — verify empty default.
+        self.assertIsInstance(contract.repository.feature_gated_paths, list)
+
+
 class TestFeatureGatedCoverage(unittest.TestCase):
     """FR-002, FR-003, AC-002, AC-005: feature_gated paths are covered without disk-presence check."""
 

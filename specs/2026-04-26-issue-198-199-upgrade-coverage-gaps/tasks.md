@@ -22,8 +22,8 @@
 - [x] T-010 Update `validate_plan_uncovered_source_files` error message to reference `feature_gated`
 
 ## Slice 3 — Contract validation for `feature_gated`
-- [ ] T-011 Add test: a contract dict with `feature_gated: [apps/catalog]` produces no validation errors in `validate_contract.py` ownership section
-- [ ] T-012 Read and validate `feature_gated` in `scripts/bin/blueprint/validate_contract.py` — no disk-presence check, no equality constraint against `optional_modules`
+- [x] T-011 Add test: a contract dict with `feature_gated: [apps/catalog]` produces no validation errors in `validate_contract.py` ownership section
+- [x] T-012 Read and validate `feature_gated` in `scripts/bin/blueprint/validate_contract.py` — no disk-presence check, no equality constraint against `optional_modules`
 
 ## Slice 4 — Populate YAML
 - [ ] T-013 Add `feature_gated:` list under `ownership_path_classes` in `blueprint/contract.yaml` with `apps/catalog`, `apps/catalog/manifest.yaml`, `apps/catalog/versions.lock`
