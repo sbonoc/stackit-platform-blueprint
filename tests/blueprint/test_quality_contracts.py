@@ -1569,5 +1569,47 @@ class QualityContractsTests(unittest.TestCase):
         )
 
 
+    def test_no_hardcoded_app_manifest_names_in_bootstrap_infra_static_templates(self) -> None:
+        """bootstrap_infra_static_templates() must not hardcode blueprint seed workload names.
+
+        Regression guard for issue #208: bootstrap.sh previously listed the four blueprint seed
+        app manifest names explicitly. Any consumer who renames their workloads would get FATAL
+        errors and empty placeholder files. The fix replaces the hardcoded calls with a sed loop
+        reading the template kustomization at runtime.
+
+        This test catches any future reintroduction of the hardcoded names in the function body.
+        """
+        bootstrap_text = (REPO_ROOT / "scripts/bin/infra/bootstrap.sh").read_text(encoding="utf-8")
+
+        def extract_bash_function_body(text: str, func_name: str) -> str:
+            pattern = rf"(?ms)^{re.escape(func_name)}\(\) \{{\n(.*?)^\}}"
+            match = re.search(pattern, text)
+            return match.group(1) if match else ""
+
+        def strip_bash_comments(body: str) -> str:
+            return "\n".join(line for line in body.splitlines() if not re.match(r"^\s*#", line))
+
+        body = strip_bash_comments(
+            extract_bash_function_body(bootstrap_text, "bootstrap_infra_static_templates")
+        )
+        hardcoded_seed_names = [
+            "backend-api-deployment.yaml",
+            "backend-api-service.yaml",
+            "touchpoints-web-deployment.yaml",
+            "touchpoints-web-service.yaml",
+        ]
+        found = [name for name in hardcoded_seed_names if name in body]
+        self.assertEqual(
+            found,
+            [],
+            msg=(
+                "bootstrap_infra_static_templates() must not hardcode blueprint seed workload "
+                "manifest names. Found: "
+                + str(found)
+                + ". Use a loop reading the template kustomization at runtime (issue #208)."
+            ),
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

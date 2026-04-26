@@ -194,10 +194,15 @@ bootstrap_infra_static_templates() {
   ensure_infra_template_file "infra/gitops/platform/base/kustomization.yaml"
   ensure_infra_template_file "infra/gitops/platform/base/namespaces.yaml"
   ensure_infra_template_file "infra/gitops/platform/base/apps/kustomization.yaml"
-  ensure_infra_template_file "infra/gitops/platform/base/apps/backend-api-deployment.yaml"
-  ensure_infra_template_file "infra/gitops/platform/base/apps/backend-api-service.yaml"
-  ensure_infra_template_file "infra/gitops/platform/base/apps/touchpoints-web-deployment.yaml"
-  ensure_infra_template_file "infra/gitops/platform/base/apps/touchpoints-web-service.yaml"
+  local _app_kust_tmpl _app_manifest
+  _app_kust_tmpl="$(bootstrap_templates_root "infra")/infra/gitops/platform/base/apps/kustomization.yaml"
+  if [[ ! -f "$_app_kust_tmpl" ]]; then
+    log_fatal "missing infra template kustomization: $_app_kust_tmpl"
+  fi
+  while IFS= read -r _app_manifest; do
+    [[ -z "$_app_manifest" ]] && continue
+    ensure_infra_template_file "infra/gitops/platform/base/apps/$_app_manifest"
+  done < <(sed -n 's/^[[:space:]]*-[[:space:]]*\([^[:space:]][^[:space:]]*\.yaml\)[[:space:]]*$/\1/p' "$_app_kust_tmpl")
   ensure_infra_template_file "infra/gitops/platform/base/security/kustomization.yaml"
   ensure_infra_template_file "infra/gitops/platform/base/security/runtime-source-store.yaml"
   ensure_infra_template_file "infra/gitops/platform/base/security/runtime-external-secrets-core.yaml"
