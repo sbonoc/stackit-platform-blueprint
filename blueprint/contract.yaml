@@ -142,6 +142,7 @@ spec:
       - scripts/bin/blueprint/bootstrap.sh
       - scripts/bin/blueprint/clean_generated.sh
       - scripts/bin/blueprint/install_codex_skill.sh
+      - scripts/bin/blueprint/prune_codex_skills.sh
       - scripts/bin/blueprint/init_repo_interactive.sh
       - scripts/bin/blueprint/resync_consumer_seeds.sh
       - scripts/bin/blueprint/spec_scaffold.py
