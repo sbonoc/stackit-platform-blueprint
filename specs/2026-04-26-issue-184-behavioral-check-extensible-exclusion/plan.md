@@ -32,7 +32,8 @@ Write failing tests in `tests/blueprint/test_upgrade_shell_behavioral_check.py`:
 
 ### Slice 3 (RED) — Test scaffolding for contract reading
 Write failing tests in `tests/blueprint/test_upgrade_shell_behavioral_check.py` (or a separate test for postcheck):
-- `TestPostcheckReadsExtraTokensFromContract.test_extra_tokens_loaded_from_contract_yaml` — mock contract loader, verify tokens passed to `run_behavioral_check`.
+- `TestPostcheckReadsExtraTokensFromContract.test_extra_tokens_loaded_from_contract_yaml` — mock contract loader, verify tokens passed to `run_behavioral_check` (FR-001, FR-006).
+- `TestPostcheckReadsExtraTokensFromContract.test_absent_key_yields_empty_frozenset` — contract missing `spec.upgrade` key entirely → `run_behavioral_check` called with `extra_excluded_tokens=frozenset()` (NFR-REL-001).
 
 ### Slice 4 (GREEN) — Implement `contract_schema.py` and `upgrade_consumer_postcheck.py` changes
 - Add `BehavioralCheckUpgradeContract(extra_excluded_tokens: list[str])` dataclass.
