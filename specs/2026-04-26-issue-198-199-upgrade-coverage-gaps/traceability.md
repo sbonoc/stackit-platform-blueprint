@@ -4,19 +4,19 @@
 
 | Requirement ID | Control IDs | Design Element | Implementation Path(s) | Test Evidence | Documentation Evidence | Operational Evidence |
 |---|---|---|---|---|---|---|
-| FR-001 | SDD-C-004, SDD-C-005 | `VALIDATION_TARGETS` tuple | `scripts/lib/blueprint/upgrade_consumer_validate.py:28-35` | `test_blueprint_template_smoke_in_validation_targets` | — | `make quality-hooks-fast` |
-| FR-005 | SDD-C-004, SDD-C-005 | `VALIDATION_TARGETS` tuple | `scripts/lib/blueprint/upgrade_consumer_validate.py:28-35` | `test_infra_argocd_topology_validate_in_validation_targets` | — | `make quality-hooks-fast` |
-| FR-002 | SDD-C-004, SDD-C-005, SDD-C-007 | `RepositoryOwnershipPathClasses.feature_gated` | `scripts/lib/blueprint/contract_schema.py` | `test_feature_gated_paths_covered` | — | `make infra-validate` |
-| FR-003 | SDD-C-004, SDD-C-008 | `audit_source_tree_coverage(feature_gated=...)` | `scripts/lib/blueprint/upgrade_consumer.py:336-386` | `test_feature_gated_paths_covered` | — | `make infra-validate` |
-| FR-004 | SDD-C-004, SDD-C-005 | `ownership_path_classes.feature_gated` YAML | `blueprint/contract.yaml`, bootstrap template | `test_feature_gated_contract_yaml_populated` | — | `make infra-validate` |
+| FR-001 | SDD-C-004, SDD-C-005 | `VALIDATION_TARGETS` tuple | `scripts/lib/blueprint/upgrade_consumer_validate.py:28-35` | `test_blueprint_template_smoke_in_validation_targets` [planned] | — | `make quality-hooks-fast` |
+| FR-005 | SDD-C-004, SDD-C-005 | `VALIDATION_TARGETS` tuple | `scripts/lib/blueprint/upgrade_consumer_validate.py:28-35` | `test_infra_argocd_topology_validate_in_validation_targets` [planned] | — | `make quality-hooks-fast` |
+| FR-002 | SDD-C-004, SDD-C-005, SDD-C-007 | `RepositoryOwnershipPathClasses.feature_gated` | `scripts/lib/blueprint/contract_schema.py:44-48` | `test_feature_gated_paths_covered` [planned] | — | `make infra-validate` |
+| FR-003 | SDD-C-004, SDD-C-008 | `audit_source_tree_coverage(feature_gated=...)` | `scripts/lib/blueprint/upgrade_consumer.py:336-386` | `test_feature_gated_paths_covered` [planned] | — | `make infra-validate` |
+| FR-004 | SDD-C-004, SDD-C-005 | `ownership_path_classes.feature_gated` YAML | `blueprint/contract.yaml:597+`, bootstrap template mirror | `make infra-validate` + schema loader test [planned] | — | `make infra-validate` |
 | NFR-SEC-001 | SDD-C-009 | No secret/authn changes | — | — | — | No runtime surface changed |
-| NFR-OBS-001 | SDD-C-010 | Error message in `validate_plan_uncovered_source_files` | `scripts/lib/blueprint/upgrade_consumer.py:394-402` | Updated message text | — | — |
-| NFR-REL-001 | SDD-C-012 | Rollback = `git revert`; default-empty param | Backward-compat default in `audit_source_tree_coverage` | All pre-existing tests remain green | — | — |
-| NFR-OPS-001 | SDD-C-010 | `blueprint-template-smoke` already exists in consumer repos | `scripts/bin/blueprint/template_smoke.sh` | Existing `contract_refactor_governance_init_cases.py` | — | — |
-| AC-001 | SDD-C-012 | `VALIDATION_TARGETS` membership | `upgrade_consumer_validate.py` | `test_blueprint_template_smoke_in_validation_targets` | — | — |
-| AC-006 | SDD-C-012 | `VALIDATION_TARGETS` membership | `upgrade_consumer_validate.py` | `test_infra_argocd_topology_validate_in_validation_targets` | — | — |
-| AC-002 | SDD-C-012 | `audit_source_tree_coverage` + `feature_gated` | `upgrade_consumer.py` | `test_feature_gated_paths_covered` | — | — |
-| AC-003 | SDD-C-012 | `validate_contract.py` accepts `feature_gated` | `validate_contract.py` | `test_feature_gated_no_validation_errors` | — | — |
+| NFR-OBS-001 | SDD-C-010 | Error message in `validate_plan_uncovered_source_files` | `scripts/lib/blueprint/upgrade_consumer.py:389-402` | Updated message text [planned — verifiable by code inspection] | — | — |
+| NFR-REL-001 | SDD-C-012 | Rollback = `git revert`; default-empty param | Backward-compat default in `audit_source_tree_coverage` | All pre-existing `TestAuditSourceTreeCoverage` tests remain green (AC-005) | — | — |
+| NFR-OPS-001 | SDD-C-010 | `blueprint-template-smoke` and `infra-argocd-topology-validate` are read-only, no side effects | `scripts/bin/blueprint/template_smoke.sh`; `scripts/bin/infra/argocd_topology_validate.sh` | `tests/blueprint/contract_refactor_governance_init_cases.py:45,52` (blueprint-template-smoke); `tests/infra/test_tooling_contracts.py:test_argocd_topology_validate_uses_explicit_load_restrictor_none`; `tests/e2e/test_vertical_slice.py:173` (infra-argocd-topology-validate) | — | — |
+| AC-001 | SDD-C-012 | `VALIDATION_TARGETS` membership | `upgrade_consumer_validate.py` | `test_blueprint_template_smoke_in_validation_targets` [planned] | — | — |
+| AC-006 | SDD-C-012 | `VALIDATION_TARGETS` membership | `upgrade_consumer_validate.py` | `test_infra_argocd_topology_validate_in_validation_targets` [planned] | — | — |
+| AC-002 | SDD-C-012 | `audit_source_tree_coverage` + `feature_gated` | `upgrade_consumer.py` | `test_feature_gated_paths_covered` [planned] | — | — |
+| AC-003 | SDD-C-012 | `validate_contract.py` accepts `feature_gated` | `validate_contract.py` | `test_feature_gated_no_validation_errors` [planned] | — | — |
 | AC-004 | SDD-C-012 | `make infra-validate` pass | `blueprint/contract.yaml` + bootstrap template | `make infra-validate` output | — | — |
 | AC-005 | SDD-C-008, SDD-C-012 | Backward-compat default | `upgrade_consumer.py` | All pre-existing `TestAuditSourceTreeCoverage` tests green | — | — |
 
@@ -55,3 +55,4 @@
 
 ## Open Risks and Follow-Ups
 - Follow-up 1: If additional feature-flag-gated paths are added to `app_catalog_scaffold_contract` in the future, they must also be added to `feature_gated` in `contract.yaml` — consider adding a validator that cross-checks the two lists.
+- Follow-up 2: All test names marked `[planned]` must be confirmed as implemented and green before `SPEC_READY=true` is set and the Publish gate is opened.
