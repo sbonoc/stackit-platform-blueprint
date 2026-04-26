@@ -315,10 +315,18 @@ def main() -> int:
             ):
                 rel = entry["path"]
                 merged_sh_files.append((repo_root / rel).resolve())
+    extra_excluded: frozenset[str] = frozenset()
+    if not contract_load_error:
+        try:
+            raw_tokens = contract.upgrade.behavioral_check.extra_excluded_tokens
+            extra_excluded = frozenset(t for t in raw_tokens if isinstance(t, str) and t)
+        except Exception:
+            pass
     behavioral_check_result = run_behavioral_check(
         merged_sh_files,
         repo_root=repo_root,
         skip=skip_behavioral,
+        extra_excluded_tokens=extra_excluded,
     )
 
     blocked_reasons: list[str] = []
