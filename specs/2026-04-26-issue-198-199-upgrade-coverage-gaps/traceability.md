@@ -13,6 +13,7 @@
 | NFR-OBS-001 | SDD-C-010 | Error message in `validate_plan_uncovered_source_files` | `scripts/lib/blueprint/upgrade_consumer.py:399` | AC-007 (code inspection) [planned] | — | — |
 | NFR-REL-001 | SDD-C-012 | Rollback = `git revert`; default-empty param | Backward-compat default in `audit_source_tree_coverage` | All pre-existing `TestAuditSourceTreeCoverage` tests remain green (AC-005) | — | — |
 | NFR-OPS-001 | SDD-C-010 | `blueprint-template-smoke` and `infra-argocd-topology-validate` are read-only, no side effects | `scripts/bin/blueprint/template_smoke.sh`; `scripts/bin/infra/argocd_topology_validate.sh` | `tests/blueprint/contract_refactor_governance_init_cases.py:45,52` (blueprint-template-smoke); `tests/infra/test_tooling_contracts.py:test_argocd_topology_validate_uses_explicit_load_restrictor_none`; `tests/e2e/test_vertical_slice.py:173` (infra-argocd-topology-validate) | — | — |
+| FR-006 | SDD-C-004, SDD-C-005 | `_IndentedDumper` in `resolve_contract_upgrade.py` | `scripts/lib/blueprint/resolve_contract_upgrade.py:208-214` | `test_resolve_contract_yaml_dump_uses_indented_style` [planned] | — | — |
 | AC-001 | SDD-C-012 | `VALIDATION_TARGETS` membership | `upgrade_consumer_validate.py` | `test_blueprint_template_smoke_in_validation_targets` [planned] | — | — |
 | AC-006 | SDD-C-012 | `VALIDATION_TARGETS` membership | `upgrade_consumer_validate.py` | `test_infra_argocd_topology_validate_in_validation_targets` [planned] | — | — |
 | AC-002 | SDD-C-012 | `audit_source_tree_coverage` + `feature_gated` | `upgrade_consumer.py` | `test_feature_gated_paths_covered` [planned] | — | — |
@@ -20,6 +21,7 @@
 | AC-004 | SDD-C-012 | `make infra-validate` pass | `blueprint/contract.yaml` + bootstrap template | `make infra-validate` output | — | — |
 | AC-005 | SDD-C-008, SDD-C-012 | Backward-compat default | `upgrade_consumer.py` | All pre-existing `TestAuditSourceTreeCoverage` tests green | — | — |
 | AC-007 | SDD-C-010, SDD-C-012 | `validate_plan_uncovered_source_files` error string | `scripts/lib/blueprint/upgrade_consumer.py:399` | Code inspection: string must include `feature_gated` [planned] | — | — |
+| AC-008 | SDD-C-008, SDD-C-012 | yaml.dump output format in `resolve_contract_upgrade.py` | `scripts/lib/blueprint/resolve_contract_upgrade.py:208-214` | `test_resolve_contract_yaml_dump_uses_indented_style` [planned] | — | — |
 
 ## Graph Linkage
 - Graph file: `graph.json`
@@ -41,6 +43,8 @@
   - AC-005
   - AC-006
   - AC-007
+  - FR-006
+  - AC-008
 
 ## Validation Summary
 - Required bundles executed: pending (post-implementation)

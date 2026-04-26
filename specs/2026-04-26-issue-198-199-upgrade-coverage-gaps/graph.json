@@ -81,6 +81,16 @@
       "id": "AC-007",
       "type": "acceptance",
       "summary": "validate_plan_uncovered_source_files error message references feature_gated; verifiable by code inspection"
+    },
+    {
+      "id": "FR-006",
+      "type": "requirement",
+      "summary": "Fix yaml.dump in resolve_contract_upgrade.py to use _IndentedDumper with width=4096"
+    },
+    {
+      "id": "AC-008",
+      "type": "acceptance",
+      "summary": "Unit test confirms resolve_contract_conflict output uses indented sequences and does not wrap long scalars"
     }
   ],
   "edges": [
@@ -97,6 +107,8 @@
     {"from": "NFR-REL-001", "to": "AC-004", "relation": "constrains"},
     {"from": "NFR-REL-001", "to": "AC-005", "relation": "constrains"},
     {"from": "NFR-OPS-001", "to": "AC-001", "relation": "constrains"},
-    {"from": "NFR-OPS-001", "to": "AC-006", "relation": "constrains"}
+    {"from": "NFR-OPS-001", "to": "AC-006", "relation": "constrains"},
+    {"from": "FR-006", "to": "AC-008", "relation": "validated_by"},
+    {"from": "NFR-REL-001", "to": "AC-008", "relation": "constrains"}
   ]
 }

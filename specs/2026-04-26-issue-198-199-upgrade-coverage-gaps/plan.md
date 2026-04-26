@@ -59,6 +59,17 @@
 2. Mirror the identical addition to the bootstrap template counterpart.
 3. Run `make infra-validate` — confirms AC-004.
 
+### Slice 6 — Fix `yaml.dump` indentation in `resolve_contract_upgrade.py` (red → green)
+**Scope**: `tests/blueprint/test_upgrade_pipeline.py`, `scripts/lib/blueprint/resolve_contract_upgrade.py`
+
+1. Add a failing unit test `test_resolve_contract_yaml_dump_uses_indented_style` in the existing `TestResolveContractConflict` class (or equivalent) that:
+   - Calls `resolve_contract_conflict` with a fixture containing a `required_files` entry longer than 80 characters.
+   - Reads the written `blueprint/contract.yaml` as raw text and asserts no line matches the indentless-sequence pattern (`^- ` at column 0 after a mapping key) and no scalar is wrapped (no continuation-indent lines).
+   - Asserts the written YAML is parseable by `load_blueprint_contract` without error.
+2. Add `_IndentedDumper` class before the write call (overrides `increase_indent` with `indentless=False`).
+3. Replace the bare `yaml.dump(...)` call with `yaml.dump(..., Dumper=_IndentedDumper, width=4096)`.
+4. Run tests — the new test turns green; all pre-existing `TestResolveContractConflict` tests remain green.
+
 ### Slice 5 — Quality gate + final evidence
 **Scope**: all
 
@@ -127,3 +138,4 @@
 ## Risks and Mitigations
 - Risk 1: Stale YAML loader silently ignores unknown keys → mitigation: confirm `feature_gated` list is actually parsed by adding an explicit assertion in a test that reads the real `blueprint/contract.yaml` and checks `len(contract.repository.feature_gated_paths) > 0`.
 - Risk 2: Bootstrap template drift → mitigation: Slice 4 explicitly mirrors `blueprint/contract.yaml` to the template counterpart, and `make infra-validate` enforces the check.
+- Risk 3: `_IndentedDumper` changes output format for existing consumers of the resolved contract → mitigation: all pre-existing `TestResolveContractConflict` tests assert on parsed data (not raw YAML text), so they remain valid; the raw-text assertion in the new test is the only format-sensitive assertion.

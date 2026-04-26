@@ -30,6 +30,10 @@
 - [ ] T-014 Mirror identical addition to `scripts/templates/blueprint/bootstrap/blueprint/contract.yaml`
 - [ ] T-015 Run `make infra-validate` — passes (AC-004)
 
+## Slice 6 — Fix yaml.dump indentation in resolve_contract_upgrade.py
+- [ ] T-018 Add failing unit test `test_resolve_contract_yaml_dump_uses_indented_style` in `tests/blueprint/test_upgrade_pipeline.py`: calls `resolve_contract_conflict` with a long `required_files` entry, asserts the written YAML has no indentless sequences, no wrapped scalars, and is parseable by `load_blueprint_contract`
+- [ ] T-019 Add `_IndentedDumper` class and replace bare `yaml.dump(...)` with `yaml.dump(..., Dumper=_IndentedDumper, width=4096)` in `scripts/lib/blueprint/resolve_contract_upgrade.py` — test turns green; pre-existing tests remain green
+
 ## Slice 5 — Quality gates and evidence
 - [ ] T-016 Run `make quality-hooks-fast` — passes
 - [ ] T-017 Capture test output and attach to `traceability.md`

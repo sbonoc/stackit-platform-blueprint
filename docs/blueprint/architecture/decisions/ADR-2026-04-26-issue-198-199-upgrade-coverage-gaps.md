@@ -2,7 +2,7 @@
 
 - **Status**: approved
 - **Date**: 2026-04-26
-- **Issues**: #198, #199, #199 (comment), #203 (detection mitigation only), #204 (excluded)
+- **Issues**: #198, #199, #199 (comment), #203 (detection mitigation only), #204 (excluded), #205
 - **Work item**: `specs/2026-04-26-issue-198-199-upgrade-coverage-gaps/`
 
 ## Context
@@ -48,6 +48,17 @@ and are validated by the equality invariant at `validate_contract.py:1771-1781`;
 template, so they cannot satisfy that equality invariant without loosening the
 schema.
 
+**Issue #205 — `yaml.dump` produces indentless sequences and wraps long strings**:
+`resolve_contract_upgrade.py` writes the resolved `blueprint/contract.yaml` via
+bare `yaml.dump()`. PyYAML's default dumper places `- item` at the same indent
+level as the parent mapping key (indentless mode), and wraps scalars at 80
+characters with continuation-indent lines. Both behaviours break `parse_yaml_subset`
+in `contract_schema.py`: indentless sequences are misread silently; wrapped
+scalars raise "unexpected indentation" errors. A consumer workaround exists
+(commits `314b7d2`, `8dd9fd8`) but will be overwritten by the next blueprint
+upgrade. The fix is trivially small: a `_IndentedDumper` subclass that overrides
+`increase_indent(indentless=False)` and a `width=4096` argument.
+
 **Issues #203 and #204 (excluded)**:
 Issue #203 (Stage 2 prune deletes consumer-renamed seeded files) and #204 (3-way
 merge emits duplicate Terraform variable blocks) are real bugs, but their root
@@ -63,6 +74,11 @@ Considered). The detection gap from #203's symptoms is mitigated by adding
 `upgrade_consumer_validate.py`. Two-line change. `infra-argocd-topology-validate`
 degrades gracefully when kustomize is absent (falls back to kustomization-file
 check), so it has no hard kustomize dependency.
+
+**For #205**: Replace the bare `yaml.dump()` call in `resolve_contract_upgrade.py`
+with a call that uses a `_IndentedDumper` subclass (overriding `increase_indent`
+with `indentless=False`) and `width=4096`. No interface changes; no schema
+changes; no consumer-repo impact beyond receiving correctly formatted YAML.
 
 **For #198**: Add a `feature_gated` ownership class as a new peer of
 `conditional_scaffold` in `RepositoryOwnershipPathClasses`. Paths in this class:
@@ -107,6 +123,7 @@ gaps and feature_gated ownership class addressed here. Separate work item.
 
 ## Consequences
 
+- `scripts/lib/blueprint/resolve_contract_upgrade.py`: `_IndentedDumper` class added; `yaml.dump` call updated to use `Dumper=_IndentedDumper, width=4096`.
 - `scripts/lib/blueprint/upgrade_consumer_validate.py`: `"blueprint-template-smoke"` and `"infra-argocd-topology-validate"` added to `VALIDATION_TARGETS`.
 - `scripts/lib/blueprint/contract_schema.py`: `feature_gated: list[str]` field on `RepositoryOwnershipPathClasses`; `feature_gated_paths` property on `RepositoryContract`; parser wired in schema loader.
 - `scripts/lib/blueprint/upgrade_consumer.py`: `feature_gated` parameter on `audit_source_tree_coverage` (default `frozenset()`); call site passes `set(contract.repository.feature_gated_paths)`; error message in `validate_plan_uncovered_source_files` updated to reference `feature_gated`.

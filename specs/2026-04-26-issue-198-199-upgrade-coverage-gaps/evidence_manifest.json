@@ -8,7 +8,7 @@
       "path": "specs/2026-04-26-issue-198-199-upgrade-coverage-gaps/spec.md",
       "role": "specification",
       "status": "authored",
-      "sha256": "51974ddb68cc3dbfdef7e2ae75dd801ec12cb41b74631f1de0644c1205048541"
+      "sha256": "fb03775f32c0b4e6abfab682c8b5e846aad5636e58dbe04d1492f023c211be6c"
     },
     {
       "path": "specs/2026-04-26-issue-198-199-upgrade-coverage-gaps/architecture.md",
@@ -20,31 +20,31 @@
       "path": "specs/2026-04-26-issue-198-199-upgrade-coverage-gaps/plan.md",
       "role": "implementation-plan",
       "status": "authored",
-      "sha256": "4c5ae3cb2d86444bd24bdec34b9c54ae67fb1f02708ed751381652f0db1173df"
+      "sha256": "09b8008fa1a61f23aee6bbaa9b496ff959d21e16a441af284ab0b6c7d040ff9e"
     },
     {
       "path": "specs/2026-04-26-issue-198-199-upgrade-coverage-gaps/tasks.md",
       "role": "task-list",
       "status": "authored",
-      "sha256": "a99c3f67539458a7ec25051c0c33b306f84f81ac94b1865d70afcdcf1e837218"
+      "sha256": "d26ab0c55a7532d7e1f20a13561cbba18e15ea117083da38d79cb125c4edae5f"
     },
     {
       "path": "specs/2026-04-26-issue-198-199-upgrade-coverage-gaps/traceability.md",
       "role": "traceability-matrix",
       "status": "authored",
-      "sha256": "b87bcb1fbe8926490e35150eeb213763d7e53096c335e7679f553972ef70b958"
+      "sha256": "f7750e9a0deb2b41b10680fca8b6fd9b88ac2ba497702f180c36fe21821b63d7"
     },
     {
       "path": "specs/2026-04-26-issue-198-199-upgrade-coverage-gaps/graph.json",
       "role": "requirement-graph",
       "status": "authored",
-      "sha256": "ec1a79f40c47ae2e266d42baec74d4260835fd90f81ba4aaabc82e1ae1fc26a7"
+      "sha256": "2149a3b6be8d91dd3732aa20d1d617ee176211c5b47b426353774f0fc0612bd8"
     },
     {
       "path": "docs/blueprint/architecture/decisions/ADR-2026-04-26-issue-198-199-upgrade-coverage-gaps.md",
       "role": "architecture-decision-record",
-      "status": "proposed",
-      "sha256": "5863da0e67c5c05f3461bdde9bca1f89b2f0889d02b8659ee679b21fae41ebc5"
+      "status": "approved",
+      "sha256": "63a346fbda7b2eab4adfe8d6a4885c97016909c5994b3f07ca6607f21b02523d"
     }
   ]
 }
