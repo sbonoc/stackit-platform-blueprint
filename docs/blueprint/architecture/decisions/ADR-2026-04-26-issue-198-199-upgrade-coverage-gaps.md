@@ -1,6 +1,6 @@
 # ADR: Issues #198 + #199 — Upgrade Coverage Gaps: VALIDATION_TARGETS and feature_gated Ownership Class
 
-- **Status**: proposed
+- **Status**: approved
 - **Date**: 2026-04-26
 - **Issues**: #198, #199, #199 (comment), #203 (detection mitigation only), #204 (excluded)
 - **Work item**: `specs/2026-04-26-issue-198-199-upgrade-coverage-gaps/`
