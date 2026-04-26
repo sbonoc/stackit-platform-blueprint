@@ -15,6 +15,8 @@ repos:
         language: system
         entry: bash -n
         files: \.sh$
+        # Intentional-error fixtures live here and must not be syntax-checked.
+        exclude: ^tests/blueprint/fixtures/shell_behavioral_check/
       - id: quality-docs-lint
         name: quality docs lint (markdown targets and links)
         language: system
