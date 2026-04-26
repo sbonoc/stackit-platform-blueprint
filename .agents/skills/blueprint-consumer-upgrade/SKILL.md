@@ -12,9 +12,10 @@ The upgrade is fully scripted. The agent's role is: set the ref, run the pipelin
 1. **Set ref.** Resolve the target tag or accept it from the user input. Create a dedicated branch.
 2. **Run pipeline.** Execute the scripted upgrade pipeline end-to-end.
 3. **Read residual report.** Open `artifacts/blueprint/upgrade-residual.md`.
-4. **Apply prescribed actions.** For each item in the report, apply the action listed (Remove/Add/Classify/Review). Do not skip items — every item has a prescribed action.
-5. **Confirm clean.** Re-run `make quality-hooks-run` to confirm no remaining issues.
-6. **Commit and open PR.** Use the standard PR packager skill (`/blueprint-sdd-step07-pr-packager`).
+4. **Review Version Pin Changes.** If the "Version Pin Changes" section lists any changed or new pins, run `make infra-bootstrap`, then manually sync the listed templates under `scripts/templates/infra/bootstrap/`, then re-run `make infra-validate`.
+5. **Apply prescribed actions.** For each remaining item in the report, apply the action listed (Remove/Add/Classify/Review). Do not skip items — every item has a prescribed action.
+6. **Confirm clean.** Re-run `make quality-hooks-run` to confirm no remaining issues.
+7. **Commit and open PR.** Use the standard PR packager skill (`/blueprint-sdd-step07-pr-packager`).
 
 ## Command Sequence
 
@@ -43,6 +44,7 @@ The `make blueprint-upgrade-consumer` target runs 10 scripted stages automatical
 | Stage | What happens |
 |-------|-------------|
 | 1 | Pre-flight: clean working tree, valid ref, parseable contract |
+| 1b | Version pin diff: compare `scripts/lib/infra/versions.sh` between baseline and target tags; emit `artifacts/blueprint/version_pin_diff.json` (non-blocking) |
 | 2 | Apply with delete (`BLUEPRINT_UPGRADE_ALLOW_DELETE=true` by default) |
 | 3 | Contract resolver: preserve identity, merge required_files, drop matching prune globs |
 | 4 | Auto-resolve non-contract conflicts (blueprint-managed files take source content) |
