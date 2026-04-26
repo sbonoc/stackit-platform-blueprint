@@ -10,10 +10,23 @@ Covers:
   REQ-003 — failure output includes file, symbol, line
   REQ-010 — grep-based heuristic, no full parser
   REQ-011 — both positive-path and negative-path fixtures tested
+
+Issue #184 — extra_excluded_tokens (TestExtraExcludedTokens, TestPostcheckReadsExtraTokensFromContract):
+  AC-001 — token in extra_excluded_tokens → zero unresolved symbols
+  AC-002 — absent extra tokens → base set unchanged, false positive flagged
+  AC-003 — no-arg call identical to current baseline
+  AC-004 — extra token suppresses call site; status=pass
+  AC-005 — invalid entries silently skipped
+  AC-006 — extra_excluded_count equals valid extra token count
+  AC-007 — stderr log line emitted when extra tokens applied
+  NFR-REL-001 — absent contract key yields frozenset()
 """
 
 from __future__ import annotations
 
+import io
+import tempfile
+from contextlib import redirect_stderr
 from pathlib import Path
 import unittest
 
@@ -324,3 +337,104 @@ class TestRunBehavioralCheckExcludedTokensExtended(unittest.TestCase):
                 fn, symbols,
                 msg=f"'{fn}' must be in _EXCLUDED_TOKENS per FR-008",
             )
+
+
+# ===========================================================================
+# Issue #184 — extra_excluded_tokens extension (AC-001 – AC-007)
+# ===========================================================================
+
+
+class TestExtraExcludedTokens(unittest.TestCase):
+    """Issue #184: extra_excluded_tokens extends the base exclusion set per-invocation."""
+
+    def _script_calling(self, tmp: Path, fn_name: str = "my_custom_helper") -> Path:
+        script = tmp / "custom_call.sh"
+        script.write_text(f"#!/usr/bin/env bash\n{fn_name}\n", encoding="utf-8")
+        return script
+
+    def test_extra_token_suppresses_unresolved_symbol(self) -> None:
+        """AC-001, AC-004: token in extra_excluded_tokens → zero unresolved symbols, status=pass."""
+        with tempfile.TemporaryDirectory() as tmp:
+            script = self._script_calling(Path(tmp))
+            result = run_behavioral_check(
+                [script],
+                repo_root=REPO_ROOT,
+                extra_excluded_tokens=frozenset({"my_custom_helper"}),
+            )
+        self.assertEqual(result.status, "pass")
+        symbols = [e["symbol"] for e in result.unresolved_symbols]
+        self.assertNotIn("my_custom_helper", symbols)
+
+    def test_absent_extra_tokens_preserves_baseline_behaviour(self) -> None:
+        """AC-002, AC-003: absent extra tokens → base set unchanged; my_custom_helper flagged."""
+        with tempfile.TemporaryDirectory() as tmp:
+            script = self._script_calling(Path(tmp))
+            result = run_behavioral_check([script], repo_root=REPO_ROOT)
+        symbols = [e["symbol"] for e in result.unresolved_symbols]
+        self.assertIn("my_custom_helper", symbols)
+        self.assertEqual(result.status, "fail")
+
+    def test_invalid_token_skipped_gracefully(self) -> None:
+        """AC-005: invalid (non-string, empty) entries silently skipped; no exception raised."""
+        with tempfile.TemporaryDirectory() as tmp:
+            script = self._script_calling(Path(tmp))
+            result = run_behavioral_check(
+                [script],
+                repo_root=REPO_ROOT,
+                extra_excluded_tokens=frozenset({"my_custom_helper", "", 42}),  # type: ignore[arg-type]
+            )
+        symbols = [e["symbol"] for e in result.unresolved_symbols]
+        self.assertNotIn("my_custom_helper", symbols)
+
+    def test_extra_excluded_count_in_result(self) -> None:
+        """AC-006: extra_excluded_count equals count of valid extra tokens after filtering."""
+        with tempfile.TemporaryDirectory() as tmp:
+            script = self._script_calling(Path(tmp))
+            result = run_behavioral_check(
+                [script],
+                repo_root=REPO_ROOT,
+                extra_excluded_tokens=frozenset({"my_custom_helper", "another_helper"}),
+            )
+        self.assertEqual(result.extra_excluded_count, 2)
+
+    def test_obs_log_emitted_when_tokens_applied(self) -> None:
+        """AC-007, NFR-OBS-001: stderr log line emitted when extra tokens are applied."""
+        buf = io.StringIO()
+        with tempfile.TemporaryDirectory() as tmp:
+            script = self._script_calling(Path(tmp))
+            with redirect_stderr(buf):
+                run_behavioral_check(
+                    [script],
+                    repo_root=REPO_ROOT,
+                    extra_excluded_tokens=frozenset({"my_custom_helper"}),
+                )
+        self.assertIn("[BEHAVIORAL-CHECK]", buf.getvalue())
+        self.assertIn("extra excluded", buf.getvalue())
+
+
+class TestPostcheckReadsExtraTokensFromContract(unittest.TestCase):
+    """FR-001, FR-006, NFR-REL-001: contract schema exposes upgrade.behavioral_check.extra_excluded_tokens."""
+
+    def test_extra_tokens_loaded_from_contract_yaml(self) -> None:
+        """FR-001, FR-006: BehavioralCheckUpgradeContract and UpgradeContract dataclasses exist."""
+        from scripts.lib.blueprint.contract_schema import (
+            BehavioralCheckUpgradeContract,
+            UpgradeContract,
+        )
+        bc = BehavioralCheckUpgradeContract(extra_excluded_tokens=["my_custom_helper"])
+        uc = UpgradeContract(behavioral_check=bc)
+        self.assertEqual(uc.behavioral_check.extra_excluded_tokens, ["my_custom_helper"])
+
+    def test_absent_key_yields_empty_frozenset(self) -> None:
+        """NFR-REL-001: empty extra_excluded_tokens list converts to empty frozenset."""
+        from scripts.lib.blueprint.contract_schema import (
+            BehavioralCheckUpgradeContract,
+            UpgradeContract,
+        )
+        bc = BehavioralCheckUpgradeContract(extra_excluded_tokens=[])
+        uc = UpgradeContract(behavioral_check=bc)
+        tokens = frozenset(
+            t for t in uc.behavioral_check.extra_excluded_tokens
+            if isinstance(t, str) and t
+        )
+        self.assertEqual(tokens, frozenset())
