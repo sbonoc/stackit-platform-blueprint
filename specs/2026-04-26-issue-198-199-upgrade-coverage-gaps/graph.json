@@ -1,0 +1,114 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-04-26-issue-198-199-upgrade-coverage-gaps",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "Add blueprint-template-smoke to VALIDATION_TARGETS"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "Add feature_gated field to RepositoryOwnershipPathClasses"
+    },
+    {
+      "id": "FR-003",
+      "type": "requirement",
+      "summary": "Pass feature_gated paths to audit_source_tree_coverage"
+    },
+    {
+      "id": "FR-004",
+      "type": "requirement",
+      "summary": "Declare apps/catalog paths under feature_gated in contract.yaml"
+    },
+    {
+      "id": "FR-005",
+      "type": "requirement",
+      "summary": "Add infra-argocd-topology-validate to VALIDATION_TARGETS"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "No authn/authz bypass, secret exposure, or privilege escalation"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "Update validate_plan_uncovered_source_files error message to reference feature_gated"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "No regression in make infra-validate or quality-hooks-fast; rollback via git revert"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "blueprint-template-smoke and infra-argocd-topology-validate runnable in consumer repos after upgrade without extra config"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "Unit test confirms blueprint-template-smoke in VALIDATION_TARGETS"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "audit_source_tree_coverage with feature_gated does not flag apps/catalog/manifest.yaml"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "validate_contract.py accepts feature_gated list without errors"
+    },
+    {
+      "id": "AC-004",
+      "type": "acceptance",
+      "summary": "make infra-validate passes after all changes"
+    },
+    {
+      "id": "AC-005",
+      "type": "acceptance",
+      "summary": "All pre-existing TestAuditSourceTreeCoverage tests remain green"
+    },
+    {
+      "id": "AC-006",
+      "type": "acceptance",
+      "summary": "Unit test confirms infra-argocd-topology-validate in VALIDATION_TARGETS"
+    },
+    {
+      "id": "AC-007",
+      "type": "acceptance",
+      "summary": "validate_plan_uncovered_source_files error message references feature_gated; verifiable by code inspection"
+    },
+    {
+      "id": "FR-006",
+      "type": "requirement",
+      "summary": "Fix yaml.dump in resolve_contract_upgrade.py to use _IndentedDumper with width=4096"
+    },
+    {
+      "id": "AC-008",
+      "type": "acceptance",
+      "summary": "Unit test confirms resolve_contract_conflict output uses indented sequences and does not wrap long scalars"
+    }
+  ],
+  "edges": [
+    {"from": "FR-001", "to": "AC-001", "relation": "validated_by"},
+    {"from": "FR-005", "to": "AC-006", "relation": "validated_by"},
+    {"from": "FR-002", "to": "AC-002", "relation": "validated_by"},
+    {"from": "FR-002", "to": "AC-003", "relation": "validated_by"},
+    {"from": "FR-003", "to": "AC-002", "relation": "validated_by"},
+    {"from": "FR-003", "to": "AC-005", "relation": "validated_by"},
+    {"from": "FR-004", "to": "AC-004", "relation": "validated_by"},
+    {"from": "FR-004", "to": "AC-003", "relation": "validated_by"},
+    {"from": "NFR-SEC-001", "to": "AC-004", "relation": "constrains"},
+    {"from": "NFR-OBS-001", "to": "AC-007", "relation": "validated_by"},
+    {"from": "NFR-REL-001", "to": "AC-004", "relation": "constrains"},
+    {"from": "NFR-REL-001", "to": "AC-005", "relation": "constrains"},
+    {"from": "NFR-OPS-001", "to": "AC-001", "relation": "constrains"},
+    {"from": "NFR-OPS-001", "to": "AC-006", "relation": "constrains"},
+    {"from": "FR-006", "to": "AC-008", "relation": "validated_by"},
+    {"from": "NFR-REL-001", "to": "AC-008", "relation": "constrains"}
+  ]
+}

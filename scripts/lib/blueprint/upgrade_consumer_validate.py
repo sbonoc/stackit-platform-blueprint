@@ -28,6 +28,8 @@ from scripts.lib.blueprint.runtime_dependency_edges import RUNTIME_DEPENDENCY_ED
 VALIDATION_TARGETS = (
     "quality-hooks-fast",
     "infra-validate",
+    "blueprint-template-smoke",
+    "infra-argocd-topology-validate",
     "quality-docs-check-core-targets-sync",
     "quality-docs-check-contract-metadata-sync",
     "quality-docs-check-runtime-identity-summary-sync",

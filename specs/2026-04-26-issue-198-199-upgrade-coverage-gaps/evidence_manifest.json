@@ -1,0 +1,50 @@
+{
+  "manifest_version": 1,
+  "work_item": "2026-04-26-issue-198-199-upgrade-coverage-gaps",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-04-26T00:00:00Z",
+  "files": [
+    {
+      "path": "specs/2026-04-26-issue-198-199-upgrade-coverage-gaps/spec.md",
+      "role": "specification",
+      "status": "authored",
+      "sha256": "d66a6c51fabf8c5aafb98dab34ef3b016ed74b9aff3c314cacb8472e76e29b6f"
+    },
+    {
+      "path": "specs/2026-04-26-issue-198-199-upgrade-coverage-gaps/architecture.md",
+      "role": "architecture",
+      "status": "authored",
+      "sha256": "3df1e865c7b4c4dd65cd3902613ee5720d6d6dcf27510167eef5820073c5d951"
+    },
+    {
+      "path": "specs/2026-04-26-issue-198-199-upgrade-coverage-gaps/plan.md",
+      "role": "implementation-plan",
+      "status": "authored",
+      "sha256": "0f746cffb8432b86397a54991a36166431f80a269db5b54666af6376bd28b5ed"
+    },
+    {
+      "path": "specs/2026-04-26-issue-198-199-upgrade-coverage-gaps/tasks.md",
+      "role": "task-list",
+      "status": "authored",
+      "sha256": "490cd466d0d2b4fbfaaf12995705aac70cbfeb5f5fe0c8f955f8f6985e65f277"
+    },
+    {
+      "path": "specs/2026-04-26-issue-198-199-upgrade-coverage-gaps/traceability.md",
+      "role": "traceability-matrix",
+      "status": "authored",
+      "sha256": "f2d0577b82071363ede5d638cac3bde800e34a839a2b3097a0d4585bb5bb0b0a"
+    },
+    {
+      "path": "specs/2026-04-26-issue-198-199-upgrade-coverage-gaps/graph.json",
+      "role": "requirement-graph",
+      "status": "authored",
+      "sha256": "2149a3b6be8d91dd3732aa20d1d617ee176211c5b47b426353774f0fc0612bd8"
+    },
+    {
+      "path": "docs/blueprint/architecture/decisions/ADR-2026-04-26-issue-198-199-upgrade-coverage-gaps.md",
+      "role": "architecture-decision-record",
+      "status": "approved",
+      "sha256": "63a346fbda7b2eab4adfe8d6a4885c97016909c5994b3f07ca6607f21b02523d"
+    }
+  ]
+}

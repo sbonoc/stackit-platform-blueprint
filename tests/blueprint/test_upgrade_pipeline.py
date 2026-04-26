@@ -48,6 +48,7 @@ from scripts.lib.blueprint.upgrade_pipeline_preflight import (
     check_contract,
     check_upgrade_ref,
 )
+from scripts.lib.blueprint.contract_schema import load_blueprint_contract
 from scripts.lib.blueprint.resolve_contract_upgrade import (
     resolve_contract_conflict,
 )
@@ -1386,3 +1387,46 @@ class TestResidualReportVersionPinSection(unittest.TestCase):
             # Malformed (missing required list keys) must fall back to the unavailable message (NFR-REL-001)
             self.assertIn("Version pin diff unavailable", report)
             self.assertIn("git diff", report)
+
+
+class TestContractResolverYamlDumpFormat(unittest.TestCase):
+    """FR-006, AC-008: resolve_contract_conflict writes properly indented YAML with no wrapped scalars."""
+
+    def test_resolve_contract_yaml_dump_uses_indented_style(self) -> None:
+        """Written contract.yaml must use indented block sequences and not wrap long scalars."""
+        long_path = "a-very-long-required-file-path-that-exceeds-eighty-characters-when-combined/with/nested/dirs/file.sh"
+        payload = _load_fixture("basic_conflict.json")
+        # source_content is a YAML string; parse, inject the long entry, re-serialize.
+        source_dict = yaml.safe_load(payload["source_content"])
+        source_dict["spec"]["repository"]["required_files"].append(long_path)
+        payload = dict(payload)
+        payload["source_content"] = yaml.dump(source_dict, default_flow_style=False, allow_unicode=True)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            _setup_conflict_in_repo(repo, payload)
+
+            resolve_contract_conflict(repo)
+
+            raw = (repo / "blueprint/contract.yaml").read_text(encoding="utf-8")
+
+            # No indentless sequences: list items must be indented deeper than their parent key.
+            # PyYAML indentless mode produces "key:\n- item"; indented mode produces "key:\n  - item".
+            for line_no, line in enumerate(raw.splitlines(), 1):
+                stripped = line.lstrip()
+                if stripped.startswith("- ") or stripped == "-":
+                    indent = len(line) - len(line.lstrip())
+                    self.assertGreater(
+                        indent, 0,
+                        msg=f"Line {line_no} has indentless sequence item: {line!r}",
+                    )
+
+            # No wrapped scalars: no line should be a plain-string continuation of a scalar
+            # (continuation lines produced by wrapping have deeper indent than the key line).
+            # The long_path entry must appear on a single line, not split across two.
+            self.assertIn(long_path, raw, "long path must appear verbatim (not wrapped)")
+
+            # The written YAML must be syntactically valid and the long entry must survive intact.
+            parsed = yaml.safe_load(raw)
+            required = parsed["spec"]["repository"]["required_files"]
+            self.assertIn(long_path, required, "long path must survive round-trip without wrapping")

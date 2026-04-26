@@ -1203,6 +1203,8 @@ class UpgradeConsumerValidateTests(unittest.TestCase):
         make_targets = [
             "quality-hooks-fast",
             "infra-validate",
+            "blueprint-template-smoke",
+            "infra-argocd-topology-validate",
             "quality-docs-check-core-targets-sync",
             "quality-docs-check-contract-metadata-sync",
             "quality-docs-check-runtime-identity-summary-sync",
@@ -1266,7 +1268,7 @@ class UpgradeConsumerValidateTests(unittest.TestCase):
             report = _load_json(repo / "artifacts/blueprint/upgrade_validate.json")
             summary = report.get("summary", {})
             self.assertEqual(summary.get("status"), "success")
-            self.assertEqual(summary.get("commands_total"), 6)
+            self.assertEqual(summary.get("commands_total"), len(validate_module.VALIDATION_TARGETS))
             self.assertEqual(summary.get("merge_markers_pre_count"), 0)
             self.assertEqual(summary.get("merge_markers_post_count"), 0)
             self.assertEqual(summary.get("runtime_dependency_missing_count"), 0)
@@ -1285,7 +1287,7 @@ class UpgradeConsumerValidateTests(unittest.TestCase):
             _assert_json_schema(report, VALIDATE_SCHEMA)
 
             command_results = report.get("command_results", [])
-            self.assertEqual(len(command_results), 6)
+            self.assertEqual(len(command_results), len(validate_module.VALIDATION_TARGETS))
             self.assertTrue(all(result.get("returncode") == 0 for result in command_results if isinstance(result, dict)))
 
     def test_validate_fails_when_merge_markers_exist(self) -> None:
@@ -2135,6 +2137,126 @@ class TestValidatePlanUncoveredSourceFiles(unittest.TestCase):
         plan_payload: dict[str, object] = {}
         errors = upgrade_consumer.validate_plan_uncovered_source_files(plan_payload)
         self.assertEqual(errors, [])
+
+
+class TestFeatureGatedSchemaLoader(unittest.TestCase):
+    """FR-002, AC-003: load_blueprint_contract parses feature_gated without errors."""
+
+    def test_feature_gated_no_validation_errors(self) -> None:
+        """Contract with feature_gated list loads without exception and exposes the paths."""
+        contract = load_blueprint_contract(REPO_ROOT / "blueprint/contract.yaml")
+        original_yaml = (REPO_ROOT / "blueprint/contract.yaml").read_text(encoding="utf-8")
+
+        # Inject a minimal feature_gated block after conditional_scaffold section.
+        # This test verifies the schema loader accepts the key without error.
+        injected = original_yaml.replace(
+            "    consumer_init:",
+            "      feature_gated:\n        - apps/catalog\n        - apps/catalog/manifest.yaml\n    consumer_init:",
+            1,
+        )
+        with tempfile.NamedTemporaryFile(suffix=".yaml", delete=False, mode="w", encoding="utf-8") as f:
+            f.write(injected)
+            tmp_path = Path(f.name)
+        try:
+            loaded = load_blueprint_contract(tmp_path)
+            self.assertIn("apps/catalog", loaded.repository.feature_gated_paths)
+            self.assertIn("apps/catalog/manifest.yaml", loaded.repository.feature_gated_paths)
+        finally:
+            tmp_path.unlink(missing_ok=True)
+
+    def test_feature_gated_absent_defaults_to_empty(self) -> None:
+        """Contract without feature_gated key loads successfully with empty list (backward compat)."""
+        contract = load_blueprint_contract(REPO_ROOT / "blueprint/contract.yaml")
+        # The real contract.yaml currently has no feature_gated key yet — verify empty default.
+        self.assertIsInstance(contract.repository.feature_gated_paths, list)
+
+
+class TestFeatureGatedCoverage(unittest.TestCase):
+    """FR-002, FR-003, AC-002, AC-005: feature_gated paths are covered without disk-presence check."""
+
+    def _make_source(self, files: dict[str, str]) -> Path:
+        tmp = Path(tempfile.mkdtemp())
+        for rel, content in files.items():
+            p = tmp / rel
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_text(content)
+        return tmp
+
+    def test_feature_gated_paths_covered(self) -> None:
+        """apps/catalog/manifest.yaml must not be flagged when apps/catalog is in feature_gated."""
+        source = self._make_source({"apps/catalog/manifest.yaml": "# catalog\n"})
+        uncovered = upgrade_consumer.audit_source_tree_coverage(
+            source_repo=source,
+            required_files=set(),
+            source_only=set(),
+            init_managed=set(),
+            conditional=set(),
+            managed_roots=set(),
+            feature_gated={"apps/catalog"},
+        )
+        self.assertNotIn("apps/catalog/manifest.yaml", uncovered)
+
+    def test_feature_gated_default_empty_preserves_backward_compat(self) -> None:
+        """Calling audit_source_tree_coverage without feature_gated must still work (AC-005)."""
+        source = self._make_source({"scripts/setup.sh": "#!/bin/bash\n"})
+        uncovered = upgrade_consumer.audit_source_tree_coverage(
+            source_repo=source,
+            required_files=set(),
+            source_only=set(),
+            init_managed=set(),
+            conditional=set(),
+            managed_roots=set(),
+        )
+        self.assertIn("scripts/setup.sh", uncovered)
+
+    def test_source_contract_feature_gated_merged_into_coverage(self) -> None:
+        """Source blueprint adds feature_gated; old consumer contract has none.
+
+        The coverage audit must use the union of source and target feature_gated
+        paths so that files classified in the NEW blueprint contract are not
+        flagged as uncovered when the consumer's contract has not yet been upgraded.
+        """
+        source = self._make_source({"apps/catalog/manifest.yaml": "# catalog\n"})
+        # Simulate old consumer contract: feature_gated is empty
+        uncovered_with_target_only = upgrade_consumer.audit_source_tree_coverage(
+            source_repo=source,
+            required_files=set(),
+            source_only=set(),
+            init_managed=set(),
+            conditional=set(),
+            managed_roots=set(),
+            feature_gated=frozenset(),  # bug: target contract has no feature_gated
+        )
+        self.assertIn(
+            "apps/catalog/manifest.yaml",
+            uncovered_with_target_only,
+            "without source-contract merge, file appears uncovered (demonstrates the bug)",
+        )
+        # Fix: union of source and target feature_gated
+        uncovered_with_merged = upgrade_consumer.audit_source_tree_coverage(
+            source_repo=source,
+            required_files=set(),
+            source_only=set(),
+            init_managed=set(),
+            conditional=set(),
+            managed_roots=set(),
+            feature_gated=frozenset(["apps/catalog"]),  # merged from source contract
+        )
+        self.assertNotIn(
+            "apps/catalog/manifest.yaml",
+            uncovered_with_merged,
+            "with source-contract feature_gated merged, file must not be flagged",
+        )
+
+
+class TestValidationTargets(unittest.TestCase):
+    """FR-001, FR-005, AC-001, AC-006: VALIDATION_TARGETS includes required Make targets."""
+
+    def test_blueprint_template_smoke_in_validation_targets(self) -> None:
+        self.assertIn("blueprint-template-smoke", validate_module.VALIDATION_TARGETS)
+
+    def test_infra_argocd_topology_validate_in_validation_targets(self) -> None:
+        self.assertIn("infra-argocd-topology-validate", validate_module.VALIDATION_TARGETS)
 
 
 if __name__ == "__main__":

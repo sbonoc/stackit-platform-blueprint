@@ -85,6 +85,15 @@ Four independent tracks; all P1, can be started in parallel.
 - [ ] P2 (Consumer upgrade flow): Issue #167 — add `BLUEPRINT_UPGRADE_DRY_RUN=true` flag that simulates all file mutations (copy, 3-way merge, skip, consumer-owned) and outputs a unified diff of the full change set without touching the working tree; reports the same warnings, conflicts, and behavioral failures the real apply would surface so consumers can review the exact change before committing to apply.
 - [ ] P2 (Consumer upgrade flow): Issue #168 — add incremental tag-to-tag upgrade mode (`BLUEPRINT_UPGRADE_INCREMENTAL=true`) that applies changes one release at a time, surfacing a per-release changelog and cherry-pick plan at each step with resume support on conflict; batch mode remains the default.
 
+#### v1.7.0 upgrade findings (pipeline correctness gaps)
+
+- [x] P1 (Consumer upgrade flow): Issues #198 + #199 + #205 — four latent pipeline gaps uncovered during v1.7.0 adoption: (1) `blueprint-template-smoke` absent from `VALIDATION_TARGETS`; (2) `infra-argocd-topology-validate` absent from `VALIDATION_TARGETS`; (3) `apps/catalog*` paths not in `ownership_path_classes`, causing false-positive "uncovered file" warnings; (4) `resolve_contract_upgrade.py` uses bare `yaml.dump()`, producing indentless sequences and wrapped scalars that break `parse_yaml_subset`. **Done**: `specs/2026-04-26-issue-198-199-upgrade-coverage-gaps/`, PR #202.
+- [ ] (parked) proposal(issue-198-199): `feature_gated` cross-check validator — assert `feature_gated` paths in `contract.yaml` are a superset of `app_catalog_scaffold_contract.required_paths_when_enabled`
+      trigger: on-scope: blueprint
+      rationale: prerequisite concept (`app_catalog_scaffold_contract.required_paths_when_enabled`) does not exist as a formal data structure; implementing now would require unplanned scope; surfaces naturally when blueprint contract formalization is next touched
+- [ ] P2 (Consumer upgrade flow): Issue #203 — Stage 2 prune deletes consumer-renamed seeded files still referenced by `kustomization.yaml`; root cause is in Stage 2 apply logic (principled fix requires distinguishing blueprint-named from consumer-renamed files in the upgrade planner). Detection mitigated by adding `infra-argocd-topology-validate` to `VALIDATION_TARGETS` (Issue #199 fix above). Root cause is a separate work item.
+- [ ] P2 (Consumer upgrade flow): Issue #204 — 3-way merge emits duplicate Terraform variable blocks; requires either a semantic Terraform parser (new dependency) or `terraform validate` in VALIDATION_TARGETS (provider-dependent, slow). Separate work item.
+
 ---
 
 - [ ] Add an automated bundled-skill contract verifier to enforce parity across `.agents/skills/**`, consumer-template fallbacks, install make targets, and docs references.

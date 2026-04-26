@@ -23,6 +23,7 @@ This file is auto-generated. Do not edit it manually.
 | `blueprint-install-codex-skill-consumer-ops` | Install/sync bundled Codex consumer operations skill into local CODEX_HOME skills directory |
 | `blueprint-install-codex-skill-sdd-step01-intake` | Install/sync bundled Codex SDD step01-intake skill into local CODEX_HOME skills directory |
 | `blueprint-install-codex-skills` | Install/sync all bundled Codex skills into local CODEX_HOME skills directory |
+| `blueprint-prune-codex-skills` | Remove stale blueprint-* skills from local CODEX_HOME skills directory |
 | `blueprint-ownership-check` | Resolve path ownership classes (set OWNERSHIP_PATHS="path/one path/two") |
 | `blueprint-ownership-metadata` | Print machine-readable ownership metadata (pattern -&gt; owner) |
 | `blueprint-check-placeholders` | Verify generated repository identity placeholders are resolved |

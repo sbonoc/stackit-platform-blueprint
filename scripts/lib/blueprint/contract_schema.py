@@ -46,6 +46,7 @@ class RepositoryOwnershipPathClasses:
     consumer_seeded: list[str]
     init_managed: list[str]
     conditional_scaffold: list[str]
+    feature_gated: list[str]
 
 
 @dataclass(frozen=True)
@@ -74,6 +75,10 @@ class RepositoryContract:
     @property
     def conditional_scaffold_paths(self) -> list[str]:
         return self.ownership_path_classes.conditional_scaffold
+
+    @property
+    def feature_gated_paths(self) -> list[str]:
+        return self.ownership_path_classes.feature_gated
 
 
 @dataclass(frozen=True)
@@ -491,6 +496,10 @@ def load_blueprint_contract(path: Path) -> BlueprintContract:
             conditional_scaffold=_as_list_of_str(
                 ownership_classes_raw.get("conditional_scaffold", []),
                 "spec.repository.ownership_path_classes.conditional_scaffold",
+            ),
+            feature_gated=_as_list_of_str(
+                ownership_classes_raw.get("feature_gated", []),
+                "spec.repository.ownership_path_classes.feature_gated",
             ),
         ),
         consumer_init=ConsumerInitContract(

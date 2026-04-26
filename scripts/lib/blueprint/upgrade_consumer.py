@@ -340,6 +340,7 @@ def audit_source_tree_coverage(
     init_managed: set[str],
     conditional: set[str],
     managed_roots: set[str],
+    feature_gated: frozenset[str] = frozenset(),
 ) -> list[str]:
     """Return sorted list of source files not covered by any contract category.
 
@@ -359,6 +360,7 @@ def audit_source_tree_coverage(
         | init_managed
         | conditional
         | managed_roots
+        | feature_gated
     )
 
     # Prefer git-tracked files to exclude untracked/generated artifacts.
@@ -397,7 +399,7 @@ def validate_plan_uncovered_source_files(plan_payload: dict[str, Any]) -> list[s
         return [
             f"uncovered_source_files_count={count}: {count} blueprint source file(s) "
             "are not reachable via required_files, init_managed, conditional_scaffold_paths, "
-            "blueprint_managed_roots, or source_only; add them to blueprint/contract.yaml"
+            "feature_gated, blueprint_managed_roots, or source_only; add them to blueprint/contract.yaml"
         ]
     return []
 
@@ -1770,6 +1772,7 @@ def main() -> int:
 
         required_files, source_only, consumer_seeded, init_managed, conditional = _contract_paths(contract)
         managed_dir_roots = _managed_roots(contract)
+        feature_gated = frozenset(contract.repository.feature_gated_paths)
         if source_contract is not None:
             (
                 source_required_files,
@@ -1784,6 +1787,7 @@ def main() -> int:
             init_managed = _merge_path_sets(init_managed, source_init_managed)
             conditional = _merge_path_sets(conditional, source_conditional)
             managed_dir_roots = _merge_path_sets(managed_dir_roots, _managed_roots(source_contract))
+            feature_gated = feature_gated | frozenset(source_contract.repository.feature_gated_paths)
 
         source_files, target_files, managed_dir_roots = _collect_candidate_paths(
             repo_root,
@@ -1855,6 +1859,7 @@ def main() -> int:
             init_managed,
             conditional,
             managed_dir_roots | _plat_owned,
+            feature_gated=feature_gated,
         )
         uncovered_source_files_count = len(uncovered_source_files)
 
