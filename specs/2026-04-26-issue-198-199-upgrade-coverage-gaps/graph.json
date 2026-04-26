@@ -76,6 +76,11 @@
       "id": "AC-006",
       "type": "acceptance",
       "summary": "Unit test confirms infra-argocd-topology-validate in VALIDATION_TARGETS"
+    },
+    {
+      "id": "AC-007",
+      "type": "acceptance",
+      "summary": "validate_plan_uncovered_source_files error message references feature_gated; verifiable by code inspection"
     }
   ],
   "edges": [
@@ -88,7 +93,7 @@
     {"from": "FR-004", "to": "AC-004", "relation": "validated_by"},
     {"from": "FR-004", "to": "AC-003", "relation": "validated_by"},
     {"from": "NFR-SEC-001", "to": "AC-004", "relation": "constrains"},
-    {"from": "NFR-OBS-001", "to": "AC-002", "relation": "constrains"},
+    {"from": "NFR-OBS-001", "to": "AC-007", "relation": "validated_by"},
     {"from": "NFR-REL-001", "to": "AC-004", "relation": "constrains"},
     {"from": "NFR-REL-001", "to": "AC-005", "relation": "constrains"},
     {"from": "NFR-OPS-001", "to": "AC-001", "relation": "constrains"},
