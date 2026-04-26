@@ -18,8 +18,9 @@
   - `parse_versions_sh` — fixture strings → dict of variable→value
   - `diff_pins` — two dicts → correct `changed_pins`, `new_pins`, `removed_pins`, `unchanged_count`
   - `scan_template_references` — fixture template dir with a file referencing `TERRAFORM_VERSION` → expected path in result
-  - `run_version_pin_diff` (integration boundary) — mocked git subprocess returns fixture content → correct JSON artifact written
-  - git error path — mocked subprocess raises `CalledProcessError` → JSON artifact with `error` field, function returns success
+  - `_resolve_baseline_ref` — fixture source path + version string → resolved tag candidate or None when rev-parse fails
+  - `run_version_pin_diff` (integration boundary) — fixture `blueprint/contract.yaml` with known `template_version`; mocked git subprocess returns fixture `versions.sh` content → correct JSON artifact written
+  - git error path — mocked subprocess raises `CalledProcessError` → JSON artifact with `error` field, function returns True (non-blocking)
 - All tests fail (script not yet written).
 
 ### Slice 2 — Green: implement `upgrade_version_pin_diff.py`
@@ -27,8 +28,9 @@
   - `parse_versions_sh(content: str) -> dict[str, str]`: parse `VAR="value"` and `VAR=value` lines; skip comments and blank lines
   - `diff_pins(baseline: dict, target: dict) -> PinDiffResult`: classify each variable; return `changed_pins`, `new_pins`, `removed_pins`, `unchanged_count`
   - `scan_template_references(repo_root: Path, variable_names: list[str]) -> dict[str, list[str]]`: rglob `scripts/templates/infra/bootstrap/`, read each file, return variable → [file_paths]
-  - `run_version_pin_diff(repo_root, source_path, baseline_ref, target_ref) -> bool`: orchestrate git reads, diff, scan, write JSON; catch all exceptions, log, write error artifact, return True always
-  - `main()`: argparse CLI (`--repo-root`, `--source-path`, `--baseline-ref`, `--target-ref`); call `run_version_pin_diff`
+  - `_resolve_baseline_ref(source_path: str, template_version: str) -> str | None`: try `v{template_version}` then `{template_version}` as git tag candidates via `git rev-parse` (mirrors `upgrade_consumer.py:_resolve_baseline_ref`)
+  - `run_version_pin_diff(repo_root: Path, upgrade_source: str, upgrade_ref: str) -> bool`: read baseline version from `blueprint/contract.yaml` → `spec.repository.template_bootstrap.template_version`; resolve baseline ref; run `git show <baseline_ref>:scripts/lib/infra/versions.sh` and `git show <target_ref>:scripts/lib/infra/versions.sh` with `cwd=upgrade_source`; diff, scan, write JSON; catch all exceptions, log, write error artifact, return True always
+  - `main()`: argparse CLI (`--repo-root`); read `BLUEPRINT_UPGRADE_SOURCE` and `BLUEPRINT_UPGRADE_REF` from env (consistent with Stage 5 pattern); call `run_version_pin_diff`
 - All Slice 1 tests go green.
 
 ### Slice 3 — Red: failing unit test for residual report version pin section
@@ -52,14 +54,13 @@
 - In `upgrade_consumer_pipeline.sh`, after Stage 1 success block and before Stage 2, add:
   ```bash
   log_info "[PIPELINE] Stage 1b: starting — version pin diff"
+  BLUEPRINT_UPGRADE_SOURCE="$upgrade_source" \
+  BLUEPRINT_UPGRADE_REF="$upgrade_ref" \
   python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_version_pin_diff.py" \
-    --repo-root "$ROOT_DIR" \
-    --source-path "$BLUEPRINT_SOURCE_PATH" \
-    --baseline-ref "$baseline_ref" \
-    --target-ref "$upgrade_ref" || true
+    --repo-root "$ROOT_DIR" || true
   log_info "[PIPELINE] Stage 1b: complete"
   ```
-- Confirm `baseline_ref` is available at this point in the pipeline (resolved from `blueprint/contract.yaml` `template_version` in Stage 1).
+- This is consistent with Stage 5 (`upgrade_coverage_fetch.py`) pattern: `BLUEPRINT_UPGRADE_SOURCE` is the local blueprint clone path; `BLUEPRINT_UPGRADE_REF` is the target ref; baseline ref is resolved internally from `blueprint/contract.yaml`. No new pipeline variables needed.
 
 ### Slice 6 — Skill runbook update
 - In `.agents/skills/blueprint-consumer-upgrade/SKILL.md`, add a step after the residual report review step:

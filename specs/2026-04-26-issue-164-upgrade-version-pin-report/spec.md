@@ -60,7 +60,7 @@
 - NFR-SEC-001 The script MUST NOT write any secrets or credentials to `version_pin_diff.json` or any log output; `versions.sh` contains only tool and chart version strings, not secrets — no filtering is required.
 - NFR-OBS-001 The script MUST log each stage of its execution to stdout using the existing pipeline logging conventions (`log_info`/`log_warning` from the upgrade pipeline library); all errors MUST be written to stderr.
 - NFR-REL-001 The pipeline MUST remain fully functional when `upgrade_version_pin_diff.py` fails or produces an incomplete artifact; when `version_pin_diff.json` is absent or malformed, the residual report MUST note: "Version pin diff unavailable: `<reason>`. Manual fallback: `git diff <baseline_ref> <target_ref> -- scripts/lib/infra/versions.sh`."
-- NFR-OPS-001 An operator MUST be able to invoke `upgrade_version_pin_diff.py` standalone — `python3 scripts/lib/blueprint/upgrade_version_pin_diff.py --repo-root . --source-path <cloned-source-path> --baseline-ref <ref> --target-ref <ref>` — and receive the JSON artifact without running the full pipeline.
+- NFR-OPS-001 An operator MUST be able to invoke `upgrade_version_pin_diff.py` standalone — `BLUEPRINT_UPGRADE_SOURCE=<local-clone-path> BLUEPRINT_UPGRADE_REF=<target-ref> python3 scripts/lib/blueprint/upgrade_version_pin_diff.py --repo-root .` — and receive the JSON artifact without running the full pipeline.
 
 ## Normative Option Decision
 - Option A: Run version pin diff between Stage 1 and Stage 2 (before any file mutations), emit JSON artifact consumed by Stage 10 residual report.
