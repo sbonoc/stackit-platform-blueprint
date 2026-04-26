@@ -1204,3 +1204,185 @@ class TestNoConsumerSpecificHardcoding(unittest.TestCase):
                     content,
                     f"{script_path.name} contains consumer-specific string: {forbidden!r}",
                 )
+
+
+# ===========================================================================
+# Slice 8 — Residual report: Version Pin Changes section (Issue #164)
+# ===========================================================================
+
+
+def _write_version_pin_diff(repo: Path, payload: dict) -> None:
+    path = repo / "artifacts/blueprint/version_pin_diff.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload), encoding="utf-8")
+
+
+def _baseline_residual_artifacts(repo: Path) -> None:
+    _write_decisions_json(repo, {"dropped_required_files": [], "dropped_prune_globs": [], "kept_consumer_required_files": []})
+    _write_reconcile_report(repo, [])
+    _write_doc_check_warnings(repo, [])
+
+
+class TestResidualReportVersionPinSection(unittest.TestCase):
+    """FR-007, FR-008, FR-009, AC-001–AC-005, NFR-REL-001."""
+
+    def test_changed_pin_appears_in_section(self) -> None:
+        """AC-001, FR-007: changed pin with template reference → listed with prescribed action."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            _baseline_residual_artifacts(repo)
+            _write_version_pin_diff(repo, {
+                "baseline_ref": "v1.0.0",
+                "target_ref": "v1.7.0",
+                "changed_pins": [
+                    {
+                        "variable": "TERRAFORM_VERSION",
+                        "old_value": "1.12.0",
+                        "new_value": "1.13.3",
+                        "template_references": ["scripts/templates/infra/bootstrap/main.yaml"],
+                    }
+                ],
+                "new_pins": [],
+                "removed_pins": [],
+                "unchanged_count": 3,
+            })
+
+            generate_residual_report(repo, pipeline_exit=0)
+
+            report = (repo / "artifacts/blueprint/upgrade-residual.md").read_text(encoding="utf-8")
+            self.assertIn("Version Pin Changes", report)
+            self.assertIn("TERRAFORM_VERSION", report)
+            self.assertIn("1.12.0", report)
+            self.assertIn("1.13.3", report)
+            self.assertIn("main.yaml", report)
+            self.assertIn("infra-bootstrap", report)
+
+    def test_prescribed_action_present_for_changed_pin(self) -> None:
+        """FR-009: prescribed action string must appear for each changed pin entry."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            _baseline_residual_artifacts(repo)
+            _write_version_pin_diff(repo, {
+                "baseline_ref": "v1.0.0",
+                "target_ref": "v1.7.0",
+                "changed_pins": [
+                    {
+                        "variable": "HELM_VERSION",
+                        "old_value": "3.0.0",
+                        "new_value": "4.1.3",
+                        "template_references": [],
+                    }
+                ],
+                "new_pins": [],
+                "removed_pins": [],
+                "unchanged_count": 1,
+            })
+
+            generate_residual_report(repo, pipeline_exit=0)
+
+            report = (repo / "artifacts/blueprint/upgrade-residual.md").read_text(encoding="utf-8")
+            self.assertIn("infra-bootstrap", report)
+            self.assertIn("infra-validate", report)
+
+    def test_zero_changes_message(self) -> None:
+        """AC-002, FR-008: zero changes → explicit 'No version pin changes' message."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            _baseline_residual_artifacts(repo)
+            _write_version_pin_diff(repo, {
+                "baseline_ref": "v1.0.0",
+                "target_ref": "v1.7.0",
+                "changed_pins": [],
+                "new_pins": [],
+                "removed_pins": [],
+                "unchanged_count": 5,
+            })
+
+            generate_residual_report(repo, pipeline_exit=0)
+
+            report = (repo / "artifacts/blueprint/upgrade-residual.md").read_text(encoding="utf-8")
+            self.assertIn("No version pin changes detected", report)
+
+    def test_new_pin_subsection(self) -> None:
+        """AC-003, FR-007: new pin → listed in New Pins subsection."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            _baseline_residual_artifacts(repo)
+            _write_version_pin_diff(repo, {
+                "baseline_ref": "v1.0.0",
+                "target_ref": "v1.7.0",
+                "changed_pins": [],
+                "new_pins": [
+                    {
+                        "variable": "NEW_TOOL_VERSION",
+                        "old_value": None,
+                        "new_value": "2.0.0",
+                        "template_references": [],
+                    }
+                ],
+                "removed_pins": [],
+                "unchanged_count": 3,
+            })
+
+            generate_residual_report(repo, pipeline_exit=0)
+
+            report = (repo / "artifacts/blueprint/upgrade-residual.md").read_text(encoding="utf-8")
+            self.assertIn("New Pins", report)
+            self.assertIn("NEW_TOOL_VERSION", report)
+            self.assertIn("2.0.0", report)
+
+    def test_removed_pin_subsection(self) -> None:
+        """AC-004, FR-007: removed pin → listed in Removed Pins subsection."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            _baseline_residual_artifacts(repo)
+            _write_version_pin_diff(repo, {
+                "baseline_ref": "v1.0.0",
+                "target_ref": "v1.7.0",
+                "changed_pins": [],
+                "new_pins": [],
+                "removed_pins": [
+                    {
+                        "variable": "OLD_TOOL_VERSION",
+                        "old_value": "0.9.0",
+                        "new_value": None,
+                        "template_references": [],
+                    }
+                ],
+                "unchanged_count": 3,
+            })
+
+            generate_residual_report(repo, pipeline_exit=0)
+
+            report = (repo / "artifacts/blueprint/upgrade-residual.md").read_text(encoding="utf-8")
+            self.assertIn("Removed Pins", report)
+            self.assertIn("OLD_TOOL_VERSION", report)
+            self.assertIn("0.9.0", report)
+
+    def test_absent_artifact_shows_fallback(self) -> None:
+        """AC-005, NFR-REL-001: absent artifact → fallback with manual git diff command."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            _baseline_residual_artifacts(repo)
+            # No version_pin_diff.json written
+
+            generate_residual_report(repo, pipeline_exit=0)
+
+            report = (repo / "artifacts/blueprint/upgrade-residual.md").read_text(encoding="utf-8")
+            self.assertIn("Version pin diff unavailable", report)
+            self.assertIn("git diff", report)
+            self.assertIn("versions.sh", report)
+
+    def test_malformed_artifact_shows_fallback(self) -> None:
+        """NFR-REL-001: malformed artifact → fallback with manual git diff command."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            _baseline_residual_artifacts(repo)
+            _write_version_pin_diff(repo, {"broken": True})  # missing required keys
+
+            generate_residual_report(repo, pipeline_exit=0)
+
+            report = (repo / "artifacts/blueprint/upgrade-residual.md").read_text(encoding="utf-8")
+            # Malformed (missing required list keys) must fall back to the unavailable message (NFR-REL-001)
+            self.assertIn("Version pin diff unavailable", report)
+            self.assertIn("git diff", report)

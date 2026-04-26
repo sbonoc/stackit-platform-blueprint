@@ -71,6 +71,16 @@ fi
 log_info "[PIPELINE] Stage 1: complete — pre-flight passed"
 
 # ---------------------------------------------------------------------------
+# Stage 1b — Version pin diff (non-blocking)
+# ---------------------------------------------------------------------------
+log_info "[PIPELINE] Stage 1b: starting — version pin diff"
+BLUEPRINT_UPGRADE_SOURCE="$upgrade_source" \
+BLUEPRINT_UPGRADE_REF="$upgrade_ref" \
+python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_version_pin_diff.py" \
+  --repo-root "$ROOT_DIR" || true
+log_info "[PIPELINE] Stage 1b: complete"
+
+# ---------------------------------------------------------------------------
 # Stage 2 — Apply with delete
 # ---------------------------------------------------------------------------
 log_info "[PIPELINE] Stage 2: starting — apply with delete"

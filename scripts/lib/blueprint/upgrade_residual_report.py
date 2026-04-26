@@ -23,6 +23,7 @@ _CONTRACT_DECISIONS = "artifacts/blueprint/contract_resolve_decisions.json"
 _RECONCILE_REPORT = "artifacts/blueprint/upgrade/upgrade_reconcile_report.json"
 _DOC_CHECK = "artifacts/blueprint/doc_target_check.json"
 _VALIDATE_REPORT = "artifacts/blueprint/upgrade_validate.json"
+_VERSION_PIN_DIFF = "artifacts/blueprint/version_pin_diff.json"
 _RESIDUAL_MD = "artifacts/blueprint/upgrade-residual.md"
 _PYRAMID_CONTRACT = "scripts/lib/quality/test_pyramid_contract.json"
 
@@ -73,6 +74,100 @@ def _scan_pyramid_gaps(repo_root: Path) -> list[str]:
             if rel not in classified:
                 gaps.append(rel)
     return sorted(gaps)
+
+
+# ---------------------------------------------------------------------------
+# Version pin changes section (Issue #164)
+# ---------------------------------------------------------------------------
+
+_PRESCRIBED_ACTION = (
+    "After running `make infra-bootstrap`, verify and sync affected templates under "
+    "`scripts/templates/infra/bootstrap/`, then re-run `make infra-validate`."
+)
+
+
+def _render_version_pin_section(repo_root: Path) -> list[str]:
+    """Return Markdown lines for the Version Pin Changes section (FR-007–FR-009)."""
+    section: list[str] = [
+        "## Version Pin Changes",
+        "",
+    ]
+
+    data = _load_json_safe(repo_root / _VERSION_PIN_DIFF)
+    if not data:
+        section += [
+            "_Version pin diff unavailable: artifact not found or could not be read. "
+            "Manual fallback: "
+            "`git diff <baseline_ref> <target_ref> -- scripts/lib/infra/versions.sh`._",
+        ]
+        return section
+
+    if "error" in data:
+        err = data["error"]
+        section += [
+            f"_Version pin diff unavailable: `{err}`. "
+            "Manual fallback: "
+            "`git diff <baseline_ref> <target_ref> -- scripts/lib/infra/versions.sh`._",
+        ]
+        return section
+
+    baseline_ref = data.get("baseline_ref", "<baseline>")
+    target_ref = data.get("target_ref", "<target>")
+    changed = data.get("changed_pins")
+    new_pins = data.get("new_pins")
+    removed = data.get("removed_pins")
+
+    if not isinstance(changed, list) or not isinstance(new_pins, list) or not isinstance(removed, list):
+        section += [
+            "_Version pin diff unavailable: artifact has unexpected structure. "
+            "Manual fallback: "
+            "`git diff <baseline_ref> <target_ref> -- scripts/lib/infra/versions.sh`._",
+        ]
+        return section
+
+    if not changed and not new_pins and not removed:
+        section.append(
+            f"No version pin changes detected between `{baseline_ref}` and `{target_ref}`."
+        )
+        return section
+
+    if changed:
+        section += ["### Changed Pins", ""]
+        section += [
+            "| Variable | Old Value | New Value | Template References | Action |",
+            "|---|---|---|---|---|",
+        ]
+        for pin in changed:
+            var = pin.get("variable", "")
+            old = pin.get("old_value", "")
+            new = pin.get("new_value", "")
+            refs = pin.get("template_references") or []
+            refs_str = ", ".join(f"`{r}`" for r in refs) if refs else "_none_"
+            section.append(f"| `{var}` | `{old}` | `{new}` | {refs_str} | {_PRESCRIBED_ACTION} |")
+        section.append("")
+
+    if new_pins:
+        section += ["### New Pins", ""]
+        for pin in new_pins:
+            var = pin.get("variable", "")
+            new = pin.get("new_value", "")
+            refs = pin.get("template_references") or []
+            refs_str = ", ".join(f"`{r}`" for r in refs) if refs else "_none_"
+            section.append(f"- **`{var}`** = `{new}` — template refs: {refs_str} — **Action**: {_PRESCRIBED_ACTION}")
+        section.append("")
+
+    if removed:
+        section += ["### Removed Pins", ""]
+        for pin in removed:
+            var = pin.get("variable", "")
+            old = pin.get("old_value", "")
+            section.append(
+                f"- **`{var}`** was `{old}` — removed from target `versions.sh`. "
+                "**Action**: remove any references to this variable from consumer templates."
+            )
+        section.append("")
+
+    return section
 
 
 # ---------------------------------------------------------------------------
@@ -239,6 +334,10 @@ def generate_residual_report(repo_root: Path, pipeline_exit: int = 0) -> None:
             lines.append(f"- _... and {len(pyramid_gaps) - 20} more (see full scan output)_")
     else:
         lines.append("_None — all test files are classified in the pyramid contract._")
+    lines.append("")
+
+    # Version pin changes (FR-007, FR-008, FR-009)
+    lines += _render_version_pin_section(repo_root)
     lines.append("")
 
     report_path = repo_root / _RESIDUAL_MD
