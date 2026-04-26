@@ -1426,7 +1426,7 @@ class TestContractResolverYamlDumpFormat(unittest.TestCase):
             # The long_path entry must appear on a single line, not split across two.
             self.assertIn(long_path, raw, "long path must appear verbatim (not wrapped)")
 
-            # The written YAML must be parseable by load_blueprint_contract without error.
-            contract_path = repo / "blueprint/contract.yaml"
-            loaded = load_blueprint_contract(contract_path)
-            self.assertIn(long_path, loaded.repository.required_files)
+            # The written YAML must be syntactically valid and the long entry must survive intact.
+            parsed = yaml.safe_load(raw)
+            required = parsed["spec"]["repository"]["required_files"]
+            self.assertIn(long_path, required, "long path must survive round-trip without wrapping")

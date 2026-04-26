@@ -26,6 +26,17 @@ from pathlib import Path
 import yaml
 
 
+class _IndentedDumper(yaml.Dumper):
+    """PyYAML Dumper that writes properly indented block sequences.
+
+    The default Dumper places list items at the same indent level as the
+    parent mapping key (indentless mode), which breaks parse_yaml_subset.
+    """
+
+    def increase_indent(self, flow: bool = False, indentless: bool = False) -> None:
+        return super().increase_indent(flow=flow, indentless=False)
+
+
 # ---------------------------------------------------------------------------
 # Result type
 # ---------------------------------------------------------------------------
@@ -209,7 +220,14 @@ def resolve_contract_conflict(repo_root: Path) -> ContractResolveResult:
     contract_path = repo_root / _CONTRACT_RELATIVE
     contract_path.parent.mkdir(parents=True, exist_ok=True)
     contract_path.write_text(
-        yaml.dump(resolved, default_flow_style=False, allow_unicode=True, sort_keys=False),
+        yaml.dump(
+            resolved,
+            Dumper=_IndentedDumper,
+            default_flow_style=False,
+            allow_unicode=True,
+            sort_keys=False,
+            width=4096,
+        ),
         encoding="utf-8",
     )
 
