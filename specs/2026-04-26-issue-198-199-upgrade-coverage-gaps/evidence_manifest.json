@@ -20,13 +20,13 @@
       "path": "specs/2026-04-26-issue-198-199-upgrade-coverage-gaps/plan.md",
       "role": "implementation-plan",
       "status": "authored",
-      "sha256": "09b8008fa1a61f23aee6bbaa9b496ff959d21e16a441af284ab0b6c7d040ff9e"
+      "sha256": "0f746cffb8432b86397a54991a36166431f80a269db5b54666af6376bd28b5ed"
     },
     {
       "path": "specs/2026-04-26-issue-198-199-upgrade-coverage-gaps/tasks.md",
       "role": "task-list",
       "status": "authored",
-      "sha256": "d26ab0c55a7532d7e1f20a13561cbba18e15ea117083da38d79cb125c4edae5f"
+      "sha256": "490cd466d0d2b4fbfaaf12995705aac70cbfeb5f5fe0c8f955f8f6985e65f277"
     },
     {
       "path": "specs/2026-04-26-issue-198-199-upgrade-coverage-gaps/traceability.md",
