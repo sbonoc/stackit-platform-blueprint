@@ -11,9 +11,9 @@
 - Pending assumptions count: 0
 - Open clarification markers count: 0
 - Product sign-off: approved
-- Architecture sign-off: pending
-- Security sign-off: pending
-- Operations sign-off: pending
+- Architecture sign-off: approved
+- Security sign-off: approved
+- Operations sign-off: approved
 - ADR path: docs/blueprint/architecture/decisions/ADR-20260426-behavioral-check-extensible-exclusion.md
 - ADR status: proposed
 
