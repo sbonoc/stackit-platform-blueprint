@@ -1,9 +1,9 @@
 # Tasks
 
 ## Spec Readiness Gate Checks
-- [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`
+- [x] G-001 Confirm `SPEC_READY=true` in `spec.md`
 - [x] G-002 Confirm open questions and unresolved alternatives are `0`
-- [ ] G-003 Confirm required sign-offs are approved
+- [x] G-003 Confirm required sign-offs are approved
 - [x] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
 - [x] G-005 Confirm `Implementation Stack Profile` section is fully populated
 
@@ -16,7 +16,7 @@
 
 ## Test Automation
 - [ ] T-101 Add `TestExtraExcludedTokens` class to `tests/blueprint/test_upgrade_shell_behavioral_check.py` (AC-001 through AC-007)
-- [ ] T-102 Add `TestPostcheckReadsExtraTokensFromContract` test to verify postcheck reads and passes contract field
+- [ ] T-102 Add `TestPostcheckReadsExtraTokensFromContract` class with: `test_extra_tokens_loaded_from_contract_yaml` (FR-001, FR-006) and `test_absent_key_yields_empty_frozenset` (NFR-REL-001)
 - [ ] T-103 Positive-path assertion: token in `extra_excluded_tokens` → zero unresolved symbols (AC-001, non-empty fixture)
 
 ## Validation and Release Readiness

@@ -7,7 +7,7 @@
 | FR-001 | SDD-C-005 | DD-003: contract.yaml config surface | `upgrade_consumer_postcheck.py` reads `spec.upgrade.behavioral_check.extra_excluded_tokens` | `TestPostcheckReadsExtraTokensFromContract` | `blueprint/contract.yaml` example field | — |
 | FR-002 | SDD-C-005 | DD-001: frozenset merge per-invocation | `run_behavioral_check`: `effective_excluded = _EXCLUDED_TOKENS \| extra_excluded_tokens` | `TestExtraExcludedTokens.test_extra_token_suppresses_unresolved_symbol` | architecture.md DD-001 | — |
 | FR-003 | SDD-C-005 | DD-002: keyword-only param | `run_behavioral_check(extra_excluded_tokens: frozenset[str] = frozenset())` | `TestExtraExcludedTokens.test_absent_extra_tokens_preserves_baseline_behaviour` | spec.md FR-003 | — |
-| FR-004 | SDD-C-005 | DD-002 | param docstring in `run_behavioral_check` | AC-003 test | — | — |
+| FR-004 | SDD-C-005 | DD-002 | param docstring in `run_behavioral_check` | code review (docstring not automatable; backward-compat covered by AC-003 / existing suite) | — | — |
 | FR-005 | SDD-C-005 | DD-006: non-blocking validation | token filter loop in `run_behavioral_check` | `TestExtraExcludedTokens.test_invalid_token_skipped_gracefully` | — | stderr log |
 | FR-006 | SDD-C-005 | DD-004: contract_schema dataclasses | `BehavioralCheckUpgradeContract`, `UpgradeContract` in `contract_schema.py` | `TestPostcheckReadsExtraTokensFromContract` | — | — |
 | FR-007 | SDD-C-005 | DD-003 | `blueprint/contract.yaml` example comment | — | contract.yaml | — |
