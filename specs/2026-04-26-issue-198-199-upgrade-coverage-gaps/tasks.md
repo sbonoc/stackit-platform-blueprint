@@ -13,13 +13,13 @@
 - [x] T-003 Add `"blueprint-template-smoke"` and `"infra-argocd-topology-validate"` to `VALIDATION_TARGETS` tuple in `scripts/lib/blueprint/upgrade_consumer_validate.py` — both tests turn green
 
 ## Slice 2 — `feature_gated` ownership class
-- [ ] T-004 Add failing unit test: `audit_source_tree_coverage(feature_gated={"apps/catalog"})` does not flag `apps/catalog/manifest.yaml` as uncovered
-- [ ] T-005 Add `feature_gated: list[str]` field to `RepositoryOwnershipPathClasses` in `scripts/lib/blueprint/contract_schema.py` (default empty list)
-- [ ] T-006 Add `feature_gated_paths` property to `RepositoryContract` in `contract_schema.py`
-- [ ] T-007 Parse `feature_gated` from YAML in the schema loader (parallel to `conditional_scaffold`)
-- [ ] T-008 Add `feature_gated` parameter (default `frozenset()`) to `audit_source_tree_coverage` in `scripts/lib/blueprint/upgrade_consumer.py`; include it in `all_coverage_roots`
-- [ ] T-009 Update the `audit_source_tree_coverage` call site in `upgrade_consumer.py` to pass `set(contract.repository.feature_gated_paths)`
-- [ ] T-010 Update `validate_plan_uncovered_source_files` error message to reference `feature_gated`
+- [x] T-004 Add failing unit test: `audit_source_tree_coverage(feature_gated={"apps/catalog"})` does not flag `apps/catalog/manifest.yaml` as uncovered
+- [x] T-005 Add `feature_gated: list[str]` field to `RepositoryOwnershipPathClasses` in `scripts/lib/blueprint/contract_schema.py` (default empty list)
+- [x] T-006 Add `feature_gated_paths` property to `RepositoryContract` in `contract_schema.py`
+- [x] T-007 Parse `feature_gated` from YAML in the schema loader (parallel to `conditional_scaffold`)
+- [x] T-008 Add `feature_gated` parameter (default `frozenset()`) to `audit_source_tree_coverage` in `scripts/lib/blueprint/upgrade_consumer.py`; include it in `all_coverage_roots`
+- [x] T-009 Update the `audit_source_tree_coverage` call site in `upgrade_consumer.py` to pass `set(contract.repository.feature_gated_paths)`
+- [x] T-010 Update `validate_plan_uncovered_source_files` error message to reference `feature_gated`
 
 ## Slice 3 — Contract validation for `feature_gated`
 - [ ] T-011 Add test: a contract dict with `feature_gated: [apps/catalog]` produces no validation errors in `validate_contract.py` ownership section
