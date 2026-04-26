@@ -147,6 +147,10 @@ Keycloak is not an optional module. It is always rendered in `infra/gitops/argoc
   exit signals a behavioral regression and the upgrade MUST NOT be declared complete until it is resolved.
   The symbol resolver suppresses case-label alternation tokens (`token|)`) and bare-word elements inside
   `local`/`declare`/`readonly`/`typeset` array blocks (`var=(`) to prevent false positives.
+  **Consumer false positives:** if the behavioral check flags project-specific runtime helpers that are
+  injected via a source chain deeper than depth-1, add them to `blueprint/contract.yaml` under
+  `spec.upgrade.behavioral_check.extra_excluded_tokens` — the postcheck reads this list automatically
+  and suppresses those tokens from the unresolved-symbol gate without requiring any code change.
 - Treat prune-glob violations as blocking — `make blueprint-upgrade-consumer-validate` (called in
   pipeline Stage 9) exits non-zero when files matching `source_artifact_prune_globs_on_init` are present
   in the consumer repo. The canonical prune globs are:

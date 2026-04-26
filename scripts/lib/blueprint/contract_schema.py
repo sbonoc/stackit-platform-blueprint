@@ -167,6 +167,16 @@ class OptionalModulesContract:
 
 
 @dataclass(frozen=True)
+class BehavioralCheckUpgradeContract:
+    extra_excluded_tokens: list[str]
+
+
+@dataclass(frozen=True)
+class UpgradeContract:
+    behavioral_check: BehavioralCheckUpgradeContract
+
+
+@dataclass(frozen=True)
 class BlueprintContract:
     repository: RepositoryContract
     structure: StructureContract
@@ -175,6 +185,7 @@ class BlueprintContract:
     make_contract: MakeContract
     architecture: ArchitectureContract
     optional_modules: OptionalModulesContract
+    upgrade: UpgradeContract
     raw: dict[str, Any]
 
 
@@ -695,6 +706,18 @@ def load_blueprint_contract(path: Path) -> BlueprintContract:
             paths=paths,
         )
 
+    upgrade_raw = spec.get("upgrade") or {}
+    behavioral_check_raw = (upgrade_raw.get("behavioral_check") or {}) if isinstance(upgrade_raw, dict) else {}
+    extra_tokens_raw = behavioral_check_raw.get("extra_excluded_tokens", []) if isinstance(behavioral_check_raw, dict) else []
+    upgrade = UpgradeContract(
+        behavioral_check=BehavioralCheckUpgradeContract(
+            extra_excluded_tokens=[
+                _as_str(t, f"spec.upgrade.behavioral_check.extra_excluded_tokens[{i}]")
+                for i, t in enumerate(extra_tokens_raw if isinstance(extra_tokens_raw, list) else [])
+            ],
+        ),
+    )
+
     return BlueprintContract(
         repository=repository,
         structure=structure,
@@ -703,6 +726,7 @@ def load_blueprint_contract(path: Path) -> BlueprintContract:
         make_contract=make_contract,
         architecture=architecture,
         optional_modules=OptionalModulesContract(modules=modules),
+        upgrade=upgrade,
         raw=raw,
     )
 

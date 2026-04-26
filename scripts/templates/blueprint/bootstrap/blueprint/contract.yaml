@@ -2001,3 +2001,15 @@ spec:
           - infra-identity-aware-proxy-deploy
           - infra-identity-aware-proxy-smoke
           - infra-identity-aware-proxy-destroy
+
+
+  # ---------------------------------------------------------------------------
+  # Upgrade pipeline configuration (optional, consumer-editable)
+  # ---------------------------------------------------------------------------
+  # upgrade:
+  #   behavioral_check:
+  #     # extra_excluded_tokens suppresses named tokens from the shell behavioral
+  #     # check's unresolved-symbol gate without modifying blueprint-managed code.
+  #     # Use this to silence false positives for project-specific runtime helpers.
+  #     # Example: extra_excluded_tokens: [setup_my_db, my_custom_deploy_helper]
+  #     extra_excluded_tokens: []
