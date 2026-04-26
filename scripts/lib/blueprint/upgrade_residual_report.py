@@ -113,9 +113,17 @@ def _render_version_pin_section(repo_root: Path) -> list[str]:
 
     baseline_ref = data.get("baseline_ref", "<baseline>")
     target_ref = data.get("target_ref", "<target>")
-    changed = data.get("changed_pins") or []
-    new_pins = data.get("new_pins") or []
-    removed = data.get("removed_pins") or []
+    changed = data.get("changed_pins")
+    new_pins = data.get("new_pins")
+    removed = data.get("removed_pins")
+
+    if not isinstance(changed, list) or not isinstance(new_pins, list) or not isinstance(removed, list):
+        section += [
+            "_Version pin diff unavailable: artifact has unexpected structure. "
+            "Manual fallback: "
+            "`git diff <baseline_ref> <target_ref> -- scripts/lib/infra/versions.sh`._",
+        ]
+        return section
 
     if not changed and not new_pins and not removed:
         section.append(

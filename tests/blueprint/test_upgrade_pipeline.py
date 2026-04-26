@@ -1383,5 +1383,6 @@ class TestResidualReportVersionPinSection(unittest.TestCase):
             generate_residual_report(repo, pipeline_exit=0)
 
             report = (repo / "artifacts/blueprint/upgrade-residual.md").read_text(encoding="utf-8")
-            # Malformed means required keys absent — should degrade gracefully
-            self.assertIn("Version Pin Changes", report)  # section must always be present
+            # Malformed (missing required list keys) must fall back to the unavailable message (NFR-REL-001)
+            self.assertIn("Version pin diff unavailable", report)
+            self.assertIn("git diff", report)
