@@ -56,10 +56,12 @@
   - `scripts/lib/blueprint/upgrade_mirror_sync.py` (new)
   - `scripts/lib/blueprint/upgrade_doc_target_check.py` (new)
   - `scripts/lib/blueprint/upgrade_residual_report.py` (new)
+  - `scripts/lib/blueprint/upgrade_version_pin_diff.py` (added by Issue #164 — Stage 1b)
   - `make/blueprint.mk` (new `blueprint-upgrade-consumer` target)
   - `.agents/skills/blueprint-consumer-upgrade/SKILL.md` (reduced to 6-step flow)
   - `tests/blueprint/test_upgrade_pipeline.py` (new unit + integration tests)
   - `artifacts/blueprint/contract_resolve_decisions.json` (new output artifact)
+  - `artifacts/blueprint/version_pin_diff.json` (added by Issue #164 — Stage 1b output)
   - `artifacts/blueprint/upgrade-residual.md` (new output artifact)
 
 ## Architecture Diagram (Mermaid)
@@ -68,7 +70,8 @@
 flowchart TD
   A[make blueprint-upgrade-consumer] --> S1[Stage 1: Pre-flight]
   S1 -->|fail| ERR[exit non-zero]
-  S1 -->|pass| S2[Stage 2: Apply with delete]
+  S1 -->|pass| S1b[Stage 1b: Version pin diff — non-blocking]
+  S1b --> S2[Stage 2: Apply with delete]
   S2 --> S3[Stage 3: Contract resolver]
   S3 --> S4[Stage 4: Auto-resolve conflicts]
   S4 --> S5[Stage 5: Coverage gap + fetch]
@@ -78,6 +81,8 @@ flowchart TD
   S8 --> S9[Stage 9: Gate chain]
   S9 --> S10[Stage 10: Residual report — ALWAYS]
 ```
+
+*Stage 1b added by Issue #164 (ADR-20260426-upgrade-version-pin-report): non-blocking diff of `scripts/lib/infra/versions.sh` between baseline and target tags; emits `artifacts/blueprint/version_pin_diff.json` consumed by Stage 10.*
 
 ## External Dependencies
 - Dependency 1: `blueprint/contract.yaml` — provides `name`, `repo_mode`, `required_files`, `source_artifact_prune_globs_on_init`, `template_sync_allowlist`, `template_sync_prune_targets` read at runtime by Stages 1, 3, 5, 6, 7.
