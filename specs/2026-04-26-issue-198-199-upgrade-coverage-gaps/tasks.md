@@ -26,9 +26,9 @@
 - [x] T-012 Read and validate `feature_gated` in `scripts/bin/blueprint/validate_contract.py` — no disk-presence check, no equality constraint against `optional_modules`
 
 ## Slice 4 — Populate YAML
-- [ ] T-013 Add `feature_gated:` list under `ownership_path_classes` in `blueprint/contract.yaml` with `apps/catalog`, `apps/catalog/manifest.yaml`, `apps/catalog/versions.lock`
-- [ ] T-014 Mirror identical addition to `scripts/templates/blueprint/bootstrap/blueprint/contract.yaml`
-- [ ] T-015 Run `make infra-validate` — passes (AC-004)
+- [x] T-013 Add `feature_gated:` list under `ownership_path_classes` in `blueprint/contract.yaml` with `apps/catalog`, `apps/catalog/manifest.yaml`, `apps/catalog/versions.lock`
+- [x] T-014 Mirror identical addition to `scripts/templates/blueprint/bootstrap/blueprint/contract.yaml`
+- [x] T-015 Run `make infra-validate` — passes (AC-004)
 
 ## Slice 5 — Fix yaml.dump indentation in resolve_contract_upgrade.py
 - [ ] T-018 Add failing unit test `test_resolve_contract_yaml_dump_uses_indented_style` in `tests/blueprint/test_upgrade_pipeline.py`: calls `resolve_contract_conflict` with a long `required_files` entry, asserts the written YAML has no indentless sequences, no wrapped scalars, and is parseable by `load_blueprint_contract`

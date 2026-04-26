@@ -636,6 +636,10 @@ spec:
         - infra/local/helm/observability
         - tests/infra/modules/observability
         - infra/local/helm/langfuse/values.yaml
+      feature_gated:
+        - apps/catalog
+        - apps/catalog/manifest.yaml
+        - apps/catalog/versions.lock
     consumer_init:
       template_root: scripts/templates/consumer/init
       mode_from: template-source
