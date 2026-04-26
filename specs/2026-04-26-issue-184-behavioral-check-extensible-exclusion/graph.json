@@ -1,0 +1,41 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-04-26-issue-184-behavioral-check-extensible-exclusion",
+  "nodes": [
+    {"id": "FR-001", "type": "requirement", "summary": "Read extra_excluded_tokens from contract.yaml at runtime"},
+    {"id": "FR-002", "type": "requirement", "summary": "Merge extra tokens with _EXCLUDED_TOKENS without mutation"},
+    {"id": "FR-003", "type": "requirement", "summary": "Backward-compatible keyword-only param on run_behavioral_check"},
+    {"id": "FR-004", "type": "requirement", "summary": "Document extra_excluded_tokens in run_behavioral_check docstring"},
+    {"id": "FR-005", "type": "requirement", "summary": "Silently skip invalid token entries; non-blocking"},
+    {"id": "FR-006", "type": "requirement", "summary": "contract_schema.py dataclasses for upgrade.behavioral_check"},
+    {"id": "FR-007", "type": "requirement", "summary": "blueprint/contract.yaml example field"},
+    {"id": "NFR-SEC-001", "type": "requirement", "summary": "Tokens are string identifiers only, never executed"},
+    {"id": "NFR-OBS-001", "type": "requirement", "summary": "Log count of consumer extra tokens applied"},
+    {"id": "NFR-REL-001", "type": "requirement", "summary": "Absent/malformed field degrades to base set; pipeline not blocked"},
+    {"id": "NFR-OPS-001", "type": "requirement", "summary": "extra_excluded_count exposed in ShellBehavioralCheckResult"},
+    {"id": "AC-001", "type": "acceptance", "summary": "Token in extra_excluded_tokens → zero unresolved symbols for that token"},
+    {"id": "AC-002", "type": "acceptance", "summary": "Absent extra tokens → base set unchanged, false positive flagged"},
+    {"id": "AC-003", "type": "acceptance", "summary": "No-arg call identical to current baseline"},
+    {"id": "AC-004", "type": "acceptance", "summary": "Extra token suppresses unresolved symbol; status=pass"},
+    {"id": "AC-005", "type": "acceptance", "summary": "Invalid entry skipped; no exception raised"},
+    {"id": "AC-006", "type": "acceptance", "summary": "extra_excluded_count equals valid extra token count"},
+    {"id": "AC-007", "type": "acceptance", "summary": "Stderr log line emitted when extra tokens applied"}
+  ],
+  "edges": [
+    {"from": "FR-001", "to": "AC-001", "relation": "validated_by"},
+    {"from": "FR-002", "to": "AC-001", "relation": "validated_by"},
+    {"from": "FR-002", "to": "AC-004", "relation": "validated_by"},
+    {"from": "FR-003", "to": "AC-003", "relation": "validated_by"},
+    {"from": "FR-004", "to": "AC-003", "relation": "validated_by"},
+    {"from": "FR-005", "to": "AC-005", "relation": "validated_by"},
+    {"from": "FR-006", "to": "AC-001", "relation": "validated_by"},
+    {"from": "FR-007", "to": "AC-001", "relation": "supports"},
+    {"from": "NFR-SEC-001", "to": "FR-002", "relation": "constrains"},
+    {"from": "NFR-OBS-001", "to": "AC-007", "relation": "validated_by"},
+    {"from": "NFR-REL-001", "to": "FR-005", "relation": "constrains"},
+    {"from": "NFR-REL-001", "to": "AC-002", "relation": "validated_by"},
+    {"from": "NFR-OPS-001", "to": "AC-006", "relation": "validated_by"},
+    {"from": "AC-001", "to": "AC-002", "relation": "complements"},
+    {"from": "FR-001", "to": "FR-006", "relation": "depends_on"}
+  ]
+}
