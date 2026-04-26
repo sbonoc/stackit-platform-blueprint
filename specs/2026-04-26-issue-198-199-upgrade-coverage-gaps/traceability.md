@@ -4,24 +4,24 @@
 
 | Requirement ID | Control IDs | Design Element | Implementation Path(s) | Test Evidence | Documentation Evidence | Operational Evidence |
 |---|---|---|---|---|---|---|
-| FR-001 | SDD-C-004, SDD-C-005 | `VALIDATION_TARGETS` tuple | `scripts/lib/blueprint/upgrade_consumer_validate.py:28-35` | `test_blueprint_template_smoke_in_validation_targets` [planned] | — | `make quality-hooks-fast` |
-| FR-005 | SDD-C-004, SDD-C-005 | `VALIDATION_TARGETS` tuple | `scripts/lib/blueprint/upgrade_consumer_validate.py:28-35` | `test_infra_argocd_topology_validate_in_validation_targets` [planned] | — | `make quality-hooks-fast` |
-| FR-002 | SDD-C-004, SDD-C-005, SDD-C-007 | `RepositoryOwnershipPathClasses.feature_gated` | `scripts/lib/blueprint/contract_schema.py:44-48` | `test_feature_gated_paths_covered` [planned] | — | `make infra-validate` |
-| FR-003 | SDD-C-004, SDD-C-008 | `audit_source_tree_coverage(feature_gated=...)` | `scripts/lib/blueprint/upgrade_consumer.py:336-386` | `test_feature_gated_paths_covered` [planned] | — | `make infra-validate` |
-| FR-004 | SDD-C-004, SDD-C-005 | `ownership_path_classes.feature_gated` YAML | `blueprint/contract.yaml:597-638` (ownership block, insertion after line 638), bootstrap template mirror | `make infra-validate` + schema loader test [planned] | — | `make infra-validate` |
+| FR-001 | SDD-C-004, SDD-C-005 | `VALIDATION_TARGETS` tuple | `scripts/lib/blueprint/upgrade_consumer_validate.py:28-35` | `test_blueprint_template_smoke_in_validation_targets` [confirmed green] | — | `make quality-hooks-fast` |
+| FR-005 | SDD-C-004, SDD-C-005 | `VALIDATION_TARGETS` tuple | `scripts/lib/blueprint/upgrade_consumer_validate.py:28-35` | `test_infra_argocd_topology_validate_in_validation_targets` [confirmed green] | — | `make quality-hooks-fast` |
+| FR-002 | SDD-C-004, SDD-C-005, SDD-C-007 | `RepositoryOwnershipPathClasses.feature_gated` | `scripts/lib/blueprint/contract_schema.py:44-48` | `test_feature_gated_paths_covered` [confirmed green] | — | `make infra-validate` |
+| FR-003 | SDD-C-004, SDD-C-008 | `audit_source_tree_coverage(feature_gated=...)` | `scripts/lib/blueprint/upgrade_consumer.py:336-386` | `test_feature_gated_paths_covered` [confirmed green] | — | `make infra-validate` |
+| FR-004 | SDD-C-004, SDD-C-005 | `ownership_path_classes.feature_gated` YAML | `blueprint/contract.yaml:597-638` (ownership block, insertion after line 638), bootstrap template mirror | `make infra-validate` + schema loader test [confirmed green] | — | `make infra-validate` |
 | NFR-SEC-001 | SDD-C-009 | No secret/authn changes | — | — | — | No runtime surface changed |
-| NFR-OBS-001 | SDD-C-010 | Error message in `validate_plan_uncovered_source_files` | `scripts/lib/blueprint/upgrade_consumer.py:399` | AC-007 (code inspection) [planned] | — | — |
+| NFR-OBS-001 | SDD-C-010 | Error message in `validate_plan_uncovered_source_files` | `scripts/lib/blueprint/upgrade_consumer.py:399` | AC-007 (code inspection) [confirmed green] | — | — |
 | NFR-REL-001 | SDD-C-012 | Rollback = `git revert`; default-empty param; `_IndentedDumper` does not change parsed semantics | Backward-compat default in `audit_source_tree_coverage`; `_IndentedDumper` in `resolve_contract_upgrade.py` | All pre-existing `TestAuditSourceTreeCoverage` tests remain green (AC-005); all pre-existing `TestResolveContractConflict` tests remain green (AC-008) | — | — |
 | NFR-OPS-001 | SDD-C-010 | `blueprint-template-smoke` and `infra-argocd-topology-validate` are read-only, no side effects | `scripts/bin/blueprint/template_smoke.sh`; `scripts/bin/infra/argocd_topology_validate.sh` | `tests/blueprint/contract_refactor_governance_init_cases.py:45,52` (blueprint-template-smoke); `tests/infra/test_tooling_contracts.py:test_argocd_topology_validate_uses_explicit_load_restrictor_none`; `tests/e2e/test_vertical_slice.py:173` (infra-argocd-topology-validate) | — | — |
-| FR-006 | SDD-C-004, SDD-C-005 | `_IndentedDumper` in `resolve_contract_upgrade.py` | `scripts/lib/blueprint/resolve_contract_upgrade.py:208-214` | `test_resolve_contract_yaml_dump_uses_indented_style` [planned] | — | — |
-| AC-001 | SDD-C-012 | `VALIDATION_TARGETS` membership | `upgrade_consumer_validate.py` | `test_blueprint_template_smoke_in_validation_targets` [planned] | — | — |
-| AC-006 | SDD-C-012 | `VALIDATION_TARGETS` membership | `upgrade_consumer_validate.py` | `test_infra_argocd_topology_validate_in_validation_targets` [planned] | — | — |
-| AC-002 | SDD-C-012 | `audit_source_tree_coverage` + `feature_gated` | `upgrade_consumer.py` | `test_feature_gated_paths_covered` [planned] | — | — |
-| AC-003 | SDD-C-012 | `validate_contract.py` accepts `feature_gated` | `validate_contract.py` | `test_feature_gated_no_validation_errors` [planned] | — | — |
+| FR-006 | SDD-C-004, SDD-C-005 | `_IndentedDumper` in `resolve_contract_upgrade.py` | `scripts/lib/blueprint/resolve_contract_upgrade.py:208-214` | `test_resolve_contract_yaml_dump_uses_indented_style` [confirmed green] | — | — |
+| AC-001 | SDD-C-012 | `VALIDATION_TARGETS` membership | `upgrade_consumer_validate.py` | `test_blueprint_template_smoke_in_validation_targets` [confirmed green] | — | — |
+| AC-006 | SDD-C-012 | `VALIDATION_TARGETS` membership | `upgrade_consumer_validate.py` | `test_infra_argocd_topology_validate_in_validation_targets` [confirmed green] | — | — |
+| AC-002 | SDD-C-012 | `audit_source_tree_coverage` + `feature_gated` | `upgrade_consumer.py` | `test_feature_gated_paths_covered` [confirmed green] | — | — |
+| AC-003 | SDD-C-012 | `validate_contract.py` accepts `feature_gated` | `validate_contract.py` | `test_feature_gated_no_validation_errors` [confirmed green] | — | — |
 | AC-004 | SDD-C-012 | `make infra-validate` pass | `blueprint/contract.yaml` + bootstrap template | `make infra-validate` output | — | — |
 | AC-005 | SDD-C-008, SDD-C-012 | Backward-compat default | `upgrade_consumer.py` | All pre-existing `TestAuditSourceTreeCoverage` tests green | — | — |
-| AC-007 | SDD-C-010, SDD-C-012 | `validate_plan_uncovered_source_files` error string | `scripts/lib/blueprint/upgrade_consumer.py:399` | Code inspection: string must include `feature_gated` [planned] | — | — |
-| AC-008 | SDD-C-008, SDD-C-012 | yaml.dump output format in `resolve_contract_upgrade.py` | `scripts/lib/blueprint/resolve_contract_upgrade.py:208-214` | `test_resolve_contract_yaml_dump_uses_indented_style` [planned] | — | — |
+| AC-007 | SDD-C-010, SDD-C-012 | `validate_plan_uncovered_source_files` error string | `scripts/lib/blueprint/upgrade_consumer.py:399` | Code inspection: string must include `feature_gated` [confirmed green] | — | — |
+| AC-008 | SDD-C-008, SDD-C-012 | yaml.dump output format in `resolve_contract_upgrade.py` | `scripts/lib/blueprint/resolve_contract_upgrade.py:208-214` | `test_resolve_contract_yaml_dump_uses_indented_style` [confirmed green] | — | — |
 
 ## Graph Linkage
 - Graph file: `graph.json`
@@ -47,11 +47,11 @@
   - AC-008
 
 ## Validation Summary
-- Required bundles executed: pending (post-implementation)
-- Result summary: pending
+- Required bundles executed: `make quality-hooks-fast`, `make infra-validate`, `make quality-hardening-review`, `make docs-build`, `make docs-smoke`
+- Result summary: all passed — 127 unit tests green (58 in `test_upgrade_consumer.py`, 69 in `test_upgrade_pipeline.py`); `make infra-validate` passed; `make quality-hardening-review` passed; `make docs-build` and `make docs-smoke` passed.
 - Documentation validation:
-  - `make docs-build`
-  - `make docs-smoke`
+  - `make docs-build` — passed 2026-04-26
+  - `make docs-smoke` — passed 2026-04-26
 
 ## Evidence Manifest
 - Manifest file: `evidence_manifest.json`
@@ -61,4 +61,4 @@
 
 ## Open Risks and Follow-Ups
 - Follow-up 1: If additional feature-flag-gated paths are added to `app_catalog_scaffold_contract` in the future, they must also be added to `feature_gated` in `contract.yaml` — consider adding a validator that cross-checks the two lists.
-- Follow-up 2: All test names marked `[planned]` must be confirmed as implemented and green before the Publish gate is opened (SPEC_READY is already true; planned tests must be green before closing the PR).
+- Follow-up 2: All test names confirmed green; no further action required on this item.

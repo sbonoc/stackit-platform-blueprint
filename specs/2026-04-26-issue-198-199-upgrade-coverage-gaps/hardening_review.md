@@ -1,7 +1,9 @@
 # Hardening Review
 
 ## Repository-Wide Findings Fixed
-- None pre-implementation. Post-implementation: confirm no dead code introduced and no stale TODOs remain.
+- Finding 1: `VALIDATION_TARGETS` in `upgrade_consumer_validate.py` was missing `blueprint-template-smoke` and `infra-argocd-topology-validate` — consumer repos were not validated against these make targets after blueprint upgrades (issues #198, #199). Fixed by adding both to the tuple; regression-tested via two new unit tests.
+- Finding 2: `audit_source_tree_coverage` had no `feature_gated` ownership class — `apps/catalog/manifest.yaml` and peers were wrongly flagged as uncovered source files during plan audit. Fixed by adding `feature_gated` field to `RepositoryOwnershipPathClasses` and wiring it into `all_coverage_roots`.
+- Finding 3: `resolve_contract_conflict` used bare `yaml.dump` which produced indentless sequences and 80-char scalar wrapping — the written `blueprint/contract.yaml` was rejected by `parse_yaml_subset` during pipeline replay (issue #205). Fixed by introducing `_IndentedDumper` and `width=4096`.
 
 ## Observability and Diagnostics Changes
 - Metrics/logging/tracing updates: `validate_plan_uncovered_source_files` error string updated to list `feature_gated` alongside `required_files`, `init_managed`, `conditional_scaffold_paths`, `blueprint_managed_roots`, `source_only` so operators can interpret remaining warnings without reading source.

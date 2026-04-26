@@ -1,11 +1,11 @@
 # Tasks
 
 ## Gate Checks (Required Before Implementation)
-- [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`
-- [ ] G-002 Confirm open questions and unresolved alternatives are `0`
-- [ ] G-003 Confirm required sign-offs are approved (Architecture, Security, Operations)
-- [ ] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
-- [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
+- [x] G-001 Confirm `SPEC_READY=true` in `spec.md`
+- [x] G-002 Confirm open questions and unresolved alternatives are `0`
+- [x] G-003 Confirm required sign-offs are approved (Architecture, Security, Operations)
+- [x] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
+- [x] G-005 Confirm `Implementation Stack Profile` section is fully populated
 
 ## Slice 1 — `blueprint-template-smoke` and `infra-argocd-topology-validate` in VALIDATION_TARGETS
 - [x] T-001 Add failing unit test `test_blueprint_template_smoke_in_validation_targets` in `tests/blueprint/test_upgrade_consumer.py`
@@ -35,20 +35,20 @@
 - [x] T-019 Add `_IndentedDumper` class and replace bare `yaml.dump(...)` with `yaml.dump(..., Dumper=_IndentedDumper, width=4096)` in `scripts/lib/blueprint/resolve_contract_upgrade.py` — test turns green; pre-existing tests remain green
 
 ## Slice 6 — Quality gates and evidence
-- [ ] T-016 Run `make quality-hooks-fast` — passes
-- [ ] T-017 Capture test output and attach to `traceability.md`
+- [x] T-016 Run `make quality-hooks-fast` — passes
+- [x] T-017 Capture test output and attach to `traceability.md`
 
 ## Validation and Release Readiness
-- [ ] T-201 Run required Make validation bundles (`make quality-hooks-fast`, `make infra-validate`)
-- [ ] T-202 Attach evidence to traceability document
-- [ ] T-203 Confirm no stale TODOs/dead code/drift
-- [ ] T-204 Run documentation validation (`make docs-build` and `make docs-smoke`)
-- [ ] T-205 Run hardening review validation bundle (`make quality-hardening-review`)
+- [x] T-201 Run required Make validation bundles (`make quality-hooks-fast`, `make infra-validate`)
+- [x] T-202 Attach evidence to traceability document
+- [x] T-203 Confirm no stale TODOs/dead code/drift
+- [x] T-204 Run documentation validation (`make docs-build` and `make docs-smoke`)
+- [x] T-205 Run hardening review validation bundle (`make quality-hardening-review`)
 
 ## Publish
-- [ ] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
-- [ ] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
-- [ ] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
+- [x] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
+- [x] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
+- [x] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
 
 ## App Onboarding Minimum Targets (Normative)
 - App onboarding impact: no-impact — Python/YAML-only changes to upgrade pipeline tooling; no app onboarding surface modified.
