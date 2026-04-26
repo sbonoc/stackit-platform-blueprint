@@ -94,6 +94,14 @@ Four independent tracks; all P1, can be started in parallel.
 - [ ] P2 (Consumer upgrade flow): Issue #203 — Stage 2 prune deletes consumer-renamed seeded files still referenced by `kustomization.yaml`; root cause is in Stage 2 apply logic (principled fix requires distinguishing blueprint-named from consumer-renamed files in the upgrade planner). Detection mitigated by adding `infra-argocd-topology-validate` to `VALIDATION_TARGETS` (Issue #199 fix above). Root cause is a separate work item.
 - [ ] P2 (Consumer upgrade flow): Issue #204 — 3-way merge emits duplicate Terraform variable blocks; requires either a semantic Terraform parser (new dependency) or `terraform validate` in VALIDATION_TARGETS (provider-dependent, slow). Separate work item.
 
+#### v1.7.0 upgrade findings (consumer domain boundary violations)
+
+Reported by consumer sbonoc/dhe-marketplace from their v1.7.0 upgrade experience. All three share a root cause: blueprint code hardcodes consumer workload names that belong to the consumer's product domain.
+
+- [x] P1 (Consumer upgrade experience): Issue #208 (bug) — `bootstrap.sh` and `template_smoke_assertions.py` hardcode blueprint seed workload names; consumer topology renames cause `generated-consumer-smoke` CI failures with no local signal. **Done**: `specs/2026-04-26-issue-208-dynamic-workload-derivation/`, PR #209.
+- [x] P1 (Consumer upgrade experience): Issue #207 (bug) — upgrade prune deletes consumer workload manifests in `base/apps/` when `BLUEPRINT_UPGRADE_ALLOW_DELETE=true`; `kustomize build` breaks silently post-upgrade. **Done**: `specs/2026-04-26-issue-207-apps-prune-exclusion/`, PR #210.
+- [ ] P2 (Consumer upgrade experience): Issue #206 (enhancement) — `app_runtime_gitops_contract` hardcodes workload manifest names in `required_files` and `required_paths_when_enabled`; consumer must re-patch the contract after every upgrade. **Spec-only.** `specs/2026-04-26-issue-206-contract-consumer-owned-workloads/`
+
 ---
 
 - [ ] Add an automated bundled-skill contract verifier to enforce parity across `.agents/skills/**`, consumer-template fallbacks, install make targets, and docs references.
