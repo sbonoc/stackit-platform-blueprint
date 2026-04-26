@@ -1203,6 +1203,8 @@ class UpgradeConsumerValidateTests(unittest.TestCase):
         make_targets = [
             "quality-hooks-fast",
             "infra-validate",
+            "blueprint-template-smoke",
+            "infra-argocd-topology-validate",
             "quality-docs-check-core-targets-sync",
             "quality-docs-check-contract-metadata-sync",
             "quality-docs-check-runtime-identity-summary-sync",
@@ -1266,7 +1268,7 @@ class UpgradeConsumerValidateTests(unittest.TestCase):
             report = _load_json(repo / "artifacts/blueprint/upgrade_validate.json")
             summary = report.get("summary", {})
             self.assertEqual(summary.get("status"), "success")
-            self.assertEqual(summary.get("commands_total"), 6)
+            self.assertEqual(summary.get("commands_total"), len(validate_module.VALIDATION_TARGETS))
             self.assertEqual(summary.get("merge_markers_pre_count"), 0)
             self.assertEqual(summary.get("merge_markers_post_count"), 0)
             self.assertEqual(summary.get("runtime_dependency_missing_count"), 0)
@@ -1285,7 +1287,7 @@ class UpgradeConsumerValidateTests(unittest.TestCase):
             _assert_json_schema(report, VALIDATE_SCHEMA)
 
             command_results = report.get("command_results", [])
-            self.assertEqual(len(command_results), 6)
+            self.assertEqual(len(command_results), len(validate_module.VALIDATION_TARGETS))
             self.assertTrue(all(result.get("returncode") == 0 for result in command_results if isinstance(result, dict)))
 
     def test_validate_fails_when_merge_markers_exist(self) -> None:

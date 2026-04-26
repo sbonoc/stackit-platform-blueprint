@@ -8,9 +8,9 @@
 - [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
 
 ## Slice 1 — `blueprint-template-smoke` and `infra-argocd-topology-validate` in VALIDATION_TARGETS
-- [ ] T-001 Add failing unit test `test_blueprint_template_smoke_in_validation_targets` in `tests/blueprint/test_upgrade_consumer.py`
-- [ ] T-002 Add failing unit test `test_infra_argocd_topology_validate_in_validation_targets` in `tests/blueprint/test_upgrade_consumer.py`
-- [ ] T-003 Add `"blueprint-template-smoke"` and `"infra-argocd-topology-validate"` to `VALIDATION_TARGETS` tuple in `scripts/lib/blueprint/upgrade_consumer_validate.py` — both tests turn green
+- [x] T-001 Add failing unit test `test_blueprint_template_smoke_in_validation_targets` in `tests/blueprint/test_upgrade_consumer.py`
+- [x] T-002 Add failing unit test `test_infra_argocd_topology_validate_in_validation_targets` in `tests/blueprint/test_upgrade_consumer.py`
+- [x] T-003 Add `"blueprint-template-smoke"` and `"infra-argocd-topology-validate"` to `VALIDATION_TARGETS` tuple in `scripts/lib/blueprint/upgrade_consumer_validate.py` — both tests turn green
 
 ## Slice 2 — `feature_gated` ownership class
 - [ ] T-004 Add failing unit test: `audit_source_tree_coverage(feature_gated={"apps/catalog"})` does not flag `apps/catalog/manifest.yaml` as uncovered
