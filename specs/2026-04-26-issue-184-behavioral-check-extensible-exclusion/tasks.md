@@ -9,13 +9,13 @@
 
 ## Implementation
 - [ ] T-001 Add `BehavioralCheckUpgradeContract` + `UpgradeContract` dataclasses to `contract_schema.py`; extend `BlueprintContract.upgrade`; update loader to handle optional `spec.upgrade` key
-- [ ] T-002 Add `extra_excluded_count: int` to `ShellBehavioralCheckResult`; add `extra_excluded_tokens` keyword-only param to `run_behavioral_check`; compute `effective_excluded = _EXCLUDED_TOKENS | extra_excluded_tokens`; validate tokens; emit NFR-OBS-001 log
+- [x] T-002 Add `extra_excluded_count: int` to `ShellBehavioralCheckResult`; add `extra_excluded_tokens` keyword-only param to `run_behavioral_check`; compute `effective_excluded = _EXCLUDED_TOKENS | extra_excluded_tokens`; validate tokens; emit NFR-OBS-001 log
 - [ ] T-003 Update `upgrade_consumer_postcheck.py` to read `contract.upgrade.behavioral_check.extra_excluded_tokens` and pass as frozenset to `run_behavioral_check`
 - [ ] T-004 Add commented example field to `blueprint/contract.yaml`
 - [ ] T-005 Add callout to `blueprint-consumer-upgrade` SKILL.md postcheck step
 
 ## Test Automation
-- [ ] T-101 Add `TestExtraExcludedTokens` class to `tests/blueprint/test_upgrade_shell_behavioral_check.py` (AC-001 through AC-007)
+- [x] T-101 Add `TestExtraExcludedTokens` class to `tests/blueprint/test_upgrade_shell_behavioral_check.py` (AC-001 through AC-007)
 - [ ] T-102 Add `TestPostcheckReadsExtraTokensFromContract` class with: `test_extra_tokens_loaded_from_contract_yaml` (FR-001, FR-006) and `test_absent_key_yields_empty_frozenset` (NFR-REL-001)
 - [ ] T-103 Positive-path assertion: token in `extra_excluded_tokens` → zero unresolved symbols (AC-001, non-empty fixture)
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Shell behavioral validation gate for upgrade merge-required entries.
+"""Shell behavioral validation gate for upgrade merge-required entries (Issue #184: extra_excluded_tokens).
 
 Checks every .sh file produced by a 3-way merge for:
   1. Syntax errors via ``bash -n``.
@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import re
 import subprocess
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -127,6 +128,7 @@ class ShellBehavioralCheckResult:
     syntax_errors: list[dict[str, str]]
     unresolved_symbols: list[dict[str, Any]]
     status: str  # "pass" | "fail" | "skipped"
+    extra_excluded_count: int = 0
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -135,6 +137,7 @@ class ShellBehavioralCheckResult:
             "syntax_errors": list(self.syntax_errors),
             "unresolved_symbols": list(self.unresolved_symbols),
             "status": self.status,
+            "extra_excluded_count": self.extra_excluded_count,
         }
 
 
@@ -214,6 +217,8 @@ def _first_token(line: str) -> str | None:
 def _find_unresolved_call_sites(
     content: str,
     available_defs: set[str],
+    *,
+    excluded: frozenset[str] = _EXCLUDED_TOKENS,
 ) -> list[dict[str, Any]]:
     """Find call sites for function names not in available_defs.
 
@@ -272,7 +277,7 @@ def _find_unresolved_call_sites(
                 array_depth += 1
             continue  # declaration line is never a call site
 
-        if token in _EXCLUDED_TOKENS:
+        if token in excluded:
             continue
 
         # Skip case-label lines — a first token immediately followed by ")" is a
@@ -320,6 +325,7 @@ def run_behavioral_check(
     repo_root: Path,
     *,
     skip: bool = False,
+    extra_excluded_tokens: frozenset[str] = frozenset(),
 ) -> ShellBehavioralCheckResult:
     """Run behavioral validation on a list of shell script paths.
 
@@ -327,10 +333,23 @@ def run_behavioral_check(
         files: Absolute paths to .sh files produced by a 3-way merge.
         repo_root: Repository root used to compute display-relative paths.
         skip: When True, skip all checks and return ``status="skipped"``.
+        extra_excluded_tokens: Additional token names to treat as resolved,
+            merged with ``_EXCLUDED_TOKENS`` per invocation without mutation.
+            Non-string and empty entries are silently skipped (NFR-REL-001).
 
     Returns:
         A :class:`ShellBehavioralCheckResult` with all findings.
     """
+    valid_extra: frozenset[str] = frozenset(
+        t for t in extra_excluded_tokens if isinstance(t, str) and t
+    )
+    if valid_extra:
+        print(
+            f"[BEHAVIORAL-CHECK] applying {len(valid_extra)} consumer extra excluded tokens",
+            file=sys.stderr,
+        )
+    effective_excluded = _EXCLUDED_TOKENS | valid_extra
+
     if skip:
         return ShellBehavioralCheckResult(
             skipped=True,
@@ -338,6 +357,7 @@ def run_behavioral_check(
             syntax_errors=[],
             unresolved_symbols=[],
             status="skipped",
+            extra_excluded_count=len(valid_extra),
         )
 
     syntax_errors: list[dict[str, str]] = []
@@ -365,7 +385,9 @@ def run_behavioral_check(
             continue
 
         available_defs = _collect_available_definitions(script_path, content)
-        call_site_findings = _find_unresolved_call_sites(content, available_defs)
+        call_site_findings = _find_unresolved_call_sites(
+            content, available_defs, excluded=effective_excluded
+        )
         for finding in call_site_findings:
             unresolved_symbols.append({
                 "file": display_path,
@@ -380,4 +402,5 @@ def run_behavioral_check(
         syntax_errors=syntax_errors,
         unresolved_symbols=unresolved_symbols,
         status=status,
+        extra_excluded_count=len(valid_extra),
     )
