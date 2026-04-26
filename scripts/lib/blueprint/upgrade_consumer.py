@@ -1772,6 +1772,7 @@ def main() -> int:
 
         required_files, source_only, consumer_seeded, init_managed, conditional = _contract_paths(contract)
         managed_dir_roots = _managed_roots(contract)
+        feature_gated = frozenset(contract.repository.feature_gated_paths)
         if source_contract is not None:
             (
                 source_required_files,
@@ -1786,6 +1787,7 @@ def main() -> int:
             init_managed = _merge_path_sets(init_managed, source_init_managed)
             conditional = _merge_path_sets(conditional, source_conditional)
             managed_dir_roots = _merge_path_sets(managed_dir_roots, _managed_roots(source_contract))
+            feature_gated = feature_gated | frozenset(source_contract.repository.feature_gated_paths)
 
         source_files, target_files, managed_dir_roots = _collect_candidate_paths(
             repo_root,
@@ -1857,7 +1859,7 @@ def main() -> int:
             init_managed,
             conditional,
             managed_dir_roots | _plat_owned,
-            feature_gated=frozenset(contract.repository.feature_gated_paths),
+            feature_gated=feature_gated,
         )
         uncovered_source_files_count = len(uncovered_source_files)
 

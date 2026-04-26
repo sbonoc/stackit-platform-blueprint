@@ -2209,6 +2209,45 @@ class TestFeatureGatedCoverage(unittest.TestCase):
         )
         self.assertIn("scripts/setup.sh", uncovered)
 
+    def test_source_contract_feature_gated_merged_into_coverage(self) -> None:
+        """Source blueprint adds feature_gated; old consumer contract has none.
+
+        The coverage audit must use the union of source and target feature_gated
+        paths so that files classified in the NEW blueprint contract are not
+        flagged as uncovered when the consumer's contract has not yet been upgraded.
+        """
+        source = self._make_source({"apps/catalog/manifest.yaml": "# catalog\n"})
+        # Simulate old consumer contract: feature_gated is empty
+        uncovered_with_target_only = upgrade_consumer.audit_source_tree_coverage(
+            source_repo=source,
+            required_files=set(),
+            source_only=set(),
+            init_managed=set(),
+            conditional=set(),
+            managed_roots=set(),
+            feature_gated=frozenset(),  # bug: target contract has no feature_gated
+        )
+        self.assertIn(
+            "apps/catalog/manifest.yaml",
+            uncovered_with_target_only,
+            "without source-contract merge, file appears uncovered (demonstrates the bug)",
+        )
+        # Fix: union of source and target feature_gated
+        uncovered_with_merged = upgrade_consumer.audit_source_tree_coverage(
+            source_repo=source,
+            required_files=set(),
+            source_only=set(),
+            init_managed=set(),
+            conditional=set(),
+            managed_roots=set(),
+            feature_gated=frozenset(["apps/catalog"]),  # merged from source contract
+        )
+        self.assertNotIn(
+            "apps/catalog/manifest.yaml",
+            uncovered_with_merged,
+            "with source-contract feature_gated merged, file must not be flagged",
+        )
+
 
 class TestValidationTargets(unittest.TestCase):
     """FR-001, FR-005, AC-001, AC-006: VALIDATION_TARGETS includes required Make targets."""
