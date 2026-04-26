@@ -2137,5 +2137,15 @@ class TestValidatePlanUncoveredSourceFiles(unittest.TestCase):
         self.assertEqual(errors, [])
 
 
+class TestValidationTargets(unittest.TestCase):
+    """FR-001, FR-005, AC-001, AC-006: VALIDATION_TARGETS includes required Make targets."""
+
+    def test_blueprint_template_smoke_in_validation_targets(self) -> None:
+        self.assertIn("blueprint-template-smoke", validate_module.VALIDATION_TARGETS)
+
+    def test_infra_argocd_topology_validate_in_validation_targets(self) -> None:
+        self.assertIn("infra-argocd-topology-validate", validate_module.VALIDATION_TARGETS)
+
+
 if __name__ == "__main__":
     unittest.main()
