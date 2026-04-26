@@ -8,7 +8,7 @@
       "path": "specs/2026-04-26-issue-198-199-upgrade-coverage-gaps/spec.md",
       "role": "specification",
       "status": "authored",
-      "sha256": "fb03775f32c0b4e6abfab682c8b5e846aad5636e58dbe04d1492f023c211be6c"
+      "sha256": "d66a6c51fabf8c5aafb98dab34ef3b016ed74b9aff3c314cacb8472e76e29b6f"
     },
     {
       "path": "specs/2026-04-26-issue-198-199-upgrade-coverage-gaps/architecture.md",
@@ -32,7 +32,7 @@
       "path": "specs/2026-04-26-issue-198-199-upgrade-coverage-gaps/traceability.md",
       "role": "traceability-matrix",
       "status": "authored",
-      "sha256": "f7750e9a0deb2b41b10680fca8b6fd9b88ac2ba497702f180c36fe21821b63d7"
+      "sha256": "f2d0577b82071363ede5d638cac3bde800e34a839a2b3097a0d4585bb5bb0b0a"
     },
     {
       "path": "specs/2026-04-26-issue-198-199-upgrade-coverage-gaps/graph.json",

@@ -36,7 +36,7 @@
 - Local-first exception rationale: none
 
 ## Objective
-- Business outcome: Close three latent coverage gaps in the blueprint upgrade pipeline that allow regressions in consumer repos to go undetected until CI: (1) `blueprint-template-smoke` is absent from `VALIDATION_TARGETS`, so template-init regressions are never caught locally; (2) `infra-argocd-topology-validate` is absent from `VALIDATION_TARGETS`, so broken kustomize topology manifests (e.g. from the Stage 2 prune step) are not caught before push; (3) `apps/catalog` feature-gated paths are missing from `ownership_path_classes`, causing false-positive "uncovered file" warnings on every blueprint source-tree coverage audit.
+- Business outcome: Close four latent defects in the blueprint upgrade pipeline discovered during the v1.7.0 adoption: (1) `blueprint-template-smoke` is absent from `VALIDATION_TARGETS`, so template-init regressions are never caught locally; (2) `infra-argocd-topology-validate` is absent from `VALIDATION_TARGETS`, so broken kustomize topology manifests are not caught before push; (3) `apps/catalog` feature-gated paths are missing from `ownership_path_classes`, causing false-positive "uncovered file" warnings on every coverage audit; (4) `resolve_contract_upgrade.py` uses bare `yaml.dump()`, producing indentless sequences and wrapped scalars that silently break `parse_yaml_subset`.
 - Success metric: (1) `blueprint-template-smoke` and `infra-argocd-topology-validate` appear in `VALIDATION_TARGETS`; (2) `apps/catalog*` paths are declared under a new `feature_gated` ownership class; (3) `audit_source_tree_coverage` accepts `feature_gated` paths; (4) `make infra-validate` passes on the blueprint repo; (5) all new and existing tests are green.
 
 ## Normative Requirements
