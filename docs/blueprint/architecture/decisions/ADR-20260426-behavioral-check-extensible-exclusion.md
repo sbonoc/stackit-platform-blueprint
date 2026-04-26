@@ -1,9 +1,10 @@
 # ADR-20260426-behavioral-check-extensible-exclusion: Extend shell behavioral check exclusion set via contract.yaml
 
 ## Metadata
-- Status: proposed
+- Status: approved
 - Date: 2026-04-26
 - Owners: sbonoc
+- ADR technical decision sign-off: approved
 - Related spec path: specs/2026-04-26-issue-184-behavioral-check-extensible-exclusion/
 
 ## Business Objective and Requirement Summary
