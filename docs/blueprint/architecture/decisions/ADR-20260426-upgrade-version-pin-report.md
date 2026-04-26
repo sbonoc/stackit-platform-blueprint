@@ -1,9 +1,10 @@
 # ADR: Issue #164 — Version Pin Changes in Upgrade Residual Report
 
-- **Status**: proposed
+- **Status**: approved
 - **Date**: 2026-04-26
 - **Issue**: #164
 - **Work item**: `specs/2026-04-26-issue-164-upgrade-version-pin-report/`
+- **ADR technical decision sign-off**: approved
 
 ## Context
 

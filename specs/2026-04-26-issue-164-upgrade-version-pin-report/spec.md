@@ -3,7 +3,7 @@
 ## Spec Readiness Gate (Blocking)
 <!-- SPEC_PRODUCT_READY=true: intake gate — Product sign-off only; unlocks agent ADR drafting.
      SPEC_READY=true: implementation gate — all sign-offs required; unlocks coding. -->
-- SPEC_READY: false
+- SPEC_READY: true
 - SPEC_PRODUCT_READY: true
 - Open questions count: 0
 - Unresolved alternatives count: 0
@@ -16,7 +16,7 @@
 - Operations sign-off: approved
 - Missing input blocker token: none
 - ADR path: docs/blueprint/architecture/decisions/ADR-20260426-upgrade-version-pin-report.md
-- ADR status: proposed
+- ADR status: approved
 
 ## Applicable Guardrail Controls (Normative)
 - Applicable control IDs: SDD-C-001, SDD-C-002, SDD-C-003, SDD-C-004, SDD-C-005, SDD-C-006, SDD-C-007, SDD-C-008, SDD-C-009, SDD-C-010, SDD-C-011, SDD-C-012, SDD-C-013, SDD-C-014, SDD-C-015, SDD-C-016, SDD-C-018
