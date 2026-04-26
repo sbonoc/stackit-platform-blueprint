@@ -23,6 +23,11 @@
       "summary": "Declare apps/catalog paths under feature_gated in contract.yaml"
     },
     {
+      "id": "FR-005",
+      "type": "requirement",
+      "summary": "Add infra-argocd-topology-validate to VALIDATION_TARGETS"
+    },
+    {
       "id": "NFR-SEC-001",
       "type": "requirement",
       "summary": "No authn/authz bypass, secret exposure, or privilege escalation"
@@ -40,7 +45,7 @@
     {
       "id": "NFR-OPS-001",
       "type": "requirement",
-      "summary": "blueprint-template-smoke runnable in consumer repos after upgrade without extra config"
+      "summary": "blueprint-template-smoke and infra-argocd-topology-validate runnable in consumer repos after upgrade without extra config"
     },
     {
       "id": "AC-001",
@@ -66,10 +71,16 @@
       "id": "AC-005",
       "type": "acceptance",
       "summary": "All pre-existing TestAuditSourceTreeCoverage tests remain green"
+    },
+    {
+      "id": "AC-006",
+      "type": "acceptance",
+      "summary": "Unit test confirms infra-argocd-topology-validate in VALIDATION_TARGETS"
     }
   ],
   "edges": [
     {"from": "FR-001", "to": "AC-001", "relation": "validated_by"},
+    {"from": "FR-005", "to": "AC-006", "relation": "validated_by"},
     {"from": "FR-002", "to": "AC-002", "relation": "validated_by"},
     {"from": "FR-002", "to": "AC-003", "relation": "validated_by"},
     {"from": "FR-003", "to": "AC-002", "relation": "validated_by"},
@@ -80,6 +91,7 @@
     {"from": "NFR-OBS-001", "to": "AC-002", "relation": "constrains"},
     {"from": "NFR-REL-001", "to": "AC-004", "relation": "constrains"},
     {"from": "NFR-REL-001", "to": "AC-005", "relation": "constrains"},
-    {"from": "NFR-OPS-001", "to": "AC-001", "relation": "constrains"}
+    {"from": "NFR-OPS-001", "to": "AC-001", "relation": "constrains"},
+    {"from": "NFR-OPS-001", "to": "AC-006", "relation": "constrains"}
   ]
 }

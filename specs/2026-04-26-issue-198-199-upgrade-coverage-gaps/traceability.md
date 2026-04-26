@@ -5,6 +5,7 @@
 | Requirement ID | Control IDs | Design Element | Implementation Path(s) | Test Evidence | Documentation Evidence | Operational Evidence |
 |---|---|---|---|---|---|---|
 | FR-001 | SDD-C-004, SDD-C-005 | `VALIDATION_TARGETS` tuple | `scripts/lib/blueprint/upgrade_consumer_validate.py:28-35` | `test_blueprint_template_smoke_in_validation_targets` | — | `make quality-hooks-fast` |
+| FR-005 | SDD-C-004, SDD-C-005 | `VALIDATION_TARGETS` tuple | `scripts/lib/blueprint/upgrade_consumer_validate.py:28-35` | `test_infra_argocd_topology_validate_in_validation_targets` | — | `make quality-hooks-fast` |
 | FR-002 | SDD-C-004, SDD-C-005, SDD-C-007 | `RepositoryOwnershipPathClasses.feature_gated` | `scripts/lib/blueprint/contract_schema.py` | `test_feature_gated_paths_covered` | — | `make infra-validate` |
 | FR-003 | SDD-C-004, SDD-C-008 | `audit_source_tree_coverage(feature_gated=...)` | `scripts/lib/blueprint/upgrade_consumer.py:336-386` | `test_feature_gated_paths_covered` | — | `make infra-validate` |
 | FR-004 | SDD-C-004, SDD-C-005 | `ownership_path_classes.feature_gated` YAML | `blueprint/contract.yaml`, bootstrap template | `test_feature_gated_contract_yaml_populated` | — | `make infra-validate` |
@@ -13,6 +14,7 @@
 | NFR-REL-001 | SDD-C-012 | Rollback = `git revert`; default-empty param | Backward-compat default in `audit_source_tree_coverage` | All pre-existing tests remain green | — | — |
 | NFR-OPS-001 | SDD-C-010 | `blueprint-template-smoke` already exists in consumer repos | `scripts/bin/blueprint/template_smoke.sh` | Existing `contract_refactor_governance_init_cases.py` | — | — |
 | AC-001 | SDD-C-012 | `VALIDATION_TARGETS` membership | `upgrade_consumer_validate.py` | `test_blueprint_template_smoke_in_validation_targets` | — | — |
+| AC-006 | SDD-C-012 | `VALIDATION_TARGETS` membership | `upgrade_consumer_validate.py` | `test_infra_argocd_topology_validate_in_validation_targets` | — | — |
 | AC-002 | SDD-C-012 | `audit_source_tree_coverage` + `feature_gated` | `upgrade_consumer.py` | `test_feature_gated_paths_covered` | — | — |
 | AC-003 | SDD-C-012 | `validate_contract.py` accepts `feature_gated` | `validate_contract.py` | `test_feature_gated_no_validation_errors` | — | — |
 | AC-004 | SDD-C-012 | `make infra-validate` pass | `blueprint/contract.yaml` + bootstrap template | `make infra-validate` output | — | — |
@@ -26,6 +28,7 @@
   - FR-002
   - FR-003
   - FR-004
+  - FR-005
   - NFR-SEC-001
   - NFR-OBS-001
   - NFR-REL-001
@@ -35,6 +38,7 @@
   - AC-003
   - AC-004
   - AC-005
+  - AC-006
 
 ## Validation Summary
 - Required bundles executed: pending (post-implementation)

@@ -25,11 +25,13 @@
 
 ## Delivery Slices
 
-### Slice 1 — Add `blueprint-template-smoke` to `VALIDATION_TARGETS` (red → green)
+### Slice 1 — Add `blueprint-template-smoke` and `infra-argocd-topology-validate` to `VALIDATION_TARGETS` (red → green)
 **Scope**: `tests/blueprint/test_upgrade_consumer.py`, `scripts/lib/blueprint/upgrade_consumer_validate.py`
 
-1. Add a failing unit test in `TestUpgradeConsumerValidate` (or a new `TestValidationTargets` class) that asserts `"blueprint-template-smoke" in validate_module.VALIDATION_TARGETS`.
-2. Add `"blueprint-template-smoke"` to the `VALIDATION_TARGETS` tuple in `upgrade_consumer_validate.py` — the test turns green.
+1. Add two failing unit tests in a new `TestValidationTargets` class:
+   - `test_blueprint_template_smoke_in_validation_targets` — asserts `"blueprint-template-smoke" in validate_module.VALIDATION_TARGETS`
+   - `test_infra_argocd_topology_validate_in_validation_targets` — asserts `"infra-argocd-topology-validate" in validate_module.VALIDATION_TARGETS`
+2. Add `"blueprint-template-smoke"` and `"infra-argocd-topology-validate"` to the `VALIDATION_TARGETS` tuple in `upgrade_consumer_validate.py` — both tests turn green.
 3. Run `make quality-hooks-fast` to confirm no regressions.
 
 ### Slice 2 — Add `feature_gated` ownership class (red → green)

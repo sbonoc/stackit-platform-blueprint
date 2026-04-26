@@ -36,8 +36,8 @@
 - Local-first exception rationale: none
 
 ## Objective
-- Business outcome: Close two latent coverage gaps in the blueprint upgrade pipeline that allow regressions in consumer repos to go undetected until manual CI investigation: (1) the init-path smoke check (`blueprint-template-smoke`) is absent from post-upgrade validation targets, meaning template-init regressions are never caught automatically; (2) the `apps/catalog` feature-gated paths are missing from the ownership contract, causing every blueprint-source-tree coverage audit to emit false-positive "uncovered file" warnings and, if unenforced, to silently block plan generation.
-- Success metric: (1) `blueprint-template-smoke` appears in `VALIDATION_TARGETS`; (2) `apps/catalog*` paths are declared under a new `feature_gated` ownership class; (3) `audit_source_tree_coverage` accepts `feature_gated` paths; (4) `make infra-validate` passes on the blueprint repo; (5) all new and existing tests are green.
+- Business outcome: Close three latent coverage gaps in the blueprint upgrade pipeline that allow regressions in consumer repos to go undetected until CI: (1) `blueprint-template-smoke` is absent from `VALIDATION_TARGETS`, so template-init regressions are never caught locally; (2) `infra-argocd-topology-validate` is absent from `VALIDATION_TARGETS`, so broken kustomize topology manifests (e.g. from the Stage 2 prune step) are not caught before push; (3) `apps/catalog` feature-gated paths are missing from `ownership_path_classes`, causing false-positive "uncovered file" warnings on every blueprint source-tree coverage audit.
+- Success metric: (1) `blueprint-template-smoke` and `infra-argocd-topology-validate` appear in `VALIDATION_TARGETS`; (2) `apps/catalog*` paths are declared under a new `feature_gated` ownership class; (3) `audit_source_tree_coverage` accepts `feature_gated` paths; (4) `make infra-validate` passes on the blueprint repo; (5) all new and existing tests are green.
 
 ## Normative Requirements
 
@@ -46,12 +46,13 @@
 - FR-002 MUST add a `feature_gated` field to `RepositoryOwnershipPathClasses` in `scripts/lib/blueprint/contract_schema.py` that holds a list of paths that are owned by the platform under an opt-in feature flag, require no disk-presence check, and are not required to match the `optional_modules` equality invariant.
 - FR-003 MUST pass `feature_gated` paths as a coverage set to `audit_source_tree_coverage` in `scripts/lib/blueprint/upgrade_consumer.py` so that feature-gated paths do not produce false-positive uncovered-file warnings.
 - FR-004 MUST declare `apps/catalog`, `apps/catalog/manifest.yaml`, and `apps/catalog/versions.lock` under `feature_gated` in `blueprint/contract.yaml` `ownership_path_classes` (and mirror the change to the bootstrap template counterpart).
+- FR-005 MUST add `"infra-argocd-topology-validate"` to `VALIDATION_TARGETS` in `scripts/lib/blueprint/upgrade_consumer_validate.py` so that broken kustomize topology manifests (e.g. introduced by the Stage 2 prune step) are caught locally before push, mirroring the `blueprint-quality` CI gate.
 
 ### Non-Functional Requirements (Normative)
 - NFR-SEC-001 MUST NOT introduce any authn/authz bypass, secret exposure, or privilege escalation. This work is confined to Python schema/validation logic and YAML contract files; the security posture is unchanged.
 - NFR-OBS-001 MUST update the `validate_plan_uncovered_source_files` error message to reference `feature_gated` alongside existing coverage sets so that operators can interpret any remaining warnings without consulting source code.
 - NFR-REL-001 MUST NOT break `make infra-validate` on the blueprint repo or `make quality-hooks-fast` in consumer repos; rollback MUST be achievable by reverting the PR.
-- NFR-OPS-001 MUST ensure `blueprint-template-smoke` is runnable in generated-consumer repos after upgrade without any additional operator configuration.
+- NFR-OPS-001 MUST ensure `blueprint-template-smoke` and `infra-argocd-topology-validate` are runnable in generated-consumer repos after upgrade without any additional operator configuration. Both targets MUST be safe to invoke in a read-only context (no side effects on the consumer repo).
 
 ## Normative Option Decision
 - Option A: Loosen `_optional_str_map` and extend `OptionalModuleContract.paths` to include `apps/catalog` paths; adapt the `conditional_scaffold` equality invariant to tolerate non-matched entries.
@@ -64,7 +65,7 @@
 - API contract: none
 - OpenAPI / Pact contract path: none
 - Event contract: none
-- Make/CLI contract: none — `blueprint-template-smoke` target already exists; adding it to `VALIDATION_TARGETS` does not change its signature.
+- Make/CLI contract: none — `blueprint-template-smoke` and `infra-argocd-topology-validate` already exist as blueprint-managed targets; adding them to `VALIDATION_TARGETS` does not change their signatures.
 - Docs contract: `validate_plan_uncovered_source_files` error string updated to mention `feature_gated`.
 
 ## Blueprint Upstream Defect Escalation (Normative)
@@ -79,13 +80,16 @@
 - AC-003 MUST: `validate_contract.py` accepts a `contract.yaml` bearing `feature_gated: [apps/catalog, ...]` without emitting errors.
 - AC-004 MUST: `make infra-validate` passes on the blueprint repo after all changes are applied.
 - AC-005 MUST: all pre-existing `TestAuditSourceTreeCoverage` tests remain green; the new `feature_gated` parameter defaults to empty set to preserve backward compatibility at call sites not yet updated.
+- AC-006 MUST: a unit test confirms `"infra-argocd-topology-validate"` is present in `upgrade_consumer_validate.VALIDATION_TARGETS`.
 
 ## Informative Notes (Non-Normative)
-- Context: Issue #198 — `apps/catalog*` paths are covered only by `app_catalog_scaffold_contract.required_paths_when_enabled` but that contract is a separate top-level key, not wired into `ownership_path_classes`. Issue #199 — `blueprint-template-smoke` was intentionally added as a Make target in an earlier issue but was never added to `VALIDATION_TARGETS`.
-- Tradeoffs: Option B adds a new ownership class name that future developers must learn. The alternative (Option A) would have required touching the `OptionalModuleContract` schema more broadly and adjusting the equality invariant, risking regressions in all modules that use `conditional` scaffolding.
+- Context: Issue #198 — `apps/catalog*` paths are covered only by `app_catalog_scaffold_contract.required_paths_when_enabled` but that contract is a separate top-level key, not wired into `ownership_path_classes`. Issue #199 — `blueprint-template-smoke` was intentionally added as a Make target in an earlier issue but was never added to `VALIDATION_TARGETS`. Issue #199 comment — `infra-argocd-topology-validate` is also missing from `VALIDATION_TARGETS`; `infra-validate` calls `validate.sh` which does not run `kustomize build`, so broken topology manifests (e.g. from the Stage 2 prune step, as observed in dhe-marketplace #203) only surface at the CI `blueprint-quality` job. Issue #203 — Stage 2 prune deletes consumer-renamed blueprint-seeded files; adding `infra-argocd-topology-validate` to `VALIDATION_TARGETS` provides early detection of the symptom; the root cause (prune algorithm) is excluded (see Explicit Exclusions). Issue #204 — 3-way merge emits duplicate Terraform variable blocks; excluded as it requires a semantic .tf file parser or provider-dependent `terraform validate`; separate work item.
+- Tradeoffs: Option B adds a new ownership class name that future developers must learn. The alternative (Option A) would have required touching the `OptionalModuleContract` schema more broadly and adjusting the equality invariant, risking regressions in all modules that use `conditional` scaffolding. `infra-argocd-topology-validate` degrades gracefully when kustomize is not installed (falls back to kustomization file check), so it is safe to include in VALIDATION_TARGETS without hard-requiring kustomize.
 - Clarifications: none
 
 ## Explicit Exclusions
 - Extending `_optional_str_map` or `OptionalModuleContract.paths` (Option A approach) is explicitly excluded.
 - Disk-presence checks for `feature_gated` paths are explicitly excluded — these paths are only expected on-disk when the feature flag is enabled in the consumer repo.
 - Consumer-repo migration guidance or docs updates for `apps/catalog` enablement are out of scope.
+- Issue #203 root cause (Stage 2 prune algorithm deleting consumer-renamed seeded files) is explicitly excluded from this PR. The fix requires modifications to the prune algorithm in `upgrade_consumer.py` Stage 2 apply logic. The suggested fix in #203 (checking kustomization.yaml references before pruning) is too narrow — it handles only the kustomization case and not the general rename problem. Early detection is mitigated by FR-005 (`infra-argocd-topology-validate` in VALIDATION_TARGETS). Root cause fix is a separate work item.
+- Issue #204 (3-way merge duplicate Terraform block declarations) is explicitly excluded from this PR. The fix requires either a semantic Terraform parser (new dependency/complexity) or running `terraform validate` during upgrade validation (provider-dependent, slow). Architecturally unrelated to VALIDATION_TARGETS gaps and feature_gated ownership class. Separate work item.

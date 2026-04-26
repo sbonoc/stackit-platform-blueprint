@@ -7,31 +7,32 @@
 - [ ] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
 - [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
 
-## Slice 1 — `blueprint-template-smoke` in VALIDATION_TARGETS
-- [ ] T-001 Add failing unit test asserting `"blueprint-template-smoke" in validate_module.VALIDATION_TARGETS` in `tests/blueprint/test_upgrade_consumer.py`
-- [ ] T-002 Add `"blueprint-template-smoke"` to `VALIDATION_TARGETS` tuple in `scripts/lib/blueprint/upgrade_consumer_validate.py` — test turns green
+## Slice 1 — `blueprint-template-smoke` and `infra-argocd-topology-validate` in VALIDATION_TARGETS
+- [ ] T-001 Add failing unit test `test_blueprint_template_smoke_in_validation_targets` in `tests/blueprint/test_upgrade_consumer.py`
+- [ ] T-002 Add failing unit test `test_infra_argocd_topology_validate_in_validation_targets` in `tests/blueprint/test_upgrade_consumer.py`
+- [ ] T-003 Add `"blueprint-template-smoke"` and `"infra-argocd-topology-validate"` to `VALIDATION_TARGETS` tuple in `scripts/lib/blueprint/upgrade_consumer_validate.py` — both tests turn green
 
 ## Slice 2 — `feature_gated` ownership class
-- [ ] T-003 Add failing unit test: `audit_source_tree_coverage(feature_gated={"apps/catalog"})` does not flag `apps/catalog/manifest.yaml` as uncovered
-- [ ] T-004 Add `feature_gated: list[str]` field to `RepositoryOwnershipPathClasses` in `scripts/lib/blueprint/contract_schema.py` (default empty list)
-- [ ] T-005 Add `feature_gated_paths` property to `RepositoryContract` in `contract_schema.py`
-- [ ] T-006 Parse `feature_gated` from YAML in the schema loader (parallel to `conditional_scaffold`)
-- [ ] T-007 Add `feature_gated` parameter (default `frozenset()`) to `audit_source_tree_coverage` in `scripts/lib/blueprint/upgrade_consumer.py`; include it in `all_coverage_roots`
-- [ ] T-008 Update the `audit_source_tree_coverage` call site in `upgrade_consumer.py` to pass `set(contract.repository.feature_gated_paths)`
-- [ ] T-009 Update `validate_plan_uncovered_source_files` error message to reference `feature_gated`
+- [ ] T-004 Add failing unit test: `audit_source_tree_coverage(feature_gated={"apps/catalog"})` does not flag `apps/catalog/manifest.yaml` as uncovered
+- [ ] T-005 Add `feature_gated: list[str]` field to `RepositoryOwnershipPathClasses` in `scripts/lib/blueprint/contract_schema.py` (default empty list)
+- [ ] T-006 Add `feature_gated_paths` property to `RepositoryContract` in `contract_schema.py`
+- [ ] T-007 Parse `feature_gated` from YAML in the schema loader (parallel to `conditional_scaffold`)
+- [ ] T-008 Add `feature_gated` parameter (default `frozenset()`) to `audit_source_tree_coverage` in `scripts/lib/blueprint/upgrade_consumer.py`; include it in `all_coverage_roots`
+- [ ] T-009 Update the `audit_source_tree_coverage` call site in `upgrade_consumer.py` to pass `set(contract.repository.feature_gated_paths)`
+- [ ] T-010 Update `validate_plan_uncovered_source_files` error message to reference `feature_gated`
 
 ## Slice 3 — Contract validation for `feature_gated`
-- [ ] T-010 Add test: a contract dict with `feature_gated: [apps/catalog]` produces no validation errors in `validate_contract.py` ownership section
-- [ ] T-011 Read and validate `feature_gated` in `scripts/bin/blueprint/validate_contract.py` — no disk-presence check, no equality constraint against `optional_modules`
+- [ ] T-011 Add test: a contract dict with `feature_gated: [apps/catalog]` produces no validation errors in `validate_contract.py` ownership section
+- [ ] T-012 Read and validate `feature_gated` in `scripts/bin/blueprint/validate_contract.py` — no disk-presence check, no equality constraint against `optional_modules`
 
 ## Slice 4 — Populate YAML
-- [ ] T-012 Add `feature_gated:` list under `ownership_path_classes` in `blueprint/contract.yaml` with `apps/catalog`, `apps/catalog/manifest.yaml`, `apps/catalog/versions.lock`
-- [ ] T-013 Mirror identical addition to `scripts/templates/blueprint/bootstrap/blueprint/contract.yaml`
-- [ ] T-014 Run `make infra-validate` — passes (AC-004)
+- [ ] T-013 Add `feature_gated:` list under `ownership_path_classes` in `blueprint/contract.yaml` with `apps/catalog`, `apps/catalog/manifest.yaml`, `apps/catalog/versions.lock`
+- [ ] T-014 Mirror identical addition to `scripts/templates/blueprint/bootstrap/blueprint/contract.yaml`
+- [ ] T-015 Run `make infra-validate` — passes (AC-004)
 
 ## Slice 5 — Quality gates and evidence
-- [ ] T-015 Run `make quality-hooks-fast` — passes
-- [ ] T-016 Capture test output and attach to `traceability.md`
+- [ ] T-016 Run `make quality-hooks-fast` — passes
+- [ ] T-017 Capture test output and attach to `traceability.md`
 
 ## Validation and Release Readiness
 - [ ] T-201 Run required Make validation bundles (`make quality-hooks-fast`, `make infra-validate`)
