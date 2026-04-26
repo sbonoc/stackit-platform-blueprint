@@ -1,0 +1,68 @@
+{
+  "manifest_version": 1,
+  "work_item": "2026-04-26-issue-207-apps-prune-exclusion",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-04-26T11:28:00Z",
+  "files": [
+    {
+      "path": "scripts/lib/blueprint/upgrade_consumer.py",
+      "role": "implementation",
+      "description": "_is_consumer_owned_workload() predicate and guard in _classify_entries()"
+    },
+    {
+      "path": "tests/blueprint/test_upgrade_consumer.py",
+      "role": "test",
+      "description": "ConsumerOwnedWorkloadPruneTests — 6 new unit tests"
+    },
+    {
+      "path": "docs/blueprint/architecture/decisions/ADR-2026-04-26-issue-207-apps-prune-exclusion.md",
+      "role": "adr",
+      "description": "Decision record for consumer workload manifest prune exclusion"
+    },
+    {
+      "path": "specs/2026-04-26-issue-207-apps-prune-exclusion/architecture.md",
+      "role": "spec-artifact",
+      "description": "Architecture document with Mermaid classification flow"
+    },
+    {
+      "path": "specs/2026-04-26-issue-207-apps-prune-exclusion/spec.md",
+      "role": "spec-artifact",
+      "description": "Full specification with SPEC_READY=true, all sign-offs approved"
+    },
+    {
+      "path": "specs/2026-04-26-issue-207-apps-prune-exclusion/plan.md",
+      "role": "spec-artifact",
+      "description": "4-slice implementation plan"
+    },
+    {
+      "path": "specs/2026-04-26-issue-207-apps-prune-exclusion/tasks.md",
+      "role": "spec-artifact",
+      "description": "All tasks marked completed"
+    },
+    {
+      "path": "specs/2026-04-26-issue-207-apps-prune-exclusion/traceability.md",
+      "role": "spec-artifact",
+      "description": "Full requirement-to-delivery mapping"
+    },
+    {
+      "path": "specs/2026-04-26-issue-207-apps-prune-exclusion/graph.json",
+      "role": "spec-artifact",
+      "description": "Requirement and acceptance criterion dependency graph"
+    },
+    {
+      "path": "specs/2026-04-26-issue-207-apps-prune-exclusion/context_pack.md",
+      "role": "spec-artifact",
+      "description": "Work item context snapshot"
+    },
+    {
+      "path": "specs/2026-04-26-issue-207-apps-prune-exclusion/pr_context.md",
+      "role": "spec-artifact",
+      "description": "PR context with requirement coverage, reviewer files, evidence, rollback"
+    },
+    {
+      "path": "specs/2026-04-26-issue-207-apps-prune-exclusion/hardening_review.md",
+      "role": "spec-artifact",
+      "description": "Hardening review with finding, observability, architecture, and proposals sections"
+    }
+  ]
+}
