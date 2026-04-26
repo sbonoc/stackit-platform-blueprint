@@ -2139,6 +2139,45 @@ class TestValidatePlanUncoveredSourceFiles(unittest.TestCase):
         self.assertEqual(errors, [])
 
 
+class TestFeatureGatedCoverage(unittest.TestCase):
+    """FR-002, FR-003, AC-002, AC-005: feature_gated paths are covered without disk-presence check."""
+
+    def _make_source(self, files: dict[str, str]) -> Path:
+        tmp = Path(tempfile.mkdtemp())
+        for rel, content in files.items():
+            p = tmp / rel
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_text(content)
+        return tmp
+
+    def test_feature_gated_paths_covered(self) -> None:
+        """apps/catalog/manifest.yaml must not be flagged when apps/catalog is in feature_gated."""
+        source = self._make_source({"apps/catalog/manifest.yaml": "# catalog\n"})
+        uncovered = upgrade_consumer.audit_source_tree_coverage(
+            source_repo=source,
+            required_files=set(),
+            source_only=set(),
+            init_managed=set(),
+            conditional=set(),
+            managed_roots=set(),
+            feature_gated={"apps/catalog"},
+        )
+        self.assertNotIn("apps/catalog/manifest.yaml", uncovered)
+
+    def test_feature_gated_default_empty_preserves_backward_compat(self) -> None:
+        """Calling audit_source_tree_coverage without feature_gated must still work (AC-005)."""
+        source = self._make_source({"scripts/setup.sh": "#!/bin/bash\n"})
+        uncovered = upgrade_consumer.audit_source_tree_coverage(
+            source_repo=source,
+            required_files=set(),
+            source_only=set(),
+            init_managed=set(),
+            conditional=set(),
+            managed_roots=set(),
+        )
+        self.assertIn("scripts/setup.sh", uncovered)
+
+
 class TestValidationTargets(unittest.TestCase):
     """FR-001, FR-005, AC-001, AC-006: VALIDATION_TARGETS includes required Make targets."""
 
