@@ -31,4 +31,4 @@
 - Rollback strategy: `git revert` of the PR. No database migrations, no infra state, no consumer-repo changes. The `feature_gated` parameter defaults to `frozenset()` so any consumer that hasn't upgraded yet continues to work.
 
 ## Deferred Proposals
-- Proposal 1: Add a cross-check validator that confirms `feature_gated` paths in `contract.yaml` are a superset of `app_catalog_scaffold_contract.required_paths_when_enabled` — deferred to a follow-up issue to keep this PR minimal.
+- Proposal 1: Add a cross-check validator that confirms `feature_gated` paths in `contract.yaml` are a superset of `app_catalog_scaffold_contract.required_paths_when_enabled` — Parked: `app_catalog_scaffold_contract.required_paths_when_enabled` does not exist as a formal data structure; implementing the check now would require either a meaningless hardcoded list or unplanned scope to formalize the catalog scaffold contract. Trigger: `on-scope: blueprint` — surfaces when blueprint contract formalization work is next touched.
