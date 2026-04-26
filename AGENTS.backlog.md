@@ -70,7 +70,11 @@ Four independent tracks; all P1, can be started in parallel.
 
 #### Phase 3 — Reporting and guidance improvements
 
-- [ ] P2 (Consumer upgrade flow): Issue #164 — in the upgrade preflight report, list all version pin changes in `versions.sh` between the two tags and map each changed pin to the template files it affects; provide an explicit action item to sync them after `infra-bootstrap` rather than leaving the consumer to discover template drift reactively via `infra-validate`.
+- [x] P2 (Consumer upgrade flow): Issue #164 — in the upgrade preflight report, list all version pin changes in `versions.sh` between the two tags and map each changed pin to the template files it affects; provide an explicit action item to sync them after `infra-bootstrap` rather than leaving the consumer to discover template drift reactively via `infra-validate`. **Done**: `specs/2026-04-26-issue-164-upgrade-version-pin-report/`, PR #195.
+- [ ] proposal(issue-164): automated template sync (`BLUEPRINT_UPGRADE_SYNC_TEMPLATES=true`) after version pin changes — https://github.com/sbonoc/stackit-platform-blueprint/issues/196
+- [ ] (parked) proposal(issue-164): value-based template scanning — detect hardcoded version strings in templates, not just variable name references
+      trigger: on-scope: blueprint
+      rationale: variable-name grep covers the common case; value scanning is a deeper semantic problem (false positives, multi-format strings) — surfaces naturally when template scanning scope is next touched
 - [x] P2 (Consumer upgrade flow): Issue #165 — enrich merge-required plan entries with semantic annotations describing what changed in each file and what the consumer should verify after applying the merge. **Done**: `specs/2026-04-23-issue-165-semantic-annotations/`
 - [ ] P2 (Consumer upgrade flow): Issue #183 — `upgrade_consumer_postcheck`: detect when the reconcile report on disk was generated against a different source/target tag pair than the current run and auto-rebuild it rather than silently operating on stale data. *(parked: deterministic pipeline always regenerates the reconcile report in the same run; standalone postcheck usage is the remaining risk surface — trigger: triage: next-session)*
 - [ ] P2 (Consumer upgrade flow): Issue #184 — `upgrade_shell_behavioral_check`: make the symbol exclusion set extensible via consumer configuration (e.g. `BEHAVIORAL_CHECK_EXCLUDED_TOKENS` in `versions.sh` or a dedicated config file) so consumers can suppress project-specific false positives without patching blueprint code. Follow-on to #181.

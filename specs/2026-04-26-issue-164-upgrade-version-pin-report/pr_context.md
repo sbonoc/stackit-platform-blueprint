@@ -29,5 +29,5 @@
 - Rollback strategy: Remove the Stage 1b block from `upgrade_consumer_pipeline.sh` and remove `_render_version_pin_section` call from `upgrade_residual_report.py`; no persistent state changes required.
 
 ## Deferred Proposals
-- Automated template sync (`BLUEPRINT_UPGRADE_SYNC_TEMPLATES=true`) — detection and reporting only in this work item; sync deferred.
-- Value-based template scanning (matching hardcoded version strings, not just variable names) — deferred; variable-name grep covers the common case.
+- Automated template sync (`BLUEPRINT_UPGRADE_SYNC_TEMPLATES=true`) — detection and reporting only in this work item; sync deferred. Filed as Issue #196: https://github.com/sbonoc/stackit-platform-blueprint/issues/196
+- Value-based template scanning (matching hardcoded version strings, not just variable names) — Parked — trigger: on-scope: blueprint — variable-name grep covers the common case; value scanning is a deeper semantic problem deferred until template scanning scope is next touched.
