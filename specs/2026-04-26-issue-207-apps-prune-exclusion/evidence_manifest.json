@@ -6,61 +6,73 @@
   "files": [
     {
       "path": "scripts/lib/blueprint/upgrade_consumer.py",
+      "sha256": "7b56f5966607ea564b89ddbce701430afced06d086b856b2f8a74d25bc9ae053",
       "role": "implementation",
       "description": "_is_consumer_owned_workload() predicate and guard in _classify_entries()"
     },
     {
       "path": "tests/blueprint/test_upgrade_consumer.py",
+      "sha256": "1ece1a870388be936e9f329cdab13fde7555e273fd5a6488b7686c0157a76b3b",
       "role": "test",
       "description": "ConsumerOwnedWorkloadPruneTests — 6 new unit tests"
     },
     {
       "path": "docs/blueprint/architecture/decisions/ADR-2026-04-26-issue-207-apps-prune-exclusion.md",
+      "sha256": "693b3975717a1d49cf2ab5ceeb1c79d9d820171f8ac3668efd6cb229ad5a3069",
       "role": "adr",
       "description": "Decision record for consumer workload manifest prune exclusion"
     },
     {
       "path": "specs/2026-04-26-issue-207-apps-prune-exclusion/architecture.md",
+      "sha256": "ecd39b24accf0c6d80a406fcd8b3a99acb91c7b720b95445ce79351121f8bbf3",
       "role": "spec-artifact",
       "description": "Architecture document with Mermaid classification flow"
     },
     {
       "path": "specs/2026-04-26-issue-207-apps-prune-exclusion/spec.md",
+      "sha256": "8268fd26b8c739dba98af1a68341d09796ee0f2b8627e775adefc30b2cb51182",
       "role": "spec-artifact",
       "description": "Full specification with SPEC_READY=true, all sign-offs approved"
     },
     {
       "path": "specs/2026-04-26-issue-207-apps-prune-exclusion/plan.md",
+      "sha256": "b2a0226168d6820994e8d5bc930c30f74f54d0a29c6d8cb5a8c4e634fefb1dcf",
       "role": "spec-artifact",
       "description": "4-slice implementation plan"
     },
     {
       "path": "specs/2026-04-26-issue-207-apps-prune-exclusion/tasks.md",
+      "sha256": "963cb131514a1cf58c39720f8bb576d4f6b5a855328d7f2bf00a9c4f685d6ab8",
       "role": "spec-artifact",
       "description": "All tasks marked completed"
     },
     {
       "path": "specs/2026-04-26-issue-207-apps-prune-exclusion/traceability.md",
+      "sha256": "d0394d1dfb9fd34b332347cfa7f097115064e4fb2dd6cb4fb6c42828bb5f5d10",
       "role": "spec-artifact",
       "description": "Full requirement-to-delivery mapping"
     },
     {
       "path": "specs/2026-04-26-issue-207-apps-prune-exclusion/graph.json",
+      "sha256": "542c25a54376731c48970d24f4bb0ea96604a58036a7bd8f8c88c6732fabd25f",
       "role": "spec-artifact",
       "description": "Requirement and acceptance criterion dependency graph"
     },
     {
       "path": "specs/2026-04-26-issue-207-apps-prune-exclusion/context_pack.md",
+      "sha256": "47bed0bd557b8b0b22f86fba502faaec8a63e5cd61086364930d6fa435af7804",
       "role": "spec-artifact",
       "description": "Work item context snapshot"
     },
     {
       "path": "specs/2026-04-26-issue-207-apps-prune-exclusion/pr_context.md",
+      "sha256": "86a2f510ff20d15c9e363b9a27cb77424a3c7457948e2473f97bba84536f0f1c",
       "role": "spec-artifact",
       "description": "PR context with requirement coverage, reviewer files, evidence, rollback"
     },
     {
       "path": "specs/2026-04-26-issue-207-apps-prune-exclusion/hardening_review.md",
+      "sha256": "b61afbd985b56a2fca7449ab017df3c170f0d145f65715f192c9ec39fa316318",
       "role": "spec-artifact",
       "description": "Hardening review with finding, observability, architecture, and proposals sections"
     }
