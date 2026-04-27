@@ -5,16 +5,11 @@
 - If required inputs are missing, add `BLOCKED_MISSING_INPUTS` in `spec.md` and keep the gate closed.
 
 ## Constitution Gates (Pre-Implementation)
-- Simplicity gate:
-  - Single-file assertion addition in `template_smoke_assertions.py`; no new abstractions, no helper modules.
-- Anti-abstraction gate:
-  - Assertion logic is inline in `main()` after the existing kustomization resource check; no wrapper layer.
-- Integration-first testing gate:
-  - Unit test asserts template file consistency (kustomization template filenames match descriptor template filenames) before implementation of the assertion itself.
-- Positive-path filter/transform test gate:
-  - The assertion uses filename extraction (Path(...).name and convention-default derivation); one positive-path unit test MUST verify a fully consistent descriptor+kustomization pair returns no assertion error.
-- Finding-to-test translation gate:
-  - The pre-patch failure (4 kustomization membership errors in infra-validate) is translated to a failing unit test against the template files; the assertion implementation turns it green.
+- Simplicity gate: single-file assertion addition in `template_smoke_assertions.py`; no new abstractions, no helper modules.
+- Anti-abstraction gate: assertion logic is inline in `main()` after the existing kustomization resource check; no wrapper layer.
+- Integration-first testing gate: unit test asserts template file consistency (kustomization template filenames match descriptor template filenames) before implementation of the assertion itself.
+- Positive-path filter/transform test gate: the assertion uses filename extraction (Path(...).name and convention-default derivation); one positive-path unit test MUST verify a fully consistent descriptor+kustomization pair returns no assertion error.
+- Finding-to-test translation gate: the pre-patch failure (4 kustomization membership errors in infra-validate) is translated to a failing unit test against the template files; the assertion implementation turns it green.
 
 ## Delivery Slices
 1. Slice 1 — assertion implementation: extend `template_smoke_assertions.py:main()` with the descriptor-kustomization cross-check block when `APP_RUNTIME_GITOPS_ENABLED=true`; handle convention-default manifest paths using the same defaulting logic as `_resolve_manifest_path`.

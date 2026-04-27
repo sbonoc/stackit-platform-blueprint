@@ -24,6 +24,50 @@ def _extract_kustomization_resources(text: str) -> list[str]:
     return [str(r) for r in data.get("resources", [])]
 
 
+def _assert_descriptor_kustomization_agreement(
+    app_manifest_names: list[str],
+    descriptor: dict,
+    descriptor_path: Path,
+    kustomization_path: Path,
+) -> None:
+    """Assert every manifest filename declared in the descriptor is listed in kustomization.
+
+    Handles convention-default paths for components without an explicit manifests: block.
+    Convention default (matching _resolve_manifest_path in app_descriptor.py):
+      deployment -> {component_id}-deployment.yaml
+      service    -> {component_id}-service.yaml
+
+    Raises AssertionError per missing filename with a message naming the filename and both
+    file paths (FR-001, NFR-OBS-001).
+    """
+    names_set = set(app_manifest_names)
+    for app in (descriptor.get("apps") or []):
+        for component in (app.get("components") or []):
+            component_id = component.get("id", "")
+            manifests = component.get("manifests") or {}
+
+            # Resolve deployment filename
+            dep_val = manifests.get("deployment")
+            if dep_val:
+                deployment_filename = Path(dep_val).name
+            else:
+                deployment_filename = f"{component_id}-deployment.yaml"
+
+            # Resolve service filename
+            svc_val = manifests.get("service")
+            if svc_val:
+                service_filename = Path(svc_val).name
+            else:
+                service_filename = f"{component_id}-service.yaml"
+
+            for filename in (deployment_filename, service_filename):
+                assert filename in names_set, (
+                    f"apps/descriptor.yaml: component '{component_id}' manifest '{filename}' "
+                    f"is not listed in kustomization.yaml. "
+                    f"Descriptor: {descriptor_path}. Kustomization: {kustomization_path}."
+                )
+
+
 def normalize_bool(value: str) -> bool:
     return value.lower() in {"1", "true", "yes", "on"}
 
@@ -163,6 +207,18 @@ def main() -> int:
                 f"{scenario}: {apps_kust_rel} declares no resources; "
                 "add at least one Deployment and one Service manifest"
             )
+
+        # Issue #217: cross-check descriptor manifest filenames against kustomization resources
+        descriptor_path = repo_root / "apps" / "descriptor.yaml"
+        if descriptor_path.exists():
+            descriptor = yaml.safe_load(descriptor_path.read_text(encoding="utf-8")) or {}
+            _assert_descriptor_kustomization_agreement(
+                app_manifest_names=app_manifest_names,
+                descriptor=descriptor,
+                descriptor_path=descriptor_path,
+                kustomization_path=apps_kustomization,
+            )
+
         app_manifest_paths = [f"infra/gitops/platform/base/apps/{name}" for name in app_manifest_names]
 
         for relative_path in app_manifest_paths:

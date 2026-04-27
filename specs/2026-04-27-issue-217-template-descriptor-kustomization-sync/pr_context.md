@@ -11,13 +11,15 @@
 - Contract surfaces changed: `make blueprint-template-smoke` now explicitly fails on descriptor-kustomization filename drift (was implicitly failing via infra-validate; now also caught by Python assertion step with named error message)
 
 ## Key Reviewer Files
-- Primary files to review first: `scripts/lib/blueprint/template_smoke_assertions.py` (assertion addition)
+- Primary files to review first:
+  - `scripts/lib/blueprint/template_smoke_assertions.py` (assertion addition: `_assert_descriptor_kustomization_agreement` helper + `main()` wiring)
+  - `tests/blueprint/test_template_smoke_assertions.py` (new `DescriptorKustomizationCrossCheckTests` and `TemplateConsistencyTests` classes)
 - High-risk files: none (assertion is additive; no existing logic removed or modified)
 
 ## Validation Evidence
-- Required commands executed: deferred to implementation phase (SPEC_READY=false at intake)
-- Result summary: intake-only; full validation evidence captured after implementation
-- Artifact references: `traceability.md`, `evidence_manifest.json`
+- Required commands executed: `pytest tests/blueprint/test_template_smoke_assertions.py::DescriptorKustomizationCrossCheckTests -v` (6 passed); `pytest tests/blueprint/test_template_smoke_assertions.py::TemplateConsistencyTests -v` (1 passed); `pytest tests/blueprint/ -q` (626 passed, 2 pre-existing failures unrelated to this change); `make quality-sdd-check` (pass)
+- Result summary: 7 new tests green; full regression 626/628 pass; 2 pre-existing failures (blueprint-init FileNotFoundError) confirmed out-of-scope
+- Artifact references: `traceability.md`
 
 ## Risk and Rollback
 - Main risks: convention-default manifest path handling (components with no explicit `manifests:` block must use `{component_id}-{kind}.yaml` derivation to avoid false-positive drift errors)
