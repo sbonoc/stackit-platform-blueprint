@@ -660,5 +660,98 @@ class SddAssetCheckerTests(unittest.TestCase):
             self.assertEqual(spec_violations, [], msg=[violation.message for violation in spec_violations])
 
 
+    def test_evidence_manifest_missing_sha256_is_rejected(self) -> None:
+        """evidence_manifest.json file entries without sha256 must produce a violation.
+
+        This exercises check_sdd_assets._validate_work_item_specs() lines that check
+        entry.get('sha256') — previously untested, allowing manifests with no hashes
+        to pass quality-sdd-check locally while failing CI (issue #207 regression).
+        """
+        checker = _load_checker_module()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _write_valid_control_catalog(repo_root / ".spec-kit/control-catalog.md")
+            _write_work_item(repo_root)
+
+            # Overwrite the evidence_manifest with a file entry missing sha256.
+            work_item = repo_root / "specs" / "2026-04-15-fixture"
+            manifest_path = work_item / "evidence_manifest.json"
+            manifest_path.write_text(
+                json.dumps(
+                    {
+                        "manifest_version": 1,
+                        "work_item": "specs/2026-04-15-fixture",
+                        "generated_by": "spec-evidence-manifest",
+                        "generated_at_utc": "2026-04-15T00:00:00Z",
+                        "files": [
+                            {
+                                "path": "specs/2026-04-15-fixture/spec.md",
+                                "role": "spec-artifact",
+                                "description": "no sha256 field present",
+                            }
+                        ],
+                    },
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            contract_raw = _contract_raw()
+            catalog_violations, catalog_ids = checker._load_control_catalog(
+                contract_raw=contract_raw, repo_root=repo_root
+            )
+            self.assertEqual(catalog_violations, [])
+
+            spec_violations = checker._validate_work_item_specs(contract_raw, repo_root, catalog_ids)
+            messages = [v.message for v in spec_violations]
+            self.assertTrue(
+                any("missing sha256" in m for m in messages),
+                msg=f"expected a 'missing sha256' violation; got: {messages}",
+            )
+
+    def test_evidence_manifest_with_sha256_passes(self) -> None:
+        """evidence_manifest.json file entries with valid sha256 must not produce violations."""
+        checker = _load_checker_module()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _write_valid_control_catalog(repo_root / ".spec-kit/control-catalog.md")
+            _write_work_item(repo_root)
+
+            work_item = repo_root / "specs" / "2026-04-15-fixture"
+            manifest_path = work_item / "evidence_manifest.json"
+            manifest_path.write_text(
+                json.dumps(
+                    {
+                        "manifest_version": 1,
+                        "work_item": "specs/2026-04-15-fixture",
+                        "generated_by": "spec-evidence-manifest",
+                        "generated_at_utc": "2026-04-15T00:00:00Z",
+                        "files": [
+                            {
+                                "path": "specs/2026-04-15-fixture/spec.md",
+                                "sha256": "abc123def456abc123def456abc123def456abc123def456abc123def456abc1",
+                                "role": "spec-artifact",
+                                "description": "sha256 present and non-empty",
+                            }
+                        ],
+                    },
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            contract_raw = _contract_raw()
+            catalog_violations, catalog_ids = checker._load_control_catalog(
+                contract_raw=contract_raw, repo_root=repo_root
+            )
+            self.assertEqual(catalog_violations, [])
+
+            spec_violations = checker._validate_work_item_specs(contract_raw, repo_root, catalog_ids)
+            sha256_violations = [v for v in spec_violations if "sha256" in v.message]
+            self.assertEqual(sha256_violations, [], msg=[v.message for v in sha256_violations])
+
+
 if __name__ == "__main__":
     unittest.main()

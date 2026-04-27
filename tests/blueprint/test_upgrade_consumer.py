@@ -2259,5 +2259,101 @@ class TestValidationTargets(unittest.TestCase):
         self.assertIn("infra-argocd-topology-validate", validate_module.VALIDATION_TARGETS)
 
 
+class ConsumerOwnedWorkloadPruneTests(unittest.TestCase):
+    """FR-001–FR-003, AC-001–AC-005: consumer workload manifest prune guard (issue #207)."""
+
+    def test_is_consumer_owned_workload_returns_true_for_consumer_manifest(self) -> None:
+        """AC-003 / AC-004: predicate returns True for non-kustomization YAML under base/apps/."""
+        self.assertTrue(upgrade_consumer._is_consumer_owned_workload(
+            "infra/gitops/platform/base/apps/my-api-deployment.yaml"
+        ))
+        self.assertTrue(upgrade_consumer._is_consumer_owned_workload(
+            "infra/gitops/platform/base/apps/touchpoints-web-service.yaml"
+        ))
+
+    def test_is_consumer_owned_workload_returns_false_for_kustomization(self) -> None:
+        """AC-003: kustomization.yaml is NOT protected by the consumer-owned-workload guard."""
+        self.assertFalse(upgrade_consumer._is_consumer_owned_workload(
+            "infra/gitops/platform/base/apps/kustomization.yaml"
+        ))
+
+    def test_is_consumer_owned_workload_returns_false_for_unrelated_path(self) -> None:
+        """AC-004: predicate returns False for paths outside base/apps/."""
+        self.assertFalse(upgrade_consumer._is_consumer_owned_workload("scripts/bin/infra/bootstrap.sh"))
+        self.assertFalse(upgrade_consumer._is_consumer_owned_workload(
+            "infra/gitops/platform/base/kustomization.yaml"
+        ))
+
+    def test_is_consumer_owned_workload_returns_false_for_nested_subdirectory_path(self) -> None:
+        """AC-004: predicate returns False for YAML in a subdirectory of base/apps/."""
+        self.assertFalse(upgrade_consumer._is_consumer_owned_workload(
+            "infra/gitops/platform/base/apps/subdir/something.yaml"
+        ))
+
+    def _classify(
+        self,
+        repo_root: Path,
+        source_repo: Path,
+        paths: list[str],
+        *,
+        allow_delete: bool = True,
+    ) -> list[upgrade_consumer.UpgradeEntry]:
+        return upgrade_consumer._classify_entries(
+            repo_root=repo_root,
+            source_repo=source_repo,
+            all_paths=paths,
+            required_files=set(),
+            source_only=set(),
+            consumer_seeded=set(),
+            init_managed=set(),
+            conditional_entries={"infra/gitops/platform/base/apps"},
+            managed_dir_roots={"infra/gitops/platform/base/apps"},
+            protected_roots=set(),
+            baseline_ref=None,
+            baseline_cache={},
+            allow_delete=allow_delete,
+        )
+
+    def test_consumer_workload_manifests_not_deleted_when_allow_delete_true(self) -> None:
+        """AC-001 / FR-001: consumer manifest absent in blueprint source → skip/none/consumer-owned-workload."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp = Path(tmpdir)
+            source_repo = tmp / "source"
+            repo_root = tmp / "target"
+            source_repo.mkdir()
+            repo_root.mkdir()
+            consumer_path = "infra/gitops/platform/base/apps/my-api-deployment.yaml"
+            (repo_root / consumer_path).parent.mkdir(parents=True)
+            (repo_root / consumer_path).write_text("kind: Deployment\n", encoding="utf-8")
+
+            entries = self._classify(repo_root, source_repo, [consumer_path])
+
+            self.assertEqual(len(entries), 1)
+            entry = entries[0]
+            self.assertEqual(entry.action, upgrade_consumer.ACTION_SKIP)
+            self.assertEqual(entry.operation, upgrade_consumer.OPERATION_NONE)
+            self.assertEqual(entry.ownership, "consumer-owned-workload")
+            self.assertIn("consumer workload manifest", entry.reason)
+
+    def test_kustomization_yaml_in_base_apps_is_not_protected(self) -> None:
+        """AC-002 / FR-002: kustomization.yaml absent in source with allow_delete → OPERATION_DELETE, not skip."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp = Path(tmpdir)
+            source_repo = tmp / "source"
+            repo_root = tmp / "target"
+            source_repo.mkdir()
+            repo_root.mkdir()
+            kust_path = "infra/gitops/platform/base/apps/kustomization.yaml"
+            (repo_root / kust_path).parent.mkdir(parents=True)
+            (repo_root / kust_path).write_text("resources: []\n", encoding="utf-8")
+
+            entries = self._classify(repo_root, source_repo, [kust_path])
+
+            self.assertEqual(len(entries), 1)
+            entry = entries[0]
+            self.assertEqual(entry.action, upgrade_consumer.ACTION_UPDATE)
+            self.assertEqual(entry.operation, upgrade_consumer.OPERATION_DELETE)
+
+
 if __name__ == "__main__":
     unittest.main()

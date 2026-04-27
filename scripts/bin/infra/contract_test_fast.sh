@@ -41,6 +41,8 @@ base_tests=(
 )
 template_source_only_tests=(
   "tests/blueprint/test_upgrade_fixture_matrix.py"
+  "tests/blueprint/test_template_smoke_assertions.py"
+  "tests/infra/test_sdd_asset_checker.py"
 )
 
 selected_tests=("${base_tests[@]}")

@@ -1,0 +1,77 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-04-26-issue-207-apps-prune-exclusion",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "Non-kustomization YAML under base/apps/ absent in source → skip/none with allow_delete=True"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "kustomization.yaml in base/apps/ is NOT protected by the new guard"
+    },
+    {
+      "id": "FR-003",
+      "type": "requirement",
+      "summary": "New skip class visible in plan output with distinct human-readable reason"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "Predicate is pure: no I/O, no subprocess calls, no external state"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "reason field on skip entries is unique and grep-isolatable"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "Fix is additive; existing test coverage for all other path classes passes without modification"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "ownership=consumer-owned-workload appears in plan output JSON for audit"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "Consumer manifest absent in source → skip/none/consumer-owned-workload with allow_delete=True"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "kustomization.yaml absent in source with allow_delete → OPERATION_DELETE, not skip"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "_is_consumer_owned_workload returns False for kustomization.yaml"
+    },
+    {
+      "id": "AC-004",
+      "type": "acceptance",
+      "summary": "_is_consumer_owned_workload returns False for paths outside base/apps/"
+    },
+    {
+      "id": "AC-005",
+      "type": "acceptance",
+      "summary": "All existing tests in test_upgrade_consumer.py pass without modification"
+    }
+  ],
+  "edges": [
+    {"from": "FR-001", "to": "AC-001", "relation": "validated_by"},
+    {"from": "FR-002", "to": "AC-002", "relation": "validated_by"},
+    {"from": "FR-002", "to": "AC-003", "relation": "validated_by"},
+    {"from": "FR-003", "to": "AC-001", "relation": "validated_by"},
+    {"from": "NFR-SEC-001", "to": "AC-003", "relation": "constrains"},
+    {"from": "NFR-OBS-001", "to": "AC-001", "relation": "constrains"},
+    {"from": "NFR-REL-001", "to": "AC-005", "relation": "validated_by"},
+    {"from": "NFR-OPS-001", "to": "AC-001", "relation": "constrains"},
+    {"from": "FR-001", "to": "AC-004", "relation": "validated_by"}
+  ]
+}
