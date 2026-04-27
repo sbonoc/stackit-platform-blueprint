@@ -13,7 +13,7 @@ and applies explicit merge rules so consumer identity fields always survive:
     the consumer root (FR-007).
   - Filters spec.repository.ownership_path_classes.source_only (FR-009):
       Phase 1 — drops source entries whose paths exist in the consumer;
-      Phase 2 — carries forward consumer-added entries whose files exist on disk.
+      Phase 2 — carries forward consumer-added entries whose paths exist on disk.
   - All other fields: taken from source_content (blueprint-managed).
 
 Emits artifacts/blueprint/contract_resolve_decisions.json (FR-008).
@@ -160,10 +160,16 @@ def _filter_source_only(
     """
     source_set = set(source_list)
 
+    def _is_safe(entry: str) -> bool:
+        p = Path(entry)
+        return not p.is_absolute() and ".." not in p.parts
+
     # Phase 1: keep source entries only when they do NOT exist in the consumer.
     filtered_source: list[str] = []
     dropped: list[str] = []
     for entry in source_list:
+        if not _is_safe(entry):
+            continue
         if (repo_root / entry).exists():
             dropped.append(entry)
         else:
@@ -174,6 +180,8 @@ def _filter_source_only(
     for entry in consumer_list:
         if entry in source_set:
             continue  # already handled above
+        if not _is_safe(entry):
+            continue
         if (repo_root / entry).exists():
             kept_consumer.append(entry)
 

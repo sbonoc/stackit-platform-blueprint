@@ -119,7 +119,7 @@ class TestSourceOnlyPhase1Drop(unittest.TestCase):
             # Consumer has a real specs/ directory with content.
             specs_dir = repo / "specs"
             specs_dir.mkdir(parents=True, exist_ok=True)
-            (specs_dir / "2026-01-01-example" ).mkdir(parents=True, exist_ok=True)
+            (specs_dir / "2026-01-01-example").mkdir(parents=True, exist_ok=True)
             (specs_dir / "2026-01-01-example" / "spec.md").write_text(
                 "# Real consumer spec", encoding="utf-8"
             )
@@ -243,5 +243,4 @@ class TestSourceOnlyNoConflict(unittest.TestCase):
             source_only = _resolved_source_only(repo)
 
             # Both source entries must survive since their paths don't exist.
-            self.assertIn("absent-dir", source_only)
-            self.assertIn("another-absent-path", source_only)
+            self.assertEqual(source_only, ["absent-dir", "another-absent-path"])
