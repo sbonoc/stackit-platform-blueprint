@@ -335,13 +335,21 @@ def _suggested_descriptor_components_from_kustomization(
     for resource in data.get("resources", []) or []:
         if not isinstance(resource, str):
             continue
-        if resource.endswith("-deployment.yaml"):
-            comp_id = resource[: -len("-deployment.yaml")]
+        # Skip entries that traverse out of the apps base — they cannot produce a safe
+        # descriptor reference and would only confuse the suggested artifact's reviewer.
+        if ".." in resource.split("/"):
+            continue
+        # Component id is the manifest BASENAME minus the conventional kind suffix; the
+        # full sub-path (kustomization may use subdirectories like `workloads/...`) is
+        # preserved in the manifest reference so the suggested descriptor stays valid.
+        basename = Path(resource).name
+        if basename.endswith("-deployment.yaml"):
+            comp_id = basename[: -len("-deployment.yaml")]
             components.setdefault(comp_id, {})["deployment"] = (
                 f"infra/gitops/platform/base/apps/{resource}"
             )
-        elif resource.endswith("-service.yaml"):
-            comp_id = resource[: -len("-service.yaml")]
+        elif basename.endswith("-service.yaml"):
+            comp_id = basename[: -len("-service.yaml")]
             components.setdefault(comp_id, {})["service"] = (
                 f"infra/gitops/platform/base/apps/{resource}"
             )

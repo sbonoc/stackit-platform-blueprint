@@ -182,6 +182,32 @@ class AppDescriptorLoaderSchemaTests(unittest.TestCase):
             f"expected kind error naming component; got: {errors}",
         )
 
+    def test_non_mapping_manifests_field_reports_error(self) -> None:
+        """Codex P2: a string/list under manifests must NOT silently fall back to convention defaults."""
+        from scripts.lib.blueprint.app_descriptor import load_app_descriptor
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            descriptor_path = _write_descriptor(
+                Path(tmpdir),
+                """\
+                schemaVersion: v1
+                apps:
+                  - id: backend-api
+                    owner:
+                      team: platform
+                    components:
+                      - id: backend-api
+                        kind: Deployment
+                        manifests: "infra/gitops/platform/base/apps/backend-api-deployment.yaml"
+                """,
+            )
+            _, errors = load_app_descriptor(descriptor_path)
+
+        self.assertTrue(
+            any("manifests" in e and "backend-api" in e and "mapping" in e.lower() for e in errors),
+            f"expected manifests-must-be-mapping error naming component; got: {errors}",
+        )
+
 
 class AppDescriptorUnsafeIdAndPathTests(unittest.TestCase):
     """AC-002, NFR-SEC-001: reject unsafe app/component IDs and manifest paths."""

@@ -26,35 +26,42 @@ The descriptor records app and component metadata, including owner team, workloa
 The initial descriptor shape is:
 
 ```yaml
-schemaVersion: blueprint.stackit.dev/v1
+schemaVersion: v1
 apps:
   - id: backend-api
     owner:
       team: platform
     components:
       - id: backend-api
-        kind: api
+        kind: Deployment
         manifests:
           deployment: infra/gitops/platform/base/apps/backend-api-deployment.yaml
           service: infra/gitops/platform/base/apps/backend-api-service.yaml
         service:
           port: 8080
+          targetPort: http
         health:
-          path: /health
+          readiness: /
+          liveness: /
   - id: touchpoints-web
     owner:
       team: platform
     components:
       - id: touchpoints-web
-        kind: web
+        kind: Deployment
         manifests:
           deployment: infra/gitops/platform/base/apps/touchpoints-web-deployment.yaml
           service: infra/gitops/platform/base/apps/touchpoints-web-service.yaml
         service:
-          port: 3000
+          port: 80
+          targetPort: http
         health:
-          path: /
+          readiness: /
+          liveness: /
 ```
+
+The example above mirrors the canonical baseline seeded by `make blueprint-init-repo`
+(`scripts/templates/consumer/init/apps/descriptor.yaml.tmpl`).
 
 Each app can contain multiple components, such as `api`, `worker`, and `web`. Component IDs are the ownership and validation unit because manifests, ports, workload kinds, and health checks vary per deployable component.
 

@@ -150,19 +150,66 @@ def _indent_block(lines: list[str], spaces: int) -> str:
     return "".join(f"{indent}{line}\n" for line in lines)
 
 
+def _derive_default_image_env_var(component_id: str) -> str:
+    """Convention env-var name when the caller doesn't pass `--component-image-env-var`.
+
+    Example: ``backend-api`` → ``APP_RUNTIME_BACKEND_API_IMAGE``.
+    """
+    return f"APP_RUNTIME_{component_id.upper().replace('-', '_')}_IMAGE"
+
+
+def _resolve_image_and_env_var(
+    component: ResolvedComponent,
+    component_image: dict[str, str],
+    component_image_env_var: dict[str, str],
+    fallback_warnings: list[str],
+) -> tuple[str, str]:
+    """Look up image + env-var with sensible fallbacks for descriptor components missing
+    explicit per-component CLI mappings (Codex P1 / Codex review on ``bootstrap.sh:95``).
+
+    When no `--component-image <id>=<image>` mapping is supplied for a descriptor component,
+    fall back to an empty image string (consumer overrides at deploy time via the env var
+    below). When no `--component-image-env-var <id>=<name>` mapping is supplied, derive the
+    env-var name from the component id via the project convention. ``fallback_warnings``
+    accumulates the (component_id, app_id) of every component that took a fallback so the
+    caller can emit a single deterministic stderr warning at the end.
+    """
+    image = component_image.get(component.component_id)
+    env_var = component_image_env_var.get(component.component_id)
+    used_fallback = False
+    if image is None:
+        image = ""
+        used_fallback = True
+    if env_var is None:
+        env_var = _derive_default_image_env_var(component.component_id)
+        used_fallback = True
+    if used_fallback:
+        fallback_warnings.append(
+            f"{component.component_id} (app {component.app_id})"
+        )
+    return image, env_var
+
+
 def render_delivery_workloads_block(
     components: Iterable[ResolvedComponent],
     component_image: dict[str, str],
+    component_image_env_var: dict[str, str] | None = None,
+    fallback_warnings: list[str] | None = None,
 ) -> str:
-    """Render the indented `deliveryTopology.workloads` list body from descriptor records."""
+    """Render the indented `deliveryTopology.workloads` list body from descriptor records.
+
+    Accepts the env-var map + a shared ``fallback_warnings`` list so the delivery and
+    gitops blocks share the same fallback bookkeeping; both arguments are optional for
+    callers that only need the image binding (kept for backward compatibility with
+    earlier slice-3 unit tests on this helper).
+    """
+    env_var_map = component_image_env_var if component_image_env_var is not None else {}
+    warnings_acc: list[str] = fallback_warnings if fallback_warnings is not None else []
     lines: list[str] = []
     for component in components:
-        image = component_image.get(component.component_id)
-        if image is None:
-            raise ValueError(
-                f"--component-image is missing an entry for descriptor component "
-                f"{component.component_id!r} (app {component.app_id!r})"
-            )
+        image, _env_var = _resolve_image_and_env_var(
+            component, component_image, env_var_map, warnings_acc
+        )
         service_port = component.service.get("port", "")
         service_name = component.service.get("serviceName") or component.component_id
         lines.extend(
@@ -183,22 +230,15 @@ def render_gitops_workloads_block(
     components: Iterable[ResolvedComponent],
     component_image: dict[str, str],
     component_image_env_var: dict[str, str],
+    fallback_warnings: list[str] | None = None,
 ) -> str:
     """Render the indented `runtimeDeliveryContract.gitopsWorkloads` list body."""
+    warnings_acc: list[str] = fallback_warnings if fallback_warnings is not None else []
     lines: list[str] = []
     for component in components:
-        image = component_image.get(component.component_id)
-        if image is None:
-            raise ValueError(
-                f"--component-image is missing an entry for descriptor component "
-                f"{component.component_id!r} (app {component.app_id!r})"
-            )
-        env_var = component_image_env_var.get(component.component_id)
-        if env_var is None:
-            raise ValueError(
-                f"--component-image-env-var is missing an entry for descriptor component "
-                f"{component.component_id!r} (app {component.app_id!r})"
-            )
+        image, env_var = _resolve_image_and_env_var(
+            component, component_image, component_image_env_var, warnings_acc
+        )
         lines.extend(
             [
                 f"- id: {component.component_id}",
@@ -303,12 +343,33 @@ def cmd_render(args: argparse.Namespace) -> int:
             + "; ".join(descriptor_errors)
         )
 
+    fallback_warnings: list[str] = []
     delivery_workloads_block = render_delivery_workloads_block(
-        descriptor.components, context.component_image
+        descriptor.components,
+        context.component_image,
+        context.component_image_env_var,
+        fallback_warnings,
     )
+    # Render the gitops block with the SAME shared accumulator. The two helpers visit
+    # each component once apiece, so a missing mapping appears twice in the raw list;
+    # de-duplicate before warning so the operator sees one entry per affected component.
     gitops_workloads_block = render_gitops_workloads_block(
-        descriptor.components, context.component_image, context.component_image_env_var
+        descriptor.components,
+        context.component_image,
+        context.component_image_env_var,
+        fallback_warnings,
     ).rstrip("\n")  # drop trailing newline so template's own newline is preserved
+
+    if fallback_warnings:
+        unique_components = sorted(set(fallback_warnings))
+        print(
+            "warning: app catalog renderer fell back to default image and/or env-var "
+            "for descriptor components without an explicit `--component-image[-env-var]` "
+            "mapping (image: empty, env-var: APP_RUNTIME_<COMPONENT_ID>_IMAGE convention). "
+            "Add the missing flags to scripts/bin/platform/apps/bootstrap.sh — affected "
+            "components: " + ", ".join(unique_components),
+            file=sys.stderr,
+        )
 
     # Build env-var → image substitutions generically from the descriptor + component
     # maps so renderer logic stays free of any baseline component-id knowledge.
@@ -319,7 +380,7 @@ def cmd_render(args: argparse.Namespace) -> int:
         image = context.component_image.get(component.component_id)
         env_var = context.component_image_env_var.get(component.component_id)
         if image is None or env_var is None:
-            continue  # render_*_block already raised for missing mappings
+            continue  # template-substitution map only needs explicitly-mapped pairs
         env_var_substitutions[env_var] = image
 
     manifest_values = {

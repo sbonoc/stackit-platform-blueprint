@@ -239,6 +239,54 @@ class SuggestedDescriptorArtifactTests(unittest.TestCase):
             _write_apps_kustomization(repo_root, [])  # no resources
             self.assertIsNone(upgrade_consumer.generate_suggested_descriptor(repo_root))
 
+    def test_suggested_descriptor_uses_basename_for_subdir_resources(self) -> None:
+        """Copilot review: kustomization resources may live in a subdir (e.g. workloads/...).
+
+        The component id MUST be derived from the basename so it stays a DNS-style label;
+        the manifest reference MUST preserve the full sub-path under apps/."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _write_apps_kustomization(
+                repo_root,
+                [
+                    "workloads/backend-api-deployment.yaml",
+                    "workloads/backend-api-service.yaml",
+                ],
+            )
+            content = upgrade_consumer.generate_suggested_descriptor(repo_root)
+
+        self.assertIsNotNone(content)
+        parsed = yaml.safe_load(content)
+        ids = [app["id"] for app in parsed["apps"]]
+        self.assertEqual(ids, ["backend-api"])  # NOT 'workloads/backend-api'
+        component = parsed["apps"][0]["components"][0]
+        self.assertEqual(
+            component["manifests"]["deployment"],
+            "infra/gitops/platform/base/apps/workloads/backend-api-deployment.yaml",
+        )
+        self.assertEqual(
+            component["manifests"]["service"],
+            "infra/gitops/platform/base/apps/workloads/backend-api-service.yaml",
+        )
+
+    def test_suggested_descriptor_skips_resources_with_parent_traversal(self) -> None:
+        """Defensive: a kustomization entry containing `..` must be skipped silently."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _write_apps_kustomization(
+                repo_root,
+                [
+                    "backend-api-deployment.yaml",
+                    "../escape/bad-deployment.yaml",
+                ],
+            )
+            content = upgrade_consumer.generate_suggested_descriptor(repo_root)
+
+        self.assertIsNotNone(content)
+        parsed = yaml.safe_load(content)
+        ids = [app["id"] for app in parsed["apps"]]
+        self.assertEqual(ids, ["backend-api"])
+
     def test_suggested_descriptor_includes_only_component_with_deployment_manifest(self) -> None:
         """Stray resources that don't follow the {id}-deployment.yaml pattern are skipped silently."""
         with tempfile.TemporaryDirectory() as tmpdir:

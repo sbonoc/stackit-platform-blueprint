@@ -3,9 +3,9 @@
 ## Context Snapshot
 - Work item: 2026-04-27-consumer-app-descriptor
 - Track: blueprint
-- SPEC_READY: false
+- SPEC_READY: true
 - ADR path: docs/blueprint/architecture/decisions/ADR-2026-04-27-consumer-app-descriptor.md
-- ADR status: proposed
+- ADR status: approved
 - Source backlog item: parked proposal under `v1.7.0 upgrade findings (pipeline correctness gaps)` in `AGENTS.backlog.md`
 - Related shipped context: #206 consumer-seeded workload manifests, #207 base/apps prune bridge, #208 dynamic workload derivation, #203 kustomization-ref prune guard.
 

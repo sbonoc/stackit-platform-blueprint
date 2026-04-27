@@ -300,27 +300,72 @@ class CatalogManifestEndToEndRenderingTests(unittest.TestCase):
                 catalog_scaffold_renderer.cmd_render(args)
         self.assertIn("descriptor", str(cm.exception).lower())
 
-    def test_descriptor_component_without_image_mapping_errors(self) -> None:
+    def test_descriptor_component_without_image_mapping_falls_back_with_warning(self) -> None:
+        """Codex P1 fix: missing per-component mapping renders with empty image + derived
+        env-var name and emits a stderr warning naming the affected components, instead of
+        hard-failing the render. This unblocks `make apps-bootstrap` for new components added
+        to apps/descriptor.yaml without requiring concurrent bootstrap.sh edits."""
+        import io
+        from contextlib import redirect_stderr
+
         manifest_tmpl, versions_tmpl = self._baseline_template_paths()
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp_root = Path(tmpdir)
             descriptor_path = _write_descriptor(tmp_root, _NON_BASELINE_DESCRIPTOR)
+            manifest_output = tmp_root / "apps/catalog/manifest.yaml"
             args = self._baseline_render_args(
                 tmp_root,
                 descriptor_path,
                 manifest_tmpl,
                 versions_tmpl,
-                tmp_root / "apps/catalog/manifest.yaml",
+                manifest_output,
                 tmp_root / "apps/catalog/versions.lock",
-                component_images=["marketplace-api=x"],  # missing marketplace-worker
+                component_images=["marketplace-api=marketplace/api:1.0"],  # missing marketplace-worker
+                component_image_env_vars=[],  # all derived
+            )
+            stderr_buf = io.StringIO()
+            with redirect_stderr(stderr_buf):
+                rc = catalog_scaffold_renderer.cmd_render(args)
+            self.assertEqual(rc, 0)
+            manifest_text = manifest_output.read_text(encoding="utf-8")
+            stderr_text = stderr_buf.getvalue()
+
+        # Mapped component renders normally
+        self.assertIn("defaultImage: marketplace/api:1.0", manifest_text)
+        # Unmapped component falls back: env var derived from component_id
+        self.assertIn("imageEnvVar: APP_RUNTIME_MARKETPLACE_WORKER_IMAGE", manifest_text)
+        # Stderr warning names the affected component(s)
+        self.assertIn("warning", stderr_text.lower())
+        self.assertIn("marketplace-worker", stderr_text)
+
+    def test_descriptor_component_with_explicit_env_var_override_wins(self) -> None:
+        """Explicit --component-image-env-var must override the derived default."""
+        manifest_tmpl, versions_tmpl = self._baseline_template_paths()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            descriptor_path = _write_descriptor(tmp_root, _BASELINE_DESCRIPTOR)
+            manifest_output = tmp_root / "apps/catalog/manifest.yaml"
+            args = self._baseline_render_args(
+                tmp_root,
+                descriptor_path,
+                manifest_tmpl,
+                versions_tmpl,
+                manifest_output,
+                tmp_root / "apps/catalog/versions.lock",
+                component_images=[
+                    "backend-api=python:3.14-slim",
+                    "touchpoints-web=nginx:1.27-alpine",
+                ],
                 component_image_env_vars=[
-                    "marketplace-api=MARKETPLACE_API_IMAGE",
-                    "marketplace-worker=MARKETPLACE_WORKER_IMAGE",
+                    "backend-api=APP_RUNTIME_BACKEND_IMAGE",  # legacy short name override
                 ],
             )
-            with self.assertRaises(ValueError) as cm:
-                catalog_scaffold_renderer.cmd_render(args)
-        self.assertIn("marketplace-worker", str(cm.exception))
+            rc = catalog_scaffold_renderer.cmd_render(args)
+            self.assertEqual(rc, 0)
+            manifest_text = manifest_output.read_text(encoding="utf-8")
+        # Explicit override wins for backend-api; touchpoints-web falls back to derived name
+        self.assertIn("imageEnvVar: APP_RUNTIME_BACKEND_IMAGE", manifest_text)
+        self.assertIn("imageEnvVar: APP_RUNTIME_TOUCHPOINTS_WEB_IMAGE", manifest_text)
 
 
 class CatalogManifestValidatorTests(unittest.TestCase):

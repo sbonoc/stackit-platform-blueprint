@@ -172,7 +172,18 @@ def _resolve_component(
         )
         return None
 
-    manifests_raw = comp.get("manifests") if isinstance(comp.get("manifests"), dict) else {}
+    manifests_raw_value = comp.get("manifests")
+    if manifests_raw_value is None:
+        manifests_raw: dict = {}
+    elif not isinstance(manifests_raw_value, dict):
+        errors.append(
+            f"{descriptor_path}: app[{app_id}].component[{comp_id}].manifests must be a "
+            f"mapping (got {type(manifests_raw_value).__name__}); explicit deployment/service "
+            f"paths must be declared as a YAML mapping, not a scalar or list"
+        )
+        return None
+    else:
+        manifests_raw = manifests_raw_value
     deployment_path, dep_errs = _resolve_manifest_path(
         descriptor_path, app_id, comp_id, manifests_raw, "deployment"
     )
