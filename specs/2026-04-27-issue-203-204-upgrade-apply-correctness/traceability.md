@@ -7,7 +7,7 @@
 | REQ-001 (kustomization-ref check before delete) | ADR § Decision #203; architecture.md § Context A | `upgrade_consumer.py`: `_is_kustomization_referenced` (T-003), wired in `_classify_entries` (T-004) | T-101, T-102, T-104 | ADR flowchart | apply artifact `consumer_kustomization_ref_count` |
 | REQ-002 (classify as consumer-kustomization-ref / skip) | ADR § Decision #203 | `_classify_entries`: new branch after `_is_consumer_owned_workload` (T-004) | T-102, T-104 | ADR flowchart | apply artifact entry ownership field |
 | REQ-003 (preserve existing delete behavior) | ADR § Consequences | `_classify_entries`: fall-through to existing branch — no code change required | T-106 | — | — |
-| REQ-004 (scan .tf merged content for duplicates) | ADR § Decision #204 | `upgrade_consumer.py`: `_tf_deduplicate_blocks` (T-009), wired in apply loop (T-010) | T-103, T-105 | ADR flowchart | apply artifact `tf_dedup_count` |
+| REQ-004 (scan .tf merged content for duplicates) | ADR § Decision #204 | `upgrade_consumer.py`: `_tf_deduplicate_blocks` (T-009), wired in apply loop (T-010) | T-103, T-105, TEST-010 | ADR flowchart | apply artifact `tf_dedup_count` |
 | REQ-005 (auto-deduplicate byte-identical blocks) | ADR § Decision #204 | `_tf_deduplicate_blocks`: remove all but first occurrence (T-009) | T-103, T-105 | — | apply artifact `deduplication_log` |
 | REQ-006 (conflict artifact for non-identical duplicates) | ADR § Decision #204 | apply loop: emit conflict artifact when non-identical (T-010) | T-105 | — | conflict artifact file |
 | NFR-SEC-001 (yaml.safe_load only) | architecture.md § Non-Functional | `_is_kustomization_referenced`: `yaml.safe_load` (T-003) | T-101, T-102 (no subprocess in exercised code path) | — | — |
@@ -25,7 +25,7 @@
 
 | Gate | Evidence path | Status |
 |---|---|---|
-| Pytest unit suite | `pytest tests/blueprint/test_upgrade_consumer.py` | **passed** — 83/83 (10 new tests green) |
+| Pytest unit suite | `pytest tests/blueprint/test_upgrade_consumer.py` | **passed** — 84/84 (11 new tests green; +TEST-010 provider-alias fix) |
 | quality-hooks-fast | `make quality-hooks-fast` | **passed** — SDD, PR-ready, and infra contract checks clean |
 | infra-validate | `make infra-validate` | **passed** |
 | blueprint-template-smoke | `make blueprint-template-smoke` | **pre-existing failure** — `declare -A` bash incompatibility in `prune_codex_skills.sh`; reproduced identically on `main`; unrelated to this change |

@@ -1456,6 +1456,12 @@ def _tf_deduplicate_blocks(content: str) -> tuple[str | None, list[str], list[st
         if all(t == texts[0] for t in texts):
             dedup_log.append(key)
         else:
+            # provider blocks support aliases: `provider "aws" { alias = "us" ... }` is a
+            # distinct configuration from the default `provider "aws" {}` block. Skip the
+            # conflict signal when at least one occurrence carries an alias attribute.
+            block_type = key.split(".")[0]
+            if block_type == "provider" and any(re.search(r"\balias\s*=", t) for t in texts):
+                continue
             conflict_keys.append(key)
 
     if conflict_keys:

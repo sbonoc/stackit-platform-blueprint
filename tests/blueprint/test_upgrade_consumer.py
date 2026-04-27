@@ -2613,6 +2613,17 @@ variable "opensearch_enabled" {
 }
 """
 
+_TF_PROVIDER_ALIASES = """\
+provider "aws" {
+  region = "eu-west-1"
+}
+
+provider "aws" {
+  alias  = "us"
+  region = "us-east-1"
+}
+"""
+
 
 class KustomizationRefPruneGuardTests(unittest.TestCase):
     """REQ-001–003, NFR-SEC-001, NFR-REL-001, AC-001–003, AC-006 (issues #203)."""
@@ -2853,6 +2864,14 @@ class TerraformBlockDeduplicationTests(unittest.TestCase):
             self.assertEqual(len(results), 1)
             self.assertEqual(results[0].result, "conflict")
             self.assertIsNotNone(results[0].conflict_artifact)
+
+    def test_tf_deduplicate_blocks_provider_aliases(self) -> None:
+        """TEST-010 / REQ-004: provider blocks with aliases are valid Terraform — must not emit conflict."""
+        processed, dedup_log, conflict_keys = upgrade_consumer._tf_deduplicate_blocks(_TF_PROVIDER_ALIASES)
+        self.assertIsNotNone(processed)
+        self.assertEqual(dedup_log, [])
+        self.assertEqual(conflict_keys, [])
+        self.assertIn('alias  = "us"', processed)
 
 
 if __name__ == "__main__":
