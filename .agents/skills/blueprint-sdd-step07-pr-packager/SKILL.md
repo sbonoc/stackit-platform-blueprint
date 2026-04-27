@@ -128,16 +128,16 @@ STEP 8 — PUBLISH ARTIFACTS
    make quality-hooks-fast         # SDD check + docs drift + infra contract tests
    make quality-hardening-review   # hardening_review.md completeness
 
-6. Commit final artifacts:
+6. TRACEABILITY VERIFICATION — run the blueprint-sdd-traceability-keeper skill
+   for this work item. Resolve any blocking gaps before committing.
+
+7. Commit final artifacts (including any traceability.md fixes from step 6):
    git add specs/YYYY-MM-DD-<slug>/pr_context.md \
            specs/YYYY-MM-DD-<slug>/hardening_review.md \
            specs/YYYY-MM-DD-<slug>/tasks.md \
            AGENTS.backlog.md
    git commit -m "feat(<slug>): publish artifacts — pr_context, hardening_review, deferred issues filed"
    git push
-
-7. TRACEABILITY VERIFICATION — run the blueprint-sdd-traceability-keeper skill
-   for this work item. Resolve any blocking gaps before marking the PR ready.
 
 STEP 9 — MARK PR READY
 

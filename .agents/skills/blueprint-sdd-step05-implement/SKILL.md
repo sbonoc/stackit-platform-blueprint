@@ -177,10 +177,13 @@ SLICE N — IMPLEMENTATION (green)
 Repeat for each slice in plan.md order.
 ```
 
-## Minimum validation bundles by change type
+## After All Slices Complete
 
-After all implementation slices are complete, run the bundle matching the
-change type declared in `spec.md` (from AGENTS.md):
+Run these steps in order after the last slice is committed:
+
+### 1. Minimum validation bundle
+
+Run the bundle matching the change type declared in `spec.md` (from AGENTS.md):
 
 | Change type | Commands |
 |---|---|
@@ -189,11 +192,17 @@ change type declared in `spec.md` (from AGENTS.md):
 | App delivery / build / deploy changes | `make apps-bootstrap` · `make apps-smoke` · `make apps-audit-versions` |
 | HTTP route / filter / query scope | `make test-smoke-all-local` (record pass/fail in `pr_context.md`) |
 
-## Traceability Verification (Final Step)
+### 2. Traceability Verification
 
-After all slices are complete and the validation bundle passes, run the
-`blueprint-sdd-traceability-keeper` skill for this work item. Resolve any
-blocking gaps before closing this skill.
+Run the `blueprint-sdd-traceability-keeper` skill for this work item. Resolve any
+blocking gaps. If `traceability.md` was updated to fix gaps, commit those changes
+before closing this skill:
+
+```bash
+git add specs/YYYY-MM-DD-<slug>/traceability.md
+git commit -m "feat(<slug>): update traceability — post-implementation gaps resolved"
+git push
+```
 
 ## Special cases
 

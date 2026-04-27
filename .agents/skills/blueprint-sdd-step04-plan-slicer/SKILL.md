@@ -51,13 +51,13 @@ Software Engineer (invokes agent).
 4. Define validation per slice (lowest valid test layer first).
 5. Update plan.md and tasks.md.
 6. Synchronize AGENTS.backlog.md with links to the plan/tasks sections.
-7. If plan.md was changed:
+7. TRACEABILITY VERIFICATION — run the blueprint-sdd-traceability-keeper skill
+   for this work item. Resolve any blocking gaps.
+
+8. If plan.md was changed (or traceability.md was updated to fix gaps):
    git add specs/YYYY-MM-DD-<slug>/plan.md specs/YYYY-MM-DD-<slug>/tasks.md
    git commit -m "feat(<slug>): refine plan into execution slices"
    git push
-
-8. TRACEABILITY VERIFICATION — run the blueprint-sdd-traceability-keeper skill
-   for this work item. Resolve any blocking gaps before closing this skill.
 ```
 
 ## Required Report Format
