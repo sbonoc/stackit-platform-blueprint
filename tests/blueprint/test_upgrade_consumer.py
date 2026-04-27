@@ -2381,15 +2381,29 @@ class SeedManifestContractContentTests(unittest.TestCase):
                 msg=f"{path} must not be in required_files (issue #206)",
             )
 
-    def test_seed_manifest_paths_in_source_only_paths(self) -> None:
-        """T-102 / AC-001: 4 seed paths MUST appear in source_only_paths after fix."""
+    def test_seed_manifest_paths_in_consumer_seeded_paths(self) -> None:
+        """T-102 / AC-001: 4 seed paths MUST appear in consumer_seeded_paths (reclassified from source_only — issue #206 CI fix)."""
         contract = self._contract()
-        source_only = set(contract.repository.source_only_paths)
+        consumer_seeded = set(contract.repository.consumer_seeded_paths)
         for path in _SEED_MANIFEST_PATHS:
             self.assertIn(
                 path,
+                consumer_seeded,
+                msg=f"{path} must be in consumer_seeded_paths (issue #206)",
+            )
+
+    def test_seed_manifest_paths_not_in_source_only_paths(self) -> None:
+        """T-107 / AC-001: 4 seed paths MUST NOT appear in source_only_paths.
+        blueprint-init-repo deletes all source_only paths during init; if seed manifests
+        were classified source_only, APP_RUNTIME_GITOPS_ENABLED validation would fail in
+        generated-consumer mode (issue #206 CI fix)."""
+        contract = self._contract()
+        source_only = set(contract.repository.source_only_paths)
+        for path in _SEED_MANIFEST_PATHS:
+            self.assertNotIn(
+                path,
                 source_only,
-                msg=f"{path} must be in source_only_paths (issue #206)",
+                msg=f"{path} must not be in source_only_paths — init-repo deletes source_only and breaks app runtime GitOps validation (issue #206)",
             )
 
     def test_app_runtime_required_paths_no_hardcoded_manifest_names(self) -> None:
@@ -2435,7 +2449,7 @@ class SeedManifestUpgradePlannerTests(unittest.TestCase):
             all_paths=paths,
             required_files=set(contract.repository.required_files),
             source_only=set(contract.repository.source_only_paths),
-            consumer_seeded=set(),
+            consumer_seeded=set(contract.repository.consumer_seeded_paths),
             init_managed=set(),
             conditional_entries={"infra/gitops/platform/base/apps"},
             managed_dir_roots={"infra/gitops/platform/base/apps"},
@@ -2446,7 +2460,7 @@ class SeedManifestUpgradePlannerTests(unittest.TestCase):
         )
 
     def test_consumer_renamed_manifests_no_delete_or_create_for_seed_paths(self) -> None:
-        """T-104 / AC-004: consumer has renamed manifests; seed paths in source_only →
+        """T-104 / AC-004: consumer has renamed manifests; seed paths in consumer_seeded →
         zero OPERATION_DELETE and zero OPERATION_CREATE for the 4 seed paths."""
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp = Path(tmpdir)
@@ -2495,9 +2509,9 @@ class SeedManifestUpgradePlannerTests(unittest.TestCase):
                     msg=f"seed path {entry.path} must be ACTION_SKIP (AC-004)",
                 )
 
-    def test_original_seed_names_classified_as_source_only_skip(self) -> None:
+    def test_original_seed_names_classified_as_consumer_seeded_skip(self) -> None:
         """T-104 / AC-005: consumer still has original seed manifest names; they must
-        be classified source-only/skip — no OPERATION_UPDATE or OPERATION_DELETE."""
+        be classified consumer-seeded/skip — no OPERATION_UPDATE or OPERATION_DELETE."""
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp = Path(tmpdir)
             source_repo = tmp / "source"
@@ -2523,8 +2537,8 @@ class SeedManifestUpgradePlannerTests(unittest.TestCase):
                 )
                 self.assertEqual(
                     entry.ownership,
-                    "source-only",
-                    msg=f"seed path {entry.path} must have ownership=source-only (AC-005)",
+                    "consumer-seeded",
+                    msg=f"seed path {entry.path} must have ownership=consumer-seeded (AC-005)",
                 )
                 self.assertNotEqual(
                     entry.operation,
@@ -2539,7 +2553,7 @@ class SeedManifestUpgradePlannerTests(unittest.TestCase):
 
 
 class SeedManifestInitSeedingTests(unittest.TestCase):
-    """T-106 — fresh-init seeding regression: seed template files still exist after FR-003 (issue #206)."""
+    """T-106, T-108 — fresh-init seeding regression guards (issue #206)."""
 
     def test_seed_manifest_templates_exist_in_infra_bootstrap(self) -> None:
         """T-106: the 4 seed manifest template files must still exist in the infra bootstrap
@@ -2551,6 +2565,20 @@ class SeedManifestInitSeedingTests(unittest.TestCase):
             self.assertTrue(
                 template_file.is_file(),
                 msg=f"seed template {seed_path} must still exist in {template_dir} after FR-003 (T-106)",
+            )
+
+    def test_seed_manifest_consumer_init_templates_exist(self) -> None:
+        """T-108: consumer init .tmpl files must exist for the 4 seed manifest paths
+        (reclassified to consumer_seeded in issue #206 CI fix).
+        blueprint-init-repo seeds consumer_seeded paths from scripts/templates/consumer/init/;
+        without these .tmpl files init-repo would fail and app runtime GitOps validation
+        would fail in generated-consumer mode."""
+        template_dir = REPO_ROOT / "scripts/templates/consumer/init"
+        for seed_path in _SEED_MANIFEST_PATHS:
+            template_file = template_dir / f"{seed_path}.tmpl"
+            self.assertTrue(
+                template_file.is_file(),
+                msg=f"consumer init template {seed_path}.tmpl must exist in {template_dir} (issue #206 CI fix, T-108)",
             )
 
 

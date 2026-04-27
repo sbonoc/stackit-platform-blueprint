@@ -533,10 +533,6 @@ spec:
         - docs/pnpm-lock.yaml
         - docs/package.json
         - blueprint/modules
-        - infra/gitops/platform/base/apps/backend-api-deployment.yaml
-        - infra/gitops/platform/base/apps/backend-api-service.yaml
-        - infra/gitops/platform/base/apps/touchpoints-web-deployment.yaml
-        - infra/gitops/platform/base/apps/touchpoints-web-service.yaml
       consumer_seeded:
         - README.md
         - AGENTS.md
@@ -562,6 +558,10 @@ spec:
         - .github/ISSUE_TEMPLATE/config.yml
         - .github/pull_request_template.md
         - .github/workflows/ci.yml
+        - infra/gitops/platform/base/apps/backend-api-deployment.yaml
+        - infra/gitops/platform/base/apps/backend-api-service.yaml
+        - infra/gitops/platform/base/apps/touchpoints-web-deployment.yaml
+        - infra/gitops/platform/base/apps/touchpoints-web-service.yaml
       init_managed:
         - blueprint/repo.init.env
         - blueprint/repo.init.secrets.example.env

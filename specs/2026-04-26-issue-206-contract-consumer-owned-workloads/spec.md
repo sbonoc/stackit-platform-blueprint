@@ -42,18 +42,18 @@
 
 ### Functional Requirements (Normative)
 - FR-001 MUST: The four blueprint-seed workload manifest paths (`infra/gitops/platform/base/apps/backend-api-deployment.yaml`, `...backend-api-service.yaml`, `...touchpoints-web-deployment.yaml`, `...touchpoints-web-service.yaml`) MUST be removed from the global `required_files` list in `blueprint/contract.yaml`.
-- FR-002 MUST: The four paths MUST be added to `source_only_paths` in `blueprint/contract.yaml` so that (a) template-source CI coverage checks continue to pass, and (b) the upgrade planner classifies them as `source-only / skip` during consumer upgrade runs.
+- FR-002 MUST: The four paths MUST be added to `consumer_seeded_paths` in `blueprint/contract.yaml` so that (a) template-source CI coverage checks continue to pass, (b) the upgrade planner classifies them as `consumer-seeded / skip` during consumer upgrade runs, and (c) `blueprint-init-repo` seeds them (not deletes them) during generated-consumer initialization. Four corresponding `.tmpl` files MUST exist at `scripts/templates/consumer/init/infra/gitops/platform/base/apps/*.yaml.tmpl` to support `init_repo_contract.py`'s seeding mechanism. **Note**: original spec specified `source_only_paths`; reclassified to `consumer_seeded_paths` in CI fix (2026-04-27) because `source_only` paths are deleted by `blueprint-init-repo`, which caused `APP_RUNTIME_GITOPS_ENABLED` validation to fail in generated-consumer mode.
 - FR-003 MUST: The four paths MUST be removed from `app_runtime_gitops_contract.required_paths_when_enabled` in `blueprint/contract.yaml`. Only `infra/gitops/platform/base/apps` (directory) and `infra/gitops/platform/base/apps/kustomization.yaml` remain in that list.
 - FR-004 MUST: After a consumer upgrades to the blueprint version that includes this fix, their `blueprint/contract.yaml` will no longer list the four paths in `required_files` or `required_paths_when_enabled`. No consumer manual patching is required for subsequent upgrades.
 
 ### Non-Functional Requirements (Normative)
 - NFR-SEC-001 MUST: The change MUST NOT introduce any new file system write operations or credential handling.
-- NFR-OBS-001 MUST: The upgrade plan output for consumers with the old seed manifest names MUST show those paths classified as `source-only / skip` after this fix is applied, making the behavioral change observable without running the full upgrade.
+- NFR-OBS-001 MUST: The upgrade plan output for consumers with the old seed manifest names MUST show those paths classified as `consumer-seeded / skip` after this fix is applied, making the behavioral change observable without running the full upgrade.
 - NFR-REL-001 MUST: The change MUST be backward-compatible for consumers who have not yet renamed their manifests. For consumers with the original seed names, the upgrade planner will skip the files (source-only) rather than update them — the files remain unchanged in the consumer repo.
-- NFR-OPS-001 MUST: The template-source CI coverage check (`audit_source_tree_coverage`) MUST continue to pass after the fix. The four seed files remain in the template source repo; their classification changes from `required` to `source-only`.
+- NFR-OPS-001 MUST: The template-source CI coverage check (`audit_source_tree_coverage`) MUST continue to pass after the fix. The four seed files remain in the template source repo; their classification changes from `required` to `consumer-seeded`.
 
 ## Normative Option Decision
-- Option A: Move the 4 paths from `required_files` to `source_only_paths`; remove from `required_paths_when_enabled`. Uses existing `source_only` mechanism with zero code changes.
+- Option A: Move the 4 paths from `required_files` to `consumer_seeded_paths`; remove from `required_paths_when_enabled`. Add four `.tmpl` files at `scripts/templates/consumer/init/` to support consumer init seeding. **Note**: initially specified as `source_only_paths`; corrected to `consumer_seeded_paths` in CI fix (2026-04-27) after CI showed `blueprint-init-repo` deletes `source_only` paths, breaking `APP_RUNTIME_GITOPS_ENABLED` validation.
 - Option B: Introduce a new contract schema field `consumer_workload_manifest_paths: list[str]` on `app_runtime_gitops_contract` that allows consumers to declare their actual manifest names; the upgrade planner preserves this field across upgrades via a dedicated carry-forward mechanism.
 - Selected option: OPTION_A
 - Rationale: Option A is the minimal, zero-code-change fix that eliminates the mandatory re-patching. It uses an existing, tested mechanism (`source_only_paths`). Option B provides a richer long-term mechanism for consumers who want explicit contract-level validation of their manifest names, but it requires: (a) a new Pydantic schema field, (b) a new upgrade planner carry-forward mechanism for consumer-declared overrides, and (c) a migration path for existing consumers. Option B is not blocked — it can be implemented on top of Option A in a future work item once the domain boundary is stable (issues #207 and #208 establish that foundation). Option A ships the immediate relief without speculative complexity.
@@ -73,20 +73,20 @@
 - Workaround review date: none — the spec is ready for implementation.
 
 ## Normative Acceptance Criteria
-- AC-001 MUST: After the fix is applied, the four seed manifest paths MUST appear in `source_only_paths` and NOT appear in `required_files` in `blueprint/contract.yaml`.
+- AC-001 MUST: After the fix is applied, the four seed manifest paths MUST appear in `consumer_seeded_paths` and NOT appear in `required_files` or `source_only_paths` in `blueprint/contract.yaml`.
 - AC-002 MUST: After the fix is applied, the four seed manifest paths MUST NOT appear in `app_runtime_gitops_contract.required_paths_when_enabled` in `blueprint/contract.yaml`.
 - AC-003 MUST: The template-source unit test for `audit_source_tree_coverage` MUST pass without any uncovered-file warnings for the four seed paths.
 - AC-004 MUST: A generated-consumer upgrade plan with `allow_delete=True`, run against a consumer repo that has renamed their workload manifests, MUST show zero `OPERATION_DELETE` entries for the four seed paths and zero `OPERATION_CREATE` entries attempting to recreate them.
-- AC-005 MUST: A generated-consumer upgrade plan run against a consumer repo that still has the original seed manifest names MUST classify those files as `source-only / skip` (not `update` or `delete`), preserving them unchanged.
+- AC-005 MUST: A generated-consumer upgrade plan run against a consumer repo that still has the original seed manifest names MUST classify those files as `consumer-seeded / skip` (not `update` or `delete`), preserving them unchanged.
 
 ## Informative Notes (Non-Normative)
 - Context: Issues #207 and #208 addressed the symptoms (prune deletion, smoke CI failures). Issue #206 addresses the root cause: the contract itself embeds consumer workload naming decisions as blueprint requirements.
-- Tradeoffs: Moving paths to `source_only` means blueprint cannot push content updates to the 4 seed manifests via upgrade. This is intentional — consumers own their workload manifests. Blueprint only seeds them on `blueprint-init-repo`.
+- Tradeoffs: Moving paths to `consumer_seeded` means blueprint seeds them at `blueprint-init-repo` time but cannot push content updates via upgrade. This is intentional — consumers own their workload manifests after init.
 - Consequence accepted (explicit, 2026-04-27): Once merged, consumers who run `blueprint-upgrade` will never automatically receive future blueprint content improvements to the 4 seed manifest files (health probes, security contexts, resource limits, etc.). This is the intended tradeoff: workload manifests are consumer-domain after init; future seed improvements are the consumer's responsibility to apply manually. This is consistent with the apps.yaml long-term direction.
 - Clarifications: Option B (consumer_workload_manifest_paths field) remains a valid future enhancement for teams that want explicit preflight validation of their actual manifest names. It is tracked as a separate follow-up item in the backlog.
 
 ## Explicit Exclusions
 - Option B (consumer_workload_manifest_paths schema field): deferred to a future work item.
-- Changes to `init_repo_contract.py` or the init-time scaffolding logic.
+- Changes to `init_repo_contract.py` logic (the existing consumer_seeded seeding mechanism is reused without modification; four new `.tmpl` files were added at `scripts/templates/consumer/init/infra/gitops/platform/base/apps/` as part of the CI fix).
 - Changes to the upgrade planner algorithm (issues #207 and #208 already handle the planner).
 - Changes to any files other than `blueprint/contract.yaml` and the ADR.
