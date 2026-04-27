@@ -1,7 +1,7 @@
 # ADR: Remove Hardcoded Workload Manifest Names from Blueprint Contract (issue #206)
 
 - **Date**: 2026-04-26
-- **Status**: proposed
+- **Status**: approved
 - **Work item**: 2026-04-26-issue-206-contract-consumer-owned-workloads
 - **Reported by**: sbonoc/dhe-marketplace (v1.7.0 upgrade findings)
 
@@ -68,5 +68,10 @@ introduce merge conflicts for all consumers on every upgrade. Not selected.
   files (they are `source_only` → skip forever). This is intentional: blueprint seeds them
   at init time, consumers own them thereafter. If blueprint changes the seed content in a
   future release, consumers will not receive those changes automatically.
-- **Follow-up**: Option B (consumer_workload_manifest_paths field) remains a valid future
+- **Follow-up 1**: Option B (consumer_workload_manifest_paths field) remains a valid future
   enhancement for teams that want explicit preflight validation of their actual manifest names.
+- **Follow-up 2**: Source-only seed change advisory — when blueprint improves the content of
+  a `source_only` seed file in a future release, the upgrade planner must emit an advisory plan
+  entry with a unified diff so consumers are notified and can apply the delta manually. Without
+  this, `source-only / skip` is silent even when the seed content changed. Tracked in backlog
+  as `proposal(issue-206): source-only seed change advisory`.

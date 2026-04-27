@@ -2,7 +2,7 @@
   "manifest_version": 1,
   "work_item": "2026-04-26-issue-206-contract-consumer-owned-workloads",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "2026-04-26T12:00:00Z",
+  "generated_at_utc": "2026-04-27T09:00:00Z",
   "files": [
     {
       "path": "specs/2026-04-26-issue-206-contract-consumer-owned-workloads/architecture.md",
@@ -12,27 +12,27 @@
     },
     {
       "path": "specs/2026-04-26-issue-206-contract-consumer-owned-workloads/spec.md",
-      "sha256": "8194cebb789cc0f4a63c55f4216108aed85b8bf0005d51c2d2e93f412c50080d",
+      "sha256": "93f84bebfc239e71f461b960e2bda568a35c9405c15cbb6115f9ff900ac7d932",
       "role": "spec-artifact",
-      "description": "Full specification with SPEC_PRODUCT_READY=true (Product approved); Architecture/Security/Operations pending"
+      "description": "Full specification; SPEC_READY=true; all four sign-offs approved (sbonoc, PR #211)"
     },
     {
       "path": "specs/2026-04-26-issue-206-contract-consumer-owned-workloads/plan.md",
       "sha256": "ca1124afda09e08b08962808a5584f1d3a43143e6e2c4f8f9464c48bd330e8a4",
       "role": "spec-artifact",
-      "description": "4-slice implementation plan; Slice 2 updated with concrete IMPL T-104 fixture spec and IMPL T-106 fresh-init test"
+      "description": "4-slice implementation plan; concrete IMPL T-104 fixture spec and IMPL T-106 fresh-init test"
     },
     {
       "path": "specs/2026-04-26-issue-206-contract-consumer-owned-workloads/tasks.md",
-      "sha256": "23f12c227271c4b8261af9d141bf6578fbd479e13ffad135c5c25cc40d3277d8",
+      "sha256": "fd460a6b0693d7f436c3a68dc82f2163e71c6a455a6f7b93c0258438ba47e7d6",
       "role": "spec-artifact",
-      "description": "Tasks; G-001 and G-003 pending sign-off; IMPL T-106 added; implementation tasks deferred to implementing work item"
+      "description": "All gate checks complete; spec publication tasks complete; IMPL tasks deferred to implementing work item"
     },
     {
       "path": "specs/2026-04-26-issue-206-contract-consumer-owned-workloads/traceability.md",
       "sha256": "5169ba8804c5fcbbed8e300365b2d4ee4a976808a10814ea5eb7f58d0ad57a4a",
       "role": "spec-artifact",
-      "description": "Requirement-to-delivery mapping; Follow-up 3 added (source-only seed change advisory); validation evidence pending implementation"
+      "description": "Requirement-to-delivery mapping; Follow-up 3 (source-only seed change advisory) added"
     },
     {
       "path": "specs/2026-04-26-issue-206-contract-consumer-owned-workloads/graph.json",
@@ -57,6 +57,12 @@
       "sha256": "4c569d6d2bccf1167e1042440fae45eb1fb8b88eb3b4639725e46f0816fea7a0",
       "role": "spec-artifact",
       "description": "Hardening review with finding, observability, architecture, proposals sections"
+    },
+    {
+      "path": "docs/blueprint/architecture/decisions/ADR-2026-04-26-issue-206-contract-consumer-owned-workloads.md",
+      "sha256": "813e18caa3e4e2442555ca8bd9318edcb555c0da427ad0bda96cc6bbaeb8c158",
+      "role": "adr",
+      "description": "Decision record; Status: approved; Option A confirmed; Follow-up 2 (source-only advisory) added"
     }
   ]
 }
