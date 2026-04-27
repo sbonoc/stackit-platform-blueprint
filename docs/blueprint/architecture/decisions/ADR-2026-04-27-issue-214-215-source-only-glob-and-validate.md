@@ -1,7 +1,7 @@
 # ADR: source_only Glob and Directory-Prefix Support in Audit Coverage and Contract Validation
 
-- **Status:** proposed
-- **ADR technical decision sign-off:** pending
+- **Status:** approved
+- **ADR technical decision sign-off:** approved
 - **Date:** 2026-04-27
 - **Issues:** #214, #215
 - **Work item:** `specs/2026-04-27-issue-214-215-source-only-glob-and-validate/`
