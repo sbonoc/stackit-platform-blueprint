@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import ast
 import argparse
+import fnmatch
 import os
 from pathlib import Path, PurePosixPath
 import re
@@ -114,10 +115,47 @@ def _validate_required_files(repo_root: Path, required_files: list[str]) -> list
 
 
 def _validate_absent_files(repo_root: Path, relative_paths: list[str]) -> list[str]:
+    """Return error strings for absent-file contract violations.
+
+    Entry classification (FR-002 / FR-003):
+    - Glob entry (contains ``*``): use ``fnmatch`` against all consumer files; emit an
+      error for each matching file found (AC-003 / AC-004).
+    - Directory-prefix entry (ends with ``/``): a directory existing at that path is
+      intentional source layout and must NOT trigger an error (AC-002).  Only an actual
+      file whose path equals the entry (minus trailing slash) would be flagged, but that
+      edge case is handled by the is_file() check on the normalised path.
+    - Exact file entry: use ``is_file()`` instead of ``exists()`` so that directories
+      living at a source_only path do not produce false positives (AC-002 / AC-005).
+    """
     errors: list[str] = []
+
+    # Lazy consumer file list — built only when needed for glob entries.
+    _consumer_files: list[str] | None = None
+
+    def _get_consumer_files() -> list[str]:
+        nonlocal _consumer_files
+        if _consumer_files is None:
+            _consumer_files = [
+                p.relative_to(repo_root).as_posix()
+                for p in repo_root.rglob("*")
+                if p.is_file()
+            ]
+        return _consumer_files
+
     for relative_path in relative_paths:
-        if (repo_root / relative_path).exists():
-            errors.append(f"file must be absent for current repo_mode: {relative_path}")
+        if "*" in relative_path:
+            # Glob entry: report each consumer file that matches the pattern.
+            for consumer_file in _get_consumer_files():
+                if fnmatch.fnmatch(consumer_file, relative_path):
+                    errors.append(
+                        f"file must be absent for current repo_mode: {consumer_file}"
+                    )
+        else:
+            # Exact or directory-prefix entry: is_file() returns False for directories,
+            # avoiding the false positive that .exists() triggered for trailing-slash paths.
+            normalised = relative_path.rstrip("/")
+            if (repo_root / normalised).is_file():
+                errors.append(f"file must be absent for current repo_mode: {relative_path}")
     return errors
 
 

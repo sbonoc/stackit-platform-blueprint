@@ -10,28 +10,28 @@
 ## Implementation
 
 ### Slice 1 — Failing regression tests (red)
-- [ ] T-001 Write `test_audit_source_tree_coverage_prune_glob_coverage`: temp source repo with ADR files matching prune-glob; assert they appear in uncovered list before fix (reproduces #214, AC-001)
-- [ ] T-002 Write `test_validate_absent_files_directory_entry`: temp consumer with directory `source_only` entry; assert error is emitted before fix (reproduces #215, AC-002)
-- [ ] T-003 Write `test_validate_absent_files_glob_matching`: consumer with glob `source_only` entry and a matching file; assert error is emitted (AC-003)
-- [ ] T-004 Write `test_validate_absent_files_glob_no_match`: consumer with glob `source_only` entry and NO matching file; assert no error (AC-004)
-- [ ] T-005 Write `test_validate_absent_files_exact_file_present`: existing-behavior backward-compat test — exact-file entry and file present → error (AC-005)
-- [ ] T-006 Confirm all new tests FAIL before implementation
+- [x] T-001 Write `test_audit_source_tree_coverage_prune_glob_coverage`: temp source repo with ADR files matching prune-glob; assert they appear in uncovered list before fix (reproduces #214, AC-001)
+- [x] T-002 Write `test_validate_absent_files_directory_entry`: temp consumer with directory `source_only` entry; assert error is emitted before fix (reproduces #215, AC-002)
+- [x] T-003 Write `test_validate_absent_files_glob_matching`: consumer with glob `source_only` entry and a matching file; assert error is emitted (AC-003)
+- [x] T-004 Write `test_validate_absent_files_glob_no_match`: consumer with glob `source_only` entry and NO matching file; assert no error (AC-004)
+- [x] T-005 Write `test_validate_absent_files_exact_file_present`: existing-behavior backward-compat test — exact-file entry and file present → error (AC-005)
+- [x] T-006 Confirm all new tests FAIL before implementation
 
 ### Slice 2 — Implementation fixes (green)
-- [ ] T-010 `scripts/lib/blueprint/upgrade_consumer.py::audit_source_tree_coverage`: extend `all_coverage_roots` with files from `candidate_rels` matching any prune-glob via `fnmatch.fnmatch`; update call site to pass prune-glob list
-- [ ] T-011 `scripts/bin/blueprint/validate_contract.py::_validate_absent_files`: classify entries (glob/prefix vs file); use `is_file()` for file entries; use `fnmatch` against consumer file list for glob/prefix entries
-- [ ] T-012 Confirm all 5 regression tests pass green
+- [x] T-010 `scripts/lib/blueprint/upgrade_consumer.py::audit_source_tree_coverage`: extend `all_coverage_roots` with files from `candidate_rels` matching any prune-glob via `fnmatch.fnmatch`; update call site to pass prune-glob list
+- [x] T-011 `scripts/bin/blueprint/validate_contract.py::_validate_absent_files`: classify entries (glob/prefix vs file); use `is_file()` for file entries; use `fnmatch` against consumer file list for glob/prefix entries
+- [x] T-012 Confirm all 5 regression tests pass green
 
 ### Slice 3 — Docs and quality
-- [ ] T-020 Update `docs/blueprint/consumer/contract_reference.md` to document directory-prefix and glob support in `source_only`
-- [ ] T-021 Run `make quality-sdd-check` and fix any violations
-- [ ] T-022 Run `make quality-hooks-run`
+- [x] T-020 Update `docs/blueprint/consumer/contract_reference.md` to document directory-prefix and glob support in `source_only` — file does not exist; decision is fully documented in ADR-2026-04-27-issue-214-215-source-only-glob-and-validate.md
+- [x] T-021 Run `make quality-sdd-check` and fix any violations — clean pass; also registered test_validate_contract.py in test_pyramid_contract.json (unit scope)
+- [x] T-022 Run `make quality-hooks-run` — all pre-commit hooks pass (exit 0)
 - [ ] T-023 Run `make infra-validate` in a synthetic consumer fixture
 
 ## Test Automation
-- [ ] T-101 All 5 regression tests (T-001–T-005) are green after fix
-- [ ] T-103 AC-001 and AC-004 are positive-path tests (matching fixture with correct behavior); evidence captured in `pr_context.md`
-- [ ] T-104 Reproducible pre-PR findings from #214 and #215 reproduction commands are translated into failing tests (T-001, T-002) before fix is applied
+- [x] T-101 All 5 regression tests (T-001–T-005) are green after fix
+- [x] T-103 AC-001 and AC-004 are positive-path tests (matching fixture with correct behavior); evidence captured in `pr_context.md`
+- [x] T-104 Reproducible pre-PR findings from #214 and #215 reproduction commands are translated into failing tests (T-001, T-002) before fix is applied
 
 ## Validation and Release Readiness
 - [ ] T-201 Run `make quality-hooks-run` and `make infra-validate` — capture results
