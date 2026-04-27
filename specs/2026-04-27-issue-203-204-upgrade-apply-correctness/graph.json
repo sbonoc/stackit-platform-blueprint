@@ -32,6 +32,7 @@
     {"id": "TEST-007", "type": "test", "label": "test_tf_deduplicate_blocks_non_identical"},
     {"id": "TEST-008", "type": "test", "label": "test_apply_tf_dedup_merged_deduped"},
     {"id": "TEST-009", "type": "test", "label": "test_apply_tf_dedup_conflict_artifact"},
+    {"id": "TEST-010", "type": "test", "label": "test_classify_no_kustomization_ref_delete_unchanged"},
     {"id": "DOC-001", "type": "documentation", "label": "ADR-issue-203-204-upgrade-apply-correctness.md"}
   ],
   "edges": [
@@ -53,6 +54,8 @@
     {"from": "AC-002", "to": "TEST-001"},
     {"from": "AC-002", "to": "TEST-005"},
     {"from": "AC-003", "to": "TEST-003"},
+    {"from": "AC-003", "to": "TEST-010"},
+    {"from": "IMPL-002", "to": "TEST-010"},
     {"from": "AC-004", "to": "TEST-006"},
     {"from": "AC-004", "to": "TEST-008"},
     {"from": "AC-005", "to": "TEST-007"},

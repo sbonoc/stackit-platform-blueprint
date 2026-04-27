@@ -32,6 +32,7 @@
 - [ ] T-103 Positive-path unit test for `_tf_deduplicate_blocks`: byte-identical duplicate → single block in output (AC-004)
 - [ ] T-104 Integration test: full `_classify_entries` call with kustomization-referenced file and `allow_delete=True` returns skip (AC-001, AC-002)
 - [ ] T-105 Integration test: full apply loop with duplicate Terraform variable block → correct result classification (AC-004, AC-005)
+- [ ] T-106 Negative-path test: file absent in source, not referenced in any kustomization.yaml, `allow_delete=True` → delete classification produced unchanged (AC-003)
 
 ## Validation and Release Readiness
 - [ ] T-201 Run `pytest tests/blueprint/test_upgrade_consumer.py` — all tests green
