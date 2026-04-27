@@ -1,7 +1,8 @@
 # ADR: Consumer App Descriptor for Generated Repositories
 
 - **Date**: 2026-04-27
-- **Status**: proposed
+- **Status**: approved
+- **ADR technical decision sign-off**: approved
 - **Work item**: 2026-04-27-consumer-app-descriptor
 - **Source**: parked proposal under `v1.7.0 upgrade findings (pipeline correctness gaps)`
 
