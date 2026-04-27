@@ -149,7 +149,8 @@
         "applied_count",
         "required_manual_action_count",
         "tf_dedup_count",
-        "consumer_kustomization_ref_count"
+        "consumer_kustomization_ref_count",
+        "consumer_app_descriptor_count"
       ],
       "properties": {
         "total": {
@@ -165,6 +166,9 @@
           "type": "integer"
         },
         "consumer_kustomization_ref_count": {
+          "type": "integer"
+        },
+        "consumer_app_descriptor_count": {
           "type": "integer"
         }
       }

@@ -96,16 +96,17 @@ class DescriptorOwnershipPruneGuardTests(unittest.TestCase):
             entries = upgrade_consumer._classify_entries(
                 repo_root=repo_root,
                 source_repo=source_repo,
-                candidate_paths=["infra/gitops/platform/base/apps/backend-api-deployment.yaml"],
+                all_paths=["infra/gitops/platform/base/apps/backend-api-deployment.yaml"],
                 required_files=set(),
-                init_managed=set(),
-                conditional_entries=[],
-                managed_dir_roots=set(),
-                consumer_seeded=set(),
                 source_only=set(),
-                allow_delete=True,
+                consumer_seeded=set(),
+                init_managed=set(),
+                conditional_entries=set(),
+                managed_dir_roots=set(),
+                protected_roots=set(),
                 baseline_ref=None,
                 baseline_cache={},
+                allow_delete=True,
             )
 
         self.assertEqual(len(entries), 1)
@@ -135,16 +136,17 @@ class DescriptorOwnershipPruneGuardTests(unittest.TestCase):
             entries = upgrade_consumer._classify_entries(
                 repo_root=repo_root,
                 source_repo=source_repo,
-                candidate_paths=["infra/gitops/platform/base/apps/backend-api-service.yaml"],
+                all_paths=["infra/gitops/platform/base/apps/backend-api-service.yaml"],
                 required_files=set(),
-                init_managed=set(),
-                conditional_entries=[],
-                managed_dir_roots=set(),
-                consumer_seeded=set(),
                 source_only=set(),
-                allow_delete=True,
+                consumer_seeded=set(),
+                init_managed=set(),
+                conditional_entries=set(),
+                managed_dir_roots=set(),
+                protected_roots=set(),
                 baseline_ref=None,
                 baseline_cache={},
+                allow_delete=True,
             )
 
         self.assertEqual(entries[0].ownership, "consumer-app-descriptor")
@@ -260,15 +262,14 @@ class SuggestedDescriptorArtifactTests(unittest.TestCase):
             repo_root = Path(tmpdir)
             _write_apps_kustomization(repo_root, ["backend-api-deployment.yaml"])
             artifact_path = upgrade_consumer.write_suggested_descriptor_artifact(repo_root)
-
-        self.assertIsNotNone(artifact_path)
-        self.assertTrue(artifact_path.is_file())
-        self.assertEqual(
-            artifact_path.relative_to(repo_root).as_posix(),
-            "artifacts/blueprint/app_descriptor.suggested.yaml",
-        )
-        # Critical: must NOT write to the consumer working tree
-        self.assertFalse((repo_root / "apps/descriptor.yaml").exists())
+            self.assertIsNotNone(artifact_path)
+            self.assertTrue(artifact_path.is_file())
+            self.assertEqual(
+                artifact_path.relative_to(repo_root).as_posix(),
+                "artifacts/blueprint/app_descriptor.suggested.yaml",
+            )
+            # Critical: must NOT write to the consumer working tree
+            self.assertFalse((repo_root / "apps/descriptor.yaml").exists())
 
     def test_apply_skips_suggested_descriptor_when_descriptor_present(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

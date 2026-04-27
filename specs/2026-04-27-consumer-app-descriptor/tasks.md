@@ -24,8 +24,8 @@
 - [x] T-003 Implement descriptor schema, loader, explicit manifest refs, convention defaults, and safe path resolution.
 - [x] T-004 Wire descriptor validation into app runtime GitOps contract validation.
 - [x] T-005 Wire descriptor records into deprecated app catalog compatibility rendering and smoke assertions.
-- [ ] T-006 Emit descriptor ownership evidence in upgrade plan/postcheck diagnostics.
-- [ ] T-007 Generate `artifacts/blueprint/app_descriptor.suggested.yaml` for existing consumers without the descriptor.
+- [x] T-006 Emit descriptor ownership evidence in upgrade plan/postcheck diagnostics.
+- [x] T-007 Generate `artifacts/blueprint/app_descriptor.suggested.yaml` for existing consumers without the descriptor.
 - [ ] T-008 Mark `_is_consumer_owned_workload()` as deprecated bridge behavior with two-minor-release removal tracking.
 - [ ] T-009 Mark `apps/catalog/manifest.yaml` as deprecated generated compatibility output with two-minor-release removal tracking.
 - [ ] T-010 Update blueprint docs/diagrams.
@@ -37,8 +37,8 @@
 - [ ] T-103 Confirm no filter/payload-transform route is touched; record not-applicable evidence in `pr_context.md`.
 - [x] T-104 Translate deterministic descriptor validation findings into failing tests first, then make them green.
 - [x] T-105 Add renderer tests proving deprecated `apps/catalog/manifest.yaml` compatibility output follows descriptor records.
-- [ ] T-106 Add upgrade plan/postcheck tests for `consumer-app-descriptor` ownership diagnostics.
-- [ ] T-107 Add suggested descriptor artifact tests for existing generated consumers without `apps/descriptor.yaml`.
+- [x] T-106 Add upgrade plan/postcheck tests for `consumer-app-descriptor` ownership diagnostics.
+- [x] T-107 Add suggested descriptor artifact tests for existing generated consumers without `apps/descriptor.yaml`.
 - [ ] T-108 Add deprecation tracking tests or docs checks for app catalog compatibility output and `_is_consumer_owned_workload()`.
 
 ## Validation and Release Readiness
