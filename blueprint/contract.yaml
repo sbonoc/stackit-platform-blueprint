@@ -562,6 +562,7 @@ spec:
         - infra/gitops/platform/base/apps/backend-api-service.yaml
         - infra/gitops/platform/base/apps/touchpoints-web-deployment.yaml
         - infra/gitops/platform/base/apps/touchpoints-web-service.yaml
+        - apps/descriptor.yaml
       init_managed:
         - blueprint/repo.init.env
         - blueprint/repo.init.secrets.example.env

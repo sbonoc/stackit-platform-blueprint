@@ -19,8 +19,8 @@
 | S6 Documentation, evidence, and publish preparation | Software Engineer - docs/release | S1, S2, S3, S4, S5 | T-010, T-011, P-001, P-002, P-003 | T-201 through T-210 |
 
 ## Implementation
-- [ ] T-001 Add `apps/descriptor.yaml` to `consumer_seeded` in `blueprint/contract.yaml` and bootstrap mirror.
-- [ ] T-002 Add `scripts/templates/consumer/init/apps/descriptor.yaml.tmpl` with baseline app/component records.
+- [x] T-001 Add `apps/descriptor.yaml` to `consumer_seeded` in `blueprint/contract.yaml` and bootstrap mirror.
+- [x] T-002 Add `scripts/templates/consumer/init/apps/descriptor.yaml.tmpl` with baseline app/component records.
 - [ ] T-003 Implement descriptor schema, loader, explicit manifest refs, convention defaults, and safe path resolution.
 - [ ] T-004 Wire descriptor validation into app runtime GitOps contract validation.
 - [ ] T-005 Wire descriptor records into deprecated app catalog compatibility rendering and smoke assertions.
@@ -33,7 +33,7 @@
 
 ## Test Automation
 - [ ] T-101 Add unit tests for descriptor schema, app/component ID validation, explicit manifest path validation, and convention default resolution.
-- [ ] T-102 Add contract tests for `consumer_seeded` template parity and app runtime validation.
+- [x] T-102 Add contract tests for `consumer_seeded` template parity and app runtime validation.
 - [ ] T-103 Confirm no filter/payload-transform route is touched; record not-applicable evidence in `pr_context.md`.
 - [ ] T-104 Translate deterministic descriptor validation findings into failing tests first, then make them green.
 - [ ] T-105 Add renderer tests proving deprecated `apps/catalog/manifest.yaml` compatibility output follows descriptor records.

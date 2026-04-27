@@ -1,0 +1,41 @@
+# Consumer-owned app descriptor.
+#
+# This file is the canonical source of app/component metadata for blueprint
+# tooling. Edit it to declare your apps, components, owners, service ports,
+# health checks, and explicit GitOps manifest paths. Blueprint validation
+# reads this file to verify GitOps wiring and to render deprecated
+# compatibility outputs (apps/catalog/manifest.yaml).
+#
+# See docs/platform/consumer/app_onboarding.md for the full schema reference.
+schemaVersion: v1
+apps:
+  - id: backend-api
+    owner:
+      team: platform
+    components:
+      - id: backend-api
+        kind: deployment
+        manifests:
+          deployment: infra/gitops/platform/base/apps/backend-api-deployment.yaml
+          service: infra/gitops/platform/base/apps/backend-api-service.yaml
+        service:
+          port: 8080
+          targetPort: http
+        health:
+          readiness: /
+          liveness: /
+  - id: touchpoints-web
+    owner:
+      team: platform
+    components:
+      - id: touchpoints-web
+        kind: deployment
+        manifests:
+          deployment: infra/gitops/platform/base/apps/touchpoints-web-deployment.yaml
+          service: infra/gitops/platform/base/apps/touchpoints-web-service.yaml
+        service:
+          port: 80
+          targetPort: http
+        health:
+          readiness: /
+          liveness: /
