@@ -1,14 +1,14 @@
 """Unit tests for template_smoke_assertions helpers.
 
 Covers the dynamic workload derivation path introduced in issue #208:
-  - _extract_kustomization_resources() stdlib parser
+  - _extract_kustomization_resources() — yaml.safe_load-based parser
+  - assert_make_target_presence() — regex-based make target checker
   - validate_app_runtime_conformance() reads app_manifest_paths from kustomization.yaml
     at runtime rather than from a hardcoded list.
 """
 
 from __future__ import annotations
 
-import re
 import sys
 import unittest
 from pathlib import Path
@@ -20,6 +20,7 @@ if str(REPO_ROOT) not in sys.path:
 
 from scripts.lib.blueprint.template_smoke_assertions import (  # noqa: E402
     _extract_kustomization_resources,
+    assert_make_target_presence,
 )
 
 
@@ -71,6 +72,33 @@ class ExtractKustomizationResourcesTests(unittest.TestCase):
         self.assertGreater(len(result), 0, "template kustomization must declare at least one resource")
         for entry in result:
             self.assertTrue(entry.endswith(".yaml"), f"expected .yaml extension, got: {entry!r}")
+
+
+class AssertMakeTargetPresenceTests(unittest.TestCase):
+    """Unit tests for assert_make_target_presence — exercises the re import."""
+
+    def test_present_target_passes_when_expected_present(self) -> None:
+        makefile = "infra-smoke:\n\t@scripts/bin/infra/smoke.sh\n"
+        assert_make_target_presence(makefile, "infra-smoke", True, "test")
+
+    def test_absent_target_passes_when_expected_absent(self) -> None:
+        makefile = "infra-smoke:\n\t@scripts/bin/infra/smoke.sh\n"
+        assert_make_target_presence(makefile, "infra-deploy", False, "test")
+
+    def test_present_target_raises_when_expected_absent(self) -> None:
+        makefile = "infra-smoke:\n\t@scripts/bin/infra/smoke.sh\n"
+        with self.assertRaises(AssertionError):
+            assert_make_target_presence(makefile, "infra-smoke", False, "test")
+
+    def test_absent_target_raises_when_expected_present(self) -> None:
+        makefile = "infra-smoke:\n\t@scripts/bin/infra/smoke.sh\n"
+        with self.assertRaises(AssertionError):
+            assert_make_target_presence(makefile, "infra-deploy", True, "test")
+
+    def test_partial_name_does_not_match(self) -> None:
+        makefile = "infra-smoke-extended:\n\t@echo ok\n"
+        with self.assertRaises(AssertionError):
+            assert_make_target_presence(makefile, "infra-smoke", True, "test")
 
 
 class DynamicWorkloadDerivationRegressionTests(unittest.TestCase):
