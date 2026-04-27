@@ -82,8 +82,20 @@ gate; filed as a follow-up in the backlog.
 - `_three_way_merge` result is post-processed for `.tf` files: negligible overhead on the
   common (no-duplicate) path.
 - Both fixes are additive: no existing test assertions change.
-- The `_is_consumer_owned_workload` bridge guard for `base/apps/` remains in place as a
-  zero-cost fast path; issue #203 comment updated to reflect the general fix.
+- The three prune guards now form an explicit stack in `_classify_entries`:
+  1. Contract ownership (`consumer_seeded`, `source_only`, etc.) — evaluated first; files
+     in these classes never reach the prune branch at all.
+  2. `_is_consumer_owned_workload` — zero-cost O(1) fast path for `base/apps/` YAML not
+     in the contract (shipped in PR #210 / issue #207); retained as a fast path.
+  3. `_is_kustomization_referenced` (this ADR) — general fallback for any other overlay
+     tree; incurs filesystem reads and is only reached if the first two guards do not match.
+- Note on PR #211 (issue #206): the four blueprint seed manifests in `base/apps/` are now
+  `consumer_seeded` in the contract, so they are classified before the prune branch and do
+  not depend on either `_is_consumer_owned_workload` or the new kustomization-ref check.
+  Guard (2) now primarily protects consumer-renamed manifests in `base/apps/` that are not
+  in any contract ownership class.
+- The `"see issue #203 for general unification"` comment on the `_is_consumer_owned_workload`
+  classification entry is removed in Slice 4 — the general fix now exists.
 
 ```mermaid
 flowchart TD
