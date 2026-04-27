@@ -2,7 +2,7 @@
   "manifest_version": 1,
   "work_item": "2026-04-26-issue-206-contract-consumer-owned-workloads",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "2026-04-27T09:00:00Z",
+  "generated_at_utc": "2026-04-27T09:45:00Z",
   "files": [
     {
       "path": "specs/2026-04-26-issue-206-contract-consumer-owned-workloads/architecture.md",
@@ -24,15 +24,15 @@
     },
     {
       "path": "specs/2026-04-26-issue-206-contract-consumer-owned-workloads/tasks.md",
-      "sha256": "fd460a6b0693d7f436c3a68dc82f2163e71c6a455a6f7b93c0258438ba47e7d6",
+      "sha256": "5e0448dddace4a83f7eea1f18d545d70f0b577bb00b1322b7e033d72451ac919",
       "role": "spec-artifact",
-      "description": "All gate checks complete; spec publication tasks complete; IMPL tasks deferred to implementing work item"
+      "description": "All gate checks complete; all IMPL tasks complete (T-001–T-004, T-101–T-106); quality bundles all pass"
     },
     {
       "path": "specs/2026-04-26-issue-206-contract-consumer-owned-workloads/traceability.md",
-      "sha256": "5169ba8804c5fcbbed8e300365b2d4ee4a976808a10814ea5eb7f58d0ad57a4a",
+      "sha256": "e189faca51ae099271b539d95cd8adf871b195b386608a9474c1016714f89840",
       "role": "spec-artifact",
-      "description": "Requirement-to-delivery mapping; Follow-up 3 (source-only seed change advisory) added"
+      "description": "Requirement-to-delivery mapping; Validation Summary updated with implementation evidence; Follow-up 3 (source-only seed change advisory) present"
     },
     {
       "path": "specs/2026-04-26-issue-206-contract-consumer-owned-workloads/graph.json",

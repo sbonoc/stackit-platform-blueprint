@@ -37,11 +37,19 @@
   - AC-005
 
 ## Validation Summary
-- Required bundles executed: deferred to implementation work item
-- Result summary: deferred to implementation work item
+- Required bundles executed: `make quality-hooks-fast` · `make quality-sdd-check` · `make quality-hardening-review` · `make test-unit-all`
+- Result summary: all pass — 551 tests (blueprint) + 129 infra-contract-test-fast, 0 failures
+- Implementation paths:
+  - FR-001/FR-002/FR-003: `blueprint/contract.yaml` + `scripts/templates/blueprint/bootstrap/blueprint/contract.yaml`
+  - FR-004/AC-004/AC-005: `scripts/lib/blueprint/upgrade_consumer._classify_entries` (source_only branch, no change needed — existing logic)
+  - T-101/T-102/T-103: `tests/blueprint/test_upgrade_consumer.py::SeedManifestContractContentTests`
+  - T-104 AC-004/AC-005: `tests/blueprint/test_upgrade_consumer.py::SeedManifestUpgradePlannerTests`
+  - T-105: `make quality-hooks-fast` (audit_source_tree_coverage passes with 4 paths in source_only)
+  - T-106: `tests/blueprint/test_upgrade_consumer.py::SeedManifestInitSeedingTests`
 - Documentation validation:
   - `make docs-build`
   - `make docs-smoke`
+  - `docs/reference/generated/contract_metadata.generated.md` regenerated (python3 scripts/lib/docs/generate_contract_docs.py)
 
 ## Evidence Manifest
 - Manifest file: `evidence_manifest.json`
