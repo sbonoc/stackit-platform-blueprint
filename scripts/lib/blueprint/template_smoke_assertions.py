@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import re
 import sys
+import yaml
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -15,6 +16,12 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from scripts.lib.blueprint.contract_schema import load_blueprint_contract  # noqa: E402
+
+
+def _extract_kustomization_resources(text: str) -> list[str]:
+    """Extract resource filenames from a kustomization.yaml resources section."""
+    data = yaml.safe_load(text) or {}
+    return [str(r) for r in data.get("resources", [])]
 
 
 def normalize_bool(value: str) -> bool:
@@ -144,16 +151,20 @@ def main() -> int:
                 f"{scenario}: APP_RUNTIME_GITOPS_ENABLED=true but infra/gitops/platform/base/kustomization.yaml does not include apps resource"
             )
 
-        apps_kustomization = repo_root / "infra/gitops/platform/base/apps/kustomization.yaml"
+        apps_kust_rel = "infra/gitops/platform/base/apps/kustomization.yaml"
+        apps_kustomization = repo_root / apps_kust_rel
         if not apps_kustomization.is_file():
             raise AssertionError(f"{scenario}: missing app runtime kustomization scaffold")
 
-        app_manifest_paths = [
-            "infra/gitops/platform/base/apps/backend-api-deployment.yaml",
-            "infra/gitops/platform/base/apps/backend-api-service.yaml",
-            "infra/gitops/platform/base/apps/touchpoints-web-deployment.yaml",
-            "infra/gitops/platform/base/apps/touchpoints-web-service.yaml",
-        ]
+        kust_text = apps_kustomization.read_text(encoding="utf-8")
+        app_manifest_names = _extract_kustomization_resources(kust_text)
+        if not app_manifest_names:
+            raise AssertionError(
+                f"{scenario}: {apps_kust_rel} declares no resources; "
+                "add at least one Deployment and one Service manifest"
+            )
+        app_manifest_paths = [f"infra/gitops/platform/base/apps/{name}" for name in app_manifest_names]
+
         for relative_path in app_manifest_paths:
             assert_path_exists(repo_root, relative_path, scenario)
 
