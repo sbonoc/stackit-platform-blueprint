@@ -100,6 +100,9 @@ Reviewers interact exclusively via GitHub PR comments — no local tooling requi
    gh pr comment <number> --body \
      "Resolved N open questions. Updated: \`spec.md\`, \`architecture.md\`.
       Commit <sha>. Remaining open: K."
+
+8. TRACEABILITY VERIFICATION — run the blueprint-sdd-traceability-keeper skill
+   for this work item. Resolve any blocking gaps before closing this skill.
 ```
 
 ## Sign-off phrase (deterministic)
@@ -126,6 +129,7 @@ Return:
 6. `make quality-sdd-check` result (marker count before → after).
 7. Commit SHA pushed.
 8. Confirmation PR comment posted (yes/no).
+9. Traceability keeper result (gaps found / clean).
 
 ## Useful Commands
 

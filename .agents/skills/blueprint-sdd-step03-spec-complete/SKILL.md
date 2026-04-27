@@ -106,6 +106,9 @@ be recorded before this step runs.)
    git add specs/YYYY-MM-DD-<slug>/spec.md docs/.../ADR-<slug>.md
    git commit -m "feat(<slug>): all sign-offs — SPEC_READY"
    git push
+
+6. TRACEABILITY VERIFICATION — run the blueprint-sdd-traceability-keeper skill
+   for this work item. Resolve any blocking gaps before closing this skill.
 ```
 
 ## ADR Review Decision Points
@@ -126,6 +129,7 @@ Return:
 3. Sign-off status for all four roles (Product, Architecture, Security, Operations).
 4. `make quality-sdd-check` result.
 5. Commit SHA pushed to the existing Draft PR branch.
+6. Traceability keeper result (gaps found / clean).
 
 ## Useful Commands
 

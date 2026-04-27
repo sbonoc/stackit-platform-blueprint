@@ -189,6 +189,12 @@ change type declared in `spec.md` (from AGENTS.md):
 | App delivery / build / deploy changes | `make apps-bootstrap` · `make apps-smoke` · `make apps-audit-versions` |
 | HTTP route / filter / query scope | `make test-smoke-all-local` (record pass/fail in `pr_context.md`) |
 
+## Traceability Verification (Final Step)
+
+After all slices are complete and the validation bundle passes, run the
+`blueprint-sdd-traceability-keeper` skill for this work item. Resolve any
+blocking gaps before closing this skill.
+
 ## Special cases
 
 ### Filter / payload-transform changes
@@ -232,6 +238,7 @@ After all slices:
 
 9. Minimum validation bundle run and result.
 10. Any open exception rationale documented?
+11. Traceability keeper result (gaps found / clean).
 
 ## References
 

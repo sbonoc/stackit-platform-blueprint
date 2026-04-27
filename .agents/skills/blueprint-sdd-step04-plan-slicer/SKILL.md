@@ -55,6 +55,9 @@ Software Engineer (invokes agent).
    git add specs/YYYY-MM-DD-<slug>/plan.md specs/YYYY-MM-DD-<slug>/tasks.md
    git commit -m "feat(<slug>): refine plan into execution slices"
    git push
+
+8. TRACEABILITY VERIFICATION — run the blueprint-sdd-traceability-keeper skill
+   for this work item. Resolve any blocking gaps before closing this skill.
 ```
 
 ## Required Report Format
@@ -67,6 +70,7 @@ Return:
 4. Backlog updates performed.
 5. Commit SHA pushed (or "skipped — no changes").
 6. Critical risks and mitigations.
+7. Traceability keeper result (gaps found / clean).
 
 ## Useful Commands
 

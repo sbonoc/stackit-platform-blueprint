@@ -136,17 +136,20 @@ STEP 8 — PUBLISH ARTIFACTS
    git commit -m "feat(<slug>): publish artifacts — pr_context, hardening_review, deferred issues filed"
    git push
 
+7. TRACEABILITY VERIFICATION — run the blueprint-sdd-traceability-keeper skill
+   for this work item. Resolve any blocking gaps before marking the PR ready.
+
 STEP 9 — MARK PR READY
 
-7. Update the PR description to reflect final state:
+8. Update the PR description to reflect final state:
    - Replace the Open Questions section (should already be gone from Step 3).
    - Ensure the description summarises the full pr_context.md content.
 
-8. Mark the Draft PR as ready:
+9. Mark the Draft PR as ready:
    gh pr ready <number>
 
-9. Post the review request comment:
-   gh pr comment <number> --body "@codex review this PR"
+10. Post the review request comment:
+    gh pr comment <number> --body "@codex review this PR"
 ```
 
 ## Deferred proposal lifecycle
@@ -208,6 +211,7 @@ Return:
 8. Final commit SHA pushed.
 9. PR marked ready (yes/no) + PR URL.
 10. `@codex review this PR` comment posted (yes/no).
+11. Traceability keeper result (gaps found / clean).
 
 ## References
 

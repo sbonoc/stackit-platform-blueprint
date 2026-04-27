@@ -64,6 +64,9 @@ COMMIT
 7. git add docs/ scripts/templates/ .agents/skills/ [other changed files]
    git commit -m "docs(<slug>): document behavior changes and sync templates"
    git push
+
+8. TRACEABILITY VERIFICATION — run the blueprint-sdd-traceability-keeper skill
+   for this work item. Resolve any blocking gaps before closing this skill.
 ```
 
 ## Canonical Commands
@@ -86,6 +89,7 @@ Return:
 4. Runbook / operational guidance updates (if any).
 5. Skill runbook updates (if any).
 6. Commit SHA pushed.
+7. Traceability keeper result (gaps found / clean).
 
 ## References
 
