@@ -1,0 +1,68 @@
+{
+  "manifest_version": 1,
+  "work_item": "2026-04-26-issue-206-contract-consumer-owned-workloads",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-04-27T13:00:00Z",
+  "files": [
+    {
+      "path": "specs/2026-04-26-issue-206-contract-consumer-owned-workloads/architecture.md",
+      "sha256": "e42687967a045a3638b29679e6d88e3a1cfbc608116a0d4161ef77d83131ca58",
+      "role": "spec-artifact",
+      "description": "Architecture document with problem statement, Mermaid flow diagram, and design rationale"
+    },
+    {
+      "path": "specs/2026-04-26-issue-206-contract-consumer-owned-workloads/spec.md",
+      "sha256": "64cd7fa2935b4f7679dc5628819a3721aae2ba91ef179957bc418d17dad7e3d7",
+      "role": "spec-artifact",
+      "description": "Full specification; SPEC_READY=true; all four sign-offs approved (sbonoc, PR #211); FR-002/AC-001/AC-005 corrected from source_only to consumer_seeded (CI fix 2026-04-27)"
+    },
+    {
+      "path": "specs/2026-04-26-issue-206-contract-consumer-owned-workloads/plan.md",
+      "sha256": "ca1124afda09e08b08962808a5584f1d3a43143e6e2c4f8f9464c48bd330e8a4",
+      "role": "spec-artifact",
+      "description": "4-slice implementation plan; concrete IMPL T-104 fixture spec and IMPL T-106 fresh-init test"
+    },
+    {
+      "path": "specs/2026-04-26-issue-206-contract-consumer-owned-workloads/tasks.md",
+      "sha256": "5e0448dddace4a83f7eea1f18d545d70f0b577bb00b1322b7e033d72451ac919",
+      "role": "spec-artifact",
+      "description": "All gate checks complete; all IMPL tasks complete (T-001–T-004, T-101–T-108); quality bundles all pass"
+    },
+    {
+      "path": "specs/2026-04-26-issue-206-contract-consumer-owned-workloads/traceability.md",
+      "sha256": "11a70ca24b2c7fbc00544749cc19947621da88c30366a91b2dd3c99e69bb9f71",
+      "role": "spec-artifact",
+      "description": "Requirement-to-delivery mapping; Validation Summary updated with implementation evidence; follow-up triage outcomes recorded (step07); FR-002/AC-001/AC-005/NFR-OPS-001 corrected to consumer_seeded (CI fix 2026-04-27)"
+    },
+    {
+      "path": "specs/2026-04-26-issue-206-contract-consumer-owned-workloads/graph.json",
+      "sha256": "bd8386b312cc97b91b821b69255aaa76c2061febaac6172077d6bd58ca570c58",
+      "role": "spec-artifact",
+      "description": "Requirement and acceptance criterion dependency graph"
+    },
+    {
+      "path": "specs/2026-04-26-issue-206-contract-consumer-owned-workloads/context_pack.md",
+      "sha256": "98792976868ee49ca6b3dbf8566a48bb3cf6e7a2c213a7769ab583de081c0d7d",
+      "role": "spec-artifact",
+      "description": "Work item context snapshot"
+    },
+    {
+      "path": "specs/2026-04-26-issue-206-contract-consumer-owned-workloads/pr_context.md",
+      "sha256": "1528fb93ca2b749c65e3f27acf366bcd0e55fcbb0b95f2692bf1e093617423fd",
+      "role": "spec-artifact",
+      "description": "PR context updated for full spec+implementation deliverable; deferred proposal triage outcomes recorded"
+    },
+    {
+      "path": "specs/2026-04-26-issue-206-contract-consumer-owned-workloads/hardening_review.md",
+      "sha256": "2b3ed23efd7d9251a2a67a7ba991f338c03c7eb9f5f7638de75a1cc4a8d5f77f",
+      "role": "spec-artifact",
+      "description": "Hardening review with finding, observability, architecture, proposals sections; updated to reflect completed implementation"
+    },
+    {
+      "path": "docs/blueprint/architecture/decisions/ADR-2026-04-26-issue-206-contract-consumer-owned-workloads.md",
+      "sha256": "813e18caa3e4e2442555ca8bd9318edcb555c0da427ad0bda96cc6bbaeb8c158",
+      "role": "adr",
+      "description": "Decision record; Status: approved; Option A confirmed; Follow-up 2 (source-only advisory) added"
+    }
+  ]
+}

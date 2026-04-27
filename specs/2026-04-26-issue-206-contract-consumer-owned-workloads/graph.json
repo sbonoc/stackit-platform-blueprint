@@ -1,0 +1,83 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-04-26-issue-206-contract-consumer-owned-workloads",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "Remove 4 seed manifest paths from required_files in blueprint/contract.yaml"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "Add 4 seed manifest paths to source_only_paths in blueprint/contract.yaml"
+    },
+    {
+      "id": "FR-003",
+      "type": "requirement",
+      "summary": "Remove 4 seed manifest paths from app_runtime_gitops_contract.required_paths_when_enabled"
+    },
+    {
+      "id": "FR-004",
+      "type": "requirement",
+      "summary": "After consumer upgrades, blueprint/contract.yaml no longer lists the 4 paths as required"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "Config-only change; no new I/O or credential handling introduced"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "source-only classification appears in upgrade plan output for the 4 paths"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "source-only classification preserves existing files unchanged for consumers with original names"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "audit_source_tree_coverage passes with 4 paths in source_only"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "4 paths in source_only_paths and NOT in required_files after fix"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "4 paths NOT in app_runtime_gitops_contract.required_paths_when_enabled after fix"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "audit_source_tree_coverage passes; no uncovered-file warnings for 4 paths"
+    },
+    {
+      "id": "AC-004",
+      "type": "acceptance",
+      "summary": "Consumer-renamed manifests produce no create/delete actions in upgrade plan"
+    },
+    {
+      "id": "AC-005",
+      "type": "acceptance",
+      "summary": "Original seed manifest names classified as source-only/skip in upgrade plan"
+    }
+  ],
+  "edges": [
+    {"from": "FR-001", "to": "AC-001", "relation": "validated_by"},
+    {"from": "FR-002", "to": "AC-001", "relation": "validated_by"},
+    {"from": "FR-002", "to": "AC-003", "relation": "validated_by"},
+    {"from": "FR-003", "to": "AC-002", "relation": "validated_by"},
+    {"from": "FR-004", "to": "AC-004", "relation": "validated_by"},
+    {"from": "FR-004", "to": "AC-005", "relation": "validated_by"},
+    {"from": "NFR-SEC-001", "to": "AC-001", "relation": "constrains"},
+    {"from": "NFR-OBS-001", "to": "AC-005", "relation": "constrains"},
+    {"from": "NFR-REL-001", "to": "AC-005", "relation": "validated_by"},
+    {"from": "NFR-OPS-001", "to": "AC-003", "relation": "validated_by"}
+  ]
+}

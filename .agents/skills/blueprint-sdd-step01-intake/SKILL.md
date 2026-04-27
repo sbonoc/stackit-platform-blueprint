@@ -44,7 +44,11 @@ No local development environment is required beyond `make` and `gh` CLI access.
    never as empty sections or invented assumptions.
 3. `SPEC_READY: false` and `SPEC_PRODUCT_READY: false` are the correct initial
    values; do not set either to `true` in this phase.
-4. Do not self-approve any sign-off field.
+4. Do not self-approve any sign-off field. A sign-off may only be recorded when
+   the user has stated the canonical trigger phrase (see `§ Sign-off Policy` in
+   `AGENTS.md`) in a PR comment or directly in the conversation. Plain-language
+   approval ("looks good", "LGTM") does not qualify. When in doubt, keep the
+   field as `pending` and ask the user to use the exact phrase.
 5. Run `make quality-sdd-check` before committing. Fix all violations before
    opening the Draft PR.
 6. The Draft PR opened in Step 2 is the single PR for the entire work item.
@@ -138,8 +142,17 @@ BACKLOG SCAN (surface parked proposals before opening the Draft PR)
 
    ## Sign-off
 
-   To grant Product sign-off, leave a PR comment with:
-   `SPEC_PRODUCT_READY: approved`
+   Grant each sign-off by leaving a PR comment with the **exact** phrase below:
+
+   | Role | Exact PR comment phrase |
+   |---|---|
+   | Product | `SPEC_PRODUCT_READY: approved` |
+   | Architecture | `ARCHITECTURE_SIGNOFF: approved` |
+   | Security | `SECURITY_SIGNOFF: approved` |
+   | Operations | `OPERATIONS_SIGNOFF: approved` |
+
+   The agent will record each sign-off in `spec.md` and set `SPEC_READY: true`
+   once all four are received.
 
    ---
    _Full reviewer package (`pr_context.md`) will be completed at Step 8

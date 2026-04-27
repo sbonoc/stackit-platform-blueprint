@@ -473,6 +473,10 @@ class GovernanceStructureCases(RefactorContractBase):
                 ".github/ISSUE_TEMPLATE/config.yml",
                 ".github/pull_request_template.md",
                 ".github/workflows/ci.yml",
+                "infra/gitops/platform/base/apps/backend-api-deployment.yaml",
+                "infra/gitops/platform/base/apps/backend-api-service.yaml",
+                "infra/gitops/platform/base/apps/touchpoints-web-deployment.yaml",
+                "infra/gitops/platform/base/apps/touchpoints-web-service.yaml",
             }.issubset(consumer_seeded_paths)
         )
         self.assertTrue(

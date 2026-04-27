@@ -46,14 +46,37 @@ review, PR comments, or direct conversation.
 1. MUST NOT set `SPEC_READY: true` while any required sign-off field is not approved.
 2. MUST NOT leave the agent draft block-quote notice in the ADR after signing off.
 3. All commits go to the existing Draft PR branch — no new PR is opened.
-4. Do not self-approve any sign-off field — only record what stakeholders explicitly stated.
+4. Do not self-approve any sign-off field. A sign-off may only be recorded when
+   the canonical trigger phrase (see `§ Sign-off Policy` in `AGENTS.md`) appears
+   verbatim in a PR comment or in a direct conversation message from the user.
+   Plain-language variants ("approved", "looks good", "LGTM", "fine", silence,
+   absence of objection) do NOT qualify. When in doubt, keep the field as
+   `pending` and prompt the user to use the exact phrase.
 5. If the ADR recommended option is technically unsound, the Architect overrides
    it and documents the override rationale. Never silently accept a wrong recommendation.
 6. Run `make quality-sdd-check` before committing — it must pass.
 
+## Sign-off Phrases (Deterministic)
+
+Reviewers grant sign-offs by leaving a PR comment with the **exact** phrase below.
+Plain-language approval is not sufficient. If a reviewer expresses approval without
+the exact phrase, post a follow-up comment asking them to use the canonical form.
+
+| Role | Exact PR comment phrase | Records in `spec.md` |
+|---|---|---|
+| Architecture | `ARCHITECTURE_SIGNOFF: approved` | `Architecture sign-off: approved` |
+| Security | `SECURITY_SIGNOFF: approved` | `Security sign-off: approved` |
+| Operations | `OPERATIONS_SIGNOFF: approved` | `Operations sign-off: approved` |
+
+(Product sign-off `SPEC_PRODUCT_READY: approved` is handled by Step 02 and must already
+be recorded before this step runs.)
+
 ## Workflow
 
 ```
+0. Read all PR comments since Step 02 completed:
+   gh pr view <number> --comments
+
 1. Review ADR Technical Decision Layer with the Architect / CTO:
    a. Confirm or override the recommended option.
       - Confirm: remove draft notice, keep option, sign off.
@@ -65,12 +88,16 @@ review, PR comments, or direct conversation.
       - ADR technical decision sign-off: approved
       - Status: approved
 
-2. Record sign-offs in spec.md:
-   - Architecture sign-off: approved
-   - Security sign-off: approved   (Architect delegates or self-approves)
-   - Operations sign-off: approved (Software Engineer)
+2. Record sign-offs from PR comments in spec.md:
+   - For each comment containing `ARCHITECTURE_SIGNOFF: approved`:
+       Architecture sign-off: approved
+   - For each comment containing `SECURITY_SIGNOFF: approved`:
+       Security sign-off: approved
+   - For each comment containing `OPERATIONS_SIGNOFF: approved`:
+       Operations sign-off: approved
+   If a sign-off phrase is absent, keep that field as `pending` and do not proceed.
 
-3. Set SPEC_READY:
+3. Set SPEC_READY only when all four sign-offs are approved:
    - SPEC_READY: true
 
 4. make quality-sdd-check      # must pass before commit
