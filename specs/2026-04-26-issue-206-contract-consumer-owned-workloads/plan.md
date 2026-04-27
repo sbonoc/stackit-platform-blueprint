@@ -27,7 +27,14 @@
    - `test_seed_manifest_paths_not_in_required_files` — asserts the 4 paths are NOT in `required_files`
    - `test_seed_manifest_paths_in_source_only_paths` — asserts the 4 paths ARE in `source_only_paths`
    - `test_app_runtime_required_paths_contains_only_directory_and_kustomization` — asserts `app_runtime_gitops_contract.required_paths_when_enabled` contains no hardcoded manifest names
-2. Verify AC-004 and AC-005 via existing upgrade planner fixture matrix or new targeted test.
+2. Verify AC-004 and AC-005 via a new targeted upgrade planner test (IMPL T-104):
+   - Fixture path: `tests/fixtures/upgrade_consumer_renamed_manifests/` (create new)
+   - Fixture contains consumer-renamed manifests (e.g. `my-api-deployment.yaml`, `my-api-service.yaml`) — names NOT in `source_only_paths` in the source blueprint
+   - AC-004 assertion: upgrade plan with `allow_delete=True` against this fixture MUST show zero `OPERATION_DELETE` entries for the four blueprint seed paths and zero `OPERATION_CREATE` entries attempting to recreate them
+   - AC-005 assertion: upgrade plan against a fixture with the original seed manifest names MUST classify those four paths as `source-only / skip` — no `OPERATION_UPDATE` or `OPERATION_DELETE`
+3. Add fresh-init seeding regression guard (IMPL T-106):
+   - Run `blueprint-init-repo` (or equivalent init fixture) and assert the 4 seed manifest files (`backend-api-deployment.yaml`, `backend-api-service.yaml`, `touchpoints-web-deployment.yaml`, `touchpoints-web-service.yaml`) are still created in `infra/gitops/platform/base/apps/` even though they no longer appear in `required_paths_when_enabled`
+   - Guards against the init validation gap introduced by FR-003: seeding via `ensure_infra_template_file` must not rely on `required_paths_when_enabled` for file creation
 
 ### Slice 3 — Documentation
 1. Write ADR: `docs/blueprint/architecture/decisions/ADR-2026-04-26-issue-206-contract-consumer-owned-workloads.md`.

@@ -3,19 +3,19 @@
 ## Spec Readiness Gate (Blocking)
 <!-- SPEC_PRODUCT_READY=true: intake gate — Product sign-off only; unlocks agent ADR drafting.
      SPEC_READY=true: implementation gate — all sign-offs required; unlocks coding. -->
-- SPEC_READY: true
-- SPEC_PRODUCT_READY: true
+- SPEC_READY: false
+- SPEC_PRODUCT_READY: false
 - Open questions count: 0
 - Unresolved alternatives count: 0
 - Unresolved TODO markers count: 0
 - Pending assumptions count: 0
 - Open clarification markers count: 0
-- Product sign-off: approved
-- Architecture sign-off: approved
-- Security sign-off: approved
-- Operations sign-off: approved
+- Product sign-off: pending
+- Architecture sign-off: pending
+- Security sign-off: pending
+- Operations sign-off: pending
 - ADR path: docs/blueprint/architecture/decisions/ADR-2026-04-26-issue-206-contract-consumer-owned-workloads.md
-- ADR status: approved
+- ADR status: proposed
 
 ## Applicable Guardrail Controls (Normative)
 - Applicable control IDs: SDD-C-001, SDD-C-002, SDD-C-003, SDD-C-004, SDD-C-005, SDD-C-006, SDD-C-007, SDD-C-008, SDD-C-009, SDD-C-010, SDD-C-011, SDD-C-012, SDD-C-013, SDD-C-014, SDD-C-015, SDD-C-016, SDD-C-017, SDD-C-018, SDD-C-019, SDD-C-020, SDD-C-021
@@ -82,6 +82,7 @@
 ## Informative Notes (Non-Normative)
 - Context: Issues #207 and #208 addressed the symptoms (prune deletion, smoke CI failures). Issue #206 addresses the root cause: the contract itself embeds consumer workload naming decisions as blueprint requirements.
 - Tradeoffs: Moving paths to `source_only` means blueprint cannot push content updates to the 4 seed manifests via upgrade. This is intentional — consumers own their workload manifests. Blueprint only seeds them on `blueprint-init-repo`.
+- Consequence accepted (explicit, 2026-04-27): Once merged, consumers who run `blueprint-upgrade` will never automatically receive future blueprint content improvements to the 4 seed manifest files (health probes, security contexts, resource limits, etc.). This is the intended tradeoff: workload manifests are consumer-domain after init; future seed improvements are the consumer's responsibility to apply manually. This is consistent with the apps.yaml long-term direction.
 - Clarifications: Option B (consumer_workload_manifest_paths field) remains a valid future enhancement for teams that want explicit preflight validation of their actual manifest names. It is tracked as a separate follow-up item in the backlog.
 
 ## Explicit Exclusions

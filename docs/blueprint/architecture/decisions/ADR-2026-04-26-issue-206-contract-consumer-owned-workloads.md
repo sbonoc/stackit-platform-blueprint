@@ -1,7 +1,7 @@
 # ADR: Remove Hardcoded Workload Manifest Names from Blueprint Contract (issue #206)
 
 - **Date**: 2026-04-26
-- **Status**: approved
+- **Status**: proposed
 - **Work item**: 2026-04-26-issue-206-contract-consumer-owned-workloads
 - **Reported by**: sbonoc/dhe-marketplace (v1.7.0 upgrade findings)
 
