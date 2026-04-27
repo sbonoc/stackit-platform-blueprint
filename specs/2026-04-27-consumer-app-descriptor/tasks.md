@@ -1,11 +1,22 @@
 # Tasks
 
 ## Gate Checks (Required Before Implementation)
-- [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`
-- [ ] G-002 Confirm open questions and unresolved alternatives are `0`
-- [ ] G-003 Confirm required sign-offs are approved
-- [ ] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
-- [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
+- [x] G-001 Confirm `SPEC_READY=true` in `spec.md`
+- [x] G-002 Confirm open questions and unresolved alternatives are `0`
+- [x] G-003 Confirm required sign-offs are approved
+- [x] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
+- [x] G-005 Confirm `Implementation Stack Profile` section is fully populated
+
+## Slice-to-Task Mapping
+
+| Slice | Owner | Depends on | Task IDs | Validation IDs |
+|---|---|---|---|---|
+| S1 Descriptor contract and seed surface | Software Engineer - contract/bootstrap | approved spec and ADR | T-001, T-002 | T-101, T-102, T-201 |
+| S2 Descriptor schema, loader, and validation core | Software Engineer - validation/domain | S1 | T-003, T-004 | T-101, T-102, T-104, T-201, T-203 |
+| S3 App catalog compatibility rendering and smoke | Software Engineer - app runtime/catalog | S2 | T-005, A-001 | T-105, T-204, T-205 |
+| S4 Upgrade diagnostics and advisory artifact | Software Engineer - upgrade pipeline | S2 | T-006, T-007 | T-106, T-107, T-203, T-206 |
+| S5 Deprecation tracking and bridge cleanup preparation | Software Engineer - governance/upgrade | S3, S4 | T-008, T-009 | T-108, T-208 |
+| S6 Documentation, evidence, and publish preparation | Software Engineer - docs/release | S1, S2, S3, S4, S5 | T-010, T-011, P-001, P-002, P-003 | T-201 through T-210 |
 
 ## Implementation
 - [ ] T-001 Add `apps/descriptor.yaml` to `consumer_seeded` in `blueprint/contract.yaml` and bootstrap mirror.

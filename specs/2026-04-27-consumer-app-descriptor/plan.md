@@ -23,25 +23,27 @@
   - The implementation fix MUST turn that test green in the same work item.
   - If no deterministic automation path exists, publish artifacts MUST record the exception rationale, owner, and follow-up trigger.
 
-## Delivery Slices
-1. Slice 1: Add descriptor contract and seed surface.
-   - Red: add tests proving `apps/descriptor.yaml` is absent from `consumer_seeded` and init template coverage.
-   - Green: update `blueprint/contract.yaml`, bootstrap mirror, and `scripts/templates/consumer/init/apps/descriptor.yaml.tmpl`.
-2. Slice 2: Add descriptor schema, loader, and validation.
-   - Red: add pytest cases for invalid app IDs, invalid component IDs, unsafe explicit manifest refs, missing resolved manifests, and kustomization drift.
-   - Green: implement safe YAML loader and app runtime validation integration.
-3. Slice 3: Feed descriptor into app catalog rendering and smoke checks.
-   - Red: add renderer tests with non-baseline app IDs, multiple components, and explicit manifest refs.
-   - Green: update app catalog renderer/bootstrap/smoke paths to use descriptor records while marking `apps/catalog/manifest.yaml` as generated compatibility output.
-4. Slice 4: Integrate descriptor ownership into upgrade diagnostics.
-   - Red: add upgrade plan/postcheck tests expecting `consumer-app-descriptor` evidence and suggested descriptor artifact generation for missing descriptors.
-   - Green: emit descriptor ownership for resolved app manifests, write `artifacts/blueprint/app_descriptor.suggested.yaml`, and retain kustomization-ref fallback.
-5. Slice 5: Add deprecation and removal tracking.
-   - Red: add tests/docs checks that fail if deprecation diagnostics or backlog triggers are absent.
-   - Green: mark `apps/catalog/manifest.yaml` compatibility output and `_is_consumer_owned_workload()` bridge with two-minor-release removal triggers.
-6. Slice 6: Document and publish.
-   - Red: docs validation captures missing descriptor guidance.
-   - Green: update blueprint and consumer docs, generated metadata, traceability, hardening review, and PR context.
+## Dependency-Ordered Execution Slices
+
+| Slice | Owner | Depends on | Inputs | Outputs | Requirements | Tasks |
+|---|---|---|---|---|---|---|
+| S1 Descriptor contract and seed surface | Software Engineer - contract/bootstrap | approved spec and ADR | `spec.md` FR-001/FR-002, ownership contract, init template conventions | `apps/descriptor.yaml` in consumer-seeded contract paths, bootstrap mirror parity, generated-consumer init template | FR-001, FR-002, AC-001 | T-001, T-002, T-101, T-102 |
+| S2 Descriptor schema, loader, and validation core | Software Engineer - validation/domain | S1 | descriptor YAML shape, explicit manifest refs, convention defaults, path safety rules | descriptor model/loader, safe path resolver, app runtime GitOps validation integration | FR-003, FR-004, FR-005, FR-006, NFR-SEC-001, NFR-OBS-001, AC-002, AC-003, AC-004 | T-003, T-004, T-101, T-102, T-104 |
+| S3 App catalog compatibility rendering and smoke | Software Engineer - app runtime/catalog | S2 | normalized descriptor records and existing catalog renderer contract | descriptor-driven `apps/catalog/manifest.yaml` compatibility output, bootstrap/smoke assertions without hardcoded baseline app IDs | FR-005, FR-007, FR-008, AC-005, AC-007 | T-005, T-105, A-001 |
+| S4 Upgrade diagnostics and advisory artifact | Software Engineer - upgrade pipeline | S2 | normalized descriptor records, existing upgrade plan/postcheck flow, migration fallback policy | `consumer-app-descriptor` ownership evidence, suggested descriptor artifact, warning-only existing-consumer fallback | FR-009, FR-011, NFR-REL-001, AC-006, AC-008 | T-006, T-007, T-106, T-107 |
+| S5 Deprecation tracking and bridge cleanup preparation | Software Engineer - governance/upgrade | S3, S4 | decommission decisions, backlog triggers, compatibility window | deprecation diagnostics/docs checks for app catalog compatibility output and `_is_consumer_owned_workload()` bridge | FR-008, FR-010, AC-009 | T-008, T-009, T-108 |
+| S6 Documentation, evidence, and publish preparation | Software Engineer - docs/release | S1, S2, S3, S4, S5 | implemented behavior, validation output, traceability matrix, ADR | blueprint docs, consumer docs, generated metadata, traceability evidence, hardening review, PR context | NFR-OPS-001, AC-007, AC-009 | T-010, T-011, T-201 through T-210, P-001 through P-003 |
+
+## Slice Validation Strategy
+
+| Slice | Lowest valid red check | Green validation | Exit evidence |
+|---|---|---|---|
+| S1 | Contract/template parity tests fail because `apps/descriptor.yaml` is not consumer-seeded and init template is absent. | Targeted contract validation plus `make quality-sdd-check`. | Contract diff, template path, and passing contract parity tests. |
+| S2 | Descriptor unit tests fail for unsafe IDs, unsafe manifest paths, missing resolved manifests, and missing kustomization resources. | Descriptor unit suite and app runtime validator tests pass. | Test output naming rejected app/component/path cases and deterministic diagnostics. |
+| S3 | Renderer tests fail for non-baseline app IDs, multiple components, and explicit manifest refs. | Renderer tests plus `make apps-bootstrap` and `make apps-smoke`. | Rendered deprecated catalog output and app smoke evidence derived from descriptor records. |
+| S4 | Upgrade plan/postcheck tests fail for absent `consumer-app-descriptor` evidence and absent suggested descriptor artifact. | Upgrade diagnostics tests pass with descriptor present and descriptor absent. | Upgrade plan/postcheck artifacts plus `artifacts/blueprint/app_descriptor.suggested.yaml` evidence. |
+| S5 | Deprecation docs/checks fail when removal triggers or bridge/catalog warnings are absent. | Deprecation tracking checks and targeted docs checks pass. | Backlog removal triggers, diagnostic text, and docs references. |
+| S6 | Docs validation or publish artifact review fails for missing descriptor guidance or stale traceability evidence. | `make quality-hooks-run`, `make infra-validate`, docs validation, and applicable app/bootstrap smoke gates pass. | Updated `traceability.md`, `pr_context.md`, `hardening_review.md`, docs validation output, and PR-ready summary. |
 
 ## Change Strategy
 - Migration/rollout sequence: ship descriptor as consumer-seeded in new consumers first; existing consumers receive a warning-only fallback for two blueprint minor releases when `apps/descriptor.yaml` is absent; upgrade writes `artifacts/blueprint/app_descriptor.suggested.yaml` for human and agent review; docs describe adding the descriptor during upgrade follow-up.
