@@ -102,6 +102,20 @@ This section provides context for code assistants to understand the blueprint be
 - In single-author mode the user holds all sign-off roles. In multi-author mode,
   each sign-off should be traceable to the reviewer's git identity.
 
+### Sign-off Phrases (Deterministic)
+
+Each role grants its sign-off by leaving a PR comment containing the **exact** phrase below.
+No other format is recognised — plain-language approval is not sufficient.
+
+| Role | Exact PR comment phrase | Records in `spec.md` |
+|---|---|---|
+| Product | `SPEC_PRODUCT_READY: approved` | `SPEC_PRODUCT_READY: true` + `Product sign-off: approved` |
+| Architecture | `ARCHITECTURE_SIGNOFF: approved` | `Architecture sign-off: approved` |
+| Security | `SECURITY_SIGNOFF: approved` | `Security sign-off: approved` |
+| Operations | `OPERATIONS_SIGNOFF: approved` | `Operations sign-off: approved` |
+
+All four approvals → agent sets `SPEC_READY: true` and ADR `Status: approved`.
+
 ## SDD Artifact Contract
 - Canonical work-item location: `specs/<YYYY-MM-DD>-<work-item-slug>/`.
 - Canonical start command: `make spec-scaffold SPEC_SLUG=<work-item-slug>` (auto-creates and checks out a dedicated branch by default; explicit opt-out requires `SPEC_NO_BRANCH=true`).

@@ -138,8 +138,17 @@ BACKLOG SCAN (surface parked proposals before opening the Draft PR)
 
    ## Sign-off
 
-   To grant Product sign-off, leave a PR comment with:
-   `SPEC_PRODUCT_READY: approved`
+   Grant each sign-off by leaving a PR comment with the **exact** phrase below:
+
+   | Role | Exact PR comment phrase |
+   |---|---|
+   | Product | `SPEC_PRODUCT_READY: approved` |
+   | Architecture | `ARCHITECTURE_SIGNOFF: approved` |
+   | Security | `SECURITY_SIGNOFF: approved` |
+   | Operations | `OPERATIONS_SIGNOFF: approved` |
+
+   The agent will record each sign-off in `spec.md` and set `SPEC_READY: true`
+   once all four are received.
 
    ---
    _Full reviewer package (`pr_context.md`) will be completed at Step 8
