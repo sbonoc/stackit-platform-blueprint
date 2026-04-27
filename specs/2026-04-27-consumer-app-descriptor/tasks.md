@@ -31,7 +31,7 @@
 - [ ] T-108 Add deprecation tracking tests or docs checks for app catalog compatibility output and `_is_consumer_owned_workload()`.
 
 ## Validation and Release Readiness
-- [x] T-201 Run `make quality-sdd-check`.
+- [ ] T-201 Run `make quality-sdd-check`.
 - [ ] T-202 Run `make quality-hooks-run`.
 - [ ] T-203 Run `make infra-validate`.
 - [ ] T-204 Run `make apps-bootstrap`.
