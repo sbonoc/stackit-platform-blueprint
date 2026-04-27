@@ -1,6 +1,7 @@
 # ADR: Upgrade Apply Correctness — Kustomization-Ref Prune Guard and Terraform Block Deduplication
 
-- **Status:** proposed
+- **Status:** approved
+- **ADR technical decision sign-off:** approved
 - **Date:** 2026-04-27
 - **Issues:** #203, #204
 - **Work item:** `specs/2026-04-27-issue-203-204-upgrade-apply-correctness/`
