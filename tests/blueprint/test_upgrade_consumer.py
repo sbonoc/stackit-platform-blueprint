@@ -2582,5 +2582,278 @@ class SeedManifestInitSeedingTests(unittest.TestCase):
             )
 
 
+_TF_NO_DUPLICATE = """\
+variable "opensearch_enabled" {
+  type    = bool
+  default = false
+}
+"""
+
+_TF_IDENTICAL_DUPLICATE = """\
+variable "opensearch_enabled" {
+  type    = bool
+  default = false
+}
+
+variable "opensearch_enabled" {
+  type    = bool
+  default = false
+}
+"""
+
+_TF_NON_IDENTICAL_DUPLICATE = """\
+variable "opensearch_enabled" {
+  type    = bool
+  default = false
+}
+
+variable "opensearch_enabled" {
+  type    = bool
+  default = true
+}
+"""
+
+
+class KustomizationRefPruneGuardTests(unittest.TestCase):
+    """REQ-001–003, NFR-SEC-001, NFR-REL-001, AC-001–003, AC-006 (issues #203)."""
+
+    def test_is_kustomization_referenced_resources(self) -> None:
+        """TEST-001 / AC-002: returns True when file basename appears in resources: list."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            overlay = repo_root / "infra/gitops/platform/environments/local"
+            overlay.mkdir(parents=True)
+            (overlay / "kustomization.yaml").write_text(
+                "resources:\n  - marketplace-api-deployment.yaml\n", encoding="utf-8"
+            )
+            (overlay / "marketplace-api-deployment.yaml").write_text("kind: Deployment\n", encoding="utf-8")
+            self.assertTrue(
+                upgrade_consumer._is_kustomization_referenced(
+                    repo_root,
+                    "infra/gitops/platform/environments/local/marketplace-api-deployment.yaml",
+                )
+            )
+
+    def test_is_kustomization_referenced_patches(self) -> None:
+        """TEST-002 / AC-001: returns True when file basename appears in patches: path: form."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            overlay = repo_root / "infra/gitops/platform/environments/local"
+            overlay.mkdir(parents=True)
+            (overlay / "kustomization.yaml").write_text(
+                "patches:\n  - path: patch-backend-api.yaml\n", encoding="utf-8"
+            )
+            (overlay / "patch-backend-api.yaml").write_text("# patch\n", encoding="utf-8")
+            self.assertTrue(
+                upgrade_consumer._is_kustomization_referenced(
+                    repo_root,
+                    "infra/gitops/platform/environments/local/patch-backend-api.yaml",
+                )
+            )
+
+    def test_is_kustomization_referenced_not_found(self) -> None:
+        """TEST-003 / AC-003: returns False when no kustomization.yaml references the file."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            overlay = repo_root / "infra/gitops/platform/environments/local"
+            overlay.mkdir(parents=True)
+            (overlay / "kustomization.yaml").write_text(
+                "resources:\n  - other-file.yaml\n", encoding="utf-8"
+            )
+            self.assertFalse(
+                upgrade_consumer._is_kustomization_referenced(
+                    repo_root,
+                    "infra/gitops/platform/environments/local/unrelated.yaml",
+                )
+            )
+
+    def test_is_kustomization_referenced_malformed(self) -> None:
+        """TEST-004 / AC-006: returns False and emits stderr warning for malformed kustomization.yaml."""
+        import io as _io
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            overlay = repo_root / "infra/gitops/platform/environments/local"
+            overlay.mkdir(parents=True)
+            (overlay / "kustomization.yaml").write_text(":\n  bad: yaml: [\n", encoding="utf-8")
+            with mock.patch("sys.stderr", new_callable=_io.StringIO) as fake_err:
+                result = upgrade_consumer._is_kustomization_referenced(
+                    repo_root,
+                    "infra/gitops/platform/environments/local/patch-backend-api.yaml",
+                )
+            self.assertFalse(result)
+            self.assertIn("warning", fake_err.getvalue().lower())
+
+    def _classify(
+        self,
+        repo_root: Path,
+        source_repo: Path,
+        paths: list[str],
+        *,
+        allow_delete: bool = True,
+    ) -> list[upgrade_consumer.UpgradeEntry]:
+        return upgrade_consumer._classify_entries(
+            repo_root=repo_root,
+            source_repo=source_repo,
+            all_paths=paths,
+            required_files=set(),
+            source_only=set(),
+            consumer_seeded=set(),
+            init_managed=set(),
+            conditional_entries=set(),
+            managed_dir_roots=set(),
+            protected_roots=set(),
+            baseline_ref=None,
+            baseline_cache={},
+            allow_delete=allow_delete,
+        )
+
+    def test_classify_kustomization_ref_skip(self) -> None:
+        """TEST-005 / AC-001, AC-002: absent in source + kustomization-referenced → consumer-kustomization-ref/skip/none."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp = Path(tmpdir)
+            source_repo = tmp / "source"
+            repo_root = tmp / "target"
+            source_repo.mkdir()
+            repo_root.mkdir()
+            overlay = repo_root / "infra/gitops/platform/environments/local"
+            overlay.mkdir(parents=True)
+            (overlay / "kustomization.yaml").write_text(
+                "resources:\n  - marketplace-api-deployment.yaml\n", encoding="utf-8"
+            )
+            consumer_path = "infra/gitops/platform/environments/local/marketplace-api-deployment.yaml"
+            (repo_root / consumer_path).write_text("kind: Deployment\n", encoding="utf-8")
+
+            entries = self._classify(repo_root, source_repo, [consumer_path], allow_delete=True)
+
+            self.assertEqual(len(entries), 1)
+            entry = entries[0]
+            self.assertEqual(entry.action, upgrade_consumer.ACTION_SKIP)
+            self.assertEqual(entry.operation, upgrade_consumer.OPERATION_NONE)
+            self.assertEqual(entry.ownership, "consumer-kustomization-ref")
+
+    def test_classify_no_kustomization_ref_delete_unchanged(self) -> None:
+        """TEST-010 / AC-003: absent in source + NOT kustomization-referenced → delete classification unchanged."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp = Path(tmpdir)
+            source_repo = tmp / "source"
+            repo_root = tmp / "target"
+            source_repo.mkdir()
+            repo_root.mkdir()
+            overlay = repo_root / "infra/gitops/platform/environments/local"
+            overlay.mkdir(parents=True)
+            (overlay / "kustomization.yaml").write_text(
+                "resources:\n  - other-file.yaml\n", encoding="utf-8"
+            )
+            stale_path = "infra/gitops/platform/environments/local/stale-unused.yaml"
+            (repo_root / stale_path).write_text("# stale\n", encoding="utf-8")
+
+            entries = self._classify(repo_root, source_repo, [stale_path], allow_delete=True)
+
+            self.assertEqual(len(entries), 1)
+            entry = entries[0]
+            self.assertEqual(entry.action, upgrade_consumer.ACTION_UPDATE)
+            self.assertEqual(entry.operation, upgrade_consumer.OPERATION_DELETE)
+
+
+class TerraformBlockDeduplicationTests(unittest.TestCase):
+    """REQ-004–006, NFR-OBS-001, AC-004–005 (issue #204)."""
+
+    def test_tf_deduplicate_blocks_identical(self) -> None:
+        """TEST-006 / AC-004: byte-identical duplicate variable block → deduplicated, key logged."""
+        processed, dedup_log, conflict_keys = upgrade_consumer._tf_deduplicate_blocks(_TF_IDENTICAL_DUPLICATE)
+        self.assertIsNotNone(processed)
+        self.assertEqual(len(dedup_log), 1)
+        self.assertIn("opensearch_enabled", dedup_log[0])
+        self.assertEqual(conflict_keys, [])
+        self.assertEqual(processed.count('variable "opensearch_enabled"'), 1)
+
+    def test_tf_deduplicate_blocks_non_identical(self) -> None:
+        """TEST-007 / AC-005: non-identical duplicate variable blocks → conflict keys, no processed content."""
+        processed, dedup_log, conflict_keys = upgrade_consumer._tf_deduplicate_blocks(_TF_NON_IDENTICAL_DUPLICATE)
+        self.assertIsNone(processed)
+        self.assertEqual(dedup_log, [])
+        self.assertEqual(len(conflict_keys), 1)
+        self.assertIn("opensearch_enabled", conflict_keys[0])
+
+    def test_apply_tf_dedup_merged_deduped(self) -> None:
+        """TEST-008 / AC-004: clean merge on .tf producing byte-identical duplicates → result=merged-deduped."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            source_repo = repo_root / "source"
+            source_repo.mkdir()
+            tf_path = "terraform/main.tf"
+            (repo_root / tf_path).parent.mkdir(parents=True)
+            (repo_root / tf_path).write_text(_TF_NO_DUPLICATE, encoding="utf-8")
+            (source_repo / tf_path).parent.mkdir(parents=True)
+            (source_repo / tf_path).write_text(_TF_NO_DUPLICATE, encoding="utf-8")
+
+            entry = upgrade_consumer.UpgradeEntry(
+                path=tf_path,
+                ownership="managed",
+                action=upgrade_consumer.ACTION_MERGE_REQUIRED,
+                operation=upgrade_consumer.OPERATION_UPDATE,
+                reason="test",
+                source_exists=True,
+                target_exists=True,
+                baseline_ref="HEAD",
+                baseline_content_available=True,
+            )
+
+            with mock.patch.object(
+                upgrade_consumer, "_three_way_merge", return_value=(_TF_IDENTICAL_DUPLICATE, False)
+            ):
+                results, _ = upgrade_consumer._apply_entries(
+                    repo_root,
+                    source_repo,
+                    [entry],
+                    {tf_path: _TF_NO_DUPLICATE},
+                    apply_enabled=True,
+                )
+
+            self.assertEqual(len(results), 1)
+            self.assertEqual(results[0].result, "merged-deduped")
+            written = (repo_root / tf_path).read_text(encoding="utf-8")
+            self.assertEqual(written.count('variable "opensearch_enabled"'), 1)
+
+    def test_apply_tf_dedup_conflict_artifact(self) -> None:
+        """TEST-009 / AC-005: clean merge on .tf producing non-identical duplicates → result=conflict."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            source_repo = repo_root / "source"
+            source_repo.mkdir()
+            tf_path = "terraform/main.tf"
+            (repo_root / tf_path).parent.mkdir(parents=True)
+            (repo_root / tf_path).write_text(_TF_NO_DUPLICATE, encoding="utf-8")
+            (source_repo / tf_path).parent.mkdir(parents=True)
+            (source_repo / tf_path).write_text(_TF_NO_DUPLICATE, encoding="utf-8")
+
+            entry = upgrade_consumer.UpgradeEntry(
+                path=tf_path,
+                ownership="managed",
+                action=upgrade_consumer.ACTION_MERGE_REQUIRED,
+                operation=upgrade_consumer.OPERATION_UPDATE,
+                reason="test",
+                source_exists=True,
+                target_exists=True,
+                baseline_ref="HEAD",
+                baseline_content_available=True,
+            )
+
+            with mock.patch.object(
+                upgrade_consumer, "_three_way_merge", return_value=(_TF_NON_IDENTICAL_DUPLICATE, False)
+            ):
+                results, _ = upgrade_consumer._apply_entries(
+                    repo_root,
+                    source_repo,
+                    [entry],
+                    {tf_path: _TF_NO_DUPLICATE},
+                    apply_enabled=True,
+                )
+
+            self.assertEqual(len(results), 1)
+            self.assertEqual(results[0].result, "conflict")
+            self.assertIsNotNone(results[0].conflict_artifact)
+
+
 if __name__ == "__main__":
     unittest.main()
