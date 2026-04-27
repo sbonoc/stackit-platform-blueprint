@@ -1,7 +1,7 @@
 # ADR: Restore FR-009 source_only Phase 1 + Phase 2 Filter in Stage 3 Contract Resolver
 
-- **Status:** proposed
-- **ADR technical decision sign-off:** pending
+- **Status:** approved
+- **ADR technical decision sign-off:** approved
 - **Date:** 2026-04-27
 - **Issues:** #216
 - **Work item:** `specs/2026-04-27-issue-216-upgrade-source-only-filter/`
