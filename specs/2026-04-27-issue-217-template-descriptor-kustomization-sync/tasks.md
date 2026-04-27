@@ -1,11 +1,11 @@
 # Tasks
 
 ## Gate Checks (Required Before Implementation)
-- [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`
-- [ ] G-002 Confirm open questions and unresolved alternatives are `0`
-- [ ] G-003 Confirm required sign-offs are approved
-- [ ] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
-- [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
+- [x] G-001 Confirm `SPEC_READY=true` in `spec.md`
+- [x] G-002 Confirm open questions and unresolved alternatives are `0`
+- [x] G-003 Confirm required sign-offs are approved
+- [x] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
+- [x] G-005 Confirm `Implementation Stack Profile` section is fully populated
 
 ## Implementation
 - [ ] T-001 Extend `template_smoke_assertions.py:main()` with descriptor-kustomization cross-check assertion (FR-001): parse seeded `apps/descriptor.yaml` with `yaml.safe_load`, extract manifest filenames per component (handling convention-default paths), verify each against `app_manifest_names`; raise AssertionError per missing filename with descriptor path, kustomization path, and filename in message
