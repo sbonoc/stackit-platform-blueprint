@@ -102,7 +102,10 @@ be recorded before this step runs.)
 
 4. make quality-sdd-check      # must pass before commit
 
-5. Commit to the existing branch (same Draft PR):
+5. TRACEABILITY VERIFICATION — run the blueprint-sdd-traceability-keeper skill
+   for this work item. Resolve any blocking gaps.
+
+6. Commit to the existing branch (same Draft PR, including any traceability.md fixes):
    git add specs/YYYY-MM-DD-<slug>/spec.md docs/.../ADR-<slug>.md
    git commit -m "feat(<slug>): all sign-offs — SPEC_READY"
    git push
@@ -126,6 +129,7 @@ Return:
 3. Sign-off status for all four roles (Product, Architecture, Security, Operations).
 4. `make quality-sdd-check` result.
 5. Commit SHA pushed to the existing Draft PR branch.
+6. Traceability keeper result (gaps found / clean).
 
 ## Useful Commands
 

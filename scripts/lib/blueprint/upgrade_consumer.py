@@ -15,6 +15,7 @@ import subprocess
 import sys
 import tempfile
 from typing import Any
+import yaml
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -225,6 +226,41 @@ def _is_consumer_owned_workload(relative_path: str) -> bool:
         return False
     filename = relative_path[len(_CONSUMER_WORKLOAD_APPS_PREFIX):]
     return filename != "kustomization.yaml" and filename.endswith(".yaml") and "/" not in filename
+
+
+def _is_kustomization_referenced(repo_root: Path, relative_path: str) -> bool:
+    """Return True if any kustomization.yaml in the same directory references relative_path's basename.
+
+    Checks resources: (direct strings) and patches: (strings or {path: …} dicts).
+    Uses yaml.safe_load only (NFR-SEC-001). On parse failure, logs a warning to stderr
+    and returns False without raising (NFR-REL-001).
+    """
+    candidate_dir = (repo_root / relative_path).parent
+    basename = Path(relative_path).name
+    kust_file = candidate_dir / "kustomization.yaml"
+    if not kust_file.is_file():
+        return False
+    try:
+        data = yaml.safe_load(kust_file.read_text(encoding="utf-8"))
+    except Exception as exc:
+        print(
+            f"warning: _is_kustomization_referenced: failed to parse {kust_file}: {exc}",
+            file=sys.stderr,
+        )
+        return False
+    if not isinstance(data, dict):
+        return False
+    for item in data.get("resources", []) or []:
+        if isinstance(item, str) and item == basename:
+            return True
+    for item in data.get("patches", []) or []:
+        if isinstance(item, str) and item == basename:
+            return True
+        if isinstance(item, dict):
+            patch_path = item.get("path", "")
+            if isinstance(patch_path, str) and patch_path == basename:
+                return True
+    return False
 
 
 def _read_text(path: Path) -> str:
@@ -615,7 +651,23 @@ def _classify_entries(
                     ownership="consumer-owned-workload",
                     action=ACTION_SKIP,
                     operation=OPERATION_NONE,
-                    reason="path is a consumer workload manifest in base/apps/; excluded from blueprint prune (see issue #203 for general unification)",
+                    reason="path is a consumer workload manifest in base/apps/; excluded from blueprint prune",
+                    source_exists=source_exists,
+                    target_exists=target_exists,
+                    baseline_ref=baseline_ref,
+                    baseline_content_available=False,
+                )
+            )
+            continue
+
+        if not source_exists and target_exists and _is_kustomization_referenced(repo_root, relative_path):
+            entries.append(
+                UpgradeEntry(
+                    path=relative_path,
+                    ownership="consumer-kustomization-ref",
+                    action=ACTION_SKIP,
+                    operation=OPERATION_NONE,
+                    reason="path is referenced in a consumer kustomization.yaml; excluded from blueprint prune",
                     source_exists=source_exists,
                     target_exists=target_exists,
                     baseline_ref=baseline_ref,
@@ -1355,6 +1407,86 @@ def _merge_required_manual_actions(*groups: list[RequiredManualAction]) -> list[
     return merged
 
 
+_TF_BLOCK_RE = re.compile(r'^(\w+)\s+"([^"]+)"(?:\s+"([^"]+)")?\s*\{', re.MULTILINE)
+
+
+def _tf_find_block_end(content: str, open_pos: int) -> int:
+    """Return the index after the closing } matching the { at open_pos."""
+    depth = 0
+    i = open_pos
+    while i < len(content):
+        c = content[i]
+        if c == "{":
+            depth += 1
+        elif c == "}":
+            depth -= 1
+            if depth == 0:
+                return i + 1
+        i += 1
+    return len(content)
+
+
+def _tf_deduplicate_blocks(content: str) -> tuple[str | None, list[str], list[str]]:
+    """Scan merged Terraform content for duplicate top-level named block declarations.
+
+    Returns (processed_content, dedup_log, conflict_keys):
+    - processed_content: deduplicated content (None when non-identical conflicts exist)
+    - dedup_log: block keys removed as byte-identical duplicates (e.g. "variable.opensearch_enabled")
+    - conflict_keys: block keys with non-identical duplicate declarations
+
+    The common path (no duplicates) returns content unchanged with empty lists (REQ-004).
+    """
+    # Collect all occurrences of each named block: key → list of (start, end) spans
+    occurrences: dict[str, list[tuple[int, int]]] = {}
+    for match in _TF_BLOCK_RE.finditer(content):
+        block_type = match.group(1)
+        label1 = match.group(2)
+        label2 = match.group(3)
+        key = f"{block_type}.{label1}.{label2}" if label2 else f"{block_type}.{label1}"
+        brace_pos = content.index("{", match.start())
+        block_end = _tf_find_block_end(content, brace_pos)
+        occurrences.setdefault(key, []).append((match.start(), block_end))
+
+    dedup_log: list[str] = []
+    conflict_keys: list[str] = []
+    for key, spans in occurrences.items():
+        if len(spans) <= 1:
+            continue
+        texts = [content[s:e] for s, e in spans]
+        if all(t == texts[0] for t in texts):
+            dedup_log.append(key)
+        else:
+            # provider blocks support aliases: `provider "aws" { alias = "us" ... }` is a
+            # distinct configuration from the default `provider "aws" {}` block. Skip the
+            # conflict signal when at least one occurrence carries an alias attribute.
+            block_type = key.split(".")[0]
+            if block_type == "provider" and any(re.search(r"\balias\s*=", t) for t in texts):
+                continue
+            conflict_keys.append(key)
+
+    if conflict_keys:
+        return None, [], conflict_keys
+
+    if not dedup_log:
+        return content, [], []
+
+    # Remove all but the first occurrence of each duplicated key, back-to-front
+    spans_to_remove: list[tuple[int, int]] = []
+    for key in dedup_log:
+        for start, end in occurrences[key][1:]:
+            # Consume any preceding blank line so we don't leave stray whitespace
+            while start > 0 and content[start - 1] == "\n":
+                start -= 1
+            spans_to_remove.append((start, end))
+    spans_to_remove.sort(key=lambda x: x[0], reverse=True)
+
+    result = content
+    for start, end in spans_to_remove:
+        result = result[:start] + result[end:]
+
+    return result, dedup_log, []
+
+
 def _three_way_merge(base: str, ours: str, theirs: str) -> tuple[str, bool]:
     with tempfile.TemporaryDirectory(prefix="blueprint-upgrade-merge-") as tmpdir:
         tmp_root = Path(tmpdir)
@@ -1409,9 +1541,10 @@ def _apply_entries(
     entries: list[UpgradeEntry],
     baseline_cache: dict[str, str | None],
     apply_enabled: bool,
-) -> tuple[list[ApplyResult], int]:
+) -> tuple[list[ApplyResult], int, list[dict[str, str]]]:
     results: list[ApplyResult] = []
     applied_count = 0
+    deduplication_log: list[dict[str, str]] = []
 
     for entry in entries:
         source_path = source_repo / entry.path
@@ -1564,6 +1697,47 @@ def _apply_entries(
                 )
                 continue
 
+            if entry.path.endswith(".tf"):
+                tf_content, dedup_log, conflict_keys = _tf_deduplicate_blocks(merged_content)
+                if conflict_keys:
+                    conflict_artifact = _write_conflict_artifact(
+                        repo_root,
+                        entry.path,
+                        f"duplicate non-identical Terraform blocks after merge: {', '.join(conflict_keys)}",
+                        source_content,
+                        target_content,
+                        baseline_content=baseline_content,
+                        merged_content=merged_content,
+                    )
+                    results.append(
+                        ApplyResult(
+                            path=entry.path,
+                            planned_action=entry.action,
+                            planned_operation=entry.operation,
+                            result="conflict",
+                            reason=f"non-identical duplicate Terraform blocks: {', '.join(conflict_keys)}",
+                            conflict_artifact=conflict_artifact,
+                            semantic=entry.semantic,
+                        )
+                    )
+                    continue
+                if dedup_log:
+                    _write_text(target_path, tf_content)
+                    applied_count += 1
+                    for block_key in dedup_log:
+                        deduplication_log.append({"path": entry.path, "block": block_key})
+                    results.append(
+                        ApplyResult(
+                            path=entry.path,
+                            planned_action=entry.action,
+                            planned_operation=entry.operation,
+                            result="merged-deduped",
+                            reason=f"3-way merge applied; removed byte-identical duplicate blocks: {', '.join(dedup_log)}",
+                            semantic=entry.semantic,
+                        )
+                    )
+                    continue
+
             _write_text(target_path, merged_content)
             applied_count += 1
             results.append(
@@ -1588,7 +1762,7 @@ def _apply_entries(
             )
         )
 
-    return results, applied_count
+    return results, applied_count, deduplication_log
 
 
 def _summarize_plan(
@@ -1613,11 +1787,16 @@ def _summarize_apply(
     results: list[ApplyResult],
     applied_count: int,
     required_manual_actions: list[RequiredManualAction],
+    entries: list[UpgradeEntry] | None = None,
 ) -> dict[str, int]:
     counts: dict[str, int] = {"total": len(results), "applied_count": applied_count}
     for result in results:
         counts[result.result] = counts.get(result.result, 0) + 1
     counts["required_manual_action_count"] = len(required_manual_actions)
+    counts["tf_dedup_count"] = counts.get("merged-deduped", 0)
+    counts["consumer_kustomization_ref_count"] = (
+        sum(1 for e in entries if e.ownership == "consumer-kustomization-ref") if entries else 0
+    )
     return counts
 
 
@@ -1926,15 +2105,15 @@ def main() -> int:
         _write_json(plan_path, plan_payload)
         print(f"upgrade-plan: {display_repo_path(repo_root, plan_path)}")
 
-        results, applied_count = _apply_entries(
+        results, applied_count, deduplication_log = _apply_entries(
             repo_root=repo_root,
             source_repo=source_repo,
             entries=entries,
             baseline_cache=baseline_cache,
             apply_enabled=args.apply,
         )
-        apply_summary = _summarize_apply(results, applied_count, required_manual_actions)
-        apply_payload = {
+        apply_summary = _summarize_apply(results, applied_count, required_manual_actions, entries=entries)
+        apply_payload: dict[str, Any] = {
             "repo_root": str(repo_root),
             "source": args.source,
             "upgrade_ref": args.ref,
@@ -1946,6 +2125,8 @@ def main() -> int:
             "required_manual_actions": [action.as_dict() for action in required_manual_actions],
             "summary": apply_summary,
         }
+        if deduplication_log:
+            apply_payload["deduplication_log"] = deduplication_log
 
         markers = find_merge_markers(repo_root) if args.apply else []
         if args.apply and markers:

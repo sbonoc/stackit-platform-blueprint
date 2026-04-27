@@ -128,7 +128,10 @@ STEP 8 — PUBLISH ARTIFACTS
    make quality-hooks-fast         # SDD check + docs drift + infra contract tests
    make quality-hardening-review   # hardening_review.md completeness
 
-6. Commit final artifacts:
+6. TRACEABILITY VERIFICATION — run the blueprint-sdd-traceability-keeper skill
+   for this work item. Resolve any blocking gaps before committing.
+
+7. Commit final artifacts (including any traceability.md fixes from step 6):
    git add specs/YYYY-MM-DD-<slug>/pr_context.md \
            specs/YYYY-MM-DD-<slug>/hardening_review.md \
            specs/YYYY-MM-DD-<slug>/tasks.md \
@@ -138,15 +141,15 @@ STEP 8 — PUBLISH ARTIFACTS
 
 STEP 9 — MARK PR READY
 
-7. Update the PR description to reflect final state:
+8. Update the PR description to reflect final state:
    - Replace the Open Questions section (should already be gone from Step 3).
    - Ensure the description summarises the full pr_context.md content.
 
-8. Mark the Draft PR as ready:
+9. Mark the Draft PR as ready:
    gh pr ready <number>
 
-9. Post the review request comment:
-   gh pr comment <number> --body "@codex review this PR"
+10. Post the review request comment:
+    gh pr comment <number> --body "@codex review this PR"
 ```
 
 ## Deferred proposal lifecycle
@@ -208,6 +211,7 @@ Return:
 8. Final commit SHA pushed.
 9. PR marked ready (yes/no) + PR URL.
 10. `@codex review this PR` comment posted (yes/no).
+11. Traceability keeper result (gaps found / clean).
 
 ## References
 

@@ -143,6 +143,61 @@ actionable via manual review and does not indicate an error in the annotator.
 The **Merge-Required Annotations** section in `artifacts/blueprint/upgrade_summary.md` lists every
 annotated entry with its kind, description, and bullet hints — read it before starting manual merges.
 
+## Consumer-renamed manifest deleted after `make blueprint-upgrade-consumer BLUEPRINT_UPGRADE_ALLOW_DELETE=true`
+
+If a file in your consumer repository has been renamed but the original blueprint path
+still exists in the upgrade payload, the upgrade apply step may delete the original path
+rather than recognising that it is referenced by a `kustomization.yaml` in the same directory.
+
+**Root cause:** The upgrade apply stage checks three layers before deleting any entry:
+
+1. Contract ownership — `consumer_seeded`, `source_only`, and `init_managed` entries are never deleted.
+2. Consumer-owned workload fast path — any file under `base/apps/` whose YAML `metadata.name`
+   or `metadata.labels.app` matches an existing `kustomization.yaml` resource is preserved.
+3. Kustomization-ref guard — any file whose basename appears in the `resources:` or `patches:`
+   list of a `kustomization.yaml` in the same directory is preserved, regardless of its path.
+
+If your renamed manifest was still deleted, check:
+
+- The file's basename exactly matches a `resources:` or `patches:` entry in the sibling
+  `kustomization.yaml`. Path values are compared case-sensitively.
+- The sibling `kustomization.yaml` is valid YAML. If it contains syntax errors the guard
+  falls back to `False` and logs a warning to stderr:
+  ```
+  warning: _is_kustomization_referenced: failed to parse <path>: <error>
+  ```
+  Fix the YAML syntax and rerun the upgrade.
+- Check `artifacts/blueprint/upgrade_summary.md` — the `consumer_kustomization_ref_count`
+  field shows how many entries were preserved by the kustomization-ref guard in the last run.
+
+**Recovery:** If the file was already deleted, restore it from git history:
+```bash
+git checkout HEAD~1 -- <path/to/deleted-file.yaml>
+git add <path/to/deleted-file.yaml>
+git commit -m "fix: restore <filename> deleted incorrectly during blueprint upgrade"
+```
+
+## `.tf` file contains duplicate resource blocks after `make blueprint-upgrade-consumer`
+
+When the upgrade apply stage merges a `.tf` file, it scans for top-level Terraform block
+declarations that appear more than once (same block type, name, and label).
+
+- **Byte-identical duplicates** are automatically removed. The result is recorded as
+  `merged-deduped` in the apply summary and the removed block is listed in the
+  `deduplication_log` section of `artifacts/blueprint/upgrade_summary.md`.
+  Check the `tf_dedup_count` summary field to see how many were removed.
+
+- **Non-identical duplicates** (blocks with the same header but different bodies) cannot
+  be resolved automatically. The upgrade produces a `conflict` artifact at the same path
+  and leaves both block variants in the file separated by conflict markers. Resolve manually:
+
+  1. Open the file flagged as `conflict` in `artifacts/blueprint/upgrade_summary.md`.
+  2. Identify the two block variants between the conflict markers.
+  3. Decide which variant (or which merged result) is correct for your repository.
+  4. Remove the conflict markers and the rejected variant.
+  5. Run `terraform validate` to confirm the file is syntactically valid.
+  6. Commit the resolution before rerunning the bootstrap or plan targets.
+
 ## Pull requests are not auto-requesting reviewers
 - Generated repositories seed `.github/CODEOWNERS` as a starter file with commented examples only.
 - Replace the example owners with your real team handles before relying on GitHub review assignment.

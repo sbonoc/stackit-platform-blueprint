@@ -1,0 +1,40 @@
+{
+  "manifest_version": 1,
+  "work_item": "2026-04-27-issue-203-204-upgrade-apply-correctness",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-04-27T12:23:12Z",
+  "files": [
+    {
+      "path": "specs/2026-04-27-issue-203-204-upgrade-apply-correctness/spec.md",
+      "sha256": "80f7cb939794aa468ad8c92655dc2f9d639dd395aa631b9aaaed36abd126d2e7"
+    },
+    {
+      "path": "specs/2026-04-27-issue-203-204-upgrade-apply-correctness/traceability.md",
+      "sha256": "90ef44db14601e09cf31e383be6485f1fac46325d16def4b84ca77aa165df687"
+    },
+    {
+      "path": "specs/2026-04-27-issue-203-204-upgrade-apply-correctness/plan.md",
+      "sha256": "3a67d6ad14164b7e5d9ca7f20c4f315e4fba93f817f848f19b0fe70175e7599b"
+    },
+    {
+      "path": "specs/2026-04-27-issue-203-204-upgrade-apply-correctness/tasks.md",
+      "sha256": "bb0dfe822ddde7133f077af121f989cf7caca2aa53cb1e0c16bd72fc4fdca4d2"
+    },
+    {
+      "path": "specs/2026-04-27-issue-203-204-upgrade-apply-correctness/hardening_review.md",
+      "sha256": "9631eee3fc75cc4c1fcf08cfc34c02095b38bd44e4223f76ebc5eacde10fb962"
+    },
+    {
+      "path": "specs/2026-04-27-issue-203-204-upgrade-apply-correctness/pr_context.md",
+      "sha256": "f0ee73fe91b01e5c798b58dd055f13613a311e3c6e264f3118d5c1d4f77639d3"
+    },
+    {
+      "path": "specs/2026-04-27-issue-203-204-upgrade-apply-correctness/architecture.md",
+      "sha256": "a2e0706a5b58cc0fa13e5968f65378fd26ad90a33d98039d9affd820c64eb372"
+    },
+    {
+      "path": "specs/2026-04-27-issue-203-204-upgrade-apply-correctness/graph.json",
+      "sha256": "067627780d190f8c13a5b8b41d3a39d3b44b531ab8e0fd1c3bc7e78730968ce7"
+    }
+  ]
+}

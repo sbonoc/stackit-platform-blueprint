@@ -76,6 +76,7 @@
               "applied",
               "deleted",
               "merged",
+              "merged-deduped",
               "conflict"
             ]
           },
@@ -146,7 +147,9 @@
       "required": [
         "total",
         "applied_count",
-        "required_manual_action_count"
+        "required_manual_action_count",
+        "tf_dedup_count",
+        "consumer_kustomization_ref_count"
       ],
       "properties": {
         "total": {
@@ -157,6 +160,23 @@
         },
         "required_manual_action_count": {
           "type": "integer"
+        },
+        "tf_dedup_count": {
+          "type": "integer"
+        },
+        "consumer_kustomization_ref_count": {
+          "type": "integer"
+        }
+      }
+    },
+    "deduplication_log": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "block"],
+        "properties": {
+          "path": { "type": "string" },
+          "block": { "type": "string" }
         }
       }
     },

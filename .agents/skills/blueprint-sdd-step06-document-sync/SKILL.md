@@ -60,8 +60,13 @@ OPERATE
    - Alerting ownership declarations.
    - Skill runbooks in .agents/skills/*/SKILL.md (if operator guidance changed).
 
+TRACEABILITY
+7. TRACEABILITY VERIFICATION — run the blueprint-sdd-traceability-keeper skill
+   for this work item. Resolve any blocking gaps.
+
 COMMIT
-7. git add docs/ scripts/templates/ .agents/skills/ [other changed files]
+8. git add docs/ scripts/templates/ .agents/skills/ [other changed files]
+   Include any traceability.md fixes from the previous step.
    git commit -m "docs(<slug>): document behavior changes and sync templates"
    git push
 ```
@@ -86,6 +91,7 @@ Return:
 4. Runbook / operational guidance updates (if any).
 5. Skill runbook updates (if any).
 6. Commit SHA pushed.
+7. Traceability keeper result (gaps found / clean).
 
 ## References
 

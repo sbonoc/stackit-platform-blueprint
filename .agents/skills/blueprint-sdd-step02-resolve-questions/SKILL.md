@@ -91,12 +91,15 @@ Reviewers interact exclusively via GitHub PR comments — no local tooling requi
    - If count reaches 0, remove the entire Open Questions section and sign-off
      instructions from the PR description.
 
-6. Commit all updated artifacts:
+6. TRACEABILITY VERIFICATION — run the blueprint-sdd-traceability-keeper skill
+   for this work item. Resolve any blocking gaps.
+
+7. Commit all updated artifacts (including any traceability.md fixes):
    git add specs/YYYY-MM-DD-<slug>/ [any other changed files]
    git commit -m "feat(<slug>): resolve N open questions — <brief summary>"
    git push
 
-7. Post a confirmation PR comment:
+8. Post a confirmation PR comment:
    gh pr comment <number> --body \
      "Resolved N open questions. Updated: \`spec.md\`, \`architecture.md\`.
       Commit <sha>. Remaining open: K."
@@ -126,6 +129,7 @@ Return:
 6. `make quality-sdd-check` result (marker count before → after).
 7. Commit SHA pushed.
 8. Confirmation PR comment posted (yes/no).
+9. Traceability keeper result (gaps found / clean).
 
 ## Useful Commands
 
