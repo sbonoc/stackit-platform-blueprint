@@ -2355,5 +2355,204 @@ class ConsumerOwnedWorkloadPruneTests(unittest.TestCase):
             self.assertEqual(entry.operation, upgrade_consumer.OPERATION_DELETE)
 
 
+_SEED_MANIFEST_PATHS = [
+    "infra/gitops/platform/base/apps/backend-api-deployment.yaml",
+    "infra/gitops/platform/base/apps/backend-api-service.yaml",
+    "infra/gitops/platform/base/apps/touchpoints-web-deployment.yaml",
+    "infra/gitops/platform/base/apps/touchpoints-web-service.yaml",
+]
+
+
+class SeedManifestContractContentTests(unittest.TestCase):
+    """T-101, T-102, T-103 — AC-001, AC-002 contract content regression guards (issue #206)."""
+
+    def _contract(self):
+        from scripts.lib.blueprint.contract_schema import load_blueprint_contract
+        return load_blueprint_contract(REPO_ROOT / "blueprint/contract.yaml")
+
+    def test_seed_manifest_paths_not_in_required_files(self) -> None:
+        """T-101 / AC-001: 4 seed paths MUST NOT appear in required_files after fix."""
+        contract = self._contract()
+        required = set(contract.repository.required_files)
+        for path in _SEED_MANIFEST_PATHS:
+            self.assertNotIn(
+                path,
+                required,
+                msg=f"{path} must not be in required_files (issue #206)",
+            )
+
+    def test_seed_manifest_paths_in_source_only_paths(self) -> None:
+        """T-102 / AC-001: 4 seed paths MUST appear in source_only_paths after fix."""
+        contract = self._contract()
+        source_only = set(contract.repository.source_only_paths)
+        for path in _SEED_MANIFEST_PATHS:
+            self.assertIn(
+                path,
+                source_only,
+                msg=f"{path} must be in source_only_paths (issue #206)",
+            )
+
+    def test_app_runtime_required_paths_no_hardcoded_manifest_names(self) -> None:
+        """T-103 / AC-002: app_runtime_gitops_contract.required_paths_when_enabled must contain
+        only the apps directory and kustomization.yaml — no hardcoded workload manifest names."""
+        contract = self._contract()
+        spec_raw = contract.raw.get("spec", {})
+        app_runtime_raw = spec_raw.get("app_runtime_gitops_contract", {})
+        required_paths = app_runtime_raw.get("required_paths_when_enabled", [])
+        for path in _SEED_MANIFEST_PATHS:
+            self.assertNotIn(
+                path,
+                required_paths,
+                msg=f"{path} must not be in app_runtime_gitops_contract.required_paths_when_enabled (issue #206)",
+            )
+        expected = {
+            "infra/gitops/platform/base/apps",
+            "infra/gitops/platform/base/apps/kustomization.yaml",
+        }
+        self.assertEqual(
+            set(required_paths),
+            expected,
+            msg="app_runtime_gitops_contract.required_paths_when_enabled must contain only directory and kustomization.yaml",
+        )
+
+
+class SeedManifestUpgradePlannerTests(unittest.TestCase):
+    """T-104 — AC-004, AC-005 upgrade planner classification tests (issue #206)."""
+
+    def _classify_from_contract(
+        self,
+        repo_root,
+        source_repo,
+        paths: list[str],
+        *,
+        allow_delete: bool = True,
+    ) -> list[upgrade_consumer.UpgradeEntry]:
+        from scripts.lib.blueprint.contract_schema import load_blueprint_contract
+        contract = load_blueprint_contract(REPO_ROOT / "blueprint/contract.yaml")
+        return upgrade_consumer._classify_entries(
+            repo_root=repo_root,
+            source_repo=source_repo,
+            all_paths=paths,
+            required_files=set(contract.repository.required_files),
+            source_only=set(contract.repository.source_only_paths),
+            consumer_seeded=set(),
+            init_managed=set(),
+            conditional_entries={"infra/gitops/platform/base/apps"},
+            managed_dir_roots={"infra/gitops/platform/base/apps"},
+            protected_roots=set(),
+            baseline_ref=None,
+            baseline_cache={},
+            allow_delete=allow_delete,
+        )
+
+    def test_consumer_renamed_manifests_no_delete_or_create_for_seed_paths(self) -> None:
+        """T-104 / AC-004: consumer has renamed manifests; seed paths in source_only →
+        zero OPERATION_DELETE and zero OPERATION_CREATE for the 4 seed paths."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp = Path(tmpdir)
+            source_repo = tmp / "source"
+            repo_root = tmp / "target"
+            source_repo.mkdir()
+            repo_root.mkdir()
+
+            apps_dir = "infra/gitops/platform/base/apps"
+
+            # Source blueprint still has the 4 seed files (source-only)
+            for seed_path in _SEED_MANIFEST_PATHS:
+                (source_repo / seed_path).parent.mkdir(parents=True, exist_ok=True)
+                (source_repo / seed_path).write_text("kind: Deployment\n", encoding="utf-8")
+
+            # Consumer has renamed manifests — NOT the seed names
+            renamed = [
+                f"{apps_dir}/my-api-deployment.yaml",
+                f"{apps_dir}/my-api-service.yaml",
+            ]
+            for p in renamed:
+                (repo_root / p).parent.mkdir(parents=True, exist_ok=True)
+                (repo_root / p).write_text("kind: Deployment\n", encoding="utf-8")
+
+            all_paths = sorted(set(_SEED_MANIFEST_PATHS) | set(renamed))
+            entries = self._classify_from_contract(repo_root, source_repo, all_paths)
+
+            seed_entries = [e for e in entries if e.path in _SEED_MANIFEST_PATHS]
+            self.assertEqual(
+                len(seed_entries), 4, msg="expected 4 entries for seed paths"
+            )
+            for entry in seed_entries:
+                self.assertNotEqual(
+                    entry.operation,
+                    upgrade_consumer.OPERATION_DELETE,
+                    msg=f"seed path {entry.path} must not be OPERATION_DELETE (AC-004)",
+                )
+                self.assertNotEqual(
+                    entry.operation,
+                    upgrade_consumer.OPERATION_CREATE,
+                    msg=f"seed path {entry.path} must not be OPERATION_CREATE (AC-004)",
+                )
+                self.assertEqual(
+                    entry.action,
+                    upgrade_consumer.ACTION_SKIP,
+                    msg=f"seed path {entry.path} must be ACTION_SKIP (AC-004)",
+                )
+
+    def test_original_seed_names_classified_as_source_only_skip(self) -> None:
+        """T-104 / AC-005: consumer still has original seed manifest names; they must
+        be classified source-only/skip — no OPERATION_UPDATE or OPERATION_DELETE."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp = Path(tmpdir)
+            source_repo = tmp / "source"
+            repo_root = tmp / "target"
+            source_repo.mkdir()
+            repo_root.mkdir()
+
+            # Both source and consumer have the original seed files
+            for seed_path in _SEED_MANIFEST_PATHS:
+                (source_repo / seed_path).parent.mkdir(parents=True, exist_ok=True)
+                (source_repo / seed_path).write_text("kind: Deployment\n", encoding="utf-8")
+                (repo_root / seed_path).parent.mkdir(parents=True, exist_ok=True)
+                (repo_root / seed_path).write_text("kind: Deployment (consumer-modified)\n", encoding="utf-8")
+
+            entries = self._classify_from_contract(repo_root, source_repo, _SEED_MANIFEST_PATHS)
+
+            self.assertEqual(len(entries), 4)
+            for entry in entries:
+                self.assertEqual(
+                    entry.action,
+                    upgrade_consumer.ACTION_SKIP,
+                    msg=f"seed path {entry.path} must be ACTION_SKIP / source-only (AC-005)",
+                )
+                self.assertEqual(
+                    entry.ownership,
+                    "source-only",
+                    msg=f"seed path {entry.path} must have ownership=source-only (AC-005)",
+                )
+                self.assertNotEqual(
+                    entry.operation,
+                    upgrade_consumer.OPERATION_UPDATE,
+                    msg=f"seed path {entry.path} must not be OPERATION_UPDATE (AC-005)",
+                )
+                self.assertNotEqual(
+                    entry.operation,
+                    upgrade_consumer.OPERATION_DELETE,
+                    msg=f"seed path {entry.path} must not be OPERATION_DELETE (AC-005)",
+                )
+
+
+class SeedManifestInitSeedingTests(unittest.TestCase):
+    """T-106 — fresh-init seeding regression: seed template files still exist after FR-003 (issue #206)."""
+
+    def test_seed_manifest_templates_exist_in_infra_bootstrap(self) -> None:
+        """T-106: the 4 seed manifest template files must still exist in the infra bootstrap
+        template directory so that bootstrap.sh can seed them at init time via ensure_infra_template_file,
+        independent of required_paths_when_enabled."""
+        template_dir = REPO_ROOT / "scripts/templates/infra/bootstrap"
+        for seed_path in _SEED_MANIFEST_PATHS:
+            template_file = template_dir / seed_path
+            self.assertTrue(
+                template_file.is_file(),
+                msg=f"seed template {seed_path} must still exist in {template_dir} after FR-003 (T-106)",
+            )
+
+
 if __name__ == "__main__":
     unittest.main()
