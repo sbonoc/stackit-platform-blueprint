@@ -23,7 +23,7 @@
 - [x] T-002 Add `scripts/templates/consumer/init/apps/descriptor.yaml.tmpl` with baseline app/component records.
 - [x] T-003 Implement descriptor schema, loader, explicit manifest refs, convention defaults, and safe path resolution.
 - [x] T-004 Wire descriptor validation into app runtime GitOps contract validation.
-- [ ] T-005 Wire descriptor records into deprecated app catalog compatibility rendering and smoke assertions.
+- [x] T-005 Wire descriptor records into deprecated app catalog compatibility rendering and smoke assertions.
 - [ ] T-006 Emit descriptor ownership evidence in upgrade plan/postcheck diagnostics.
 - [ ] T-007 Generate `artifacts/blueprint/app_descriptor.suggested.yaml` for existing consumers without the descriptor.
 - [ ] T-008 Mark `_is_consumer_owned_workload()` as deprecated bridge behavior with two-minor-release removal tracking.
@@ -36,7 +36,7 @@
 - [x] T-102 Add contract tests for `consumer_seeded` template parity and app runtime validation.
 - [ ] T-103 Confirm no filter/payload-transform route is touched; record not-applicable evidence in `pr_context.md`.
 - [x] T-104 Translate deterministic descriptor validation findings into failing tests first, then make them green.
-- [ ] T-105 Add renderer tests proving deprecated `apps/catalog/manifest.yaml` compatibility output follows descriptor records.
+- [x] T-105 Add renderer tests proving deprecated `apps/catalog/manifest.yaml` compatibility output follows descriptor records.
 - [ ] T-106 Add upgrade plan/postcheck tests for `consumer-app-descriptor` ownership diagnostics.
 - [ ] T-107 Add suggested descriptor artifact tests for existing generated consumers without `apps/descriptor.yaml`.
 - [ ] T-108 Add deprecation tracking tests or docs checks for app catalog compatibility output and `_is_consumer_owned_workload()`.
@@ -45,8 +45,8 @@
 - [ ] T-201 Run `make quality-sdd-check`.
 - [ ] T-202 Run `make quality-hooks-run`.
 - [ ] T-203 Run `make infra-validate`.
-- [ ] T-204 Run `make apps-bootstrap`.
-- [ ] T-205 Run `make apps-smoke`.
+- [x] T-204 Run `make apps-bootstrap`.
+- [x] T-205 Run `make apps-smoke`.
 - [ ] T-206 Run `make blueprint-template-smoke`.
 - [ ] T-207 Attach evidence to traceability document.
 - [ ] T-208 Confirm no stale TODOs/dead code/drift.
@@ -59,7 +59,7 @@
 - [ ] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
 
 ## App Onboarding Minimum Targets (Normative)
-- [ ] A-001 `apps-bootstrap` and `apps-smoke` are implemented and verified for the affected app scope
+- [x] A-001 `apps-bootstrap` and `apps-smoke` are implemented and verified for the affected app scope
 - [ ] A-002 Backend app lanes (`backend-test-unit`, `backend-test-integration`, `backend-test-contracts`, `backend-test-e2e`) are available
 - [ ] A-003 Frontend app lanes (`touchpoints-test-unit`, `touchpoints-test-integration`, `touchpoints-test-contracts`, `touchpoints-test-e2e`) are available
 - [ ] A-004 Aggregate gates (`test-unit-all`, `test-integration-all`, `test-contracts-all`, `test-e2e-all-local`) are available

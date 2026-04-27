@@ -235,8 +235,8 @@ class CatalogManifestEndToEndRenderingTests(unittest.TestCase):
                 ],
             )
             rc = catalog_scaffold_renderer.cmd_render(args)
-        self.assertEqual(rc, 0)
-        manifest = yaml.safe_load(manifest_output.read_text(encoding="utf-8"))
+            self.assertEqual(rc, 0)
+            manifest = yaml.safe_load(manifest_output.read_text(encoding="utf-8"))
         workload_ids = [w["workloadId"] for w in manifest["deliveryTopology"]["workloads"]]
         self.assertEqual(workload_ids, ["backend-api", "touchpoints-web"])
         gitops_ids = [w["id"] for w in manifest["runtimeDeliveryContract"]["gitopsWorkloads"]]
@@ -267,8 +267,8 @@ class CatalogManifestEndToEndRenderingTests(unittest.TestCase):
                 ],
             )
             rc = catalog_scaffold_renderer.cmd_render(args)
-        self.assertEqual(rc, 0)
-        manifest_text = manifest_output.read_text(encoding="utf-8")
+            self.assertEqual(rc, 0)
+            manifest_text = manifest_output.read_text(encoding="utf-8")
         self.assertIn("marketplace-api-deployment.yaml", manifest_text)
         self.assertIn("marketplace-worker-deployment.yaml", manifest_text)
         self.assertNotIn("backend-api-deployment.yaml", manifest_text)
