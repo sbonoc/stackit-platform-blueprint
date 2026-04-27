@@ -26,8 +26,8 @@
 - [x] T-005 Wire descriptor records into deprecated app catalog compatibility rendering and smoke assertions.
 - [x] T-006 Emit descriptor ownership evidence in upgrade plan/postcheck diagnostics.
 - [x] T-007 Generate `artifacts/blueprint/app_descriptor.suggested.yaml` for existing consumers without the descriptor.
-- [ ] T-008 Mark `_is_consumer_owned_workload()` as deprecated bridge behavior with two-minor-release removal tracking.
-- [ ] T-009 Mark `apps/catalog/manifest.yaml` as deprecated generated compatibility output with two-minor-release removal tracking.
+- [x] T-008 Mark `_is_consumer_owned_workload()` as deprecated bridge behavior with two-minor-release removal tracking.
+- [x] T-009 Mark `apps/catalog/manifest.yaml` as deprecated generated compatibility output with two-minor-release removal tracking.
 - [ ] T-010 Update blueprint docs/diagrams.
 - [ ] T-011 Update consumer-facing docs/diagrams when contracts/behavior change.
 
@@ -39,7 +39,7 @@
 - [x] T-105 Add renderer tests proving deprecated `apps/catalog/manifest.yaml` compatibility output follows descriptor records.
 - [x] T-106 Add upgrade plan/postcheck tests for `consumer-app-descriptor` ownership diagnostics.
 - [x] T-107 Add suggested descriptor artifact tests for existing generated consumers without `apps/descriptor.yaml`.
-- [ ] T-108 Add deprecation tracking tests or docs checks for app catalog compatibility output and `_is_consumer_owned_workload()`.
+- [x] T-108 Add deprecation tracking tests or docs checks for app catalog compatibility output and `_is_consumer_owned_workload()`.
 
 ## Validation and Release Readiness
 - [ ] T-201 Run `make quality-sdd-check`.

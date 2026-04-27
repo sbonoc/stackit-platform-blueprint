@@ -224,7 +224,15 @@ def _is_consumer_owned_workload(relative_path: str) -> bool:
 
     These files are consumer-defined workload manifests. Blueprint manages the directory
     structure and kustomization.yaml but does not own individual manifests.
-    Bridge guard until issue #206 delivers a general contract schema mechanism.
+
+    DEPRECATED bridge guard. The canonical app-ownership source is now
+    ``apps/descriptor.yaml`` (see ``_descriptor_referenced_paths``); the
+    ``consumer-app-descriptor`` classifier branch in ``_classify_entries`` runs
+    ahead of this path-prefix check. This guard remains for two blueprint minor release cycles
+    (or until descriptor adoption becomes mandatory, whichever is later) so existing
+    generated consumers without ``apps/descriptor.yaml`` keep their prune protection during
+    migration. Removal trigger: ``after: consumer-app-descriptor-adoption``
+    (see AGENTS.backlog.md).
     """
     if not relative_path.startswith(_CONSUMER_WORKLOAD_APPS_PREFIX):
         return False
