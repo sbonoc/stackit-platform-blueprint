@@ -48,7 +48,8 @@
         "tests/infra/test_python_helper_extractions.py",
         "tests/infra/test_root_dir_resolution.py",
         "tests/blueprint/test_upgrade_fresh_env_gate.py",
-        "tests/blueprint/test_upgrade_version_pin_diff.py"
+        "tests/blueprint/test_upgrade_version_pin_diff.py",
+        "tests/blueprint/test_template_smoke_assertions.py"
       ]
     },
     {

@@ -93,6 +93,17 @@ Four independent tracks; all P1, can be started in parallel.
       rationale: prerequisite concept (`app_catalog_scaffold_contract.required_paths_when_enabled`) does not exist as a formal data structure; implementing now would require unplanned scope; surfaces naturally when blueprint contract formalization is next touched
 - [ ] P2 (Consumer upgrade flow): Issue #203 — Stage 2 prune deletes consumer-renamed seeded files still referenced by `kustomization.yaml`; root cause is in Stage 2 apply logic (principled fix requires distinguishing blueprint-named from consumer-renamed files in the upgrade planner). Detection mitigated by adding `infra-argocd-topology-validate` to `VALIDATION_TARGETS` (Issue #199 fix above). Root cause is a separate work item.
 - [ ] P2 (Consumer upgrade flow): Issue #204 — 3-way merge emits duplicate Terraform variable blocks; requires either a semantic Terraform parser (new dependency) or `terraform validate` in VALIDATION_TARGETS (provider-dependent, slow). Separate work item.
+- [ ] (parked) proposal: consumer app descriptor (`apps.yaml`, `consumer_seeded`) — declare logical app names and per-app metadata (team, port, health-check path) in a schema-validated, upgrade-safe file seeded by `blueprint-init-repo` and owned by the consumer thereafter; blueprint derives convention-based manifest names (`{name}-deployment.yaml`, `{name}-service.yaml`) from declared app names and validates them against `kustomization.yaml` resources without duplicating the resource list. Broader realisation of Option B from `docs/blueprint/architecture/decisions/ADR-2026-04-26-issue-206-contract-consumer-owned-workloads.md`; prerequisite: #206 implementation shipped.
+      trigger: on-scope: blueprint
+      rationale: current scope (#208) correctly uses kustomization.yaml as the single source of truth for manifest names; apps.yaml adds value only when blueprint tooling needs richer per-app metadata (team, port, health-check path) with no existing authoritative source — surfaces naturally when smoke assertions or preflight gates next require per-app context beyond manifest existence
+
+#### v1.7.0 upgrade findings (consumer domain boundary violations)
+
+Reported by consumer sbonoc/dhe-marketplace from their v1.7.0 upgrade experience. All three share a root cause: blueprint code hardcodes consumer workload names that belong to the consumer's product domain.
+
+- [ ] P1 (Consumer upgrade experience): Issue #208 (bug) — `bootstrap.sh` and `template_smoke_assertions.py` hardcode blueprint seed workload names; consumer topology renames cause `generated-consumer-smoke` CI failures with no local signal. **Ready to implement.** `specs/2026-04-26-issue-208-dynamic-workload-derivation/`
+- [ ] P1 (Consumer upgrade experience): Issue #207 (enhancement) — upgrade prune deletes consumer workload manifests in `base/apps/` because the directory is not excluded; `kustomize build` breaks silently post-upgrade. Implement after #208. **Ready to implement.** `specs/2026-04-26-issue-207-apps-prune-exclusion/`
+- [ ] P2 (Consumer upgrade experience): Issue #206 (enhancement) — `app_runtime_gitops_contract` hardcodes workload manifest names in `required_files` and `required_paths_when_enabled`; consumer must re-patch the contract after every upgrade. **Spec-only.** `specs/2026-04-26-issue-206-contract-consumer-owned-workloads/`
 
 #### v1.7.0 upgrade findings (consumer domain boundary violations)
 
