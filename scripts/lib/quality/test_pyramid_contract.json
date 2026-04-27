@@ -17,6 +17,7 @@
         "tests/blueprint/test_consumer_app_descriptor_contract.py",
         "tests/blueprint/test_app_descriptor_loader.py",
         "tests/blueprint/test_app_catalog_descriptor_rendering.py",
+        "tests/blueprint/test_consumer_app_descriptor_upgrade.py",
         "tests/blueprint/test_init_repo_env.py",
         "tests/blueprint/test_upgrade_consumer.py",
         "tests/blueprint/test_upgrade_semantic_annotator.py",
