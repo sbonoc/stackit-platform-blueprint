@@ -88,8 +88,11 @@ if [[ "$app_catalog_scaffold_enabled" == "true" ]]; then
     --vue-router-version "$VUE_ROUTER_VERSION" \
     --pinia-version "$PINIA_VERSION" \
     --app-runtime-gitops-enabled "$app_runtime_gitops_enabled" \
-    --app-runtime-backend-image "$backend_runtime_image" \
-    --app-runtime-touchpoints-image "$touchpoints_runtime_image" \
+    --app-descriptor-path "$ROOT_DIR/apps/descriptor.yaml" \
+    --component-image "backend-api=$backend_runtime_image" \
+    --component-image "touchpoints-web=$touchpoints_runtime_image" \
+    --component-image-env-var "backend-api=APP_RUNTIME_BACKEND_IMAGE" \
+    --component-image-env-var "touchpoints-web=APP_RUNTIME_TOUCHPOINTS_IMAGE" \
     --observability-enabled "$observability_enabled_literal" \
     --otel-exporter-otlp-endpoint "$otel_exporter_otlp_endpoint" \
     --otel-protocol "$otel_protocol" \

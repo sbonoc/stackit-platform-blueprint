@@ -22,6 +22,10 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+from scripts.lib.blueprint.app_descriptor import (  # noqa: E402
+    DESCRIPTOR_RELATIVE_PATH as APP_DESCRIPTOR_RELATIVE_PATH,
+    load_app_descriptor,
+)
 from scripts.lib.blueprint.cli_support import display_repo_path, resolve_repo_root  # noqa: E402
 from scripts.lib.blueprint.contract_schema import BlueprintContract, load_blueprint_contract  # noqa: E402
 from scripts.lib.blueprint.init_repo_contract import expand_optional_module_path  # noqa: E402
@@ -220,7 +224,15 @@ def _is_consumer_owned_workload(relative_path: str) -> bool:
 
     These files are consumer-defined workload manifests. Blueprint manages the directory
     structure and kustomization.yaml but does not own individual manifests.
-    Bridge guard until issue #206 delivers a general contract schema mechanism.
+
+    DEPRECATED bridge guard. The canonical app-ownership source is now
+    ``apps/descriptor.yaml`` (see ``_descriptor_referenced_paths``); the
+    ``consumer-app-descriptor`` classifier branch in ``_classify_entries`` runs
+    ahead of this path-prefix check. This guard remains for two blueprint minor release cycles
+    (or until descriptor adoption becomes mandatory, whichever is later) so existing
+    generated consumers without ``apps/descriptor.yaml`` keep their prune protection during
+    migration. Removal trigger: ``after: consumer-app-descriptor-adoption``
+    (see AGENTS.backlog.md).
     """
     if not relative_path.startswith(_CONSUMER_WORKLOAD_APPS_PREFIX):
         return False
@@ -261,6 +273,134 @@ def _is_kustomization_referenced(repo_root: Path, relative_path: str) -> bool:
             if isinstance(patch_path, str) and patch_path == basename:
                 return True
     return False
+
+
+def _descriptor_referenced_paths(repo_root: Path) -> set[str]:
+    """Return resolved manifest paths declared by `apps/descriptor.yaml` (S4 / FR-009).
+
+    Empty set when the descriptor is absent or fails to load. Loading errors are
+    silenced here because the descriptor's own validator surface (S2) reports
+    them through `infra-validate`; the upgrade prune guard only needs the
+    "best-known protected paths" view.
+    """
+    descriptor_path = repo_root / APP_DESCRIPTOR_RELATIVE_PATH
+    if not descriptor_path.is_file():
+        return set()
+    descriptor, _errors = load_app_descriptor(descriptor_path)
+    if descriptor is None:
+        return set()
+    paths: set[str] = set()
+    for component in descriptor.components:
+        paths.add(component.deployment_manifest)
+        paths.add(component.service_manifest)
+    return paths
+
+
+_SUGGESTED_DESCRIPTOR_ARTIFACT_RELATIVE_PATH = (
+    "artifacts/blueprint/app_descriptor.suggested.yaml"
+)
+_SUGGESTED_DESCRIPTOR_HEADER = (
+    "# SUGGESTED apps/descriptor.yaml — derived from existing kustomization resources.\n"
+    "# Review and edit before adopting: rename app/component IDs, set owner.team,\n"
+    "# add health checks, split components per app as needed. Once you're satisfied,\n"
+    "# move this file to apps/descriptor.yaml at your repo root.\n"
+)
+
+
+def _suggested_descriptor_components_from_kustomization(
+    repo_root: Path,
+) -> dict[str, dict[str, str]]:
+    """Group apps/kustomization.yaml resource basenames into descriptor components.
+
+    Resources matching ``{component-id}-deployment.yaml`` and
+    ``{component-id}-service.yaml`` are grouped by component-id; other entries
+    are skipped silently because they don't carry the component-naming
+    convention the suggested descriptor uses.
+    """
+    apps_dir = repo_root / "infra/gitops/platform/base/apps"
+    kustomization = apps_dir / "kustomization.yaml"
+    if not kustomization.is_file():
+        return {}
+    try:
+        data = yaml.safe_load(kustomization.read_text(encoding="utf-8"))
+    except Exception as exc:
+        print(
+            f"warning: generate_suggested_descriptor: failed to parse {kustomization}: {exc}",
+            file=sys.stderr,
+        )
+        return {}
+    if not isinstance(data, dict):
+        return {}
+    components: dict[str, dict[str, str]] = {}
+    for resource in data.get("resources", []) or []:
+        if not isinstance(resource, str):
+            continue
+        # Skip entries that traverse out of the apps base — they cannot produce a safe
+        # descriptor reference and would only confuse the suggested artifact's reviewer.
+        if ".." in resource.split("/"):
+            continue
+        # Component id is the manifest BASENAME minus the conventional kind suffix; the
+        # full sub-path (kustomization may use subdirectories like `workloads/...`) is
+        # preserved in the manifest reference so the suggested descriptor stays valid.
+        basename = Path(resource).name
+        if basename.endswith("-deployment.yaml"):
+            comp_id = basename[: -len("-deployment.yaml")]
+            components.setdefault(comp_id, {})["deployment"] = (
+                f"infra/gitops/platform/base/apps/{resource}"
+            )
+        elif basename.endswith("-service.yaml"):
+            comp_id = basename[: -len("-service.yaml")]
+            components.setdefault(comp_id, {})["service"] = (
+                f"infra/gitops/platform/base/apps/{resource}"
+            )
+    # Only keep components with at least a deployment manifest — service-only
+    # entries are uncommon for app workloads and would need manual review anyway.
+    return {cid: refs for cid, refs in components.items() if "deployment" in refs}
+
+
+def generate_suggested_descriptor(repo_root: Path) -> str | None:
+    """Render a suggested ``apps/descriptor.yaml`` body for an existing consumer (FR-011).
+
+    Returns ``None`` when no useful suggestion can be made (e.g. the apps base
+    has no kustomization or no recognizable workload resources). The returned
+    text includes review-guidance comments and ``TODO`` markers on values that
+    typically need human editing (AC-008).
+    """
+    components = _suggested_descriptor_components_from_kustomization(repo_root)
+    if not components:
+        return None
+    lines: list[str] = [_SUGGESTED_DESCRIPTOR_HEADER.rstrip("\n"), "schemaVersion: v1", "apps:"]
+    for comp_id, refs in sorted(components.items()):
+        lines.append(f"  - id: {comp_id}")
+        lines.append("    owner:")
+        lines.append("      team: TODO  # set the owning team")
+        lines.append("    components:")
+        lines.append(f"      - id: {comp_id}")
+        lines.append("        kind: Deployment")
+        lines.append("        manifests:")
+        if "deployment" in refs:
+            lines.append(f"          deployment: {refs['deployment']}")
+        if "service" in refs:
+            lines.append(f"          service: {refs['service']}")
+    return "\n".join(lines) + "\n"
+
+
+def write_suggested_descriptor_artifact(repo_root: Path) -> Path | None:
+    """Write the suggested descriptor to ``artifacts/blueprint/`` when appropriate (FR-011).
+
+    Skips silently when the consumer already has ``apps/descriptor.yaml`` (no
+    advisory needed) or when no suggestion can be generated. Never writes to
+    the consumer working tree under ``apps/`` (FR-011 explicitly forbids that).
+    """
+    if (repo_root / APP_DESCRIPTOR_RELATIVE_PATH).is_file():
+        return None
+    suggested = generate_suggested_descriptor(repo_root)
+    if suggested is None:
+        return None
+    artifact_path = repo_root / _SUGGESTED_DESCRIPTOR_ARTIFACT_RELATIVE_PATH
+    artifact_path.parent.mkdir(parents=True, exist_ok=True)
+    artifact_path.write_text(suggested, encoding="utf-8")
+    return artifact_path
 
 
 def _read_text(path: Path) -> str:
@@ -567,6 +707,9 @@ def _classify_entries(
     allow_delete: bool,
 ) -> list[UpgradeEntry]:
     entries: list[UpgradeEntry] = []
+    # Descriptor-listed manifests get a more specific prune-protection class than the
+    # kustomization-ref fallback (FR-009 / AC-006). Computed once per classify call.
+    descriptor_paths = _descriptor_referenced_paths(repo_root)
 
     def resolve_baseline_content(path: str) -> str | None:
         if baseline_ref is None:
@@ -636,6 +779,26 @@ def _classify_entries(
                     action=ACTION_SKIP,
                     operation=OPERATION_NONE,
                     reason=REASON_PLATFORM_PROTECTED_SKIP,
+                    source_exists=source_exists,
+                    target_exists=target_exists,
+                    baseline_ref=baseline_ref,
+                    baseline_content_available=False,
+                )
+            )
+            continue
+
+        # Prune-protection ordering (most specific first): descriptor > consumer workload >
+        # kustomization-ref. The descriptor is the canonical app-ownership source going
+        # forward (FR-009); the path-prefix guard (FR-010) and kustomization-ref scan
+        # remain as deprecated fallbacks during the two-minor-release migration window.
+        if not source_exists and target_exists and relative_path in descriptor_paths:
+            entries.append(
+                UpgradeEntry(
+                    path=relative_path,
+                    ownership="consumer-app-descriptor",
+                    action=ACTION_SKIP,
+                    operation=OPERATION_NONE,
+                    reason="path is declared in apps/descriptor.yaml; excluded from blueprint prune",
                     source_exists=source_exists,
                     target_exists=target_exists,
                     baseline_ref=baseline_ref,
@@ -1797,6 +1960,9 @@ def _summarize_apply(
     counts["consumer_kustomization_ref_count"] = (
         sum(1 for e in entries if e.ownership == "consumer-kustomization-ref") if entries else 0
     )
+    counts["consumer_app_descriptor_count"] = (
+        sum(1 for e in entries if e.ownership == "consumer-app-descriptor") if entries else 0
+    )
     return counts
 
 
@@ -2127,6 +2293,12 @@ def main() -> int:
         }
         if deduplication_log:
             apply_payload["deduplication_log"] = deduplication_log
+
+        suggested_descriptor_path = write_suggested_descriptor_artifact(repo_root)
+        if suggested_descriptor_path is not None:
+            apply_payload["suggested_app_descriptor_artifact"] = (
+                suggested_descriptor_path.relative_to(repo_root).as_posix()
+            )
 
         markers = find_merge_markers(repo_root) if args.apply else []
         if args.apply and markers:

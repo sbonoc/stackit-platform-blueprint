@@ -198,6 +198,59 @@ declarations that appear more than once (same block type, name, and label).
   5. Run `terraform validate` to confirm the file is syntactically valid.
   6. Commit the resolution before rerunning the bootstrap or plan targets.
 
+## `make infra-validate` fails with `apps/descriptor.yaml: app[...]` error
+
+`apps/descriptor.yaml` is the consumer-owned app metadata source (see
+[App Onboarding Contract — App Descriptor](app_onboarding.md#app-descriptor-appsdescriptoryaml)).
+`infra-validate` parses it and reports any schema, path-safety, or
+kustomization-membership failure with deterministic messages naming the descriptor app,
+component, and offending value.
+
+Common error patterns and fixes:
+
+- `apps/descriptor.yaml: apps[N].id must be a DNS-style label ...`
+  - The app or component `id` contains forbidden characters (`/`, `..`, uppercase, shell
+    metacharacters). Rename to lowercase alphanumerics + hyphens (e.g. `marketplace-api`).
+
+- `apps/descriptor.yaml: app[<id>].component[<id>].manifests.<kind> must live under infra/gitops/platform/base/apps/`
+  - Manifest path escapes the apps base directory or uses an absolute path. Use a relative
+    path under `infra/gitops/platform/base/apps/`, or omit the explicit ref to use the
+    convention default (`{component-id}-{deployment,service}.yaml`).
+
+- `apps/descriptor.yaml: app[<id>].component[<id>]: <kind> manifest missing: <path>`
+  - The resolved manifest file does not exist on disk. Create the missing manifest under
+    `infra/gitops/platform/base/apps/` or correct the explicit ref.
+
+- `apps/descriptor.yaml: app[<id>].component[<id>]: <kind> manifest filename not listed in infra/gitops/platform/base/apps/kustomization.yaml`
+  - The manifest exists but isn't listed in the apps `kustomization.yaml`. Add the
+    basename to the `resources:` list and rerun `make infra-validate`.
+
+## `make blueprint-upgrade-consumer` writes `artifacts/blueprint/app_descriptor.suggested.yaml`
+
+When an existing consumer lacks `apps/descriptor.yaml`, the upgrade flow emits a
+starting-point descriptor at `artifacts/blueprint/app_descriptor.suggested.yaml` derived
+from the current `infra/gitops/platform/base/apps/kustomization.yaml`. The upgrade does
+**not** write `apps/descriptor.yaml` automatically — adoption is explicit.
+
+To adopt:
+
+1. Open `artifacts/blueprint/app_descriptor.suggested.yaml`.
+2. Set `owner.team: TODO` to your real team handle for each app.
+3. Adjust app/component `id` values if the suggested IDs (derived from manifest filenames)
+   don't match your intended naming.
+4. Add optional `service.port`, `health.*` fields per component if you want the catalog
+   manifest renderer to surface them.
+5. Move the file to `apps/descriptor.yaml` at your repo root:
+   ```bash
+   mv artifacts/blueprint/app_descriptor.suggested.yaml apps/descriptor.yaml
+   ```
+6. Run `make infra-validate` to confirm the descriptor is valid and all manifests resolve.
+
+After adoption, `make blueprint-upgrade-consumer` stops emitting the suggested artifact
+on subsequent runs. Apps declared in `apps/descriptor.yaml` are protected from prune as
+`consumer-app-descriptor` (see `summary.consumer_app_descriptor_count` in
+`artifacts/blueprint/upgrade_apply.json`).
+
 ## Pull requests are not auto-requesting reviewers
 - Generated repositories seed `.github/CODEOWNERS` as a starter file with commented examples only.
 - Replace the example owners with your real team handles before relying on GitHub review assignment.

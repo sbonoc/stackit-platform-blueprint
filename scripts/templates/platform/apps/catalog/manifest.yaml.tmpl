@@ -1,3 +1,9 @@
+# DEPRECATED generated compatibility artifact.
+# apps/descriptor.yaml is the canonical consumer-owned app metadata source.
+# This file is regenerated from apps/descriptor.yaml on every `make apps-bootstrap`.
+# It will be removed after the two minor release migration window
+# (trigger: after: consumer-app-descriptor-adoption — see AGENTS.backlog.md).
+# Do not edit by hand — edit apps/descriptor.yaml instead.
 schemaVersion: v1
 appVersionContract:
   appVersionEnv: APP_VERSION
@@ -15,36 +21,14 @@ frameworkPinnedVersions:
   pinia: ${PINIA_VERSION}
 deliveryTopology:
   workloads:
-    - workloadId: backend-api
-      layer: backend
-      kind: Deployment
-      namespace: apps
-      serviceName: backend-api
-      servicePort: 8080
-      image: ${APP_RUNTIME_BACKEND_IMAGE}
-    - workloadId: touchpoints-web
-      layer: touchpoints
-      kind: Deployment
-      namespace: apps
-      serviceName: touchpoints-web
-      servicePort: 80
-      image: ${APP_RUNTIME_TOUCHPOINTS_IMAGE}
+${DELIVERY_WORKLOADS_BLOCK}
 runtimeDeliveryContract:
   gitopsEnabled: ${APP_RUNTIME_GITOPS_ENABLED}
   mode: k8s-manifests
   environmentPathPattern: infra/gitops/platform/environments/<env>
   manifestsRoot: infra/gitops/platform/base/apps
   gitopsWorkloads:
-    - id: backend-api
-      deploymentManifest: infra/gitops/platform/base/apps/backend-api-deployment.yaml
-      serviceManifest: infra/gitops/platform/base/apps/backend-api-service.yaml
-      imageEnvVar: APP_RUNTIME_BACKEND_IMAGE
-      defaultImage: ${APP_RUNTIME_BACKEND_IMAGE}
-    - id: touchpoints-web
-      deploymentManifest: infra/gitops/platform/base/apps/touchpoints-web-deployment.yaml
-      serviceManifest: infra/gitops/platform/base/apps/touchpoints-web-service.yaml
-      imageEnvVar: APP_RUNTIME_TOUCHPOINTS_IMAGE
-      defaultImage: ${APP_RUNTIME_TOUCHPOINTS_IMAGE}
+${GITOPS_WORKLOADS_BLOCK}
 observabilityRuntimeContract:
   enabled: ${OBSERVABILITY_ENABLED}
   otel:

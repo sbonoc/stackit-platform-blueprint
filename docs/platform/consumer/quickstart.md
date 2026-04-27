@@ -157,9 +157,15 @@ Keep these surfaces synchronized after changes:
 
 ### App Runtime GitOps Scaffold (Enabled by Default)
 `APP_RUNTIME_GITOPS_ENABLED` defaults to `true` and keeps the baseline app runtime workload path active under:
+- `apps/descriptor.yaml` — canonical consumer-owned app/component topology (see [App Onboarding Contract](app_onboarding.md#app-descriptor-appsdescriptoryaml))
 - `infra/gitops/platform/base/apps/kustomization.yaml`
 - `infra/gitops/platform/base/apps/backend-api-*.yaml`
 - `infra/gitops/platform/base/apps/touchpoints-web-*.yaml`
+
+`apps/descriptor.yaml` is seeded by `make blueprint-init-repo` with the two baseline apps
+(`backend-api`, `touchpoints-web`). Edit it to add components, change owner team, or set
+explicit manifest references. `infra-validate` parses the descriptor and verifies every
+component manifest exists and is listed in the apps `kustomization.yaml`.
 
 Validate scaffold and runtime-path wiring:
 ```bash
@@ -172,13 +178,23 @@ In execute mode (`DRY_RUN=false`), runtime smoke guardrails also assert live wor
 - `make apps-smoke` performs the live check directly.
 - The `infra-smoke` wrapper records the same assertion and emits explicit empty-runtime diagnostics in `artifacts/infra/smoke_diagnostics.json`.
 
-When app catalog scaffold is also enabled, `apps/catalog/manifest.yaml` includes:
-- `deliveryTopology` for baseline workload/service mapping
+When app catalog scaffold is also enabled, `apps/catalog/manifest.yaml` is regenerated
+from `apps/descriptor.yaml` on every `make apps-bootstrap` and includes:
+- `deliveryTopology` for descriptor-derived workload/service mapping
 - `runtimeDeliveryContract` with canonical GitOps manifest paths and default image contract values
+
+> `apps/catalog/manifest.yaml` is a **deprecated generated compatibility artifact** for two
+> blueprint minor release cycles. Do not edit it by hand — edit `apps/descriptor.yaml`
+> instead. Removal is tracked in `AGENTS.backlog.md` under
+> `after: consumer-app-descriptor-adoption`.
 
 To replace scaffold defaults with real runtime images and wiring:
 1. Publish images (`make apps-publish-ghcr`).
-2. Update `apps/catalog/manifest.yaml` (`runtimeDeliveryContract.gitopsWorkloads[*].defaultImage`) and mirror those image refs in `infra/gitops/platform/base/apps/*deployment.yaml`.
+2. Update the per-component `--component-image` values passed by `apps-bootstrap` (or set
+   the corresponding `APP_RUNTIME_BACKEND_IMAGE` / `APP_RUNTIME_TOUCHPOINTS_IMAGE`
+   environment variables) and re-run `make apps-bootstrap` to regenerate
+   `apps/catalog/manifest.yaml`. Mirror those image refs in
+   `infra/gitops/platform/base/apps/*deployment.yaml`.
 3. Add app env/secret references in deployment manifests (`env`, `envFrom`, secret/configMap refs) using your runtime credential contract outputs.
 4. Reconcile runtime (`make infra-deploy` or Argo sync of `platform-<env>-core`).
 

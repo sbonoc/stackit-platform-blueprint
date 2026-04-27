@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from scripts.lib.blueprint.app_descriptor import validate_app_descriptor
 from scripts.lib.blueprint.contract_schema import BlueprintContract
 from scripts.lib.blueprint.contract_validators.shared import ContractValidationHelpers
 
@@ -130,6 +131,10 @@ def validate_app_runtime_gitops_contract(
                 "spec.app_runtime_gitops_contract.smoke_guardrails.minimum_workloads_default must match "
                 f"spec.toggles.{minimum_workloads_env}.default"
             )
+
+    # Descriptor validation runs regardless of whether the optional gitops contract is
+    # toggled on — apps/descriptor.yaml is consumer-owned and validated whenever present.
+    errors.extend(validate_app_descriptor(repo_root, helpers.kustomization_resources))
 
     if not helpers.is_optional_contract_enabled(spec_raw, contract_section):
         return errors
