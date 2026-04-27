@@ -44,7 +44,11 @@ No local development environment is required beyond `make` and `gh` CLI access.
    never as empty sections or invented assumptions.
 3. `SPEC_READY: false` and `SPEC_PRODUCT_READY: false` are the correct initial
    values; do not set either to `true` in this phase.
-4. Do not self-approve any sign-off field.
+4. Do not self-approve any sign-off field. A sign-off may only be recorded when
+   the user has stated the canonical trigger phrase (see `§ Sign-off Policy` in
+   `AGENTS.md`) in a PR comment or directly in the conversation. Plain-language
+   approval ("looks good", "LGTM") does not qualify. When in doubt, keep the
+   field as `pending` and ask the user to use the exact phrase.
 5. Run `make quality-sdd-check` before committing. Fix all violations before
    opening the Draft PR.
 6. The Draft PR opened in Step 2 is the single PR for the entire work item.

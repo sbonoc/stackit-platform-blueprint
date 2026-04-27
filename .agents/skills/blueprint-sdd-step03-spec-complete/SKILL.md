@@ -46,7 +46,12 @@ review, PR comments, or direct conversation.
 1. MUST NOT set `SPEC_READY: true` while any required sign-off field is not approved.
 2. MUST NOT leave the agent draft block-quote notice in the ADR after signing off.
 3. All commits go to the existing Draft PR branch — no new PR is opened.
-4. Do not self-approve any sign-off field — only record what stakeholders explicitly stated.
+4. Do not self-approve any sign-off field. A sign-off may only be recorded when
+   the canonical trigger phrase (see `§ Sign-off Policy` in `AGENTS.md`) appears
+   verbatim in a PR comment or in a direct conversation message from the user.
+   Plain-language variants ("approved", "looks good", "LGTM", "fine", silence,
+   absence of objection) do NOT qualify. When in doubt, keep the field as
+   `pending` and prompt the user to use the exact phrase.
 5. If the ADR recommended option is technically unsound, the Architect overrides
    it and documents the override rationale. Never silently accept a wrong recommendation.
 6. Run `make quality-sdd-check` before committing — it must pass.

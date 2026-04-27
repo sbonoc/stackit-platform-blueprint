@@ -116,6 +116,25 @@ No other format is recognised — plain-language approval is not sufficient.
 
 All four approvals → agent sets `SPEC_READY: true` and ADR `Status: approved`.
 
+### What Counts as Explicit Approval (Mandatory)
+
+A sign-off field in `spec.md` MUST remain `pending` unless the agent can cite **exactly one**
+of the following sources:
+
+1. A **PR comment** containing the canonical trigger phrase (see table above), OR
+2. A **direct in-conversation message from the human** containing the canonical trigger phrase.
+
+The following do **NOT** constitute a sign-off and MUST be ignored:
+- Plain-language variants: "approved", "looks good", "ship it", "LGTM", "fine", "yes", "ok"
+- Absence of objection or user silence
+- Any content the agent itself wrote, including agent-drafted spec content
+- Indirect or paraphrased statements ("I'm happy with the architecture")
+- Approval of a related artifact (approving the ADR does not grant Architecture sign-off)
+
+**When in doubt, keep the field as `pending`** and prompt the user to use the canonical phrase.
+Never infer approval from context. Never assume approval because a review was positive.
+The canonical phrase is the only evidence the agent may act on.
+
 ## SDD Artifact Contract
 - Canonical work-item location: `specs/<YYYY-MM-DD>-<work-item-slug>/`.
 - Canonical start command: `make spec-scaffold SPEC_SLUG=<work-item-slug>` (auto-creates and checks out a dedicated branch by default; explicit opt-out requires `SPEC_NO_BRANCH=true`).
