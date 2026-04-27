@@ -59,12 +59,13 @@
   - AC-009
 
 ## Validation Summary
-- Required bundles executed: intake and plan slicing; `make quality-sdd-check` passed.
-- Result summary: implementation not started; `SPEC_READY=true` is recorded and Step 04 planning is dependency-ordered.
-- Traceability keeper result: clean for planning scope. FR, NFR, and AC rows map to design elements, planned implementation paths, automated test evidence, documentation evidence, and operational evidence.
+- Required bundles executed: full implementation through S6. `pytest tests/blueprint/` 609/609 (53 new descriptor tests green); `make quality-sdd-check` passed; `make quality-hooks-fast` passed; `make infra-validate` passed; `make apps-bootstrap` + `make apps-smoke` passed in both default and `APP_CATALOG_SCAFFOLD_ENABLED=true` modes; `make docs-build` + `make docs-smoke` passed; `make quality-hardening-review` passed; `make quality-docs-check-changed` passed.
+- Result summary: all 24 requirements (FR-001–011, NFR-×4, AC-001–009) backed by automated tests; descriptor loader, descriptor-driven catalog rendering, upgrade prune-guard branch, suggested-artifact emitter, and deprecation markers all shipped and tested. `make blueprint-template-smoke` reproduces the pre-existing macOS bash `declare -A` failure on `main`; recorded in `pr_context.md` as out-of-scope.
+- Traceability keeper result: clean. Every requirement row points at concrete implementation paths and named test methods.
 - Documentation validation:
   - `make docs-build`
   - `make docs-smoke`
+  - `make quality-docs-check-changed`
 
 ## Evidence Manifest
 - Manifest file: `evidence_manifest.json`

@@ -5,20 +5,20 @@
 - If required inputs are missing, add `BLOCKED_MISSING_INPUTS` in `spec.md` and keep the gate closed.
 
 ## Constitution Gates (Pre-Implementation)
-- Simplicity gate:
+- Simplicity gate: keep implementation minimal and explicit; avoid speculative abstractions.
   - Keep initial implementation scope minimal and explicit.
   - Avoid speculative future-proof abstractions.
-- Anti-abstraction gate:
+- Anti-abstraction gate: prefer direct framework primitives over wrapper layers; keep model representations singular.
   - Prefer direct framework primitives over wrapper layers unless justified.
   - Keep model representations singular unless boundary separation is required.
-- Integration-first testing gate:
+- Integration-first testing gate: contract/boundary tests precede implementation; realistic environment coverage for integration points.
   - Define contract and boundary tests before implementation details.
   - Ensure realistic environment coverage for integration points.
-- Positive-path filter/transform test gate:
+- Positive-path filter/transform test gate: not applicable — this work item changes app metadata, validation, and rendering paths; no filter or payload-transform logic is introduced.
   - For any filter or payload-transform logic, at least one unit test MUST assert that a matching fixture value returns a record.
   - Positive-path assertions MUST verify relevant output fields remain intact after filtering/transform.
   - Empty-result-only assertions MUST NOT satisfy this gate.
-- Finding-to-test translation gate:
+- Finding-to-test translation gate: each reproducible finding becomes a failing test first, then the fix turns it green.
   - Any reproducible pre-PR finding from smoke/`curl`/deterministic manual checks MUST be translated into a failing automated test first.
   - The implementation fix MUST turn that test green in the same work item.
   - If no deterministic automation path exists, publish artifacts MUST record the exception rationale, owner, and follow-up trigger.
