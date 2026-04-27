@@ -2,7 +2,7 @@
   "manifest_version": 1,
   "work_item": "2026-04-26-issue-206-contract-consumer-owned-workloads",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "2026-04-27T11:00:00Z",
+  "generated_at_utc": "2026-04-27T13:00:00Z",
   "files": [
     {
       "path": "specs/2026-04-26-issue-206-contract-consumer-owned-workloads/architecture.md",
@@ -12,9 +12,9 @@
     },
     {
       "path": "specs/2026-04-26-issue-206-contract-consumer-owned-workloads/spec.md",
-      "sha256": "93f84bebfc239e71f461b960e2bda568a35c9405c15cbb6115f9ff900ac7d932",
+      "sha256": "64cd7fa2935b4f7679dc5628819a3721aae2ba91ef179957bc418d17dad7e3d7",
       "role": "spec-artifact",
-      "description": "Full specification; SPEC_READY=true; all four sign-offs approved (sbonoc, PR #211)"
+      "description": "Full specification; SPEC_READY=true; all four sign-offs approved (sbonoc, PR #211); FR-002/AC-001/AC-005 corrected from source_only to consumer_seeded (CI fix 2026-04-27)"
     },
     {
       "path": "specs/2026-04-26-issue-206-contract-consumer-owned-workloads/plan.md",
@@ -26,13 +26,13 @@
       "path": "specs/2026-04-26-issue-206-contract-consumer-owned-workloads/tasks.md",
       "sha256": "5e0448dddace4a83f7eea1f18d545d70f0b577bb00b1322b7e033d72451ac919",
       "role": "spec-artifact",
-      "description": "All gate checks complete; all IMPL tasks complete (T-001–T-004, T-101–T-106); quality bundles all pass"
+      "description": "All gate checks complete; all IMPL tasks complete (T-001–T-004, T-101–T-108); quality bundles all pass"
     },
     {
       "path": "specs/2026-04-26-issue-206-contract-consumer-owned-workloads/traceability.md",
-      "sha256": "56fc72c86a9e0178f2d36b8cd36fac978e342e06225d94f09d04a79b8dd68a5f",
+      "sha256": "11a70ca24b2c7fbc00544749cc19947621da88c30366a91b2dd3c99e69bb9f71",
       "role": "spec-artifact",
-      "description": "Requirement-to-delivery mapping; Validation Summary updated with implementation evidence; follow-up triage outcomes recorded (step07)"
+      "description": "Requirement-to-delivery mapping; Validation Summary updated with implementation evidence; follow-up triage outcomes recorded (step07); FR-002/AC-001/AC-005/NFR-OPS-001 corrected to consumer_seeded (CI fix 2026-04-27)"
     },
     {
       "path": "specs/2026-04-26-issue-206-contract-consumer-owned-workloads/graph.json",
