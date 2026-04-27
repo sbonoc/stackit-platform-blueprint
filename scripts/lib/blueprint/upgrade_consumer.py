@@ -211,6 +211,22 @@ def _entry_looks_like_dir(path_value: str) -> bool:
     return Path(normalized).suffix == ""
 
 
+_CONSUMER_WORKLOAD_APPS_PREFIX = "infra/gitops/platform/base/apps/"
+
+
+def _is_consumer_owned_workload(relative_path: str) -> bool:
+    """Return True for non-kustomization YAML files under infra/gitops/platform/base/apps/.
+
+    These files are consumer-defined workload manifests. Blueprint manages the directory
+    structure and kustomization.yaml but does not own individual manifests.
+    Bridge guard until issue #206 delivers a general contract schema mechanism.
+    """
+    if not relative_path.startswith(_CONSUMER_WORKLOAD_APPS_PREFIX):
+        return False
+    filename = relative_path[len(_CONSUMER_WORKLOAD_APPS_PREFIX):]
+    return filename != "kustomization.yaml" and filename.endswith(".yaml") and "/" not in filename
+
+
 def _read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8", errors="surrogateescape")
 
@@ -584,6 +600,22 @@ def _classify_entries(
                     action=ACTION_SKIP,
                     operation=OPERATION_NONE,
                     reason=REASON_PLATFORM_PROTECTED_SKIP,
+                    source_exists=source_exists,
+                    target_exists=target_exists,
+                    baseline_ref=baseline_ref,
+                    baseline_content_available=False,
+                )
+            )
+            continue
+
+        if not source_exists and _is_consumer_owned_workload(relative_path):
+            entries.append(
+                UpgradeEntry(
+                    path=relative_path,
+                    ownership="consumer-owned-workload",
+                    action=ACTION_SKIP,
+                    operation=OPERATION_NONE,
+                    reason="path is a consumer workload manifest in base/apps/; excluded from blueprint prune (see issue #203 for general unification)",
                     source_exists=source_exists,
                     target_exists=target_exists,
                     baseline_ref=baseline_ref,
