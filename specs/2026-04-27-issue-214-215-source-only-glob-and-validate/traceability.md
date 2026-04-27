@@ -4,9 +4,9 @@
 
 | Requirement ID | Control IDs | Design Element | Implementation Path(s) | Test Evidence | Documentation Evidence | Operational Evidence |
 |---|---|---|---|---|---|---|
-| FR-001 | SDD-C-005, SDD-C-008, SDD-C-023, SDD-C-024 | Extend `all_coverage_roots` with prune-glob matches | `scripts/lib/blueprint/upgrade_consumer.py::audit_source_tree_coverage` | `test_audit_source_tree_coverage_prune_glob_coverage` | `docs/blueprint/consumer/contract_reference.md` | stderr WARNING preserved for genuinely uncovered files |
-| FR-002 | SDD-C-005, SDD-C-008 | Change `exists()` to `is_file()` in `_validate_absent_files` | `scripts/bin/blueprint/validate_contract.py::_validate_absent_files` | `test_validate_absent_files_directory_entry`, `test_validate_absent_files_exact_file_present` | `docs/blueprint/consumer/contract_reference.md` | `make infra-validate` output change |
-| FR-003 | SDD-C-005, SDD-C-008, SDD-C-023 | Glob-pattern entry support in `_validate_absent_files` | `scripts/bin/blueprint/validate_contract.py::_validate_absent_files` | `test_validate_absent_files_glob_matching`, `test_validate_absent_files_glob_no_match` | `docs/blueprint/consumer/contract_reference.md` | `make infra-validate` output change |
+| FR-001 | SDD-C-005, SDD-C-008, SDD-C-023, SDD-C-024 | Extend `all_coverage_roots` with prune-glob matches | `scripts/lib/blueprint/upgrade_consumer.py::audit_source_tree_coverage` | `test_audit_source_tree_coverage_prune_glob_coverage` | `docs/blueprint/architecture/execution_model.md` | stderr WARNING preserved for genuinely uncovered files |
+| FR-002 | SDD-C-005, SDD-C-008 | Change `exists()` to `is_file()` in `_validate_absent_files` | `scripts/bin/blueprint/validate_contract.py::_validate_absent_files` | `test_validate_absent_files_directory_entry`, `test_validate_absent_files_exact_file_present` | `docs/blueprint/architecture/execution_model.md` | `make infra-validate` output change |
+| FR-003 | SDD-C-005, SDD-C-008, SDD-C-023 | Glob-pattern entry support in `_validate_absent_files` | `scripts/bin/blueprint/validate_contract.py::_validate_absent_files` | `test_validate_absent_files_glob_matching`, `test_validate_absent_files_glob_no_match` | `docs/blueprint/architecture/execution_model.md` | `make infra-validate` output change |
 | FR-004 | SDD-C-005, SDD-C-008, SDD-C-024 | Regression fixture covering directory, glob, and prune-glob cases | `tests/` (new test functions) | All 5 regression tests pass green | ADR | pytest run evidence in pr_context.md |
 | NFR-SEC-001 | SDD-C-009 | Glob expansion bounded to repo root via `fnmatch` on pre-enumerated file list | `scripts/bin/blueprint/validate_contract.py`, `scripts/lib/blueprint/upgrade_consumer.py` | `test_validate_absent_files_glob_no_match` (no external calls) | Architecture section | none |
 | NFR-OBS-001 | SDD-C-010 | stderr WARNING preserved for uncovered files | `scripts/lib/blueprint/upgrade_consumer.py::audit_source_tree_coverage` | Existing audit tests | none | stderr output |
@@ -27,8 +27,8 @@
   - AC-001, AC-002, AC-003, AC-004, AC-005
 
 ## Validation Summary
-- Required bundles executed: (to be populated at Verify phase)
-- Result summary: (to be populated at Verify phase)
+- Required bundles executed: pytest unit suite (10/10 pass), `make quality-sdd-check`, `make quality-docs-check-changed`, bootstrap template mirror sync (all skipped: already synchronized)
+- Result summary: all 10 regression and unit tests green; SDD asset compliance verified; documentation updated in `execution_model.md`
 - Documentation validation:
   - `make docs-build`
   - `make docs-smoke`
