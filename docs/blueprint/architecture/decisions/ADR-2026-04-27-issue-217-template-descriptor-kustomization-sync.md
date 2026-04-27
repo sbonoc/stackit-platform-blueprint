@@ -1,6 +1,7 @@
 # ADR: Issue #217 — Descriptor-Kustomization Cross-Check in Template Smoke Assertions
 
 - **Status**: approved
+- **ADR technical decision sign-off**: approved
 - **Date**: 2026-04-27
 - **Issues**: #217
 - **Work item**: `specs/2026-04-27-issue-217-template-descriptor-kustomization-sync/`
