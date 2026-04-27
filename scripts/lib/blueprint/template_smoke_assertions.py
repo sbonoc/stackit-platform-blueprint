@@ -61,11 +61,12 @@ def _assert_descriptor_kustomization_agreement(
                 service_filename = f"{component_id}-service.yaml"
 
             for filename in (deployment_filename, service_filename):
-                assert filename in names_set, (
-                    f"apps/descriptor.yaml: component '{component_id}' manifest '{filename}' "
-                    f"is not listed in kustomization.yaml. "
-                    f"Descriptor: {descriptor_path}. Kustomization: {kustomization_path}."
-                )
+                if filename not in names_set:
+                    raise AssertionError(
+                        f"apps/descriptor.yaml: component '{component_id}' manifest '{filename}' "
+                        f"is not listed in kustomization.yaml. "
+                        f"Descriptor: {descriptor_path}. Kustomization: {kustomization_path}."
+                    )
 
 
 def normalize_bool(value: str) -> bool:
@@ -210,7 +211,7 @@ def main() -> int:
 
         # Issue #217: cross-check descriptor manifest filenames against kustomization resources
         descriptor_path = repo_root / "apps" / "descriptor.yaml"
-        if descriptor_path.exists():
+        if descriptor_path.is_file():
             descriptor = yaml.safe_load(descriptor_path.read_text(encoding="utf-8")) or {}
             _assert_descriptor_kustomization_agreement(
                 app_manifest_names=app_manifest_names,

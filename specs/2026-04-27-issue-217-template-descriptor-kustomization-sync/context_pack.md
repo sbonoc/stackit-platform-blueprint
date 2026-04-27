@@ -3,9 +3,9 @@
 ## Context Snapshot
 - Work item: 2026-04-27-issue-217-template-descriptor-kustomization-sync
 - Track: blueprint
-- SPEC_READY: false
+- SPEC_READY: true
 - ADR path: docs/blueprint/architecture/decisions/ADR-2026-04-27-issue-217-template-descriptor-kustomization-sync.md
-- ADR status: proposed
+- ADR status: approved
 - Source issue: #217 — blueprint-template-smoke fails because v1.8.0 seed templates have descriptor-kustomization mismatch
 - Related shipped context: #213 (consumer-app-descriptor — introduced validate_app_descriptor and kustomization membership check in infra-validate); fix-issue-206 (reclassified seed manifests from source_only to consumer_seeded, added consumer init manifest templates)
 
