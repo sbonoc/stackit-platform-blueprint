@@ -108,6 +108,18 @@ Reported by consumer sbonoc/dhe-marketplace from their v1.7.0 upgrade experience
       trigger: on-scope: blueprint
       rationale: surfaces naturally when blueprint maintainers next improve seed workload content (health probes, security contexts, resource limits) or when a consumer reports silently missing a seed update after upgrade
 
+#### v1.8.0 upgrade findings (dhe-marketplace v1.7.0 → v1.8.0)
+
+Reported by consumer sbonoc/dhe-marketplace from their v1.7.0→v1.8.0 upgrade experience. All three are genuine v1.8.0 defects fixed in v1.8.1. Consumer workarounds in place until 2026-07-27.
+
+- [x] P1 (Consumer upgrade experience): Issues #214 + #215 (bug) — **Done**: `specs/2026-04-27-issue-214-215-source-only-glob-and-validate/`, PR #226. Group A: `audit_source_tree_coverage` now counts prune-glob matched files as covered via `fnmatch`; `_validate_absent_files` uses `is_file()` instead of `exists()` and supports glob/directory-prefix entries.
+- [ ] proposal(issue-214-215): add validator warning for `**` in source_only glob entries (fnmatch limitation) — https://github.com/sbonoc/stackit-platform-blueprint/issues/229
+- [x] P1 (Consumer upgrade experience): Issue #216 (bug) — **Done**: `specs/2026-04-27-issue-216-upgrade-source-only-filter/`, PR #227. Group B: Stage 3 `_filter_source_only` Phase 1+2 restored — drops source entries whose paths exist on disk in consumer; carries forward consumer-added entries.
+- [x] P1 (Consumer upgrade experience): Issue #217 (bug) — **Done**: `specs/2026-04-27-issue-217-template-descriptor-kustomization-sync/`, PR #228. Group C: `template_smoke_assertions.py` cross-checks descriptor manifest filenames against kustomization resources; drift caught at template-edit time with named AssertionError.
+- [ ] (parked) proposal(issue-217): extract `_assert_descriptor_kustomization_agreement` as shared module helper for future smoke scenario reuse
+      trigger: on-scope: blueprint
+      rationale: no additional callers exist today; surfaces when the next blueprint smoke scenario is developed
+
 ---
 
 - [ ] Add an automated bundled-skill contract verifier to enforce parity across `.agents/skills/**`, consumer-template fallbacks, install make targets, and docs references.

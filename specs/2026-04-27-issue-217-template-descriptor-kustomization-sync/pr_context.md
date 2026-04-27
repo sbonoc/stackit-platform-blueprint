@@ -26,4 +26,4 @@
 - Rollback strategy: revert the assertion block in `template_smoke_assertions.py`; infra-validate continues to catch membership errors in consumer repos with no behavioral regression
 
 ## Deferred Proposals
-- Proposal 1 (not implemented): extract a shared `assert_descriptor_kustomization_agreement` helper into a separate module for reuse in other smoke scenarios — deferred because no other caller exists; inline is sufficient for now.
+- Proposal 1 (not implemented): extract a shared `assert_descriptor_kustomization_agreement` helper into a separate module for reuse in other smoke scenarios — deferred because no other caller exists; inline is sufficient for now. Parked — trigger: on-scope: blueprint — surfaces when the next blueprint smoke scenario is developed.
