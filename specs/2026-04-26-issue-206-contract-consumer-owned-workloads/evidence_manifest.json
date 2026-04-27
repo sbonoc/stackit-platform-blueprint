@@ -30,9 +30,9 @@
     },
     {
       "path": "specs/2026-04-26-issue-206-contract-consumer-owned-workloads/traceability.md",
-      "sha256": "0a8bbf0c66aa5318b439a2a73700750fcd3296e7a451e028b54ff83702065e93",
+      "sha256": "5169ba8804c5fcbbed8e300365b2d4ee4a976808a10814ea5eb7f58d0ad57a4a",
       "role": "spec-artifact",
-      "description": "Requirement-to-delivery mapping; validation evidence pending implementation"
+      "description": "Requirement-to-delivery mapping; Follow-up 3 added (source-only seed change advisory); validation evidence pending implementation"
     },
     {
       "path": "specs/2026-04-26-issue-206-contract-consumer-owned-workloads/graph.json",
