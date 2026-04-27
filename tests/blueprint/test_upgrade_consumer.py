@@ -2116,6 +2116,32 @@ class TestAuditSourceTreeCoverage(unittest.TestCase):
         )
         self.assertEqual(uncovered, [])
 
+    def test_audit_source_tree_coverage_prune_glob_coverage(self) -> None:
+        """FR-001 / AC-001: files matching a prune-glob must NOT appear in uncovered list.
+
+        Reproduces #214: source_artifact_prune_globs_on_init files are counted as uncovered
+        because audit_source_tree_coverage has no prune_glob_patterns parameter.
+        """
+        source = self._make_source(
+            {
+                "docs/blueprint/architecture/decisions/ADR-001-test.md": "# ADR-001\n",
+                "docs/blueprint/architecture/decisions/ADR-002-other.md": "# ADR-002\n",
+            }
+        )
+        uncovered = upgrade_consumer.audit_source_tree_coverage(
+            source_repo=source,
+            required_files=set(),
+            source_only=set(),
+            init_managed=set(),
+            conditional=set(),
+            managed_roots=set(),
+            prune_glob_patterns=frozenset(
+                ["docs/blueprint/architecture/decisions/ADR-*.md"]
+            ),
+        )
+        self.assertNotIn("docs/blueprint/architecture/decisions/ADR-001-test.md", uncovered)
+        self.assertNotIn("docs/blueprint/architecture/decisions/ADR-002-other.md", uncovered)
+
 
 class TestValidatePlanUncoveredSourceFiles(unittest.TestCase):
     """FR-011/AC-007: validate_plan_uncovered_source_files enforces count == 0."""

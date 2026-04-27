@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 from dataclasses import dataclass
+import fnmatch
 import hashlib
 import json
 import os
@@ -533,6 +534,7 @@ def audit_source_tree_coverage(
     conditional: set[str],
     managed_roots: set[str],
     feature_gated: frozenset[str] = frozenset(),
+    prune_glob_patterns: frozenset[str] = frozenset(),
 ) -> list[str]:
     """Return sorted list of source files not covered by any contract category.
 
@@ -541,6 +543,12 @@ def audit_source_tree_coverage(
     All coverage categories support both exact-file and directory-prefix matching
     so that directory-scoped entries (e.g. ``infra/cloud/stackit/terraform/modules/dns``)
     cover all files nested under them.
+
+    Files whose relative paths match any pattern in ``prune_glob_patterns`` are treated
+    as covered and excluded from the uncovered list.  This corresponds to
+    ``repository.consumer_init.source_artifact_prune_globs_on_init`` in the contract,
+    which marks source-only artifacts (e.g. SDD/ADR history) that are intentionally
+    pruned during the initial blueprint → consumer transition.  (FR-001 / AC-001)
 
     When source_repo is a git repository, only git-tracked files are audited
     (untracked build artifacts and local state are excluded automatically).
@@ -569,6 +577,16 @@ def audit_source_tree_coverage(
             if any(part in _AUDIT_SKIP_DIRS for part in path.relative_to(source_repo).parts):
                 continue
             candidate_rels.append(rel)
+
+    # Extend coverage with files matched by prune-glob patterns (FR-001).
+    if prune_glob_patterns:
+        prune_glob_covered = {
+            rel
+            for rel in candidate_rels
+            for pattern in prune_glob_patterns
+            if fnmatch.fnmatch(rel, pattern)
+        }
+        all_coverage_roots = all_coverage_roots | prune_glob_covered
 
     uncovered: list[str] = []
     for rel in candidate_rels:
@@ -2229,6 +2247,11 @@ def main() -> int:
         _plat_owned: set[str] = _platform_owned_roots(contract)
         if source_contract is not None:
             _plat_owned |= _platform_owned_roots(source_contract)
+        _prune_globs = frozenset(contract.repository.consumer_init.source_artifact_prune_globs_on_init)
+        if source_contract is not None:
+            _prune_globs = _prune_globs | frozenset(
+                source_contract.repository.consumer_init.source_artifact_prune_globs_on_init
+            )
         uncovered_source_files = audit_source_tree_coverage(
             source_repo,
             required_files | consumer_seeded,
@@ -2237,6 +2260,7 @@ def main() -> int:
             conditional,
             managed_dir_roots | _plat_owned,
             feature_gated=feature_gated,
+            prune_glob_patterns=_prune_globs,
         )
         uncovered_source_files_count = len(uncovered_source_files)
 
