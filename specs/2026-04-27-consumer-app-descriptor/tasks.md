@@ -21,8 +21,8 @@
 ## Implementation
 - [x] T-001 Add `apps/descriptor.yaml` to `consumer_seeded` in `blueprint/contract.yaml` and bootstrap mirror.
 - [x] T-002 Add `scripts/templates/consumer/init/apps/descriptor.yaml.tmpl` with baseline app/component records.
-- [ ] T-003 Implement descriptor schema, loader, explicit manifest refs, convention defaults, and safe path resolution.
-- [ ] T-004 Wire descriptor validation into app runtime GitOps contract validation.
+- [x] T-003 Implement descriptor schema, loader, explicit manifest refs, convention defaults, and safe path resolution.
+- [x] T-004 Wire descriptor validation into app runtime GitOps contract validation.
 - [ ] T-005 Wire descriptor records into deprecated app catalog compatibility rendering and smoke assertions.
 - [ ] T-006 Emit descriptor ownership evidence in upgrade plan/postcheck diagnostics.
 - [ ] T-007 Generate `artifacts/blueprint/app_descriptor.suggested.yaml` for existing consumers without the descriptor.
@@ -32,10 +32,10 @@
 - [ ] T-011 Update consumer-facing docs/diagrams when contracts/behavior change.
 
 ## Test Automation
-- [ ] T-101 Add unit tests for descriptor schema, app/component ID validation, explicit manifest path validation, and convention default resolution.
+- [x] T-101 Add unit tests for descriptor schema, app/component ID validation, explicit manifest path validation, and convention default resolution.
 - [x] T-102 Add contract tests for `consumer_seeded` template parity and app runtime validation.
 - [ ] T-103 Confirm no filter/payload-transform route is touched; record not-applicable evidence in `pr_context.md`.
-- [ ] T-104 Translate deterministic descriptor validation findings into failing tests first, then make them green.
+- [x] T-104 Translate deterministic descriptor validation findings into failing tests first, then make them green.
 - [ ] T-105 Add renderer tests proving deprecated `apps/catalog/manifest.yaml` compatibility output follows descriptor records.
 - [ ] T-106 Add upgrade plan/postcheck tests for `consumer-app-descriptor` ownership diagnostics.
 - [ ] T-107 Add suggested descriptor artifact tests for existing generated consumers without `apps/descriptor.yaml`.

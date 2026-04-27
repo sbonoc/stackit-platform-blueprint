@@ -6,23 +6,23 @@
 |---|---|---|---|---|---|---|
 | FR-001 | SDD-C-005, SDD-C-015 | Descriptor ownership class | `blueprint/contract.yaml`; `scripts/templates/blueprint/bootstrap/blueprint/contract.yaml` | contract parity tests | generated contract metadata | `infra-validate` |
 | FR-002 | SDD-C-005, SDD-C-015 | Consumer init seed | `scripts/templates/consumer/init/apps/descriptor.yaml.tmpl` | init template tests | `docs/platform/consumer/quickstart.md` | `blueprint-init-repo` dry-run evidence |
-| FR-003 | SDD-C-004, SDD-C-009 | Descriptor schema | `scripts/lib/blueprint/*app_descriptor*.py`; schema file | descriptor unit tests | `docs/platform/consumer/app_onboarding.md` | validation stderr |
-| FR-004 | SDD-C-004, SDD-C-009 | Explicit refs and convention defaults | descriptor loader | path resolution tests | app onboarding docs | validation stderr |
-| FR-005 | SDD-C-007, SDD-C-015 | Multi-component topology | descriptor loader; app runtime validator | multi-component tests | app onboarding docs | validation stderr |
-| FR-006 | SDD-C-009, SDD-C-010, SDD-C-012 | App runtime validation | `scripts/lib/blueprint/contract_validators/app_runtime_gitops.py` | validation tests | troubleshooting docs | `infra-validate` |
+| FR-003 | SDD-C-004, SDD-C-009 | Descriptor schema | `scripts/lib/blueprint/app_descriptor.py` (`load_app_descriptor`) | `tests/blueprint/test_app_descriptor_loader.py::AppDescriptorLoaderSchemaTests` | `docs/platform/consumer/app_onboarding.md` | validation stderr |
+| FR-004 | SDD-C-004, SDD-C-009 | Explicit refs and convention defaults | `scripts/lib/blueprint/app_descriptor.py` (`_resolve_manifest_path`) | `tests/blueprint/test_app_descriptor_loader.py::AppDescriptorConventionAndMultiComponentTests` | app onboarding docs | validation stderr |
+| FR-005 | SDD-C-007, SDD-C-015 | Multi-component topology | `scripts/lib/blueprint/app_descriptor.py` (`_collect_app_components`) | `test_app_with_multiple_components_loads_each` | app onboarding docs | validation stderr |
+| FR-006 | SDD-C-009, SDD-C-010, SDD-C-012 | App runtime validation | `scripts/lib/blueprint/contract_validators/app_runtime_gitops.py` (calls `validate_app_descriptor`) | `tests/blueprint/test_app_descriptor_loader.py::AppDescriptorPathExistenceAndKustomizationTests`, `AppDescriptorAppRuntimeGitopsIntegrationTests` | troubleshooting docs | `infra-validate` |
 | FR-007 | SDD-C-007, SDD-C-015 | Compatibility catalog renderer input | `scripts/lib/platform/apps/catalog_scaffold_renderer.py`; `scripts/bin/platform/apps/bootstrap.sh` | renderer tests | quickstart docs | `apps-bootstrap`; `apps-smoke` |
 | FR-008 | SDD-C-011, SDD-C-012 | App catalog deprecation | docs; renderer diagnostics | deprecation tests/docs checks | quickstart/troubleshooting docs | apps smoke artifact |
 | FR-009 | SDD-C-010, SDD-C-012 | Upgrade diagnostics | `scripts/lib/blueprint/upgrade_consumer.py`; postcheck/report modules | upgrade tests | execution model docs | upgrade plan/postcheck artifacts |
 | FR-010 | SDD-C-007, SDD-C-012 | Bridge guard deprecation | `scripts/lib/blueprint/upgrade_consumer.py`; `AGENTS.backlog.md` | prune guard regression tests | ADR | upgrade apply artifact |
 | FR-011 | SDD-C-010, SDD-C-012 | Suggested descriptor artifact | upgrade preflight/planner modules | suggested artifact tests | troubleshooting docs | `artifacts/blueprint/app_descriptor.suggested.yaml` |
-| NFR-SEC-001 | SDD-C-009 | Safe YAML and path constraints | descriptor loader | malicious-name tests | app onboarding docs | validation failure artifact |
-| NFR-OBS-001 | SDD-C-010 | Deterministic diagnostics | validators and upgrade reporters | stderr/artifact tests | troubleshooting docs | diagnostics output |
+| NFR-SEC-001 | SDD-C-009 | Safe YAML and path constraints | `scripts/lib/blueprint/app_descriptor.py` (`yaml.safe_load`, `_validate_manifest_path`) | `tests/blueprint/test_app_descriptor_loader.py::AppDescriptorUnsafeIdAndPathTests` | app onboarding docs | validation failure artifact |
+| NFR-OBS-001 | SDD-C-010 | Deterministic diagnostics | `scripts/lib/blueprint/app_descriptor.py` (`verify_resolved_manifests_exist`, `verify_kustomization_membership`) | `test_missing_resolved_deployment_manifest_reports_named_error`, `test_missing_kustomization_membership_reports_named_error` | troubleshooting docs | diagnostics output |
 | NFR-REL-001 | SDD-C-012 | Two-minor-release fallback | validators and upgrade flow | absent-descriptor tests | quickstart upgrade notes | upgrade warning evidence |
 | NFR-OPS-001 | SDD-C-010, SDD-C-011 | Runbook guidance | docs | docs validation | quickstart/app_onboarding/troubleshooting | operator runbook evidence |
 | AC-001 | SDD-C-012 | Consumer-seeded descriptor | contract/template paths | contract parity tests | generated contract metadata | `infra-validate` |
-| AC-002 | SDD-C-009 | Unsafe ID/path rejection | descriptor loader | invalid-name/path unit test | troubleshooting docs | validation stderr |
-| AC-003 | SDD-C-012 | Missing resolved manifest rejection | app runtime validator | missing-manifest test | troubleshooting docs | validation stderr |
-| AC-004 | SDD-C-012 | Kustomization drift rejection | app runtime validator | missing-resource test | troubleshooting docs | validation stderr |
+| AC-002 | SDD-C-009 | Unsafe ID/path rejection | `scripts/lib/blueprint/app_descriptor.py` (`_SAFE_ID_RE`, `_validate_manifest_path`) | `tests/blueprint/test_app_descriptor_loader.py::AppDescriptorUnsafeIdAndPathTests` | troubleshooting docs | validation stderr |
+| AC-003 | SDD-C-012 | Missing resolved manifest rejection | `scripts/lib/blueprint/app_descriptor.py` (`verify_resolved_manifests_exist`) | `test_missing_resolved_deployment_manifest_reports_named_error` | troubleshooting docs | validation stderr |
+| AC-004 | SDD-C-012 | Kustomization drift rejection | `scripts/lib/blueprint/app_descriptor.py` (`verify_kustomization_membership`) | `test_missing_kustomization_membership_reports_named_error` | troubleshooting docs | validation stderr |
 | AC-005 | SDD-C-015 | Descriptor-driven compatibility catalog render | catalog renderer | renderer test | quickstart docs | `apps-bootstrap` evidence |
 | AC-006 | SDD-C-010 | Descriptor ownership diagnostics | upgrade planner/postcheck | upgrade artifact tests | execution model docs | upgrade plan/postcheck JSON |
 | AC-007 | SDD-C-012 | Baseline smoke preservation | template smoke and app smoke | smoke tests | app onboarding docs | `blueprint-template-smoke`; `apps-smoke` |
