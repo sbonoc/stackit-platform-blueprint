@@ -8,26 +8,30 @@
 - [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
 
 ## Implementation
-- [ ] T-001 Add `apps.yaml` to `consumer_seeded` in `blueprint/contract.yaml` and bootstrap mirror.
-- [ ] T-002 Add `scripts/templates/consumer/init/apps.yaml.tmpl` with baseline app records.
-- [ ] T-003 Implement descriptor schema, loader, and safe path derivation.
+- [ ] T-001 Add `apps/descriptor.yaml` to `consumer_seeded` in `blueprint/contract.yaml` and bootstrap mirror.
+- [ ] T-002 Add `scripts/templates/consumer/init/apps/descriptor.yaml.tmpl` with baseline app/component records.
+- [ ] T-003 Implement descriptor schema, loader, explicit manifest refs, convention defaults, and safe path resolution.
 - [ ] T-004 Wire descriptor validation into app runtime GitOps contract validation.
-- [ ] T-005 Wire descriptor records into app catalog rendering and smoke assertions.
+- [ ] T-005 Wire descriptor records into deprecated app catalog compatibility rendering and smoke assertions.
 - [ ] T-006 Emit descriptor ownership evidence in upgrade plan/postcheck diagnostics.
-- [ ] T-007 Retire `_is_consumer_owned_workload()` bridge dependency when descriptor coverage is active.
-- [ ] T-008 Update blueprint docs/diagrams.
-- [ ] T-009 Update consumer-facing docs/diagrams when contracts/behavior change.
+- [ ] T-007 Generate `artifacts/blueprint/app_descriptor.suggested.yaml` for existing consumers without the descriptor.
+- [ ] T-008 Mark `_is_consumer_owned_workload()` as deprecated bridge behavior with two-minor-release removal tracking.
+- [ ] T-009 Mark `apps/catalog/manifest.yaml` as deprecated generated compatibility output with two-minor-release removal tracking.
+- [ ] T-010 Update blueprint docs/diagrams.
+- [ ] T-011 Update consumer-facing docs/diagrams when contracts/behavior change.
 
 ## Test Automation
-- [ ] T-101 Add unit tests for descriptor schema and path validation.
+- [ ] T-101 Add unit tests for descriptor schema, app/component ID validation, explicit manifest path validation, and convention default resolution.
 - [ ] T-102 Add contract tests for `consumer_seeded` template parity and app runtime validation.
 - [ ] T-103 Confirm no filter/payload-transform route is touched; record not-applicable evidence in `pr_context.md`.
 - [ ] T-104 Translate deterministic descriptor validation findings into failing tests first, then make them green.
-- [ ] T-105 Add renderer tests proving `apps/catalog/manifest.yaml` follows descriptor records.
+- [ ] T-105 Add renderer tests proving deprecated `apps/catalog/manifest.yaml` compatibility output follows descriptor records.
 - [ ] T-106 Add upgrade plan/postcheck tests for `consumer-app-descriptor` ownership diagnostics.
+- [ ] T-107 Add suggested descriptor artifact tests for existing generated consumers without `apps/descriptor.yaml`.
+- [ ] T-108 Add deprecation tracking tests or docs checks for app catalog compatibility output and `_is_consumer_owned_workload()`.
 
 ## Validation and Release Readiness
-- [ ] T-201 Run `make quality-sdd-check`.
+- [x] T-201 Run `make quality-sdd-check`.
 - [ ] T-202 Run `make quality-hooks-run`.
 - [ ] T-203 Run `make infra-validate`.
 - [ ] T-204 Run `make apps-bootstrap`.
