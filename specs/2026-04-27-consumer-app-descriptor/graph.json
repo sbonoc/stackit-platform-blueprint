@@ -1,0 +1,158 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-04-27-consumer-app-descriptor",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "Add apps.yaml as consumer-seeded contract surface"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "Seed baseline apps.yaml template"
+    },
+    {
+      "id": "FR-003",
+      "type": "requirement",
+      "summary": "Define descriptor schema and manifest derivation"
+    },
+    {
+      "id": "FR-004",
+      "type": "requirement",
+      "summary": "Validate derived manifests and kustomization resources"
+    },
+    {
+      "id": "FR-005",
+      "type": "requirement",
+      "summary": "Render app catalog from descriptor records"
+    },
+    {
+      "id": "FR-006",
+      "type": "requirement",
+      "summary": "Report descriptor ownership in upgrade diagnostics"
+    },
+    {
+      "id": "FR-007",
+      "type": "requirement",
+      "summary": "Retire base/apps bridge dependency after descriptor coverage"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "Safe YAML parsing and path containment"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "Deterministic descriptor diagnostics"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "One-cycle backward-compatible fallback"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "Document operator workflows"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "Consumer-seeded descriptor exists"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "Unsafe app names fail validation"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "Missing derived manifest fails validation"
+    },
+    {
+      "id": "AC-004",
+      "type": "acceptance",
+      "summary": "Kustomization drift fails validation"
+    },
+    {
+      "id": "AC-005",
+      "type": "acceptance",
+      "summary": "Catalog render follows descriptor"
+    },
+    {
+      "id": "AC-006",
+      "type": "acceptance",
+      "summary": "Upgrade diagnostics report descriptor ownership"
+    },
+    {
+      "id": "AC-007",
+      "type": "acceptance",
+      "summary": "Baseline smoke remains green"
+    }
+  ],
+  "edges": [
+    {
+      "from": "FR-001",
+      "to": "AC-001",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-002",
+      "to": "AC-002",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-003",
+      "to": "AC-002",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-003",
+      "to": "AC-003",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-004",
+      "to": "AC-004",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-005",
+      "to": "AC-005",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-006",
+      "to": "AC-006",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-007",
+      "to": "AC-006",
+      "relation": "validated_by"
+    },
+    {
+      "from": "NFR-SEC-001",
+      "to": "AC-001",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-OBS-001",
+      "to": "AC-004",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-REL-001",
+      "to": "AC-007",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-OPS-001",
+      "to": "AC-006",
+      "relation": "constrains"
+    }
+  ]
+}
