@@ -28,8 +28,8 @@
 - [x] T-007 Generate `artifacts/blueprint/app_descriptor.suggested.yaml` for existing consumers without the descriptor.
 - [x] T-008 Mark `_is_consumer_owned_workload()` as deprecated bridge behavior with two-minor-release removal tracking.
 - [x] T-009 Mark `apps/catalog/manifest.yaml` as deprecated generated compatibility output with two-minor-release removal tracking.
-- [ ] T-010 Update blueprint docs/diagrams.
-- [ ] T-011 Update consumer-facing docs/diagrams when contracts/behavior change.
+- [x] T-010 Update blueprint docs/diagrams.
+- [x] T-011 Update consumer-facing docs/diagrams when contracts/behavior change.
 
 ## Test Automation
 - [x] T-101 Add unit tests for descriptor schema, app/component ID validation, explicit manifest path validation, and convention default resolution.
@@ -50,7 +50,7 @@
 - [ ] T-206 Run `make blueprint-template-smoke`.
 - [ ] T-207 Attach evidence to traceability document.
 - [ ] T-208 Confirm no stale TODOs/dead code/drift.
-- [ ] T-209 Run documentation validation (`make docs-build` and `make docs-smoke`).
+- [x] T-209 Run documentation validation (`make docs-build` and `make docs-smoke`).
 - [ ] T-210 Run hardening review validation bundle (`make quality-hardening-review`).
 
 ## Publish
