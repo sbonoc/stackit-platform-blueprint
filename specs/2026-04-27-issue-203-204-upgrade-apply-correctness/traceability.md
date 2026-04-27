@@ -12,22 +12,23 @@
 | REQ-006 (conflict artifact for non-identical duplicates) | ADR § Decision #204 | apply loop: emit conflict artifact when non-identical (T-010) | T-105 | — | conflict artifact file |
 | NFR-SEC-001 (yaml.safe_load only) | architecture.md § Non-Functional | `_is_kustomization_referenced`: `yaml.safe_load` (T-003) | T-101, T-102 (no subprocess in exercised code path) | — | — |
 | NFR-OBS-001 (dedup log in apply artifact) | architecture.md § Non-Functional | apply loop: `deduplication_log` array in artifact (T-012) | T-013 | — | apply artifact JSON |
-| NFR-REL-001 (malformed kustomization.yaml → False + warning) | architecture.md § Reliability | `_is_kustomization_referenced`: try/except → False + stderr (T-003) | T-101 (malformed fixture sub-case, AC-006) | — | stderr log line |
+| NFR-REL-001 (malformed kustomization.yaml → False + warning) | architecture.md § Reliability | `_is_kustomization_referenced`: try/except → False + stderr (T-003) | `test_is_kustomization_referenced_malformed` (TEST-004) | — | stderr log line |
 | NFR-OPS-001 (apply artifact counters) | architecture.md § Non-Functional | apply artifact JSON: `consumer_kustomization_ref_count`, `tf_dedup_count` (T-011, T-012) | T-013 | — | apply artifact JSON |
 | AC-001 (patches ref → skip) | ADR § Decision #203 | `_is_kustomization_referenced` + `_classify_entries` (T-003, T-004) | T-102, T-104 | — | — |
 | AC-002 (resources ref → skip) | ADR § Decision #203 | `_is_kustomization_referenced` + `_classify_entries` (T-003, T-004) | T-101, T-104 | — | — |
 | AC-003 (no ref → delete classification unchanged) | ADR § Consequences | `_classify_entries`: fall-through — no code change | T-106 | — | — |
 | AC-004 (byte-identical dedup → merged-deduped) | ADR § Decision #204 | `_tf_deduplicate_blocks` + apply loop (T-009, T-010) | T-103, T-105 | — | — |
 | AC-005 (non-identical → conflict artifact) | ADR § Decision #204 | apply loop: conflict artifact path (T-010) | T-105 | — | conflict artifact |
-| AC-006 (malformed kustomization.yaml → False + warning) | ADR § Decision #203; NFR-REL-001 | `_is_kustomization_referenced`: try/except (T-003) | T-101 (malformed fixture sub-case) | — | stderr |
+| AC-006 (malformed kustomization.yaml → False + warning) | ADR § Decision #203; NFR-REL-001 | `_is_kustomization_referenced`: try/except (T-003) | `test_is_kustomization_referenced_malformed` (TEST-004) | — | stderr |
 
-## Evidence Paths (to be populated at Verify phase)
+## Evidence Paths
 
 | Gate | Evidence path | Status |
 |---|---|---|
-| Pytest unit suite | `pytest tests/blueprint/test_upgrade_consumer.py` output | pending |
-| quality-hooks-fast | `make quality-hooks-fast` output | pending |
-| infra-validate | `make infra-validate` output | pending |
-| blueprint-template-smoke | `make blueprint-template-smoke` output | pending |
-| docs-build / docs-smoke | `make docs-build && make docs-smoke` output | pending |
-| quality-hardening-review | `make quality-hardening-review` output | pending |
+| Pytest unit suite | `pytest tests/blueprint/test_upgrade_consumer.py` | **passed** — 83/83 (10 new tests green) |
+| quality-hooks-fast | `make quality-hooks-fast` | **passed** — SDD, PR-ready, and infra contract checks clean |
+| infra-validate | `make infra-validate` | **passed** |
+| blueprint-template-smoke | `make blueprint-template-smoke` | **pre-existing failure** — `declare -A` bash incompatibility in `prune_codex_skills.sh`; reproduced identically on `main`; unrelated to this change |
+| docs-build / docs-smoke | `make docs-build && make docs-smoke` | **passed** |
+| quality-hardening-review | `make quality-hardening-review` | **passed** |
+| quality-sdd-check | `make quality-sdd-check` | **passed** |
