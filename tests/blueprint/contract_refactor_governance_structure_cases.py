@@ -448,6 +448,10 @@ class GovernanceStructureCases(RefactorContractBase):
                 "docs/pnpm-lock.yaml",
                 "docs/package.json",
                 "blueprint/modules",
+                "infra/gitops/platform/base/apps/backend-api-deployment.yaml",
+                "infra/gitops/platform/base/apps/backend-api-service.yaml",
+                "infra/gitops/platform/base/apps/touchpoints-web-deployment.yaml",
+                "infra/gitops/platform/base/apps/touchpoints-web-service.yaml",
             },
         )
         self.assertTrue(

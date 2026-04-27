@@ -156,10 +156,15 @@ class OptionalRuntimeContractValidationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             contract_path = Path(tmpdir) / "contract.yaml"
             content = CONTRACT_PATH.read_text(encoding="utf-8")
-            content = content.replace(
-                "      - apps/catalog/manifest.yaml",
-                "      - apps/catalog/missing-manifest.yaml",
-                1,
+            # Target only app_catalog_scaffold_contract.required_paths_when_enabled;
+            # apps/catalog/manifest.yaml also appears in feature_gated so a plain
+            # str.replace(count=1) would hit the wrong section.
+            content = re.sub(
+                r"(  app_catalog_scaffold_contract:.*?required_paths_when_enabled:\n(?:[ \t]+-[ \t]+[^\n]+\n)*)      - apps/catalog/manifest\.yaml",
+                r"\1      - apps/catalog/missing-manifest.yaml",
+                content,
+                count=1,
+                flags=re.DOTALL,
             )
             contract_path.write_text(content, encoding="utf-8")
             result = self._run_validate_result(
@@ -170,9 +175,8 @@ class OptionalRuntimeContractValidationTests(unittest.TestCase):
                 },
             )
             self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
-            # apps/catalog/manifest.yaml is governed by
-            # app_catalog_scaffold_contract.required_paths_when_enabled, so
-            # validate_contract reports it as a missing path (not missing file).
+            # app_catalog_scaffold_contract.required_paths_when_enabled is validated
+            # with _validate_required_paths, which emits "missing path:" (not "missing file:").
             self.assertIn(
                 "missing path: apps/catalog/missing-manifest.yaml",
                 result.stdout + result.stderr,
@@ -205,10 +209,15 @@ class OptionalRuntimeContractValidationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             contract_path = Path(tmpdir) / "contract.yaml"
             content = CONTRACT_PATH.read_text(encoding="utf-8")
-            content = content.replace(
-                "      - infra/gitops/platform/base/apps/backend-api-deployment.yaml",
-                "      - infra/gitops/platform/base/apps/missing-backend-deployment.yaml",
-                1,
+            # Target only app_runtime_gitops_contract.required_paths_when_enabled.
+            # kustomization.yaml also appears in required_files and elsewhere, so a
+            # plain str.replace(count=1) would hit the wrong section.
+            content = re.sub(
+                r"(  app_runtime_gitops_contract:.*?required_paths_when_enabled:\n(?:[ \t]+-[ \t]+[^\n]+\n)*)      - infra/gitops/platform/base/apps/kustomization\.yaml",
+                r"\1      - infra/gitops/platform/base/apps/missing-kustomization.yaml",
+                content,
+                count=1,
+                flags=re.DOTALL,
             )
             contract_path.write_text(content, encoding="utf-8")
             result = self._run_validate_result(
@@ -219,8 +228,10 @@ class OptionalRuntimeContractValidationTests(unittest.TestCase):
                 },
             )
             self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            # app_runtime_gitops_contract.required_paths_when_enabled uses
+            # _validate_required_paths, which emits "missing path:" (not "missing file:").
             self.assertIn(
-                "missing file: infra/gitops/platform/base/apps/missing-backend-deployment.yaml",
+                "missing path: infra/gitops/platform/base/apps/missing-kustomization.yaml",
                 result.stdout + result.stderr,
             )
 
