@@ -6,8 +6,8 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
-import re
 import sys
+import yaml
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -18,27 +18,9 @@ from scripts.lib.blueprint.contract_schema import load_blueprint_contract  # noq
 
 
 def _extract_kustomization_resources(text: str) -> list[str]:
-    """Extract resource filenames from a kustomization.yaml resources section (stdlib-only).
-
-    Parses the flat `resources:` block found in blueprint-controlled kustomization files.
-    Stops at the next top-level YAML key. Skips comment lines.
-    """
-    resources: list[str] = []
-    in_section = False
-    for line in text.splitlines():
-        stripped = line.strip()
-        if not stripped or stripped.startswith("#"):
-            continue
-        if re.match(r"^resources\s*:", stripped):
-            in_section = True
-            continue
-        if in_section:
-            m = re.match(r"^-\s+(.+)", stripped)
-            if m:
-                resources.append(m.group(1).strip())
-            elif not stripped.startswith("-") and not stripped.startswith("#"):
-                break
-    return resources
+    """Extract resource filenames from a kustomization.yaml resources section."""
+    data = yaml.safe_load(text) or {}
+    return [str(r) for r in data.get("resources", [])]
 
 
 def normalize_bool(value: str) -> bool:

@@ -202,7 +202,7 @@ bootstrap_infra_static_templates() {
   while IFS= read -r _app_manifest; do
     [[ -z "$_app_manifest" ]] && continue
     ensure_infra_template_file "infra/gitops/platform/base/apps/$_app_manifest"
-  done < <(sed -n 's/^[[:space:]]*-[[:space:]]*\([^[:space:]][^[:space:]]*\.yaml\)[[:space:]]*$/\1/p' "$_app_kust_tmpl")
+  done < <(sed -n 's/^[[:space:]]*-[[:space:]]*\([^[:space:]#][^[:space:]#]*\.yaml\).*/\1/p' "$_app_kust_tmpl")
   ensure_infra_template_file "infra/gitops/platform/base/security/kustomization.yaml"
   ensure_infra_template_file "infra/gitops/platform/base/security/runtime-source-store.yaml"
   ensure_infra_template_file "infra/gitops/platform/base/security/runtime-external-secrets-core.yaml"

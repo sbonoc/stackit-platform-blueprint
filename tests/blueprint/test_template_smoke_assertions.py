@@ -58,6 +58,11 @@ class ExtractKustomizationResourcesTests(unittest.TestCase):
         result = _extract_kustomization_resources(text)
         self.assertEqual(result, ["valid.yaml"])
 
+    def test_strips_inline_comments_from_resource_entries(self) -> None:
+        text = "resources:\n  - marketplace-api-deployment.yaml # app workload\n  - marketplace-api-service.yaml # service\n"
+        result = _extract_kustomization_resources(text)
+        self.assertEqual(result, ["marketplace-api-deployment.yaml", "marketplace-api-service.yaml"])
+
     def test_blueprint_template_kustomization_is_parseable(self) -> None:
         kust_path = REPO_ROOT / "scripts/templates/infra/bootstrap/infra/gitops/platform/base/apps/kustomization.yaml"
         text = kust_path.read_text(encoding="utf-8")
