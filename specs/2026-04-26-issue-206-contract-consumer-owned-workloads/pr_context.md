@@ -24,7 +24,7 @@
   - `tests/blueprint/test_optional_runtime_contract_validation.py` — two pre-existing test bugs fixed (wrong section substitution + wrong error message string)
 
 ## Validation Evidence
-- Required commands executed:
+- Required commands executed: 8 commands — all PASS (details below)
   - `make quality-hooks-fast` — PASS (129 infra-contract-test-fast tests)
   - `make quality-sdd-check SPEC_SLUG=2026-04-26-issue-206-contract-consumer-owned-workloads` — PASS
   - `make quality-hardening-review` — PASS
@@ -36,12 +36,12 @@
 - Result summary: All quality gates green; 551 blueprint tests pass; docs build and smoke pass
 
 ## Risk and Rollback
-- Main risks:
+- Main risks: seed file auto-recovery loss; content drift (both accepted tradeoffs — see details below)
   - Consumers who relied on upgrade to re-create the 4 seed files (e.g. after accidental deletion) lose that auto-recovery. Mitigation: `make blueprint-init-repo` still seeds them; manual re-creation is straightforward.
   - Blueprint content improvements to the 4 seed files (health probes, resource limits, etc.) will not propagate automatically to consumers after this ships. This is the accepted tradeoff (see spec.md Informative Notes). Follow-up 3 in traceability.md tracks the `OPERATION_ADVISORY` mechanism needed for long-term advisory.
 - Rollback strategy: Revert the three list modifications in `blueprint/contract.yaml` (and its bootstrap template mirror). No database or data migration. Consumer repos that have already upgraded will have the updated contract; they can re-add the 4 paths to `required_files` and `required_paths_when_enabled` manually if needed (one-time action per consumer).
 
 ## Deferred Proposals
-- Follow-up 1: Option B — `consumer_workload_manifest_paths` schema field for explicit preflight validation of consumer-named manifests. Tracked in backlog.
-- Follow-up 2: Verified by IMPL T-106 — init seeding still works via `ensure_infra_template_file`; no gap.
-- Follow-up 3: Source-only seed change advisory (`OPERATION_ADVISORY`) — tracked in `AGENTS.backlog.md` as `proposal(issue-206): source-only seed change advisory`.
+- Follow-up 1: Option B — `consumer_workload_manifest_paths` schema field for explicit preflight validation of consumer-named manifests. Parked — subsumed by existing `consumer app descriptor (apps.yaml, consumer_seeded)` entry in `AGENTS.backlog.md` (trigger: on-scope: blueprint), which is the broader realisation of Option B. Prerequisites (#206 + #207) now both shipped; consumer app descriptor entry updated accordingly.
+- Follow-up 2: Verify init seeding not broken when removing paths from `required_paths_when_enabled`. Resolved — addressed by IMPL T-106 (`test_seed_manifest_templates_exist_in_infra_bootstrap`); no open action.
+- Follow-up 3: Source-only seed change advisory (`OPERATION_ADVISORY`) — parked in `AGENTS.backlog.md` as `proposal(issue-206): source-only seed change advisory`. Trigger updated at PR #211 close: `after:` trigger (now satisfied) removed; `on-scope: blueprint` retained as ongoing trigger. No open action until blueprint maintainers next improve seed workload content.

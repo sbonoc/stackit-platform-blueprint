@@ -2,7 +2,7 @@
   "manifest_version": 1,
   "work_item": "2026-04-26-issue-206-contract-consumer-owned-workloads",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "2026-04-27T10:00:00Z",
+  "generated_at_utc": "2026-04-27T11:00:00Z",
   "files": [
     {
       "path": "specs/2026-04-26-issue-206-contract-consumer-owned-workloads/architecture.md",
@@ -48,15 +48,15 @@
     },
     {
       "path": "specs/2026-04-26-issue-206-contract-consumer-owned-workloads/pr_context.md",
-      "sha256": "26d26ae0a97e8e4eaac03e965b157de10bd1ed2697cf707a076811a2a721d5fa",
+      "sha256": "1528fb93ca2b749c65e3f27acf366bcd0e55fcbb0b95f2692bf1e093617423fd",
       "role": "spec-artifact",
-      "description": "PR context updated for full spec+implementation deliverable; key reviewer files, validation evidence, risk and rollback"
+      "description": "PR context updated for full spec+implementation deliverable; deferred proposal triage outcomes recorded"
     },
     {
       "path": "specs/2026-04-26-issue-206-contract-consumer-owned-workloads/hardening_review.md",
-      "sha256": "4c569d6d2bccf1167e1042440fae45eb1fb8b88eb3b4639725e46f0816fea7a0",
+      "sha256": "2b3ed23efd7d9251a2a67a7ba991f338c03c7eb9f5f7638de75a1cc4a8d5f77f",
       "role": "spec-artifact",
-      "description": "Hardening review with finding, observability, architecture, proposals sections"
+      "description": "Hardening review with finding, observability, architecture, proposals sections; updated to reflect completed implementation"
     },
     {
       "path": "docs/blueprint/architecture/decisions/ADR-2026-04-26-issue-206-contract-consumer-owned-workloads.md",
