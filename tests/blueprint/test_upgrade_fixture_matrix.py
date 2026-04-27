@@ -27,10 +27,6 @@ APP_RUNTIME_REQUIRED_PATHS = (
 )
 APP_RUNTIME_REQUIRED_FILES = (
     "infra/gitops/platform/base/apps/kustomization.yaml",
-    "infra/gitops/platform/base/apps/backend-api-deployment.yaml",
-    "infra/gitops/platform/base/apps/backend-api-service.yaml",
-    "infra/gitops/platform/base/apps/touchpoints-web-deployment.yaml",
-    "infra/gitops/platform/base/apps/touchpoints-web-service.yaml",
 )
 LOCAL_POST_DEPLOY_REQUIRED_PATHS = (
     "scripts/bin/infra/provision_deploy.sh",

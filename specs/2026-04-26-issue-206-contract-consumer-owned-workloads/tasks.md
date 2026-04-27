@@ -7,19 +7,19 @@
 - [x] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
 - [x] G-005 Confirm `Implementation Stack Profile` section is fully populated
 
-## Implementation (Deferred to Implementing Work Item)
-- IMPL T-001: Remove the 4 seed manifest paths from `required_files` in `blueprint/contract.yaml`
-- IMPL T-002: Add the 4 seed manifest paths to `source_only_paths` in `blueprint/contract.yaml`
-- IMPL T-003: Remove the 4 seed manifest paths from `app_runtime_gitops_contract.required_paths_when_enabled` in `blueprint/contract.yaml`
-- IMPL T-004: Write ADR (drafted at `docs/blueprint/architecture/decisions/ADR-2026-04-26-issue-206-contract-consumer-owned-workloads.md` — update status to approved in implementing PR)
+## Implementation
+- [x] IMPL T-001: Remove the 4 seed manifest paths from `required_files` in `blueprint/contract.yaml`
+- [x] IMPL T-002: Add the 4 seed manifest paths to `source_only_paths` in `blueprint/contract.yaml`
+- [x] IMPL T-003: Remove the 4 seed manifest paths from `app_runtime_gitops_contract.required_paths_when_enabled` in `blueprint/contract.yaml`
+- [x] IMPL T-004: ADR at `docs/blueprint/architecture/decisions/ADR-2026-04-26-issue-206-contract-consumer-owned-workloads.md` — status: approved
 
-## Test Automation (Deferred to Implementing Work Item)
-- IMPL T-101: Add `test_seed_manifest_paths_not_in_required_files` to contract test file
-- IMPL T-102: Add `test_seed_manifest_paths_in_source_only_paths` to contract test file
-- IMPL T-103: Add `test_app_runtime_required_paths_no_hardcoded_manifest_names` to contract test file (positive-path: verifies only directory and kustomization.yaml remain)
-- IMPL T-104: Add upgrade planner test with new fixture at `tests/fixtures/upgrade_consumer_renamed_manifests/` (consumer-renamed manifests: `my-api-deployment.yaml`, `my-api-service.yaml`); assert AC-004 (no OPERATION_DELETE/CREATE for the 4 seed paths) and AC-005 (original seed names classified as source-only/skip)
-- IMPL T-105: Verify `audit_source_tree_coverage` passes with 4 paths moved to source_only (no uncovered-file regression)
-- IMPL T-106: Add fresh-init seeding regression test — run init fixture and assert the 4 seed manifest files are still created in `infra/gitops/platform/base/apps/` via `ensure_infra_template_file`, even though they are no longer in `required_paths_when_enabled`
+## Test Automation
+- [x] IMPL T-101: `test_seed_manifest_paths_not_in_required_files` added to `tests/blueprint/test_upgrade_consumer.py`
+- [x] IMPL T-102: `test_seed_manifest_paths_in_source_only_paths` added to `tests/blueprint/test_upgrade_consumer.py`
+- [x] IMPL T-103: `test_app_runtime_required_paths_no_hardcoded_manifest_names` added to `tests/blueprint/test_upgrade_consumer.py`
+- [x] IMPL T-104: `test_consumer_renamed_manifests_no_delete_or_create_for_seed_paths` (AC-004) and `test_original_seed_names_classified_as_source_only_skip` (AC-005) added to `tests/blueprint/test_upgrade_consumer.py`; `tests/blueprint/test_upgrade_fixture_matrix.py` updated to remove seed paths from `APP_RUNTIME_REQUIRED_FILES`
+- [x] IMPL T-105: `audit_source_tree_coverage` passes — `make quality-hooks-fast` green with 4 paths in `source_only`
+- [x] IMPL T-106: `test_seed_manifest_templates_exist_in_infra_bootstrap` added to `tests/blueprint/test_upgrade_consumer.py` — verifies 4 seed template files still present in `scripts/templates/infra/bootstrap/`
 
 ## Validation and Release Readiness
 - [x] T-201 Run `make quality-hooks-fast`, `make quality-sdd-check`, `make quality-hardening-review`, `make test-unit-all` (all pass for spec artifact set; implementation validation deferred to implementing work item)
@@ -41,4 +41,4 @@
 - [x] A-005 Port-forward operational wrappers (`infra-port-forward-start`, `infra-port-forward-stop`, `infra-port-forward-cleanup`) — no-impact
 
 ## Implementation Status Note
-This is a spec-only deliverable. SPEC_READY=true; all four sign-offs approved (sbonoc, PR #211). Spec publication validation complete (T-201–T-205, P-001–P-003, A-001–A-005). Feature implementation tasks (IMPL T-001–T-004, T-101–T-106) are deferred to the implementing work item that consumes this spec.
+SPEC_READY=true; all four sign-offs approved (sbonoc, PR #211). All implementation tasks complete (IMPL T-001–T-004, T-101–T-106). Validation bundles passed: `make quality-hooks-fast`, `make quality-sdd-check`, `make quality-hardening-review`, `make test-unit-all` all green.

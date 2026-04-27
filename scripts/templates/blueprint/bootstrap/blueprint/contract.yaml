@@ -376,10 +376,6 @@ spec:
       - infra/gitops/platform/base/kustomization.yaml
       - infra/gitops/platform/base/namespaces.yaml
       - infra/gitops/platform/base/apps/kustomization.yaml
-      - infra/gitops/platform/base/apps/backend-api-deployment.yaml
-      - infra/gitops/platform/base/apps/backend-api-service.yaml
-      - infra/gitops/platform/base/apps/touchpoints-web-deployment.yaml
-      - infra/gitops/platform/base/apps/touchpoints-web-service.yaml
       - infra/gitops/platform/base/extensions/kustomization.yaml
       - infra/gitops/platform/base/security/kustomization.yaml
       - infra/gitops/platform/base/security/runtime-source-store.yaml
@@ -537,6 +533,10 @@ spec:
         - docs/pnpm-lock.yaml
         - docs/package.json
         - blueprint/modules
+        - infra/gitops/platform/base/apps/backend-api-deployment.yaml
+        - infra/gitops/platform/base/apps/backend-api-service.yaml
+        - infra/gitops/platform/base/apps/touchpoints-web-deployment.yaml
+        - infra/gitops/platform/base/apps/touchpoints-web-service.yaml
       consumer_seeded:
         - README.md
         - AGENTS.md
@@ -1014,10 +1014,6 @@ spec:
     required_paths_when_enabled:
       - infra/gitops/platform/base/apps
       - infra/gitops/platform/base/apps/kustomization.yaml
-      - infra/gitops/platform/base/apps/backend-api-deployment.yaml
-      - infra/gitops/platform/base/apps/backend-api-service.yaml
-      - infra/gitops/platform/base/apps/touchpoints-web-deployment.yaml
-      - infra/gitops/platform/base/apps/touchpoints-web-service.yaml
     workload_kinds_required_when_enabled:
       - Deployment
       - Service

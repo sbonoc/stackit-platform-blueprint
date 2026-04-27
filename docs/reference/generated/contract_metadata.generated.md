@@ -228,10 +228,6 @@
 ### Required Runtime Paths (When Enabled)
 - `infra/gitops/platform/base/apps`
 - `infra/gitops/platform/base/apps/kustomization.yaml`
-- `infra/gitops/platform/base/apps/backend-api-deployment.yaml`
-- `infra/gitops/platform/base/apps/backend-api-service.yaml`
-- `infra/gitops/platform/base/apps/touchpoints-web-deployment.yaml`
-- `infra/gitops/platform/base/apps/touchpoints-web-service.yaml`
 
 ### Required Workload Kinds (When Enabled)
 - `Deployment`
