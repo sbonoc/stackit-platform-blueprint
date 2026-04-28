@@ -1,0 +1,5 @@
+{
+  "env": {
+    "QUALITY_HOOKS_KEEP_GOING": "true"
+  }
+}
