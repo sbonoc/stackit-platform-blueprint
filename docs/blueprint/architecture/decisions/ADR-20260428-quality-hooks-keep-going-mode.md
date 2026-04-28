@@ -1,7 +1,7 @@
 # ADR: Quality Hooks Inner-Loop Verification Ergonomics — Keep-Going, Path-Gating, Phase-Gating, Dedup, Per-Slice Gate Clarification, and Agent-Agnostic Propagation
 
-- **Status:** proposed
-- **ADR technical decision sign-off:** pending
+- **Status:** approved
+- **ADR technical decision sign-off:** approved
 - **Date:** 2026-04-28
 - **Issues:** (none assigned yet)
 - **Work item:** `specs/2026-04-28-quality-hooks-keep-going-mode/`
