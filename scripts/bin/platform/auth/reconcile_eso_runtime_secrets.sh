@@ -23,7 +23,7 @@ Reconciles the canonical ESO runtime credentials contract:
 Contract knobs:
 - RUNTIME_CREDENTIALS_SOURCE_NAMESPACE (default: security)
 - RUNTIME_CREDENTIALS_SOURCE_SECRET_NAME (default: runtime-credentials-source)
-- RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS (default: empty, format: key=value,key2=value2)
+- RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS (default: empty, format: key=value\nkey2=value2, newline-separated only)
 - RUNTIME_CREDENTIALS_TARGET_NAMESPACE (default: apps)
 - RUNTIME_CREDENTIALS_TARGET_SECRET_NAME (default: runtime-credentials)
 - RUNTIME_CREDENTIALS_TARGET_SECRET_KEYS (default: username,password)
@@ -243,24 +243,53 @@ should_skip_eso_contract_check() {
 }
 
 parse_literal_pairs() {
-  local literals_csv="$1"
+  local literals="$1"
   local pair key value
-  [[ -n "$literals_csv" ]] || return 0
+  [[ -n "$literals" ]] || return 0
 
-  IFS=',' read -r -a raw_pairs <<<"$literals_csv"
-  for pair in "${raw_pairs[@]}"; do
+  # Guard: detect likely old comma-separated format on single-line input.
+  # When comma-split produces >1 element AND any element beyond the first
+  # looks like <identifier>=<non-empty-value>, the input is the deprecated
+  # comma-separated format. Base64-padded values end with "=" but have an
+  # empty value portion, so they are not flagged as false positives.
+  if [[ "$literals" != *$'\n'* ]]; then
+    local -a _csv_parts
+    IFS=',' read -r -a _csv_parts <<< "$literals"
+    if (( ${#_csv_parts[@]} > 1 )); then
+      local _cp _cp_key _cp_val _detected_csv=false
+      for _cp in "${_csv_parts[@]:1}"; do
+        _cp="$(trim_whitespace "$_cp")"
+        _cp_key="${_cp%%=*}"
+        _cp_val="${_cp#*=}"
+        if [[ "$_cp" == *=* && -n "$_cp_val" && "$_cp_key" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
+          _detected_csv=true
+          break
+        fi
+      done
+      if [[ "$_detected_csv" == "true" ]]; then
+        log_warn "parse_literal_pairs: input looks like comma-separated format (no longer supported)"
+        log_warn "parse_literal_pairs: use newline-separated key=value pairs (one per line)"
+        return 1
+      fi
+    fi
+  fi
+
+  while IFS= read -r pair; do
     pair="$(trim_whitespace "$pair")"
     [[ -n "$pair" ]] || continue
     if [[ "$pair" != *=* ]]; then
+      log_warn "parse_literal_pairs: invalid pair (missing '='): $pair"
+      log_warn "parse_literal_pairs: expected format: key=value (one per line)"
       return 1
     fi
     key="$(trim_whitespace "${pair%%=*}")"
     value="${pair#*=}"
     if [[ -z "$key" || -z "$value" ]]; then
+      log_warn "parse_literal_pairs: empty key or value in pair: $pair"
       return 1
     fi
     printf '%s\n' "$key=$value"
-  done
+  done <<< "$literals"
 }
 
 record_reconcile_issue() {
@@ -377,7 +406,7 @@ else
       done <<<"$literal_output"
     fi
   else
-    record_reconcile_issue "invalid RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS format; expected key=value,key2=value2"
+    record_reconcile_issue "invalid RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS format; expected key=value (one per line, newline-separated)"
   fi
 
   if (( ${#source_literals[@]} > 0 )); then

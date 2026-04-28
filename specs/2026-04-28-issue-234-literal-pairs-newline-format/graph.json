@@ -1,0 +1,62 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-04-28-issue-234-literal-pairs-newline-format",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "parse_literal_pairs() MUST accept newline-separated key=value pairs as primary format"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "parse_literal_pairs() MUST emit log_warn on failure so consumers have a visible diagnostic regardless of RUNTIME_CREDENTIALS_REQUIRED"
+    },
+    {
+      "id": "FR-003",
+      "type": "requirement",
+      "summary": "Documentation MUST declare newline-separated key=value pairs as the accepted format; comma-separated is no longer accepted"
+    },
+    {
+      "id": "FR-004",
+      "type": "requirement",
+      "summary": "reconcile_eso_runtime_secrets.sh error message MUST reference newline-separated format only"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "Values MUST NOT be truncated or split at internal commas; full value preserved verbatim"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "record_reconcile_issue MUST emit on parse failure with corrected format description"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "New test passes: newline-separated literal with comma-in-value (data URI) reconciles successfully"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "New test passes: comma-separated input is rejected (non-zero exit + log_warn visible in stderr)"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "Positive-path test asserts full value (including comma) preserved verbatim in rendered secret"
+    }
+  ],
+  "edges": [
+    { "from": "FR-001", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-001", "to": "AC-003", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-002", "relation": "validated_by" },
+    { "from": "FR-002", "to": "NFR-OBS-001", "relation": "implements" },
+    { "from": "FR-003", "to": "AC-003", "relation": "validated_by" },
+    { "from": "FR-004", "to": "NFR-OBS-001", "relation": "implements" },
+    { "from": "NFR-SEC-001", "to": "AC-001", "relation": "constrains" },
+    { "from": "NFR-SEC-001", "to": "AC-003", "relation": "constrains" },
+    { "from": "NFR-OBS-001", "to": "AC-001", "relation": "constrains" }
+  ]
+}

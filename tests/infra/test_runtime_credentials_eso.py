@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import os
 from pathlib import Path
 import shutil
@@ -39,7 +40,7 @@ class RuntimeCredentialsEsoTests(unittest.TestCase):
         env = module_flags_env(profile="local-full")
         env.update(
             {
-                "RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS": "username=dev-user,password=dev-password",
+                "RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS": "username=dev-user\npassword=dev-password",
             }
         )
 
@@ -75,6 +76,73 @@ class RuntimeCredentialsEsoTests(unittest.TestCase):
         rendered_secret = rendered_secret_path.read_text(encoding="utf-8")
         self.assertIn("name: runtime-credentials-source", rendered_secret)
         self.assertIn("namespace: security", rendered_secret)
+        self.assertIn(
+            base64.b64encode(b"dev-password").decode(),
+            rendered_secret,
+            msg="both newline-separated literals must appear in the rendered secret",
+        )
+
+    def test_comma_in_value_literal_reconciles_and_preserves_full_value(self) -> None:
+        """AC-001/AC-003: newline-separated literal with comma-in-value (data URI) must succeed and preserve the full value."""
+        data_uri_value = "data:;base64,bG9jYWwtZGV2LW9pZGMtdG9rLWtleS0zMi1ieXRlcyE="
+        env = module_flags_env(profile="local-full")
+        env.update(
+            {
+                "RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS": f"NUXT_OIDC_TOKEN_KEY={data_uri_value}",
+            }
+        )
+
+        result = run_make("auth-reconcile-eso-runtime-secrets", env)
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+
+        state_path = REPO_ROOT / "artifacts" / "infra" / "runtime_credentials_eso_reconcile.env"
+        self.assertTrue(state_path.exists())
+        state = state_path.read_text(encoding="utf-8")
+        self.assertIn("status=success", state)
+        self.assertIn("source_secret_seed_mode=manifest-rendered", state)
+
+        rendered_secret_path = (
+            REPO_ROOT
+            / "artifacts"
+            / "infra"
+            / "rendered"
+            / "secrets"
+            / "secret-security-runtime-credentials-source.yaml"
+        )
+        self.assertTrue(rendered_secret_path.exists(), msg="dry-run source secret manifest was not rendered")
+        rendered_secret = rendered_secret_path.read_text(encoding="utf-8")
+        self.assertIn("NUXT_OIDC_TOKEN_KEY", rendered_secret)
+        expected_b64 = base64.b64encode(data_uri_value.encode()).decode()
+        self.assertIn(
+            expected_b64,
+            rendered_secret,
+            msg="full comma-containing value must be preserved verbatim and appear base64-encoded in the rendered secret",
+        )
+
+    def test_comma_separated_input_is_rejected_with_log_warn(self) -> None:
+        """AC-002: comma-separated input must be rejected with non-zero exit and a log_warn diagnostic."""
+        env = module_flags_env(profile="local-full")
+        env.update(
+            {
+                "RUNTIME_CREDENTIALS_REQUIRED": "true",
+                "RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS": "username=dev-user,password=dev-password",
+            }
+        )
+
+        result = run_make("auth-reconcile-eso-runtime-secrets", env)
+        self.assertNotEqual(result.returncode, 0, msg="comma-separated input must be rejected (non-zero exit)")
+
+        combined_output = result.stdout + result.stderr
+        self.assertIn(
+            "WARN",
+            combined_output,
+            msg="a log_warn diagnostic must be visible when comma-separated input is rejected",
+        )
+
+        state_path = REPO_ROOT / "artifacts" / "infra" / "runtime_credentials_eso_reconcile.env"
+        self.assertTrue(state_path.exists())
+        state = state_path.read_text(encoding="utf-8")
+        self.assertIn("status=failed-required", state)
 
     def test_required_mode_fails_on_invalid_literal_contract(self) -> None:
         env = module_flags_env(profile="local-full")
@@ -219,7 +287,7 @@ class RuntimeCredentialsEsoTests(unittest.TestCase):
             {
                 "DRY_RUN": "false",
                 "RUNTIME_CREDENTIALS_REQUIRED": "true",
-                "RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS": "username=dev-user,password=dev-password",
+                "RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS": "username=dev-user\npassword=dev-password",
             }
         )
 
