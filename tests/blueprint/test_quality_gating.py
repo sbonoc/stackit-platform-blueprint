@@ -117,6 +117,41 @@ class TestQualityPathsMatchGitFailSafe:
         )
 
 
+class TestQualityChangedPathsCallerFailSafe:
+    """Caller idiom from hooks_fast.sh: _changed_paths="$(...)"; || _changed_paths="" must not exit under set -e.
+
+    Regression test for the CI breakage where _quality_changed_paths returning 1 (on a shallow
+    clone PR checkout where the main-branch ref is absent) caused hooks_fast.sh to exit under
+    set -euo pipefail before reaching quality_paths_match_infra_gate.
+    """
+
+    def test_assignment_or_idiom_survives_git_failure(self) -> None:
+        # Reproduce the hooks_fast.sh pattern under set -e.
+        script = PREAMBLE + (
+            '_changed_paths="$(_quality_changed_paths)" || _changed_paths=""\n'
+            'printf "ok changed_paths='"'"'%s'"'"'\\n" "$_changed_paths"\n'
+        )
+        result = bash(script, {"QUALITY_HOOKS_MAIN_BRANCH": "nonexistent-branch-xyz-99999"})
+        assert result.returncode == 0, (
+            "set -e must not exit when _quality_changed_paths returns 1 and caller uses || idiom. "
+            f"stderr={result.stderr!r}"
+        )
+        assert "ok" in result.stdout
+        assert "changed_paths=''" in result.stdout
+
+    def test_empty_paths_arg_triggers_fail_safe_in_gate(self) -> None:
+        # After the || idiom produces _changed_paths="", the gate must still return 0 (FR-011).
+        script = PREAMBLE + (
+            '_changed_paths="$(_quality_changed_paths)" || _changed_paths=""\n'
+            'quality_paths_match_infra_gate "$_changed_paths"\n'
+        )
+        result = bash(script, {"QUALITY_HOOKS_MAIN_BRANCH": "nonexistent-branch-xyz-99999"})
+        assert result.returncode == 0, (
+            "FR-011: gate must return 0 when called with empty paths from a git failure. "
+            f"stderr={result.stderr!r}"
+        )
+
+
 class TestQualityPathsMatchForceFullOverride:
     """QUALITY_HOOKS_FORCE_FULL=true makes it return 0 regardless of paths."""
 

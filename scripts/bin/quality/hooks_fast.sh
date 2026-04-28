@@ -145,7 +145,10 @@ else
 fi
 
 # Infra checks: path-gated
-_changed_paths="$(_quality_changed_paths)"
+# _quality_changed_paths returns 1 when git is unavailable (e.g. CI shallow clone where the
+# main-branch ref cannot be resolved as a local ref). Use || to prevent set -e from exiting here;
+# quality_paths_match_infra_gate applies the FR-011 fail-safe when called with an empty path list.
+_changed_paths="$(_quality_changed_paths)" || _changed_paths=""
 if [[ "${QUALITY_HOOKS_FORCE_FULL:-}" == "true" ]] || quality_paths_match_infra_gate "$_changed_paths"; then
   if keep_going_active; then
     run_check "infra-validate" -- make -C "$ROOT_DIR" infra-validate
