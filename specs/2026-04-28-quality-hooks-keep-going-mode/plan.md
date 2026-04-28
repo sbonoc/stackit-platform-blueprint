@@ -1,8 +1,33 @@
 # Implementation Plan
 
 ## Implementation Start Gate
-- Implementation tasks MUST remain unchecked until `SPEC_READY=true`.
+- Implementation tasks MUST remain unchecked until `SPEC_READY=true`. ✅ `SPEC_READY: true` as of commit 67ab965.
 - If required inputs are missing, add `BLOCKED_MISSING_INPUTS` in `spec.md` and keep the gate closed.
+
+## Slice Dependency Map and Owners
+
+Owner for all slices: **bonos** (Software Engineer).
+
+| Slice | Name | Blocked by | Unblocks |
+|---|---|---|---|
+| 1 | keep_going.sh helper | — | 3, 4 |
+| 2 | quality_gating.sh helper | — | 6, 7 |
+| 3 | hooks_fast.sh keep-going | 1 | 5, 6, 7, 8 |
+| 4 | hooks_strict.sh keep-going | 1 | 5 |
+| 5 | hooks_run.sh cross-phase | 3, 4 | 10 |
+| 6 | path-gating infra-validate + infra-contract-test-fast | 2, 3 | 10 |
+| 7 | phase-gating quality-spec-pr-ready | 2, 3 | 10 |
+| 8 | dedup quality-docs-lint + quality-test-pyramid | 3 | 10 |
+| 9 | Step 5 skill clarification | — | 10 |
+| 10 | AGENTS.md + cross-skill propagation + env kit | 5, 6, 7, 8, 9 | 11 |
+| 11 | Documentation + ADR finalization | 1–10 | — |
+
+Parallelism notes:
+- Slices 1 and 2 can begin concurrently (both are leaf modules with no shared dependencies).
+- Slice 9 (text-only skill edit) can begin concurrently with Slices 1–8.
+- Slices 3 and 4 can begin concurrently once Slice 1 completes.
+- Slices 6 and 7 can begin concurrently once Slices 2 and 3 complete.
+- Slice 8 can begin concurrently with Slices 6 and 7 once Slice 3 completes.
 
 ## Constitution Gates (Pre-Implementation)
 - Simplicity gate:
