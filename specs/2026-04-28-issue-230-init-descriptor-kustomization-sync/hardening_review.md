@@ -1,16 +1,17 @@
 # Hardening Review
 
 ## Repository-Wide Findings Fixed
-- Finding 1:
+- Finding 1: PR #228 (issue #217) tightened the descriptor↔kustomization cross-check validator and smoke assertion but did not fix the upstream `blueprint-init-repo` seed-pair mismatch — every consumer upgrading from v1.8.0 hit 4 `manifest filename not listed` errors from `infra-validate`, breaking `make blueprint-template-smoke`, `blueprint-upgrade-consumer-postcheck`, `blueprint-upgrade-fresh-env-gate`, and the `quality-ci-generated-consumer-smoke` CI lane. Fixed by adding `infra/gitops/platform/base/apps/kustomization.yaml` to the `consumer_seeded` paired-reseed scope in `blueprint/contract.yaml` (and bootstrap template), with a matching consumer-init template at `scripts/templates/consumer/init/infra/gitops/platform/base/apps/kustomization.yaml.tmpl` (Option A; FR-001/FR-002).
+- Finding 2: pre-existing test breakage in `tests/blueprint/contract_refactor_governance_init_cases.py` — the test fixture template-copy lists never included the `infra/gitops/platform/base/apps/*.tmpl` and `apps/descriptor.yaml.tmpl` consumer-seeded templates that PR #228 added. The same `FileNotFoundError` fired on `backend-api-deployment.yaml.tmpl` before this work item; uncovered while running the slice 2 regression. Fixed by extending both copy lists and creating the matching tmpdir directories.
 
 ## Observability and Diagnostics Changes
-- Metrics/logging/tracing updates:
-- Operational diagnostics updates:
+- Metrics/logging/tracing updates: existing `ChangeSummary.created_path()` / `updated_path()` log lines from `apply_file_update` already cover the new `kustomization.yaml` reseed path under Option A — operators see a deterministic per-file `created:` / `updated:` line for both descriptor and kustomization on every force-init (NFR-OBS-001). No new metrics or trace spans.
+- Operational diagnostics updates: smoke pre-seed hook (`BLUEPRINT_TEMPLATE_SMOKE_PRESEED_CONSUMER_KUSTOMIZATION=true`) emits a `log_info "preseeded v1.8.0-shaped consumer kustomization at <path> (issue #230 reproducer)"` line so CI logs explicitly identify the issue-230 scenario.
 
 ## Architecture and Code Quality Compliance
-- SOLID / Clean Architecture / Clean Code / DDD checks:
-- Test-automation and pyramid checks:
-- Documentation/diagram/CI/skill consistency checks:
+- SOLID / Clean Architecture / Clean Code / DDD checks: single-responsibility respected — fix lives entirely in declarative contract data (`consumer_seeded` list) and a new template file. No new abstractions, no helper layers, no behavioural changes to `seed_consumer_owned_files`. Existing `apply_file_update` / `render_template` primitives reused (anti-abstraction gate held).
+- Test-automation and pyramid checks: 5 new unit tests added (2 in `test_init_repo_descriptor_kustomization_pairing.py` for FR-001/FR-002/NFR-REL-001/AC-002, 3 in `test_contract_init_force_paired_paths_complete.py` for NFR-SEC-001/AC-004). Both new test files classified `unit` in `scripts/lib/quality/test_pyramid_contract.json`. No integration or E2E tests added — smoke pass/fail in CI is the integration evidence (FR-003/FR-004/AC-001/AC-003).
+- Documentation/diagram/CI/skill consistency checks: ADR `Status` flipped `proposed → approved` at Step 03 (commit `ea86b11`); ADR Mermaid `flowchart TD` validated; consumer-facing docs unchanged (paired-reseed is a contract-internal scope detail, not a consumer contract change). T-003 deviation: `docs/blueprint/upgrade/release_notes.md` does not exist as a repo convention — versioning is ADR-based, consistent with PRs #226–#228; the expanded force-init blast radius is documented in the ADR Consequences section instead. CI lane `quality-ci-generated-consumer-smoke` updated to enable the issue-230 paired-reseed scenario by default (`BLUEPRINT_TEMPLATE_SMOKE_PRESEED_CONSUMER_KUSTOMIZATION=true`).
 
 ## Proposals Only (Not Implemented)
-- Proposal 1:
+- Proposal 1: parked from issue #217 — extract `_assert_descriptor_kustomization_agreement` from `template_smoke_assertions.py` as a shared module helper for future smoke-scenario reuse. Not implemented because the FR-003 smoke fixture extension does not introduce a second caller; promote to a follow-up issue at Step 8 only if a clear second caller materializes.

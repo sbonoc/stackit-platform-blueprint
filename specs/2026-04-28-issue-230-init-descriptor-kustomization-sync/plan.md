@@ -6,19 +6,11 @@
 - This work item is `SPEC_READY=true` (all four sign-offs recorded on PR #231 on 2026-04-28). Q-1 resolved: **Option A** selected.
 
 ## Constitution Gates (Pre-Implementation)
-- Simplicity gate:
-  - Keep the fix scoped to the smallest surface that satisfies FR-001 — one new entry in `blueprint/contract.yaml` (`infra/gitops/platform/base/apps/kustomization.yaml` added to `consumer_seeded`), one new consumer-init template mirroring the bootstrap kustomization, and the existing `seed_consumer_owned_files` loop reseeding the new path automatically.
-  - No speculative wrapper helpers, no new env vars, no new make targets.
-- Anti-abstraction gate:
-  - Reuse the existing `apply_file_update` / `render_template` primitives in `scripts/lib/blueprint/init_repo_contract.py`. Do NOT introduce a new "paired-seed" abstraction layer for the single descriptor↔kustomization pair.
-  - Keep contract scope declarative in `blueprint/contract.yaml`; do not introduce a new YAML key unless `consumer_seeded` semantics genuinely cannot accommodate the kustomization path (decision deferred to implementation slice 1).
-- Integration-first testing gate:
-  - The reproducer fixture (consumer-shaped kustomization with non-demo apps) MUST exist as a `pytest` fixture before the fix is written (T-104, AC-002).
-  - The smoke-level fixture extension (FR-003) MUST be in place before the implementation slice is signed off; smoke MUST fail in red, then pass in green.
-- Positive-path filter/transform test gate:
-  - Not directly applicable — no filter/payload-transform logic changes. Validator and smoke assertion already have positive-path coverage from PR #228.
-- Finding-to-test translation gate:
-  - The reproducer steps in issue #230 (run `blueprint-upgrade-consumer-postcheck` against a v1.8.0-state consumer; observe 4 `manifest filename not listed` errors) MUST be encoded as failing automated tests first (one unit-level, one smoke-level), and the fix MUST turn both green in the same work item.
+- Simplicity gate: smallest fix to satisfy FR-001 — one new entry in `blueprint/contract.yaml` (`infra/gitops/platform/base/apps/kustomization.yaml` added to `consumer_seeded`), one new consumer-init template mirroring the bootstrap kustomization, existing `seed_consumer_owned_files` loop reseeds the new path automatically. No speculative wrapper helpers, no new env vars, no new make targets.
+- Anti-abstraction gate: reuse existing `apply_file_update` / `render_template` primitives in `scripts/lib/blueprint/init_repo_contract.py`; do NOT introduce a new "paired-seed" abstraction layer for the single descriptor↔kustomization pair. Keep contract scope declarative in `blueprint/contract.yaml`; do not introduce a new YAML key unless `consumer_seeded` semantics genuinely cannot accommodate the kustomization path (decision deferred to implementation slice).
+- Integration-first testing gate: the reproducer fixture (consumer-shaped kustomization with non-demo apps) MUST exist as a `pytest` fixture before the fix is written (T-104, AC-002); the smoke-level fixture extension (FR-003) MUST be in place before the implementation slice is signed off — smoke MUST fail in red, then pass in green.
+- Positive-path filter/transform test gate: not directly applicable — no filter/payload-transform logic changes. Validator and smoke assertion already have positive-path coverage from PR #228.
+- Finding-to-test translation gate: reproducer steps in issue #230 (run `blueprint-upgrade-consumer-postcheck` against a v1.8.0-state consumer; observe 4 `manifest filename not listed` errors) MUST be encoded as failing automated tests first (one unit-level, one smoke-level), and the fix MUST turn both green in the same work item.
 
 ## Delivery Slices
 1. Slice 1 — **Reproducer red-state**: add unit test `tests/blueprint/test_init_repo_descriptor_kustomization_pairing.py::test_force_init_against_consumer_kustomization_passes_validate_app_descriptor` that builds a temp repo with the descriptor template + a non-demo kustomization (e.g. `marketplace-deployment.yaml`/`marketplace-service.yaml`), runs the init force-reseed, then asserts `validate_app_descriptor` returns `[]`. The test MUST FAIL before the fix is implemented (proves the reproducer is wired). Add a smoke-level fixture under `tests/blueprint/fixtures/upgrade_matrix/` (or extend `template_smoke.sh`) that exercises the same v1.8.0-shaped consumer kustomization scenario via `make blueprint-template-smoke`.
