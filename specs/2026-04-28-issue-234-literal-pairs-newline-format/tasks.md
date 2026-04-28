@@ -16,8 +16,8 @@
 
 ## Implementation — Slice 2: Documentation
 
-- [ ] T-004 Update `docs/platform/consumer/runtime_credentials_eso.md`: declare newline-separated as the ONLY accepted format; state comma-separated is no longer accepted; update usage example with `$'...'` quoting; add migration note for consumers on comma-separated format
-- [ ] T-005 Update bootstrap template copy `scripts/templates/blueprint/bootstrap/docs/platform/consumer/runtime_credentials_eso.md` with the same changes as T-004
+- [x] T-004 Update `docs/platform/consumer/runtime_credentials_eso.md`: declare newline-separated as the ONLY accepted format; state comma-separated is no longer accepted; update usage example with `$'...'` quoting; add migration note for consumers on comma-separated format
+- [x] T-005 Update bootstrap template copy `scripts/templates/blueprint/bootstrap/docs/platform/consumer/runtime_credentials_eso.md` with the same changes as T-004
 
 ## Test Automation
 
@@ -27,10 +27,10 @@
 
 ## Validation and Release Readiness
 
-- [ ] T-201 Run `make quality-hooks-run` — all checks pass
-- [ ] T-202 Run `python3 -m pytest tests/infra/test_runtime_credentials_eso.py -v` — all tests pass
-- [ ] T-203 Confirm no stale TODOs or dead code introduced
-- [ ] T-204 Run `make docs-build && make docs-smoke` — passes
+- [x] T-201 Run `make quality-hooks-run` — all checks pass (quality-spec-pr-ready expected fail at implement phase; infra-contract-test-fast: 136 passed)
+- [x] T-202 Run `python3 -m pytest tests/infra/test_runtime_credentials_eso.py -v` — 12/12 passed
+- [x] T-203 Confirm no stale TODOs or dead code introduced
+- [x] T-204 Run `make docs-build && make docs-smoke` — passes
 - [ ] T-205 Run `make quality-hardening-review` — passes
 
 ## Publish
