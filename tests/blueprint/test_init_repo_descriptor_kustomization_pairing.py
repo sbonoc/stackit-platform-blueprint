@@ -2,14 +2,14 @@
 
 Builds a synthetic generated-consumer repo whose pre-existing
 ``infra/gitops/platform/base/apps/kustomization.yaml`` lists non-demo
-``marketplace-*`` manifests (i.e. the v1.8.0 consumer shape that hits the
+``custom-app-*`` manifests (i.e. the v1.8.0 consumer shape that hits the
 upstream bug). Runs ``seed_consumer_owned_files`` with ``force=True`` to
 simulate ``BLUEPRINT_INIT_FORCE=true make blueprint-init-repo`` and asserts
 that the post-reseed on-disk state satisfies ``validate_app_descriptor``
 with zero errors (FR-001, AC-002).
 
 Pre-fix v1.8.1 behaviour: descriptor is force-reseeded to backend-api /
-touchpoints-web; the consumer kustomization is preserved with marketplace-*
+touchpoints-web; the consumer kustomization is preserved with custom-app-*
 resources; ``validate_app_descriptor`` reports 4 ``manifest filename not
 listed`` errors. The fix (Option A) adds the kustomization to the
 ``consumer_seeded`` paired-reseed scope so the post-init pair is
@@ -33,23 +33,23 @@ CONSUMER_KUSTOMIZATION_PRE_UPGRADE = """\
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - marketplace-deployment.yaml
-  - marketplace-service.yaml
+  - custom-app-deployment.yaml
+  - custom-app-service.yaml
 """
 
 
 CONSUMER_DESCRIPTOR_PRE_UPGRADE = """\
 schemaVersion: v1
 apps:
-  - id: marketplace
+  - id: custom-app
     owner:
-      team: marketplace
+      team: custom-app
     components:
-      - id: marketplace
+      - id: custom-app
         kind: Deployment
         manifests:
-          deployment: infra/gitops/platform/base/apps/marketplace-deployment.yaml
-          service: infra/gitops/platform/base/apps/marketplace-service.yaml
+          deployment: infra/gitops/platform/base/apps/custom-app-deployment.yaml
+          service: infra/gitops/platform/base/apps/custom-app-service.yaml
         service:
           port: 8080
           targetPort: http
@@ -98,10 +98,10 @@ def _materialize_v180_consumer_state(tmp_root: Path) -> None:
         tmp_root / "infra/gitops/platform/base/apps/kustomization.yaml",
         CONSUMER_KUSTOMIZATION_PRE_UPGRADE,
     )
-    for filename in ("marketplace-deployment.yaml", "marketplace-service.yaml"):
+    for filename in ("custom-app-deployment.yaml", "custom-app-service.yaml"):
         _write(
             tmp_root / "infra/gitops/platform/base/apps" / filename,
-            "kind: Deployment\nmetadata:\n  name: marketplace\n",
+            "kind: Deployment\nmetadata:\n  name: custom-app\n",
         )
 
 
@@ -159,7 +159,7 @@ class ForceInitDescriptorKustomizationPairingTests(unittest.TestCase):
                     force=True,
                     summary=ChangeSummary(label="init-test"),
                     replacements=REPLACEMENTS,
-                    module_enablement={},
+                    module_enablement=_module_enablement_all_disabled(tmp_root),
                 )
 
             self.assertEqual(

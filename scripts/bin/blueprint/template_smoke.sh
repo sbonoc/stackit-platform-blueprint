@@ -31,7 +31,7 @@ Environment variables:
   APP_RUNTIME_MIN_WORKLOADS           Execute-mode minimum expected app runtime workloads (default: 1)
   BLUEPRINT_TEMPLATE_SMOKE_PRESEED_CONSUMER_KUSTOMIZATION
                                       Issue #230 reproducer: when "true", pre-seed the temp repo with a
-                                      v1.8.0-shaped consumer kustomization (marketplace-* manifests)
+                                      v1.8.0-shaped consumer kustomization (custom-app-* manifests)
                                       before running blueprint-init-repo, so the smoke exercises the
                                       paired-reseed scenario where descriptor↔kustomization must converge
                                       via the init force-reseed path (default: false)
@@ -182,7 +182,7 @@ assert_template_smoke_repo_state() {
 }
 
 # Issue #230 reproducer hook: pre-seed a v1.8.0-shaped consumer kustomization
-# (with non-demo marketplace-* manifests) before blueprint-init-repo runs.
+# (with non-demo custom-app-* manifests) before blueprint-init-repo runs.
 # Validates FR-003 — the smoke exercises the descriptor↔kustomization paired
 # reseed scenario, not just the fresh-init path.
 preseed_v180_consumer_kustomization() {
@@ -193,36 +193,36 @@ preseed_v180_consumer_kustomization() {
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - marketplace-deployment.yaml
-  - marketplace-service.yaml
+  - custom-app-deployment.yaml
+  - custom-app-service.yaml
 YAML
-  cat >"$apps_dir/marketplace-deployment.yaml" <<'YAML'
+  cat >"$apps_dir/custom-app-deployment.yaml" <<'YAML'
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: marketplace
+  name: custom-app
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: marketplace
+      app: custom-app
   template:
     metadata:
       labels:
-        app: marketplace
+        app: custom-app
     spec:
       containers:
-        - name: marketplace
-          image: marketplace:preseed
+        - name: custom-app
+          image: custom-app:preseed
 YAML
-  cat >"$apps_dir/marketplace-service.yaml" <<'YAML'
+  cat >"$apps_dir/custom-app-service.yaml" <<'YAML'
 apiVersion: v1
 kind: Service
 metadata:
-  name: marketplace
+  name: custom-app
 spec:
   selector:
-    app: marketplace
+    app: custom-app
   ports:
     - name: http
       port: 8080

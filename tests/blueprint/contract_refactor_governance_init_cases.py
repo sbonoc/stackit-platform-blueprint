@@ -117,6 +117,8 @@ class GovernanceInitRepoCases(RefactorContractBase):
             (tmp_root / "scripts/templates/consumer/init/docs").mkdir(parents=True, exist_ok=True)
             (tmp_root / "scripts/templates/consumer/init/.spec-kit/templates/consumer").mkdir(parents=True, exist_ok=True)
             (tmp_root / "scripts/templates/consumer/init/specs").mkdir(parents=True, exist_ok=True)
+            (tmp_root / "scripts/templates/consumer/init/apps").mkdir(parents=True, exist_ok=True)
+            (tmp_root / "scripts/templates/consumer/init/infra/gitops/platform/base/apps").mkdir(parents=True, exist_ok=True)
             (tmp_root / "blueprint/modules").mkdir(parents=True, exist_ok=True)
             (tmp_root / "dags").mkdir(parents=True, exist_ok=True)
             (tmp_root / "infra/cloud/stackit/terraform/modules/workflows").mkdir(parents=True, exist_ok=True)
@@ -173,6 +175,14 @@ class GovernanceInitRepoCases(RefactorContractBase):
                 ".spec-kit/templates/consumer/tasks.md.tmpl",
                 ".spec-kit/templates/consumer/traceability.md.tmpl",
                 "specs/README.md.tmpl",
+                # Consumer-seeded app runtime templates (issue #217 / #230);
+                # init_repo.py renders these when iterating consumer_seeded_paths.
+                "apps/descriptor.yaml.tmpl",
+                "infra/gitops/platform/base/apps/kustomization.yaml.tmpl",
+                "infra/gitops/platform/base/apps/backend-api-deployment.yaml.tmpl",
+                "infra/gitops/platform/base/apps/backend-api-service.yaml.tmpl",
+                "infra/gitops/platform/base/apps/touchpoints-web-deployment.yaml.tmpl",
+                "infra/gitops/platform/base/apps/touchpoints-web-service.yaml.tmpl",
             ):
                 source_path = REPO_ROOT / "scripts/templates/consumer/init" / template_path
                 target_path = tmp_root / "scripts/templates/consumer/init" / template_path
@@ -442,6 +452,8 @@ class GovernanceInitRepoCases(RefactorContractBase):
             (tmp_root / "scripts/templates/consumer/init/docs").mkdir(parents=True, exist_ok=True)
             (tmp_root / "scripts/templates/consumer/init/.spec-kit/templates/consumer").mkdir(parents=True, exist_ok=True)
             (tmp_root / "scripts/templates/consumer/init/specs").mkdir(parents=True, exist_ok=True)
+            (tmp_root / "scripts/templates/consumer/init/apps").mkdir(parents=True, exist_ok=True)
+            (tmp_root / "scripts/templates/consumer/init/infra/gitops/platform/base/apps").mkdir(parents=True, exist_ok=True)
             contract_original = _read("blueprint/contract.yaml")
             docs_original = _read("docs/docusaurus.config.js")
             (tmp_root / "blueprint/contract.yaml").write_text(contract_original, encoding="utf-8")
@@ -473,6 +485,14 @@ class GovernanceInitRepoCases(RefactorContractBase):
                 ".spec-kit/templates/consumer/tasks.md.tmpl",
                 ".spec-kit/templates/consumer/traceability.md.tmpl",
                 "specs/README.md.tmpl",
+                # Consumer-seeded app runtime templates (issue #217 / #230);
+                # init_repo.py renders these when iterating consumer_seeded_paths.
+                "apps/descriptor.yaml.tmpl",
+                "infra/gitops/platform/base/apps/kustomization.yaml.tmpl",
+                "infra/gitops/platform/base/apps/backend-api-deployment.yaml.tmpl",
+                "infra/gitops/platform/base/apps/backend-api-service.yaml.tmpl",
+                "infra/gitops/platform/base/apps/touchpoints-web-deployment.yaml.tmpl",
+                "infra/gitops/platform/base/apps/touchpoints-web-service.yaml.tmpl",
             ):
                 source_path = REPO_ROOT / "scripts/templates/consumer/init" / template_path
                 target_path = tmp_root / "scripts/templates/consumer/init" / template_path
