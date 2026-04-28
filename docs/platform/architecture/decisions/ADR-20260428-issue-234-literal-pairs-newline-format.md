@@ -1,4 +1,4 @@
-# ADR-20260428 — Newline-primary delimiter for RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS
+# ADR-20260428 — Newline-only delimiter for RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS
 
 - **Status:** proposed
 - **Work item:** 2026-04-28-issue-234-literal-pairs-newline-format
@@ -31,60 +31,77 @@ hard to detect without inspecting reconcile artifacts.
 
 ## Decision
 
-Adopt **newline-primary delimiter** for `parse_literal_pairs()`:
+Adopt **newline-only delimiter** for `parse_literal_pairs()` — a clean breaking change:
 
-1. If the input string contains one or more `\n` characters → split on newlines (primary format, supports any value content).
-2. If the input string contains no `\n` characters → split on commas (legacy format, safe only when values contain no commas).
+- `RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS` MUST use newline-separated `key=value` pairs.
+- Comma-separated input is rejected; `parse_literal_pairs()` returns 1 and emits `log_warn`.
+- No backward-compatibility mode.
 
-This is detected with a single bash conditional:
+Implementation:
 ```bash
-if [[ "$literals" != *$'\n'* ]]; then
-  literals="${literals//,/$'\n'}"
-fi
-while IFS= read -r pair; do
-  ...
-done <<< "$literals"
+parse_literal_pairs() {
+  local literals="$1"
+  local pair key value
+  [[ -n "$literals" ]] || return 0
+
+  while IFS= read -r pair; do
+    pair="$(trim_whitespace "$pair")"
+    [[ -n "$pair" ]] || continue
+    if [[ "$pair" != *=* ]]; then
+      log_warn "parse_literal_pairs: invalid pair (missing '='): $pair"
+      log_warn "parse_literal_pairs: expected format: key=value (one per line)"
+      return 1
+    fi
+    key="$(trim_whitespace "${pair%%=*}")"
+    value="${pair#*=}"
+    if [[ -z "$key" || -z "$value" ]]; then
+      log_warn "parse_literal_pairs: empty key or value in pair: $pair"
+      return 1
+    fi
+    printf '%s\n' "$key=$value"
+  done <<< "$literals"
+}
 ```
 
-Recommended format in documentation and new consumer code:
+Recommended consumer format (using bash `$'...'` quoting for literal newlines):
 ```bash
 export RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS=$'username=local-user\nNUXT_OIDC_TOKEN_KEY=data:;base64,bG9jYWwtZGV2LW9pZGMtdG9rLWtleS0zMi1ieXRlcyE='
 ```
 
-Legacy format (comma-separated, backward-compatible when values have no commas):
+Or using a multi-line assignment:
 ```bash
-export RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS='username=local-user,password=simple-pass'
+export RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS="username=local-user
+NUXT_OIDC_TOKEN_KEY=data:;base64,bG9jYWwtZGV2LW9pZGMtdG9rLWtleS0zMi1ieXRlcyE="
 ```
 
 ## Alternatives Considered
 
-### Option B — Newline-only strict
+### Option A — Newline-primary with comma fallback
 
-Reject comma-separated input entirely, require all consumers to migrate to newline format.
+When input contains `\n`, split on newlines; otherwise split on commas.
 
-**Rejected because:** The consumer workaround already uses newline format; forcing a
-strict break would require a migration window and break consumers who haven't yet applied
-the workaround but whose values happen to have no commas (they would need to convert but
-their current setup works fine).
+**Rejected because:** The comma-separated format is inherently unsafe for any value
+containing a comma. Keeping it as a fallback preserves the ambiguity and creates a
+class of values that silently fail only when they happen to contain commas. A clean
+break is architecturally unambiguous and eliminates the problem class permanently.
+Consumers who have not migrated receive a visible `log_warn` diagnostic (FR-002)
+rather than the current silent failure, which is strictly better for operability.
 
 ### Option C — Escape mechanism (`\,`)
 
-Add a backslash-escape rule: `\,` within a value is treated as a literal comma, not a delimiter.
+Add a backslash-escape rule: `\,` within a value is treated as a literal comma.
 
 **Rejected because:** Escape mechanisms require consumers to audit and re-escape all
-existing values, and the bash `IFS` split does not natively support escape sequences.
-Newline-primary is simpler, unambiguous, and already adopted by the consumer workaround.
+existing values; the bash `IFS` split does not natively support escape sequences;
+newline-only is simpler and unambiguous.
 
 ## Consequences
 
-- **Positive:** Consumers using newline-separated format (the workaround) require no
-  changes and become the canonical path. Values containing commas (data URIs, connection
-  strings, JWTs) are handled correctly.
-- **Positive:** Existing consumers using comma-separated format with values that contain
-  no commas continue to work without any migration.
-- **Negative:** If a consumer passes a newline character as part of a value using the
-  legacy comma format, it would be misinterpreted as a pair delimiter. This is
-  theoretical — newlines cannot appear in bash `export VAR=...` values without explicit
-  `$'...'` quoting.
-- **Operational:** Documentation must explicitly state that the comma-separated format
-  is legacy and restricted to values without commas.
+- **Positive:** No ambiguous delimiter detection. Values containing commas (data URIs,
+  connection strings, JWTs, base64 payloads) are handled correctly by design.
+- **Positive:** `log_warn` on parse failure ensures consumers who pass comma-separated
+  input see an actionable diagnostic even when `RUNTIME_CREDENTIALS_REQUIRED=false`.
+- **Breaking:** Consumers using comma-separated format must update their env var
+  serializer to newline-separated. The consumer workaround already uses newline format.
+- **Operational:** Documentation must explicitly state that comma-separated format is
+  no longer accepted, with migration instructions and examples using `$'...'` quoting.

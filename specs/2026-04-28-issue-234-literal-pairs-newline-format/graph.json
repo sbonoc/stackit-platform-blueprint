@@ -10,7 +10,7 @@
     {
       "id": "FR-002",
       "type": "requirement",
-      "summary": "parse_literal_pairs() MUST fall back to comma-separated when input contains no newlines (backward compat)"
+      "summary": "parse_literal_pairs() MUST emit log_warn on failure so consumers have a visible diagnostic regardless of RUNTIME_CREDENTIALS_REQUIRED"
     },
     {
       "id": "FR-003",
@@ -40,7 +40,7 @@
     {
       "id": "AC-002",
       "type": "acceptance",
-      "summary": "Existing test passes: comma-separated simple values (username=dev-user,password=dev-password) unchanged"
+      "summary": "New test passes: comma-separated input is rejected (non-zero exit + log_warn visible in stderr)"
     },
     {
       "id": "AC-003",
@@ -52,6 +52,7 @@
     { "from": "FR-001", "to": "AC-001", "relation": "validated_by" },
     { "from": "FR-001", "to": "AC-003", "relation": "validated_by" },
     { "from": "FR-002", "to": "AC-002", "relation": "validated_by" },
+    { "from": "FR-002", "to": "NFR-OBS-001", "relation": "implements" },
     { "from": "FR-003", "to": "AC-003", "relation": "validated_by" },
     { "from": "FR-004", "to": "NFR-OBS-001", "relation": "implements" },
     { "from": "NFR-SEC-001", "to": "AC-001", "relation": "constrains" },

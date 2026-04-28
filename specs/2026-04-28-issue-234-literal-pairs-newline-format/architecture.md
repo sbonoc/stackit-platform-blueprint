@@ -34,33 +34,28 @@
 ## Non-Functional Architecture Notes
 - Security: value content must never be truncated or split — internal commas in values (base64 data URIs, JWTs, connection strings) must pass through verbatim to the base64-encoded Kubernetes secret data field. The `${pair#*=}` greedy strip from the right already handles this correctly for the per-pair value extraction; the fix is entirely in the delimiter detection.
 - Observability: `record_reconcile_issue` call-site is preserved; only the error message string is updated to reference both formats.
-- Reliability and rollback: Option A (newline-primary with comma fallback) means existing consumers whose values contain no commas continue to work with zero migration. The only behavior change is that inputs containing `\n` are now split on newlines rather than on commas.
+- Reliability and rollback: Option B (newline-only) is a breaking change. Consumers using comma-separated format must migrate their serializer. `log_warn` on parse failure (FR-002) ensures the migration need is visible even when `RUNTIME_CREDENTIALS_REQUIRED=false`.
 - Monitoring/alerting: no new metrics; existing `reconcile_issue_total` metric emitted on parse failure remains in place.
 
 ## Risks and Tradeoffs
-- Risk 1: A consumer could theoretically pass a newline character as part of a value using the legacy comma format — this would now be treated as a pair delimiter. However, newlines cannot appear in environment variable values set via `export VAR=...` in standard bash; this risk is theoretical.
-- Tradeoff 1: newline-primary detection uses `[[ "$literals" != *$'\n'* ]]` — one conditional branch, negligible overhead.
+- Risk 1: Consumers using comma-separated format with simple values (no commas in values) will now receive a parse failure. Mitigation: `log_warn` on failure provides a clear actionable diagnostic; documentation states migration is required.
+- Tradeoff 1: clean breaking change removes all delimiter ambiguity at the cost of requiring consumer migration.
 
 ## Mermaid Diagram
 
 ```mermaid
 flowchart TD
-    ENV["RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS\n(env var)"]
-    DETECT{"contains \\n?"}
-    NL["Split on newlines\n(primary format)"]
-    CSV["Split on commas\n(legacy format — no commas in values)"]
+    ENV["RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS\n(env var — newline-separated only)"]
+    SPLIT["Split on newlines"]
     VALIDATE["Per-pair validation\n• must contain =\n• key non-empty\n• value non-empty"]
-    OUT["Emit key=value per line"]
-    ERR["record_reconcile_issue\n(format error)"]
+    OUT["Emit key=value per line\n(value verbatim after first =)"]
+    ERR["log_warn + record_reconcile_issue\n(format error — actionable diagnostic)"]
     ARRAY["source_literals array"]
     APPLY["apply_optional_module_secret_from_literals"]
     SECRET["Kubernetes Secret"]
 
-    ENV --> DETECT
-    DETECT -- yes --> NL
-    DETECT -- no --> CSV
-    NL --> VALIDATE
-    CSV --> VALIDATE
+    ENV --> SPLIT
+    SPLIT --> VALIDATE
     VALIDATE -- valid --> OUT
     VALIDATE -- invalid --> ERR
     OUT --> ARRAY
@@ -68,4 +63,4 @@ flowchart TD
     APPLY --> SECRET
 ```
 
-*Caption: parse_literal_pairs() delimiter-detection strategy and downstream flow to Kubernetes Secret creation.*
+*Caption: parse_literal_pairs() newline-only parsing strategy and downstream flow to Kubernetes Secret creation.*

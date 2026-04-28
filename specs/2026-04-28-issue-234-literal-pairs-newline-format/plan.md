@@ -18,13 +18,15 @@
 
 ## Delivery Slices
 
-### Slice 1 — Failing regression test + parse fix (red→green)
-1. Add failing test in `tests/infra/test_runtime_credentials_eso.py` that passes `RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS` as a newline-separated string containing a comma-in-value (data URI). Confirm it fails against the current `parse_literal_pairs()`.
-2. Update `parse_literal_pairs()` in `scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh`:
-   - Add delimiter-detection branch: if no `\n` in input, convert commas to newlines (legacy path); else use input as-is (newline path).
-   - Replace `IFS=',' read -r -a raw_pairs <<<"$literals_csv"` + for-loop with `while IFS= read -r pair; done <<< "$literals"`.
-   - Confirm failing test now passes. Confirm existing comma-separated tests still pass.
-3. Update `record_reconcile_issue` error message to reference both formats.
+### Slice 1 — Failing regression tests + parse fix (red→green, SDD-C-024)
+1. Add failing test: `RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS` as newline-separated with comma-in-value (data URI). Confirm it fails against current `parse_literal_pairs()`.
+2. Add failing test: comma-separated input (`username=dev-user,password=dev-password`) MUST be rejected (non-zero exit + `log_warn`). Confirm current parser does NOT reject this (demonstrating the behavior change).
+3. Update `parse_literal_pairs()` in `scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh`:
+   - Remove `IFS=',' read -r -a raw_pairs <<<"$literals_csv"` + for-loop entirely.
+   - Replace with `while IFS= read -r pair; done <<< "$literals"` (newline-only split).
+   - Add `log_warn` calls on any parse failure (missing `=`, empty key, empty value).
+4. Update `record_reconcile_issue` error message to reference newline-separated as the sole accepted format.
+5. Confirm both failing tests now pass.
 
 ### Slice 2 — Documentation update
 1. Update `docs/platform/consumer/runtime_credentials_eso.md`:
@@ -34,9 +36,9 @@
 3. Run `make docs-build && make docs-smoke`.
 
 ## Change Strategy
-- Migration/rollout sequence: parser fix ships in one commit; docs update ships in the same PR. No consumer migration required — legacy format remains valid.
-- Backward compatibility policy: comma-separated format is preserved for inputs with no newlines. Consumers using newline-separated format (the workaround) require no changes.
-- Rollback plan: revert `parse_literal_pairs()` to comma-only split; any consumer using the workaround would need to revert their serializer as well.
+- Migration/rollout sequence: parser fix and docs update ship in the same PR. Consumers must update their env var serializer to newline-separated format before upgrading to this blueprint version.
+- Backward compatibility policy: none — this is a breaking change. Comma-separated input is rejected. `log_warn` provides a visible diagnostic for unmigrated consumers.
+- Rollback plan: revert `parse_literal_pairs()` to `IFS=',' read -r -a raw_pairs` loop; consumers who applied the workaround would need to revert only if they relied on the comma-fallback path.
 
 ## Validation Strategy (Shift-Left)
 - Unit checks: shell-level `parse_literal_pairs()` behavior via Python subprocess tests in `tests/infra/test_runtime_credentials_eso.py`.
