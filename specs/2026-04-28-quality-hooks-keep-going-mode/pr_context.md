@@ -29,5 +29,5 @@
 - Rollback strategy: revert the patch; `keep_going.sh` and `quality_gating.sh` can be deleted or left in place (the `if keep_going_active` guards become dead code without the env var); no state to migrate, no data to recover, no consumer breaking changes.
 
 ## Deferred Proposals
-- Proposal 1 (not implemented): parallel execution of independent checks — deferred; see ADR Alternative D and hardening_review.md Proposals Only section.
-- Proposal 2 (not implemented): structured JSON summary output for machine consumers — deferred; no current consumer; design when the need is concrete.
+- Proposal 1 (not implemented): parallel execution of independent checks — Parked — trigger: on-scope: quality — Real optimization but non-trivial (log ordering, signal propagation, interleaved output); see ADR Alternative D. Surfaces naturally when quality infrastructure is next touched.
+- Proposal 2 (not implemented): structured JSON summary output for machine consumers — Parked — trigger: on-scope: quality — No current consumer; plain-text v1 contract is sufficient; design when a concrete integration need arises.

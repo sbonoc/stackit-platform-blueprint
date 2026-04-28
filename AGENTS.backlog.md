@@ -36,8 +36,13 @@ To introduce a new tag, append a row here in the same commit that uses it.
 - [x] P1 (Runtime operability correctness) — Work item B: Issues #111 + #112 — scaffold canonical backend/touchpoints Dockerfiles so image lanes work out of the box, and replace placeholder workloads (http.server/nginx) with real app runtime in generated consumers. **Done**: `specs/2026-04-22-issue-111-112-app-dockerfile-and-runtime/`
 - [x] P1 (Runtime operability correctness) — Work item C: Issues #118 + #137 — add upgrade preflight detection for removed infra-<module>-* make targets (#118) and fix postgres ESO seed key mismatch causing continuous UpdateFailed events (#137, P2 in GH). **Done**: `specs/2026-04-22-issue-118-137-preflight-module-targets-postgres-eso-key/`
 - [x] P1 (SDD publish-gate gap): add a `quality-spec-pr-ready` make target (new script `scripts/bin/quality/check_spec_pr_ready.py`) to detect unfilled scaffold placeholders and incomplete publish artifacts in `plan.md`, `tasks.md`, `hardening_review.md`, and `pr_context.md` before a PR is opened. **Done**: `specs/2026-04-22-quality-spec-pr-ready-publish-gate/`
-- [ ] P1 (Agent inner-loop quality ergonomics): PR #232 — keep-going aggregation mode (`--keep-going` / `QUALITY_HOOKS_KEEP_GOING=true`), path-gating of infra checks, phase-gating of `quality-spec-pr-ready`, dedup of pre-commit-redundant checks, Step 5 skill per-slice gate clarification, and agent-agnostic env propagation. Expected: `make quality-hooks-fast` on docs/spec-only commits drops from ~107 s to under 15 s. **In progress**: `specs/2026-04-28-quality-hooks-keep-going-mode/` — SPEC_READY, 11 implementation slices.
-      trigger: on-scope: quality, skills
+- [x] P1 (Agent inner-loop quality ergonomics): PR #232 — keep-going aggregation mode (`--keep-going` / `QUALITY_HOOKS_KEEP_GOING=true`), path-gating of infra checks, phase-gating of `quality-spec-pr-ready`, dedup of pre-commit-redundant checks, Step 5 skill per-slice gate clarification, and agent-agnostic env propagation. `make quality-hooks-fast` on docs/spec-only commits drops from ~107 s to under 15 s. **Done**: `specs/2026-04-28-quality-hooks-keep-going-mode/`
+- [ ] (parked) proposal(quality-hooks-keep-going-mode): parallel execution of independent quality-hooks checks
+      trigger: on-scope: quality
+      rationale: real optimization but non-trivial (log ordering, signal propagation, interleaved output); see ADR-20260428 Alternative D; surfaces when quality infrastructure is next touched
+- [ ] (parked) proposal(quality-hooks-keep-going-mode): structured JSON summary output for machine consumers of the keep-going summary block
+      trigger: on-scope: quality
+      rationale: no current consumer; plain-text v1 contract is sufficient; design when a concrete integration need arises
 
 - [ ] P2 (Ownership checker robustness): support normalized equivalence for semantically-identical prune-glob expressions in ownership-matrix documentation checks.
 - [x] P2 (Capability enhancements): Issue #56 — expand app dependency pin auditing. **Done**: `specs/2026-04-23-issue-56-app-version-contract-checks/`
