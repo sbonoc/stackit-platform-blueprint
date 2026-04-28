@@ -287,7 +287,7 @@ class RuntimeCredentialsEsoTests(unittest.TestCase):
             {
                 "DRY_RUN": "false",
                 "RUNTIME_CREDENTIALS_REQUIRED": "true",
-                "RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS": "username=dev-user,password=dev-password",
+                "RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS": "username=dev-user\npassword=dev-password",
             }
         )
 

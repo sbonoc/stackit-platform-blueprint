@@ -1,18 +1,18 @@
 # Tasks
 
 ## Gate Checks (Required Before Implementation)
-- [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`
-- [ ] G-002 Confirm open questions and unresolved alternatives are `0`
-- [ ] G-003 Confirm required sign-offs are approved
-- [ ] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
-- [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
+- [x] G-001 Confirm `SPEC_READY=true` in `spec.md`
+- [x] G-002 Confirm open questions and unresolved alternatives are `0`
+- [x] G-003 Confirm required sign-offs are approved
+- [x] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
+- [x] G-005 Confirm `Implementation Stack Profile` section is fully populated
 
 ## Implementation — Slice 1: Failing test + parse fix
 
-- [ ] T-001 Write two failing regression tests in `tests/infra/test_runtime_credentials_eso.py`: (a) newline-separated `RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS` with comma-in-value (data URI) — confirm fails against current parser; (b) comma-separated input rejected with non-zero exit + `log_warn` — confirm current parser does NOT reject (SDD-C-024)
-- [ ] T-001a Migrate existing test `test_dry_run_reconcile_writes_success_state_and_renders_source_secret`: update `RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS` from comma-separated to newline-separated format (line 42 in test file)
-- [ ] T-002 Update `parse_literal_pairs()` in `scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh`: remove `IFS=',' read -r -a raw_pairs` + for-loop entirely; replace with `while IFS= read -r pair` newline-only loop; add `log_warn` on missing `=`, empty key, or empty value
-- [ ] T-003 Update `record_reconcile_issue` error message to reference newline-separated as the sole accepted format (`key=value` one per line)
+- [x] T-001 Write two failing regression tests in `tests/infra/test_runtime_credentials_eso.py`: (a) newline-separated `RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS` with comma-in-value (data URI) — confirm fails against current parser; (b) comma-separated input rejected with non-zero exit + `log_warn` — confirm current parser does NOT reject (SDD-C-024)
+- [x] T-001a Migrate existing test `test_dry_run_reconcile_writes_success_state_and_renders_source_secret`: update `RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS` from comma-separated to newline-separated format (line 42 in test file)
+- [x] T-002 Update `parse_literal_pairs()` in `scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh`: remove `IFS=',' read -r -a raw_pairs` + for-loop entirely; replace with `while IFS= read -r pair` newline-only loop; add `log_warn` on missing `=`, empty key, or empty value
+- [x] T-003 Update `record_reconcile_issue` error message to reference newline-separated as the sole accepted format (`key=value` one per line)
 
 ## Implementation — Slice 2: Documentation
 
@@ -21,9 +21,9 @@
 
 ## Test Automation
 
-- [ ] T-101 Confirm new test (T-001) is green after T-002 fix; confirm it is a positive-path assertion: newline-separated input with comma-in-value returns a correctly parsed pair (SDD-C-023)
-- [ ] T-102 Confirm `test_dry_run_reconcile_writes_success_state_and_renders_source_secret` passes after T-001a migration to newline-separated format
-- [ ] T-103 Confirm `test_required_mode_fails_on_invalid_literal_contract` (missing `=` separator) continues to return non-zero (no regression in error-path behavior)
+- [x] T-101 Confirm new test (T-001) is green after T-002 fix; confirm it is a positive-path assertion: newline-separated input with comma-in-value returns a correctly parsed pair (SDD-C-023)
+- [x] T-102 Confirm `test_dry_run_reconcile_writes_success_state_and_renders_source_secret` passes after T-001a migration to newline-separated format
+- [x] T-103 Confirm `test_required_mode_fails_on_invalid_literal_contract` (missing `=` separator) continues to return non-zero (no regression in error-path behavior)
 
 ## Validation and Release Readiness
 
