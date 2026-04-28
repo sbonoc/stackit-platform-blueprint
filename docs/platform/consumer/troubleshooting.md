@@ -525,8 +525,9 @@ on subsequent runs. Apps declared in `apps/descriptor.yaml` are protected from p
   - `artifacts/infra/runtime_identity_reconcile.env`
 - Common failure modes:
   - source secret missing:
-    - seed with `RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS='username=...,password=...'`
-      before rerunning
+    - seed with newline-separated literals before rerunning:
+      `export RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS=$'username=...\npassword=...'`
+      (see [Runtime Credentials (ESO)](runtime_credentials_eso.md) for format details)
     - or create/manage the source secret with your provider-backed store path
   - `ExternalSecret` not `Ready=True`:
     - confirm ESO CRDs are established (`clustersecretstores.external-secrets.io`, `externalsecrets.external-secrets.io`)
