@@ -1,6 +1,6 @@
 # ADR-20260428 — Newline-only delimiter for RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS
 
-- **Status:** proposed
+- **Status:** approved
 - **Work item:** 2026-04-28-issue-234-literal-pairs-newline-format
 - **Date:** 2026-04-28
 
