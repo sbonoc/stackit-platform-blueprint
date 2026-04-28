@@ -224,6 +224,16 @@ Common error patterns and fixes:
 - `apps/descriptor.yaml: app[<id>].component[<id>]: <kind> manifest filename not listed in infra/gitops/platform/base/apps/kustomization.yaml`
   - The manifest exists but isn't listed in the apps `kustomization.yaml`. Add the
     basename to the `resources:` list and rerun `make infra-validate`.
+  - **v1.8.1-only regression (issue #230, fixed in the next blueprint patch).** Consumers
+    that upgraded from v1.8.0 to v1.8.1 hit this with 4 errors at once
+    (`backend-api-deployment.yaml`, `backend-api-service.yaml`,
+    `touchpoints-web-deployment.yaml`, `touchpoints-web-service.yaml`) because
+    `blueprint-init-repo` force-reseeded `apps/descriptor.yaml` from the demo-app
+    template while leaving the consumer's existing `kustomization.yaml` untouched.
+    Recovery: upgrade to the next blueprint patch (descriptor↔kustomization paired-reseed
+    via `consumer_seeded` contract) and re-run
+    `make blueprint-upgrade-consumer && make blueprint-upgrade-consumer-postcheck`. No
+    consumer-side workaround is required after upgrading.
 
 ## `make blueprint-upgrade-consumer` writes `artifacts/blueprint/app_descriptor.suggested.yaml`
 
