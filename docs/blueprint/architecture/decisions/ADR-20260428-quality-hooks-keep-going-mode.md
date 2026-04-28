@@ -1,4 +1,4 @@
-# ADR: Quality Hooks Keep-Going Mode for Agent Inner Loops
+# ADR: Quality Hooks Inner-Loop Verification Ergonomics — Keep-Going, Path-Gating, Phase-Gating, Dedup, and Per-Slice Gate Clarification
 
 - **Status:** proposed
 - **ADR technical decision sign-off:** pending
@@ -9,91 +9,172 @@
 ## Context
 
 `scripts/bin/quality/hooks_fast.sh`, `hooks_strict.sh`, and `hooks_run.sh` invoke
-each underlying check via `run_cmd` under `set -euo pipefail`. The first
-non-zero exit aborts the script. This is the correct CI / pre-commit semantic
-because:
+each underlying check via `run_cmd` under `set -euo pipefail`. This is correct
+CI / pre-commit semantic — but on this repo it imposes ~107 s per `hooks_fast`
+invocation and four independent inefficiencies for the agent inner loop.
 
-1. Pre-commit (`pre-commit run --all-files`) can mutate files via auto-fix
-   hooks. Subsequent checks observing the post-mutation tree would produce
-   results that no longer correspond to the original input.
-2. A single root cause can cascade into many derived failures; aborting at
-   the first failure keeps the signal high and avoids fix-the-cascade work.
-3. Failing fast minimises CI runtime when the tree is broken.
+**Measured baseline (this repo, this branch):** `time make quality-hooks-fast`
+total ~107 s. Decomposition: pre-commit ~3.5 s, shellcheck ~5–10 s, every other
+quality-* check <1 s, `infra-validate` ~9 s, `infra-contract-test-fast` ~69 s.
 
-For agent inner loops, however, the same semantic is expensive. With N
-independent failures present in the working tree, the gate runs N+1 times:
-each surfaced failure is fixed in isolation, the gate is re-run, the next
-failure surfaces, etc. On observed mid-size SDD specs N is typically 2–4,
-which translates to a 3–5× multiplication of gate runtime and a comparable
-increase in token consumption for the agent.
+The four inefficiencies:
 
-We want an opt-in mode that aggregates failures from independent downstream
-checks and reports them together — without changing the default fail-fast
-behavior used by CI and human pre-commit invocations.
+1. **Fail-fast multiplication.** With N independent failures present in the
+   working tree, the gate runs N+1 times: each surfaced failure is fixed in
+   isolation, the gate is re-run, the next failure surfaces, etc. On observed
+   mid-size SDD specs N is typically 2–4, multiplying gate runtime and agent
+   token consumption by 3–5×.
+2. **Unconditional infra cost.** `infra-validate` (~9 s) and
+   `infra-contract-test-fast` (~69 s) run on every invocation regardless of
+   whether the changeset can affect any infra contract. Together they are
+   ~73 % of `hooks_fast` runtime and provide zero signal on docs / spec /
+   agent-skill / governance changes.
+3. **Phase-mismatch failure.** `quality-spec-pr-ready` runs as soon as the
+   branch matches `codex/<date>-<slug>` and a spec dir exists, even at intake
+   time when publish artifacts (`hardening_review.md`, `pr_context.md`) are by
+   design scaffold until Step 7. The gate fails-by-design and blocks any clean
+   `make quality-hooks-fast` run during Steps 1–6.
+4. **Duplicate execution.** Pre-commit's local hooks already run
+   `quality-docs-lint` (always) and `quality-test-pyramid` (on test-file
+   changes). `hooks_fast.sh` then runs both again as separate `run_cmd` calls.
+   The `bash -n` pre-commit hook is also a strict subset of the shellcheck
+   step, but it is near-instant and acceptable.
+
+The Step 5 implementation skill compounds (1) by leading agents to use
+`quality-hooks-fast` per slice when SDD only requires `make test-unit-all`
+per slice. The "Reproducible pre-commit failures" subsection naming
+`quality-hooks-fast` is the clearest in-skill reference; agents pattern-match
+on it and reach for the heavy gate every iteration.
+
+We want a single coherent change that addresses all four axes without changing
+the production CI semantic.
 
 ## Decision
 
-### Add a `--keep-going` flag and `QUALITY_HOOKS_KEEP_GOING=true` env var
+### 1. Add a `--keep-going` flag and `QUALITY_HOOKS_KEEP_GOING=true` env var
 
-All three quality-hooks shell entry points (`hooks_fast.sh`, `hooks_strict.sh`,
-`hooks_run.sh`) accept `--keep-going` and treat the env var
+All three quality-hooks shell entry points accept `--keep-going` and treat
 `QUALITY_HOOKS_KEEP_GOING=true` as equivalent. Either trigger activates
 keep-going mode for that invocation. Default invocation (no flag, env var
 unset or anything other than `true`) preserves byte-identical fail-fast
-behavior.
+behavior for non-gated checks.
 
 The env var exists alongside the flag because make recipes, agent harnesses,
 and CI overrides are easier to wire via env propagation than via positional
 flag forwarding through three layers of indirection.
 
-### Aggregation lives in `scripts/lib/shell/keep_going.sh`
-
-A new shell helper exposes a small functional surface:
-
-- `keep_going_active` — returns 0 when keep-going is enabled.
-- `keep_going_init` — sets up the parallel result arrays and a temp-dir for
-  per-check captures; composes its cleanup with the existing
-  `start_script_metric_trap` EXIT trap.
-- `run_check <name> -- <cmd...>` — executes the command with stdout+stderr
-  captured to a temp file, records the exit code and runtime, on failure
-  re-emits the configured tail (`QUALITY_HOOKS_KEEP_GOING_TAIL_LINES`,
-  default 40) to stderr immediately so the failure is visible in scrollback.
-- `keep_going_finalize` — prints the summary block, returns 0 if every
-  check passed and 1 otherwise.
-
-Each entry script chooses between `run_cmd <cmd>` (default — unchanged) and
+Aggregation lives in `scripts/lib/shell/keep_going.sh`. Each entry script
+chooses between `run_cmd <cmd>` (default — unchanged) and
 `run_check <name> -- <cmd>` (keep-going) via an `if keep_going_active` guard.
 The default path remains a verbatim `run_cmd` call so byte-identical default
 behavior is provable by inspection.
 
-### Pre-commit remains fail-fast in all modes
+### 2. Path-gate `infra-validate` and `infra-contract-test-fast` in `hooks_fast.sh`
+
+Both checks are the dominant runtime cost (~78 of 107 s) and are unaffected
+by changes outside a small set of paths. `hooks_fast.sh` computes the changed
+path set once near script start (union of merge-base-vs-main diff and
+working-tree diff) and runs each of the two checks if and only if at least
+one changed path matches the gating set:
+
+```
+infra/
+blueprint/contract.yaml
+scripts/lib/blueprint/
+scripts/bin/blueprint/
+scripts/templates/blueprint/
+make/
+apps/
+pyproject.toml
+requirements*.txt
+```
+
+When gated out, the script emits a `quality_hooks_skip_total` metric with
+labels `phase=fast`, `check=<name>`, `reason=no-relevant-paths`, plus a
+`log_info` line `skipping <name>: no-relevant-paths`. The env var
+`QUALITY_HOOKS_FORCE_FULL=true` overrides skipping and forces both checks to
+run regardless. When git is unavailable or merge-base resolution fails, the
+script behaves as if `QUALITY_HOOKS_FORCE_FULL=true` (fail-safe: run).
+
+CI runs the full bundle unconditionally (no `QUALITY_HOOKS_FORCE_FULL` needed
+because CI does not invoke `hooks_fast.sh` directly with these gates active —
+its full-coverage gate is `quality-ci-fast` / `quality-ci-strict` which run
+everything). The path-gate optimisation is a local-developer / agent
+inner-loop benefit only.
+
+### 3. Phase-gate `quality-spec-pr-ready` on `SPEC_READY: true`
+
+The existing branch-pattern guard in `hooks_fast.sh` is augmented with a
+`SPEC_READY: true` predicate. The `quality-spec-pr-ready` check runs only
+when:
+
+- The current branch matches `codex/<date>-<slug>`, AND
+- The resolved spec directory exists, AND
+- The spec's `spec.md` contains the literal line `- SPEC_READY: true`
+
+Otherwise the script skips the check with a `quality_hooks_skip_total`
+metric (`reason=spec-not-ready` / `no-spec-dir` / `non-sdd-branch`).
+`QUALITY_HOOKS_FORCE_FULL=true` overrides skipping.
+
+Step 7 (PR Packager) explicitly invokes `make quality-spec-pr-ready`, so
+the publish-gate check still runs at the right time. The phase-gate change
+removes the false-positive failure at intake without weakening the
+publish-time enforcement.
+
+### 4. Dedup `quality-docs-lint` and `quality-test-pyramid` from `hooks_fast.sh`
+
+The two `run_cmd make ... quality-docs-lint` and
+`run_cmd make ... quality-test-pyramid` calls in `hooks_fast.sh` are deleted.
+Both checks remain covered by pre-commit local hooks declared in
+`.pre-commit-config.yaml` (`quality-docs-lint` always-run; `quality-test-pyramid`
+triggered on staged `tests/**.py`).
+
+The existing `command -v pre-commit` fallback branch in `hooks_fast.sh` is
+reframed to emit a `log_warn` directing the user to install pre-commit.
+Without pre-commit, docs-lint and test-pyramid coverage genuinely degrades —
+this is a real prerequisite, not a silent skip.
+
+### 5. Step 5 implementation skill — per-slice gate vs pre-PR gate
+
+`.agents/skills/blueprint-sdd-step05-implement/SKILL.md` is updated to add an
+explicit normative directive:
+
+- The per-slice gate is `make test-unit-all` (or the lane-specific runner
+  derived from the spec's Implementation Stack Profile).
+- `make quality-hooks-fast` is the slice-batch / pre-PR gate. It runs at the
+  boundary between slices and again before publishing — not after every code
+  edit.
+
+The "Reproducible pre-commit failures" subsection is reframed so
+`quality-hooks-fast` is referenced only in the pre-PR context, not as an
+inner-loop signal.
+
+### Pre-commit fail-fast remains in all modes
 
 `hooks_fast.sh` runs pre-commit first, fail-fast, even when keep-going is
 active. If pre-commit reports failure, `hooks_fast.sh` aborts before any
 downstream check executes. Rationale: pre-commit can rewrite files, and
 aggregating downstream checks against a mutated tree would produce results
-that do not correspond to the original input. The user / agent must re-stage
-the mutated files and re-run.
+that do not correspond to the original input.
 
 `hooks_run.sh` invokes `hooks_strict.sh` after `hooks_fast.sh` only when the
-fast phase's pre-commit step succeeded; if downstream fast checks failed
-under keep-going (i.e. pre-commit passed but later checks failed), strict
-still runs — the whole point of keep-going is to surface every issue.
+fast phase's pre-commit step succeeded; under keep-going, if downstream fast
+checks failed (pre-commit passed but later checks failed), strict still runs.
 
 ### Summary block is plain text with a stable marker
 
 A literal marker line `===== quality-hooks keep-going summary =====` opens
 the block. Each check is one line: name, status (`PASS`/`FAIL`), runtime in
-seconds. The block ends with either `===== all checks passed =====` or
-`===== N check(s) failed =====`. JSON output is deferred to a future
-iteration if agent harness integration requires it.
+seconds. The block ends with EXACTLY ONE OF `===== all checks passed =====`
+or `===== N check(s) failed =====`. JSON output is deferred.
 
 ## Alternatives Considered
 
 **Option B — `make -k` over per-check make targets (rejected)**
 
 Decompose every check into its own make target and use `make -k` (keep-going)
-at the top level. Rely on make's existing aggregation semantics.
+at the top level. Rely on make's existing aggregation semantics; express
+gating via make conditionals.
 
 Rejected because:
 
@@ -103,9 +184,9 @@ Rejected because:
   per-check summary block, does not capture per-check output for tail
   re-emission, and offers no mechanism for the pre-commit fail-fast
   invariant inside an otherwise keep-going run.
-- Conditional checks (branch-pattern-gated `quality-spec-pr-ready`,
-  repo-mode-gated `quality-ci-check-sync`, `blueprint-template-smoke`)
-  would need conditional logic at the make level, which is awkward.
+- Conditional checks (the new path-gate, the new phase-gate, the existing
+  branch-pattern-gated and repo-mode-gated checks) would need conditional
+  logic at the make level, which is awkward and harder to test.
 - Increases blast radius — every CI invocation of `make` would have to
   remain `-k`-free or risk silently aggregating failures in production.
 
@@ -114,36 +195,71 @@ Rejected because:
 
 Single code path; everything aggregates by default. Rejected because CI and
 human pre-commit invocations rely on fail-fast for correctness and runtime.
-Changing default semantics is an explicit non-goal (see spec Explicit
-Exclusions).
+Changing default semantics is an explicit non-goal.
 
 **Option D — parallel execution of independent checks (deferred)**
 
 Run aggregated checks concurrently. Deferred: aggregation is the prerequisite,
 parallelism is a separate optimization with its own risks (file-handle limits,
-log interleaving, resource contention with shellcheck/pre-commit) and can
-build on this foundation later.
+log interleaving, resource contention) and can build on this foundation later.
+
+**Option E — separate `quality-hooks-touch` lightweight target (rejected for v1)**
+
+Add a third make target with only the cheap checks (pre-commit + sdd-check +
+docs-check-changed) for inner-loop dev. With path-gating (decision 2) and
+dedup (decision 4), default `make quality-hooks-fast` on docs/spec-only
+commits drops to under 15 s — a separate target adds maintenance surface for
+marginal gain. Revisit only if measured runtime is still insufficient after
+this work item ships.
+
+**Option F — remove `bash -n` from pre-commit (rejected)**
+
+Pre-commit's `bash -n` hook is a strict subset of shellcheck. Removing it
+would not measurably speed anything up — it is near-instant and provides
+per-file feedback during the pre-commit auto-fix pass.
+
+**Option G — analogous path-gating for `hooks_strict.sh` (rejected for this work item)**
+
+The strict checks (`infra-audit-version`, `apps-audit-versions`,
+`blueprint-template-smoke`) are run pre-push and pre-PR, not in the agent
+inner loop, so the cost-vs-correctness tradeoff is different. May be revisited
+as a separate work item if pre-push wait time becomes a problem.
 
 ## Consequences
 
-- New helper file `scripts/lib/shell/keep_going.sh`; modified
-  `hooks_fast.sh`, `hooks_strict.sh`, `hooks_run.sh` to source it and
-  branch on `keep_going_active`.
+- New helper files `scripts/lib/shell/keep_going.sh` and
+  `scripts/lib/shell/quality_gating.sh`; modified `hooks_fast.sh`,
+  `hooks_strict.sh`, `hooks_run.sh` to source them and dispatch accordingly.
 - Two execution paths in each entry script (default fail-fast and keep-going).
-  The default `run_cmd` lines are preserved verbatim; the keep-going branch
-  is a parallel `run_check <name> -- <cmd>` form.
-- New env vars: `QUALITY_HOOKS_KEEP_GOING` (`true` enables) and
-  `QUALITY_HOOKS_KEEP_GOING_TAIL_LINES` (positive integer, default 40).
-- New observability: end-of-run `quality_hooks_keep_going_total` metric
-  emitted only in keep-going mode.
-- Recipe doc-comments in `make/blueprint.generated.mk` (and the
-  bootstrap template) updated to mention the env var; no recipe code change
-  required because make exports the calling environment.
-- Agent harness can opt into aggregation by exporting the env var once;
-  individual `make` invocations inherit it.
+  The default `run_cmd` lines are preserved verbatim where applicable.
+- New env vars: `QUALITY_HOOKS_KEEP_GOING` (`true` enables keep-going),
+  `QUALITY_HOOKS_KEEP_GOING_TAIL_LINES` (positive integer, default 40), and
+  `QUALITY_HOOKS_FORCE_FULL` (`true` overrides path-gate and phase-gate skips).
+- New observability: end-of-run `quality_hooks_keep_going_total` metric in
+  keep-going mode; per-skip `quality_hooks_skip_total` metric in default mode
+  whenever a path-gate or phase-gate fires.
+- Recipe doc-comments in `make/blueprint.generated.mk` (and the bootstrap
+  template) updated to mention the env vars; no recipe code change required
+  because make exports the calling environment.
+- `hooks_fast.sh` no longer invokes `quality-docs-lint` or
+  `quality-test-pyramid` directly; pre-commit is the single source of these
+  checks. The existing pre-commit-missing fallback emits a `log_warn`.
+- `quality-spec-pr-ready` no longer runs at intake time on `codex/*` branches
+  with `SPEC_READY: false`; it remains explicitly invoked by Step 7 (PR
+  Packager) and runs unconditionally there.
+- Step 5 SKILL.md gains a normative per-slice / pre-PR gate directive; agents
+  are expected to use `make test-unit-all` per slice and `make quality-hooks-fast`
+  only at the slice-batch boundary or pre-PR.
+- Measured target on docs/spec-only commits: `make quality-hooks-fast` drops
+  from ~107 s to under 15 s. Combined with keep-going aggregation, the
+  expected agent inner-loop verification cost drops by an order of magnitude
+  for typical SDD slice work.
 - Failure-cascade caveat documented: aggregated reports can include derived
   failures from a single root cause; the agent is instructed to fix the
   earliest-reported failure first and re-run, rather than mass-applying fixes.
+- Path-gate false-skip risk: deliberately conservative gating set; CI always
+  runs the full bundle; `QUALITY_HOOKS_FORCE_FULL=true` provides explicit
+  override for verification.
 
 ```mermaid
 flowchart TD
@@ -151,10 +267,20 @@ flowchart TD
     B -- no --> C[run_cmd pre-commit] --> D[run_cmd shellcheck] --> E[run_cmd ...] --> Z[exit on first failure]
     B -- yes --> F[run_cmd pre-commit fail-fast]
     F -- fail --> Y[abort no summary]
-    F -- pass --> G[run_check shellcheck]
-    G --> H[run_check root-dir-prelude]
-    H --> I[run_check sdd-check-all]
-    I --> J[... every downstream check ...]
-    J --> K[keep_going_finalize: summary block + exit 0/1]
+    F -- pass --> G[run_check shellcheck] --> H[run_check ...] --> KGF[keep_going_finalize: summary + exit 0/1]
 ```
-_Default fail-fast path (top branch) and keep-going aggregation path (bottom branch) for `hooks_fast.sh`._
+_Default fail-fast vs keep-going aggregation dispatch in `hooks_fast.sh`._
+
+```mermaid
+flowchart TD
+    S[hooks_fast.sh: about to run a gated check] --> FF{QUALITY_HOOKS_FORCE_FULL=true?}
+    FF -- yes --> RUN[execute the check]
+    FF -- no --> WHICH{which check?}
+    WHICH -- infra-validate or infra-contract-test-fast --> PG{quality_paths_match_infra_gate?}
+    PG -- yes --> RUN
+    PG -- no --> SKIP1[log_info skipping ...; log_metric reason=no-relevant-paths]
+    WHICH -- quality-spec-pr-ready --> SR{branch matches codex pattern AND spec dir exists AND SPEC_READY: true?}
+    SR -- yes --> RUN
+    SR -- no --> SKIP2[log_info skipping ...; log_metric reason=spec-not-ready or no-spec-dir or non-sdd-branch]
+```
+_Path-gate (infra checks) and phase-gate (publish-readiness check) dispatch in `hooks_fast.sh`._

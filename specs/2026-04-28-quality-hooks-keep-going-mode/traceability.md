@@ -4,7 +4,7 @@
 
 | Requirement ID | Control IDs | Design Element | Implementation Path(s) | Test Evidence | Documentation Evidence | Operational Evidence |
 |---|---|---|---|---|---|---|
-| FR-001 | SDD-C-005 | architecture.md § Bounded Contexts (Context A) | scripts/bin/quality/hooks_fast.sh, scripts/lib/shell/keep_going.sh | tests/blueprint/test_quality_hooks_fast_keep_going.py (AC-002, AC-003, AC-006) | docs/blueprint/operations/<quality-gates-doc>.md (path TBD Slice 5), ADR-20260428 | log_metric quality_hooks_keep_going_total |
+| FR-001 | SDD-C-005 | architecture.md § Bounded Contexts (Context A) | scripts/bin/quality/hooks_fast.sh, scripts/lib/shell/keep_going.sh | tests/blueprint/test_quality_hooks_fast_keep_going.py (AC-002, AC-003, AC-006) | docs/blueprint/operations/<quality-gates-doc>.md (path resolved in Slice 10), ADR-20260428 | log_metric quality_hooks_keep_going_total |
 | FR-002 | SDD-C-005 | architecture.md § Bounded Contexts (Context A) | scripts/bin/quality/hooks_strict.sh, scripts/lib/shell/keep_going.sh | tests/blueprint/test_quality_hooks_strict_keep_going.py (AC-002, AC-006) | docs/blueprint/operations/<quality-gates-doc>.md, ADR-20260428 | log_metric quality_hooks_keep_going_total |
 | FR-003 | SDD-C-005 | architecture.md § Bounded Contexts (Context B) | scripts/bin/quality/hooks_run.sh | tests/blueprint/test_quality_hooks_run_keep_going.py (AC-005, AC-006) | ADR-20260428 § Decision (cross-phase ordering) | combined exit code |
 | FR-004 | SDD-C-005, SDD-C-009 | architecture.md § Bounded Contexts (pre-commit invariant) | scripts/bin/quality/hooks_fast.sh | tests/blueprint/test_quality_hooks_fast_keep_going.py (AC-004) | ADR-20260428 § Decision (pre-commit fail-fast) | log_info pre-commit start |
@@ -14,10 +14,16 @@
 | FR-008 | SDD-C-012 | architecture.md § Application layer | scripts/lib/shell/keep_going.sh (`keep_going_finalize`), scripts/bin/quality/hooks_run.sh | tests/blueprint/test_quality_hooks_run_keep_going.py (AC-005) | ADR-20260428 § Decision | exit code |
 | FR-009 | SDD-C-005 | architecture.md § Risks (Risk 1, mitigation) | scripts/bin/quality/hooks_fast.sh, hooks_strict.sh, hooks_run.sh | T-105 contract test (default-path byte-equivalence) | ADR-20260428 § Consequences | absence of summary marker on default invocation |
 | FR-010 | SDD-C-005 | architecture.md § Presentation boundary | scripts/bin/quality/hooks_fast.sh, hooks_strict.sh, hooks_run.sh `--help` | tests/blueprint/test_quality_hooks_*_keep_going.py (AC-006) | ADR-20260428 | `--help` output |
+| FR-011 | SDD-C-005, SDD-C-012 | architecture.md § Bounded Contexts (Context C) | scripts/bin/quality/hooks_fast.sh, scripts/lib/shell/quality_gating.sh | tests/blueprint/test_quality_hooks_fast_path_gating.py (AC-009, AC-010, AC-011) | ADR-20260428 § Decision (path-gating), operations doc (path-gating set) | log_metric quality_hooks_skip_total + log_info skipping |
+| FR-012 | SDD-C-005, SDD-C-012 | architecture.md § Bounded Contexts (Context C) | scripts/bin/quality/hooks_fast.sh, scripts/lib/shell/quality_gating.sh | tests/blueprint/test_quality_hooks_fast_spec_ready_gating.py (AC-012, AC-013, AC-011) | ADR-20260428 § Decision (phase-gating), operations doc | log_metric quality_hooks_skip_total + log_info skipping |
+| FR-013 | SDD-C-005 | architecture.md § Application layer (dedup) | scripts/bin/quality/hooks_fast.sh | tests/blueprint/test_quality_hooks_fast_dedup.py (AC-014) | ADR-20260428 § Decision (dedup), operations doc | log_warn when pre-commit missing |
+| FR-014 | SDD-C-005 | architecture.md § Bounded Contexts (Context D) | .agents/skills/blueprint-sdd-step05-implement/SKILL.md | tests/blueprint/test_step05_skill_per_slice_gate.py (AC-015) | ADR-20260428 § Decision (skill clarification) | SKILL.md content invariants |
 | NFR-SEC-001 | SDD-C-009 | architecture.md § Non-Functional (Security) | scripts/lib/shell/keep_going.sh | T-101 (cleanup trap), code review | ADR-20260428 § Consequences | EXIT trap removes ${TMPDIR}/quality_hook_* |
 | NFR-OBS-001 | SDD-C-010 | architecture.md § Non-Functional (Observability) | scripts/lib/shell/keep_going.sh | tests/blueprint/test_quality_hooks_keep_going.py (AC-007 part b/c) | ADR-20260428 | log_metric quality_hooks_keep_going_total + tail re-emission |
 | NFR-REL-001 | SDD-C-005 | architecture.md § Non-Functional (Reliability) | scripts/lib/shell/keep_going.sh (EXIT trap composition) | manual signal-injection test in T-201 | ADR-20260428 § Consequences | EXIT trap fires on SIGTERM |
-| NFR-OPS-001 | SDD-C-010 | architecture.md § Bounded Contexts (Context B) | scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl, make/blueprint.generated.mk | T-201 (`make help` output check) | docs/blueprint/operations/<quality-gates-doc>.md (Slice 5) | `make help` lists env var |
+| NFR-OPS-001 | SDD-C-010 | architecture.md § Bounded Contexts (Context B) | scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl, make/blueprint.generated.mk | T-201 (`make help` output check) | docs/blueprint/operations/<quality-gates-doc>.md (Slice 10) | `make help` lists env var |
+| NFR-OBS-002 | SDD-C-010 | architecture.md § High-Level Component Design (skip metric) | scripts/bin/quality/hooks_fast.sh, scripts/lib/shell/quality_gating.sh | T-107, T-108 (skip-metric assertions) | ADR-20260428 § Consequences | quality_hooks_skip_total emitted |
+| NFR-OPS-002 | SDD-C-010 | architecture.md § Bounded Contexts (Context C) | scripts/bin/quality/hooks_fast.sh `--help`, make.tmpl doc-comments | T-103, T-201 | docs/blueprint/operations/<quality-gates-doc>.md (Slice 10) | --help mentions QUALITY_HOOKS_FORCE_FULL |
 | AC-001 | SDD-C-012 | spec.md § Normative Acceptance Criteria | hooks_fast.sh default path | tests/blueprint/test_quality_hooks_fast_keep_going.py | ADR-20260428 § Consequences | exit on first failure, no summary marker |
 | AC-002 | SDD-C-012 | spec.md § Normative Acceptance Criteria | hooks_fast.sh keep-going path + helper | tests/blueprint/test_quality_hooks_fast_keep_going.py | ADR-20260428 § Decision | summary block |
 | AC-003 | SDD-C-012 | spec.md § Normative Acceptance Criteria | hooks_fast.sh env-var trigger | tests/blueprint/test_quality_hooks_fast_keep_going.py | ADR-20260428 § Decision | env-var honored |
@@ -26,6 +32,13 @@
 | AC-006 | SDD-C-012 | spec.md § Normative Acceptance Criteria | --help text in three scripts | tests/blueprint/test_quality_hooks_*_keep_going.py | --help output | docs cross-reference |
 | AC-007 | SDD-C-012 | spec.md § Normative Acceptance Criteria | scripts/lib/shell/keep_going.sh | tests/blueprint/test_quality_hooks_keep_going.py | ADR-20260428 § Decision | helper contract |
 | AC-008 | SDD-C-012 | spec.md § Normative Acceptance Criteria | make/blueprint.generated.mk recipes | T-201 manual run + log capture | docs operations doc | env var propagation |
+| AC-009 | SDD-C-012 | spec.md § Normative Acceptance Criteria | hooks_fast.sh path-gate dispatch | tests/blueprint/test_quality_hooks_fast_path_gating.py | ADR-20260428 § Decision (path-gating) | skip metric for both infra checks |
+| AC-010 | SDD-C-012 | spec.md § Normative Acceptance Criteria | hooks_fast.sh path-gate dispatch | tests/blueprint/test_quality_hooks_fast_path_gating.py | ADR-20260428 § Decision (path-gating) | both infra checks executed |
+| AC-011 | SDD-C-012 | spec.md § Normative Acceptance Criteria | hooks_fast.sh QUALITY_HOOKS_FORCE_FULL handling | tests/blueprint/test_quality_hooks_fast_path_gating.py + test_quality_hooks_fast_spec_ready_gating.py | ADR-20260428 § Decision (force-full) | force-full overrides all gates |
+| AC-012 | SDD-C-012 | spec.md § Normative Acceptance Criteria | hooks_fast.sh phase-gate block | tests/blueprint/test_quality_hooks_fast_spec_ready_gating.py | ADR-20260428 § Decision (phase-gating) | quality-spec-pr-ready skipped on intake |
+| AC-013 | SDD-C-012 | spec.md § Normative Acceptance Criteria | hooks_fast.sh phase-gate block | tests/blueprint/test_quality_hooks_fast_spec_ready_gating.py | ADR-20260428 § Decision (phase-gating) | quality-spec-pr-ready runs on SPEC_READY=true |
+| AC-014 | SDD-C-012 | spec.md § Normative Acceptance Criteria | hooks_fast.sh dedup edits | tests/blueprint/test_quality_hooks_fast_dedup.py | ADR-20260428 § Decision (dedup) | grep + log-line absence |
+| AC-015 | SDD-C-012 | spec.md § Normative Acceptance Criteria | .agents/skills/blueprint-sdd-step05-implement/SKILL.md | tests/blueprint/test_step05_skill_per_slice_gate.py | ADR-20260428 § Decision (skill clarification) | SKILL.md content assertions |
 
 ## Graph Linkage
 - Graph file: `graph.json`
@@ -41,10 +54,16 @@
   - FR-008
   - FR-009
   - FR-010
+  - FR-011
+  - FR-012
+  - FR-013
+  - FR-014
   - NFR-SEC-001
   - NFR-OBS-001
+  - NFR-OBS-002
   - NFR-REL-001
   - NFR-OPS-001
+  - NFR-OPS-002
   - AC-001
   - AC-002
   - AC-003
@@ -53,6 +72,13 @@
   - AC-006
   - AC-007
   - AC-008
+  - AC-009
+  - AC-010
+  - AC-011
+  - AC-012
+  - AC-013
+  - AC-014
+  - AC-015
 
 ## Validation Summary
 - Required bundles executed: pending implementation
