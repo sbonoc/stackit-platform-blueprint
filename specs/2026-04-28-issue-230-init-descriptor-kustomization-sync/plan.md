@@ -3,11 +3,11 @@
 ## Implementation Start Gate
 - Implementation tasks MUST remain unchecked until `SPEC_READY=true`.
 - If required inputs are missing, add `BLOCKED_MISSING_INPUTS` in `spec.md` and keep the gate closed.
-- This work item is currently `SPEC_READY=false` pending Product/Architecture/Security/Operations sign-off and resolution of the option selection (Q-1).
+- This work item is currently `SPEC_READY=false` pending Product/Architecture/Security/Operations sign-off. Q-1 (option selection) was resolved on PR #231: **Option A** selected.
 
 ## Constitution Gates (Pre-Implementation)
 - Simplicity gate:
-  - Keep the fix scoped to the smallest surface that satisfies FR-001 — Option A is one new entry in `blueprint/contract.yaml` and one extra reseed call in `seed_consumer_owned_files`; Option B is a one-file template change.
+  - Keep the fix scoped to the smallest surface that satisfies FR-001 — one new entry in `blueprint/contract.yaml` (`infra/gitops/platform/base/apps/kustomization.yaml` added to `consumer_seeded`), one new consumer-init template mirroring the bootstrap kustomization, and the existing `seed_consumer_owned_files` loop reseeding the new path automatically.
   - No speculative wrapper helpers, no new env vars, no new make targets.
 - Anti-abstraction gate:
   - Reuse the existing `apply_file_update` / `render_template` primitives in `scripts/lib/blueprint/init_repo_contract.py`. Do NOT introduce a new "paired-seed" abstraction layer for the single descriptor↔kustomization pair.
@@ -22,12 +22,12 @@
 
 ## Delivery Slices
 1. Slice 1 — **Reproducer red-state**: add unit test `tests/blueprint/test_init_repo_descriptor_kustomization_pairing.py::test_force_init_against_consumer_kustomization_passes_validate_app_descriptor` that builds a temp repo with the descriptor template + a non-demo kustomization (e.g. `marketplace-deployment.yaml`/`marketplace-service.yaml`), runs the init force-reseed, then asserts `validate_app_descriptor` returns `[]`. The test MUST FAIL before the fix is implemented (proves the reproducer is wired). Add a smoke-level fixture under `tests/blueprint/fixtures/upgrade_matrix/` (or extend `template_smoke.sh`) that exercises the same v1.8.0-shaped consumer kustomization scenario via `make blueprint-template-smoke`.
-2. Slice 2 — **Apply selected option** (depends on Q-1 resolution). For Option A: add `infra/gitops/platform/base/apps/kustomization.yaml` to the `consumer_seeded` list in `blueprint/contract.yaml` (or to a new `init_force_paired` list if the team prefers explicit semantics) and ensure the kustomization template at `scripts/templates/consumer/init/infra/gitops/platform/base/apps/kustomization.yaml.tmpl` mirrors `scripts/templates/infra/bootstrap/infra/gitops/platform/base/apps/kustomization.yaml`. For Option B: change `scripts/templates/consumer/init/apps/descriptor.yaml.tmpl` to `apps: []` and update onboarding docs. Either path MUST turn the Slice 1 unit test green and MUST satisfy the smoke-level fixture.
+2. Slice 2 — **Apply Option A**: add `infra/gitops/platform/base/apps/kustomization.yaml` to the `consumer_seeded` list in `blueprint/contract.yaml` (or to a new `init_force_paired` list if implementation review prefers explicit semantics — implementation-time decision) and add a new consumer-init template at `scripts/templates/consumer/init/infra/gitops/platform/base/apps/kustomization.yaml.tmpl` that mirrors `scripts/templates/infra/bootstrap/infra/gitops/platform/base/apps/kustomization.yaml`. The existing `seed_consumer_owned_files` loop in `scripts/lib/blueprint/init_repo_contract.py` then naturally reseeds the kustomization on force, with no new helper layer. MUST turn the Slice 1 unit test green and MUST satisfy the smoke-level fixture.
 3. Slice 3 — **Contract drift guard + docs**: add a unit test asserting the on-disk init scope listed in `blueprint/contract.yaml` covers every path the init force-reseed actually writes (AC-004). Update `docs/blueprint/upgrade/release_notes.md` (v1.8.2 entry — root cause, fix, no consumer action required). Promote ADR `Status: proposed` → `Status: approved` once Architecture sign-off lands.
 
 ## Change Strategy
 - Migration/rollout sequence: blueprint patch release (v1.8.2 or v1.8.1.1) → consumer runs `make blueprint-upgrade-consumer && make blueprint-upgrade-consumer-postcheck` → smoke and postcheck pass → consumer drops the `continue-on-error: true` workaround from their CI workflow.
-- Backward compatibility policy: the fix is fully backward-compatible — no consumer-side action required (NFR-OPS-001). Option A leaves consumer-edited descriptors unchanged when `BLUEPRINT_INIT_FORCE` is not set (force is the only path that overwrites consumer files today).
+- Backward compatibility policy: the fix is fully backward-compatible — no consumer-side action required (NFR-OPS-001). The paired reseed only fires when `BLUEPRINT_INIT_FORCE=true` is explicitly set; consumer-edited descriptors and kustomizations are untouched on standard upgrades.
 - Rollback plan: revert the work-item commits — the validator and smoke assertion remain in place and the failure mode reverts to the pre-fix `infra-validate` 4-error state, which is the documented v1.8.1 baseline.
 
 ## Validation Strategy (Shift-Left)
@@ -59,8 +59,8 @@
 - Notes: Option B's documentation impact is informative, not a contract change to the onboarding make-target list.
 
 ## Documentation Plan (Document Phase)
-- Blueprint docs updates: `docs/blueprint/upgrade/release_notes.md` (v1.8.2 entry); `docs/blueprint/architecture/decisions/ADR-2026-04-28-issue-230-init-descriptor-kustomization-sync.md` (proposed → approved).
-- Consumer docs updates: under Option A — none required (init behaviour change is a paired-reseed scope detail, not a consumer-facing contract). Under Option B — `docs/platform/consumer/app_onboarding.md` MUST be updated to describe the empty-descriptor starting state and the explicit "add your first app" step.
+- Blueprint docs updates: `docs/blueprint/upgrade/release_notes.md` (v1.8.2 entry that explicitly notes the expanded force-init blast radius); `docs/blueprint/architecture/decisions/ADR-2026-04-28-issue-230-init-descriptor-kustomization-sync.md` (proposed → approved).
+- Consumer docs updates: none required (init behaviour change is a paired-reseed scope detail, not a consumer-facing contract).
 - Mermaid diagrams updated: `docs/blueprint/architecture/decisions/ADR-2026-04-28-issue-230-init-descriptor-kustomization-sync.md` includes a `flowchart TD` of the init → bootstrap → validate sequence with both pre-fix (red edges) and post-fix (green edges) states.
 - Docs validation commands:
   - `make docs-build`
@@ -84,6 +84,5 @@
 - Runbook updates: `docs/blueprint/upgrade/release_notes.md` v1.8.2 entry serves as the operator-facing runbook; if a consumer is still stuck after upgrading, the diagnostic is `cat apps/descriptor.yaml && cat infra/gitops/platform/base/apps/kustomization.yaml | grep -E '\.yaml$'` to confirm filename agreement.
 
 ## Risks and Mitigations
-- Risk 1 — Option A's paired-reseed could surprise a consumer who manually edited their kustomization.yaml in source control without also updating descriptor.yaml. Mitigation: force-init is opt-in (`BLUEPRINT_INIT_FORCE=true`) and already overwrites consumer-owned files; the paired reseed is consistent with the existing force-init blast radius. Release notes MUST call out the expanded force-init scope explicitly.
-- Risk 2 — Option B silently changes fresh-init UX. Mitigation: pair with onboarding docs update; reject as primary recommendation for the v1.8.x patch line and consider for v1.9.
-- Risk 3 — Smoke fixture extension (FR-003) could become a maintenance burden if the v1.8.0-state-shaped consumer fixture drifts from real consumer state. Mitigation: keep the fixture minimal (one consumer app pair, e.g. `marketplace-deployment.yaml`/`marketplace-service.yaml`) and document its purpose inline as the canonical reproducer for issue #230.
+- Risk 1 — the paired-reseed could surprise a consumer who manually edited their kustomization.yaml in source control without also updating descriptor.yaml. Mitigation: force-init is opt-in (`BLUEPRINT_INIT_FORCE=true`) and already overwrites consumer-owned files; the paired reseed is consistent with the existing force-init blast radius. Release notes MUST call out the expanded force-init scope explicitly.
+- Risk 2 — smoke fixture extension (FR-003) could become a maintenance burden if the v1.8.0-state-shaped consumer fixture drifts from real consumer state. Mitigation: keep the fixture minimal (one consumer app pair, e.g. `marketplace-deployment.yaml`/`marketplace-service.yaml`) and document its purpose inline as the canonical reproducer for issue #230.

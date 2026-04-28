@@ -5,8 +5,8 @@
      SPEC_READY=true: implementation gate — all sign-offs required; unlocks coding. -->
 - SPEC_READY: false
 - SPEC_PRODUCT_READY: false
-- Open questions count: 1
-- Unresolved alternatives count: 1
+- Open questions count: 0
+- Unresolved alternatives count: 0
 - Unresolved TODO markers count: 0
 - Pending assumptions count: 0
 - Open clarification markers count: 0
@@ -57,16 +57,16 @@
 - Option A: **Init force-resets the kustomization in lockstep with the descriptor.** Extend `seed_consumer_owned_files` (or add a sibling pass invoked from `init_repo.py`) so that whenever `apps/descriptor.yaml` is force-reseeded, `infra/gitops/platform/base/apps/kustomization.yaml` is also reseeded from `scripts/templates/infra/bootstrap/infra/gitops/platform/base/apps/kustomization.yaml`. Requires adding the kustomization path to `consumer_seeded` (or a new `init_force_paired` list) in `blueprint/contract.yaml`. Most direct fix; preserves the demo-app baseline for fresh inits.
 - Option B: **Empty descriptor template (`apps: []`).** Change `scripts/templates/consumer/init/apps/descriptor.yaml.tmpl` so the init force-seed produces a descriptor with no components. `validate_app_descriptor` short-circuits to a no-op when there are no components, so the cross-check passes regardless of the consumer's existing kustomization. Consumers add their own apps post-init, matching the long-term ownership model where `apps/descriptor.yaml` is consumer-owned. Most defensive; eliminates the "two seeded templates must stay in lockstep" invariant entirely, but loses the demo-app baseline that source-mode smoke and fresh-init demos currently rely on.
 - Option C: **`infra-bootstrap` reseeds kustomization on init force.** Extend `make infra-bootstrap` (or a sibling target invoked by init) to overwrite `kustomization.yaml` from the bootstrap template when `BLUEPRINT_INIT_FORCE=true` is set. Couples bootstrap behaviour to init flags; `infra-bootstrap` no longer has create-if-missing semantics for that one path. Less clean than A; rejected as primary recommendation.
-- Selected option: OPTION_PENDING_PRODUCT_DECISION — see Open Question Q-1 in `pr_context.md` and the Open Questions section of the Draft PR.
-- Rationale: Each option restores postcheck/fresh-env-gate but trades demo-baseline preservation against template-pair invariant maintenance. Recommendation: Option A — keeps the "fresh init produces a runnable demo" property that the source-mode smoke already depends on, and contains the change to the init contract surface where the pairing is already conceptually owned. Option B is the safer long-term direction; if adopted, it MUST be a separate work item paired with updates to source-mode smoke, fresh-init docs, and the consumer onboarding quickstart.
+- Selected option: OPTION_A
+- Rationale: Q-1 resolved on PR #231 — reviewer (sbonoc, OWNER) selected Option A in PR comment 2026-04-28T01:21:28Z. Option A restores postcheck/fresh-env-gate quickly, keeps the "fresh init produces a runnable demo" property that source-mode smoke already depends on, and contains the change to the init contract surface where the pairing is conceptually owned. Option B remains a candidate for a separate v1.9 work item paired with onboarding-doc and source-mode-smoke updates; Option C is rejected because it would couple `infra-bootstrap` create-if-missing semantics to init flags.
 
 ## Contract Changes (Normative)
-- Config/Env contract: depends on selected option; Option A adds `infra/gitops/platform/base/apps/kustomization.yaml` to the `consumer_seeded` (or a new paired-reseed) list in `blueprint/contract.yaml` so the init force-reseed scope is contract-declared and drift-checked.
+- Config/Env contract: `blueprint/contract.yaml` `consumer_seeded` list (or a new `init_force_paired` list — implementation-time decision) MUST include `infra/gitops/platform/base/apps/kustomization.yaml` so the init force-reseed scope is contract-declared and drift-checked.
 - API contract: none
 - OpenAPI / Pact contract path: none
 - Event contract: none
-- Make/CLI contract: no new make targets; `make blueprint-init-repo` (with `BLUEPRINT_INIT_FORCE=true`) gains a paired-reseed responsibility (Option A) or starts emitting an empty descriptor (Option B). Option C extends `make infra-bootstrap` semantics conditionally on init flags.
-- Docs contract: `docs/blueprint/architecture/decisions/ADR-2026-04-28-issue-230-init-descriptor-kustomization-sync.md` (proposed → approved on Architecture sign-off); `docs/blueprint/upgrade/release_notes.md` v1.8.2 (or v1.8.1 follow-up) entry; `docs/platform/consumer/app_onboarding.md` MUST be reviewed for any change in how a fresh consumer starts (Option B substantially changes the post-init starting state).
+- Make/CLI contract: no new make targets; `make blueprint-init-repo` (with `BLUEPRINT_INIT_FORCE=true`) gains a paired-reseed responsibility for `infra/gitops/platform/base/apps/kustomization.yaml` alongside `apps/descriptor.yaml`.
+- Docs contract: `docs/blueprint/architecture/decisions/ADR-2026-04-28-issue-230-init-descriptor-kustomization-sync.md` (proposed → approved on Architecture sign-off); `docs/blueprint/upgrade/release_notes.md` v1.8.2 (or v1.8.1 follow-up) entry that explicitly documents the expanded force-init blast radius (one additional consumer-owned file).
 
 ## Blueprint Upstream Defect Escalation (Normative)
 - Upstream issue URL: https://github.com/sbonoc/stackit-platform-blueprint/issues/230
@@ -82,7 +82,7 @@
 
 ## Informative Notes (Non-Normative)
 - Context: PR #228 (issue #217) tightened the cross-check validator without fixing the underlying init-seeding mismatch. The validator now correctly detects the drift, but every consumer upgrading from v1.8.0 hits the failure because their existing kustomization (with consumer apps like `marketplace-*`/`backoffice-*`) does not list the demo-app manifest filenames the init template force-reseeds into the descriptor. The smoke test in `scripts/bin/blueprint/template_smoke.sh` reproduces this exact sequence: `blueprint-init-repo` (overwrites descriptor) → `infra-bootstrap` (preserves kustomization via `ensure_file_from_template`'s create-if-missing semantics) → `infra-validate` (fails with 4 membership errors). PR #228's #217 spec FR-002 declared the source templates MUST agree, but the spec only enforced that invariant in the source repo — not after a consumer-side init force-reseed.
-- Tradeoffs: Option A preserves the demo-app baseline that fresh-init tutorials and source-mode smoke depend on, but couples two consumer-seeded files into a paired-reseed group. Option B eliminates the pairing invariant but changes the fresh-init starting state from "runnable demo" to "empty descriptor", which is a documentation and onboarding shift. Option C is rejected because conditional bootstrap behaviour gated on init flags violates the existing `infra-bootstrap` contract (create-if-missing for non-init-managed files).
+- Tradeoffs: Option A (selected) preserves the demo-app baseline that fresh-init tutorials and source-mode smoke depend on, at the cost of coupling two consumer-seeded files into a paired-reseed group. The PR #228 `template_smoke_assertions.py` cross-check already enforces filename-consistency at the source-template layer; AC-004 extends this to the contract layer to prevent future scope drift. Option B (empty descriptor) and Option C (bootstrap conditional on init flag) are documented for posterity in § Normative Option Decision but were not selected.
 - Clarifications: none
 
 ## Explicit Exclusions

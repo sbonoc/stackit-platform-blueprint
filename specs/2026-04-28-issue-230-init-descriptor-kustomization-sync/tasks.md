@@ -2,18 +2,16 @@
 
 ## Gate Checks (Required Before Implementation)
 - [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`
-- [ ] G-002 Confirm open questions and unresolved alternatives are `0` (currently 1 / 1 — Q-1 option selection is open)
+- [ ] G-002 Confirm open questions and unresolved alternatives are `0` (Q-1 resolved on PR #231 — Option A selected)
 - [ ] G-003 Confirm required sign-offs are approved (`Product`, `Architecture`, `Security`, `Operations`)
 - [ ] G-004 Confirm `Applicable Guardrail Controls` section in `spec.md` includes the `SDD-C-###` IDs declared (already populated)
 - [ ] G-005 Confirm `Implementation Stack Profile` section in `spec.md` is fully populated (already populated; explicit-consumer-exception fields documented)
 
 ## Implementation
-- [ ] T-001 Resolve Q-1 (Option A vs. Option B) and update `spec.md` — set `Selected option`, replace `Rationale`, update `Open questions count` and `Unresolved alternatives count` to `0`
-- [ ] T-002 Apply selected fix in code:
-  - Option A: add `infra/gitops/platform/base/apps/kustomization.yaml` to the `consumer_seeded` list (or new `init_force_paired` list) in `blueprint/contract.yaml`; add a new template `scripts/templates/consumer/init/infra/gitops/platform/base/apps/kustomization.yaml.tmpl` mirroring the bootstrap template; ensure `seed_consumer_owned_files` in `scripts/lib/blueprint/init_repo_contract.py` reseeds it on force.
-  - Option B: change `scripts/templates/consumer/init/apps/descriptor.yaml.tmpl` to `apps: []`; update `docs/platform/consumer/app_onboarding.md`.
-- [ ] T-003 Update blueprint docs/diagrams: `docs/blueprint/upgrade/release_notes.md` (v1.8.2 entry), promote ADR `Status: proposed` → `Status: approved`
-- [ ] T-004 Update consumer-facing docs/diagrams when contracts/behavior change (Option B only — onboarding doc update; Option A — none)
+- [ ] T-001 Lock in Option A in `spec.md` — `Selected option: OPTION_A`, rationale, `Open questions count: 0`, `Unresolved alternatives count: 0` (Step 02 already updated `spec.md`; this task remains unchecked until `SPEC_READY=true` per the readiness gate)
+- [ ] T-002 Apply Option A in code: add `infra/gitops/platform/base/apps/kustomization.yaml` to the `consumer_seeded` list (or new `init_force_paired` list) in `blueprint/contract.yaml`; add a new template `scripts/templates/consumer/init/infra/gitops/platform/base/apps/kustomization.yaml.tmpl` mirroring the bootstrap template; verify `seed_consumer_owned_files` in `scripts/lib/blueprint/init_repo_contract.py` reseeds it on force (no helper layer needed if the contract list approach is used).
+- [ ] T-003 Update blueprint docs/diagrams: `docs/blueprint/upgrade/release_notes.md` (v1.8.2 entry that explicitly notes the expanded force-init blast radius), promote ADR `Status: proposed` → `Status: approved`
+- [ ] T-004 Update consumer-facing docs/diagrams when contracts/behavior change — N/A under Option A; record N/A in `pr_context.md`
 
 ## Test Automation
 - [ ] T-101 Add unit test `tests/blueprint/test_init_repo_descriptor_kustomization_pairing.py::test_force_init_against_consumer_kustomization_passes_validate_app_descriptor` (AC-002) — RED before T-002, GREEN after
