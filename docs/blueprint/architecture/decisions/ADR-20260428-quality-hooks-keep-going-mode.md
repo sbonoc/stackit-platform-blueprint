@@ -1,4 +1,4 @@
-# ADR: Quality Hooks Inner-Loop Verification Ergonomics — Keep-Going, Path-Gating, Phase-Gating, Dedup, and Per-Slice Gate Clarification
+# ADR: Quality Hooks Inner-Loop Verification Ergonomics — Keep-Going, Path-Gating, Phase-Gating, Dedup, Per-Slice Gate Clarification, and Agent-Agnostic Propagation
 
 - **Status:** proposed
 - **ADR technical decision sign-off:** pending
@@ -148,6 +148,78 @@ explicit normative directive:
 The "Reproducible pre-commit failures" subsection is reframed so
 `quality-hooks-fast` is referenced only in the pre-PR context, not as an
 inner-loop signal.
+
+### 6. Cross-skill propagation and agent-agnostic env propagation
+
+The five decisions above only deliver value if every skill (and every agent
+operating in the repo) actually uses the new flags and respects the per-slice
+vs pre-PR distinction. We propagate via three coordinated mechanisms.
+
+**A. AGENTS.md canonical normative subsection (FR-015).**
+
+`AGENTS.md` gains a new subsection `Quality Hooks — Inner-Loop and Pre-PR
+Usage` declaring the per-slice gate, the pre-PR gate, the env vars, the
+gating semantics, and the agent env-mandate (`MUST` set
+`QUALITY_HOOKS_KEEP_GOING=true` for the session). AGENTS.md is the canonical
+agent-agnostic policy source — Claude (via CLAUDE.md delegation), Codex (via
+OpenAI agent conventions), and any other agent that adheres to AGENTS.md
+inherit the policy automatically. The consumer-init template
+`scripts/templates/consumer/init/AGENTS.md.tmpl` mirrors the subsection so
+generated consumers inherit the same policy.
+
+This is the single source of truth. Skills do not restate policy.
+
+**B. Six skill cross-links (FR-016).**
+
+Skills that explicitly invoke `quality-hooks-*` (`blueprint-sdd-step04-plan-slicer`,
+`blueprint-sdd-step05-implement`, `blueprint-sdd-step07-pr-packager`,
+`blueprint-consumer-upgrade`, `blueprint-consumer-ops`, plus reference
+checklists) gain a one-line cross-link to the AGENTS.md subsection. The
+canonical line is:
+
+> Quality-hooks usage policy (per-slice vs pre-PR gate, keep-going env,
+> force-full): see AGENTS.md § Quality Hooks — Inner-Loop and Pre-PR Usage.
+
+A contract test asserts the line is present and that no skill restates the
+policy in body text (preventing drift if AGENTS.md changes later).
+
+Step 5's SKILL.md additionally carries the per-slice / pre-PR framing in body
+text (FR-014) because it is the skill agents most heavily pattern-match for
+inner-loop work; the cross-link is added on top.
+
+**C. Agent-agnostic env propagation kit (FR-017).**
+
+We do not want every agent to have to remember to set the env var. Two
+mechanisms ship in-repo:
+
+- `.envrc` at the repo root exports `QUALITY_HOOKS_KEEP_GOING=true` for any
+  shell that has direnv loaded. This is the universal mechanism — it covers
+  humans, Codex (which inherits the parent shell environment), Cursor,
+  Aider, and any future agent that runs commands through the developer's
+  shell.
+- `.claude/settings.json` env block sets `QUALITY_HOOKS_KEEP_GOING=true` for
+  Claude Code sessions specifically, where direnv may not be loaded.
+
+For agents whose harness loads neither (and where the user has not configured
+direnv), the AGENTS.md subsection explicitly instructs the agent to export
+the var once at session start before invoking any `quality-hooks-*` make
+target. This is the fallback for agent harnesses without project-local env
+support.
+
+Neither file sets `QUALITY_HOOKS_FORCE_FULL`. Force-full is a deliberate
+per-invocation override (e.g. the user wants to verify a contract change ran
+the full bundle); defaulting it on would defeat the path-gate optimisation.
+
+**Why not bake the agent default into the script itself?**
+
+We could detect "running in an agent context" via env vars like
+`CLAUDE_CODE_AGENT` or `OPENAI_CODEX` and flip the default automatically.
+Rejected because (a) the detection is brittle and the env-var names are not
+stable across agent versions; (b) it hides a behaviour change in the script
+itself, which is harder to discover and reason about than an explicit
+`.envrc` / settings.json file; (c) it would diverge default behaviour across
+contexts, which complicates the "default is fail-fast for CI / humans"
+invariant.
 
 ### Pre-commit fail-fast remains in all modes
 

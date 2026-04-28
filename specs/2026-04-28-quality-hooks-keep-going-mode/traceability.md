@@ -18,6 +18,9 @@
 | FR-012 | SDD-C-005, SDD-C-012 | architecture.md § Bounded Contexts (Context C) | scripts/bin/quality/hooks_fast.sh, scripts/lib/shell/quality_gating.sh | tests/blueprint/test_quality_hooks_fast_spec_ready_gating.py (AC-012, AC-013, AC-011) | ADR-20260428 § Decision (phase-gating), operations doc | log_metric quality_hooks_skip_total + log_info skipping |
 | FR-013 | SDD-C-005 | architecture.md § Application layer (dedup) | scripts/bin/quality/hooks_fast.sh | tests/blueprint/test_quality_hooks_fast_dedup.py (AC-014) | ADR-20260428 § Decision (dedup), operations doc | log_warn when pre-commit missing |
 | FR-014 | SDD-C-005 | architecture.md § Bounded Contexts (Context D) | .agents/skills/blueprint-sdd-step05-implement/SKILL.md | tests/blueprint/test_step05_skill_per_slice_gate.py (AC-015) | ADR-20260428 § Decision (skill clarification) | SKILL.md content invariants |
+| FR-015 | SDD-C-005, SDD-C-019, SDD-C-020 | architecture.md § Bounded Contexts (Context D, governance) | AGENTS.md, scripts/templates/consumer/init/AGENTS.md.tmpl | tests/blueprint/test_agents_md_quality_hooks_subsection.py (AC-016) | ADR-20260428 § Decision 6 (cross-skill propagation) | canonical normative subsection |
+| FR-016 | SDD-C-005 | architecture.md § Bounded Contexts (Context D) | .agents/skills/blueprint-sdd-step04-plan-slicer/SKILL.md, blueprint-sdd-step05-implement/SKILL.md, blueprint-sdd-step07-pr-packager/SKILL.md, blueprint-consumer-upgrade/SKILL.md, blueprint-consumer-ops/SKILL.md, references/* | tests/blueprint/test_skill_quality_hooks_cross_links.py (AC-017) | ADR-20260428 § Decision 6 | cross-link line in each skill |
+| FR-017 | SDD-C-005, SDD-C-020 | architecture.md § Bounded Contexts (Context D, env propagation) | .envrc, .claude/settings.json | tests/blueprint/test_envrc_and_claude_settings.py (AC-018) | ADR-20260428 § Decision 6 | env exports and settings.json env block |
 | NFR-SEC-001 | SDD-C-009 | architecture.md § Non-Functional (Security) | scripts/lib/shell/keep_going.sh | T-101 (cleanup trap), code review | ADR-20260428 § Consequences | EXIT trap removes ${TMPDIR}/quality_hook_* |
 | NFR-OBS-001 | SDD-C-010 | architecture.md § Non-Functional (Observability) | scripts/lib/shell/keep_going.sh | tests/blueprint/test_quality_hooks_keep_going.py (AC-007 part b/c) | ADR-20260428 | log_metric quality_hooks_keep_going_total + tail re-emission |
 | NFR-REL-001 | SDD-C-005 | architecture.md § Non-Functional (Reliability) | scripts/lib/shell/keep_going.sh (EXIT trap composition) | manual signal-injection test in T-201 | ADR-20260428 § Consequences | EXIT trap fires on SIGTERM |
@@ -39,6 +42,10 @@
 | AC-013 | SDD-C-012 | spec.md § Normative Acceptance Criteria | hooks_fast.sh phase-gate block | tests/blueprint/test_quality_hooks_fast_spec_ready_gating.py | ADR-20260428 § Decision (phase-gating) | quality-spec-pr-ready runs on SPEC_READY=true |
 | AC-014 | SDD-C-012 | spec.md § Normative Acceptance Criteria | hooks_fast.sh dedup edits | tests/blueprint/test_quality_hooks_fast_dedup.py | ADR-20260428 § Decision (dedup) | grep + log-line absence |
 | AC-015 | SDD-C-012 | spec.md § Normative Acceptance Criteria | .agents/skills/blueprint-sdd-step05-implement/SKILL.md | tests/blueprint/test_step05_skill_per_slice_gate.py | ADR-20260428 § Decision (skill clarification) | SKILL.md content assertions |
+| AC-016 | SDD-C-012 | spec.md § Normative Acceptance Criteria | AGENTS.md, scripts/templates/consumer/init/AGENTS.md.tmpl | tests/blueprint/test_agents_md_quality_hooks_subsection.py | ADR-20260428 § Decision 6 | subsection title + body invariants |
+| AC-017 | SDD-C-012 | spec.md § Normative Acceptance Criteria | six skill files + references | tests/blueprint/test_skill_quality_hooks_cross_links.py | ADR-20260428 § Decision 6 | canonical cross-link line present |
+| AC-018 | SDD-C-012 | spec.md § Normative Acceptance Criteria | .envrc, .claude/settings.json | tests/blueprint/test_envrc_and_claude_settings.py | ADR-20260428 § Decision 6 | env exports verified |
+| AC-019 | SDD-C-012 | spec.md § Normative Acceptance Criteria | AGENTS.md + consumer-init AGENTS.md.tmpl drift | T-201 (manual run) | quality-sdd-check-all output | gate passes |
 
 ## Graph Linkage
 - Graph file: `graph.json`
@@ -58,6 +65,9 @@
   - FR-012
   - FR-013
   - FR-014
+  - FR-015
+  - FR-016
+  - FR-017
   - NFR-SEC-001
   - NFR-OBS-001
   - NFR-OBS-002
@@ -79,6 +89,10 @@
   - AC-013
   - AC-014
   - AC-015
+  - AC-016
+  - AC-017
+  - AC-018
+  - AC-019
 
 ## Validation Summary
 - Required bundles executed: pending implementation
