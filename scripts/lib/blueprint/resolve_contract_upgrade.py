@@ -11,6 +11,9 @@ and applies explicit merge rules so consumer identity fields always survive:
   - Takes spec.repository.consumer_init.source_artifact_prune_globs_on_init from
     source_content only; drops any blueprint glob that matches existing paths in
     the consumer root (FR-007).
+  - Filters spec.repository.ownership_path_classes.source_only (FR-009):
+      Phase 1 — drops source entries whose paths exist in the consumer;
+      Phase 2 — carries forward consumer-added entries whose paths exist on disk.
   - All other fields: taken from source_content (blueprint-managed).
 
 Emits artifacts/blueprint/contract_resolve_decisions.json (FR-008).
@@ -49,6 +52,8 @@ class ContractResolveResult:
     dropped_required_files: list[str] = field(default_factory=list)
     kept_consumer_required_files: list[str] = field(default_factory=list)
     dropped_prune_globs: list[str] = field(default_factory=list)
+    dropped_source_only: list[str] = field(default_factory=list)
+    kept_consumer_source_only: list[str] = field(default_factory=list)
 
     def as_dict(self) -> dict:
         return {
@@ -57,6 +62,8 @@ class ContractResolveResult:
             "dropped_required_files": self.dropped_required_files,
             "kept_consumer_required_files": self.kept_consumer_required_files,
             "dropped_prune_globs": self.dropped_prune_globs,
+            "dropped_source_only": self.dropped_source_only,
+            "kept_consumer_source_only": self.kept_consumer_source_only,
         }
 
 
@@ -139,6 +146,49 @@ def _filter_prune_globs(
     return kept, dropped
 
 
+def _filter_source_only(
+    source_list: list[str],
+    consumer_list: list[str],
+    repo_root: Path,
+) -> tuple[list[str], list[str], list[str]]:
+    """Filter source_only per FR-009.
+
+    Phase 1: drop source entries whose paths exist in the consumer.
+    Phase 2: carry forward consumer-added entries whose files exist on disk.
+
+    Returns (merged_list, dropped_source_entries, kept_consumer_entries).
+    """
+    source_set = set(source_list)
+
+    def _is_safe(entry: str) -> bool:
+        p = Path(entry)
+        return not p.is_absolute() and ".." not in p.parts
+
+    # Phase 1: keep source entries only when they do NOT exist in the consumer.
+    filtered_source: list[str] = []
+    dropped: list[str] = []
+    for entry in source_list:
+        if not _is_safe(entry):
+            continue
+        if (repo_root / entry).exists():
+            dropped.append(entry)
+        else:
+            filtered_source.append(entry)
+
+    # Phase 2: carry forward consumer-added entries that exist on disk.
+    kept_consumer: list[str] = []
+    for entry in consumer_list:
+        if entry in source_set:
+            continue  # already handled above
+        if not _is_safe(entry):
+            continue
+        if (repo_root / entry).exists():
+            kept_consumer.append(entry)
+
+    merged = filtered_source + kept_consumer
+    return merged, dropped, kept_consumer
+
+
 # ---------------------------------------------------------------------------
 # Main resolver
 # ---------------------------------------------------------------------------
@@ -216,6 +266,20 @@ def resolve_contract_conflict(repo_root: Path) -> ContractResolveResult:
         "source_artifact_prune_globs_on_init"
     ] = kept_globs
 
+    # FR-009 — Filter source_only: Phase 1 drop existing paths, Phase 2 carry forward consumer additions.
+    source_source_only: list[str] = (
+        _get_nested(source, "spec", "repository", "ownership_path_classes", "source_only") or []
+    )
+    target_source_only: list[str] = (
+        _get_nested(target, "spec", "repository", "ownership_path_classes", "source_only") or []
+    )
+    filtered_source_only, dropped_source_only, kept_consumer_source_only = _filter_source_only(
+        source_source_only, target_source_only, repo_root
+    )
+    if "ownership_path_classes" not in resolved["spec"]["repository"]:
+        resolved["spec"]["repository"]["ownership_path_classes"] = {}
+    resolved["spec"]["repository"]["ownership_path_classes"]["source_only"] = filtered_source_only
+
     # Write resolved contract YAML.
     contract_path = repo_root / _CONTRACT_RELATIVE
     contract_path.parent.mkdir(parents=True, exist_ok=True)
@@ -238,6 +302,8 @@ def resolve_contract_conflict(repo_root: Path) -> ContractResolveResult:
         "kept_consumer_required_files": kept_consumer,
         "dropped_prune_globs": dropped_globs,
         "kept_prune_globs": kept_globs,
+        "dropped_source_only": dropped_source_only,
+        "kept_consumer_source_only": kept_consumer_source_only,
     }
     decisions_path = repo_root / _DECISIONS_JSON_RELATIVE
     decisions_path.parent.mkdir(parents=True, exist_ok=True)
@@ -249,6 +315,8 @@ def resolve_contract_conflict(repo_root: Path) -> ContractResolveResult:
         dropped_required_files=dropped_consumer,
         kept_consumer_required_files=kept_consumer,
         dropped_prune_globs=dropped_globs,
+        dropped_source_only=dropped_source_only,
+        kept_consumer_source_only=kept_consumer_source_only,
     )
 
 
@@ -274,6 +342,16 @@ def main() -> int:
             print(
                 f"[PIPELINE] Stage 3: dropped {len(result.dropped_prune_globs)} "
                 f"prune globs matching existing consumer paths: {result.dropped_prune_globs}"
+            )
+        if result.dropped_source_only:
+            print(
+                f"[PIPELINE] Stage 3: dropped {len(result.dropped_source_only)} source_only entries "
+                f"(paths exist in consumer): {result.dropped_source_only}"
+            )
+        if result.kept_consumer_source_only:
+            print(
+                f"[PIPELINE] Stage 3: kept {len(result.kept_consumer_source_only)} consumer-added "
+                f"source_only entries: {result.kept_consumer_source_only}"
             )
         return 0
     print(f"[PIPELINE] Stage 3: FAILED — {result.message}", file=sys.stderr)

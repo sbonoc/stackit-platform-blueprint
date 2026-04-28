@@ -1,0 +1,95 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-04-27-issue-216-upgrade-source-only-filter",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "resolve_contract_conflict must apply _filter_source_only Phase 1 + Phase 2 after FR-007"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "_filter_source_only function with source_list, consumer_list, repo_root parameters"
+    },
+    {
+      "id": "FR-003",
+      "type": "requirement",
+      "summary": "ContractResolveResult extended with dropped_source_only and kept_consumer_source_only"
+    },
+    {
+      "id": "FR-004",
+      "type": "requirement",
+      "summary": "contract_resolve_decisions.json extended with drop/keep source_only arrays"
+    },
+    {
+      "id": "FR-005",
+      "type": "requirement",
+      "summary": "Regression test fixture covering Phase 1, Phase 2, backward-compat cases"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "Path checks bounded to repo_root; no subprocess execution"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "Stage 3 stdout logs dropped/kept source_only counts"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "No-conflict consumer source_only is unchanged (backward compat)"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "Tests runnable via pytest without k8s"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "Phase 1 drops source specs entry when specs/ exists in consumer"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "Phase 1 drops source CLAUDE.md entry when CLAUDE.md exists in consumer"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "Phase 2 carries forward consumer-added source_only entry that exists on disk"
+    },
+    {
+      "id": "AC-004",
+      "type": "acceptance",
+      "summary": "infra-validate passes after Phase 1 removes conflicting source_only entries"
+    },
+    {
+      "id": "AC-005",
+      "type": "acceptance",
+      "summary": "No-conflict consumer source_only equals source source_only (backward compat)"
+    }
+  ],
+  "edges": [
+    { "from": "FR-001", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-001", "to": "AC-002", "relation": "validated_by" },
+    { "from": "FR-001", "to": "AC-003", "relation": "validated_by" },
+    { "from": "FR-001", "to": "AC-004", "relation": "validated_by" },
+    { "from": "FR-001", "to": "AC-005", "relation": "validated_by" },
+    { "from": "FR-002", "to": "FR-001", "relation": "implements" },
+    { "from": "FR-003", "to": "FR-001", "relation": "supports" },
+    { "from": "FR-004", "to": "FR-003", "relation": "implements" },
+    { "from": "FR-005", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-005", "to": "AC-002", "relation": "validated_by" },
+    { "from": "FR-005", "to": "AC-003", "relation": "validated_by" },
+    { "from": "FR-005", "to": "AC-005", "relation": "validated_by" },
+    { "from": "NFR-SEC-001", "to": "FR-001", "relation": "constrains" },
+    { "from": "NFR-SEC-001", "to": "FR-002", "relation": "constrains" },
+    { "from": "NFR-OBS-001", "to": "FR-001", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "AC-005", "relation": "constrains" },
+    { "from": "NFR-OPS-001", "to": "FR-005", "relation": "constrains" }
+  ]
+}
