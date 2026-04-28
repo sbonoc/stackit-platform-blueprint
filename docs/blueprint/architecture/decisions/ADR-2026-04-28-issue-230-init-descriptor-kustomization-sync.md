@@ -1,7 +1,7 @@
 # ADR: Issue #230 — Restore descriptor↔kustomization lockstep across `blueprint-init-repo` force-reseed
 
-- **Status**: proposed
-- **ADR technical decision sign-off**: pending
+- **Status**: approved
+- **ADR technical decision sign-off**: approved
 - **Date**: 2026-04-28
 - **Issues**: #230 (follow-up to #217 / PR #228)
 - **Work item**: `specs/2026-04-28-issue-230-init-descriptor-kustomization-sync/`
@@ -48,9 +48,9 @@ post-init on-disk state satisfies the cross-check by construction.
 
 ## Decision
 
-PROPOSED — pending Architecture sign-off (`ARCHITECTURE_SIGNOFF: approved`).
+APPROVED — Architecture sign-off recorded on PR #231 (2026-04-28).
 
-Recommendation: **Option A — extend `blueprint-init-repo` to force-reseed
+**Option A — extend `blueprint-init-repo` to force-reseed
 `infra/gitops/platform/base/apps/kustomization.yaml` in lockstep with
 `apps/descriptor.yaml`.**
 
