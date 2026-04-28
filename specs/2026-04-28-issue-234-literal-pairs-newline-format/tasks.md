@@ -31,17 +31,17 @@
 - [x] T-202 Run `python3 -m pytest tests/infra/test_runtime_credentials_eso.py -v` — 12/12 passed
 - [x] T-203 Confirm no stale TODOs or dead code introduced
 - [x] T-204 Run `make docs-build && make docs-smoke` — passes
-- [ ] T-205 Run `make quality-hardening-review` — passes
+- [x] T-205 Run `make quality-hardening-review` — passes
 
 ## Publish
 
-- [ ] P-001 Update `hardening_review.md`
-- [ ] P-002 Update `pr_context.md`
-- [ ] P-003 Ensure PR description references `pr_context.md`
+- [x] P-001 Update `hardening_review.md`
+- [x] P-002 Update `pr_context.md`
+- [x] P-003 Ensure PR description references `pr_context.md`
 
 ## App Onboarding Minimum Targets (Normative)
-- [ ] A-001 `apps-bootstrap` and `apps-smoke` verified — no-impact (auth reconciliation only)
-- [ ] A-002 `backend-test-unit`, `backend-test-integration`, `backend-test-contracts`, `backend-test-e2e` verified — no-impact
-- [ ] A-003 `touchpoints-test-unit`, `touchpoints-test-integration`, `touchpoints-test-contracts`, `touchpoints-test-e2e` verified — no-impact
-- [ ] A-004 `test-unit-all`, `test-integration-all`, `test-contracts-all`, `test-e2e-all-local` verified — no-impact
-- [ ] A-005 `infra-port-forward-start`, `infra-port-forward-stop`, `infra-port-forward-cleanup` verified — no-impact
+- [x] A-001 `apps-bootstrap` and `apps-smoke` verified — no-impact (auth reconciliation only)
+- [x] A-002 `backend-test-unit`, `backend-test-integration`, `backend-test-contracts`, `backend-test-e2e` verified — no-impact
+- [x] A-003 `touchpoints-test-unit`, `touchpoints-test-integration`, `touchpoints-test-contracts`, `touchpoints-test-e2e` verified — no-impact
+- [x] A-004 `test-unit-all`, `test-integration-all`, `test-contracts-all`, `test-e2e-all-local` verified — no-impact
+- [x] A-005 `infra-port-forward-start`, `infra-port-forward-stop`, `infra-port-forward-cleanup` verified — no-impact
