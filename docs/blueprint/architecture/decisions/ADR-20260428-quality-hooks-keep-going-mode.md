@@ -15,7 +15,7 @@ invocation and four independent inefficiencies for the agent inner loop.
 
 **Measured baseline (this repo, this branch):** `time make quality-hooks-fast`
 total ~107 s. Decomposition: pre-commit ~3.5 s, shellcheck ~5–10 s, every other
-quality-* check <1 s, `infra-validate` ~9 s, `infra-contract-test-fast` ~69 s.
+quality-* check &lt;1 s, `infra-validate` ~9 s, `infra-contract-test-fast` ~69 s.
 
 The four inefficiencies:
 

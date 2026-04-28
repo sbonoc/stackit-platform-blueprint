@@ -5,7 +5,7 @@ pre-PR usage policy, keep-going mode, environment variables, path-gating and
 phase-gating behaviour, the deduplication rationale, and the recommended
 agent inner-loop usage pattern.
 
-For the normative policy, see [AGENTS.md § Quality Hooks — Inner-Loop and Pre-PR Usage](../../../AGENTS.md).
+For the normative policy, see `AGENTS.md § Quality Hooks — Inner-Loop and Pre-PR Usage` in the repository root.
 
 ---
 

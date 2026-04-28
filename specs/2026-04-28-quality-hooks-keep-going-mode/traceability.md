@@ -95,11 +95,39 @@
   - AC-019
 
 ## Validation Summary
-- Required bundles executed: pending implementation
-- Result summary: pending implementation
+- Required bundles executed: `make quality-hooks-fast` (keep-going active via `.envrc`, ~169s, 2 failures: quality-spec-pr-ready + quality-docs-check-changed — both fixed during validation); `QUALITY_HOOKS_KEEP_GOING=true make quality-hooks-fast` (~174s, 1 failure: quality-spec-pr-ready — fixed after completing publish artifacts); `QUALITY_HOOKS_FORCE_FULL=true make quality-hooks-fast` (~176s, 1 failure: quality-spec-pr-ready — fixed after completing publish artifacts); `QUALITY_HOOKS_KEEP_GOING=true make quality-hooks-run` (~294s, fast phase all pass, strict phase 1 pre-existing failure: blueprint-template-smoke bash 3.x declare -A on macOS — unrelated to this work item); `python3 -m pytest tests/blueprint/ -q` (793 tests, all pass); `make docs-build` (pass, after MDX `&lt;1 s` escape fix and broken AGENTS.md link fix); `make docs-smoke` (pass); `make quality-hardening-review` (pass); `make quality-sdd-check` (pass).
+- Result summary: all implementation tasks complete; 793 unit tests pass; docs build and smoke pass; hardening review passes; quality-spec-pr-ready passes after completing all publish artifacts; `quality-docs-check-changed` required running `sync_blueprint_template_docs.py` to sync the new `docs/blueprint/governance/quality_hooks.md` to the blueprint template; `blueprint-template-smoke` strict-phase failure is a pre-existing macOS bash 3.x incompatibility (declare -A) unrelated to this work item.
 - Documentation validation:
-  - `make docs-build`
-  - `make docs-smoke`
+  - `make docs-build`: PASS (~13s) after two fixes: (1) `&lt;1 s` MDX escape in ADR line 18; (2) removed broken relative link to `AGENTS.md` (repo root, not in docs site) from `quality_hooks.md`.
+  - `make docs-smoke`: PASS
+
+## T-201 Timing Evidence
+
+| Command | Mode | Duration | Outcome |
+|---|---|---|---|
+| `make quality-hooks-fast` (`.envrc` sets `KEEP_GOING=true`) | keep-going | 169s | 2 failures (quality-spec-pr-ready: publish incomplete; quality-docs-check-changed: template sync needed) |
+| `QUALITY_HOOKS_KEEP_GOING=true make quality-hooks-fast` | keep-going explicit | 174s | 1 failure (quality-spec-pr-ready: publish incomplete) |
+| `QUALITY_HOOKS_FORCE_FULL=true make quality-hooks-fast` | force-full + keep-going | 176s | 1 failure (quality-spec-pr-ready: publish incomplete) |
+| `QUALITY_HOOKS_KEEP_GOING=true make quality-hooks-run` | full run keep-going | 294s | 1 failure strict phase (blueprint-template-smoke: pre-existing macOS bash 3.x) |
+| `make quality-hooks-fast` (all tasks complete) | keep-going | ~170s | final run — see T-202 sample block |
+
+Baseline pre-PR: ~107s (fail-fast, full infra path). New docs/spec-only path target: &lt;15s with path-gating active.
+
+## T-202 Summary Block Sample
+
+```
+===== quality-hooks keep-going summary =====
+  shellcheck                                         PASS (89s)
+  quality-root-dir-prelude-check                     PASS (0s)
+  quality-infra-shell-source-graph-check             PASS (0s)
+  quality-sdd-check-all                              PASS (0s)
+  quality-spec-pr-ready                              PASS (0s)
+  quality-ci-check-sync                              PASS (0s)
+  quality-docs-check-changed                         PASS (7s)
+  infra-validate                                     PASS (9s)
+  infra-contract-test-fast                           PASS (68s)
+===== all checks passed =====
+```
 
 ## Evidence Manifest
 - Manifest file: `evidence_manifest.json`

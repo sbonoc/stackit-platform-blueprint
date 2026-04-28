@@ -30,19 +30,11 @@ Parallelism notes:
 - Slice 8 can begin concurrently with Slices 6 and 7 once Slice 3 completes.
 
 ## Constitution Gates (Pre-Implementation)
-- Simplicity gate:
-  - Single new helper file (`keep_going.sh`) with a small functional surface (`keep_going_active`, `keep_going_init`, `run_check`, `keep_going_finalize`).
-  - No new make targets; recipes remain as-is and inherit the env var via the calling environment.
-  - Default code path is preserved verbatim — the keep-going branch is additive guarded by `if keep_going_active`.
-- Anti-abstraction gate:
-  - No wrapper layer over `pre-commit`, `make`, or `run_cmd`. The helper composes with the existing `run_cmd`/`log_*`/metric primitives in `scripts/lib/shell/`.
-  - No registry / plugin model; check lists live inline in each entry script as before.
-- Integration-first testing gate:
-  - Helper-level tests use synthetic check commands (e.g. `bash -c 'exit 0'`, `bash -c 'echo X >&2; exit 1'`) and assert on the summary block format and exit codes — no dependency on the real check suite.
-  - End-to-end test exercises `bash hooks_fast.sh --keep-going` against a deliberately-broken fixture to assert the multi-failure path.
+- Simplicity gate: single new 4-function helper (`keep_going.sh`); all entry-script changes additive under `keep_going_active` guards; no new make targets; default code path verbatim.
+- Anti-abstraction gate: no wrapper over `run_cmd`/`pre-commit`/`make`; check lists remain inline in each entry script as before; no registry or plugin model.
+- Integration-first testing gate: synthetic `bash -c` commands in helper unit tests; entry-script subprocess tests with controlled fixtures; no real suite dependency.
 - Positive-path filter/transform test gate: not applicable (no filter/payload-transform logic in scope).
-- Finding-to-test translation gate:
-  - If a reproducible failure is observed during local development of this feature, it MUST be encoded as a failing automated test before the fix lands.
+- Finding-to-test translation gate: all reproducible failures during development encoded as failing tests before fixes landed (test-pyramid classifier fix committed as separate chore commit).
 
 ## Delivery Slices
 

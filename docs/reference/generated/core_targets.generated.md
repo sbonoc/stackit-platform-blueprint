@@ -40,9 +40,9 @@ This file is auto-generated. Do not edit it manually.
 | `test-contracts-async-producer` | Run async Pact message-contract producer lane (opt-in) |
 | `test-contracts-async-consumer` | Run async Pact message-contract consumer lane (opt-in) |
 | `test-contracts-async-all` | Run async Pact message-contract producer+consumer lanes (opt-in) |
-| `quality-hooks-fast` | Run fast local quality checks |
-| `quality-hooks-strict` | Run slower audit-focused quality checks |
-| `quality-hooks-run` | Run pre-commit hooks and quality gates |
+| `quality-hooks-fast` | Run fast local quality checks (set QUALITY_HOOKS_KEEP_GOING=true to aggregate all failures; QUALITY_HOOKS_FORCE_FULL=true to bypass path/phase gating) |
+| `quality-hooks-strict` | Run slower audit-focused quality checks (set QUALITY_HOOKS_KEEP_GOING=true to aggregate all failures) |
+| `quality-hooks-run` | Run pre-commit hooks and quality gates (set QUALITY_HOOKS_KEEP_GOING=true to aggregate all failures across both phases) |
 | `quality-root-dir-prelude-check` | Fail when shell entrypoints reintroduce inline ROOT_DIR resolver drift |
 | `quality-infra-shell-source-graph-check` | Fail when infra helper source-edge contract drifts into caller-side implicit sourcing |
 | `quality-sdd-sync-control-catalog` | Render SDD control catalog markdown from machine-readable source |
@@ -64,7 +64,7 @@ This file is auto-generated. Do not edit it manually.
 | `quality-ci-full-e2e` | Run canonical full local E2E CI lane |
 | `quality-ci-strict` | Run canonical strict CI audit lane |
 | `quality-ci-blueprint` | Run source blueprint CI lane bundle |
-| `quality-ci-generated-consumer-smoke` | Run generated-consumer template smoke lane |
+| `quality-ci-generated-consumer-smoke` | Run generated-consumer template smoke lane (covers issue #230 v1.8.0 paired-reseed scenario) |
 | `quality-ci-upgrade-validate` | Run end-to-end consumer upgrade validation lane (push-to-main gate) |
 | `quality-docs-lint` | Lint markdown docs, governance links, and make target references |
 | `quality-docs-sync-all` | Run all docs sync generators in canonical order |

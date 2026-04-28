@@ -40,20 +40,20 @@
 - [x] T-113 Add `tests/blueprint/test_envrc_and_claude_settings.py` covering AC-018 (`.envrc` exports `QUALITY_HOOKS_KEEP_GOING=true`; `.claude/settings.json` env block sets it; neither file sets `QUALITY_HOOKS_FORCE_FULL`)
 
 ## Validation and Release Readiness
-- [ ] T-201 Run `make quality-hooks-fast`, `make quality-hooks-fast QUALITY_HOOKS_KEEP_GOING=true`, `make quality-hooks-fast QUALITY_HOOKS_FORCE_FULL=true`, `make quality-hooks-run`, `make quality-hooks-run QUALITY_HOOKS_KEEP_GOING=true` locally; capture observed runtimes (baseline ~107s vs new docs/spec-only target <15s); record pass/fail and timings in `traceability.md`
-- [ ] T-202 Attach evidence (test output, summary block sample) to `traceability.md`
-- [ ] T-203 Confirm no stale TODOs / dead code / drift; confirm default code path remains a verbatim `run_cmd` invocation per file
-- [ ] T-204 Run documentation validation (`make docs-build` and `make docs-smoke`)
-- [ ] T-205 Run hardening review validation bundle (`make quality-hardening-review`)
+- [x] T-201 Run `make quality-hooks-fast`, `make quality-hooks-fast QUALITY_HOOKS_KEEP_GOING=true`, `make quality-hooks-fast QUALITY_HOOKS_FORCE_FULL=true`, `make quality-hooks-run`, `make quality-hooks-run QUALITY_HOOKS_KEEP_GOING=true` locally; capture observed runtimes (baseline ~107s vs new docs/spec-only target <15s); record pass/fail and timings in `traceability.md`
+- [x] T-202 Attach evidence (test output, summary block sample) to `traceability.md`
+- [x] T-203 Confirm no stale TODOs / dead code / drift; confirm default code path remains a verbatim `run_cmd` invocation per file
+- [x] T-204 Run documentation validation (`make docs-build` and `make docs-smoke`)
+- [x] T-205 Run hardening review validation bundle (`make quality-hardening-review`)
 
 ## Publish
-- [ ] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
-- [ ] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
-- [ ] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
+- [x] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
+- [x] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
+- [x] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
 
 ## App Onboarding Minimum Targets (Normative)
-- [ ] A-001 `apps-bootstrap` and `apps-smoke` are implemented and verified for the affected app scope
-- [ ] A-002 Backend app lanes (`backend-test-unit`, `backend-test-integration`, `backend-test-contracts`, `backend-test-e2e`) are available
-- [ ] A-003 Frontend app lanes (`touchpoints-test-unit`, `touchpoints-test-integration`, `touchpoints-test-contracts`, `touchpoints-test-e2e`) are available
-- [ ] A-004 Aggregate gates (`test-unit-all`, `test-integration-all`, `test-contracts-all`, `test-e2e-all-local`) are available
-- [ ] A-005 Port-forward operational wrappers (`infra-port-forward-start`, `infra-port-forward-stop`, `infra-port-forward-cleanup`) are available
+- [x] A-001 `apps-bootstrap` and `apps-smoke` are implemented and verified for the affected app scope (N/A: tooling-only change, no app onboarding impact)
+- [x] A-002 Backend app lanes (`backend-test-unit`, `backend-test-integration`, `backend-test-contracts`, `backend-test-e2e`) are available (N/A: tooling-only change)
+- [x] A-003 Frontend app lanes (`touchpoints-test-unit`, `touchpoints-test-integration`, `touchpoints-test-contracts`, `touchpoints-test-e2e`) are available (N/A: tooling-only change)
+- [x] A-004 Aggregate gates (`test-unit-all`, `test-integration-all`, `test-contracts-all`, `test-e2e-all-local`) are available (N/A: tooling-only change)
+- [x] A-005 Port-forward operational wrappers (`infra-port-forward-start`, `infra-port-forward-stop`, `infra-port-forward-cleanup`) are available (N/A: tooling-only change)
