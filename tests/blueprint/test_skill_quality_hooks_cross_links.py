@@ -1,6 +1,6 @@
 """Tests for cross-links in skill files.
 
-Slice 10 — AC-017: each of the six skill files contains the canonical cross-link.
+Slice 10 — AC-017: each of the five skill files contains the canonical cross-link.
 """
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
-# The six skill files that must have the cross-link
+# The five skill files that must have the cross-link
 SKILL_FILES = [
     REPO_ROOT / ".agents/skills/blueprint-sdd-step04-plan-slicer/SKILL.md",
     REPO_ROOT / ".agents/skills/blueprint-sdd-step05-implement/SKILL.md",

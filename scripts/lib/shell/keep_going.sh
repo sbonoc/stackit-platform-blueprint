@@ -22,10 +22,12 @@ _kg_cleanup() {
 }
 
 _kg_exit_handler() {
-  _kg_cleanup
+  local rc=$?
   if [[ -n "$_KG_PREV_TRAP" ]]; then
+    (exit "$rc")
     eval "$_KG_PREV_TRAP" || true
   fi
+  _kg_cleanup
 }
 
 keep_going_init() {

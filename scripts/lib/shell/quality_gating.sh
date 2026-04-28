@@ -14,10 +14,11 @@ pyproject.toml
 requirements"  # prefix match for requirements*.txt
 
 _quality_changed_paths() {
-  # Union of merge-base diff and working-tree diff
+  # Union of merge-base diff and working-tree diff.
+  # Returns 1 when git is unavailable or merge-base resolution fails (caller must fail-safe).
   local main_branch="${QUALITY_HOOKS_MAIN_BRANCH:-main}"
   local merge_base
-  merge_base="$(git merge-base HEAD "$main_branch" 2>/dev/null)" || { echo ""; return; }
+  merge_base="$(git merge-base HEAD "$main_branch" 2>/dev/null)" || return 1
   {
     git diff --name-only "$merge_base" HEAD 2>/dev/null || true
     git diff --name-only 2>/dev/null || true
@@ -29,7 +30,8 @@ quality_paths_match_infra_gate() {
   # $1: optional newline-separated path list; if empty string or absent, reads from git
   local paths="${1:-}"
   if [[ -z "$paths" ]]; then
-    paths="$(_quality_changed_paths)"
+    # FR-011 fail-safe: if git is unavailable or merge-base fails, run infra checks
+    paths="$(_quality_changed_paths)" || return 0
   fi
   if [[ "${QUALITY_HOOKS_FORCE_FULL:-}" == "true" ]]; then
     return 0

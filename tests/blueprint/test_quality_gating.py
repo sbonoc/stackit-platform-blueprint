@@ -103,6 +103,20 @@ class TestQualityPathsMatchInfraGate:
         assert result.returncode != 0
 
 
+class TestQualityPathsMatchGitFailSafe:
+    """FR-011: when git is unavailable or merge-base fails, return 0 (fail-safe: run infra checks)."""
+
+    def test_git_merge_base_failure_forces_match(self) -> None:
+        # Point QUALITY_HOOKS_MAIN_BRANCH at a branch that cannot be resolved so
+        # git merge-base fails; quality_paths_match_infra_gate must return 0.
+        script = PREAMBLE + "quality_paths_match_infra_gate"
+        result = bash(script, {"QUALITY_HOOKS_MAIN_BRANCH": "nonexistent-branch-xyz-99999"})
+        assert result.returncode == 0, (
+            "git merge-base failure must return 0 (fail-safe: run infra checks). "
+            f"stderr={result.stderr!r}"
+        )
+
+
 class TestQualityPathsMatchForceFullOverride:
     """QUALITY_HOOKS_FORCE_FULL=true makes it return 0 regardless of paths."""
 
