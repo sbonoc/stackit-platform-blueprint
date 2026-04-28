@@ -22,11 +22,11 @@
   - AC-001, AC-002, AC-003
 
 ## Validation Summary
-- Required bundles executed: pending implementation
-- Result summary: pending
+- Required bundles executed: infra-validate (PASS), infra-contract-test-fast 136/136 (PASS), docs-build (PASS), docs-smoke (PASS)
+- Result summary: 12/12 tests pass in `tests/infra/test_runtime_credentials_eso.py`; 0 regressions in this work item's scope
 - Documentation validation:
-  - `make docs-build`
-  - `make docs-smoke`
+  - `make docs-build` — PASS
+  - `make docs-smoke` — PASS
 
 ## Evidence Manifest
 - Manifest file: `evidence_manifest.json`
