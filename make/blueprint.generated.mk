@@ -177,13 +177,13 @@ test-contracts-async-all: ## Run async Pact message-contract producer+consumer l
 # Augment the platform-owned aggregate contract lane without overriding its recipe.
 test-contracts-all: test-contracts-async-all
 
-quality-hooks-fast: ## Run fast local quality checks
+quality-hooks-fast: ## Run fast local quality checks (set QUALITY_HOOKS_KEEP_GOING=true to aggregate all failures; QUALITY_HOOKS_FORCE_FULL=true to bypass path/phase gating)
 	@scripts/bin/quality/hooks_fast.sh
 
-quality-hooks-strict: ## Run slower audit-focused quality checks
+quality-hooks-strict: ## Run slower audit-focused quality checks (set QUALITY_HOOKS_KEEP_GOING=true to aggregate all failures)
 	@scripts/bin/quality/hooks_strict.sh
 
-quality-hooks-run: ## Run pre-commit hooks and quality gates
+quality-hooks-run: ## Run pre-commit hooks and quality gates (set QUALITY_HOOKS_KEEP_GOING=true to aggregate all failures across both phases)
 	@scripts/bin/quality/hooks_run.sh
 
 quality-root-dir-prelude-check: ## Fail when shell entrypoints reintroduce inline ROOT_DIR resolver drift

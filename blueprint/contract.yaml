@@ -432,6 +432,7 @@ spec:
       - docs/blueprint/contracts/async_message_contracts.md
       - docs/blueprint/governance/ownership_matrix.md
       - docs/blueprint/governance/spec_driven_development.md
+      - docs/blueprint/governance/quality_hooks.md
       - docs/reference/generated/contract_metadata.generated.md
       - docs/reference/generated/core_targets.generated.md
       - contracts/async/pact/messages/producer/.gitkeep
@@ -1096,6 +1097,7 @@ spec:
         - governance/spec_driven_development.md
         - governance/sdd_execution_guide.md
         - governance/assistant_compatibility.md
+        - governance/quality_hooks.md
     platform_docs:
       root: docs/platform
       seed_mode: create_if_missing
