@@ -14,11 +14,11 @@
 - [ ] T-004 Update consumer-facing docs/diagrams when contracts/behavior change — N/A under Option A; record N/A in `pr_context.md`
 
 ## Test Automation
-- [ ] T-101 Add unit test `tests/blueprint/test_init_repo_descriptor_kustomization_pairing.py::test_force_init_against_consumer_kustomization_passes_validate_app_descriptor` (AC-002) — RED before T-002, GREEN after
+- [x] T-101 Add unit test `tests/blueprint/test_init_repo_descriptor_kustomization_pairing.py::test_force_init_against_consumer_kustomization_passes_validate_app_descriptor` (AC-002) — RED before T-002, GREEN after (red committed in slice 1; green at slice 2)
 - [ ] T-102 Add contract drift test `tests/blueprint/test_contract_init_force_paired_paths_complete.py` asserting the on-disk init force-reseed scope matches the `consumer_seeded` list (AC-004)
 - [ ] T-103 For any new or modified filter/payload-transform route, verify a positive-path unit test exists — N/A (no filter/transform changes); record N/A in `pr_context.md`
-- [ ] T-104 Translate the issue #230 reproducer (postcheck failure on v1.8.0-shaped consumer kustomization) into a failing automated test first — covered by T-101 (unit) and T-105 (smoke), then turned green by T-002
-- [ ] T-105 Extend `make blueprint-template-smoke` (or `tests/blueprint/fixtures/upgrade_matrix/`) to cover the v1.8.0-state-shaped consumer kustomization scenario (FR-003) — RED before T-002, GREEN after
+- [x] T-104 Translate the issue #230 reproducer (postcheck failure on v1.8.0-shaped consumer kustomization) into a failing automated test first — covered by T-101 (unit) and T-105 (smoke), then turned green by T-002 (red committed in slice 1)
+- [x] T-105 Extend `make blueprint-template-smoke` (or `tests/blueprint/fixtures/upgrade_matrix/`) to cover the v1.8.0-state-shaped consumer kustomization scenario (FR-003) — RED before T-002, GREEN after (smoke pre-seed hook + CI lane env var landed in slice 1)
 
 ## Validation and Release Readiness
 - [ ] T-201 Run required Make validation bundles: `make quality-sdd-check`, `make infra-validate`, `make blueprint-template-smoke`, `make quality-ci-generated-consumer-smoke`
