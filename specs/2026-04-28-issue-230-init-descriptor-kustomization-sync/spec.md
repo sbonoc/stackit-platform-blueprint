@@ -66,7 +66,7 @@
 - OpenAPI / Pact contract path: none
 - Event contract: none
 - Make/CLI contract: no new make targets; `make blueprint-init-repo` (with `BLUEPRINT_INIT_FORCE=true`) gains a paired-reseed responsibility for `infra/gitops/platform/base/apps/kustomization.yaml` alongside `apps/descriptor.yaml`.
-- Docs contract: `docs/blueprint/architecture/decisions/ADR-2026-04-28-issue-230-init-descriptor-kustomization-sync.md` (proposed → approved on Architecture sign-off); `docs/blueprint/upgrade/release_notes.md` v1.8.2 (or v1.8.1 follow-up) entry that explicitly documents the expanded force-init blast radius (one additional consumer-owned file).
+- Docs contract: `docs/blueprint/architecture/decisions/ADR-2026-04-28-issue-230-init-descriptor-kustomization-sync.md` (proposed → approved on Architecture sign-off); `docs/platform/consumer/troubleshooting.md` gains a v1.8.1-only regression note documenting the expanded force-init blast radius (one additional consumer-owned file). Note: `docs/blueprint/upgrade/release_notes.md` does not exist in this repo — versioning is ADR-based.
 
 ## Blueprint Upstream Defect Escalation (Normative)
 - Upstream issue URL: https://github.com/sbonoc/stackit-platform-blueprint/issues/230

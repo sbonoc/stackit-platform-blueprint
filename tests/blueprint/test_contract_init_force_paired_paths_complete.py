@@ -39,9 +39,9 @@ class ContractInitForcePairedPathsCompleteTests(unittest.TestCase):
             missing,
             [],
             msg=(
-                "blueprint/contract.yaml consumer_seeded MUST list every path the "
-                "blueprint-init-repo force-reseed writes; missing paths regress "
-                "issue #230 (descriptor↔kustomization lockstep on force-init). "
+                "blueprint/contract.yaml consumer_seeded MUST include both paired "
+                "init-reseed paths (descriptor + kustomization); missing either one "
+                "regresses issue #230 (descriptor↔kustomization lockstep on force-init). "
                 f"Missing: {missing}"
             ),
         )
