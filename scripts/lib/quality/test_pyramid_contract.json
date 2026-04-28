@@ -14,6 +14,8 @@
         "tests/blueprint/test_contract_bootstrap_surface.py",
         "tests/blueprint/test_contract_quality_tooling.py",
         "tests/blueprint/test_contract_init_governance.py",
+        "tests/blueprint/test_contract_init_force_paired_paths_complete.py",
+        "tests/blueprint/test_init_repo_descriptor_kustomization_pairing.py",
         "tests/blueprint/test_consumer_app_descriptor_contract.py",
         "tests/blueprint/test_app_descriptor_loader.py",
         "tests/blueprint/test_app_catalog_descriptor_rendering.py",

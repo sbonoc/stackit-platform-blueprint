@@ -265,8 +265,8 @@ quality-ci-blueprint: ## Run source blueprint CI lane bundle
 	@$(MAKE) quality-ci-strict
 	@pre-commit run --hook-stage pre-push --all-files
 
-quality-ci-generated-consumer-smoke: ## Run generated-consumer template smoke lane
-	@BLUEPRINT_TEMPLATE_SMOKE_SCENARIO=local-lite-baseline \
+quality-ci-generated-consumer-smoke: ## Run generated-consumer template smoke lane (covers issue #230 v1.8.0 paired-reseed scenario)
+	@BLUEPRINT_TEMPLATE_SMOKE_SCENARIO=local-lite-issue-230-paired-reseed \
 	BLUEPRINT_PROFILE=local-lite \
 	OBSERVABILITY_ENABLED=false \
 	WORKFLOWS_ENABLED=false \
@@ -285,6 +285,7 @@ quality-ci-generated-consumer-smoke: ## Run generated-consumer template smoke la
 	BLUEPRINT_GITHUB_ORG=ci-smoke-org \
 	BLUEPRINT_GITHUB_REPO=ci-smoke-blueprint \
 	BLUEPRINT_DEFAULT_BRANCH=main \
+	BLUEPRINT_TEMPLATE_SMOKE_PRESEED_CONSUMER_KUSTOMIZATION=true \
 	$(MAKE) blueprint-template-smoke
 
 quality-ci-upgrade-validate: ## Run end-to-end consumer upgrade validation lane (push-to-main gate)
