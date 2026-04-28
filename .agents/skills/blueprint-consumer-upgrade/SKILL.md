@@ -7,6 +7,10 @@ description: Upgrade existing generated-consumer repositories using the determin
 
 The upgrade is fully scripted. The agent's role is: set the ref, run the pipeline, read the report, apply prescribed actions, and commit.
 
+## Governance Context
+
+> Quality-hooks usage policy (per-slice vs pre-PR gate, keep-going env, force-full): see AGENTS.md § Quality Hooks — Inner-Loop and Pre-PR Usage.
+
 ## Workflow (6 steps)
 
 1. **Set ref.** Resolve the target tag or accept it from the user input. Create a dedicated branch.

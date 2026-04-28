@@ -33,6 +33,8 @@ Software Engineer (invokes agent).
 
 > If `AGENTS.md` changes any of the above sections, update this block to reflect the affected sections.
 
+> Quality-hooks usage policy (per-slice vs pre-PR gate, keep-going env, force-full): see AGENTS.md § Quality Hooks — Inner-Loop and Pre-PR Usage.
+
 ## Guardrails
 
 1. Slice by bounded context and dependency direction — not by random files.
