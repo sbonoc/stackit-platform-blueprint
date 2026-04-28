@@ -17,12 +17,12 @@
 - Out of scope: the `apply_optional_module_secret_from_literals` and `render_optional_module_secret_manifests` functions (unaffected — accept variadic `key=value` args); the `RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS` variable name; escaping mechanisms for the comma-separated format.
 
 ## Bounded Contexts and Responsibilities
-- Parser context (`parse_literal_pairs`): owns delimiter strategy — determine whether input is newline-separated or legacy comma-separated based on presence of `\n`; emit one `key=value` per line; validate `key` and `value` are non-empty.
+- Parser context (`parse_literal_pairs`): owns delimiter strategy — accept only newline-separated input; reject comma-separated input with `log_warn` diagnostic; emit one `key=value` per line; validate `key` and `value` are non-empty.
 - Caller context (`reconcile_eso_runtime_secrets.sh`): reads parsed output line-by-line into `source_literals` array; invokes `apply_optional_module_secret_from_literals`; emits reconcile issue on parse failure.
 
 ## High-Level Component Design
-- Domain layer: `RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS` env var — user-supplied key=value pairs (newline or comma-separated).
-- Application layer: `parse_literal_pairs()` — delimiter detection + per-pair validation → normalized `key=value\n` stream.
+- Domain layer: `RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS` env var — user-supplied key=value pairs (newline-separated only).
+- Application layer: `parse_literal_pairs()` — format validation + comma-detection heuristic for deprecated-format rejection + per-pair validation → normalized `key=value\n` stream.
 - Infrastructure adapters: `apply_optional_module_secret_from_literals` → `render_optional_module_secret_manifests` → Kubernetes Secret YAML → `kubectl apply`.
 - Presentation/API/workflow boundaries: no change — this is an internal shell function.
 
@@ -32,8 +32,8 @@
 - Data/API/event contracts touched: `RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS` format contract (documented in `runtime_credentials_eso.md`).
 
 ## Non-Functional Architecture Notes
-- Security: value content must never be truncated or split — internal commas in values (base64 data URIs, JWTs, connection strings) must pass through verbatim to the base64-encoded Kubernetes secret data field. The `${pair#*=}` greedy strip from the right already handles this correctly for the per-pair value extraction; the fix is entirely in the delimiter detection.
-- Observability: `record_reconcile_issue` call-site is preserved; only the error message string is updated to reference both formats.
+- Security: value content must never be truncated or split — internal commas in values (base64 data URIs, JWTs, connection strings) must pass through verbatim to the base64-encoded Kubernetes secret data field. The `${pair#*=}` expansion strips the shortest matching prefix from the left through the first `=`, leaving the remainder of the value intact for per-pair value extraction; the fix is entirely in the delimiter strategy.
+- Observability: `record_reconcile_issue` call-site is preserved; only the error message string is updated to reference the newline-separated-only format.
 - Reliability and rollback: Option B (newline-only) is a breaking change. Consumers using comma-separated format must migrate their serializer. `log_warn` on parse failure (FR-002) ensures the migration need is visible even when `RUNTIME_CREDENTIALS_REQUIRED=false`.
 - Monitoring/alerting: no new metrics; existing `reconcile_issue_total` metric emitted on parse failure remains in place.
 

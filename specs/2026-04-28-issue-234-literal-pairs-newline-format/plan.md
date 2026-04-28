@@ -6,7 +6,7 @@
 
 ## Constitution Gates (Pre-Implementation)
 - Simplicity gate:
-  - Change is a direct replacement of the `IFS=',' read -r -a raw_pairs` array split with a `while IFS= read -r pair` newline loop inside `parse_literal_pairs()`. No new abstractions, no detection branch.
+  - Change is a direct replacement of the `IFS=',' read -r -a raw_pairs` array split with a `while IFS= read -r pair` newline loop inside `parse_literal_pairs()`. No new abstractions. A lightweight comma-detection heuristic fires only on single-line input to reject deprecated CSV format (AC-002); it does not alter the parsing strategy for accepted newline-separated input.
 - Anti-abstraction gate:
   - No wrapper layer introduced. The bash `while IFS= read -r pair` idiom replaces the array-based split directly.
 - Integration-first testing gate:

@@ -41,7 +41,7 @@
 ## Normative Requirements
 
 ### Functional Requirements (Normative)
-- FR-001 MUST update `parse_literal_pairs()` in `scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh` to accept ONLY newline-separated `key=value` pairs; EXACTLY ONE splitting strategy SHALL be applied — split on newlines; comma-separated input MUST NOT be supported.
+- FR-001 MUST update `parse_literal_pairs()` in `scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh` to accept ONLY newline-separated `key=value` pairs; EXACTLY ONE pair-parsing/splitting strategy SHALL be applied for accepted input — split on newlines. Implementations are permitted to inspect the raw, unsplit input for commas or similar markers solely to detect and reject deprecated comma-separated input with diagnostics, but MUST NOT parse by splitting on commas or otherwise support comma-separated input.
 - FR-002 MUST emit `log_warn` on any `parse_literal_pairs()` failure, in addition to `record_reconcile_issue`, so consumers who pass comma-separated input receive a visible diagnostic regardless of the `RUNTIME_CREDENTIALS_REQUIRED` setting.
 - FR-003 MUST update documentation in `docs/platform/consumer/runtime_credentials_eso.md` and its bootstrap template copy to declare newline-separated as the ONLY accepted format and state that comma-separated input is no longer valid.
 - FR-004 MUST update the `record_reconcile_issue` error message in `reconcile_eso_runtime_secrets.sh` to reference the newline-separated format as the sole accepted format.

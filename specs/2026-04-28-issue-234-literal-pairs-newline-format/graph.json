@@ -15,12 +15,12 @@
     {
       "id": "FR-003",
       "type": "requirement",
-      "summary": "Documentation MUST declare newline-separated as recommended format; comma-separated as legacy"
+      "summary": "Documentation MUST declare newline-separated key=value pairs as the accepted format; comma-separated is no longer accepted"
     },
     {
       "id": "FR-004",
       "type": "requirement",
-      "summary": "reconcile_eso_runtime_secrets.sh error message MUST reference both accepted formats"
+      "summary": "reconcile_eso_runtime_secrets.sh error message MUST reference newline-separated format only"
     },
     {
       "id": "NFR-SEC-001",
