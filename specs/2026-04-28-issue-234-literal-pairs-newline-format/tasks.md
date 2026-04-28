@@ -9,19 +9,20 @@
 
 ## Implementation — Slice 1: Failing test + parse fix
 
-- [ ] T-001 Write failing regression test in `tests/infra/test_runtime_credentials_eso.py` for newline-separated `RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS` with comma-in-value (data URI); confirm test fails against current parser (SDD-C-024)
-- [ ] T-002 Update `parse_literal_pairs()` in `scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh`: add delimiter-detection branch; replace `IFS=',' read -r -a raw_pairs` + for-loop with `while IFS= read -r pair` loop
-- [ ] T-003 Update `record_reconcile_issue` error message to reference both accepted formats (`key=value\nkey2=value2` or `key=value,key2=value2`)
+- [ ] T-001 Write two failing regression tests in `tests/infra/test_runtime_credentials_eso.py`: (a) newline-separated `RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS` with comma-in-value (data URI) — confirm fails against current parser; (b) comma-separated input rejected with non-zero exit + `log_warn` — confirm current parser does NOT reject (SDD-C-024)
+- [ ] T-001a Migrate existing test `test_dry_run_reconcile_writes_success_state_and_renders_source_secret`: update `RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS` from comma-separated to newline-separated format (line 42 in test file)
+- [ ] T-002 Update `parse_literal_pairs()` in `scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh`: remove `IFS=',' read -r -a raw_pairs` + for-loop entirely; replace with `while IFS= read -r pair` newline-only loop; add `log_warn` on missing `=`, empty key, or empty value
+- [ ] T-003 Update `record_reconcile_issue` error message to reference newline-separated as the sole accepted format (`key=value` one per line)
 
 ## Implementation — Slice 2: Documentation
 
-- [ ] T-004 Update `docs/platform/consumer/runtime_credentials_eso.md`: mark newline-separated as recommended; mark comma-separated as legacy (values without commas only); update usage example
+- [ ] T-004 Update `docs/platform/consumer/runtime_credentials_eso.md`: declare newline-separated as the ONLY accepted format; state comma-separated is no longer accepted; update usage example with `$'...'` quoting; add migration note for consumers on comma-separated format
 - [ ] T-005 Update bootstrap template copy `scripts/templates/blueprint/bootstrap/docs/platform/consumer/runtime_credentials_eso.md` with the same changes as T-004
 
 ## Test Automation
 
 - [ ] T-101 Confirm new test (T-001) is green after T-002 fix; confirm it is a positive-path assertion: newline-separated input with comma-in-value returns a correctly parsed pair (SDD-C-023)
-- [ ] T-102 Confirm existing `test_dry_run_reconcile_writes_success_state_and_renders_source_secret` (comma-separated simple values) passes unchanged (AC-002)
+- [ ] T-102 Confirm `test_dry_run_reconcile_writes_success_state_and_renders_source_secret` passes after T-001a migration to newline-separated format
 - [ ] T-103 Confirm `test_required_mode_fails_on_invalid_literal_contract` (missing `=` separator) continues to return non-zero (no regression in error-path behavior)
 
 ## Validation and Release Readiness

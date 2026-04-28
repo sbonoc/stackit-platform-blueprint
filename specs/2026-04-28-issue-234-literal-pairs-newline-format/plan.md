@@ -6,7 +6,7 @@
 
 ## Constitution Gates (Pre-Implementation)
 - Simplicity gate:
-  - Change is a single conditional branch added at the top of `parse_literal_pairs()`. No new abstractions.
+  - Change is a direct replacement of the `IFS=',' read -r -a raw_pairs` array split with a `while IFS= read -r pair` newline loop inside `parse_literal_pairs()`. No new abstractions, no detection branch.
 - Anti-abstraction gate:
   - No wrapper layer introduced. The bash `while IFS= read -r pair` idiom replaces the array-based split directly.
 - Integration-first testing gate:
@@ -21,17 +21,19 @@
 ### Slice 1 — Failing regression tests + parse fix (red→green, SDD-C-024)
 1. Add failing test: `RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS` as newline-separated with comma-in-value (data URI). Confirm it fails against current `parse_literal_pairs()`.
 2. Add failing test: comma-separated input (`username=dev-user,password=dev-password`) MUST be rejected (non-zero exit + `log_warn`). Confirm current parser does NOT reject this (demonstrating the behavior change).
-3. Update `parse_literal_pairs()` in `scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh`:
+3. Migrate existing test `test_dry_run_reconcile_writes_success_state_and_renders_source_secret` (`tests/infra/test_runtime_credentials_eso.py` line 42): update `RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS` value from comma-separated (`username=dev-user,password=dev-password`) to newline-separated (`username=dev-user\npassword=dev-password`). This test is a migration-required test — it will fail under Option B until updated.
+4. Update `parse_literal_pairs()` in `scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh`:
    - Remove `IFS=',' read -r -a raw_pairs <<<"$literals_csv"` + for-loop entirely.
    - Replace with `while IFS= read -r pair; done <<< "$literals"` (newline-only split).
    - Add `log_warn` calls on any parse failure (missing `=`, empty key, empty value).
-4. Update `record_reconcile_issue` error message to reference newline-separated as the sole accepted format.
-5. Confirm both failing tests now pass.
+5. Update `record_reconcile_issue` error message to reference newline-separated as the sole accepted format.
+6. Confirm all three tests now pass.
 
 ### Slice 2 — Documentation update
 1. Update `docs/platform/consumer/runtime_credentials_eso.md`:
-   - Mark newline-separated as recommended format; mark comma-separated as legacy (values without commas only).
+   - Declare newline-separated as the ONLY accepted format; state comma-separated input is no longer accepted.
    - Update usage example to newline-separated form with `$'...'` quoting.
+   - Add migration note: consumers using comma-separated format must update their serializer.
 2. Update bootstrap template copy: `scripts/templates/blueprint/bootstrap/docs/platform/consumer/runtime_credentials_eso.md` — same changes.
 3. Run `make docs-build && make docs-smoke`.
 
