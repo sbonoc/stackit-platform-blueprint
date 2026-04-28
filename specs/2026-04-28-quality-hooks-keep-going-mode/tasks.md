@@ -22,7 +22,7 @@
 - [x] T-012 Create `.envrc` at the repo root exporting `QUALITY_HOOKS_KEEP_GOING=true`; create `.claude/settings.json` at the repo root with an `env` block setting `QUALITY_HOOKS_KEEP_GOING=true` (FR-017); neither file sets `QUALITY_HOOKS_FORCE_FULL`
 - [x] T-013 Update `scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl` doc-comments for `quality-hooks-fast`, `quality-hooks-strict`, `quality-hooks-run` to mention `QUALITY_HOOKS_KEEP_GOING` and `QUALITY_HOOKS_FORCE_FULL`; re-render `make/blueprint.generated.mk`
 - [x] T-014 Add the operations doc entry under `docs/blueprint/governance/quality_hooks.md` documenting `--keep-going`, env vars, path-gating, phase-gating rationale, dedup rationale, failure-cascade caveat, agent inner-loop usage
-- [ ] T-015 Move ADR `Status: proposed → approved` once Architecture sign-off is recorded
+- [x] T-015 Move ADR `Status: proposed → approved` once Architecture sign-off is recorded
 
 ## Test Automation
 - [x] T-101 Add `tests/blueprint/test_quality_hooks_keep_going.py` (Python `subprocess`-based, Q-2 resolved: Option A) covering helper contract: env-var detection, per-check pass/fail/duration recording, summary block format, exit code aggregation, tail-length env-var override, EXIT-trap cleanup
