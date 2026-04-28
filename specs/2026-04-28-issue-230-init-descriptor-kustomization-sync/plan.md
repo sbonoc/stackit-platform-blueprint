@@ -3,7 +3,7 @@
 ## Implementation Start Gate
 - Implementation tasks MUST remain unchecked until `SPEC_READY=true`.
 - If required inputs are missing, add `BLOCKED_MISSING_INPUTS` in `spec.md` and keep the gate closed.
-- This work item is currently `SPEC_READY=false` pending Product/Architecture/Security/Operations sign-off. Q-1 (option selection) was resolved on PR #231: **Option A** selected.
+- This work item is `SPEC_READY=true` (all four sign-offs recorded on PR #231 on 2026-04-28). Q-1 resolved: **Option A** selected.
 
 ## Constitution Gates (Pre-Implementation)
 - Simplicity gate:

@@ -1,14 +1,14 @@
 # Tasks
 
 ## Gate Checks (Required Before Implementation)
-- [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`
-- [ ] G-002 Confirm open questions and unresolved alternatives are `0` (Q-1 resolved on PR #231 — Option A selected)
-- [ ] G-003 Confirm required sign-offs are approved (`Product`, `Architecture`, `Security`, `Operations`)
-- [ ] G-004 Confirm `Applicable Guardrail Controls` section in `spec.md` includes the `SDD-C-###` IDs declared (already populated)
-- [ ] G-005 Confirm `Implementation Stack Profile` section in `spec.md` is fully populated (already populated; explicit-consumer-exception fields documented)
+- [x] G-001 Confirm `SPEC_READY=true` in `spec.md`
+- [x] G-002 Confirm open questions and unresolved alternatives are `0` (Q-1 resolved on PR #231 — Option A selected)
+- [x] G-003 Confirm required sign-offs are approved (`Product`, `Architecture`, `Security`, `Operations`)
+- [x] G-004 Confirm `Applicable Guardrail Controls` section in `spec.md` includes the `SDD-C-###` IDs declared (already populated)
+- [x] G-005 Confirm `Implementation Stack Profile` section in `spec.md` is fully populated (already populated; explicit-consumer-exception fields documented)
 
 ## Implementation
-- [ ] T-001 Lock in Option A in `spec.md` — `Selected option: OPTION_A`, rationale, `Open questions count: 0`, `Unresolved alternatives count: 0` (Step 02 already updated `spec.md`; this task remains unchecked until `SPEC_READY=true` per the readiness gate)
+- [x] T-001 Lock in Option A in `spec.md` — `Selected option: OPTION_A`, rationale, `Open questions count: 0`, `Unresolved alternatives count: 0` (Step 02 updated spec; Step 03 confirmed under SPEC_READY=true on 2026-04-28)
 - [ ] T-002 Apply Option A in code: add `infra/gitops/platform/base/apps/kustomization.yaml` to the `consumer_seeded` list (or new `init_force_paired` list) in `blueprint/contract.yaml`; add a new template `scripts/templates/consumer/init/infra/gitops/platform/base/apps/kustomization.yaml.tmpl` mirroring the bootstrap template; verify `seed_consumer_owned_files` in `scripts/lib/blueprint/init_repo_contract.py` reseeds it on force (no helper layer needed if the contract list approach is used).
 - [ ] T-003 Update blueprint docs/diagrams: `docs/blueprint/upgrade/release_notes.md` (v1.8.2 entry that explicitly notes the expanded force-init blast radius), promote ADR `Status: proposed` → `Status: approved`
 - [ ] T-004 Update consumer-facing docs/diagrams when contracts/behavior change — N/A under Option A; record N/A in `pr_context.md`
