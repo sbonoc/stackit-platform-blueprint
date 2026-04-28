@@ -5,7 +5,7 @@
      SPEC_READY=true: implementation gate — all sign-offs required; unlocks coding. -->
 - SPEC_READY: false
 - SPEC_PRODUCT_READY: false
-- Open questions count: 3
+- Open questions count: 0
 - Unresolved alternatives count: 0
 - Unresolved TODO markers count: 0
 - Pending assumptions count: 0
@@ -14,7 +14,7 @@
 - Architecture sign-off: pending
 - Security sign-off: pending
 - Operations sign-off: pending
-- Missing input blocker token: BLOCKED_MISSING_INPUTS
+- Missing input blocker token: none
 - ADR path: docs/blueprint/architecture/decisions/ADR-20260428-quality-hooks-keep-going-mode.md
 - ADR status: proposed
 
