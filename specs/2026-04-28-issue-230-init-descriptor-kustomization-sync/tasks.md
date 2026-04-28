@@ -10,12 +10,12 @@
 ## Implementation
 - [x] T-001 Lock in Option A in `spec.md` — `Selected option: OPTION_A`, rationale, `Open questions count: 0`, `Unresolved alternatives count: 0` (Step 02 updated spec; Step 03 confirmed under SPEC_READY=true on 2026-04-28)
 - [x] T-002 Apply Option A in code: add `infra/gitops/platform/base/apps/kustomization.yaml` to the `consumer_seeded` list (or new `init_force_paired` list) in `blueprint/contract.yaml`; add a new template `scripts/templates/consumer/init/infra/gitops/platform/base/apps/kustomization.yaml.tmpl` mirroring the bootstrap template; verify `seed_consumer_owned_files` in `scripts/lib/blueprint/init_repo_contract.py` reseeds it on force (no helper layer needed if the contract list approach is used).
-- [ ] T-003 Update blueprint docs/diagrams: `docs/blueprint/upgrade/release_notes.md` (v1.8.2 entry that explicitly notes the expanded force-init blast radius), promote ADR `Status: proposed` → `Status: approved`
-- [ ] T-004 Update consumer-facing docs/diagrams when contracts/behavior change — N/A under Option A; record N/A in `pr_context.md`
+- [x] T-003 Update blueprint docs/diagrams: ADR `Status: proposed` → `Status: approved` recorded at Step 03 (commit ea86b11). Release-notes deviation: `docs/blueprint/upgrade/release_notes.md` does not exist as a repo convention — versioning is ADR-based (consistent with PRs #226–#228). Deviation captured in `pr_context.md`; expanded force-init blast radius is documented in the ADR Consequences section instead.
+- [x] T-004 Update consumer-facing docs/diagrams when contracts/behavior change — N/A under Option A; recorded in `pr_context.md` at slice 3
 
 ## Test Automation
 - [x] T-101 Add unit test `tests/blueprint/test_init_repo_descriptor_kustomization_pairing.py::test_force_init_against_consumer_kustomization_passes_validate_app_descriptor` (AC-002) — RED before T-002, GREEN after (red committed in slice 1; green at slice 2)
-- [ ] T-102 Add contract drift test `tests/blueprint/test_contract_init_force_paired_paths_complete.py` asserting the on-disk init force-reseed scope matches the `consumer_seeded` list (AC-004)
+- [x] T-102 Add contract drift test `tests/blueprint/test_contract_init_force_paired_paths_complete.py` asserting the on-disk init force-reseed scope matches the `consumer_seeded` list (AC-004)
 - [ ] T-103 For any new or modified filter/payload-transform route, verify a positive-path unit test exists — N/A (no filter/transform changes); record N/A in `pr_context.md`
 - [x] T-104 Translate the issue #230 reproducer (postcheck failure on v1.8.0-shaped consumer kustomization) into a failing automated test first — covered by T-101 (unit) and T-105 (smoke), then turned green by T-002 (red committed in slice 1)
 - [x] T-105 Extend `make blueprint-template-smoke` (or `tests/blueprint/fixtures/upgrade_matrix/`) to cover the v1.8.0-state-shaped consumer kustomization scenario (FR-003) — RED before T-002, GREEN after (smoke pre-seed hook + CI lane env var landed in slice 1)
