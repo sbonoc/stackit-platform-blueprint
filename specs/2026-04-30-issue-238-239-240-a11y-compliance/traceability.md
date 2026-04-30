@@ -4,11 +4,11 @@
 
 | Requirement ID | Control IDs | Design Element | Implementation Path(s) | Test Evidence | Documentation Evidence | Operational Evidence |
 |---|---|---|---|---|---|---|
-| FR-101 | SDD-C-005, SDD-C-008 | `NFR-A11Y-001` line in spec.md template | `.spec-kit/templates/blueprint/spec.md` | `test_quality_contracts.py::test_spec_template_exposes_a11y_nfr` | ADR-20260430-issue-238-239-240-a11y-compliance.md | newly scaffolded specs include NFR-A11Y-001 |
-| FR-102 | SDD-C-005, SDD-C-008 | T-Axx task block with wcag21aa and attachTo: document.body | `.spec-kit/templates/blueprint/tasks.md` | same test class | same ADR | newly scaffolded tasks.md includes T-A02 with explicit WCAG 2.1 AA ruleset |
-| FR-103 | SDD-C-005, SDD-C-008 | "Accessibility Gate" section in hardening_review.md template | `.spec-kit/templates/blueprint/hardening_review.md` | same test class | same ADR | newly scaffolded hardening_review.md includes Accessibility Gate checklist |
-| FR-104 | SDD-C-005, SDD-C-008 | `WCAG SC` column header in traceability.md template | `.spec-kit/templates/blueprint/traceability.md` | same test class | same ADR | newly scaffolded traceability.md includes WCAG SC column |
-| FR-105 | SDD-C-008, SDD-C-012 | `check_spec_pr_ready.py` Accessibility Gate validation | `scripts/bin/platform/quality/check_spec_pr_ready.py` | `make infra-contract-test-fast` contract suite | ADR | `quality-spec-pr-ready` blocks PR packaging on unchecked Accessibility Gate items |
+| FR-101 | SDD-C-005, SDD-C-008 | `NFR-A11Y-001` line in spec.md template (unconditional; N/A opt-out for non-UI) | `.spec-kit/templates/blueprint/spec.md` | `test_quality_contracts.py::test_spec_template_exposes_a11y_nfr` | ADR-20260430-issue-238-239-240-a11y-compliance.md | newly scaffolded specs include NFR-A11Y-001 |
+| FR-102 | SDD-C-005, SDD-C-008 | T-Axx task block with wcag21aa and attachTo: document.body (unconditional) | `.spec-kit/templates/blueprint/tasks.md` | same test class | same ADR | newly scaffolded tasks.md includes T-A02 with explicit WCAG 2.1 AA ruleset |
+| FR-103 | SDD-C-005, SDD-C-008 | "Accessibility Gate" section in hardening_review.md template (unconditional) | `.spec-kit/templates/blueprint/hardening_review.md` | same test class | same ADR | newly scaffolded hardening_review.md includes Accessibility Gate checklist |
+| FR-104 | SDD-C-005, SDD-C-008 | `WCAG SC` column header in traceability.md template (unconditional) | `.spec-kit/templates/blueprint/traceability.md` | same test class | same ADR | newly scaffolded traceability.md includes WCAG SC column |
+| FR-105 | SDD-C-008, SDD-C-012 | `check_spec_pr_ready.py` Accessibility Gate validation (no unchecked non-N/A boxes) | `scripts/bin/platform/quality/check_spec_pr_ready.py` | `make infra-contract-test-fast` contract suite | ADR | `quality-spec-pr-ready` blocks PR packaging on unchecked Accessibility Gate items |
 | FR-201 | SDD-C-005, SDD-C-008 | `touchpoints-test-a11y` Make target + `test_a11y.sh` | `make/platform.mk`; `scripts/bin/platform/touchpoints/test_a11y.sh` | contract test: target and script existence | `docs/reference/generated/core_targets.generated.md` | target resolves; runs axe page scan |
 | FR-202 | SDD-C-005, SDD-C-008 | `apps-a11y-smoke` Make target + `a11y_smoke.sh` | `make/platform.mk`; `scripts/bin/platform/apps/a11y_smoke.sh` | contract test: target and script existence | `core_targets.generated.md` | target resolves; included in `test-smoke-all-local` |
 | FR-203 | SDD-C-008 | `axe_page_scan.mjs` with explicit WCAG 2.1 AA tag array | `scripts/lib/platform/touchpoints/axe_page_scan.mjs` | contract test: `wcag21a` and `wcag21aa` string present in file | ADR | writes `artifacts/a11y/axe-report.json`; exits non-zero on impact violations |
@@ -17,8 +17,8 @@
 | FR-301 | SDD-C-005, SDD-C-011 | `acr.md` consumer-seeded VPAT 2.4 scaffold | `docs/platform/accessibility/acr.md` | contract test: file exists; SC `4.1.3` row present | ADR; `docs/platform/accessibility/acr.md` itself | seeded on consumer init; not overwritten on upgrade |
 | FR-302 | SDD-C-008, SDD-C-012 | `quality-a11y-acr-check` + `check_acr_freshness.py` | `make/platform.mk`; `scripts/bin/platform/quality/check_acr_freshness.py` | unit test: exit codes for missing/stale/fresh ACR | `core_targets.generated.md` | exits non-zero with diagnostic message on stale/missing ACR |
 | FR-303 | SDD-C-005 | `quality-a11y-acr-sync` + `sync_acr_criteria.py` | `make/platform.mk`; `scripts/bin/platform/quality/sync_acr_criteria.py` | contract test: target and script existence | `core_targets.generated.md` | regenerates criterion rows from bundled W3C list |
-| FR-304 | SDD-C-016 | PR Packager skill ACR review checklist item | `.agents/skills/blueprint-sdd-step07-pr-packager/SKILL.md` | `quality-spec-pr-ready` validation [per Q-1 resolution] | skill runbook | PR Packager skill prompts ACR review for UI-layer specs |
-| FR-305 | SDD-C-012 | `quality-a11y-acr-check` wired into quality hooks | `make/platform.mk` [integration target per Q-2 resolution] | `make quality-hooks-fast` includes `quality-a11y-acr-check` | — | CI blocks on stale/missing ACR |
+| FR-304 | SDD-C-016 | PR Packager skill ACR review checklist item | `.agents/skills/blueprint-sdd-step07-pr-packager/SKILL.md` | `quality-spec-pr-ready` validation | skill runbook | PR Packager skill prompts ACR review for UI-facing specs |
+| FR-305 | SDD-C-012 | `quality-a11y-acr-check` wired into `quality-hooks-fast` | `scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl`; `make/blueprint.generated.mk` | contract test: `quality-a11y-acr-check` present in `quality-hooks-fast` recipe | — | `quality-hooks-fast` blocks on stale/missing ACR |
 | NFR-EAA-001 | SDD-C-008 | Explicit WCAG 2.1 AA tag array in axe runner and preset | `axe_page_scan.mjs`; `axe_preset.ts` | AC-008, AC-009 contract assertions | ADR Option decision | all axe scans use `['wcag2a','wcag2aa','wcag21a','wcag21aa']`; no scan passes on default ruleset |
 | NFR-REL-001 | SDD-C-012 | Additive-only template and Make changes; consumer-seeded files not overwritten | all template files; `make/platform.mk` | full test suite passes unchanged (`make test-unit-all`); no existing assertions modified | — | zero behavior change for consumers who do not adopt new targets |
 | NFR-OPS-001 | SDD-C-012 | `acr_staleness_days` in `blueprint/contract.yaml`; diagnostic output | `blueprint/contract.yaml`; `check_acr_freshness.py` | unit test: staleness threshold applied correctly; diagnostic message includes days elapsed | — | diagnostic output names file path, configured window, days elapsed, and remediation action |
@@ -33,8 +33,8 @@
 | AC-008 | SDD-C-012 | `wcag21a` and `wcag21aa` in `axe_page_scan.mjs` | `scripts/lib/platform/touchpoints/axe_page_scan.mjs` | contract test: string presence | — | — |
 | AC-009 | SDD-C-012 | `WCAG21AA_AXE_CONFIG` in `axe_preset.ts` | `scripts/lib/platform/touchpoints/axe_preset.ts` | contract test: string presence | — | — |
 | AC-010 | SDD-C-012 | `acr.md` scaffold exists with SC `4.1.3` row | `docs/platform/accessibility/acr.md` | contract test: file existence; SC row | — | — |
-| AC-011 | SDD-C-012 | `check_acr_freshness.py` exit codes for missing/stale/fresh ACR | `scripts/bin/platform/quality/check_acr_freshness.py` | unit test: three exit-code scenarios | — | — |
-| AC-012 | SDD-C-012 | PR Packager skill runbook contains ACR review item | `.agents/skills/blueprint-sdd-step07-pr-packager/SKILL.md` | `quality-spec-pr-ready` or manual runbook review | — | — |
+| AC-011 | SDD-C-012 | `check_acr_freshness.py` exit codes; `quality-a11y-acr-check` wired into `quality-hooks-fast` | `scripts/bin/platform/quality/check_acr_freshness.py`; `make/blueprint.generated.mk` | unit test: three exit-code scenarios; contract test: recipe inclusion | — | — |
+| AC-012 | SDD-C-012 | PR Packager skill runbook contains ACR review item | `.agents/skills/blueprint-sdd-step07-pr-packager/SKILL.md` | manual runbook review | — | — |
 
 ## Graph Linkage
 - Graph file: `graph.json`
@@ -42,7 +42,7 @@
 
 ## Validation Summary
 - Required bundles executed:
-- Result summary: pending — SPEC_READY=false (Q-1 and Q-2 open)
+- Result summary: pending — SPEC_READY=false (sign-offs pending)
 - Documentation validation:
   - `make docs-build`
   - `make docs-smoke`
@@ -54,6 +54,6 @@
 - Hardening review export: `hardening_review.md`
 
 ## Open Risks and Follow-Ups
-- Follow-up: pending Q-1 resolution — if Option A (conditional `layer:` field) is selected, a separate work item is needed to add the `layer:` field to the spec.md template and wire it into `quality-spec-pr-ready`
-- Follow-up: pending Q-2 resolution — if Option A (create `consumer_fitness_status.sh`) is selected, a separate work item is needed to implement that script
 - Follow-up: identify other WCAG 2.1 criterion table sources to ensure `sync_acr_criteria.py` stays current with W3C errata
+- Follow-up (parked): create `consumer_fitness_status.sh` in a standalone work item when additional consumer fitness checks are identified beyond the ACR check
+- Follow-up (parked): add `layer:` field to `spec.md` template in a standalone cross-cutting work item
