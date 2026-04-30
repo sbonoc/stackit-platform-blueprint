@@ -60,3 +60,10 @@ repos:
         pass_filenames: false
         stages: [pre-push]
         always_run: true
+      - id: pnpm-lockfile-sync
+        name: pnpm lockfile sync (pre-push)
+        language: system
+        entry: pnpm install --frozen-lockfile --prefer-offline
+        pass_filenames: false
+        stages: [pre-push]
+        files: (^|/)package\.json$
