@@ -8,6 +8,7 @@
     {"id": "FR-004", "type": "requirement", "summary": "quality-consumer-ci no-op stub in blueprint.generated.mk"},
     {"id": "FR-005", "type": "requirement", "summary": "quality-consumer-pre-push pre-push hook in .pre-commit-config.yaml bootstrap template"},
     {"id": "FR-006", "type": "requirement", "summary": "quality-consumer-ci wired into quality-ci-blueprint recipe as final step"},
+    {"id": "FR-007", "type": "requirement", "summary": "AGENTS.md.tmpl documents quality-consumer-pre-push and quality-consumer-ci with tier placement convention"},
     {"id": "NFR-REL-001", "type": "requirement", "summary": "additive only — no behavior change for consumers who do not override stubs"},
     {"id": "NFR-UPG-001", "type": "requirement", "summary": "consumer overrides in platform.mk — no merge-conflict risk on upgrade"},
     {"id": "NFR-A11Y-001", "type": "requirement", "summary": "N/A — tooling only, no UI components"},
@@ -17,7 +18,6 @@
     {"id": "AC-004", "type": "acceptance", "summary": "quality-consumer-ci stub present in blueprint.generated.mk.tmpl with @true body"},
     {"id": "AC-005", "type": "acceptance", "summary": "quality-ci-blueprint recipe calls $(MAKE) quality-consumer-ci"},
     {"id": "AC-006", "type": "acceptance", "summary": "6 new contract assertions pass via make infra-contract-test-fast"},
-    {"id": "FR-007", "type": "requirement", "summary": "AGENTS.md.tmpl documents quality-consumer-pre-push and quality-consumer-ci with tier placement convention"},
     {"id": "AC-007", "type": "acceptance", "summary": "scripts/templates/consumer/init/AGENTS.md.tmpl contains quality-consumer-pre-push and quality-consumer-ci with tier documentation"}
   ],
   "edges": [

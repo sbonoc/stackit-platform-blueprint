@@ -1,7 +1,9 @@
 # ADR-20260430-issue-236-237-quality-gate-extensions
 
 ## Status
-proposed
+approved
+
+- ADR technical decision sign-off: approved
 
 ## Context
 Blueprint consumers need two quality-gate improvements:

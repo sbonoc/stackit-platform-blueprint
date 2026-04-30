@@ -1,14 +1,14 @@
 # Work Item Context Pack
 
 ## Context Snapshot
-- Work item:
+- Work item: 2026-04-30-issue-236-237-quality-gate-extensions
 - Track: blueprint
-- SPEC_READY:
-- ADR path:
-- ADR status:
+- SPEC_READY: true
+- ADR path: docs/blueprint/architecture/decisions/ADR-20260430-issue-236-237-quality-gate-extensions.md
+- ADR status: approved
 
 ## Guardrail Controls
-- Applicable control IDs:
+- Applicable control IDs: SDD-C-002, SDD-C-003, SDD-C-004, SDD-C-005, SDD-C-006, SDD-C-007, SDD-C-008, SDD-C-011, SDD-C-012, SDD-C-016, SDD-C-017, SDD-C-019, SDD-C-020, SDD-C-021
 
 ## Required Commands
 - `make quality-sdd-check`
