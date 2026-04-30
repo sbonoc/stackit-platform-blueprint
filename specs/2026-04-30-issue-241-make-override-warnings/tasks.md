@@ -22,12 +22,12 @@
 
 ## Slice 3 — ADR and docs
 - [x] T-201 Write `docs/blueprint/architecture/decisions/ADR-20260430-issue-241-make-override-warnings.md` — done during intake; Status: approved (sign-offs recorded in Step 03)
-- [ ] T-202 Run `make quality-docs-sync-core-targets` and verify no content change in `docs/reference/generated/core_targets.generated.md`
-- [ ] T-203 Run `make quality-sdd-check` — must pass clean post-implementation
+- [x] T-202 Run `make quality-docs-sync-core-targets` and verify no content change in `docs/reference/generated/core_targets.generated.md` — confirmed: "already up to date"
+- [x] T-203 Run `make quality-sdd-check` — passes clean post-implementation
 
 ## Validation and Release Readiness
-- [ ] T-204 Run `make infra-contract-test-fast` — confirm all contract tests pass
-- [ ] T-205 Run `make quality-hooks-fast` — confirm no violations
+- [x] T-204 Run `make infra-contract-test-fast` — 136 passed, 2 subtests passed; all contract tests pass
+- [x] T-205 Run `make quality-hooks-fast` — all substantive checks pass; `quality-spec-pr-ready` fails on scaffold `pr_context.md` (expected at Step 5 — filled at Step 7)
 - [ ] T-206 Attach evidence to traceability document
 - [ ] T-207 Run documentation validation (`make docs-build` and `make docs-smoke`)
 - [ ] T-208 Run hardening review validation bundle (`make quality-hardening-review`)
