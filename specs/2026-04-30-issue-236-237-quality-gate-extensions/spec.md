@@ -48,6 +48,7 @@
 - FR-004 The `blueprint.generated.mk` template MUST define a `quality-consumer-ci` no-op `.PHONY` stub target with body `@true` and a doc comment indicating consumers override it in `platform.mk`.
 - FR-005 The `.pre-commit-config.yaml` bootstrap template MUST include a `quality-consumer-pre-push` pre-push hook that calls `make quality-consumer-pre-push`, with `pass_filenames: false`, `stages: [pre-push]`, and `always_run: true`.
 - FR-006 The `quality-ci-blueprint` recipe in the `blueprint.generated.mk` template MUST call `@$(MAKE) quality-consumer-ci` as its final step so consumer CI extensions run as part of the standard CI lane.
+- FR-007 The consumer-init AGENTS.md template (`scripts/templates/consumer/init/AGENTS.md.tmpl`) MUST be updated to document `quality-consumer-pre-push` and `quality-consumer-ci` in the quality gate section with tier placement convention (Tier 1/unit → `quality-consumer-pre-push`; Tier 2/component → `quality-consumer-ci`).
 
 ### Non-Functional Requirements (Normative)
 - NFR-REL-001 All changes MUST be additive only — existing consumers who do not override the stubs MUST see no behavior change (stubs are no-ops; the lockfile hook exits 0 when the lockfile is consistent).
@@ -66,7 +67,7 @@
 - OpenAPI / Pact contract path: none
 - Event contract: None — no async messaging.
 - Make/CLI contract: Two new consumer Make targets added: `quality-consumer-pre-push` and `quality-consumer-ci` (both `.PHONY`, no-op by default). `quality-ci-blueprint` recipe extended with `@$(MAKE) quality-consumer-ci`.
-- Docs contract: `docs/blueprint/governance/quality_hooks.md` updated with consumer extension target documentation. `docs/platform/consumer/` new or updated consumer guide for overriding the extension stubs.
+- Docs contract: `docs/blueprint/governance/quality_hooks.md` updated with consumer extension target documentation. `docs/platform/consumer/` new or updated consumer guide for overriding the extension stubs. `scripts/templates/consumer/init/AGENTS.md.tmpl` updated to document `quality-consumer-pre-push` and `quality-consumer-ci` with tier placement convention.
 
 ## Blueprint Upstream Defect Escalation (Normative)
 - Upstream issue URL: none
@@ -80,7 +81,8 @@
 - AC-003 `scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl` MUST contain a `quality-consumer-pre-push` target with body `@true`.
 - AC-004 `scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl` MUST contain a `quality-consumer-ci` target with body `@true`.
 - AC-005 The `quality-ci-blueprint` recipe in `scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl` MUST contain `$(MAKE) quality-consumer-ci`.
-- AC-006 All five assertions above MUST pass as automated contract assertions in `tests/blueprint/test_quality_contracts.py` via `make infra-contract-test-fast`.
+- AC-006 All six assertions above (AC-001 through AC-005 and AC-007) MUST pass as automated contract assertions in `tests/blueprint/test_quality_contracts.py` via `make infra-contract-test-fast`.
+- AC-007 `scripts/templates/consumer/init/AGENTS.md.tmpl` MUST contain `quality-consumer-pre-push` and `quality-consumer-ci` strings with tier placement documentation.
 
 ## Informative Notes (Non-Normative)
 - Context: The `pnpm-lockfile-sync` hook uses `--prefer-offline` to avoid network traffic at pre-push time; it relies on the local pnpm content-addressable store. The `files: (^|/)package\.json$` pattern covers both the workspace root and all sub-package manifests. The `quality-consumer-pre-push` and `quality-consumer-ci` stubs are no-ops until the consumer overrides them in `platform.mk`. The stubs are delivered via `blueprint.generated.mk` (blueprint-managed, not consumer-owned), so they are always present after upgrade without consumer action.

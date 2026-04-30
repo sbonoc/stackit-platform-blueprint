@@ -25,6 +25,9 @@ Wire `quality-consumer-ci` into the `quality-ci-blueprint` recipe as its final s
 
 Add a `quality-consumer-pre-push` pre-push hook to the `.pre-commit-config.yaml` bootstrap template that calls `make quality-consumer-pre-push`.
 
+**Group C — AGENTS.md template documentation (Issue #237):**
+Update `scripts/templates/consumer/init/AGENTS.md.tmpl` to document both extension targets in the quality gate section with tier placement convention: Tier 1/unit work maps to `quality-consumer-pre-push`; Tier 2/component work maps to `quality-consumer-ci`. This ensures consumers who run `blueprint-init-repo` receive the documentation alongside the stubs.
+
 Consumers override the stubs in `platform.mk` (consumer-owned, never touched by blueprint upgrades):
 ```makefile
 quality-consumer-pre-push:

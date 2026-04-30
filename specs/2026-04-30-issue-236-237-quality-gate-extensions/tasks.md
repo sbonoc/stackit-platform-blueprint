@@ -18,6 +18,7 @@
 - [ ] T-202 Write failing contract assertion `test_make_template_has_quality_consumer_ci_stub` (red)
 - [ ] T-203 Write failing contract assertion `test_quality_ci_blueprint_calls_quality_consumer_ci` (red)
 - [ ] T-204 Write failing contract assertion `test_precommit_template_has_quality_consumer_pre_push_hook` (red)
+- [ ] T-211 Write failing contract assertion `test_agents_md_template_has_consumer_extension_targets` — verifies `quality-consumer-pre-push` and `quality-consumer-ci` in `scripts/templates/consumer/init/AGENTS.md.tmpl` (red)
 - [ ] T-205 Add `quality-consumer-pre-push` and `quality-consumer-ci` stub targets to `scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl` (green)
 - [ ] T-206 Add `@$(MAKE) quality-consumer-ci` as final step of `quality-ci-blueprint` in `blueprint.generated.mk.tmpl` (green)
 - [ ] T-207 Add `quality-consumer-pre-push` hook to `scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml` (green)
@@ -28,6 +29,7 @@
 ## Slice 3 — Docs + validation
 - [ ] T-301 Update `docs/blueprint/governance/quality_hooks.md` — add Consumer Extension Targets section
 - [ ] T-302 Create `docs/platform/consumer/consumer_quality_gates.md` — consumer guide for overriding extension stubs
+- [ ] T-308 Update `scripts/templates/consumer/init/AGENTS.md.tmpl` — add `quality-consumer-pre-push` and `quality-consumer-ci` to quality gate section with tier placement convention (green for AC-007)
 - [ ] T-303 Sync `docs/blueprint/governance/quality_hooks.md` to bootstrap template mirror (`make quality-docs-sync-blueprint-template`)
 - [ ] T-304 Regenerate `core_targets.generated.md` (`make quality-docs-sync-core-targets`)
 - [ ] T-305 Run `make docs-build && make docs-smoke`

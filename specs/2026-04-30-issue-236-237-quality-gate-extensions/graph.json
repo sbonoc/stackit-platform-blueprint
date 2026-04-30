@@ -16,7 +16,9 @@
     {"id": "AC-003", "type": "acceptance", "summary": "quality-consumer-pre-push stub present in blueprint.generated.mk.tmpl with @true body"},
     {"id": "AC-004", "type": "acceptance", "summary": "quality-consumer-ci stub present in blueprint.generated.mk.tmpl with @true body"},
     {"id": "AC-005", "type": "acceptance", "summary": "quality-ci-blueprint recipe calls $(MAKE) quality-consumer-ci"},
-    {"id": "AC-006", "type": "acceptance", "summary": "5 new contract assertions pass via make infra-contract-test-fast"}
+    {"id": "AC-006", "type": "acceptance", "summary": "6 new contract assertions pass via make infra-contract-test-fast"},
+    {"id": "FR-007", "type": "requirement", "summary": "AGENTS.md.tmpl documents quality-consumer-pre-push and quality-consumer-ci with tier placement convention"},
+    {"id": "AC-007", "type": "acceptance", "summary": "scripts/templates/consumer/init/AGENTS.md.tmpl contains quality-consumer-pre-push and quality-consumer-ci with tier documentation"}
   ],
   "edges": [
     {"from": "FR-001", "to": "AC-001", "relation": "validated_by"},
@@ -33,6 +35,8 @@
     {"from": "NFR-REL-001", "to": "FR-003", "relation": "constrains"},
     {"from": "NFR-REL-001", "to": "FR-004", "relation": "constrains"},
     {"from": "NFR-UPG-001", "to": "FR-003", "relation": "constrains"},
-    {"from": "NFR-UPG-001", "to": "FR-004", "relation": "constrains"}
+    {"from": "NFR-UPG-001", "to": "FR-004", "relation": "constrains"},
+    {"from": "FR-007", "to": "AC-007", "relation": "validated_by"},
+    {"from": "AC-007", "to": "AC-006", "relation": "part_of"}
   ]
 }
