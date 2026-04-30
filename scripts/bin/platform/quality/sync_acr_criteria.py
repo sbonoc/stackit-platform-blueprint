@@ -134,6 +134,24 @@ def main() -> None:
 
     new_content = _TABLE_ROW_RE.sub(_replace_row, content)
 
+    if added > 0:
+        new_rows_to_insert = [
+            new_rows_by_sc[sc]
+            for sc, _, _ in _WCAG21_CRITERIA
+            if sc not in existing
+        ]
+        lines = new_content.splitlines(keepends=True)
+        last_table_idx = -1
+        for i, line in enumerate(lines):
+            if _TABLE_ROW_RE.match(line.rstrip("\n")):
+                last_table_idx = i
+        insert_block = "\n".join(new_rows_to_insert) + "\n"
+        if last_table_idx >= 0:
+            lines.insert(last_table_idx + 1, insert_block)
+        else:
+            lines.append(insert_block)
+        new_content = "".join(lines)
+
     if new_content == content and added == 0:
         print(f"{PREFIX} OK — ACR criterion rows are up to date; no changes made.")
         return
