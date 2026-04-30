@@ -22,7 +22,7 @@
 
 ## Slice 3 — ADR and docs
 - [x] T-201 Write `docs/blueprint/architecture/decisions/ADR-20260430-issue-241-make-override-warnings.md` — done during intake; Status: approved (sign-offs recorded in Step 03)
-- [x] T-202 Run `make quality-docs-sync-core-targets` and verify no content change in `docs/reference/generated/core_targets.generated.md` — confirmed: "already up to date"
+- [x] T-202 Run `make quality-docs-sync-core-targets` and verify `docs/reference/generated/core_targets.generated.md` is updated to reflect the changed help strings — docs sync produced the committed generated-doc changes
 - [x] T-203 Run `make quality-sdd-check` — passes clean post-implementation
 
 ## Validation and Release Readiness

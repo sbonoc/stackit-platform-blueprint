@@ -30,7 +30,7 @@ Both tests MUST fail before the template/generated file edits are applied.
 
 ### Slice 3 — ADR + docs sync
 1. Write `docs/blueprint/architecture/decisions/ADR-20260430-issue-241-make-override-warnings.md`.
-2. Run `make quality-docs-sync-core-targets` — verify core targets doc unchanged (no new targets).
+2. Run `make quality-docs-sync-core-targets` — verify no new core targets were added; generated core targets docs may change to reflect the updated help-string descriptions.
 3. Run `make quality-sdd-check` and fix any remaining violations.
 
 ## Change Strategy

@@ -104,5 +104,6 @@ All runs: 2026-04-30 on branch `codex/2026-04-30-issue-241-make-override-warning
 
 - Consumer repos that previously re-defined `spec-scaffold` or `blueprint-uplift-status`
   in `platform.mk` can migrate to variable assignment after consuming this blueprint
-  upgrade. No forced migration — old re-definition continues to work (variable declaration
-  takes precedence; warning is already eliminated from the blueprint side).
+  upgrade. No forced migration — old re-definition continues to work, but the GNU Make
+  `overriding commands` warning will continue until the consumer switches to the new
+  variable-based override point instead of re-defining the target.
