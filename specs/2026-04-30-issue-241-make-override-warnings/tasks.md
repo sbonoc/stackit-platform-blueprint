@@ -28,17 +28,17 @@
 ## Validation and Release Readiness
 - [x] T-204 Run `make infra-contract-test-fast` — 136 passed, 2 subtests passed; all contract tests pass
 - [x] T-205 Run `make quality-hooks-fast` — all substantive checks pass; `quality-spec-pr-ready` fails on scaffold `pr_context.md` (expected at Step 5 — filled at Step 7)
-- [ ] T-206 Attach evidence to traceability document
-- [ ] T-207 Run documentation validation (`make docs-build` and `make docs-smoke`)
-- [ ] T-208 Run hardening review validation bundle (`make quality-hardening-review`)
+- [x] T-206 Attach evidence to traceability document — Validation Summary filled in `traceability.md`
+- [x] T-207 Run documentation validation (`make docs-build` and `make docs-smoke`) — both status=success
+- [x] T-208 Run hardening review validation bundle (`make quality-hardening-review`) — status=success
 
 ## App Onboarding Minimum Targets (Normative)
 - No-impact declared in `plan.md` — app delivery workflows are not affected by this tooling-only change.
-- [ ] A-001 Confirm `apps-bootstrap` and `apps-smoke` are operational and unaffected
-- [ ] A-002 Confirm `backend-test-unit`, `backend-test-integration`, `backend-test-contracts`, `backend-test-e2e` are operational and unaffected
-- [ ] A-003 Confirm `touchpoints-test-unit`, `touchpoints-test-integration`, `touchpoints-test-contracts`, `touchpoints-test-e2e` are operational and unaffected
-- [ ] A-004 Confirm `test-unit-all`, `test-integration-all`, `test-contracts-all`, `test-e2e-all-local` are operational and unaffected
-- [ ] A-005 Confirm `infra-port-forward-start`, `infra-port-forward-stop`, `infra-port-forward-cleanup` are operational and unaffected
+- [x] A-001 Confirm `apps-bootstrap` and `apps-smoke` are operational and unaffected — target resolves; dry-run confirmed
+- [x] A-002 Confirm `backend-test-unit`, `backend-test-integration`, `backend-test-contracts`, `backend-test-e2e` are operational and unaffected — no-impact (Makefile variable-only change); `test-unit-all` passed
+- [x] A-003 Confirm `touchpoints-test-unit`, `touchpoints-test-integration`, `touchpoints-test-contracts`, `touchpoints-test-e2e` are operational and unaffected — `touchpoints-test-unit` status=success (skipped/no packages); no-impact
+- [x] A-004 Confirm `test-unit-all`, `test-integration-all`, `test-contracts-all`, `test-e2e-all-local` are operational and unaffected — `test-unit-all` status=success; no-impact change
+- [x] A-005 Confirm `infra-port-forward-start`, `infra-port-forward-stop`, `infra-port-forward-cleanup` are operational and unaffected — target resolves; dry-run confirmed
 
 ## Publish
 - [ ] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
