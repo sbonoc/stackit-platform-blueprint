@@ -21,4 +21,4 @@
 - [x] axe-core WCAG 2.1 AA scan evidence: N/A — tooling and governance change; no UI components
 
 ## Proposals Only (Not Implemented)
-- Proposal 1: Parallel quality-hooks execution (Alternative D in ADR) — parked for a separate work item scoped specifically to that optimization
+- Proposal 1: Parallel quality-hooks execution (Alternative D in ADR) — Parked — trigger: on-scope: quality — already tracked as `proposal(quality-hooks-keep-going-mode): parallel execution of independent quality-hooks checks` in AGENTS.backlog.md; no new entry required

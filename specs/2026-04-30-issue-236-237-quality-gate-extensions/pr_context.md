@@ -35,4 +35,4 @@
 - Rollback strategy: `git revert` the blueprint upgrade commit in the consumer repo; no runtime state, no database migrations, no infra changes
 
 ## Deferred Proposals
-- Proposal 1 (not implemented): Parallel quality-hooks execution (Alternative D in ADR) — parked for a separate work item scoped specifically to that optimization
+- Proposal 1 (not implemented): Parallel quality-hooks execution (Alternative D in ADR) — Parked — trigger: on-scope: quality — already tracked as `proposal(quality-hooks-keep-going-mode): parallel execution of independent quality-hooks checks` in AGENTS.backlog.md; no new entry required

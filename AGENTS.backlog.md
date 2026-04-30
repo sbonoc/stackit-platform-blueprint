@@ -52,10 +52,10 @@ To introduce a new tag, append a row here in the same commit that uses it.
 - [ ] (parked) proposal(issue-238-239-240-a11y-compliance): automated W3C JSON fetch in sync_acr_criteria.py
       trigger: on-scope: a11y
       rationale: adds network dependency at CI time; surface when any a11y-scope work item is next in flight
-- [ ] P2 (Quality gate extensions): Issues #236 + #237 — **In progress** — `specs/2026-04-30-issue-236-237-quality-gate-extensions/`, PR #246. SPEC_READY. Plan sliced into 2 parallel tracks (Track A: Slice 1+2 sequential; Track B: Slice 3 docs authoring concurrent). combined PR: (1) #236: add pnpm lockfile pre-push hook (`pnpm-lockfile-sync`) to `.pre-commit-config.yaml` bootstrap template; (2) #237: add upgrade-safe consumer quality gate extension stubs (`quality-consumer-pre-push`, `quality-consumer-ci` no-op `.PHONY` targets in `blueprint.generated.mk`) wired into the pre-push template hook and `quality-ci-blueprint` chain; consumers override in `platform.mk` without merge-conflict risk. on-scope: quality
+- [x] P2 (Quality gate extensions): Issues #236 + #237 — **Done** — `specs/2026-04-30-issue-236-237-quality-gate-extensions/`, PR #246. (1) #236: `pnpm-lockfile-sync` pre-push hook in `.pre-commit-config.yaml` bootstrap template; (2) #237: `quality-consumer-pre-push` + `quality-consumer-ci` no-op stubs in `blueprint.generated.mk`, wired into pre-push hook and `quality-ci-blueprint`; `AGENTS.md.tmpl` tier documentation; 7 new contract assertions; 136 total passing.
 - [ ] (parked) proposal(quality-hooks-keep-going-mode): parallel execution of independent quality-hooks checks
       trigger: on-scope: quality
-      rationale: real optimization but non-trivial (log ordering, signal propagation, interleaved output); see ADR-20260428 Alternative D; surfaces when quality infrastructure is next touched
+      rationale: real optimization but non-trivial (log ordering, signal propagation, interleaved output); see ADR-20260428 Alternative D and ADR-20260430 Alternative D; surfaces when quality infrastructure is next touched
 - [ ] (parked) proposal(quality-hooks-keep-going-mode): structured JSON summary output for machine consumers of the keep-going summary block
       trigger: on-scope: quality
       rationale: no current consumer; plain-text v1 contract is sufficient; design when a concrete integration need arises
