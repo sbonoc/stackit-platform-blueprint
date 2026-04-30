@@ -1,0 +1,38 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-04-30-issue-236-237-quality-gate-extensions",
+  "nodes": [
+    {"id": "FR-001", "type": "requirement", "summary": "pnpm-lockfile-sync pre-push hook in .pre-commit-config.yaml bootstrap template"},
+    {"id": "FR-002", "type": "requirement", "summary": "workspace-wide files pattern (^|/)package\\.json$ in pnpm-lockfile-sync hook"},
+    {"id": "FR-003", "type": "requirement", "summary": "quality-consumer-pre-push no-op stub in blueprint.generated.mk"},
+    {"id": "FR-004", "type": "requirement", "summary": "quality-consumer-ci no-op stub in blueprint.generated.mk"},
+    {"id": "FR-005", "type": "requirement", "summary": "quality-consumer-pre-push pre-push hook in .pre-commit-config.yaml bootstrap template"},
+    {"id": "FR-006", "type": "requirement", "summary": "quality-consumer-ci wired into quality-ci-blueprint recipe as final step"},
+    {"id": "NFR-REL-001", "type": "requirement", "summary": "additive only — no behavior change for consumers who do not override stubs"},
+    {"id": "NFR-UPG-001", "type": "requirement", "summary": "consumer overrides in platform.mk — no merge-conflict risk on upgrade"},
+    {"id": "NFR-A11Y-001", "type": "requirement", "summary": "N/A — tooling only, no UI components"},
+    {"id": "AC-001", "type": "acceptance", "summary": "pnpm-lockfile-sync hook present in bootstrap .pre-commit-config.yaml with correct fields"},
+    {"id": "AC-002", "type": "acceptance", "summary": "quality-consumer-pre-push hook present in bootstrap .pre-commit-config.yaml with stages: [pre-push]"},
+    {"id": "AC-003", "type": "acceptance", "summary": "quality-consumer-pre-push stub present in blueprint.generated.mk.tmpl with @true body"},
+    {"id": "AC-004", "type": "acceptance", "summary": "quality-consumer-ci stub present in blueprint.generated.mk.tmpl with @true body"},
+    {"id": "AC-005", "type": "acceptance", "summary": "quality-ci-blueprint recipe calls $(MAKE) quality-consumer-ci"},
+    {"id": "AC-006", "type": "acceptance", "summary": "5 new contract assertions pass via make infra-contract-test-fast"}
+  ],
+  "edges": [
+    {"from": "FR-001", "to": "AC-001", "relation": "validated_by"},
+    {"from": "FR-002", "to": "AC-001", "relation": "validated_by"},
+    {"from": "FR-003", "to": "AC-003", "relation": "validated_by"},
+    {"from": "FR-004", "to": "AC-004", "relation": "validated_by"},
+    {"from": "FR-005", "to": "AC-002", "relation": "validated_by"},
+    {"from": "FR-006", "to": "AC-005", "relation": "validated_by"},
+    {"from": "AC-001", "to": "AC-006", "relation": "part_of"},
+    {"from": "AC-002", "to": "AC-006", "relation": "part_of"},
+    {"from": "AC-003", "to": "AC-006", "relation": "part_of"},
+    {"from": "AC-004", "to": "AC-006", "relation": "part_of"},
+    {"from": "AC-005", "to": "AC-006", "relation": "part_of"},
+    {"from": "NFR-REL-001", "to": "FR-003", "relation": "constrains"},
+    {"from": "NFR-REL-001", "to": "FR-004", "relation": "constrains"},
+    {"from": "NFR-UPG-001", "to": "FR-003", "relation": "constrains"},
+    {"from": "NFR-UPG-001", "to": "FR-004", "relation": "constrains"}
+  ]
+}
