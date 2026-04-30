@@ -153,3 +153,35 @@ make quality-hooks-fast      # slice-batch gate — aggregates all fast checks
 # Before publishing (PR Packager):
 make quality-hooks-run       # full pre-push gate (fast + strict)
 ```
+
+---
+
+## Consumer Extension Targets
+
+Blueprint delivers two no-op `.PHONY` Make targets that consumers override in `platform.mk` without merge-conflict risk on blueprint upgrade:
+
+| Target | When it runs | Tier | Default |
+|---|---|---|---|
+| `quality-consumer-pre-push` | pre-push hook (always_run) | Tier 1/unit | `@true` (no-op) |
+| `quality-consumer-ci` | final step of `quality-ci-blueprint` | Tier 2/component | `@true` (no-op) |
+
+### When to override
+
+Add to `make/platform.mk` (consumer-owned, never overwritten on upgrade):
+
+```makefile
+# make/platform.mk
+quality-consumer-pre-push:
+	@$(MAKE) backend-test-unit
+	@$(MAKE) touchpoints-test-unit
+
+quality-consumer-ci:
+	@$(MAKE) touchpoints-test-component
+```
+
+### Tier placement guidance
+
+- **Tier 1 (`quality-consumer-pre-push`):** Unit tests that complete in seconds. Runs at every push. Keep this target fast.
+- **Tier 2 (`quality-consumer-ci`):** Slower component or integration tests acceptable to run only in CI. Wired into `quality-ci-blueprint` as its final step — runs whenever the blueprint CI lane runs.
+
+Consumers who do not override the stubs see no behavior change (stubs are `@true` — immediate exit 0).

@@ -64,6 +64,8 @@ This file is auto-generated. Do not edit it manually.
 | `quality-ci-full-e2e` | Run canonical full local E2E CI lane |
 | `quality-ci-strict` | Run canonical strict CI audit lane |
 | `quality-ci-blueprint` | Run source blueprint CI lane bundle |
+| `quality-consumer-pre-push` | Consumer pre-push quality gate extension — override in platform.mk |
+| `quality-consumer-ci` | Consumer CI quality gate extension — override in platform.mk |
 | `quality-ci-generated-consumer-smoke` | Run generated-consumer template smoke lane (covers issue #230 v1.8.0 paired-reseed scenario) |
 | `quality-ci-upgrade-validate` | Run end-to-end consumer upgrade validation lane (push-to-main gate) |
 | `quality-docs-lint` | Lint markdown docs, governance links, and make target references |

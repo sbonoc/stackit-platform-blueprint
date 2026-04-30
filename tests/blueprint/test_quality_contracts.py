@@ -1701,5 +1701,67 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn("quality-a11y-acr-check", recipe_slice)
 
 
+    def test_precommit_template_has_pnpm_lockfile_sync_hook(self) -> None:
+        content = _read("scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml")
+        self.assertIn("id: pnpm-lockfile-sync", content)
+
+    def test_precommit_template_pnpm_lockfile_sync_covers_workspace(self) -> None:
+        content = _read("scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml")
+        idx = content.find("id: pnpm-lockfile-sync")
+        self.assertGreater(idx, -1, "pnpm-lockfile-sync hook not found")
+        hook_slice = content[idx : idx + 600]
+        self.assertIn(r"(^|/)package\.json$", hook_slice)
+
+    def test_precommit_template_pnpm_lockfile_sync_has_workspace_root_guard(self) -> None:
+        # The hook runs via `pre-commit run --hook-stage pre-push --all-files` in CI
+        # (quality-ci-blueprint target). Without a guard, it fails with ERR_PNPM_NO_PKG_MANIFEST
+        # in repos that have no root package.json (e.g. this blueprint source repo).
+        # The entry must check for package.json existence before invoking pnpm.
+        content = _read("scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml")
+        idx = content.find("id: pnpm-lockfile-sync")
+        self.assertGreater(idx, -1, "pnpm-lockfile-sync hook not found")
+        hook_slice = content[idx : idx + 400]
+        entry_start = hook_slice.find("entry:")
+        self.assertGreater(entry_start, -1, "entry field not found in pnpm-lockfile-sync hook")
+        entry_line = hook_slice[entry_start : entry_start + 200]
+        self.assertIn("package.json", entry_line, (
+            "pnpm-lockfile-sync entry must guard against missing root package.json; "
+            "bare `pnpm install` fails in repos without a pnpm workspace root"
+        ))
+
+    def test_make_template_has_quality_consumer_pre_push_stub(self) -> None:
+        template = _read("scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl")
+        self.assertIn("quality-consumer-pre-push:", template)
+        idx = template.find("quality-consumer-pre-push:")
+        stub_slice = template[idx : idx + 200]
+        self.assertIn("@true", stub_slice)
+
+    def test_make_template_has_quality_consumer_ci_stub(self) -> None:
+        template = _read("scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl")
+        self.assertIn("quality-consumer-ci:", template)
+        idx = template.find("quality-consumer-ci:")
+        stub_slice = template[idx : idx + 200]
+        self.assertIn("@true", stub_slice)
+
+    def test_quality_ci_blueprint_calls_quality_consumer_ci(self) -> None:
+        template = _read("scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl")
+        idx = template.find("quality-ci-blueprint:")
+        self.assertGreater(idx, -1, "quality-ci-blueprint target not found in template")
+        recipe_slice = template[idx : idx + 400]
+        self.assertIn("quality-consumer-ci", recipe_slice)
+
+    def test_precommit_template_has_quality_consumer_pre_push_hook(self) -> None:
+        content = _read("scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml")
+        self.assertIn("id: quality-consumer-pre-push", content)
+        idx = content.find("id: quality-consumer-pre-push")
+        hook_slice = content[idx : idx + 300]
+        self.assertIn("stages: [pre-push]", hook_slice)
+
+    def test_agents_md_template_has_consumer_extension_targets(self) -> None:
+        content = _read("scripts/templates/consumer/init/AGENTS.md.tmpl")
+        self.assertIn("quality-consumer-pre-push", content)
+        self.assertIn("quality-consumer-ci", content)
+
+
 if __name__ == "__main__":
     unittest.main()
