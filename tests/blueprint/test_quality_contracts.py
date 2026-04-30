@@ -1709,8 +1709,25 @@ class QualityContractsTests(unittest.TestCase):
         content = _read("scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml")
         idx = content.find("id: pnpm-lockfile-sync")
         self.assertGreater(idx, -1, "pnpm-lockfile-sync hook not found")
-        hook_slice = content[idx : idx + 300]
+        hook_slice = content[idx : idx + 600]
         self.assertIn(r"(^|/)package\.json$", hook_slice)
+
+    def test_precommit_template_pnpm_lockfile_sync_has_workspace_root_guard(self) -> None:
+        # The hook runs via `pre-commit run --hook-stage pre-push --all-files` in CI
+        # (quality-ci-blueprint target). Without a guard, it fails with ERR_PNPM_NO_PKG_MANIFEST
+        # in repos that have no root package.json (e.g. this blueprint source repo).
+        # The entry must check for package.json existence before invoking pnpm.
+        content = _read("scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml")
+        idx = content.find("id: pnpm-lockfile-sync")
+        self.assertGreater(idx, -1, "pnpm-lockfile-sync hook not found")
+        hook_slice = content[idx : idx + 400]
+        entry_start = hook_slice.find("entry:")
+        self.assertGreater(entry_start, -1, "entry field not found in pnpm-lockfile-sync hook")
+        entry_line = hook_slice[entry_start : entry_start + 200]
+        self.assertIn("package.json", entry_line, (
+            "pnpm-lockfile-sync entry must guard against missing root package.json; "
+            "bare `pnpm install` fails in repos without a pnpm workspace root"
+        ))
 
     def test_make_template_has_quality_consumer_pre_push_stub(self) -> None:
         template = _read("scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl")

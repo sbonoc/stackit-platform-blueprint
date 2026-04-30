@@ -63,7 +63,9 @@ repos:
       - id: pnpm-lockfile-sync
         name: pnpm lockfile sync (pre-push)
         language: system
-        entry: pnpm install --frozen-lockfile --prefer-offline
+        # Guard: skip silently in repos that have no root package.json (e.g. the blueprint source
+        # repo itself, which has docs/package.json but no pnpm workspace at root).
+        entry: bash -c 'if [ -f package.json ]; then pnpm install --frozen-lockfile --prefer-offline; fi'
         pass_filenames: false
         stages: [pre-push]
         files: (^|/)package\.json$
