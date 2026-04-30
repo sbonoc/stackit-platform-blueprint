@@ -31,7 +31,7 @@ See `plan.md § Parallel Execution Map`. Launch **Track A** (Slice 1+2, subagent
 
 ## Slice 3 — Docs + validation
 - [x] T-301 Update `docs/blueprint/governance/quality_hooks.md` — add Consumer Extension Targets section
-- [ ] T-302 Create `docs/platform/consumer/consumer_quality_gates.md` — consumer guide for overriding extension stubs
+- [x] T-302 Create `docs/platform/consumer/consumer_quality_gates.md` — consumer guide for overriding extension stubs
 - [x] T-308 Update `scripts/templates/consumer/init/AGENTS.md.tmpl` — add `quality-consumer-pre-push` and `quality-consumer-ci` to quality gate section with tier placement convention (green for AC-007)
 - [ ] T-303 Sync `docs/blueprint/governance/quality_hooks.md` to bootstrap template mirror (`make quality-docs-sync-blueprint-template`)
 - [ ] T-304 Regenerate `core_targets.generated.md` (`make quality-docs-sync-core-targets`)
