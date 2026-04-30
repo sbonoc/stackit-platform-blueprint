@@ -67,20 +67,20 @@
 - [x] T-201 Confirm `ADR-20260430-issue-238-239-240-a11y-compliance.md` is written and status updated to `approved` after sign-offs
 
 ## Validation and Release Readiness
-- [ ] T-202 Run `make infra-contract-test-fast` — all contract tests pass
-- [ ] T-203 Run `make quality-hooks-fast` — all substantive checks pass
-- [ ] T-204 Run `make quality-sdd-check` — clean, no violations
-- [ ] T-205 Attach evidence to traceability document — fill Validation Summary in `traceability.md`
-- [ ] T-206 Run documentation validation (`make docs-build` and `make docs-smoke`)
-- [ ] T-207 Run hardening review validation bundle (`make quality-hardening-review`)
+- [x] T-202 Run `make infra-contract-test-fast` — all contract tests pass (136 passed)
+- [x] T-203 Run `make quality-hooks-fast` — all substantive checks pass (quality-spec-pr-ready expected failure until publish; infra-validate fixed)
+- [x] T-204 Run `make quality-sdd-check` — clean, no violations
+- [x] T-205 Attach evidence to traceability document — fill Validation Summary in `traceability.md`
+- [x] T-206 Run documentation validation (`make docs-build` and `make docs-smoke`)
+- [x] T-207 Run hardening review validation bundle (`make quality-hardening-review`)
 
 ## App Onboarding Minimum Targets (Normative)
 - No-impact declared in `plan.md` for the required minimum targets. New targets are additive alongside the existing ladder.
-- [ ] A-001 Confirm `apps-bootstrap` and `apps-smoke` are operational and unaffected
-- [ ] A-002 Confirm `backend-test-unit`, `backend-test-integration`, `backend-test-contracts`, `backend-test-e2e` are operational and unaffected
-- [ ] A-003 Confirm `touchpoints-test-unit`, `touchpoints-test-integration`, `touchpoints-test-contracts`, `touchpoints-test-e2e` are operational and unaffected
-- [ ] A-004 Confirm `test-unit-all`, `test-integration-all`, `test-contracts-all`, `test-e2e-all-local` are operational and unaffected
-- [ ] A-005 Confirm `infra-port-forward-start`, `infra-port-forward-stop`, `infra-port-forward-cleanup` are operational and unaffected
+- [x] A-001 Confirm `apps-bootstrap` and `apps-smoke` are operational and unaffected
+- [x] A-002 Confirm `backend-test-unit`, `backend-test-integration`, `backend-test-contracts`, `backend-test-e2e` are operational and unaffected
+- [x] A-003 Confirm `touchpoints-test-unit`, `touchpoints-test-integration`, `touchpoints-test-contracts`, `touchpoints-test-e2e` are operational and unaffected
+- [x] A-004 Confirm `test-unit-all`, `test-integration-all`, `test-contracts-all`, `test-e2e-all-local` are operational and unaffected
+- [x] A-005 Confirm `infra-port-forward-start`, `infra-port-forward-stop`, `infra-port-forward-cleanup` are operational and unaffected
 
 ## Publish
 - [ ] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
