@@ -1621,5 +1621,85 @@ class QualityContractsTests(unittest.TestCase):
         )
 
 
+    # ---------------------------------------------------------------------------
+    # A11Y compliance scaffold — Slice 1: SDD lifecycle template assertions
+    # ---------------------------------------------------------------------------
+
+    def test_spec_template_exposes_a11y_nfr(self) -> None:
+        content = _read(".spec-kit/templates/blueprint/spec.md")
+        self.assertIn("NFR-A11Y-001", content)
+
+    def test_tasks_template_exposes_a11y_task_block(self) -> None:
+        content = _read(".spec-kit/templates/blueprint/tasks.md")
+        self.assertIn("T-A02", content)
+        self.assertIn("wcag21aa", content)
+        self.assertIn("attachTo: document.body", content)
+
+    def test_hardening_review_template_exposes_accessibility_gate(self) -> None:
+        content = _read(".spec-kit/templates/blueprint/hardening_review.md")
+        self.assertIn("Accessibility Gate", content)
+
+    def test_traceability_template_exposes_wcag_sc_column(self) -> None:
+        content = _read(".spec-kit/templates/blueprint/traceability.md")
+        self.assertIn("WCAG SC", content)
+
+    # ---------------------------------------------------------------------------
+    # A11Y compliance scaffold — Slice 2: test infrastructure assertions
+    # ---------------------------------------------------------------------------
+
+    def test_platform_mk_exposes_touchpoints_test_a11y_target(self) -> None:
+        content = _read("make/platform.mk")
+        self.assertIn("touchpoints-test-a11y", content)
+
+    def test_test_a11y_script_exists(self) -> None:
+        path = REPO_ROOT / "scripts/bin/platform/touchpoints/test_a11y.sh"
+        self.assertTrue(path.exists(), f"Expected {path} to exist")
+
+    def test_axe_page_scan_contains_wcag21_tags(self) -> None:
+        content = _read("scripts/lib/platform/touchpoints/axe_page_scan.mjs")
+        self.assertIn("wcag21a", content)
+        self.assertIn("wcag21aa", content)
+
+    def test_axe_preset_exports_wcag21aa_config(self) -> None:
+        content = _read("scripts/lib/platform/touchpoints/axe_preset.ts")
+        self.assertIn("WCAG21AA_AXE_CONFIG", content)
+
+    def test_platform_mk_exposes_apps_a11y_smoke_target(self) -> None:
+        content = _read("make/platform.mk")
+        self.assertIn("apps-a11y-smoke", content)
+
+    def test_test_smoke_all_local_includes_apps_a11y_smoke(self) -> None:
+        content = _read("make/platform.mk")
+        # apps-a11y-smoke must appear within the test-smoke-all-local recipe
+        idx = content.find("test-smoke-all-local:")
+        self.assertGreater(idx, -1, "test-smoke-all-local target not found in platform.mk")
+        recipe_slice = content[idx : idx + 400]
+        self.assertIn("apps-a11y-smoke", recipe_slice)
+
+    # ---------------------------------------------------------------------------
+    # A11Y compliance scaffold — Slice 3: ACR scaffold and quality gate assertions
+    # ---------------------------------------------------------------------------
+
+    def test_acr_scaffold_exists_with_wcag_criteria(self) -> None:
+        content = _read("docs/platform/accessibility/acr.md")
+        self.assertIn("4.1.3", content)
+
+    def test_check_acr_freshness_script_exists(self) -> None:
+        path = REPO_ROOT / "scripts/bin/platform/quality/check_acr_freshness.py"
+        self.assertTrue(path.exists(), f"Expected {path} to exist")
+
+    def test_platform_mk_exposes_quality_a11y_acr_check_target(self) -> None:
+        content = _read("make/platform.mk")
+        self.assertIn("quality-a11y-acr-check", content)
+
+    def test_make_template_wires_quality_a11y_acr_check_into_quality_hooks_fast(self) -> None:
+        template = _read("scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl")
+        # quality-a11y-acr-check must appear in the quality-hooks-fast recipe
+        idx = template.find("quality-hooks-fast:")
+        self.assertGreater(idx, -1, "quality-hooks-fast target not found in template")
+        recipe_slice = template[idx : idx + 300]
+        self.assertIn("quality-a11y-acr-check", recipe_slice)
+
+
 if __name__ == "__main__":
     unittest.main()
