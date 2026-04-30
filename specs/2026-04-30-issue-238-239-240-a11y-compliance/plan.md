@@ -3,7 +3,7 @@
 ## Implementation Start Gate
 - Implementation tasks MUST remain unchecked until `SPEC_READY=true`.
 - If required inputs are missing, add `BLOCKED_MISSING_INPUTS` in `spec.md` and keep the gate closed.
-- **Current status**: Open questions resolved (Q-1: Option B — unconditional N/A opt-out; Q-2: Option B — wire into quality-hooks-fast). Awaiting SPEC_READY=true (sign-offs pending).
+- **Current status**: OPEN — `SPEC_READY=true` confirmed (all four sign-offs approved 2026-04-30 via PR #243). Implementation may begin with Slice 1.
 
 ## Constitution Gates (Pre-Implementation)
 - Simplicity gate: three slices of additive changes — template section additions, new Make targets and scripts, ACR scaffold and quality gate; no existing logic modified except `quality-spec-pr-ready` extension (unchecked-box validation) and `test-smoke-all-local` extension.
@@ -15,6 +15,10 @@
 ## Delivery Slices
 
 ### Slice 1 — SDD lifecycle template updates (Issue #238)
+- **Owner:** Software Engineer
+- **Depends on:** none (first slice)
+- **Outputs:** updated blueprint scaffold templates, `check_spec_pr_ready.py` extension, contract tests green
+
 1. Edit `.spec-kit/templates/blueprint/spec.md`: add `NFR-A11Y-001 MUST define WCAG 2.1 Level AA compliance scope and any known exceptions.` to the standard NFR section (FR-101); unconditional — authors in non-UI specs write "N/A".
 2. Edit `.spec-kit/templates/blueprint/tasks.md`: add T-Axx accessibility task block (T-A01 through T-A05) (FR-102); T-A02 MUST explicitly name `['wcag2a','wcag2aa','wcag21a','wcag21aa']` and `attachTo: document.body`.
 3. Edit `.spec-kit/templates/blueprint/hardening_review.md`: add "Accessibility Gate" mandatory section with six checklist items (SC references: 4.1.2, 2.1.1, 2.4.7, 1.4.1, 3.3.1; plus axe-core scan evidence line) (FR-103); unconditional — non-UI reviewers mark non-applicable items N/A.
@@ -23,6 +27,10 @@
 6. Add contract test assertions in `tests/blueprint/test_quality_contracts.py` verifying template content strings — red phase before template edits, green phase after.
 
 ### Slice 2 — Test infrastructure (Issue #239)
+- **Owner:** Software Engineer
+- **Depends on:** Slice 1 (contract tests green; template changes provide context for axe preset docs)
+- **Outputs:** `test_a11y.sh`, `a11y_smoke.sh`, `axe_page_scan.mjs`, `axe_preset.ts`, extended `test-smoke-all-local`
+
 1. Add `touchpoints-test-a11y` target to `make/platform.mk` with backing `scripts/bin/platform/touchpoints/test_a11y.sh` (FR-201).
 2. Add `apps-a11y-smoke` target to `make/platform.mk` with backing `scripts/bin/platform/apps/a11y_smoke.sh` (FR-202).
 3. Write `scripts/lib/platform/touchpoints/axe_page_scan.mjs` using `@axe-core/playwright` with explicit `['wcag2a','wcag2aa','wcag21a','wcag21aa']` tag array; write `artifacts/a11y/axe-report.json`; exit non-zero on `A11Y_FAIL_ON_IMPACT` violations (FR-203).
@@ -32,6 +40,10 @@
 7. Run `make quality-docs-sync-core-targets` — verify new targets appear in `docs/reference/generated/core_targets.generated.md`.
 
 ### Slice 3 — ACR scaffold and quality gate (Issue #240)
+- **Owner:** Software Engineer
+- **Depends on:** Slice 2 (quality-hooks-fast extension requires Slice 1+2 contract tests passing)
+- **Outputs:** `acr.md` scaffold, `check_acr_freshness.py`, `sync_acr_criteria.py`, `quality-hooks-fast` wired, PR Packager skill updated
+
 1. Write `docs/platform/accessibility/acr.md` with VPAT 2.4 structure; pre-populate all 50 WCAG 2.1 A+AA criterion rows (SC 1.1.1 through 4.1.3) (FR-301).
 2. Add `quality-a11y-acr-check` target to `make/platform.mk` backed by `scripts/bin/platform/quality/check_acr_freshness.py` (FR-302).
 3. Add `quality-a11y-acr-sync` target backed by `scripts/bin/platform/quality/sync_acr_criteria.py` with bundled W3C criterion list (FR-303).

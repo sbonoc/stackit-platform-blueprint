@@ -1,11 +1,11 @@
 # Tasks
 
 ## Gate Checks (Required Before Implementation)
-- [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`
-- [ ] G-002 Confirm open questions and unresolved alternatives are `0` (both resolved — Q-1: Option B, Q-2: Option B)
-- [ ] G-003 Confirm required sign-offs are approved
-- [ ] G-004 Confirm `Applicable Guardrail Controls` section includes applicable `SDD-C-###` IDs
-- [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
+- [x] G-001 Confirm `SPEC_READY=true` in `spec.md`
+- [x] G-002 Confirm open questions and unresolved alternatives are `0` (both resolved — Q-1: Option B, Q-2: Option B)
+- [x] G-003 Confirm required sign-offs are approved
+- [x] G-004 Confirm `Applicable Guardrail Controls` section includes applicable `SDD-C-###` IDs
+- [x] G-005 Confirm `Implementation Stack Profile` section is fully populated
 
 ## Slice 1 — SDD lifecycle template updates, red phase (Issue #238)
 - [ ] T-101 Add contract test assertions in `tests/blueprint/test_quality_contracts.py` asserting:
@@ -64,7 +64,7 @@
 - [ ] T-022 Run `make quality-docs-sync-core-targets` — verify ACR-related targets appear in `core_targets.generated.md`
 
 ## ADR and Architecture
-- [ ] T-201 Confirm `ADR-20260430-issue-238-239-240-a11y-compliance.md` is written and status updated to `approved` after sign-offs
+- [x] T-201 Confirm `ADR-20260430-issue-238-239-240-a11y-compliance.md` is written and status updated to `approved` after sign-offs
 
 ## Validation and Release Readiness
 - [ ] T-202 Run `make infra-contract-test-fast` — all contract tests pass
