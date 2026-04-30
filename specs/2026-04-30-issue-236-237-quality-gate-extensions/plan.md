@@ -5,7 +5,7 @@
 - If required inputs are missing, add `BLOCKED_MISSING_INPUTS` in `spec.md` and keep the gate closed.
 
 ## Constitution Gates (Pre-Implementation)
-- Simplicity gate: Two template file edits and five contract assertions. No new scripts, no abstractions.
+- Simplicity gate: Three template file edits and six contract assertions. No new scripts, no abstractions.
 - Anti-abstraction gate: Direct Makefile target definitions and YAML hook entries; no wrapper layers.
 - Integration-first testing gate: Contract assertions written before template changes (TDD red → green).
 - Positive-path filter/transform test gate: N/A — no filter or payload-transform logic.
@@ -45,6 +45,40 @@ All five assertions MUST fail before template changes.
 - Sync `docs/blueprint/governance/quality_hooks.md` to bootstrap template mirror via `make quality-docs-sync-blueprint-template`.
 - Run `make quality-docs-sync-core-targets` to regenerate `core_targets.generated.md` with the two new targets.
 - Run `make infra-contract-test-fast` and `make quality-hooks-fast`.
+
+## Parallel Execution Map (Step 05 Dispatch Guidance)
+
+Agent execution model: `specialized-subagents-isolated-worktrees`.
+
+### Dependency edges
+
+| Slice | Depends on | Parallel-safe |
+|---|---|---|
+| Slice 1 | none | no — shared files with Slice 2 |
+| Slice 2 | Slice 1 complete | no — shares `test_quality_contracts.py` and `.pre-commit-config.yaml` with Slice 1 |
+| Slice 3 docs authoring (T-301, T-302, T-308) | none | **yes** — fully disjoint file set from Slice 1+2 |
+| Slice 3 sync+validation (T-303–T-307) | Slice 2 complete AND Slice 3 docs authoring complete | no — merge point |
+
+### Dispatch plan for Step 05
+
+```
+[Start]
+  ├─ Track A (subagent A, isolated worktree):
+  │      Slice 1 red → Slice 1 green → Slice 2 red → Slice 2 green
+  │      Files: test_quality_contracts.py, .pre-commit-config.yaml,
+  │             blueprint.generated.mk.tmpl, blueprint.generated.mk
+  │
+  └─ Track B (subagent B, isolated worktree):  ← launch concurrently with Track A
+         Slice 3 docs authoring (T-301, T-302, T-308)
+         Files: quality_hooks.md, consumer_quality_gates.md, AGENTS.md.tmpl
+
+[Merge point — after both tracks complete]:
+  Slice 3 sync+validation (T-303, T-304, T-305, T-306, T-307)
+  Owner: main session (not a subagent — requires both tracks merged)
+```
+
+### Merge protocol
+After both tracks complete: cherry-pick or merge both worktree branches into the PR branch in order (Track A first, then Track B), confirm no conflicts (file sets are disjoint), then execute T-303–T-307 in the main session.
 
 ## Change Strategy
 - Migration/rollout sequence: Template changes land on upgrade; stubs are no-ops so no consumer action required. Consumers who want to use the extension point add overrides to `platform.mk` at their own pace.

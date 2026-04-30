@@ -1,5 +1,8 @@
 # Tasks
 
+## Parallel Dispatch Note (Step 05)
+See `plan.md § Parallel Execution Map`. Launch **Track A** (Slice 1+2, subagent A) and **Track B** (Slice 3 docs authoring T-301/T-302/T-308, subagent B) as concurrent isolated worktrees. Merge both tracks before running T-303–T-307 in the main session.
+
 ## Gate Checks (Required Before Implementation)
 - [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`
 - [ ] G-002 Confirm open questions and unresolved alternatives are `0`
@@ -24,7 +27,7 @@
 - [ ] T-207 Add `quality-consumer-pre-push` hook to `scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml` (green)
 - [ ] T-208 Mirror all template changes to live `make/blueprint.generated.mk` (add stubs + quality-ci-blueprint extension)
 - [ ] T-209 Add `quality-consumer-pre-push` and `quality-consumer-ci` to `.PHONY` list in both Makefile files
-- [ ] T-210 Verify all four Slice 2 assertions pass (`make infra-contract-test-fast`)
+- [ ] T-210 Verify all five Slice 2 assertions pass (`make infra-contract-test-fast`)
 
 ## Slice 3 — Docs + validation
 - [ ] T-301 Update `docs/blueprint/governance/quality_hooks.md` — add Consumer Extension Targets section
@@ -44,7 +47,7 @@
 - [ ] T-A05 Non-text content labels: N/A — no visual output
 
 ## Validation and Release Readiness
-- [ ] T-401 Confirm `make infra-contract-test-fast` — all 5 new assertions + full suite pass
+- [ ] T-401 Confirm `make infra-contract-test-fast` — all 6 new assertions + full suite pass
 - [ ] T-402 Confirm `make quality-sdd-check` — PASS
 - [ ] T-403 Confirm `make quality-hardening-review` — PASS
 - [ ] T-404 Confirm `make quality-hooks-fast` — PASS
