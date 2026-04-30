@@ -1701,5 +1701,45 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn("quality-a11y-acr-check", recipe_slice)
 
 
+    def test_precommit_template_has_pnpm_lockfile_sync_hook(self) -> None:
+        content = _read("scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml")
+        self.assertIn("id: pnpm-lockfile-sync", content)
+
+    def test_precommit_template_pnpm_lockfile_sync_covers_workspace(self) -> None:
+        content = _read("scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml")
+        idx = content.find("id: pnpm-lockfile-sync")
+        self.assertGreater(idx, -1, "pnpm-lockfile-sync hook not found")
+        hook_slice = content[idx : idx + 300]
+        self.assertIn(r"(^|/)package\.json$", hook_slice)
+
+    def test_make_template_has_quality_consumer_pre_push_stub(self) -> None:
+        template = _read("scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl")
+        self.assertIn("quality-consumer-pre-push:", template)
+        idx = template.find("quality-consumer-pre-push:")
+        stub_slice = template[idx : idx + 200]
+        self.assertIn("@true", stub_slice)
+
+    def test_make_template_has_quality_consumer_ci_stub(self) -> None:
+        template = _read("scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl")
+        self.assertIn("quality-consumer-ci:", template)
+        idx = template.find("quality-consumer-ci:")
+        stub_slice = template[idx : idx + 200]
+        self.assertIn("@true", stub_slice)
+
+    def test_quality_ci_blueprint_calls_quality_consumer_ci(self) -> None:
+        template = _read("scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl")
+        idx = template.find("quality-ci-blueprint:")
+        self.assertGreater(idx, -1, "quality-ci-blueprint target not found in template")
+        recipe_slice = template[idx : idx + 400]
+        self.assertIn("quality-consumer-ci", recipe_slice)
+
+    def test_precommit_template_has_quality_consumer_pre_push_hook(self) -> None:
+        content = _read("scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml")
+        self.assertIn("id: quality-consumer-pre-push", content)
+        idx = content.find("id: quality-consumer-pre-push")
+        hook_slice = content[idx : idx + 300]
+        self.assertIn("stages: [pre-push]", hook_slice)
+
+
 if __name__ == "__main__":
     unittest.main()

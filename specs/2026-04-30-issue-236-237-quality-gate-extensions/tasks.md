@@ -11,23 +11,23 @@ See `plan.md § Parallel Execution Map`. Launch **Track A** (Slice 1+2, subagent
 - [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
 
 ## Slice 1 — pnpm lockfile pre-push hook (Issue #236)
-- [ ] T-101 Write failing contract assertion `test_precommit_template_has_pnpm_lockfile_sync_hook` (red)
-- [ ] T-102 Write failing contract assertion `test_precommit_template_pnpm_lockfile_sync_covers_workspace` — verifies `(^|/)package\.json$` pattern (red)
-- [ ] T-103 Add `pnpm-lockfile-sync` hook block to `scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml` (green)
-- [ ] T-104 Verify both Slice 1 assertions pass (`make infra-contract-test-fast`)
+- [x] T-101 Write failing contract assertion `test_precommit_template_has_pnpm_lockfile_sync_hook` (red)
+- [x] T-102 Write failing contract assertion `test_precommit_template_pnpm_lockfile_sync_covers_workspace` — verifies `(^|/)package\.json$` pattern (red)
+- [x] T-103 Add `pnpm-lockfile-sync` hook block to `scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml` (green)
+- [x] T-104 Verify both Slice 1 assertions pass (`make infra-contract-test-fast`)
 
 ## Slice 2 — Consumer quality gate extension stubs (Issue #237)
-- [ ] T-201 Write failing contract assertion `test_make_template_has_quality_consumer_pre_push_stub` (red)
-- [ ] T-202 Write failing contract assertion `test_make_template_has_quality_consumer_ci_stub` (red)
-- [ ] T-203 Write failing contract assertion `test_quality_ci_blueprint_calls_quality_consumer_ci` (red)
-- [ ] T-204 Write failing contract assertion `test_precommit_template_has_quality_consumer_pre_push_hook` (red)
+- [x] T-201 Write failing contract assertion `test_make_template_has_quality_consumer_pre_push_stub` (red)
+- [x] T-202 Write failing contract assertion `test_make_template_has_quality_consumer_ci_stub` (red)
+- [x] T-203 Write failing contract assertion `test_quality_ci_blueprint_calls_quality_consumer_ci` (red)
+- [x] T-204 Write failing contract assertion `test_precommit_template_has_quality_consumer_pre_push_hook` (red)
 - [ ] T-211 Write failing contract assertion `test_agents_md_template_has_consumer_extension_targets` — verifies `quality-consumer-pre-push` and `quality-consumer-ci` in `scripts/templates/consumer/init/AGENTS.md.tmpl` (red)
-- [ ] T-205 Add `quality-consumer-pre-push` and `quality-consumer-ci` stub targets to `scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl` (green)
-- [ ] T-206 Add `@$(MAKE) quality-consumer-ci` as final step of `quality-ci-blueprint` in `blueprint.generated.mk.tmpl` (green)
-- [ ] T-207 Add `quality-consumer-pre-push` hook to `scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml` (green)
-- [ ] T-208 Mirror all template changes to live `make/blueprint.generated.mk` (add stubs + quality-ci-blueprint extension)
-- [ ] T-209 Add `quality-consumer-pre-push` and `quality-consumer-ci` to `.PHONY` list in both Makefile files
-- [ ] T-210 Verify all five Slice 2 assertions pass (`make infra-contract-test-fast`)
+- [x] T-205 Add `quality-consumer-pre-push` and `quality-consumer-ci` stub targets to `scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl` (green)
+- [x] T-206 Add `@$(MAKE) quality-consumer-ci` as final step of `quality-ci-blueprint` in `blueprint.generated.mk.tmpl` (green)
+- [x] T-207 Add `quality-consumer-pre-push` hook to `scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml` (green)
+- [x] T-208 Mirror all template changes to live `make/blueprint.generated.mk` (add stubs + quality-ci-blueprint extension)
+- [x] T-209 Add `quality-consumer-pre-push` and `quality-consumer-ci` to `.PHONY` list in both Makefile files
+- [x] T-210 Verify all five Slice 2 assertions pass (`make infra-contract-test-fast`)
 
 ## Slice 3 — Docs + validation
 - [ ] T-301 Update `docs/blueprint/governance/quality_hooks.md` — add Consumer Extension Targets section
