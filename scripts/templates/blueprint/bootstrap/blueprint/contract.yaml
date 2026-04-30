@@ -1133,6 +1133,7 @@ spec:
         - docs/platform/modules/kms/README.md
         - docs/platform/modules/identity-aware-proxy/README.md
         - docs/platform/accessibility/acr.md
+        - docs/platform/consumer/accessibility.md
 
   make_contract:
     required_namespaces:
