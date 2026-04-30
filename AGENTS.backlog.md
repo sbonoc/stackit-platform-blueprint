@@ -18,6 +18,7 @@ To introduce a new tag, append a row here in the same commit that uses it.
 | `blueprint` | Blueprint upgrade, contract, template sync, init flow |
 | `gitops` | GitOps manifests, ArgoCD sync, kustomization wiring |
 | `skills` | Agent skill runbooks, SDD lifecycle tooling |
+| `a11y` | Accessibility conformance, WCAG gates, ACR scaffold, axe tooling |
 
 ---
 
@@ -42,7 +43,15 @@ To introduce a new tag, append a row here in the same commit that uses it.
 - [ ] (parked) proposal(issue-241-make-override-warnings): extend `?=` override-point pattern to other blueprint-managed targets
       trigger: on-scope: blueprint
       rationale: no consumer request for specific targets; same pattern directly applicable; surfaces when blueprint template/upgrade scope is next touched
-- [ ] P1 (Accessibility compliance): Issues #238 + #239 + #240 — three-slice combined PR: (1) #238: embed WCAG 2.1 AA into SDD spec lifecycle — `NFR-A11Y-001` in `spec.md`, `T-Axx` task block in `tasks.md`, hardening checklist section, WCAG SC column in `traceability.md`, `quality-spec-pr-ready` UI-layer validation; (2) #239: `touchpoints-test-a11y` + `apps-a11y-smoke` make targets, `axe_page_scan.mjs` Playwright runner, shared `axe_preset.ts` enforcing WCAG 2.1 AA ruleset and `attachTo: document.body`; (3) #240: `docs/platform/accessibility/acr.md` consumer-seeded scaffold, `quality-a11y-acr-check` staleness gate wired into `quality-hooks-fast`, PR Packager ACR checklist for UI-layer specs. on-scope: quality, skills **In progress**: `specs/2026-04-30-issue-238-239-240-a11y-compliance/`, PR #243 (Draft). SPEC_READY=true — all sign-offs approved 2026-04-30. Ready for Slice 1 implementation.
+- [x] P1 (Accessibility compliance): Issues #238 + #239 + #240 — **Done**: `specs/2026-04-30-issue-238-239-240-a11y-compliance/`, PR #243.
+- [ ] proposal(issue-238-239-240-a11y-compliance): create consumer_fitness_status.sh for consumer-side fitness checks — https://github.com/sbonoc/stackit-platform-blueprint/issues/244
+- [ ] proposal(issue-238-239-240-a11y-compliance): add layer: field to spec.md template for conditional a11y sections — https://github.com/sbonoc/stackit-platform-blueprint/issues/245
+- [ ] (parked) proposal(issue-238-239-240-a11y-compliance): wire quality-a11y-acr-check into quality-ci-blueprint
+      trigger: on-scope: quality
+      rationale: revisit when CI blueprint gains a stable ACR or a skip mechanism; false-positive risk currently blocks this
+- [ ] (parked) proposal(issue-238-239-240-a11y-compliance): automated W3C JSON fetch in sync_acr_criteria.py
+      trigger: on-scope: a11y
+      rationale: adds network dependency at CI time; surface when any a11y-scope work item is next in flight
 - [ ] P2 (Quality gate extensions): Issues #236 + #237 — combined PR: (1) #236: add pnpm lockfile pre-push hook (`pnpm-lockfile-sync`) to `.pre-commit-config.yaml` bootstrap template; (2) #237: add upgrade-safe consumer quality gate extension stubs (`quality-consumer-pre-push`, `quality-consumer-ci` no-op `.PHONY` targets in `blueprint.generated.mk`) wired into the pre-push template hook and `quality-ci-blueprint` chain; consumers override in `platform.mk` without merge-conflict risk. on-scope: quality
 - [ ] (parked) proposal(quality-hooks-keep-going-mode): parallel execution of independent quality-hooks checks
       trigger: on-scope: quality
