@@ -27,11 +27,11 @@
 - Node IDs referenced: FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-007, NFR-REL-001, NFR-UPG-001, NFR-A11Y-001, AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007
 
 ## Validation Summary
-- Required bundles executed: (to be filled at Verify phase)
-- Result summary: (to be filled at Verify phase)
+- Required bundles executed: `make infra-contract-test-fast` (136 passed, 2 subtests), `make quality-sdd-check` (PASS), `make quality-hardening-review` (PASS), `make infra-validate` (PASS — no drift), `make docs-build && make docs-smoke` (PASS), `make quality-hooks-fast` (all implementation checks PASS)
+- Result summary: All 136 assertions pass including 7 new assertions; docs lint clean across 96 markdown files; no bootstrap template drift; hardening review PASS
 - Documentation validation:
-  - `make docs-build`
-  - `make docs-smoke`
+  - `make docs-build` — PASS
+  - `make docs-smoke` — PASS
 
 ## Evidence Manifest
 - Manifest file: `evidence_manifest.json`
@@ -40,4 +40,4 @@
 - Hardening review export: `hardening_review.md`
 
 ## Open Risks and Follow-Ups
-- Follow-up: consumer docs for `consumer_quality_gates.md` to be completed at Document phase.
+- None — consumer docs (`consumer_quality_gates.md`) completed at Document phase (T-302)

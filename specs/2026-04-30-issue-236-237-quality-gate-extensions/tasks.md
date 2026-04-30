@@ -4,11 +4,11 @@
 See `plan.md § Parallel Execution Map`. Launch **Track A** (Slice 1+2, subagent A) and **Track B** (Slice 3 docs authoring T-301/T-302/T-308, subagent B) as concurrent isolated worktrees. Merge both tracks before running T-303–T-307 in the main session.
 
 ## Gate Checks (Required Before Implementation)
-- [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`
-- [ ] G-002 Confirm open questions and unresolved alternatives are `0`
-- [ ] G-003 Confirm required sign-offs are approved
-- [ ] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
-- [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
+- [x] G-001 Confirm `SPEC_READY=true` in `spec.md`
+- [x] G-002 Confirm open questions and unresolved alternatives are `0`
+- [x] G-003 Confirm required sign-offs are approved
+- [x] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
+- [x] G-005 Confirm `Implementation Stack Profile` section is fully populated
 
 ## Slice 1 — pnpm lockfile pre-push hook (Issue #236)
 - [x] T-101 Write failing contract assertion `test_precommit_template_has_pnpm_lockfile_sync_hook` (red)
@@ -33,35 +33,35 @@ See `plan.md § Parallel Execution Map`. Launch **Track A** (Slice 1+2, subagent
 - [x] T-301 Update `docs/blueprint/governance/quality_hooks.md` — add Consumer Extension Targets section
 - [x] T-302 Create `docs/platform/consumer/consumer_quality_gates.md` — consumer guide for overriding extension stubs
 - [x] T-308 Update `scripts/templates/consumer/init/AGENTS.md.tmpl` — add `quality-consumer-pre-push` and `quality-consumer-ci` to quality gate section with tier placement convention (green for AC-007)
-- [ ] T-303 Sync `docs/blueprint/governance/quality_hooks.md` to bootstrap template mirror (`make quality-docs-sync-blueprint-template`)
-- [ ] T-304 Regenerate `core_targets.generated.md` (`make quality-docs-sync-core-targets`)
-- [ ] T-305 Run `make docs-build && make docs-smoke`
-- [ ] T-306 Run `make infra-contract-test-fast` — all assertions pass
-- [ ] T-307 Run `make quality-hooks-fast` — all checks pass
+- [x] T-303 Sync `docs/blueprint/governance/quality_hooks.md` to bootstrap template mirror (`make quality-docs-sync-blueprint-template`)
+- [x] T-304 Regenerate `core_targets.generated.md` (`make quality-docs-sync-core-targets`)
+- [x] T-305 Run `make docs-build && make docs-smoke`
+- [x] T-306 Run `make infra-contract-test-fast` — all assertions pass
+- [x] T-307 Run `make quality-hooks-fast` — all checks pass
 
 ## Accessibility Testing (Normative — N/A for non-UI specs)
-- [ ] T-A01 Confirm NFR-A11Y-001 compliance scope is declared in `spec.md` (N/A — tooling and governance change; no UI components)
-- [ ] T-A02 axe-core scan: N/A — no UI components
-- [ ] T-A03 Keyboard operability: N/A — no interactive elements
-- [ ] T-A04 Focus indicator: N/A — no interactive elements
-- [ ] T-A05 Non-text content labels: N/A — no visual output
+- [x] T-A01 Confirm NFR-A11Y-001 compliance scope is declared in `spec.md` (N/A — tooling and governance change; no UI components)
+- [x] T-A02 axe-core scan: N/A — no UI components
+- [x] T-A03 Keyboard operability: N/A — no interactive elements
+- [x] T-A04 Focus indicator: N/A — no interactive elements
+- [x] T-A05 Non-text content labels: N/A — no visual output
 
 ## Validation and Release Readiness
-- [ ] T-401 Confirm `make infra-contract-test-fast` — all 6 new assertions + full suite pass
-- [ ] T-402 Confirm `make quality-sdd-check` — PASS
-- [ ] T-403 Confirm `make quality-hardening-review` — PASS
-- [ ] T-404 Confirm `make quality-hooks-fast` — PASS
-- [ ] T-405 Confirm `make infra-validate` — PASS (no bootstrap template drift)
-- [ ] T-406 Attach evidence to traceability document
+- [x] T-401 Confirm `make infra-contract-test-fast` — all 6 new assertions + full suite pass
+- [x] T-402 Confirm `make quality-sdd-check` — PASS
+- [x] T-403 Confirm `make quality-hardening-review` — PASS
+- [x] T-404 Confirm `make quality-hooks-fast` — PASS
+- [x] T-405 Confirm `make infra-validate` — PASS (no bootstrap template drift)
+- [x] T-406 Attach evidence to traceability document
 
 ## App Onboarding Minimum Targets (Normative)
-- [ ] A-001 `apps-bootstrap` and `apps-smoke` are implemented and verified for the affected app scope (no-impact — unaffected by this work item)
-- [ ] A-002 Backend app lanes (`backend-test-unit`, `backend-test-integration`, `backend-test-contracts`, `backend-test-e2e`) are available (no-impact)
-- [ ] A-003 Frontend app lanes (`touchpoints-test-unit`, `touchpoints-test-integration`, `touchpoints-test-contracts`, `touchpoints-test-e2e`) are available (no-impact)
-- [ ] A-004 Aggregate gates (`test-unit-all`, `test-integration-all`, `test-contracts-all`, `test-e2e-all-local`) are available (no-impact)
-- [ ] A-005 Port-forward operational wrappers (`infra-port-forward-start`, `infra-port-forward-stop`, `infra-port-forward-cleanup`) are available (no-impact)
+- [x] A-001 `apps-bootstrap` and `apps-smoke` are implemented and verified for the affected app scope (no-impact — unaffected by this work item)
+- [x] A-002 Backend app lanes (`backend-test-unit`, `backend-test-integration`, `backend-test-contracts`, `backend-test-e2e`) are available (no-impact)
+- [x] A-003 Frontend app lanes (`touchpoints-test-unit`, `touchpoints-test-integration`, `touchpoints-test-contracts`, `touchpoints-test-e2e`) are available (no-impact)
+- [x] A-004 Aggregate gates (`test-unit-all`, `test-integration-all`, `test-contracts-all`, `test-e2e-all-local`) are available (no-impact)
+- [x] A-005 Port-forward operational wrappers (`infra-port-forward-start`, `infra-port-forward-stop`, `infra-port-forward-cleanup`) are available (no-impact)
 
 ## Publish
-- [ ] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
-- [ ] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
-- [ ] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
+- [x] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
+- [x] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
+- [x] P-003 Ensure PR description follows repository template headings and references `pr_context.md`

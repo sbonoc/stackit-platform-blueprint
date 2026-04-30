@@ -33,11 +33,11 @@ Update `scripts/templates/consumer/init/AGENTS.md.tmpl` to document both extensi
 Consumers override the stubs in `platform.mk` (consumer-owned, never touched by blueprint upgrades):
 ```makefile
 quality-consumer-pre-push:
-    @make backend-test-unit
-    @make touchpoints-test-unit
+	@$(MAKE) backend-test-unit
+	@$(MAKE) touchpoints-test-unit
 
 quality-consumer-ci:
-    @make touchpoints-test-component
+	@$(MAKE) touchpoints-test-integration
 ```
 
 ## Alternatives Considered
