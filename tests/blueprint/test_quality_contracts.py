@@ -1740,6 +1740,11 @@ class QualityContractsTests(unittest.TestCase):
         hook_slice = content[idx : idx + 300]
         self.assertIn("stages: [pre-push]", hook_slice)
 
+    def test_agents_md_template_has_consumer_extension_targets(self) -> None:
+        content = _read("scripts/templates/consumer/init/AGENTS.md.tmpl")
+        self.assertIn("quality-consumer-pre-push", content)
+        self.assertIn("quality-consumer-ci", content)
+
 
 if __name__ == "__main__":
     unittest.main()

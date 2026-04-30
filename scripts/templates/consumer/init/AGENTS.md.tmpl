@@ -150,6 +150,25 @@ For the full policy (env vars, path-gating set, phase-gating rationale, failure-
 - Infra validation: `make infra-validate`
 - Docs build/smoke: `make docs-build` and `make docs-smoke`
 
+### Consumer Extension Targets
+
+Override in `platform.mk` without merge-conflict risk on blueprint upgrade:
+
+| Target | When it runs | Tier |
+|---|---|---|
+| `quality-consumer-pre-push` | pre-push hook (always_run) | Tier 1/unit — fast tests before every push |
+| `quality-consumer-ci` | final step of `quality-ci-blueprint` | Tier 2/component — tests acceptable in CI only |
+
+Both default to no-op (`@true`). Override example in `platform.mk`:
+
+```makefile
+quality-consumer-pre-push:
+	@$(MAKE) backend-test-unit
+
+quality-consumer-ci:
+	@$(MAKE) touchpoints-test-component
+```
+
 ## Repository Ownership
 - Consumer-owned:
   - `README.md`
