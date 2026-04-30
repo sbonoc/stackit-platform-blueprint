@@ -1701,5 +1701,17 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn("quality-a11y-acr-check", recipe_slice)
 
 
+    def test_precommit_template_has_pnpm_lockfile_sync_hook(self) -> None:
+        content = _read("scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml")
+        self.assertIn("id: pnpm-lockfile-sync", content)
+
+    def test_precommit_template_pnpm_lockfile_sync_covers_workspace(self) -> None:
+        content = _read("scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml")
+        idx = content.find("id: pnpm-lockfile-sync")
+        self.assertGreater(idx, -1, "pnpm-lockfile-sync hook not found")
+        hook_slice = content[idx : idx + 300]
+        self.assertIn(r"(^|/)package\.json$", hook_slice)
+
+
 if __name__ == "__main__":
     unittest.main()
