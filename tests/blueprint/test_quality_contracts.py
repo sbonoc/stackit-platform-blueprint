@@ -128,6 +128,16 @@ class QualityContractsTests(unittest.TestCase):
         )
         self.assertIn("infra-contract-test-fast", generated_make)
 
+    def test_blueprint_generated_mk_template_exposes_override_point_variables(self) -> None:
+        make_template = _read("scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl")
+        self.assertIn("SPEC_SCAFFOLD_DEFAULT_TRACK ?= blueprint", make_template)
+        self.assertIn("BLUEPRINT_UPLIFT_STATUS_SCRIPT ?= scripts/bin/blueprint/uplift_status.sh", make_template)
+
+    def test_generated_makefile_exposes_override_point_variables(self) -> None:
+        generated_make = _read("make/blueprint.generated.mk")
+        self.assertIn("SPEC_SCAFFOLD_DEFAULT_TRACK ?= blueprint", generated_make)
+        self.assertIn("BLUEPRINT_UPLIFT_STATUS_SCRIPT ?= scripts/bin/blueprint/uplift_status.sh", generated_make)
+
     def test_sdd_plan_and_tasks_templates_include_local_smoke_and_positive_path_gates(self) -> None:
         blueprint_plan = _read(".spec-kit/templates/blueprint/plan.md")
         consumer_plan = _read(".spec-kit/templates/consumer/plan.md")
