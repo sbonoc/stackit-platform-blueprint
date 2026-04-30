@@ -5,16 +5,11 @@
 - If required inputs are missing, add `BLOCKED_MISSING_INPUTS` in `spec.md` and keep the gate closed.
 
 ## Constitution Gates (Pre-Implementation)
-- Simplicity gate:
-  - Change is minimal: two `?=` variable declarations, two recipe token substitutions, two contract test assertions. No abstractions introduced.
-- Anti-abstraction gate:
-  - Uses GNU Make `?=` directly — no wrapper layer or indirection beyond the variable itself.
-- Integration-first testing gate:
-  - Contract assertions in `test_quality_contracts.py` verify the override-point variables are present in both template and rendered file before any consumer integration is possible.
-- Positive-path filter/transform test gate:
-  - Not applicable — no filter or payload-transform logic.
-- Finding-to-test translation gate:
-  - The bug manifests as a GNU Make warning (not a failing automated test). The fix introduces two new contract assertions (AC-005) that verify the absence of the root cause (hardcoded values in place of `?=` variables). These assertions turn green with the fix and serve as regression prevention.
+- Simplicity gate: minimal change — two `?=` variable declarations, two recipe token substitutions, two help string updates, two contract test assertions; no abstractions introduced.
+- Anti-abstraction gate: uses GNU Make `?=` directly — no wrapper layer or indirection beyond the variable itself.
+- Integration-first testing gate: contract assertions in `test_quality_contracts.py` verify override-point variables are present in both template and rendered file before any consumer integration is possible.
+- Positive-path filter/transform test gate: not applicable — no filter or payload-transform logic in this change.
+- Finding-to-test translation gate: GNU Make override warning is not a failing automated test; fix introduces two new contract assertions (AC-005) verifying `?=` declarations are present — assertions fail before fix, pass after.
 
 ## Delivery Slices
 
