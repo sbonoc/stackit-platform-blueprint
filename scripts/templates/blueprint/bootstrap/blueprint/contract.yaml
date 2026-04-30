@@ -1584,6 +1584,8 @@ spec:
     quality:
       check_target: quality-sdd-check
       check_script: scripts/bin/quality/check_sdd_assets.py
+      accessibility:
+        acr_staleness_days: 90
 
   versioning:
     latest_stable_required: true
