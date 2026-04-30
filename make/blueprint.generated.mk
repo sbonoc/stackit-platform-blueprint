@@ -55,8 +55,10 @@ blueprint-upgrade-fresh-env-gate: ## Run fresh-environment smoke gate — CI-equ
 blueprint-upgrade-readiness-doctor: ## Generate generated-consumer upgrade readiness diagnostics and manual-action hints
 	@scripts/bin/blueprint/upgrade_readiness_doctor.sh
 
-blueprint-uplift-status: ## Report blueprint uplift convergence status for tracked issues in consumer backlog (optional BLUEPRINT_UPLIFT_STRICT=true)
-	@scripts/bin/blueprint/uplift_status.sh
+BLUEPRINT_UPLIFT_STATUS_SCRIPT ?= scripts/bin/blueprint/uplift_status.sh
+
+blueprint-uplift-status: ## Report blueprint uplift convergence status for tracked issues in consumer backlog (optional BLUEPRINT_UPLIFT_STRICT=true; override script via BLUEPRINT_UPLIFT_STATUS_SCRIPT in platform.mk)
+	@$(BLUEPRINT_UPLIFT_STATUS_SCRIPT)
 
 blueprint-install-codex-skill: ## Install/sync bundled Codex upgrade skill into local CODEX_HOME skills directory
 	@scripts/bin/blueprint/install_codex_skill.sh --skill-name blueprint-consumer-upgrade
@@ -132,14 +134,16 @@ blueprint-clean-generated: ## Remove generated runtime/build/cache artifacts
 blueprint-render-module-wrapper-skeletons: ## Render optional-module wrapper skeleton templates from module contracts
 	@scripts/bin/blueprint/render_module_wrapper_skeletons.sh
 
-spec-scaffold: ## Scaffold SDD work-item documents under specs/YYYY-MM-DD-work-item-slug (set SPEC_SLUG; optional SPEC_TRACK/SPEC_DATE/SPEC_FORCE=true/SPEC_BRANCH=<name>/SPEC_NO_BRANCH=true)
+SPEC_SCAFFOLD_DEFAULT_TRACK ?= blueprint
+
+spec-scaffold: ## Scaffold SDD work-item documents under specs/YYYY-MM-DD-work-item-slug (set SPEC_SLUG; optional SPEC_TRACK/SPEC_DATE/SPEC_FORCE=true/SPEC_BRANCH=<name>/SPEC_NO_BRANCH=true; override default track via SPEC_SCAFFOLD_DEFAULT_TRACK in platform.mk)
 	@if [[ -z "$(strip $(SPEC_SLUG))" ]]; then \
 		echo "[spec-scaffold] set SPEC_SLUG=<work-item-slug>" >&2; \
 		exit 1; \
 	fi
 	@python3 scripts/bin/blueprint/spec_scaffold.py \
 		--slug "$(SPEC_SLUG)" \
-		--track "$(or $(SPEC_TRACK),blueprint)" \
+		--track "$(or $(SPEC_TRACK),$(SPEC_SCAFFOLD_DEFAULT_TRACK))" \
 		$(if $(strip $(SPEC_DATE)),--date "$(SPEC_DATE)",) \
 		$(if $(filter true,$(SPEC_FORCE)),--force,) \
 		$(if $(strip $(SPEC_BRANCH)),--branch "$(SPEC_BRANCH)",) \
