@@ -1,7 +1,7 @@
 # ADR: Make Target Override-Point Variables for Consumer Customisation
 
-- **Status:** proposed
-- **ADR technical decision sign-off:** pending
+- **Status:** approved
+- **ADR technical decision sign-off:** approved
 - **Date:** 2026-04-30
 - **Issues:** https://github.com/sbonoc/stackit-platform-blueprint/issues/241
 - **Work item:** `specs/2026-04-30-issue-241-make-override-warnings/`
