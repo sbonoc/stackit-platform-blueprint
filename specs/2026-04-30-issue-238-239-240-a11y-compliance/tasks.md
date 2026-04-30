@@ -24,23 +24,23 @@
 - [x] T-106 Run `make test-unit-all` — confirm T-101 assertions now PASS (green phase verified)
 
 ## Slice 2 — Test infrastructure, red phase (Issue #239)
-- [ ] T-103 Add contract test assertions verifying:
+- [x] T-103 Add contract test assertions verifying:
       (a) `make/platform.mk` contains `touchpoints-test-a11y` target
       (b) `scripts/bin/platform/touchpoints/test_a11y.sh` exists
       (c) `scripts/lib/platform/touchpoints/axe_page_scan.mjs` contains `wcag21a` and `wcag21aa`
       (d) `scripts/lib/platform/touchpoints/axe_preset.ts` contains `WCAG21AA_AXE_CONFIG`
       (e) `make/platform.mk` contains `apps-a11y-smoke` target
-- [ ] T-104 Confirm all new contract test assertions FAIL before implementation (red phase verified)
+- [x] T-104 Confirm all new contract test assertions FAIL before implementation (red phase verified)
 
 ## Slice 2 — Test infrastructure, green phase (Issue #239)
-- [ ] T-006 Add `touchpoints-test-a11y` `.PHONY` target and definition to `make/platform.mk` (FR-201)
-- [ ] T-007 Write `scripts/bin/platform/touchpoints/test_a11y.sh` with `A11Y_BASE_URL`, `A11Y_ROUTES`, `A11Y_FAIL_ON_IMPACT` variables and `run_cmd node axe_page_scan.mjs` invocation (FR-201)
-- [ ] T-008 Add `apps-a11y-smoke` `.PHONY` target and definition to `make/platform.mk` (FR-202)
-- [ ] T-009 Write `scripts/bin/platform/apps/a11y_smoke.sh` wrapping `test_a11y.sh` with smoke-appropriate defaults (FR-202)
-- [ ] T-010 Write `scripts/lib/platform/touchpoints/axe_page_scan.mjs` with `@axe-core/playwright`, explicit `['wcag2a','wcag2aa','wcag21a','wcag21aa']` tag array, JSON report output, and human-readable violation summary (FR-203)
-- [ ] T-011 Write `scripts/lib/platform/touchpoints/axe_preset.ts` exporting `WCAG21AA_AXE_CONFIG` and `assertAxeWcag21AA`; include `attachTo: document.body` precondition note (FR-204)
-- [ ] T-012 Extend `test-smoke-all-local` in `make/platform.mk` to include `apps-a11y-smoke` (FR-205)
-- [ ] T-107 Run `make test-unit-all` — confirm T-103 assertions now PASS (green phase verified)
+- [x] T-006 Add `touchpoints-test-a11y` `.PHONY` target and definition to `make/platform.mk` (FR-201)
+- [x] T-007 Write `scripts/bin/platform/touchpoints/test_a11y.sh` with `A11Y_BASE_URL`, `A11Y_ROUTES`, `A11Y_FAIL_ON_IMPACT` variables and `run_cmd node axe_page_scan.mjs` invocation (FR-201)
+- [x] T-008 Add `apps-a11y-smoke` `.PHONY` target and definition to `make/platform.mk` (FR-202)
+- [x] T-009 Write `scripts/bin/platform/apps/a11y_smoke.sh` wrapping `test_a11y.sh` with smoke-appropriate defaults (FR-202)
+- [x] T-010 Write `scripts/lib/platform/touchpoints/axe_page_scan.mjs` with `@axe-core/playwright`, explicit `['wcag2a','wcag2aa','wcag21a','wcag21aa']` tag array, JSON report output, and human-readable violation summary (FR-203)
+- [x] T-011 Write `scripts/lib/platform/touchpoints/axe_preset.ts` exporting `WCAG21AA_AXE_CONFIG` and `assertAxeWcag21AA`; include `attachTo: document.body` precondition note (FR-204)
+- [x] T-012 Extend `test-smoke-all-local` in `make/platform.mk` to include `apps-a11y-smoke` (FR-205)
+- [x] T-107 Run `make test-unit-all` — confirm T-103 assertions now PASS (green phase verified)
 - [ ] T-013 Run `make quality-docs-sync-core-targets` — verify new targets appear in `docs/reference/generated/core_targets.generated.md`
 
 ## Slice 3 — ACR scaffold and quality gate, red phase (Issue #240)
