@@ -155,4 +155,8 @@ This file is auto-generated. Do not edit it manually.
 | `test-e2e-all-local` | Fast local E2E chain (dry-run infra + backend e2e lane) |
 | `test-e2e-all-local-full` | Full local E2E chain in dry-run mode (backend + touchpoints e2e lanes) |
 | `test-e2e-all-local-execute` | Full local E2E chain in execute mode (DRY_RUN=false, backend + touchpoints e2e lanes) |
+| `touchpoints-test-a11y` | Run full-page axe WCAG 2.1 AA accessibility scan against a live app URL |
+| `apps-a11y-smoke` | Run axe WCAG 2.1 AA smoke scan with default routes and impact threshold |
+| `quality-a11y-acr-check` | Validate ACR (docs/platform/accessibility/acr.md) exists, is dated, and is within staleness window |
+| `quality-a11y-acr-sync` | Regenerate ACR WCAG 2.1 criterion rows from bundled W3C list (preserves support/notes/evidence) |
 | `test-smoke-all-local` | Full local smoke lane: provision, infra-smoke, and endpoint assertions against a local cluster |

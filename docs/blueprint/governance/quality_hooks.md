@@ -13,7 +13,7 @@ For the normative policy, see `AGENTS.md § Quality Hooks — Inner-Loop and Pre
 
 | Target | Purpose | Typical gate |
 |---|---|---|
-| `make quality-hooks-fast` | Fast checks (shellcheck, SDD drift, CI sync, docs drift, path-gated infra) | Slice boundary / pre-PR |
+| `make quality-hooks-fast` | Fast checks (shellcheck, SDD drift, CI sync, docs drift, path-gated infra, ACR staleness) | Slice boundary / pre-PR |
 | `make quality-hooks-strict` | Slower audit checks (version audit, template smoke) | Pre-push / PR Packager |
 | `make quality-hooks-run` | Composite: fast then strict | Full pre-push gate |
 
@@ -101,6 +101,24 @@ failures during SDD Steps 1–6 when publish artifacts are intentionally scaffol
 
 Step 7 (PR Packager) invokes `make quality-hooks-fast` with
 `QUALITY_HOOKS_FORCE_FULL=true` to run the spec-ready check unconditionally.
+
+---
+
+## ACR Staleness Gate
+
+`quality-hooks-fast` includes `quality-a11y-acr-check` as a recipe step after
+the main `hooks_fast.sh` run. The check validates that
+`docs/platform/accessibility/acr.md` (the Accessibility Conformance Report):
+
+- exists (non-zero exit with remediation message if missing),
+- has a non-placeholder `Report date (last reviewed):` field,
+- and is within the configured staleness window (default: 90 days, configurable
+  via `blueprint/contract.yaml` `spec.quality.accessibility.acr_staleness_days`
+  or the `ACR_STALENESS_DAYS` env var).
+
+The check is wired into the consumer-side fast gate only. It is intentionally
+**not** added to `quality-ci-blueprint` to avoid false positives in the blueprint's
+own CI where no consumer ACR exists by default.
 
 ---
 

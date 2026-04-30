@@ -20,6 +20,13 @@
 - [ ] T-104 Translate any reproducible pre-PR smoke/`curl`/deterministic-check finding into a failing automated test first, then turn it green with the fix in the same work item (or document deterministic exception in publish artifacts)
 - [ ] T-105 Add boundary/integration tests where required
 
+## Accessibility Testing (Normative — mark N/A with rationale for non-UI specs)
+- [ ] T-A01 Confirm NFR-A11Y-001 compliance scope is declared in `spec.md` (or explicitly written as "N/A — <reason>")
+- [ ] T-A02 Run axe-core WCAG 2.1 AA scan using `runOnly: { type: 'tag', values: ['wcag2a','wcag2aa','wcag21a','wcag21aa'] }` and `attachTo: document.body`; zero violations at configured fail-impact threshold
+- [ ] T-A03 Verify keyboard operability: all interactive elements reachable and operable by keyboard (Tab / Shift-Tab / Enter / Space / Escape)
+- [ ] T-A04 Verify focus indicator visible on all focused interactive elements (SC 2.4.7)
+- [ ] T-A05 Verify all non-text content (images, icons, form controls) has a programmatic label (SC 4.1.2 — Name, Role, Value)
+
 ## Validation and Release Readiness
 - [ ] T-201 Run required Make validation bundles
 - [ ] T-202 Attach evidence to traceability document

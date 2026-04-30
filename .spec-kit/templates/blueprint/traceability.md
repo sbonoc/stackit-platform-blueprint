@@ -2,8 +2,8 @@
 
 ## Requirement-to-Delivery Mapping
 
-| Requirement ID | Control IDs | Design Element | Implementation Path(s) | Test Evidence | Documentation Evidence | Operational Evidence |
-|---|---|---|---|---|---|---|
+| Requirement ID | Control IDs | WCAG SC | Design Element | Implementation Path(s) | Test Evidence | Documentation Evidence | Operational Evidence |
+|---|---|---|---|---|---|---|---|
 | FR-001 | SDD-C-005 |  |  |  |  |  |
 | FR-002 | SDD-C-005 |  |  |  |  |  |
 | NFR-SEC-001 | SDD-C-009 |  |  |  |  |  |

@@ -183,6 +183,7 @@ test-contracts-all: test-contracts-async-all
 
 quality-hooks-fast: ## Run fast local quality checks (set QUALITY_HOOKS_KEEP_GOING=true to aggregate all failures; QUALITY_HOOKS_FORCE_FULL=true to bypass path/phase gating)
 	@scripts/bin/quality/hooks_fast.sh
+	@$(MAKE) quality-a11y-acr-check
 
 quality-hooks-strict: ## Run slower audit-focused quality checks (set QUALITY_HOOKS_KEEP_GOING=true to aggregate all failures)
 	@scripts/bin/quality/hooks_strict.sh

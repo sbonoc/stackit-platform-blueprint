@@ -1132,6 +1132,8 @@ spec:
         - docs/platform/modules/secrets-manager/README.md
         - docs/platform/modules/kms/README.md
         - docs/platform/modules/identity-aware-proxy/README.md
+        - docs/platform/accessibility/acr.md
+        - docs/platform/consumer/accessibility.md
 
   make_contract:
     required_namespaces:
@@ -1584,6 +1586,8 @@ spec:
     quality:
       check_target: quality-sdd-check
       check_script: scripts/bin/quality/check_sdd_assets.py
+      accessibility:
+        acr_staleness_days: 90
 
   versioning:
     latest_stable_required: true
