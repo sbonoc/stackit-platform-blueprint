@@ -8,20 +8,20 @@
 - [x] G-005 Confirm `Implementation Stack Profile` section is fully populated
 
 ## Slice 1 — SDD lifecycle template updates, red phase (Issue #238)
-- [ ] T-101 Add contract test assertions in `tests/blueprint/test_quality_contracts.py` asserting:
+- [x] T-101 Add contract test assertions in `tests/blueprint/test_quality_contracts.py` asserting:
       (a) `.spec-kit/templates/blueprint/spec.md` contains `NFR-A11Y-001`
       (b) `.spec-kit/templates/blueprint/tasks.md` contains `T-A02` and `wcag21aa`
       (c) `.spec-kit/templates/blueprint/hardening_review.md` contains `Accessibility Gate`
       (d) `.spec-kit/templates/blueprint/traceability.md` header contains `WCAG SC`
-- [ ] T-102 Confirm all new contract test assertions FAIL before template edits (red phase verified)
+- [x] T-102 Confirm all new contract test assertions FAIL before template edits (red phase verified)
 
 ## Slice 1 — SDD lifecycle template updates, green phase (Issue #238)
-- [ ] T-001 Edit `.spec-kit/templates/blueprint/spec.md`: add `NFR-A11Y-001 MUST define WCAG 2.1 Level AA compliance scope and any known exceptions.` to the standard NFR section; include N/A guidance for non-UI specs (FR-101)
-- [ ] T-002 Edit `.spec-kit/templates/blueprint/tasks.md`: add T-Axx task block (T-A01 through T-A05); T-A02 MUST explicitly name `wcag21a` and `wcag21aa` tags and `attachTo: document.body` (FR-102)
-- [ ] T-003 Edit `.spec-kit/templates/blueprint/hardening_review.md`: add "Accessibility Gate" mandatory section with six checklist items referencing SC 4.1.2, 2.1.1, 2.4.7, 1.4.1, 3.3.1, and axe-core scan evidence; include N/A guidance for non-UI specs (FR-103)
-- [ ] T-004 Edit `.spec-kit/templates/blueprint/traceability.md`: add `WCAG SC` column to the requirement-to-delivery mapping header row (FR-104)
-- [ ] T-005 Update `scripts/bin/platform/quality/check_spec_pr_ready.py`: validate Accessibility Gate section has no unchecked (non-N/A) boxes in `hardening_review.md` (FR-105)
-- [ ] T-106 Run `make test-unit-all` — confirm T-101 assertions now PASS (green phase verified)
+- [x] T-001 Edit `.spec-kit/templates/blueprint/spec.md`: add `NFR-A11Y-001 MUST define WCAG 2.1 Level AA compliance scope and any known exceptions.` to the standard NFR section; include N/A guidance for non-UI specs (FR-101)
+- [x] T-002 Edit `.spec-kit/templates/blueprint/tasks.md`: add T-Axx task block (T-A01 through T-A05); T-A02 MUST explicitly name `wcag21a` and `wcag21aa` tags and `attachTo: document.body` (FR-102)
+- [x] T-003 Edit `.spec-kit/templates/blueprint/hardening_review.md`: add "Accessibility Gate" mandatory section with six checklist items referencing SC 4.1.2, 2.1.1, 2.4.7, 1.4.1, 3.3.1, and axe-core scan evidence; include N/A guidance for non-UI specs (FR-103)
+- [x] T-004 Edit `.spec-kit/templates/blueprint/traceability.md`: add `WCAG SC` column to the requirement-to-delivery mapping header row (FR-104)
+- [x] T-005 Update `scripts/bin/platform/quality/check_spec_pr_ready.py`: validate Accessibility Gate section has no unchecked (non-N/A) boxes in `hardening_review.md` (FR-105)
+- [x] T-106 Run `make test-unit-all` — confirm T-101 assertions now PASS (green phase verified)
 
 ## Slice 2 — Test infrastructure, red phase (Issue #239)
 - [ ] T-103 Add contract test assertions verifying:

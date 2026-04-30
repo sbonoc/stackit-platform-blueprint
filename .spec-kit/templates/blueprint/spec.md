@@ -50,6 +50,7 @@
 - NFR-OBS-001 MUST define logs, metrics, and traces expectations.
 - NFR-REL-001 MUST define resilience and rollback behavior.
 - NFR-OPS-001 MUST define operability and diagnostics behavior.
+- NFR-A11Y-001 MUST define WCAG 2.1 Level AA compliance scope and any known exceptions. (Non-UI specs: write "N/A — <reason>" in the body.)
 
 ## Normative Option Decision
 - Option A:
