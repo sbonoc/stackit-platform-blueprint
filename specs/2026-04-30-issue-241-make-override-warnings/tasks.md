@@ -21,9 +21,9 @@
 - [ ] T-106 Run `make test-unit-all` — confirm T-101 and T-102 now PASS (green phase verified)
 
 ## Slice 3 — ADR and docs
-- [ ] T-201 Write `docs/blueprint/architecture/decisions/ADR-20260430-issue-241-make-override-warnings.md` (Status: proposed)
+- [x] T-201 Write `docs/blueprint/architecture/decisions/ADR-20260430-issue-241-make-override-warnings.md` — done during intake; Status: approved (sign-offs recorded in Step 03)
 - [ ] T-202 Run `make quality-docs-sync-core-targets` and verify no content change in `docs/reference/generated/core_targets.generated.md`
-- [ ] T-203 Run `make quality-sdd-check` — fix all violations before continuing
+- [ ] T-203 Run `make quality-sdd-check` — must pass clean post-implementation
 
 ## Validation and Release Readiness
 - [ ] T-204 Run `make infra-contract-test-fast` — confirm all contract tests pass
