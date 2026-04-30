@@ -124,16 +124,22 @@ STEP 8 — PUBLISH ARTIFACTS
               trigger: <type>: <value>
               rationale: <one line>
 
-4. Mark all tasks complete in tasks.md (P-001, P-002, P-003 last).
+4. **ACR review** — for any spec that touches user-facing surfaces (UI components,
+   web pages, or interactive flows), confirm `docs/platform/accessibility/acr.md`
+   has been reviewed and that `Report date (last reviewed):` is updated to today's date.
+   Run `make quality-a11y-acr-check` to verify the ACR is present, dated, and within
+   the configured staleness window. Non-UI specs: skip this step.
 
-5. Run quality gates — all must pass:
-   make quality-hooks-fast         # SDD check + docs drift + infra contract tests
+5. Mark all tasks complete in tasks.md (P-001, P-002, P-003 last).
+
+6. Run quality gates — all must pass:
+   make quality-hooks-fast         # SDD check + docs drift + infra contract tests + ACR check
    make quality-hardening-review   # hardening_review.md completeness
 
-6. TRACEABILITY VERIFICATION — run the blueprint-sdd-traceability-keeper skill
+7. TRACEABILITY VERIFICATION — run the blueprint-sdd-traceability-keeper skill
    for this work item. Resolve any blocking gaps before committing.
 
-7. Commit final artifacts (including any traceability.md fixes from step 6):
+8. Commit final artifacts (including any traceability.md fixes from step 7):
    git add specs/YYYY-MM-DD-<slug>/pr_context.md \
            specs/YYYY-MM-DD-<slug>/hardening_review.md \
            specs/YYYY-MM-DD-<slug>/tasks.md \
@@ -143,14 +149,14 @@ STEP 8 — PUBLISH ARTIFACTS
 
 STEP 9 — MARK PR READY
 
-8. Update the PR description to reflect final state:
+9. Update the PR description to reflect final state:
    - Replace the Open Questions section (should already be gone from Step 3).
    - Ensure the description summarises the full pr_context.md content.
 
-9. Mark the Draft PR as ready:
-   gh pr ready <number>
+10. Mark the Draft PR as ready:
+    gh pr ready <number>
 
-10. Post the review request comment:
+11. Post the review request comment:
     gh pr comment <number> --body "@codex review this PR"
 ```
 
