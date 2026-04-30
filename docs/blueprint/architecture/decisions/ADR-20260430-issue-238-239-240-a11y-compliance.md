@@ -1,7 +1,7 @@
 # ADR: Accessibility Compliance — SDD Lifecycle Gates, Test Infrastructure, and ACR Scaffold
 
-- **Status:** proposed
-- **ADR technical decision sign-off:** pending
+- **Status:** approved
+- **ADR technical decision sign-off:** approved
 - **Date:** 2026-04-30
 - **Issues:** https://github.com/sbonoc/stackit-platform-blueprint/issues/238, https://github.com/sbonoc/stackit-platform-blueprint/issues/239, https://github.com/sbonoc/stackit-platform-blueprint/issues/240
 - **Work item:** `specs/2026-04-30-issue-238-239-240-a11y-compliance/`

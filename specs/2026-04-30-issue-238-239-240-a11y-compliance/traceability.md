@@ -41,8 +41,8 @@
 - Node IDs referenced: FR-101, FR-102, FR-103, FR-104, FR-105, FR-201, FR-202, FR-203, FR-204, FR-205, FR-301, FR-302, FR-303, FR-304, FR-305, NFR-EAA-001, NFR-REL-001, NFR-OPS-001, NFR-TEST-001, AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009, AC-010, AC-011, AC-012
 
 ## Validation Summary
-- Required bundles executed:
-- Result summary: pending — SPEC_READY=false (sign-offs pending)
+- Required bundles executed: make quality-sdd-check
+- Result summary: SPEC_READY=true — all sign-offs approved (Product, Architecture, Security, Operations) via PR #243 comment 2026-04-30
 - Documentation validation:
   - `make docs-build`
   - `make docs-smoke`
