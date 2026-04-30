@@ -1,24 +1,24 @@
 # Tasks
 
 ## Gate Checks (Required Before Implementation)
-- [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`
-- [ ] G-002 Confirm open questions and unresolved alternatives are `0`
-- [ ] G-003 Confirm required sign-offs are approved
-- [ ] G-004 Confirm `Applicable Guardrail Controls` section includes applicable `SDD-C-###` IDs
-- [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
+- [x] G-001 Confirm `SPEC_READY=true` in `spec.md`
+- [x] G-002 Confirm open questions and unresolved alternatives are `0`
+- [x] G-003 Confirm required sign-offs are approved
+- [x] G-004 Confirm `Applicable Guardrail Controls` section includes applicable `SDD-C-###` IDs
+- [x] G-005 Confirm `Implementation Stack Profile` section is fully populated
 
 ## Slice 1 — Contract test assertions (red phase)
-- [ ] T-101 Add `test_blueprint_generated_mk_template_exposes_override_point_variables` to `tests/blueprint/test_quality_contracts.py` asserting `SPEC_SCAFFOLD_DEFAULT_TRACK ?= blueprint` and `BLUEPRINT_UPLIFT_STATUS_SCRIPT ?= scripts/bin/blueprint/uplift_status.sh` are present in the template file
-- [ ] T-102 Add `test_generated_makefile_exposes_override_point_variables` asserting the same strings are present in `make/blueprint.generated.mk`
-- [ ] T-103 Confirm both new tests FAIL before template edits (red phase verified)
+- [x] T-101 Add `test_blueprint_generated_mk_template_exposes_override_point_variables` to `tests/blueprint/test_quality_contracts.py` asserting `SPEC_SCAFFOLD_DEFAULT_TRACK ?= blueprint` and `BLUEPRINT_UPLIFT_STATUS_SCRIPT ?= scripts/bin/blueprint/uplift_status.sh` are present in the template file
+- [x] T-102 Add `test_generated_makefile_exposes_override_point_variables` asserting the same strings are present in `make/blueprint.generated.mk`
+- [x] T-103 Confirm both new tests FAIL before template edits (red phase verified)
 
 ## Slice 2 — Template and generated file update (green phase)
-- [ ] T-001 In `scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl`: add `SPEC_SCAFFOLD_DEFAULT_TRACK ?= blueprint` before the `spec-scaffold` target
-- [ ] T-002 In the `spec-scaffold` recipe, replace the hardcoded `blueprint` in `$(or $(SPEC_TRACK),blueprint)` with `$(SPEC_SCAFFOLD_DEFAULT_TRACK)`
-- [ ] T-003 In `scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl`: add `BLUEPRINT_UPLIFT_STATUS_SCRIPT ?= scripts/bin/blueprint/uplift_status.sh` before the `blueprint-uplift-status` target
-- [ ] T-004 In the `blueprint-uplift-status` recipe, replace `@scripts/bin/blueprint/uplift_status.sh` with `@$(BLUEPRINT_UPLIFT_STATUS_SCRIPT)`
-- [ ] T-005 Run `make blueprint-render-makefile` and verify `make/blueprint.generated.mk` is updated with matching changes
-- [ ] T-106 Run `make test-unit-all` — confirm T-101 and T-102 now PASS (green phase verified)
+- [x] T-001 In `scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl`: add `SPEC_SCAFFOLD_DEFAULT_TRACK ?= blueprint` before the `spec-scaffold` target
+- [x] T-002 In the `spec-scaffold` recipe, replace the hardcoded `blueprint` in `$(or $(SPEC_TRACK),blueprint)` with `$(SPEC_SCAFFOLD_DEFAULT_TRACK)`
+- [x] T-003 In `scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl`: add `BLUEPRINT_UPLIFT_STATUS_SCRIPT ?= scripts/bin/blueprint/uplift_status.sh` before the `blueprint-uplift-status` target
+- [x] T-004 In the `blueprint-uplift-status` recipe, replace `@scripts/bin/blueprint/uplift_status.sh` with `@$(BLUEPRINT_UPLIFT_STATUS_SCRIPT)`
+- [x] T-005 Run `make blueprint-render-makefile` and verify `make/blueprint.generated.mk` is updated with matching changes
+- [x] T-106 Run `make test-unit-all` — confirm T-101 and T-102 now PASS (green phase verified)
 
 ## Slice 3 — ADR and docs
 - [x] T-201 Write `docs/blueprint/architecture/decisions/ADR-20260430-issue-241-make-override-warnings.md` — done during intake; Status: approved (sign-offs recorded in Step 03)
