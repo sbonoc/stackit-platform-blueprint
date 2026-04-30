@@ -18,7 +18,7 @@ This file is auto-generated. Do not edit it manually.
 | `blueprint-upgrade-consumer-postcheck` | Run deterministic post-upgrade convergence gate (validate + reconcile + merge-marker checks) |
 | `blueprint-upgrade-fresh-env-gate` | Run fresh-environment smoke gate — CI-equivalent worktree check after upgrade postcheck |
 | `blueprint-upgrade-readiness-doctor` | Generate generated-consumer upgrade readiness diagnostics and manual-action hints |
-| `blueprint-uplift-status` | Report blueprint uplift convergence status for tracked issues in consumer backlog (optional BLUEPRINT_UPLIFT_STRICT=true) |
+| `blueprint-uplift-status` | Report blueprint uplift convergence status for tracked issues in consumer backlog (optional BLUEPRINT_UPLIFT_STRICT=true; override script via BLUEPRINT_UPLIFT_STATUS_SCRIPT in platform.mk) |
 | `blueprint-install-codex-skill` | Install/sync bundled Codex upgrade skill into local CODEX_HOME skills directory |
 | `blueprint-install-codex-skill-consumer-ops` | Install/sync bundled Codex consumer operations skill into local CODEX_HOME skills directory |
 | `blueprint-install-codex-skill-sdd-step01-intake` | Install/sync bundled Codex SDD step01-intake skill into local CODEX_HOME skills directory |
@@ -32,7 +32,7 @@ This file is auto-generated. Do not edit it manually.
 | `blueprint-render-makefile` | Render blueprint-generated make targets from template and enabled module flags |
 | `blueprint-clean-generated` | Remove generated runtime/build/cache artifacts |
 | `blueprint-render-module-wrapper-skeletons` | Render optional-module wrapper skeleton templates from module contracts |
-| `spec-scaffold` | Scaffold SDD work-item documents under specs/YYYY-MM-DD-work-item-slug (set SPEC_SLUG; optional SPEC_TRACK/SPEC_DATE/SPEC_FORCE=true/SPEC_BRANCH=&lt;name&gt;/SPEC_NO_BRANCH=true) |
+| `spec-scaffold` | Scaffold SDD work-item documents under specs/YYYY-MM-DD-work-item-slug (set SPEC_SLUG; optional SPEC_TRACK/SPEC_DATE/SPEC_FORCE=true/SPEC_BRANCH=&lt;name&gt;/SPEC_NO_BRANCH=true; override default track via SPEC_SCAFFOLD_DEFAULT_TRACK in platform.mk) |
 | `spec-impact` | Render graph-driven impact summary for a work item (optional SPEC_WORK_ITEM, SPEC_IMPACT_OUTPUT) |
 | `spec-evidence-manifest` | Render deterministic evidence manifest checksums for a work item (optional SPEC_WORK_ITEM, SPEC_EVIDENCE_OUTPUT) |
 | `spec-context-pack` | Render deterministic context pack markdown for a work item (optional SPEC_WORK_ITEM, SPEC_CONTEXT_OUTPUT) |

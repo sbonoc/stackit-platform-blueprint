@@ -57,7 +57,7 @@ blueprint-upgrade-readiness-doctor: ## Generate generated-consumer upgrade readi
 
 BLUEPRINT_UPLIFT_STATUS_SCRIPT ?= scripts/bin/blueprint/uplift_status.sh
 
-blueprint-uplift-status: ## Report blueprint uplift convergence status for tracked issues in consumer backlog (optional BLUEPRINT_UPLIFT_STRICT=true)
+blueprint-uplift-status: ## Report blueprint uplift convergence status for tracked issues in consumer backlog (optional BLUEPRINT_UPLIFT_STRICT=true; override script via BLUEPRINT_UPLIFT_STATUS_SCRIPT in platform.mk)
 	@$(BLUEPRINT_UPLIFT_STATUS_SCRIPT)
 
 blueprint-install-codex-skill: ## Install/sync bundled Codex upgrade skill into local CODEX_HOME skills directory
@@ -136,7 +136,7 @@ blueprint-render-module-wrapper-skeletons: ## Render optional-module wrapper ske
 
 SPEC_SCAFFOLD_DEFAULT_TRACK ?= blueprint
 
-spec-scaffold: ## Scaffold SDD work-item documents under specs/YYYY-MM-DD-work-item-slug (set SPEC_SLUG; optional SPEC_TRACK/SPEC_DATE/SPEC_FORCE=true/SPEC_BRANCH=<name>/SPEC_NO_BRANCH=true)
+spec-scaffold: ## Scaffold SDD work-item documents under specs/YYYY-MM-DD-work-item-slug (set SPEC_SLUG; optional SPEC_TRACK/SPEC_DATE/SPEC_FORCE=true/SPEC_BRANCH=<name>/SPEC_NO_BRANCH=true; override default track via SPEC_SCAFFOLD_DEFAULT_TRACK in platform.mk)
 	@if [[ -z "$(strip $(SPEC_SLUG))" ]]; then \
 		echo "[spec-scaffold] set SPEC_SLUG=<work-item-slug>" >&2; \
 		exit 1; \
