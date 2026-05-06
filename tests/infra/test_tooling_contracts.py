@@ -1922,11 +1922,11 @@ printf 'dsn=%s\\n' "$(postgres_dsn)"
         self.assertIn("driver=helm", resolved)
         self.assertIn(f"path={REPO_ROOT}/artifacts/infra/rendered/rabbitmq.values.yaml", resolved)
 
-    def test_optional_module_execution_resolves_local_provider_noop_mode_for_opensearch(self) -> None:
+    def test_optional_module_execution_resolves_local_helm_mode_for_opensearch(self) -> None:
         resolved = resolve_optional_module_execution("opensearch", "plan", profile="local-full")
-        self.assertIn("class=provider_backed", resolved)
-        self.assertIn("driver=noop", resolved)
-        self.assertIn("path=none", resolved)
+        self.assertIn("class=fallback_runtime", resolved)
+        self.assertIn("driver=helm", resolved)
+        self.assertIn(f"path={REPO_ROOT}/artifacts/infra/rendered/opensearch.values.yaml", resolved)
 
     def test_local_context_prefers_docker_desktop_on_workstations(self) -> None:
         resolved = resolve_local_kube_context_contract(

@@ -5,6 +5,7 @@ source "$SCRIPT_DIR/../../lib/shell/bootstrap.sh"
 source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 source "$ROOT_DIR/scripts/lib/infra/stack_paths.sh"
 source "$ROOT_DIR/scripts/lib/infra/module_execution.sh"
+source "$ROOT_DIR/scripts/lib/infra/fallback_runtime.sh"
 source "$ROOT_DIR/scripts/lib/infra/state.sh"
 source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
 source "$ROOT_DIR/scripts/lib/infra/opensearch.sh"
@@ -19,8 +20,10 @@ case "$destroy_driver" in
 foundation_reconcile_apply)
   optional_module_destroy_foundation_contract "opensearch"
   ;;
-noop)
-  optional_module_log_execution_note
+helm)
+  destroy_path="$OPENSEARCH_HELM_RELEASE@$OPENSEARCH_NAMESPACE"
+  run_helm_uninstall "$OPENSEARCH_HELM_RELEASE" "$OPENSEARCH_NAMESPACE"
+  opensearch_delete_runtime_secret
   ;;
 *)
   optional_module_unexpected_driver "opensearch" "destroy"

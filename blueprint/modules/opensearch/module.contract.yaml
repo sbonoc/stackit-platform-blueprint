@@ -42,8 +42,8 @@ spec:
     destroy: infra-opensearch-destroy
 
   smoke_checks:
-    - "Endpoint URI is present and HTTPS-formatted"
-    - "Dashboard URL contract is present"
+    - "Endpoint URI is present and HTTP/HTTPS-formatted (HTTP for local lane, HTTPS for STACKIT)"
+    - "Dashboard URL contract is present (may be empty on local lane where dashboards subchart is disabled)"
 
   cleanup_contract:
     destroy_target: infra-opensearch-destroy
