@@ -5,6 +5,7 @@ source "$SCRIPT_DIR/../../lib/shell/bootstrap.sh"
 source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 source "$ROOT_DIR/scripts/lib/infra/stack_paths.sh"
 source "$ROOT_DIR/scripts/lib/infra/module_execution.sh"
+source "$ROOT_DIR/scripts/lib/infra/fallback_runtime.sh"
 source "$ROOT_DIR/scripts/lib/infra/state.sh"
 source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
 source "$ROOT_DIR/scripts/lib/infra/object_storage.sh"
@@ -22,6 +23,7 @@ foundation_reconcile_apply)
 helm)
   destroy_path="$OBJECT_STORAGE_HELM_RELEASE@$OBJECT_STORAGE_NAMESPACE"
   run_helm_uninstall "$OBJECT_STORAGE_HELM_RELEASE" "$OBJECT_STORAGE_NAMESPACE"
+  object_storage_delete_runtime_secret
   ;;
 *)
   optional_module_unexpected_driver "object-storage" "destroy"

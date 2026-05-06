@@ -72,7 +72,9 @@
         "tests/blueprint/test_resolve_contract_upgrade.py",
         "tests/blueprint/test_validate_contract.py",
         "tests/infra/modules/opensearch/test_opensearch_module.py",
-        "tests/infra/modules/opensearch/test_contract.py"
+        "tests/infra/modules/opensearch/test_contract.py",
+        "tests/infra/modules/object-storage/test_object_storage_module.py",
+        "tests/infra/modules/object-storage/test_contract.py"
       ]
     },
     {

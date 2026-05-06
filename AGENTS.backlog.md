@@ -23,6 +23,7 @@ To introduce a new tag, append a row here in the same commit that uses it.
 ---
 
 ## Current Priorities
+- [x] P1 (Platform modules — first-class): Issue #248 — Object-storage module dual-lane implementation (MinIO local + STACKIT Terraform). **Done**: `specs/2026-05-06-issue-248-object-storage-module/`, PR #250. 5 slices complete; 27/27 tests green; 9/9 quality gates pass. `SPEC_READY: true`.
 - [x] P1 (Platform modules — first-class): Issue #248 — OpenSearch module dual-lane implementation (local Helm + STACKIT Terraform). **Done**: `specs/2026-05-06-issue-248-opensearch-module/`, PR #249.
 - [x] (rejected) proposal(issue-248-opensearch-module): consumer-side adoption of infra-opensearch-local-apply in dhe-marketplace — rejected: consumer-repo work, not blueprint scope.
 - [x] (rejected) proposal(issue-248-opensearch-module): Q-1 Option B cross-cutting naming change for all modules — rejected: speculative; Q-1 resolved to Option A.

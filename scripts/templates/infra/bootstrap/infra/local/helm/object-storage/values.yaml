@@ -6,8 +6,7 @@ global:
     allowInsecureImages: true
 mode: standalone
 auth:
-  rootUser: "{{OBJECT_STORAGE_ACCESS_KEY}}"
-  rootPassword: "{{OBJECT_STORAGE_SECRET_KEY}}"
+  existingSecret: "{{OBJECT_STORAGE_CREDENTIAL_SECRET_NAME}}"
 defaultBuckets: "{{OBJECT_STORAGE_BUCKET_NAME}}"
 image:
   registry: "{{OBJECT_STORAGE_IMAGE_REGISTRY}}"
