@@ -8,16 +8,16 @@
 - [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
 
 ## Implementation — Slice 1: Tests RED
-- [ ] T-001 Write `tests/infra/modules/object-storage/test_contract.py` (contract fixture assertions)
-- [ ] T-002 Write `tests/infra/modules/object-storage/test_object_storage_module.py` (module unit assertions — all RED)
-- [ ] T-003 Confirm all new tests fail (RED) before proceeding to implementation slices
+- [x] T-001 Write `tests/infra/modules/object-storage/test_contract.py` (contract fixture assertions)
+- [x] T-002 Write `tests/infra/modules/object-storage/test_object_storage_module.py` (module unit assertions — all RED)
+- [x] T-003 Confirm all new tests fail (RED) before proceeding to implementation slices
 
 ## Implementation — Slice 2: STACKIT Terraform standalone module
-- [ ] T-010 Implement `infra/cloud/stackit/terraform/modules/object-storage/main.tf` (`stackit_objectstorage_bucket`, `stackit_objectstorage_credentials_group`, `stackit_objectstorage_credential`)
-- [ ] T-011 Write `infra/cloud/stackit/terraform/modules/object-storage/variables.tf`
-- [ ] T-012 Write `infra/cloud/stackit/terraform/modules/object-storage/outputs.tf`
-- [ ] T-013 Write `infra/cloud/stackit/terraform/modules/object-storage/versions.tf`
-- [ ] T-014 Confirm Terraform module tests GREEN
+- [x] T-010 Implement `infra/cloud/stackit/terraform/modules/object-storage/main.tf` (`stackit_objectstorage_bucket`, `stackit_objectstorage_credentials_group`, `stackit_objectstorage_credential`)
+- [x] T-011 Write `infra/cloud/stackit/terraform/modules/object-storage/variables.tf`
+- [x] T-012 Write `infra/cloud/stackit/terraform/modules/object-storage/outputs.tf`
+- [x] T-013 Write `infra/cloud/stackit/terraform/modules/object-storage/versions.tf`
+- [x] T-014 Confirm Terraform module tests GREEN
 
 ## Implementation — Slice 3: Execution class fix + Secret-backed credentials
 - [ ] T-020 Update `scripts/lib/infra/module_execution.sh` — change local lane class from `provider_backed` to `fallback_runtime` for both `object-storage:plan|apply` and `object-storage:destroy`
