@@ -159,6 +159,17 @@ printf '%s' "$({fn_expr})"
     return result.stdout.strip()
 
 
+_APPLY_SH = REPO_ROOT / "scripts" / "bin" / "infra" / "opensearch_apply.sh"
+
+
+class OpenSearchApplyScriptTests(unittest.TestCase):
+    def test_opensearch_apply_local_calls_helm_upgrade(self) -> None:
+        content = _APPLY_SH.read_text(encoding="utf-8")
+        self.assertIn("helm)", content, msg="opensearch_apply.sh missing helm) case")
+        self.assertIn("run_helm_upgrade_install", content)
+        self.assertIn("opensearch_render_values_file", content)
+
+
 class OpenSearchLocalLaneFunctionTests(unittest.TestCase):
     def test_opensearch_local_host_returns_service_hostname(self) -> None:
         host = _run_opensearch_bash("opensearch_local_service_host")

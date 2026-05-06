@@ -129,6 +129,7 @@ class OptionalModulesTests(unittest.TestCase):
             "infra/local/helm/neo4j",
             "infra/local/helm/object-storage",
             "infra/local/helm/rabbitmq",
+            "infra/local/helm/opensearch",
             "infra/local/helm/public-endpoints",
             "infra/local/helm/identity-aware-proxy",
             "tests/infra/modules/workflows",
@@ -176,6 +177,7 @@ class OptionalModulesTests(unittest.TestCase):
             "infra/local/helm/neo4j",
             "infra/local/helm/object-storage",
             "infra/local/helm/rabbitmq",
+            "infra/local/helm/opensearch",
             "infra/local/helm/public-endpoints",
             "infra/local/helm/identity-aware-proxy",
             "tests/infra/modules/workflows",
@@ -480,8 +482,10 @@ class OptionalModulesTests(unittest.TestCase):
         runtime_file = REPO_ROOT / "artifacts" / "infra" / "opensearch_runtime.env"
         self.assertTrue(runtime_file.exists())
         runtime_content = runtime_file.read_text(encoding="utf-8")
-        self.assertIn("uri=https://", runtime_content)
-        self.assertIn("dashboard_url=https://", runtime_content)
+        self.assertIn("uri=http://", runtime_content)
+        self.assertIn("dashboard_url=http://", runtime_content)
+        self.assertIn("host=blueprint-opensearch.search.svc.cluster.local", runtime_content)
+        self.assertIn("port=9200", runtime_content)
 
         destroy = run(["make", "infra-opensearch-destroy"], env)
         self.assertEqual(destroy.returncode, 0, msg=destroy.stdout + destroy.stderr)

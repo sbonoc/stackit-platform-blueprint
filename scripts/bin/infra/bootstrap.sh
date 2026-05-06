@@ -378,6 +378,19 @@ bootstrap_module_scaffold() {
         "IAP_IMAGE_REPOSITORY=$IAP_IMAGE_REPOSITORY" \
         "IAP_IMAGE_TAG=$IAP_IMAGE_TAG"
       ;;
+    opensearch)
+      opensearch_seed_env_defaults
+      ensure_file_from_rendered_template \
+        "$ROOT_DIR/infra/local/helm/$module/values.yaml" \
+        "infra" \
+        "infra/local/helm/$module/values.yaml" \
+        "OPENSEARCH_HELM_RELEASE=$OPENSEARCH_HELM_RELEASE" \
+        "OPENSEARCH_USERNAME=$OPENSEARCH_USERNAME" \
+        "OPENSEARCH_PASSWORD=$OPENSEARCH_PASSWORD" \
+        "OPENSEARCH_IMAGE_REGISTRY=$OPENSEARCH_IMAGE_REGISTRY" \
+        "OPENSEARCH_IMAGE_REPOSITORY=$OPENSEARCH_IMAGE_REPOSITORY" \
+        "OPENSEARCH_IMAGE_TAG=$OPENSEARCH_IMAGE_TAG"
+      ;;
     *)
       ensure_file_from_template \
         "$ROOT_DIR/infra/local/helm/$module/values.yaml" \
@@ -450,7 +463,7 @@ bootstrap_optional_module_scaffolding() {
   fi
 
   if is_module_enabled opensearch; then
-    bootstrap_module_scaffold opensearch false false
+    bootstrap_module_scaffold opensearch true false
     scaffolded_modules+=("opensearch")
   fi
 

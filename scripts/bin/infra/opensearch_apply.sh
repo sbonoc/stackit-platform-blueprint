@@ -28,8 +28,14 @@ case "$provision_driver" in
 foundation_contract)
   optional_module_apply_foundation_contract "opensearch"
   ;;
-noop)
-  optional_module_log_execution_note
+helm)
+  provision_path="$(opensearch_render_values_file)"
+  run_helm_upgrade_install \
+    "$OPENSEARCH_HELM_RELEASE" \
+    "$OPENSEARCH_NAMESPACE" \
+    "$OPENSEARCH_HELM_CHART" \
+    "$OPENSEARCH_HELM_CHART_VERSION" \
+    "$provision_path"
   ;;
 *)
   optional_module_unexpected_driver "opensearch" "apply"
