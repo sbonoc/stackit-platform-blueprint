@@ -30,6 +30,7 @@ foundation_contract)
   optional_module_apply_foundation_contract "object-storage"
   ;;
 helm)
+  object_storage_reconcile_runtime_secret
   provision_path="$(object_storage_render_values_file)"
   run_helm_upgrade_install \
     "$OBJECT_STORAGE_HELM_RELEASE" \

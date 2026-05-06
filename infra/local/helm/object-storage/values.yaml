@@ -6,8 +6,7 @@ global:
     allowInsecureImages: true
 mode: standalone
 auth:
-  rootUser: "minioadmin"
-  rootPassword: "minioadmin123"
+  existingSecret: "blueprint-object-storage-auth"
 defaultBuckets: "marketplace-assets"
 image:
   registry: "docker.io"
