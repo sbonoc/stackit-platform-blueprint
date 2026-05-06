@@ -24,6 +24,15 @@ case "$provision_driver" in
 foundation_contract)
   optional_module_warn_missing_foundation_diff "opensearch"
   ;;
+helm)
+  provision_path="$(opensearch_render_values_file)"
+  run_helm_template \
+    "$OPENSEARCH_HELM_RELEASE" \
+    "$OPENSEARCH_NAMESPACE" \
+    "$OPENSEARCH_HELM_CHART" \
+    "$OPENSEARCH_HELM_CHART_VERSION" \
+    "$provision_path"
+  ;;
 noop)
   optional_module_log_execution_note
   ;;

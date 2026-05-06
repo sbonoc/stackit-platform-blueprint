@@ -19,6 +19,10 @@ case "$destroy_driver" in
 foundation_reconcile_apply)
   optional_module_destroy_foundation_contract "opensearch"
   ;;
+helm)
+  destroy_path="$OPENSEARCH_HELM_RELEASE@$OPENSEARCH_NAMESPACE"
+  run_helm_uninstall "$OPENSEARCH_HELM_RELEASE" "$OPENSEARCH_NAMESPACE"
+  ;;
 noop)
   optional_module_log_execution_note
   ;;

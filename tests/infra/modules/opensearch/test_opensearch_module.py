@@ -199,6 +199,16 @@ class OpenSearchApplyScriptTests(unittest.TestCase):
         self.assertIn("run_helm_upgrade_install", content)
         self.assertIn("opensearch_render_values_file", content)
 
+    def test_opensearch_plan_local_has_helm_case(self) -> None:
+        content = (REPO_ROOT / "scripts" / "bin" / "infra" / "opensearch_plan.sh").read_text(encoding="utf-8")
+        self.assertIn("helm)", content, msg="opensearch_plan.sh missing helm) case")
+        self.assertIn("run_helm_template", content)
+
+    def test_opensearch_destroy_local_has_helm_case(self) -> None:
+        content = (REPO_ROOT / "scripts" / "bin" / "infra" / "opensearch_destroy.sh").read_text(encoding="utf-8")
+        self.assertIn("helm)", content, msg="opensearch_destroy.sh missing helm) case")
+        self.assertIn("run_helm_uninstall", content)
+
 
 class OpenSearchLocalLaneFunctionTests(unittest.TestCase):
     def test_opensearch_local_host_returns_service_hostname(self) -> None:
