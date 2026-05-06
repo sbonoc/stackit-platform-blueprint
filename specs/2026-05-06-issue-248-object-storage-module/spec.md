@@ -1,0 +1,120 @@
+# Specification
+
+## Spec Readiness Gate (Blocking)
+<!-- SPEC_PRODUCT_READY=true: intake gate — Product sign-off only; unlocks agent ADR drafting.
+     SPEC_READY=true: implementation gate — all sign-offs required; unlocks coding. -->
+- SPEC_READY: false
+- SPEC_PRODUCT_READY: false
+- Open questions count: 1
+- Unresolved alternatives count: 0
+- Unresolved TODO markers count: 0
+- Pending assumptions count: 0
+- Open clarification markers count: 1
+- Product sign-off: pending
+- Architecture sign-off: pending
+- Security sign-off: pending
+- Operations sign-off: pending
+- Missing input blocker token: none
+- ADR path: docs/blueprint/architecture/decisions/ADR-issue-248-object-storage-module.md
+- ADR status: proposed
+
+## Applicable Guardrail Controls (Normative)
+- Applicable control IDs: SDD-C-001, SDD-C-002, SDD-C-003, SDD-C-004, SDD-C-005, SDD-C-006, SDD-C-007, SDD-C-008, SDD-C-009, SDD-C-010, SDD-C-011, SDD-C-012, SDD-C-013, SDD-C-014, SDD-C-015, SDD-C-016, SDD-C-017, SDD-C-018, SDD-C-019, SDD-C-020, SDD-C-021
+- Control exception rationale:
+  - SDD-C-015: No app onboarding make-target contract changes — this work item affects only infra module wrappers, not app delivery workflows.
+  - SDD-C-018: No blueprint upstream defect escalation — this is a blueprint-internal implementation.
+  - SDD-C-022: Not applicable — no HTTP route handlers or new API endpoints in scope.
+  - SDD-C-023: Not applicable — no filter or payload-transform logic in scope.
+  - SDD-C-024: Not applicable — no pre-PR smoke/curl/deterministic-check findings to translate; no reproducible failures exist at intake time.
+
+## Implementation Stack Profile (Normative)
+- Backend stack profile: python_plus_fastapi_pydantic_v2
+- Frontend stack profile: none
+- Test automation profile: pytest_vitest_playwright_pact
+- Agent execution model: specialized-subagents-isolated-worktrees
+- Managed service preference: stackit-managed-first
+- Managed service exception rationale: local lane uses Bitnami MinIO (S3-compatible open-source) as the approved local-first equivalent per blueprint pattern; STACKIT Object Storage has no local emulator equivalent in the STACKIT provider
+- Runtime profile: local-first-docker-desktop-kubernetes
+- Local Kubernetes context policy: docker-desktop-preferred
+- Local provisioning stack: crossplane-plus-helm
+- Runtime identity baseline: eso-plus-argocd-plus-keycloak
+- Local-first exception rationale: none
+
+## Objective
+- Business outcome: Consumers can provision managed object storage on both local (MinIO on Docker Desktop) and STACKIT lanes with identical S3-compatible endpoint + credential outputs, enabling independent object storage lifecycle management without bundling inside application Helm releases.
+- Success metric: `infra-object-storage-apply` is non-noop on both lanes; smoke passes; all 4 contract outputs populated; 0 plaintext credentials in checked-in values files.
+
+## Normative Requirements
+
+### Functional Requirements (Normative)
+
+- FR-001 MUST implement `infra/cloud/stackit/terraform/modules/object-storage/main.tf` as a standalone Terraform module declaring `stackit_objectstorage_bucket`, `stackit_objectstorage_credentials_group`, and `stackit_objectstorage_credential` resources. The module MUST expose outputs matching the 4-key contract declared in `blueprint/modules/object-storage/module.contract.yaml`.
+- FR-002 MUST expose an S3-compatible endpoint on both lanes at `OBJECT_STORAGE_ENDPOINT`: on local via MinIO Helm (`http://<release>.<namespace>.svc.cluster.local:9000`); on STACKIT via `https://object-storage.<region>.onstackit.cloud`.
+- FR-003 MUST provision credentials (`OBJECT_STORAGE_ACCESS_KEY`, `OBJECT_STORAGE_SECRET_KEY`) on both lanes that authenticate to the S3-compatible endpoint with read/write access to the provisioned bucket `OBJECT_STORAGE_BUCKET_NAME`.
+- FR-004 Local lane MUST store MinIO credentials in Kubernetes Secret `blueprint-object-storage-auth` (keys: `root-user`, `root-password`) via `apply_optional_module_secret_from_literals` on every apply, and reference the secret from the Helm values via `auth.existingSecret`. Credentials MUST NOT be embedded in the rendered values artifact (`artifacts/infra/rendered/object-storage.values.yaml`).
+- FR-005 MUST write `artifacts/infra/object_storage_runtime.env` after every successful apply, containing at minimum: `profile`, `stack`, `provision_driver`, `provision_path`, `endpoint`, `bucket`, `access_key`, `secret_key`, `timestamp_utc`.
+- FR-006 `infra-object-storage-smoke` MUST validate: runtime state file exists; `endpoint` matches `^https?://`; `bucket` is non-empty. Smoke MUST write `artifacts/infra/object_storage_smoke.env` on success.
+- FR-007 `infra-object-storage-destroy` on local lane MUST run Helm uninstall (`--ignore-not-found`) and MUST delete the Kubernetes Secret `blueprint-object-storage-auth` after uninstall. On STACKIT lane destroy MUST route to `foundation_reconcile_apply`.
+
+> **[NEEDS CLARIFICATION]** Q-1: Output naming alignment with issue #248.
+>
+> Issue #248 lists outputs as `OBJECT_STORAGE_ACCESS_KEY_ID`, `OBJECT_STORAGE_SECRET_ACCESS_KEY`, `OBJECT_STORAGE_BUCKET_LIST`, and `OBJECT_STORAGE_REGION` (S3-standard naming). The existing implementation and `module.contract.yaml` use `OBJECT_STORAGE_ACCESS_KEY`, `OBJECT_STORAGE_SECRET_KEY`, `OBJECT_STORAGE_BUCKET_NAME` (no REGION output). Renaming is a breaking contract change affecting all downstream consumers.
+>
+> **Options:**
+> - **A)** Keep current naming (`ACCESS_KEY`, `SECRET_KEY`, `BUCKET_NAME`) and add `OBJECT_STORAGE_REGION` as a new output in `module.contract.yaml` and runtime state file. Minimally breaking; no consumer migration needed; aligns with postgres/rabbitmq/opensearch naming style. *(agent recommendation)*
+> - **B)** Rename to S3-standard naming per issue #248 (`ACCESS_KEY_ID`, `SECRET_ACCESS_KEY`, `BUCKET_LIST`). Fully breaking; requires consumer migration; loses naming consistency with other blueprint modules.
+>
+> **Agent recommendation:** Option A — add `OBJECT_STORAGE_REGION` to outputs only; keep existing key names. The S3-standard names are aspirational in issue #248 but the current codebase naming is already embedded in foundation outputs, runtime state schemas, and consumer `ExternalSecret` refs. Renaming in this work item would widen scope significantly with no direct consumer driver.
+
+### Non-Functional Requirements (Normative)
+
+- NFR-SEC-001 MUST NOT embed MinIO credentials (`OBJECT_STORAGE_ACCESS_KEY`, `OBJECT_STORAGE_SECRET_KEY`) in any checked-in file. Local lane credentials MUST be reconciled into Kubernetes Secret `blueprint-object-storage-auth` on every apply call. STACKIT credentials are provider-generated via `stackit_objectstorage_credential` and MUST be masked in logs (no `set -x` in credential-emitting sections).
+- NFR-OBS-001 Each wrapper script MUST call `start_script_metric_trap` with the canonical metric name (`infra_object_storage_{plan,apply,smoke,destroy}`). Apply MUST log the runtime state file path. Smoke MUST log a pass/fail summary line.
+- NFR-REL-001 Local Helm uninstall MUST be idempotent (`--ignore-not-found`). The Secret delete MUST also be idempotent (tolerate Secret-not-found). STACKIT lane Terraform destroy is idempotent by provider contract.
+- NFR-OPS-001 Runtime state schema MUST include all 5 keys (`endpoint`, `bucket`, `access_key`, `secret_key`, `region`) after Q-1 is resolved to Option A. Destroy MUST clean up all state files via `remove_state_files_by_prefix "object_storage_"`.
+- NFR-A11Y-001 N/A — no UI component; this work item produces only infra provisioning scripts and a Terraform module.
+
+## Normative Option Decision
+- Option A: Keep current output naming (`ACCESS_KEY`, `SECRET_KEY`, `BUCKET_NAME`); add `OBJECT_STORAGE_REGION` as a new output.
+- Option B: Rename all outputs to S3-standard naming per issue #248 spec.
+- Selected option: pending Q-1 resolution
+- Rationale: See [NEEDS CLARIFICATION] block under FR-007.
+
+## Contract Changes (Normative)
+- Config/Env contract: `OBJECT_STORAGE_REGION` added to runtime state schema (pending Q-1 Option A confirmation); `OBJECT_STORAGE_CREDENTIAL_SECRET_NAME` added as internal rendering variable for bootstrap (replaces plaintext `OBJECT_STORAGE_ACCESS_KEY`/`OBJECT_STORAGE_SECRET_KEY` in Helm values render).
+- API contract: none — S3-compatible endpoint contract unchanged.
+- OpenAPI / Pact contract path: none
+- Event contract: none
+- Make/CLI contract: `infra-object-storage-{plan,apply,smoke,destroy}` targets unchanged; no new targets.
+- Docs contract: `docs/platform/modules/object-storage/README.md` updated; template seed `scripts/templates/blueprint/bootstrap/docs/platform/modules/object-storage/README.md` synced.
+
+## Blueprint Upstream Defect Escalation (Normative)
+- Upstream issue URL: none
+- Temporary workaround path: none
+- Replacement trigger: none
+- Workaround review date: none
+
+## Normative Acceptance Criteria
+
+- AC-001 `infra-object-storage-apply` on `local-*` profile provisions the MinIO Helm release in the `data` namespace and writes `artifacts/infra/object_storage_runtime.env` containing lines: `endpoint=http://...`, `bucket=...`, `access_key=...`, `secret_key=...`.
+- AC-002 `infra-object-storage-apply` on `stackit-*` profile (with valid STACKIT credentials) applies the standalone Terraform module and writes the same-schema runtime env file.
+- AC-003 `infra-object-storage-smoke` exits 0 when runtime state file exists with `endpoint=https?://` and non-empty `bucket=`.
+- AC-004 `infra-object-storage-smoke` exits non-zero when runtime state file is absent.
+- AC-005 After `infra-object-storage-apply` on local lane, Kubernetes Secret `blueprint-object-storage-auth` exists with keys `root-user` and `root-password`; the rendered values artifact `artifacts/infra/rendered/object-storage.values.yaml` contains `auth.existingSecret: blueprint-object-storage-auth` and MUST NOT contain `auth.rootPassword`.
+- AC-006 `infra/cloud/stackit/terraform/modules/object-storage/main.tf` declares `stackit_objectstorage_bucket`, `stackit_objectstorage_credentials_group`, and `stackit_objectstorage_credential` resources.
+- AC-007 `tests/infra/modules/object-storage/test_contract.py` asserts all contract output keys are present in the runtime state fixture (4 keys minimum; 5 if Q-1 → Option A includes REGION).
+- AC-008 `tests/infra/modules/object-storage/test_object_storage_module.py` passes for: script presence (plan/apply/smoke/destroy); values seed uses `auth.existingSecret`, not `auth.rootPassword`; credentials not passed to values render; apply script reconciles secret before Helm install; destroy script deletes secret after uninstall; versions pinned in `versions.sh`.
+
+## Informative Notes (Non-Normative)
+- Context: Unlike opensearch (which was a full noop for local), the object-storage local lane is already wired in `module_execution.sh` and the bin scripts — the primary work is the Terraform standalone module, Secret-backed credentials, and tests. The STACKIT lane currently runs through the foundation inline resources, which remain untouched; the standalone module is additive (mirrors foundation resources for standalone consumption).
+- Tradeoffs: Not migrating to S3-standard naming (Option A) preserves backward compatibility but diverges from what issue #248 specifies. This is a deliberate scoping decision to avoid a breaking change.
+- Clarifications:
+  - The Bitnami MinIO chart uses `auth.existingSecret` with keys `root-user` and `root-password` (confirmed from chart templates at 17.x line).
+  - STACKIT Object Storage does not expose a version number in the provider; the chart version pin (`OBJECT_STORAGE_HELM_CHART_VERSION_PIN`) already exists in `versions.sh` at `17.0.21`.
+  - The `foundation_reconcile_apply` destroy route is already correctly wired in `module_execution.sh` and `object_storage_destroy.sh` — no changes needed for destroy routing.
+
+## Explicit Exclusions
+- Renaming `OBJECT_STORAGE_ACCESS_KEY`/`SECRET_KEY`/`BUCKET_NAME` to S3-standard names — requires separate breaking-change work item.
+- Multi-bucket (`BUCKET_LIST`) provisioning pattern — separate work item.
+- ESO `SecretStore` / `ExternalSecret` wiring for object storage credentials — consumer-side work.
+- Migrating foundation inline resources to call the standalone module — Terraform state migration risk; additive-only approach per ADR.
