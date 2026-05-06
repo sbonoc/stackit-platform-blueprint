@@ -109,6 +109,41 @@ class OpenSearchVersionPinsTests(unittest.TestCase):
             self.assertIn(pin, content, msg=f"missing version pin: {pin}")
 
 
+def _resolve_opensearch_module_execution(action: str, *, profile: str) -> str:
+    script = f"""
+export ROOT_DIR="{REPO_ROOT}"
+source "{REPO_ROOT}/scripts/lib/shell/bootstrap.sh"
+source "{REPO_ROOT}/scripts/lib/infra/profile.sh"
+source "{REPO_ROOT}/scripts/lib/infra/stack_paths.sh"
+source "{REPO_ROOT}/scripts/lib/infra/opensearch.sh"
+source "{REPO_ROOT}/scripts/lib/infra/module_execution.sh"
+opensearch_seed_env_defaults
+resolve_optional_module_execution "opensearch" "{action}"
+printf 'class=%s\\ndriver=%s\\npath=%s\\n' \\
+  "$OPTIONAL_MODULE_EXECUTION_CLASS" \\
+  "$OPTIONAL_MODULE_EXECUTION_DRIVER" \\
+  "$OPTIONAL_MODULE_EXECUTION_PATH"
+"""
+    result = run(["bash", "-lc", script], {"BLUEPRINT_PROFILE": profile})
+    if result.returncode != 0:
+        raise AssertionError(result.stdout + result.stderr)
+    return result.stdout + result.stderr
+
+
+class OpenSearchModuleExecutionRoutingTests(unittest.TestCase):
+    def test_opensearch_local_profile_routes_to_helm_driver(self) -> None:
+        out = _resolve_opensearch_module_execution("apply", profile="local-full")
+        self.assertIn("driver=helm", out)
+
+    def test_opensearch_local_destroy_routes_to_helm_driver(self) -> None:
+        out = _resolve_opensearch_module_execution("destroy", profile="local-full")
+        self.assertIn("driver=helm", out)
+
+    def test_opensearch_stackit_profile_routes_to_foundation_contract(self) -> None:
+        out = _resolve_opensearch_module_execution("apply", profile="stackit-dev")
+        self.assertIn("driver=foundation_contract", out)
+
+
 def _run_opensearch_bash(fn_expr: str, *, profile: str = "local-full") -> str:
     script = f"""
 export ROOT_DIR="{REPO_ROOT}"
