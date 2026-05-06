@@ -54,6 +54,7 @@ state_file="$(write_state_file "object_storage_runtime" \
   "bucket=$(object_storage_bucket_name)" \
   "access_key=$(object_storage_access_key)" \
   "secret_key=$(object_storage_secret_key)" \
+  "region=$OBJECT_STORAGE_REGION" \
   "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")")"
 
 log_info "object-storage runtime state written to $state_file"

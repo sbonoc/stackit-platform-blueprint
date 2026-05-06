@@ -219,13 +219,15 @@ class ObjectStorageSmokeScriptTests(unittest.TestCase):
         rc = self._run_smoke(
             "endpoint=http://blueprint-object-storage.data.svc.cluster.local:9000\n"
             "bucket=marketplace-assets\n"
+            "region=eu01\n"
         )
-        self.assertEqual(rc, 0, msg="smoke should pass with valid endpoint and bucket (local lane)")
+        self.assertEqual(rc, 0, msg="smoke should pass with valid endpoint, bucket, and region (local lane)")
 
     def test_smoke_passes_with_https_endpoint(self) -> None:
         rc = self._run_smoke(
             "endpoint=https://object-storage.eu01.onstackit.cloud\n"
             "bucket=marketplace-assets\n"
+            "region=eu01\n"
         )
         self.assertEqual(rc, 0, msg="smoke should pass with STACKIT https endpoint")
 
