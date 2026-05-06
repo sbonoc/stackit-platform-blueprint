@@ -30,7 +30,7 @@
 ## Integration and Dependency Edges
 - Upstream dependencies: `scripts/lib/infra/module_execution.sh` (driver resolution); `scripts/lib/infra/fallback_runtime.sh` (Secret reconcile helpers); `scripts/lib/infra/versions.sh` (version pins); `scripts/lib/infra/stackit_foundation_outputs.sh` (STACKIT output resolver)
 - Downstream dependencies: MinIO Helm chart `bitnami/minio@17.0.21`; STACKIT Terraform provider resources `stackit_objectstorage_bucket`, `stackit_objectstorage_credentials_group`, `stackit_objectstorage_credential`
-- Data/API/event contracts touched: `artifacts/infra/object_storage_runtime.env` schema (adding `region` key pending Q-1); `blueprint/modules/object-storage/module.contract.yaml` (adding `OBJECT_STORAGE_REGION` output pending Q-1)
+- Data/API/event contracts touched: `artifacts/infra/object_storage_runtime.env` schema (adding `region` key — confirmed Option A); `blueprint/modules/object-storage/module.contract.yaml` (adding `OBJECT_STORAGE_REGION` output)
 
 ## Non-Functional Architecture Notes
 - Security: Credentials MUST NOT appear in rendered values file or bootstrap template. Secret reconciled out-of-band via `apply_optional_module_secret_from_literals`. STACKIT provider credential is admin-level; masked in logs.
@@ -42,7 +42,7 @@
 - Risk 1: STACKIT `stackit_objectstorage_credential` is admin-level (same risk as opensearch credential). If STACKIT restricts credential scope, the standalone module may need per-bucket credential scoping — deferred to a separate work item.
 - Risk 2: Bitnami MinIO chart 17.x `auth.existingSecret` key names (`root-user`, `root-password`) must be verified against the chart templates; if the chart version bumps to 18.x or later, key names may change.
 - Tradeoff 1: Additive standalone Terraform module (does not replace foundation inline resources) avoids state migration risk but creates two code paths for STACKIT object storage. Accepted per ADR — the module is a library artifact for standalone use; foundation stays inline.
-- Tradeoff 2: Keeping current naming convention (Option A) rather than renaming to S3-standard avoids breaking consumer `ExternalSecret` refs but diverges from issue #248 naming — accepted pending Q-1 sign-off.
+- Tradeoff 2: Keeping current naming convention (Option A) rather than renaming to S3-standard avoids breaking consumer `ExternalSecret` refs but diverges from issue #248 naming — accepted (Option A confirmed by owner 2026-05-06).
 
 ## Dual-Lane Provisioning Flow
 
