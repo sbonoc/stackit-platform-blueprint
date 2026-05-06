@@ -23,7 +23,9 @@ To introduce a new tag, append a row here in the same commit that uses it.
 ---
 
 ## Current Priorities
-- [ ] P1 (Platform modules — first-class): Issue #248 — OpenSearch module dual-lane implementation (local Helm + STACKIT Terraform). SPEC_READY. In-flight: `specs/2026-05-06-issue-248-opensearch-module/`, Draft PR #249.
+- [x] P1 (Platform modules — first-class): Issue #248 — OpenSearch module dual-lane implementation (local Helm + STACKIT Terraform). **Done**: `specs/2026-05-06-issue-248-opensearch-module/`, PR #249.
+- [x] (rejected) proposal(issue-248-opensearch-module): consumer-side adoption of infra-opensearch-local-apply in dhe-marketplace — rejected: consumer-repo work, not blueprint scope.
+- [x] (rejected) proposal(issue-248-opensearch-module): Q-1 Option B cross-cutting naming change for all modules — rejected: speculative; Q-1 resolved to Option A.
 - [x] P0 (SDD UX): Issue #138 — local smoke + positive-path filter/transform guardrails are now enforced in SDD templates/governance, including red->green translation for reproducible pre-PR findings.
 - [x] P0 (Upgrade preflight ergonomics): Issue #102 — detect missing consumer-owned required Make targets in preflight with explicit remediation guidance.
 - [x] P0 (Upgrade validation determinism): Issue #129 — add repo-mode-aware required-file reconciliation checks and deterministic remediation hints.

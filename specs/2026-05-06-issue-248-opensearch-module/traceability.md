@@ -10,7 +10,7 @@
 | FR-004 | SDD-C-005, SDD-C-006 |  | opensearch.sh lib local lane | `scripts/lib/infra/opensearch.sh` local functions | `test_opensearch_local_host_returns_service_hostname`, port, scheme | `docs/platform/modules/opensearch/README.md` §env-var reference | `opensearch_runtime.env` |
 | FR-005 | SDD-C-011 |  | Version pins | `scripts/lib/infra/versions.sh` | `test_opensearch_version_pins_declared` | `docs/platform/modules/opensearch/README.md` §prerequisites | `make infra-audit-version` |
 | FR-006 | SDD-C-005 |  | opensearch_init_env defaults | `scripts/lib/infra/opensearch.sh` `opensearch_init_env()` | `test_opensearch_init_env_sets_helm_defaults` | — | `opensearch_runtime.env` |
-| FR-007 | SDD-C-005 |  | render_values_file helper | `scripts/lib/infra/opensearch.sh` `opensearch_render_values_file()` | `test_opensearch_render_values_file` | — | `artifacts/infra/opensearch_values_rendered.yaml` |
+| FR-007 | SDD-C-005 |  | render_values_file helper | `scripts/lib/infra/opensearch.sh` `opensearch_render_values_file()` | `test_opensearch_apply_local_calls_helm_upgrade` (asserts `opensearch_render_values_file` present) | — | `artifacts/infra/opensearch_values_rendered.yaml` |
 | FR-008 | SDD-C-012 |  | Contract test | `tests/infra/modules/opensearch/test_contract.py` | `test_opensearch_runtime_state_has_all_contract_outputs` | `tests/infra/modules/opensearch/` | — |
 | FR-009 | SDD-C-014 |  | Module README | `docs/platform/modules/opensearch/README.md` | `make quality-docs-check-changed` | `docs/platform/modules/opensearch/README.md` | — |
 | FR-010 | SDD-C-005, SDD-C-012 |  | Smoke script | `scripts/bin/infra/opensearch_smoke.sh` | `test_opensearch_smoke_passes_with_valid_uri`, `test_opensearch_smoke_fails_when_uri_empty` | `docs/platform/modules/opensearch/README.md` §smoke | `infra-opensearch-smoke` exit code |
@@ -37,11 +37,11 @@
 - Node IDs referenced: FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-007, FR-008, FR-009, FR-010, NFR-OBS-001, NFR-SEC-001, NFR-SEC-002, NFR-REL-001, NFR-OPS-001, NFR-A11Y-001, AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009, AC-010
 
 ## Validation Summary
-- Required bundles executed: pending (pre-implementation)
-- Result summary: pending
+- Required bundles executed: `python3 -m pytest tests/infra/modules/opensearch/ -v` (23 passed), `make quality-docs-check-changed` (passed), `QUALITY_HOOKS_KEEP_GOING=true make quality-hooks-fast` (all green), `make infra-validate` (passed), `make quality-hardening-review` (passed)
+- Result summary: 23 unit tests green; tooling contracts test updated and green; docs sync complete; infra-validate clean; all quality gates passed.
 - Documentation validation:
-  - `make quality-docs-check-changed`
-  - `make quality-docs-check-module-contract-summaries-sync`
+  - `make quality-docs-check-changed` — passed 2026-05-06
+  - `make quality-docs-check-module-contract-summaries-sync` — passed 2026-05-06
 
 ## Evidence Manifest
 - Manifest file: `evidence_manifest.json`
@@ -50,5 +50,6 @@
 - Hardening review export: `hardening_review.md`
 
 ## Open Risks and Follow-Ups
-- Follow-up 1: Consumer-side PR in dhe-marketplace to adopt `infra-opensearch-local-apply` and refactor `apps-openmetadata-local-apply` away from bundled OpenSearch — separate work item, after blueprint PR merge.
-- Follow-up 2: If Q-1 resolves to Option B (dual-lane naming), a cross-cutting blueprint change is needed to apply dual-lane axis to all modules consistently — separate work item.
+- Follow-up 1: Consumer-side PR in dhe-marketplace — **Rejected at PR closure**: consumer-repo work, not blueprint scope.
+- Follow-up 2: Q-1 Option B cross-cutting naming change — **Rejected at PR closure**: speculative; Q-1 resolved to Option A with no active driver to revisit.
+- Residual risk: `stackit_opensearch_credential` admin-level assumption (Q-2 stop condition) — applies only on first STACKIT apply; documented in `pr_context.md` Risk and Rollback.
