@@ -77,14 +77,14 @@ Tests turned green: class=fallback_runtime assertion for local lane; Secret-back
 ### Slice 4 — Contract + smoke + docs
 Update contract YAML, smoke script (add region check if Q-1 → Option A), complete README.
 
-**Files changed (pending Q-1 resolution):**
-- `blueprint/modules/object-storage/module.contract.yaml`: add `OBJECT_STORAGE_REGION` to `outputs.produced` (if Q-1 → Option A)
+**Files changed:**
+- `blueprint/modules/object-storage/module.contract.yaml`: add `OBJECT_STORAGE_REGION` to `outputs.produced`
 - `scripts/bin/infra/object_storage_apply.sh`: add `region=$OBJECT_STORAGE_REGION` to `write_state_file` call
 - `scripts/bin/infra/object_storage_smoke.sh`: add `region` check (grep for `^region=`)
 - `docs/platform/modules/object-storage/README.md`: complete env-var reference table, smoke output schema, credentials section, version migration notes, destroy instructions
 - `scripts/templates/blueprint/bootstrap/docs/platform/modules/object-storage/README.md`: sync via `sync_platform_seed_docs.py`
 
-Tests turned green: contract test for `region` key (if Q-1 → Option A).
+Tests turned green: contract test for all 5 keys including `region`.
 
 **Commit:** `feat(issue-248-object-storage-module): contract + region output + complete README`
 

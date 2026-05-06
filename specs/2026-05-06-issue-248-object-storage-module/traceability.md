@@ -25,10 +25,11 @@
 | AC-008 | SDD-C-008, SDD-C-012 | N/A | Full unit test coverage | `tests/infra/modules/object-storage/test_object_storage_module.py` | all assertions green | N/A | N/A |
 | FR-008 | SDD-C-005, SDD-C-007 | N/A | Execution class alignment | `scripts/lib/infra/module_execution.sh` local lane `object-storage:plan\|apply` and `object-storage:destroy` | `test_tooling_contracts.py::test_optional_module_execution_resolves_local_fallback_modes_for_object_storage` | N/A | metric label `class=fallback_runtime` emitted for local lane |
 | AC-009 | SDD-C-012 | N/A | Tooling contract test for class | `tests/infra/test_tooling_contracts.py` | both new assertions green | N/A | N/A |
+| NFR-A11Y-001 | N/A | N/A | N/A — no UI component | N/A | N/A (declared N/A in `spec.md::NFR-A11Y-001`) | `spec.md::NFR-A11Y-001` | N/A |
 
 ## Graph Linkage
 - Graph file: `graph.json`
-- Node IDs referenced: FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-007, FR-008, NFR-SEC-001, NFR-OBS-001, NFR-REL-001, NFR-OPS-001, AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009
+- Node IDs referenced: FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-007, FR-008, NFR-SEC-001, NFR-OBS-001, NFR-REL-001, NFR-OPS-001, NFR-A11Y-001, AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009
 
 ## Validation Summary
 - Required bundles executed: (to be filled at Step 7 — Publish)
@@ -45,5 +46,5 @@
 - Hardening review export: `hardening_review.md`
 
 ## Open Risks and Follow-Ups
-- Follow-up 1: Q-1 naming alignment — once answered, update `module.contract.yaml`, state schema, smoke, and contract test to add REGION or rename keys (if Option B chosen, requires separate breaking-change work item).
+- Follow-up 1 [RESOLVED 2026-05-06]: Q-1 naming alignment — answered Option A (keep current naming, add `OBJECT_STORAGE_REGION` as new additive output). REGION additions captured in Slice 4: T-030 (`module.contract.yaml`), T-031 (`write_state_file region=`), T-032 (smoke region check), T-033 (README). S3-standard renaming deferred to separate breaking-change work item.
 - Follow-up 2: Per-bucket credential scoping (STACKIT `credentials_group` allows bucket-scoped credentials) — deferred to a separate work item when a consumer needs scoped keys.

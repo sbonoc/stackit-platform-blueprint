@@ -32,9 +32,9 @@
 - [ ] T-029 Confirm class fix and Secret-backed credential tests GREEN
 
 ## Implementation — Slice 4: Contract + smoke + docs (pending Q-1)
-- [ ] T-030 Update `blueprint/modules/object-storage/module.contract.yaml` — add `OBJECT_STORAGE_REGION` to `outputs.produced` (if Q-1 → Option A)
+- [ ] T-030 Update `blueprint/modules/object-storage/module.contract.yaml` — add `OBJECT_STORAGE_REGION` to `outputs.produced`
 - [ ] T-031 Update `scripts/bin/infra/object_storage_apply.sh` — add `region=$OBJECT_STORAGE_REGION` to `write_state_file` call
-- [ ] T-032 Update `scripts/bin/infra/object_storage_smoke.sh` — add `region` validation (if Q-1 → Option A)
+- [ ] T-032 Update `scripts/bin/infra/object_storage_smoke.sh` — add `region` validation (grep `^region=`)
 - [ ] T-033 Complete `docs/platform/modules/object-storage/README.md`
 - [ ] T-034 Sync seed docs via `python3 scripts/lib/quality/sync_platform_seed_docs.py`
 - [ ] T-035 Confirm contract + docs tests GREEN
