@@ -1,10 +1,24 @@
 from __future__ import annotations
 
 import unittest
+import yaml
 from tests._shared.helpers import REPO_ROOT, run
 
 _MODULE_DIR = REPO_ROOT / "infra" / "cloud" / "stackit" / "terraform" / "modules" / "opensearch"
 _VERSIONS_SH = REPO_ROOT / "scripts" / "lib" / "infra" / "versions.sh"
+_BOOTSTRAP_TEMPLATE = (
+    REPO_ROOT
+    / "scripts"
+    / "templates"
+    / "infra"
+    / "bootstrap"
+    / "infra"
+    / "local"
+    / "helm"
+    / "opensearch"
+    / "values.yaml"
+)
+_SEED_VALUES = REPO_ROOT / "infra" / "local" / "helm" / "opensearch" / "values.yaml"
 
 
 class OpenSearchTerraformModuleTests(unittest.TestCase):
@@ -43,6 +57,44 @@ class OpenSearchTerraformModuleTests(unittest.TestCase):
         content = versions_tf.read_text(encoding="utf-8")
         self.assertIn("stackitcloud/stackit", content)
         self.assertIn("required_providers", content)
+
+
+class OpenSearchLocalHelmChartTests(unittest.TestCase):
+    def test_opensearch_local_helm_values_file_exists_and_parses(self) -> None:
+        self.assertTrue(_SEED_VALUES.exists(), msg=f"missing seed file: {_SEED_VALUES}")
+        parsed = yaml.safe_load(_SEED_VALUES.read_text(encoding="utf-8"))
+        self.assertIsInstance(parsed, dict)
+        self.assertIn("fullnameOverride", parsed)
+
+    def test_opensearch_bootstrap_template_exists_with_placeholders(self) -> None:
+        self.assertTrue(
+            _BOOTSTRAP_TEMPLATE.exists(), msg=f"missing bootstrap template: {_BOOTSTRAP_TEMPLATE}"
+        )
+        content = _BOOTSTRAP_TEMPLATE.read_text(encoding="utf-8")
+        self.assertIn("{{OPENSEARCH_HELM_RELEASE}}", content)
+        self.assertIn("{{OPENSEARCH_IMAGE_REPOSITORY}}", content)
+        self.assertIn("{{OPENSEARCH_USERNAME}}", content)
+        self.assertIn("{{OPENSEARCH_PASSWORD}}", content)
+
+    def test_opensearch_seed_values_persistence_disabled(self) -> None:
+        parsed = yaml.safe_load(_SEED_VALUES.read_text(encoding="utf-8"))
+        master = parsed.get("master", {})
+        persistence = master.get("persistence", {})
+        self.assertFalse(persistence.get("enabled", True), msg="local persistence must be disabled")
+
+    def test_opensearch_seed_values_memory_within_1gb(self) -> None:
+        parsed = yaml.safe_load(_SEED_VALUES.read_text(encoding="utf-8"))
+        master = parsed.get("master", {})
+        limits = master.get("resources", {}).get("limits", {})
+        memory = limits.get("memory", "")
+        self.assertTrue(
+            memory.endswith("Gi") or memory.endswith("Mi"),
+            msg=f"unexpected memory unit: {memory}",
+        )
+        if memory.endswith("Gi"):
+            self.assertLessEqual(float(memory[:-2]), 1.0, msg="memory limit must be ≤1 Gi")
+        else:
+            self.assertLessEqual(float(memory[:-2]), 1024.0, msg="memory limit must be ≤1024 Mi")
 
 
 class OpenSearchVersionPinsTests(unittest.TestCase):

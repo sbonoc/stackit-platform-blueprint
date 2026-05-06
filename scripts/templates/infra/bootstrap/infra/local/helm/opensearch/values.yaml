@@ -1,0 +1,22 @@
+fullnameOverride: "{{OPENSEARCH_HELM_RELEASE}}"
+image:
+  registry: "{{OPENSEARCH_IMAGE_REGISTRY}}"
+  repository: "{{OPENSEARCH_IMAGE_REPOSITORY}}"
+  tag: "{{OPENSEARCH_IMAGE_TAG}}"
+security:
+  enabled: true
+  adminPassword: "{{OPENSEARCH_PASSWORD}}"
+master:
+  replicaCount: 1
+  heapSize: 512m
+  resources:
+    limits:
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 512Mi
+  persistence:
+    enabled: false
+extraEnvVars:
+  - name: OPENSEARCH_USERNAME
+    value: "{{OPENSEARCH_USERNAME}}"
