@@ -5,6 +5,12 @@ source "$ROOT_DIR/scripts/lib/infra/stackit_foundation_outputs.sh"
 source "$ROOT_DIR/scripts/lib/infra/versions.sh"
 source "$ROOT_DIR/scripts/lib/infra/fallback_runtime.sh"
 
+# Bitnami OpenSearch chart hard-codes OPENSEARCH_USERNAME=admin in the
+# StatefulSet env; any override via extraEnvVars produces a duplicate env
+# entry with undefined precedence. We surface the locked value via a
+# constant and forbid override on the local lane.
+OPENSEARCH_LOCAL_ADMIN_USERNAME="admin"
+
 opensearch_seed_env_defaults() {
   set_default_env OPENSEARCH_INSTANCE_NAME "marketplace-opensearch"
   set_default_env OPENSEARCH_VERSION "2.17"
@@ -16,13 +22,16 @@ opensearch_seed_env_defaults() {
   set_default_env OPENSEARCH_IMAGE_REGISTRY "$OPENSEARCH_LOCAL_IMAGE_REGISTRY"
   set_default_env OPENSEARCH_IMAGE_REPOSITORY "$OPENSEARCH_LOCAL_IMAGE_REPOSITORY"
   set_default_env OPENSEARCH_IMAGE_TAG "$OPENSEARCH_LOCAL_IMAGE_TAG"
-  set_default_env OPENSEARCH_USERNAME "admin"
   set_default_env OPENSEARCH_PASSWORD "admin"
 }
 
 opensearch_init_env() {
   opensearch_seed_env_defaults
   require_env_vars OPENSEARCH_INSTANCE_NAME OPENSEARCH_VERSION OPENSEARCH_PLAN_NAME
+}
+
+opensearch_password_secret_name() {
+  printf '%s-auth' "$OPENSEARCH_HELM_RELEASE"
 }
 
 opensearch_stackit_placeholder_host() {
@@ -90,7 +99,10 @@ opensearch_dashboard_url() {
     stackit_foundation_output_value_or_default "opensearch_dashboard_url" "https://$(opensearch_stackit_placeholder_host)"
     return 0
   fi
-  printf 'http://%s:5601' "$(opensearch_local_service_host)"
+  # Local lane runs the bitnami/opensearch chart with dashboards.enabled=false
+  # to keep the dev footprint at ~1 GB RAM. No dashboards Pod is deployed,
+  # so the contract output is intentionally empty for local.
+  printf ''
 }
 
 opensearch_username() {
@@ -98,7 +110,7 @@ opensearch_username() {
     stackit_foundation_output_value_or_default "opensearch_username" "provider-generated"
     return 0
   fi
-  printf '%s' "$OPENSEARCH_USERNAME"
+  printf '%s' "$OPENSEARCH_LOCAL_ADMIN_USERNAME"
 }
 
 opensearch_password() {
@@ -114,9 +126,19 @@ opensearch_render_values_file() {
     "opensearch" \
     "infra/local/helm/opensearch/values.yaml" \
     "OPENSEARCH_HELM_RELEASE=$OPENSEARCH_HELM_RELEASE" \
-    "OPENSEARCH_USERNAME=$OPENSEARCH_USERNAME" \
-    "OPENSEARCH_PASSWORD=$OPENSEARCH_PASSWORD" \
+    "OPENSEARCH_PASSWORD_SECRET_NAME=$(opensearch_password_secret_name)" \
     "OPENSEARCH_IMAGE_REGISTRY=$OPENSEARCH_IMAGE_REGISTRY" \
     "OPENSEARCH_IMAGE_REPOSITORY=$OPENSEARCH_IMAGE_REPOSITORY" \
     "OPENSEARCH_IMAGE_TAG=$OPENSEARCH_IMAGE_TAG"
+}
+
+opensearch_reconcile_runtime_secret() {
+  apply_optional_module_secret_from_literals \
+    "$OPENSEARCH_NAMESPACE" \
+    "$(opensearch_password_secret_name)" \
+    "opensearch-password=$OPENSEARCH_PASSWORD"
+}
+
+opensearch_delete_runtime_secret() {
+  delete_optional_module_secret "$OPENSEARCH_NAMESPACE" "$(opensearch_password_secret_name)"
 }

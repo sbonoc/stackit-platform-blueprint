@@ -5,8 +5,9 @@ image:
   tag: "{{OPENSEARCH_IMAGE_TAG}}"
 security:
   enabled: true
-  adminPassword: "{{OPENSEARCH_PASSWORD}}"
+  existingSecret: "{{OPENSEARCH_PASSWORD_SECRET_NAME}}"
 master:
+  masterOnly: false
   replicaCount: 1
   heapSize: 512m
   resources:
@@ -17,6 +18,18 @@ master:
       memory: 512Mi
   persistence:
     enabled: false
-extraEnvVars:
-  - name: OPENSEARCH_USERNAME
-    value: "{{OPENSEARCH_USERNAME}}"
+data:
+  replicaCount: 0
+ingest:
+  enabled: false
+coordinating:
+  replicaCount: 1
+  heapSize: 256m
+  resources:
+    limits:
+      memory: 512Mi
+    requests:
+      cpu: 50m
+      memory: 256Mi
+dashboards:
+  enabled: false

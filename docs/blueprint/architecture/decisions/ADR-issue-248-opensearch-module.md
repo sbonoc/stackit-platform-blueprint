@@ -18,7 +18,18 @@ Issue #248 requires first-class implementation of the opensearch module on both 
 Implement `infra/cloud/stackit/terraform/modules/opensearch/main.tf` as a standalone Terraform module using the `stackit_opensearch_instance` resource (confirmed available in the STACKIT Terraform provider) and `stackit_opensearch_credential`. Expose all 8 outputs declared in `blueprint/modules/opensearch/module.contract.yaml`. Use `lifecycle { create_before_destroy = true }` to prevent silent destroy-recreate on version changes. The foundation layer continues to manage inline resources; the module is additive.
 
 ### Local lane
-Add `infra/local/helm/opensearch/values.yaml` using the `bitnami/opensearch` chart. Pin version in `scripts/lib/infra/versions.sh` alongside existing module chart pins. Configure single-node, dev-sized (≤1 GB RAM, persistence disabled). Update `scripts/lib/infra/module_execution.sh` opensearch local cases from `noop` to `helm` driver. Update `scripts/lib/infra/opensearch.sh` to resolve host/port/scheme/credentials from the Helm release for local profile.
+Add `infra/local/helm/opensearch/values.yaml` using the `bitnami/opensearch` chart pinned at `1.6.3` (Bitnami chart 1.x line, OpenSearch app version `2.19.1`) — closest to the STACKIT 2.x family. Image pinned at `bitnamilegacy/opensearch:2.19.1-debian-12-r4`. Update `scripts/lib/infra/module_execution.sh` opensearch local cases from `noop` to `helm` driver. Update `scripts/lib/infra/opensearch.sh` to resolve host/port/scheme/credentials from the Helm release for local profile.
+
+### Local topology (refined post-deep-review 2026-05-06)
+Bitnami chart 1.6.3 default deploys 8 pods (master×2 + data×2 + ingest×2 + coordinating×2). For local dev we explicitly trim to **minimal 2-pod (master + coordinating)**:
+- `master.replicaCount: 1` with `master.masterOnly: false` so master also serves data role.
+- `data.replicaCount: 0`, `ingest.enabled: false`.
+- `coordinating.replicaCount: 1` to preserve the chart's client-facing `Service/<release>` selector (which targets coordinating-only pods).
+- `dashboards.enabled: false` (chart default; made explicit). `OPENSEARCH_DASHBOARD_URL` is intentionally empty for local profile.
+- Total memory limit: 1 Gi (master) + 512 Mi (coordinating) ≈ 1.5 Gi.
+
+### Local credentials (refined post-deep-review 2026-05-06)
+Match the rabbitmq pattern: reconcile a Kubernetes Secret `<release>-auth` (key `opensearch-password`) via `apply_optional_module_secret_from_literals` on every apply, and reference it from `values.yaml` via `security.existingSecret`. The plaintext password is never embedded in the rendered Helm values file. `OPENSEARCH_USERNAME` is locked to literal `admin` because the Bitnami chart hard-codes that value in the StatefulSet env; any extraEnvVars override produces a duplicate env entry with undefined precedence.
 
 ### Make target naming (Q-1 — resolved 2026-05-06)
 Follow existing blueprint convention (Option A): `infra-opensearch-{plan,apply,smoke,destroy}` with internal profile-based routing. Consistent with postgres/rabbitmq/object-storage patterns. A comment will be posted on issue #248 explaining the deviation. Dual-lane naming deferred to a cross-cutting blueprint work item.

@@ -21,7 +21,12 @@
 - N/A axe-core WCAG 2.1 AA scan evidence: infrastructure-only; no UI surfaces (declared NFR-A11Y-001, T-A01)
 
 ## Pre-PR Verifications
-- Bitnami `bitnamilegacy/opensearch:2.17.1-debian-12-r0` confirmed present on Docker Hub (Docker Hub API, 2026-05-06). No deferral required.
+- Bitnami chart `bitnami/opensearch` original pin `2.28.3` was non-existent in the public Helm repo (verified via `helm search repo bitnami/opensearch -l`); revised pin to `1.6.3` (Bitnami chart 1.x line, OpenSearch app version `2.19.1`) — matches the STACKIT 2.x family. Chart 2.x targets OpenSearch 3.x and was rejected as incompatible with the 2.17 image line.
+- Bitnami image revised pin `bitnamilegacy/opensearch:2.19.1-debian-12-r4` confirmed present on Docker Hub (Docker Hub API, 2026-05-06).
+- Local helm topology revised from chart defaults (8 pods, ~7 GB RAM) to minimal 2-pod (master + coordinating) with `master.masterOnly: false` so master serves data role; total memory budget ≤1.5 GB. Verified via `helm template`.
+- `dashboards.enabled: false` set explicitly on local lane (chart default is also false but made explicit for clarity); `OPENSEARCH_DASHBOARD_URL` is intentionally empty for local profile.
+- `OPENSEARCH_USERNAME` is locked to `admin` for local lane: chart hardcodes `OPENSEARCH_USERNAME=admin` env var in the StatefulSet, so any operator override creates a duplicate env entry with undefined precedence. State file always reports `username=admin` for local.
+- Local password reconciled via Kubernetes Secret `blueprint-opensearch-auth` (key `opensearch-password`, consumed via `security.existingSecret`) instead of being embedded in `values.yaml`; matches the rabbitmq pattern.
 
 ## Proposals Only (Not Implemented)
 - Proposal 1 (dhe-marketplace consumer adoption): Rejected at PR closure — consumer-repo work; belongs in dhe-marketplace's own backlog, not blueprint.

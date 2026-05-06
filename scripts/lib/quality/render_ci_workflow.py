@@ -30,10 +30,18 @@ def _indent_block(lines: tuple[str, ...], *, spaces: int) -> str:
 
 
 def _render_ci(default_branch: str) -> str:
+    # ready_for_review is added to the pull_request types so that converting a
+    # draft PR to ready triggers CI without requiring a follow-up push. The
+    # job-level guard `github.event_name == 'push' || ...draft == false` skips
+    # blueprint-quality and generated-consumer-smoke for any PR event while the
+    # PR is still a draft (synchronize/opened on draft), and lets push-to-main
+    # (post-merge) and ready_for_review/synchronize-on-non-draft through.
+    # upgrade-e2e-validation keeps its push-only guard and is unaffected.
     return (
         "name: ci\n\n"
         "on:\n"
         "  pull_request:\n"
+        "    types: [opened, synchronize, reopened, ready_for_review]\n"
         "  push:\n"
         "    branches:\n"
         f"      - {default_branch}\n\n"
@@ -42,6 +50,7 @@ def _render_ci(default_branch: str) -> str:
         "jobs:\n"
         "  blueprint-quality:\n"
         "    runs-on: ubuntu-latest\n"
+        "    if: github.event_name == 'push' || github.event.pull_request.draft == false\n"
         "    steps:\n"
         "      - name: Checkout\n"
         "        uses: actions/checkout@v6\n\n"
@@ -67,6 +76,7 @@ def _render_ci(default_branch: str) -> str:
         "          if-no-files-found: warn\n\n"
         "  generated-consumer-smoke:\n"
         "    runs-on: ubuntu-latest\n"
+        "    if: github.event_name == 'push' || github.event.pull_request.draft == false\n"
         "    steps:\n"
         "      - name: Checkout\n"
         "        uses: actions/checkout@v6\n\n"

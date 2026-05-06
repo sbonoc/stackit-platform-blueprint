@@ -23,15 +23,15 @@
   - `scripts/bin/infra/bootstrap.sh` — opensearch include_helm_values flag changed to true
 
 ## Validation Evidence
-- Required commands executed: `pytest tests/infra/modules/opensearch/` (23 passed), `pytest tests/infra/test_tooling_contracts.py::...test_optional_module_execution_resolves_local_helm_mode_for_opensearch` (1 passed), `make quality-docs-check-changed` (passed), `QUALITY_HOOKS_KEEP_GOING=true make quality-hooks-fast` (all green after fixes), `make infra-validate` (passed)
-- Result summary: All 23 unit tests green; tooling contracts test updated and green; docs sync complete; test pyramid ratio 95% unit (>60% threshold).
+- Required commands executed: `pytest tests/infra/modules/opensearch/` (45 passed), `pytest tests/infra/test_tooling_contracts.py::...test_optional_module_execution_resolves_local_helm_mode_for_opensearch` (1 passed), `helm template` against chart 1.6.3 verified actual Service shape and minimal 2-pod topology, `make quality-docs-check-changed` (passed), `QUALITY_HOOKS_KEEP_GOING=true make quality-hooks-fast` (all green after fixes), `make infra-validate` (passed)
+- Result summary: All 45 unit tests green (up from 23 after deep review fixes); tooling contracts test updated and green; docs sync complete; chart pin corrected from non-existent 2.28.3 to verified 1.6.3; image pin corrected from 2.17.1 to chart-compatible 2.19.1-debian-12-r4.
 - Artifact references:
   - `artifacts/infra/opensearch_runtime.env` — written by local apply
   - `artifacts/infra/rendered/opensearch.values.yaml` — rendered Helm values
 
 ## Risk and Rollback
-- Main risks: (1) Bitnami `bitnamilegacy/opensearch` tag `2.17.1-debian-12-r0` needs confirmation at first live apply; (2) `stackit_opensearch_credential` admin-level assumption — stop condition applies if non-admin.
-- Rollback strategy: local — `helm uninstall blueprint-opensearch -n search`; STACKIT — `OPENSEARCH_ENABLED=false make infra-opensearch-destroy`; code — revert `module_execution.sh` opensearch cases from `helm` to `noop` and revert `opensearch_apply.sh` helm) case.
+- Main risks: (1) `stackit_opensearch_credential` admin-level assumption — stop condition applies if non-admin; (2) Bitnami chart 1.6.3 templates assume OpenSearch 2.x — bumping image tag past 2.x without first bumping to chart 2.x will fail at runtime.
+- Rollback strategy: local — `OPENSEARCH_ENABLED=true make infra-opensearch-destroy` (runs `helm uninstall blueprint-opensearch -n search` with `--ignore-not-found`, then deletes K8s Secret); STACKIT — `OPENSEARCH_ENABLED=true make infra-opensearch-destroy` (foundation reconcile destroys the managed instance); code — revert `module_execution.sh` opensearch cases from `helm` to `noop` and revert `opensearch_apply.sh` helm) case.
 
 ## Deferred Proposals
 - Proposal 1 (dhe-marketplace consumer adoption): Rejected at PR closure — consumer-repo work; belongs in dhe-marketplace's own backlog, not blueprint.

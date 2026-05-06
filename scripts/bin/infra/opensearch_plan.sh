@@ -5,6 +5,7 @@ source "$SCRIPT_DIR/../../lib/shell/bootstrap.sh"
 source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 source "$ROOT_DIR/scripts/lib/infra/stack_paths.sh"
 source "$ROOT_DIR/scripts/lib/infra/module_execution.sh"
+source "$ROOT_DIR/scripts/lib/infra/fallback_runtime.sh"
 source "$ROOT_DIR/scripts/lib/infra/state.sh"
 source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
 source "$ROOT_DIR/scripts/lib/infra/opensearch.sh"
@@ -32,9 +33,6 @@ helm)
     "$OPENSEARCH_HELM_CHART" \
     "$OPENSEARCH_HELM_CHART_VERSION" \
     "$provision_path"
-  ;;
-noop)
-  optional_module_log_execution_note
   ;;
 *)
   optional_module_unexpected_driver "opensearch" "plan"
