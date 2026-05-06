@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import unittest
-from tests._shared.helpers import REPO_ROOT
+from tests._shared.helpers import REPO_ROOT, run
 
 _MODULE_DIR = REPO_ROOT / "infra" / "cloud" / "stackit" / "terraform" / "modules" / "opensearch"
 _VERSIONS_SH = REPO_ROOT / "scripts" / "lib" / "infra" / "versions.sh"
@@ -55,3 +55,52 @@ class OpenSearchVersionPinsTests(unittest.TestCase):
             "OPENSEARCH_LOCAL_IMAGE_TAG",
         ):
             self.assertIn(pin, content, msg=f"missing version pin: {pin}")
+
+
+def _run_opensearch_bash(fn_expr: str, *, profile: str = "local-full") -> str:
+    script = f"""
+export ROOT_DIR="{REPO_ROOT}"
+source "{REPO_ROOT}/scripts/lib/shell/bootstrap.sh"
+source "{REPO_ROOT}/scripts/lib/infra/profile.sh"
+source "{REPO_ROOT}/scripts/lib/infra/opensearch.sh"
+opensearch_seed_env_defaults
+printf '%s' "$({fn_expr})"
+"""
+    result = run(["bash", "-lc", script], {"BLUEPRINT_PROFILE": profile})
+    if result.returncode != 0:
+        raise AssertionError(result.stdout + result.stderr)
+    return result.stdout.strip()
+
+
+class OpenSearchLocalLaneFunctionTests(unittest.TestCase):
+    def test_opensearch_local_host_returns_service_hostname(self) -> None:
+        host = _run_opensearch_bash("opensearch_local_service_host")
+        self.assertEqual(host, "blueprint-opensearch.search.svc.cluster.local")
+
+    def test_opensearch_local_port_returns_9200(self) -> None:
+        port = _run_opensearch_bash("opensearch_local_port")
+        self.assertEqual(port, "9200")
+
+    def test_opensearch_local_scheme_returns_http(self) -> None:
+        scheme = _run_opensearch_bash("opensearch_local_scheme")
+        self.assertEqual(scheme, "http")
+
+    def test_opensearch_init_env_sets_helm_defaults(self) -> None:
+        script = f"""
+export ROOT_DIR="{REPO_ROOT}"
+source "{REPO_ROOT}/scripts/lib/shell/bootstrap.sh"
+source "{REPO_ROOT}/scripts/lib/infra/profile.sh"
+source "{REPO_ROOT}/scripts/lib/infra/opensearch.sh"
+opensearch_seed_env_defaults
+printf 'release=%s\\nnamespace=%s\\nchart=%s\\n' \\
+  "$OPENSEARCH_HELM_RELEASE" \\
+  "$OPENSEARCH_NAMESPACE" \\
+  "$OPENSEARCH_HELM_CHART"
+"""
+        result = run(["bash", "-lc", script], {"BLUEPRINT_PROFILE": "local-full"})
+        if result.returncode != 0:
+            raise AssertionError(result.stdout + result.stderr)
+        out = result.stdout + result.stderr
+        self.assertIn("release=blueprint-opensearch", out)
+        self.assertIn("namespace=search", out)
+        self.assertIn("chart=bitnami/opensearch", out)
