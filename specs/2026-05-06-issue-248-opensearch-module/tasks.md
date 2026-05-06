@@ -1,13 +1,13 @@
 # Tasks
 
 ## Gate Checks (Required Before Implementation)
-- [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`
-- [ ] G-002 Confirm open questions and unresolved alternatives are `0` (Q-1 naming convention, Q-2 admin credential — both require maintainer input)
-- [ ] G-003 Confirm required sign-offs are approved (Product, Architecture, Security, Operations)
-- [ ] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
-- [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
-- [ ] G-006 Confirm Q-1 (make target naming axis) resolved and commented on issue #248
-- [ ] G-007 Confirm Q-2 (admin credential level for `stackit_opensearch_credential`) resolved — if stop condition, post on issue #248 and halt
+- [x] G-001 Confirm `SPEC_READY=true` in `spec.md` — done 2026-05-06
+- [x] G-002 Confirm open questions and unresolved alternatives are `0` — done 2026-05-06 (Q-1: Option A; Q-2: Option A)
+- [x] G-003 Confirm required sign-offs are approved (Product, Architecture, Security, Operations) — all approved 2026-05-06
+- [x] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs — SDD-C-001..SDD-C-021 listed
+- [x] G-005 Confirm `Implementation Stack Profile` section is fully populated — confirmed
+- [x] G-006 Confirm Q-1 (make target naming axis) resolved and commented on issue #248 — Option A, comment posted
+- [x] G-007 Confirm Q-2 (admin credential level for `stackit_opensearch_credential`) resolved — Option A; stop condition applies if assumption fails
 
 ## Implementation
 

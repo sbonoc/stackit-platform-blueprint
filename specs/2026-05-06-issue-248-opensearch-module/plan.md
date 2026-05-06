@@ -1,9 +1,9 @@
 # Implementation Plan
 
 ## Implementation Start Gate
-- Implementation tasks MUST remain unchecked until `SPEC_READY=true`.
-- If required inputs are missing, add `BLOCKED_MISSING_INPUTS` in `spec.md` and keep the gate closed.
-- **BLOCKED on Q-1 and Q-2 resolution** before implementation begins. See `spec.md` open questions.
+- `SPEC_READY: true` — confirmed 2026-05-06. Implementation is unblocked.
+- Q-1 resolved: Option A — `infra-opensearch-{plan,apply,smoke,destroy}` with profile-routing.
+- Q-2 resolved: Option A — proceed with `stackit_opensearch_credential`; stop condition applies if admin-level assumption fails.
 
 ## Constitution Gates (Pre-Implementation)
 - Simplicity gate: implement only what the contract requires — no speculative extensions beyond the 8 declared outputs.
@@ -14,9 +14,30 @@
 
 ## Delivery Slices
 
-Prerequisite: Q-1 and Q-2 resolved by maintainer before any slice begins.
+Owner: Platform Engineer (Software Engineer). All slices execute on branch `codex/2026-05-06-issue-248-opensearch-module`.
+
+### Dependency Map
+
+```
+Slice 1 (Terraform)  ──────────────────────────────────────────┐
+Slice 2 (versions.sh) ──┬──────────────────────────────────────┼──► Slice 9 (Docs)
+                        ├──► Slice 3 (opensearch.sh) ──┬───────┤         │
+                        │                               ├──► Slice 5 ──► Slice 6 ──► Slice 10
+                        └──► Slice 4 (Helm chart) ─────┘       │
+                                                               Slice 7 (smoke)
+                              Slice 8 (contract test) ◄────────┘ (mock fixture, schema from Slice 3)
+```
+
+- **Slices 1 and 2** are independent — can start in parallel.
+- **Slices 3 and 4** depend on Slice 2 (version pins) — can start in parallel after Slice 2.
+- **Slice 5** depends on Slices 3 + 4 (opensearch.sh functions + Helm chart present).
+- **Slice 6** depends on Slices 2 + 3 + 5 (versions.sh, opensearch.sh, module_execution routing).
+- **Slice 7** depends on Slice 3 (state file schema).
+- **Slice 8** (contract test) depends on Slice 3 for state key schema; written as mock fixture test first.
+- **Slices 9 and 10** depend on all prior slices.
 
 ### Slice 1 — Terraform module (STACKIT lane)
+**Dependencies:** none (can start immediately)
 **Scope:** `infra/cloud/stackit/terraform/modules/opensearch/main.tf`, `variables.tf`, `outputs.tf`, `versions.tf`
 
 **Red → Green:**
@@ -27,6 +48,7 @@ Prerequisite: Q-1 and Q-2 resolved by maintainer before any slice begins.
 **Per-slice gate:** `make test-unit-all`
 
 ### Slice 2 — versions.sh pins
+**Dependencies:** none (can start immediately in parallel with Slice 1)
 **Scope:** `scripts/lib/infra/versions.sh`
 
 **Red → Green:**
@@ -37,6 +59,7 @@ Prerequisite: Q-1 and Q-2 resolved by maintainer before any slice begins.
 **Per-slice gate:** `make test-unit-all`
 
 ### Slice 3 — opensearch.sh local lane functions
+**Dependencies:** Slice 2 (version pins needed for `OPENSEARCH_HELM_CHART_VERSION` default)
 **Scope:** `scripts/lib/infra/opensearch.sh`
 
 **Red → Green:**
@@ -48,6 +71,7 @@ Prerequisite: Q-1 and Q-2 resolved by maintainer before any slice begins.
 **Per-slice gate:** `make test-unit-all`
 
 ### Slice 4 — Local Helm chart
+**Dependencies:** Slice 2 (image tag and chart version needed in values.yaml) — parallel with Slice 3
 **Scope:** `infra/local/helm/opensearch/values.yaml`
 
 **Red → Green:**
@@ -58,6 +82,7 @@ Prerequisite: Q-1 and Q-2 resolved by maintainer before any slice begins.
 **Per-slice gate:** `make test-unit-all`
 
 ### Slice 5 — module_execution.sh routing update
+**Dependencies:** Slices 3 + 4 (opensearch.sh functions + Helm chart file present for rendered values path)
 **Scope:** `scripts/lib/infra/module_execution.sh`
 
 **Red → Green:**
@@ -68,6 +93,7 @@ Prerequisite: Q-1 and Q-2 resolved by maintainer before any slice begins.
 **Per-slice gate:** `make test-unit-all`
 
 ### Slice 6 — opensearch_apply.sh update
+**Dependencies:** Slices 2 + 3 + 5 (versions.sh pins, opensearch.sh render helper, module_execution routing)
 **Scope:** `scripts/bin/infra/opensearch_apply.sh`
 
 **Red → Green:**
@@ -78,6 +104,7 @@ Prerequisite: Q-1 and Q-2 resolved by maintainer before any slice begins.
 **Per-slice gate:** `make test-unit-all`
 
 ### Slice 7 — opensearch_smoke.sh implementation
+**Dependencies:** Slice 3 (state file key schema and opensearch_uri() function)
 **Scope:** `scripts/bin/infra/opensearch_smoke.sh`
 
 **Red → Green:**
@@ -88,6 +115,7 @@ Prerequisite: Q-1 and Q-2 resolved by maintainer before any slice begins.
 **Per-slice gate:** `make test-unit-all`
 
 ### Slice 8 — Contract tests
+**Dependencies:** Slice 3 (state file key schema); written as mock-fixture test to satisfy integration-first gate before Slice 6 produces real state
 **Scope:** `tests/infra/modules/opensearch/test_contract.py`
 
 **Red → Green:**
@@ -98,6 +126,7 @@ Prerequisite: Q-1 and Q-2 resolved by maintainer before any slice begins.
 **Per-slice gate:** `make test-unit-all`
 
 ### Slice 9 — Documentation
+**Dependencies:** Slices 1–8 (all implementation complete; README documents real paths and values)
 **Scope:** `docs/platform/modules/opensearch/README.md`
 
 **Red → Green:**
@@ -107,6 +136,7 @@ Prerequisite: Q-1 and Q-2 resolved by maintainer before any slice begins.
 **Per-slice gate:** `make quality-hooks-fast`
 
 ### Slice 10 — Pre-PR quality sweep
+**Dependencies:** Slices 1–9 (all implementation and docs complete)
 **Scope:** full quality gate sweep
 
 1. Run `QUALITY_HOOKS_KEEP_GOING=true make quality-hooks-fast` and fix all violations.
@@ -171,6 +201,6 @@ Prerequisite: Q-1 and Q-2 resolved by maintainer before any slice begins.
 - Runbook updates: `docs/platform/modules/opensearch/README.md` updated with destroy/rollback instructions.
 
 ## Risks and Mitigations
-- Risk 1 (Q-2: admin credential level) → mitigation: Q-2 must be confirmed before STACKIT lane Slice 1 is implemented; stop condition protocol applies if credentials are not admin-level.
-- Risk 2 (Q-1: naming convention) → mitigation: implement per Option A unless maintainer explicitly selects Option B; post comment on issue #248 regardless.
+- Risk 1 (admin credential level — Q-2 resolved) → residual risk: assumption that `stackit_opensearch_credential` is admin-level could fail during Slice 1 apply; stop condition protocol applies — post on issue #248 and halt if confirmed non-admin.
+- Risk 2 (naming convention — Q-1 resolved) → Option A implemented; comment posted on issue #248 explaining deviation.
 - Risk 3 (Bitnami image availability) → mitigation: pin exact image tag in versions.sh and values.yaml; use `bitnamilegacy/opensearch` registry consistent with other modules.
