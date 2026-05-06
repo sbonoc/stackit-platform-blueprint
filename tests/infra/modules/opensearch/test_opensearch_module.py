@@ -4,6 +4,7 @@ import unittest
 from tests._shared.helpers import REPO_ROOT
 
 _MODULE_DIR = REPO_ROOT / "infra" / "cloud" / "stackit" / "terraform" / "modules" / "opensearch"
+_VERSIONS_SH = REPO_ROOT / "scripts" / "lib" / "infra" / "versions.sh"
 
 
 class OpenSearchTerraformModuleTests(unittest.TestCase):
@@ -42,3 +43,15 @@ class OpenSearchTerraformModuleTests(unittest.TestCase):
         content = versions_tf.read_text(encoding="utf-8")
         self.assertIn("stackitcloud/stackit", content)
         self.assertIn("required_providers", content)
+
+
+class OpenSearchVersionPinsTests(unittest.TestCase):
+    def test_opensearch_version_pins_declared(self) -> None:
+        content = _VERSIONS_SH.read_text(encoding="utf-8")
+        for pin in (
+            "OPENSEARCH_HELM_CHART_VERSION_PIN",
+            "OPENSEARCH_LOCAL_IMAGE_REGISTRY",
+            "OPENSEARCH_LOCAL_IMAGE_REPOSITORY",
+            "OPENSEARCH_LOCAL_IMAGE_TAG",
+        ):
+            self.assertIn(pin, content, msg=f"missing version pin: {pin}")
