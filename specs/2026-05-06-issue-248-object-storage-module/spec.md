@@ -42,7 +42,7 @@
 
 ## Objective
 - Business outcome: Consumers can provision managed object storage on both local (MinIO on Docker Desktop) and STACKIT lanes with identical S3-compatible endpoint + credential outputs, enabling independent object storage lifecycle management without bundling inside application Helm releases.
-- Success metric: `infra-object-storage-apply` is non-noop on both lanes; smoke passes; all 4 contract outputs populated; 0 plaintext credentials in checked-in values files.
+- Success metric: `infra-object-storage-apply` is non-noop on both lanes; smoke passes; all 4 contract outputs populated; 0 plaintext credentials in checked-in values files; local lane execution class is `fallback_runtime` (consistent with rabbitmq/opensearch).
 
 ## Normative Requirements
 
@@ -55,6 +55,7 @@
 - FR-005 MUST write `artifacts/infra/object_storage_runtime.env` after every successful apply, containing at minimum: `profile`, `stack`, `provision_driver`, `provision_path`, `endpoint`, `bucket`, `access_key`, `secret_key`, `timestamp_utc`.
 - FR-006 `infra-object-storage-smoke` MUST validate: runtime state file exists; `endpoint` matches `^https?://`; `bucket` is non-empty. Smoke MUST write `artifacts/infra/object_storage_smoke.env` on success.
 - FR-007 `infra-object-storage-destroy` on local lane MUST run Helm uninstall (`--ignore-not-found`) and MUST delete the Kubernetes Secret `blueprint-object-storage-auth` after uninstall. On STACKIT lane destroy MUST route to `foundation_reconcile_apply`.
+- FR-008 The local lane execution class in `module_execution.sh` MUST be `fallback_runtime` (not `provider_backed`) for both plan/apply and destroy actions, consistent with the rabbitmq and opensearch modules. The STACKIT lane MUST remain `provider_backed`.
 
 > **[NEEDS CLARIFICATION]** Q-1: Output naming alignment with issue #248.
 >
@@ -86,6 +87,7 @@
 - OpenAPI / Pact contract path: none
 - Event contract: none
 - Make/CLI contract: `infra-object-storage-{plan,apply,smoke,destroy}` targets unchanged; no new targets.
+- Module execution contract: `OPTIONAL_MODULE_EXECUTION_CLASS` changes from `provider_backed` to `fallback_runtime` for the local lane; STACKIT lane class unchanged (`provider_backed`). Test contract `test_tooling_contracts.py` gains a new assertion for object-storage local `class=fallback_runtime`.
 - Docs contract: `docs/platform/modules/object-storage/README.md` updated; template seed `scripts/templates/blueprint/bootstrap/docs/platform/modules/object-storage/README.md` synced.
 
 ## Blueprint Upstream Defect Escalation (Normative)
@@ -104,6 +106,7 @@
 - AC-006 `infra/cloud/stackit/terraform/modules/object-storage/main.tf` declares `stackit_objectstorage_bucket`, `stackit_objectstorage_credentials_group`, and `stackit_objectstorage_credential` resources.
 - AC-007 `tests/infra/modules/object-storage/test_contract.py` asserts all contract output keys are present in the runtime state fixture (4 keys minimum; 5 if Q-1 → Option A includes REGION).
 - AC-008 `tests/infra/modules/object-storage/test_object_storage_module.py` passes for: script presence (plan/apply/smoke/destroy); values seed uses `auth.existingSecret`, not `auth.rootPassword`; credentials not passed to values render; apply script reconciles secret before Helm install; destroy script deletes secret after uninstall; versions pinned in `versions.sh`.
+- AC-009 `tests/infra/test_tooling_contracts.py` includes a test asserting that object-storage local lane resolves to `class=fallback_runtime` and `driver=helm`; and a test asserting STACKIT lane resolves to `class=provider_backed` and `driver=foundation_contract`.
 
 ## Informative Notes (Non-Normative)
 - Context: Unlike opensearch (which was a full noop for local), the object-storage local lane is already wired in `module_execution.sh` and the bin scripts — the primary work is the Terraform standalone module, Secret-backed credentials, and tests. The STACKIT lane currently runs through the foundation inline resources, which remain untouched; the standalone module is additive (mirrors foundation resources for standalone consumption).

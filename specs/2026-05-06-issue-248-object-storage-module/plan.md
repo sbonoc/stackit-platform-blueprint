@@ -44,17 +44,20 @@ Tests turned green: Terraform module resource assertions.
 
 **Commit:** `feat(issue-248-object-storage-module): implement STACKIT standalone Terraform module`
 
-### Slice 3 — Secret-backed credentials for local lane
-Migrate from plaintext credentials in values render to Secret-backed pattern (matching rabbitmq/opensearch).
+### Slice 3 — Execution class fix + Secret-backed credentials for local lane
+Fix the `module_execution.sh` class from `provider_backed` to `fallback_runtime` for the local lane (consistency with rabbitmq/opensearch), and migrate from plaintext credentials in values render to Secret-backed pattern.
 
 **Files changed:**
+- `scripts/lib/infra/module_execution.sh`:
+  - `object-storage:plan | object-storage:apply` local branch: change `optional_module_execution_set "provider_backed"` → `optional_module_execution_set "fallback_runtime"`
+  - `object-storage:destroy` local branch: same change
 - `scripts/lib/infra/object_storage.sh`:
   - Add `object_storage_credential_secret_name()` → `printf '%s-auth' "$OBJECT_STORAGE_HELM_RELEASE"`
-  - Add `object_storage_reconcile_runtime_secret()` — calls `apply_optional_module_secret_from_literals` with `root-user=admin` and `root-password=$OBJECT_STORAGE_SECRET_KEY`
+  - Add `object_storage_reconcile_runtime_secret()` — calls `apply_optional_module_secret_from_literals` with `root-user=$OBJECT_STORAGE_ACCESS_KEY` and `root-password=$OBJECT_STORAGE_SECRET_KEY`
   - Add `object_storage_delete_runtime_secret()` — calls `delete_optional_module_secret` with Secret name
   - Update `object_storage_render_values_file()`: remove `OBJECT_STORAGE_ACCESS_KEY=` and `OBJECT_STORAGE_SECRET_KEY=`; add `OBJECT_STORAGE_CREDENTIAL_SECRET_NAME=$(object_storage_credential_secret_name)`
 - `infra/local/helm/object-storage/values.yaml` (materialized seed):
-  - Replace `auth.rootUser: "{{OBJECT_STORAGE_HELM_RELEASE}}"` + `auth.rootPassword: ...` with `auth.existingSecret: "{{OBJECT_STORAGE_CREDENTIAL_SECRET_NAME}}"` (remove `rootUser`/`rootPassword` keys entirely)
+  - Replace `auth.rootUser`/`auth.rootPassword` with `auth.existingSecret: "{{OBJECT_STORAGE_CREDENTIAL_SECRET_NAME}}"` (remove `rootUser`/`rootPassword` keys entirely)
 - `scripts/templates/infra/bootstrap/infra/local/helm/object-storage/values.yaml` (seed template):
   - Same change as above
 - `scripts/bin/infra/object_storage_apply.sh`:
@@ -63,10 +66,13 @@ Migrate from plaintext credentials in values render to Secret-backed pattern (ma
   - In `helm)` case: call `object_storage_delete_runtime_secret` after `run_helm_uninstall`
 - `scripts/bin/infra/bootstrap.sh`:
   - In `object-storage)` case: replace `OBJECT_STORAGE_ACCESS_KEY=$OBJECT_STORAGE_ACCESS_KEY` and `OBJECT_STORAGE_SECRET_KEY=$OBJECT_STORAGE_SECRET_KEY` with `OBJECT_STORAGE_CREDENTIAL_SECRET_NAME=$(object_storage_credential_secret_name)`
+- `tests/infra/test_tooling_contracts.py`:
+  - Add `test_optional_module_execution_resolves_local_fallback_modes_for_object_storage` asserting `class=fallback_runtime`, `driver=helm`
+  - Add `test_optional_module_execution_resolves_stackit_provider_backed_object_storage_modes` asserting `class=provider_backed`, `driver=foundation_contract`
 
-Tests turned green: Secret-backed credential assertions (existingSecret in values, no plaintext, reconcile/delete functions present).
+Tests turned green: class=fallback_runtime assertion for local lane; Secret-backed credential assertions (existingSecret in values, no plaintext, reconcile/delete functions present).
 
-**Commit:** `fix(issue-248-object-storage-module): Secret-backed MinIO credentials for local lane`
+**Commit:** `fix(issue-248-object-storage-module): fallback_runtime class + Secret-backed MinIO credentials for local lane`
 
 ### Slice 4 — Contract + smoke + docs
 Update contract YAML, smoke script (add region check if Q-1 → Option A), complete README.

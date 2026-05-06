@@ -12,7 +12,10 @@ The `infra/cloud/stackit/terraform/modules/object-storage/main.tf` is a 7-line s
 Issue #248 requires first-class implementation with:
 1. A standalone Terraform module for STACKIT (additive; foundation inline resources unchanged)
 2. Secret-backed credentials for local lane (security alignment with rabbitmq/opensearch pattern)
-3. Comprehensive unit tests
+3. Execution class alignment (`provider_backed` → `fallback_runtime` for local lane, matching rabbitmq/opensearch)
+4. Comprehensive unit tests
+
+A separate inconsistency was discovered during intake: `module_execution.sh` classifies object-storage and postgres local lanes as `provider_backed`, while rabbitmq and opensearch local lanes use `fallback_runtime`. All four use Bitnami Helm charts locally. This is a pre-existing inconsistency; this work item corrects it for object-storage only. Postgres is out of scope here.
 
 ## Decisions
 
@@ -30,7 +33,13 @@ This means `object_storage_render_values_file()` no longer passes `OBJECT_STORAG
 
 **Rejected alternative:** Keep plaintext credentials in values — rejected due to NFR-SEC-001 (credentials must not appear in checked-in artifacts).
 
-### D-3: Output naming — keep current convention, add REGION (Q-1 pending)
+### D-3: Execution class — `fallback_runtime` for local lane
+
+Change `OPTIONAL_MODULE_EXECUTION_CLASS` from `provider_backed` to `fallback_runtime` for the object-storage local lane in `module_execution.sh`, consistent with rabbitmq and opensearch. The STACKIT lane remains `provider_backed`. The local MinIO Helm chart is a development approximation of STACKIT Object Storage, not the actual managed service — `fallback_runtime` is the correct classification. This affects the metric label (`class=`) emitted by `optional_module_execution_emit_metric` and the tooling contract tests.
+
+**Rejected alternative:** Keep `provider_backed` for local lane — rejected because it is semantically incorrect (MinIO is not the STACKIT-managed service) and inconsistent with the established pattern for rabbitmq and opensearch.
+
+### D-4: Output naming — keep current convention, add REGION (Q-1 pending)
 
 Issue #248 lists output names `OBJECT_STORAGE_ACCESS_KEY_ID`, `OBJECT_STORAGE_SECRET_ACCESS_KEY`, `OBJECT_STORAGE_BUCKET_LIST`, `OBJECT_STORAGE_REGION`. The current implementation uses `OBJECT_STORAGE_ACCESS_KEY`, `OBJECT_STORAGE_SECRET_KEY`, `OBJECT_STORAGE_BUCKET_NAME`. Renaming is a breaking contract change.
 
@@ -49,5 +58,7 @@ Issue #248 lists output names `OBJECT_STORAGE_ACCESS_KEY_ID`, `OBJECT_STORAGE_SE
 - `blueprint/modules/object-storage/module.contract.yaml`: add `OBJECT_STORAGE_REGION` output (pending Q-1).
 - `tests/infra/modules/object-storage/`: new `test_contract.py` + `test_object_storage_module.py`.
 - `docs/platform/modules/object-storage/README.md`: complete dual-lane docs.
-- No changes to Make target names, `module_execution.sh` routing, or foundation inline resources.
+- `scripts/lib/infra/module_execution.sh`: local lane class changed from `provider_backed` to `fallback_runtime` for object-storage plan/apply/destroy.
+- `tests/infra/test_tooling_contracts.py`: two new assertions for object-storage local (`class=fallback_runtime`) and STACKIT (`class=provider_backed`).
+- No changes to Make target names, `module_execution.sh` routing logic, or foundation inline resources.
 - No Terraform state migration required.

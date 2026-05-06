@@ -20,7 +20,9 @@
     {"id": "AC-005", "type": "acceptance", "summary": "K8s Secret blueprint-object-storage-auth exists post-apply; no rootPassword in rendered values"},
     {"id": "AC-006", "type": "acceptance", "summary": "Standalone Terraform module declares the 3 required STACKIT resources"},
     {"id": "AC-007", "type": "acceptance", "summary": "Contract test asserts all output keys in runtime state fixture"},
-    {"id": "AC-008", "type": "acceptance", "summary": "Module unit tests cover script structure, values seed, Secret pattern, Terraform resources"}
+    {"id": "AC-008", "type": "acceptance", "summary": "Module unit tests cover script structure, values seed, Secret pattern, Terraform resources"},
+    {"id": "FR-008", "type": "requirement", "summary": "Local lane execution class MUST be fallback_runtime, consistent with rabbitmq/opensearch"},
+    {"id": "AC-009", "type": "acceptance", "summary": "Tooling contract tests assert class=fallback_runtime for local and class=provider_backed for STACKIT"}
   ],
   "edges": [
     {"from": "FR-001", "to": "AC-006", "relation": "validated_by"},
@@ -44,6 +46,8 @@
     {"from": "NFR-OPS-001", "to": "AC-007", "relation": "constrains"},
     {"from": "AC-007", "to": "FR-005", "relation": "traces_to"},
     {"from": "AC-008", "to": "FR-004", "relation": "traces_to"},
-    {"from": "AC-008", "to": "FR-001", "relation": "traces_to"}
+    {"from": "AC-008", "to": "FR-001", "relation": "traces_to"},
+    {"from": "FR-008", "to": "AC-009", "relation": "validated_by"},
+    {"from": "AC-009", "to": "FR-008", "relation": "traces_to"}
   ]
 }

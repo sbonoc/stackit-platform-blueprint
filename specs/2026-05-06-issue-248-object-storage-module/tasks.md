@@ -19,15 +19,17 @@
 - [ ] T-013 Write `infra/cloud/stackit/terraform/modules/object-storage/versions.tf`
 - [ ] T-014 Confirm Terraform module tests GREEN
 
-## Implementation — Slice 3: Secret-backed credentials
-- [ ] T-020 Add `object_storage_credential_secret_name()`, `object_storage_reconcile_runtime_secret()`, `object_storage_delete_runtime_secret()` to `scripts/lib/infra/object_storage.sh`
-- [ ] T-021 Update `object_storage_render_values_file()` — remove plaintext creds, add `OBJECT_STORAGE_CREDENTIAL_SECRET_NAME` binding
-- [ ] T-022 Update `infra/local/helm/object-storage/values.yaml` — replace `auth.rootUser`/`auth.rootPassword` with `auth.existingSecret`
-- [ ] T-023 Update `scripts/templates/infra/bootstrap/infra/local/helm/object-storage/values.yaml` — same change
-- [ ] T-024 Update `scripts/bin/infra/object_storage_apply.sh` — call `object_storage_reconcile_runtime_secret` before `run_helm_upgrade_install` in `helm)` case
-- [ ] T-025 Update `scripts/bin/infra/object_storage_destroy.sh` — call `object_storage_delete_runtime_secret` after `run_helm_uninstall` in `helm)` case
-- [ ] T-026 Update `scripts/bin/infra/bootstrap.sh` — use `OBJECT_STORAGE_CREDENTIAL_SECRET_NAME` instead of plaintext ACCESS_KEY/SECRET_KEY in `object-storage)` case
-- [ ] T-027 Confirm Secret-backed credential tests GREEN
+## Implementation — Slice 3: Execution class fix + Secret-backed credentials
+- [ ] T-020 Update `scripts/lib/infra/module_execution.sh` — change local lane class from `provider_backed` to `fallback_runtime` for both `object-storage:plan|apply` and `object-storage:destroy`
+- [ ] T-021 Add `test_optional_module_execution_resolves_local_fallback_modes_for_object_storage` and `test_optional_module_execution_resolves_stackit_provider_backed_object_storage_modes` to `tests/infra/test_tooling_contracts.py`
+- [ ] T-022 Add `object_storage_credential_secret_name()`, `object_storage_reconcile_runtime_secret()`, `object_storage_delete_runtime_secret()` to `scripts/lib/infra/object_storage.sh`
+- [ ] T-023 Update `object_storage_render_values_file()` — remove plaintext creds, add `OBJECT_STORAGE_CREDENTIAL_SECRET_NAME` binding
+- [ ] T-024 Update `infra/local/helm/object-storage/values.yaml` — replace `auth.rootUser`/`auth.rootPassword` with `auth.existingSecret`
+- [ ] T-025 Update `scripts/templates/infra/bootstrap/infra/local/helm/object-storage/values.yaml` — same change
+- [ ] T-026 Update `scripts/bin/infra/object_storage_apply.sh` — call `object_storage_reconcile_runtime_secret` before `run_helm_upgrade_install` in `helm)` case
+- [ ] T-027 Update `scripts/bin/infra/object_storage_destroy.sh` — call `object_storage_delete_runtime_secret` after `run_helm_uninstall` in `helm)` case
+- [ ] T-028 Update `scripts/bin/infra/bootstrap.sh` — use `OBJECT_STORAGE_CREDENTIAL_SECRET_NAME` instead of plaintext ACCESS_KEY/SECRET_KEY in `object-storage)` case
+- [ ] T-029 Confirm class fix and Secret-backed credential tests GREEN
 
 ## Implementation — Slice 4: Contract + smoke + docs (pending Q-1)
 - [ ] T-030 Update `blueprint/modules/object-storage/module.contract.yaml` — add `OBJECT_STORAGE_REGION` to `outputs.produced` (if Q-1 → Option A)

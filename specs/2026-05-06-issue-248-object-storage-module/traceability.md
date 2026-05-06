@@ -23,10 +23,12 @@
 | AC-006 | SDD-C-013 | N/A | Terraform module resources | `infra/cloud/stackit/terraform/modules/object-storage/main.tf` | `test_object_storage_module.py::test_terraform_module_declares_*` | README § STACKIT lane | `terraform validate` |
 | AC-007 | SDD-C-012 | N/A | Contract test keys | `tests/infra/modules/object-storage/test_contract.py` | `test_contract.py` all assertions | N/A | N/A |
 | AC-008 | SDD-C-008, SDD-C-012 | N/A | Full unit test coverage | `tests/infra/modules/object-storage/test_object_storage_module.py` | all assertions green | N/A | N/A |
+| FR-008 | SDD-C-005, SDD-C-007 | N/A | Execution class alignment | `scripts/lib/infra/module_execution.sh` local lane `object-storage:plan\|apply` and `object-storage:destroy` | `test_tooling_contracts.py::test_optional_module_execution_resolves_local_fallback_modes_for_object_storage` | N/A | metric label `class=fallback_runtime` emitted for local lane |
+| AC-009 | SDD-C-012 | N/A | Tooling contract test for class | `tests/infra/test_tooling_contracts.py` | both new assertions green | N/A | N/A |
 
 ## Graph Linkage
 - Graph file: `graph.json`
-- Node IDs referenced: FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-007, NFR-SEC-001, NFR-OBS-001, NFR-REL-001, NFR-OPS-001, AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008
+- Node IDs referenced: FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-007, FR-008, NFR-SEC-001, NFR-OBS-001, NFR-REL-001, NFR-OPS-001, AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009
 
 ## Validation Summary
 - Required bundles executed: (to be filled at Step 7 — Publish)
