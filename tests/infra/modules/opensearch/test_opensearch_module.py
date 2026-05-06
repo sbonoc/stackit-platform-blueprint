@@ -160,6 +160,36 @@ printf '%s' "$({fn_expr})"
 
 
 _APPLY_SH = REPO_ROOT / "scripts" / "bin" / "infra" / "opensearch_apply.sh"
+_SMOKE_SH = REPO_ROOT / "scripts" / "bin" / "infra" / "opensearch_smoke.sh"
+_STATE_DIR = REPO_ROOT / "artifacts" / "infra"
+
+
+class OpenSearchSmokeScriptTests(unittest.TestCase):
+    def _run_smoke(self, state_content: str) -> int:
+        _STATE_DIR.mkdir(parents=True, exist_ok=True)
+        runtime_env = _STATE_DIR / "opensearch_runtime.env"
+        runtime_env.write_text(state_content, encoding="utf-8")
+        try:
+            result = run(
+                ["bash", str(_SMOKE_SH)],
+                {"BLUEPRINT_PROFILE": "local-full", "OPENSEARCH_ENABLED": "true"},
+            )
+            return result.returncode
+        finally:
+            runtime_env.unlink(missing_ok=True)
+
+    def test_opensearch_smoke_fails_when_uri_empty(self) -> None:
+        rc = self._run_smoke(
+            "uri=\ndashboard_url=http://blueprint-opensearch.search.svc.cluster.local:5601\n"
+        )
+        self.assertNotEqual(rc, 0, msg="smoke should fail when uri is empty")
+
+    def test_opensearch_smoke_passes_with_valid_uri(self) -> None:
+        rc = self._run_smoke(
+            "uri=http://blueprint-opensearch.search.svc.cluster.local:9200\n"
+            "dashboard_url=http://blueprint-opensearch.search.svc.cluster.local:5601\n"
+        )
+        self.assertEqual(rc, 0, msg="smoke should pass with valid http:// uri")
 
 
 class OpenSearchApplyScriptTests(unittest.TestCase):
