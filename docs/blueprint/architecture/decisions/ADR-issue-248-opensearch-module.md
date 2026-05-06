@@ -1,9 +1,10 @@
 # ADR: Issue #248 — OpenSearch Module First-Class Implementation (Dual-Lane)
 
-- **Status**: accepted
+- **Status**: approved
 - **Date**: 2026-05-06
 - **Issue**: #248
 - **Work item**: `specs/2026-05-06-issue-248-opensearch-module/`
+- **ADR technical decision sign-off**: approved (sbonoc, PR #249 comment 2026-05-06)
 
 ## Context
 
