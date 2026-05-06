@@ -5,11 +5,11 @@
      SPEC_READY=true: implementation gate — all sign-offs required; unlocks coding. -->
 - SPEC_READY: false
 - SPEC_PRODUCT_READY: false
-- Open questions count: 2
-- Unresolved alternatives count: 1
+- Open questions count: 0
+- Unresolved alternatives count: 0
 - Unresolved TODO markers count: 0
 - Pending assumptions count: 0
-- Open clarification markers count: 2
+- Open clarification markers count: 0
 - Product sign-off: pending
 - Architecture sign-off: pending
 - Security sign-off: pending
@@ -63,26 +63,14 @@
 
 ## Normative Option Decision
 
-> **[NEEDS CLARIFICATION — Q-1]** The issue requests explicit dual-lane make targets (`infra-opensearch-local-apply`, `infra-opensearch-stackit-apply`). The existing blueprint convention uses a single target per action (`infra-opensearch-apply`) with profile-based routing inside the script. Both patterns are valid; they differ in operator UX and discoverability.
->
-> **Options:**
-> - **A) Follow existing blueprint convention** — keep `infra-opensearch-{plan,apply,smoke,destroy}` with profile-routing; post a comment on issue #248 explaining the deviation. Zero risk to existing consumers and CI; aligns with postgres/rabbitmq/object-storage patterns already shipped. *(Agent recommendation)*
-> - **B) Follow issue-requested naming** — add `infra-opensearch-{local,stackit}-{apply,smoke,destroy}` as the canonical targets and update the module contract, makefile template, and `module_execution.sh` to support the dual-lane naming axis for opensearch specifically.
->
-> **Agent recommendation:** Option A — the existing convention is already validated across three other modules (postgres, rabbitmq, object-storage) with local lanes. Introducing a dual-lane naming axis for opensearch only would produce an inconsistent namespace that breaks the `make help` discoverability pattern and the `test_optional_module_make_targets_materialize_only_when_enabled` test. Dual-lane naming MUST be applied as a cross-cutting blueprint change to all modules in a separate work item, not to opensearch alone.
+Make target naming: Option A — keep `infra-opensearch-{plan,apply,smoke,destroy}` with internal profile-routing, consistent with postgres/rabbitmq/object-storage patterns. A comment will be posted on issue #248 explaining the deviation from the issue-requested dual-lane naming. Dual-lane naming MUST be applied as a cross-cutting blueprint change to all modules in a separate work item, not to opensearch alone. Decision by maintainer (sbonoc) PR #249 comment 2026-05-06.
 
 - Option A: Follow existing convention — `infra-opensearch-{plan,apply,smoke,destroy}` with internal profile-routing; post comment on issue #248 explaining deviation
 - Option B: Follow issue request — add explicit `infra-opensearch-{local,stackit}-{apply,smoke,destroy}` targets; update contract YAML, makefile template, and `module_execution.sh`
-- Selected option: OPTION_UNRESOLVED
-- Rationale: [NEEDS CLARIFICATION — Q-1] awaiting maintainer decision before implementation begins
+- Selected option: A
+- Rationale: Maintains consistency with existing modules. Introducing dual-lane naming for opensearch only breaks the `make help` discoverability pattern and the `test_optional_module_make_targets_materialize_only_when_enabled` test. Cross-cutting renaming deferred to a separate work item.
 
-> **[NEEDS CLARIFICATION — Q-2]** The issue requires admin-level credentials (`OPENSEARCH_USERNAME` / `OPENSEARCH_PASSWORD`) with OS Security API access to create per-app roles/users. The `stackit_opensearch_credential` Terraform resource creates a default credential. STACKIT documentation does not explicitly confirm whether this credential has admin-level (Security API) access or is user-scoped.
->
-> **Options:**
-> - **A) Proceed with `stackit_opensearch_credential`** — assume the provider-generated credential is admin-level based on STACKIT managed-service behavior (confirmed by maintainer or STACKIT docs reference). *(Agent recommendation pending confirmation)*
-> - **B) Stop condition** — if STACKIT OpenSearch does not expose admin-level credentials via Terraform, this is a stop condition per CLAUDE.md §Stop conditions; post on issue #248 and await maintainer direction.
->
-> **Agent recommendation:** Q-2 must be confirmed before STACKIT lane implementation begins. If the maintainer confirms the credential is admin-level, proceed with Option A. If not, trigger the stop condition.
+Admin credential level: Option A — proceed with `stackit_opensearch_credential`. Although official STACKIT docs do not explicitly confirm admin-level access, the maintainer has authorised the assumption that admin-level credentials are available via the Terraform resource. If the assumption proves incorrect during Slice 1 implementation, the stop condition is triggered and issue #248 MUST be updated before proceeding. Decision by maintainer (sbonoc) PR #249 comment 2026-05-06.
 
 ## Contract Changes (Normative)
 - Config/Env contract: No new env variables added. `OPENSEARCH_NAMESPACE`, `OPENSEARCH_HELM_RELEASE`, `OPENSEARCH_HELM_CHART`, `OPENSEARCH_HELM_CHART_VERSION` added as internal defaults in `opensearch_init_env()`; these are not consumer-facing contract outputs.
@@ -115,8 +103,8 @@
 - Context: The opensearch module is critical-path for dhe-marketplace PR #61 (STACKIT lane). The local lane decouples OpenSearch lifecycle from the OpenMetadata Helm bundling workaround. Both lanes already have the script skeleton (`opensearch_apply.sh`, `opensearch_destroy.sh`, etc.) — the STACKIT route via `foundation_contract` already works; only the local lane is `noop` today.
 - Tradeoffs: Bitnami `bitnamilegacy/opensearch` images are used for the local lane (same pattern as postgres/rabbitmq); despite the `legacy` namespace, the pinned tag is the latest-stable supported image.
 - Clarifications:
-  - [NEEDS CLARIFICATION — Q-1] Naming convention: single target with profile-routing vs explicit dual-lane targets. See Option Decision above.
-  - [NEEDS CLARIFICATION — Q-2] Admin credential level for `stackit_opensearch_credential`. See Option Decision above.
+  - Q-1 resolved: Option A — single target with profile-routing (`infra-opensearch-{plan,apply,smoke,destroy}`). Maintainer decision 2026-05-06.
+  - Q-2 resolved: Option A — proceed with `stackit_opensearch_credential` assuming admin-level credentials. Maintainer decision 2026-05-06; stop condition applies if assumption fails.
 
 ## Explicit Exclusions
 - Changes to consumer repositories (dhe-marketplace, others) — separate consumer-side PRs after blueprint release.

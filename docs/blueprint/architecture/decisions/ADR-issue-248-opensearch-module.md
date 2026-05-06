@@ -1,6 +1,6 @@
 # ADR: Issue #248 — OpenSearch Module First-Class Implementation (Dual-Lane)
 
-- **Status**: proposed
+- **Status**: accepted
 - **Date**: 2026-05-06
 - **Issue**: #248
 - **Work item**: `specs/2026-05-06-issue-248-opensearch-module/`
@@ -19,11 +19,11 @@ Implement `infra/cloud/stackit/terraform/modules/opensearch/main.tf` as a standa
 ### Local lane
 Add `infra/local/helm/opensearch/values.yaml` using the `bitnami/opensearch` chart. Pin version in `scripts/lib/infra/versions.sh` alongside existing module chart pins. Configure single-node, dev-sized (≤1 GB RAM, persistence disabled). Update `scripts/lib/infra/module_execution.sh` opensearch local cases from `noop` to `helm` driver. Update `scripts/lib/infra/opensearch.sh` to resolve host/port/scheme/credentials from the Helm release for local profile.
 
-### Make target naming (Q-1 — open, see below)
-The existing blueprint convention uses `infra-opensearch-{plan,apply,smoke,destroy}` with profile-based routing. Issue #248 requests `infra-<service>-{local,stackit}-{apply,smoke,destroy}`. This ADR proposes following the existing convention (Option A) unless the maintainer explicitly selects Option B.
+### Make target naming (Q-1 — resolved 2026-05-06)
+Follow existing blueprint convention (Option A): `infra-opensearch-{plan,apply,smoke,destroy}` with internal profile-based routing. Consistent with postgres/rabbitmq/object-storage patterns. A comment will be posted on issue #248 explaining the deviation. Dual-lane naming deferred to a cross-cutting blueprint work item.
 
-### Admin credentials (Q-2 — open, see below)
-Implementation of the STACKIT lane Terraform module is conditional on confirmation that `stackit_opensearch_credential` produces admin-level credentials (OS Security API access).
+### Admin credentials (Q-2 — resolved 2026-05-06)
+Proceed with `stackit_opensearch_credential` (Option A). Maintainer authorised the assumption that admin-level credentials are available. Stop condition applies if assumption fails during implementation.
 
 ## Alternatives Considered
 
@@ -46,5 +46,4 @@ Implementation of the STACKIT lane Terraform module is conditional on confirmati
 
 ## Open Questions
 
-- **Q-1 (Naming convention):** Maintainer must confirm whether to follow existing convention (Option A) or add explicit dual-lane targets (Option B). Post resolution as comment on issue #248.
-- **Q-2 (Admin credentials):** Maintainer must confirm that `stackit_opensearch_credential` produces admin-level credentials. If not, STACKIT lane Slice 1 is a stop condition.
+None — all questions resolved 2026-05-06.
