@@ -19,6 +19,7 @@
 | NFR-SEC-002 | SDD-C-009 |  | Admin credential level | `infra/cloud/stackit/terraform/modules/opensearch/main.tf` `stackit_opensearch_credential` | Q-2 resolution confirmation | `docs/platform/modules/opensearch/README.md` §credentials | STACKIT provider docs reference |
 | NFR-REL-001 | SDD-C-007, SDD-C-016 |  | lifecycle create_before_destroy | `infra/cloud/stackit/terraform/modules/opensearch/main.tf` | Terraform plan output showing lifecycle policy | `docs/platform/modules/opensearch/README.md` §version migration | `terraform plan` diff on version bump |
 | NFR-OPS-001 | SDD-C-010, SDD-C-014 |  | State file schema | `scripts/bin/infra/opensearch_apply.sh` `write_state_file` | `test_opensearch_runtime_state_has_all_contract_outputs` | `docs/platform/modules/opensearch/README.md` §state | `artifacts/infra/opensearch_runtime.env` |
+| NFR-A11Y-001 | — | N/A | N/A — infrastructure-only, no UI | N/A | N/A (T-A01) | N/A | N/A |
 | AC-001 | SDD-C-005, SDD-C-012 |  | Local apply end-to-end | `opensearch_apply.sh` → `helm` driver → state file | `test_contract.py` | README §local lane | `opensearch_runtime.env` |
 | AC-002 | SDD-C-005, SDD-C-012 |  | STACKIT apply end-to-end | `opensearch_apply.sh` → `foundation_contract` driver → state file | Maintainer-run apply evidence | README §STACKIT lane | `opensearch_runtime.env` |
 | AC-003 | SDD-C-012 |  | Local smoke validation | `opensearch_smoke.sh` | `test_opensearch_smoke_passes_with_valid_uri` | README §smoke | smoke exit code |
@@ -33,7 +34,7 @@
 ## Graph Linkage
 - Graph file: `graph.json`
 - Every `FR-###`, `NFR-*-###`, and `AC-###` listed in this file MUST have a corresponding node in `graph.json`.
-- Node IDs referenced: FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-007, FR-008, FR-009, FR-010, NFR-OBS-001, NFR-SEC-001, NFR-SEC-002, NFR-REL-001, NFR-OPS-001, AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009, AC-010
+- Node IDs referenced: FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-007, FR-008, FR-009, FR-010, NFR-OBS-001, NFR-SEC-001, NFR-SEC-002, NFR-REL-001, NFR-OPS-001, NFR-A11Y-001, AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009, AC-010
 
 ## Validation Summary
 - Required bundles executed: pending (pre-implementation)
