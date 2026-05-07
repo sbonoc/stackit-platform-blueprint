@@ -1928,6 +1928,17 @@ printf 'dsn=%s\\n' "$(postgres_dsn)"
         self.assertIn("driver=helm", resolved)
         self.assertIn(f"path={REPO_ROOT}/artifacts/infra/rendered/opensearch.values.yaml", resolved)
 
+    def test_optional_module_execution_resolves_local_fallback_modes_for_object_storage(self) -> None:
+        resolved = resolve_optional_module_execution("object-storage", "apply", profile="local-full")
+        self.assertIn("class=fallback_runtime", resolved)
+        self.assertIn("driver=helm", resolved)
+        self.assertIn(f"path={REPO_ROOT}/artifacts/infra/rendered/object-storage.values.yaml", resolved)
+
+    def test_optional_module_execution_resolves_stackit_provider_backed_object_storage_modes(self) -> None:
+        resolved = resolve_optional_module_execution("object-storage", "apply", profile="stackit-dev")
+        self.assertIn("class=provider_backed", resolved)
+        self.assertIn("driver=foundation_contract", resolved)
+
     def test_local_context_prefers_docker_desktop_on_workstations(self) -> None:
         resolved = resolve_local_kube_context_contract(
             ["kind-blueprint-e2e", "docker-desktop", "kind-ppwr-local"],

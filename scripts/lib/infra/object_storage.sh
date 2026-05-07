@@ -57,13 +57,28 @@ object_storage_secret_key() {
   printf '%s' "$OBJECT_STORAGE_SECRET_KEY"
 }
 
+object_storage_credential_secret_name() {
+  printf '%s-auth' "$OBJECT_STORAGE_HELM_RELEASE"
+}
+
+object_storage_reconcile_runtime_secret() {
+  apply_optional_module_secret_from_literals \
+    "$OBJECT_STORAGE_NAMESPACE" \
+    "$(object_storage_credential_secret_name)" \
+    "root-user=$OBJECT_STORAGE_ACCESS_KEY" \
+    "root-password=$OBJECT_STORAGE_SECRET_KEY"
+}
+
+object_storage_delete_runtime_secret() {
+  delete_optional_module_secret "$OBJECT_STORAGE_NAMESPACE" "$(object_storage_credential_secret_name)"
+}
+
 object_storage_render_values_file() {
   render_optional_module_values_file \
     "object-storage" \
     "infra/local/helm/object-storage/values.yaml" \
     "OBJECT_STORAGE_HELM_RELEASE=$OBJECT_STORAGE_HELM_RELEASE" \
-    "OBJECT_STORAGE_ACCESS_KEY=$OBJECT_STORAGE_ACCESS_KEY" \
-    "OBJECT_STORAGE_SECRET_KEY=$OBJECT_STORAGE_SECRET_KEY" \
+    "OBJECT_STORAGE_CREDENTIAL_SECRET_NAME=$(object_storage_credential_secret_name)" \
     "OBJECT_STORAGE_BUCKET_NAME=$OBJECT_STORAGE_BUCKET_NAME" \
     "OBJECT_STORAGE_IMAGE_REGISTRY=$OBJECT_STORAGE_IMAGE_REGISTRY" \
     "OBJECT_STORAGE_IMAGE_REPOSITORY=$OBJECT_STORAGE_IMAGE_REPOSITORY" \
