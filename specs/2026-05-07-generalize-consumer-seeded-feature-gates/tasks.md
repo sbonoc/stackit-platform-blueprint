@@ -14,20 +14,20 @@ No app delivery scope affected; all targets below remain unaffected by this work
 - [x] G-003 Confirm ADR status is `approved` in `spec.md`
 
 ## Slice 1 — Failing tests (red)
-- [ ] T-001 Create `tests/blueprint/test_consumer_seeded_feature_gates.py`
-- [ ] T-002 Write `test_resolve_gates_empty_list` (assert returns `[]`)
-- [ ] T-003 Write `test_resolve_gate_default_disabled` (no env var → disabled)
-- [ ] T-004 Write `test_resolve_gate_env_var_true` (`"true"` → enabled)
-- [ ] T-005 Write `test_resolve_gate_env_var_false` (`"false"` → disabled)
-- [ ] T-006 Write `test_resolve_gate_env_var_1` (`"1"` → enabled)
-- [ ] T-007 Write `test_resolve_gate_multiple_gates` (two gates resolve independently)
-- [ ] T-008 Write `test_seed_disabled_gate_prunes_paths` (disabled → files absent after seed)
-- [ ] T-009 Write `test_seed_enabled_gate_keeps_paths` (enabled → files present after seed)
-- [ ] T-010 Write `test_validate_gate_missing_key_fails`
-- [ ] T-011 Write `test_validate_gate_enabled_by_default_true_fails`
-- [ ] T-012 Write `test_validate_gate_missing_enable_flag_fails`
-- [ ] T-013 Write `test_validate_gate_path_not_in_consumer_seeded_fails`
-- [ ] T-014 Confirm all Slice 1 tests fail (red)
+- [x] T-001 Create `tests/blueprint/test_consumer_seeded_feature_gates.py`
+- [x] T-002 Write `test_resolve_gates_empty_list` (assert returns `[]`)
+- [x] T-003 Write `test_resolve_gate_default_disabled` (no env var → disabled)
+- [x] T-004 Write `test_resolve_gate_env_var_true` (`"true"` → enabled)
+- [x] T-005 Write `test_resolve_gate_env_var_false` (`"false"` → disabled)
+- [x] T-006 Write `test_resolve_gate_env_var_1` (`"1"` → enabled)
+- [x] T-007 Write `test_resolve_gate_multiple_gates` (two gates resolve independently)
+- [x] T-008 Write `test_seed_disabled_gate_prunes_paths` (disabled → files absent after seed)
+- [x] T-009 Write `test_seed_enabled_gate_keeps_paths` (enabled → files present after seed)
+- [x] T-010 Write `test_validate_gate_missing_key_fails`
+- [x] T-011 Write `test_validate_gate_enabled_by_default_true_fails`
+- [x] T-012 Write `test_validate_gate_missing_enable_flag_fails`
+- [x] T-013 Write `test_validate_gate_path_not_in_consumer_seeded_fails`
+- [x] T-014 Confirm all Slice 1 tests fail (red)
 
 ## Slice 2 — Contract schema + YAML
 - [ ] T-015 Add `CLAUDE_AI_ENABLED` to `spec.toggles` in `blueprint/contract.yaml`
@@ -48,12 +48,12 @@ No app delivery scope affected; all targets below remain unaffected by this work
 - [ ] T-026 Confirm T-010–T-013 pass (green)
 
 ## Slice 5 — `blueprint-seed-feature` Make target (red → green)
-- [ ] T-027 Create `tests/blueprint/test_seed_feature.py`
-- [ ] T-028 Write `test_seed_feature_writes_gate_paths` (target writes correct files from fetched source)
-- [ ] T-029 Write `test_seed_feature_unknown_gate_exits_nonzero` (unknown gate ID → non-zero exit + diagnostic)
-- [ ] T-030 Write `test_seed_feature_missing_feature_param_exits_nonzero` (missing FEATURE → non-zero exit)
-- [ ] T-031 Write `test_seed_feature_idempotent` (second run produces same content, exits zero)
-- [ ] T-032 Confirm T-028–T-031 fail (red)
+- [x] T-027 Create `tests/blueprint/test_seed_feature.py`
+- [x] T-028 Write `test_seed_feature_writes_gate_paths` (target writes correct files from fetched source)
+- [x] T-029 Write `test_seed_feature_unknown_gate_exits_nonzero` (unknown gate ID → non-zero exit + diagnostic)
+- [x] T-030 Write `test_seed_feature_missing_feature_param_exits_nonzero` (missing FEATURE → non-zero exit)
+- [x] T-031 Write `test_seed_feature_idempotent` (second run produces same content, exits zero)
+- [x] T-032 Confirm T-028–T-031 fail (red)
 - [ ] T-033 Implement `scripts/bin/blueprint/seed_feature.py` (reads pinned ref, fetches blueprint source, resolves gate, renders templates, writes to consumer repo)
 - [ ] T-034 Add `blueprint-seed-feature` target to `make/blueprint.generated.mk`
 - [ ] T-035 Update `contract_refactor_scripts_cases.py` to assert `seed_feature` in scripts

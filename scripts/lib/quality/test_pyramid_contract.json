@@ -49,7 +49,9 @@
         "tests/infra/test_root_dir_resolution.py",
         "tests/blueprint/test_upgrade_fresh_env_gate.py",
         "tests/blueprint/test_upgrade_version_pin_diff.py",
-        "tests/blueprint/test_template_smoke_assertions.py"
+        "tests/blueprint/test_template_smoke_assertions.py",
+        "tests/blueprint/test_consumer_seeded_feature_gates.py",
+        "tests/blueprint/test_seed_feature.py"
       ]
     },
     {
