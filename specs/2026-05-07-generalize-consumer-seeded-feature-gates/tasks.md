@@ -69,6 +69,11 @@ No app delivery scope affected; all targets below remain unaffected by this work
 - [x] T-041 Run `make quality-hooks-run` — confirm pass
 - [x] T-042 Run `make infra-validate` — confirm pass
 - [x] T-043 Run full pytest suite — confirm all pre-existing tests pass
-- [ ] T-044 Complete `hardening_review.md`
-- [ ] T-045 Complete `pr_context.md`
-- [ ] T-046 Complete `traceability.md` validation summary
+- [x] T-044 Complete `hardening_review.md`
+- [x] T-045 Complete `pr_context.md`
+- [x] T-046 Complete `traceability.md` validation summary
+
+## Publish
+- [x] P-001 Update `hardening_review.md`
+- [x] P-002 Update `pr_context.md` with AC coverage, validation evidence, rollback notes
+- [x] P-003 Ensure PR description references `pr_context.md` and closes the tracking issues

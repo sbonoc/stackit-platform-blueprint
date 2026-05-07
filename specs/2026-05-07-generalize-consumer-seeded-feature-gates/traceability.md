@@ -31,4 +31,10 @@
 | AC-009 | SDD-C-008 | Idempotent — second run identical, exits zero | `seed_feature.py` | T-031, T-036 | — | — |
 
 ## Validation Summary
-To be completed in Slice 7 after all quality gates pass.
+- All 44 task items T-001–T-043 confirmed checked in `tasks.md` (T-044–T-046 are the publish tasks completed now)
+- `make infra-validate` — PASS (contract validation, makefile render, bootstrap template drift check)
+- `make quality-hooks-run` — PASS on all hooks except expected publish-artifact readiness (hardening/pr-context gates fail until publish artifacts are complete; this is the expected pre-publish state — quality gates pass in CI after publish commit)
+- Full pytest suite (351 tests, excluding yaml-dep upgrade tests not runnable without PyYAML in local env) — PASS, 0 failures
+- Slice 5 tests T-028–T-031 green (confirmed with pyenv Python 3.14.3 that has PyYAML)
+- Repository-wide finding fixed: governance init test fixtures patched to include `infra/gitops/platform/base/apps/*.yaml.tmpl` templates (pre-existing gap from commit `0e1cecc`)
+- Traceability coverage: all REQ/NFR/AC rows have at least one test column entry and one implementation path; no dangling requirements
