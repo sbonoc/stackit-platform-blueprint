@@ -42,13 +42,19 @@ runs:
         echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
     # uv sync runs after prereqs so that the venv is not yet active during the
-    # prereqs step above (pip --user installs fail inside a venv). All make
-    # targets now invoke python via `uv run python3`, so .venv/bin does not
-    # need to be on PATH — uv run resolves the project environment automatically.
+    # prereqs step above (pip --user installs fail inside a venv).
+    #
+    # .venv/bin is added to GITHUB_PATH so that `python3` resolves to the venv
+    # interpreter in ALL subsequent steps — including shell scripts that invoke
+    # Python directly via their shebang (e.g. init_repo.sh → init_repo.py,
+    # validate.sh → validate_contract.py).  `uv run python3` picks up the venv
+    # automatically, but direct-shebang invocations rely on PATH.  Without this,
+    # system python3 is used and pyyaml (installed only in .venv) is not found.
     - name: Install Python dependencies
       shell: bash
       run: |
         uv sync --frozen
+        echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
 
     - name: Bootstrap blueprint and infra baseline
       shell: bash

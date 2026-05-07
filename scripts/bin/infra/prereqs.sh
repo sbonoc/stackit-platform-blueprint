@@ -315,16 +315,19 @@ python_module_available() {
 }
 
 install_python_module() {
-  local module="$1"
+  local pip_name="$1"
   if ! python3 -m pip --version >/dev/null 2>&1; then
     run_cmd python3 -m ensurepip --upgrade
   fi
-  run_cmd python3 -m pip install --user "$module"
+  run_cmd python3 -m pip install --user "$pip_name"
 }
 
 check_or_install_python_module() {
   local module="$1"
   local bucket="$2"
+  # pip_name defaults to module when import name matches pip package name (e.g. pytest).
+  # Pass explicitly when they differ (e.g. module=yaml, pip_name=pyyaml).
+  local pip_name="${3:-$module}"
   local label="python-module:${module}"
 
   if ! shell_has_cmd python3; then
@@ -344,7 +347,7 @@ check_or_install_python_module() {
 
   log_warn "missing required python module: $module"
   if [[ "$PREREQS_AUTO_INSTALL" == "true" ]]; then
-    if install_python_module "$module" && python_module_available "$module"; then
+    if install_python_module "$pip_name" && python_module_available "$module"; then
       log_info "installed required python module: $module"
       return 0
     fi
@@ -371,6 +374,11 @@ for tool in "${required_tools[@]}"; do
 done
 
 check_or_install_python_module "pytest" "required"
+# pyyaml is imported by blueprint Python scripts (init_repo.py, validate_contract.py,
+# etc.) via their #!/usr/bin/env python3 shebang, not via `uv run`.  Installing it
+# here ensures it is present on system python3 for both source-repo and consumer
+# contexts, independently of whether .venv/bin is on PATH.
+check_or_install_python_module "yaml" "required" "pyyaml"
 
 for tool in "${stackit_tools[@]}"; do
   if [[ "$PREREQS_REQUIRE_STACKIT_TOOLS" == "true" ]]; then
