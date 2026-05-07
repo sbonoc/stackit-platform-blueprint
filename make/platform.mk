@@ -12,7 +12,8 @@
   touchpoints-test-a11y \
   test-unit-all test-integration-all test-contracts-all test-e2e-all-local test-e2e-all-local-full test-e2e-all-local-execute \
   test-smoke-all-local \
-  quality-a11y-acr-check quality-a11y-acr-sync
+  quality-a11y-acr-check quality-a11y-acr-sync \
+  python-env-setup
 
 auth-reconcile-eso-runtime-secrets: ## Reconcile generic ESO runtime source-to-target credentials contract
 	@scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh
@@ -114,6 +115,9 @@ quality-a11y-acr-check: ## Validate ACR (docs/platform/accessibility/acr.md) exi
 
 quality-a11y-acr-sync: ## Regenerate ACR WCAG 2.1 criterion rows from bundled W3C list (preserves support/notes/evidence)
 	@python3 scripts/bin/platform/quality/sync_acr_criteria.py
+
+python-env-setup: ## Install Python dependencies declared in pyproject.toml into .venv via uv (run once after cloning)
+	@uv sync
 
 test-smoke-all-local: ## Full local smoke lane: provision, infra-smoke, and endpoint assertions against a local cluster
 	# Extension point: add HTTP endpoint assertions to tests/e2e/test_smoke_endpoints.py.

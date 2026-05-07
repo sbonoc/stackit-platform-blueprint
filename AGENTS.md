@@ -64,7 +64,7 @@ export QUALITY_HOOKS_KEEP_GOING=true
 
 Always invoke Python as `python3 -m pytest` for test runs and `python3 <script>` for blueprint scripts. Never use bare `pytest` (not guaranteed to be in PATH) or bare `python` (may resolve to Python 2). Never probe with alternative invocations (`pyenv exec`, `python3.13`, etc.) — if `python3` resolves incorrectly the environment is broken; stop and report rather than retrying with fallbacks.
 
-The canonical Python version is pinned in `scripts/lib/platform/apps/versions.sh` (`PYTHON_RUNTIME_BASE_IMAGE_VERSION`) and loaded into `PYENV_VERSION` automatically via `.envrc` when direnv is active.
+The canonical Python version is pinned in `scripts/lib/platform/apps/versions.sh` (`PYTHON_RUNTIME_BASE_IMAGE_VERSION`) and loaded into `PYENV_VERSION` automatically via `.envrc` when direnv is active. Python dependencies (PyYAML, pytest) are declared in `pyproject.toml` and pinned in `uv.lock`; run `make python-env-setup` once after cloning to create `.venv`. The `.envrc` activates it automatically so `python3` inside direnv resolves to the managed environment.
 
 ### Environment Variables
 
