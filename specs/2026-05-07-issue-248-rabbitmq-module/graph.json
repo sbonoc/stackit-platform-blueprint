@@ -60,7 +60,7 @@
     {
       "id": "NFR-OPS-001",
       "type": "requirement",
-      "summary": "Runtime state file contains all 7 contract keys; smoke validates 4 of them"
+      "summary": "Runtime state file contains all 7 contract keys; smoke validates host, port, vhost, management_url, and uri prefix"
     },
     {
       "id": "NFR-A11Y-001",
