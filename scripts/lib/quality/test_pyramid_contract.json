@@ -76,7 +76,9 @@
         "tests/infra/modules/object-storage/test_object_storage_module.py",
         "tests/infra/modules/object-storage/test_contract.py",
         "tests/infra/modules/postgres/test_postgres_module.py",
-        "tests/infra/modules/postgres/test_contract.py"
+        "tests/infra/modules/postgres/test_contract.py",
+        "tests/infra/modules/rabbitmq/test_rabbitmq_module.py",
+        "tests/infra/modules/rabbitmq/test_contract.py"
       ]
     },
     {
