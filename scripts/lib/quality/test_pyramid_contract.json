@@ -51,7 +51,8 @@
         "tests/blueprint/test_upgrade_version_pin_diff.py",
         "tests/blueprint/test_template_smoke_assertions.py",
         "tests/blueprint/test_consumer_seeded_feature_gates.py",
-        "tests/blueprint/test_seed_feature.py"
+        "tests/blueprint/test_seed_feature.py",
+        "tests/blueprint/test_feature_gate_status.py"
       ]
     },
     {

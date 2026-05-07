@@ -29,12 +29,20 @@
 | AC-007 | SDD-C-008 | seed-feature writes gate files, no other files touched | `seed_feature.py` + Make target | T-028, T-036 | — | consumer manual run |
 | AC-008 | SDD-C-008 | Unknown gate exits non-zero + diagnostic | `seed_feature.py` | T-029, T-036 | — | — |
 | AC-009 | SDD-C-008 | Idempotent — second run identical, exits zero | `seed_feature.py` | T-031, T-036 | — | — |
+| REQ-012 | SDD-C-007, SDD-C-008 | `feature_gate_status.py` + `blueprint-feature-gate-status` target | `scripts/bin/blueprint/feature_gate_status.py`, `make/blueprint.generated.mk` | T-048, T-054, T-060 | `spec.md § REQ-012` | consumer manual run |
+| REQ-013 | SDD-C-008 | Backlog entry format and idempotent upsert | `scripts/bin/blueprint/feature_gate_status.py` | T-049, T-050, T-051, T-060 | `spec.md § REQ-013` | — |
+| REQ-014 | SDD-C-007 | Wire into `upgrade_consumer_postcheck.sh` (non-blocking) | `scripts/bin/blueprint/upgrade_consumer_postcheck.sh` | T-057 | `spec.md § REQ-014` | `make blueprint-upgrade-consumer-postcheck` |
+| REQ-015 | SDD-C-007 | Update blueprint-consumer-upgrade skill | `.agents/skills/blueprint-consumer-upgrade/SKILL.md` | T-058 | skill file itself | — |
+| AC-010 | SDD-C-008 | blueprint-feature-gate-status writes backlog entries for unadopted gates, exits 0 | `feature_gate_status.py` | T-048, T-052 | — | — |
+| AC-011 | SDD-C-008 | Idempotent — no duplicate backlog entries | `feature_gate_status.py` | T-049 | — | — |
+| AC-012 | SDD-C-008 | Adopted gate → entry marked done, no new open entry | `feature_gate_status.py` | T-050, T-051 | — | — |
+| AC-013 | SDD-C-007 | postcheck calls gate status as non-blocking step | `upgrade_consumer_postcheck.sh` | T-057 | — | `make blueprint-upgrade-consumer-postcheck` |
 
 ## Validation Summary
-- All 44 task items T-001–T-043 confirmed checked in `tasks.md` (T-044–T-046 are the publish tasks completed now)
+- All task items T-001–T-060 confirmed checked in `tasks.md`
 - `make infra-validate` — PASS (contract validation, makefile render, bootstrap template drift check)
-- `make quality-hooks-run` — PASS on all hooks except expected publish-artifact readiness (hardening/pr-context gates fail until publish artifacts are complete; this is the expected pre-publish state — quality gates pass in CI after publish commit)
-- Full pytest suite (351 tests, excluding yaml-dep upgrade tests not runnable without PyYAML in local env) — PASS, 0 failures
-- Slice 5 tests T-028–T-031 green (confirmed with pyenv Python 3.14.3 that has PyYAML)
+- `make quality-hooks-run` — PASS on all hooks except pre-existing `infra-contract-test-fast` / `test_template_smoke_assertions.py` failure (`ModuleNotFoundError: No module named 'yaml'` on homebrew Python 3.14.4). Pre-existing constraint confirmed present on commit `1d7b98e` before Slice 8 changes.
+- Full pytest suite: Slices 1–4 (22 tests) green with homebrew Python; Slices 5+8 (test_seed_feature + test_feature_gate_status, 10 tests) green with pyenv Python 3.14.3 (PyYAML available)
+- Slice 8 tests T-048–T-052 confirmed red before implementation, green after
 - Repository-wide finding fixed: governance init test fixtures patched to include `infra/gitops/platform/base/apps/*.yaml.tmpl` templates (pre-existing gap from commit `0e1cecc`)
 - Traceability coverage: all REQ/NFR/AC rows have at least one test column entry and one implementation path; no dangling requirements

@@ -71,6 +71,14 @@
 
 - REQ-011: `make blueprint-seed-feature` MUST be idempotent: running it twice with the same `FEATURE` MUST produce the same file contents and MUST NOT error on the second run.
 
+- REQ-012: A `scripts/bin/blueprint/feature_gate_status.py` script MUST exist and a `blueprint-feature-gate-status` Make target MUST be available in consumer repos. When invoked, the script MUST: (a) read the `consumer_seeded_feature_gates` list from the consumer's `blueprint/contract.yaml`, (b) for each gate determine adoption status — a gate is adopted if the `enable_flag` env var is truthy in `blueprint/repo.init.env` OR at least one path in `consumer_seeded_paths_when_enabled` physically exists in the consumer repo, (c) for unadopted gates, upsert a backlog entry in `AGENTS.backlog.md` with gate id, seed command, and description, (d) for adopted gates with an existing backlog entry, mark that entry `[x]`. The script MUST exit 0 always (informational tool, not a gate).
+
+- REQ-013: Backlog entries written by `feature_gate_status.py` MUST use the format: `- [ ] (blueprint-feature) seed: <gate_id>` followed by indented `command:` and `description:` lines. The `command:` value MUST use the source URL from `BLUEPRINT_UPGRADE_SOURCE` env var or `blueprint/repo.init.env` if available, else the literal placeholder `<BLUEPRINT_UPGRADE_SOURCE>`. Entries MUST be idempotent — running the script twice MUST NOT produce duplicate entries.
+
+- REQ-014: `upgrade_consumer_postcheck.sh` MUST call `feature_gate_status.py` after the `emit_postcheck_report_metrics` step and before the final exit. The call MUST be non-blocking (exit code NOT propagated to the postcheck result); the script is informational only.
+
+- REQ-015: The `.agents/skills/blueprint-consumer-upgrade/SKILL.md` runbook MUST be updated to describe the `blueprint-feature-gate-status` target, explain the `AGENTS.backlog.md` backlog entry format, and instruct the agent to run `make blueprint-seed-feature FEATURE=<id>` for each unadopted feature gate entry it finds after an upgrade.
+
 ### Non-Functional Requirements (Normative)
 
 - NFR-001: The `app_catalog_scaffold_contract` section and its validation logic MUST remain unchanged. The new mechanism MUST NOT alter any existing behavior of `resolve_app_catalog_scaffold_contract` or its callers.
@@ -88,7 +96,7 @@
 - API contract: none
 - OpenAPI / Pact contract path: none
 - Event contract: none
-- Make/CLI contract: new `blueprint-seed-feature` Make target in consumer repos (propagated via blueprint-managed Makefile layer); mandatory parameter `FEATURE=<gate-id>`; existing `make blueprint-init-repo` behavior extended with gate-pruning step
+- Make/CLI contract: new `blueprint-seed-feature` Make target in consumer repos (propagated via blueprint-managed Makefile layer); mandatory parameter `FEATURE=<gate-id>`; existing `make blueprint-init-repo` behavior extended with gate-pruning step; new `blueprint-feature-gate-status` Make target (no parameters, informational, always exits 0)
 - Docs contract: `blueprint/contract.yaml` schema extended; blueprint consumer docs MUST document the new flag in the init guide
 
 ## Blueprint Upstream Defect Escalation (Normative)
@@ -117,6 +125,14 @@
 
 - AC-009: Running `make blueprint-seed-feature FEATURE=claude_ai_integration` twice in sequence MUST produce identical file contents on both runs and MUST exit zero on the second run.
 
+- AC-010: Running `make blueprint-feature-gate-status` in a consumer repo with no adopted gates MUST produce an `AGENTS.backlog.md` entry for each unadopted gate with the correct format (gate id, command, description). The script MUST exit 0.
+
+- AC-011: Running `make blueprint-feature-gate-status` twice in sequence MUST NOT produce duplicate backlog entries.
+
+- AC-012: When a gate is adopted (enable_flag truthy in `blueprint/repo.init.env` or gate paths present), running `make blueprint-feature-gate-status` MUST mark that gate's backlog entry `[x]` if an open entry exists, and MUST NOT add a new open entry.
+
+- AC-013: `make blueprint-upgrade-consumer-postcheck` MUST call the feature gate status check as a non-blocking informational step; postcheck result MUST NOT be affected by the gate status output.
+
 ## Informative Notes (Non-Normative)
 
 - The seeding order is: (1) unconditionally seed all `consumer_seeded_paths` from templates, (2) resolve all `consumer_seeded_feature_gates`, (3) prune paths of disabled gates. This means the template files for gated paths MUST exist in `scripts/templates/consumer/init/`, even though the files are pruned immediately after when the gate is disabled.
@@ -128,3 +144,4 @@
 - Upgrade-time delivery of gated consumer-seeded files to existing consumers: excluded. Consumer-seeded files are permanently upgrade-skipped by contract.
 - Ref override on `blueprint-seed-feature`: excluded. The target MUST use the consumer's pinned `BLUEPRINT_UPGRADE_REF` only; consumers who want files from a newer blueprint version MUST run `make blueprint-upgrade-consumer` first.
 - `make blueprint-seed-feature` support for seeding multiple gates in one invocation: excluded. Each call targets exactly one gate ID; consumers requiring multiple gates run the target once per gate.
+- `blueprint-feature-gate-status` reading from the blueprint source repository: excluded. Gate metadata (id, description, command) is read from the consumer's local `blueprint/contract.yaml`, which is always present. The source URL placeholder is used when source is not available rather than failing.

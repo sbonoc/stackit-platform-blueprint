@@ -176,6 +176,8 @@ fi
 
 emit_postcheck_report_metrics "$postcheck_report_abs"
 
+python3 "$ROOT_DIR/scripts/bin/blueprint/feature_gate_status.py" --repo-root "$ROOT_DIR" || true
+
 if [[ "$validate_rc" -ne 0 || "$postcheck_rc" -ne 0 ]]; then
   log_error "blueprint consumer upgrade postcheck failed (see ${postcheck_report_path})"
 fi

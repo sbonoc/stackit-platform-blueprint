@@ -19,6 +19,8 @@ This file is auto-generated. Do not edit it manually.
 | `blueprint-upgrade-fresh-env-gate` | Run fresh-environment smoke gate — CI-equivalent worktree check after upgrade postcheck |
 | `blueprint-upgrade-readiness-doctor` | Generate generated-consumer upgrade readiness diagnostics and manual-action hints |
 | `blueprint-uplift-status` | Report blueprint uplift convergence status for tracked issues in consumer backlog (optional BLUEPRINT_UPLIFT_STRICT=true) |
+| `blueprint-seed-feature` | Seed consumer-seeded feature gate files into this consumer repo (FEATURE=&lt;gate-id&gt;) |
+| `blueprint-feature-gate-status` | Report consumer-seeded feature gate adoption and upsert backlog entries (always exits 0) |
 | `blueprint-install-codex-skill` | Install/sync bundled Codex upgrade skill into local CODEX_HOME skills directory |
 | `blueprint-install-codex-skill-consumer-ops` | Install/sync bundled Codex consumer operations skill into local CODEX_HOME skills directory |
 | `blueprint-install-codex-skill-sdd-step01-intake` | Install/sync bundled Codex SDD step01-intake skill into local CODEX_HOME skills directory |

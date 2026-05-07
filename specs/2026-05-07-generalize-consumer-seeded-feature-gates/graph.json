@@ -37,8 +37,20 @@
     {"id": "AC-008", "type": "acceptance_criterion", "label": "Unknown gate exits non-zero + diagnostic"},
     {"id": "AC-009", "type": "acceptance_criterion", "label": "seed-feature idempotent"},
     {"id": "IMPL-seed-feature", "type": "implementation", "label": "scripts/bin/blueprint/seed_feature.py"},
-    {"id": "IMPL-makefile", "type": "implementation", "label": "make/blueprint.generated.mk (blueprint-seed-feature target)"},
-    {"id": "TEST-seed-feature", "type": "test", "label": "tests/blueprint/test_seed_feature.py"}
+    {"id": "IMPL-makefile", "type": "implementation", "label": "make/blueprint.generated.mk (blueprint-seed-feature + blueprint-feature-gate-status targets)"},
+    {"id": "TEST-seed-feature", "type": "test", "label": "tests/blueprint/test_seed_feature.py"},
+    {"id": "REQ-012", "type": "requirement", "label": "feature_gate_status.py + blueprint-feature-gate-status Make target"},
+    {"id": "REQ-013", "type": "requirement", "label": "Backlog entry format and idempotent upsert"},
+    {"id": "REQ-014", "type": "requirement", "label": "Wire feature_gate_status into upgrade_consumer_postcheck.sh (non-blocking)"},
+    {"id": "REQ-015", "type": "requirement", "label": "Update blueprint-consumer-upgrade skill with gate status step"},
+    {"id": "AC-010", "type": "acceptance_criterion", "label": "blueprint-feature-gate-status writes backlog entries for unadopted gates, exits 0"},
+    {"id": "AC-011", "type": "acceptance_criterion", "label": "blueprint-feature-gate-status idempotent — no duplicate entries"},
+    {"id": "AC-012", "type": "acceptance_criterion", "label": "Adopted gate → backlog entry marked done, no new open entry"},
+    {"id": "AC-013", "type": "acceptance_criterion", "label": "postcheck calls gate status as non-blocking step"},
+    {"id": "IMPL-feature-gate-status", "type": "implementation", "label": "scripts/bin/blueprint/feature_gate_status.py"},
+    {"id": "IMPL-postcheck-sh", "type": "implementation", "label": "scripts/bin/blueprint/upgrade_consumer_postcheck.sh"},
+    {"id": "IMPL-upgrade-skill", "type": "implementation", "label": ".agents/skills/blueprint-consumer-upgrade/SKILL.md"},
+    {"id": "TEST-feature-gate-status", "type": "test", "label": "tests/blueprint/test_feature_gate_status.py"}
   ],
   "edges": [
     {"from": "REQ-001", "to": "IMPL-contract-yaml"},
@@ -74,6 +86,17 @@
     {"from": "NFR-005", "to": "IMPL-seed-feature"},
     {"from": "AC-007", "to": "TEST-seed-feature"},
     {"from": "AC-008", "to": "TEST-seed-feature"},
-    {"from": "AC-009", "to": "TEST-seed-feature"}
+    {"from": "AC-009", "to": "TEST-seed-feature"},
+    {"from": "REQ-012", "to": "IMPL-feature-gate-status"},
+    {"from": "REQ-012", "to": "IMPL-makefile"},
+    {"from": "REQ-012", "to": "TEST-feature-gate-status"},
+    {"from": "REQ-013", "to": "IMPL-feature-gate-status"},
+    {"from": "REQ-013", "to": "TEST-feature-gate-status"},
+    {"from": "REQ-014", "to": "IMPL-postcheck-sh"},
+    {"from": "REQ-015", "to": "IMPL-upgrade-skill"},
+    {"from": "AC-010", "to": "TEST-feature-gate-status"},
+    {"from": "AC-011", "to": "TEST-feature-gate-status"},
+    {"from": "AC-012", "to": "TEST-feature-gate-status"},
+    {"from": "AC-013", "to": "IMPL-postcheck-sh"}
   ]
 }

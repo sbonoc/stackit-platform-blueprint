@@ -65,6 +65,22 @@ No app delivery scope affected; all targets below remain unaffected by this work
 - [x] T-039 Update `contract_refactor_governance_init_cases.py` to assert `consumer_seeded_feature_gates:` in contract
 - [x] T-040 Update `contract_refactor_scripts_cases.py` to assert `resolve_consumer_seeded_feature_gates` in `init_repo_contract.py`
 
+## Slice 8 — `blueprint-feature-gate-status` (red → green)
+- [x] T-047 Create `tests/blueprint/test_feature_gate_status.py`
+- [x] T-048 Write `test_gate_status_unadopted_writes_backlog` (unadopted gate → backlog entry added)
+- [x] T-049 Write `test_gate_status_idempotent_no_duplicate` (second run → no duplicate entry)
+- [x] T-050 Write `test_gate_status_adopted_via_env_marks_done` (enable_flag truthy in repo.init.env → entry marked `[x]`)
+- [x] T-051 Write `test_gate_status_adopted_via_file_marks_done` (gate path present → entry marked `[x]`)
+- [x] T-052 Write `test_gate_status_exits_zero_always` (always exits 0)
+- [x] T-053 Confirm T-048–T-052 fail (red)
+- [x] T-054 Implement `scripts/bin/blueprint/feature_gate_status.py`
+- [x] T-055 Add `blueprint-feature-gate-status` target to `scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl`
+- [x] T-056 Run `make infra-validate` to regenerate `make/blueprint.generated.mk`
+- [x] T-057 Wire `feature_gate_status.py` into `upgrade_consumer_postcheck.sh` (non-blocking, after `emit_postcheck_report_metrics`)
+- [x] T-058 Update `.agents/skills/blueprint-consumer-upgrade/SKILL.md` with feature gate status step
+- [x] T-059 Register `tests/blueprint/test_feature_gate_status.py` in `scripts/lib/quality/test_pyramid_contract.json`
+- [x] T-060 Confirm T-048–T-052 pass (green)
+
 ## Slice 7 — Quality gates + publish
 - [x] T-041 Run `make quality-hooks-run` — confirm pass
 - [x] T-042 Run `make infra-validate` — confirm pass
