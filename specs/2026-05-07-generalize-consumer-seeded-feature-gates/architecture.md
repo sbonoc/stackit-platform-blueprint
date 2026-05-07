@@ -45,6 +45,8 @@ This change is scoped entirely to the **blueprint init subsystem**:
 - `blueprint/contract.yaml` — schema addition (new top-level `consumer_seeded_feature_gates` list)
 - `scripts/lib/blueprint/init_repo_contract.py` — new resolver + updated seeding function
 - `scripts/bin/blueprint/validate_contract.py` — new structural validator for the gates list
+- `scripts/bin/blueprint/seed_feature.py` — new CLI backing the `blueprint-seed-feature` Make target
+- `make/blueprint.generated.mk` — new `blueprint-seed-feature` target
 - `scripts/templates/consumer/init/.github/workflows/` — two new `.tmpl` files
 - `tests/blueprint/` — unit tests
 

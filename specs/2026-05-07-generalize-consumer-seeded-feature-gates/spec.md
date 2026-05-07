@@ -103,7 +103,7 @@
 
 - AC-002: Running `CLAUDE_AI_ENABLED=true make blueprint-init-repo` MUST produce both `.github/workflows/claude.yml` and `.github/workflows/claude-code-review.yml` in the consumer repo, with content rendered from their respective `.tmpl` files.
 
-- AC-003: Both Claude workflow paths MUST be absent from a consumer repo when `validate_contract.py --branch-only` runs (they are in `consumer_seeded`; the upgrade engine MUST classify them as `consumer-seeded / skip`).
+- AC-003: When `make blueprint-upgrade-consumer` runs against any consumer repo, the upgrade engine MUST classify `.github/workflows/claude.yml` and `.github/workflows/claude-code-review.yml` as `consumer-seeded / skip` and MUST NOT create, modify, or delete those files during any upgrade pass, regardless of whether the files are physically present in the consumer repo.
 
 - AC-004: `validate_contract.py` MUST reject a `blueprint/contract.yaml` where any `consumer_seeded_feature_gates` entry is missing a mandatory field, has `enabled_by_default: true`, references a non-existent toggle, or lists a path not in `consumer_seeded_paths`.
 

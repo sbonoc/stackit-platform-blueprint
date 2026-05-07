@@ -69,7 +69,7 @@ Files touched:
 - `make/blueprint.generated.mk` (updated)
 - `tests/blueprint/contract_refactor_scripts_cases.py` (updated: assert `seed_feature` in scripts)
 
-### Slice 6 — Template files + contract refactor test update
+### Slice 6 — Template files + governance test updates
 Create the two Claude workflow `.tmpl` files. Update contract-refactor governance tests.
 
 Files touched:
