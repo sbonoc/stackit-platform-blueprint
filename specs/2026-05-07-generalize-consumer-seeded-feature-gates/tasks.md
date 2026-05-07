@@ -43,9 +43,9 @@ No app delivery scope affected; all targets below remain unaffected by this work
 - [x] T-023 Confirm T-002–T-009 pass (green)
 
 ## Slice 4 — Validator (green)
-- [ ] T-024 Implement `_validate_consumer_seeded_feature_gates(repo_root, contract)` in `validate_contract.py`
-- [ ] T-025 Wire `_validate_consumer_seeded_feature_gates` into the top-level `_validate_contract` orchestrator
-- [ ] T-026 Confirm T-010–T-013 pass (green)
+- [x] T-024 Implement `_validate_consumer_seeded_feature_gates(repo_root, contract)` in `validate_contract.py`
+- [x] T-025 Wire `_validate_consumer_seeded_feature_gates` into the top-level `_validate_contract` orchestrator
+- [x] T-026 Confirm T-010–T-013 pass (green)
 
 ## Slice 5 — `blueprint-seed-feature` Make target (red → green)
 - [x] T-027 Create `tests/blueprint/test_seed_feature.py`

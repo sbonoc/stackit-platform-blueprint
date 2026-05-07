@@ -169,8 +169,9 @@ class ConsumerSeededFeatureGatesValidatorTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             contract_path = Path(tmpdir) / "contract.yaml"
             content = CONTRACT_PATH.read_text(encoding="utf-8")
+            # Remove the consumer_seeded_feature_gates block (key + all child lines at ≥4 spaces)
             content = re.sub(
-                r"(?ms)^  consumer_seeded_feature_gates:\n(    .*\n)*",
+                r"(?m)^  consumer_seeded_feature_gates:\n(?:    [^\n]*\n)*",
                 "",
                 content,
                 count=1,
