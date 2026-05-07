@@ -133,4 +133,4 @@ interactions or state machines involved.
 ## ADR
 
 `docs/blueprint/architecture/decisions/ADR-2026-05-07-generalize-consumer-seeded-feature-gates.md`
-— Status: proposed
+— Status: approved

@@ -11,7 +11,7 @@ The upgrade is fully scripted. The agent's role is: set the ref, run the pipelin
 
 > Quality-hooks usage policy (per-slice vs pre-PR gate, keep-going env, force-full): see AGENTS.md § Quality Hooks — Inner-Loop and Pre-PR Usage.
 
-## Workflow (7 steps)
+## Workflow (8 steps)
 
 1. **Set ref.** Resolve the target tag or accept it from the user input. Create a dedicated branch.
 2. **Run pipeline.** Execute the scripted upgrade pipeline end-to-end.
@@ -38,15 +38,15 @@ make blueprint-upgrade-consumer
 # Step 3 — read the residual report
 cat artifacts/blueprint/upgrade-residual.md
 
-# Step 5 — confirm clean after applying prescribed actions
-make quality-hooks-run
-
 # Step 6 — discover and adopt new optional features
 make blueprint-feature-gate-status
 # Read AGENTS.backlog.md: open entries tagged (blueprint-feature) are unadopted feature gates.
 # For each open entry, run the command shown, e.g.:
 #   make blueprint-seed-feature FEATURE=claude_ai_integration
 # The postcheck pipeline also runs this automatically as a non-blocking informational step.
+
+# Step 7 — confirm clean after applying prescribed actions
+make quality-hooks-run
 ```
 
 ## Feature Gate Backlog Entries

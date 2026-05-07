@@ -13,7 +13,6 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from scripts.lib.blueprint.contract_schema import load_yaml_subset  # noqa: E402
-from scripts.lib.blueprint import upgrade_consumer as _uc  # noqa: E402
 
 BLUEPRINT_UPGRADE_SOURCE_ENV = "BLUEPRINT_UPGRADE_SOURCE"
 BLUEPRINT_UPGRADE_REF_ENV = "BLUEPRINT_UPGRADE_REF"
@@ -53,6 +52,8 @@ def main() -> None:
 
     repo_root = Path(args.repo_root).resolve()
     gate_id = args.feature
+
+    from scripts.lib.blueprint import upgrade_consumer as _uc  # noqa: E402
 
     defaults = _uc._read_repo_init_defaults(repo_root / "blueprint/repo.init.env")
     ref = os.environ.get(BLUEPRINT_UPGRADE_REF_ENV) or defaults.get("BLUEPRINT_UPGRADE_REF", "main")

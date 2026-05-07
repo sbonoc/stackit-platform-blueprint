@@ -229,6 +229,29 @@ class ConsumerSeededFeatureGatesValidatorTests(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
             self.assertIn("consumer_seeded", result.stdout + result.stderr)
 
+    def test_validate_duplicate_gate_id_fails(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            contract_path = Path(tmpdir) / "contract.yaml"
+            content = CONTRACT_PATH.read_text(encoding="utf-8")
+            duplicate_entry = (
+                "    - id: claude_ai_integration\n"
+                "      enable_flag: CLAUDE_AI_ENABLED\n"
+                "      enabled_by_default: false\n"
+                "      description: \"Duplicate gate entry for testing.\"\n"
+                "      consumer_seeded_paths_when_enabled:\n"
+                "        - .github/workflows/claude.yml\n"
+            )
+            content = re.sub(
+                r"(  consumer_seeded_feature_gates:\n(?:    [^\n]*\n)+)",
+                r"\1" + duplicate_entry,
+                content,
+                count=1,
+            )
+            contract_path.write_text(content, encoding="utf-8")
+            result = _run_validate_result(contract_path)
+            self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            self.assertIn("duplicate", result.stdout + result.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()

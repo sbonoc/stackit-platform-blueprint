@@ -640,6 +640,7 @@ def _validate_consumer_seeded_feature_gates(repo_root: Path, contract: Blueprint
 
     consumer_seeded_paths = set(contract.repository.consumer_seeded_paths)
     toggles_raw = spec_raw.get("toggles")
+    seen_ids: set[str] = set()
 
     for idx, gate in enumerate(gates_raw):
         prefix = f"spec.consumer_seeded_feature_gates[{idx}]"
@@ -647,7 +648,12 @@ def _validate_consumer_seeded_feature_gates(repo_root: Path, contract: Blueprint
             errors.append(f"{prefix} must be a mapping")
             continue
 
-        _string_or_error(gate.get("id"), f"{prefix}.id", errors)
+        gate_id = _string_or_error(gate.get("id"), f"{prefix}.id", errors)
+        if isinstance(gate_id, str):
+            if gate_id in seen_ids:
+                errors.append(f"{prefix}.id is a duplicate: '{gate_id}'")
+            else:
+                seen_ids.add(gate_id)
         _string_or_error(gate.get("description"), f"{prefix}.description", errors)
 
         enabled_by_default = _bool_or_error(gate.get("enabled_by_default"), f"{prefix}.enabled_by_default", errors)
