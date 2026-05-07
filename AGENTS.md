@@ -378,6 +378,7 @@ A task is done only when all applicable items pass:
 - No alpha/beta/rc or unsupported runtime versions in runtime paths.
 - A vendor repository name that contains `legacy` is allowed only when the pinned artifact is still latest-stable/supported and the rationale is documented in repo decisions/docs.
 - Canonical versions source: `scripts/lib/infra/versions.sh`.
+- GitHub Actions `uses:` pins: always use the exact tag returned by `gh api repos/<owner>/<repo>/releases/latest --jq '.tag_name'` (e.g. `v8.1.0`). Never abbreviate to a short major-version tag (e.g. `v8`) without first confirming that exact tag exists in `gh api repos/<owner>/<repo>/git/refs/tags` — not all actions publish major-version aliases.
 - Drift policy:
   - patch drift: fail
   - minor drift: warn
