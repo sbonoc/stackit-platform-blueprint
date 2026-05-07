@@ -48,7 +48,7 @@ run_python_pytest_lane() {
   fi
 
   log_info "running ${lane} pytest lane with ${#discovered[@]} discovered test file(s)"
-  require_command python3
+  require_command uv
 
   # Coverage enforcement: opt-in via BACKEND_COVERAGE_PATH.
   # Set BACKEND_COVERAGE_PATH to the source directory to measure (e.g. apps/backend-api/src).
@@ -87,7 +87,7 @@ _discover_pnpm_script_project_entries() {
     log_fatal "_discover_pnpm_script_project_entries requires at least one script name candidate"
   fi
 
-  require_command python3
+  require_command uv
   uv run python3 "$ROOT_DIR/scripts/lib/platform/pnpm_script_discovery.py" "$root_path" "$@"
 }
 
