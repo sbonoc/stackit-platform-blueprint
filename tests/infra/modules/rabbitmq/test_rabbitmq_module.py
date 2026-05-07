@@ -36,6 +36,18 @@ class RabbitmqTerraformModuleTests(unittest.TestCase):
         ):
             self.assertIn(var, content, msg=f"missing variable: {var}")
 
+    def test_terraform_module_version_default_matches_wrapper(self) -> None:
+        # Standalone module defaults must stay in sync with the shell wrapper
+        # (scripts/lib/infra/rabbitmq.sh RABBITMQ_VERSION) and foundation
+        # variables.tf defaults to avoid silent version drift.
+        content = (_MODULE_DIR / "variables.tf").read_text(encoding="utf-8")
+        self.assertIn('"4.0"', content, msg="rabbitmq_version default must be 4.0")
+        self.assertIn(
+            '"stackit-rabbitmq-2.4.10-replica"',
+            content,
+            msg="rabbitmq_plan_name default must be stackit-rabbitmq-2.4.10-replica",
+        )
+
     def test_terraform_module_outputs_expose_contract_keys(self) -> None:
         content = (_MODULE_DIR / "outputs.tf").read_text(encoding="utf-8")
         for key in (

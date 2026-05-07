@@ -77,8 +77,8 @@ Key variables:
 | `stackit_project_id` | STACKIT project ID | required |
 | `stackit_region` | STACKIT region | `eu01` |
 | `rabbitmq_instance_name` | Instance name | required |
-| `rabbitmq_version` | RabbitMQ major version | `3.12` |
-| `rabbitmq_plan_name` | STACKIT service plan | `stackit-rabbitmq-1.4.10-single` |
+| `rabbitmq_version` | RabbitMQ major version | `4.0` |
+| `rabbitmq_plan_name` | STACKIT service plan | `stackit-rabbitmq-2.4.10-replica` |
 
 Key outputs: `rabbitmq_host`, `rabbitmq_port`, `rabbitmq_username`, `rabbitmq_password`, `rabbitmq_uri`, `rabbitmq_management_url`.
 

@@ -17,11 +17,11 @@ variable "rabbitmq_instance_name" {
 variable "rabbitmq_version" {
   description = "RabbitMQ major version."
   type        = string
-  default     = "3.12"
+  default     = "4.0"
 }
 
 variable "rabbitmq_plan_name" {
   description = "STACKIT RabbitMQ service plan name."
   type        = string
-  default     = "stackit-rabbitmq-1.4.10-single"
+  default     = "stackit-rabbitmq-2.4.10-replica"
 }
