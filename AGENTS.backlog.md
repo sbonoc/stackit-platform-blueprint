@@ -106,6 +106,13 @@ Reported by consumer sbonoc/dhe-marketplace from their v1.7.0 upgrade experience
 
 ---
 
+### Generalize consumer-seeded feature gates
+
+- [ ] P1 (Blueprint init flow): `consumer_seeded_feature_gates` — introduce a generic list in `blueprint/contract.yaml` to optionally seed subsets of `consumer_seeded_paths` via env var flags at init time; wire `CLAUDE_AI_ENABLED` as the first gate for Claude AI GH Actions workflows from PR #252; add `blueprint-seed-feature FEATURE=<gate-id>` Make target for existing consumers to self-serve adoption post-init. **In progress**: `specs/2026-05-07-generalize-consumer-seeded-feature-gates/`, PR #253.
+      trigger: on-scope: blueprint
+
+---
+
 - [ ] Add an automated bundled-skill contract verifier to enforce parity across `.agents/skills/**`, consumer-template fallbacks, install make targets, and docs references.
 - [ ] Add a contract-level traceability verifier that checks every declared requirement ID in `spec.md` maps to implementation paths and at least one automated test assertion.
 - [ ] Add a declarative module action manifest (`apply/plan/smoke/destroy`) to replace duplicated wrapper branching and keep runtime/CI execution paths deterministic.
