@@ -2,7 +2,7 @@ fullnameOverride: "blueprint-vault"
 server:
   dev:
     enabled: true
-    devRootToken: "{{KMS_VAULT_ROOT_TOKEN}}"
+    devRootToken: "blueprint-vault-root-token"
   resources:
     requests:
       memory: "256Mi"

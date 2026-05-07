@@ -31,4 +31,8 @@ resource "stackit_kms_key" "this" {
   protection   = var.kms_key_protection
   access_scope = var.kms_key_access_scope
   import_only  = var.kms_key_import_only
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }

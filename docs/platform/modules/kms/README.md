@@ -114,5 +114,5 @@ resp = httpx.post(
 | `KMS_KEY_ALGORITHM` | `aes_256_gcm` | Key algorithm |
 | `KMS_KEY_PURPOSE` | `symmetric_encrypt_decrypt` | Key purpose |
 | `KMS_KEY_PROTECTION` | `software` | Key protection mode |
-| `KMS_KEY_ACCESS_SCOPE` | `PUBLIC` | Key access scope |
+| `KMS_KEY_ACCESS_SCOPE` | `PUBLIC` | Key access scope. `PUBLIC` allows API access without network restrictions — intentional for local development; tighten to `INTERNAL` for production. |
 | `KMS_KEY_IMPORT_ONLY` | `false` | Whether the key is import-only |
