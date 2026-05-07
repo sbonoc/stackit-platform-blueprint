@@ -31,7 +31,7 @@ To introduce a new tag, append a row here in the same commit that uses it.
 - [ ] (parked) proposal(issue-248-rabbitmq-module): HA replica configuration — stackit_rabbitmq_instance.replicas > 1
       trigger: on-scope: infra
       rationale: single-replica default is sufficient for initial module; HA requires separate capacity planning and consumer awareness
-- [ ] P1 (Platform modules — first-class): Issue #248 — KMS module dual-lane implementation (Vault Transit local + STACKIT `stackit_kms_keyring` + `stackit_kms_key` Terraform). **In progress**: `specs/2026-05-07-issue-248-kms-module/`, PR #256. 4 slices defined; `SPEC_READY: true`.
+- [x] P1 (Platform modules — first-class): Issue #248 — KMS module dual-lane implementation (Vault Transit local + STACKIT `stackit_kms_keyring` + `stackit_kms_key` Terraform). **Done**: `specs/2026-05-07-issue-248-kms-module/`, PR #256. 4 slices complete; 23/23 tests green; quality gates pass. `SPEC_READY: true`.
 - [ ] (parked) proposal(issue-248-kms-module): KMS_KEY_ROTATION_PERIOD input — add to module.contract.yaml and stackit_kms_key when stackit_kms_key exposes rotation_period attribute in a future provider version
       trigger: on-scope: infra
       rationale: stackit_kms_key v0.88.0 does not expose rotation_period; shipping a no-op contract input would mislead consumers; surfaces when provider support lands
