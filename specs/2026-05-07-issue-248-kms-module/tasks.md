@@ -31,7 +31,7 @@
 - [x] T-015 Harden `scripts/bin/infra/kms_smoke.sh`: add `key_ring_id`, `key_id`, `endpoint` non-empty checks; add `endpoint` to smoke state write
 
 ### Slice 4 — Docs
-- [ ] T-016 Write `docs/platform/modules/kms/README.md` (both-lanes usage, Vault Transit section, STACKIT KMS section, endpoint reference, destroy semantics, env-var reference table)
+- [x] T-016 Write `docs/platform/modules/kms/README.md` (both-lanes usage, Vault Transit section, STACKIT KMS section, endpoint reference, destroy semantics, env-var reference table)
 
 ## Test Automation
 - [x] T-101 Tests in `test_kms_module.py`: Terraform module structure (AC-001, AC-002, AC-003); `kms_endpoint()` local lane (AC-005); apply state file `endpoint` key (AC-006); smoke pass/fail scenarios (AC-007, AC-008, AC-009, AC-010); Helm values assertions (AC-012); plan state artifact (AC-013); module_execution.sh helm driver (AC-014)
