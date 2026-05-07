@@ -26,7 +26,7 @@ repos:
       - id: quality-test-pyramid
         name: quality test-pyramid classification check
         language: system
-        entry: python3 scripts/bin/quality/check_test_pyramid.py
+        entry: uv run python3 scripts/bin/quality/check_test_pyramid.py
         pass_filenames: false
         # Trigger whenever a test file is staged so unclassified test_*.py files
         # are caught at commit time rather than only at pre-push or in CI.
@@ -35,7 +35,7 @@ repos:
       - id: quality-validate-branch
         name: quality validate branch naming (pre-push)
         language: system
-        entry: python3 scripts/bin/blueprint/validate_contract.py --branch-only
+        entry: uv run python3 scripts/bin/blueprint/validate_contract.py --branch-only
         pass_filenames: false
         stages: [pre-push]
         always_run: true

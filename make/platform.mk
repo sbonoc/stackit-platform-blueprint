@@ -111,10 +111,10 @@ apps-a11y-smoke: ## Run axe WCAG 2.1 AA smoke scan with default routes and impac
 	@scripts/bin/platform/apps/a11y_smoke.sh
 
 quality-a11y-acr-check: ## Validate ACR (docs/platform/accessibility/acr.md) exists, is dated, and is within staleness window
-	@python3 scripts/bin/platform/quality/check_acr_freshness.py
+	@uv run python3 scripts/bin/platform/quality/check_acr_freshness.py
 
 quality-a11y-acr-sync: ## Regenerate ACR WCAG 2.1 criterion rows from bundled W3C list (preserves support/notes/evidence)
-	@python3 scripts/bin/platform/quality/sync_acr_criteria.py
+	@uv run python3 scripts/bin/platform/quality/sync_acr_criteria.py
 
 python-env-setup: ## Install Python dependencies declared in pyproject.toml into .venv via uv (run once after cloning)
 	@uv sync

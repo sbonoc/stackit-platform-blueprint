@@ -61,10 +61,10 @@ blueprint-uplift-status: ## Report blueprint uplift convergence status for track
 	@$(BLUEPRINT_UPLIFT_STATUS_SCRIPT)
 
 blueprint-seed-feature: ## Seed consumer-seeded feature gate files into this consumer repo (FEATURE=<gate-id>)
-	@python3 scripts/bin/blueprint/seed_feature.py --feature $(FEATURE) --repo-root .
+	@uv run python3 scripts/bin/blueprint/seed_feature.py --feature $(FEATURE) --repo-root .
 
 blueprint-feature-gate-status: ## Report consumer-seeded feature gate adoption and upsert backlog entries (always exits 0)
-	@python3 scripts/bin/blueprint/feature_gate_status.py --repo-root .
+	@uv run python3 scripts/bin/blueprint/feature_gate_status.py --repo-root .
 
 blueprint-install-codex-skill: ## Install/sync bundled Codex upgrade skill into local CODEX_HOME skills directory
 	@scripts/bin/blueprint/install_codex_skill.sh --skill-name blueprint-consumer-upgrade
@@ -117,10 +117,10 @@ blueprint-ownership-check: ## Resolve path ownership classes (set OWNERSHIP_PATH
 		echo "[blueprint] set OWNERSHIP_PATHS to one or more paths (space-separated)" >&2; \
 		exit 1; \
 	fi
-	@python3 scripts/bin/blueprint/ownership_check.py $(OWNERSHIP_PATHS)
+	@uv run python3 scripts/bin/blueprint/ownership_check.py $(OWNERSHIP_PATHS)
 
 blueprint-ownership-metadata: ## Print machine-readable ownership metadata (pattern -> owner)
-	@python3 scripts/bin/blueprint/ownership_check.py --metadata-json
+	@uv run python3 scripts/bin/blueprint/ownership_check.py --metadata-json
 
 blueprint-check-placeholders: ## Verify generated repository identity placeholders are resolved
 	@scripts/bin/blueprint/check_placeholders.sh
@@ -147,7 +147,7 @@ spec-scaffold: ## Scaffold SDD work-item documents under specs/YYYY-MM-DD-work-i
 		echo "[spec-scaffold] set SPEC_SLUG=<work-item-slug>" >&2; \
 		exit 1; \
 	fi
-	@python3 scripts/bin/blueprint/spec_scaffold.py \
+	@uv run python3 scripts/bin/blueprint/spec_scaffold.py \
 		--slug "$(SPEC_SLUG)" \
 		--track "$(or $(SPEC_TRACK),$(SPEC_SCAFFOLD_DEFAULT_TRACK))" \
 		$(if $(strip $(SPEC_DATE)),--date "$(SPEC_DATE)",) \
@@ -156,22 +156,22 @@ spec-scaffold: ## Scaffold SDD work-item documents under specs/YYYY-MM-DD-work-i
 		$(if $(filter true,$(SPEC_NO_BRANCH)),--no-create-branch,)
 
 spec-impact: ## Render graph-driven impact summary for a work item (optional SPEC_WORK_ITEM, SPEC_IMPACT_OUTPUT)
-	@python3 scripts/bin/blueprint/spec_work_item_tools.py impact \
+	@uv run python3 scripts/bin/blueprint/spec_work_item_tools.py impact \
 		$(if $(strip $(SPEC_WORK_ITEM)),--work-item "$(SPEC_WORK_ITEM)",) \
 		$(if $(strip $(SPEC_IMPACT_OUTPUT)),--output "$(SPEC_IMPACT_OUTPUT)",)
 
 spec-evidence-manifest: ## Render deterministic evidence manifest checksums for a work item (optional SPEC_WORK_ITEM, SPEC_EVIDENCE_OUTPUT)
-	@python3 scripts/bin/blueprint/spec_work_item_tools.py evidence-manifest \
+	@uv run python3 scripts/bin/blueprint/spec_work_item_tools.py evidence-manifest \
 		$(if $(strip $(SPEC_WORK_ITEM)),--work-item "$(SPEC_WORK_ITEM)",) \
 		$(if $(strip $(SPEC_EVIDENCE_OUTPUT)),--output "$(SPEC_EVIDENCE_OUTPUT)",)
 
 spec-context-pack: ## Render deterministic context pack markdown for a work item (optional SPEC_WORK_ITEM, SPEC_CONTEXT_OUTPUT)
-	@python3 scripts/bin/blueprint/spec_work_item_tools.py context-pack \
+	@uv run python3 scripts/bin/blueprint/spec_work_item_tools.py context-pack \
 		$(if $(strip $(SPEC_WORK_ITEM)),--work-item "$(SPEC_WORK_ITEM)",) \
 		$(if $(strip $(SPEC_CONTEXT_OUTPUT)),--output "$(SPEC_CONTEXT_OUTPUT)",)
 
 spec-pr-context: ## Render deterministic PR context markdown for a work item (optional SPEC_WORK_ITEM, SPEC_PR_CONTEXT_OUTPUT)
-	@python3 scripts/bin/blueprint/spec_work_item_tools.py pr-context \
+	@uv run python3 scripts/bin/blueprint/spec_work_item_tools.py pr-context \
 		$(if $(strip $(SPEC_WORK_ITEM)),--work-item "$(SPEC_WORK_ITEM)",) \
 		$(if $(strip $(SPEC_PR_CONTEXT_OUTPUT)),--output "$(SPEC_PR_CONTEXT_OUTPUT)",)
 
@@ -198,28 +198,28 @@ quality-hooks-run: ## Run pre-commit hooks and quality gates (set QUALITY_HOOKS_
 	@scripts/bin/quality/hooks_run.sh
 
 quality-root-dir-prelude-check: ## Fail when shell entrypoints reintroduce inline ROOT_DIR resolver drift
-	@python3 scripts/bin/quality/check_root_dir_prelude.py
+	@uv run python3 scripts/bin/quality/check_root_dir_prelude.py
 
 quality-infra-shell-source-graph-check: ## Fail when infra helper source-edge contract drifts into caller-side implicit sourcing
-	@python3 scripts/bin/quality/check_infra_shell_source_graph.py
+	@uv run python3 scripts/bin/quality/check_infra_shell_source_graph.py
 
 quality-sdd-sync-control-catalog: ## Render SDD control catalog markdown from machine-readable source
-	@python3 scripts/lib/spec_kit/render_control_catalog.py
+	@uv run python3 scripts/lib/spec_kit/render_control_catalog.py
 
 quality-sdd-check-control-catalog-sync: ## Fail when SDD control catalog markdown is out of sync with machine-readable source
-	@python3 scripts/lib/spec_kit/render_control_catalog.py --check
+	@uv run python3 scripts/lib/spec_kit/render_control_catalog.py --check
 
 quality-sdd-sync-consumer-init-assets: ## Sync consumer-init SDD assets from canonical .spec-kit and specs sources
-	@python3 scripts/lib/spec_kit/sync_consumer_init_sdd_assets.py
+	@uv run python3 scripts/lib/spec_kit/sync_consumer_init_sdd_assets.py
 
 quality-sdd-check-consumer-init-assets-sync: ## Fail when consumer-init SDD assets drift from canonical source
-	@python3 scripts/lib/spec_kit/sync_consumer_init_sdd_assets.py --check
+	@uv run python3 scripts/lib/spec_kit/sync_consumer_init_sdd_assets.py --check
 
 quality-sdd-sync-policy-snippets: ## Render generated SDD policy snapshots from contract into AGENTS/docs surfaces
-	@python3 scripts/lib/spec_kit/render_policy_snippets.py
+	@uv run python3 scripts/lib/spec_kit/render_policy_snippets.py
 
 quality-sdd-check-policy-snippets-sync: ## Fail when generated SDD policy snapshots drift from contract
-	@python3 scripts/lib/spec_kit/render_policy_snippets.py --check
+	@uv run python3 scripts/lib/spec_kit/render_policy_snippets.py --check
 
 quality-sdd-sync-all: ## Run all SDD sync generators in canonical order
 	@$(MAKE) quality-sdd-sync-control-catalog
@@ -233,22 +233,22 @@ quality-sdd-check-all: ## Run all SDD sync drift checks and SDD governance valid
 	@$(MAKE) quality-sdd-check
 
 quality-sdd-check: ## Validate canonical Spec-Driven Development assets and governance wiring
-	@python3 scripts/bin/quality/check_sdd_assets.py
+	@uv run python3 scripts/bin/quality/check_sdd_assets.py
 
 quality-spec-pr-ready: ## Validate SDD publish-gate files (plan.md, tasks.md, hardening_review.md, pr_context.md) for scaffold placeholders before opening a PR (optional SPEC_SLUG=<dated-slug>)
-	@python3 scripts/bin/quality/check_spec_pr_ready.py
+	@uv run python3 scripts/bin/quality/check_spec_pr_ready.py
 
 quality-hardening-review: ## Validate hardening-review/publish packaging artifacts for SDD work items
 	@scripts/bin/quality/hardening_review.sh
 
 quality-runtime-contract-drift-report: ## Generate runtime contract drift report artifact under artifacts/blueprint
-	@python3 scripts/lib/blueprint/runtime_contract_drift_report.py
+	@uv run python3 scripts/lib/blueprint/runtime_contract_drift_report.py
 
 quality-ci-sync: ## Regenerate source CI workflow from contract and canonical lane metadata
-	@python3 scripts/lib/quality/render_ci_workflow.py
+	@uv run python3 scripts/lib/quality/render_ci_workflow.py
 
 quality-ci-check-sync: ## Fail when source CI workflow is out of date
-	@python3 scripts/lib/quality/render_ci_workflow.py --check
+	@uv run python3 scripts/lib/quality/render_ci_workflow.py --check
 
 quality-ci-fast: ## Run canonical fast CI lane bundle
 	@$(MAKE) quality-hooks-fast
@@ -310,53 +310,53 @@ quality-ci-upgrade-validate: ## Run end-to-end consumer upgrade validation lane 
 	@scripts/bin/blueprint/ci_upgrade_validate.sh
 
 quality-docs-lint: ## Lint markdown docs, governance links, and make target references
-	@python3 scripts/bin/quality/lint_docs.py
+	@uv run python3 scripts/bin/quality/lint_docs.py
 
 quality-docs-sync-all: ## Run all docs sync generators in canonical order
-	@python3 scripts/lib/docs/orchestrate_sync.py --mode sync
+	@uv run python3 scripts/lib/docs/orchestrate_sync.py --mode sync
 
 quality-docs-check-changed: ## Run docs drift checks only for sync steps that match current changed paths
-	@python3 scripts/lib/docs/orchestrate_sync.py --mode check --changed-only
-	@python3 scripts/bin/quality/check_test_pyramid.py
+	@uv run python3 scripts/lib/docs/orchestrate_sync.py --mode check --changed-only
+	@uv run python3 scripts/bin/quality/check_test_pyramid.py
 
 quality-docs-sync-blueprint-template: ## Sync docs/blueprint/** into bootstrap template blueprint docs mirror
-	@python3 scripts/lib/docs/orchestrate_sync.py --mode sync --step blueprint-template
+	@uv run python3 scripts/lib/docs/orchestrate_sync.py --mode sync --step blueprint-template
 
 quality-docs-check-blueprint-template-sync: ## Fail when docs/blueprint/** and bootstrap template blueprint docs drift
-	@python3 scripts/lib/docs/orchestrate_sync.py --mode check --step blueprint-template
+	@uv run python3 scripts/lib/docs/orchestrate_sync.py --mode check --step blueprint-template
 
 quality-docs-sync-platform-seed: ## Sync docs/platform/** into bootstrap template platform docs seed mirror
-	@python3 scripts/lib/docs/orchestrate_sync.py --mode sync --step platform-seed
+	@uv run python3 scripts/lib/docs/orchestrate_sync.py --mode sync --step platform-seed
 
 quality-docs-check-platform-seed-sync: ## Fail when docs/platform/** and bootstrap template platform docs drift
-	@python3 scripts/lib/docs/orchestrate_sync.py --mode check --step platform-seed
+	@uv run python3 scripts/lib/docs/orchestrate_sync.py --mode check --step platform-seed
 
 quality-docs-sync-core-targets: ## Regenerate tracked core Make targets reference doc
-	@python3 scripts/lib/docs/orchestrate_sync.py --mode sync --step core-targets
+	@uv run python3 scripts/lib/docs/orchestrate_sync.py --mode sync --step core-targets
 
 quality-docs-check-core-targets-sync: ## Fail when tracked core Make targets doc is out of date
-	@python3 scripts/lib/docs/orchestrate_sync.py --mode check --step core-targets
+	@uv run python3 scripts/lib/docs/orchestrate_sync.py --mode check --step core-targets
 
 quality-docs-sync-contract-metadata: ## Regenerate tracked contract metadata reference doc
-	@python3 scripts/lib/docs/orchestrate_sync.py --mode sync --step contract-metadata
+	@uv run python3 scripts/lib/docs/orchestrate_sync.py --mode sync --step contract-metadata
 
 quality-docs-check-contract-metadata-sync: ## Fail when tracked contract metadata doc is out of date
-	@python3 scripts/lib/docs/orchestrate_sync.py --mode check --step contract-metadata
+	@uv run python3 scripts/lib/docs/orchestrate_sync.py --mode check --step contract-metadata
 
 quality-docs-sync-runtime-identity-summary: ## Regenerate runtime identity summary blocks in source and template docs
-	@python3 scripts/lib/docs/orchestrate_sync.py --mode sync --step runtime-identity-summary
+	@uv run python3 scripts/lib/docs/orchestrate_sync.py --mode sync --step runtime-identity-summary
 
 quality-docs-check-runtime-identity-summary-sync: ## Fail when runtime identity summary docs are out of date
-	@python3 scripts/lib/docs/orchestrate_sync.py --mode check --step runtime-identity-summary
+	@uv run python3 scripts/lib/docs/orchestrate_sync.py --mode check --step runtime-identity-summary
 
 quality-docs-sync-module-contract-summaries: ## Regenerate module contract summary blocks in source and template docs
-	@python3 scripts/lib/docs/orchestrate_sync.py --mode sync --step module-contract-summaries
+	@uv run python3 scripts/lib/docs/orchestrate_sync.py --mode sync --step module-contract-summaries
 
 quality-docs-check-module-contract-summaries-sync: ## Fail when module contract summary blocks are out of date
-	@python3 scripts/lib/docs/orchestrate_sync.py --mode check --step module-contract-summaries
+	@uv run python3 scripts/lib/docs/orchestrate_sync.py --mode check --step module-contract-summaries
 
 quality-test-pyramid: ## Enforce repository test-pyramid ratios from canonical classification contract
-	@python3 scripts/bin/quality/check_test_pyramid.py
+	@uv run python3 scripts/bin/quality/check_test_pyramid.py
 
 infra-prereqs: ## Verify local prerequisites and optionally auto-install missing tools
 	@scripts/bin/infra/prereqs.sh

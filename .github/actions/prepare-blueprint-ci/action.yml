@@ -41,13 +41,14 @@ runs:
         make infra-prereqs
         echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
-    # uv sync runs after prereqs so that adding .venv/bin to PATH does not
-    # shadow the system python3 during the prereqs step above.
+    # uv sync runs after prereqs so that the venv is not yet active during the
+    # prereqs step above (pip --user installs fail inside a venv). All make
+    # targets now invoke python via `uv run python3`, so .venv/bin does not
+    # need to be on PATH — uv run resolves the project environment automatically.
     - name: Install Python dependencies
       shell: bash
       run: |
         uv sync --frozen
-        echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
 
     - name: Bootstrap blueprint and infra baseline
       shell: bash
