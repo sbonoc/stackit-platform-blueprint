@@ -5,6 +5,7 @@ source "$SCRIPT_DIR/../../lib/shell/bootstrap.sh"
 source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 source "$ROOT_DIR/scripts/lib/infra/stack_paths.sh"
 source "$ROOT_DIR/scripts/lib/infra/module_execution.sh"
+source "$ROOT_DIR/scripts/lib/infra/fallback_runtime.sh"
 source "$ROOT_DIR/scripts/lib/infra/state.sh"
 source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
 source "$ROOT_DIR/scripts/lib/infra/kms.sh"
@@ -24,8 +25,9 @@ case "$provision_driver" in
 foundation_contract)
   optional_module_warn_missing_foundation_diff "kms"
   ;;
-external_automation_contract | noop)
-  optional_module_log_execution_note
+helm)
+  provision_path="$(kms_render_values_file)"
+  log_info "kms local lane (Vault Transit): helm plan is a dry-run render — apply will install blueprint-vault"
   ;;
 *)
   optional_module_unexpected_driver "kms" "plan"
@@ -38,7 +40,7 @@ state_file="$(write_state_file "kms_plan" \
   "tooling_mode=$(tooling_execution_mode)" \
   "provision_driver=$provision_driver" \
   "provision_path=$provision_path" \
-  "key_ring=$KMS_KEY_RING_NAME" \
+  "key_ring_name=$KMS_KEY_RING_NAME" \
   "key_ring_id=$(kms_key_ring_id)" \
   "key_name=$KMS_KEY_NAME" \
   "key_id=$(kms_key_id)" \

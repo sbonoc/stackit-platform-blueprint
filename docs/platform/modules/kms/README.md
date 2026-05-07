@@ -17,6 +17,7 @@
   - `KMS_KEY_NAME`
   - `KMS_KEY_RING_ID`
   - `KMS_KEY_ID`
+  - `KMS_ENDPOINT`
 <!-- END GENERATED MODULE CONTRACT SUMMARY -->
 
 ## Stack Execution Model
