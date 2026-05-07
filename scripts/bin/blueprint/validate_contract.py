@@ -625,6 +625,64 @@ def _validate_app_catalog_scaffold_contract(repo_root: Path, contract: Blueprint
     return errors
 
 
+def _validate_consumer_seeded_feature_gates(repo_root: Path, contract: BlueprintContract) -> list[str]:
+    errors: list[str] = []
+    spec_raw = _mapping_or_error(contract.raw.get("spec"), "spec", errors)
+
+    gates_raw = spec_raw.get("consumer_seeded_feature_gates")
+    if gates_raw is None:
+        errors.append("spec.consumer_seeded_feature_gates is required")
+        return errors
+
+    if not isinstance(gates_raw, list):
+        errors.append("spec.consumer_seeded_feature_gates must be a list")
+        return errors
+
+    consumer_seeded_paths = set(contract.repository.consumer_seeded_paths)
+    toggles_raw = spec_raw.get("toggles")
+    seen_ids: set[str] = set()
+
+    for idx, gate in enumerate(gates_raw):
+        prefix = f"spec.consumer_seeded_feature_gates[{idx}]"
+        if not isinstance(gate, dict):
+            errors.append(f"{prefix} must be a mapping")
+            continue
+
+        gate_id = _string_or_error(gate.get("id"), f"{prefix}.id", errors)
+        if isinstance(gate_id, str):
+            if gate_id in seen_ids:
+                errors.append(f"{prefix}.id is a duplicate: '{gate_id}'")
+            else:
+                seen_ids.add(gate_id)
+        _string_or_error(gate.get("description"), f"{prefix}.description", errors)
+
+        enabled_by_default = _bool_or_error(gate.get("enabled_by_default"), f"{prefix}.enabled_by_default", errors)
+        if enabled_by_default:
+            errors.append(f"{prefix}.enabled_by_default must be false")
+
+        enable_flag = _string_or_error(gate.get("enable_flag"), f"{prefix}.enable_flag", errors)
+        if isinstance(toggles_raw, dict) and enable_flag and enable_flag not in toggles_raw:
+            errors.append(
+                f"{prefix}.enable_flag must reference an existing toggle: {enable_flag}"
+            )
+
+        paths = _list_of_str_or_error(
+            gate.get("consumer_seeded_paths_when_enabled"),
+            f"{prefix}.consumer_seeded_paths_when_enabled",
+            errors,
+        )
+        if not paths:
+            errors.append(f"{prefix}.consumer_seeded_paths_when_enabled must not be empty")
+        for gate_path in paths:
+            if gate_path not in consumer_seeded_paths:
+                errors.append(
+                    f"{prefix}.consumer_seeded_paths_when_enabled path not in "
+                    f"repository.ownership_path_classes.consumer_seeded: {gate_path}"
+                )
+
+    return errors
+
+
 def _manifest_kinds_under_path(path: Path) -> set[str]:
     if not path.exists():
         return set()
@@ -2625,6 +2683,7 @@ def main() -> int:
     errors.extend(_validate_core_chart_values_contract(repo_root))
     errors.extend(_validate_runtime_credentials_contract(repo_root))
     errors.extend(_validate_app_catalog_scaffold_contract(repo_root, contract))
+    errors.extend(_validate_consumer_seeded_feature_gates(repo_root, contract))
     errors.extend(_validate_app_runtime_gitops_contract(repo_root, contract))
     errors.extend(_validate_local_post_deploy_hook_contract(repo_root, contract))
     errors.extend(_validate_event_messaging_contract(repo_root, contract))

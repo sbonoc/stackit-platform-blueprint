@@ -21,6 +21,28 @@ ${EDITOR:-vi} blueprint/repo.init.env blueprint/repo.init.secrets.env
 make blueprint-init-repo
 ```
 
+### Optional Feature Gates
+
+Some blueprint-managed files are opt-in and only seeded when you set their flag in `blueprint/repo.init.env` before running `make blueprint-init-repo`:
+
+| Flag | Default | Effect |
+|---|---|---|
+| `CLAUDE_AI_ENABLED` | `false` | Seeds `.github/workflows/claude.yml` and `.github/workflows/claude-code-review.yml` when `true` |
+
+To adopt a feature gate after initial setup (without re-running full init):
+```bash
+make blueprint-seed-feature FEATURE=<gate-id>
+# Example:
+BLUEPRINT_UPGRADE_SOURCE=https://github.com/sbonoc/stackit-platform-blueprint \
+  make blueprint-seed-feature FEATURE=claude_ai_integration
+```
+
+To discover which optional features are available and not yet adopted in your repo:
+```bash
+make blueprint-feature-gate-status
+```
+This writes or updates `AGENTS.backlog.md` with one entry per unadopted gate, including the exact command to adopt it. Coding agents running `make blueprint-upgrade-consumer-postcheck` will also see this output automatically.
+
 Minimum required variables for env-file mode:
 - `BLUEPRINT_REPO_NAME`
 - `BLUEPRINT_GITHUB_ORG`

@@ -50,6 +50,8 @@ spec:
       - .github/ISSUE_TEMPLATE/config.yml
       - .github/pull_request_template.md
       - .github/workflows/ci.yml
+      - .github/workflows/claude.yml
+      - .github/workflows/claude-code-review.yml
       - .gitignore
       - .dockerignore
       - .editorconfig
@@ -559,6 +561,8 @@ spec:
         - .github/ISSUE_TEMPLATE/config.yml
         - .github/pull_request_template.md
         - .github/workflows/ci.yml
+        - .github/workflows/claude.yml
+        - .github/workflows/claude-code-review.yml
         - infra/gitops/platform/base/apps/kustomization.yaml
         - infra/gitops/platform/base/apps/backend-api-deployment.yaml
         - infra/gitops/platform/base/apps/backend-api-service.yaml
@@ -949,6 +953,20 @@ spec:
       default: artifacts/contracts/async/pact/consumer
       required: false
       description: "Consumer async Pact artifact output directory."
+    CLAUDE_AI_ENABLED:
+      type: boolean
+      default: false
+      required: false
+      description: "Enable Claude AI GitHub Actions workflows (claude.yml and claude-code-review.yml) for AI-assisted PR review and inline collaboration."
+
+  consumer_seeded_feature_gates:
+    - id: claude_ai_integration
+      enable_flag: CLAUDE_AI_ENABLED
+      enabled_by_default: false
+      description: "Claude AI GitHub Actions workflows for AI-assisted PR review and inline @claude collaboration."
+      consumer_seeded_paths_when_enabled:
+        - .github/workflows/claude.yml
+        - .github/workflows/claude-code-review.yml
 
   async_message_contracts:
     provider: pact

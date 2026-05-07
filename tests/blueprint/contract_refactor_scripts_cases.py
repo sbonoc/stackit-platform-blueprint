@@ -728,3 +728,16 @@ class ScriptsRefactorCases(RefactorContractBase):
             template_mk,
             "quality-ci-upgrade-validate target must exist in blueprint.generated.mk.tmpl (issue #169, AC-002)",
         )
+
+    def test_seed_feature_script_and_make_target_exist(self) -> None:
+        seed_feature = _read("scripts/bin/blueprint/seed_feature.py")
+        self.assertIn("consumer_seeded_feature_gates", seed_feature)
+        self.assertIn("--feature", seed_feature)
+
+        generated_mk = _read("make/blueprint.generated.mk")
+        self.assertIn("blueprint-seed-feature", generated_mk)
+
+    def test_init_repo_contract_has_resolve_consumer_seeded_feature_gates(self) -> None:
+        init_repo_contract = _read("scripts/lib/blueprint/init_repo_contract.py")
+        self.assertIn("resolve_consumer_seeded_feature_gates", init_repo_contract)
+        self.assertIn("consumer_seeded_feature_gates", init_repo_contract)

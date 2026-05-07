@@ -30,6 +30,8 @@ _check_tasks = _checker._check_tasks
 _check_plan = _checker._check_plan
 _check_hardening_review = _checker._check_hardening_review
 _check_pr_context = _checker._check_pr_context
+_check_architecture = _checker._check_architecture
+_check_evidence_manifest = _checker._check_evidence_manifest
 _check_spec_marker_tokens = _checker._check_spec_marker_tokens
 _token_present = _checker._token_present
 _resolve_spec_dir = _checker._resolve_spec_dir
@@ -210,6 +212,27 @@ _FILLED_PR_CONTEXT = """\
 - Proposal 1 (not implemented): spec template drift test that validates allowlist against scaffold templates — deferred; requires template parser
 """
 
+_FILLED_ARCHITECTURE = """\
+# Architecture
+
+## Problem Statement
+- What needs to change and why: adds generic feature gate mechanism
+
+## ADR
+`docs/blueprint/architecture/decisions/ADR-2026-05-07-example.md`
+— Status: approved
+"""
+
+_FILLED_EVIDENCE_MANIFEST = """\
+{
+  "manifest_version": 1,
+  "work_item": "2026-04-22-test-item",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-04-22T12:00:00Z",
+  "files": [{"path": "specs/2026-04-22-test-item/spec.md", "sha256": "abc", "bytes": 100}]
+}
+"""
+
 
 class PositivePathTests(unittest.TestCase):
     """A fully-filled spec dir with no scaffold placeholders must produce zero violations."""
@@ -230,6 +253,17 @@ class PositivePathTests(unittest.TestCase):
         violations = _check_pr_context(_FILLED_PR_CONTEXT, "pr_context.md")
         self.assertEqual(violations, [], msg="\n".join(violations))
 
+    def test_filled_architecture_no_violations(self) -> None:
+        violations = _check_architecture(_FILLED_ARCHITECTURE, "architecture.md")
+        self.assertEqual(violations, [], msg="\n".join(violations))
+
+    def test_filled_evidence_manifest_no_violations(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            spec_dir = Path(tmpdir)
+            (spec_dir / "evidence_manifest.json").write_text(_FILLED_EVIDENCE_MANIFEST, encoding="utf-8")
+            violations = _check_evidence_manifest(spec_dir)
+            self.assertEqual(violations, [], msg="\n".join(violations))
+
     def test_fully_filled_spec_dir_exits_zero(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)
@@ -239,6 +273,8 @@ class PositivePathTests(unittest.TestCase):
             (spec_dir / "plan.md").write_text(_FILLED_PLAN, encoding="utf-8")
             (spec_dir / "hardening_review.md").write_text(_FILLED_HARDENING_REVIEW, encoding="utf-8")
             (spec_dir / "pr_context.md").write_text(_FILLED_PR_CONTEXT, encoding="utf-8")
+            (spec_dir / "architecture.md").write_text(_FILLED_ARCHITECTURE, encoding="utf-8")
+            (spec_dir / "evidence_manifest.json").write_text(_FILLED_EVIDENCE_MANIFEST, encoding="utf-8")
             old_slug = os.environ.get("SPEC_SLUG")
             try:
                 os.environ["SPEC_SLUG"] = "2026-04-22-test-item"
@@ -777,6 +813,62 @@ class BranchResolutionTests(unittest.TestCase):
         self.assertIsNone(pattern.match("main"))
         self.assertIsNone(pattern.match("feature/something"))
         self.assertIsNone(pattern.match("codex/not-date-prefixed"))
+
+
+class ArchitectureCheckTests(unittest.TestCase):
+
+    def test_adr_status_proposed_produces_violation(self) -> None:
+        content = "## ADR\n`docs/blueprint/...`\n— Status: proposed\n"
+        violations = _check_architecture(content, "architecture.md")
+        self.assertEqual(len(violations), 1)
+        self.assertIn("proposed", violations[0])
+
+    def test_adr_status_approved_no_violation(self) -> None:
+        content = "## ADR\n`docs/blueprint/...`\n— Status: approved\n"
+        violations = _check_architecture(content, "architecture.md")
+        self.assertEqual(violations, [])
+
+    def test_no_adr_section_no_violation(self) -> None:
+        content = "# Architecture\n## Problem Statement\n- Scope: foo\n"
+        violations = _check_architecture(content, "architecture.md")
+        self.assertEqual(violations, [])
+
+    def test_status_proposed_case_insensitive(self) -> None:
+        content = "— status: PROPOSED\n"
+        violations = _check_architecture(content, "architecture.md")
+        self.assertEqual(len(violations), 1)
+
+
+class EvidenceManifestCheckTests(unittest.TestCase):
+
+    def test_scaffold_placeholder_produces_violation(self) -> None:
+        import json as _json
+        with tempfile.TemporaryDirectory() as tmpdir:
+            spec_dir = Path(tmpdir)
+            manifest = {
+                "manifest_version": 1,
+                "work_item": "<YYYY-MM-DD>-<work-item-slug>",
+                "generated_by": "spec-evidence-manifest",
+                "generated_at_utc": "",
+                "files": [],
+            }
+            (spec_dir / "evidence_manifest.json").write_text(_json.dumps(manifest), encoding="utf-8")
+            violations = _check_evidence_manifest(spec_dir)
+            self.assertEqual(len(violations), 1)
+            self.assertIn("scaffold placeholder", violations[0])
+
+    def test_generated_manifest_no_violation(self) -> None:
+        import json as _json
+        with tempfile.TemporaryDirectory() as tmpdir:
+            spec_dir = Path(tmpdir)
+            (spec_dir / "evidence_manifest.json").write_text(_FILLED_EVIDENCE_MANIFEST, encoding="utf-8")
+            violations = _check_evidence_manifest(spec_dir)
+            self.assertEqual(violations, [])
+
+    def test_missing_manifest_no_violation(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            violations = _check_evidence_manifest(Path(tmpdir))
+            self.assertEqual(violations, [])
 
 
 class MissingSpecDirTests(unittest.TestCase):

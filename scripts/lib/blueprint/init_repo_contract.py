@@ -44,6 +44,39 @@ def resolve_optional_module_enablement(repo_root: Path) -> dict[str, bool]:
     return module_enablement
 
 
+def resolve_consumer_seeded_feature_gates(repo_root: Path) -> list[tuple[str, bool, list[str]]]:
+    contract = load_blueprint_contract_for_init(repo_root)
+    spec_raw = contract.raw.get("spec")
+    if not isinstance(spec_raw, dict):
+        return []
+
+    gates_raw = spec_raw.get("consumer_seeded_feature_gates")
+    if not isinstance(gates_raw, list):
+        return []
+
+    result: list[tuple[str, bool, list[str]]] = []
+    for gate in gates_raw:
+        if not isinstance(gate, dict):
+            continue
+        gate_id = gate.get("id")
+        if not isinstance(gate_id, str) or not gate_id:
+            continue
+        enabled_by_default_raw = gate.get("enabled_by_default")
+        enabled_by_default = enabled_by_default_raw if isinstance(enabled_by_default_raw, bool) else False
+        enable_flag_raw = gate.get("enable_flag")
+        enable_flag = enable_flag_raw if isinstance(enable_flag_raw, str) else ""
+        env_value = os.environ.get(enable_flag) if enable_flag else None
+        enabled = enabled_by_default if env_value is None else normalize_bool(env_value)
+        paths_raw = gate.get("consumer_seeded_paths_when_enabled")
+        paths: list[str] = []
+        if isinstance(paths_raw, list):
+            for raw_path in paths_raw:
+                if isinstance(raw_path, str) and raw_path.strip():
+                    paths.append(raw_path.strip())
+        result.append((gate_id, enabled, paths))
+    return result
+
+
 def resolve_app_catalog_scaffold_contract(repo_root: Path) -> tuple[bool, list[str]]:
     contract = load_blueprint_contract_for_init(repo_root)
     spec_raw = contract.raw.get("spec")
@@ -182,6 +215,11 @@ def seed_consumer_owned_files(
     if not app_catalog_enabled:
         for relative_path in app_catalog_required_paths:
             remove_path(repo_root / relative_path, dry_run, summary)
+
+    for gate_id, gate_enabled, gate_paths in resolve_consumer_seeded_feature_gates(repo_root):
+        if not gate_enabled:
+            for relative_path in gate_paths:
+                remove_path(repo_root / relative_path, dry_run, summary)
 
 
 def target_repo_mode(repo_root: Path) -> str:

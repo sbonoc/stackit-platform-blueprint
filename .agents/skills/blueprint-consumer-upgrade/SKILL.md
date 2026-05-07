@@ -11,15 +11,16 @@ The upgrade is fully scripted. The agent's role is: set the ref, run the pipelin
 
 > Quality-hooks usage policy (per-slice vs pre-PR gate, keep-going env, force-full): see AGENTS.md § Quality Hooks — Inner-Loop and Pre-PR Usage.
 
-## Workflow (6 steps)
+## Workflow (8 steps)
 
 1. **Set ref.** Resolve the target tag or accept it from the user input. Create a dedicated branch.
 2. **Run pipeline.** Execute the scripted upgrade pipeline end-to-end.
 3. **Read residual report.** Open `artifacts/blueprint/upgrade-residual.md`.
 4. **Review Version Pin Changes.** If the "Version Pin Changes" section lists any changed or new pins, run `make infra-bootstrap`, then manually sync the listed templates under `scripts/templates/infra/bootstrap/`, then re-run `make infra-validate`.
 5. **Apply prescribed actions.** For each remaining item in the report, apply the action listed (Remove/Add/Classify/Review). Do not skip items — every item has a prescribed action.
-6. **Confirm clean.** Re-run `make quality-hooks-run` to confirm no remaining issues.
-7. **Commit and open PR.** Use the standard PR packager skill (`/blueprint-sdd-step07-pr-packager`).
+6. **Adopt new optional features.** Run `make blueprint-feature-gate-status`. This writes or updates `AGENTS.backlog.md` with one entry per unadopted consumer-seeded feature gate. For each open `(blueprint-feature) seed: <id>` entry, run the command shown in the entry (e.g. `make blueprint-seed-feature FEATURE=<id>`) to adopt that feature. Mark the entry `[x]` once adopted. Skip entries already marked `[x]`.
+7. **Confirm clean.** Re-run `make quality-hooks-run` to confirm no remaining issues.
+8. **Commit and open PR.** Use the standard PR packager skill (`/blueprint-sdd-step07-pr-packager`).
 
 ## Command Sequence
 
@@ -37,9 +38,32 @@ make blueprint-upgrade-consumer
 # Step 3 — read the residual report
 cat artifacts/blueprint/upgrade-residual.md
 
-# Step 5 — confirm clean after applying prescribed actions
+# Step 6 — discover and adopt new optional features
+make blueprint-feature-gate-status
+# Read AGENTS.backlog.md: open entries tagged (blueprint-feature) are unadopted feature gates.
+# For each open entry, run the command shown, e.g.:
+#   make blueprint-seed-feature FEATURE=claude_ai_integration
+# The postcheck pipeline also runs this automatically as a non-blocking informational step.
+
+# Step 7 — confirm clean after applying prescribed actions
 make quality-hooks-run
 ```
+
+## Feature Gate Backlog Entries
+
+`make blueprint-feature-gate-status` (and the postcheck pipeline) upserts one entry per unadopted gate into `AGENTS.backlog.md`:
+
+```markdown
+- [ ] (blueprint-feature) seed: <gate_id>
+      command: [BLUEPRINT_UPGRADE_SOURCE=<url>] make blueprint-seed-feature FEATURE=<gate_id>
+      description: <gate description>
+```
+
+**Rules for handling these entries:**
+- Open entry (`[ ]`): feature is available but not yet adopted. Run the `command:` to adopt it.
+- Done entry (`[x]`): already adopted. No action needed.
+- Never remove entries manually — the script manages them automatically.
+- If `<BLUEPRINT_UPGRADE_SOURCE>` appears as a placeholder in `command:`, set `BLUEPRINT_UPGRADE_SOURCE` to the blueprint source URL before running.
 
 ## What the Pipeline Does
 

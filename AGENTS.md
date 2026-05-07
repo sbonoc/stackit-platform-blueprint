@@ -60,6 +60,12 @@ If neither `.envrc` (direnv) nor `.claude/settings.json` auto-loads the variable
 export QUALITY_HOOKS_KEEP_GOING=true
 ```
 
+### Python Tooling Invocation (MUST)
+
+Always invoke Python as `python3 -m pytest` for test runs and `python3 <script>` for blueprint scripts. Never use bare `pytest` (not guaranteed to be in PATH) or bare `python` (may resolve to Python 2). Never probe with alternative invocations (`pyenv exec`, `python3.13`, etc.) — if `python3` resolves incorrectly the environment is broken; stop and report rather than retrying with fallbacks.
+
+The canonical Python version is pinned in `scripts/lib/platform/apps/versions.sh` (`PYTHON_RUNTIME_BASE_IMAGE_VERSION`) and loaded into `PYENV_VERSION` automatically via `.envrc` when direnv is active. Python dependencies (PyYAML, pytest) are declared in `pyproject.toml` and pinned in `uv.lock`; run `make python-env-setup` once after cloning to create `.venv`. The `.envrc` activates it automatically so `python3` inside direnv resolves to the managed environment.
+
 ### Environment Variables
 
 | Variable | Default | Meaning |
@@ -372,6 +378,7 @@ A task is done only when all applicable items pass:
 - No alpha/beta/rc or unsupported runtime versions in runtime paths.
 - A vendor repository name that contains `legacy` is allowed only when the pinned artifact is still latest-stable/supported and the rationale is documented in repo decisions/docs.
 - Canonical versions source: `scripts/lib/infra/versions.sh`.
+- GitHub Actions `uses:` pins: always use the exact tag returned by `gh api repos/<owner>/<repo>/releases/latest --jq '.tag_name'` (e.g. `v8.1.0`). Never abbreviate to a short major-version tag (e.g. `v8`) without first confirming that exact tag exists in `gh api repos/<owner>/<repo>/git/refs/tags` — not all actions publish major-version aliases.
 - Drift policy:
   - patch drift: fail
   - minor drift: warn

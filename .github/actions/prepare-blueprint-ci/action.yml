@@ -24,6 +24,14 @@ runs:
         corepack prepare pnpm@10.32.1 --activate
         pnpm --version
 
+    # Setup uv binary before prereqs so that install_pre_commit() in prereqs.sh
+    # can use `uv tool install` instead of `pip install --user`.  The uv sync
+    # step (and PATH addition of .venv/bin) is intentionally deferred until
+    # AFTER prereqs: pip --user installs fail when python3 resolves to a venv
+    # interpreter, which would break the pre-commit auto-install.
+    - name: Setup uv
+      uses: astral-sh/setup-uv@v8.1.0
+
     - name: Ensure CI CLI prerequisites
       shell: bash
       run: |
@@ -32,6 +40,14 @@ runs:
         PREREQS_REQUIRE_STACKIT_TOOLS=false \
         make infra-prereqs
         echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+    # uv sync runs after prereqs so that adding .venv/bin to PATH does not
+    # shadow the system python3 during the prereqs step above.
+    - name: Install Python dependencies
+      shell: bash
+      run: |
+        uv sync --frozen
+        echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
 
     - name: Bootstrap blueprint and infra baseline
       shell: bash
