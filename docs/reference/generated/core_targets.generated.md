@@ -163,4 +163,5 @@ This file is auto-generated. Do not edit it manually.
 | `apps-a11y-smoke` | Run axe WCAG 2.1 AA smoke scan with default routes and impact threshold |
 | `quality-a11y-acr-check` | Validate ACR (docs/platform/accessibility/acr.md) exists, is dated, and is within staleness window |
 | `quality-a11y-acr-sync` | Regenerate ACR WCAG 2.1 criterion rows from bundled W3C list (preserves support/notes/evidence) |
+| `python-env-setup` | Install Python dependencies declared in pyproject.toml into .venv via uv (run once after cloning) |
 | `test-smoke-all-local` | Full local smoke lane: provision, infra-smoke, and endpoint assertions against a local cluster |
