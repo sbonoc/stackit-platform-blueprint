@@ -44,11 +44,10 @@
   - AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009, AC-010, AC-011, AC-012, AC-013, AC-014
 
 ## Validation Summary
-- Required bundles executed: (to be filled at implementation completion)
-- Result summary: (to be filled at implementation completion)
+- Required bundles executed: `pytest tests/infra/modules/kms/ -v`, `make infra-validate`, `make infra-audit-version`, `QUALITY_HOOKS_KEEP_GOING=true make quality-hooks-fast`
+- Result summary: 23/23 tests GREEN; infra-validate PASS; infra-audit-version PASS; shellcheck PASS; quality-sdd-check-all PASS; quality-docs-check-changed PASS; infra-contract-test-fast PASS. (quality-spec-pr-ready excluded: publish artifacts filled in step07.)
 - Documentation validation:
-  - `make docs-build`
-  - `make docs-smoke`
+  - `make quality-docs-check-changed` — PASS (contract_metadata.generated.md + kms README synced)
 
 ## Evidence Manifest
 - Manifest file: `evidence_manifest.json`

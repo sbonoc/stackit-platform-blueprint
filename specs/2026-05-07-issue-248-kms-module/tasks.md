@@ -60,8 +60,9 @@
 - [ ] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
 
 ## App Onboarding Minimum Targets (Normative)
-- [x] A-001 N/A — no app scope; infra module wrappers only
-- [x] A-002 N/A — no app scope
-- [x] A-003 N/A — no app scope
-- [x] A-004 N/A — no app scope
-- [x] A-005 N/A — no app scope
+- [x] A-001 `apps-bootstrap` — N/A: infra-only work item; existing target unmodified
+- [x] A-002 `apps-smoke` — N/A: infra-only work item; existing target unmodified
+- [x] A-003 Backend app lanes — `backend-test-unit`, `backend-test-integration`, `backend-test-contracts`, `backend-test-e2e` — N/A: no app code changes
+- [x] A-004 Frontend app lanes — `touchpoints-test-unit`, `touchpoints-test-integration`, `touchpoints-test-contracts`, `touchpoints-test-e2e` — N/A: no frontend changes
+- [x] A-005 Aggregate gates — `test-unit-all`, `test-integration-all`, `test-contracts-all`, `test-e2e-all-local` — N/A: no app code changes
+- [x] A-006 Port-forward wrappers — `infra-port-forward-start`, `infra-port-forward-stop`, `infra-port-forward-cleanup` — N/A: module does not add new port-forward targets
