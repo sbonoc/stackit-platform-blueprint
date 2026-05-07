@@ -54,21 +54,21 @@ No app delivery scope affected; all targets below remain unaffected by this work
 - [x] T-030 Write `test_seed_feature_missing_feature_param_exits_nonzero` (missing FEATURE → non-zero exit)
 - [x] T-031 Write `test_seed_feature_idempotent` (second run produces same content, exits zero)
 - [x] T-032 Confirm T-028–T-031 fail (red)
-- [ ] T-033 Implement `scripts/bin/blueprint/seed_feature.py` (reads pinned ref, fetches blueprint source, resolves gate, renders templates, writes to consumer repo)
-- [ ] T-034 Add `blueprint-seed-feature` target to `make/blueprint.generated.mk`
-- [ ] T-035 Update `contract_refactor_scripts_cases.py` to assert `seed_feature` in scripts
-- [ ] T-036 Confirm T-028–T-031 pass (green)
+- [x] T-033 Implement `scripts/bin/blueprint/seed_feature.py` (reads pinned ref, fetches blueprint source, resolves gate, renders templates, writes to consumer repo)
+- [x] T-034 Add `blueprint-seed-feature` target to `make/blueprint.generated.mk`
+- [x] T-035 Update `contract_refactor_scripts_cases.py` to assert `seed_feature` in scripts
+- [x] T-036 Confirm T-028–T-031 pass (green)
 
 ## Slice 6 — Template files + governance test updates
-- [ ] T-037 Create `scripts/templates/consumer/init/.github/workflows/claude.yml.tmpl`
-- [ ] T-038 Create `scripts/templates/consumer/init/.github/workflows/claude-code-review.yml.tmpl`
-- [ ] T-039 Update `contract_refactor_governance_init_cases.py` to assert `consumer_seeded_feature_gates:` in contract
-- [ ] T-040 Update `contract_refactor_scripts_cases.py` to assert `resolve_consumer_seeded_feature_gates` in `init_repo_contract.py`
+- [x] T-037 Create `scripts/templates/consumer/init/.github/workflows/claude.yml.tmpl`
+- [x] T-038 Create `scripts/templates/consumer/init/.github/workflows/claude-code-review.yml.tmpl`
+- [x] T-039 Update `contract_refactor_governance_init_cases.py` to assert `consumer_seeded_feature_gates:` in contract
+- [x] T-040 Update `contract_refactor_scripts_cases.py` to assert `resolve_consumer_seeded_feature_gates` in `init_repo_contract.py`
 
 ## Slice 7 — Quality gates + publish
-- [ ] T-041 Run `make quality-hooks-run` — confirm pass
-- [ ] T-042 Run `make infra-validate` — confirm pass
-- [ ] T-043 Run full pytest suite — confirm all pre-existing tests pass
+- [x] T-041 Run `make quality-hooks-run` — confirm pass
+- [x] T-042 Run `make infra-validate` — confirm pass
+- [x] T-043 Run full pytest suite — confirm all pre-existing tests pass
 - [ ] T-044 Complete `hardening_review.md`
 - [ ] T-045 Complete `pr_context.md`
 - [ ] T-046 Complete `traceability.md` validation summary

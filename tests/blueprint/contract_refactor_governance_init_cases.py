@@ -96,6 +96,7 @@ class GovernanceInitRepoCases(RefactorContractBase):
         self.assertIn("ownership_path_classes:", _read("blueprint/contract.yaml"))
         self.assertIn("app_catalog_scaffold_contract:", _read("blueprint/contract.yaml"))
         self.assertIn("app_runtime_gitops_contract:", _read("blueprint/contract.yaml"))
+        self.assertIn("consumer_seeded_feature_gates:", _read("blueprint/contract.yaml"))
 
     def test_blueprint_init_python_updates_contract_and_docs(self) -> None:
         init_python_path = REPO_ROOT / "scripts/lib/blueprint/init_repo.py"
@@ -117,6 +118,7 @@ class GovernanceInitRepoCases(RefactorContractBase):
             (tmp_root / "scripts/templates/consumer/init/docs").mkdir(parents=True, exist_ok=True)
             (tmp_root / "scripts/templates/consumer/init/.spec-kit/templates/consumer").mkdir(parents=True, exist_ok=True)
             (tmp_root / "scripts/templates/consumer/init/specs").mkdir(parents=True, exist_ok=True)
+            (tmp_root / "scripts/templates/consumer/init/infra/gitops/platform/base/apps").mkdir(parents=True, exist_ok=True)
             (tmp_root / "blueprint/modules").mkdir(parents=True, exist_ok=True)
             (tmp_root / "dags").mkdir(parents=True, exist_ok=True)
             (tmp_root / "infra/cloud/stackit/terraform/modules/workflows").mkdir(parents=True, exist_ok=True)
@@ -158,6 +160,8 @@ class GovernanceInitRepoCases(RefactorContractBase):
                 ".github/ISSUE_TEMPLATE/feature_request.yml.tmpl",
                 ".github/ISSUE_TEMPLATE/config.yml.tmpl",
                 ".github/workflows/ci.yml.tmpl",
+                ".github/workflows/claude.yml.tmpl",
+                ".github/workflows/claude-code-review.yml.tmpl",
                 # Consumer-seeded file templates added since the original test setup.
                 # Must be present so init_repo.py can render them (consumer_seeded_paths).
                 ".spec-kit/policy-mapping.md.tmpl",
@@ -173,6 +177,10 @@ class GovernanceInitRepoCases(RefactorContractBase):
                 ".spec-kit/templates/consumer/tasks.md.tmpl",
                 ".spec-kit/templates/consumer/traceability.md.tmpl",
                 "specs/README.md.tmpl",
+                "infra/gitops/platform/base/apps/backend-api-deployment.yaml.tmpl",
+                "infra/gitops/platform/base/apps/backend-api-service.yaml.tmpl",
+                "infra/gitops/platform/base/apps/touchpoints-web-deployment.yaml.tmpl",
+                "infra/gitops/platform/base/apps/touchpoints-web-service.yaml.tmpl",
             ):
                 source_path = REPO_ROOT / "scripts/templates/consumer/init" / template_path
                 target_path = tmp_root / "scripts/templates/consumer/init" / template_path
@@ -442,6 +450,7 @@ class GovernanceInitRepoCases(RefactorContractBase):
             (tmp_root / "scripts/templates/consumer/init/docs").mkdir(parents=True, exist_ok=True)
             (tmp_root / "scripts/templates/consumer/init/.spec-kit/templates/consumer").mkdir(parents=True, exist_ok=True)
             (tmp_root / "scripts/templates/consumer/init/specs").mkdir(parents=True, exist_ok=True)
+            (tmp_root / "scripts/templates/consumer/init/infra/gitops/platform/base/apps").mkdir(parents=True, exist_ok=True)
             contract_original = _read("blueprint/contract.yaml")
             docs_original = _read("docs/docusaurus.config.js")
             (tmp_root / "blueprint/contract.yaml").write_text(contract_original, encoding="utf-8")
@@ -458,6 +467,8 @@ class GovernanceInitRepoCases(RefactorContractBase):
                 ".github/ISSUE_TEMPLATE/feature_request.yml.tmpl",
                 ".github/ISSUE_TEMPLATE/config.yml.tmpl",
                 ".github/workflows/ci.yml.tmpl",
+                ".github/workflows/claude.yml.tmpl",
+                ".github/workflows/claude-code-review.yml.tmpl",
                 # .spec-kit consumer-seeded file templates added to consumer_seeded_paths;
                 # must be present so init_repo.py can render them (even in --dry-run mode).
                 ".spec-kit/policy-mapping.md.tmpl",
@@ -473,6 +484,10 @@ class GovernanceInitRepoCases(RefactorContractBase):
                 ".spec-kit/templates/consumer/tasks.md.tmpl",
                 ".spec-kit/templates/consumer/traceability.md.tmpl",
                 "specs/README.md.tmpl",
+                "infra/gitops/platform/base/apps/backend-api-deployment.yaml.tmpl",
+                "infra/gitops/platform/base/apps/backend-api-service.yaml.tmpl",
+                "infra/gitops/platform/base/apps/touchpoints-web-deployment.yaml.tmpl",
+                "infra/gitops/platform/base/apps/touchpoints-web-service.yaml.tmpl",
             ):
                 source_path = REPO_ROOT / "scripts/templates/consumer/init" / template_path
                 target_path = tmp_root / "scripts/templates/consumer/init" / template_path
