@@ -4,7 +4,7 @@
 
 | Requirement ID | Control IDs | WCAG SC | Design Element | Implementation Path(s) | Test Evidence | Documentation Evidence | Operational Evidence |
 |---|---|---|---|---|---|---|---|
-| FR-001 | SDD-C-005 | — | STACKIT Terraform module (instance + credential) | `infra/cloud/stackit/terraform/modules/rabbitmq/main.tf` | `tests/infra/modules/rabbitmq/test_rabbitmq_module.py` | `docs/platform/modules/rabbitmq/README.md` | — |
+| FR-001 | SDD-C-005 | — | STACKIT Terraform module (instance + credential) | `infra/cloud/stackit/terraform/modules/rabbitmq/main.tf`, `versions.tf` | `tests/infra/modules/rabbitmq/test_rabbitmq_module.py` | `docs/platform/modules/rabbitmq/README.md` | — |
 | FR-002 | SDD-C-005 | — | `module.contract.yaml` outputs.produced | `blueprint/modules/rabbitmq/module.contract.yaml` | `tests/infra/modules/rabbitmq/test_contract.py` | `docs/platform/modules/rabbitmq/README.md` | — |
 | FR-003 | SDD-C-005 | — | `rabbitmq_vhost()` constant `/` | `scripts/lib/infra/rabbitmq.sh` | `tests/infra/modules/rabbitmq/test_rabbitmq_module.py` | `docs/platform/modules/rabbitmq/README.md` | — |
 | FR-004 | SDD-C-005 | — | `rabbitmq_management_url()` dual-lane | `scripts/lib/infra/rabbitmq.sh` | `tests/infra/modules/rabbitmq/test_rabbitmq_module.py` | `docs/platform/modules/rabbitmq/README.md` | — |
@@ -12,10 +12,10 @@
 | FR-006 | SDD-C-005, SDD-C-006 | — | Smoke hardening | `scripts/bin/infra/rabbitmq_smoke.sh` | `tests/infra/modules/rabbitmq/test_rabbitmq_module.py` | — | — |
 | FR-007 | SDD-C-005 | — | Terraform variables.tf + outputs.tf | `infra/cloud/stackit/terraform/modules/rabbitmq/variables.tf`, `outputs.tf` | `tests/infra/modules/rabbitmq/test_rabbitmq_module.py` | — | — |
 | FR-008 | SDD-C-005 | — | Foundation outputs expose rabbitmq_management_url | `infra/cloud/stackit/terraform/foundation/outputs.tf` | `tests/infra/modules/rabbitmq/test_rabbitmq_module.py` | — | — |
-| NFR-SEC-001 | SDD-C-009 | — | No plaintext credentials in Helm values | `infra/local/helm/rabbitmq/values.yaml` (unchanged) | `tests/infra/modules/rabbitmq/test_rabbitmq_module.py` (render values) | — | — |
+| NFR-SEC-001 | SDD-C-009 | — | No plaintext credentials in Helm values | `infra/local/helm/rabbitmq/values.yaml` (unchanged) | no automated test required — values.yaml unchanged, pre-existing `existingPasswordSecret` pattern already compliant | — | — |
 | NFR-OBS-001 | SDD-C-010 | — | `start_script_metric_trap` in all four scripts | `scripts/bin/infra/rabbitmq_{plan,apply,smoke,destroy}.sh` | verified by grep | — | metric events |
 | NFR-REL-001 | SDD-C-011 | — | `lifecycle { create_before_destroy = true }` | `infra/cloud/stackit/terraform/modules/rabbitmq/main.tf` | `tests/infra/modules/rabbitmq/test_rabbitmq_module.py` | — | — |
-| NFR-OPS-001 | SDD-C-012 | — | State file has all 7 keys; smoke validates 4 of them | `scripts/bin/infra/rabbitmq_apply.sh`, `rabbitmq_smoke.sh` | `tests/infra/modules/rabbitmq/test_contract.py` | — | `artifacts/infra/rabbitmq_runtime.env` |
+| NFR-OPS-001 | SDD-C-012 | — | State file has all 7 keys; smoke validates uri prefix, host, port, vhost, and management_url (5 checks) | `scripts/bin/infra/rabbitmq_apply.sh`, `scripts/bin/infra/rabbitmq_smoke.sh` | `tests/infra/modules/rabbitmq/test_contract.py`, `tests/infra/modules/rabbitmq/test_rabbitmq_module.py` | — | `artifacts/infra/rabbitmq_runtime.env` |
 | NFR-A11Y-001 | — | — | N/A — infrastructure module | — | — | — | — |
 | AC-001 | SDD-C-012 | — | Terraform resources declared | `infra/cloud/stackit/terraform/modules/rabbitmq/main.tf` | `tests/infra/modules/rabbitmq/test_rabbitmq_module.py` | — | — |
 | AC-002 | SDD-C-012 | — | variables.tf inputs | `infra/cloud/stackit/terraform/modules/rabbitmq/variables.tf` | `tests/infra/modules/rabbitmq/test_rabbitmq_module.py` | — | — |
