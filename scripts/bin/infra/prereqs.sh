@@ -101,8 +101,16 @@ install_pre_commit() {
   if shell_has_cmd pre-commit; then
     return 0
   fi
+  # Prefer uv tool install: creates an isolated environment for the CLI tool
+  # and works regardless of whether a project venv is active.  Falling back
+  # to pip --user is intentionally kept as a last resort, but note that it
+  # fails when python3 resolves to a venv interpreter (venvs disallow --user).
+  if shell_has_cmd uv; then
+    run_cmd uv tool install pre-commit
+    return
+  fi
   if ! shell_has_cmd python3; then
-    log_warn "python3 not found; cannot auto-install pre-commit"
+    log_warn "neither uv nor python3 found; cannot auto-install pre-commit"
     return 1
   fi
   run_cmd python3 -m pip install --user pre-commit
