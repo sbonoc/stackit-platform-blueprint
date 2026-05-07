@@ -38,9 +38,9 @@ No app delivery scope affected; all targets below remain unaffected by this work
 - [x] T-020 Add `.github/workflows/claude-code-review.yml` to `required_files` in `blueprint/contract.yaml`
 
 ## Slice 3 — Resolver + seeding update (green)
-- [ ] T-021 Implement `resolve_consumer_seeded_feature_gates(repo_root)` in `init_repo_contract.py`
-- [ ] T-022 Update `seed_consumer_owned_files` to call resolver and prune disabled-gate paths
-- [ ] T-023 Confirm T-002–T-009 pass (green)
+- [x] T-021 Implement `resolve_consumer_seeded_feature_gates(repo_root)` in `init_repo_contract.py`
+- [x] T-022 Update `seed_consumer_owned_files` to call resolver and prune disabled-gate paths
+- [x] T-023 Confirm T-002–T-009 pass (green)
 
 ## Slice 4 — Validator (green)
 - [ ] T-024 Implement `_validate_consumer_seeded_feature_gates(repo_root, contract)` in `validate_contract.py`
