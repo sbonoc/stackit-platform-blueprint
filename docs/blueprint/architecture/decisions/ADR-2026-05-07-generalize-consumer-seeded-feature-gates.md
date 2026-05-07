@@ -1,8 +1,9 @@
 # ADR-2026-05-07 — Generalize Consumer-Seeded Feature Gates
 
-**Status:** proposed
+**Status:** approved
 **Date:** 2026-05-07
 **Work item:** `specs/2026-05-07-generalize-consumer-seeded-feature-gates/`
+**ADR technical decision sign-off:** approved
 
 ## Context
 
@@ -18,8 +19,14 @@ would duplicate the same env-var-gated pruning pattern without abstraction.
 ## Decision
 
 Introduce a generic `consumer_seeded_feature_gates` list in `blueprint/contract.yaml`. Each entry
-is a named, flag-controlled gate that pruning its `consumer_seeded_paths_when_enabled` from the
+is a named, flag-controlled gate that prunes its `consumer_seeded_paths_when_enabled` from the
 consumer repo at init time when disabled.
+
+A new `blueprint-seed-feature FEATURE=<gate-id>` Make target is added to consumer repos
+(propagated via the blueprint-managed Makefile layer). It fetches the blueprint source at the
+consumer's pinned `BLUEPRINT_UPGRADE_REF`, resolves the named gate, renders its templates, and
+writes the files to the consumer repo — allowing existing consumers to adopt a gate post-init
+without re-seeding the full consumer-owned file set.
 
 The `app_catalog_scaffold_contract` section remains unchanged — it gates `feature_gated` paths
 and has domain-specific validation with no analog in the new mechanism.

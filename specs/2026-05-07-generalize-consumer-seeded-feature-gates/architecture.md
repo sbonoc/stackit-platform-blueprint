@@ -1,5 +1,10 @@
 # Architecture — Generalize Consumer-Seeded Feature Gates
 
+## Context Metadata
+- Work item: 2026-05-07-generalize-consumer-seeded-feature-gates
+- Owner: Platform Engineering
+- Date: 2026-05-07
+
 ## Context
 
 The blueprint's init engine (`make blueprint-init-repo`) seeds a fixed set of files into every
