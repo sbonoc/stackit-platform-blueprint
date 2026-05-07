@@ -74,7 +74,7 @@ if [[ "$app_catalog_scaffold_enabled" == "true" ]]; then
     faro_collect_path=""
   fi
 
-  run_cmd python3 "$ROOT_DIR/scripts/lib/platform/apps/catalog_scaffold_renderer.py" render \
+  run_cmd uv run python3 "$ROOT_DIR/scripts/lib/platform/apps/catalog_scaffold_renderer.py" render \
     --manifest-template "$ROOT_DIR/scripts/templates/platform/apps/catalog/manifest.yaml.tmpl" \
     --versions-template "$ROOT_DIR/scripts/templates/platform/apps/catalog/versions.lock.tmpl" \
     --manifest-output "$manifest_path" \

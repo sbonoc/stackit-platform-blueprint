@@ -71,19 +71,19 @@ workflows_api_json_pick() {
   local default_value="$2"
   shift 2 || true
 
-  python3 "$ROOT_DIR/scripts/lib/infra/workflows_api_json.py" pick "$json_file" "$default_value" "$@"
+  uv run python3 "$ROOT_DIR/scripts/lib/infra/workflows_api_json.py" pick "$json_file" "$default_value" "$@"
 }
 
 workflows_api_count_instances_with_status() {
   local json_file="$1"
   local expected_status="$2"
 
-  python3 "$ROOT_DIR/scripts/lib/infra/workflows_api_json.py" count-status "$json_file" "$expected_status"
+  uv run python3 "$ROOT_DIR/scripts/lib/infra/workflows_api_json.py" count-status "$json_file" "$expected_status"
 }
 
 workflows_api_find_instance_id_by_display_name() {
   local json_file="$1"
   local display_name="$2"
 
-  python3 "$ROOT_DIR/scripts/lib/infra/workflows_api_json.py" find-instance-id "$json_file" "$display_name"
+  uv run python3 "$ROOT_DIR/scripts/lib/infra/workflows_api_json.py" find-instance-id "$json_file" "$display_name"
 }

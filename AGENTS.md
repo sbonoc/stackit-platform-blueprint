@@ -62,9 +62,16 @@ export QUALITY_HOOKS_KEEP_GOING=true
 
 ### Python Tooling Invocation (MUST)
 
-Always invoke Python as `python3 -m pytest` for test runs and `python3 <script>` for blueprint scripts. Never use bare `pytest` (not guaranteed to be in PATH) or bare `python` (may resolve to Python 2). Never probe with alternative invocations (`pyenv exec`, `python3.13`, etc.) — if `python3` resolves incorrectly the environment is broken; stop and report rather than retrying with fallbacks.
+Always invoke Python via `uv run python3 <script>` for blueprint scripts and `uv run python3 -m pytest` for test runs. Never use bare `pytest`, bare `python`, bare `python3`, or `pyenv exec` — `uv run` resolves the correct interpreter and venv from `pyproject.toml` automatically regardless of shell state.
 
-The canonical Python version is pinned in `scripts/lib/platform/apps/versions.sh` (`PYTHON_RUNTIME_BASE_IMAGE_VERSION`) and loaded into `PYENV_VERSION` automatically via `.envrc` when direnv is active. Python dependencies (PyYAML, pytest) are declared in `pyproject.toml` and pinned in `uv.lock`; run `make python-env-setup` once after cloning to create `.venv`. The `.envrc` activates it automatically so `python3` inside direnv resolves to the managed environment.
+**Exceptions** — bare `python3` is acceptable in exactly these narrow cases:
+1. **Bootstrap/prereqs context** (`scripts/bin/infra/prereqs.sh`): stdlib-only helpers (`prereqs_helpers.py`) and `pip`/`ensurepip` calls that run before the uv project env is established.
+2. **Stdlib-only inline one-liners** (`python3 -c "import json, sys; ..."`): no third-party imports, no project venv needed.
+3. **Stdlib-only process substitution helpers**: when a helper script imports only stdlib modules and is called inside `done < <(python3 ...)` in a context where uv is not yet available.
+
+Outside these three cases, `uv run python3` is mandatory — no exceptions.
+
+The canonical Python version is pinned in `scripts/lib/platform/apps/versions.sh` (`PYTHON_RUNTIME_BASE_IMAGE_VERSION`) and exported as `UV_PYTHON` via `.envrc` when direnv is active. Python dependencies (PyYAML, pytest) are declared in `pyproject.toml` and pinned in `uv.lock`; run `make python-env-setup` once after cloning to create `.venv`.
 
 ### Environment Variables
 

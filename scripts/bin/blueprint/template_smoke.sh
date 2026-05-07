@@ -178,7 +178,7 @@ run_template_smoke_reset_generated_make_surface() {
 
 assert_template_smoke_repo_state() {
   local repo_root="$1"
-  python3 "$ROOT_DIR/scripts/lib/blueprint/template_smoke_assertions.py" "$repo_root"
+  uv run python3 "$ROOT_DIR/scripts/lib/blueprint/template_smoke_assertions.py" "$repo_root"
 }
 
 # Issue #230 reproducer hook: pre-seed a v1.8.0-shaped consumer kustomization

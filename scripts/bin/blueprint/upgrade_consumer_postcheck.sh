@@ -97,7 +97,7 @@ emit_postcheck_report_metrics() {
       ;;
     esac
   done < <(
-    python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_report_metrics.py" \
+    uv run python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_report_metrics.py" \
       postcheck \
       --report-path "$report_path"
   ) || python_exit=$?
@@ -167,7 +167,7 @@ if [[ "${BLUEPRINT_UPGRADE_SKIP_BEHAVIORAL_CHECK:-false}" == "true" ]]; then
   postcheck_args+=(--skip-behavioral-check)
 fi
 
-if run_cmd python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_consumer_postcheck.py" \
+if run_cmd uv run python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_consumer_postcheck.py" \
   "${postcheck_args[@]}"; then
   postcheck_rc=0
 else
@@ -176,7 +176,7 @@ fi
 
 emit_postcheck_report_metrics "$postcheck_report_abs"
 
-python3 "$ROOT_DIR/scripts/bin/blueprint/feature_gate_status.py" --repo-root "$ROOT_DIR" || true
+uv run python3 "$ROOT_DIR/scripts/bin/blueprint/feature_gate_status.py" --repo-root "$ROOT_DIR" || true
 
 if [[ "$validate_rc" -ne 0 || "$postcheck_rc" -ne 0 ]]; then
   log_error "blueprint consumer upgrade postcheck failed (see ${postcheck_report_path})"

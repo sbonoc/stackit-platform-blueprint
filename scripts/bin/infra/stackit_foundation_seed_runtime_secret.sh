@@ -54,7 +54,7 @@ if tooling_is_execution_enabled; then
 
   run_cmd_capture terraform -chdir="$foundation_dir" output -json >"$outputs_json_file"
 
-  run_cmd python3 "$ROOT_DIR/scripts/lib/infra/stackit_runtime_secret_env.py" "$outputs_json_file" "$secret_env_file"
+  run_cmd uv run python3 "$ROOT_DIR/scripts/lib/infra/stackit_runtime_secret_env.py" "$outputs_json_file" "$secret_env_file"
 
   {
     echo "stackit_project_id=${STACKIT_PROJECT_ID}"

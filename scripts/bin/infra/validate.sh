@@ -30,7 +30,7 @@ if [[ "${1:-}" == "--help" ]]; then
   exit 0
 fi
 
-require_command python3
+require_command uv
 set_default_env BLUEPRINT_VALIDATE_RENDER_WITH_CONTRACT_DEFAULTS "true"
 
 render_with_contract_defaults="$(shell_normalize_bool_truefalse "${BLUEPRINT_VALIDATE_RENDER_WITH_CONTRACT_DEFAULTS:-true}")"
@@ -52,6 +52,7 @@ module_toggle_flags=(
 
 render_makefile_cmd=("$ROOT_DIR/scripts/bin/blueprint/render_makefile.sh")
 validate_contract_cmd=(
+  uv run python3
   "$ROOT_DIR/scripts/bin/blueprint/validate_contract.py"
   "--contract-path"
   "$ROOT_DIR/blueprint/contract.yaml"
@@ -69,6 +70,7 @@ if [[ "$render_with_contract_defaults" == "true" ]]; then
   done
   render_makefile_cmd+=("$ROOT_DIR/scripts/bin/blueprint/render_makefile.sh")
   validate_contract_cmd+=(
+    uv run python3
     "$ROOT_DIR/scripts/bin/blueprint/validate_contract.py"
     "--contract-path"
     "$ROOT_DIR/blueprint/contract.yaml"

@@ -28,6 +28,6 @@ if blueprint_repo_is_generated_consumer; then
   log_info "running in generated-consumer mode; validating local SDD assets only"
 fi
 
-run_cmd python3 "$ROOT_DIR/scripts/bin/quality/check_sdd_assets.py"
+run_cmd uv run python3 "$ROOT_DIR/scripts/bin/quality/check_sdd_assets.py"
 log_metric "quality_hardening_review_total" "1" "status=success"
 log_info "quality hardening-review gate completed"

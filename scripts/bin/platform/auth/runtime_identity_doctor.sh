@@ -77,7 +77,7 @@ while IFS=$'\t' read -r contract_id contract_module _namespace _external_secret 
   fi
   contract_eso_enabled_count=$((contract_eso_enabled_count + 1))
   contract_eso_enabled_contracts+=("$contract_id")
-done < <(python3 "$runtime_identity_contract_cli" eso-contracts)
+done < <(uv run python3 "$runtime_identity_contract_cli" eso-contracts)
 
 contract_keycloak_expected_count=0
 contract_keycloak_enabled_count=0
@@ -91,7 +91,7 @@ while IFS=$'\t' read -r realm_id module_id _realm_env _default_realm _resolved_r
   fi
   contract_keycloak_enabled_count=$((contract_keycloak_enabled_count + 1))
   contract_keycloak_enabled_realms+=("$realm_id")
-done < <(python3 "$runtime_identity_contract_cli" keycloak-realms)
+done < <(uv run python3 "$runtime_identity_contract_cli" keycloak-realms)
 
 contract_eso_enabled_contracts_csv="none"
 if (( ${#contract_eso_enabled_contracts[@]} > 0 )); then
@@ -105,7 +105,7 @@ fi
 
 doctor_report_path="$ROOT_DIR/artifacts/infra/runtime_identity_doctor_report.json"
 doctor_summary="$(
-  python3 "$runtime_identity_doctor_helpers" render-report \
+  uv run python3 "$runtime_identity_doctor_helpers" render-report \
     --output "$doctor_report_path" \
     --profile "$BLUEPRINT_PROFILE" \
     --stack "$(active_stack)" \

@@ -51,7 +51,7 @@ residual_report_path="$ROOT_DIR/artifacts/blueprint/upgrade-residual.md"
 pipeline_exit=0
 
 # Guarantee residual report is produced even on early abort.
-trap 'python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_residual_report.py" \
+trap 'uv run python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_residual_report.py" \
   --repo-root "$ROOT_DIR" \
   --pipeline-exit "$pipeline_exit" \
   --output-path "$residual_report_path" \
@@ -63,7 +63,7 @@ trap 'python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_residual_report.py" \
 log_info "[PIPELINE] Stage 1: starting — pre-flight validation"
 if ! BLUEPRINT_UPGRADE_REF="$upgrade_ref" \
      BLUEPRINT_UPGRADE_SOURCE="$upgrade_source" \
-     python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_pipeline_preflight.py" \
+     uv run python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_pipeline_preflight.py" \
        --repo-root "$ROOT_DIR"; then
   pipeline_exit=1
   log_fatal "[PIPELINE] Stage 1: FAILED — pre-flight checks did not pass; aborting."
@@ -76,7 +76,7 @@ log_info "[PIPELINE] Stage 1: complete — pre-flight passed"
 log_info "[PIPELINE] Stage 1b: starting — version pin diff"
 BLUEPRINT_UPGRADE_SOURCE="$upgrade_source" \
 BLUEPRINT_UPGRADE_REF="$upgrade_ref" \
-python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_version_pin_diff.py" \
+uv run python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_version_pin_diff.py" \
   --repo-root "$ROOT_DIR" || true
 log_info "[PIPELINE] Stage 1b: complete"
 
@@ -100,7 +100,7 @@ log_info "[PIPELINE] Stage 2: complete (exit $stage2_rc)"
 # ---------------------------------------------------------------------------
 log_info "[PIPELINE] Stage 3: starting — contract file resolution"
 stage3_rc=0
-python3 "$ROOT_DIR/scripts/lib/blueprint/resolve_contract_upgrade.py" \
+uv run python3 "$ROOT_DIR/scripts/lib/blueprint/resolve_contract_upgrade.py" \
   --repo-root "$ROOT_DIR" || stage3_rc=$?
 if [[ "$stage3_rc" -ne 0 ]]; then
   pipeline_exit=$stage3_rc
@@ -122,7 +122,7 @@ log_info "[PIPELINE] Stage 5: starting — coverage gap detection and file fetch
 stage5_rc=0
 BLUEPRINT_UPGRADE_SOURCE="$upgrade_source" \
 BLUEPRINT_UPGRADE_REF="$upgrade_ref" \
-python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_coverage_fetch.py" \
+uv run python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_coverage_fetch.py" \
   --repo-root "$ROOT_DIR" || stage5_rc=$?
 if [[ "$stage5_rc" -ne 0 ]]; then
   pipeline_exit=$stage5_rc
@@ -135,7 +135,7 @@ log_info "[PIPELINE] Stage 5: complete"
 # ---------------------------------------------------------------------------
 log_info "[PIPELINE] Stage 6: starting — bootstrap template mirror sync"
 stage6_rc=0
-python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_mirror_sync.py" \
+uv run python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_mirror_sync.py" \
   --repo-root "$ROOT_DIR" || stage6_rc=$?
 if [[ "$stage6_rc" -ne 0 ]]; then
   pipeline_exit=$stage6_rc
@@ -154,7 +154,7 @@ git -C "$ROOT_DIR" status --porcelain -- '*.md' \
   | sed 's/^...//' \
   | python3 -c "import json,sys; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))" \
   > "$_modified_md_json" 2>/dev/null || true
-python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_doc_target_check.py" \
+uv run python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_doc_target_check.py" \
   --repo-root "$ROOT_DIR" \
   --modified-md-paths-json "$_modified_md_json" || true
 rm -f "$_modified_md_json"

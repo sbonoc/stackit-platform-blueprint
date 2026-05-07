@@ -75,7 +75,7 @@ _write_report() {
     report_args+=(--error "$error_msg")
   fi
 
-  python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_fresh_env_gate.py" "${report_args[@]}" || true
+  uv run python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_fresh_env_gate.py" "${report_args[@]}" || true
 }
 
 # ---------------------------------------------------------------------------

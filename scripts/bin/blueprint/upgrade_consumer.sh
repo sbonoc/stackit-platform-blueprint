@@ -153,7 +153,7 @@ emit_upgrade_report_metrics() {
       ;;
     esac
   done < <(
-    python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_report_metrics.py" \
+    uv run uv run python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_report_metrics.py" \
       plan-apply \
       --plan-path "$plan_report_path" \
       --apply-path "$apply_report_path" \
@@ -202,7 +202,7 @@ resolve_upgrade_engine_from_source_ref() {
 upgrade_engine_supports_reconcile_arg() {
   local engine_script="$1"
   local help_output
-  help_output="$(python3 "$engine_script" --help 2>&1 || true)"
+  help_output="$(uv run python3 "$engine_script" --help 2>&1 || true)"
   [[ "$help_output" == *"--reconcile-report-path"* ]]
 }
 
@@ -352,7 +352,7 @@ else
   log_warn "upgrade engine does not support --reconcile-report-path; continuing without reconcile artifact output"
 fi
 
-if run_cmd python3 "$upgrade_engine_script" "${upgrade_args[@]}"; then
+if run_cmd uv run python3 "$upgrade_engine_script" "${upgrade_args[@]}"; then
   upgrade_rc=0
 else
   upgrade_rc=$?

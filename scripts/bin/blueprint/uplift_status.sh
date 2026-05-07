@@ -50,7 +50,7 @@ fi
 log_info "blueprint-uplift-status repo=${BLUEPRINT_UPLIFT_REPO} backlog=${BLUEPRINT_UPLIFT_BACKLOG_PATH}"
 
 uplift_rc=0
-if run_cmd python3 "$ROOT_DIR/scripts/lib/blueprint/uplift_status.py" \
+if run_cmd uv run python3 "$ROOT_DIR/scripts/lib/blueprint/uplift_status.py" \
   --repo-root "$ROOT_DIR" \
   --uplift-repo "$BLUEPRINT_UPLIFT_REPO" \
   --backlog-path "$BLUEPRINT_UPLIFT_BACKLOG_PATH" \
@@ -95,7 +95,7 @@ emit_uplift_metrics() {
       ;;
     esac
   done < <(
-    python3 "$ROOT_DIR/scripts/lib/blueprint/uplift_status.py" \
+    uv run python3 "$ROOT_DIR/scripts/lib/blueprint/uplift_status.py" \
       --repo-root "$ROOT_DIR" \
       --uplift-repo "$BLUEPRINT_UPLIFT_REPO" \
       --backlog-path "$BLUEPRINT_UPLIFT_BACKLOG_PATH" \

@@ -36,12 +36,12 @@ k8s_timeout_kubectl() {
 
 k8s_kubeconfig_server_url() {
   local kubeconfig_path="$1"
-  python3 "$ROOT_DIR/scripts/lib/infra/k8s_wait_helpers.py" server-url "$kubeconfig_path"
+  uv run python3 "$ROOT_DIR/scripts/lib/infra/k8s_wait_helpers.py" server-url "$kubeconfig_path"
 }
 
 k8s_kubeconfig_server_host() {
   local kubeconfig_path="$1"
-  python3 "$ROOT_DIR/scripts/lib/infra/k8s_wait_helpers.py" server-host "$kubeconfig_path"
+  uv run python3 "$ROOT_DIR/scripts/lib/infra/k8s_wait_helpers.py" server-host "$kubeconfig_path"
 }
 
 wait_for_kube_api_ready() {
@@ -78,7 +78,7 @@ wait_for_kube_api_ready() {
   # for real API reasons instead of transient name lookup churn.
   while true; do
     resolution_attempts=$((resolution_attempts + 1))
-    if python3 "$ROOT_DIR/scripts/lib/infra/k8s_wait_helpers.py" dns-resolves "$server_host"
+    if uv run python3 "$ROOT_DIR/scripts/lib/infra/k8s_wait_helpers.py" dns-resolves "$server_host"
     then
       break
     fi

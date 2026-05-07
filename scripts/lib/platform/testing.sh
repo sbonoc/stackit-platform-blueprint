@@ -48,7 +48,7 @@ run_python_pytest_lane() {
   fi
 
   log_info "running ${lane} pytest lane with ${#discovered[@]} discovered test file(s)"
-  require_command python3
+  require_command uv
 
   # Coverage enforcement: opt-in via BACKEND_COVERAGE_PATH.
   # Set BACKEND_COVERAGE_PATH to the source directory to measure (e.g. apps/backend-api/src).
@@ -64,7 +64,7 @@ run_python_pytest_lane() {
     log_info "coverage enforcement enabled: path=${BACKEND_COVERAGE_PATH} min=${BACKEND_COVERAGE_MIN:-70}%"
   fi
 
-  if ! run_cmd python3 -m pytest -q "${coverage_args[@]}" "${discovered[@]}"; then
+  if ! run_cmd uv run python3 -m pytest -q "${coverage_args[@]}" "${discovered[@]}"; then
     log_metric "pytest_lane_duration_seconds" \
       "$(( $(now_epoch_seconds) - lane_start_epoch ))" \
       "lane=${lane_slug} status=failure discovered_tests=${#discovered[@]}"
@@ -87,8 +87,8 @@ _discover_pnpm_script_project_entries() {
     log_fatal "_discover_pnpm_script_project_entries requires at least one script name candidate"
   fi
 
-  require_command python3
-  python3 "$ROOT_DIR/scripts/lib/platform/pnpm_script_discovery.py" "$root_path" "$@"
+  require_command uv
+  uv run python3 "$ROOT_DIR/scripts/lib/platform/pnpm_script_discovery.py" "$root_path" "$@"
 }
 
 _run_touchpoints_pnpm_script() {

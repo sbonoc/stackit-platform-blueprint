@@ -95,13 +95,13 @@ if [[ -z "${STACKIT_GITHUB_CI_REPO:-}" ]]; then
 fi
 
 default_envs="$(
-  python3 "$ROOT_DIR/scripts/lib/infra/stackit_github_ci_contract.py" \
+  uv run python3 "$ROOT_DIR/scripts/lib/infra/stackit_github_ci_contract.py" \
     "$STACKIT_GITHUB_CI_CONTRACT_PATH" \
     default_environments
 )"
 
 required_secrets="$(
-  python3 "$ROOT_DIR/scripts/lib/infra/stackit_github_ci_contract.py" \
+  uv run python3 "$ROOT_DIR/scripts/lib/infra/stackit_github_ci_contract.py" \
     "$STACKIT_GITHUB_CI_CONTRACT_PATH" \
     required_repository_secrets
 )"

@@ -125,7 +125,7 @@ if [[ -f "$catalog_lock" || -f "$catalog_manifest" ]]; then
     contract_checker_args+=(--var "$var_name=${!var_name}")
   done
   contract_checks_run=1
-  if ! run_cmd python3 "$ROOT_DIR/scripts/lib/platform/apps/version_contract_checker.py" \
+  if ! run_cmd uv run python3 "$ROOT_DIR/scripts/lib/platform/apps/version_contract_checker.py" \
       "${contract_checker_args[@]}"; then
     contract_failures=1
     failures=$((failures + 1))
