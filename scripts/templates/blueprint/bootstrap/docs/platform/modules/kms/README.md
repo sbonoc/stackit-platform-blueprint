@@ -82,17 +82,19 @@ https://kms.api.<region>.stackit.cloud
 
 ## KMS_ENDPOINT Usage
 
-`KMS_ENDPOINT` is available in the runtime state artifact and via ESO-synced environment variables after `infra-kms-apply` completes. Consumer applications use `KMS_ENDPOINT` together with `KMS_KEY_ID` to perform envelope encryption/decryption without branching on environment.
+`KMS_ENDPOINT` is available in the runtime state artifact and via ESO-synced environment variables after `infra-kms-apply` completes.
+
+> **Key name on each lane:** On the STACKIT lane `KMS_KEY_ID` holds the provider-assigned key identifier. On the local Vault Transit lane `KMS_KEY_ID` is a URI (`kms://<ring>/<key>`); the Transit key name used in API paths is `KMS_KEY_NAME` (the plain key name passed to `vault write transit/keys/<name>`).
 
 ```python
 import os, httpx
 
 endpoint = os.environ["KMS_ENDPOINT"]
-key_id = os.environ["KMS_KEY_ID"]
+key_name = os.environ["KMS_KEY_NAME"]  # plain key name — correct for both Vault Transit and STACKIT KMS paths
 token = os.environ["VAULT_TOKEN"]  # or STACKIT KMS credentials
 
 resp = httpx.post(
-    f"{endpoint}/encrypt/{key_id}",
+    f"{endpoint}/encrypt/{key_name}",
     headers={"X-Vault-Token": token},
     json={"plaintext": "<base64-encoded>"},
 )

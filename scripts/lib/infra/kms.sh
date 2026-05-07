@@ -74,11 +74,19 @@ kms_delete_runtime_secret() {
 }
 
 kms_enable_vault_transit() {
+  if ! tooling_is_execution_enabled; then
+    log_info "dry-run vault transit enable key=$KMS_KEY_NAME (set DRY_RUN=false to execute)"
+    return 0
+  fi
+  require_command kubectl
   local vault_pod
   vault_pod="$(kubectl get pod \
     -n "$KMS_NAMESPACE" \
     -l "app.kubernetes.io/name=vault,app.kubernetes.io/instance=$KMS_VAULT_HELM_RELEASE" \
     -o jsonpath='{.items[0].metadata.name}')"
+  if [[ -z "$vault_pod" ]]; then
+    log_fatal "no Vault pod found in namespace=$KMS_NAMESPACE; ensure infra-kms-apply completed successfully"
+  fi
   kubectl exec -n "$KMS_NAMESPACE" "$vault_pod" -- vault secrets enable transit 2>/dev/null || true
   kubectl exec -n "$KMS_NAMESPACE" "$vault_pod" -- \
     vault write "transit/keys/$KMS_KEY_NAME" type="aes256-gcm96"
