@@ -31,6 +31,13 @@ To introduce a new tag, append a row here in the same commit that uses it.
 - [ ] (parked) proposal(issue-248-rabbitmq-module): HA replica configuration — stackit_rabbitmq_instance.replicas > 1
       trigger: on-scope: infra
       rationale: single-replica default is sufficient for initial module; HA requires separate capacity planning and consumer awareness
+- [ ] P1 (Platform modules — first-class): Issue #248 — KMS module dual-lane implementation (Vault Transit local + STACKIT `stackit_kms_keyring` + `stackit_kms_key` Terraform). **In progress**: `specs/2026-05-07-issue-248-kms-module/`, PR #256. 4 slices defined; `SPEC_READY: true`.
+- [ ] (parked) proposal(issue-248-kms-module): KMS_KEY_ROTATION_PERIOD input — add to module.contract.yaml and stackit_kms_key when stackit_kms_key exposes rotation_period attribute in a future provider version
+      trigger: on-scope: infra
+      rationale: stackit_kms_key v0.88.0 does not expose rotation_period; shipping a no-op contract input would mislead consumers; surfaces when provider support lands
+- [ ] (parked) proposal(issue-248-kms-module): Vault HA/persistent storage for local lane — Vault standalone mode with raft storage
+      trigger: on-scope: infra
+      rationale: dev-mode ephemeral storage is sufficient for local development; HA adds PVC provisioning and startup complexity disproportionate to local dev needs; surfaces if a consumer requires key persistence across pod restarts
 - [x] P1 (Platform modules — first-class): Issue #248 — Object-storage module dual-lane implementation (MinIO local + STACKIT Terraform). **Done**: `specs/2026-05-06-issue-248-object-storage-module/`, PR #250. 5 slices complete; 27/27 tests green; 9/9 quality gates pass. `SPEC_READY: true`.
 - [ ] (parked) proposal(issue-248-object-storage-module): per-bucket credential scoping via STACKIT credentials_group
       trigger: on-scope: infra

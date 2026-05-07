@@ -1,7 +1,7 @@
 # ADR: Issue #248 — KMS Module Implementation (Dual-Lane)
 
-- **Status**: proposed
-- **ADR technical decision sign-off**: pending
+- **Status**: approved
+- **ADR technical decision sign-off**: approved
 - **Date**: 2026-05-07
 - **Issue**: #248
 - **Work item**: `specs/2026-05-07-issue-248-kms-module/`
