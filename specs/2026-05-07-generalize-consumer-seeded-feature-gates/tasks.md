@@ -30,12 +30,12 @@ No app delivery scope affected; all targets below remain unaffected by this work
 - [x] T-014 Confirm all Slice 1 tests fail (red)
 
 ## Slice 2 — Contract schema + YAML
-- [ ] T-015 Add `CLAUDE_AI_ENABLED` to `spec.toggles` in `blueprint/contract.yaml`
-- [ ] T-016 Add `consumer_seeded_feature_gates` list with `claude_ai_integration` gate to `blueprint/contract.yaml`
-- [ ] T-017 Add `.github/workflows/claude.yml` to `consumer_seeded_paths` in `blueprint/contract.yaml`
-- [ ] T-018 Add `.github/workflows/claude-code-review.yml` to `consumer_seeded_paths` in `blueprint/contract.yaml`
-- [ ] T-019 Add `.github/workflows/claude.yml` to `required_files` in `blueprint/contract.yaml`
-- [ ] T-020 Add `.github/workflows/claude-code-review.yml` to `required_files` in `blueprint/contract.yaml`
+- [x] T-015 Add `CLAUDE_AI_ENABLED` to `spec.toggles` in `blueprint/contract.yaml`
+- [x] T-016 Add `consumer_seeded_feature_gates` list with `claude_ai_integration` gate to `blueprint/contract.yaml`
+- [x] T-017 Add `.github/workflows/claude.yml` to `consumer_seeded_paths` in `blueprint/contract.yaml`
+- [x] T-018 Add `.github/workflows/claude-code-review.yml` to `consumer_seeded_paths` in `blueprint/contract.yaml`
+- [x] T-019 Add `.github/workflows/claude.yml` to `required_files` in `blueprint/contract.yaml`
+- [x] T-020 Add `.github/workflows/claude-code-review.yml` to `required_files` in `blueprint/contract.yaml`
 
 ## Slice 3 — Resolver + seeding update (green)
 - [ ] T-021 Implement `resolve_consumer_seeded_feature_gates(repo_root)` in `init_repo_contract.py`
