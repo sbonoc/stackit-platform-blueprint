@@ -94,13 +94,27 @@ postgres_local_service_host() {
   printf '%s.%s.svc.cluster.local' "$POSTGRES_HELM_RELEASE" "$POSTGRES_NAMESPACE"
 }
 
+postgres_credential_secret_name() {
+  printf '%s-auth' "$POSTGRES_HELM_RELEASE"
+}
+
+postgres_reconcile_runtime_secret() {
+  apply_optional_module_secret_from_literals \
+    "$POSTGRES_NAMESPACE" \
+    "$(postgres_credential_secret_name)" \
+    "password=$POSTGRES_PASSWORD"
+}
+
+postgres_delete_runtime_secret() {
+  delete_optional_module_secret "$POSTGRES_NAMESPACE" "$(postgres_credential_secret_name)"
+}
+
 postgres_render_values_file() {
   render_optional_module_values_file \
     "postgres" \
     "infra/local/helm/postgres/values.yaml" \
     "POSTGRES_HELM_RELEASE=$POSTGRES_HELM_RELEASE" \
-    "POSTGRES_USER=$POSTGRES_USER" \
-    "POSTGRES_PASSWORD=$POSTGRES_PASSWORD" \
+    "POSTGRES_CREDENTIAL_SECRET_NAME=$(postgres_credential_secret_name)" \
     "POSTGRES_DB_NAME=$POSTGRES_DB_NAME" \
     "POSTGRES_IMAGE_REGISTRY=$POSTGRES_IMAGE_REGISTRY" \
     "POSTGRES_IMAGE_REPOSITORY=$POSTGRES_IMAGE_REPOSITORY" \

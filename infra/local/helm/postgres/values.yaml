@@ -1,7 +1,6 @@
 fullnameOverride: "blueprint-postgres"
 auth:
-  username: "platform"
-  password: "platform-password"
+  existingSecret: "blueprint-postgres-auth"
   database: "platform"
 image:
   registry: "docker.io"

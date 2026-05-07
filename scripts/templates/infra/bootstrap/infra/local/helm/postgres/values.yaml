@@ -1,7 +1,6 @@
 fullnameOverride: "{{POSTGRES_HELM_RELEASE}}"
 auth:
-  username: "{{POSTGRES_USER}}"
-  password: "{{POSTGRES_PASSWORD}}"
+  existingSecret: "{{POSTGRES_CREDENTIAL_SECRET_NAME}}"
   database: "{{POSTGRES_DB_NAME}}"
 image:
   registry: "{{POSTGRES_IMAGE_REGISTRY}}"
