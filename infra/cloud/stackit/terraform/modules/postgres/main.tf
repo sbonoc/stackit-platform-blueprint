@@ -4,10 +4,6 @@ terraform {
 
 locals {
   contract = "blueprint"
-
-  postgres_acl_effective = length(var.postgres_acl) > 0 ? var.postgres_acl : (
-    var.ske_enabled ? [] : tolist(setunion([], []))
-  )
 }
 
 resource "stackit_postgresflex_instance" "postgres" {

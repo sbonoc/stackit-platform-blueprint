@@ -74,15 +74,15 @@ class PostgresLocalHelmChartTests(unittest.TestCase):
             auth,
             msg="auth.existingSecret must be set; Secret reconciled before helm upgrade",
         )
-        self.assertNotIn(
+        self.assertIn(
             "username",
             auth,
-            msg="auth.username must not appear in values.yaml; use existingSecret instead",
+            msg="auth.username must be set so Bitnami uses 'password' key from existingSecret (not 'postgres-password')",
         )
         self.assertNotIn(
             "password",
             auth,
-            msg="auth.password must not appear in values.yaml; use existingSecret instead",
+            msg="auth.password must not appear in values.yaml; password delivered via existingSecret",
         )
 
     def test_bootstrap_template_uses_credential_secret_name_placeholder(self) -> None:
@@ -93,17 +93,17 @@ class PostgresLocalHelmChartTests(unittest.TestCase):
             msg="bootstrap template must reference credential Secret name placeholder",
         )
 
-    def test_bootstrap_template_has_no_plaintext_auth(self) -> None:
+    def test_bootstrap_template_has_no_plaintext_password(self) -> None:
         content = _BOOTSTRAP_TEMPLATE.read_text(encoding="utf-8")
-        self.assertNotIn(
+        self.assertIn(
             "{{POSTGRES_USER}}",
             content,
-            msg="bootstrap template must not embed plaintext POSTGRES_USER",
+            msg="bootstrap template must bind POSTGRES_USER so Bitnami uses the 'password' Secret key",
         )
         self.assertNotIn(
             "{{POSTGRES_PASSWORD}}",
             content,
-            msg="bootstrap template must not embed plaintext POSTGRES_PASSWORD",
+            msg="bootstrap template must not embed plaintext POSTGRES_PASSWORD; password delivered via existingSecret",
         )
 
 
@@ -117,23 +117,23 @@ class PostgresLibraryFunctionPresenceTests(unittest.TestCase):
         ):
             self.assertIn(fn, content, msg=f"missing function: {fn}")
 
-    def test_lib_does_not_pass_credentials_to_values_render(self) -> None:
+    def test_lib_does_not_pass_password_to_values_render(self) -> None:
         content = _POSTGRES_LIB.read_text(encoding="utf-8")
         render_block = content.split("postgres_render_values_file()")[1].split("\n}\n")[0]
-        self.assertNotIn(
+        self.assertIn(
             "POSTGRES_USER=",
             render_block,
-            msg="plaintext POSTGRES_USER must not be a values placeholder; reconciled via Secret",
+            msg="POSTGRES_USER must be bound so auth.username reaches the chart (non-secret identifier)",
         )
         self.assertNotIn(
             "POSTGRES_PASSWORD=",
             render_block,
-            msg="plaintext POSTGRES_PASSWORD must not be a values placeholder; reconciled via Secret",
+            msg="POSTGRES_PASSWORD must not be a values placeholder; delivered via existingSecret",
         )
         self.assertIn(
             "POSTGRES_CREDENTIAL_SECRET_NAME=",
             render_block,
-            msg="values must reference the Secret name instead of the plaintext credentials",
+            msg="values must reference the Secret name for password delivery",
         )
 
 

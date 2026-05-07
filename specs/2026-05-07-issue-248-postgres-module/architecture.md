@@ -29,7 +29,7 @@ flowchart TD
     B -->|stackit-*| D[module_execution.sh\nclass: provider_backed\ndriver: foundation_contract]
     C --> E[postgres_reconcile_runtime_secret\nK8s Secret blueprint-postgres-auth]
     E --> F[run_helm_upgrade_install\nbitnami/postgresql\nauth.existingSecret]
-    F --> G[write_state_file\nhost, port, database, username, password, dsn]
+    F --> G[write_state_file\nhost, port, db_name, user, password, dsn]
     D --> H[Terraform foundation apply\nstackit_postgresflex_instance\nstackit_postgresflex_user\nstackit_postgresflex_database]
     H --> G
     G --> I[artifacts/infra/postgres_runtime.env]

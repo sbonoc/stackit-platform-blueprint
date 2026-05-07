@@ -42,7 +42,7 @@ Write all test files with assertions that will fail against the current scaffold
 
 ## Change Strategy
 - Migration/rollout sequence: Slice 1 (tests RED) → Slice 2 (exec class + secrets GREEN) → Slice 3 (Terraform module GREEN) → Slice 4 (smoke + docs GREEN)
-- Backward compatibility policy: no breaking changes to env var names, make targets, or state file keys; `auth.existingSecret` change requires Secret to exist before pod start — ordering guaranteed by reconcile-before-upgrade.
+- Backward compatibility policy: no breaking changes to env var names or make targets. State file keys are renamed: `database`→`db_name`, `username`→`user` (breaking for direct raw-state-file readers; ESO consumers unaffected — see spec.md § Contract Changes). `auth.existingSecret` change requires Secret to exist before pod start — ordering guaranteed by reconcile-before-upgrade.
 - Rollback plan: revert the PR; K8s Secret `blueprint-postgres-auth` can be deleted manually via `kubectl delete secret -n data blueprint-postgres-auth` if needed.
 
 ## Validation Strategy (Shift-Left)

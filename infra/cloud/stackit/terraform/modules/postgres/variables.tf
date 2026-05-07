@@ -9,12 +9,6 @@ variable "stackit_region" {
   default     = "eu01"
 }
 
-variable "ske_enabled" {
-  description = "When true, SKE egress ranges are used to derive the ACL allowlist."
-  type        = bool
-  default     = false
-}
-
 variable "postgres_instance_name" {
   description = "Canonical PostgreSQL Flex instance name."
   type        = string
@@ -56,8 +50,8 @@ variable "postgres_acl" {
   default     = []
 
   validation {
-    condition     = length(var.postgres_acl) > 0 || var.ske_enabled
-    error_message = "postgres_acl must be non-empty or ske_enabled must be true so ACLs can be derived from SKE egress ranges."
+    condition     = length(var.postgres_acl) > 0
+    error_message = "postgres_acl must be non-empty; this standalone module cannot derive SKE egress ranges — provide explicit CIDRs."
   }
 }
 
