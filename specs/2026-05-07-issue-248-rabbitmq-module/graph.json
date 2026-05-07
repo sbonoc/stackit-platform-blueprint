@@ -131,6 +131,11 @@
       "id": "AC-013",
       "type": "acceptance",
       "summary": "Foundation outputs expose rabbitmq_management_url from stackit_rabbitmq_credential.foundation[0].management"
+    },
+    {
+      "id": "AC-014",
+      "type": "acceptance",
+      "summary": "Smoke fails when management_url is empty"
     }
   ],
   "edges": [
@@ -150,6 +155,8 @@
     { "from": "FR-007", "to": "AC-002", "relation": "validated_by" },
     { "from": "FR-007", "to": "AC-003", "relation": "validated_by" },
     { "from": "FR-008", "to": "AC-013", "relation": "validated_by" },
+    { "from": "FR-006", "to": "AC-014", "relation": "validated_by" },
+    { "from": "NFR-OPS-001", "to": "AC-014", "relation": "constrains" },
     { "from": "NFR-SEC-001", "to": "FR-001", "relation": "constrains" },
     { "from": "NFR-OBS-001", "to": "FR-005", "relation": "constrains" },
     { "from": "NFR-REL-001", "to": "AC-001", "relation": "constrains" },

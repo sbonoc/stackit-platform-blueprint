@@ -30,6 +30,7 @@
 | AC-011 | SDD-C-012 | — | smoke fails empty vhost | `scripts/bin/infra/rabbitmq_smoke.sh` | `tests/infra/modules/rabbitmq/test_smoke.py` | — | — |
 | AC-012 | SDD-C-012 | — | contract test 7 keys | `tests/infra/modules/rabbitmq/test_contract.py` | `tests/infra/modules/rabbitmq/test_contract.py` | — | — |
 | AC-013 | SDD-C-012 | — | foundation outputs rabbitmq_management_url | `infra/cloud/stackit/terraform/foundation/outputs.tf` | `tests/infra/modules/rabbitmq/test_terraform.py` | — | — |
+| AC-014 | SDD-C-012 | — | Smoke fails when management_url empty | `scripts/bin/infra/rabbitmq_smoke.sh` | `tests/infra/modules/rabbitmq/test_smoke.py` | — | — |
 
 ## Graph Linkage
 - Graph file: `graph.json`
@@ -37,7 +38,7 @@
 - Node IDs referenced:
   - FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-007, FR-008
   - NFR-SEC-001, NFR-OBS-001, NFR-REL-001, NFR-OPS-001, NFR-A11Y-001
-  - AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009, AC-010, AC-011, AC-012, AC-013
+  - AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009, AC-010, AC-011, AC-012, AC-013, AC-014
 
 ## Validation Summary
 - Required bundles executed: pending (gate not yet open)

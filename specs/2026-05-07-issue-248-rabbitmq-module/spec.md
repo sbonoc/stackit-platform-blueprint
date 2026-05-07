@@ -62,7 +62,7 @@
 - NFR-SEC-001 MUST NOT expose plaintext credentials in rendered Helm values; the existing K8s Secret `blueprint-rabbitmq-auth` created by `rabbitmq_reconcile_runtime_secret` MUST remain the sole credential delivery path for the local lane; the `rabbitmq_render_values_file()` function MUST NOT introduce new plaintext credential bindings.
 - NFR-OBS-001 All four scripts (`rabbitmq_{plan,apply,smoke,destroy}.sh`) MUST emit metric events via the existing `start_script_metric_trap` framework call; no new metric emitters are required beyond the framework guarantee.
 - NFR-REL-001 The Terraform module MUST include `lifecycle { create_before_destroy = true }` on the `stackit_rabbitmq_instance` resource to minimize downtime during instance replacement.
-- NFR-OPS-001 The runtime state file MUST contain all seven contract output keys (`host`, `port`, `username`, `password`, `uri`, `vhost`, `management_url`); `rabbitmq_smoke.sh` MUST validate `host`, `port`, `vhost`, and the `uri` AMQP prefix.
+- NFR-OPS-001 The runtime state file MUST contain all seven contract output keys (`host`, `port`, `username`, `password`, `uri`, `vhost`, `management_url`); `rabbitmq_smoke.sh` MUST validate `host`, `port`, `vhost`, `management_url`, and the `uri` AMQP prefix.
 - NFR-A11Y-001 N/A — no UI component; rabbitmq is an infrastructure module with no browser-facing surface.
 
 ## Normative Option Decision
@@ -106,6 +106,7 @@ State file key naming (Q-1): The STACKIT `stackit_rabbitmq_credential` resource 
 - AC-011 MUST: Smoke fails when `vhost` is empty — verified by unit test.
 - AC-012 MUST: Contract test confirms runtime state has all seven declared output keys (`host`, `port`, `username`, `password`, `uri`, `vhost`, `management_url`) — verified by contract test.
 - AC-013 MUST: Foundation outputs expose `rabbitmq_management_url` from `stackit_rabbitmq_credential.foundation[0].management` — verified by unit test on Terraform outputs file.
+- AC-014 MUST: Smoke fails when `management_url` is empty — verified by unit test.
 
 ## Informative Notes (Non-Normative)
 - Context: The rabbitmq module is more complete than postgres was: execution class is already correct (`fallback_runtime` for local, `provider_backed` for STACKIT), Secret-backed credential pattern is already implemented (`existingPasswordSecret` in Helm values, `rabbitmq_reconcile_runtime_secret`/`rabbitmq_delete_runtime_secret` in the lib). The main gaps are: the STACKIT standalone Terraform module (stub), two missing contract outputs (`RABBITMQ_VHOST` and `RABBITMQ_MANAGEMENT_URL`), the corresponding shell functions, the state file expansion, hardened smoke checks, test coverage, and docs.
