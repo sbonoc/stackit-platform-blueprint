@@ -5,11 +5,11 @@
      SPEC_READY=true: implementation gate — all sign-offs required; unlocks coding. -->
 - SPEC_READY: false
 - SPEC_PRODUCT_READY: false
-- Open questions count: 1
+- Open questions count: 0
 - Unresolved alternatives count: 0
 - Unresolved TODO markers count: 0
 - Pending assumptions count: 0
-- Open clarification markers count: 1
+- Open clarification markers count: 0
 - Product sign-off: pending
 - Architecture sign-off: pending
 - Security sign-off: pending
@@ -53,8 +53,8 @@
 - FR-003 MUST update `infra/local/helm/postgres/values.yaml` to use `auth.existingSecret: {{POSTGRES_CREDENTIAL_SECRET_NAME}}` in place of `auth.username`/`auth.password` so no plaintext credentials appear in the rendered Helm values artifact.
 - FR-004 MUST update `scripts/bin/infra/postgres_apply.sh` (`helm)` case) to call `postgres_reconcile_runtime_secret` before `run_helm_upgrade_install`; MUST update `scripts/bin/infra/postgres_destroy.sh` (`helm)` case) to call `postgres_delete_runtime_secret` after `run_helm_uninstall`; destroy MUST pass `--ignore-not-found` to `run_helm_uninstall` and `postgres_delete_runtime_secret` MUST tolerate a missing Secret.
 - FR-005 MUST implement the STACKIT standalone Terraform module at `infra/cloud/stackit/terraform/modules/postgres/` with three resources: `stackit_postgresflex_instance`, `stackit_postgresflex_user`, and `stackit_postgresflex_database`; the module MUST mirror the ACL policy (`forbid_default_open_world`) enforced in the foundation layer.
-- FR-006 MUST write a runtime state file on apply with all six contract-declared output keys: `host`, `port`, `database`, `username`, `password`, `dsn`; `dsn` MUST use the `postgresql://` scheme.
-- FR-007 MUST add explicit smoke validations beyond DSN format: `host` MUST be non-empty, `port` MUST be non-empty, `database` MUST be non-empty in the `postgres_smoke.sh` state file checks.
+- FR-006 MUST write a runtime state file on apply with all six contract-declared output keys: `host`, `port`, `db_name`, `user`, `password`, `dsn`; `dsn` MUST use the `postgresql://` scheme. State file keys MUST strictly match the module.contract.yaml output names with the `POSTGRES_` prefix stripped: `POSTGRES_DB_NAME` → `db_name`, `POSTGRES_USER` → `user`.
+- FR-007 MUST add explicit smoke validations beyond DSN format: `host` MUST be non-empty, `port` MUST be non-empty, `db_name` MUST be non-empty in the `postgres_smoke.sh` state file checks.
 - FR-008 MUST update `scripts/bin/infra/bootstrap.sh` (`postgres)` case) to use `POSTGRES_CREDENTIAL_SECRET_NAME` as a template binding instead of plaintext `POSTGRES_USER`/`POSTGRES_PASSWORD`; the bootstrap template `scripts/templates/infra/bootstrap/infra/local/helm/postgres/values.yaml` MUST use `auth.existingSecret: {{POSTGRES_CREDENTIAL_SECRET_NAME}}`.
 
 ### Non-Functional Requirements (Normative)
@@ -62,27 +62,22 @@
 - NFR-SEC-001 MUST NOT expose plaintext credentials in rendered Helm values or bootstrap templates; the K8s Secret `blueprint-postgres-auth` created by `postgres_reconcile_runtime_secret` MUST be the sole credential delivery path for the local lane.
 - NFR-OBS-001 All four scripts (`postgres_{plan,apply,smoke,destroy}.sh`) MUST emit metric events via the existing `start_script_metric_trap` framework call; no new metric emitters are required beyond the framework guarantee.
 - NFR-REL-001 `postgres_destroy.sh` MUST be idempotent: `run_helm_uninstall` with `--ignore-not-found` and `postgres_delete_runtime_secret` tolerating a missing Secret; re-running destroy when resources are already absent MUST exit 0.
-- NFR-OPS-001 The runtime state file MUST contain all six contract output keys; `postgres_smoke.sh` MUST validate `host`, `port`, `database`, and the `dsn` prefix.
+- NFR-OPS-001 The runtime state file MUST contain all six contract output keys (`host`, `port`, `db_name`, `user`, `password`, `dsn`); `postgres_smoke.sh` MUST validate `host`, `port`, `db_name`, and the `dsn` prefix.
 - NFR-A11Y-001 N/A — no UI component; postgres is an infrastructure module with no browser-facing surface.
 
-## Open Questions
-
-> **[NEEDS CLARIFICATION]** Q-1: State file key naming alignment. `module.contract.yaml` lists `POSTGRES_DB_NAME` and `POSTGRES_USER` as output env var names, but the existing `postgres_apply.sh` runtime state file uses keys `database` and `username`. These two naming conventions diverge. Which should be canonical?
->
-> **Options:**
-> - **A)** Keep state file keys as-is (`database`, `username`, `dsn`) and treat them as the canonical runtime state keys; module.contract.yaml `POSTGRES_DB_NAME`/`POSTGRES_USER` remain as the ESO-synced env var names. No breaking change to runtime artifacts. (agent recommendation)
-> - **B)** Rename state file keys to `db_name`, `user`, `dsn` to strictly match the module.contract.yaml output env var names by stripping the `POSTGRES_` prefix. Breaking change to any consumer reading the raw state file.
->
-> **Agent recommendation:** Option A — the runtime state key naming convention is not required to match the env var prefix-stripped name (opensearch similarly uses `uri` for `OPENSEARCH_URI`); the existing `database`/`username` keys are already established in the apply script and have no known consumers directly parsing the raw state file. Changing them would be a risky breaking change with no functional benefit for the current consumer set.
-
 ## Normative Option Decision
-- Option A: Implement all missing pieces additively: execution class fix, secret lifecycle addition, Terraform module, smoke hardening, tests, docs. No breaking changes to env var names or state file schema.
-- Option B: Simultaneously rename output env vars (`POSTGRES_DATABASE`, `POSTGRES_USERNAME`, `POSTGRES_URI`) to align with issue #248 wording, rename state file keys, and update all callers.
-- Selected option: OPTION_A
-- Rationale: The module.contract.yaml output names (`POSTGRES_DB_NAME`, `POSTGRES_USER`, `POSTGRES_DSN`) are already confirmed correct by the issue-118-137 spec. Option B would introduce breaking changes across ESO, runtime scripts, and consumer downstream repos for cosmetic alignment. All functional gaps can be closed additively.
+
+Q-1 resolved: rename state file keys to `db_name` and `user` (Option B) — Decision by owner PR #251 comment 2026-05-07.
+
+State file key naming (Q-1): `db_name` and `user` are the canonical runtime state keys; this requires updating `postgres_apply.sh` (write_state_file call), `postgres_smoke.sh` (grep pattern for `db_name`), `test_contract.py` (expected keys), and the existing `postgres_apply.sh` (remove legacy `database` and `username` write). Consumers who read the raw `artifacts/infra/postgres_runtime.env` file directly MUST update their key references from `database` → `db_name` and `username` → `user`. Blueprint consumers reading via ESO (env vars `POSTGRES_DB_NAME`, `POSTGRES_USER`) are unaffected.
+
+- Option A: Keep state file keys as-is (`database`, `username`, `dsn`). No breaking change to runtime artifacts; module.contract.yaml naming diverges from state file keys.
+- Option B: Rename state file keys to `db_name`, `user`, `dsn` to strictly match module.contract.yaml output names by stripping the `POSTGRES_` prefix. Requires consumer migration for any direct state file reader.
+- Selected option: OPTION_B
+- Rationale: Strict prefix-strip convention (established by opensearch and object-storage) makes state file keys machine-derivable from module contract output names. Although the existing apply script used `database`/`username`, these were pre-convention scaffold values with no passing test suite to protect. Aligning now — while tests are being written — avoids a harder migration later. Decision by owner PR #251 comment 2026-05-07.
 
 ## Contract Changes (Normative)
-- Config/Env contract: `POSTGRES_CREDENTIAL_SECRET_NAME` added as a new internal template variable in Helm values rendering (not exposed to consumers); no consumer-visible env var changes.
+- Config/Env contract: `POSTGRES_CREDENTIAL_SECRET_NAME` added as a new internal template variable in Helm values rendering (not exposed to consumers); no consumer-visible env var changes. Runtime state file key rename: `database` → `db_name` and `username` → `user` in `artifacts/infra/postgres_runtime.env` — consumers reading the raw state file directly MUST update key references; consumers relying on ESO-synced env vars (`POSTGRES_DB_NAME`, `POSTGRES_USER`) are unaffected.
 - API contract: none
 - OpenAPI / Pact contract path: none
 - Event contract: none
@@ -110,13 +105,15 @@
 - AC-010 MUST: Smoke passes with valid runtime state containing all six keys — verified by unit test.
 - AC-011 MUST: Smoke fails when `dsn` does not start with `postgresql://` — verified by unit test.
 - AC-012 MUST: Smoke fails when `host` is empty — verified by unit test.
-- AC-013 MUST: Contract test confirms runtime state has all six declared output keys (`host`, `port`, `database`, `username`, `password`, `dsn`) — verified by contract test.
+- AC-013 MUST: Contract test confirms runtime state has all six declared output keys (`host`, `port`, `db_name`, `user`, `password`, `dsn`) — verified by contract test.
 - AC-014 MUST: Bootstrap template uses `{{POSTGRES_CREDENTIAL_SECRET_NAME}}` and contains no `{{POSTGRES_USER}}` or `{{POSTGRES_PASSWORD}}` placeholders — verified by unit test.
 
 ## Informative Notes (Non-Normative)
 - Context: The postgres module has the most pre-existing scaffold among the in-scope modules: all four bin scripts (`postgres_{plan,apply,smoke,destroy}.sh`), a partial `postgres.sh` lib, and a Helm values seed file already exist. The main gaps are the execution class, Secret-backed credential pattern (matching what object-storage/opensearch use), the STACKIT Terraform module, and test coverage.
 - Tradeoffs: Using `auth.existingSecret` means the K8s Secret must exist before the pod starts; `postgres_reconcile_runtime_secret` ensures it is created before `run_helm_upgrade_install`. If apply fails mid-way the Secret exists but the chart does not — idempotent re-run resolves this.
-- Clarifications: The STACKIT provider resource name is `stackit_postgresflex_*` (not `stackit_postgresql_*`) — confirmed from the foundation Terraform layer which already provisions postgres this way.
+- Clarifications:
+  - The STACKIT provider resource name is `stackit_postgresflex_*` (not `stackit_postgresql_*`) — confirmed from the foundation Terraform layer which already provisions postgres this way.
+  - Q-1 resolved: runtime state file keys use `db_name` and `user` (Option B, strict prefix-strip from `POSTGRES_DB_NAME` and `POSTGRES_USER`). Decision by owner PR #251 comment 2026-05-07.
 
 ## Explicit Exclusions
 - High-availability replica configuration for the STACKIT lane (configurable via `stackit_postgresflex_instance.replicas` but defaulted to 1 for cost; a separate work item covers multi-replica scenarios).

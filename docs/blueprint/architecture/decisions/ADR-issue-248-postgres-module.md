@@ -40,15 +40,17 @@ Change `OPTIONAL_MODULE_EXECUTION_CLASS` from `provider_backed` to `fallback_run
 
 **Rejected alternative:** Keep `provider_backed` — rejected as semantically incorrect and inconsistent with opensearch, object-storage, and rabbitmq which all use `fallback_runtime` for their local-lane Helm charts.
 
-### D-4: State file key naming — keep current keys (database, username, dsn)
+### D-4: State file key naming — rename to `db_name` and `user` (Q-1 resolved 2026-05-07)
 
-The existing `postgres_apply.sh` writes state keys `database`, `username`, `dsn`. The `module.contract.yaml` lists output names `POSTGRES_DB_NAME`, `POSTGRES_USER`, `POSTGRES_DSN`. These naming styles diverge (env var names vs state file keys). Option A (keep current keys) is selected: the state file keys serve as internal artifact keys, not env var names; the module.contract.yaml names are the ESO-synced consumer-facing env vars. Renaming state file keys would be a breaking change with no consumer benefit given the current consumer set.
+The existing `postgres_apply.sh` wrote state keys `database` and `username`. The `module.contract.yaml` lists output names `POSTGRES_DB_NAME` and `POSTGRES_USER`. After owner review (PR #251 comment 2026-05-07), the decision is to rename state file keys to `db_name` and `user` by strictly applying the prefix-strip convention (`POSTGRES_DB_NAME` → `db_name`, `POSTGRES_USER` → `user`), consistent with the opensearch and object-storage modules.
 
-This decision is pending user confirmation via Q-1 in the Draft PR.
+This is a breaking change to `artifacts/infra/postgres_runtime.env` key names. The affected callers within this work item are `postgres_apply.sh` (write), `postgres_smoke.sh` (read/validate), and `test_contract.py` (assert). Downstream consumers reading the raw state file directly MUST update their key references; consumers relying on ESO-synced env vars (`POSTGRES_DB_NAME`, `POSTGRES_USER`) are unaffected.
+
+**Rejected alternative:** Keep current keys (`database`, `username`) — rejected because it creates a non-derivable exception to the established prefix-strip convention; alignment is cheaper now (no passing test suite exists to protect) than later.
 
 ## Consequences
 
 - Postgres local lane correctly classified as `fallback_runtime` in observability/routing, consistent with all other local Helm chart modules.
 - K8s Secret `blueprint-postgres-auth` is the credential delivery path for local lane; no plaintext credentials appear in Helm values or rendered artifacts.
 - STACKIT standalone Terraform module enables isolated postgres provisioning outside the foundation deployment pattern.
-- No changes to consumer-visible env vars, make targets, or runtime state key names.
+- Runtime state file keys `db_name` and `user` follow the strict prefix-strip convention; consumers reading raw state files must update key references from `database`→`db_name` and `username`→`user`.

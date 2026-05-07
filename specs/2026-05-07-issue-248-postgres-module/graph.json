@@ -8,7 +8,7 @@
     { "id": "FR-004", "type": "requirement", "summary": "Apply reconciles secret before helm; destroy deletes secret after uninstall" },
     { "id": "FR-005", "type": "requirement", "summary": "Implement STACKIT standalone Terraform module with postgresflex resources" },
     { "id": "FR-006", "type": "requirement", "summary": "Write runtime state file with all six contract keys" },
-    { "id": "FR-007", "type": "requirement", "summary": "Smoke validates host, port, database non-empty plus DSN format" },
+    { "id": "FR-007", "type": "requirement", "summary": "Smoke validates host, port, db_name non-empty plus DSN format" },
     { "id": "FR-008", "type": "requirement", "summary": "Bootstrap template uses existingSecret pattern, no plaintext credentials" },
     { "id": "NFR-SEC-001", "type": "requirement", "summary": "No plaintext credentials in Helm values or bootstrap templates" },
     { "id": "NFR-OBS-001", "type": "requirement", "summary": "All four scripts emit metric traps via start_script_metric_trap" },
