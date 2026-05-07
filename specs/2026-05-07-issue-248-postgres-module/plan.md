@@ -36,7 +36,7 @@ Write all test files with assertions that will fail against the current scaffold
 - `infra/cloud/stackit/terraform/modules/postgres/versions.tf` — `stackitcloud/stackit` provider version pin matching foundation.
 
 ### Slice 4: Smoke Hardening + Docs
-- `scripts/bin/infra/postgres_smoke.sh` — add `host`, `port`, `database` non-empty validation checks (in addition to existing DSN format check).
+- `scripts/bin/infra/postgres_smoke.sh` — add `host`, `port`, `db_name` non-empty validation checks (in addition to existing DSN format check).
 - `docs/platform/modules/postgres/README.md` — complete: Standalone STACKIT Terraform Module section, Credentials section, Smoke Checks section, Destroy section, Local Lane vs STACKIT Lane differences, Env-Var Reference.
 - `python3 scripts/lib/docs/sync_platform_seed_docs.py` (or equivalent) — sync seed docs if needed.
 

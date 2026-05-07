@@ -33,7 +33,7 @@
 - [ ] T-024 Confirm Terraform module tests GREEN
 
 ## Implementation — Slice 4: Smoke Hardening + Docs
-- [ ] T-030 Update `scripts/bin/infra/postgres_smoke.sh` — add `host`, `port`, `database` non-empty validation checks
+- [ ] T-030 Update `scripts/bin/infra/postgres_smoke.sh` — add `host`, `port`, `db_name` non-empty validation checks
 - [ ] T-031 Complete `docs/platform/modules/postgres/README.md` — Standalone STACKIT Terraform Module, Credentials, Smoke Checks, Destroy, Local vs STACKIT Differences, Env-Var Reference
 - [ ] T-032 Sync seed docs if needed (`python3 scripts/lib/docs/sync_platform_seed_docs.py`)
 - [ ] T-033 Confirm smoke + docs tests GREEN
