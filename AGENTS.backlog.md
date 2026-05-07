@@ -23,7 +23,14 @@ To introduce a new tag, append a row here in the same commit that uses it.
 ---
 
 ## Current Priorities
-- [ ] P1 (Platform modules — first-class): Issue #248 — Postgres module dual-lane implementation (Bitnami Helm local + STACKIT `stackit_postgresflex_*` Terraform). **In progress**: `specs/2026-05-07-issue-248-postgres-module/`, PR #251. `SPEC_READY: true`. 4 slices: exec class fix + Secret-backed credentials + STACKIT Terraform module + smoke hardening.
+- [x] P1 (Platform modules — first-class): Issue #248 — Postgres module dual-lane implementation (Bitnami Helm local + STACKIT `stackit_postgresflex_*` Terraform). **Done**: `specs/2026-05-07-issue-248-postgres-module/`, PR #251. 4 slices complete; `SPEC_READY: true`.
+- [x] P1 (Platform modules — first-class): Issue #248 — RabbitMQ module dual-lane implementation (Bitnami Helm local + STACKIT `stackit_rabbitmq_*` Terraform). **Done**: `specs/2026-05-07-issue-248-rabbitmq-module/`, PR #255. 4 slices complete; 22/22 tests green; 9/9 quality gates pass. `SPEC_READY: true`.
+- [ ] (parked) proposal(issue-248-rabbitmq-module): vhost customisation — per-consumer non-default vhost support
+      trigger: on-scope: infra
+      rationale: STACKIT provider exposes no vhost attribute; constant '/' is correct for generic use; per-consumer vhost is consumer-side configuration
+- [ ] (parked) proposal(issue-248-rabbitmq-module): HA replica configuration — stackit_rabbitmq_instance.replicas > 1
+      trigger: on-scope: infra
+      rationale: single-replica default is sufficient for initial module; HA requires separate capacity planning and consumer awareness
 - [x] P1 (Platform modules — first-class): Issue #248 — Object-storage module dual-lane implementation (MinIO local + STACKIT Terraform). **Done**: `specs/2026-05-06-issue-248-object-storage-module/`, PR #250. 5 slices complete; 27/27 tests green; 9/9 quality gates pass. `SPEC_READY: true`.
 - [ ] (parked) proposal(issue-248-object-storage-module): per-bucket credential scoping via STACKIT credentials_group
       trigger: on-scope: infra

@@ -59,6 +59,8 @@ state_file="$(write_state_file "rabbitmq_runtime" \
   "uri=$(rabbitmq_uri)" \
   "username=$(rabbitmq_username)" \
   "password=$(rabbitmq_password)" \
+  "vhost=$(rabbitmq_vhost)" \
+  "management_url=$(rabbitmq_management_url)" \
   "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")")"
 
 log_info "rabbitmq runtime state written to $state_file"

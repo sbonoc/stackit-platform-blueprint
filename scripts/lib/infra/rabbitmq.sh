@@ -72,6 +72,20 @@ rabbitmq_host() {
   rabbitmq_local_service_host
 }
 
+rabbitmq_vhost() {
+  printf '/'
+}
+
+rabbitmq_management_url() {
+  if is_stackit_profile; then
+    stackit_foundation_output_value_or_default \
+      "rabbitmq_management_url" \
+      "https://$(rabbitmq_stackit_placeholder_host):15672"
+    return 0
+  fi
+  printf 'http://%s:%s' "$(rabbitmq_local_service_host)" "15672"
+}
+
 rabbitmq_uri() {
   if is_stackit_profile; then
     # STACKIT RabbitMQ credentials are provider-generated, so dry-run mode uses
