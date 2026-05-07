@@ -21,7 +21,14 @@
 | AC-003 | SDD-C-007 | Upgrade engine skips `consumer_seeded` | `upgrade_consumer.py` (unchanged) | T-003 | — | `make blueprint-upgrade-consumer-validate` |
 | AC-004 | SDD-C-008 | Validator rejects bad gate entries | `_validate_consumer_seeded_feature_gates` | T-010–T-013 | — | `make infra-validate` |
 | AC-005 | SDD-C-007 | Second gate works without code change | `resolve_consumer_seeded_feature_gates` generic loop | T-007 | — | — |
-| AC-006 | SDD-C-007 | app_catalog tests unchanged | pre-existing test suite | T-033 | — | — |
+| AC-006 | SDD-C-007 | app_catalog tests unchanged | pre-existing test suite | T-043 | — | — |
+| REQ-009 | SDD-C-007, SDD-C-008 | `blueprint-seed-feature` Make target + `seed_feature.py` | `scripts/bin/blueprint/seed_feature.py`, `make/blueprint.generated.mk` | T-028, T-036 | `architecture.md § Flow`, `spec.md § REQ-009` | consumer manual run |
+| REQ-010 | SDD-C-008 | Exit non-zero + diagnostic on bad FEATURE | `scripts/bin/blueprint/seed_feature.py` | T-029, T-030, T-036 | `spec.md § REQ-010` | — |
+| REQ-011 | SDD-C-008 | Idempotent second run | `scripts/bin/blueprint/seed_feature.py` | T-031, T-036 | `spec.md § REQ-011` | — |
+| NFR-005 | SDD-C-007 | Pinned ref only — no ref override | `scripts/bin/blueprint/seed_feature.py` | T-033 (design assertion) | `spec.md § NFR-005`, `spec.md § Explicit Exclusions` | — |
+| AC-007 | SDD-C-008 | seed-feature writes gate files, no other files touched | `seed_feature.py` + Make target | T-028, T-036 | — | consumer manual run |
+| AC-008 | SDD-C-008 | Unknown gate exits non-zero + diagnostic | `seed_feature.py` | T-029, T-036 | — | — |
+| AC-009 | SDD-C-008 | Idempotent — second run identical, exits zero | `seed_feature.py` | T-031, T-036 | — | — |
 
 ## Validation Summary
-To be completed in Slice 6 after all quality gates pass.
+To be completed in Slice 7 after all quality gates pass.

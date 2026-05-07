@@ -42,8 +42,8 @@
 - Local-first exception rationale: none — no local runtime scope; profile declared for contract compliance only
 
 ## Objective
-- Business outcome: Consumers can opt in to the Claude AI GH Actions workflows at `make blueprint-init-repo` time via an env var flag; the blueprint delivers them via the standard consumer-seeded mechanism rather than a manual copy; future optional seeded files follow the same generic gate contract instead of requiring new bespoke resolvers.
-- Success metric: `CLAUDE_AI_ENABLED=false make blueprint-init-repo` produces no Claude workflow files in the consumer repo; `CLAUDE_AI_ENABLED=true make blueprint-init-repo` produces both files from templates; a second gate entry added to the YAML list works without any Python code change.
+- Business outcome: Consumers can opt in to the Claude AI GH Actions workflows at `make blueprint-init-repo` time via an env var flag; existing consumers that missed the init-time flag can adopt any feature gate later via a single targeted Make target without re-seeding the full consumer-owned set; future optional seeded files follow the same generic gate contract instead of requiring new bespoke resolvers.
+- Success metric: `CLAUDE_AI_ENABLED=false make blueprint-init-repo` produces no Claude workflow files; `CLAUDE_AI_ENABLED=true make blueprint-init-repo` produces both; an existing consumer runs `make blueprint-seed-feature FEATURE=claude_ai_integration` and gets the files from the pinned blueprint ref without touching any other consumer-owned file; a second gate entry works without any Python code change.
 
 ## Normative Requirements
 
@@ -65,6 +65,12 @@
 
 - REQ-008: The `_validate_consumer_seeded_feature_gates` function MUST be called from the top-level `_validate_contract` orchestrator in `validate_contract.py`.
 
+- REQ-009: A `blueprint-seed-feature` Make target MUST be available in consumer repos (propagated via the blueprint-managed Makefile layer). It MUST accept a mandatory `FEATURE=<gate-id>` parameter. When invoked, it MUST: (a) read `BLUEPRINT_UPGRADE_REF` from `blueprint/repo.init.env`, (b) fetch the blueprint source at that ref into a temporary directory using the same cloning mechanism as `make blueprint-upgrade-consumer`, (c) locate the gate entry matching `FEATURE` in the fetched blueprint source's `consumer_seeded_feature_gates` list, (d) render each path in `consumer_seeded_paths_when_enabled` from the fetched source's template files, and (e) write the rendered files to the consumer repo. The target MUST NOT touch any consumer-seeded path not listed in the matching gate's `consumer_seeded_paths_when_enabled`.
+
+- REQ-010: `make blueprint-seed-feature` MUST exit non-zero with a clear diagnostic message when `FEATURE` is not provided or when the provided gate ID does not exist in the fetched blueprint source's `consumer_seeded_feature_gates` list.
+
+- REQ-011: `make blueprint-seed-feature` MUST be idempotent: running it twice with the same `FEATURE` MUST produce the same file contents and MUST NOT error on the second run.
+
 ### Non-Functional Requirements (Normative)
 
 - NFR-001: The `app_catalog_scaffold_contract` section and its validation logic MUST remain unchanged. The new mechanism MUST NOT alter any existing behavior of `resolve_app_catalog_scaffold_contract` or its callers.
@@ -75,12 +81,14 @@
 
 - NFR-004: The `make quality-hooks-run` and `make infra-validate` bundles MUST both pass after implementation.
 
+- NFR-005: `make blueprint-seed-feature` MUST use the consumer's pinned `BLUEPRINT_UPGRADE_REF` exclusively. It MUST NOT accept a ref override parameter; the pinned ref is the only authorised source to prevent version skew between seeded files and the consumer's installed blueprint machinery.
+
 ## Contract Changes (Normative)
 - Config/Env contract: new env var `CLAUDE_AI_ENABLED` (boolean, default false) read at `make blueprint-init-repo` time; no runtime env change
 - API contract: none
 - OpenAPI / Pact contract path: none
 - Event contract: none
-- Make/CLI contract: no new Make targets; existing `make blueprint-init-repo` behavior extended
+- Make/CLI contract: new `blueprint-seed-feature` Make target in consumer repos (propagated via blueprint-managed Makefile layer); mandatory parameter `FEATURE=<gate-id>`; existing `make blueprint-init-repo` behavior extended with gate-pruning step
 - Docs contract: `blueprint/contract.yaml` schema extended; blueprint consumer docs MUST document the new flag in the init guide
 
 ## Blueprint Upstream Defect Escalation (Normative)
@@ -103,6 +111,12 @@
 
 - AC-006: All pre-existing tests for `app_catalog_scaffold_contract` MUST continue to pass unchanged.
 
+- AC-007: Running `make blueprint-seed-feature FEATURE=claude_ai_integration` in a consumer repo MUST write both `.github/workflows/claude.yml` and `.github/workflows/claude-code-review.yml` using templates from the blueprint source at the consumer's pinned `BLUEPRINT_UPGRADE_REF`, without modifying any other file in the consumer repo.
+
+- AC-008: Running `make blueprint-seed-feature FEATURE=nonexistent` MUST exit non-zero and print a diagnostic identifying the unknown gate ID.
+
+- AC-009: Running `make blueprint-seed-feature FEATURE=claude_ai_integration` twice in sequence MUST produce identical file contents on both runs and MUST exit zero on the second run.
+
 ## Informative Notes (Non-Normative)
 
 - The seeding order is: (1) unconditionally seed all `consumer_seeded_paths` from templates, (2) resolve all `consumer_seeded_feature_gates`, (3) prune paths of disabled gates. This means the template files for gated paths MUST exist in `scripts/templates/consumer/init/`, even though the files are pruned immediately after when the gate is disabled.
@@ -112,4 +126,5 @@
 ## Explicit Exclusions
 - Migration of `app_catalog_scaffold_contract` into the new `consumer_seeded_feature_gates` list: excluded. app_catalog gates `feature_gated` paths (not `consumer_seeded`) and has domain-specific manifest-marker and test-lane validation with no generic counterpart.
 - Upgrade-time delivery of gated consumer-seeded files to existing consumers: excluded. Consumer-seeded files are permanently upgrade-skipped by contract.
-- New Make targets or CLI flags for the gate: excluded. The existing env-var convention is sufficient and consistent with `optional_modules`.
+- Ref override on `blueprint-seed-feature`: excluded. The target MUST use the consumer's pinned `BLUEPRINT_UPGRADE_REF` only; consumers who want files from a newer blueprint version MUST run `make blueprint-upgrade-consumer` first.
+- `make blueprint-seed-feature` support for seeding multiple gates in one invocation: excluded. Each call targets exactly one gate ID; consumers requiring multiple gates run the target once per gate.

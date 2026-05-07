@@ -50,17 +50,35 @@ the top-level validator. Turn validation unit tests green.
 Files touched:
 - `scripts/bin/blueprint/validate_contract.py`
 
-### Slice 5 — Template files + contract refactor test update
-Create the two Claude workflow `.tmpl` files. Update any contract-refactor governance tests that
-assert the structure of `blueprint/contract.yaml` or `init_repo_contract.py`.
+### Slice 5 — `blueprint-seed-feature` Make target (red → green)
+Write failing tests first, then implement the `seed_feature.py` script and wire the Make target.
+
+Tests to write (fail first):
+- `test_seed_feature_writes_gate_paths` — target writes correct files from fetched source
+- `test_seed_feature_unknown_gate_exits_nonzero` — unknown gate ID → non-zero exit + diagnostic
+- `test_seed_feature_missing_feature_param_exits_nonzero` — missing FEATURE → non-zero exit
+- `test_seed_feature_idempotent` — second run produces same content, exits zero
+
+Implementation:
+- `scripts/bin/blueprint/seed_feature.py` — reads pinned ref from `blueprint/repo.init.env`, clones blueprint source at that ref into a tempdir, resolves gate by ID from fetched `consumer_seeded_feature_gates`, renders `.tmpl` files from fetched source, writes to consumer repo
+- `make/blueprint.generated.mk` — add `blueprint-seed-feature` target calling `seed_feature.py`; target MUST be namespaced and self-documenting via `##`
+
+Files touched:
+- `tests/blueprint/test_seed_feature.py` (new)
+- `scripts/bin/blueprint/seed_feature.py` (new)
+- `make/blueprint.generated.mk` (updated)
+- `tests/blueprint/contract_refactor_scripts_cases.py` (updated: assert `seed_feature` in scripts)
+
+### Slice 6 — Template files + contract refactor test update
+Create the two Claude workflow `.tmpl` files. Update contract-refactor governance tests.
 
 Files touched:
 - `scripts/templates/consumer/init/.github/workflows/claude.yml.tmpl` (new)
 - `scripts/templates/consumer/init/.github/workflows/claude-code-review.yml.tmpl` (new)
-- `tests/blueprint/contract_refactor_governance_init_cases.py` (update)
-- `tests/blueprint/contract_refactor_scripts_cases.py` (update)
+- `tests/blueprint/contract_refactor_governance_init_cases.py` (updated)
+- `tests/blueprint/contract_refactor_scripts_cases.py` (updated)
 
-### Slice 6 — Quality gates + publish
+### Slice 7 — Quality gates + publish
 Run `make quality-hooks-run` and `make infra-validate`. Fix any violations.
 Complete `pr_context.md` and `hardening_review.md`.
 
@@ -88,9 +106,9 @@ Complete `pr_context.md` and `hardening_review.md`.
 
 ## Validation Strategy
 
-- **Unit (Slice 1, 3, 4):** pytest for resolver, pruning, and validator; 100% coverage on new code
-- **Contract refactor (Slice 5):** existing governance tests extended to cover new contract structure
-- **Integration (Slice 6):** `make infra-validate` runs full `validate_contract.py` against the repo
+- **Unit (Slices 1, 3, 4, 5):** pytest for resolver, pruning, validator, and seed_feature; 100% coverage on new code
+- **Contract refactor (Slice 6):** existing governance tests extended to cover new contract structure
+- **Integration (Slice 7):** `make infra-validate` runs full `validate_contract.py` against the repo
 
 ## Risk and Rollback
 
@@ -98,5 +116,7 @@ Complete `pr_context.md` and `hardening_review.md`.
   Mitigation: Run full test suite after each slice; app_catalog code is untouched.
 - **Risk:** Claude workflow `.tmpl` files drift from the PR #252 branch.
   Mitigation: Template content taken directly from the merged PR #252 branch at implementation time.
-- **Rollback:** Revert the YAML additions to `blueprint/contract.yaml` and remove the new functions.
+- **Risk:** `seed_feature.py` cloning logic diverges from the upgrade engine's cloning approach.
+  Mitigation: Extract shared cloning helper from `upgrade_consumer.py` or reuse it directly; do not duplicate cloning logic.
+- **Rollback:** Revert YAML additions to `blueprint/contract.yaml`, remove new functions and `seed_feature.py`.
   Existing consumers are unaffected (upgrade engine never applies `consumer_seeded` paths).

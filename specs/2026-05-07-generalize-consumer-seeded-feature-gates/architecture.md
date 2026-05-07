@@ -73,12 +73,19 @@ scripts/lib/blueprint/init_repo_contract.py
 scripts/bin/blueprint/validate_contract.py
   └─ _validate_consumer_seeded_feature_gates()  ← NEW: structural validator
 
+scripts/bin/blueprint/seed_feature.py         ← NEW: CLI backing the Make target
+  └─ fetches blueprint source at BLUEPRINT_UPGRADE_REF
+  └─ resolves gate by ID from fetched source
+  └─ renders + writes gate paths to consumer repo
+
+make/blueprint.generated.mk                   ← UPDATED: add blueprint-seed-feature target
+
 scripts/templates/consumer/init/.github/workflows/
   └─ claude.yml.tmpl                ← NEW
   └─ claude-code-review.yml.tmpl    ← NEW
 ```
 
-## Flow
+## Flows
 
 ```mermaid
 flowchart TD
@@ -93,8 +100,23 @@ flowchart TD
     H --> I[Init complete]
 ```
 
-Caption: Init-time seeding flow showing where gate resolution inserts the conditional prune step
-after the fixed consumer_seeded seeding pass.
+Caption: Init-time seeding flow — gate resolution inserts a conditional prune step after the
+fixed consumer_seeded seeding pass.
+
+```mermaid
+flowchart TD
+    A["make blueprint-seed-feature FEATURE=<id>"] --> B[Read BLUEPRINT_UPGRADE_REF from blueprint/repo.init.env]
+    B --> C[Fetch blueprint source at pinned ref into tempdir]
+    C --> D[Read consumer_seeded_feature_gates from fetched contract]
+    D --> E{Gate ID found?}
+    E -->|no| F[Exit non-zero with diagnostic]
+    E -->|yes| G[Render gate paths from fetched templates]
+    G --> H[Write rendered files to consumer repo]
+    H --> I[Done]
+```
+
+Caption: `blueprint-seed-feature` flow for existing consumers adopting a gate post-init — always
+uses the consumer's pinned blueprint ref, never touches files outside the target gate.
 
 ## Diagram Type Rationale
 

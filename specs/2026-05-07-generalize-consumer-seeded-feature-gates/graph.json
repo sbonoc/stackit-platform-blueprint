@@ -28,7 +28,17 @@
     {"id": "TEST-seeding", "type": "test", "label": "test_consumer_seeded_feature_gates.py — seeding/pruning tests"},
     {"id": "TEST-validator", "type": "test", "label": "test_consumer_seeded_feature_gates.py — validator tests"},
     {"id": "TEST-governance", "type": "test", "label": "contract_refactor_governance_init_cases.py (updated)"},
-    {"id": "TEST-scripts", "type": "test", "label": "contract_refactor_scripts_cases.py (updated)"}
+    {"id": "TEST-scripts", "type": "test", "label": "contract_refactor_scripts_cases.py (updated)"},
+    {"id": "REQ-009", "type": "requirement", "label": "blueprint-seed-feature Make target + seed_feature.py"},
+    {"id": "REQ-010", "type": "requirement", "label": "Exit non-zero with diagnostic on missing/unknown FEATURE"},
+    {"id": "REQ-011", "type": "requirement", "label": "blueprint-seed-feature idempotent"},
+    {"id": "NFR-005", "type": "requirement", "label": "Pinned ref only — no ref override"},
+    {"id": "AC-007", "type": "acceptance_criterion", "label": "seed-feature writes gate files only"},
+    {"id": "AC-008", "type": "acceptance_criterion", "label": "Unknown gate exits non-zero + diagnostic"},
+    {"id": "AC-009", "type": "acceptance_criterion", "label": "seed-feature idempotent"},
+    {"id": "IMPL-seed-feature", "type": "implementation", "label": "scripts/bin/blueprint/seed_feature.py"},
+    {"id": "IMPL-makefile", "type": "implementation", "label": "make/blueprint.generated.mk (blueprint-seed-feature target)"},
+    {"id": "TEST-seed-feature", "type": "test", "label": "tests/blueprint/test_seed_feature.py"}
   ],
   "edges": [
     {"from": "REQ-001", "to": "IMPL-contract-yaml"},
@@ -53,6 +63,17 @@
     {"from": "NFR-002", "to": "IMPL-contract-yaml"},
     {"from": "NFR-003", "to": "TEST-resolver"},
     {"from": "NFR-003", "to": "TEST-seeding"},
-    {"from": "NFR-003", "to": "TEST-validator"}
+    {"from": "NFR-003", "to": "TEST-validator"},
+    {"from": "REQ-009", "to": "IMPL-seed-feature"},
+    {"from": "REQ-009", "to": "IMPL-makefile"},
+    {"from": "REQ-009", "to": "TEST-seed-feature"},
+    {"from": "REQ-010", "to": "IMPL-seed-feature"},
+    {"from": "REQ-010", "to": "TEST-seed-feature"},
+    {"from": "REQ-011", "to": "IMPL-seed-feature"},
+    {"from": "REQ-011", "to": "TEST-seed-feature"},
+    {"from": "NFR-005", "to": "IMPL-seed-feature"},
+    {"from": "AC-007", "to": "TEST-seed-feature"},
+    {"from": "AC-008", "to": "TEST-seed-feature"},
+    {"from": "AC-009", "to": "TEST-seed-feature"}
   ]
 }
