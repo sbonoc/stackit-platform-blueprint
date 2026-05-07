@@ -1,7 +1,58 @@
 {
   "manifest_version": 1,
-  "work_item": "<YYYY-MM-DD>-<work-item-slug>",
+  "work_item": "specs/2026-05-07-generalize-consumer-seeded-feature-gates",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "",
-  "files": []
+  "generated_at_utc": "2026-05-07T14:35:26Z",
+  "files": [
+    {
+      "path": "specs/2026-05-07-generalize-consumer-seeded-feature-gates/architecture.md",
+      "sha256": "1e6f59b8ec00944e83b6190596e8c8b190218cb772719275c2e42f94faaff75e",
+      "bytes": 6004
+    },
+    {
+      "path": "specs/2026-05-07-generalize-consumer-seeded-feature-gates/context_pack.md",
+      "sha256": "3de13dfde93fa1db95c934d5395d0ff7735863a1b81fd84899d59fac25a46113",
+      "bytes": 904
+    },
+    {
+      "path": "specs/2026-05-07-generalize-consumer-seeded-feature-gates/evidence_manifest.json",
+      "sha256": "ecb0eea40122794ca8f062212e022ba451f6d0a543b88db3d7c15e65a071e7f7",
+      "bytes": 161
+    },
+    {
+      "path": "specs/2026-05-07-generalize-consumer-seeded-feature-gates/graph.json",
+      "sha256": "cffc4737f97d2e57f6d3ec6111b3cf7a84603bbdb19dca23bb75e0688f62604b",
+      "bytes": 8012
+    },
+    {
+      "path": "specs/2026-05-07-generalize-consumer-seeded-feature-gates/hardening_review.md",
+      "sha256": "366d683d77719021c22504e5782fbe3de02d564e45a2358f13707d9168e8c19b",
+      "bytes": 2746
+    },
+    {
+      "path": "specs/2026-05-07-generalize-consumer-seeded-feature-gates/plan.md",
+      "sha256": "125ccde41eec6201c5452aea252088515a0f52bdf879c2eb2accec882d32e31c",
+      "bytes": 10374
+    },
+    {
+      "path": "specs/2026-05-07-generalize-consumer-seeded-feature-gates/pr_context.md",
+      "sha256": "77407cbef8e06bc13f697c0a88a23c4bb08c49a8ee997851c5182def11161641",
+      "bytes": 4376
+    },
+    {
+      "path": "specs/2026-05-07-generalize-consumer-seeded-feature-gates/spec.md",
+      "sha256": "421e9e627050c6453023a90953d99009d3ec462e0594fc4eda4e315663219510",
+      "bytes": 16201
+    },
+    {
+      "path": "specs/2026-05-07-generalize-consumer-seeded-feature-gates/tasks.md",
+      "sha256": "1934c7395d39868de718f85354ced4faaab3fc2e922c03930bb10f552c481be6",
+      "bytes": 6725
+    },
+    {
+      "path": "specs/2026-05-07-generalize-consumer-seeded-feature-gates/traceability.md",
+      "sha256": "a78e9f79fa9fae781c4274425bb6c93ec9dba1b101f7885894614c5a7c1841cc",
+      "bytes": 6887
+    }
+  ]
 }

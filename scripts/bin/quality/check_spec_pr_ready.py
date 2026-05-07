@@ -400,6 +400,38 @@ def _check_pr_context(content: str, file_name: str) -> list[str]:
     return violations
 
 
+def _check_architecture(content: str, file_name: str) -> list[str]:
+    """Check architecture.md for an ADR status reference that is still 'proposed'."""
+    violations: list[str] = []
+    for i, line in enumerate(content.splitlines(), start=1):
+        if re.search(r"\bStatus:\s*proposed\b", line, re.IGNORECASE):
+            violations.append(
+                f"{PREFIX} {file_name}:{i}: ADR status is still 'proposed' — "
+                "advance to 'approved' in step03 before opening a PR (see SKILL.md step 1d-e)"
+            )
+    return violations
+
+
+def _check_evidence_manifest(spec_dir: Path) -> list[str]:
+    """Check evidence_manifest.json is not the scaffold placeholder."""
+    import json as _json
+
+    path = spec_dir / "evidence_manifest.json"
+    if not path.is_file():
+        return []
+    try:
+        data = _json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return []
+    work_item = str(data.get("work_item", ""))
+    if "<" in work_item:
+        return [
+            f"{PREFIX} evidence_manifest.json: work_item is a scaffold placeholder "
+            f"('{work_item}') — run `make spec-evidence-manifest` to generate"
+        ]
+    return []
+
+
 def main(repo_root: Path | None = None) -> int:
     if repo_root is None:
         repo_root = REPO_ROOT
@@ -420,6 +452,7 @@ def main(repo_root: Path | None = None) -> int:
         ("plan.md", _check_plan),
         ("hardening_review.md", _check_hardening_review),
         ("pr_context.md", _check_pr_context),
+        ("architecture.md", _check_architecture),
     ):
         path = spec_dir / file_name
         if not path.is_file():
@@ -433,6 +466,9 @@ def main(repo_root: Path | None = None) -> int:
     # when quality-spec-pr-ready is invoked directly via SPEC_SLUG, regardless
     # of which branch is currently checked out.
     all_violations.extend(_check_spec_marker_tokens(spec_dir))
+
+    # Check evidence_manifest.json is not the scaffold placeholder.
+    all_violations.extend(_check_evidence_manifest(spec_dir))
 
     for v in all_violations:
         print(v)

@@ -87,6 +87,8 @@ be recorded before this step runs.)
    d. Set ADR metadata:
       - ADR technical decision sign-off: approved
       - Status: approved
+   e. If `specs/<slug>/architecture.md` contains a line `— Status: proposed` (ADR reference
+      section), update it to `— Status: approved` to match the ADR file.
 
 2. Record sign-offs from PR comments in spec.md:
    - For each comment containing `ARCHITECTURE_SIGNOFF: approved`:
