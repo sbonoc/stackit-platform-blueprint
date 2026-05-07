@@ -41,11 +41,11 @@
   - AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009, AC-010, AC-011, AC-012, AC-013, AC-014
 
 ## Validation Summary
-- Required bundles executed: pending (gate not yet open)
-- Result summary: pending
+- Required bundles executed: `python3 -m pytest tests/infra/modules/rabbitmq/ -v` (22/22 PASSED), `make quality-docs-check-changed` (PASS), `make infra-validate` (PASS), `QUALITY_HOOKS_KEEP_GOING=true make quality-hooks-fast` (all checks PASSED)
+- Result summary: 22 tests across `test_rabbitmq_module.py` and `test_contract.py`; all 14 ACs covered. Pyramid ratios within thresholds.
 - Documentation validation:
-  - `make docs-build`
-  - `make docs-smoke`
+  - `make docs-build` — N/A (no MkDocs generation target; README synced via `sync_platform_seed_docs.py`)
+  - `make docs-smoke` — N/A (no browser-facing surface)
 
 ## Evidence Manifest
 - Manifest file: `evidence_manifest.json`
