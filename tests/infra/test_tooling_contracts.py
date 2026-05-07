@@ -2083,6 +2083,18 @@ printf 'dsn=%s\\n' "$(postgres_dsn)"
         self.assertIn("driver=foundation_contract", resolved)
         self.assertIn(f"path={REPO_ROOT}/infra/cloud/stackit/terraform/foundation", resolved)
 
+    def test_optional_module_execution_resolves_local_fallback_modes_for_postgres(self) -> None:
+        resolved = resolve_optional_module_execution("postgres", "apply", profile="local-full")
+        self.assertIn("class=fallback_runtime", resolved)
+        self.assertIn("driver=helm", resolved)
+        self.assertIn(f"path={REPO_ROOT}/artifacts/infra/rendered/postgres.values.yaml", resolved)
+
+    def test_optional_module_execution_resolves_stackit_provider_backed_postgres_modes(self) -> None:
+        resolved = resolve_optional_module_execution("postgres", "apply", profile="stackit-dev")
+        self.assertIn("class=provider_backed", resolved)
+        self.assertIn("driver=foundation_contract", resolved)
+        self.assertIn(f"path={REPO_ROOT}/infra/cloud/stackit/terraform/foundation", resolved)
+
     def test_optional_module_execution_resolves_stackit_chart_applications(self) -> None:
         resolved = resolve_optional_module_execution("public-endpoints", "apply", profile="stackit-dev")
         self.assertIn("class=fallback_runtime", resolved)

@@ -40,3 +40,74 @@
 - Merge `POSTGRES_EXTRA_ALLOWED_CIDRS` with the SKE-derived ranges when provided
 - If `ske_enabled=false`, explicit extra CIDRs are required
 - No open-world default (`0.0.0.0/0` forbidden by default)
+
+## Credentials
+
+Credentials are delivered via a Kubernetes Secret named `blueprint-postgres-auth` (Secret key: `password`). No plaintext credentials appear in rendered Helm values or bootstrap templates.
+
+**Local lane apply flow:**
+1. `postgres_reconcile_runtime_secret` creates or updates Secret `blueprint-postgres-auth` in namespace `data` with the value of `POSTGRES_PASSWORD` before the Helm upgrade runs.
+2. The Bitnami postgresql chart mounts the Secret via `auth.existingSecret: blueprint-postgres-auth`.
+3. `postgres_delete_runtime_secret` removes the Secret on destroy.
+
+**STACKIT lane:** credentials are provider-generated; no pre-provisioned Secret is required.
+
+## Standalone STACKIT Terraform Module
+
+A standalone Terraform module is available at `infra/cloud/stackit/terraform/modules/postgres/` for isolated PostgreSQL Flex provisioning outside the foundation deployment pattern.
+
+Resources declared: `stackit_postgresflex_instance`, `stackit_postgresflex_user`, `stackit_postgresflex_database`.
+
+Key variables:
+
+| Variable | Description | Default |
+|---|---|---|
+| `stackit_project_id` | STACKIT project ID | required |
+| `postgres_instance_name` | Instance name | required |
+| `postgres_db_name` | Database name | `app` |
+| `postgres_username` | Runtime username | `app` |
+| `postgres_version` | PostgreSQL major version | `16` |
+| `postgres_replicas` | Replica count | `1` |
+| `postgres_acl` | CIDR allowlist (non-empty or `ske_enabled=true`) | `[]` |
+
+Key outputs: `postgres_host`, `postgres_port`, `postgres_username`, `postgres_password`, `postgres_database`.
+
+Validate: `terraform validate` from `infra/cloud/stackit/terraform/modules/postgres/`.
+
+## Runtime State
+
+Apply writes `artifacts/infra/postgres_runtime.env` with all six contract output keys:
+
+| Key | Description |
+|---|---|
+| `host` | PostgreSQL service host |
+| `port` | PostgreSQL service port |
+| `db_name` | Database name |
+| `user` | Runtime username |
+| `password` | Runtime password |
+| `dsn` | `postgresql://user:password@host:port/db_name` |
+
+State file keys follow the strict prefix-strip convention: `POSTGRES_DB_NAME` → `db_name`, `POSTGRES_USER` → `user`. Consumers reading `artifacts/infra/postgres_runtime.env` directly must use the stripped key names. Consumers using ESO-synced env vars (`POSTGRES_DB_NAME`, `POSTGRES_USER`) are unaffected.
+
+## Smoke Checks
+
+`make infra-postgres-smoke` validates the runtime state file. Checks performed:
+
+- `dsn` starts with `postgresql://`
+- `host` is non-empty
+- `port` is non-empty
+- `db_name` is non-empty
+- `POSTGRES_CONNECT_TIMEOUT_SECONDS` is numeric
+
+Smoke writes `artifacts/infra/postgres_smoke.env` with `status=passed` on success.
+
+## Destroy
+
+`make infra-postgres-destroy` removes the Helm release (local lane) or delegates to the foundation Terraform layer (STACKIT lane) and removes all runtime state files.
+
+**Local lane destroy sequence:**
+1. `run_helm_uninstall` (idempotent — tolerates missing release via `--ignore-not-found`)
+2. `postgres_delete_runtime_secret` (idempotent — tolerates missing Secret)
+3. `remove_state_files_by_prefix postgres_`
+
+Re-running destroy when resources are already absent exits 0.

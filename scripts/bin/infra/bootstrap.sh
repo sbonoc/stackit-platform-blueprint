@@ -317,8 +317,7 @@ bootstrap_module_scaffold() {
         "infra" \
         "infra/local/helm/$module/values.yaml" \
         "POSTGRES_HELM_RELEASE=$POSTGRES_HELM_RELEASE" \
-        "POSTGRES_USER=$POSTGRES_USER" \
-        "POSTGRES_PASSWORD=$POSTGRES_PASSWORD" \
+        "POSTGRES_CREDENTIAL_SECRET_NAME=$(postgres_credential_secret_name)" \
         "POSTGRES_DB_NAME=$POSTGRES_DB_NAME" \
         "POSTGRES_IMAGE_REGISTRY=$POSTGRES_IMAGE_REGISTRY" \
         "POSTGRES_IMAGE_REPOSITORY=$POSTGRES_IMAGE_REPOSITORY" \

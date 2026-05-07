@@ -30,6 +30,7 @@ foundation_contract)
   optional_module_apply_foundation_contract "postgres"
   ;;
 helm)
+  postgres_reconcile_runtime_secret
   provision_path="$(postgres_render_values_file)"
   run_helm_upgrade_install \
     "$POSTGRES_HELM_RELEASE" \
@@ -51,8 +52,8 @@ state_file="$(write_state_file "postgres_runtime" \
   "provision_path=$provision_path" \
   "host=$(postgres_host)" \
   "port=$(postgres_port)" \
-  "database=$(postgres_database)" \
-  "username=$(postgres_username)" \
+  "db_name=$(postgres_database)" \
+  "user=$(postgres_username)" \
   "password=$(postgres_password)" \
   "dsn=$(postgres_dsn)" \
   "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")")"
