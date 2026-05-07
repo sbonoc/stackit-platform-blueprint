@@ -241,8 +241,7 @@ resolve_optional_module_execution() {
     if is_stackit_profile; then
       optional_module_execution_set "provider_backed" "foundation_contract" "$(stackit_terraform_layer_dir foundation)"
     elif is_local_profile; then
-      optional_module_execution_set "external_contract" "noop" "none" \
-        "kms module has no managed local counterpart; $action is a contract no-op"
+      optional_module_execution_set "fallback_runtime" "helm" "$(rendered_module_helm_values_file "kms")"
     else
       log_fatal "unsupported BLUEPRINT_PROFILE=$BLUEPRINT_PROFILE"
     fi
@@ -252,8 +251,7 @@ resolve_optional_module_execution() {
       optional_module_execution_set "provider_backed" "foundation_reconcile_apply" "$(stackit_terraform_layer_dir foundation)" \
         "STACKIT KMS destroy removes the keyring from Terraform state and schedules key deletion through the provider API."
     elif is_local_profile; then
-      optional_module_execution_set "external_contract" "noop" "none" \
-        "kms module has no managed local counterpart; destroy is a contract no-op"
+      optional_module_execution_set "fallback_runtime" "helm" "$(rendered_module_helm_values_file "kms")"
     else
       log_fatal "unsupported BLUEPRINT_PROFILE=$BLUEPRINT_PROFILE"
     fi
