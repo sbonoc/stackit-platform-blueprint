@@ -188,7 +188,7 @@ Reported by consumer sbonoc/dhe-marketplace from their v1.7.0→v1.8.0 upgrade e
 - [ ] Add a DNS contract mode where generated-consumer repos can provide pre-created Keycloak/IAP DNS entries instead of blueprint-managed STACKIT DNS record reconciliation.
 - [ ] Add a CI-grade execute-mode full e2e lane (ephemeral cluster + `test-e2e-all-local-execute`) so merge gating covers real apply paths, not only dry-run orchestration.
 - [ ] Tune and baseline `E2E_*_BUDGET_SECONDS` from collected CI metrics (p95 per lane) and fail budgets only once the baseline is stable.
-- [ ] Split the mirrored Python version pin so STACKIT Workflows can keep its runtime-limited baseline while the rest of the blueprint tracks latest stable upstream Python.
+- [ ] Define the Python version split strategy before STACKIT Workflows (Airflow) integration: establish how the blueprint tooling version (pinned in `scripts/lib/platform/apps/versions.sh` and loaded via `.envrc` → `PYENV_VERSION`) will coexist with the Airflow runtime-constrained Python, so integration work starts with a clear versioning policy rather than discovering the conflict mid-implementation.
 - [ ] Continue migrating `workflows` to provider-backed STACKIT execution when official resources become available.
 - [ ] Add optional Neo4j Keycloak realm/client reconciliation (gated by `KEYCLOAK_OPTIONAL_MODULE_RECONCILIATION_ENABLED`) as a follow-up to current Workflows/Langfuse reconciliation.
 - [ ] Extend the consumer seed resync workflow with optional merge-assist coverage for selected init-managed identity files without weakening customization boundaries.
