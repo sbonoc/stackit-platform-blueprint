@@ -153,7 +153,7 @@ emit_upgrade_report_metrics() {
       ;;
     esac
   done < <(
-    python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_report_metrics.py" \
+    uv run python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_report_metrics.py" \
       plan-apply \
       --plan-path "$plan_report_path" \
       --apply-path "$apply_report_path" \

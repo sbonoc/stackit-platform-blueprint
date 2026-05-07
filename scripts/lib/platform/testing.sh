@@ -88,7 +88,7 @@ _discover_pnpm_script_project_entries() {
   fi
 
   require_command python3
-  python3 "$ROOT_DIR/scripts/lib/platform/pnpm_script_discovery.py" "$root_path" "$@"
+  uv run python3 "$ROOT_DIR/scripts/lib/platform/pnpm_script_discovery.py" "$root_path" "$@"
 }
 
 _run_touchpoints_pnpm_script() {

@@ -9,12 +9,12 @@ start_script_metric_trap "docs_build"
 set_state_namespace docs
 
 require_command python3
-run_cmd python3 "$ROOT_DIR/scripts/bin/quality/render_core_targets_doc.py"
-run_cmd python3 "$ROOT_DIR/scripts/lib/docs/generate_contract_docs.py" \
+run_cmd uv run python3 "$ROOT_DIR/scripts/bin/quality/render_core_targets_doc.py"
+run_cmd uv run python3 "$ROOT_DIR/scripts/lib/docs/generate_contract_docs.py" \
   --contract "blueprint/contract.yaml" \
   --modules-dir "blueprint/modules" \
   --output "docs/reference/generated/contract_metadata.generated.md"
-run_cmd python3 "$ROOT_DIR/scripts/lib/docs/sync_module_contract_summaries.py"
+run_cmd uv run python3 "$ROOT_DIR/scripts/lib/docs/sync_module_contract_summaries.py"
 
 docs_pnpm_build
 

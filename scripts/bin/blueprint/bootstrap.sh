@@ -141,19 +141,19 @@ if blueprint_repo_is_generated_consumer; then
   log_metric "blueprint_ci_workflow_sync_total" "1" "status=skipped repo_mode=generated-consumer"
   log_info "skipping source CI workflow render in generated-consumer repo"
 else
-  run_cmd python3 "$ROOT_DIR/scripts/lib/quality/render_ci_workflow.py" \
+  run_cmd uv run python3 "$ROOT_DIR/scripts/lib/quality/render_ci_workflow.py" \
     --output "$ROOT_DIR/.github/workflows/ci.yml"
   log_metric "blueprint_ci_workflow_sync_total" "1" "status=success repo_mode=template-source"
 fi
 
-run_cmd python3 "$ROOT_DIR/scripts/bin/quality/render_core_targets_doc.py" \
+run_cmd uv run python3 "$ROOT_DIR/scripts/bin/quality/render_core_targets_doc.py" \
   --output "$ROOT_DIR/docs/reference/generated/core_targets.generated.md"
-run_cmd python3 "$ROOT_DIR/scripts/lib/docs/generate_contract_docs.py" \
+run_cmd uv run python3 "$ROOT_DIR/scripts/lib/docs/generate_contract_docs.py" \
   --contract "$ROOT_DIR/blueprint/contract.yaml" \
   --modules-dir "$ROOT_DIR/blueprint/modules" \
   --output "$ROOT_DIR/docs/reference/generated/contract_metadata.generated.md"
-run_cmd python3 "$ROOT_DIR/scripts/lib/docs/sync_platform_seed_docs.py"
-run_cmd python3 "$ROOT_DIR/scripts/lib/docs/sync_runtime_identity_contract_summary.py"
+run_cmd uv run python3 "$ROOT_DIR/scripts/lib/docs/sync_platform_seed_docs.py"
+run_cmd uv run python3 "$ROOT_DIR/scripts/lib/docs/sync_runtime_identity_contract_summary.py"
 
 if command -v pre-commit >/dev/null 2>&1; then
   run_cmd pre-commit install --install-hooks --hook-type pre-commit --hook-type pre-push

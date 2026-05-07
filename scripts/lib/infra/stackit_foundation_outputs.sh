@@ -54,7 +54,7 @@ stackit_foundation_output_value() {
   fi
 
   STACKIT_FOUNDATION_OUTPUTS_JSON="$STACKIT_FOUNDATION_OUTPUTS_JSON" \
-    python3 "$ROOT_DIR/scripts/lib/infra/stackit_foundation_outputs_json.py" value "$output_name"
+    uv run python3 "$ROOT_DIR/scripts/lib/infra/stackit_foundation_outputs_json.py" value "$output_name"
 }
 
 stackit_foundation_output_map_value() {
@@ -65,7 +65,7 @@ stackit_foundation_output_map_value() {
   fi
 
   STACKIT_FOUNDATION_OUTPUTS_JSON="$STACKIT_FOUNDATION_OUTPUTS_JSON" \
-    python3 "$ROOT_DIR/scripts/lib/infra/stackit_foundation_outputs_json.py" map-value "$output_name" "$map_key"
+    uv run python3 "$ROOT_DIR/scripts/lib/infra/stackit_foundation_outputs_json.py" map-value "$output_name" "$map_key"
 }
 
 stackit_foundation_output_value_or_default() {

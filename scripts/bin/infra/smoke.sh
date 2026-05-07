@@ -91,7 +91,7 @@ write_smoke_json_artifacts() {
   SMOKE_WORKLOAD_NAMESPACES="$(workload_health_namespaces | paste -sd, -)" \
   SMOKE_APP_RUNTIME_GITOPS_ENABLED="$app_runtime_gitops_enabled" \
   SMOKE_APP_RUNTIME_MIN_WORKLOADS="$app_runtime_min_workloads" \
-  python3 "$ROOT_DIR/scripts/lib/infra/smoke_artifacts.py"
+  uv run python3 "$ROOT_DIR/scripts/lib/infra/smoke_artifacts.py"
 }
 
 smoke_exit_handler() {
@@ -150,7 +150,7 @@ if [[ "$(tooling_execution_mode)" == "execute" ]] && command -v kubectl >/dev/nu
     required_namespace_args+=(--required-namespace-min-pods "apps=$app_runtime_min_workloads")
   fi
   run_cmd_capture kubectl get pods -A -o json >"$SMOKE_POD_SNAPSHOT_PATH"
-  run_cmd python3 "$ROOT_DIR/scripts/bin/infra/workload_health_check.py" \
+  run_cmd uv run python3 "$ROOT_DIR/scripts/bin/infra/workload_health_check.py" \
     --input "$SMOKE_POD_SNAPSHOT_PATH" \
     --output "$SMOKE_WORKLOAD_HEALTH_PATH" \
     "${namespace_args[@]}" \

@@ -85,7 +85,7 @@ emit_validate_report_metrics() {
       ;;
     esac
   done < <(
-    python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_report_metrics.py" \
+    uv run python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_report_metrics.py" \
       validate \
       --report-path "$validate_report_path"
   ) || python_exit=$?
@@ -115,7 +115,7 @@ done
 log_info "running blueprint consumer upgrade validation report_path=${report_path}"
 validate_report="$(resolve_report_path "$report_path")"
 
-if run_cmd "$ROOT_DIR/scripts/lib/blueprint/upgrade_consumer_validate.py" \
+if run_cmd uv run python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_consumer_validate.py" \
   --repo-root "$ROOT_DIR" \
   --report-path "$report_path"; then
   validate_rc=0

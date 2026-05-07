@@ -108,4 +108,4 @@ if [[ -n "$report_path" ]]; then
   resync_args+=(--report-path "$report_path")
 fi
 
-run_cmd "$ROOT_DIR/scripts/lib/blueprint/resync_consumer_seeds.py" "${resync_args[@]}"
+run_cmd uv run python3 "$ROOT_DIR/scripts/lib/blueprint/resync_consumer_seeds.py" "${resync_args[@]}"

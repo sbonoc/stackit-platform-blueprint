@@ -58,7 +58,7 @@ export STATUS_SMOKE_RESULT_PATH="$ROOT_DIR/artifacts/infra/smoke_result.json"
 export STATUS_SMOKE_DIAGNOSTICS_PATH="$ROOT_DIR/artifacts/infra/smoke_diagnostics.json"
 
 json_payload="$(
-  python3 "$ROOT_DIR/scripts/lib/infra/status_json_payload.py"
+  uv run python3 "$ROOT_DIR/scripts/lib/infra/status_json_payload.py"
 )"
 
 snapshot_path="$ROOT_DIR/artifacts/infra/infra_status_snapshot.json"

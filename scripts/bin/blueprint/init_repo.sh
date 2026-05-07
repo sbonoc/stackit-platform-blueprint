@@ -176,7 +176,7 @@ case "${!blueprint_init_force_var_name:-false}" in
   ;;
 esac
 
-run_cmd "$ROOT_DIR/scripts/lib/blueprint/init_repo.py" "${init_repo_args[@]}"
+run_cmd uv run python3 "$ROOT_DIR/scripts/lib/blueprint/init_repo.py" "${init_repo_args[@]}"
 
 if [[ "${BLUEPRINT_INIT_DRY_RUN}" == "true" ]]; then
   log_info "init dry-run mode enabled; skipping contract validation because files were not written"
@@ -187,7 +187,7 @@ fi
 if [[ "${BLUEPRINT_INIT_DRY_RUN}" == "true" ]]; then
   :
 elif [[ "${BLUEPRINT_INIT_SKIP_VALIDATE}" != "true" ]]; then
-  run_cmd "$ROOT_DIR/scripts/bin/blueprint/validate_contract.py" \
+  run_cmd uv run python3 "$ROOT_DIR/scripts/bin/blueprint/validate_contract.py" \
     --contract-path "$ROOT_DIR/blueprint/contract.yaml"
 fi
 

@@ -34,7 +34,7 @@ if [[ "$(shell_normalize_bool_truefalse "$BLUEPRINT_UPGRADE_READINESS_STRICT")" 
   strict_flag="--strict"
 fi
 
-run_cmd python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_readiness_doctor.py" \
+run_cmd uv run python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_readiness_doctor.py" \
   --repo-root "$ROOT_DIR" \
   --output "$BLUEPRINT_UPGRADE_READINESS_REPORT_PATH" \
   $strict_flag

@@ -119,7 +119,7 @@ run_runtime_workload_presence_check() {
   local observed_count
   observed_count="$(
     kubectl get deployment,statefulset --namespace "$app_runtime_namespace" -o json \
-      | python3 "$ROOT_DIR/scripts/lib/infra/runtime_workload_helpers.py"
+      | uv run python3 "$ROOT_DIR/scripts/lib/infra/runtime_workload_helpers.py"
   )"
   if ! [[ "$observed_count" =~ ^[0-9]+$ ]]; then
     log_fatal "unable to parse app runtime workload count from kubectl response: $observed_count"
@@ -186,12 +186,12 @@ if [[ ! -f "$versions_lock" ]]; then
   log_fatal "missing app versions lock: $versions_lock"
 fi
 
-run_cmd python3 "$ROOT_DIR/scripts/lib/platform/apps/catalog_scaffold_renderer.py" validate \
+run_cmd uv run python3 "$ROOT_DIR/scripts/lib/platform/apps/catalog_scaffold_renderer.py" validate \
   --manifest-path "$manifest" \
   --app-runtime-gitops-enabled "$app_runtime_gitops_enabled" \
   --observability-enabled "$OBSERVABILITY_ENABLED_NORMALIZED"
 
-run_cmd python3 "$ROOT_DIR/scripts/lib/platform/apps/version_contract_checker.py" \
+run_cmd uv run python3 "$ROOT_DIR/scripts/lib/platform/apps/version_contract_checker.py" \
   --mode consistency \
   --versions-lock "$versions_lock" \
   --manifest "$manifest"

@@ -38,7 +38,7 @@ if blueprint_repo_is_generated_consumer; then
 fi
 
 require_command python3
-run_cmd "$ROOT_DIR/scripts/lib/blueprint/generate_module_wrapper_skeletons.py" \
+run_cmd uv run python3 "$ROOT_DIR/scripts/lib/blueprint/generate_module_wrapper_skeletons.py" \
   --modules-dir "blueprint/modules" \
   --output-root "scripts/templates/infra/module_wrappers"
 

@@ -116,7 +116,7 @@ else
     --reconcile-report-path "$reconcile_report_path"
 fi
 
-run_cmd python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_preflight.py" \
+run_cmd uv run python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_preflight.py" \
   --repo-root "$ROOT_DIR" \
   --plan-path "$plan_path" \
   --apply-path "$apply_path" \

@@ -364,8 +364,8 @@ check_or_install_python_module() {
 
 platform="$(shell_detect_platform)"
 ARCH="$(shell_detect_arch)"
-required_tools=(bash git make python3 pre-commit shellcheck)
-stackit_tools=(terraform kubectl helm docker kind uv gh jq pnpm kustomize nc)
+required_tools=(bash git make python3 uv pre-commit shellcheck)
+stackit_tools=(terraform kubectl helm docker kind gh jq pnpm kustomize nc)
 missing_required=()
 missing_optional=()
 
