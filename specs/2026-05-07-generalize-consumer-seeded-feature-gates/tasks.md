@@ -9,9 +9,9 @@ No app delivery scope affected; all targets below remain unaffected by this work
 - [x] A-005 `infra-port-forward-start`, `infra-port-forward-stop`, `infra-port-forward-cleanup` — unaffected
 
 ## Gate Checks (Required Before Implementation)
-- [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`
-- [ ] G-002 Confirm open questions and unresolved alternatives are `0`
-- [ ] G-003 Confirm ADR status is `approved` in `spec.md`
+- [x] G-001 Confirm `SPEC_READY=true` in `spec.md`
+- [x] G-002 Confirm open questions and unresolved alternatives are `0`
+- [x] G-003 Confirm ADR status is `approved` in `spec.md`
 
 ## Slice 1 — Failing tests (red)
 - [ ] T-001 Create `tests/blueprint/test_consumer_seeded_feature_gates.py`
