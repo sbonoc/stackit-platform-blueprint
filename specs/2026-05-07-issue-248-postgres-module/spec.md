@@ -19,16 +19,21 @@
 - ADR status: proposed
 
 ## Applicable Guardrail Controls (Normative)
-- Applicable control IDs: SDD-C-005, SDD-C-007, SDD-C-008, SDD-C-009, SDD-C-010, SDD-C-012, SDD-C-013, SDD-C-014
-- Control exception rationale: SDD-C-001 through SDD-C-004 (product/API scope) not applicable — infra-only module with no backend or frontend changes. SDD-C-006 (OpenAPI/Pact) not applicable — no HTTP service boundary. SDD-C-011 (ESO contract change) not applicable — ESO consumer keys are declared in module.contract.yaml and already cover postgres outputs. SDD-C-015 through SDD-C-021 not applicable to this infra-only module.
+- Applicable control IDs: SDD-C-001, SDD-C-002, SDD-C-003, SDD-C-004, SDD-C-005, SDD-C-006, SDD-C-007, SDD-C-008, SDD-C-009, SDD-C-010, SDD-C-011, SDD-C-012, SDD-C-013, SDD-C-014, SDD-C-015, SDD-C-016, SDD-C-017, SDD-C-018, SDD-C-019, SDD-C-020, SDD-C-021
+- Control exception rationale:
+  - SDD-C-015: No app onboarding make-target contract changes — this work item affects only infra module wrappers, not app delivery workflows.
+  - SDD-C-018: No blueprint upstream defect escalation — this is a blueprint-internal implementation.
+  - SDD-C-022: Not applicable — no HTTP route handlers or new API endpoints in scope.
+  - SDD-C-023: Not applicable — no filter or payload-transform logic in scope.
+  - SDD-C-024: Not applicable — no pre-PR smoke/curl/deterministic-check findings to translate; no reproducible failures exist at intake time.
 
 ## Implementation Stack Profile (Normative)
-- Backend stack profile: none — infra-only work item
-- Frontend stack profile: none — infra-only work item
-- Test automation profile: pytest_shell_contract
+- Backend stack profile: python_plus_fastapi_pydantic_v2
+- Frontend stack profile: none
+- Test automation profile: pytest_vitest_playwright_pact
 - Agent execution model: specialized-subagents-isolated-worktrees
 - Managed service preference: stackit-managed-first
-- Managed service exception rationale: none
+- Managed service exception rationale: local lane uses Bitnami postgresql Helm chart (dev-only, not production-managed); this is the established blueprint pattern for local lane provisioning
 - Runtime profile: local-first-docker-desktop-kubernetes
 - Local Kubernetes context policy: docker-desktop-preferred
 - Local provisioning stack: crossplane-plus-helm
@@ -81,7 +86,8 @@
 - API contract: none
 - OpenAPI / Pact contract path: none
 - Event contract: none
-- Make/CLI contract: no new make targets; existing `infra-postgres-{plan,apply,smoke,destroy}` targets unchanged.
+- Make/CLI contract: `infra-postgres-{plan,apply,smoke,destroy}` targets unchanged; no new targets.
+- Module execution contract: `OPTIONAL_MODULE_EXECUTION_CLASS` changes from `provider_backed` to `fallback_runtime` for the local lane; STACKIT lane class unchanged (`provider_backed`). `tests/infra/test_tooling_contracts.py` gains two new assertions for postgres local and STACKIT class resolution.
 - Docs contract: `docs/platform/modules/postgres/README.md` completed with both-lanes usage, credentials section, smoke section, and destroy section.
 
 ## Blueprint Upstream Defect Escalation (Normative)
