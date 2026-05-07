@@ -28,4 +28,5 @@
 - Rollback strategy: Revert the PR; existing runtime state files are not touched by rollback. The K8s Secret `blueprint-object-storage-auth` can be deleted manually via `kubectl delete secret -n data blueprint-object-storage-auth` if needed.
 
 ## Deferred Proposals
-- none
+- Per-bucket credential scoping via STACKIT `credentials_group` — Parked — trigger: on-scope: infra — no active consumer need; surfaces when a consumer requests bucket-scoped access keys
+- Explicit test for smoke failing when runtime state file is entirely absent — Parked — trigger: on-scope: infra — `state_file_exists` has no unit test; smoke absent-state path untested at module level
