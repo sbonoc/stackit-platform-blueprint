@@ -374,10 +374,11 @@ for tool in "${required_tools[@]}"; do
 done
 
 check_or_install_python_module "pytest" "required"
-# pyyaml is imported by blueprint Python scripts (init_repo.py, validate_contract.py,
-# etc.) via their #!/usr/bin/env python3 shebang, not via `uv run`.  Installing it
-# here ensures it is present on system python3 for both source-repo and consumer
-# contexts, independently of whether .venv/bin is on PATH.
+# Defence-in-depth: ensure pyyaml is available on system python3 even in
+# environments where the uv project venv has not yet been created or is not on
+# PATH (e.g. first-run consumer clone, minimal CI runners).  Blueprint scripts
+# are canonically invoked via `uv run python3`, which provides pyyaml through
+# the project venv; this check is a safety net for edge cases.
 check_or_install_python_module "yaml" "required" "pyyaml"
 
 for tool in "${stackit_tools[@]}"; do

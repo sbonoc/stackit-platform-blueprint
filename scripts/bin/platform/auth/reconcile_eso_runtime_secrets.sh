@@ -47,7 +47,7 @@ runtime_secret_json_helpers="$ROOT_DIR/scripts/lib/platform/auth/runtime_secret_
 while IFS=$'\t' read -r env_name env_default; do
   [[ -n "$env_name" ]] || continue
   set_default_env "$env_name" "$env_default"
-done < <(python3 "$runtime_identity_contract_cli" runtime-env-defaults)
+done < <(uv run python3 "$runtime_identity_contract_cli" runtime-env-defaults)
 
 set_default_env RUNTIME_CREDENTIALS_SOURCE_SECRET_NAME "runtime-credentials-source"
 set_default_env RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS ""
@@ -142,7 +142,7 @@ verify_target_secret_keys() {
     secret_json="$(run_kubectl_capture_stdout_with_active_access -n "$namespace" get secret "$secret_name" -o json 2>/dev/null || true)"
     checker_output="$(
       printf '%s' "$secret_json" | \
-        python3 "$runtime_secret_json_helpers" check-target-secret \
+        uv run python3 "$runtime_secret_json_helpers" check-target-secret \
           --namespace "$namespace" \
           --secret-name "$secret_name" \
           --required-keys "$keys_csv" \
@@ -152,7 +152,7 @@ verify_target_secret_keys() {
     checker_status=$?
   else
     checker_output="$(
-      python3 "$runtime_secret_json_helpers" check-target-secret \
+      uv run python3 "$runtime_secret_json_helpers" check-target-secret \
         --namespace "$namespace" \
         --secret-name "$secret_name" \
         --required-keys "$keys_csv" \
@@ -363,7 +363,7 @@ while IFS='|' read -r contract_id contract_module contract_namespace contract_ex
     "$contract_external_secret" \
     "$contract_target_secret" \
     "$contract_target_keys"
-done < <(python3 "$runtime_identity_contract_cli" eso-contracts | tr $'\t' '|')
+done < <(uv run python3 "$runtime_identity_contract_cli" eso-contracts | tr $'\t' '|')
 
 if (( ${#ESO_SECRET_CONTRACTS_SKIPPED[@]} > 0 )); then
   skipped_contract_count="${#ESO_SECRET_CONTRACTS_SKIPPED[@]}"
@@ -521,14 +521,14 @@ fi
 
 target_secret_diagnostics_count="${#TARGET_SECRET_CHECK_DIAGNOSTIC_FILES[@]}"
 if (( target_secret_diagnostics_count > 0 )); then
-  if ! python3 "$runtime_secret_json_helpers" render-check-report \
+  if ! uv run python3 "$runtime_secret_json_helpers" render-check-report \
     --output "$target_secret_diagnostics_report" \
     "${TARGET_SECRET_CHECK_DIAGNOSTIC_FILES[@]}" >/dev/null; then
     target_secret_status="verify-error"
     record_reconcile_issue "failed to render runtime target-secret diagnostics report at $target_secret_diagnostics_report"
   fi
 else
-  if ! python3 "$runtime_secret_json_helpers" render-check-report \
+  if ! uv run python3 "$runtime_secret_json_helpers" render-check-report \
     --output "$target_secret_diagnostics_report" >/dev/null; then
     target_secret_status="verify-error"
     record_reconcile_issue "failed to render runtime target-secret diagnostics report at $target_secret_diagnostics_report"

@@ -52,7 +52,7 @@ generic_reconcile_script="$ROOT_DIR/scripts/bin/platform/auth/reconcile_eso_runt
 while IFS=$'\t' read -r env_name env_default; do
   [[ -n "$env_name" ]] || continue
   set_default_env "$env_name" "$env_default"
-done < <(python3 "$runtime_identity_contract_cli" runtime-env-defaults)
+done < <(uv run python3 "$runtime_identity_contract_cli" runtime-env-defaults)
 
 set_default_env RUNTIME_CREDENTIALS_SOURCE_SECRET_NAME "runtime-credentials-source"
 set_default_env ARGOCD_REPO_TYPE "git"
@@ -132,7 +132,7 @@ EOF
   run_cmd kubectl apply -f "$namespace_manifest_file"
 
   if kubectl -n "$namespace" get secret "$secret_name" >/dev/null 2>&1; then
-    run_cmd python3 "$argocd_repo_json_helpers" render-source-patch \
+    run_cmd uv run python3 "$argocd_repo_json_helpers" render-source-patch \
       "$patch_file" \
       "$ARGOCD_REPO_TYPE" \
       "$ARGOCD_REPO_URL" \
@@ -156,7 +156,7 @@ validate_argocd_target_secret() {
   local validation_output
   if ! validation_output="$(
     kubectl -n "$namespace" get secret "$secret_name" -o json | \
-      python3 "$argocd_repo_json_helpers" validate-target-secret "$expected_url" 2>&1
+      uv run python3 "$argocd_repo_json_helpers" validate-target-secret "$expected_url" 2>&1
   )"; then
     while IFS= read -r line; do
       [[ -n "$line" ]] || continue
@@ -177,7 +177,7 @@ SOURCE_SECRET_SYNC_MODE_RESULT=""
 canonical_repo_output=""
 # argparse global options must be placed before the subcommand; keep this order
 # stable so contract resolution works in both local and CI execution.
-if ! canonical_repo_output="$(python3 "$argocd_repo_contract_cli" --repo-root "$ROOT_DIR" canonical-url 2>&1)"; then
+if ! canonical_repo_output="$(uv run python3 "$argocd_repo_contract_cli" --repo-root "$ROOT_DIR" canonical-url 2>&1)"; then
   while IFS= read -r line; do
     [[ -n "$line" ]] || continue
     record_reconcile_issue "$line"

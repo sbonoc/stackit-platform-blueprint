@@ -39,7 +39,7 @@ reconcile_argocd_script="$ROOT_DIR/scripts/bin/platform/auth/reconcile_argocd_re
 while IFS=$'\t' read -r env_name env_default; do
   [[ -n "$env_name" ]] || continue
   set_default_env "$env_name" "$env_default"
-done < <(python3 "$runtime_identity_contract_cli" runtime-env-defaults)
+done < <(uv run python3 "$runtime_identity_contract_cli" runtime-env-defaults)
 
 set_default_env ARGOCD_REPO_CREDENTIALS_REQUIRED "false"
 if [[ -z "${RUNTIME_IDENTITY_RECONCILE_REQUIRED+x}" ]]; then
@@ -96,7 +96,7 @@ else
   while IFS=$'\t' read -r contract_id _module_id _namespace _external_secret _target_secret _target_keys; do
     [[ -n "$contract_id" ]] || continue
     eso_contract_ids+=("$contract_id")
-  done < <(python3 "$runtime_identity_contract_cli" eso-contracts)
+  done < <(uv run python3 "$runtime_identity_contract_cli" eso-contracts)
 
   keycloak_checked_realms=""
   while IFS=$'\t' read -r realm_id module_id realm_env _default_realm resolved_realm _display client_id_env client_secret_env _admin_user_env _admin_password_env; do
@@ -132,7 +132,7 @@ else
     if [[ "$found_contract" != "true" ]]; then
       record_issue "missing ESO contract id=$expected_contract_id required by keycloak realm_id=$realm_id"
     fi
-  done < <(python3 "$runtime_identity_contract_cli" keycloak-realms)
+  done < <(uv run python3 "$runtime_identity_contract_cli" keycloak-realms)
 
   if [[ -z "$keycloak_checked_realms" ]]; then
     keycloak_checked_realms="none"
