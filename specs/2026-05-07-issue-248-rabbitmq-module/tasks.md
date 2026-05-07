@@ -7,21 +7,36 @@
 - [ ] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
 - [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
 
-## Implementation
-- [ ] T-001 Implement STACKIT Terraform module: `infra/cloud/stackit/terraform/modules/rabbitmq/main.tf` (complete with resources), `variables.tf`, `outputs.tf`
-- [ ] T-002 Update foundation outputs: add `rabbitmq_management_url` to `infra/cloud/stackit/terraform/foundation/outputs.tf`
-- [ ] T-003 Update `blueprint/modules/rabbitmq/module.contract.yaml`: add `RABBITMQ_VHOST` and `RABBITMQ_MANAGEMENT_URL` to `outputs.produced`
-- [ ] T-004 Add `rabbitmq_vhost()` and `rabbitmq_management_url()` to `scripts/lib/infra/rabbitmq.sh`
-- [ ] T-005 Update `scripts/bin/infra/rabbitmq_apply.sh`: add `vhost` and `management_url` keys to `write_state_file` call
-- [ ] T-006 Harden `scripts/bin/infra/rabbitmq_smoke.sh`: add explicit `host`, `port`, `vhost`, `management_url` non-empty checks
-- [ ] T-007 Write `docs/platform/modules/rabbitmq/README.md` (both-lanes usage, credentials, vhost, management URL, smoke, destroy sections)
+## Implementation (ordered by slice)
+
+### Slice 1 — Tests RED
+- [ ] T-001 Write `tests/infra/modules/rabbitmq/test_rabbitmq_module.py` with all unit assertions RED (AC-001–AC-003, AC-005–AC-014 excluding AC-004)
+- [ ] T-002 Write `tests/infra/modules/rabbitmq/test_contract.py` with contract assertions RED (AC-004, AC-012)
+- [ ] T-003 Register both test files in `scripts/lib/quality/test_pyramid_contract.json` under `unit` scope
+- [ ] T-004 Confirm `pytest tests/infra/modules/rabbitmq/ -v` is all RED
+
+### Slice 2 — STACKIT Terraform Module + Foundation Outputs
+- [ ] T-005 Implement `infra/cloud/stackit/terraform/modules/rabbitmq/main.tf` (complete with `stackit_rabbitmq_instance` + `stackit_rabbitmq_credential`; `lifecycle { create_before_destroy = true }` on instance)
+- [ ] T-006 Implement `infra/cloud/stackit/terraform/modules/rabbitmq/variables.tf` (all contract inputs)
+- [ ] T-007 Implement `infra/cloud/stackit/terraform/modules/rabbitmq/outputs.tf` (all contract output keys including `rabbitmq_management_url`)
+- [ ] T-008 Implement `infra/cloud/stackit/terraform/modules/rabbitmq/versions.tf` (provider version pin matching foundation)
+- [ ] T-009 Update `infra/cloud/stackit/terraform/foundation/outputs.tf`: add `rabbitmq_management_url` from `stackit_rabbitmq_credential.foundation[0].management`
+
+### Slice 3 — Contract + Shell Layer
+- [ ] T-010 Update `blueprint/modules/rabbitmq/module.contract.yaml`: add `RABBITMQ_VHOST` and `RABBITMQ_MANAGEMENT_URL` to `outputs.produced`
+- [ ] T-011 Add `rabbitmq_vhost()` and `rabbitmq_management_url()` to `scripts/lib/infra/rabbitmq.sh`
+- [ ] T-012 Update `scripts/bin/infra/rabbitmq_apply.sh`: add `vhost` and `management_url` keys to `write_state_file` call
+- [ ] T-013 Harden `scripts/bin/infra/rabbitmq_smoke.sh`: add explicit `host`, `port`, `vhost`, `management_url` non-empty checks
+
+### Slice 4 — Docs
+- [ ] T-014 Write `docs/platform/modules/rabbitmq/README.md` (both-lanes usage, credentials, vhost, management URL, smoke, destroy sections)
 
 ## Test Automation
-- [ ] T-101 Write unit tests for STACKIT Terraform module structure (AC-001, AC-002, AC-003)
-- [ ] T-102 Write contract test confirming `module.contract.yaml` outputs include `RABBITMQ_VHOST` and `RABBITMQ_MANAGEMENT_URL` (AC-004)
+- [ ] T-101 Tests in `test_rabbitmq_module.py`: Terraform module structure (AC-001, AC-002, AC-003); foundation outputs (AC-013); shell functions `rabbitmq_vhost()` and `rabbitmq_management_url()` (AC-005, AC-006); apply state file keys (AC-007); smoke pass/fail scenarios (AC-008, AC-009, AC-010, AC-011, AC-014)
+- [ ] T-102 Tests in `test_contract.py`: `module.contract.yaml` outputs include `RABBITMQ_VHOST` and `RABBITMQ_MANAGEMENT_URL` (AC-004); runtime state has all seven keys (AC-012)
 - [ ] T-103 Not applicable — no filter/payload-transform logic in scope
 - [ ] T-104 Not applicable — no reproducible pre-PR findings to translate
-- [ ] T-105 Write unit tests for `rabbitmq_vhost()` and `rabbitmq_management_url()` (AC-005, AC-006); write state file and smoke pass/fail tests (AC-007 through AC-012); write foundation outputs test (AC-013)
+- [ ] T-105 Confirm total assertion count ≥ 20 across both test files
 
 ## Accessibility Testing (Normative — mark N/A with rationale for non-UI specs)
 - [x] T-A01 NFR-A11Y-001 declared in `spec.md` as "N/A — no UI component; rabbitmq is an infrastructure module with no browser-facing surface"

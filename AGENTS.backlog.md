@@ -23,7 +23,8 @@ To introduce a new tag, append a row here in the same commit that uses it.
 ---
 
 ## Current Priorities
-- [ ] P1 (Platform modules — first-class): Issue #248 — Postgres module dual-lane implementation (Bitnami Helm local + STACKIT `stackit_postgresflex_*` Terraform). **In progress**: `specs/2026-05-07-issue-248-postgres-module/`, PR #251. `SPEC_READY: true`. 4 slices: exec class fix + Secret-backed credentials + STACKIT Terraform module + smoke hardening.
+- [x] P1 (Platform modules — first-class): Issue #248 — Postgres module dual-lane implementation (Bitnami Helm local + STACKIT `stackit_postgresflex_*` Terraform). **Done**: `specs/2026-05-07-issue-248-postgres-module/`, PR #251. 4 slices complete; `SPEC_READY: true`.
+- [ ] P1 (Platform modules — first-class): Issue #248 — RabbitMQ module dual-lane implementation (Bitnami Helm local + STACKIT `stackit_rabbitmq_*` Terraform). **In progress**: `specs/2026-05-07-issue-248-rabbitmq-module/`, PR #255. `SPEC_READY: true`. 4 slices: Tests RED → STACKIT Terraform module + foundation outputs → contract + shell layer → docs.
 - [x] P1 (Platform modules — first-class): Issue #248 — Object-storage module dual-lane implementation (MinIO local + STACKIT Terraform). **Done**: `specs/2026-05-06-issue-248-object-storage-module/`, PR #250. 5 slices complete; 27/27 tests green; 9/9 quality gates pass. `SPEC_READY: true`.
 - [ ] (parked) proposal(issue-248-object-storage-module): per-bucket credential scoping via STACKIT credentials_group
       trigger: on-scope: infra
