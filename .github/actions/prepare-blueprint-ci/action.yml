@@ -18,6 +18,10 @@ runs:
       shell: bash
       run: |
         corepack enable
+        # Pin to the version declared in docs/package.json#packageManager so that
+        # Corepack does not resolve to a newer default (pnpm@11+ enforces strict
+        # version matching and won't auto-downgrade when invoked via Corepack).
+        corepack prepare pnpm@10.32.1 --activate
         pnpm --version
 
     - name: Ensure CI CLI prerequisites

@@ -19,8 +19,19 @@ docs_require_workspace() {
   fi
 }
 
+_docs_assert_pnpm_version() {
+  local required_version actual_version
+  # Extract the semver from e.g. "pnpm@10.32.1" — strip the "pnpm@" prefix.
+  required_version="$(python3 -c "import json,sys; d=json.load(open('$DOCS_SITE_DIR/package.json')); print(d.get('packageManager','').lstrip('pnpm@'))")"
+  actual_version="$(pnpm --version)"
+  if [[ -n "$required_version" && "$actual_version" != "$required_version" ]]; then
+    log_fatal "pnpm version mismatch: docs/package.json requires pnpm@${required_version} but active pnpm is ${actual_version}. Update the local pnpm installation or the CI action's corepack prepare pin."
+  fi
+}
+
 docs_pnpm_install() {
   docs_require_workspace
+  _docs_assert_pnpm_version
   run_cmd pnpm --dir "$DOCS_SITE_DIR" install --frozen-lockfile
 }
 
