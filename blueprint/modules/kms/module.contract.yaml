@@ -38,6 +38,7 @@ spec:
       - KMS_KEY_NAME
       - KMS_KEY_RING_ID
       - KMS_KEY_ID
+      - KMS_ENDPOINT
 
   make_targets:
     plan: infra-kms-plan

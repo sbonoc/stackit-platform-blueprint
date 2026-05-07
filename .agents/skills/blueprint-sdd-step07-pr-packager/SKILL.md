@@ -156,8 +156,9 @@ STEP 9 — MARK PR READY
 10. Mark the Draft PR as ready:
     gh pr ready <number>
 
-11. Post the review request comment:
+11. Post the review request comments:
     gh pr comment <number> --body "@codex review this PR"
+    gh pr comment <number> --body "@claude review this PR"
 ```
 
 ## Deferred proposal lifecycle

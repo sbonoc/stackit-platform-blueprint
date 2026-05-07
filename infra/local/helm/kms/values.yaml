@@ -1,0 +1,14 @@
+fullnameOverride: "blueprint-vault"
+server:
+  dev:
+    enabled: true
+    devRootToken: "blueprint-vault-root-token"
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+injector:
+  enabled: false

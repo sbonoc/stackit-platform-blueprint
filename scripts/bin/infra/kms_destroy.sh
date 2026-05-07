@@ -5,6 +5,7 @@ source "$SCRIPT_DIR/../../lib/shell/bootstrap.sh"
 source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 source "$ROOT_DIR/scripts/lib/infra/stack_paths.sh"
 source "$ROOT_DIR/scripts/lib/infra/module_execution.sh"
+source "$ROOT_DIR/scripts/lib/infra/fallback_runtime.sh"
 source "$ROOT_DIR/scripts/lib/infra/state.sh"
 source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
 source "$ROOT_DIR/scripts/lib/infra/kms.sh"
@@ -20,8 +21,10 @@ foundation_reconcile_apply)
   optional_module_log_execution_note
   optional_module_destroy_foundation_contract "kms"
   ;;
-external_automation_contract | noop)
-  optional_module_log_execution_note
+helm)
+  destroy_path="$KMS_VAULT_HELM_RELEASE@$KMS_NAMESPACE"
+  run_helm_uninstall "$KMS_VAULT_HELM_RELEASE" "$KMS_NAMESPACE"
+  kms_delete_runtime_secret
   ;;
 *)
   optional_module_unexpected_driver "kms" "destroy"

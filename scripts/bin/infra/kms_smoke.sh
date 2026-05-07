@@ -19,14 +19,21 @@ if ! state_file_exists kms_runtime; then
 fi
 
 runtime_state="$(state_file_path kms_runtime)"
-if ! grep -q '^key_id=' "$runtime_state"; then
-  log_fatal "kms runtime key_id contract is invalid"
+if ! grep -q '^key_ring_id=.\+' "$runtime_state"; then
+  log_fatal "kms runtime key_ring_id is missing or empty"
+fi
+if ! grep -q '^key_id=.\+' "$runtime_state"; then
+  log_fatal "kms runtime key_id is missing or empty"
+fi
+if ! grep -q '^endpoint=.\+' "$runtime_state"; then
+  log_fatal "kms runtime endpoint is missing or empty"
 fi
 
 state_file="$(write_state_file "kms_smoke" \
   "status=passed" \
   "key_ring_id=$(kms_key_ring_id)" \
   "key_id=$(kms_key_id)" \
+  "endpoint=$(kms_endpoint)" \
   "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")")"
 
 log_info "kms smoke state written to $state_file"
