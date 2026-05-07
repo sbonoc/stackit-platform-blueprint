@@ -4,7 +4,7 @@ SHELL := /bin/bash
 .PHONY: help \
   blueprint-init-repo blueprint-init-repo-interactive blueprint-resync-consumer-seeds blueprint-upgrade-consumer blueprint-upgrade-consumer-apply blueprint-upgrade-consumer-preflight blueprint-upgrade-consumer-validate blueprint-upgrade-consumer-postcheck blueprint-upgrade-fresh-env-gate blueprint-upgrade-readiness-doctor blueprint-uplift-status blueprint-seed-feature blueprint-feature-gate-status blueprint-install-codex-skill blueprint-install-codex-skill-consumer-ops blueprint-install-codex-skill-sdd-step01-intake blueprint-install-codex-skill-sdd-step02-resolve-questions blueprint-install-codex-skill-sdd-step03-spec-complete blueprint-install-codex-skill-sdd-step04-plan-slicer blueprint-install-codex-skill-sdd-step05-implement blueprint-install-codex-skill-sdd-step06-document-sync blueprint-install-codex-skill-sdd-step07-pr-packager blueprint-install-codex-skill-sdd-traceability-keeper blueprint-install-codex-skills blueprint-prune-codex-skills blueprint-ownership-check blueprint-ownership-metadata blueprint-check-placeholders blueprint-template-smoke blueprint-bootstrap blueprint-render-makefile blueprint-clean-generated blueprint-render-module-wrapper-skeletons spec-scaffold spec-impact spec-evidence-manifest spec-context-pack spec-pr-context \
   test-contracts-async-producer test-contracts-async-consumer test-contracts-async-all \
-  quality-hooks-fast quality-hooks-strict quality-hooks-run quality-root-dir-prelude-check quality-infra-shell-source-graph-check quality-sdd-sync-control-catalog quality-sdd-check-control-catalog-sync quality-sdd-sync-consumer-init-assets quality-sdd-check-consumer-init-assets-sync quality-sdd-sync-policy-snippets quality-sdd-check-policy-snippets-sync quality-sdd-sync-all quality-sdd-check-all quality-sdd-check quality-spec-pr-ready quality-hardening-review quality-runtime-contract-drift-report quality-ci-sync quality-ci-check-sync quality-ci-fast quality-ci-slow-integration quality-ci-full-e2e quality-ci-strict quality-ci-blueprint quality-ci-generated-consumer-smoke quality-ci-upgrade-validate quality-docs-lint quality-docs-sync-all quality-docs-check-changed quality-docs-sync-blueprint-template quality-docs-check-blueprint-template-sync quality-docs-sync-platform-seed quality-docs-check-platform-seed-sync quality-docs-sync-core-targets quality-docs-check-core-targets-sync quality-docs-sync-contract-metadata quality-docs-check-contract-metadata-sync quality-docs-sync-runtime-identity-summary quality-docs-check-runtime-identity-summary-sync quality-docs-sync-module-contract-summaries quality-docs-check-module-contract-summaries-sync quality-test-pyramid \
+  quality-hooks-fast quality-hooks-strict quality-hooks-run quality-root-dir-prelude-check quality-infra-shell-source-graph-check quality-sdd-sync-control-catalog quality-sdd-check-control-catalog-sync quality-sdd-sync-consumer-init-assets quality-sdd-check-consumer-init-assets-sync quality-sdd-sync-policy-snippets quality-sdd-check-policy-snippets-sync quality-sdd-sync-all quality-sdd-check-all quality-sdd-check quality-spec-pr-ready quality-hardening-review quality-runtime-contract-drift-report quality-ci-sync quality-ci-check-sync quality-ci-fast quality-ci-slow-integration quality-ci-full-e2e quality-ci-strict quality-ci-blueprint quality-consumer-pre-push quality-consumer-ci quality-ci-generated-consumer-smoke quality-ci-upgrade-validate quality-docs-lint quality-docs-sync-all quality-docs-check-changed quality-docs-sync-blueprint-template quality-docs-check-blueprint-template-sync quality-docs-sync-platform-seed quality-docs-check-platform-seed-sync quality-docs-sync-core-targets quality-docs-check-core-targets-sync quality-docs-sync-contract-metadata quality-docs-check-contract-metadata-sync quality-docs-sync-runtime-identity-summary quality-docs-check-runtime-identity-summary-sync quality-docs-sync-module-contract-summaries quality-docs-check-module-contract-summaries-sync quality-test-pyramid \
   infra-prereqs infra-help-reference infra-contract-test-fast infra-port-forward-start infra-port-forward-stop infra-port-forward-cleanup infra-bootstrap infra-local-destroy-all infra-destroy-disabled-modules infra-validate infra-smoke infra-provision infra-deploy infra-provision-deploy \
   infra-stackit-bootstrap-preflight infra-stackit-bootstrap-plan infra-stackit-bootstrap-apply infra-stackit-bootstrap-destroy \
   infra-stackit-foundation-preflight infra-stackit-foundation-plan infra-stackit-foundation-apply infra-stackit-foundation-destroy \
@@ -55,8 +55,10 @@ blueprint-upgrade-fresh-env-gate: ## Run fresh-environment smoke gate — CI-equ
 blueprint-upgrade-readiness-doctor: ## Generate generated-consumer upgrade readiness diagnostics and manual-action hints
 	@scripts/bin/blueprint/upgrade_readiness_doctor.sh
 
-blueprint-uplift-status: ## Report blueprint uplift convergence status for tracked issues in consumer backlog (optional BLUEPRINT_UPLIFT_STRICT=true)
-	@scripts/bin/blueprint/uplift_status.sh
+BLUEPRINT_UPLIFT_STATUS_SCRIPT ?= scripts/bin/blueprint/uplift_status.sh
+
+blueprint-uplift-status: ## Report blueprint uplift convergence status for tracked issues in consumer backlog (optional BLUEPRINT_UPLIFT_STRICT=true; override script via BLUEPRINT_UPLIFT_STATUS_SCRIPT in platform.mk)
+	@$(BLUEPRINT_UPLIFT_STATUS_SCRIPT)
 
 blueprint-seed-feature: ## Seed consumer-seeded feature gate files into this consumer repo (FEATURE=<gate-id>)
 	@python3 scripts/bin/blueprint/seed_feature.py --feature $(FEATURE) --repo-root .
@@ -138,14 +140,16 @@ blueprint-clean-generated: ## Remove generated runtime/build/cache artifacts
 blueprint-render-module-wrapper-skeletons: ## Render optional-module wrapper skeleton templates from module contracts
 	@scripts/bin/blueprint/render_module_wrapper_skeletons.sh
 
-spec-scaffold: ## Scaffold SDD work-item documents under specs/YYYY-MM-DD-work-item-slug (set SPEC_SLUG; optional SPEC_TRACK/SPEC_DATE/SPEC_FORCE=true/SPEC_BRANCH=<name>/SPEC_NO_BRANCH=true)
+SPEC_SCAFFOLD_DEFAULT_TRACK ?= blueprint
+
+spec-scaffold: ## Scaffold SDD work-item documents under specs/YYYY-MM-DD-work-item-slug (set SPEC_SLUG; optional SPEC_TRACK/SPEC_DATE/SPEC_FORCE=true/SPEC_BRANCH=<name>/SPEC_NO_BRANCH=true; override default track via SPEC_SCAFFOLD_DEFAULT_TRACK in platform.mk)
 	@if [[ -z "$(strip $(SPEC_SLUG))" ]]; then \
 		echo "[spec-scaffold] set SPEC_SLUG=<work-item-slug>" >&2; \
 		exit 1; \
 	fi
 	@python3 scripts/bin/blueprint/spec_scaffold.py \
 		--slug "$(SPEC_SLUG)" \
-		--track "$(or $(SPEC_TRACK),blueprint)" \
+		--track "$(or $(SPEC_TRACK),$(SPEC_SCAFFOLD_DEFAULT_TRACK))" \
 		$(if $(strip $(SPEC_DATE)),--date "$(SPEC_DATE)",) \
 		$(if $(filter true,$(SPEC_FORCE)),--force,) \
 		$(if $(strip $(SPEC_BRANCH)),--branch "$(SPEC_BRANCH)",) \
@@ -183,13 +187,14 @@ test-contracts-async-all: ## Run async Pact message-contract producer+consumer l
 # Augment the platform-owned aggregate contract lane without overriding its recipe.
 test-contracts-all: test-contracts-async-all
 
-quality-hooks-fast: ## Run fast local quality checks
+quality-hooks-fast: ## Run fast local quality checks (set QUALITY_HOOKS_KEEP_GOING=true to aggregate all failures; QUALITY_HOOKS_FORCE_FULL=true to bypass path/phase gating)
 	@scripts/bin/quality/hooks_fast.sh
+	@$(MAKE) quality-a11y-acr-check
 
-quality-hooks-strict: ## Run slower audit-focused quality checks
+quality-hooks-strict: ## Run slower audit-focused quality checks (set QUALITY_HOOKS_KEEP_GOING=true to aggregate all failures)
 	@scripts/bin/quality/hooks_strict.sh
 
-quality-hooks-run: ## Run pre-commit hooks and quality gates
+quality-hooks-run: ## Run pre-commit hooks and quality gates (set QUALITY_HOOKS_KEEP_GOING=true to aggregate all failures across both phases)
 	@scripts/bin/quality/hooks_run.sh
 
 quality-root-dir-prelude-check: ## Fail when shell entrypoints reintroduce inline ROOT_DIR resolver drift
@@ -270,9 +275,16 @@ quality-ci-blueprint: ## Run source blueprint CI lane bundle
 	@$(MAKE) quality-ci-fast
 	@$(MAKE) quality-ci-strict
 	@pre-commit run --hook-stage pre-push --all-files
+	@$(MAKE) quality-consumer-ci
 
-quality-ci-generated-consumer-smoke: ## Run generated-consumer template smoke lane
-	@BLUEPRINT_TEMPLATE_SMOKE_SCENARIO=local-lite-baseline \
+quality-consumer-pre-push: ## Consumer pre-push quality gate extension — override in platform.mk
+	@true
+
+quality-consumer-ci: ## Consumer CI quality gate extension — override in platform.mk
+	@true
+
+quality-ci-generated-consumer-smoke: ## Run generated-consumer template smoke lane (covers issue #230 v1.8.0 paired-reseed scenario)
+	@BLUEPRINT_TEMPLATE_SMOKE_SCENARIO=local-lite-issue-230-paired-reseed \
 	BLUEPRINT_PROFILE=local-lite \
 	OBSERVABILITY_ENABLED=false \
 	WORKFLOWS_ENABLED=false \
@@ -291,6 +303,7 @@ quality-ci-generated-consumer-smoke: ## Run generated-consumer template smoke la
 	BLUEPRINT_GITHUB_ORG=ci-smoke-org \
 	BLUEPRINT_GITHUB_REPO=ci-smoke-blueprint \
 	BLUEPRINT_DEFAULT_BRANCH=main \
+	BLUEPRINT_TEMPLATE_SMOKE_PRESEED_CONSUMER_KUSTOMIZATION=true \
 	$(MAKE) blueprint-template-smoke
 
 quality-ci-upgrade-validate: ## Run end-to-end consumer upgrade validation lane (push-to-main gate)

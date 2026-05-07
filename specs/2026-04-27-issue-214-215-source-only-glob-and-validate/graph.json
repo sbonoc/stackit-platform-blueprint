@@ -1,0 +1,88 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-04-27-issue-214-215-source-only-glob-and-validate",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "audit_source_tree_coverage must treat prune-glob-matched source files as covered"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "_validate_absent_files must use is_file() not exists() for path entries"
+    },
+    {
+      "id": "FR-003",
+      "type": "requirement",
+      "summary": "_validate_absent_files must support glob-pattern and directory-prefix entries in source_only"
+    },
+    {
+      "id": "FR-004",
+      "type": "requirement",
+      "summary": "Regression test fixture must cover directory entry, glob entry, and prune-glob coverage cases"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "Glob expansion must be bounded to repo root with no external process execution"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "stderr WARNING must continue for genuinely uncovered source files"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "Exact-file source_only entries must behave identically (backward compat)"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "Regression tests must run via pytest without k8s or external network"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "prune-glob-matched files not reported as uncovered; uncovered_source_files_count is 0"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "directory-prefix source_only entry does not trigger absent-file error"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "glob source_only entry emits error for each matching file in consumer"
+    },
+    {
+      "id": "AC-004",
+      "type": "acceptance",
+      "summary": "glob source_only entry with no matching file emits no error"
+    },
+    {
+      "id": "AC-005",
+      "type": "acceptance",
+      "summary": "exact-file source_only entry with file present emits error (backward compat)"
+    }
+  ],
+  "edges": [
+    { "from": "FR-001", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-002", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-005", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-003", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-004", "relation": "validated_by" },
+    { "from": "FR-004", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-004", "to": "AC-002", "relation": "validated_by" },
+    { "from": "FR-004", "to": "AC-003", "relation": "validated_by" },
+    { "from": "FR-004", "to": "AC-004", "relation": "validated_by" },
+    { "from": "NFR-SEC-001", "to": "FR-001", "relation": "constrains" },
+    { "from": "NFR-SEC-001", "to": "FR-003", "relation": "constrains" },
+    { "from": "NFR-OBS-001", "to": "FR-001", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "FR-002", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "AC-005", "relation": "constrains" },
+    { "from": "NFR-OPS-001", "to": "FR-004", "relation": "constrains" }
+  ]
+}

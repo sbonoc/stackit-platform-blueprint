@@ -29,6 +29,8 @@ Use this skill when working in a **generated-consumer** repo and the user asks f
 
 > If `AGENTS.md` changes any of the above sections, update this block to reflect the affected sections.
 
+> Quality-hooks usage policy (per-slice vs pre-PR gate, keep-going env, force-full): see AGENTS.md § Quality Hooks — Inner-Loop and Pre-PR Usage.
+
 ## Guardrails
 1. Treat `blueprint/contract.yaml` as the execution contract.
 2. Keep ownership boundaries strict:

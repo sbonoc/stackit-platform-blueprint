@@ -128,7 +128,7 @@ If the effective contract set resolves to empty (`contracts=0`), reconciliation 
 
 Additional reconcile knobs:
 - `RUNTIME_CREDENTIALS_SOURCE_SECRET_NAME` (default `runtime-credentials-source`)
-- `RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS` (format: `key=value,key2=value2`)
+- `RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS` (format: newline-separated `key=value` pairs, one per line; comma-separated format is no longer accepted)
 - `RUNTIME_CREDENTIALS_TARGET_SECRET_NAME` (default `runtime-credentials`)
 - `RUNTIME_CREDENTIALS_TARGET_SECRET_KEYS` (default `username,password`)
 - `ARGOCD_REPO_USERNAME` (default `x-access-token`)
@@ -138,9 +138,17 @@ Additional reconcile knobs:
 
 For deterministic local seeding without storing plaintext credentials in Git:
 ```bash
-export RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS='username=local-user,password=local-password'
+export RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS=$'username=local-user\npassword=local-password'
 make auth-reconcile-runtime-identity
 ```
+
+> **Format note:** `RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS` accepts newline-separated `key=value` pairs only. Each pair must appear on its own line. The `$'...'` bash quoting above embeds literal newlines. Values may contain commas (e.g., data URIs, base64 payloads) without truncation. Comma-separated input is no longer accepted and will be rejected with a visible diagnostic.
+>
+> **Migration:** if you were using the old comma-separated format (`username=local-user,password=local-password`), switch to the `$'...'` quoting form shown above or a multi-line assignment:
+> ```bash
+> export RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS="username=local-user
+> password=local-password"
+> ```
 
 For deterministic Argo private-repo credential reconciliation:
 ```bash

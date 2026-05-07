@@ -60,3 +60,19 @@ repos:
         pass_filenames: false
         stages: [pre-push]
         always_run: true
+      - id: pnpm-lockfile-sync
+        name: pnpm lockfile sync (pre-push)
+        language: system
+        # Guard: skip silently in repos that have no root package.json (e.g. the blueprint source
+        # repo itself, which has docs/package.json but no pnpm workspace at root).
+        entry: bash -c 'if [ -f package.json ]; then pnpm install --frozen-lockfile --prefer-offline; fi'
+        pass_filenames: false
+        stages: [pre-push]
+        files: (^|/)package\.json$
+      - id: quality-consumer-pre-push
+        name: consumer pre-push quality gate
+        language: system
+        entry: make quality-consumer-pre-push
+        pass_filenames: false
+        stages: [pre-push]
+        always_run: true

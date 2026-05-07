@@ -1,0 +1,78 @@
+{
+  "manifest_version": 1,
+  "work_item": "2026-04-28-issue-234-literal-pairs-newline-format",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-04-28T16:00:00Z",
+  "files": [
+    {
+      "path": "scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh",
+      "sha256": "0a9cac74dd2f3258581e089af96a5a4097e85cfb4ef9140bf4d8f2e23496bf00",
+      "bytes": 22581
+    },
+    {
+      "path": "tests/infra/test_runtime_credentials_eso.py",
+      "sha256": "59073370cd7f1c8e326528eeb2545107a6227b93f50462bc2c7ee5de37840807",
+      "bytes": 29722
+    },
+    {
+      "path": "docs/platform/consumer/runtime_credentials_eso.md",
+      "sha256": "4c28a869eb73ec950d4eb77a262557ea3d703ac8657ba42aec0785c929bc514b",
+      "bytes": 11885
+    },
+    {
+      "path": "docs/platform/consumer/troubleshooting.md",
+      "sha256": "34e3db79c21dd2bf15376bc13acad8f41e5932abf367d0783c61d2d6937ae50a",
+      "bytes": 33267
+    },
+    {
+      "path": "scripts/templates/blueprint/bootstrap/docs/platform/consumer/runtime_credentials_eso.md",
+      "sha256": "4c28a869eb73ec950d4eb77a262557ea3d703ac8657ba42aec0785c929bc514b",
+      "bytes": 11885
+    },
+    {
+      "path": "scripts/templates/blueprint/bootstrap/docs/platform/consumer/troubleshooting.md",
+      "sha256": "34e3db79c21dd2bf15376bc13acad8f41e5932abf367d0783c61d2d6937ae50a",
+      "bytes": 33267
+    },
+    {
+      "path": "docs/platform/architecture/decisions/ADR-20260428-issue-234-literal-pairs-newline-format.md",
+      "sha256": "d94a5facf481152c9d4f358fd3c05cb4c619ea6af226a971c4ed12a638f7620d",
+      "bytes": 4519
+    },
+    {
+      "path": "specs/2026-04-28-issue-234-literal-pairs-newline-format/spec.md",
+      "sha256": "f6da3dd7b20eae9465c00ee3f619a08a49ba032e338d22370f9f01e12fea43e5",
+      "bytes": 7812
+    },
+    {
+      "path": "specs/2026-04-28-issue-234-literal-pairs-newline-format/plan.md",
+      "sha256": "f70df5f180aca131bd8d9530e614dc45fb3f927f7b26df5dc73db4e74ca755fc",
+      "bytes": 6620
+    },
+    {
+      "path": "specs/2026-04-28-issue-234-literal-pairs-newline-format/tasks.md",
+      "sha256": "a31a2a95048b95be6c2fa28236d18283e836837123485bab7c88ed8a24b7f105",
+      "bytes": 3766
+    },
+    {
+      "path": "specs/2026-04-28-issue-234-literal-pairs-newline-format/traceability.md",
+      "sha256": "7b0122631b828e8e6c96c60d1f3b9ce73f046d16c71ede9667c22324bd28fdc2",
+      "bytes": 4145
+    },
+    {
+      "path": "specs/2026-04-28-issue-234-literal-pairs-newline-format/architecture.md",
+      "sha256": "14c5fa7751df1ecd0b2349130b396290d227245c0034dbd73a8d83dc0a2b24a7",
+      "bytes": 5259
+    },
+    {
+      "path": "specs/2026-04-28-issue-234-literal-pairs-newline-format/hardening_review.md",
+      "sha256": "5c66ee026aec8c8c1ed75adb7cda4c5928e7dd61e7d059cfd61413487ca1df3f",
+      "bytes": 3807
+    },
+    {
+      "path": "specs/2026-04-28-issue-234-literal-pairs-newline-format/pr_context.md",
+      "sha256": "e4ded6ffb15df1639cf07ccb9c629aa462cc5bcb0f365b0fd033b0408942380a",
+      "bytes": 4723
+    }
+  ]
+}

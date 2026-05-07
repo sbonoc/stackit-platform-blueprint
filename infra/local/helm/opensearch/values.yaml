@@ -1,0 +1,35 @@
+fullnameOverride: "blueprint-opensearch"
+image:
+  registry: "docker.io"
+  repository: "bitnamilegacy/opensearch"
+  tag: "2.19.1-debian-12-r4"
+security:
+  enabled: true
+  existingSecret: "blueprint-opensearch-auth"
+master:
+  masterOnly: false
+  replicaCount: 1
+  heapSize: 512m
+  resources:
+    limits:
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 512Mi
+  persistence:
+    enabled: false
+data:
+  replicaCount: 0
+ingest:
+  enabled: false
+coordinating:
+  replicaCount: 1
+  heapSize: 256m
+  resources:
+    limits:
+      memory: 512Mi
+    requests:
+      cpu: 50m
+      memory: 256Mi
+dashboards:
+  enabled: false

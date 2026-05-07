@@ -434,6 +434,7 @@ spec:
       - docs/blueprint/contracts/async_message_contracts.md
       - docs/blueprint/governance/ownership_matrix.md
       - docs/blueprint/governance/spec_driven_development.md
+      - docs/blueprint/governance/quality_hooks.md
       - docs/reference/generated/contract_metadata.generated.md
       - docs/reference/generated/core_targets.generated.md
       - contracts/async/pact/messages/producer/.gitkeep
@@ -562,10 +563,12 @@ spec:
         - .github/workflows/ci.yml
         - .github/workflows/claude.yml
         - .github/workflows/claude-code-review.yml
+        - infra/gitops/platform/base/apps/kustomization.yaml
         - infra/gitops/platform/base/apps/backend-api-deployment.yaml
         - infra/gitops/platform/base/apps/backend-api-service.yaml
         - infra/gitops/platform/base/apps/touchpoints-web-deployment.yaml
         - infra/gitops/platform/base/apps/touchpoints-web-service.yaml
+        - apps/descriptor.yaml
       init_managed:
         - blueprint/repo.init.env
         - blueprint/repo.init.secrets.example.env
@@ -1112,6 +1115,7 @@ spec:
         - governance/spec_driven_development.md
         - governance/sdd_execution_guide.md
         - governance/assistant_compatibility.md
+        - governance/quality_hooks.md
     platform_docs:
       root: docs/platform
       seed_mode: create_if_missing
@@ -1146,6 +1150,8 @@ spec:
         - docs/platform/modules/secrets-manager/README.md
         - docs/platform/modules/kms/README.md
         - docs/platform/modules/identity-aware-proxy/README.md
+        - docs/platform/accessibility/acr.md
+        - docs/platform/consumer/accessibility.md
 
   make_contract:
     required_namespaces:
@@ -1598,6 +1604,8 @@ spec:
     quality:
       check_target: quality-sdd-check
       check_script: scripts/bin/quality/check_sdd_assets.py
+      accessibility:
+        acr_staleness_days: 90
 
   versioning:
     latest_stable_required: true

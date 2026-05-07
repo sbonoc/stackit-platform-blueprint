@@ -140,6 +140,11 @@ output "rabbitmq_uri" {
   value       = var.rabbitmq_enabled ? stackit_rabbitmq_credential.foundation[0].uri : null
 }
 
+output "rabbitmq_management_url" {
+  description = "Provisioned RabbitMQ management dashboard URL."
+  value       = var.rabbitmq_enabled ? stackit_rabbitmq_credential.foundation[0].management : null
+}
+
 output "opensearch_instance_id" {
   description = "Provisioned OpenSearch instance identifier."
   value       = var.opensearch_enabled ? stackit_opensearch_instance.foundation[0].instance_id : null

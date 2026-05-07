@@ -22,6 +22,18 @@ runtime_state="$(state_file_path rabbitmq_runtime)"
 if ! grep -Eq '^uri=amqps?://' "$runtime_state"; then
   log_fatal "rabbitmq runtime URI contract is invalid"
 fi
+if ! grep -q '^host=.\+' "$runtime_state"; then
+  log_fatal "rabbitmq runtime host is empty"
+fi
+if ! grep -q '^port=.\+' "$runtime_state"; then
+  log_fatal "rabbitmq runtime port is empty"
+fi
+if ! grep -q '^vhost=.\+' "$runtime_state"; then
+  log_fatal "rabbitmq runtime vhost is empty"
+fi
+if ! grep -q '^management_url=.\+' "$runtime_state"; then
+  log_fatal "rabbitmq runtime management_url is empty"
+fi
 
 state_file="$(write_state_file "rabbitmq_smoke" \
   "status=passed" \

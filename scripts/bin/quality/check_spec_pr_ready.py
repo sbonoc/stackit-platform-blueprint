@@ -259,6 +259,7 @@ def _check_hardening_review(content: str, file_name: str) -> list[str]:
     in_findings = False
     in_observability = False
     in_architecture = False
+    in_a11y_gate = False
     in_proposals = False
 
     findings_has_content = False
@@ -275,6 +276,7 @@ def _check_hardening_review(content: str, file_name: str) -> list[str]:
             in_findings = "Repository-Wide Findings Fixed" in stripped
             in_observability = "Observability and Diagnostics Changes" in stripped
             in_architecture = "Architecture and Code Quality Compliance" in stripped
+            in_a11y_gate = "Accessibility Gate" in stripped
             in_proposals = "Proposals Only" in stripped
             if in_proposals:
                 proposals_section_seen = True
@@ -306,6 +308,14 @@ def _check_hardening_review(content: str, file_name: str) -> list[str]:
                         f"{PREFIX} {file_name}:{i}: `{field}` must have non-empty content after the colon"
                     )
                     break
+
+        if in_a11y_gate:
+            # Unchecked box that is not marked N/A is a blocking violation.
+            if re.match(r"^-\s+\[\s+\]", stripped) and "N/A" not in stripped and "n/a" not in stripped:
+                violations.append(
+                    f"{PREFIX} {file_name}:{i}: Accessibility Gate item unchecked — "
+                    f"mark [x] or write N/A with rationale before opening a PR: {stripped[:100]}"
+                )
 
         if in_proposals:
             if re.match(r"^-\s+Proposal\b", stripped):

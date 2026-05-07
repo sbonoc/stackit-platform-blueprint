@@ -25,6 +25,9 @@ fi
 if ! grep -q '^bucket=' "$runtime_state"; then
   log_fatal "object-storage runtime bucket contract is missing"
 fi
+if ! grep -q '^region=' "$runtime_state"; then
+  log_fatal "object-storage runtime region contract is missing"
+fi
 
 state_file="$(write_state_file "object_storage_smoke" \
   "status=passed" \

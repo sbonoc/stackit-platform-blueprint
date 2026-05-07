@@ -1,0 +1,213 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-04-27-consumer-app-descriptor",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "Add apps/descriptor.yaml as consumer-seeded contract surface"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "Seed baseline apps/descriptor.yaml template"
+    },
+    {
+      "id": "FR-003",
+      "type": "requirement",
+      "summary": "Define versioned app descriptor schema"
+    },
+    {
+      "id": "FR-004",
+      "type": "requirement",
+      "summary": "Support explicit manifest refs and convention defaults"
+    },
+    {
+      "id": "FR-005",
+      "type": "requirement",
+      "summary": "Support multiple components per app"
+    },
+    {
+      "id": "FR-006",
+      "type": "requirement",
+      "summary": "Validate manifests and kustomization resources"
+    },
+    {
+      "id": "FR-007",
+      "type": "requirement",
+      "summary": "Render deprecated app catalog compatibility output from descriptor"
+    },
+    {
+      "id": "FR-008",
+      "type": "requirement",
+      "summary": "Deprecate apps/catalog/manifest.yaml compatibility artifact"
+    },
+    {
+      "id": "FR-009",
+      "type": "requirement",
+      "summary": "Report descriptor ownership in upgrade diagnostics"
+    },
+    {
+      "id": "FR-010",
+      "type": "requirement",
+      "summary": "Deprecate base/apps bridge guard with removal tracking"
+    },
+    {
+      "id": "FR-011",
+      "type": "requirement",
+      "summary": "Generate suggested descriptor artifact for existing consumers"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "Safe YAML parsing and path containment"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "Deterministic descriptor diagnostics"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "Two-minor-release migration fallback"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "Document operator workflows and deprecations"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "Consumer-seeded descriptor exists"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "Unsafe IDs and paths fail validation"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "Missing resolved manifest fails validation"
+    },
+    {
+      "id": "AC-004",
+      "type": "acceptance",
+      "summary": "Kustomization drift fails validation"
+    },
+    {
+      "id": "AC-005",
+      "type": "acceptance",
+      "summary": "Compatibility catalog render follows descriptor"
+    },
+    {
+      "id": "AC-006",
+      "type": "acceptance",
+      "summary": "Upgrade diagnostics report descriptor ownership"
+    },
+    {
+      "id": "AC-007",
+      "type": "acceptance",
+      "summary": "Baseline smoke remains green"
+    },
+    {
+      "id": "AC-008",
+      "type": "acceptance",
+      "summary": "Suggested descriptor artifact is generated"
+    },
+    {
+      "id": "AC-009",
+      "type": "acceptance",
+      "summary": "Deprecation diagnostics and removal tracking exist"
+    }
+  ],
+  "edges": [
+    {
+      "from": "FR-001",
+      "to": "AC-001",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-002",
+      "to": "AC-001",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-003",
+      "to": "AC-002",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-004",
+      "to": "AC-002",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-004",
+      "to": "AC-003",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-005",
+      "to": "AC-005",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-006",
+      "to": "AC-004",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-007",
+      "to": "AC-005",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-008",
+      "to": "AC-009",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-009",
+      "to": "AC-006",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-010",
+      "to": "AC-009",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-011",
+      "to": "AC-008",
+      "relation": "validated_by"
+    },
+    {
+      "from": "NFR-SEC-001",
+      "to": "AC-002",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-OBS-001",
+      "to": "AC-004",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-REL-001",
+      "to": "AC-007",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-REL-001",
+      "to": "AC-008",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-OPS-001",
+      "to": "AC-009",
+      "relation": "constrains"
+    }
+  ]
+}

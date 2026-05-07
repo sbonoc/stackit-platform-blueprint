@@ -5,8 +5,10 @@ source "$SCRIPT_DIR/../../lib/shell/bootstrap.sh"
 source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 source "$ROOT_DIR/scripts/lib/infra/stack_paths.sh"
 source "$ROOT_DIR/scripts/lib/infra/module_execution.sh"
+source "$ROOT_DIR/scripts/lib/infra/fallback_runtime.sh"
 source "$ROOT_DIR/scripts/lib/infra/state.sh"
 source "$ROOT_DIR/scripts/lib/infra/tooling.sh"
+source "$ROOT_DIR/scripts/lib/infra/postgres.sh"
 
 start_script_metric_trap "infra_postgres_destroy"
 
@@ -22,6 +24,7 @@ helm)
   set_default_env POSTGRES_HELM_RELEASE "blueprint-postgres"
   destroy_path="${POSTGRES_HELM_RELEASE}@${POSTGRES_NAMESPACE}"
   run_helm_uninstall "$POSTGRES_HELM_RELEASE" "$POSTGRES_NAMESPACE"
+  postgres_delete_runtime_secret
   ;;
 *)
   optional_module_unexpected_driver "postgres" "destroy"

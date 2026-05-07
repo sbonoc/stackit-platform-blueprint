@@ -39,6 +39,16 @@ This file is the canonical governance source for this generated platform reposit
 11. Update `AGENTS.backlog.md` when priorities or status change.
 12. Do not run `git commit` or `git push` unless explicitly requested in the current conversation.
 
+## Quality Hooks — Inner-Loop and Pre-PR Usage
+
+The blueprint quality-hooks policy applies to this repository. All agent sessions MUST run with `QUALITY_HOOKS_KEEP_GOING=true` exported so that `quality-hooks-*` invocations aggregate independent failures instead of aborting on the first.
+
+- **Per-slice gate**: `make test-unit-all` — run after every code edit within a slice.
+- **Pre-PR gate**: `make quality-hooks-fast` — run at slice boundaries and before publishing.
+- `QUALITY_HOOKS_FORCE_FULL=true` bypasses path-gating and phase-gating.
+
+For the full policy (env vars, path-gating set, phase-gating rationale, failure-cascade caveat): see the blueprint `AGENTS.md` § Quality Hooks — Inner-Loop and Pre-PR Usage.
+
 ## SDD Artifacts
 - Use `specs/<YYYY-MM-DD>-<work-item-slug>/` for work-item artifacts.
 - Start new work items with `make spec-scaffold SPEC_SLUG=<work-item-slug>`; dedicated-branch creation is default and explicit opt-out requires `SPEC_NO_BRANCH=true`.
@@ -139,6 +149,25 @@ This file is the canonical governance source for this generated platform reposit
 - Strict audits: `make quality-hooks-strict`
 - Infra validation: `make infra-validate`
 - Docs build/smoke: `make docs-build` and `make docs-smoke`
+
+### Consumer Extension Targets
+
+Override in `platform.mk` without merge-conflict risk on blueprint upgrade:
+
+| Target | When it runs | Tier |
+|---|---|---|
+| `quality-consumer-pre-push` | pre-push hook (always_run) | Tier 1/unit — fast tests before every push |
+| `quality-consumer-ci` | final step of `quality-ci-blueprint` | Tier 2/component — tests acceptable in CI only |
+
+Both default to no-op (`@true`). Override example in `platform.mk`:
+
+```makefile
+quality-consumer-pre-push:
+	@$(MAKE) backend-test-unit
+
+quality-consumer-ci:
+	@$(MAKE) touchpoints-test-component
+```
 
 ## Repository Ownership
 - Consumer-owned:

@@ -18,8 +18,19 @@ if ! state_file_exists postgres_runtime; then
   log_fatal "missing postgres runtime artifact"
 fi
 
-if ! grep -q '^dsn=postgresql://' "$(state_file_path postgres_runtime)"; then
+state_path="$(state_file_path postgres_runtime)"
+
+if ! grep -q '^dsn=postgresql://' "$state_path"; then
   log_fatal "postgres runtime DSN is invalid"
+fi
+if ! grep -q '^host=.\+' "$state_path"; then
+  log_fatal "postgres runtime host is empty"
+fi
+if ! grep -q '^port=.\+' "$state_path"; then
+  log_fatal "postgres runtime port is empty"
+fi
+if ! grep -q '^db_name=.\+' "$state_path"; then
+  log_fatal "postgres runtime db_name is empty"
 fi
 if ! [[ "$POSTGRES_CONNECT_TIMEOUT_SECONDS" =~ ^[0-9]+$ ]]; then
   log_fatal "POSTGRES_CONNECT_TIMEOUT_SECONDS must be numeric"

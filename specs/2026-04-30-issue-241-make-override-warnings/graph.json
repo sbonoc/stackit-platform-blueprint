@@ -1,0 +1,76 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-04-30-issue-241-make-override-warnings",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "blueprint.generated.mk MUST declare SPEC_SCAFFOLD_DEFAULT_TRACK ?= blueprint and use it in the spec-scaffold recipe"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "blueprint.generated.mk MUST declare BLUEPRINT_UPLIFT_STATUS_SCRIPT ?= scripts/bin/blueprint/uplift_status.sh and use it in the blueprint-uplift-status recipe"
+    },
+    {
+      "id": "FR-003",
+      "type": "requirement",
+      "summary": "Both declarations MUST use ?= so consumer platform.mk can override with := without triggering an override warning"
+    },
+    {
+      "id": "FR-004",
+      "type": "requirement",
+      "summary": "Template file MUST be updated and make blueprint-render-makefile MUST produce the updated generated file"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "Change MUST be backward compatible — consumers not setting the new variables see identical behavior"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "Consumer repos that previously produced GNU Make override warnings MUST produce no warnings after fix adoption"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "make spec-scaffold with no override uses --track blueprint and produces no warning"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "Consumer setting SPEC_SCAFFOLD_DEFAULT_TRACK := consumer causes --track consumer with no warning"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "make blueprint-uplift-status with no override calls scripts/bin/blueprint/uplift_status.sh with no warning"
+    },
+    {
+      "id": "AC-004",
+      "type": "acceptance",
+      "summary": "Consumer setting BLUEPRINT_UPLIFT_STATUS_SCRIPT to a custom path causes the target to call that path with no warning"
+    },
+    {
+      "id": "AC-005",
+      "type": "acceptance",
+      "summary": "test_quality_contracts.py contains assertions verifying both ?= variable declarations in template and generated file"
+    }
+  ],
+  "edges": [
+    { "from": "FR-001", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-001", "to": "AC-002", "relation": "validated_by" },
+    { "from": "FR-001", "to": "AC-005", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-003", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-004", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-005", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-002", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-004", "relation": "validated_by" },
+    { "from": "FR-004", "to": "AC-005", "relation": "validated_by" },
+    { "from": "NFR-REL-001", "to": "AC-001", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "AC-003", "relation": "constrains" },
+    { "from": "NFR-OPS-001", "to": "AC-002", "relation": "constrains" },
+    { "from": "NFR-OPS-001", "to": "AC-004", "relation": "constrains" }
+  ]
+}

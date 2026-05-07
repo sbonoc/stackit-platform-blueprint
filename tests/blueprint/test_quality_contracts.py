@@ -128,6 +128,16 @@ class QualityContractsTests(unittest.TestCase):
         )
         self.assertIn("infra-contract-test-fast", generated_make)
 
+    def test_blueprint_generated_mk_template_exposes_override_point_variables(self) -> None:
+        make_template = _read("scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl")
+        self.assertIn("SPEC_SCAFFOLD_DEFAULT_TRACK ?= blueprint", make_template)
+        self.assertIn("BLUEPRINT_UPLIFT_STATUS_SCRIPT ?= scripts/bin/blueprint/uplift_status.sh", make_template)
+
+    def test_generated_makefile_exposes_override_point_variables(self) -> None:
+        generated_make = _read("make/blueprint.generated.mk")
+        self.assertIn("SPEC_SCAFFOLD_DEFAULT_TRACK ?= blueprint", generated_make)
+        self.assertIn("BLUEPRINT_UPLIFT_STATUS_SCRIPT ?= scripts/bin/blueprint/uplift_status.sh", generated_make)
+
     def test_sdd_plan_and_tasks_templates_include_local_smoke_and_positive_path_gates(self) -> None:
         blueprint_plan = _read(".spec-kit/templates/blueprint/plan.md")
         consumer_plan = _read(".spec-kit/templates/consumer/plan.md")
@@ -1609,6 +1619,148 @@ class QualityContractsTests(unittest.TestCase):
                 + ". Use a loop reading the template kustomization at runtime (issue #208)."
             ),
         )
+
+
+    # ---------------------------------------------------------------------------
+    # A11Y compliance scaffold — Slice 1: SDD lifecycle template assertions
+    # ---------------------------------------------------------------------------
+
+    def test_spec_template_exposes_a11y_nfr(self) -> None:
+        content = _read(".spec-kit/templates/blueprint/spec.md")
+        self.assertIn("NFR-A11Y-001", content)
+
+    def test_tasks_template_exposes_a11y_task_block(self) -> None:
+        content = _read(".spec-kit/templates/blueprint/tasks.md")
+        self.assertIn("T-A02", content)
+        self.assertIn("wcag21aa", content)
+        self.assertIn("attachTo: document.body", content)
+
+    def test_hardening_review_template_exposes_accessibility_gate(self) -> None:
+        content = _read(".spec-kit/templates/blueprint/hardening_review.md")
+        self.assertIn("Accessibility Gate", content)
+
+    def test_traceability_template_exposes_wcag_sc_column(self) -> None:
+        content = _read(".spec-kit/templates/blueprint/traceability.md")
+        self.assertIn("WCAG SC", content)
+
+    # ---------------------------------------------------------------------------
+    # A11Y compliance scaffold — Slice 2: test infrastructure assertions
+    # ---------------------------------------------------------------------------
+
+    def test_platform_mk_exposes_touchpoints_test_a11y_target(self) -> None:
+        content = _read("make/platform.mk")
+        self.assertIn("touchpoints-test-a11y", content)
+
+    def test_test_a11y_script_exists(self) -> None:
+        path = REPO_ROOT / "scripts/bin/platform/touchpoints/test_a11y.sh"
+        self.assertTrue(path.exists(), f"Expected {path} to exist")
+
+    def test_axe_page_scan_contains_wcag21_tags(self) -> None:
+        content = _read("scripts/lib/platform/touchpoints/axe_page_scan.mjs")
+        self.assertIn("wcag21a", content)
+        self.assertIn("wcag21aa", content)
+
+    def test_axe_preset_exports_wcag21aa_config(self) -> None:
+        content = _read("scripts/lib/platform/touchpoints/axe_preset.ts")
+        self.assertIn("WCAG21AA_AXE_CONFIG", content)
+
+    def test_platform_mk_exposes_apps_a11y_smoke_target(self) -> None:
+        content = _read("make/platform.mk")
+        self.assertIn("apps-a11y-smoke", content)
+
+    def test_test_smoke_all_local_includes_apps_a11y_smoke(self) -> None:
+        content = _read("make/platform.mk")
+        # apps-a11y-smoke must appear within the test-smoke-all-local recipe
+        idx = content.find("test-smoke-all-local:")
+        self.assertGreater(idx, -1, "test-smoke-all-local target not found in platform.mk")
+        recipe_slice = content[idx : idx + 400]
+        self.assertIn("apps-a11y-smoke", recipe_slice)
+
+    # ---------------------------------------------------------------------------
+    # A11Y compliance scaffold — Slice 3: ACR scaffold and quality gate assertions
+    # ---------------------------------------------------------------------------
+
+    def test_acr_scaffold_exists_with_wcag_criteria(self) -> None:
+        content = _read("docs/platform/accessibility/acr.md")
+        self.assertIn("4.1.3", content)
+
+    def test_check_acr_freshness_script_exists(self) -> None:
+        path = REPO_ROOT / "scripts/bin/platform/quality/check_acr_freshness.py"
+        self.assertTrue(path.exists(), f"Expected {path} to exist")
+
+    def test_platform_mk_exposes_quality_a11y_acr_check_target(self) -> None:
+        content = _read("make/platform.mk")
+        self.assertIn("quality-a11y-acr-check", content)
+
+    def test_make_template_wires_quality_a11y_acr_check_into_quality_hooks_fast(self) -> None:
+        template = _read("scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl")
+        # quality-a11y-acr-check must appear in the quality-hooks-fast recipe
+        idx = template.find("quality-hooks-fast:")
+        self.assertGreater(idx, -1, "quality-hooks-fast target not found in template")
+        recipe_slice = template[idx : idx + 300]
+        self.assertIn("quality-a11y-acr-check", recipe_slice)
+
+
+    def test_precommit_template_has_pnpm_lockfile_sync_hook(self) -> None:
+        content = _read("scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml")
+        self.assertIn("id: pnpm-lockfile-sync", content)
+
+    def test_precommit_template_pnpm_lockfile_sync_covers_workspace(self) -> None:
+        content = _read("scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml")
+        idx = content.find("id: pnpm-lockfile-sync")
+        self.assertGreater(idx, -1, "pnpm-lockfile-sync hook not found")
+        hook_slice = content[idx : idx + 600]
+        self.assertIn(r"(^|/)package\.json$", hook_slice)
+
+    def test_precommit_template_pnpm_lockfile_sync_has_workspace_root_guard(self) -> None:
+        # The hook runs via `pre-commit run --hook-stage pre-push --all-files` in CI
+        # (quality-ci-blueprint target). Without a guard, it fails with ERR_PNPM_NO_PKG_MANIFEST
+        # in repos that have no root package.json (e.g. this blueprint source repo).
+        # The entry must check for package.json existence before invoking pnpm.
+        content = _read("scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml")
+        idx = content.find("id: pnpm-lockfile-sync")
+        self.assertGreater(idx, -1, "pnpm-lockfile-sync hook not found")
+        hook_slice = content[idx : idx + 400]
+        entry_start = hook_slice.find("entry:")
+        self.assertGreater(entry_start, -1, "entry field not found in pnpm-lockfile-sync hook")
+        entry_line = hook_slice[entry_start : entry_start + 200]
+        self.assertIn("package.json", entry_line, (
+            "pnpm-lockfile-sync entry must guard against missing root package.json; "
+            "bare `pnpm install` fails in repos without a pnpm workspace root"
+        ))
+
+    def test_make_template_has_quality_consumer_pre_push_stub(self) -> None:
+        template = _read("scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl")
+        self.assertIn("quality-consumer-pre-push:", template)
+        idx = template.find("quality-consumer-pre-push:")
+        stub_slice = template[idx : idx + 200]
+        self.assertIn("@true", stub_slice)
+
+    def test_make_template_has_quality_consumer_ci_stub(self) -> None:
+        template = _read("scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl")
+        self.assertIn("quality-consumer-ci:", template)
+        idx = template.find("quality-consumer-ci:")
+        stub_slice = template[idx : idx + 200]
+        self.assertIn("@true", stub_slice)
+
+    def test_quality_ci_blueprint_calls_quality_consumer_ci(self) -> None:
+        template = _read("scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl")
+        idx = template.find("quality-ci-blueprint:")
+        self.assertGreater(idx, -1, "quality-ci-blueprint target not found in template")
+        recipe_slice = template[idx : idx + 400]
+        self.assertIn("quality-consumer-ci", recipe_slice)
+
+    def test_precommit_template_has_quality_consumer_pre_push_hook(self) -> None:
+        content = _read("scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml")
+        self.assertIn("id: quality-consumer-pre-push", content)
+        idx = content.find("id: quality-consumer-pre-push")
+        hook_slice = content[idx : idx + 300]
+        self.assertIn("stages: [pre-push]", hook_slice)
+
+    def test_agents_md_template_has_consumer_extension_targets(self) -> None:
+        content = _read("scripts/templates/consumer/init/AGENTS.md.tmpl")
+        self.assertIn("quality-consumer-pre-push", content)
+        self.assertIn("quality-consumer-ci", content)
 
 
 if __name__ == "__main__":

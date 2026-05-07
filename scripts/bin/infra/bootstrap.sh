@@ -317,8 +317,7 @@ bootstrap_module_scaffold() {
         "infra" \
         "infra/local/helm/$module/values.yaml" \
         "POSTGRES_HELM_RELEASE=$POSTGRES_HELM_RELEASE" \
-        "POSTGRES_USER=$POSTGRES_USER" \
-        "POSTGRES_PASSWORD=$POSTGRES_PASSWORD" \
+        "POSTGRES_CREDENTIAL_SECRET_NAME=$(postgres_credential_secret_name)" \
         "POSTGRES_DB_NAME=$POSTGRES_DB_NAME" \
         "POSTGRES_IMAGE_REGISTRY=$POSTGRES_IMAGE_REGISTRY" \
         "POSTGRES_IMAGE_REPOSITORY=$POSTGRES_IMAGE_REPOSITORY" \
@@ -331,8 +330,7 @@ bootstrap_module_scaffold() {
         "infra" \
         "infra/local/helm/$module/values.yaml" \
         "OBJECT_STORAGE_HELM_RELEASE=$OBJECT_STORAGE_HELM_RELEASE" \
-        "OBJECT_STORAGE_ACCESS_KEY=$OBJECT_STORAGE_ACCESS_KEY" \
-        "OBJECT_STORAGE_SECRET_KEY=$OBJECT_STORAGE_SECRET_KEY" \
+        "OBJECT_STORAGE_CREDENTIAL_SECRET_NAME=$(object_storage_credential_secret_name)" \
         "OBJECT_STORAGE_BUCKET_NAME=$OBJECT_STORAGE_BUCKET_NAME" \
         "OBJECT_STORAGE_IMAGE_REGISTRY=$OBJECT_STORAGE_IMAGE_REGISTRY" \
         "OBJECT_STORAGE_IMAGE_REPOSITORY=$OBJECT_STORAGE_IMAGE_REPOSITORY" \
@@ -377,6 +375,18 @@ bootstrap_module_scaffold() {
         "IAP_IMAGE_REGISTRY=$IAP_IMAGE_REGISTRY" \
         "IAP_IMAGE_REPOSITORY=$IAP_IMAGE_REPOSITORY" \
         "IAP_IMAGE_TAG=$IAP_IMAGE_TAG"
+      ;;
+    opensearch)
+      opensearch_seed_env_defaults
+      ensure_file_from_rendered_template \
+        "$ROOT_DIR/infra/local/helm/$module/values.yaml" \
+        "infra" \
+        "infra/local/helm/$module/values.yaml" \
+        "OPENSEARCH_HELM_RELEASE=$OPENSEARCH_HELM_RELEASE" \
+        "OPENSEARCH_PASSWORD_SECRET_NAME=$(opensearch_password_secret_name)" \
+        "OPENSEARCH_IMAGE_REGISTRY=$OPENSEARCH_IMAGE_REGISTRY" \
+        "OPENSEARCH_IMAGE_REPOSITORY=$OPENSEARCH_IMAGE_REPOSITORY" \
+        "OPENSEARCH_IMAGE_TAG=$OPENSEARCH_IMAGE_TAG"
       ;;
     *)
       ensure_file_from_template \
@@ -450,7 +460,7 @@ bootstrap_optional_module_scaffolding() {
   fi
 
   if is_module_enabled opensearch; then
-    bootstrap_module_scaffold opensearch false false
+    bootstrap_module_scaffold opensearch true false
     scaffolded_modules+=("opensearch")
   fi
 

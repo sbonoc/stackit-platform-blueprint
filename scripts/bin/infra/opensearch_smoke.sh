@@ -22,7 +22,7 @@ runtime_state="$(state_file_path opensearch_runtime)"
 if ! grep -Eq '^uri=https?://' "$runtime_state"; then
   log_fatal "opensearch runtime URI contract is invalid"
 fi
-if ! grep -Eq '^dashboard_url=https?://' "$runtime_state"; then
+if ! grep -Eq '^dashboard_url=(https?://.*)?$' "$runtime_state"; then
   log_fatal "opensearch runtime dashboard URL contract is invalid"
 fi
 

@@ -18,6 +18,13 @@ Do not start implementation before `SPEC_READY: true` is confirmed in `spec.md`.
 
 Software Engineer (invokes agent).
 
+## Per-Slice Gate vs Pre-PR Gate (MUST follow)
+
+- The **per-slice gate** is `make test-unit-all` (or the lane-specific runner derived from the spec's `Implementation Stack Profile`). Run after every code edit within a slice. Fast, targeted, no infra cost.
+- The **slice-batch / pre-PR gate** is `make quality-hooks-fast`. Run at the boundary between slices (before starting the next) and once more immediately before publishing. NOT run after every individual code edit.
+
+> Quality-hooks usage policy (per-slice vs pre-PR gate, keep-going env, force-full): see AGENTS.md § Quality Hooks — Inner-Loop and Pre-PR Usage.
+
 ## Determine the test and validation commands first
 
 Before writing any code, read `spec.md` Implementation Stack Profile:
@@ -222,13 +229,17 @@ Capture the pass/fail output and record it in `pr_context.md` Validation Evidenc
 
 ### Reproducible pre-commit failures
 
-If `make quality-hooks-fast` or a smoke assertion fails deterministically
-before the fix:
+If a smoke assertion or deterministic quality check fails deterministically
+before the fix (discovered during the pre-PR `make quality-hooks-fast` run or via
+a smoke test):
 1. Write a failing automated test that reproduces the failure.
 2. Confirm the test fails (red).
 3. Fix the root cause — the test turns green.
 4. If a true exception applies (e.g., environment-only failure), document the
    rationale and a follow-up owner in `pr_context.md` Deferred Proposals.
+
+Note: `make quality-hooks-fast` is the slice-batch / pre-PR gate — run it at
+slice boundaries and before publishing, not after every individual code edit.
 
 ## Required Report Format
 

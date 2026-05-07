@@ -1,0 +1,93 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-04-27-issue-217-template-descriptor-kustomization-sync",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "Add descriptor-kustomization cross-check assertion in template_smoke_assertions.py"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "Guarantee template file content consistency between descriptor.yaml.tmpl and kustomization.yaml infra bootstrap template"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "All file reads constrained to repo_root argument; no new I/O paths outside generated temp repo"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "Per-filename AssertionError messages identifying missing filename, descriptor path, and kustomization path"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "AssertionError causes non-zero exit so blueprint-template-smoke reliably fails on drift"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "No operator action required; fix fully contained in blueprint tooling"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "Smoke exits non-zero with named AssertionError when descriptor references a filename absent from kustomization"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "Smoke exits 0 with no assertion errors when descriptor and kustomization reference the same filenames"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "descriptor.yaml.tmpl and infra bootstrap kustomization.yaml reference the same set of manifest filenames"
+    }
+  ],
+  "edges": [
+    {
+      "from": "FR-001",
+      "to": "AC-001",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-001",
+      "to": "AC-002",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-002",
+      "to": "AC-003",
+      "relation": "validated_by"
+    },
+    {
+      "from": "NFR-SEC-001",
+      "to": "FR-001",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-OBS-001",
+      "to": "AC-001",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-REL-001",
+      "to": "AC-001",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-REL-001",
+      "to": "FR-001",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-OPS-001",
+      "to": "FR-001",
+      "relation": "constrains"
+    }
+  ]
+}

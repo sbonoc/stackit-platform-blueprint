@@ -41,6 +41,49 @@ This section provides context for code assistants to understand the blueprint be
 - `make infra-validate` — run full contract validation
 - `make quality-hooks-fast` — fast pre-commit hook suite
 
+## Quality Hooks — Inner-Loop and Pre-PR Usage
+
+This subsection is the single canonical source for quality-hooks usage policy. All skills and agent sessions MUST follow these rules.
+
+### Per-Slice vs Pre-PR Gates
+
+- The **per-slice gate** is `make test-unit-all` (or the lane-specific runner derived from the spec's `Implementation Stack Profile` — e.g. `make backend-test-unit` for backend-only changes). Run after every code edit within a slice. Fast, targeted, no infra cost.
+- The **slice-batch / pre-PR gate** is `make quality-hooks-fast`. Run at the boundary between slices (before starting the next) and once more immediately before publishing. NOT run after every individual code edit.
+- `make quality-hooks-run` (fast + strict) is the full pre-push gate; required by the PR Packager and when the strict audit phase is also needed.
+
+### Agent Session Environment (MUST)
+
+Any agent executing tasks in this repository MUST run with `QUALITY_HOOKS_KEEP_GOING=true` exported in its session environment so that `quality-hooks-*` invocations aggregate independent failures and produce the consolidated summary block instead of aborting on the first failure.
+
+If neither `.envrc` (direnv) nor `.claude/settings.json` auto-loads the variable, the agent MUST export it explicitly at session start before invoking any `quality-hooks-*` make target:
+```bash
+export QUALITY_HOOKS_KEEP_GOING=true
+```
+
+### Environment Variables
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `QUALITY_HOOKS_KEEP_GOING` | unset (fail-fast) | Set to `true` to aggregate all independent failures and emit a consolidated summary block |
+| `QUALITY_HOOKS_KEEP_GOING_TAIL_LINES` | `40` | Number of lines of captured output to re-emit to stderr on per-check failure in keep-going mode |
+| `QUALITY_HOOKS_FORCE_FULL` | unset | Set to `true` to override path-gating and phase-gating; all checks run regardless of changed paths or spec readiness |
+
+### Path-Gating (Infra Checks)
+
+`infra-validate` and `infra-contract-test-fast` are gated on changed-path scope. They are skipped (with a `quality_hooks_skip_total` metric) when no changed path matches the gating set:
+
+`infra/`, `blueprint/contract.yaml`, `scripts/lib/blueprint/`, `scripts/bin/blueprint/`, `scripts/templates/blueprint/`, `make/`, `apps/`, `pyproject.toml`, `requirements*.txt`
+
+Set `QUALITY_HOOKS_FORCE_FULL=true` to force all checks regardless.
+
+### Phase-Gating (Spec-Readiness Check)
+
+`quality-spec-pr-ready` is skipped unless the current spec's `spec.md` contains `- SPEC_READY: true`. This prevents false-positive failures during Steps 1–6 when publish artifacts are intentionally scaffold. Step 7 (PR Packager) invokes it unconditionally via `QUALITY_HOOKS_FORCE_FULL=true`.
+
+### Failure-Cascade Caveat
+
+In keep-going mode, a single root cause (e.g. a syntax error in a shared helper) can produce failures in multiple aggregated checks. Fix the earliest-reported failure first and re-run, rather than mass-applying fixes for every line in the summary block.
+
 ## Mandatory Workflow
 1. Read `AGENTS.md` before starting work.
 2. During `Discover`, `High-Level Architecture`, `Specify`, and `Plan`, do not use assumptions as substitutes for missing requirements; resolve ambiguity explicitly or mark the work item blocked.

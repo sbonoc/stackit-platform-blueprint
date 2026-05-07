@@ -2,6 +2,12 @@
 
 ## Current Baseline
 - `blueprint/contract.yaml` is the executable source of truth for repository behavior, ownership boundaries, and required automation.
+- Consumer app metadata direction is `apps/descriptor.yaml`:
+  - the descriptor is the future canonical consumer-owned app topology and manifest-reference contract
+  - explicit manifest refs and multiple components per app are required
+  - existing consumers without the descriptor receive an upgrade advisory artifact (`artifacts/blueprint/app_descriptor.suggested.yaml`) instead of silent working-tree writes
+  - `apps/catalog/manifest.yaml` remains only as a deprecated generated compatibility artifact for two blueprint minor releases after descriptor adoption
+  - `_is_consumer_owned_workload()` remains only as a deprecated bridge guard for two blueprint minor releases or until descriptor coverage becomes mandatory, whichever is later
 - The pre-release template keeps a single current-state baseline. It does not carry release-note generation, upgrade automation, or compatibility machinery before the first published template release.
 - Repository ownership is explicit:
   - this source repository is maintained as the blueprint

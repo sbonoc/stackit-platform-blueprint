@@ -1,0 +1,78 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-04-28-issue-230-init-descriptor-kustomization-sync",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "blueprint-init-repo MUST keep apps/descriptor.yaml and infra/gitops/platform/base/apps/kustomization.yaml membership-consistent after force-init"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "blueprint-init-repo MUST NOT leave a half-reseeded descriptor/kustomization pair unless provably membership-consistent"
+    },
+    {
+      "id": "FR-003",
+      "type": "requirement",
+      "summary": "blueprint-template-smoke MUST exercise the v1.8.0-shaped consumer kustomization scenario and exit 0"
+    },
+    {
+      "id": "FR-004",
+      "type": "requirement",
+      "summary": "quality-ci-generated-consumer-smoke MUST exit 0 in CI after the fix ships"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "Fix MUST NOT introduce file-write paths outside the contract-declared init scope"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "Init flow MUST emit log_info per newly-seeded file with relative path and template source"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "Force-init MUST be idempotent across consecutive runs"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "Fix MUST require no consumer-side action beyond standard upgrade sequence"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "Upgrade against v1.8.0-shaped consumer fixture exits 0; no membership errors"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "Unit test asserts post-force-init descriptor+kustomization satisfy validate_app_descriptor with zero errors"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "make quality-ci-generated-consumer-smoke and make blueprint-template-smoke exit 0 in CI"
+    },
+    {
+      "id": "AC-004",
+      "type": "acceptance",
+      "summary": "Contract drift unit test asserts blueprint/contract.yaml init scope covers every force-reseeded path"
+    }
+  ],
+  "edges": [
+    { "from": "FR-001", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-001", "to": "AC-002", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-002", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-003", "relation": "validated_by" },
+    { "from": "FR-004", "to": "AC-003", "relation": "validated_by" },
+    { "from": "NFR-SEC-001", "to": "AC-004", "relation": "constrains" },
+    { "from": "NFR-OBS-001", "to": "AC-002", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "AC-002", "relation": "constrains" },
+    { "from": "NFR-OPS-001", "to": "AC-001", "relation": "constrains" }
+  ]
+}

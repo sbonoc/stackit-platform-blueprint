@@ -1,0 +1,58 @@
+{
+  "manifest_version": 1,
+  "work_item": "specs/2026-04-30-issue-241-make-override-warnings",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-04-30T09:27:38Z",
+  "files": [
+    {
+      "path": "specs/2026-04-30-issue-241-make-override-warnings/architecture.md",
+      "sha256": "9c2bb0aaf0369ba19c417f026dac1d28154cc489dfb461f2d055ada8665e0e62",
+      "bytes": 4795
+    },
+    {
+      "path": "specs/2026-04-30-issue-241-make-override-warnings/context_pack.md",
+      "sha256": "864027473413bc5e52bfabc5a2f7964605e49342d74694f2e2e26701a05be61b",
+      "bytes": 875
+    },
+    {
+      "path": "specs/2026-04-30-issue-241-make-override-warnings/evidence_manifest.json",
+      "sha256": "ecb0eea40122794ca8f062212e022ba451f6d0a543b88db3d7c15e65a071e7f7",
+      "bytes": 161
+    },
+    {
+      "path": "specs/2026-04-30-issue-241-make-override-warnings/graph.json",
+      "sha256": "275d97af2c391065c8775fd7e26f2291029576f1e4bbac5f9d2d8f520880d5f7",
+      "bytes": 3188
+    },
+    {
+      "path": "specs/2026-04-30-issue-241-make-override-warnings/hardening_review.md",
+      "sha256": "e097e61ce55e893ef10e51216797f15e38be23b2dd55519304d501cd3cbbed4d",
+      "bytes": 3684
+    },
+    {
+      "path": "specs/2026-04-30-issue-241-make-override-warnings/plan.md",
+      "sha256": "296fe52bae28a64d02916e0f6da6963d63fef1a6b24f5131a3af7b8694029411",
+      "bytes": 5949
+    },
+    {
+      "path": "specs/2026-04-30-issue-241-make-override-warnings/pr_context.md",
+      "sha256": "2072701440551f2f2fefc37b7441bb7605b176589e410cb456aa40aa639b6bdd",
+      "bytes": 7347
+    },
+    {
+      "path": "specs/2026-04-30-issue-241-make-override-warnings/spec.md",
+      "sha256": "41dfd3ff77ca197cebf0414b4e67062dc1a616a424013a105aeaf21560b0f45b",
+      "bytes": 9393
+    },
+    {
+      "path": "specs/2026-04-30-issue-241-make-override-warnings/tasks.md",
+      "sha256": "83cc5f3d8e1dd36a663361ea9a98c8227198cc86caad96b7123cb47bf97148b7",
+      "bytes": 4487
+    },
+    {
+      "path": "specs/2026-04-30-issue-241-make-override-warnings/traceability.md",
+      "sha256": "5849f038ae08c2e0f26d640e63941aa17ad8908ff12a77eedace187a4228007f",
+      "bytes": 4621
+    }
+  ]
+}

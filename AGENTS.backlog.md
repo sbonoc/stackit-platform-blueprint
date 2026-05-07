@@ -18,10 +18,29 @@ To introduce a new tag, append a row here in the same commit that uses it.
 | `blueprint` | Blueprint upgrade, contract, template sync, init flow |
 | `gitops` | GitOps manifests, ArgoCD sync, kustomization wiring |
 | `skills` | Agent skill runbooks, SDD lifecycle tooling |
+| `a11y` | Accessibility conformance, WCAG gates, ACR scaffold, axe tooling |
 
 ---
 
 ## Current Priorities
+- [x] P1 (Platform modules — first-class): Issue #248 — Postgres module dual-lane implementation (Bitnami Helm local + STACKIT `stackit_postgresflex_*` Terraform). **Done**: `specs/2026-05-07-issue-248-postgres-module/`, PR #251. 4 slices complete; `SPEC_READY: true`.
+- [x] P1 (Platform modules — first-class): Issue #248 — RabbitMQ module dual-lane implementation (Bitnami Helm local + STACKIT `stackit_rabbitmq_*` Terraform). **Done**: `specs/2026-05-07-issue-248-rabbitmq-module/`, PR #255. 4 slices complete; 22/22 tests green; 9/9 quality gates pass. `SPEC_READY: true`.
+- [ ] (parked) proposal(issue-248-rabbitmq-module): vhost customisation — per-consumer non-default vhost support
+      trigger: on-scope: infra
+      rationale: STACKIT provider exposes no vhost attribute; constant '/' is correct for generic use; per-consumer vhost is consumer-side configuration
+- [ ] (parked) proposal(issue-248-rabbitmq-module): HA replica configuration — stackit_rabbitmq_instance.replicas > 1
+      trigger: on-scope: infra
+      rationale: single-replica default is sufficient for initial module; HA requires separate capacity planning and consumer awareness
+- [x] P1 (Platform modules — first-class): Issue #248 — Object-storage module dual-lane implementation (MinIO local + STACKIT Terraform). **Done**: `specs/2026-05-06-issue-248-object-storage-module/`, PR #250. 5 slices complete; 27/27 tests green; 9/9 quality gates pass. `SPEC_READY: true`.
+- [ ] (parked) proposal(issue-248-object-storage-module): per-bucket credential scoping via STACKIT credentials_group
+      trigger: on-scope: infra
+      rationale: no active consumer need; surfaces when a consumer requests bucket-scoped access keys
+- [ ] (parked) proposal(issue-248-object-storage-module): explicit test for object-storage smoke failing when runtime state file is entirely absent
+      trigger: on-scope: infra
+      rationale: state_file_exists has no unit test; smoke absent-state path is currently untested at module level
+- [x] P1 (Platform modules — first-class): Issue #248 — OpenSearch module dual-lane implementation (local Helm + STACKIT Terraform). **Done**: `specs/2026-05-06-issue-248-opensearch-module/`, PR #249.
+- [x] (rejected) proposal(issue-248-opensearch-module): consumer-side adoption of infra-opensearch-local-apply in dhe-marketplace — rejected: consumer-repo work, not blueprint scope.
+- [x] (rejected) proposal(issue-248-opensearch-module): Q-1 Option B cross-cutting naming change for all modules — rejected: speculative; Q-1 resolved to Option A.
 - [x] P0 (SDD UX): Issue #138 — local smoke + positive-path filter/transform guardrails are now enforced in SDD templates/governance, including red->green translation for reproducible pre-PR findings.
 - [x] P0 (Upgrade preflight ergonomics): Issue #102 — detect missing consumer-owned required Make targets in preflight with explicit remediation guidance.
 - [x] P0 (Upgrade validation determinism): Issue #129 — add repo-mode-aware required-file reconciliation checks and deterministic remediation hints.
@@ -36,6 +55,28 @@ To introduce a new tag, append a row here in the same commit that uses it.
 - [x] P1 (Runtime operability correctness) — Work item B: Issues #111 + #112 — scaffold canonical backend/touchpoints Dockerfiles so image lanes work out of the box, and replace placeholder workloads (http.server/nginx) with real app runtime in generated consumers. **Done**: `specs/2026-04-22-issue-111-112-app-dockerfile-and-runtime/`
 - [x] P1 (Runtime operability correctness) — Work item C: Issues #118 + #137 — add upgrade preflight detection for removed infra-<module>-* make targets (#118) and fix postgres ESO seed key mismatch causing continuous UpdateFailed events (#137, P2 in GH). **Done**: `specs/2026-04-22-issue-118-137-preflight-module-targets-postgres-eso-key/`
 - [x] P1 (SDD publish-gate gap): add a `quality-spec-pr-ready` make target (new script `scripts/bin/quality/check_spec_pr_ready.py`) to detect unfilled scaffold placeholders and incomplete publish artifacts in `plan.md`, `tasks.md`, `hardening_review.md`, and `pr_context.md` before a PR is opened. **Done**: `specs/2026-04-22-quality-spec-pr-ready-publish-gate/`
+- [x] P1 (Agent inner-loop quality ergonomics): PR #232 — keep-going aggregation mode (`--keep-going` / `QUALITY_HOOKS_KEEP_GOING=true`), path-gating of infra checks, phase-gating of `quality-spec-pr-ready`, dedup of pre-commit-redundant checks, Step 5 skill per-slice gate clarification, and agent-agnostic env propagation. `make quality-hooks-fast` on docs/spec-only commits drops from ~107 s to under 15 s. **Done**: `specs/2026-04-28-quality-hooks-keep-going-mode/`
+- [x] P1 (Runtime auth correctness): Issue #234 — `parse_literal_pairs()` splits `RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS` on commas, silently truncating values containing commas (data URIs, base64 payloads); ESO source secret never created, all ExternalSecrets `NotReady`. Fix: newline-only `while IFS= read -r pair` loop; comma-separated input rejected with `log_warn`. Breaking change (Option B). **Done**: `specs/2026-04-28-issue-234-literal-pairs-newline-format/`, PR #235.
+- [x] P1 (Make target ergonomics): Issue #241 (bug) — GNU Make override warnings when consumer re-defines blueprint-generated targets; expose `?=` override-point variables (`SPEC_SCAFFOLD_DEFAULT_TRACK`, `BLUEPRINT_UPLIFT_STATUS_SCRIPT`) in `blueprint.generated.mk` so consumers customise target behaviour without full target re-definition. **Done**: `specs/2026-04-30-issue-241-make-override-warnings/`, PR #242.
+- [ ] (parked) proposal(issue-241-make-override-warnings): extend `?=` override-point pattern to other blueprint-managed targets
+      trigger: on-scope: blueprint
+      rationale: no consumer request for specific targets; same pattern directly applicable; surfaces when blueprint template/upgrade scope is next touched
+- [x] P1 (Accessibility compliance): Issues #238 + #239 + #240 — **Done**: `specs/2026-04-30-issue-238-239-240-a11y-compliance/`, PR #243.
+- [ ] proposal(issue-238-239-240-a11y-compliance): create consumer_fitness_status.sh for consumer-side fitness checks — https://github.com/sbonoc/stackit-platform-blueprint/issues/244
+- [ ] proposal(issue-238-239-240-a11y-compliance): add layer: field to spec.md template for conditional a11y sections — https://github.com/sbonoc/stackit-platform-blueprint/issues/245
+- [ ] (parked) proposal(issue-238-239-240-a11y-compliance): wire quality-a11y-acr-check into quality-ci-blueprint
+      trigger: on-scope: quality
+      rationale: revisit when CI blueprint gains a stable ACR or a skip mechanism; false-positive risk currently blocks this
+- [ ] (parked) proposal(issue-238-239-240-a11y-compliance): automated W3C JSON fetch in sync_acr_criteria.py
+      trigger: on-scope: a11y
+      rationale: adds network dependency at CI time; surface when any a11y-scope work item is next in flight
+- [x] P2 (Quality gate extensions): Issues #236 + #237 — **Done** — `specs/2026-04-30-issue-236-237-quality-gate-extensions/`, PR #246. (1) #236: `pnpm-lockfile-sync` pre-push hook in `.pre-commit-config.yaml` bootstrap template; (2) #237: `quality-consumer-pre-push` + `quality-consumer-ci` no-op stubs in `blueprint.generated.mk`, wired into pre-push hook and `quality-ci-blueprint`; `AGENTS.md.tmpl` tier documentation; 7 new contract assertions; 136 total passing.
+- [ ] (parked) proposal(quality-hooks-keep-going-mode): parallel execution of independent quality-hooks checks
+      trigger: on-scope: quality
+      rationale: real optimization but non-trivial (log ordering, signal propagation, interleaved output); see ADR-20260428 Alternative D and ADR-20260430 Alternative D; surfaces when quality infrastructure is next touched
+- [ ] (parked) proposal(quality-hooks-keep-going-mode): structured JSON summary output for machine consumers of the keep-going summary block
+      trigger: on-scope: quality
+      rationale: no current consumer; plain-text v1 contract is sufficient; design when a concrete integration need arises
 
 - [ ] P2 (Ownership checker robustness): support normalized equivalence for semantically-identical prune-glob expressions in ownership-matrix documentation checks.
 - [x] P2 (Capability enhancements): Issue #56 — expand app dependency pin auditing. **Done**: `specs/2026-04-23-issue-56-app-version-contract-checks/`
@@ -88,10 +129,14 @@ Four independent tracks; all P1, can be started in parallel.
 #### v1.7.0 upgrade findings (pipeline correctness gaps)
 
 - [x] P1 (Consumer upgrade flow): Issues #198 + #199 + #205 — four latent pipeline gaps uncovered during v1.7.0 adoption: (1) `blueprint-template-smoke` absent from `VALIDATION_TARGETS`; (2) `infra-argocd-topology-validate` absent from `VALIDATION_TARGETS`; (3) `apps/catalog*` paths not in `ownership_path_classes`, causing false-positive "uncovered file" warnings; (4) `resolve_contract_upgrade.py` uses bare `yaml.dump()`, producing indentless sequences and wrapped scalars that break `parse_yaml_subset`. **Done**: `specs/2026-04-26-issue-198-199-upgrade-coverage-gaps/`, PR #202.
-- [x] P2 (Consumer upgrade flow): Issues #203 + #204 — **Done**: `specs/2026-04-27-issue-203-204-upgrade-apply-correctness/`, PR #212. (1) #203: generalise prune guard beyond `base/apps/` via `_is_kustomization_referenced` — checks consumer kustomization.yaml refs before any delete; supersedes the "apps.yaml planned fix direction" noted below. (2) #204: post-merge Terraform block deduplication via `_tf_deduplicate_blocks` — auto-deduplicates byte-identical blocks, emits conflict artifact for non-identical ones.
-- [ ] (parked) proposal: consumer app descriptor (`apps.yaml`, `consumer_seeded`) — declare logical app names and per-app metadata (team, port, health-check path) in a schema-validated, upgrade-safe file seeded by `blueprint-init-repo` and owned by the consumer thereafter; blueprint derives convention-based manifest names (`{name}-deployment.yaml`, `{name}-service.yaml`) from declared app names and validates them against `kustomization.yaml` resources without duplicating the resource list. When implemented: (1) supersedes the `_is_consumer_owned_workload()` path-prefix bridge guard introduced by #207 (see `docs/blueprint/architecture/decisions/ADR-2026-04-26-issue-207-apps-prune-exclusion.md`) — the upgrade planner would use declared app names for precise ownership instead of a directory heuristic; (2) resolves issue #203 — Stage 2 prune would know exactly which manifests are consumer-declared, eliminating the need to guess from path patterns; (3) broader realisation of Option B from `docs/blueprint/architecture/decisions/ADR-2026-04-26-issue-206-contract-consumer-owned-workloads.md` (PR #211, issue-206 Follow-up 1). Prerequisites met: #206 shipped (PR #211), #207 shipped (PR #210).
-      trigger: on-scope: blueprint
-      rationale: #207 bridge guard, #206 source_only reclassification, and the kustomization-ref check (PR #212, issue #203) are the correct layered fixes now; apps.yaml adds value when blueprint tooling needs (a) richer per-app metadata with no existing authoritative source and (b) precise declared ownership beyond path-heuristic and kustomization-ref scanning — the prune-safety motivation (point 2 above) is substantially addressed by PR #212; surfaces naturally when per-app metadata or smoke/preflight gates need declared app context
+- [x] P2 (Consumer upgrade flow): Issues #203 + #204 — **Done**: `specs/2026-04-27-issue-203-204-upgrade-apply-correctness/`, PR #212. (1) #203: generalise prune guard beyond `base/apps/` via `_is_kustomization_referenced` — checks consumer kustomization.yaml refs before any delete; supersedes the earlier app-descriptor prune-safety motivation noted below. (2) #204: post-merge Terraform block deduplication via `_tf_deduplicate_blocks` — auto-deduplicates byte-identical blocks, emits conflict artifact for non-identical ones.
+- [x] P2 (Consumer upgrade flow): consumer app descriptor (`apps/descriptor.yaml`, `consumer_seeded`) — **Done**: `specs/2026-04-27-consumer-app-descriptor/`, PR #213. Declares app/component topology, owner team, service ports, health checks, and explicit manifest refs in a schema-validated, upgrade-safe file seeded by `blueprint-init-repo` and owned by the consumer thereafter. Blueprint validates descriptor refs against `infra/gitops/platform/base/apps/kustomization.yaml`, renders `apps/catalog/manifest.yaml` only as a deprecated compatibility artifact for two blueprint minor releases, and emits `artifacts/blueprint/app_descriptor.suggested.yaml` for existing consumers without silently writing it during upgrade apply. Upgrade prune classifies descriptor-listed paths as `consumer-app-descriptor` ahead of the deprecated `_is_consumer_owned_workload()` bridge guard and the kustomization-ref fallback; both deprecated guards remain for two blueprint minor releases (decommission triggers tracked below as `after: consumer-app-descriptor-adoption`).
+- [ ] (parked) decommission: remove deprecated generated `apps/catalog/manifest.yaml` compatibility artifact after the consumer app descriptor migration window.
+      trigger: after: consumer-app-descriptor-adoption
+      rationale: `apps/descriptor.yaml` becomes the canonical app metadata source; keeping generated catalog output forever would create duplicate contract surfaces.
+- [ ] (parked) decommission: remove deprecated `_is_consumer_owned_workload()` bridge guard after descriptor adoption becomes mandatory or two blueprint minor releases have passed, whichever is later.
+      trigger: after: consumer-app-descriptor-adoption
+      rationale: descriptor ownership and kustomization-ref fallback supersede the path-prefix bridge; tracking prevents the bridge from becoming permanent hidden behavior.
 
 #### v1.7.0 upgrade findings (consumer domain boundary violations)
 
@@ -103,6 +148,18 @@ Reported by consumer sbonoc/dhe-marketplace from their v1.7.0 upgrade experience
 - [ ] (parked) proposal(issue-206): source-only seed change advisory in upgrade plan — when a file reclassified to `source_only` (e.g. the four seed workload manifests from #206) has changed content between the previous and current blueprint tag, the upgrade planner MUST emit an advisory plan entry that (a) identifies the file, (b) shows a unified diff of what blueprint changed, and (c) instructs the consumer/agent to review and decide whether to apply the delta manually. Without this, the plan silently shows `source-only / skip` with no signal that blueprint improved the seed content (e.g. added health probes, security contexts, resource limits) — the consumer has no way to notice and no guidance on what to do. This is the necessary long-term companion to Option A from ADR-2026-04-26-issue-206; Option A is the correct minimal fix but becomes unsafe over time without this advisory layer. Conceptually analogous to issue #165 (semantic annotations for merge-required entries) applied to source-only files. Prerequisite: #206 implementation shipped.
       trigger: on-scope: blueprint
       rationale: surfaces naturally when blueprint maintainers next improve seed workload content (health probes, security contexts, resource limits) or when a consumer reports silently missing a seed update after upgrade
+
+#### v1.8.0 upgrade findings (dhe-marketplace v1.7.0 → v1.8.0)
+
+Reported by consumer sbonoc/dhe-marketplace from their v1.7.0→v1.8.0 upgrade experience. All three are genuine v1.8.0 defects fixed in v1.8.1. Consumer workarounds in place until 2026-07-27.
+
+- [x] P1 (Consumer upgrade experience): Issues #214 + #215 (bug) — **Done**: `specs/2026-04-27-issue-214-215-source-only-glob-and-validate/`, PR #226. Group A: `audit_source_tree_coverage` now counts prune-glob matched files as covered via `fnmatch`; `_validate_absent_files` uses `is_file()` instead of `exists()` and supports glob/directory-prefix entries.
+- [ ] proposal(issue-214-215): add validator warning for `**` in source_only glob entries (fnmatch limitation) — https://github.com/sbonoc/stackit-platform-blueprint/issues/229
+- [x] P1 (Consumer upgrade experience): Issue #216 (bug) — **Done**: `specs/2026-04-27-issue-216-upgrade-source-only-filter/`, PR #227. Group B: Stage 3 `_filter_source_only` Phase 1+2 restored — drops source entries whose paths exist on disk in consumer; carries forward consumer-added entries.
+- [x] P1 (Consumer upgrade experience): Issue #217 (bug) — **Done**: `specs/2026-04-27-issue-217-template-descriptor-kustomization-sync/`, PR #228. Group C: `template_smoke_assertions.py` cross-checks descriptor manifest filenames against kustomization resources; drift caught at template-edit time with named AssertionError.
+- [ ] (parked) proposal(issue-217): extract `_assert_descriptor_kustomization_agreement` as shared module helper for future smoke scenario reuse
+      trigger: on-scope: blueprint
+      rationale: no additional callers exist today; surfaces when the next blueprint smoke scenario is developed
 
 ---
 

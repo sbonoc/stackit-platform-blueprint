@@ -6,10 +6,13 @@
   auth-reconcile-eso-runtime-secrets auth-reconcile-argocd-repo-credentials auth-reconcile-runtime-identity auth-runtime-identity-doctor \
   infra-post-deploy-consumer \
   apps-bootstrap apps-ci-bootstrap apps-ci-bootstrap-consumer apps-smoke apps-audit-versions apps-audit-versions-cached apps-publish-ghcr \
+  apps-a11y-smoke \
   backend-test-unit backend-test-integration backend-test-contracts backend-test-e2e \
   touchpoints-test-unit touchpoints-test-integration touchpoints-test-contracts touchpoints-test-e2e \
+  touchpoints-test-a11y \
   test-unit-all test-integration-all test-contracts-all test-e2e-all-local test-e2e-all-local-full test-e2e-all-local-execute \
-  test-smoke-all-local
+  test-smoke-all-local \
+  quality-a11y-acr-check quality-a11y-acr-sync
 
 auth-reconcile-eso-runtime-secrets: ## Reconcile generic ESO runtime source-to-target credentials contract
 	@scripts/bin/platform/auth/reconcile_eso_runtime_secrets.sh
@@ -100,7 +103,20 @@ test-e2e-all-local-full: ## Full local E2E chain in dry-run mode (backend + touc
 test-e2e-all-local-execute: ## Full local E2E chain in execute mode (DRY_RUN=false, backend + touchpoints e2e lanes)
 	@scripts/bin/platform/test/e2e_all_local.sh --scope full --execute
 
+touchpoints-test-a11y: ## Run full-page axe WCAG 2.1 AA accessibility scan against a live app URL
+	@scripts/bin/platform/touchpoints/test_a11y.sh
+
+apps-a11y-smoke: ## Run axe WCAG 2.1 AA smoke scan with default routes and impact threshold
+	@scripts/bin/platform/apps/a11y_smoke.sh
+
+quality-a11y-acr-check: ## Validate ACR (docs/platform/accessibility/acr.md) exists, is dated, and is within staleness window
+	@python3 scripts/bin/platform/quality/check_acr_freshness.py
+
+quality-a11y-acr-sync: ## Regenerate ACR WCAG 2.1 criterion rows from bundled W3C list (preserves support/notes/evidence)
+	@python3 scripts/bin/platform/quality/sync_acr_criteria.py
+
 test-smoke-all-local: ## Full local smoke lane: provision, infra-smoke, and endpoint assertions against a local cluster
 	# Extension point: add HTTP endpoint assertions to tests/e2e/test_smoke_endpoints.py.
 	# No separate make target is needed — add test methods (or a new subclass) directly to that file.
 	@scripts/bin/platform/test/smoke_all_local.sh
+	@$(MAKE) apps-a11y-smoke

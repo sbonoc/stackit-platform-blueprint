@@ -18,7 +18,7 @@ This file is auto-generated. Do not edit it manually.
 | `blueprint-upgrade-consumer-postcheck` | Run deterministic post-upgrade convergence gate (validate + reconcile + merge-marker checks) |
 | `blueprint-upgrade-fresh-env-gate` | Run fresh-environment smoke gate — CI-equivalent worktree check after upgrade postcheck |
 | `blueprint-upgrade-readiness-doctor` | Generate generated-consumer upgrade readiness diagnostics and manual-action hints |
-| `blueprint-uplift-status` | Report blueprint uplift convergence status for tracked issues in consumer backlog (optional BLUEPRINT_UPLIFT_STRICT=true) |
+| `blueprint-uplift-status` | Report blueprint uplift convergence status for tracked issues in consumer backlog (optional BLUEPRINT_UPLIFT_STRICT=true; override script via BLUEPRINT_UPLIFT_STATUS_SCRIPT in platform.mk) |
 | `blueprint-seed-feature` | Seed consumer-seeded feature gate files into this consumer repo (FEATURE=&lt;gate-id&gt;) |
 | `blueprint-feature-gate-status` | Report consumer-seeded feature gate adoption and upsert backlog entries (always exits 0) |
 | `blueprint-install-codex-skill` | Install/sync bundled Codex upgrade skill into local CODEX_HOME skills directory |
@@ -34,7 +34,7 @@ This file is auto-generated. Do not edit it manually.
 | `blueprint-render-makefile` | Render blueprint-generated make targets from template and enabled module flags |
 | `blueprint-clean-generated` | Remove generated runtime/build/cache artifacts |
 | `blueprint-render-module-wrapper-skeletons` | Render optional-module wrapper skeleton templates from module contracts |
-| `spec-scaffold` | Scaffold SDD work-item documents under specs/YYYY-MM-DD-work-item-slug (set SPEC_SLUG; optional SPEC_TRACK/SPEC_DATE/SPEC_FORCE=true/SPEC_BRANCH=&lt;name&gt;/SPEC_NO_BRANCH=true) |
+| `spec-scaffold` | Scaffold SDD work-item documents under specs/YYYY-MM-DD-work-item-slug (set SPEC_SLUG; optional SPEC_TRACK/SPEC_DATE/SPEC_FORCE=true/SPEC_BRANCH=&lt;name&gt;/SPEC_NO_BRANCH=true; override default track via SPEC_SCAFFOLD_DEFAULT_TRACK in platform.mk) |
 | `spec-impact` | Render graph-driven impact summary for a work item (optional SPEC_WORK_ITEM, SPEC_IMPACT_OUTPUT) |
 | `spec-evidence-manifest` | Render deterministic evidence manifest checksums for a work item (optional SPEC_WORK_ITEM, SPEC_EVIDENCE_OUTPUT) |
 | `spec-context-pack` | Render deterministic context pack markdown for a work item (optional SPEC_WORK_ITEM, SPEC_CONTEXT_OUTPUT) |
@@ -42,9 +42,9 @@ This file is auto-generated. Do not edit it manually.
 | `test-contracts-async-producer` | Run async Pact message-contract producer lane (opt-in) |
 | `test-contracts-async-consumer` | Run async Pact message-contract consumer lane (opt-in) |
 | `test-contracts-async-all` | Run async Pact message-contract producer+consumer lanes (opt-in) |
-| `quality-hooks-fast` | Run fast local quality checks |
-| `quality-hooks-strict` | Run slower audit-focused quality checks |
-| `quality-hooks-run` | Run pre-commit hooks and quality gates |
+| `quality-hooks-fast` | Run fast local quality checks (set QUALITY_HOOKS_KEEP_GOING=true to aggregate all failures; QUALITY_HOOKS_FORCE_FULL=true to bypass path/phase gating) |
+| `quality-hooks-strict` | Run slower audit-focused quality checks (set QUALITY_HOOKS_KEEP_GOING=true to aggregate all failures) |
+| `quality-hooks-run` | Run pre-commit hooks and quality gates (set QUALITY_HOOKS_KEEP_GOING=true to aggregate all failures across both phases) |
 | `quality-root-dir-prelude-check` | Fail when shell entrypoints reintroduce inline ROOT_DIR resolver drift |
 | `quality-infra-shell-source-graph-check` | Fail when infra helper source-edge contract drifts into caller-side implicit sourcing |
 | `quality-sdd-sync-control-catalog` | Render SDD control catalog markdown from machine-readable source |
@@ -66,7 +66,9 @@ This file is auto-generated. Do not edit it manually.
 | `quality-ci-full-e2e` | Run canonical full local E2E CI lane |
 | `quality-ci-strict` | Run canonical strict CI audit lane |
 | `quality-ci-blueprint` | Run source blueprint CI lane bundle |
-| `quality-ci-generated-consumer-smoke` | Run generated-consumer template smoke lane |
+| `quality-consumer-pre-push` | Consumer pre-push quality gate extension — override in platform.mk |
+| `quality-consumer-ci` | Consumer CI quality gate extension — override in platform.mk |
+| `quality-ci-generated-consumer-smoke` | Run generated-consumer template smoke lane (covers issue #230 v1.8.0 paired-reseed scenario) |
 | `quality-ci-upgrade-validate` | Run end-to-end consumer upgrade validation lane (push-to-main gate) |
 | `quality-docs-lint` | Lint markdown docs, governance links, and make target references |
 | `quality-docs-sync-all` | Run all docs sync generators in canonical order |
@@ -157,4 +159,8 @@ This file is auto-generated. Do not edit it manually.
 | `test-e2e-all-local` | Fast local E2E chain (dry-run infra + backend e2e lane) |
 | `test-e2e-all-local-full` | Full local E2E chain in dry-run mode (backend + touchpoints e2e lanes) |
 | `test-e2e-all-local-execute` | Full local E2E chain in execute mode (DRY_RUN=false, backend + touchpoints e2e lanes) |
+| `touchpoints-test-a11y` | Run full-page axe WCAG 2.1 AA accessibility scan against a live app URL |
+| `apps-a11y-smoke` | Run axe WCAG 2.1 AA smoke scan with default routes and impact threshold |
+| `quality-a11y-acr-check` | Validate ACR (docs/platform/accessibility/acr.md) exists, is dated, and is within staleness window |
+| `quality-a11y-acr-sync` | Regenerate ACR WCAG 2.1 criterion rows from bundled W3C list (preserves support/notes/evidence) |
 | `test-smoke-all-local` | Full local smoke lane: provision, infra-smoke, and endpoint assertions against a local cluster |

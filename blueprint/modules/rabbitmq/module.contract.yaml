@@ -41,6 +41,8 @@ spec:
       - RABBITMQ_USERNAME
       - RABBITMQ_PASSWORD
       - RABBITMQ_URI
+      - RABBITMQ_VHOST
+      - RABBITMQ_MANAGEMENT_URL
 
   make_targets:
     plan: infra-rabbitmq-plan

@@ -1,0 +1,58 @@
+{
+  "manifest_version": 1,
+  "work_item": "specs/2026-05-06-issue-248-object-storage-module",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-05-07T05:54:19Z",
+  "files": [
+    {
+      "path": "specs/2026-05-06-issue-248-object-storage-module/architecture.md",
+      "sha256": "02a6e1f0e68e3e1fc8424c19d36959d78657d97ce8c6c00e56aa094fda0cb1cd",
+      "bytes": 6968
+    },
+    {
+      "path": "specs/2026-05-06-issue-248-object-storage-module/context_pack.md",
+      "sha256": "82fa6bba3ed740d897dd1140b1942a5f79ef9eece6c0bd938618589534f70a51",
+      "bytes": 1023
+    },
+    {
+      "path": "specs/2026-05-06-issue-248-object-storage-module/evidence_manifest.json",
+      "sha256": "ecb0eea40122794ca8f062212e022ba451f6d0a543b88db3d7c15e65a071e7f7",
+      "bytes": 161
+    },
+    {
+      "path": "specs/2026-05-06-issue-248-object-storage-module/graph.json",
+      "sha256": "91da7628552483c9212fecf511bf452e78f7e0b8ab8baf28141d9f63ad48e226",
+      "bytes": 4358
+    },
+    {
+      "path": "specs/2026-05-06-issue-248-object-storage-module/hardening_review.md",
+      "sha256": "d12ffce87ee64fce6a1779bb907c3d5a61a49bcf66cabb6cff74ad37897553da",
+      "bytes": 2698
+    },
+    {
+      "path": "specs/2026-05-06-issue-248-object-storage-module/plan.md",
+      "sha256": "f0cb12c36f14b47ab2d61254433515167a6fecd33c70558c360afd803d10552c",
+      "bytes": 11865
+    },
+    {
+      "path": "specs/2026-05-06-issue-248-object-storage-module/pr_context.md",
+      "sha256": "5c8d0e07a16614cbf79d98061ae049046a4d0813354b8c6c00279d2c7e0c3021",
+      "bytes": 3730
+    },
+    {
+      "path": "specs/2026-05-06-issue-248-object-storage-module/spec.md",
+      "sha256": "934c7c2d7574029c5e7978f0f7af51f164cf8657694952d4fe3ec56d5d456afd",
+      "bytes": 12742
+    },
+    {
+      "path": "specs/2026-05-06-issue-248-object-storage-module/tasks.md",
+      "sha256": "638e7bfe0ff57cc5650a022ea8c241251e91d1e1dee121641c06398e4b89aaf7",
+      "bytes": 5839
+    },
+    {
+      "path": "specs/2026-05-06-issue-248-object-storage-module/traceability.md",
+      "sha256": "f50787102ff0dbb0f96ba313c057bfce8f9d62bdf35cd4afec33ea57be8bf466",
+      "bytes": 10744
+    }
+  ]
+}

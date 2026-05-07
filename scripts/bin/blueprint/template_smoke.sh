@@ -29,6 +29,12 @@ Environment variables:
   APP_CATALOG_SCAFFOLD_ENABLED        Opt-in app catalog scaffold contract
   APP_RUNTIME_GITOPS_ENABLED          App runtime GitOps scaffold contract (enabled by default)
   APP_RUNTIME_MIN_WORKLOADS           Execute-mode minimum expected app runtime workloads (default: 1)
+  BLUEPRINT_TEMPLATE_SMOKE_PRESEED_CONSUMER_KUSTOMIZATION
+                                      Issue #230 reproducer: when "true", pre-seed the temp repo with a
+                                      v1.8.0-shaped consumer kustomization (custom-app-* manifests)
+                                      before running blueprint-init-repo, so the smoke exercises the
+                                      paired-reseed scenario where descriptor↔kustomization must converge
+                                      via the init force-reseed path (default: false)
 EOF
 }
 
@@ -58,6 +64,7 @@ set_default_env SECRETS_MANAGER_ENABLED "false"
 set_default_env KMS_ENABLED "false"
 set_default_env IDENTITY_AWARE_PROXY_ENABLED "false"
 set_default_env APP_CATALOG_SCAFFOLD_ENABLED "false"
+set_default_env BLUEPRINT_TEMPLATE_SMOKE_PRESEED_CONSUMER_KUSTOMIZATION "false"
 set_default_env APP_RUNTIME_GITOPS_ENABLED "true"
 set_default_env APP_RUNTIME_MIN_WORKLOADS "1"
 
@@ -174,6 +181,56 @@ assert_template_smoke_repo_state() {
   python3 "$ROOT_DIR/scripts/lib/blueprint/template_smoke_assertions.py" "$repo_root"
 }
 
+# Issue #230 reproducer hook: pre-seed a v1.8.0-shaped consumer kustomization
+# (with non-demo custom-app-* manifests) before blueprint-init-repo runs.
+# Validates FR-003 — the smoke exercises the descriptor↔kustomization paired
+# reseed scenario, not just the fresh-init path.
+preseed_v180_consumer_kustomization() {
+  local repo_root="$1"
+  local apps_dir="$repo_root/infra/gitops/platform/base/apps"
+  mkdir -p "$apps_dir"
+  cat >"$apps_dir/kustomization.yaml" <<'YAML'
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - custom-app-deployment.yaml
+  - custom-app-service.yaml
+YAML
+  cat >"$apps_dir/custom-app-deployment.yaml" <<'YAML'
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: custom-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: custom-app
+  template:
+    metadata:
+      labels:
+        app: custom-app
+    spec:
+      containers:
+        - name: custom-app
+          image: custom-app:preseed
+YAML
+  cat >"$apps_dir/custom-app-service.yaml" <<'YAML'
+apiVersion: v1
+kind: Service
+metadata:
+  name: custom-app
+spec:
+  selector:
+    app: custom-app
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+YAML
+  log_info "preseeded v1.8.0-shaped consumer kustomization at $apps_dir/kustomization.yaml (issue #230 reproducer)"
+}
+
 tmp_root="$(mktemp -d)"
 tmp_repo="$tmp_root/repo"
 cleanup() {
@@ -216,6 +273,9 @@ log_info "template smoke workspace: $tmp_repo"
   # surface, even if the source workspace currently has an enabled-module
   # generated file from a previous local validation run.
   run_cmd run_template_smoke_reset_generated_make_surface
+  if [[ "$BLUEPRINT_TEMPLATE_SMOKE_PRESEED_CONSUMER_KUSTOMIZATION" == "true" ]]; then
+    preseed_v180_consumer_kustomization "$tmp_repo"
+  fi
   run_cmd run_template_smoke_init_repo
   run_cmd make blueprint-bootstrap
   run_cmd make infra-bootstrap
