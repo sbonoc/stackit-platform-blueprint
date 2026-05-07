@@ -1,0 +1,159 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-05-07-issue-248-rabbitmq-module",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "Implement STACKIT Terraform module with stackit_rabbitmq_instance and stackit_rabbitmq_credential resources"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "Add RABBITMQ_VHOST and RABBITMQ_MANAGEMENT_URL to module.contract.yaml outputs.produced"
+    },
+    {
+      "id": "FR-003",
+      "type": "requirement",
+      "summary": "Add rabbitmq_vhost() returning constant '/' on both lanes"
+    },
+    {
+      "id": "FR-004",
+      "type": "requirement",
+      "summary": "Add rabbitmq_management_url() reading foundation output on STACKIT lane, constructing from host on local lane"
+    },
+    {
+      "id": "FR-005",
+      "type": "requirement",
+      "summary": "Extend rabbitmq_apply.sh state file write with vhost and management_url keys"
+    },
+    {
+      "id": "FR-006",
+      "type": "requirement",
+      "summary": "Harden rabbitmq_smoke.sh with explicit host, port, vhost, management_url non-empty checks"
+    },
+    {
+      "id": "FR-007",
+      "type": "requirement",
+      "summary": "Implement variables.tf and outputs.tf for the STACKIT Terraform module"
+    },
+    {
+      "id": "FR-008",
+      "type": "requirement",
+      "summary": "Update foundation outputs.tf to expose rabbitmq_management_url from stackit_rabbitmq_credential.management"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "No plaintext credentials in rendered Helm values; existing Secret pattern must remain sole credential path"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "All four scripts emit metric events via start_script_metric_trap"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "Terraform module uses lifecycle create_before_destroy on instance resource"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "Runtime state file contains all 7 contract keys; smoke validates 4 of them"
+    },
+    {
+      "id": "NFR-A11Y-001",
+      "type": "requirement",
+      "summary": "N/A — infrastructure module with no browser-facing surface"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "Terraform main.tf declares stackit_rabbitmq_instance and stackit_rabbitmq_credential"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "variables.tf binds all contract inputs"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "outputs.tf exposes all contract output keys including rabbitmq_management_url"
+    },
+    {
+      "id": "AC-004",
+      "type": "acceptance",
+      "summary": "module.contract.yaml includes RABBITMQ_VHOST and RABBITMQ_MANAGEMENT_URL in outputs.produced"
+    },
+    {
+      "id": "AC-005",
+      "type": "acceptance",
+      "summary": "rabbitmq_vhost() returns '/' in both local and STACKIT profiles"
+    },
+    {
+      "id": "AC-006",
+      "type": "acceptance",
+      "summary": "rabbitmq_management_url() returns non-empty string in local profile and reads foundation output in STACKIT profile"
+    },
+    {
+      "id": "AC-007",
+      "type": "acceptance",
+      "summary": "rabbitmq_apply.sh state file write includes vhost and management_url keys"
+    },
+    {
+      "id": "AC-008",
+      "type": "acceptance",
+      "summary": "Smoke passes with valid runtime state containing all 7 keys"
+    },
+    {
+      "id": "AC-009",
+      "type": "acceptance",
+      "summary": "Smoke fails when uri does not start with amqp:// or amqps://"
+    },
+    {
+      "id": "AC-010",
+      "type": "acceptance",
+      "summary": "Smoke fails when host is empty"
+    },
+    {
+      "id": "AC-011",
+      "type": "acceptance",
+      "summary": "Smoke fails when vhost is empty"
+    },
+    {
+      "id": "AC-012",
+      "type": "acceptance",
+      "summary": "Contract test confirms runtime state has all 7 declared output keys"
+    },
+    {
+      "id": "AC-013",
+      "type": "acceptance",
+      "summary": "Foundation outputs expose rabbitmq_management_url from stackit_rabbitmq_credential.foundation[0].management"
+    }
+  ],
+  "edges": [
+    { "from": "FR-001", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-001", "to": "NFR-REL-001", "relation": "constrained_by" },
+    { "from": "FR-002", "to": "AC-004", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-012", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-005", "relation": "validated_by" },
+    { "from": "FR-004", "to": "AC-006", "relation": "validated_by" },
+    { "from": "FR-004", "to": "AC-013", "relation": "validated_by" },
+    { "from": "FR-005", "to": "AC-007", "relation": "validated_by" },
+    { "from": "FR-005", "to": "AC-012", "relation": "validated_by" },
+    { "from": "FR-006", "to": "AC-008", "relation": "validated_by" },
+    { "from": "FR-006", "to": "AC-009", "relation": "validated_by" },
+    { "from": "FR-006", "to": "AC-010", "relation": "validated_by" },
+    { "from": "FR-006", "to": "AC-011", "relation": "validated_by" },
+    { "from": "FR-007", "to": "AC-002", "relation": "validated_by" },
+    { "from": "FR-007", "to": "AC-003", "relation": "validated_by" },
+    { "from": "FR-008", "to": "AC-013", "relation": "validated_by" },
+    { "from": "NFR-SEC-001", "to": "FR-001", "relation": "constrains" },
+    { "from": "NFR-OBS-001", "to": "FR-005", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "AC-001", "relation": "constrains" },
+    { "from": "NFR-OPS-001", "to": "AC-008", "relation": "constrains" },
+    { "from": "NFR-OPS-001", "to": "AC-012", "relation": "constrains" }
+  ]
+}
