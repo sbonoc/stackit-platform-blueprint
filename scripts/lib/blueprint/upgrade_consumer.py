@@ -2372,7 +2372,7 @@ def main() -> int:
             return 1
 
         conflict_count = sum(1 for result in results if result.result == "conflict")
-        apply_payload["status"] = "failure" if (args.apply and conflict_count > 0) else "success"
+        apply_payload["status"] = "conflicts" if (args.apply and conflict_count > 0) else "success"
         _write_json(apply_path, apply_payload)
         reconcile_payload = build_upgrade_reconcile_report(
             repo_root=repo_root,
@@ -2427,10 +2427,10 @@ def main() -> int:
 
         if args.apply and conflict_count > 0:
             print(
-                f"upgrade apply produced {conflict_count} conflict(s); inspect artifacts/blueprint/conflicts",
+                f"upgrade apply produced {conflict_count} conflict(s); "
+                "inspect artifacts/blueprint/conflicts — resolve and re-run validation",
                 file=sys.stderr,
             )
-            return 1
         return 0
     finally:
         if temp_dir is not None:

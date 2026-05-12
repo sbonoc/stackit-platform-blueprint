@@ -73,7 +73,7 @@ The `make blueprint-upgrade-consumer` target runs 10 scripted stages automatical
 |-------|-------------|
 | 1 | Pre-flight: clean working tree, valid ref, parseable contract |
 | 1b | Version pin diff: compare `scripts/lib/infra/versions.sh` between baseline and target tags; emit `artifacts/blueprint/version_pin_diff.json` (non-blocking) |
-| 2 | Apply with delete (`BLUEPRINT_UPGRADE_ALLOW_DELETE=true` by default) |
+| 2 | Apply with delete (`BLUEPRINT_UPGRADE_ALLOW_DELETE=true`, `BLUEPRINT_UPGRADE_APPLY=true` by default) |
 | 3 | Contract resolver: preserve identity, merge required_files, drop matching prune globs |
 | 4 | Auto-resolve non-contract conflicts (blueprint-managed files take source content) |
 | 5 | Coverage gap detection and file fetch from local git clone |
@@ -93,6 +93,19 @@ BLUEPRINT_UPGRADE_REF=<tag> \
 BLUEPRINT_UPGRADE_ALLOW_DELETE=false \
 make blueprint-upgrade-consumer
 ```
+
+## Override: Plan-Only Mode
+
+To run in plan-only mode (no files written, no changes applied):
+
+```bash
+BLUEPRINT_UPGRADE_SOURCE=https://github.com/sbonoc/stackit-platform-blueprint \
+BLUEPRINT_UPGRADE_REF=<tag> \
+BLUEPRINT_UPGRADE_APPLY=false \
+make blueprint-upgrade-consumer
+```
+
+The pipeline emits a `[PIPELINE] PLAN-ONLY mode` banner at startup so plan-only runs are never silently ambiguous.
 
 ## Individual Stages (Standalone)
 
