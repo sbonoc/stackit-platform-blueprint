@@ -280,6 +280,30 @@ If you cannot upgrade the blueprint immediately and need a consumer-side workaro
 - **#258 (contract coverage gap):** manually add the 4 missing files to the correct ownership classes in `blueprint/contract.yaml`: `pyproject.toml` and `uv.lock` under `init_managed`, `infra/local/helm/opensearch/values.yaml` and `infra/local/helm/kms/values.yaml` under `conditional_scaffold`. Remove these entries after upgrading to the fixed blueprint.
 - **#261 (volatile artifact divergences):** no consumer-side workaround is available without patching the blueprint; upgrade the blueprint.
 
+## `make docs-build` fails on v1.10.0 with `docusaurus: not found` or pnpm version mismatch
+
+Two bugs in the v1.10.0 docs tooling were fixed in the blueprint release following v1.10.0.
+If you are on v1.10.0 and hitting either error below, upgrade to the next blueprint release.
+
+| Symptom | Issue | Fixed in |
+|---|---|---|
+| `make docs-build` fails with `sh: docusaurus: not found`; `docs/node_modules/` is empty after `make docs-install` on a repo whose `pnpm-workspace.yaml` excludes `docs/` | #272 | blueprint post-v1.10.0 |
+| `make docs-install` exits with a pnpm version mismatch error that does not name the root `package.json#packageManager` field as a cause | #273 | blueprint post-v1.10.0 |
+
+If you cannot upgrade the blueprint immediately and need a consumer-side workaround:
+
+- **#272 (`docusaurus: not found` — empty `docs/node_modules/`):** Locally patch `scripts/lib/docs/site.sh` to restore `--ignore-workspace` to all three pnpm invocations (`docs_pnpm_install`, `docs_pnpm_build`, `docs_pnpm_start`). For `docs_pnpm_install`, the corrected call is:
+  ```bash
+  run_cmd pnpm --dir "$DOCS_SITE_DIR" --ignore-workspace install --frozen-lockfile
+  ```
+  Apply the same `--ignore-workspace` flag to the `run build` and `run start` calls. Remove this patch after upgrading to the fixed blueprint.
+
+- **#273 (pnpm version mismatch):** If `make docs-install` exits with a pnpm version mismatch, align all three pnpm version sources to the version declared in `docs/package.json#packageManager`:
+  1. Update your local pnpm: `corepack prepare pnpm@<version> --activate`
+  2. Update the root `package.json#packageManager` field to `pnpm@<version>`
+  3. Update your CI workflow's corepack prepare step to pin the same version
+  Run `make docs-install` again to confirm the mismatch is resolved.
+
 ## Pull requests are not auto-requesting reviewers
 - Generated repositories seed `.github/CODEOWNERS` as a starter file with commented examples only.
 - Replace the example owners with your real team handles before relying on GitHub review assignment.

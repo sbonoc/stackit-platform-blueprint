@@ -39,9 +39,9 @@
 - [x] T-A01 NFR-A11Y-001 compliance scope: N/A — no UI components; pure shell script changes with no user-facing rendering surface.
 
 ## Validation and Release Readiness
-- [ ] T-301 Run full validation bundle: `make infra-validate && make quality-hooks-run`
+- [x] T-301 Run full validation bundle: `make infra-validate && make quality-hooks-run`
 - [ ] T-302 Attach evidence checksums to `traceability.md`
-- [ ] T-303 Confirm no stale TODOs or dead code in touched scope
+- [x] T-303 Confirm no stale TODOs or dead code in touched scope
 - [ ] T-304 Run `make docs-build && make docs-smoke` → PASS
 - [ ] T-305 Run `make quality-hardening-review` → PASS
 
