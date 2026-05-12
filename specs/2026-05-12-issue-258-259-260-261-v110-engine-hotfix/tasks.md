@@ -24,14 +24,14 @@
 ## Slice 2 — Validate target filtering (#260, FR-002, AC-002)
 
 ### Test (Red)
-- [ ] T-102 Write pytest regression fixture: contract with `repo_mode=generated-consumer`; assert `blueprint-template-smoke` NOT in resolved `VALIDATION_TARGETS`; confirm RED
+- [x] T-102 Write pytest regression fixture: contract with `repo_mode=generated-consumer`; assert `blueprint-template-smoke` NOT in resolved `VALIDATION_TARGETS`; confirm RED
 
 ### Implementation
-- [ ] T-003 In `scripts/lib/blueprint/upgrade_consumer_validate.py`, filter `VALIDATION_TARGETS` to exclude `blueprint-template-smoke` when `contract.repository.repo_mode == generated-consumer-mode-constant`
+- [x] T-003 In `scripts/lib/blueprint/upgrade_consumer_validate.py`, filter `VALIDATION_TARGETS` to exclude `blueprint-template-smoke` when `contract.repository.repo_mode == generated-consumer-mode-constant`
 
 ### Verify
-- [ ] T-204 Run `uv run python3 -m pytest tests/infra/ -k "issue_260" -v` → PASS (GREEN)
-- [ ] T-205 Run `make quality-hooks-fast` → no new failures
+- [x] T-204 Run `uv run python3 -m pytest tests/infra/ -k "issue_260" -v` → PASS (GREEN)
+- [x] T-205 Run `make quality-hooks-fast` → no new failures
 
 ## Slice 3 — Volatile artifact names (#261, FR-003, AC-003)
 
