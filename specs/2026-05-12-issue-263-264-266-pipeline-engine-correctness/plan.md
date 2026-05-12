@@ -14,6 +14,9 @@
 ## Delivery Slices
 
 ### Slice 1 — Failing tests for #263 (last_applied_version) [RED]
+- **Owner**: agent (single-agent execution model)
+- **Depends on**: none — first slice
+
 Write `tests/infra/test_upgrade_baseline_issue_263.py` with:
 - `BaselineResolutionLastAppliedVersionTests.test_prefers_last_applied_version_over_template_version` — RED (function doesn't accept `last_applied_version` yet)
 - `BaselineResolutionLastAppliedVersionTests.test_falls_back_to_template_version_when_field_absent` — RED
@@ -23,6 +26,9 @@ Write `tests/infra/test_upgrade_baseline_issue_263.py` with:
 Gate: `uv run python3 -m pytest tests/infra/test_upgrade_baseline_issue_263.py -v` → all 4 FAIL.
 
 ### Slice 2 — Fix #263 [GREEN]
+- **Owner**: agent (single-agent execution model)
+- **Depends on**: Slice 1 (tests must be RED before fix is applied)
+
 1. `scripts/lib/blueprint/contract_schema.py`: add `last_applied_version: str = ""` to `TemplateBootstrapContract` dataclass (optional, defaults to empty string); add parsing in `load_blueprint_contract` from `template_raw.get("last_applied_version", "")`.
 2. `scripts/lib/blueprint/upgrade_consumer.py`: update `_resolve_baseline_ref(source_repo, template_version, last_applied_version="")` — try `last_applied_version` candidates first when non-empty, then fall back to `template_version`; update call site to pass `contract.repository.template_bootstrap.last_applied_version`.
 3. `scripts/lib/blueprint/upgrade_version_pin_diff.py`: apply same preference — read `last_applied_version` from contract and pass to `_resolve_baseline_ref`; fall back to `template_version` when absent.
@@ -32,6 +38,9 @@ Gate: `uv run python3 -m pytest tests/infra/test_upgrade_baseline_issue_263.py -
 Gate: `uv run python3 -m pytest tests/infra/test_upgrade_baseline_issue_263.py -v` → all 4 GREEN; `uv run python3 -m pytest tests/infra/ -q` → no regressions.
 
 ### Slice 3 — Failing tests for #264 + #266 [RED]
+- **Owner**: agent (single-agent execution model)
+- **Depends on**: none — independent of Slices 1+2; can start in parallel or after Slice 2
+
 Write `tests/infra/test_upgrade_pipeline_correctness_issue_264_266.py` with:
 - `EngineExitCodeIssue264Tests.test_engine_exits_zero_on_conflicts` — RED (engine currently exits 1)
 - `EngineExitCodeIssue264Tests.test_apply_artifact_status_is_conflicts_when_conflicts_present` — RED (status currently "failure")
@@ -42,6 +51,9 @@ Write `tests/infra/test_upgrade_pipeline_correctness_issue_264_266.py` with:
 Gate: `uv run python3 -m pytest tests/infra/test_upgrade_pipeline_correctness_issue_264_266.py -v` → all 5 FAIL.
 
 ### Slice 4 — Fix #264 + #266 [GREEN]
+- **Owner**: agent (single-agent execution model)
+- **Depends on**: Slice 3 (tests must be RED before fix is applied)
+
 1. `scripts/lib/blueprint/upgrade_consumer.py`: when `args.apply and conflict_count > 0`: set `apply_payload["status"] = "conflicts"` (not "failure"); change `return 1` to `return 0`. Keep `return 1` for merge-markers path (that is a true failure — malformed apply state).
 2. `scripts/lib/blueprint/schemas/upgrade_apply.schema.json`: add `"conflicts"` to the `status` enum.
 3. `scripts/bin/blueprint/upgrade_consumer_pipeline.sh`: Stage 2 changes:
@@ -52,7 +64,7 @@ Gate: `uv run python3 -m pytest tests/infra/test_upgrade_pipeline_correctness_is
    - Update usage block to document the new default.
 4. `.agents/skills/blueprint-consumer-upgrade/SKILL.md`: update apply-mode documentation.
 
-Gate: `uv run python3 -m pytest tests/infra/test_upgrade_pipeline_correctness_issue_264_266.py -v` → all 4 GREEN; `uv run python3 -m pytest tests/infra/ -q` → no regressions; `make quality-hooks-fast`.
+Gate: `uv run python3 -m pytest tests/infra/test_upgrade_pipeline_correctness_issue_264_266.py -v` → all 5 GREEN; `uv run python3 -m pytest tests/infra/ -q` → no regressions; `make quality-hooks-fast`.
 
 ## Change Strategy
 - Migration/rollout sequence: Slices apply in order 1→2→3→4. Slices 1+2 are independent of Slices 3+4 and can be developed in sequence without coordination gaps.
@@ -101,7 +113,7 @@ Gate: `uv run python3 -m pytest tests/infra/test_upgrade_pipeline_correctness_is
 - Publish checklist:
   - include requirement/contract coverage (FR-001 through FR-004, AC-001 through AC-007)
   - include key reviewer files (upgrade_consumer.py, upgrade_consumer_postcheck.py, contract_schema.py, upgrade_consumer_pipeline.sh, blueprint/contract.yaml)
-  - include validation evidence (8 new tests GREEN, full infra suite pass)
+  - include validation evidence (9 new tests GREEN, full infra suite pass)
   - include rollback notes (single-file reverts, env-var override)
 
 ## Operational Readiness
