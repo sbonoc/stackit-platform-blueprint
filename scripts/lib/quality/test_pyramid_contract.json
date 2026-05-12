@@ -66,6 +66,7 @@
         "tests/infra/test_version_contract_checker.py",
         "tests/infra/test_python_helper_extractions.py",
         "tests/infra/test_root_dir_resolution.py",
+        "tests/infra/test_docs_site_sh_issue_272_273.py",
         "tests/infra/test_upgrade_contract_coverage_issue_258.py",
         "tests/infra/test_upgrade_consumer_validate_issue_260.py",
         "tests/infra/test_upgrade_fresh_env_gate_issue_261.py",

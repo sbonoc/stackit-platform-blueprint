@@ -1,0 +1,58 @@
+{
+  "manifest_version": 1,
+  "work_item": "specs/2026-05-12-issue-272-273-v110-docs-hotfix",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-05-12T16:21:48Z",
+  "files": [
+    {
+      "path": "specs/2026-05-12-issue-272-273-v110-docs-hotfix/architecture.md",
+      "sha256": "73443a8f7bfb851e44bc72a42866c4e0de8b770592306e407c90fe9c09fef432",
+      "bytes": 6154
+    },
+    {
+      "path": "specs/2026-05-12-issue-272-273-v110-docs-hotfix/context_pack.md",
+      "sha256": "9b42f3e0d92ea457ee7786f57034be3e51420c2efb647540d8aca16da9dcdf0f",
+      "bytes": 1849
+    },
+    {
+      "path": "specs/2026-05-12-issue-272-273-v110-docs-hotfix/evidence_manifest.json",
+      "sha256": "ecb0eea40122794ca8f062212e022ba451f6d0a543b88db3d7c15e65a071e7f7",
+      "bytes": 161
+    },
+    {
+      "path": "specs/2026-05-12-issue-272-273-v110-docs-hotfix/graph.json",
+      "sha256": "14338141896f05e84f83636f0c35eece6042e5f8d18e0f235ececdb36e7d648d",
+      "bytes": 3060
+    },
+    {
+      "path": "specs/2026-05-12-issue-272-273-v110-docs-hotfix/hardening_review.md",
+      "sha256": "21323aa281f0b6385779f7ac180b90190a1b9edcdab2fa3eaa08cdd405f52857",
+      "bytes": 4594
+    },
+    {
+      "path": "specs/2026-05-12-issue-272-273-v110-docs-hotfix/plan.md",
+      "sha256": "9e6d80a95d8cd1ac04194e5559745acd9595302321b34b04f023cac69f83a898",
+      "bytes": 6006
+    },
+    {
+      "path": "specs/2026-05-12-issue-272-273-v110-docs-hotfix/pr_context.md",
+      "sha256": "e1e76c962383d63f7681aac0ea0f1ae47179b2639863545beb82c840af74c043",
+      "bytes": 4777
+    },
+    {
+      "path": "specs/2026-05-12-issue-272-273-v110-docs-hotfix/spec.md",
+      "sha256": "90394f38d6da066c6d4258c59c3dae1264adcc63a846d0d53d4bc35f713e0209",
+      "bytes": 9544
+    },
+    {
+      "path": "specs/2026-05-12-issue-272-273-v110-docs-hotfix/tasks.md",
+      "sha256": "6e8f8aa30766c1af4b01c6d655bf6b30337c8f15138ea619e4864079c4f50e5e",
+      "bytes": 3963
+    },
+    {
+      "path": "specs/2026-05-12-issue-272-273-v110-docs-hotfix/traceability.md",
+      "sha256": "d4f7cbc0b683792a43ac892b925ba993950d56d52fd3e0722da5d3bd38423389",
+      "bytes": 4207
+    }
+  ]
+}

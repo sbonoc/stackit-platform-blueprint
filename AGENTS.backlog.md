@@ -174,7 +174,13 @@ Reported by consumer sbonoc/dhe-marketplace from their v1.7.0→v1.8.0 upgrade e
 - [ ] (parked) proposal(issue-258-259-260-261-v110-engine-hotfix): Full POSIX shell parser — replace grep-based `_FUNC_DEF_EXTRACT` heuristic in `upgrade_shell_behavioral_check.py` with `shellcheck --format=json` or equivalent to eliminate missed definitions from complex multi-line or heredoc-embedded function declarations.
       trigger: on-scope: blueprint
       rationale: heuristic covers all known production failure classes; full parser requires new external binary dependency; out of scope for hotfix; surfaces when behavioral-check scope is next touched
-- [ ] P1 (Consumer upgrade flow): Issues #272 + #273 — **v1.10.0 docs hotfix**: (1) #272: `scripts/lib/docs/site.sh` v1.10.0 dropped `--ignore-workspace` from all three pnpm invocations, breaking consumers whose root `pnpm-workspace.yaml` excludes `docs/`; (2) #273: same release added a strict pnpm version assertion with no migration path, unmasking latent root-vs-docs pnpm version drift across all consumers. Both live in `scripts/lib/docs/site.sh`; ship as one PR.
+- [x] P1 (Consumer upgrade flow): Issues #272 + #273 — **v1.10.0 docs hotfix**: (1) #272: `scripts/lib/docs/site.sh` v1.10.0 dropped `--ignore-workspace` from all three pnpm invocations, breaking consumers whose root `pnpm-workspace.yaml` excludes `docs/`; (2) #273: same release added a strict pnpm version assertion with no migration path, unmasking latent root-vs-docs pnpm version drift across all consumers. Both live in `scripts/lib/docs/site.sh`; ship as one PR. **Done**: `specs/2026-05-12-issue-272-273-v110-docs-hotfix/`, PR #276.
+- [ ] (parked) proposal(issue-272-273-v110-docs-hotfix): `blueprint-align-pnpm-pins` migration target — Add a `blueprint-align-pnpm-pins` Make target backed by `scripts/bin/blueprint/align_pnpm_pins.sh` that takes `docs/package.json` as canonical and rewrites all other `packageManager` fields in the repo to match. Deferred from #273 hotfix (Option B).
+      trigger: on-scope: blueprint
+      rationale: migration script is valuable but expands hotfix scope; the improved error message (Option A) is sufficient for operators to resolve drift manually; automation belongs in a dedicated blueprint-scope work item
+- [ ] (parked) proposal(issue-272-273-v110-docs-hotfix): Preflight pnpm version drift detection — Add a `quality-pnpm-version-contract` check (or fold into `infra-validate`) that scans all `package.json` `packageManager` fields in the repo and reports drift before any install runs. Deferred from #273 hotfix.
+      trigger: on-scope: quality
+      rationale: preflight drift detection reduces operator toil but is a new quality hook; out of scope for a two-line hotfix; surfaces when quality hook scope is next extended
 
 #### Pipeline and engine correctness — next to work on (P1, one PR)
 
