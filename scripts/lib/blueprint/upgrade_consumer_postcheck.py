@@ -187,17 +187,19 @@ def _write_last_applied_version(repo_root: Path, upgrade_ref: str) -> None:
         return
     content = contract_path.read_text(encoding="utf-8")
     if re.search(r"^\s+last_applied_version:", content, re.MULTILINE):
+        # Preserve any trailing inline comment (e.g. "# engine-managed").
         new_content = re.sub(
-            r"^(\s+last_applied_version:).*$",
-            rf"\1 {upgrade_ref}",
+            r"^(\s+last_applied_version:)[^#\n]*(#.*)?$",
+            lambda m: f'{m.group(1)} "{upgrade_ref}"' + (f"  {m.group(2)}" if m.group(2) else ""),
             content,
             flags=re.MULTILINE,
         )
     else:
         new_content = re.sub(
             r"^(\s+)(template_version:.*)$",
-            lambda m: f"{m.group(0)}\n{m.group(1)}last_applied_version: {upgrade_ref}",
+            lambda m: f'{m.group(0)}\n{m.group(1)}last_applied_version: "{upgrade_ref}"',
             content,
+            count=1,
             flags=re.MULTILINE,
         )
     contract_path.write_text(new_content, encoding="utf-8")
@@ -459,7 +461,7 @@ def main() -> int:
     if plan_apply_load_error:
         print(plan_apply_load_error, file=sys.stderr)
 
-    if status == "success" and isinstance(apply_payload, dict):
+    if status == "success" and isinstance(apply_payload, dict) and apply_payload.get("apply_enabled"):
         upgrade_ref = str(apply_payload.get("upgrade_ref", "") or "")
         if upgrade_ref:
             _write_last_applied_version(repo_root, upgrade_ref)

@@ -102,9 +102,11 @@ if [[ "$stage2_rc" -ne 0 ]]; then
   log_fatal "[PIPELINE] Stage 2: FAILED (exit $stage2_rc) — apply step encountered an error; aborting."
 fi
 apply_artifact="$ROOT_DIR/artifacts/blueprint/upgrade_apply.json"
+# stage2_status is observability only — the pipeline continues through resolution stages
+# regardless of "conflicts" vs "success"; only a non-zero exit above aborts.
 stage2_status=""
 if [[ -f "$apply_artifact" ]]; then
-  stage2_status="$(python3 -c "import json,sys; d=json.load(open('$apply_artifact')); print(d.get('status',''))" 2>/dev/null || true)"
+  stage2_status="$(uv run python3 -c "import json,sys; d=json.load(open('$apply_artifact')); print(d.get('status',''))" 2>/dev/null || true)"
 fi
 log_info "[PIPELINE] Stage 2: complete (status=${stage2_status:-unknown})"
 
