@@ -11,7 +11,6 @@ a function definition silently dropped by a 3-way merge while its call site
 is retained — without requiring a full POSIX shell parser.
 
 Scope limitations (by design for MVP):
-  - Source-chain resolution is capped at depth 1.
   - Dynamically constructed function names are not detected.
   - Only functions that look "local" (not in the builtins exclusion set) are
     checked as call-site candidates.
@@ -23,6 +22,7 @@ from __future__ import annotations
 import re
 import subprocess
 import sys
+from collections import deque
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -185,47 +185,35 @@ def _resolve_sourced_paths(script_path: Path, content: str) -> list[Path]:
     return sourced
 
 
-def _collect_available_definitions(script_path: Path, content: str) -> set[str]:
-    """Collect all function definitions reachable from a script at depth-1.
-
-    Preserved as a lower-level building block used by the BFS transitive resolver.
-    """
-    defs = _extract_definitions(content)
-    for sourced_path in _resolve_sourced_paths(script_path, content):
-        try:
-            sourced_content = sourced_path.read_text(encoding="utf-8")
-        except OSError:
-            continue
-        defs.update(_extract_definitions(sourced_content))
-    return defs
-
-
 def _collect_defined_functions_transitive(
     script_path: Path,
-    visited: frozenset[Path] | None = None,
+    repo_root: Path,
 ) -> set[str]:
     """Collect all function definitions reachable from script_path via BFS.
 
     Traverses the full transitive source chain (not capped at depth 1).
-    A frozenset of visited absolute paths prevents infinite recursion on cycles.
+    A mutable visited set prevents infinite recursion on cycles.
+    Sourced paths that resolve outside repo_root are skipped (boundary guard).
     """
-    if visited is None:
-        visited = frozenset()
-
     try:
         content = script_path.read_text(encoding="utf-8")
     except OSError:
         return set()
 
     defs: set[str] = _extract_definitions(content)
-    visited = visited | {script_path}
+    visited: set[Path] = {script_path}
+    repo_root_resolved = repo_root.resolve()
 
-    queue: list[Path] = _resolve_sourced_paths(script_path, content)
+    queue: deque[Path] = deque(_resolve_sourced_paths(script_path, content))
     while queue:
-        next_path = queue.pop(0)
+        next_path = queue.popleft()
         if next_path in visited:
             continue
-        visited = visited | {next_path}
+        try:
+            next_path.resolve().relative_to(repo_root_resolved)
+        except ValueError:
+            continue  # sourced path escapes repo root — skip
+        visited.add(next_path)
         try:
             next_content = next_path.read_text(encoding="utf-8")
         except OSError:
@@ -437,7 +425,7 @@ def run_behavioral_check(
         except OSError:
             continue
 
-        available_defs = _collect_defined_functions_transitive(script_path)
+        available_defs = _collect_defined_functions_transitive(script_path, repo_root)
         call_site_findings = _find_unresolved_call_sites(
             content, available_defs, excluded=effective_excluded
         )
