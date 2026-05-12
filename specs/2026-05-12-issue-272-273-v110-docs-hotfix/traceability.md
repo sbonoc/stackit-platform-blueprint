@@ -27,8 +27,8 @@
   - AC-002
 
 ## Validation Summary
-- Required bundles executed: TBD (populated at publish phase)
-- Result summary: TBD
+- Required bundles executed: pending (populated at publish phase)
+- Result summary: pending (populated at publish phase)
 - Documentation validation:
   - `make docs-build`
   - `make docs-smoke`

@@ -1,12 +1,12 @@
 # ADR-issue-272-273-v110-docs-hotfix: v1.10.0 docs hotfix — restore --ignore-workspace and improve pnpm version assertion diagnostics
 
 ## Metadata
-- Status: proposed
+- Status: approved
 - Date: 2026-05-12
 - Owners: Blueprint maintainer
 - Related spec path: specs/2026-05-12-issue-272-273-v110-docs-hotfix/spec.md
-- ADR product context sign-off: pending
-- ADR technical decision sign-off: pending
+- ADR product context sign-off: approved
+- ADR technical decision sign-off: approved
 
 ---
 
