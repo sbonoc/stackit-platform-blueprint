@@ -18,8 +18,8 @@
 - [ ] Gate: `make quality-hooks-fast`.
 
 ## Slice 3 — Failing tests for #264 + #266 [RED]
-- [ ] Write `tests/infra/test_upgrade_pipeline_correctness_issue_264_266.py` with 4 failing tests.
-- [ ] Confirm `uv run python3 -m pytest tests/infra/test_upgrade_pipeline_correctness_issue_264_266.py -v` → 4 FAIL.
+- [ ] Write `tests/infra/test_upgrade_pipeline_correctness_issue_264_266.py` with 5 failing tests (including `test_engine_exits_nonzero_on_merge_markers` for AC-005).
+- [ ] Confirm `uv run python3 -m pytest tests/infra/test_upgrade_pipeline_correctness_issue_264_266.py -v` → 5 FAIL.
 
 ## Slice 4 — Fix #264 + #266: exit code disambiguation + APPLY default [GREEN]
 - [ ] `upgrade_consumer.py`: set `status = "conflicts"` and `return 0` when apply has conflicts (not merge markers).

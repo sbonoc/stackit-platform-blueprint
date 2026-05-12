@@ -35,10 +35,11 @@ Gate: `uv run python3 -m pytest tests/infra/test_upgrade_baseline_issue_263.py -
 Write `tests/infra/test_upgrade_pipeline_correctness_issue_264_266.py` with:
 - `EngineExitCodeIssue264Tests.test_engine_exits_zero_on_conflicts` — RED (engine currently exits 1)
 - `EngineExitCodeIssue264Tests.test_apply_artifact_status_is_conflicts_when_conflicts_present` — RED (status currently "failure")
+- `EngineExitCodeIssue264Tests.test_engine_exits_nonzero_on_merge_markers` — RED (engine must retain exit 1 for merge-marker true failures, covering AC-005 abort path)
 - `PipelineApplyDefaultIssue266Tests.test_pipeline_apply_default_is_true` — RED (default is false)
 - `PipelineApplyDefaultIssue266Tests.test_pipeline_emits_banner_when_apply_false` — RED
 
-Gate: `uv run python3 -m pytest tests/infra/test_upgrade_pipeline_correctness_issue_264_266.py -v` → all 4 FAIL.
+Gate: `uv run python3 -m pytest tests/infra/test_upgrade_pipeline_correctness_issue_264_266.py -v` → all 5 FAIL.
 
 ### Slice 4 — Fix #264 + #266 [GREEN]
 1. `scripts/lib/blueprint/upgrade_consumer.py`: when `args.apply and conflict_count > 0`: set `apply_payload["status"] = "conflicts"` (not "failure"); change `return 1` to `return 0`. Keep `return 1` for merge-markers path (that is a true failure — malformed apply state).
@@ -59,7 +60,7 @@ Gate: `uv run python3 -m pytest tests/infra/test_upgrade_pipeline_correctness_is
 - Rollback plan: single-file revert per component; no database or schema migration needed. Removing `last_applied_version` from `blueprint/contract.yaml` reverts to old baseline resolution. Setting `BLUEPRINT_UPGRADE_APPLY` env var before pipeline invocation bypasses the new default.
 
 ## Validation Strategy (Shift-Left)
-- Unit checks: `uv run python3 -m pytest tests/infra/test_upgrade_baseline_issue_263.py tests/infra/test_upgrade_pipeline_correctness_issue_264_266.py -v` — 8 tests covering all 7 acceptance criteria.
+- Unit checks: `uv run python3 -m pytest tests/infra/test_upgrade_baseline_issue_263.py tests/infra/test_upgrade_pipeline_correctness_issue_264_266.py -v` — 9 tests covering all 7 acceptance criteria.
 - Contract checks: `make infra-validate` — verifies `blueprint/contract.yaml` schema; `make quality-sdd-check` — spec artifact validation.
 - Integration checks: `uv run python3 -m pytest tests/infra/ -q --ignore=tests/infra/modules` — full infra suite; no regressions.
 - E2E checks: deferred — `make blueprint-upgrade-consumer` against a real consumer requires live clone; deferred to CI pipeline.

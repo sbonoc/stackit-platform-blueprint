@@ -1,9 +1,10 @@
 # ADR: Issues #263 + #264 + #266 — Pipeline/Engine Correctness: Baseline Version Tracking, Exit Code Disambiguation, and Apply Default
 
-- **Status**: proposed
+- **Status**: approved
 - **Date**: 2026-05-12
 - **Issues**: #263, #264, #266
 - **Work item**: `specs/2026-05-12-issue-263-264-266-pipeline-engine-correctness/`
+- **ADR technical decision sign-off**: approved
 
 ## Context
 

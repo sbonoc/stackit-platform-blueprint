@@ -17,7 +17,7 @@
 | AC-002 | SDD-C-012 | N/A | `plan.md` § Slice 1 | `upgrade_consumer.py` — `_resolve_baseline_ref` fallback | `BaselineResolutionLastAppliedVersionTests.test_falls_back_to_template_version_when_field_absent` (1 test) | N/A | deferred to CI |
 | AC-003 | SDD-C-012 | N/A | `plan.md` § Slice 2 | `upgrade_consumer_postcheck.py` — write path | `PostcheckLastAppliedVersionBumpTests.test_writes_last_applied_version_on_success` (1 test) | N/A | deferred to CI |
 | AC-004 | SDD-C-012 | N/A | `plan.md` § Slice 3 | `upgrade_consumer_pipeline.sh` — Stage 2 artifact-driven check | `EngineExitCodeIssue264Tests.test_engine_exits_zero_on_conflicts` (1 test) | N/A | `make quality-hooks-run` PASS |
-| AC-005 | SDD-C-012 | N/A | `plan.md` § Slice 3 | `upgrade_consumer_pipeline.sh` — abort on true error | `EngineExitCodeIssue264Tests.test_apply_artifact_status_is_conflicts_when_conflicts_present` (1 test) | N/A | `make quality-hooks-run` PASS |
+| AC-005 | SDD-C-012 | N/A | `plan.md` § Slice 3 | `upgrade_consumer.py` — `return 1` retained for merge-markers path; `upgrade_consumer_pipeline.sh` — abort condition fires when `rc != 0 AND status != "conflicts"` | `EngineExitCodeIssue264Tests.test_engine_exits_nonzero_on_merge_markers` (1 test) | N/A | `make quality-hooks-run` PASS |
 | AC-006 | SDD-C-012 | N/A | `plan.md` § Slice 4 | `upgrade_consumer_pipeline.sh` — `set_default_env BLUEPRINT_UPGRADE_APPLY true` | `PipelineApplyDefaultIssue266Tests.test_pipeline_apply_default_is_true` (1 test) | N/A | `make quality-hooks-run` PASS |
 | AC-007 | SDD-C-012 | N/A | `plan.md` § Slice 4 | `upgrade_consumer_pipeline.sh` — banner when APPLY=false | `PipelineApplyDefaultIssue266Tests.test_pipeline_emits_banner_when_apply_false` (1 test) | N/A | `make quality-hooks-run` PASS |
 
