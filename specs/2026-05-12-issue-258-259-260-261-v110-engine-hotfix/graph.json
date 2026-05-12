@@ -1,0 +1,84 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-05-12-issue-258-259-260-261-v110-engine-hotfix",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "blueprint/contract.yaml MUST classify 4 unclassified source files so audit_source_tree_coverage reports uncovered_source_files_count=0"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "upgrade_consumer_validate.py MUST filter blueprint-template-smoke from VALIDATION_TARGETS for generated-consumer repos"
+    },
+    {
+      "id": "FR-003",
+      "type": "requirement",
+      "summary": "upgrade_fresh_env_gate.py MUST add upgrade_validate.json and required_files_status.json to _VOLATILE_ARTIFACT_NAMES"
+    },
+    {
+      "id": "FR-004",
+      "type": "requirement",
+      "summary": "upgrade_shell_behavioral_check.py MUST use full transitive source resolution with cycle detection and suppress bare command tokens"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "N/A — no security surface in scope for this tooling fix"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "All four fixes MUST preserve existing JSON artifact schemas and WARNING/ERROR log lines"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "Each fix MUST be independently backward-compatible; no existing passing check must be broken"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "All regression tests MUST be runnable via uv run python3 -m pytest without network or cluster access"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "audit_source_tree_coverage reports uncovered_source_files_count=0 for v1.10.0 source tree; plan stage does not abort"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "blueprint-upgrade-consumer-validate does NOT fail due to blueprint-template-smoke for generated-consumer repos"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "blueprint-upgrade-fresh-env-gate reports PASS when artifacts differ only in embedded absolute paths"
+    },
+    {
+      "id": "AC-004",
+      "type": "acceptance",
+      "summary": "blueprint-upgrade-consumer-postcheck reports behavioral_check_failures_total=0 for all blueprint-managed scripts"
+    }
+  ],
+  "edges": [
+    { "from": "FR-001", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-002", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-003", "relation": "validated_by" },
+    { "from": "FR-004", "to": "AC-004", "relation": "validated_by" },
+    { "from": "NFR-OBS-001", "to": "FR-001", "relation": "constrains" },
+    { "from": "NFR-OBS-001", "to": "FR-002", "relation": "constrains" },
+    { "from": "NFR-OBS-001", "to": "FR-003", "relation": "constrains" },
+    { "from": "NFR-OBS-001", "to": "FR-004", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "AC-001", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "AC-002", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "AC-003", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "AC-004", "relation": "constrains" },
+    { "from": "NFR-OPS-001", "to": "AC-001", "relation": "constrains" },
+    { "from": "NFR-OPS-001", "to": "AC-002", "relation": "constrains" },
+    { "from": "NFR-OPS-001", "to": "AC-003", "relation": "constrains" },
+    { "from": "NFR-OPS-001", "to": "AC-004", "relation": "constrains" }
+  ]
+}
