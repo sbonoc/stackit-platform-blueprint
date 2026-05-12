@@ -168,6 +168,28 @@ Reported by consumer sbonoc/dhe-marketplace from their v1.7.0→v1.8.0 upgrade e
       trigger: on-scope: blueprint
       rationale: no additional callers exist today; surfaces when the next blueprint smoke scenario is developed
 
+#### v1.10.0 upgrade regressions — next to work on (P1, two hotfix PRs)
+
+- [ ] P1 (Consumer upgrade flow): Issues #258 + #259 + #260 + #261 — **v1.10.0 engine hotfix**: (1) #258: four blueprint source files (`pyproject.toml`, `uv.lock`, `infra/local/helm/opensearch/values.yaml`, `infra/local/helm/kms/values.yaml`) unclassified in `blueprint/contract.yaml` → `audit_source_tree_coverage` reports `BLOCKED` and aborts every consumer upgrade in Stage 2; (2) #259: 29 false-positive symbols flagged by `upgrade_shell_behavioral_check` because the depth-1 source resolver does not trace transitive sources — every consumer upgrading to v1.10.0 hits the same 73 occurrences; (3) #260: `blueprint-template-smoke` hard-coded in `VALIDATION_TARGETS` in `upgrade_consumer_validate.py` runs `blueprint-init-repo` against a temp copy, which fails for generated-consumer repos that lack the template scaffold; (4) #261: `upgrade_validate.json` and `required_files_status.json` embed absolute repo paths in captured stdout; `make blueprint-upgrade-fresh-env-gate` diff comparison fails for every consumer. Group ships as one PR.
+- [ ] P1 (Consumer upgrade flow): Issues #272 + #273 — **v1.10.0 docs hotfix**: (1) #272: `scripts/lib/docs/site.sh` v1.10.0 dropped `--ignore-workspace` from all three pnpm invocations, breaking consumers whose root `pnpm-workspace.yaml` excludes `docs/`; (2) #273: same release added a strict pnpm version assertion with no migration path, unmasking latent root-vs-docs pnpm version drift across all consumers. Both live in `scripts/lib/docs/site.sh`; ship as one PR.
+
+#### Pipeline and engine correctness — next to work on (P1, one PR)
+
+- [ ] P1 (Consumer upgrade flow): Issues #263 + #264 + #266 — **pipeline/engine correctness**: (1) #263: the upgrade engine resolves the 3-way merge baseline from `spec.repository.template_bootstrap.template_version`, which is set at init and never advanced — multi-version upgraders silently use the wrong baseline and can receive incorrect merges; fix by tracking `last_applied_blueprint_version` as a separate field updated after each successful upgrade; (2) #264: `upgrade_consumer_pipeline.sh` Stage 2 treats any non-zero make exit code as a conflict indicator, but cannot distinguish a real engine crash (exit >1) from engine-reported conflicts (exit 1) — reliable error routing is impossible; (3) #266: `upgrade_consumer.sh` defaults `BLUEPRINT_UPGRADE_APPLY=false`; the pipeline wrapper never overrides this, so Stage 2 is a no-op by default. All three are correctness bugs in the apply cycle; ship as one PR.
+
+#### Conflict resolution UX (P2, one PR)
+
+- [ ] P2 (Consumer upgrade flow): Issues #265 + #271 — **conflict resolution UX**: (1) #265: after Stage 2 conflicts, the engine writes one `*.conflict.json` per file with no ownership classification or recommended action; emit `artifacts/blueprint/upgrade_triage.json` with per-conflict `ownership_class` and `recommended_action` (`take_source` / `take_target` / `delete` / `human_required`), and add a new `blueprint-upgrade-consumer-resolve` target that auto-applies the unambiguous rows and prints a residual table for the `human_required` ones; (2) #271 (UX layer, hard-depends on #265): extends the resolve target with interactive one-at-a-time prompting (`INTERACTIVE=true`), batch flags (`--accept-source ALL`, `--accept-target ALL`), sorted+truncated display (>20 rows shows footer), and agent-flow guidance. Evidence: real upgrade hit 88 conflicts, 85 were auto-resolvable, 25 min of manual work. Ship #265 + #271 as one PR.
+
+#### Pipeline feature additions (P2, one PR)
+
+- [ ] P2 (Consumer upgrade flow): Issues #267 + #269 — **pipeline features**: (1) #267: add a new `blueprint-upgrade-consumer-finalize` target as the canonical post-apply quality cycle — runs Stage 3 contract resolve, postcheck, and fresh-env-gate in the correct order, replacing the implicit sequence consumers must currently discover and run by hand; (2) #269: at pipeline start, auto-clone `BLUEPRINT_UPGRADE_SOURCE` when it is a URL so all subsequent stages receive a consistent local path — eliminates per-stage URL vs. local-path handling inconsistencies. Ship as one PR.
+
+#### Contract and skill additions (P2, two standalone PRs)
+
+- [ ] P2 (Blueprint contract): Issue #270 — **test ownership contract**: introduce an explicit consumer-vs-blueprint ownership marker for test files under `tests/infra/` so the upgrade resolver never overwrites consumer-owned tests during Stage 2 apply. Standalone PR.
+- [ ] P2 (Blueprint skills): Issue #268 — **versioned consumer-side workarounds catalogue**: ship a per-release workarounds manifest in the blueprint; `blueprint-consumer-upgrade` skill applies the relevant workarounds automatically by version so every consumer does not have to rediscover and hand-apply the same fixes. Standalone PR.
+
 ---
 
 ### Generalize consumer-seeded feature gates
