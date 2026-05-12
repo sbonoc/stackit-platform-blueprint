@@ -70,6 +70,7 @@
         "tests/infra/test_upgrade_consumer_validate_issue_260.py",
         "tests/infra/test_upgrade_fresh_env_gate_issue_261.py",
         "tests/infra/test_upgrade_shell_behavioral_check_issue_259.py",
+        "tests/infra/test_upgrade_shell_behavioral_check_stale_tokens.py",
         "tests/blueprint/test_upgrade_fresh_env_gate.py",
         "tests/blueprint/test_upgrade_version_pin_diff.py",
         "tests/blueprint/test_template_smoke_assertions.py",

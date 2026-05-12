@@ -5,16 +5,11 @@
 - If required inputs are missing, add `BLOCKED_MISSING_INPUTS` in `spec.md` and keep the gate closed.
 
 ## Constitution Gates (Pre-Implementation)
-- Simplicity gate:
-  - Each fix is minimal and targeted: no new abstractions, no speculative generalisations.
-- Anti-abstraction gate:
-  - Context D (transitive resolver) composes on top of the existing `resolve_depth1_sources` primitive; no new wrapper classes.
-- Integration-first testing gate:
-  - Each slice writes a failing pytest fixture-based regression test before the fix, then turns it green.
-- Positive-path filter/transform test gate:
-  - N/A — no filter or payload-transform logic introduced.
-- Finding-to-test translation gate:
-  - All four defects were reproduced in real consumer upgrade runs. Each MUST become a failing automated test before the fix is applied (red→green TDD order within each slice).
+- Simplicity gate: Each fix is minimal and targeted — no new abstractions, no speculative generalisations.
+- Anti-abstraction gate: Context D (transitive resolver) composes on top of the existing depth-1 source primitive; no new wrapper classes or interfaces introduced.
+- Integration-first testing gate: Each slice writes a failing pytest fixture-based regression test before the fix, then turns it green (red→green TDD order enforced per slice).
+- Positive-path filter/transform test gate: N/A — no filter or payload-transform logic introduced in this work item.
+- Finding-to-test translation gate: All five defects were reproduced in consumer upgrade runs; each became a failing automated test before the fix was applied.
 
 ## Delivery Slices
 

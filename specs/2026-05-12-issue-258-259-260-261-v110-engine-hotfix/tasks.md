@@ -75,8 +75,8 @@
 ## Publish
 - [x] P-001 Update `hardening_review.md` with findings fixed and proposals-only section
 - [x] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
-- [ ] P-003 Ensure PR description follows repository template and references `pr_context.md`
-- [ ] P-004 Close GH issues #258, #259, #260, #261 via `Closes` references in PR description
+- [x] P-003 Ensure PR description follows repository template and references `pr_context.md`
+- [x] P-004 Close GH issues #258, #259, #260, #261 via `Closes` references in PR description
 
 ## App Onboarding Minimum Targets (Normative)
 - [x] A-001 `apps-bootstrap` — N/A: no app delivery workflow affected by this tooling fix

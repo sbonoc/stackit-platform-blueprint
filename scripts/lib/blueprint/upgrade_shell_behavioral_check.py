@@ -389,6 +389,18 @@ def run_behavioral_check(
             f"[BEHAVIORAL-CHECK] applying {len(valid_extra)} consumer extra excluded tokens",
             file=sys.stderr,
         )
+    # Warn when the consumer's extra_excluded_tokens list contains tokens that are now
+    # in the base _EXCLUDED_TOKENS set (e.g. 'uv', 'validate' added in v1.10.0 fix).
+    # The tokens still work — this is a cleanup prompt only.
+    stale_tokens: frozenset[str] = valid_extra & _EXCLUDED_TOKENS
+    if stale_tokens:
+        for tok in sorted(stale_tokens):
+            print(
+                f"[BEHAVIORAL-CHECK] WARNING: extra_excluded_tokens contains '{tok}' which is "
+                f"now in the base exclusion set; remove it from blueprint/contract.yaml "
+                f"spec.upgrade.behavioral_check.extra_excluded_tokens",
+                file=sys.stderr,
+            )
     effective_excluded = _EXCLUDED_TOKENS | valid_extra
 
     if skip:
