@@ -23,6 +23,7 @@ class BranchNamingContract:
 class TemplateBootstrapContract:
     model: str
     template_version: str
+    last_applied_version: str
     init_command: str
     defaults_env_file: str
     secrets_example_env_file: str
@@ -456,6 +457,10 @@ def load_blueprint_contract(path: Path) -> BlueprintContract:
             template_version=_as_str(
                 template_raw.get("template_version"),
                 "spec.repository.template_bootstrap.template_version",
+            ),
+            last_applied_version=_as_str(
+                template_raw.get("last_applied_version", ""),
+                "spec.repository.template_bootstrap.last_applied_version",
             ),
             init_command=_as_str(template_raw.get("init_command"), "spec.repository.template_bootstrap.init_command"),
             defaults_env_file=_as_str(

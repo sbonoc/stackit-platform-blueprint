@@ -96,13 +96,18 @@ def scan_template_references(repo_root: Path, variable_names: list[str]) -> dict
     return result
 
 
-def _resolve_baseline_ref(source_path: str, template_version: str) -> str | None:
-    """Try v{template_version} then {template_version} as git tag candidates.
+def _resolve_baseline_ref(
+    source_path: str, template_version: str, last_applied_version: str = ""
+) -> str | None:
+    """Try v{version} then {version} as git tag candidates, preferring last_applied_version.
 
     Returns the first resolvable candidate, or None if neither works.
     Mirrors upgrade_consumer.py:_resolve_baseline_ref.
     """
-    for candidate in (f"v{template_version}", template_version):
+    version = last_applied_version.strip() if last_applied_version else ""
+    if not version:
+        version = template_version
+    for candidate in (f"v{version}", version):
         result = subprocess.run(
             ["git", "rev-parse", "--verify", candidate],
             capture_output=True,
@@ -130,17 +135,20 @@ def run_version_pin_diff(repo_root: Path, upgrade_source: str, upgrade_ref: str)
     try:
         contract_path = repo_root / _CONTRACT_PATH
         contract_data = yaml.safe_load(contract_path.read_text(encoding="utf-8")) or {}
-        template_version = (
+        template_bootstrap = (
             (contract_data.get("spec") or {})
             .get("repository", {})
             .get("template_bootstrap", {})
-            .get("template_version", "")
         )
+        template_version = template_bootstrap.get("template_version", "")
+        last_applied_version = template_bootstrap.get("last_applied_version", "") or ""
         if not template_version:
             _write_error("template_version not found in blueprint/contract.yaml")
             return True
 
-        baseline_ref = _resolve_baseline_ref(upgrade_source, str(template_version))
+        baseline_ref = _resolve_baseline_ref(
+            upgrade_source, str(template_version), last_applied_version=str(last_applied_version)
+        )
         if baseline_ref is None:
             _write_error(
                 f"baseline ref for template_version={template_version!r} could not be resolved "

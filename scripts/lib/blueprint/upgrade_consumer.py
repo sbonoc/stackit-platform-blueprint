@@ -448,8 +448,13 @@ def _collect_files_under(root: Path, rel_root: str) -> set[str]:
     }
 
 
-def _resolve_baseline_ref(source_repo: Path, template_version: str) -> str | None:
-    candidates = [f"v{template_version}", template_version]
+def _resolve_baseline_ref(
+    source_repo: Path, template_version: str, last_applied_version: str = ""
+) -> str | None:
+    version = last_applied_version.strip() if last_applied_version else ""
+    if not version:
+        version = template_version
+    candidates = [f"v{version}", version]
     for candidate in candidates:
         result = _run_git(source_repo, "rev-parse", "-q", "--verify", f"{candidate}^{{commit}}")
         if result.returncode == 0:
@@ -2142,7 +2147,11 @@ def main() -> int:
     temp_dir: Path | None = None
     try:
         temp_dir, source_repo, resolved_commit = _clone_source_repository(args.source, args.ref)
-        baseline_ref = _resolve_baseline_ref(source_repo, contract.repository.template_bootstrap.template_version)
+        baseline_ref = _resolve_baseline_ref(
+            source_repo,
+            contract.repository.template_bootstrap.template_version,
+            last_applied_version=contract.repository.template_bootstrap.last_applied_version,
+        )
         baseline_commit = _resolve_commit(source_repo, baseline_ref) if baseline_ref else None
         if baseline_ref is not None and baseline_commit == resolved_commit:
             print(

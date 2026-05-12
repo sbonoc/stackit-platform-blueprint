@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 import json
 from pathlib import Path
+import re
 import subprocess
 import sys
 import time
@@ -178,6 +179,29 @@ def _docs_hook_targets_for_repo_mode(repo_mode: str) -> tuple[list[str], str]:
     if repo_mode == "generated-consumer":
         return [], "generated-consumer mode skips template-sync docs hooks"
     return [], "repo mode unknown; docs hooks skipped"
+
+
+def _write_last_applied_version(repo_root: Path, upgrade_ref: str) -> None:
+    contract_path = repo_root / "blueprint" / "contract.yaml"
+    if not contract_path.is_file():
+        return
+    content = contract_path.read_text(encoding="utf-8")
+    if re.search(r"^\s+last_applied_version:", content, re.MULTILINE):
+        new_content = re.sub(
+            r"^(\s+last_applied_version:).*$",
+            rf"\1 {upgrade_ref}",
+            content,
+            flags=re.MULTILINE,
+        )
+    else:
+        new_content = re.sub(
+            r"^(\s+)(template_version:.*)$",
+            lambda m: f"{m.group(0)}\n{m.group(1)}last_applied_version: {upgrade_ref}",
+            content,
+            flags=re.MULTILINE,
+        )
+    contract_path.write_text(new_content, encoding="utf-8")
+    print(f"upgrade postcheck: wrote last_applied_version={upgrade_ref} to blueprint/contract.yaml")
 
 
 def main() -> int:
@@ -434,6 +458,12 @@ def main() -> int:
         print(contract_load_error, file=sys.stderr)
     if plan_apply_load_error:
         print(plan_apply_load_error, file=sys.stderr)
+
+    if status == "success" and isinstance(apply_payload, dict):
+        upgrade_ref = str(apply_payload.get("upgrade_ref", "") or "")
+        if upgrade_ref:
+            _write_last_applied_version(repo_root, upgrade_ref)
+
     return 0 if status == "success" else 1
 
 
