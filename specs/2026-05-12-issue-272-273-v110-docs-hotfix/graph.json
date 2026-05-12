@@ -1,0 +1,81 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-05-12-issue-272-273-v110-docs-hotfix",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "Restore --ignore-workspace flag to docs_pnpm_install, docs_pnpm_build, docs_pnpm_start"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "Improve _docs_assert_pnpm_version error message to enumerate all three pnpm version sources"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "N/A — no security surface affected by pnpm install flags or error message text"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "Preserve log_fatal output channel; expand error message text only"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "Both fixes must be backward-compatible; no currently-passing consumer is broken"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "Regression tests runnable via uv run python3 -m pytest without cluster or network"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "docs/node_modules/ populated after docs-install on consumer with non-workspace docs/"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "log_fatal message names root package.json and CI corepack prepare pin on version mismatch"
+    },
+    {
+      "id": "T-101",
+      "type": "test",
+      "summary": "Pytest regression: assert --ignore-workspace in all three pnpm invocations (RED)"
+    },
+    {
+      "id": "T-102",
+      "type": "test",
+      "summary": "Pytest regression: assert log_fatal message mentions root package.json and corepack prepare (RED)"
+    },
+    {
+      "id": "IMPL-001",
+      "type": "implementation",
+      "summary": "scripts/lib/docs/site.sh — restore --ignore-workspace (three functions + comment)"
+    },
+    {
+      "id": "IMPL-002",
+      "type": "implementation",
+      "summary": "scripts/lib/docs/site.sh — rewrite log_fatal message in _docs_assert_pnpm_version"
+    }
+  ],
+  "edges": [
+    { "from": "FR-001", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-002", "relation": "validated_by" },
+    { "from": "NFR-OBS-001", "to": "FR-002", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "FR-001", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "FR-002", "relation": "constrains" },
+    { "from": "NFR-OPS-001", "to": "T-101", "relation": "constrains" },
+    { "from": "NFR-OPS-001", "to": "T-102", "relation": "constrains" },
+    { "from": "T-101", "to": "IMPL-001", "relation": "verified_by" },
+    { "from": "T-102", "to": "IMPL-002", "relation": "verified_by" },
+    { "from": "IMPL-001", "to": "FR-001", "relation": "implements" },
+    { "from": "IMPL-002", "to": "FR-002", "relation": "implements" },
+    { "from": "AC-001", "to": "IMPL-001", "relation": "depends_on" },
+    { "from": "AC-002", "to": "IMPL-002", "relation": "depends_on" }
+  ]
+}
