@@ -66,15 +66,15 @@
 - [x] T-A01 NFR-A11Y-001 compliance scope: N/A — no UI components; this is a Python tooling and YAML contract fix with no user-facing rendering surface.
 
 ## Validation and Release Readiness
-- [ ] T-301 Run full validation bundle: `make infra-validate && make quality-hooks-run`
-- [ ] T-302 Attach evidence checksums to `traceability.md`
-- [ ] T-303 Confirm no stale TODOs or dead code in touched scope
-- [ ] T-304 Run `make docs-build && make docs-smoke` → PASS
-- [ ] T-305 Run `make quality-hardening-review` → PASS
+- [x] T-301 Run full validation bundle: `make infra-validate && make quality-hooks-run`
+- [x] T-302 Attach evidence checksums to `traceability.md`
+- [x] T-303 Confirm no stale TODOs or dead code in touched scope
+- [x] T-304 Run `make docs-build && make docs-smoke` → PASS
+- [x] T-305 Run `make quality-hardening-review` → PASS
 
 ## Publish
-- [ ] P-001 Update `hardening_review.md` with findings fixed and proposals-only section
-- [ ] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
+- [x] P-001 Update `hardening_review.md` with findings fixed and proposals-only section
+- [x] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
 - [ ] P-003 Ensure PR description follows repository template and references `pr_context.md`
 - [ ] P-004 Close GH issues #258, #259, #260, #261 via `Closes` references in PR description
 

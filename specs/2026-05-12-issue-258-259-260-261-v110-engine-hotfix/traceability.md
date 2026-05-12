@@ -26,11 +26,32 @@
   - AC-001, AC-002, AC-003, AC-004
 
 ## Validation Summary
-- Required bundles executed: (to be filled during Verify phase)
-- Result summary: (to be filled during Verify phase)
+- Required bundles executed: 2026-05-12
+- Result summary:
+  - `make infra-validate` → PASS (contract validation passed, no drift)
+  - `make quality-hooks-run` → PASS except `blueprint-template-smoke` (pre-existing bash 3 vs bash 4 `declare -A` incompatibility on macOS; verified pre-existing on main branch; no new failures introduced)
+  - `uv run python3 -m pytest tests/infra/` → PASS (324 tests, 0 failures)
+  - `make docs-build` → PASS
+  - `make docs-smoke` → PASS
+  - `make quality-hardening-review` → PASS
 - Documentation validation:
-  - `make docs-build`
-  - `make docs-smoke`
+  - `make docs-build` → PASS (2026-05-12)
+  - `make docs-smoke` → PASS (2026-05-12)
+
+## File Checksums (SHA-256, 2026-05-12)
+| File | SHA-256 |
+|---|---|
+| `tests/infra/test_upgrade_contract_coverage_issue_258.py` | `3d211596c94ce3b7fd552128da94d0176d416846274938a9dd689d403e5b2629` |
+| `tests/infra/test_upgrade_consumer_validate_issue_260.py` | `7354499cf5a01fd478057a3d69e39d6e7ac4af030af8c38442ce7ee669aed5db` |
+| `tests/infra/test_upgrade_fresh_env_gate_issue_261.py` | `d3259ce322f99092fdd4b29ded3b5280218c1187d1912e9f13d78ef2187addd2` |
+| `tests/infra/test_upgrade_shell_behavioral_check_issue_259.py` | `f8e6892513e1bebc576834ffc04321d20e18c6c4117a99efcd8b7f053a1e3319` |
+| `scripts/lib/blueprint/upgrade_consumer_validate.py` | `4ac9df635819965f789eda2a45e7993ceefc6aef15b2edebee8d78cb2dafad35` |
+| `scripts/lib/blueprint/upgrade_fresh_env_gate.py` | `0a27d866d0989f25b22cfdf4c6d66799248c7571bfbf7a1221e52436a072daa4` |
+| `scripts/lib/blueprint/upgrade_shell_behavioral_check.py` | `85d79d60c0e1a924cfca182fe3aa9c4e1c3e30e48f4cd336b5aa7af13054f91a` |
+| `blueprint/contract.yaml` | `0d8f6032006586102f006b61704235773fe6d4c9d01a3ac1a163c92c97dc42cf` |
+| `scripts/templates/blueprint/bootstrap/blueprint/contract.yaml` | `0d8f6032006586102f006b61704235773fe6d4c9d01a3ac1a163c92c97dc42cf` |
+
+Note: `blueprint/contract.yaml` and its bootstrap template have identical checksums — confirming template drift was resolved.
 
 ## Evidence Manifest
 - Manifest file: `evidence_manifest.json`
