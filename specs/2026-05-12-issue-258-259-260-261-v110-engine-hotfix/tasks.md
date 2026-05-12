@@ -1,25 +1,25 @@
 # Tasks
 
 ## Gate Checks (Required Before Implementation)
-- [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`
-- [ ] G-002 Confirm open questions and unresolved alternatives are `0`
-- [ ] G-003 Confirm required sign-offs are approved (Product, Architecture, Security, Operations)
-- [ ] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
-- [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
+- [x] G-001 Confirm `SPEC_READY=true` in `spec.md`
+- [x] G-002 Confirm open questions and unresolved alternatives are `0`
+- [x] G-003 Confirm required sign-offs are approved (Product, Architecture, Security, Operations)
+- [x] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
+- [x] G-005 Confirm `Implementation Stack Profile` section is fully populated
 
 ## Slice 1 — Contract coverage fix (#258, FR-001, AC-001)
 
 ### Test (Red)
-- [ ] T-101 Write pytest regression fixture: fake source tree with 4 unclassified files; assert `audit_source_tree_coverage` returns `uncovered_source_files_count==0`; confirm RED
+- [x] T-101 Write pytest regression fixture: fake source tree with 4 unclassified files; assert `audit_source_tree_coverage` returns `uncovered_source_files_count==0`; confirm RED
 
 ### Implementation
-- [ ] T-001 Add `pyproject.toml` and `uv.lock` to `init_managed` in `blueprint/contract.yaml`
-- [ ] T-002 Add `infra/local/helm/opensearch/values.yaml` and `infra/local/helm/kms/values.yaml` to `conditional_scaffold` in `blueprint/contract.yaml`
+- [x] T-001 Add `pyproject.toml` and `uv.lock` to `init_managed` in `blueprint/contract.yaml`
+- [x] T-002 Add `infra/local/helm/opensearch/values.yaml` and `infra/local/helm/kms/values.yaml` to `conditional_scaffold` in `blueprint/contract.yaml`
 
 ### Verify
-- [ ] T-201 Run `uv run python3 -m pytest tests/infra/ -k "issue_258" -v` → PASS (GREEN)
-- [ ] T-202 Run `make infra-validate` → PASS
-- [ ] T-203 Run `make quality-hooks-fast` → no new failures
+- [x] T-201 Run `uv run python3 -m pytest tests/infra/ -k "issue_258" -v` → PASS (GREEN)
+- [x] T-202 Run `make infra-validate` → PASS
+- [x] T-203 Run `make quality-hooks-fast` → no new failures
 
 ## Slice 2 — Validate target filtering (#260, FR-002, AC-002)
 
