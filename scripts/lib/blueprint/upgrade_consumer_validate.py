@@ -35,6 +35,14 @@ VALIDATION_TARGETS = (
     "quality-docs-check-runtime-identity-summary-sync",
     "quality-docs-check-module-contract-summaries-sync",
 )
+_GENERATED_CONSUMER_SKIP_TARGETS: frozenset[str] = frozenset({"blueprint-template-smoke"})
+
+
+def _get_effective_validation_targets(contract: BlueprintContract) -> tuple[str, ...]:
+    """Return VALIDATION_TARGETS with generated-consumer-incompatible targets filtered out."""
+    if contract.repository.repo_mode == contract.repository.consumer_init.mode_to:
+        return tuple(t for t in VALIDATION_TARGETS if t not in _GENERATED_CONSUMER_SKIP_TARGETS)
+    return VALIDATION_TARGETS
 REQUIRED_FILES_STATUS_DEFAULT_PATH = "artifacts/blueprint/upgrade/required_files_status.json"
 MAX_CAPTURE_CHARS = 20000
 GENERATED_REFERENCE_DOC_TARGETS = (
@@ -429,9 +437,11 @@ def main() -> int:
     except Exception as exc:
         contract_load_error = f"unable to load blueprint contract for required-files reconciliation: {exc}"
 
+    effective_targets: tuple[str, ...] = VALIDATION_TARGETS
     command_results: list[ValidationCommandResult] = []
-    if not contract_load_error:
-        command_results = [_run_make_target(repo_root, target) for target in VALIDATION_TARGETS]
+    if not contract_load_error and contract is not None:
+        effective_targets = _get_effective_validation_targets(contract)
+        command_results = [_run_make_target(repo_root, target) for target in effective_targets]
     merge_markers_post = find_merge_markers(repo_root)
     missing_runtime_dependencies = _detect_missing_runtime_dependency_edges(repo_root)
     prune_glob_violations_with_glob: list[tuple[str, str]] = []
@@ -474,7 +484,7 @@ def main() -> int:
     payload = {
         "repo_root": str(repo_root),
         "report_generated_at": datetime.now(timezone.utc).isoformat(),
-        "required_validation_targets": list(VALIDATION_TARGETS),
+        "required_validation_targets": list(effective_targets),
         "merge_marker_check": {
             "pre": merge_markers_pre,
             "post": merge_markers_post,

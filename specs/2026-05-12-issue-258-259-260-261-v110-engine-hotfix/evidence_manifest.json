@@ -1,0 +1,58 @@
+{
+  "manifest_version": 1,
+  "work_item": "specs/2026-05-12-issue-258-259-260-261-v110-engine-hotfix",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-05-12T12:34:57Z",
+  "files": [
+    {
+      "path": "specs/2026-05-12-issue-258-259-260-261-v110-engine-hotfix/architecture.md",
+      "sha256": "db38cc9b3920d7f98e7610a12f9ab333b9d9f0461aef8c0fbff488c94cbe5070",
+      "bytes": 7158
+    },
+    {
+      "path": "specs/2026-05-12-issue-258-259-260-261-v110-engine-hotfix/context_pack.md",
+      "sha256": "07cfd237c8c4355df44ab012fb4c2c6701aa1bca0c550b28898f3934d9bc7f7a",
+      "bytes": 915
+    },
+    {
+      "path": "specs/2026-05-12-issue-258-259-260-261-v110-engine-hotfix/evidence_manifest.json",
+      "sha256": "ecb0eea40122794ca8f062212e022ba451f6d0a543b88db3d7c15e65a071e7f7",
+      "bytes": 161
+    },
+    {
+      "path": "specs/2026-05-12-issue-258-259-260-261-v110-engine-hotfix/graph.json",
+      "sha256": "839aee89d8211c0ef0504064dfb9fd1822042b574a2cee8336dc09e3916d847a",
+      "bytes": 3579
+    },
+    {
+      "path": "specs/2026-05-12-issue-258-259-260-261-v110-engine-hotfix/hardening_review.md",
+      "sha256": "1994204abde87fbd55aee92e48bf051af30741784d8cd35e8b68a6e3a5e6a30d",
+      "bytes": 4695
+    },
+    {
+      "path": "specs/2026-05-12-issue-258-259-260-261-v110-engine-hotfix/plan.md",
+      "sha256": "8a6b50924f15f60f183001d9a151ebdd3a907f49a7622ca32d583749106618e3",
+      "bytes": 8989
+    },
+    {
+      "path": "specs/2026-05-12-issue-258-259-260-261-v110-engine-hotfix/pr_context.md",
+      "sha256": "6b2c54a1fbea1bbe6ed9450e9d16b0cadcbb131f8b2d8280db0b14abf43b478c",
+      "bytes": 4473
+    },
+    {
+      "path": "specs/2026-05-12-issue-258-259-260-261-v110-engine-hotfix/spec.md",
+      "sha256": "acede832757198fbd5bd277cb23c7c8835af5f3c968e4401ad13135373d7c1ba",
+      "bytes": 11277
+    },
+    {
+      "path": "specs/2026-05-12-issue-258-259-260-261-v110-engine-hotfix/tasks.md",
+      "sha256": "6db791c326a027d1e5d53cc0d3f7869849952eaca7380b903ffd61ee5515a015",
+      "bytes": 5742
+    },
+    {
+      "path": "specs/2026-05-12-issue-258-259-260-261-v110-engine-hotfix/traceability.md",
+      "sha256": "e5cce9dfc2ca489c3cec106ec962c1f14852a9ff8477ea4172c47b3bb0e2a2cf",
+      "bytes": 6460
+    }
+  ]
+}

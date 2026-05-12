@@ -136,6 +136,11 @@ _VOLATILE_ARTIFACT_NAMES: frozenset[str] = frozenset({
     "upgrade_preflight.json",
     "upgrade_reconcile_report.json",
     "fresh_env_gate.json",
+    # upgrade_validate.json and required_files_status.json embed absolute repo
+    # paths in captured make-target stdout; excluding them prevents false-positive
+    # divergences when comparing worktree vs working-tree runs (#261 / FR-003).
+    "upgrade_validate.json",
+    "required_files_status.json",
 })
 
 

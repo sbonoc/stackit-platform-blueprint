@@ -1268,7 +1268,9 @@ class UpgradeConsumerValidateTests(unittest.TestCase):
             report = _load_json(repo / "artifacts/blueprint/upgrade_validate.json")
             summary = report.get("summary", {})
             self.assertEqual(summary.get("status"), "success")
-            self.assertEqual(summary.get("commands_total"), len(validate_module.VALIDATION_TARGETS))
+            # repo_mode=generated-consumer: blueprint-template-smoke is filtered out (FR-002/#260)
+            expected_targets = len(validate_module.VALIDATION_TARGETS) - len(validate_module._GENERATED_CONSUMER_SKIP_TARGETS)
+            self.assertEqual(summary.get("commands_total"), expected_targets)
             self.assertEqual(summary.get("merge_markers_pre_count"), 0)
             self.assertEqual(summary.get("merge_markers_post_count"), 0)
             self.assertEqual(summary.get("runtime_dependency_missing_count"), 0)
@@ -1287,7 +1289,8 @@ class UpgradeConsumerValidateTests(unittest.TestCase):
             _assert_json_schema(report, VALIDATE_SCHEMA)
 
             command_results = report.get("command_results", [])
-            self.assertEqual(len(command_results), len(validate_module.VALIDATION_TARGETS))
+            # repo_mode=generated-consumer: blueprint-template-smoke filtered (FR-002/#260)
+            self.assertEqual(len(command_results), expected_targets)
             self.assertTrue(all(result.get("returncode") == 0 for result in command_results if isinstance(result, dict)))
 
     def test_validate_fails_when_merge_markers_exist(self) -> None:

@@ -601,6 +601,8 @@ spec:
         - infra/cloud/stackit/terraform/environments/dev/main.tf
         - infra/cloud/stackit/terraform/environments/prod/main.tf
         - infra/cloud/stackit/terraform/environments/stage/main.tf
+        - pyproject.toml
+        - uv.lock
       conditional_scaffold:
         - dags/
         - infra/cloud/stackit/terraform/modules/workflows
@@ -623,6 +625,7 @@ spec:
         - infra/local/helm/rabbitmq/values.yaml
         - tests/infra/modules/rabbitmq
         - infra/cloud/stackit/terraform/modules/opensearch
+        - infra/local/helm/opensearch/values.yaml
         - tests/infra/modules/opensearch
         - infra/cloud/stackit/terraform/modules/dns
         - tests/infra/modules/dns
@@ -633,6 +636,7 @@ spec:
         - infra/cloud/stackit/terraform/modules/secrets-manager
         - tests/infra/modules/secrets-manager
         - infra/cloud/stackit/terraform/modules/kms
+        - infra/local/helm/kms/values.yaml
         - tests/infra/modules/kms
         - infra/cloud/stackit/terraform/modules/identity-aware-proxy
         - infra/local/helm/identity-aware-proxy/values.yaml
@@ -1913,9 +1917,11 @@ spec:
         scaffolding_mode: conditional
         paths_required_when_enabled:
           - terraform_path
+          - helm_path
           - tests_path
         contract_path: blueprint/modules/opensearch/module.contract.yaml
         terraform_path: infra/cloud/stackit/terraform/modules/opensearch
+        helm_path: infra/local/helm/opensearch/values.yaml
         docs_path: docs/platform/modules/opensearch/README.md
         tests_path: tests/infra/modules/opensearch
         make_targets_mode: conditional
@@ -1986,9 +1992,11 @@ spec:
         scaffolding_mode: conditional
         paths_required_when_enabled:
           - terraform_path
+          - helm_path
           - tests_path
         contract_path: blueprint/modules/kms/module.contract.yaml
         terraform_path: infra/cloud/stackit/terraform/modules/kms
+        helm_path: infra/local/helm/kms/values.yaml
         docs_path: docs/platform/modules/kms/README.md
         tests_path: tests/infra/modules/kms
         make_targets_mode: conditional
