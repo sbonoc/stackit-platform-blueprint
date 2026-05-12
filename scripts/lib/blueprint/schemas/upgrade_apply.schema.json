@@ -44,7 +44,8 @@
       "type": "string",
       "enum": [
         "success",
-        "failure"
+        "failure",
+        "conflicts"
       ]
     },
     "results": {

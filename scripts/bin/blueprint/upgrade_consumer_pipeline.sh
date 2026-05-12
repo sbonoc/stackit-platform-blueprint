@@ -17,6 +17,7 @@ Environment variables:
   BLUEPRINT_UPGRADE_SOURCE       Upgrade source repository URL/path.
                                   Default: remote.upstream.url or remote.origin.url.
   BLUEPRINT_UPGRADE_ALLOW_DELETE Default: true (pipeline default; set false for non-destructive mode).
+  BLUEPRINT_UPGRADE_APPLY        Default: true (pipeline default; set false for plan-only/dry-run mode).
 
 Artifacts produced:
   artifacts/blueprint/upgrade-residual.md          — always emitted, even on partial failure.
@@ -30,10 +31,12 @@ if [[ "${1:-}" == "--help" ]]; then
 fi
 
 set_default_env BLUEPRINT_UPGRADE_ALLOW_DELETE true
+set_default_env BLUEPRINT_UPGRADE_APPLY true
 
 upgrade_ref="${BLUEPRINT_UPGRADE_REF:-}"
 upgrade_source="${BLUEPRINT_UPGRADE_SOURCE:-}"
 allow_delete="${BLUEPRINT_UPGRADE_ALLOW_DELETE}"
+allow_apply="${BLUEPRINT_UPGRADE_APPLY}"
 
 # Resolve upgrade source default (mirrors upgrade_consumer.sh resolve_default_upgrade_source).
 # Applied before Stage 1 so pre-flight receives a concrete value.
@@ -56,6 +59,10 @@ trap 'uv run python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_residual_report.py
   --pipeline-exit "$pipeline_exit" \
   --output-path "$residual_report_path" \
   2>/dev/null || true' EXIT
+
+if [[ "$allow_apply" != "true" ]]; then
+  log_info "[PIPELINE] PLAN-ONLY mode: BLUEPRINT_UPGRADE_APPLY=false — stages will plan but not write files."
+fi
 
 # ---------------------------------------------------------------------------
 # Stage 1 — Pre-flight validation
@@ -83,17 +90,25 @@ log_info "[PIPELINE] Stage 1b: complete"
 # ---------------------------------------------------------------------------
 # Stage 2 — Apply with delete
 # ---------------------------------------------------------------------------
-log_info "[PIPELINE] Stage 2: starting — apply with delete"
+log_info "[PIPELINE] Stage 2: starting — apply"
 stage2_rc=0
 BLUEPRINT_UPGRADE_ALLOW_DELETE="$allow_delete" \
+BLUEPRINT_UPGRADE_APPLY="$allow_apply" \
   make -C "$ROOT_DIR" blueprint-upgrade-consumer-apply || stage2_rc=$?
-if [[ "$stage2_rc" -gt 1 ]]; then
-  # exit 0 = clean apply; exit 1 = conflicts present (expected during upgrade, Stage 3 resolves).
-  # Any exit code > 1 is an unexpected error.
+if [[ "$stage2_rc" -ne 0 ]]; then
+  # Engine exits 0 for both clean apply and conflicts (status='conflicts' in artifact).
+  # Any non-zero exit is an unexpected error — abort the pipeline.
   pipeline_exit=$stage2_rc
   log_fatal "[PIPELINE] Stage 2: FAILED (exit $stage2_rc) — apply step encountered an error; aborting."
 fi
-log_info "[PIPELINE] Stage 2: complete (exit $stage2_rc)"
+apply_artifact="$ROOT_DIR/artifacts/blueprint/upgrade_apply.json"
+# stage2_status is observability only — the pipeline continues through resolution stages
+# regardless of "conflicts" vs "success"; only a non-zero exit above aborts.
+stage2_status=""
+if [[ -f "$apply_artifact" ]]; then
+  stage2_status="$(uv run python3 -c "import json,sys; d=json.load(open('$apply_artifact')); print(d.get('status',''))" 2>/dev/null || true)"
+fi
+log_info "[PIPELINE] Stage 2: complete (status=${stage2_status:-unknown})"
 
 # ---------------------------------------------------------------------------
 # Stage 3 — Contract file resolution

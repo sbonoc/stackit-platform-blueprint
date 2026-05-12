@@ -72,6 +72,8 @@
         "tests/infra/test_upgrade_fresh_env_gate_issue_261.py",
         "tests/infra/test_upgrade_shell_behavioral_check_issue_259.py",
         "tests/infra/test_upgrade_shell_behavioral_check_stale_tokens.py",
+        "tests/infra/test_upgrade_baseline_issue_263.py",
+        "tests/infra/test_upgrade_pipeline_correctness_issue_264_266.py",
         "tests/blueprint/test_upgrade_fresh_env_gate.py",
         "tests/blueprint/test_upgrade_version_pin_diff.py",
         "tests/blueprint/test_template_smoke_assertions.py",

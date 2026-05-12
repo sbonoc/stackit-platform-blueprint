@@ -70,11 +70,10 @@ Then apply only safe updates when appropriate:
 ```bash
 BLUEPRINT_RESYNC_APPLY_SAFE=true make blueprint-resync-consumer-seeds
 ```
-For full blueprint-managed upgrades on existing generated repos (non-destructive plan/apply workflow):
+For full blueprint-managed upgrades on existing generated repos (applies by default; use `BLUEPRINT_UPGRADE_APPLY=false` for plan-only dry-run):
 ```bash
 BLUEPRINT_UPGRADE_REF=<tag|branch|commit> make blueprint-upgrade-consumer-preflight
 BLUEPRINT_UPGRADE_REF=<tag|branch|commit> make blueprint-upgrade-consumer
-BLUEPRINT_UPGRADE_REF=<tag|branch|commit> BLUEPRINT_UPGRADE_APPLY=true make blueprint-upgrade-consumer
 make blueprint-upgrade-consumer-validate
 make blueprint-upgrade-consumer-postcheck
 ```

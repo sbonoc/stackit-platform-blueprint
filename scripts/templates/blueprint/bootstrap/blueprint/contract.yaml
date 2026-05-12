@@ -26,6 +26,7 @@ spec:
     template_bootstrap:
       model: github-template
       template_version: 1.0.0
+      last_applied_version: ""  # engine-managed; written by upgrade_consumer_postcheck on success
       init_command: make blueprint-init-repo
       defaults_env_file: blueprint/repo.init.env
       secrets_example_env_file: blueprint/repo.init.secrets.example.env

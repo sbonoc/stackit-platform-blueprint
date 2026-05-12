@@ -1,0 +1,58 @@
+{
+  "manifest_version": 1,
+  "work_item": "specs/2026-05-12-issue-263-264-266-pipeline-engine-correctness",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-05-12T21:59:16Z",
+  "files": [
+    {
+      "path": "specs/2026-05-12-issue-263-264-266-pipeline-engine-correctness/architecture.md",
+      "sha256": "8977eca97631867fab18b6d0b0d59d6ef73cd2b8d36ff12eea06ac666117d09f",
+      "bytes": 7093
+    },
+    {
+      "path": "specs/2026-05-12-issue-263-264-266-pipeline-engine-correctness/context_pack.md",
+      "sha256": "3f477c6e8e2313bd9f49d157ad6ec13df81f6b5e3328d19713f0f1b406d74fed",
+      "bytes": 2971
+    },
+    {
+      "path": "specs/2026-05-12-issue-263-264-266-pipeline-engine-correctness/evidence_manifest.json",
+      "sha256": "ecb0eea40122794ca8f062212e022ba451f6d0a543b88db3d7c15e65a071e7f7",
+      "bytes": 161
+    },
+    {
+      "path": "specs/2026-05-12-issue-263-264-266-pipeline-engine-correctness/graph.json",
+      "sha256": "11065434774d8903b6b95db7670f03de82ad3a015b4638ceab184aae616b2be5",
+      "bytes": 3117
+    },
+    {
+      "path": "specs/2026-05-12-issue-263-264-266-pipeline-engine-correctness/hardening_review.md",
+      "sha256": "8f7dc90a65e016d58735b59acf302d141301981e7c088935fd5a135d65eb5cdf",
+      "bytes": 3080
+    },
+    {
+      "path": "specs/2026-05-12-issue-263-264-266-pipeline-engine-correctness/plan.md",
+      "sha256": "e04084729928266f23ea5cc15f5245f6ce1caa2bbe3064cd55d798d3a6172751",
+      "bytes": 10070
+    },
+    {
+      "path": "specs/2026-05-12-issue-263-264-266-pipeline-engine-correctness/pr_context.md",
+      "sha256": "21482ed4c0b7e07a9ee9d4da7f41bcdb58a678825a69ab04be910621c95edb9a",
+      "bytes": 3726
+    },
+    {
+      "path": "specs/2026-05-12-issue-263-264-266-pipeline-engine-correctness/spec.md",
+      "sha256": "793583a3bf90d13de225ad0145a2069057da13bccbe966f32dfadf8704388462",
+      "bytes": 11164
+    },
+    {
+      "path": "specs/2026-05-12-issue-263-264-266-pipeline-engine-correctness/tasks.md",
+      "sha256": "2c4979b572b9d63389d7987c6b018016525a97ce34795c4c57e2162888fa5163",
+      "bytes": 4247
+    },
+    {
+      "path": "specs/2026-05-12-issue-263-264-266-pipeline-engine-correctness/traceability.md",
+      "sha256": "e0e7bb0098dd24a1153704d253cce463b2743a771f57775892e2dd8621f584ba",
+      "bytes": 6351
+    }
+  ]
+}

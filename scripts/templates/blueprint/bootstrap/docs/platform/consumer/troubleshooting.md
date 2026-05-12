@@ -384,8 +384,7 @@ If you cannot upgrade the blueprint immediately and need a consumer-side workaro
   ```bash
   make blueprint-resync-consumer-seeds
   BLUEPRINT_RESYNC_APPLY_SAFE=true make blueprint-resync-consumer-seeds
-  make blueprint-upgrade-consumer
-  BLUEPRINT_UPGRADE_APPLY=true make blueprint-upgrade-consumer
+  BLUEPRINT_UPGRADE_REF=<tag|branch|commit> make blueprint-upgrade-consumer
   make blueprint-upgrade-consumer-validate
   make blueprint-upgrade-consumer-postcheck
   ```
@@ -470,8 +469,7 @@ If you cannot upgrade the blueprint immediately and need a consumer-side workaro
   ```bash
   make blueprint-resync-consumer-seeds
   BLUEPRINT_RESYNC_APPLY_SAFE=true make blueprint-resync-consumer-seeds
-  make blueprint-upgrade-consumer
-  BLUEPRINT_UPGRADE_APPLY=true make blueprint-upgrade-consumer
+  BLUEPRINT_UPGRADE_REF=<tag|branch|commit> make blueprint-upgrade-consumer
   make blueprint-upgrade-consumer-validate
   make apps-ci-bootstrap
   ```
