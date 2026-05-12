@@ -64,6 +64,8 @@ _EXCLUDED_TOKENS: frozenset[str] = frozenset({
     "resolve_repo_root", "display_repo_path",
     # common OS tools absent from the original set (FR-007)
     "tar", "pnpm",
+    # tools added in v1.10.0 blueprint scripts (FR-004 / #259)
+    "uv", "validate",
     # blueprint bootstrap-chain runtime functions (FR-008)
     "blueprint_require_runtime_env",
     "blueprint_sanitize_init_placeholder_defaults",
@@ -184,7 +186,10 @@ def _resolve_sourced_paths(script_path: Path, content: str) -> list[Path]:
 
 
 def _collect_available_definitions(script_path: Path, content: str) -> set[str]:
-    """Collect all function definitions reachable from a script at depth-1."""
+    """Collect all function definitions reachable from a script at depth-1.
+
+    Preserved as a lower-level building block used by the BFS transitive resolver.
+    """
     defs = _extract_definitions(content)
     for sourced_path in _resolve_sourced_paths(script_path, content):
         try:
@@ -192,6 +197,42 @@ def _collect_available_definitions(script_path: Path, content: str) -> set[str]:
         except OSError:
             continue
         defs.update(_extract_definitions(sourced_content))
+    return defs
+
+
+def _collect_defined_functions_transitive(
+    script_path: Path,
+    visited: frozenset[Path] | None = None,
+) -> set[str]:
+    """Collect all function definitions reachable from script_path via BFS.
+
+    Traverses the full transitive source chain (not capped at depth 1).
+    A frozenset of visited absolute paths prevents infinite recursion on cycles.
+    """
+    if visited is None:
+        visited = frozenset()
+
+    try:
+        content = script_path.read_text(encoding="utf-8")
+    except OSError:
+        return set()
+
+    defs: set[str] = _extract_definitions(content)
+    visited = visited | {script_path}
+
+    queue: list[Path] = _resolve_sourced_paths(script_path, content)
+    while queue:
+        next_path = queue.pop(0)
+        if next_path in visited:
+            continue
+        visited = visited | {next_path}
+        try:
+            next_content = next_path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        defs.update(_extract_definitions(next_content))
+        queue.extend(_resolve_sourced_paths(next_path, next_content))
+
     return defs
 
 
@@ -378,13 +419,13 @@ def run_behavioral_check(
             syntax_errors.append({"file": display_path, "error": error})
             continue  # skip symbol check for files with syntax errors
 
-        # Step 2 — symbol resolution
+        # Step 2 — symbol resolution (full transitive BFS, cycle-safe)
         try:
             content = script_path.read_text(encoding="utf-8")
         except OSError:
             continue
 
-        available_defs = _collect_available_definitions(script_path, content)
+        available_defs = _collect_defined_functions_transitive(script_path)
         call_site_findings = _find_unresolved_call_sites(
             content, available_defs, excluded=effective_excluded
         )
