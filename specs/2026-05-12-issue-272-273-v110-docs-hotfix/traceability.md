@@ -8,10 +8,10 @@
 | FR-002 | SDD-C-005, SDD-C-024 | N/A | `architecture.md` § High-Level Component Design | `scripts/lib/docs/site.sh` — `_docs_assert_pnpm_version` | `tests/infra/test_docs_site_sh_issue_272_273.py::Issue273PnpmVersionErrorMessageTests` | `docs/platform/consumer/troubleshooting.md` — v1.10.0 docs build section | `make quality-hooks-run` PASS |
 | NFR-SEC-001 | SDD-C-009 | N/A | `architecture.md` § Non-Functional Architecture Notes — Security | N/A — no security surface affected | N/A | N/A | N/A |
 | NFR-OBS-001 | SDD-C-010 | N/A | `architecture.md` § Non-Functional Architecture Notes — Observability | `scripts/lib/docs/site.sh` — `log_fatal` call preserved | `tests/infra/test_docs_site_sh_issue_272_273.py` — `test_pnpm_version_error_uses_log_fatal` | N/A | `make quality-hooks-run` PASS |
-| NFR-REL-001 | SDD-C-012 | N/A | `plan.md` § Change Strategy | `scripts/lib/docs/site.sh` — additive flag restoration | `uv run python3 -m pytest tests/infra/ -k "issue_272 or issue_273"` | N/A | `make docs-build && make docs-smoke` PASS |
+| NFR-REL-001 | SDD-C-012 | N/A | `plan.md` § Change Strategy | `scripts/lib/docs/site.sh` — additive flag restoration | `uv run python3 -m pytest tests/infra/ -k "issue_272 or issue_273"` | N/A | deferred to CI (`make docs-build && make docs-smoke` requires live pnpm+docusaurus) |
 | NFR-OPS-001 | SDD-C-012 | N/A | `plan.md` § Validation Strategy | `tests/infra/test_docs_site_sh_issue_272_273.py` | `uv run python3 -m pytest tests/infra/ -k "issue_272 or issue_273" -v` — no network/cluster required | N/A | `uv run python3 -m pytest` PASS |
-| AC-001 | SDD-C-012 | N/A | `plan.md` § Slice 1 | `scripts/lib/docs/site.sh` | `Issue272PnpmIgnoreWorkspaceTests` (3 tests) | N/A | `make docs-build` PASS |
-| AC-002 | SDD-C-012 | N/A | `plan.md` § Slice 2 | `scripts/lib/docs/site.sh` | `Issue273PnpmVersionErrorMessageTests` (2 tests) | N/A | `make quality-hooks-run` PASS |
+| AC-001 | SDD-C-012 | N/A | `plan.md` § Slice 1 | `scripts/lib/docs/site.sh` | `Issue272PnpmIgnoreWorkspaceTests` (3 tests) | N/A | deferred to CI (`make docs-build` requires live pnpm+docusaurus) |
+| AC-002 | SDD-C-012 | N/A | `plan.md` § Slice 2 | `scripts/lib/docs/site.sh` | `Issue273PnpmVersionErrorMessageTests` (3 tests) | N/A | `make quality-hooks-run` PASS |
 
 ## Graph Linkage
 - Graph file: `graph.json`

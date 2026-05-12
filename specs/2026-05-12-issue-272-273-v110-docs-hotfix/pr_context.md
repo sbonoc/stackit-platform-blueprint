@@ -9,7 +9,7 @@
 ## Requirement Coverage
 
 - Requirement IDs covered: FR-001, FR-002, NFR-SEC-001, NFR-OBS-001, NFR-REL-001, NFR-OPS-001, NFR-A11Y-001 (N/A), AC-001, AC-002
-- Acceptance criteria covered: AC-001 — `--ignore-workspace` in all three pnpm functions (verified by `Issue272PnpmIgnoreWorkspaceTests`, 3 tests GREEN); AC-002 — `log_fatal` names "root package.json" and "corepack prepare" (verified by `Issue273PnpmVersionErrorMessageTests`, 2 tests GREEN)
+- Acceptance criteria covered: AC-001 — `--ignore-workspace` in all three pnpm functions (verified by `Issue272PnpmIgnoreWorkspaceTests`, 3 tests GREEN); AC-002 — `log_fatal` names "root package.json" and "corepack prepare" (verified by `Issue273PnpmVersionErrorMessageTests`, 3 tests GREEN)
 - Contract surfaces changed: no new Make targets; `make docs-install`/`docs-build`/`docs-smoke` behavior corrected (false-failure removed for non-workspace `docs/`); `docs/platform/consumer/troubleshooting.md` updated with v1.10.0 docs build section
 
 ## Key Reviewer Files

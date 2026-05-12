@@ -3,9 +3,9 @@
 ## Context Snapshot
 - Work item: `specs/2026-05-12-issue-272-273-v110-docs-hotfix`
 - Track: blueprint
-- SPEC_READY: false
+- SPEC_READY: true
 - ADR path: `docs/blueprint/architecture/decisions/ADR-issue-272-273-v110-docs-hotfix.md`
-- ADR status: proposed
+- ADR status: approved
 
 ## Scope Summary
 Two v1.10.0 regressions in `scripts/lib/docs/site.sh`:
@@ -19,7 +19,7 @@ Both fixes are single-line or single-block changes to `scripts/lib/docs/site.sh`
 
 ## Key Files
 - `scripts/lib/docs/site.sh` — the only implementation file changed
-- `tests/infra/test_docs_site_sh_issue_272_273.py` — new regression test file (to be created)
+- `tests/infra/test_docs_site_sh_issue_272_273.py` — regression test file (6 tests: 3 × Issue272PnpmIgnoreWorkspaceTests, 3 × Issue273PnpmVersionErrorMessageTests)
 - `docs/platform/consumer/troubleshooting.md` — add v1.10.0 docs build section
 
 ## Required Commands
