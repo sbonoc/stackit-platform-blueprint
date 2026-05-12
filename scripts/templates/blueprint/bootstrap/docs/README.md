@@ -58,10 +58,9 @@ Force full overwrite (including manual-merge candidates):
 ```bash
 BLUEPRINT_RESYNC_APPLY_ALL=true make blueprint-resync-consumer-seeds
 ```
-For full blueprint-managed upgrades on existing generated repos:
+For full blueprint-managed upgrades on existing generated repos (applies by default; use `BLUEPRINT_UPGRADE_APPLY=false` for plan-only dry-run):
 ```bash
 BLUEPRINT_UPGRADE_REF=<tag|branch|commit> make blueprint-upgrade-consumer
-BLUEPRINT_UPGRADE_REF=<tag|branch|commit> BLUEPRINT_UPGRADE_APPLY=true make blueprint-upgrade-consumer
 make blueprint-upgrade-consumer-validate
 ```
 `BLUEPRINT_UPGRADE_SOURCE` defaults to `remote.upstream.url` when configured, then `remote.origin.url`.
