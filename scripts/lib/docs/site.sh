@@ -25,22 +25,29 @@ _docs_assert_pnpm_version() {
   required_version="$(python3 -c "import json,sys; d=json.load(open('$DOCS_SITE_DIR/package.json')); print(d.get('packageManager','').lstrip('pnpm@'))")"
   actual_version="$(pnpm --version)"
   if [[ -n "$required_version" && "$actual_version" != "$required_version" ]]; then
-    log_fatal "pnpm version mismatch: docs/package.json requires pnpm@${required_version} but active pnpm is ${actual_version}. Update the local pnpm installation or the CI action's corepack prepare pin."
+    log_fatal \
+      "pnpm version mismatch: docs/package.json requires pnpm@${required_version} but active pnpm is ${actual_version}." \
+      "Align all three version sources to pnpm@${required_version}:" \
+      "(1) docs/package.json#packageManager -- canonical pin enforced here;" \
+      "(2) root package.json#packageManager -- auto-activated by corepack when pnpm install runs from repo root;" \
+      "(3) CI corepack prepare pin -- set in your CI workflow corepack prepare step."
   fi
 }
 
 docs_pnpm_install() {
   docs_require_workspace
   _docs_assert_pnpm_version
-  run_cmd pnpm --dir "$DOCS_SITE_DIR" install --frozen-lockfile
+  # The docs site is intentionally outside the frontend workspace package globs.
+  # Force standalone install so CI clean runners do not skip docs dependencies.
+  run_cmd pnpm --dir "$DOCS_SITE_DIR" --ignore-workspace install --frozen-lockfile
 }
 
 docs_pnpm_build() {
   docs_require_workspace
-  run_cmd pnpm --dir "$DOCS_SITE_DIR" run build
+  run_cmd pnpm --dir "$DOCS_SITE_DIR" --ignore-workspace run build
 }
 
 docs_pnpm_start() {
   docs_require_workspace
-  run_cmd pnpm --dir "$DOCS_SITE_DIR" run start
+  run_cmd pnpm --dir "$DOCS_SITE_DIR" --ignore-workspace run start
 }

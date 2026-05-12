@@ -10,33 +10,33 @@
 ## Slice 1 — Restore --ignore-workspace (#272, FR-001, AC-001)
 
 ### Test (Red)
-- [ ] T-101 Write pytest regression fixture: read `scripts/lib/docs/site.sh`; assert all three pnpm invocations (`docs_pnpm_install`, `docs_pnpm_build`, `docs_pnpm_start`) contain `--ignore-workspace`; confirm RED
+- [x] T-101 Write pytest regression fixture: read `scripts/lib/docs/site.sh`; assert all three pnpm invocations (`docs_pnpm_install`, `docs_pnpm_build`, `docs_pnpm_start`) contain `--ignore-workspace`; confirm RED
 
 ### Implementation
-- [ ] T-001 Restore `--ignore-workspace` flag to `docs_pnpm_install` in `scripts/lib/docs/site.sh`
-- [ ] T-002 Restore `--ignore-workspace` flag to `docs_pnpm_build` in `scripts/lib/docs/site.sh`
-- [ ] T-003 Restore `--ignore-workspace` flag to `docs_pnpm_start` in `scripts/lib/docs/site.sh`
-- [ ] T-004 Restore the explanatory comment alongside `docs_pnpm_install`
+- [x] T-001 Restore `--ignore-workspace` flag to `docs_pnpm_install` in `scripts/lib/docs/site.sh`
+- [x] T-002 Restore `--ignore-workspace` flag to `docs_pnpm_build` in `scripts/lib/docs/site.sh`
+- [x] T-003 Restore `--ignore-workspace` flag to `docs_pnpm_start` in `scripts/lib/docs/site.sh`
+- [x] T-004 Restore the explanatory comment alongside `docs_pnpm_install`
 
 ### Verify
-- [ ] T-201 Run `uv run python3 -m pytest tests/infra/ -k "issue_272" -v` → PASS (GREEN)
+- [x] T-201 Run `uv run python3 -m pytest tests/infra/ -k "issue_272" -v` → PASS (GREEN)
 - [ ] T-202 Run `make docs-build && make docs-smoke` → PASS
-- [ ] T-203 Run `make quality-hooks-fast` → no new failures
+- [x] T-203 Run `make quality-hooks-fast` → no new failures
 
 ## Slice 2 — Improve pnpm version assertion error message (#273, FR-002, AC-002)
 
 ### Test (Red)
-- [ ] T-102 Write pytest regression fixture: read `scripts/lib/docs/site.sh`; assert the `log_fatal` message in `_docs_assert_pnpm_version` contains "root package.json" and "corepack prepare"; confirm RED
+- [x] T-102 Write pytest regression fixture: read `scripts/lib/docs/site.sh`; assert the `log_fatal` message in `_docs_assert_pnpm_version` contains "root package.json" and "corepack prepare"; confirm RED
 
 ### Implementation
-- [ ] T-005 Replace the single-line `log_fatal` message in `_docs_assert_pnpm_version` with a multi-part message naming all three pnpm version sources (docs `package.json`, root `package.json`, CI corepack prepare pin)
+- [x] T-005 Replace the single-line `log_fatal` message in `_docs_assert_pnpm_version` with a multi-part message naming all three pnpm version sources (docs `package.json`, root `package.json`, CI corepack prepare pin)
 
 ### Verify
-- [ ] T-204 Run `uv run python3 -m pytest tests/infra/ -k "issue_273" -v` → PASS (GREEN)
-- [ ] T-205 Run `make quality-hooks-fast` → no new failures
+- [x] T-204 Run `uv run python3 -m pytest tests/infra/ -k "issue_273" -v` → PASS (GREEN)
+- [x] T-205 Run `make quality-hooks-fast` → no new failures
 
 ## Accessibility Testing (Normative)
-- [ ] T-A01 NFR-A11Y-001 compliance scope: N/A — no UI components; pure shell script changes with no user-facing rendering surface.
+- [x] T-A01 NFR-A11Y-001 compliance scope: N/A — no UI components; pure shell script changes with no user-facing rendering surface.
 
 ## Validation and Release Readiness
 - [ ] T-301 Run full validation bundle: `make infra-validate && make quality-hooks-run`
