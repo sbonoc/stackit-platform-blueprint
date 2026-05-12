@@ -1,0 +1,39 @@
+{
+  "graph_version": 1,
+  "work_item": "specs/2026-05-12-issue-263-264-266-pipeline-engine-correctness",
+  "nodes": [
+    {"id": "FR-001", "type": "requirement", "summary": "Engine resolves baseline from last_applied_version when present"},
+    {"id": "FR-002", "type": "requirement", "summary": "Postcheck writes last_applied_version after successful postcheck"},
+    {"id": "FR-003", "type": "requirement", "summary": "Pipeline proceeds past Stage 2 when apply status is conflicts"},
+    {"id": "FR-004", "type": "requirement", "summary": "Pipeline defaults BLUEPRINT_UPGRADE_APPLY=true with banner and propagation"},
+    {"id": "NFR-SEC-001", "type": "requirement", "summary": "last_applied_version contains only semver string; no credentials"},
+    {"id": "NFR-OBS-001", "type": "requirement", "summary": "Stage 2 log includes status from artifact; metric emitted for conflicts"},
+    {"id": "NFR-REL-001", "type": "requirement", "summary": "last_applied_version bump is atomic; backward compat for missing field"},
+    {"id": "NFR-OPS-001", "type": "requirement", "summary": "Usage block and skill runbook reflect apply-by-default"},
+    {"id": "NFR-A11Y-001", "type": "requirement", "summary": "N/A — no UI surface"},
+    {"id": "AC-001", "type": "acceptance", "summary": "_resolve_baseline_ref uses last_applied_version when set"},
+    {"id": "AC-002", "type": "acceptance", "summary": "_resolve_baseline_ref falls back to template_version when absent"},
+    {"id": "AC-003", "type": "acceptance", "summary": "Postcheck writes last_applied_version after success"},
+    {"id": "AC-004", "type": "acceptance", "summary": "Pipeline reaches Stage 3 when Stage 2 produces conflicts"},
+    {"id": "AC-005", "type": "acceptance", "summary": "Pipeline aborts at Stage 2 on true engine error"},
+    {"id": "AC-006", "type": "acceptance", "summary": "Pipeline applies by default (BLUEPRINT_UPGRADE_APPLY=true when unset)"},
+    {"id": "AC-007", "type": "acceptance", "summary": "Pipeline emits banner when BLUEPRINT_UPGRADE_APPLY=false explicitly set"}
+  ],
+  "edges": [
+    {"from": "FR-001", "to": "AC-001", "relation": "validated_by"},
+    {"from": "FR-001", "to": "AC-002", "relation": "validated_by"},
+    {"from": "FR-002", "to": "AC-003", "relation": "validated_by"},
+    {"from": "FR-003", "to": "AC-004", "relation": "validated_by"},
+    {"from": "FR-003", "to": "AC-005", "relation": "validated_by"},
+    {"from": "FR-004", "to": "AC-006", "relation": "validated_by"},
+    {"from": "FR-004", "to": "AC-007", "relation": "validated_by"},
+    {"from": "NFR-REL-001", "to": "FR-001", "relation": "constrains"},
+    {"from": "NFR-REL-001", "to": "FR-002", "relation": "constrains"},
+    {"from": "NFR-OBS-001", "to": "FR-003", "relation": "constrains"},
+    {"from": "NFR-SEC-001", "to": "FR-001", "relation": "constrains"},
+    {"from": "NFR-SEC-001", "to": "FR-002", "relation": "constrains"},
+    {"from": "NFR-OPS-001", "to": "FR-004", "relation": "constrains"},
+    {"from": "AC-001", "to": "NFR-REL-001", "relation": "satisfies"},
+    {"from": "AC-003", "to": "NFR-REL-001", "relation": "satisfies"}
+  ]
+}
