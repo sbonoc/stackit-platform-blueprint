@@ -36,14 +36,14 @@
 ## Slice 3 — Volatile artifact names (#261, FR-003, AC-003)
 
 ### Test (Red)
-- [ ] T-103 Write pytest regression fixture: two fake artifact dirs differing only in embedded absolute paths in `upgrade_validate.json`; assert `compute_artifact_checksum_divergences` returns empty list; confirm RED
+- [x] T-103 Write pytest regression fixture: two fake artifact dirs differing only in embedded absolute paths in `upgrade_validate.json`; assert `compute_artifact_checksum_divergences` returns empty list; confirm RED
 
 ### Implementation
-- [ ] T-004 Add `"upgrade_validate.json"` and `"required_files_status.json"` to `_VOLATILE_ARTIFACT_NAMES` frozenset in `scripts/lib/blueprint/upgrade_fresh_env_gate.py`
+- [x] T-004 Add `"upgrade_validate.json"` and `"required_files_status.json"` to `_VOLATILE_ARTIFACT_NAMES` frozenset in `scripts/lib/blueprint/upgrade_fresh_env_gate.py`
 
 ### Verify
-- [ ] T-206 Run `uv run python3 -m pytest tests/infra/ -k "issue_261" -v` → PASS (GREEN)
-- [ ] T-207 Run `make quality-hooks-fast` → no new failures
+- [x] T-206 Run `uv run python3 -m pytest tests/infra/ -k "issue_261" -v` → PASS (GREEN)
+- [x] T-207 Run `make quality-hooks-fast` → no new failures
 
 ## Slice 4 — Transitive behavioral check (#259, FR-004, AC-004)
 
