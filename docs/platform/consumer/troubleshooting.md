@@ -261,6 +261,24 @@ on subsequent runs. Apps declared in `apps/descriptor.yaml` are protected from p
 `consumer-app-descriptor` (see `summary.consumer_app_descriptor_count` in
 `artifacts/blueprint/upgrade_apply.json`).
 
+## `make blueprint-upgrade-consumer` fails on v1.10.0 with contract coverage, behavioral check, or fresh-env errors
+
+Four bugs in the v1.10.0 upgrade engine were fixed in the blueprint release following v1.10.0.
+If you are upgrading to v1.10.0 and hitting any of the errors below, upgrade to the next blueprint
+release — no consumer-side workaround is required.
+
+| Symptom | Issue | Fixed in |
+|---|---|---|
+| `make blueprint-upgrade-consumer-validate` fails: `uncovered_source_files_count=4` (pyproject.toml, uv.lock, opensearch/values.yaml, kms/values.yaml) | #258 | blueprint post-v1.10.0 |
+| `make blueprint-upgrade-consumer-validate` runs `blueprint-template-smoke` and fails on a generated-consumer repo | #260 | blueprint post-v1.10.0 |
+| `make blueprint-upgrade-consumer-postcheck` reports 29+ unresolved symbols (`uv`, `validate`, or blueprint functions defined in transitively sourced files) | #259 | blueprint post-v1.10.0 |
+| `make blueprint-upgrade-fresh-env-gate` fails with checksum divergences on `upgrade_validate.json` or `required_files_status.json` | #261 | blueprint post-v1.10.0 |
+
+If you cannot upgrade the blueprint immediately and must apply a workaround for issues #259 or #260:
+- **#259 (`uv`, `validate` false positives):** add them to `spec.upgrade.behavioral_check.extra_excluded_tokens` in `blueprint/contract.yaml`. Remove this workaround after upgrading to the fixed blueprint.
+- **#260 (template-smoke on generated-consumer):** set `BLUEPRINT_UPGRADE_SKIP_BEHAVIORAL_CHECK=true` for the validate run only. Remove after upgrading.
+- **#258 and #261:** no consumer-side workaround is available; upgrade the blueprint.
+
 ## Pull requests are not auto-requesting reviewers
 - Generated repositories seed `.github/CODEOWNERS` as a starter file with commented examples only.
 - Replace the example owners with your real team handles before relying on GitHub review assignment.
