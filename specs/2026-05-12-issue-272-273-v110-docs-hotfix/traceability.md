@@ -27,8 +27,14 @@
   - AC-002
 
 ## Validation Summary
-- Required bundles executed: pending (populated at publish phase)
-- Result summary: pending (populated at publish phase)
+- Required bundles executed: `uv run python3 -m pytest tests/infra/test_docs_site_sh_issue_272_273.py -v` (6/6 PASS); `make infra-validate` (PASS); `make quality-hooks-fast` (8/9 PASS — `quality-spec-pr-ready` only, pre-publish state); `make quality-hardening-review` (PASS)
+- Result summary: all implementation and regression evidence confirmed. `make docs-build && make docs-smoke` deferred to CI (requires live pnpm+docusaurus installation not present in local environment; content-level fix verified by regression tests).
+
+## Evidence Checksums
+- `scripts/lib/docs/site.sh` sha256: `6763fdc6e96de81c8247456cfc6dd3bc999119a4f69ed35b7d5ea07c7d0c29ff`
+- `tests/infra/test_docs_site_sh_issue_272_273.py` sha256: `47a8f53a2c9d839d49caf6ab2d0aab7d4fa3c91e1fe3b798475965313ca65570`
+- `docs/platform/consumer/troubleshooting.md` sha256: `ca8ce1991f96484fa8af7b6697c6832f3ca880fa3c19226db8801723cae4a4a9`
+- `scripts/templates/blueprint/bootstrap/docs/platform/consumer/troubleshooting.md` sha256: `ca8ce1991f96484fa8af7b6697c6832f3ca880fa3c19226db8801723cae4a4a9` (byte-identical mirror)
 - Documentation validation:
   - `make docs-build`
   - `make docs-smoke`
