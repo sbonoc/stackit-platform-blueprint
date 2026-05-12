@@ -32,3 +32,4 @@
 - Rollback strategy: Revert `upgrade_consumer.py`, `upgrade_consumer_pipeline.sh`, `upgrade_consumer_postcheck.py`, `upgrade_apply.schema.json`; remove `last_applied_version` line from both `blueprint/contract.yaml` and its bootstrap template mirror. No database or state migrations required.
 
 ## Deferred Proposals
+- none
