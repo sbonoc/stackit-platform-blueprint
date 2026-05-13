@@ -5,16 +5,11 @@
 - If required inputs are missing, add `BLOCKED_MISSING_INPUTS` in `spec.md` and keep the gate closed.
 
 ## Constitution Gates (Pre-Implementation)
-- Simplicity gate:
-  - Two files change: `upgrade_consumer.py` (2 functions) and `upgrade_triage.schema.json` (1 optional property). No new modules, no new abstractions.
-- Anti-abstraction gate:
-  - `_recommended_action` receives `source_exists: bool` as a plain parameter. No strategy pattern, no config object.
-- Integration-first testing gate:
-  - Triage output tests drive the RED phase before any production code is touched.
-- Positive-path filter/transform test gate:
-  - The inference rule is a filter/transform: `blueprint-managed + source_exists=True → take_source`. A positive-path unit test MUST assert that a triage entry with those inputs produces `recommended_action: take_source` and includes `source_exists: true` in the output JSON.
-- Finding-to-test translation gate:
-  - No pre-PR smoke findings expected. The change is pure Python + schema.
+- Simplicity gate: Two files change — `upgrade_consumer.py` (2 functions) and `upgrade_triage.schema.json` (1 optional property). No new modules, no new abstractions.
+- Anti-abstraction gate: `_recommended_action` receives `source_exists: bool` as a plain parameter. No strategy pattern, no config object.
+- Integration-first testing gate: Triage output tests drive the RED phase before any production code is touched.
+- Positive-path filter/transform test gate: `blueprint-managed + source_exists=True → take_source` is the positive path. `test_triage_entry_includes_source_exists_field` asserts that a matching entry produces `recommended_action: take_source` and `source_exists: true` in the output JSON.
+- Finding-to-test translation gate: No pre-PR smoke findings. Change is pure Python + schema; no deterministic pre-PR failures discovered.
 
 ## Delivery Slices
 

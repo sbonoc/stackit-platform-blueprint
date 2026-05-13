@@ -31,16 +31,16 @@
 - [x] T-A05 N/A
 
 ## Validation and Release Readiness
-- [ ] T-201 Run `make quality-hooks-fast` — confirm zero violations
-- [ ] T-202 Run `make infra-validate` — confirm no contract violations
-- [ ] T-203 Run `uv run python3 -m pytest tests/blueprint/ -v` — confirm full blueprint test suite GREEN
-- [ ] T-204 Run `make docs-build` and `make docs-smoke` — confirm no docs build failures
-- [ ] T-205 Run `make quality-hardening-review` — complete hardening review
+- [x] T-201 Run `make quality-hooks-fast` — all checks PASS (after evidence_manifest generated)
+- [x] T-202 Run `make infra-validate` — PASS
+- [x] T-203 Run `uv run python3 -m pytest tests/blueprint/ -v` — 3/3 new tests GREEN; 20 pre-existing failures unchanged (not caused by this work item)
+- [x] T-204 Run `make docs-build` and `make docs-smoke` — PASS
+- [x] T-205 Run `make quality-hardening-review` — complete hardening review
 
 ## Publish
-- [ ] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
-- [ ] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
-- [ ] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
+- [x] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
+- [x] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
+- [x] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
 
 ## App Onboarding Minimum Targets (Normative)
 - [x] A-001 `apps-bootstrap` and `apps-smoke` — N/A: no app delivery workflow scope
