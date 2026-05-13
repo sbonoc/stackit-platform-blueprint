@@ -70,7 +70,9 @@ cloned_source_dir=""
 
 # Guarantee residual report is produced and tmp clone dir is removed on all exit paths.
 # cloned_source_dir is populated by the URL normalization block below when a clone is needed.
-trap '[[ -n "$cloned_source_dir" ]] && rm -rf "$cloned_source_dir"; \
+# _real_exit captures $? at trap time so unanticipated set -e exits are not reported as 0.
+trap '_real_exit=$?; [[ "$pipeline_exit" -ne 0 ]] || pipeline_exit=$_real_exit; \
+  [[ -n "$cloned_source_dir" ]] && rm -rf "$cloned_source_dir"; \
   uv run python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_residual_report.py" \
   --repo-root "$ROOT_DIR" \
   --pipeline-exit "$pipeline_exit" \

@@ -58,9 +58,8 @@ class PipelineURLNormalizationBlockTests(unittest.TestCase):
         across pipeline runs, wasting disk space and causing stale-path confusion.
         """
         pipeline_source = _PIPELINE_PATH.read_text(encoding="utf-8")
-        self.assertRegex(
-            pipeline_source,
-            r"trap\s+['\"].*rm\s+-rf\s+.*cloned_source",
+        self.assertIsNotNone(
+            re.search(r"trap\s+['\"].*rm\s+-rf\s+.*cloned_source", pipeline_source, re.DOTALL),
             msg=(
                 "Pipeline must register 'trap 'rm -rf \"$cloned_source_dir\"' EXIT' "
                 "immediately after the git clone in the URL normalization block (FR-002, NFR-REL-001). "
