@@ -22,26 +22,18 @@
   - `scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl` — template that drives `make/blueprint.generated.mk`; must stay in sync
 
 ## Validation Evidence
-- Required commands executed:
-  - `uv run python3 -m pytest tests/infra/test_conflict_triage_issue_265.py tests/infra/test_conflict_resolve_issue_265.py -v` — 14/14 GREEN
-  - `make quality-hooks-fast` — shellcheck, infra-validate, infra-contract-test-fast, quality-sdd-check-all all pass
-  - `make quality-docs-check-changed` — passes; `core_targets.generated.md` regenerated
-  - `make docs-build` and `make docs-smoke` — passes
-  - `make quality-hardening-review` — passes
-- Result summary: 14 new tests green; all quality hooks pass; no regressions in pre-existing test suite (11 pre-existing failures in `tests/blueprint/test_upgrade_consumer.py` confirmed pre-existing before this branch via `git stash` verification)
-- Artifact references:
-  - `specs/2026-05-13-issue-265-271-conflict-resolution-ux/hardening_review.md`
-  - `specs/2026-05-13-issue-265-271-conflict-resolution-ux/evidence_manifest.json`
-  - `specs/2026-05-13-issue-265-271-conflict-resolution-ux/traceability.md`
+- Required commands executed: `uv run pytest tests/infra/test_conflict_triage_issue_265.py tests/infra/test_conflict_resolve_issue_265.py -v` (14/14 GREEN); `make quality-hooks-fast` (pass); `make quality-docs-check-changed` (pass); `make docs-build` + `make docs-smoke` (pass); `make quality-hardening-review` (pass)
+- Result summary: 14 new tests green; all quality hooks pass; 11 pre-existing failures in `tests/blueprint/test_upgrade_consumer.py` confirmed pre-existing before this branch (verified via `git stash`)
+- Artifact references: `specs/2026-05-13-issue-265-271-conflict-resolution-ux/hardening_review.md`, `evidence_manifest.json`, `traceability.md`
 
 ## Risk and Rollback
-- Main risks:
-  - Triage emission call site in `upgrade_consumer.py`: added after `_apply_entries()` when `conflict_count > 0`; a failure here currently raises and would cause Stage 2 to exit non-zero. Mitigation: 5 dedicated tests cover the emission path including error edge cases.
-  - Schema mismatch: resolve script validates triage JSON against schema at startup (NFR-REL-001); any schema evolution requires `schema_version` bump.
+- Main risks: (1) triage emission call site in `upgrade_consumer.py` — added after `_apply_entries()` when `conflict_count > 0`; failure raises and causes Stage 2 exit non-zero; 5 dedicated tests cover the emission path; (2) schema mismatch — resolve script validates at startup (NFR-REL-001); schema evolution requires `schema_version` bump.
 - Rollback strategy: remove the `_write_upgrade_triage()` call from `_run_apply()` in `upgrade_consumer.py` and delete `upgrade_consumer_resolve.py` + `upgrade_consumer_resolve.sh` + the make target. All other files (schema, tests) are additive and harmless if left in place. The resolve make target is new so its absence from a consumer's `blueprint.generated.mk` (pre-upgrade) is a no-op.
 
 ## Deferred Proposals
-- Option B (source-exists inference for blueprint-managed catch-all): deferred until Issue #270 ships explicit consumer ownership markers; see hardening_review.md Proposals Only section.
-- Issue #270 (explicit consumer test ownership markers): separate work item; deferred.
-- Issue #267 (`blueprint-upgrade-consumer-finalize` target): separate work item; deferred.
-- Issue #269 (auto-clone upgrade source URL): separate work item; deferred.
+- **Option B** — source-exists inference for blueprint-managed catch-all: Parked — trigger: after: issue-270 — safe only once Issue #270 ships explicit consumer ownership markers; conservative Option A catch-all is the correct first-release trade-off. Backlog: `proposal(issue-265-271-conflict-resolution-ux): Option B`.
+- **Interactive TUI** (ncurses/lazygit-style conflict resolver): Rejected at PR closure — heavy external dependency, not portable across consumer environments; residual table is typically under 10 rows; explicitly rejected in ADR at design time.
+- **HTML conflict report**: Rejected at PR closure — browser context-switch adds friction for a small residual table; CLI display is sufficient; explicitly rejected in ADR at design time.
+- Issue #270 (explicit consumer ownership markers): separate work item already tracked in backlog.
+- Issue #267 (`blueprint-upgrade-consumer-finalize` target): separate work item already tracked in backlog.
+- Issue #269 (auto-clone upgrade source URL): separate work item already tracked in backlog.

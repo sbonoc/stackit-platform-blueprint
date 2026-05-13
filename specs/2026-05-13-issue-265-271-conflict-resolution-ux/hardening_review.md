@@ -1,7 +1,7 @@
 # Hardening Review
 
 ## Repository-Wide Findings Fixed
-- No repository-wide findings were identified or fixed in this work item. All changes are additive (new triage JSON artifact, new resolve script, new make target); no pre-existing code paths were modified in ways that would surface latent defects.
+- Finding 1: No repository-wide findings — all changes are additive (new triage JSON artifact, new resolve script, new make target); no pre-existing code paths were modified in ways that would surface latent defects.
 
 ## Observability and Diagnostics Changes
 - Metrics/logging/tracing updates: The resolve script emits one `upgrade-resolve: <action> <path>` line per applied action to stdout (NFR-OBS-001), making output grep-parseable by agents and CI pipelines.
@@ -21,6 +21,6 @@
 - [x] axe-core WCAG 2.1 AA scan evidence: N/A — CLI tool with no browser-rendered UI surface
 
 ## Proposals Only (Not Implemented)
-- Option B (source-exists inference for blueprint-managed catch-all): deferred until Issue #270 ships explicit consumer ownership markers. Without those markers, auto-applying `take_source` to catch-all files risks overwriting consumer modifications. Safe to re-evaluate after #270.
-- Interactive TUI (ncurses/lazygit-style): rejected; heavy dependency, not portable across consumer environments.
-- HTML conflict report: rejected; browser context switch adds friction for the typically-small residual table.
+- Proposal 1 (Option B — source-exists inference for blueprint-managed catch-all): Parked — trigger: after: issue-270. Without explicit consumer ownership markers from #270, auto-applying `take_source` to catch-all files risks overwriting consumer modifications. Safe to re-evaluate once #270 ships.
+- Proposal 2 (Interactive TUI — ncurses/lazygit-style): Rejected — heavy external dependency, not portable across consumer environments; residual table is typically under 10 rows; explicitly rejected in ADR at design time.
+- Proposal 3 (HTML conflict report): Rejected — browser context-switch adds friction for a small residual table; CLI display is sufficient; explicitly rejected in ADR at design time.

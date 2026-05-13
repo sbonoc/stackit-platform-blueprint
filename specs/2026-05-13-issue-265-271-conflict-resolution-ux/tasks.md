@@ -50,9 +50,9 @@
 ## Test Automation
 - [x] T-101 `test_conflict_triage_issue_265.py` — 5 tests (Slice 1 RED, Slice 2 GREEN)
 - [x] T-102 `test_conflict_resolve_issue_265.py` — 9 tests (Slice 3 RED, Slice 4 GREEN)
-- [ ] T-103 N/A — no HTTP filter/transform routes
-- [ ] T-104 N/A — all tests are new regression tests derived from issue evidence; no pre-PR smoke findings to translate
-- [ ] T-105 Schema validation: `jsonschema` validation of `upgrade_triage.json` against `upgrade_triage.schema.json` in test suite and at resolve-script startup
+- [x] T-103 N/A — no HTTP filter/transform routes
+- [x] T-104 N/A — all tests are new regression tests derived from issue evidence; no pre-PR smoke findings to translate
+- [x] T-105 Schema validation: `jsonschema` validation of `upgrade_triage.json` against `upgrade_triage.schema.json` in test suite and at resolve-script startup
 
 ## Accessibility Testing (Normative — mark N/A with rationale for non-UI specs)
 - [x] T-A01 NFR-A11Y-001 declared in spec.md as "N/A — CLI tool with no browser-rendered UI surface"
@@ -71,11 +71,11 @@
 ## Publish
 - [x] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
 - [x] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
-- [ ] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
+- [x] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
 
 ## App Onboarding Minimum Targets (Normative)
-- [ ] A-001 `apps-bootstrap` and `apps-smoke` — N/A (no app delivery targets modified)
-- [ ] A-002 Backend app lanes (`backend-test-unit`, `backend-test-integration`, `backend-test-contracts`, `backend-test-e2e`) — N/A (no backend app in scope)
-- [ ] A-003 Frontend app lanes (`touchpoints-test-unit`, `touchpoints-test-integration`, `touchpoints-test-contracts`, `touchpoints-test-e2e`) — N/A (no frontend in scope)
-- [ ] A-004 Aggregate gates (`test-unit-all`, `test-integration-all`, `test-contracts-all`, `test-e2e-all-local`) — N/A (no app delivery impact)
-- [ ] A-005 Port-forward operational wrappers (`infra-port-forward-start`, `infra-port-forward-stop`, `infra-port-forward-cleanup`) — N/A (no runtime provisioning in scope)
+- [x] A-001 `apps-bootstrap` and `apps-smoke` — N/A (no app delivery targets modified)
+- [x] A-002 Backend app lanes (`backend-test-unit`, `backend-test-integration`, `backend-test-contracts`, `backend-test-e2e`) — N/A (no backend app in scope)
+- [x] A-003 Frontend app lanes (`touchpoints-test-unit`, `touchpoints-test-integration`, `touchpoints-test-contracts`, `touchpoints-test-e2e`) — N/A (no frontend in scope)
+- [x] A-004 Aggregate gates (`test-unit-all`, `test-integration-all`, `test-contracts-all`, `test-e2e-all-local`) — N/A (no app delivery impact)
+- [x] A-005 Port-forward operational wrappers (`infra-port-forward-start`, `infra-port-forward-stop`, `infra-port-forward-cleanup`) — N/A (no runtime provisioning in scope)

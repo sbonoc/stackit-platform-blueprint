@@ -5,17 +5,11 @@
 - If required inputs are missing, add `BLOCKED_MISSING_INPUTS` in `spec.md` and keep the gate closed.
 
 ## Constitution Gates (Pre-Implementation)
-- Simplicity gate:
-  - `_write_upgrade_triage` is a single function added to the existing engine; no new module for triage emission.
-  - `upgrade_consumer_resolve.py` is a self-contained script following the pattern of existing upgrade scripts.
-- Anti-abstraction gate:
-  - No new base class or plugin system. `recommended_action` is computed by a plain dict mapping from `ownership_class`. The residual table is a formatted print loop.
-- Integration-first testing gate:
-  - Tests assert on real artifact output (triage JSON content and working-tree file state), not mock return values.
-- Positive-path filter/transform test gate:
-  - N/A — no HTTP filter/transform routes in scope.
-- Finding-to-test translation gate:
-  - No pre-existing smoke or curl findings; all tests are new regression tests derived from issue evidence.
+- Simplicity gate: `_write_upgrade_triage` is a single function added to the existing engine; `upgrade_consumer_resolve.py` is a self-contained script following existing upgrade script patterns — no new module or abstraction layer.
+- Anti-abstraction gate: No new base class or plugin system. `recommended_action` is computed by a plain dict lookup from `ownership_class`. The residual table is a formatted print loop.
+- Integration-first testing gate: Tests assert on real artifact output (triage JSON content and working-tree file state), not mock return values.
+- Positive-path filter/transform test gate: N/A — no HTTP filter/transform routes in scope.
+- Finding-to-test translation gate: No pre-existing smoke or curl findings; all tests are new regression tests derived from issue evidence.
 
 ## Delivery Slices
 

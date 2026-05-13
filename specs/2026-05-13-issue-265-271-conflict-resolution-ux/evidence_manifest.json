@@ -2,7 +2,7 @@
   "manifest_version": 1,
   "work_item": "specs/2026-05-13-issue-265-271-conflict-resolution-ux",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "2026-05-13T08:58:59Z",
+  "generated_at_utc": "2026-05-13T09:17:52Z",
   "files": [
     {
       "path": "specs/2026-05-13-issue-265-271-conflict-resolution-ux/architecture.md",
@@ -16,8 +16,8 @@
     },
     {
       "path": "specs/2026-05-13-issue-265-271-conflict-resolution-ux/evidence_manifest.json",
-      "sha256": "786904bec98c7fe04fc6a6ed5f5425cec49afa06cfba2743b789364b4b947196",
-      "bytes": 2227
+      "sha256": "62309caf01f0cb1dfad5b8ae988bc2a2d38d96734511748a56e90841c616ae0f",
+      "bytes": 2228
     },
     {
       "path": "specs/2026-05-13-issue-265-271-conflict-resolution-ux/graph.json",
@@ -26,18 +26,18 @@
     },
     {
       "path": "specs/2026-05-13-issue-265-271-conflict-resolution-ux/hardening_review.md",
-      "sha256": "bd9d348f9554447aada23f1ee188ec2ac35d40c4f906806fd33ce28c462351af",
-      "bytes": 2902
+      "sha256": "1d2f290abe094a8189a02a734f8aa77abd518e80a0f843da1bcbaa5f531d5aac",
+      "bytes": 3081
     },
     {
       "path": "specs/2026-05-13-issue-265-271-conflict-resolution-ux/plan.md",
-      "sha256": "8968c6b18bff60a5f2efe32cfac26427b2c29fb686e562fedb4efc49a19d1e07",
-      "bytes": 8646
+      "sha256": "937940ad4382ce04e425895d46347568d17f0ba5fb6280bce2d146644ce85a24",
+      "bytes": 8618
     },
     {
       "path": "specs/2026-05-13-issue-265-271-conflict-resolution-ux/pr_context.md",
-      "sha256": "b0dc67447840c3f6de405eedb96da97775fddf37c914fa712d350c28b9abfbf5",
-      "bytes": 4639
+      "sha256": "094405cc835cf3b4ca9ccebe31c8baa8a15e776947014dc02b31553fe85333da",
+      "bytes": 4844
     },
     {
       "path": "specs/2026-05-13-issue-265-271-conflict-resolution-ux/spec.md",
@@ -46,7 +46,7 @@
     },
     {
       "path": "specs/2026-05-13-issue-265-271-conflict-resolution-ux/tasks.md",
-      "sha256": "9a67fc2fd03a379be85425387274a2ccbacf250dda56ea4e81c06bc0b55978bc",
+      "sha256": "808d924d9d0c4da33068995bd104b7edef5f6ade50f7a4cc510de18cdbd37af0",
       "bytes": 5468
     },
     {
