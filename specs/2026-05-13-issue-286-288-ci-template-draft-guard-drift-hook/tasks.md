@@ -1,32 +1,32 @@
 # Tasks
 
 ## Gate Checks (Required Before Implementation)
-- [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`
-- [ ] G-002 Confirm open questions and unresolved alternatives are `0`
-- [ ] G-003 Confirm required sign-offs are approved
-- [ ] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
-- [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
+- [x] G-001 Confirm `SPEC_READY=true` in `spec.md`
+- [x] G-002 Confirm open questions and unresolved alternatives are `0`
+- [x] G-003 Confirm required sign-offs are approved
+- [x] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
+- [x] G-005 Confirm `Implementation Stack Profile` section is fully populated
 
 ## Implementation — Slice 1 (RED)
 
-- [ ] T-001 Add `test_consumer_ci_template_has_draft_pr_types_filter` to `QualityContractsTests` in `tests/blueprint/test_quality_contracts.py` — assert `types: [opened, synchronize, reopened, ready_for_review]` present in `ci.yml.tmpl` (expected: FAIL before template fix)
-- [ ] T-002 Add `test_consumer_ci_template_quality_fast_has_draft_pr_guard` to `QualityContractsTests` — assert `if: github.event_name == 'push' || github.event.pull_request.draft == false` present in `ci.yml.tmpl` (expected: FAIL before template fix)
-- [ ] T-003 Add `test_precommit_has_bootstrap_drift_hook` to `QualityContractsTests` — assert `.pre-commit-config.yaml` contains `id: quality-validate-bootstrap-template-drift` (expected: FAIL before hook added)
-- [ ] T-004 Add `test_precommit_template_has_bootstrap_drift_hook` to `QualityContractsTests` — assert `scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml` contains `id: quality-validate-bootstrap-template-drift` (expected: FAIL before hook added)
-- [ ] T-005 Add `test_make_template_has_quality_validate_bootstrap_drift_target` to `QualityContractsTests` — assert `scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl` contains `quality-validate-bootstrap-template-drift:` (expected: FAIL before target added)
-- [ ] T-006 Run `uv run python3 -m pytest tests/blueprint/test_quality_contracts.py -v -k "draft_pr or bootstrap_drift"` — confirm 5 new FAIL, all pre-existing GREEN
+- [x] T-001 Add `test_consumer_ci_template_has_draft_pr_types_filter` to `QualityContractsTests` in `tests/blueprint/test_quality_contracts.py` — assert `types: [opened, synchronize, reopened, ready_for_review]` present in `ci.yml.tmpl` (expected: FAIL before template fix)
+- [x] T-002 Add `test_consumer_ci_template_quality_fast_has_draft_pr_guard` to `QualityContractsTests` — assert `if: github.event_name == 'push' || github.event.pull_request.draft == false` present in `ci.yml.tmpl` (expected: FAIL before template fix)
+- [x] T-003 Add `test_precommit_has_bootstrap_drift_hook` to `QualityContractsTests` — assert `.pre-commit-config.yaml` contains `id: quality-validate-bootstrap-template-drift` (expected: FAIL before hook added)
+- [x] T-004 Add `test_precommit_template_has_bootstrap_drift_hook` to `QualityContractsTests` — assert `scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml` contains `id: quality-validate-bootstrap-template-drift` (expected: FAIL before hook added)
+- [x] T-005 Add `test_make_template_has_quality_validate_bootstrap_drift_target` to `QualityContractsTests` — assert `scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl` contains `quality-validate-bootstrap-template-drift:` (expected: FAIL before target added)
+- [x] T-006 Run `uv run python3 -m pytest tests/blueprint/test_quality_contracts.py -v -k "draft_pr or bootstrap_drift"` — confirm 5 new FAIL, all pre-existing GREEN
 
 ## Implementation — Slice 2 (GREEN)
 
-- [ ] T-007 Edit `scripts/templates/consumer/init/.github/workflows/ci.yml.tmpl` — add `types: [opened, synchronize, reopened, ready_for_review]` on `pull_request:` trigger (FR-001)
-- [ ] T-008 Edit `scripts/templates/consumer/init/.github/workflows/ci.yml.tmpl` — add `if: github.event_name == 'push' || github.event.pull_request.draft == false` on `quality-fast` job (FR-002)
-- [ ] T-009 Edit `scripts/bin/blueprint/validate_contract.py` — add `--bootstrap-drift-only` argument to `parse_args()` and fast path in `main()` calling `_validate_bootstrap_template_sync` (FR-005)
-- [ ] T-010 Edit `scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl` — add `quality-validate-bootstrap-template-drift:` target (FR-003)
-- [ ] T-011 Regenerate `make/blueprint.generated.mk` to include the new target (verify `quality-validate-bootstrap-template-drift:` present in generated file)
-- [ ] T-012 Edit `.pre-commit-config.yaml` — add commit-stage `quality-validate-bootstrap-template-drift` hook with `files:` pattern (FR-004)
-- [ ] T-013 Edit `scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml` — mirror the same hook (FR-004)
-- [ ] T-014 Run `uv run python3 -m pytest tests/blueprint/test_quality_contracts.py -v` — confirm all tests GREEN (including 5 new)
-- [ ] T-015 Run `uv run python3 -m pytest tests/blueprint/ -v` — confirm all pre-existing tests remain GREEN
+- [x] T-007 Edit `scripts/templates/consumer/init/.github/workflows/ci.yml.tmpl` — add `types: [opened, synchronize, reopened, ready_for_review]` on `pull_request:` trigger (FR-001)
+- [x] T-008 Edit `scripts/templates/consumer/init/.github/workflows/ci.yml.tmpl` — add `if: github.event_name == 'push' || github.event.pull_request.draft == false` on `quality-fast` job (FR-002)
+- [x] T-009 Edit `scripts/bin/blueprint/validate_contract.py` — add `--bootstrap-drift-only` argument to `parse_args()` and fast path in `main()` calling `_validate_bootstrap_template_sync` (FR-005)
+- [x] T-010 Edit `scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl` — add `quality-validate-bootstrap-template-drift:` target (FR-003)
+- [x] T-011 Regenerate `make/blueprint.generated.mk` to include the new target (verify `quality-validate-bootstrap-template-drift:` present in generated file)
+- [x] T-012 Edit `.pre-commit-config.yaml` — add commit-stage `quality-validate-bootstrap-template-drift` hook with `files:` pattern (FR-004)
+- [x] T-013 Edit `scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml` — mirror the same hook (FR-004)
+- [x] T-014 Run `uv run python3 -m pytest tests/blueprint/test_quality_contracts.py -v` — confirm all tests GREEN (including 5 new)
+- [x] T-015 Run `uv run python3 -m pytest tests/blueprint/ -v` — confirm all pre-existing tests remain GREEN
 
 ## Accessibility Testing (Normative — N/A)
 - [ ] T-A01 N/A — CI/quality tooling only; no UI components (NFR-A11Y-001)

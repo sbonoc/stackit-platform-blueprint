@@ -2606,6 +2606,15 @@ def parse_args() -> argparse.Namespace:
             "branch naming violations before they reach CI."
         ),
     )
+    parser.add_argument(
+        "--bootstrap-drift-only",
+        action="store_true",
+        help=(
+            "Run only bootstrap template sync validation against the contract. "
+            "Fast — intended for commit-stage hooks to catch drift in blueprint-tracked "
+            "root-level managed files before the change is committed."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -2632,6 +2641,20 @@ def main() -> int:
             print(f"[infra-validate] failed with {len(errors)} issue(s)", file=sys.stderr)
             return 1
         print("[infra-validate] branch naming validation passed")
+        return 0
+
+    if args.bootstrap_drift_only:
+        # Fast path: validates only bootstrap template sync against the contract.
+        # Intended for commit-stage hooks that fire when root-level managed files change.
+        # Root dotfiles do not match _QG_INFRA_GATE_PATHS so infra-validate skips them
+        # locally; this flag exposes the check as a standalone commit-time gate.
+        errors = _validate_bootstrap_template_sync(repo_root, contract)
+        if errors:
+            for error in errors:
+                print(f"[infra-validate] error: {error}", file=sys.stderr)
+            print(f"[infra-validate] failed with {len(errors)} issue(s)", file=sys.stderr)
+            return 1
+        print("[infra-validate] bootstrap template sync validation passed")
         return 0
 
     # Full validation path: runs all contract checks.
