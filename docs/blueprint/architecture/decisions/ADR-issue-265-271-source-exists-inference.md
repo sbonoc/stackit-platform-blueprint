@@ -1,6 +1,6 @@
 # ADR: Issue #265/#271 Follow-on — Source-Exists Inference for Blueprint-Managed Catch-All Conflicts
 
-- **Status**: proposed
+- **Status**: approved
 - **Date**: 2026-05-13
 - **Work item**: `specs/2026-05-13-issue-265-271-source-exists-inference/`
 - **Prerequisite**: Issue #270 (PR #290) — test ownership contract, shipped 2026-05-13
@@ -41,4 +41,4 @@ The `reason` field for inferred `take_source` entries is set to:
 - **Positive**: `upgrade_triage.json` now includes `source_exists` per entry, providing a complete audit trail for every auto-resolution decision.
 - **Backward compatible**: schema version stays at 1; the `source_exists` field is optional; existing triage files without the field remain valid.
 - **Residual risk**: a consumer who intentionally creates a file under a `blueprint_managed_roots` path that coincidentally has the same relative path as a blueprint source file will have it auto-overwritten. This is governed by the existing `blueprint_managed_roots` exclusivity contract; no new risk surface is introduced.
-- **ADR technical decision sign-off**: pending
+- **ADR technical decision sign-off**: approved
