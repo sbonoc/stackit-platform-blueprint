@@ -16,6 +16,10 @@ Environment variables:
   BLUEPRINT_UPGRADE_REF          REQUIRED: upgrade source ref (tag/branch/commit).
   BLUEPRINT_UPGRADE_SOURCE       Upgrade source repository URL/path.
                                   Default: remote.upstream.url or remote.origin.url.
+                                  URL form (https://, git@, ssh://): the pipeline performs
+                                  an auto-clone (--depth 1) to a tmp dir before Stage 1b
+                                  and removes the clone on exit via an EXIT trap.
+                                  Local path form (/…, ./…, ../…): used as-is; no clone.
   BLUEPRINT_UPGRADE_ALLOW_DELETE Default: true (pipeline default; set false for non-destructive mode).
   BLUEPRINT_UPGRADE_APPLY        Default: true (pipeline default; set false for plan-only/dry-run mode).
 
@@ -28,6 +32,10 @@ Artifacts produced:
 Post-pipeline step (when conflicts exist):
   make blueprint-upgrade-consumer-resolve          — auto-applies take_source/take_target rows and
                                                      prints a residual table of human_required rows.
+
+Post-Stage-2 convergence:
+  make blueprint-upgrade-consumer-finalize         — single canonical command to sync and verify
+                                                     the upgrade result (replaces manual Stage 8+9).
 USAGE
 }
 
@@ -58,13 +66,40 @@ fi
 
 residual_report_path="$ROOT_DIR/artifacts/blueprint/upgrade-residual.md"
 pipeline_exit=0
+cloned_source_dir=""
 
-# Guarantee residual report is produced even on early abort.
-trap 'uv run python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_residual_report.py" \
+# Guarantee residual report is produced and tmp clone dir is removed on all exit paths.
+# cloned_source_dir is populated by the URL normalization block below when a clone is needed.
+trap '[[ -n "$cloned_source_dir" ]] && rm -rf "$cloned_source_dir"; \
+  uv run python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_residual_report.py" \
   --repo-root "$ROOT_DIR" \
   --pipeline-exit "$pipeline_exit" \
   --output-path "$residual_report_path" \
   2>/dev/null || true' EXIT
+
+# ---------------------------------------------------------------------------
+# URL normalization — auto-clone URL-form upgrade_source to a local path.
+# Runs before Stage 1 so all stages receive a local filesystem path.
+# FR-001, FR-002, FR-004, NFR-REL-001, NFR-SEC-001.
+# ---------------------------------------------------------------------------
+if [[ -n "$upgrade_source" ]] && ! [[ -d "$upgrade_source/.git" ]]; then
+  case "$upgrade_source" in
+    https://*|git@*|ssh://*)
+      cloned_source_dir="$(mktemp -d -t blueprint-upgrade-source-XXXXXX)"
+      log_info "[PIPELINE] auto-clone: cloning $upgrade_source@$upgrade_ref → $cloned_source_dir (--depth 1)"
+      if ! git clone --quiet --depth 1 --branch "$upgrade_ref" "$upgrade_source" "$cloned_source_dir"; then
+        log_fatal "[PIPELINE] auto-clone: git clone failed for $upgrade_source — check that BLUEPRINT_UPGRADE_REF='$upgrade_ref' exists in the remote."
+      fi
+      upgrade_source="$cloned_source_dir"
+      log_info "[PIPELINE] auto-clone: complete — upgrade_source reassigned to local clone"
+      ;;
+    /*|./*|../*)
+      ;;
+    *)
+      log_fatal "[PIPELINE] auto-clone: BLUEPRINT_UPGRADE_SOURCE='$upgrade_source' is not a recognised form. Use https://, git@, ssh://, or a local path (/, ./, ../)."
+      ;;
+  esac
+fi
 
 if [[ "$allow_apply" != "true" ]]; then
   log_info "[PIPELINE] PLAN-ONLY mode: BLUEPRINT_UPGRADE_APPLY=false — stages will plan but not write files."

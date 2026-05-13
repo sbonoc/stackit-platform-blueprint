@@ -2228,8 +2228,13 @@ def main() -> int:
         return 1
 
     temp_dir: Path | None = None
+    source_is_pre_cloned = Path(args.source).is_dir() and (Path(args.source) / ".git").is_dir()
     try:
-        temp_dir, source_repo, resolved_commit = _clone_source_repository(args.source, args.ref)
+        if source_is_pre_cloned:
+            source_repo = Path(args.source)
+            resolved_commit = _resolve_commit(source_repo, args.ref) or ""
+        else:
+            temp_dir, source_repo, resolved_commit = _clone_source_repository(args.source, args.ref)
         baseline_ref = _resolve_baseline_ref(
             source_repo,
             contract.repository.template_bootstrap.template_version,

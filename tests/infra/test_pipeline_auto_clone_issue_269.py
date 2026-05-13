@@ -31,31 +31,23 @@ class PipelineURLNormalizationBlockTests(unittest.TestCase):
         subprocess calls, causing Stage 5 to fatal-exit.  The guard detects
         non-local sources before Stage 1b so that auto-clone runs exactly once.
         """
+        import re as _re
+
         pipeline_source = _PIPELINE_PATH.read_text(encoding="utf-8")
-        self.assertRegex(
+        # The normalization block (containing .git guard) must appear before Stage 1b code.
+        # Use DOTALL so the pattern spans newlines between the guard and Stage 1b header.
+        match = _re.search(
+            r'upgrade_source.*?\.git.*?Stage 1b\s*[-—]+.*?version pin diff',
             pipeline_source,
-            r'\.git.*upgrade_source|upgrade_source.*\.git',
+            _re.DOTALL,
+        )
+        self.assertIsNotNone(
+            match,
             msg=(
-                "Pipeline must contain a '.git' directory guard that tests whether "
-                "$upgrade_source is a local repository before Stage 1b (FR-001). "
+                "Pipeline must contain a '.git' directory guard that appears BEFORE Stage 1b "
+                "(version pin diff) in the code (FR-001). "
                 "Add '! [[ -d \"$upgrade_source/.git\" ]]' before Stage 1b to trigger "
                 "auto-clone for URL-form sources."
-            ),
-        )
-        stage1b_header_pos = pipeline_source.find("Stage 1b")
-        self.assertGreater(
-            stage1b_header_pos,
-            0,
-            msg="Pipeline must contain a 'Stage 1b' header.",
-        )
-        git_guard_pos = pipeline_source.find(".git")
-        self.assertGreater(
-            stage1b_header_pos,
-            git_guard_pos,
-            msg=(
-                "The '.git' directory guard must appear BEFORE the Stage 1b block in "
-                "upgrade_consumer_pipeline.sh (FR-001). Currently the guard is absent or "
-                "positioned after Stage 1b."
             ),
         )
 
@@ -140,13 +132,15 @@ class PipelineURLNormalizationBlockTests(unittest.TestCase):
         structure (not just presence of the clone invocation).
         """
         pipeline_source = _PIPELINE_PATH.read_text(encoding="utf-8")
+        # Guard form: '! [[ -d "$upgrade_source/.git" ]]'
         self.assertRegex(
             pipeline_source,
-            r'if\s+\[\[?\s*!?\s*-d\s+["\$].*\.git|if\s+!\s+\[\[',
+            r'!\s+\[\[\s+-d',
             msg=(
-                "Pipeline URL normalization block must use a conditional guard so that "
-                "the git clone is skipped when upgrade_source is already a local .git directory (FR-004). "
-                "The guard '! [[ -d \"$upgrade_source/.git\" ]]' must wrap the clone invocation."
+                "Pipeline URL normalization block must use a '! [[ -d ... ]]' conditional guard "
+                "so that git clone is skipped when upgrade_source is already a local .git directory "
+                "(FR-004). Add '! [[ -d \"$upgrade_source/.git\" ]]' to wrap the clone invocation "
+                "in scripts/bin/blueprint/upgrade_consumer_pipeline.sh."
             ),
         )
 

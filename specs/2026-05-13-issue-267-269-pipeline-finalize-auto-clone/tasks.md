@@ -1,20 +1,20 @@
 # Tasks
 
 ## Gate Checks (Required Before Implementation)
-- [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`
-- [ ] G-002 Confirm open questions and unresolved alternatives are `0`
-- [ ] G-003 Confirm required sign-offs are approved
-- [ ] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
-- [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
+- [x] G-001 Confirm `SPEC_READY=true` in `spec.md`
+- [x] G-002 Confirm open questions and unresolved alternatives are `0`
+- [x] G-003 Confirm required sign-offs are approved
+- [x] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
+- [x] G-005 Confirm `Implementation Stack Profile` section is fully populated
 
 ## Slice 1 — red: auto-clone failing tests
-- [ ] T-101 Create `tests/infra/test_pipeline_auto_clone_issue_269.py` with failing tests: URL-form source causes Stage 1b/5 failure (regression doc); normalize_upgrade_source function behaviour (local vs. URL detection)
+- [x] T-101 Create `tests/infra/test_pipeline_auto_clone_issue_269.py` with failing tests: URL-form source causes Stage 1b/5 failure (regression doc); normalize_upgrade_source function behaviour (local vs. URL detection)
 
 ## Slice 2 — green: auto-clone implementation
-- [ ] T-001 Add URL normalization block to `upgrade_consumer_pipeline.sh` before Stage 1b: `! -d "$upgrade_source/.git"` guard → validate prefix → `git clone --depth 1` → EXIT trap registration
-- [ ] T-002 Add URL prefix allowlist validation (abort on non-safe prefix) to pipeline URL normalization block
-- [ ] T-003 Update `scripts/lib/blueprint/upgrade_consumer.py` to skip internal clone when `upgrade_source` is already a local `.git` directory
-- [ ] T-102 Verify Slice 1 tests turn green after Slice 2 implementation
+- [x] T-001 Add URL normalization block to `upgrade_consumer_pipeline.sh` before Stage 1b: `! -d "$upgrade_source/.git"` guard → validate prefix → `git clone --depth 1` → EXIT trap registration
+- [x] T-002 Add URL prefix allowlist validation (abort on non-safe prefix) to pipeline URL normalization block
+- [x] T-003 Update `scripts/lib/blueprint/upgrade_consumer.py` to skip internal clone when `upgrade_source` is already a local `.git` directory
+- [x] T-102 Verify Slice 1 tests turn green after Slice 2 implementation
 
 ## Slice 3 — red: finalize failing tests
 - [ ] T-103 Create `tests/infra/test_pipeline_finalize_issue_267.py` with failing tests: make target existence; sync-pass aggregation (no fail-fast); verify-pass fail-fast with summary banner; idempotency
