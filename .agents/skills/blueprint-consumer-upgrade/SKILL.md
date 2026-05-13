@@ -74,6 +74,7 @@ The `make blueprint-upgrade-consumer` target runs 10 scripted stages automatical
 | 1 | Pre-flight: clean working tree, valid ref, parseable contract |
 | 1b | Version pin diff: compare `scripts/lib/infra/versions.sh` between baseline and target tags; emit `artifacts/blueprint/version_pin_diff.json` (non-blocking) |
 | 2 | Apply with delete (`BLUEPRINT_UPGRADE_ALLOW_DELETE=true`, `BLUEPRINT_UPGRADE_APPLY=true` by default) |
+| 2b | Conflict triage: emit `artifacts/blueprint/upgrade_triage.json` with `recommended_action` per conflict; run `blueprint-upgrade-consumer-resolve` to auto-apply `take_source`/`take_target` rows and print the residual table of `human_required` rows |
 | 3 | Contract resolver: preserve identity, merge required_files, drop matching prune globs |
 | 4 | Auto-resolve non-contract conflicts (blueprint-managed files take source content) |
 | 5 | Coverage gap detection and file fetch from local git clone |

@@ -23,7 +23,7 @@
 - [x] T-006 Confirm all Slice 1 tests GREEN
 
 ## Slice 3 — RED: Resolve script failing tests
-- [ ] T-007 Write `tests/infra/test_conflict_resolve_issue_265.py` with 9 failing tests:
+- [x] T-007 Write `tests/infra/test_conflict_resolve_issue_265.py` with 9 failing tests:
   - `test_take_source_rows_applied_to_working_tree`
   - `test_human_required_rows_not_touched`
   - `test_upgrade_resolve_json_written`
@@ -35,21 +35,21 @@
   - `test_resolve_prints_action_per_row`
 
 ## Slice 4 — GREEN: Resolve script, make target, docs
-- [ ] T-008 Implement `scripts/lib/blueprint/upgrade_consumer_resolve.py`:
+- [x] T-008 Implement `scripts/lib/blueprint/upgrade_consumer_resolve.py`:
   - reads + validates `upgrade_triage.json` against schema
   - applies `take_source`, `take_target`, `delete` rows
   - clears resolved `.conflict.json` files
   - writes `artifacts/blueprint/upgrade_resolve.json`
   - prints residual table (sorted; >20 truncated with footer)
   - supports `--dry-run`, `--interactive` / `INTERACTIVE=true`, `--accept-source ALL`, `--accept-target ALL`
-- [ ] T-009 Implement `scripts/bin/blueprint/upgrade_consumer_resolve.sh` (thin wrapper; sources `bootstrap.sh`; passes flags)
-- [ ] T-010 Add `blueprint-upgrade-consumer-resolve` target to `blueprint.generated.mk`
-- [ ] T-011 Update `.agents/skills/blueprint-consumer-upgrade/SKILL.md` — add resolve step to stage table between Stage 2 and finalize
-- [ ] T-012 Confirm all Slice 3 tests GREEN
+- [x] T-009 Implement `scripts/bin/blueprint/upgrade_consumer_resolve.sh` (thin wrapper; sources `bootstrap.sh`; passes flags)
+- [x] T-010 Add `blueprint-upgrade-consumer-resolve` target to `blueprint.generated.mk`
+- [x] T-011 Update `.agents/skills/blueprint-consumer-upgrade/SKILL.md` — add resolve step to stage table between Stage 2 and finalize
+- [x] T-012 Confirm all Slice 3 tests GREEN
 
 ## Test Automation
-- [ ] T-101 `test_conflict_triage_issue_265.py` — 5 tests (Slice 1 RED, Slice 2 GREEN)
-- [ ] T-102 `test_conflict_resolve_issue_265.py` — 9 tests (Slice 3 RED, Slice 4 GREEN)
+- [x] T-101 `test_conflict_triage_issue_265.py` — 5 tests (Slice 1 RED, Slice 2 GREEN)
+- [x] T-102 `test_conflict_resolve_issue_265.py` — 9 tests (Slice 3 RED, Slice 4 GREEN)
 - [ ] T-103 N/A — no HTTP filter/transform routes
 - [ ] T-104 N/A — all tests are new regression tests derived from issue evidence; no pre-PR smoke findings to translate
 - [ ] T-105 Schema validation: `jsonschema` validation of `upgrade_triage.json` against `upgrade_triage.schema.json` in test suite and at resolve-script startup
