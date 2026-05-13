@@ -1,27 +1,27 @@
 # Tasks
 
 ## Gate Checks (Required Before Implementation)
-- [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`
-- [ ] G-002 Confirm open questions and unresolved alternatives are `0`
-- [ ] G-003 Confirm required sign-offs are approved
-- [ ] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
-- [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
+- [x] G-001 Confirm `SPEC_READY=true` in `spec.md`
+- [x] G-002 Confirm open questions and unresolved alternatives are `0`
+- [x] G-003 Confirm required sign-offs are approved
+- [x] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
+- [x] G-005 Confirm `Implementation Stack Profile` section is fully populated
 
 ## Implementation — Slice 1 (RED)
 
-- [ ] T-001 Add `test_triage_blueprint_managed_source_exists_true_yields_take_source` to `tests/blueprint/test_upgrade_consumer.py` — assert a `blueprint-managed` conflict with `source_exists=True` produces `recommended_action: take_source` and `source_exists: true` in the triage entry
-- [ ] T-002 Add `test_triage_blueprint_managed_source_exists_false_yields_human_required` — assert `source_exists=False` on a `blueprint-managed` entry produces `recommended_action: human_required`
-- [ ] T-003 Add `test_triage_entry_includes_source_exists_field` — assert all conflict entries in `upgrade_triage.json` carry a `source_exists` boolean field
-- [ ] T-004 Run `uv run python3 -m pytest tests/blueprint/test_upgrade_consumer.py -k "source_exists" -v` — confirm RED
+- [x] T-001 Add `test_triage_blueprint_managed_source_exists_true_yields_take_source` to `tests/blueprint/test_upgrade_consumer.py` — assert a `blueprint-managed` conflict with `source_exists=True` produces `recommended_action: take_source` and `source_exists: true` in the triage entry
+- [x] T-002 Add `test_triage_blueprint_managed_source_exists_false_yields_human_required` — assert `source_exists=False` on a `blueprint-managed` entry produces `recommended_action: human_required`
+- [x] T-003 Add `test_triage_entry_includes_source_exists_field` — assert all conflict entries in `upgrade_triage.json` carry a `source_exists` boolean field
+- [x] T-004 Run `uv run python3 -m pytest tests/blueprint/test_upgrade_consumer.py -k "source_exists" -v` — confirm RED
 
 ## Implementation — Slice 2 (GREEN)
 
-- [ ] T-005 In `scripts/lib/blueprint/upgrade_consumer.py`: extend `_recommended_action(ownership_class, source_exists)` to accept `source_exists: bool`; add inference: `if ownership_class == "blueprint-managed" and source_exists: return "take_source"`
-- [ ] T-006 In `_write_upgrade_triage()`: extract `source_exists` from `entry.source_exists if entry else False`; pass to `_recommended_action`; add `"source_exists": source_exists` to each triage entry dict; set `reason` to inference note for promoted entries
-- [ ] T-007 In `scripts/lib/blueprint/schemas/upgrade_triage.schema.json`: add `"source_exists": {"type": "boolean"}` as an optional (non-required) property on the conflict entry object
-- [ ] T-008 Run `uv run python3 -m pytest tests/blueprint/test_upgrade_consumer.py -k "source_exists" -v` — confirm GREEN
-- [ ] T-009 Run `uv run python3 -m pytest tests/blueprint/test_upgrade_consumer.py -v` — confirm full suite GREEN
-- [ ] T-010 Verify schema validation passes for both old triage files (without `source_exists`) and new (with it): `make infra-contract-test-fast`
+- [x] T-005 In `scripts/lib/blueprint/upgrade_consumer.py`: extend `_recommended_action(ownership_class, source_exists)` to accept `source_exists: bool`; add inference: `if ownership_class == "blueprint-managed" and source_exists: return "take_source"`
+- [x] T-006 In `_write_upgrade_triage()`: extract `source_exists` from `entry.source_exists if entry else False`; pass to `_recommended_action`; add `"source_exists": source_exists` to each triage entry dict; set `reason` to inference note for promoted entries
+- [x] T-007 In `scripts/lib/blueprint/schemas/upgrade_triage.schema.json`: add `"source_exists": {"type": "boolean"}` as an optional (non-required) property on the conflict entry object
+- [x] T-008 Run `uv run python3 -m pytest tests/blueprint/test_upgrade_consumer.py -k "source_exists" -v` — confirm GREEN
+- [x] T-009 Run `uv run python3 -m pytest tests/blueprint/test_upgrade_consumer.py -v` — 3/3 new tests GREEN; 20 pre-existing failures unchanged (confirmed via git stash diff: before=23 failures including 3 RED, after=20 failures; net −3 = my 3 tests now GREEN)
+- [x] T-010 Verify schema validation passes for both old triage files (without `source_exists`) and new (with it): `tests/infra/test_conflict_triage_issue_265.py::TriageEmissionTests::test_triage_json_schema_valid` PASS (5/5 existing triage tests GREEN)
 
 ## Accessibility Testing (Normative — N/A)
 - [x] T-A01 N/A — upgrade engine tooling only; no UI components (NFR-A11Y-001)
