@@ -2903,5 +2903,108 @@ class TerraformBlockDeduplicationTests(unittest.TestCase):
         self.assertIn('alias  = "us"', processed)
 
 
+class SourceExistsInferenceTests(unittest.TestCase):
+    """Issue #265/#271 Option B — source_exists inference for blueprint-managed catch-all.
+
+    FR-001, FR-002, FR-003, FR-004, AC-001, AC-002, AC-004
+    """
+
+    def test_triage_blueprint_managed_source_exists_true_yields_take_source(self) -> None:
+        """blueprint-managed + source_exists=True MUST return take_source (FR-001, AC-001)."""
+        self.assertEqual(
+            upgrade_consumer._recommended_action("blueprint-managed", True),
+            "take_source",
+        )
+
+    def test_triage_blueprint_managed_source_exists_false_yields_human_required(self) -> None:
+        """blueprint-managed + source_exists=False MUST return human_required (FR-002, AC-002)."""
+        self.assertEqual(
+            upgrade_consumer._recommended_action("blueprint-managed", False),
+            "human_required",
+        )
+
+    def _emit_triage_for_path(
+        self,
+        repo_root: Path,
+        conflict_path: str,
+        ownership_class: str,
+        source_exists: bool,
+    ) -> dict:
+        artifact_path = repo_root / "artifacts/blueprint/conflicts" / f"{conflict_path}.conflict.json"
+        artifact_path.parent.mkdir(parents=True, exist_ok=True)
+        artifact_path.write_text(
+            json.dumps({
+                "path": conflict_path,
+                "reason": "merge conflict",
+                "source_sha256": "aaa",
+                "target_sha256": "bbb",
+                "baseline_sha256": "ccc",
+                "merged_sha256": None,
+                "source_content": "source\n",
+                "target_content": "target\n",
+                "baseline_content": "baseline\n",
+                "merged_content": None,
+            }),
+            encoding="utf-8",
+        )
+        results = [
+            upgrade_consumer.ApplyResult(
+                path=conflict_path,
+                planned_action="conflict",
+                planned_operation="write",
+                result="conflict",
+                reason="merge conflict",
+                conflict_artifact=f"artifacts/blueprint/conflicts/{conflict_path}.conflict.json",
+            )
+        ]
+        entries = [
+            upgrade_consumer.UpgradeEntry(
+                path=conflict_path,
+                ownership=ownership_class,
+                action="conflict",
+                operation="write",
+                reason="merge conflict",
+                source_exists=source_exists,
+                target_exists=True,
+                baseline_ref="v1.7.0",
+                baseline_content_available=True,
+            )
+        ]
+        upgrade_consumer._write_upgrade_triage(
+            repo_root=repo_root,
+            conflict_results=results,
+            entries=entries,
+            source_ref="v1.10.0",
+            baseline_ref="v1.7.0",
+        )
+        triage_path = repo_root / "artifacts/blueprint/upgrade_triage.json"
+        return json.loads(triage_path.read_text(encoding="utf-8"))
+
+    def test_triage_entry_includes_source_exists_field(self) -> None:
+        """All conflict entries in upgrade_triage.json MUST include source_exists boolean (FR-003, AC-004)."""
+        with tempfile.TemporaryDirectory() as tmp:
+            triage = self._emit_triage_for_path(
+                Path(tmp),
+                "scripts/bin/blueprint/some_script.sh",
+                "blueprint-managed",
+                source_exists=True,
+            )
+            conflicts = triage.get("conflicts", [])
+            self.assertEqual(len(conflicts), 1)
+            entry = conflicts[0]
+            self.assertIn(
+                "source_exists",
+                entry,
+                "Each conflict entry MUST include a 'source_exists' boolean field (FR-003, AC-004)",
+            )
+            self.assertIsInstance(entry["source_exists"], bool)
+            self.assertTrue(entry["source_exists"])
+            self.assertEqual(
+                entry.get("recommended_action"),
+                "take_source",
+                "blueprint-managed + source_exists=True MUST produce recommended_action: take_source (FR-001, AC-001)",
+            )
+
+
 if __name__ == "__main__":
     unittest.main()
