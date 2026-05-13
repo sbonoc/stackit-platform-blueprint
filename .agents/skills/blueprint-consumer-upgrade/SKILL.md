@@ -19,7 +19,7 @@ The upgrade is fully scripted. The agent's role is: set the ref, run the pipelin
 4. **Review Version Pin Changes.** If the "Version Pin Changes" section lists any changed or new pins, run `make infra-bootstrap`, then manually sync the listed templates under `scripts/templates/infra/bootstrap/`, then re-run `make infra-validate`.
 5. **Apply prescribed actions.** For each remaining item in the report, apply the action listed (Remove/Add/Classify/Review). Do not skip items — every item has a prescribed action.
 6. **Adopt new optional features.** Run `make blueprint-feature-gate-status`. This writes or updates `AGENTS.backlog.md` with one entry per unadopted consumer-seeded feature gate. For each open `(blueprint-feature) seed: <id>` entry, run the command shown in the entry (e.g. `make blueprint-seed-feature FEATURE=<id>`) to adopt that feature. Mark the entry `[x]` once adopted. Skip entries already marked `[x]`.
-7. **Confirm clean.** Re-run `make quality-hooks-run` to confirm no remaining issues.
+7. **Finalize upgrade.** Run `make blueprint-upgrade-consumer-finalize` as the single canonical post-apply convergence step. This runs a sync pass (aggregated) then a verify pass (fail-fast) and exits 0 when all checks pass. Re-run after each manual fix until it exits 0.
 8. **Commit and open PR.** Use the standard PR packager skill (`/blueprint-sdd-step07-pr-packager`).
 
 ## Command Sequence
@@ -45,8 +45,8 @@ make blueprint-feature-gate-status
 #   make blueprint-seed-feature FEATURE=claude_ai_integration
 # The postcheck pipeline also runs this automatically as a non-blocking informational step.
 
-# Step 7 — confirm clean after applying prescribed actions
-make quality-hooks-run
+# Step 7 — finalize: sync pass + verify pass (single canonical post-apply convergence command)
+make blueprint-upgrade-consumer-finalize
 ```
 
 ## Feature Gate Backlog Entries
@@ -80,8 +80,7 @@ The `make blueprint-upgrade-consumer` target runs 10 scripted stages automatical
 | 5 | Coverage gap detection and file fetch from local git clone |
 | 6 | Bootstrap template mirror sync |
 | 7 | Make target validation for new/changed docs (warnings only) |
-| 8 | Generated reference docs regeneration |
-| 9 | Gate chain: `make infra-validate` then `make quality-hooks-run` |
+| 8+9 | Post-apply quality convergence: `make blueprint-upgrade-consumer-finalize` (sync pass then verify pass) |
 | 10 | Residual report (always emitted, even on partial failure) |
 
 ## Override: Non-Destructive Mode

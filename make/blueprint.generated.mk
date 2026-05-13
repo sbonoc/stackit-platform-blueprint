@@ -2,7 +2,7 @@ SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
 .PHONY: help \
-  blueprint-init-repo blueprint-init-repo-interactive blueprint-resync-consumer-seeds blueprint-upgrade-consumer blueprint-upgrade-consumer-apply blueprint-upgrade-consumer-preflight blueprint-upgrade-consumer-validate blueprint-upgrade-consumer-postcheck blueprint-upgrade-consumer-resolve blueprint-upgrade-fresh-env-gate blueprint-upgrade-readiness-doctor blueprint-uplift-status blueprint-seed-feature blueprint-feature-gate-status blueprint-install-codex-skill blueprint-install-codex-skill-consumer-ops blueprint-install-codex-skill-sdd-step01-intake blueprint-install-codex-skill-sdd-step02-resolve-questions blueprint-install-codex-skill-sdd-step03-spec-complete blueprint-install-codex-skill-sdd-step04-plan-slicer blueprint-install-codex-skill-sdd-step05-implement blueprint-install-codex-skill-sdd-step06-document-sync blueprint-install-codex-skill-sdd-step07-pr-packager blueprint-install-codex-skill-sdd-traceability-keeper blueprint-install-codex-skills blueprint-prune-codex-skills blueprint-ownership-check blueprint-ownership-metadata blueprint-check-placeholders blueprint-template-smoke blueprint-bootstrap blueprint-render-makefile blueprint-clean-generated blueprint-render-module-wrapper-skeletons spec-scaffold spec-impact spec-evidence-manifest spec-context-pack spec-pr-context \
+  blueprint-init-repo blueprint-init-repo-interactive blueprint-resync-consumer-seeds blueprint-upgrade-consumer blueprint-upgrade-consumer-apply blueprint-upgrade-consumer-preflight blueprint-upgrade-consumer-validate blueprint-upgrade-consumer-postcheck blueprint-upgrade-consumer-resolve blueprint-upgrade-fresh-env-gate blueprint-upgrade-consumer-finalize blueprint-upgrade-readiness-doctor blueprint-uplift-status blueprint-seed-feature blueprint-feature-gate-status blueprint-install-codex-skill blueprint-install-codex-skill-consumer-ops blueprint-install-codex-skill-sdd-step01-intake blueprint-install-codex-skill-sdd-step02-resolve-questions blueprint-install-codex-skill-sdd-step03-spec-complete blueprint-install-codex-skill-sdd-step04-plan-slicer blueprint-install-codex-skill-sdd-step05-implement blueprint-install-codex-skill-sdd-step06-document-sync blueprint-install-codex-skill-sdd-step07-pr-packager blueprint-install-codex-skill-sdd-traceability-keeper blueprint-install-codex-skills blueprint-prune-codex-skills blueprint-ownership-check blueprint-ownership-metadata blueprint-check-placeholders blueprint-template-smoke blueprint-bootstrap blueprint-render-makefile blueprint-clean-generated blueprint-render-module-wrapper-skeletons spec-scaffold spec-impact spec-evidence-manifest spec-context-pack spec-pr-context \
   test-contracts-async-producer test-contracts-async-consumer test-contracts-async-all \
   quality-hooks-fast quality-hooks-strict quality-hooks-run quality-root-dir-prelude-check quality-infra-shell-source-graph-check quality-sdd-sync-control-catalog quality-sdd-check-control-catalog-sync quality-sdd-sync-consumer-init-assets quality-sdd-check-consumer-init-assets-sync quality-sdd-sync-policy-snippets quality-sdd-check-policy-snippets-sync quality-sdd-sync-all quality-sdd-check-all quality-sdd-check quality-spec-pr-ready quality-hardening-review quality-runtime-contract-drift-report quality-ci-sync quality-ci-check-sync quality-ci-fast quality-ci-slow-integration quality-ci-full-e2e quality-ci-strict quality-ci-blueprint quality-consumer-pre-push quality-consumer-ci quality-ci-generated-consumer-smoke quality-ci-upgrade-validate quality-docs-lint quality-docs-sync-all quality-docs-check-changed quality-docs-sync-blueprint-template quality-docs-check-blueprint-template-sync quality-docs-sync-platform-seed quality-docs-check-platform-seed-sync quality-docs-sync-core-targets quality-docs-check-core-targets-sync quality-docs-sync-contract-metadata quality-docs-check-contract-metadata-sync quality-docs-sync-runtime-identity-summary quality-docs-check-runtime-identity-summary-sync quality-docs-sync-module-contract-summaries quality-docs-check-module-contract-summaries-sync quality-test-pyramid \
   infra-prereqs infra-help-reference infra-contract-test-fast infra-port-forward-start infra-port-forward-stop infra-port-forward-cleanup infra-bootstrap infra-local-destroy-all infra-destroy-disabled-modules infra-validate infra-smoke infra-provision infra-deploy infra-provision-deploy \
@@ -20,7 +20,8 @@ SHELL := /bin/bash
   touchpoints-test-unit touchpoints-test-integration touchpoints-test-contracts touchpoints-test-e2e \
   test-unit-all test-integration-all test-contracts-all test-e2e-all-local test-e2e-all-local-full test-e2e-all-local-execute \
   auth-reconcile-eso-runtime-secrets auth-reconcile-argocd-repo-credentials auth-reconcile-runtime-identity \
-  docs-install docs-run docs-build docs-smoke
+  docs-install docs-run docs-build docs-smoke \
+  infra-stackit-workflows-plan infra-stackit-workflows-apply infra-stackit-workflows-reconcile infra-stackit-workflows-dag-deploy infra-stackit-workflows-dag-parse-smoke infra-stackit-workflows-smoke infra-stackit-workflows-destroy
 
 help: ## Show targets
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z0-9_.-]+:.*## / {printf "%-50s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -54,6 +55,9 @@ blueprint-upgrade-consumer-resolve: ## Apply upgrade conflict resolutions from u
 
 blueprint-upgrade-fresh-env-gate: ## Run fresh-environment smoke gate — CI-equivalent worktree check after upgrade postcheck
 	@scripts/bin/blueprint/upgrade_fresh_env_gate.sh
+
+blueprint-upgrade-consumer-finalize: ## Run post-upgrade quality convergence: sync pass (aggregated) then verify pass (fail-fast)
+	@scripts/bin/blueprint/upgrade_consumer_finalize.sh
 
 blueprint-upgrade-readiness-doctor: ## Generate generated-consumer upgrade readiness diagnostics and manual-action hints
 	@scripts/bin/blueprint/upgrade_readiness_doctor.sh
@@ -386,7 +390,8 @@ INFRA_ENV_GUARDED_TARGETS := \
 	infra-stackit-foundation-fetch-kubeconfig infra-stackit-foundation-refresh-kubeconfig infra-stackit-foundation-seed-runtime-secret \
 	infra-stackit-ci-github-setup infra-stackit-destroy-all infra-runtime-inventory infra-local-runtime-inventory infra-stackit-runtime-prerequisites infra-stackit-runtime-inventory infra-stackit-runtime-deploy \
 	infra-stackit-smoke-foundation infra-stackit-smoke-runtime infra-stackit-provision-deploy infra-argocd-topology-render infra-argocd-topology-validate \
-	infra-doctor infra-context infra-status infra-status-json infra-audit-version infra-audit-version-cached
+	infra-doctor infra-context infra-status infra-status-json infra-audit-version infra-audit-version-cached \
+  infra-stackit-workflows-plan infra-stackit-workflows-apply infra-stackit-workflows-reconcile infra-stackit-workflows-dag-deploy infra-stackit-workflows-dag-parse-smoke infra-stackit-workflows-smoke infra-stackit-workflows-destroy
 
 $(INFRA_ENV_GUARDED_TARGETS): blueprint-check-placeholders
 
@@ -514,3 +519,25 @@ docs-build: ## Build docs site
 
 docs-smoke: ## Smoke docs site output
 	@scripts/bin/docs/smoke.sh
+
+
+infra-stackit-workflows-plan: ## Plan Workflows resources
+	@scripts/bin/infra/stackit_workflows_plan.sh
+
+infra-stackit-workflows-apply: ## Apply Workflows resources
+	@scripts/bin/infra/stackit_workflows_apply.sh
+
+infra-stackit-workflows-reconcile: ## Reconcile existing/desired Workflows state
+	@scripts/bin/infra/stackit_workflows_reconcile.sh
+
+infra-stackit-workflows-dag-deploy: ## Deploy DAGs to managed Airflow
+	@scripts/bin/infra/stackit_workflows_dag_deploy.sh
+
+infra-stackit-workflows-dag-parse-smoke: ## DAG import/parse smoke
+	@scripts/bin/infra/stackit_workflows_dag_parse_smoke.sh
+
+infra-stackit-workflows-smoke: ## Workflows runtime smoke
+	@scripts/bin/infra/stackit_workflows_smoke.sh
+
+infra-stackit-workflows-destroy: ## Destroy Workflows resources
+	@scripts/bin/infra/stackit_workflows_destroy.sh

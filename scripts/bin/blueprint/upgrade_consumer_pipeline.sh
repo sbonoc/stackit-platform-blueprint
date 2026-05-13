@@ -218,42 +218,16 @@ unset _modified_md_json
 log_info "[PIPELINE] Stage 7: complete"
 
 # ---------------------------------------------------------------------------
-# Stage 8 — Generated reference docs regeneration
+# Stages 8+9 — Post-apply quality convergence (delegated to finalize target)
 # ---------------------------------------------------------------------------
-log_info "[PIPELINE] Stage 8: starting — generated reference docs regeneration"
-stage8_rc=0
-make -C "$ROOT_DIR" quality-docs-sync-core-targets quality-docs-sync-contract-metadata || stage8_rc=$?
-if [[ "$stage8_rc" -ne 0 ]]; then
-  pipeline_exit=$stage8_rc
-  log_fatal "[PIPELINE] Stage 8: FAILED — docs regen exited $stage8_rc; aborting."
-fi
-log_info "[PIPELINE] Stage 8: complete"
-
-# ---------------------------------------------------------------------------
-# Stage 9 — Gate chain
-# ---------------------------------------------------------------------------
-log_info "[PIPELINE] Stage 9: starting — gate chain (infra-validate + quality-hooks-run + blueprint-upgrade-consumer-validate)"
-stage9_rc=0
-make -C "$ROOT_DIR" infra-validate || stage9_rc=$?
-if [[ "$stage9_rc" -ne 0 ]]; then
-  pipeline_exit=$stage9_rc
-  log_error "[PIPELINE] Stage 9: infra-validate FAILED (exit $stage9_rc)"
+log_info "[PIPELINE] Stages 8+9: starting — post-apply quality convergence (finalize)"
+make -C "$ROOT_DIR" blueprint-upgrade-consumer-finalize || pipeline_exit=$?
+if [[ "$pipeline_exit" -ne 0 ]]; then
+  log_error "[PIPELINE] Stages 8+9: blueprint-upgrade-consumer-finalize FAILED (exit $pipeline_exit)"
 else
-  make -C "$ROOT_DIR" quality-hooks-run || stage9_rc=$?
-  if [[ "$stage9_rc" -ne 0 ]]; then
-    pipeline_exit=$stage9_rc
-    log_error "[PIPELINE] Stage 9: quality-hooks-run FAILED (exit $stage9_rc)"
-  else
-    # Run validate to scan for prune-glob violations; result surfaces in Stage 10 residual report.
-    make -C "$ROOT_DIR" blueprint-upgrade-consumer-validate || stage9_rc=$?
-    if [[ "$stage9_rc" -ne 0 ]]; then
-      pipeline_exit=$stage9_rc
-      log_error "[PIPELINE] Stage 9: blueprint-upgrade-consumer-validate FAILED (exit $stage9_rc) — prune-glob violations or merge markers detected; see artifacts/blueprint/upgrade_validate.json"
-    fi
-  fi
+  log_info "[PIPELINE] Stages 8+9: complete — finalize passed"
 fi
 # Stage 10 (residual report) is always executed via the EXIT trap above.
-log_info "[PIPELINE] Stage 9: complete (exit $stage9_rc)"
 
 # ---------------------------------------------------------------------------
 # Stage 10 is emitted by the EXIT trap — always runs.

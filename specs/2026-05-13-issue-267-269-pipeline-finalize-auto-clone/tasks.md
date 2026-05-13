@@ -17,17 +17,17 @@
 - [x] T-102 Verify Slice 1 tests turn green after Slice 2 implementation
 
 ## Slice 3 — red: finalize failing tests
-- [ ] T-103 Create `tests/infra/test_pipeline_finalize_issue_267.py` with failing tests: make target existence; sync-pass aggregation (no fail-fast); verify-pass fail-fast with summary banner; idempotency
+- [x] T-103 Create `tests/infra/test_pipeline_finalize_issue_267.py` with failing tests: make target existence; sync-pass aggregation (no fail-fast); verify-pass fail-fast with summary banner; idempotency
 
 ## Slice 4 — green: finalize implementation + pipeline integration + docs
-- [ ] T-004 Create `scripts/bin/blueprint/upgrade_consumer_finalize.sh`: usage block, sync pass (aggregated failures), verify pass (fail-fast), per-step log lines
-- [ ] T-005 Add `blueprint-upgrade-consumer-finalize` target to `scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl`
-- [ ] T-006 Regenerate `make/blueprint.generated.mk` to include the new target
-- [ ] T-007 Replace Stage 8 and Stage 9 blocks in `upgrade_consumer_pipeline.sh` with `make blueprint-upgrade-consumer-finalize` invocation with appropriate log framing
-- [ ] T-008 Update `.agents/skills/blueprint-consumer-upgrade/SKILL.md`: replace per-target post-apply list with single `make blueprint-upgrade-consumer-finalize` command
-- [ ] T-009 Update `upgrade_consumer_pipeline.sh` usage block: document auto-clone behaviour and finalize target
-- [ ] T-104 Verify Slice 3 tests turn green after Slice 4 implementation
-- [ ] T-105 Run `make infra-contract-test-fast` — confirm 0 new failures
+- [x] T-004 Create `scripts/bin/blueprint/upgrade_consumer_finalize.sh`: usage block, sync pass (aggregated failures), verify pass (fail-fast), per-step log lines
+- [x] T-005 Add `blueprint-upgrade-consumer-finalize` target to `scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl`
+- [x] T-006 Regenerate `make/blueprint.generated.mk` to include the new target
+- [x] T-007 Replace Stage 8 and Stage 9 blocks in `upgrade_consumer_pipeline.sh` with `make blueprint-upgrade-consumer-finalize` invocation with appropriate log framing
+- [x] T-008 Update `.agents/skills/blueprint-consumer-upgrade/SKILL.md`: replace per-target post-apply list with single `make blueprint-upgrade-consumer-finalize` command
+- [x] T-009 Update `upgrade_consumer_pipeline.sh` usage block: document auto-clone behaviour and finalize target
+- [x] T-104 Verify Slice 3 tests turn green after Slice 4 implementation
+- [x] T-105 Run `make infra-contract-test-fast` — confirm 0 new failures
 
 ## Accessibility Testing (Normative — N/A for this work item)
 - [ ] T-A01 NFR-A11Y-001 declared as N/A in spec.md — CLI tool with no browser-rendered UI surface
