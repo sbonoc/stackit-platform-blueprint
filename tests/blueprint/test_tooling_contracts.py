@@ -1499,17 +1499,17 @@ render_optional_module_secret_manifests "messaging" "blueprint-rabbitmq-auth" "r
         exit_code, output = contract_test_fast_pytest_args_for_repo_mode("template-source")
         self.assertEqual(exit_code, 0, msg=output)
         self.assertIn("tests/blueprint/test_upgrade_fixture_matrix.py", output)
-        self.assertIn("tests/infra/test_optional_module_required_env_contract.py", output)
+        self.assertIn("tests/blueprint/test_optional_module_required_env_contract.py", output)
 
     def test_contract_test_fast_skips_only_template_source_only_tests_in_generated_consumer_mode(self) -> None:
         exit_code, output = contract_test_fast_pytest_args_for_repo_mode("generated-consumer")
         self.assertEqual(exit_code, 0, msg=output)
         self.assertNotIn("tests/blueprint/test_upgrade_fixture_matrix.py", output)
-        self.assertIn("tests/infra/test_optional_module_required_env_contract.py", output)
+        self.assertNotIn("tests/blueprint/test_optional_module_required_env_contract.py", output)
         self.assertIn("tests/infra/test_runtime_identity_contract_cli.py", output)
         self.assertIn("tests/infra/test_argocd_repo_contract_cli.py", output)
         self.assertIn("tests/infra/test_state_artifact_contract.py", output)
-        self.assertIn("tests/infra/test_root_dir_resolution.py", output)
+        self.assertNotIn("tests/blueprint/test_root_dir_resolution.py", output)
 
     def test_contract_test_fast_fails_fast_when_template_source_required_test_is_missing(self) -> None:
         fixture_matrix_test = REPO_ROOT / "tests" / "blueprint" / "test_upgrade_fixture_matrix.py"

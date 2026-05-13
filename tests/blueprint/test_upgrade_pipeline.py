@@ -1063,12 +1063,18 @@ class TestProgressLines(unittest.TestCase):
 
     def test_pipeline_script_contains_stage_progress_for_all_stages(self) -> None:
         script = _PIPELINE_SCRIPT.read_text(encoding="utf-8")
-        for stage_num in range(1, 11):
+        for stage_num in list(range(1, 8)) + [10]:
             self.assertIn(
                 f"Stage {stage_num}:",
                 script,
                 f"upgrade_consumer_pipeline.sh missing progress line for Stage {stage_num}",
             )
+        # Stages 8+9 were consolidated into a single finalize target per the pipeline ADR
+        self.assertIn(
+            "Stages 8+9:",
+            script,
+            "upgrade_consumer_pipeline.sh missing consolidated progress line for Stages 8+9",
+        )
 
     def test_pipeline_script_contains_pipeline_prefix(self) -> None:
         script = _PIPELINE_SCRIPT.read_text(encoding="utf-8")
@@ -1177,10 +1183,11 @@ class TestResidualReportPruneGlobViolations(unittest.TestCase):
 
     def test_pipeline_stage9_calls_validate(self) -> None:
         script = _PIPELINE_SCRIPT.read_text(encoding="utf-8")
+        # Stages 8+9 are consolidated: pipeline calls finalize, which wraps validate internally
         self.assertIn(
-            "blueprint-upgrade-consumer-validate",
+            "blueprint-upgrade-consumer-finalize",
             script,
-            "Stage 9 must call make blueprint-upgrade-consumer-validate so prune-glob violations block the pipeline",
+            "Stages 8+9 must call make blueprint-upgrade-consumer-finalize (which wraps validate) so prune-glob violations block the pipeline",
         )
 
 

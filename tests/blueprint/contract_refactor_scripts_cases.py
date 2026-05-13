@@ -285,11 +285,11 @@ class ScriptsRefactorCases(RefactorContractBase):
         self.assertNotIn("STACKIT_RUNTIME_GITOPS_REPO_TOKEN", reconcile)
         self.assertNotIn("STACKIT_RUNTIME_GITOPS_REPO_USERNAME", reconcile)
         self.assertIn(
-            'run_cmd python3 "$argocd_repo_json_helpers" render-source-patch \\',
+            'run_cmd uv run python3 "$argocd_repo_json_helpers" render-source-patch \\',
             reconcile,
         )
         self.assertNotIn(
-            'run_cmd python3 "$argocd_repo_json_helpers" render-source-patch \\\n'
+            'run_cmd uv run python3 "$argocd_repo_json_helpers" render-source-patch \\\n'
             '      "$patch_file" \\\n'
             '      "$ARGOCD_REPO_TYPE" \\\n'
             '      "$ARGOCD_REPO_URL" \\\n'

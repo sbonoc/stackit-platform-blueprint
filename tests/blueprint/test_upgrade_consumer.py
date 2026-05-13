@@ -1072,7 +1072,10 @@ class UpgradeConsumerTests(unittest.TestCase):
             path_result = _apply_result(apply_report, executable_path)
             self.assertEqual(path_result.get("result"), "applied")
 
-    def test_apply_conflict_creates_artifact_and_fails(self) -> None:
+    def test_apply_conflict_creates_artifact_and_writes_conflicts_status(self) -> None:
+        # Engine exits 0 for file conflicts (AC-004, issue #264): conflicts are
+        # deferrable — the triage file + resolve script handle them. Exit 1 is
+        # reserved for unresolved merge markers (AC-005).
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp_root = Path(tmpdir)
             source_repo = _create_source_repo(
@@ -1097,11 +1100,11 @@ class UpgradeConsumerTests(unittest.TestCase):
                 ],
                 cwd=REPO_ROOT,
             )
-            self.assertEqual(result.returncode, 1)
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
             self.assertIn("conflict", result.stderr)
 
             apply_report = _load_json(target_repo / "artifacts/blueprint/upgrade_apply.json")
-            self.assertEqual(apply_report.get("status"), "failure")
+            self.assertEqual(apply_report.get("status"), "conflicts")
             path_result = _apply_result(apply_report, MANAGED_TEST_PATH)
             self.assertEqual(path_result.get("result"), "conflict")
             _assert_json_schema(
@@ -3003,6 +3006,16 @@ class SourceExistsInferenceTests(unittest.TestCase):
                 entry.get("recommended_action"),
                 "take_source",
                 "blueprint-managed + source_exists=True MUST produce recommended_action: take_source (FR-001, AC-001)",
+            )
+            self.assertIn(
+                "source_exists=True",
+                entry.get("reason", ""),
+                "reason MUST identify the inference basis for promoted blueprint-managed entries (FR-004)",
+            )
+            self.assertIn(
+                "blueprint-managed ownership inferred",
+                entry.get("reason", ""),
+                "reason MUST identify blueprint-managed ownership inference basis (FR-004)",
             )
 
 

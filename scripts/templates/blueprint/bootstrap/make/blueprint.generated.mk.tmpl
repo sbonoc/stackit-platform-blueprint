@@ -3,6 +3,7 @@ SHELL := /bin/bash
 
 .PHONY: help \
   blueprint-init-repo blueprint-init-repo-interactive blueprint-resync-consumer-seeds blueprint-upgrade-consumer blueprint-upgrade-consumer-apply blueprint-upgrade-consumer-preflight blueprint-upgrade-consumer-validate blueprint-upgrade-consumer-postcheck blueprint-upgrade-consumer-resolve blueprint-upgrade-fresh-env-gate blueprint-upgrade-consumer-finalize blueprint-upgrade-readiness-doctor blueprint-uplift-status blueprint-seed-feature blueprint-feature-gate-status blueprint-install-codex-skill blueprint-install-codex-skill-consumer-ops blueprint-install-codex-skill-sdd-step01-intake blueprint-install-codex-skill-sdd-step02-resolve-questions blueprint-install-codex-skill-sdd-step03-spec-complete blueprint-install-codex-skill-sdd-step04-plan-slicer blueprint-install-codex-skill-sdd-step05-implement blueprint-install-codex-skill-sdd-step06-document-sync blueprint-install-codex-skill-sdd-step07-pr-packager blueprint-install-codex-skill-sdd-traceability-keeper blueprint-install-codex-skills blueprint-prune-codex-skills blueprint-ownership-check blueprint-ownership-metadata blueprint-check-placeholders blueprint-template-smoke blueprint-bootstrap blueprint-render-makefile blueprint-clean-generated blueprint-render-module-wrapper-skeletons spec-scaffold spec-impact spec-evidence-manifest spec-context-pack spec-pr-context \
+  blueprint-test-unit \
   test-contracts-async-producer test-contracts-async-consumer test-contracts-async-all \
   quality-hooks-fast quality-hooks-strict quality-hooks-run quality-root-dir-prelude-check quality-infra-shell-source-graph-check quality-validate-bootstrap-template-drift quality-sdd-sync-control-catalog quality-sdd-check-control-catalog-sync quality-sdd-sync-consumer-init-assets quality-sdd-check-consumer-init-assets-sync quality-sdd-sync-policy-snippets quality-sdd-check-policy-snippets-sync quality-sdd-sync-all quality-sdd-check-all quality-sdd-check quality-spec-pr-ready quality-hardening-review quality-runtime-contract-drift-report quality-ci-sync quality-ci-check-sync quality-ci-fast quality-ci-slow-integration quality-ci-full-e2e quality-ci-strict quality-ci-blueprint quality-consumer-pre-push quality-consumer-ci quality-ci-generated-consumer-smoke quality-ci-upgrade-validate quality-docs-lint quality-docs-sync-all quality-docs-check-changed quality-docs-sync-blueprint-template quality-docs-check-blueprint-template-sync quality-docs-sync-platform-seed quality-docs-check-platform-seed-sync quality-docs-sync-core-targets quality-docs-check-core-targets-sync quality-docs-sync-contract-metadata quality-docs-check-contract-metadata-sync quality-docs-sync-runtime-identity-summary quality-docs-check-runtime-identity-summary-sync quality-docs-sync-module-contract-summaries quality-docs-check-module-contract-summaries-sync quality-test-pyramid \
   infra-prereqs infra-help-reference infra-contract-test-fast infra-port-forward-start infra-port-forward-stop infra-port-forward-cleanup infra-bootstrap infra-local-destroy-all infra-destroy-disabled-modules infra-validate infra-smoke infra-provision infra-deploy infra-provision-deploy \
@@ -192,6 +193,12 @@ test-contracts-async-all: ## Run async Pact message-contract producer+consumer l
 
 # Augment the platform-owned aggregate contract lane without overriding its recipe.
 test-contracts-all: test-contracts-async-all
+
+blueprint-test-unit: ## Run blueprint tooling unit test suite (upgrade engine, pipeline, contracts)
+	@uv run python3 -m pytest tests/blueprint/ -q
+
+# Augment the platform-owned aggregate unit lane without overriding its recipe.
+test-unit-all: blueprint-test-unit
 
 quality-hooks-fast: ## Run fast local quality checks (set QUALITY_HOOKS_KEEP_GOING=true to aggregate all failures; QUALITY_HOOKS_FORCE_FULL=true to bypass path/phase gating)
 	@scripts/bin/quality/hooks_fast.sh

@@ -27,11 +27,11 @@
 - Node IDs referenced: FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, NFR-REL-001, NFR-REL-002, NFR-OPS-001, NFR-A11Y-001, AC-001, AC-002, AC-003, AC-004, AC-005, AC-006
 
 ## Validation Summary
-- Required bundles executed: (to be filled at publish)
-- Result summary: (to be filled at publish)
+- Required bundles executed: `make blueprint-test-unit`, `make infra-validate`, `make quality-hooks-fast`, `make quality-hardening-review`, `make docs-build`, `make docs-smoke`
+- Result summary: 953 passed, 0 failures (blueprint test suite); infra-validate PASS; quality-hooks-fast PASS; quality-hardening-review PASS; docs-build PASS; docs-smoke PASS
 - Documentation validation:
-  - `make docs-build`
-  - `make docs-smoke`
+  - `make docs-build` — PASS
+  - `make docs-smoke` — PASS
 
 ## Evidence Manifest
 - Manifest file: `evidence_manifest.json`

@@ -75,6 +75,13 @@ repos:
         pass_filenames: false
         stages: [pre-push]
         files: (^|/)package\.json$
+      - id: blueprint-test-unit
+        name: blueprint unit test suite (pre-push)
+        language: system
+        entry: make blueprint-test-unit
+        pass_filenames: false
+        stages: [pre-push]
+        always_run: true
       - id: quality-consumer-pre-push
         name: consumer pre-push quality gate
         language: system

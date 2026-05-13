@@ -37,6 +37,17 @@
 - [x] T-204 Run `make docs-build` and `make docs-smoke` — PASS
 - [x] T-205 Run `make quality-hardening-review` — complete hardening review
 
+## Additional Scope — Pre-existing Test Fixes + CI Wiring (Expanded During Implementation)
+
+- [x] T-011 Fix `contract_schema.py` inline-comment YAML parsing bug — `_strip_inline_comment()` with escape-aware quote loop; root cause of 20 failures in `test_upgrade_consumer.py` (`last_applied_version: ""  # engine-managed` was parsed with the comment included, causing `_resolve_baseline_ref` to return `None`)
+- [x] T-012 Fix 20 pre-existing failures in `tests/blueprint/test_upgrade_consumer.py` — resolved by T-011; all 88 tests pass (953/953 full suite)
+- [x] T-013 Align `test_apply_conflict_creates_artifact_and_fails` with AC-004 — renamed to `test_apply_conflict_creates_artifact_and_writes_conflicts_status`; updated assertions: `returncode=0`, `status="conflicts"` (intentional design per issues #264/#266)
+- [x] T-014 Fix 9 pre-existing failures across broader blueprint test suite — pipeline stage consolidation tests (Stages 8+9), file-path moves (`tests/infra/` → `tests/blueprint/`), Python invocation style (`@uv run python3` vs `@python3`), catalog renderer API change (`--app-descriptor-path`), ArgoCD script invocation style (`run_cmd uv run python3`)
+- [x] T-015 Add `blueprint-test-unit` make target to template + generated makefile — wired into `test-unit-all` via prerequisite; propagates to `quality-ci-fast` → `quality-ci-blueprint` PR CI gate with no CI YAML changes
+- [x] T-016 Add `blueprint-test-unit` pre-push hook to both `.pre-commit-config.yaml` files (live + bootstrap template) — catches failures locally before push
+- [x] T-017 Confirm `make blueprint-test-unit` runs clean — 953 passed, 0 failures
+- [x] T-018 Confirm `infra-validate` drift check passes after template sync — `.pre-commit-config.yaml` bootstrap template kept in sync
+
 ## Publish
 - [x] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
 - [x] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
