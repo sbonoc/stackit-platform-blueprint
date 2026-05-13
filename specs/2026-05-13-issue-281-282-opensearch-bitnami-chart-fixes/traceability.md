@@ -4,11 +4,11 @@
 
 | Requirement ID | Control IDs | WCAG SC | Design Element | Implementation Path(s) | Test Evidence | Documentation Evidence | Operational Evidence |
 |---|---|---|---|---|---|---|---|
-| FR-001 | SDD-C-005, SDD-C-009 | | Local Helm values template — `allowInsecureImages` key | `scripts/templates/infra/bootstrap/infra/local/helm/opensearch/values.yaml` | AC-001 (static YAML; `make infra-validate`) | `docs/platform/modules/opensearch/README.md` §prerequisites | `helm install` pre-install hook passes |
-| FR-002 | SDD-C-005, SDD-C-007 | | Local Helm values template — `sysctlImage.enabled` key | `scripts/templates/infra/bootstrap/infra/local/helm/opensearch/values.yaml` | AC-002 (static YAML; `make infra-validate`) | `docs/platform/modules/opensearch/README.md` §prerequisites | OpenSearch pods reach Running without init-container pull |
-| FR-003 | SDD-C-005 | | Seed values file mirrors template | `infra/local/helm/opensearch/values.yaml` | `test_opensearch_seed_values_allow_insecure_images`, `test_opensearch_seed_values_sysctl_image_disabled` | — | `helm upgrade --install` uses seed file at apply time |
-| FR-004 | SDD-C-005 | | Artifact rendered file mirrors template | `artifacts/infra/rendered/opensearch.values.yaml` | Manual YAML parity check | — | Rendered artifact used in CI dry-run validation |
-| FR-005 | SDD-C-008, SDD-C-024 | | Test assertions for both new keys | `tests/infra/modules/opensearch/test_opensearch_module.py` — `OpenSearchLocalHelmChartTests` | `test_opensearch_seed_values_allow_insecure_images`, `test_opensearch_seed_values_sysctl_image_disabled` | — | `uv run python3 -m pytest tests/infra/modules/opensearch/ -v` |
+| FR-001 | SDD-C-005, SDD-C-009 | | Local Helm values template — `allowInsecureImages` key | `scripts/templates/infra/bootstrap/infra/local/helm/opensearch/values.yaml` | AC-001 (static YAML; `make infra-validate`) | `docs/platform/modules/opensearch/README.md` §Bitnami chart 1.6.x compatibility | `helm install` pre-install hook passes |
+| FR-002 | SDD-C-005, SDD-C-007 | | Local Helm values template — `sysctlImage.enabled` key | `scripts/templates/infra/bootstrap/infra/local/helm/opensearch/values.yaml` | AC-002 (static YAML; `make infra-validate`) | `docs/platform/modules/opensearch/README.md` §Bitnami chart 1.6.x compatibility | OpenSearch pods reach Running without init-container pull |
+| FR-003 | SDD-C-005 | | Seed values file mirrors template | `infra/local/helm/opensearch/values.yaml` | `test_opensearch_seed_values_allow_insecure_images`, `test_opensearch_seed_values_sysctl_image_disabled` | `docs/platform/modules/opensearch/README.md` §Bitnami chart 1.6.x compatibility | `helm upgrade --install` uses seed file at apply time |
+| FR-004 | SDD-C-005 | | Artifact rendered file mirrors template | `artifacts/infra/rendered/opensearch.values.yaml` | Manual YAML parity check | `docs/platform/modules/opensearch/README.md` §Bitnami chart 1.6.x compatibility (pass-through rendering explained) | Rendered artifact used in CI dry-run validation |
+| FR-005 | SDD-C-008, SDD-C-024 | | Test assertions for both new keys | `tests/infra/modules/opensearch/test_opensearch_module.py` — `OpenSearchLocalHelmChartTests` | `test_opensearch_seed_values_allow_insecure_images`, `test_opensearch_seed_values_sysctl_image_disabled` | `tests/infra/modules/opensearch/test_opensearch_module.py` (self-documenting test names and assertion messages) | `uv run python3 -m pytest tests/infra/modules/opensearch/ -v` |
 | NFR-SEC-001 | SDD-C-009, SDD-C-013 | | `allowInsecureImages` scoped to local-lane only | `scripts/templates/infra/bootstrap/infra/local/helm/opensearch/values.yaml`, `infra/local/helm/opensearch/values.yaml`, `artifacts/infra/rendered/opensearch.values.yaml` | No equivalent key in STACKIT Terraform module | ADR §Security | STACKIT lane apply is unaffected |
 | NFR-OBS-001 | SDD-C-010 | | N/A | N/A | N/A | N/A | N/A |
 | NFR-REL-001 | SDD-C-007 | | Backward-compatible additive change | All three YAML files — keys appended; no existing keys removed | Existing tests remain green | — | `helm upgrade` picks up new keys on re-apply |
@@ -29,11 +29,11 @@
 - Node IDs referenced: FR-001, FR-002, FR-003, FR-004, FR-005, NFR-SEC-001, NFR-OBS-001, NFR-REL-001, NFR-OPS-001, NFR-A11Y-001, AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008
 
 ## Validation Summary
-- Required bundles executed: pending — to be filled at Verify phase.
-- Result summary: pending.
+- Required bundles executed: `make quality-hooks-fast` (9/9 PASS), `make infra-validate` (PASS), `make infra-contract-test-fast` (PASS), `uv run python3 -m pytest tests/infra/modules/opensearch/test_opensearch_module.py -v` (47/47 PASS), `make docs-build` (PASS), `make docs-smoke` (PASS), `make quality-hardening-review` (PASS).
+- Result summary: all required checks green; zero quality violations at `make quality-spec-pr-ready`; PR #287 marked ready for review.
 - Documentation validation:
-  - `make docs-build`
-  - `make docs-smoke`
+  - `make docs-build` — PASS
+  - `make docs-smoke` — PASS
 
 ## Evidence Manifest
 - Manifest file: `evidence_manifest.json`
