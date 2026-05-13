@@ -77,9 +77,8 @@ flowchart TD
   S4 --> S5[Stage 5: Coverage gap + fetch]
   S5 --> S6[Stage 6: Mirror sync]
   S6 --> S7[Stage 7: Doc target check]
-  S7 --> S8[Stage 8: Docs regen]
-  S8 --> S9[Stage 9: Gate chain]
-  S9 --> S10[Stage 10: Residual report — ALWAYS]
+  S7 --> S89[Stages 8+9: blueprint-upgrade-consumer-finalize]
+  S89 --> S10[Stage 10: Residual report — ALWAYS]
 ```
 
 *Stage 1b added by Issue #164 (ADR-20260426-upgrade-version-pin-report): non-blocking diff of `scripts/lib/infra/versions.sh` between baseline and target tags; emits `artifacts/blueprint/version_pin_diff.json` consumed by Stage 10.*
@@ -88,7 +87,7 @@ flowchart TD
 - Dependency 1: `blueprint/contract.yaml` — provides `name`, `repo_mode`, `required_files`, `source_artifact_prune_globs_on_init`, `template_sync_allowlist`, `template_sync_prune_targets` read at runtime by Stages 1, 3, 5, 6, 7.
 - Dependency 2: upgrade engine conflict JSON (`artifacts/blueprint/upgrade_apply.json`) — consumed by Stage 3 contract resolver.
 - Dependency 3: local `BLUEPRINT_UPGRADE_SOURCE` git clone — consumed by Stage 5 for `git show` file retrieval; validated in Stage 1.
-- Dependency 4: existing `blueprint-upgrade-consumer-apply`, `infra-validate`, `quality-hooks-run`, `quality-docs-sync-generated-reference` make targets — all invoked by pipeline wrapper.
+- Dependency 4: existing `blueprint-upgrade-consumer-apply`, `blueprint-upgrade-consumer-finalize` make targets — all invoked by pipeline wrapper. The finalize target owns the sync pass and verify pass (Stages 8+9); see ADR-issue-267-269-pipeline-finalize-auto-clone.
 - Dependency 5: Phase 1–3 correctness foundation (#160, #162, #163, #166, #169, #179–187) — must be merged before this Phase 4 work item to ensure the underlying gates are reliable.
 
 ## Risks and Mitigations
