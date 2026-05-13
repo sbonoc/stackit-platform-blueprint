@@ -27,11 +27,11 @@
 - Node IDs referenced: FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, NFR-REL-001, NFR-REL-002, NFR-OPS-001, NFR-A11Y-001, AC-001, AC-002, AC-003, AC-004, AC-005, AC-006
 
 ## Validation Summary
-- Required bundles executed: (to be filled at publish)
-- Result summary: (to be filled at publish)
+- Required bundles executed: `uv run python3 -m pytest tests/blueprint/ -v` (GREEN), `uv run python3 -m pytest tests/infra/test_tooling_contracts.py -v` (13 tests PASS), `make infra-contract-test-fast` (68 tests PASS), `make infra-validate` (PASS), `make quality-hooks-fast` (PASS — all checks), `make quality-hardening-review` (PASS)
+- Result summary: All validation gates PASS. `required_files` reduced from 16 to 12 entries. Test pyramid within bounds (unit 96.70%, integration 2.48%, e2e 0.83%).
 - Documentation validation:
-  - `make docs-build`
-  - `make docs-smoke`
+  - `make docs-build` — PASS
+  - `make docs-smoke` — PASS
 
 ## Evidence Manifest
 - Manifest file: `evidence_manifest.json`
