@@ -18,53 +18,48 @@
     "conflicts": {
       "type": "array",
       "items": {
-        "$ref": "#/definitions/conflict_entry"
-      }
-    }
-  },
-  "definitions": {
-    "conflict_entry": {
-      "type": "object",
-      "required": [
-        "path",
-        "ownership_class",
-        "ownership_evidence",
-        "recommended_action",
-        "reason",
-        "source_diff_summary",
-        "target_diff_from_baseline"
-      ],
-      "additionalProperties": false,
-      "properties": {
-        "path": {
-          "type": "string"
-        },
-        "ownership_class": {
-          "type": "string",
-          "enum": [
-            "blueprint-managed-root",
-            "required-file",
-            "init-managed",
-            "conditional-scaffold",
-            "consumer-seeded",
-            "blueprint-managed"
-          ]
-        },
-        "ownership_evidence": {
-          "type": "string"
-        },
-        "recommended_action": {
-          "type": "string",
-          "enum": ["take_source", "take_target", "human_required"]
-        },
-        "reason": {
-          "type": "string"
-        },
-        "source_diff_summary": {
-          "type": "string"
-        },
-        "target_diff_from_baseline": {
-          "type": "string"
+        "type": "object",
+        "required": [
+          "path",
+          "ownership_class",
+          "ownership_evidence",
+          "recommended_action",
+          "reason",
+          "source_diff_summary",
+          "target_diff_from_baseline"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "ownership_class": {
+            "type": "string",
+            "enum": [
+              "blueprint-managed-root",
+              "required-file",
+              "init-managed",
+              "conditional-scaffold",
+              "consumer-seeded",
+              "blueprint-managed"
+            ]
+          },
+          "ownership_evidence": {
+            "type": "string"
+          },
+          "recommended_action": {
+            "type": "string",
+            "enum": ["take_source", "take_target", "human_required"]
+          },
+          "reason": {
+            "type": "string"
+          },
+          "source_diff_summary": {
+            "type": "string"
+          },
+          "target_diff_from_baseline": {
+            "type": "string"
+          }
         }
       }
     }

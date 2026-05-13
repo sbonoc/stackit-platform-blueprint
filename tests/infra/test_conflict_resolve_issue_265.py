@@ -262,6 +262,35 @@ class ResolveFlagsTests(unittest.TestCase):
                 "--accept-source ALL MUST apply source content even for human_required rows",
             )
 
+    def test_interactive_keep_appears_in_residual(self) -> None:
+        """When interactive prompt returns 'keep', the entry MUST appear in the residual/human_required summary (FR-010)."""
+        import builtins
+        from scripts.lib.blueprint.upgrade_consumer_resolve import _resolve
+
+        rel_path = "scripts/lib/platform/some_lib.py"
+        with tempfile.TemporaryDirectory() as tmp:
+            repo_root = Path(tmp)
+            _write_conflict_artifact(repo_root, rel_path, "# source\n", "# target\n")
+            _write_triage(repo_root, [_triage_entry(rel_path, "blueprint-managed", "human_required")])
+
+            original_input = builtins.input
+            try:
+                builtins.input = lambda: "k"
+                exit_code = _resolve(repo_root, interactive=True)
+            finally:
+                builtins.input = original_input
+
+            self.assertEqual(exit_code, 0)
+            resolve_path = repo_root / "artifacts/blueprint/upgrade_resolve.json"
+            self.assertTrue(resolve_path.exists(), "upgrade_resolve.json must be written")
+            data = json.loads(resolve_path.read_text())
+            self.assertEqual(
+                data["summary"]["human_required"],
+                1,
+                "interactive 'keep' row MUST appear in human_required count — not silently dropped",
+            )
+            self.assertEqual(data["actions"][0]["action_taken"], "skipped")
+
     def test_resolve_prints_action_per_row(self) -> None:
         """Resolve MUST print 'upgrade-resolve: <action> <path>' per applied row (NFR-OBS-001)."""
         from scripts.lib.blueprint.upgrade_consumer_resolve import _resolve

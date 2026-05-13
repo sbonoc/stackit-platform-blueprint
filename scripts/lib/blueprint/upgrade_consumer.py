@@ -1711,8 +1711,8 @@ def _recommended_action(ownership_class: str) -> str:
 
 def _diff_line_summary(a: str, b: str) -> str:
     lines = list(difflib.unified_diff(a.splitlines(keepends=True), b.splitlines(keepends=True), n=0))
-    added = sum(1 for ln in lines if ln.startswith("+") and not ln.startswith("+++"))
-    removed = sum(1 for ln in lines if ln.startswith("-") and not ln.startswith("---"))
+    added = sum(1 for ln in lines if ln.startswith("+") and not ln.startswith("+++ "))
+    removed = sum(1 for ln in lines if ln.startswith("-") and not ln.startswith("--- "))
     if added == 0 and removed == 0:
         return "no change"
     return f"+{added} -{removed} lines"

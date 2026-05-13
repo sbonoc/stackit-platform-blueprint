@@ -48,7 +48,11 @@ def _load_triage(repo_root: Path) -> dict[str, Any] | None:
             print(f"upgrade-resolve: ERROR: triage file failed schema validation: {exc}", file=sys.stderr)
             return None
         except ImportError:
-            pass
+            print(
+                "upgrade-resolve: WARNING: schema validator not available (tests._shared.json_schema "
+                "not importable); NFR-SCH-001 schema validation skipped",
+                file=sys.stderr,
+            )
 
     return data
 
@@ -59,7 +63,11 @@ def _read_conflict_artifact(repo_root: Path, rel_path: str) -> dict[str, Any] | 
         return None
     try:
         return json.loads(artifact_path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError:
+    except json.JSONDecodeError as exc:
+        print(
+            f"upgrade-resolve: WARNING: conflict artifact at {artifact_path} is not valid JSON: {exc}",
+            file=sys.stderr,
+        )
         return None
 
 
@@ -70,14 +78,20 @@ def _apply_take(
     *,
     dry_run: bool,
 ) -> str:
+    rel = Path(rel_path)
+    if rel.is_absolute() or ".." in rel.parts:
+        print(f"upgrade-resolve: ERROR: rejected unsafe path: {rel_path}", file=sys.stderr)
+        return "error"
     target_path = repo_root / rel_path
+    artifact_path = repo_root / _CONFLICTS_DIR / f"{rel_path}.conflict.json"
     if target_path.exists() and target_path.read_text(encoding="utf-8") == content:
+        if not dry_run and artifact_path.exists():
+            artifact_path.unlink()
         return "already-resolved"
     if dry_run:
         return "dry-run"
     target_path.parent.mkdir(parents=True, exist_ok=True)
     target_path.write_text(content, encoding="utf-8")
-    artifact_path = repo_root / _CONFLICTS_DIR / f"{rel_path}.conflict.json"
     if artifact_path.exists():
         artifact_path.unlink()
     return "applied"
@@ -112,6 +126,15 @@ def _resolve(
                 effective_action = "take_target"
             elif interactive:
                 effective_action = _prompt_interactive(rel_path, entry)
+                if effective_action == "human_required":
+                    residual.append(entry)
+                    actions.append({
+                        "path": rel_path,
+                        "action_taken": "skipped",
+                        "result": "human_required",
+                        "ownership_class": ownership_class,
+                    })
+                    continue
             else:
                 residual.append(entry)
                 actions.append({
@@ -138,18 +161,6 @@ def _resolve(
                 content = artifact.get("target_content") or ""
                 result = _apply_take(repo_root, rel_path, content, dry_run=dry_run)
             print(f"upgrade-resolve: take_target {rel_path}")
-        elif effective_action == "delete":
-            if dry_run:
-                result = "dry-run"
-            else:
-                target_path = repo_root / rel_path
-                if target_path.exists():
-                    target_path.unlink()
-                artifact_path = repo_root / _CONFLICTS_DIR / f"{rel_path}.conflict.json"
-                if artifact_path.exists():
-                    artifact_path.unlink()
-                result = "applied"
-            print(f"upgrade-resolve: delete {rel_path}")
         else:
             result = "skipped"
 
@@ -246,7 +257,7 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    repo_root = resolve_repo_root()
+    repo_root = resolve_repo_root(None, __file__)
     return _resolve(
         repo_root,
         dry_run=args.dry_run,
