@@ -59,7 +59,7 @@ Use `UpgradeEntry.source_exists` to infer blueprint ownership for catch-all file
 **Rejected**: `source_exists=True` is a necessary but not sufficient condition for blueprint ownership. A consumer can create files in blueprint-tracked directories (e.g. `tests/infra/test_my_custom.py`) and they will appear in the blueprint source only if they were seeded from the template. Option B risks auto-overwriting consumer modifications. Option A's conservative approach is correct for a first release.
 
 ### Full TUI (lazygit-style conflict resolver)
-**Rejected**: heavy external dependency; not portable across all consumer environments; the residual table is typically <10 rows once blueprint-managed-root conflicts are auto-resolved.
+**Rejected**: heavy external dependency; not portable across all consumer environments; the residual table is typically under 10 rows once blueprint-managed-root conflicts are auto-resolved.
 
 ### HTML conflict report
 **Rejected**: adds browser context-switch friction; residual table is compact enough for CLI display.
@@ -69,7 +69,7 @@ Use `UpgradeEntry.source_exists` to infer blueprint ownership for catch-all file
 
 ## Consequences
 
-- **Positive**: 85 of 88 conflicts from the real upgrade evidence will auto-resolve in a single `blueprint-upgrade-consumer-resolve` invocation. The 3 catch-all `human_required` rows require human review — as expected. Wall-clock cost drops from ~25 minutes to <2 minutes.
+- **Positive**: 85 of 88 conflicts from the real upgrade evidence will auto-resolve in a single `blueprint-upgrade-consumer-resolve` invocation. The 3 catch-all `human_required` rows require human review — as expected. Wall-clock cost drops from ~25 minutes to under 2 minutes.
 - **Positive**: `upgrade_triage.json` and `upgrade_resolve.json` give agents a structured machine-readable audit trail; no more ad-hoc Python enumeration scripts.
 - **Positive**: `--dry-run` enables safe inspection before any write.
 - **Limitation**: until Issue #270 ships, files in the `blueprint-managed` catch-all that are conceptually blueprint-owned (but not in `blueprint_managed_roots`) will appear as `human_required`. In practice this affects only files the blueprint added to directories outside `blueprint_managed_roots` without also listing them in `required_files` or `init_managed` — a small set.

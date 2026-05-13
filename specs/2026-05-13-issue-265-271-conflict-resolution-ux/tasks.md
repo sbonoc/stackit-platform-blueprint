@@ -55,22 +55,22 @@
 - [ ] T-105 Schema validation: `jsonschema` validation of `upgrade_triage.json` against `upgrade_triage.schema.json` in test suite and at resolve-script startup
 
 ## Accessibility Testing (Normative — mark N/A with rationale for non-UI specs)
-- [ ] T-A01 NFR-A11Y-001 declared in spec.md as "N/A — CLI tool with no browser-rendered UI surface"
-- [ ] T-A02 N/A — no browser UI
-- [ ] T-A03 N/A — no browser UI
-- [ ] T-A04 N/A — no browser UI
-- [ ] T-A05 N/A — no browser UI
+- [x] T-A01 NFR-A11Y-001 declared in spec.md as "N/A — CLI tool with no browser-rendered UI surface"
+- [x] T-A02 N/A — no browser UI
+- [x] T-A03 N/A — no browser UI
+- [x] T-A04 N/A — no browser UI
+- [x] T-A05 N/A — no browser UI
 
 ## Validation and Release Readiness
-- [ ] T-201 Run `make quality-hooks-fast` — shellcheck, infra-validate, infra-contract-test-fast, quality-sdd-check-all all pass
-- [ ] T-202 Run `uv run python3 -m pytest tests/infra/test_conflict_triage_issue_265.py tests/infra/test_conflict_resolve_issue_265.py -v` — 14/14 GREEN
-- [ ] T-203 Confirm no stale TODOs, dead code, or unreferenced schema fields
-- [ ] T-204 Run `make docs-build` and `make docs-smoke`
-- [ ] T-205 Run `make quality-hardening-review`
+- [x] T-201 Run `make quality-hooks-fast` — shellcheck, infra-validate, infra-contract-test-fast, quality-sdd-check-all all pass
+- [x] T-202 Run `uv run python3 -m pytest tests/infra/test_conflict_triage_issue_265.py tests/infra/test_conflict_resolve_issue_265.py -v` — 14/14 GREEN
+- [x] T-203 Confirm no stale TODOs, dead code, or unreferenced schema fields
+- [x] T-204 Run `make docs-build` and `make docs-smoke`
+- [x] T-205 Run `make quality-hardening-review`
 
 ## Publish
-- [ ] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
-- [ ] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
+- [x] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
+- [x] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
 - [ ] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
 
 ## App Onboarding Minimum Targets (Normative)
