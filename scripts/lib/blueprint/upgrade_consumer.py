@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 from dataclasses import dataclass
+import difflib
 import fnmatch
 import hashlib
 import json
@@ -1693,6 +1694,88 @@ def _three_way_merge(base: str, ours: str, theirs: str) -> tuple[str, bool]:
         return merge.stdout, merge.returncode > 0
 
 
+_RECOMMENDED_ACTION_MAP: dict[str, str] = {
+    "blueprint-managed-root": "take_source",
+    "required-file": "take_source",
+    "init-managed": "take_source",
+    "conditional-scaffold": "take_source",
+    "consumer-seeded": "take_target",
+}
+_CONTRACT_YAML_EXCLUDED_FROM_TRIAGE = "blueprint/contract.yaml"
+_TRIAGE_SCHEMA_PATH = Path(__file__).parent / "schemas" / "upgrade_triage.schema.json"
+
+
+def _recommended_action(ownership_class: str) -> str:
+    return _RECOMMENDED_ACTION_MAP.get(ownership_class, "human_required")
+
+
+def _diff_line_summary(a: str, b: str) -> str:
+    lines = list(difflib.unified_diff(a.splitlines(keepends=True), b.splitlines(keepends=True), n=0))
+    added = sum(1 for ln in lines if ln.startswith("+") and not ln.startswith("+++ "))
+    removed = sum(1 for ln in lines if ln.startswith("-") and not ln.startswith("--- "))
+    if added == 0 and removed == 0:
+        return "no change"
+    return f"+{added} -{removed} lines"
+
+
+def _write_upgrade_triage(
+    repo_root: Path,
+    conflict_results: list[ApplyResult],
+    entries: list[UpgradeEntry],
+    source_ref: str,
+    baseline_ref: str | None,
+) -> None:
+    entry_by_path = {e.path: e for e in entries}
+    conflicts_dir = repo_root / "artifacts/blueprint/conflicts"
+    triage_entries: list[dict[str, Any]] = []
+
+    for result in conflict_results:
+        if result.result != "conflict":
+            continue
+        rel_path = result.path
+        if rel_path == _CONTRACT_YAML_EXCLUDED_FROM_TRIAGE:
+            continue
+
+        entry = entry_by_path.get(rel_path)
+        ownership_class = entry.ownership if entry else "blueprint-managed"
+        reason = entry.reason if entry else result.reason
+
+        artifact_path = conflicts_dir / f"{rel_path}.conflict.json"
+        source_diff_summary = "unavailable"
+        target_diff_from_baseline = "unavailable"
+        if artifact_path.is_file():
+            try:
+                artifact = json.loads(artifact_path.read_text(encoding="utf-8"))
+                src = artifact.get("source_content") or ""
+                tgt = artifact.get("target_content") or ""
+                base = artifact.get("baseline_content") or ""
+                source_diff_summary = _diff_line_summary(base, src)
+                target_diff_from_baseline = _diff_line_summary(base, tgt)
+            except Exception:  # noqa: BLE001
+                pass
+
+        triage_entries.append({
+            "path": rel_path,
+            "ownership_class": ownership_class,
+            "ownership_evidence": reason,
+            "recommended_action": _recommended_action(ownership_class),
+            "reason": reason,
+            "source_diff_summary": source_diff_summary,
+            "target_diff_from_baseline": target_diff_from_baseline,
+        })
+
+    triage_path = repo_root / "artifacts/blueprint/upgrade_triage.json"
+    triage_path.parent.mkdir(parents=True, exist_ok=True)
+    payload: dict[str, Any] = {
+        "schema_version": 1,
+        "source_ref": source_ref,
+        "baseline_ref": baseline_ref,
+        "conflicts": triage_entries,
+    }
+    triage_path.write_text(f"{json.dumps(payload, indent=2, sort_keys=True)}\n", encoding="utf-8")
+    print(f"upgrade-triage: {display_repo_path(repo_root, triage_path)}")
+
+
 def _write_conflict_artifact(
     repo_root: Path,
     relative_path: str,
@@ -2426,6 +2509,13 @@ def main() -> int:
             )
 
         if args.apply and conflict_count > 0:
+            _write_upgrade_triage(
+                repo_root=repo_root,
+                conflict_results=results,
+                entries=entries,
+                source_ref=args.ref,
+                baseline_ref=baseline_ref,
+            )
             print(
                 f"upgrade apply produced {conflict_count} conflict(s); "
                 "inspect artifacts/blueprint/conflicts — resolve and re-run validation",

@@ -1,0 +1,67 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Blueprint Upgrade Triage Report",
+  "type": "object",
+  "required": ["schema_version", "source_ref", "baseline_ref", "conflicts"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "enum": [1]
+    },
+    "source_ref": {
+      "type": "string"
+    },
+    "baseline_ref": {
+      "type": ["string", "null"]
+    },
+    "conflicts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "path",
+          "ownership_class",
+          "ownership_evidence",
+          "recommended_action",
+          "reason",
+          "source_diff_summary",
+          "target_diff_from_baseline"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "ownership_class": {
+            "type": "string",
+            "enum": [
+              "blueprint-managed-root",
+              "required-file",
+              "init-managed",
+              "conditional-scaffold",
+              "consumer-seeded",
+              "blueprint-managed"
+            ]
+          },
+          "ownership_evidence": {
+            "type": "string"
+          },
+          "recommended_action": {
+            "type": "string",
+            "enum": ["take_source", "take_target", "human_required"]
+          },
+          "reason": {
+            "type": "string"
+          },
+          "source_diff_summary": {
+            "type": "string"
+          },
+          "target_diff_from_baseline": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

@@ -22,6 +22,12 @@ Environment variables:
 Artifacts produced:
   artifacts/blueprint/upgrade-residual.md          — always emitted, even on partial failure.
   artifacts/blueprint/contract_resolve_decisions.json — Stage 3 contract resolution decisions.
+  artifacts/blueprint/upgrade_triage.json          — emitted by Stage 2 when conflict_count > 0;
+                                                     contains recommended_action per conflict.
+
+Post-pipeline step (when conflicts exist):
+  make blueprint-upgrade-consumer-resolve          — auto-applies take_source/take_target rows and
+                                                     prints a residual table of human_required rows.
 USAGE
 }
 

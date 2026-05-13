@@ -1,0 +1,58 @@
+{
+  "manifest_version": 1,
+  "work_item": "specs/2026-05-13-issue-265-271-conflict-resolution-ux",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-05-13T09:17:52Z",
+  "files": [
+    {
+      "path": "specs/2026-05-13-issue-265-271-conflict-resolution-ux/architecture.md",
+      "sha256": "c9440b7ab1fb30a7d974e944e7267af32ea878da31b8217fd26e8f89943c4ef3",
+      "bytes": 6991
+    },
+    {
+      "path": "specs/2026-05-13-issue-265-271-conflict-resolution-ux/context_pack.md",
+      "sha256": "9cba2ef03190cc60e816e36f5fbe770cbe2eced503c9fa5201f8e4cc1f55512f",
+      "bytes": 852
+    },
+    {
+      "path": "specs/2026-05-13-issue-265-271-conflict-resolution-ux/evidence_manifest.json",
+      "sha256": "62309caf01f0cb1dfad5b8ae988bc2a2d38d96734511748a56e90841c616ae0f",
+      "bytes": 2228
+    },
+    {
+      "path": "specs/2026-05-13-issue-265-271-conflict-resolution-ux/graph.json",
+      "sha256": "6c54561bcd4a393d5b4928e389fc5897650b7184acf734b6ae2c72379795c32c",
+      "bytes": 5167
+    },
+    {
+      "path": "specs/2026-05-13-issue-265-271-conflict-resolution-ux/hardening_review.md",
+      "sha256": "1d2f290abe094a8189a02a734f8aa77abd518e80a0f843da1bcbaa5f531d5aac",
+      "bytes": 3081
+    },
+    {
+      "path": "specs/2026-05-13-issue-265-271-conflict-resolution-ux/plan.md",
+      "sha256": "937940ad4382ce04e425895d46347568d17f0ba5fb6280bce2d146644ce85a24",
+      "bytes": 8618
+    },
+    {
+      "path": "specs/2026-05-13-issue-265-271-conflict-resolution-ux/pr_context.md",
+      "sha256": "094405cc835cf3b4ca9ccebe31c8baa8a15e776947014dc02b31553fe85333da",
+      "bytes": 4844
+    },
+    {
+      "path": "specs/2026-05-13-issue-265-271-conflict-resolution-ux/spec.md",
+      "sha256": "0c92e2fbec2046e504d6a425094b2ecb6aa1427d302dcf083ec86d9b19dee0c7",
+      "bytes": 12312
+    },
+    {
+      "path": "specs/2026-05-13-issue-265-271-conflict-resolution-ux/tasks.md",
+      "sha256": "808d924d9d0c4da33068995bd104b7edef5f6ade50f7a4cc510de18cdbd37af0",
+      "bytes": 5468
+    },
+    {
+      "path": "specs/2026-05-13-issue-265-271-conflict-resolution-ux/traceability.md",
+      "sha256": "86d4f42acde0a2954333daf2143933dc724a18b4c102b5b2e7279cf3ee8e117d",
+      "bytes": 7295
+    }
+  ]
+}
