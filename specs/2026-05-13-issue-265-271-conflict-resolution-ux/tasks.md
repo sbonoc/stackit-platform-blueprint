@@ -63,7 +63,7 @@
 
 ## Validation and Release Readiness
 - [ ] T-201 Run `make quality-hooks-fast` — shellcheck, infra-validate, infra-contract-test-fast, quality-sdd-check-all all pass
-- [ ] T-202 Run `uv run python3 -m pytest tests/infra/test_conflict_triage_issue_265.py tests/infra/test_conflict_resolve_issue_265.py -v` — 11/11 GREEN
+- [ ] T-202 Run `uv run python3 -m pytest tests/infra/test_conflict_triage_issue_265.py tests/infra/test_conflict_resolve_issue_265.py -v` — 14/14 GREEN
 - [ ] T-203 Confirm no stale TODOs, dead code, or unreferenced schema fields
 - [ ] T-204 Run `make docs-build` and `make docs-smoke`
 - [ ] T-205 Run `make quality-hardening-review`

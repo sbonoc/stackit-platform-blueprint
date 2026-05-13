@@ -20,15 +20,12 @@
 ## Delivery Slices
 
 ### Slice 1 (RED) — Failing tests: triage JSON schema and content
-Write `tests/infra/test_conflict_triage_issue_265.py` with tests that FAIL against current code:
-- `test_triage_json_written_when_conflicts_present`: assert `artifacts/blueprint/upgrade_triage.json` does not yet exist after a simulated conflict — confirms engine does not emit it (will fail once Slice 2 makes it).
-
-  Actually, these tests assert the ABSENCE of the feature in current code, then Slice 2 makes them pass. Follow pattern: write tests that call the production API and assert correct output; they fail because the API doesn't exist yet.
-
-- `test_blueprint_managed_root_maps_to_take_source`: import `_recommended_action` (to be implemented in Slice 2); assert `_recommended_action("blueprint-managed-root") == "take_source"`.
-- `test_blueprint_managed_catch_all_maps_to_human_required`: assert `_recommended_action("blueprint-managed") == "human_required"`.
-- `test_contract_yaml_excluded_from_triage`: simulate triage emission; assert `blueprint/contract.yaml` not in triage entries.
+Write `tests/infra/test_conflict_triage_issue_265.py` with 5 tests that FAIL against current code (import of `_recommended_action` and `_write_upgrade_triage` fails; triage JSON does not exist):
+- `test_recommended_action_blueprint_managed_root_is_take_source`: import `_recommended_action`; assert `_recommended_action("blueprint-managed-root") == "take_source"`.
+- `test_recommended_action_blueprint_managed_catch_all_is_human_required`: assert `_recommended_action("blueprint-managed") == "human_required"`.
+- `test_triage_excludes_contract_yaml`: simulate triage emission via `_write_upgrade_triage`; assert `blueprint/contract.yaml` is not present in triage entries.
 - `test_triage_entries_contain_no_file_contents`: assert triage entries lack `source_content`, `target_content`, `baseline_content` keys.
+- `test_triage_json_schema_valid`: assert emitted JSON validates against `upgrade_triage.schema.json`.
 
 ### Slice 2 (GREEN) — Engine triage emission
 Implement in `upgrade_consumer.py`:
@@ -66,7 +63,7 @@ All Slice 3 tests now pass.
 - Rollback plan: remove `_write_upgrade_triage` call and function from `upgrade_consumer.py`; delete `upgrade_consumer_resolve.py`, `upgrade_consumer_resolve.sh`, `upgrade_triage.schema.json`; remove `blueprint-upgrade-consumer-resolve` from `blueprint.generated.mk`. No state migration required.
 
 ## Validation Strategy (Shift-Left)
-- Unit checks: `tests/infra/test_conflict_triage_issue_265.py` (5 tests — triage content and schema) and `tests/infra/test_conflict_resolve_issue_265.py` (6 tests — resolve behaviour).
+- Unit checks: `tests/infra/test_conflict_triage_issue_265.py` (5 tests — triage content and schema) and `tests/infra/test_conflict_resolve_issue_265.py` (9 tests — resolve behaviour).
 - Contract checks: `jsonschema` validation of `upgrade_triage.json` against `upgrade_triage.schema.json` in test suite and at resolve-script startup.
 - Integration checks: `make quality-hooks-fast` (shellcheck on new `.sh`, infra-validate, infra-contract-test-fast, quality-sdd-check-all).
 - E2E checks: not required; pipeline e2e is covered by issue #169 CI job; resolve target operates on artifact files only.

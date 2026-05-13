@@ -193,6 +193,7 @@ Reported by consumer sbonoc/dhe-marketplace from their v1.7.0→v1.8.0 upgrade e
 #### Conflict resolution UX (P2, one PR)
 
 - [ ] P2 (Consumer upgrade flow): Issues #265 + #271 — **conflict resolution UX**: (1) #265: after Stage 2 conflicts, the engine writes one `*.conflict.json` per file with no ownership classification or recommended action; emit `artifacts/blueprint/upgrade_triage.json` with per-conflict `ownership_class` and `recommended_action` (`take_source` / `take_target` / `delete` / `human_required`), and add a new `blueprint-upgrade-consumer-resolve` target that auto-applies the unambiguous rows and prints a residual table for the `human_required` ones; (2) #271 (UX layer, hard-depends on #265): extends the resolve target with interactive one-at-a-time prompting (`INTERACTIVE=true`), batch flags (`--accept-source ALL`, `--accept-target ALL`), sorted+truncated display (>20 rows shows footer), and agent-flow guidance. Evidence: real upgrade hit 88 conflicts, 85 were auto-resolvable, 25 min of manual work. Ship #265 + #271 as one PR.
+  - **In progress**: `specs/2026-05-13-issue-265-271-conflict-resolution-ux/`, PR #283. SPEC_READY: true. 4 slices planned; implementation next.
 
 #### Pipeline feature additions (P2, one PR)
 
