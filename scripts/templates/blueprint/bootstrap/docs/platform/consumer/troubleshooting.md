@@ -376,6 +376,38 @@ If you cannot upgrade the blueprint immediately and need a consumer-side workaro
 - Ensure required local tools are available (`bash`, `git`, `make`, `python3`, `tar`).
 - Confirm CI job exports init variables, `BLUEPRINT_PROFILE`, and any intended optional-module flags before `make blueprint-template-smoke`.
 
+## CI runs on draft PRs
+
+Consumer repos bootstrapped from the blueprint template before v1.11.0 may have
+a `.github/workflows/ci.yml` that lacks the draft-PR types filter and job-level
+guard. This causes the full CI pipeline to run on draft pull requests, wasting
+CI minutes and producing misleading status checks.
+
+**Symptom**: CI triggers and runs jobs immediately when a PR is opened as a draft.
+
+**Fix**: Upgrade to blueprint v1.11.0 or later using the standard upgrade flow:
+
+```bash
+BLUEPRINT_UPGRADE_REF=<tag|commit> make blueprint-upgrade-consumer
+make blueprint-upgrade-consumer-validate
+make blueprint-upgrade-consumer-postcheck
+```
+
+After upgrade, `.github/workflows/ci.yml` will include:
+
+```yaml
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  quality-fast:
+    if: github.event_name == 'push' || github.event.pull_request.draft == false
+```
+
+This skips CI for draft PRs and resumes automatically when the PR is marked
+ready for review.
+
 ## CI warns about deprecated Node 20 GitHub actions
 - Upgrade your generated repository to the latest blueprint ref so CI picks up Node-24-ready action majors:
   - `.github/actions/prepare-blueprint-ci/action.yml` (`actions/setup-python@v6`, `actions/setup-node@v6`)

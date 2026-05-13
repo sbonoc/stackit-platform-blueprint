@@ -4,11 +4,11 @@
 
 | Requirement ID | Control IDs | WCAG SC | Design Element | Implementation Path(s) | Test Evidence | Documentation Evidence | Operational Evidence |
 |---|---|---|---|---|---|---|---|
-| FR-001 | SDD-C-005, SDD-C-007 | | Consumer CI template — `pull_request.types` filter | `scripts/templates/consumer/init/.github/workflows/ci.yml.tmpl` | `test_consumer_ci_template_has_draft_pr_types_filter` | ADR §Decision 4 | Consumer CI skips draft PR events |
-| FR-002 | SDD-C-005, SDD-C-007 | | Consumer CI template — `quality-fast` job draft guard | `scripts/templates/consumer/init/.github/workflows/ci.yml.tmpl` | `test_consumer_ci_template_quality_fast_has_draft_pr_guard` | ADR §Decision 4 | Consumer CI jobs not triggered on draft PRs |
-| FR-003 | SDD-C-005, SDD-C-008 | | `quality-validate-bootstrap-template-drift` Make target | `scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl`, `make/blueprint.generated.mk` | `test_make_template_has_quality_validate_bootstrap_drift_target` | — | `make quality-validate-bootstrap-template-drift` exits 0 on parity |
-| FR-004 | SDD-C-005, SDD-C-008 | | Commit-stage pre-commit hook | `.pre-commit-config.yaml`, `scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml` | `test_precommit_has_bootstrap_drift_hook`, `test_precommit_template_has_bootstrap_drift_hook` | — | Hook fires at commit time when tracked files change |
-| FR-005 | SDD-C-005, SDD-C-007 | | `validate_contract.py --bootstrap-drift-only` fast path | `scripts/bin/blueprint/validate_contract.py` | AC-003 + AC-004 (`make quality-validate-bootstrap-template-drift` manual verification) | ADR §Decision 1 | Exit 0 on parity; exit 1 on drift with `[infra-validate] error:` prefix |
+| FR-001 | SDD-C-005, SDD-C-007 | | Consumer CI template — `pull_request.types` filter | `scripts/templates/consumer/init/.github/workflows/ci.yml.tmpl` | `test_consumer_ci_template_has_draft_pr_types_filter` | ADR §Issue #288; `docs/platform/consumer/troubleshooting.md` §CI runs on draft PRs | Consumer CI skips draft PR events |
+| FR-002 | SDD-C-005, SDD-C-007 | | Consumer CI template — `quality-fast` job draft guard | `scripts/templates/consumer/init/.github/workflows/ci.yml.tmpl` | `test_consumer_ci_template_quality_fast_has_draft_pr_guard` | ADR §Issue #288; `docs/platform/consumer/troubleshooting.md` §CI runs on draft PRs | Consumer CI jobs not triggered on draft PRs |
+| FR-003 | SDD-C-005, SDD-C-008 | | `quality-validate-bootstrap-template-drift` Make target | `scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl`, `make/blueprint.generated.mk` | `test_make_template_has_quality_validate_bootstrap_drift_target` | ADR §Issue #286; `docs/blueprint/governance/quality_hooks.md` §Bootstrap Template Drift Hook | `make quality-validate-bootstrap-template-drift` exits 0 on parity |
+| FR-004 | SDD-C-005, SDD-C-008 | | Commit-stage pre-commit hook | `.pre-commit-config.yaml`, `scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml` | `test_precommit_has_bootstrap_drift_hook`, `test_precommit_template_has_bootstrap_drift_hook` | ADR §Issue #286; `docs/blueprint/governance/quality_hooks.md` §Bootstrap Template Drift Hook | Hook fires at commit time when tracked files change |
+| FR-005 | SDD-C-005, SDD-C-007 | | `validate_contract.py --bootstrap-drift-only` fast path | `scripts/bin/blueprint/validate_contract.py` | AC-003 + AC-004 (`make quality-validate-bootstrap-template-drift` manual verification) | ADR §Issue #286; `docs/blueprint/governance/quality_hooks.md` §Bootstrap Template Drift Hook | Exit 0 on parity; exit 1 on drift with `[infra-validate] error:` prefix |
 | NFR-SEC-001 | SDD-C-009 | | `language: system` + `make` entry in hook | `.pre-commit-config.yaml`, `scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml` | Hook stanza review | ADR §Non-Functional Architecture Notes | No remote exec; no credential exposure |
 | NFR-OBS-001 | SDD-C-010 | | N/A | N/A | N/A | N/A | N/A |
 | NFR-REL-001 | SDD-C-007 | | Additive changes only; no hook/target removals | All five changed files — new content appended; no existing keys removed | All pre-existing tests remain green | — | `pre-commit install` picks up new hook on next run |
@@ -30,11 +30,11 @@
 - Node IDs referenced: FR-001, FR-002, FR-003, FR-004, FR-005, NFR-SEC-001, NFR-OBS-001, NFR-REL-001, NFR-OPS-001, NFR-A11Y-001, AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009
 
 ## Validation Summary
-- Required bundles executed: (to be filled at publish)
-- Result summary: (to be filled at publish)
+- Required bundles executed: `make quality-hooks-fast` (QUALITY_HOOKS_KEEP_GOING=true), `make infra-validate`, `make docs-build`, `make docs-smoke`, 5 new pytest assertions in `tests/blueprint/test_quality_contracts.py`
+- Result summary: All 5 new tests GREEN; `quality-hooks-fast` passes all checks (only `quality-spec-pr-ready` deferred to Step 07 publish gate); `infra-validate` passes; `docs-build` and `docs-smoke` pass
 - Documentation validation:
-  - `make docs-build`
-  - `make docs-smoke`
+  - `make docs-build` — PASS
+  - `make docs-smoke` — PASS
 
 ## Evidence Manifest
 - Manifest file: `evidence_manifest.json`
