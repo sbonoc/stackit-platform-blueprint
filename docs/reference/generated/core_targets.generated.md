@@ -18,6 +18,7 @@ This file is auto-generated. Do not edit it manually.
 | `blueprint-upgrade-consumer-postcheck` | Run deterministic post-upgrade convergence gate (validate + reconcile + merge-marker checks) |
 | `blueprint-upgrade-consumer-resolve` | Apply upgrade conflict resolutions from upgrade_triage.json |
 | `blueprint-upgrade-fresh-env-gate` | Run fresh-environment smoke gate — CI-equivalent worktree check after upgrade postcheck |
+| `blueprint-upgrade-consumer-finalize` | Run post-upgrade quality convergence: sync pass (aggregated) then verify pass (fail-fast) |
 | `blueprint-upgrade-readiness-doctor` | Generate generated-consumer upgrade readiness diagnostics and manual-action hints |
 | `blueprint-uplift-status` | Report blueprint uplift convergence status for tracked issues in consumer backlog (optional BLUEPRINT_UPLIFT_STRICT=true; override script via BLUEPRINT_UPLIFT_STATUS_SCRIPT in platform.mk) |
 | `blueprint-seed-feature` | Seed consumer-seeded feature gate files into this consumer repo (FEATURE=&lt;gate-id&gt;) |
