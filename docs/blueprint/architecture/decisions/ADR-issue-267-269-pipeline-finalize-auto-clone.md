@@ -1,9 +1,10 @@
 # ADR — Pipeline Finalize Target and Auto-Clone Source URL
 
-**Status:** proposed
+**Status:** approved
 **Date:** 2026-05-13
 **Issues:** #267 (finalize target), #269 (auto-clone source URL)
 **Spec:** `specs/2026-05-13-issue-267-269-pipeline-finalize-auto-clone/`
+**ADR technical decision sign-off:** approved
 
 ---
 

@@ -3,9 +3,9 @@
 ## Context Snapshot
 - Work item: 2026-05-13-issue-267-269-pipeline-finalize-auto-clone
 - Track: blueprint
-- SPEC_READY: false
+- SPEC_READY: true
 - ADR path: docs/blueprint/architecture/decisions/ADR-issue-267-269-pipeline-finalize-auto-clone.md
-- ADR status: proposed
+- ADR status: approved
 
 ## Guardrail Controls
 - Applicable control IDs: SDD-C-002, SDD-C-003, SDD-C-004, SDD-C-005, SDD-C-006, SDD-C-007, SDD-C-008, SDD-C-009, SDD-C-010, SDD-C-011, SDD-C-012, SDD-C-016, SDD-C-017, SDD-C-019, SDD-C-020, SDD-C-021, SDD-C-024
