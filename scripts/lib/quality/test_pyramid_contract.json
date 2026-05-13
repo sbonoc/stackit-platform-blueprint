@@ -76,6 +76,7 @@
         "tests/infra/test_upgrade_pipeline_correctness_issue_264_266.py",
         "tests/infra/test_conflict_triage_issue_265.py",
         "tests/infra/test_conflict_resolve_issue_265.py",
+        "tests/infra/test_pipeline_auto_clone_issue_269.py",
         "tests/blueprint/test_upgrade_fresh_env_gate.py",
         "tests/blueprint/test_upgrade_version_pin_diff.py",
         "tests/blueprint/test_template_smoke_assertions.py",
