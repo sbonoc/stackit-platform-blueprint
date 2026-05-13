@@ -1808,5 +1808,34 @@ class QualityContractsTests(unittest.TestCase):
         )
 
 
+class TestOwnershipContractTests(unittest.TestCase):
+    """FR-005 — no required_files test in tests/infra/ may import from blueprint/modules/."""
+
+    def test_required_seed_files_contain_no_blueprint_module_refs(self) -> None:
+        import yaml
+
+        contract = yaml.safe_load(_read("blueprint/contract.yaml"))
+        required_files: list[str] = (
+            contract.get("spec", {}).get("repository", {}).get("required_files", [])
+        )
+        infra_test_files = [
+            p for p in required_files
+            if p.startswith("tests/infra/test_") and p.endswith(".py")
+        ]
+        violations: list[str] = []
+        for rel_path in infra_test_files:
+            path = REPO_ROOT / rel_path
+            if path.is_file() and "blueprint/modules/" in path.read_text(encoding="utf-8"):
+                violations.append(rel_path)
+        self.assertFalse(
+            violations,
+            msg=(
+                "The following files in required_files contain 'blueprint/modules/' references "
+                "and must be relocated to tests/blueprint/ (issue #270):\n  "
+                + "\n  ".join(violations)
+            ),
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -13,43 +13,49 @@ This work item is scoped entirely to the blueprint's test taxonomy and upgrade c
 
 1. **Test file layout** — The `tests/infra/` directory currently contains both blueprint-author tests (asserting against `blueprint/modules/`, `scripts/lib/blueprint/`) and consumer-runtime tests (asserting against the consumer's running infrastructure). After this change, blueprint-author tests live exclusively under `tests/blueprint/` (already `source_only`).
 
-2. **`blueprint/contract.yaml` `required_seed_files`** — The list of `tests/infra/` paths delivered to generated-consumer repos. Fully-relocated files are removed; partially-split files retain only their consumer-runtime entries.
+2. **`blueprint/contract.yaml` `required_files`** — The list of `tests/infra/` paths delivered to generated-consumer repos (field is `spec.repository.required_files`). Fully-relocated files are removed; partially-split files retain only their consumer-runtime entries.
 
-## Test File Audit — Initial Classification
+## Test File Audit — Final Classification (T-000)
 
-The following 16 `tests/infra/test_*.py` files are currently in `required_seed_files`. Classification will be finalised during implementation; this table records the pre-implementation assessment:
+The following 16 `tests/infra/test_*.py` files are in `spec.repository.required_files`. Classification was finalised by auditing imports and running `grep -n 'blueprint/modules\|scripts/lib/blueprint\|scripts/bin/blueprint'` on each file.
 
-| File | Preliminary classification | Rationale |
-|---|---|---|
-| `test_argocd_repo_contract_cli.py` | blueprint-author | Tests `scripts/lib/blueprint/contract_runtime_cli.py` internals |
-| `test_async_message_contracts.py` | mixed | Consumer runtime uses async contracts; some assertions reference blueprint module YAML |
-| `test_core_runtime_bootstrap.py` | consumer-runtime | Tests bootstrap behaviour consumers replicate |
-| `test_optional_module_required_env_contract.py` | blueprint-author | Tests blueprint module env contract shape |
-| `test_optional_modules.py` | blueprint-author | Asserts against `blueprint/modules/` content directly |
-| `test_python_helper_extractions.py` | blueprint-author | Tests `scripts/lib/blueprint/` Python helpers |
-| `test_root_dir_resolution.py` | blueprint-author | Tests blueprint root-dir resolution logic |
-| `test_runtime_credentials_eso.py` | mixed | Some classes test consumer ESO behaviour; `RuntimeCredentialsEsoTests` references blueprint internals |
-| `test_runtime_identity_contract_cli.py` | consumer-runtime | Tests runtime identity CLI used by consumers |
-| `test_sdd_asset_checker.py` | blueprint-author | Tests blueprint SDD governance tooling |
-| `test_smoke_status_diagnostics.py` | consumer-runtime | Tests consumer smoke/status diagnostic behaviour |
-| `test_stackit_layers.py` | blueprint-author | Tests blueprint STACKIT layer abstractions |
-| `test_state_artifact_contract.py` | blueprint-author | Tests blueprint state artifact schema |
-| `test_tooling_contracts.py` | mixed | `ToolingContractsTests` is consumer-facing; `PostgresContractKeyParityTests` asserts against `blueprint/modules/postgres/module.contract.yaml` |
-| `test_version_contract_checker.py` | blueprint-author | Tests blueprint version contract checker script |
-| `test_workload_health_check.py` | consumer-runtime | Tests consumer workload health check behaviour |
+**Classification rule:** blueprint-author if the file contains references to `blueprint/modules/`, `scripts/lib/blueprint/`, or `scripts/bin/blueprint/`.
 
-**Implementation task:** confirm or revise this table by running `grep -rn "blueprint/modules"` on each file and auditing import chains.
+| File | Final classification | Blueprint reference found | Action |
+|---|---|---|---|
+| `test_argocd_repo_contract_cli.py` | consumer-runtime | none (tests `scripts/lib/infra/`) | no change |
+| `test_async_message_contracts.py` | **blueprint-author** | `scripts/bin/blueprint/` refs (1 class) | move to `tests/blueprint/` |
+| `test_core_runtime_bootstrap.py` | consumer-runtime | none | no change |
+| `test_optional_module_required_env_contract.py` | **blueprint-author** | imports `scripts.lib.blueprint.contract_schema`, `scripts.lib.blueprint.init_repo_contract` | move to `tests/blueprint/` |
+| `test_optional_modules.py` | consumer-runtime | none (`blueprint-` prefix in K8s names only — not a path ref) | no change |
+| `test_python_helper_extractions.py` | **blueprint-author** | `scripts/lib/blueprint/` refs | move to `tests/blueprint/` |
+| `test_root_dir_resolution.py` | **blueprint-author** | `scripts/bin/blueprint/` refs | move to `tests/blueprint/` |
+| `test_runtime_credentials_eso.py` | consumer-runtime | none (tests `scripts/lib/infra/runtime_identity_contract.py`) | no change |
+| `test_runtime_identity_contract_cli.py` | consumer-runtime | none | no change |
+| `test_sdd_asset_checker.py` | consumer-runtime | none (`scripts/bin/quality/` only — not `scripts/bin/blueprint/`) | no change |
+| `test_smoke_status_diagnostics.py` | consumer-runtime | none | no change |
+| `test_stackit_layers.py` | consumer-runtime | none | no change |
+| `test_state_artifact_contract.py` | consumer-runtime | none (tests `scripts/lib/infra/`) | no change |
+| `test_tooling_contracts.py` | **mixed** | `scripts/lib/blueprint/` in `ToolingContractsTests`; `blueprint/modules/postgres/` in `PostgresContractKeyParityTests` | split: move 2 blueprint-author classes to `tests/blueprint/`; keep 5 consumer-runtime classes |
+| `test_version_contract_checker.py` | consumer-runtime | none (tests `scripts/lib/platform/`) | no change |
+| `test_workload_health_check.py` | consumer-runtime | none | no change |
+
+**Net result:** 4 files fully relocated, 1 file split, 11 files unchanged → `required_files` shrinks by 4 entries (16 → 12).
+
+**Split detail for `test_tooling_contracts.py`:**
+- → `tests/blueprint/test_tooling_contracts.py`: `ToolingContractsTests` (+ module-level helpers it uses), `PostgresContractKeyParityTests`
+- → `tests/infra/test_tooling_contracts.py` (stays in `required_files`): `PlatformPythonHelperGuardTests`, `AppProjectNamespacePolicyTests`, `SddPlaceholderGuardTests`, `RuntimeAuthBestEffortTests`, `AppDockerfileAndRuntimeTests`
 
 ## Integration Edges
 
 ```mermaid
 flowchart TD
-    A["tests/infra/test_*.py\n(currently in required_seed_files)"]
+    A["tests/infra/test_*.py\n(currently in required_files)"]
     B["Audit: blueprint-author vs consumer-runtime"]
     C["tests/blueprint/test_*.py\n(source_only — never sent to consumers)"]
     D["tests/infra/test_*.py\n(consumer-runtime only — sent to consumers)"]
-    E["blueprint/contract.yaml\nrequired_seed_files"]
-    F["Upgrade resolver\n(3-way merge on required_seed_files paths)"]
+    E["blueprint/contract.yaml\nrequired_files"]
+    F["Upgrade resolver\n(3-way merge on required_files paths)"]
     G["Consumer repos\n(tests/infra/ content)"]
 
     A --> B
@@ -75,7 +81,7 @@ Files with both blueprint-author and consumer-runtime test classes are split: bl
 
 ### D-3: Consumer repos with stale copies of relocated files are not actively cleaned
 
-The upgrade engine stops writing relocated files to consumer repos (they are removed from `required_seed_files`). Stale copies in existing consumer repos remain untouched; they do not cause failures because they reference blueprint-internal artefacts that may or may not be present. Consumers can delete them manually or on re-init. Active cleanup (delete-on-upgrade) is not in scope for this work item.
+The upgrade engine stops writing relocated files to consumer repos (they are removed from `required_files`). Stale copies in existing consumer repos remain untouched; they do not cause failures because they reference blueprint-internal artefacts that may or may not be present. Consumers can delete them manually or on re-init. Active cleanup (delete-on-upgrade) is not in scope for this work item.
 
 ## Operational Notes
 
