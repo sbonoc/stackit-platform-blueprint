@@ -1762,6 +1762,51 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn("quality-consumer-pre-push", content)
         self.assertIn("quality-consumer-ci", content)
 
+    def test_consumer_ci_template_has_draft_pr_types_filter(self) -> None:
+        content = _read("scripts/templates/consumer/init/.github/workflows/ci.yml.tmpl")
+        self.assertIn(
+            "types: [opened, synchronize, reopened, ready_for_review]",
+            content,
+            "ci.yml.tmpl pull_request trigger must include types filter to skip draft PR events "
+            "(issue #288: blueprint added this in dd4e3f9e but did not propagate to consumer template)",
+        )
+
+    def test_consumer_ci_template_quality_fast_has_draft_pr_guard(self) -> None:
+        content = _read("scripts/templates/consumer/init/.github/workflows/ci.yml.tmpl")
+        self.assertIn(
+            "if: github.event_name == 'push' || github.event.pull_request.draft == false",
+            content,
+            "ci.yml.tmpl quality-fast job must include draft-PR guard "
+            "(issue #288: blueprint added this in dd4e3f9e but did not propagate to consumer template)",
+        )
+
+    def test_precommit_has_bootstrap_drift_hook(self) -> None:
+        content = _read(".pre-commit-config.yaml")
+        self.assertIn(
+            "id: quality-validate-bootstrap-template-drift",
+            content,
+            ".pre-commit-config.yaml must include commit-stage bootstrap drift hook "
+            "(issue #286: root dotfiles do not match _QG_INFRA_GATE_PATHS so drift is silently skipped locally)",
+        )
+
+    def test_precommit_template_has_bootstrap_drift_hook(self) -> None:
+        content = _read("scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml")
+        self.assertIn(
+            "id: quality-validate-bootstrap-template-drift",
+            content,
+            "bootstrap .pre-commit-config.yaml template must mirror the drift hook from the source repo "
+            "(issue #286: template must stay in sync with the source .pre-commit-config.yaml)",
+        )
+
+    def test_make_template_has_quality_validate_bootstrap_drift_target(self) -> None:
+        content = _read("scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl")
+        self.assertIn(
+            "quality-validate-bootstrap-template-drift:",
+            content,
+            "blueprint.generated.mk.tmpl must declare quality-validate-bootstrap-template-drift target "
+            "(issue #286: target is invoked by the commit-stage pre-commit hook)",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

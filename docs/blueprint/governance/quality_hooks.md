@@ -91,6 +91,38 @@ The path check is a union of the merge-base diff and the current working-tree di
 
 Set `QUALITY_HOOKS_FORCE_FULL=true` to force all checks regardless of changed paths.
 
+**Root-dotfile gap**: Root-level managed files (`.dockerignore`, `.gitignore`,
+`.editorconfig`, `.pre-commit-config.yaml`, `Makefile`) do not match any of
+the above prefixes, so editing them locally silences the `infra-validate`
+bootstrap-template drift check. CI catches this via `QUALITY_HOOKS_FORCE_FULL=true`,
+but developers get no local feedback. The commit-stage hook described below
+closes this gap.
+
+---
+
+## Bootstrap Template Drift Hook
+
+A commit-stage pre-commit hook (`quality-validate-bootstrap-template-drift`)
+fires whenever a root-level managed file or its bootstrap template counterpart
+changes. It invokes `validate_contract.py --bootstrap-drift-only`, which runs
+only `_validate_bootstrap_template_sync` — faster than the full `infra-validate`
+path, and scoped to the drift check only.
+
+The hook fires on paths matching:
+
+```
+^(\.dockerignore|\.gitignore|\.editorconfig|\.pre-commit-config\.yaml|Makefile|scripts/templates/blueprint/bootstrap/)
+```
+
+To invoke the check manually:
+
+```bash
+make quality-validate-bootstrap-template-drift
+```
+
+This target is also available in generated consumer repos (delivered via the
+bootstrap template) so the same drift guard applies after blueprint upgrade.
+
 ---
 
 ## Phase-Gating (Spec-Readiness Check)

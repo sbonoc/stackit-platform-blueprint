@@ -32,6 +32,12 @@ repos:
         # are caught at commit time rather than only at pre-push or in CI.
         files: ^tests/.*\.py$
         always_run: false
+      - id: quality-validate-bootstrap-template-drift
+        name: quality bootstrap template drift check
+        language: system
+        entry: make quality-validate-bootstrap-template-drift
+        pass_filenames: false
+        files: ^(\.dockerignore|\.gitignore|\.editorconfig|\.pre-commit-config\.yaml|Makefile|scripts/templates/blueprint/bootstrap/)
       - id: quality-validate-branch
         name: quality validate branch naming (pre-push)
         language: system

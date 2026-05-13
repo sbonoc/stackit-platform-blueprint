@@ -49,6 +49,7 @@ This file is auto-generated. Do not edit it manually.
 | `quality-hooks-run` | Run pre-commit hooks and quality gates (set QUALITY_HOOKS_KEEP_GOING=true to aggregate all failures across both phases) |
 | `quality-root-dir-prelude-check` | Fail when shell entrypoints reintroduce inline ROOT_DIR resolver drift |
 | `quality-infra-shell-source-graph-check` | Fail when infra helper source-edge contract drifts into caller-side implicit sourcing |
+| `quality-validate-bootstrap-template-drift` | Fail when blueprint-tracked root-level managed files drift from bootstrap template counterparts |
 | `quality-sdd-sync-control-catalog` | Render SDD control catalog markdown from machine-readable source |
 | `quality-sdd-check-control-catalog-sync` | Fail when SDD control catalog markdown is out of sync with machine-readable source |
 | `quality-sdd-sync-consumer-init-assets` | Sync consumer-init SDD assets from canonical .spec-kit and specs sources |

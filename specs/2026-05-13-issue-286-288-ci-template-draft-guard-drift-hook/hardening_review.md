@@ -1,0 +1,25 @@
+# Hardening Review
+
+## Repository-Wide Findings Fixed
+- Finding 1: Consumer CI template (`scripts/templates/consumer/init/.github/workflows/ci.yml.tmpl`) was missing the draft-PR event filter and job-level guard that blueprint's own CI has had since v1.10.0 (commit `dd4e3f9e`). Consumer repos bootstrapped or upgraded from v1.10.0 ran full CI pipelines on every draft PR push, wasting CI minutes and producing misleading status checks for contributors. Fixed by propagating the `types: [opened, synchronize, reopened, ready_for_review]` trigger and `if: github.event_name == 'push' || github.event.pull_request.draft == false` job guard into the template (issue #288).
+- Finding 2: `validate_bootstrap_template_sync` runs inside `infra-validate`, which is path-gated by `_QG_INFRA_GATE_PATHS`. Root-level managed files (`.dockerignore`, `.gitignore`, `.editorconfig`, `.pre-commit-config.yaml`, `Makefile`) do not match any gate prefix, so local edits to these files silently skipped the drift check. CI caught it via `QUALITY_HOOKS_FORCE_FULL=true` but developers received no pre-commit or pre-push feedback. Fixed by adding a `--bootstrap-drift-only` flag to `validate_contract.py`, a `quality-validate-bootstrap-template-drift` Make target, and a commit-stage pre-commit hook scoped to the affected file patterns (issue #286).
+
+## Observability and Diagnostics Changes
+- Metrics/logging/tracing updates: No new metrics or structured log entries introduced. The `--bootstrap-drift-only` path reuses the existing `[infra-validate] error: bootstrap template drift detected for <file>` message format produced by `_validate_bootstrap_template_sync`. Exit codes follow the existing convention (0 = pass, 1 = drift or contract load error). No observability surface changes.
+- Operational diagnostics updates: `make quality-validate-bootstrap-template-drift` now available as a standalone diagnostic target. Outputs `[infra-validate] bootstrap template sync validation passed` on success. Drift messages are self-explanatory (`[infra-validate] error: bootstrap template drift detected for <file>`); no additional runbook required.
+
+## Architecture and Code Quality Compliance
+- SOLID / Clean Architecture / Clean Code / DDD checks: The `--bootstrap-drift-only` flag follows the established `--branch-only` fast-path pattern in `validate_contract.py` (open/closed principle — existing `_validate_bootstrap_template_sync` function unchanged; new flag adds an early-exit path only). No new script files introduced. No abstractions extracted or added beyond task scope. The pre-commit hook uses `language: system` with a scoped `files:` pattern — consistent with all other local hooks in the same file.
+- Test-automation and pyramid checks: 5 new unit assertions added to `tests/blueprint/test_quality_contracts.py` using TDD (red-green: Slice 1 failing commit at `6f78c75`, Slice 2 implementation at `d868966`). All 5 are unit-tier assertions (file content checks — no I/O beyond reading project files, no network). All pre-existing tests remain green; 2 pre-existing unrelated failures (`test_generated_makefile_exposes_quality_docs_targets`, `test_make_template_exposes_quality_docs_targets`) confirmed pre-existing before our changes via `git stash` isolation. Test pyramid ratios: unit=96.20%, integration=2.97%, e2e=0.83% — all within policy bounds.
+- Documentation/diagram/CI/skill consistency checks: `docs/blueprint/governance/quality_hooks.md` updated with §Root-dotfile gap and §Bootstrap Template Drift Hook. `docs/platform/consumer/troubleshooting.md` updated with §CI runs on draft PRs. Both synced to bootstrap template mirrors. ADR approved. `docs/reference/generated/core_targets.generated.md` regenerated. `quality-docs-check-changed` passes. No skill runbooks required updating.
+
+## Accessibility Gate (Normative — non-UI reviewers mark non-applicable items N/A)
+- [x] SC 4.1.2 (Name, Role, Value): N/A — CI/quality tooling only; no interactive UI elements (NFR-A11Y-001)
+- [x] SC 2.1.1 (Keyboard): N/A — CI/quality tooling only; no interactive UI elements
+- [x] SC 2.4.7 (Focus Visible): N/A — CI/quality tooling only; no interactive UI elements
+- [x] SC 1.4.1 (Use of Color): N/A — CI/quality tooling only; no visual presentation layer
+- [x] SC 3.3.1 (Error Identification): N/A — CLI error messages are text-only; no form fields or error UX
+- [x] axe-core WCAG 2.1 AA scan evidence: N/A — no frontend components; no axe scan applicable
+
+## Proposals Only (Not Implemented)
+- Proposal 1: Add root dotfiles (`.dockerignore`, `.gitignore`, `.editorconfig`, `.pre-commit-config.yaml`, `Makefile`) to `_QG_INFRA_GATE_PATHS` so local `infra-validate` (not just the new commit hook) also catches drift when those files change. Deferred: changes the path-gating behavior in a broader way, slowing all local quality hooks for root-dotfile edits; the commit-stage hook provides faster and more targeted feedback for the practical gap; full path-gate extension is a separate quality infrastructure decision.

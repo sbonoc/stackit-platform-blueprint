@@ -1,0 +1,58 @@
+{
+  "manifest_version": 1,
+  "work_item": "specs/2026-05-13-issue-286-288-ci-template-draft-guard-drift-hook",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-05-13T16:27:14Z",
+  "files": [
+    {
+      "path": "specs/2026-05-13-issue-286-288-ci-template-draft-guard-drift-hook/architecture.md",
+      "sha256": "d31036843f5be9e4e2378105f14943b979b87cb475de8786802d71ba899478de",
+      "bytes": 4262
+    },
+    {
+      "path": "specs/2026-05-13-issue-286-288-ci-template-draft-guard-drift-hook/context_pack.md",
+      "sha256": "639c15dca8ecd83c74a8c00d1f5e6c715e97729f5a20946f737de09fa93dd805",
+      "bytes": 942
+    },
+    {
+      "path": "specs/2026-05-13-issue-286-288-ci-template-draft-guard-drift-hook/evidence_manifest.json",
+      "sha256": "ecb0eea40122794ca8f062212e022ba451f6d0a543b88db3d7c15e65a071e7f7",
+      "bytes": 161
+    },
+    {
+      "path": "specs/2026-05-13-issue-286-288-ci-template-draft-guard-drift-hook/graph.json",
+      "sha256": "59968494b634e69d833f4d406a36acdace626396c686b158ca8a405d5ead364e",
+      "bytes": 4367
+    },
+    {
+      "path": "specs/2026-05-13-issue-286-288-ci-template-draft-guard-drift-hook/hardening_review.md",
+      "sha256": "070d6220859284cf962437bad6dc575e4cde0d2d37da953af24bad3f2951d26f",
+      "bytes": 5037
+    },
+    {
+      "path": "specs/2026-05-13-issue-286-288-ci-template-draft-guard-drift-hook/plan.md",
+      "sha256": "69b81608d80c196523e31ec18374f721c49a07ce6600c77c2b155f92477d0943",
+      "bytes": 8446
+    },
+    {
+      "path": "specs/2026-05-13-issue-286-288-ci-template-draft-guard-drift-hook/pr_context.md",
+      "sha256": "c511a59e95e2bc56ba227faf989ad48cb5bc0db5fae9b3fcfbc29048e203f86b",
+      "bytes": 6770
+    },
+    {
+      "path": "specs/2026-05-13-issue-286-288-ci-template-draft-guard-drift-hook/spec.md",
+      "sha256": "a63ca414d0f6ddaa888c4ba57db6abf24352d473060776c4ecb976b3f2d3faa5",
+      "bytes": 10458
+    },
+    {
+      "path": "specs/2026-05-13-issue-286-288-ci-template-draft-guard-drift-hook/tasks.md",
+      "sha256": "1d8b809e8e7e8bae7a15424b115c89cfbac66eb4f11da4d0f4dfe504aec2e6be",
+      "bytes": 5238
+    },
+    {
+      "path": "specs/2026-05-13-issue-286-288-ci-template-draft-guard-drift-hook/traceability.md",
+      "sha256": "a2e1fa465ff6b7a5df246b7ed6440234b30851ad62ecf1e8787a23a42c3c1466",
+      "bytes": 6275
+    }
+  ]
+}
