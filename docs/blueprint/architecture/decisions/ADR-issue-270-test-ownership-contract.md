@@ -2,7 +2,9 @@
 
 ## Status
 
-proposed
+approved
+
+- ADR technical decision sign-off: approved (sbonoc, 2026-05-13)
 
 ## Context
 

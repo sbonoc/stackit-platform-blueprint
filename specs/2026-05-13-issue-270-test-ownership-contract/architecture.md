@@ -1,5 +1,10 @@
 # Architecture
 
+## Context
+- Work item: issue-270-test-ownership-contract
+- Owner: sbonoc
+- Date: 2026-05-13
+
 ## Bounded Context
 
 This work item is scoped entirely to the blueprint's test taxonomy and upgrade contract machinery. No runtime provisioning, HTTP routes, or consumer-visible behaviour changes.
