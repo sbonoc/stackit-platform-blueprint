@@ -1,0 +1,119 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-05-13-issue-286-288-ci-template-draft-guard-drift-hook",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "Consumer CI template pull_request trigger MUST include types filter excluding draft events"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "Consumer CI template quality-fast job MUST include draft-PR guard condition"
+    },
+    {
+      "id": "FR-003",
+      "type": "requirement",
+      "summary": "quality-validate-bootstrap-template-drift Make target MUST exist and invoke --bootstrap-drift-only"
+    },
+    {
+      "id": "FR-004",
+      "type": "requirement",
+      "summary": "Both .pre-commit-config.yaml files MUST include commit-stage quality-validate-bootstrap-template-drift hook"
+    },
+    {
+      "id": "FR-005",
+      "type": "requirement",
+      "summary": "validate_contract.py MUST accept --bootstrap-drift-only flag running only _validate_bootstrap_template_sync"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "Pre-commit hook MUST use language: system and make entry with no remote execution or credential exposure"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "N/A — pre-commit stdout/stderr is sufficient; no structured observability required"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "All changes MUST be additive; no existing hooks, CI steps, or Make targets removed"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "N/A — no runbook changes; drift messages are self-explanatory"
+    },
+    {
+      "id": "NFR-A11Y-001",
+      "type": "requirement",
+      "summary": "N/A — CI/quality tooling only; no UI components"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "ci.yml.tmpl MUST contain types: [opened, synchronize, reopened, ready_for_review]"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "ci.yml.tmpl quality-fast job MUST contain draft-PR if guard"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "make quality-validate-bootstrap-template-drift MUST exit 0 on parity"
+    },
+    {
+      "id": "AC-004",
+      "type": "acceptance",
+      "summary": "make quality-validate-bootstrap-template-drift MUST exit 1 on drift with error message"
+    },
+    {
+      "id": "AC-005",
+      "type": "acceptance",
+      "summary": ".pre-commit-config.yaml MUST contain quality-validate-bootstrap-template-drift hook"
+    },
+    {
+      "id": "AC-006",
+      "type": "acceptance",
+      "summary": "scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml MUST mirror the hook"
+    },
+    {
+      "id": "AC-007",
+      "type": "acceptance",
+      "summary": "5 new pytest assertions in test_quality_contracts.py MUST be green"
+    },
+    {
+      "id": "AC-008",
+      "type": "acceptance",
+      "summary": "make quality-hooks-fast MUST pass with zero violations"
+    },
+    {
+      "id": "AC-009",
+      "type": "acceptance",
+      "summary": "make infra-validate MUST pass after all changes"
+    }
+  ],
+  "edges": [
+    { "from": "FR-001", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-001", "to": "AC-007", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-002", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-007", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-003", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-004", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-007", "relation": "validated_by" },
+    { "from": "FR-004", "to": "AC-005", "relation": "validated_by" },
+    { "from": "FR-004", "to": "AC-006", "relation": "validated_by" },
+    { "from": "FR-004", "to": "AC-007", "relation": "validated_by" },
+    { "from": "FR-005", "to": "AC-003", "relation": "validated_by" },
+    { "from": "FR-005", "to": "AC-004", "relation": "validated_by" },
+    { "from": "NFR-SEC-001", "to": "AC-005", "relation": "constrains" },
+    { "from": "NFR-SEC-001", "to": "AC-006", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "AC-008", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "AC-009", "relation": "constrains" }
+  ]
+}
