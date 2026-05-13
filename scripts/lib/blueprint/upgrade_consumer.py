@@ -2232,7 +2232,14 @@ def main() -> int:
     try:
         if source_is_pre_cloned:
             source_repo = Path(args.source)
-            resolved_commit = _resolve_commit(source_repo, args.ref) or ""
+            resolved_commit = _resolve_commit(source_repo, args.ref)
+            if resolved_commit is None:
+                print(
+                    f"failed resolving ref {args.ref!r} in pre-cloned source {args.source} — "
+                    "ensure the source repository contains the requested ref",
+                    file=sys.stderr,
+                )
+                return 1
         else:
             temp_dir, source_repo, resolved_commit = _clone_source_repository(args.source, args.ref)
         baseline_ref = _resolve_baseline_ref(

@@ -148,6 +148,24 @@ class PipelineURLNormalizationBlockTests(unittest.TestCase):
 class EngineSkipCloneGuardTests(unittest.TestCase):
     """Assert that upgrade_consumer.py skips its internal clone for pre-cloned local paths (FR-003)."""
 
+    def test_engine_fails_explicitly_when_ref_not_found_in_pre_cloned_source(self) -> None:
+        """Engine MUST fail explicitly when args.ref cannot be resolved in the pre-cloned source (FR-003).
+
+        Silently coercing None from _resolve_commit to "" allows the upgrade to
+        proceed with an empty resolved_commit, corrupting downstream artifacts.
+        The engine must emit an error message and return 1 instead.
+        """
+        engine_source = _ENGINE_PATH.read_text(encoding="utf-8")
+        self.assertRegex(
+            engine_source,
+            r'resolved_commit\s+is\s+None|if\s+resolved_commit\s*is\s+None',
+            msg=(
+                "upgrade_consumer.py must check whether _resolve_commit returned None "
+                "in the pre-cloned source branch and return 1 with a clear error message "
+                "(FR-003). Replace 'or \"\"' with an explicit None check and early return."
+            ),
+        )
+
     def test_engine_skips_clone_when_source_is_local_git_dir(self) -> None:
         """Engine MUST skip _clone_source_repository when source is already a local .git dir (FR-003, AC-009).
 
