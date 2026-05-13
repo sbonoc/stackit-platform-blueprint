@@ -1,30 +1,30 @@
 # Tasks
 
 ## Gate Checks (Required Before Implementation)
-- [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`
-- [ ] G-002 Confirm open questions and unresolved alternatives are `0`
-- [ ] G-003 Confirm required sign-offs are approved
-- [ ] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
-- [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
+- [x] G-001 Confirm `SPEC_READY=true` in `spec.md`
+- [x] G-002 Confirm open questions and unresolved alternatives are `0`
+- [x] G-003 Confirm required sign-offs are approved
+- [x] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
+- [x] G-005 Confirm `Implementation Stack Profile` section is fully populated
 
 ## Implementation — Slice 0 (Audit, no commit)
 
-- [ ] T-000 Run classification audit on all 16 consumer-delivered `tests/infra/test_*.py` files; record final blueprint-author / consumer-runtime / mixed classification per file and per class in `architecture.md`
+- [x] T-000 Run classification audit on all 16 consumer-delivered `tests/infra/test_*.py` files; record final blueprint-author / consumer-runtime / mixed classification per file and per class in `architecture.md`
 
 ## Implementation — Slice 1 (RED)
 
-- [ ] T-001 Add `test_required_seed_files_contain_no_blueprint_module_refs` to `tests/blueprint/test_quality_contracts.py` — assert no file in `required_seed_files` matching `tests/infra/test_*.py` contains `blueprint/modules/` (expected: FAIL before relocation)
-- [ ] T-002 Run `uv run python3 -m pytest tests/blueprint/test_quality_contracts.py -v -k "blueprint_module_refs"` — confirm RED
+- [x] T-001 Add `test_required_seed_files_contain_no_blueprint_module_refs` to `tests/blueprint/test_quality_contracts.py` — assert no file in `required_seed_files` matching `tests/infra/test_*.py` contains `blueprint/modules/` (expected: FAIL before relocation)
+- [x] T-002 Run `uv run python3 -m pytest tests/blueprint/test_quality_contracts.py -v -k "blueprint_module_refs"` — confirm RED
 
 ## Implementation — Slice 2 (GREEN)
 
-- [ ] T-003 Move each "entirely blueprint-author" file to `tests/blueprint/test_<name>.py`; update imports if needed
-- [ ] T-004 Remove fully-relocated paths from `required_seed_files` in `blueprint/contract.yaml`
-- [ ] T-005 For each "mixed" file: extract blueprint-author test classes to `tests/blueprint/`, remove from original `tests/infra/` file
-- [ ] T-006 Update `required_seed_files` to reflect split state (keep `tests/infra/` paths with remaining consumer-runtime content)
-- [ ] T-007 Run `uv run python3 -m pytest tests/blueprint/ -v` — confirm all tests GREEN including new contract assertion
-- [ ] T-008 Run `uv run python3 -m pytest tests/infra/ -v` — confirm consumer-runtime tests still GREEN
-- [ ] T-009 Run `make infra-validate` — confirm `blueprint/contract.yaml` valid after `required_seed_files` update
+- [x] T-003 Move each "entirely blueprint-author" file to `tests/blueprint/test_<name>.py`; update imports if needed
+- [x] T-004 Remove fully-relocated paths from `required_seed_files` in `blueprint/contract.yaml`
+- [x] T-005 For each "mixed" file: extract blueprint-author test classes to `tests/blueprint/`, remove from original `tests/infra/` file
+- [x] T-006 Update `required_seed_files` to reflect split state (keep `tests/infra/` paths with remaining consumer-runtime content)
+- [x] T-007 Run `uv run python3 -m pytest tests/blueprint/ -v` — confirm all tests GREEN including new contract assertion
+- [x] T-008 Run `uv run python3 -m pytest tests/infra/ -v` — confirm consumer-runtime tests still GREEN
+- [x] T-009 Run `make infra-validate` — confirm `blueprint/contract.yaml` valid after `required_seed_files` update
 
 ## Implementation — Slice 3 (Docs)
 
