@@ -137,7 +137,10 @@ Four independent tracks; all P1, can be started in parallel.
 
 #### Contract and skill additions (P2, two standalone PRs)
 
-- [ ] P2 (Blueprint contract): Issue #270 — **test ownership contract**: introduce an explicit consumer-vs-blueprint ownership marker for test files under `tests/infra/` so the upgrade resolver never overwrites consumer-owned tests during Stage 2 apply. Standalone PR.
+- [x] P2 (Blueprint contract): Issue #270 — **test ownership contract**: relocate blueprint-author tests from `tests/infra/` to `tests/blueprint/`; remove 4 entries from `required_files`; add FR-005 contract assertion. **Done**: `specs/2026-05-13-issue-270-test-ownership-contract/`, PR #290.
+- [ ] (parked) proposal(issue-270-test-ownership-contract): active delete-on-upgrade for stale relocated test files in consumer repos
+      trigger: on-scope: blueprint
+      rationale: no active consumer complaint; D-3 in architecture.md documents the conscious deferral; surfaces when upgrade resolver apply stage is next touched
 - [ ] P2 (Blueprint skills): Issue #268 — **versioned consumer-side workarounds catalogue**: ship a per-release workarounds manifest in the blueprint; `blueprint-consumer-upgrade` skill applies the relevant workarounds automatically by version so every consumer does not have to rediscover and hand-apply the same fixes. Standalone PR.
 
 #### Phase 4 — Major UX improvements (build on the stable correctness foundation)

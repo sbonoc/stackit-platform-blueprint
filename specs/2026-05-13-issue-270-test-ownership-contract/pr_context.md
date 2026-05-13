@@ -31,4 +31,4 @@
 - Rollback strategy: Revert the 4 `required_files` removals in `blueprint/contract.yaml` and its bootstrap mirror; move the 4 blueprint-author test files back to `tests/infra/`; restore original `tests/infra/test_tooling_contracts.py`; delete `tests/blueprint/test_tooling_contracts.py`; revert `contract_test_fast.sh` path entries; remove 5 entries from `test_pyramid_contract.json`.
 
 ## Deferred Proposals
-- Active cleanup of stale blueprint-author test copies from existing consumer repos (delete-on-upgrade): not implemented in this work item per D-3 in architecture.md; consumers can delete manually or re-run `make blueprint-init-repo`.
+- Active cleanup of stale blueprint-author test copies from existing consumer repos (delete-on-upgrade): Parked — trigger: on-scope: blueprint — no active consumer complaint; D-3 in architecture.md documents the conscious deferral. Tracked in AGENTS.backlog.md as `proposal(issue-270-test-ownership-contract)`.
