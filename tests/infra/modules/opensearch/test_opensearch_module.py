@@ -147,17 +147,19 @@ class OpenSearchLocalHelmChartTests(unittest.TestCase):
 
     def test_opensearch_seed_values_allow_insecure_images(self) -> None:
         parsed = yaml.safe_load(_SEED_VALUES.read_text(encoding="utf-8"))
-        self.assertTrue(
+        self.assertIs(
             parsed.get("global", {}).get("security", {}).get("allowInsecureImages"),
-            msg="global.security.allowInsecureImages must be true; Bitnami chart 1.6.x "
+            True,
+            msg="global.security.allowInsecureImages must be explicit boolean true; Bitnami chart 1.6.x "
                 "rejects bitnamilegacy/ images without this flag",
         )
 
     def test_opensearch_seed_values_sysctl_image_disabled(self) -> None:
         parsed = yaml.safe_load(_SEED_VALUES.read_text(encoding="utf-8"))
-        self.assertFalse(
-            parsed.get("sysctlImage", {}).get("enabled", True),
-            msg="sysctlImage.enabled must be false; the bitnami/os-shell init container "
+        self.assertIs(
+            parsed.get("sysctlImage", {}).get("enabled"),
+            False,
+            msg="sysctlImage.enabled must be explicit boolean false; the bitnami/os-shell init container "
                 "tag referenced by chart 1.6.x has been removed from Docker Hub",
         )
 

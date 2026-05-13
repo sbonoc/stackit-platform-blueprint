@@ -7,7 +7,7 @@
 
 ## Requirement Coverage
 - Requirement IDs covered: FR-001, FR-002, FR-003, FR-004, FR-005; NFR-SEC-001, NFR-OBS-001, NFR-REL-001, NFR-OPS-001, NFR-A11Y-001
-- Acceptance criteria covered: AC-001 (template key present), AC-002 (seed file key present), AC-003 (test assertion allowInsecureImages), AC-004 (artifact mirrors template — satisfied via pass-through rendering), AC-005 (test assertion sysctlImage), AC-006 (test fails before fix), AC-007 (47/47 green after fix), AC-008 (template/seed are source of truth)
+- Acceptance criteria covered: AC-001 (`allowInsecureImages: true` in template), AC-002 (`sysctlImage.enabled: false` in template), AC-003 (both keys in seed file), AC-004 (both keys in runtime-rendered artifact via pass-through), AC-005 (`test_opensearch_seed_values_allow_insecure_images` passes), AC-006 (`test_opensearch_seed_values_sysctl_image_disabled` passes), AC-007 (`make quality-hooks-fast` passes), AC-008 (`make infra-validate` passes)
 - Contract surfaces changed: none — Helm values keys are opaque to the platform contract layer; no new env-var outputs; smoke target assertions unchanged
 
 ## Key Reviewer Files

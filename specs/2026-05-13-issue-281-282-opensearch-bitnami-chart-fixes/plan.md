@@ -28,11 +28,12 @@ Write two failing test methods in `OpenSearchLocalHelmChartTests` in `tests/infr
 
 Run `uv run python3 -m pytest tests/infra/modules/opensearch/test_opensearch_module.py -v` — confirms 2 new failures, all pre-existing tests still green.
 
-### Slice 2 — GREEN: add YAML keys to all three files
-Add both keys to:
+### Slice 2 — GREEN: add YAML keys to source files; verify runtime artifact
+Add both keys to the two tracked source files:
 - `scripts/templates/infra/bootstrap/infra/local/helm/opensearch/values.yaml`
 - `infra/local/helm/opensearch/values.yaml`
-- `artifacts/infra/rendered/opensearch.values.yaml`
+
+`artifacts/infra/rendered/opensearch.values.yaml` is a runtime-generated output produced by `opensearch_render_values_file()`; it is gitignored and not edited directly. Static YAML keys pass through the renderer unchanged, so AC-004 is satisfied automatically once the source files are correct.
 
 Both keys are static YAML at the top level:
 ```yaml

@@ -18,12 +18,14 @@ The chart version is pinned to `1.6.3` in `scripts/lib/infra/versions.sh`. Both 
 
 ## Decision
 
-**Add two static YAML keys to the local Helm values template and its rendered copies (Option A).**
+**Add two static YAML keys to the local Helm values template and seed file (Option A).**
 
-Files changed:
+Source files changed (committed):
 - `scripts/templates/infra/bootstrap/infra/local/helm/opensearch/values.yaml`
 - `infra/local/helm/opensearch/values.yaml`
-- `artifacts/infra/rendered/opensearch.values.yaml`
+
+Runtime-generated output (not committed — gitignored):
+- `artifacts/infra/rendered/opensearch.values.yaml` — produced by `opensearch_render_values_file()` at apply time; static YAML keys pass through the renderer unchanged, so the runtime artifact automatically reflects both keys once the source files are correct
 
 Keys added:
 ```yaml
