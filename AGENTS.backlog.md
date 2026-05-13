@@ -52,6 +52,10 @@ To introduce a new tag, append a row here in the same commit that uses it.
 - [ ] (parked) proposal(issue-281-282-opensearch-bitnami-chart-fixes): Bitnami chart 2.x upgrade — chart 2.x targets OpenSearch 3.x, incompatible with 2.17/2.19 image line; requires STACKIT managed-service plan validation before migration
       trigger: on-scope: infra
       rationale: low urgency, no active blocker; migration requires OpenSearch 3.x compatibility validation with STACKIT managed-service plan family; surfaces when infra/Helm scope is next touched
+- [x] P1 (CI template + quality tooling): Issues #286 + #288 — consumer CI template propagated draft-PR types filter and job guard from blueprint v1.10.0; bootstrap drift commit hook added (`quality-validate-bootstrap-template-drift` target + `--bootstrap-drift-only` flag) to catch local root-dotfile drift that `_QG_INFRA_GATE_PATHS` path-gating silently skipped. **Done**: `specs/2026-05-13-issue-286-288-ci-template-draft-guard-drift-hook/`, PR #289.
+- [ ] (parked) proposal(issue-286-288-ci-template-draft-guard-drift-hook): add root dotfiles to `_QG_INFRA_GATE_PATHS` for local `infra-validate` drift coverage beyond the commit hook
+      trigger: on-scope: quality
+      rationale: commit hook is faster and more targeted (~1–2s vs ~9s full infra-validate); extending path-gating has broader scope implications; surfaces when quality gate infrastructure is next touched
 - [x] P0 (SDD UX): Issue #138 — local smoke + positive-path filter/transform guardrails are now enforced in SDD templates/governance, including red->green translation for reproducible pre-PR findings.
 - [x] P0 (Upgrade preflight ergonomics): Issue #102 — detect missing consumer-owned required Make targets in preflight with explicit remediation guidance.
 - [x] P0 (Upgrade validation determinism): Issue #129 — add repo-mode-aware required-file reconciliation checks and deterministic remediation hints.

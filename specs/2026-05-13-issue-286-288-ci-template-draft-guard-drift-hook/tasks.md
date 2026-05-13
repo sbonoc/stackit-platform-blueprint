@@ -29,19 +29,19 @@
 - [x] T-015 Run `uv run python3 -m pytest tests/blueprint/ -v` — confirm all pre-existing tests remain GREEN
 
 ## Accessibility Testing (Normative — N/A)
-- [ ] T-A01 N/A — CI/quality tooling only; no UI components (NFR-A11Y-001)
+- [x] T-A01 N/A — CI/quality tooling only; no UI components (NFR-A11Y-001)
 
 ## Validation and Release Readiness
 - [x] T-201 Run `make quality-hooks-fast` — confirm zero violations (only expected quality-spec-pr-ready failure for unfilled publish artifacts; all other checks pass)
 - [x] T-202 Run `make infra-validate` — confirm no contract violations
 - [x] T-203 Verify `make quality-validate-bootstrap-template-drift` exits 0 when `.pre-commit-config.yaml` is in sync with its template counterpart (AC-003; confirmed — new commit-stage hook fires and passes)
-- [ ] T-204 Run `make docs-build` and `make docs-smoke` — confirm no docs build failures
-- [ ] T-205 Run `make quality-hardening-review` — complete hardening review
+- [x] T-204 Run `make docs-build` and `make docs-smoke` — confirm no docs build failures
+- [x] T-205 Run `make quality-hardening-review` — complete hardening review
 
 ## Publish
-- [ ] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
-- [ ] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
-- [ ] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
+- [x] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
+- [x] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
+- [x] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
 
 ## App Onboarding Minimum Targets (Normative)
 - [x] A-001 `apps-bootstrap` and `apps-smoke` — N/A: no app delivery workflow scope (no-impact; targets pre-existing and unaffected)
