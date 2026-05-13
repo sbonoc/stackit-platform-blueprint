@@ -27,4 +27,4 @@
 - Rollback strategy: remove `global.security.allowInsecureImages: true` and `sysctlImage.enabled: false` from both values files; revert README additions; revert test methods; YAML-only change with no state side-effects
 
 ## Deferred Proposals
-- Long-term Bitnami chart 2.x upgrade (not implemented): chart 2.x targets OpenSearch 3.x and is incompatible with the 2.17/2.19 image line; migration requires validating OpenSearch 3.x compatibility with STACKIT managed service plans and consumer applications — tracked as a separate work item
+- Long-term Bitnami chart 2.x upgrade (not implemented): chart 2.x targets OpenSearch 3.x and is incompatible with the 2.17/2.19 image line; migration requires validating OpenSearch 3.x compatibility with STACKIT managed service plans and consumer applications — Parked — trigger: on-scope: infra — AGENTS.backlog.md entry added
