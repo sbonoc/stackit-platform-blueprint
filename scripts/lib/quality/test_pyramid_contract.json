@@ -55,7 +55,6 @@
                 "tests/docs/test_docs_lint.py",
                 "tests/docs/test_orchestrate_sync.py",
                 "tests/infra/test_runtime_credentials_eso.py",
-                "tests/infra/test_optional_module_required_env_contract.py",
                 "tests/infra/test_runtime_identity_contract_cli.py",
                 "tests/infra/test_argocd_repo_contract_cli.py",
                 "tests/infra/test_state_artifact_contract.py",
@@ -64,8 +63,6 @@
                 "tests/infra/test_tooling_contracts.py",
                 "tests/infra/test_workload_health_check.py",
                 "tests/infra/test_version_contract_checker.py",
-                "tests/infra/test_python_helper_extractions.py",
-                "tests/infra/test_root_dir_resolution.py",
                 "tests/infra/test_docs_site_sh_issue_272_273.py",
                 "tests/infra/test_upgrade_contract_coverage_issue_258.py",
                 "tests/infra/test_upgrade_consumer_validate_issue_260.py",
@@ -107,7 +104,6 @@
             "scope": "integration",
             "patterns": [
                 "tests/docs/test_docs_generation.py",
-                "tests/infra/test_async_message_contracts.py",
                 "tests/infra/test_core_runtime_bootstrap.py",
                 "tests/infra/test_optional_modules.py",
                 "tests/infra/test_smoke_status_diagnostics.py"

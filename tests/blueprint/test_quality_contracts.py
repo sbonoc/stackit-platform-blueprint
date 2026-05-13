@@ -9,6 +9,8 @@ import sys
 import tempfile
 import unittest
 
+import yaml
+
 from scripts.lib.blueprint.contract_schema import load_blueprint_contract
 from tests._shared.helpers import REPO_ROOT, run
 
@@ -1808,12 +1810,17 @@ class QualityContractsTests(unittest.TestCase):
         )
 
 
-class TestOwnershipContractTests(unittest.TestCase):
-    """FR-005 — no required_files test in tests/infra/ may import from blueprint/modules/."""
+_BLUEPRINT_AUTHOR_MARKERS = (
+    "blueprint/modules/",
+    "scripts/lib/blueprint/",
+    "scripts/bin/blueprint/",
+)
+
+
+class OwnershipContractTests(unittest.TestCase):
+    """FR-005 — no required_files test in tests/infra/ may reference blueprint-author paths."""
 
     def test_required_seed_files_contain_no_blueprint_module_refs(self) -> None:
-        import yaml
-
         contract = yaml.safe_load(_read("blueprint/contract.yaml"))
         required_files: list[str] = (
             contract.get("spec", {}).get("repository", {}).get("required_files", [])
@@ -1825,12 +1832,15 @@ class TestOwnershipContractTests(unittest.TestCase):
         violations: list[str] = []
         for rel_path in infra_test_files:
             path = REPO_ROOT / rel_path
-            if path.is_file() and "blueprint/modules/" in path.read_text(encoding="utf-8"):
-                violations.append(rel_path)
+            if path.is_file():
+                content = path.read_text(encoding="utf-8")
+                if any(marker in content for marker in _BLUEPRINT_AUTHOR_MARKERS):
+                    violations.append(rel_path)
         self.assertFalse(
             violations,
             msg=(
-                "The following files in required_files contain 'blueprint/modules/' references "
+                "The following files in required_files reference blueprint-author paths "
+                f"({', '.join(_BLUEPRINT_AUTHOR_MARKERS)}) "
                 "and must be relocated to tests/blueprint/ (issue #270):\n  "
                 + "\n  ".join(violations)
             ),
