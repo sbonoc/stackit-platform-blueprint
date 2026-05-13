@@ -1,3 +1,8 @@
+global:
+  security:
+    allowInsecureImages: true
+sysctlImage:
+  enabled: false
 fullnameOverride: "{{OPENSEARCH_HELM_RELEASE}}"
 image:
   registry: "{{OPENSEARCH_IMAGE_REGISTRY}}"

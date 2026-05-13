@@ -1,3 +1,8 @@
+global:
+  security:
+    allowInsecureImages: true
+sysctlImage:
+  enabled: false
 fullnameOverride: "blueprint-opensearch"
 image:
   registry: "docker.io"

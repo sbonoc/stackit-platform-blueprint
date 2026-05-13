@@ -1,0 +1,58 @@
+{
+  "manifest_version": 1,
+  "work_item": "specs/2026-05-13-issue-281-282-opensearch-bitnami-chart-fixes",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-05-13T14:56:59Z",
+  "files": [
+    {
+      "path": "specs/2026-05-13-issue-281-282-opensearch-bitnami-chart-fixes/architecture.md",
+      "sha256": "9d39679473226f89c44a9df1e866321cba56fb574d4e33e9c7ca55418f5ec042",
+      "bytes": 4830
+    },
+    {
+      "path": "specs/2026-05-13-issue-281-282-opensearch-bitnami-chart-fixes/context_pack.md",
+      "sha256": "3f4f823abc97b23f005dd31761fb7c07f6e8fd615ef23f0a5a76428b916b537a",
+      "bytes": 956
+    },
+    {
+      "path": "specs/2026-05-13-issue-281-282-opensearch-bitnami-chart-fixes/evidence_manifest.json",
+      "sha256": "ecb0eea40122794ca8f062212e022ba451f6d0a543b88db3d7c15e65a071e7f7",
+      "bytes": 161
+    },
+    {
+      "path": "specs/2026-05-13-issue-281-282-opensearch-bitnami-chart-fixes/graph.json",
+      "sha256": "7647fca22bd4625e9cf6aa5e1eff0aeab12f335c4e6ccd41061672f7bbaade68",
+      "bytes": 3555
+    },
+    {
+      "path": "specs/2026-05-13-issue-281-282-opensearch-bitnami-chart-fixes/hardening_review.md",
+      "sha256": "180c270281b26a89bd05143aa36c52a8f29682f3a175ec99f369f8490532b0f7",
+      "bytes": 1164
+    },
+    {
+      "path": "specs/2026-05-13-issue-281-282-opensearch-bitnami-chart-fixes/plan.md",
+      "sha256": "5ab88b5e15aa28caa50728a9e18880fb122b913d179aeb5570ff147693ec23ef",
+      "bytes": 5416
+    },
+    {
+      "path": "specs/2026-05-13-issue-281-282-opensearch-bitnami-chart-fixes/pr_context.md",
+      "sha256": "26b7a261f5f07f472d3d30b255eb9d1b35c3633cb84be062b9e5f461c488d33c",
+      "bytes": 465
+    },
+    {
+      "path": "specs/2026-05-13-issue-281-282-opensearch-bitnami-chart-fixes/spec.md",
+      "sha256": "a187a480f044cec6c67df25baaae0c8b5629f54cf5c217c72bf507d258548a45",
+      "bytes": 9103
+    },
+    {
+      "path": "specs/2026-05-13-issue-281-282-opensearch-bitnami-chart-fixes/tasks.md",
+      "sha256": "b6be4d08a0e7e7e71299f3cc2fb66501866ae5d110d99281addd6d508a42e513",
+      "bytes": 3420
+    },
+    {
+      "path": "specs/2026-05-13-issue-281-282-opensearch-bitnami-chart-fixes/traceability.md",
+      "sha256": "d5f7d8f3b4b34dbf7343ed94d7604e54278b4ee4e127e841627179585877a826",
+      "bytes": 5098
+    }
+  ]
+}
