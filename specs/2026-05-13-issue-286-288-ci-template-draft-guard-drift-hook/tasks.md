@@ -32,9 +32,9 @@
 - [ ] T-A01 N/A — CI/quality tooling only; no UI components (NFR-A11Y-001)
 
 ## Validation and Release Readiness
-- [ ] T-201 Run `make quality-hooks-fast` — confirm zero violations
-- [ ] T-202 Run `make infra-validate` — confirm no contract violations
-- [ ] T-203 Verify `make quality-validate-bootstrap-template-drift` exits 0 when `.pre-commit-config.yaml` is in sync with its template counterpart (AC-003)
+- [x] T-201 Run `make quality-hooks-fast` — confirm zero violations (only expected quality-spec-pr-ready failure for unfilled publish artifacts; all other checks pass)
+- [x] T-202 Run `make infra-validate` — confirm no contract violations
+- [x] T-203 Verify `make quality-validate-bootstrap-template-drift` exits 0 when `.pre-commit-config.yaml` is in sync with its template counterpart (AC-003; confirmed — new commit-stage hook fires and passes)
 - [ ] T-204 Run `make docs-build` and `make docs-smoke` — confirm no docs build failures
 - [ ] T-205 Run `make quality-hardening-review` — complete hardening review
 
@@ -44,8 +44,8 @@
 - [ ] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
 
 ## App Onboarding Minimum Targets (Normative)
-- [ ] A-001 `apps-bootstrap` and `apps-smoke` — N/A: no app delivery workflow scope (no-impact; targets pre-existing and unaffected)
-- [ ] A-002 Backend app lanes (`backend-test-unit`, `backend-test-integration`, `backend-test-contracts`, `backend-test-e2e`) — N/A: no-impact
-- [ ] A-003 Frontend app lanes (`touchpoints-test-unit`, `touchpoints-test-integration`, `touchpoints-test-contracts`, `touchpoints-test-e2e`) — N/A: no-impact
-- [ ] A-004 Aggregate gates (`test-unit-all`, `test-integration-all`, `test-contracts-all`, `test-e2e-all-local`) — N/A: no-impact
-- [ ] A-005 Port-forward operational wrappers (`infra-port-forward-start`, `infra-port-forward-stop`, `infra-port-forward-cleanup`) — N/A: no-impact
+- [x] A-001 `apps-bootstrap` and `apps-smoke` — N/A: no app delivery workflow scope (no-impact; targets pre-existing and unaffected)
+- [x] A-002 Backend app lanes (`backend-test-unit`, `backend-test-integration`, `backend-test-contracts`, `backend-test-e2e`) — N/A: no-impact
+- [x] A-003 Frontend app lanes (`touchpoints-test-unit`, `touchpoints-test-integration`, `touchpoints-test-contracts`, `touchpoints-test-e2e`) — N/A: no-impact
+- [x] A-004 Aggregate gates (`test-unit-all`, `test-integration-all`, `test-contracts-all`, `test-e2e-all-local`) — N/A: no-impact
+- [x] A-005 Port-forward operational wrappers (`infra-port-forward-start`, `infra-port-forward-stop`, `infra-port-forward-cleanup`) — N/A: no-impact
