@@ -1834,7 +1834,7 @@ spec:
           - infra-langfuse-smoke
           - infra-langfuse-destroy
       postgres:
-        enabled_by_default: false
+        enabled_by_default: true
         enable_flag: POSTGRES_ENABLED
         scaffolding_mode: conditional
         paths_required_when_enabled:
@@ -1949,7 +1949,7 @@ spec:
           - infra-dns-smoke
           - infra-dns-destroy
       public-endpoints:
-        enabled_by_default: false
+        enabled_by_default: true
         enable_flag: PUBLIC_ENDPOINTS_ENABLED
         scaffolding_mode: conditional
         paths_required_when_enabled:

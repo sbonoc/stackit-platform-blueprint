@@ -20,7 +20,9 @@ SHELL := /bin/bash
   touchpoints-test-unit touchpoints-test-integration touchpoints-test-contracts touchpoints-test-e2e \
   test-unit-all test-integration-all test-contracts-all test-e2e-all-local test-e2e-all-local-full test-e2e-all-local-execute \
   auth-reconcile-eso-runtime-secrets auth-reconcile-argocd-repo-credentials auth-reconcile-runtime-identity \
-  docs-install docs-run docs-build docs-smoke
+  docs-install docs-run docs-build docs-smoke \
+  infra-postgres-plan infra-postgres-apply infra-postgres-smoke infra-postgres-destroy \
+  infra-public-endpoints-plan infra-public-endpoints-apply infra-public-endpoints-deploy infra-public-endpoints-smoke infra-public-endpoints-destroy
 
 help: ## Show targets
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z0-9_.-]+:.*## / {printf "%-50s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -386,7 +388,9 @@ INFRA_ENV_GUARDED_TARGETS := \
 	infra-stackit-foundation-fetch-kubeconfig infra-stackit-foundation-refresh-kubeconfig infra-stackit-foundation-seed-runtime-secret \
 	infra-stackit-ci-github-setup infra-stackit-destroy-all infra-runtime-inventory infra-local-runtime-inventory infra-stackit-runtime-prerequisites infra-stackit-runtime-inventory infra-stackit-runtime-deploy \
 	infra-stackit-smoke-foundation infra-stackit-smoke-runtime infra-stackit-provision-deploy infra-argocd-topology-render infra-argocd-topology-validate \
-	infra-doctor infra-context infra-status infra-status-json infra-audit-version infra-audit-version-cached
+	infra-doctor infra-context infra-status infra-status-json infra-audit-version infra-audit-version-cached \
+  infra-postgres-plan infra-postgres-apply infra-postgres-smoke infra-postgres-destroy \
+  infra-public-endpoints-plan infra-public-endpoints-apply infra-public-endpoints-deploy infra-public-endpoints-smoke infra-public-endpoints-destroy
 
 $(INFRA_ENV_GUARDED_TARGETS): blueprint-check-placeholders
 
@@ -514,3 +518,30 @@ docs-build: ## Build docs site
 
 docs-smoke: ## Smoke docs site output
 	@scripts/bin/docs/smoke.sh
+
+
+infra-postgres-plan: ## Plan Postgres resources
+	@scripts/bin/infra/postgres_plan.sh
+
+infra-postgres-apply: ## Apply Postgres resources
+	@scripts/bin/infra/postgres_apply.sh
+
+infra-postgres-smoke: ## Postgres smoke checks
+	@scripts/bin/infra/postgres_smoke.sh
+
+infra-postgres-destroy: ## Destroy Postgres resources
+	@scripts/bin/infra/postgres_destroy.sh
+infra-public-endpoints-plan: ## Plan public endpoint resources
+	@scripts/bin/infra/public_endpoints_plan.sh
+
+infra-public-endpoints-apply: ## Apply public endpoint resources
+	@scripts/bin/infra/public_endpoints_apply.sh
+
+infra-public-endpoints-deploy: ## Deploy public endpoint runtime
+	@scripts/bin/infra/public_endpoints_deploy.sh
+
+infra-public-endpoints-smoke: ## Public endpoint smoke checks
+	@scripts/bin/infra/public_endpoints_smoke.sh
+
+infra-public-endpoints-destroy: ## Destroy public endpoint resources
+	@scripts/bin/infra/public_endpoints_destroy.sh

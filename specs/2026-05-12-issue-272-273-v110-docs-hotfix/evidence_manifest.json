@@ -2,7 +2,7 @@
   "manifest_version": 1,
   "work_item": "specs/2026-05-12-issue-272-273-v110-docs-hotfix",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "2026-05-12T16:21:48Z",
+  "generated_at_utc": "2026-05-12T21:58:47Z",
   "files": [
     {
       "path": "specs/2026-05-12-issue-272-273-v110-docs-hotfix/architecture.md",
@@ -11,13 +11,13 @@
     },
     {
       "path": "specs/2026-05-12-issue-272-273-v110-docs-hotfix/context_pack.md",
-      "sha256": "9b42f3e0d92ea457ee7786f57034be3e51420c2efb647540d8aca16da9dcdf0f",
-      "bytes": 1849
+      "sha256": "9111c8f58b72ec357c27635e7756c39cc957b9382f255a618a42c91be17810ef",
+      "bytes": 1920
     },
     {
       "path": "specs/2026-05-12-issue-272-273-v110-docs-hotfix/evidence_manifest.json",
-      "sha256": "ecb0eea40122794ca8f062212e022ba451f6d0a543b88db3d7c15e65a071e7f7",
-      "bytes": 161
+      "sha256": "7058cbc7c54f64a7bab66a86bcfaf8325a421de1032b00b7f8ebf187effcb8e5",
+      "bytes": 2161
     },
     {
       "path": "specs/2026-05-12-issue-272-273-v110-docs-hotfix/graph.json",
@@ -36,8 +36,8 @@
     },
     {
       "path": "specs/2026-05-12-issue-272-273-v110-docs-hotfix/pr_context.md",
-      "sha256": "e1e76c962383d63f7681aac0ea0f1ae47179b2639863545beb82c840af74c043",
-      "bytes": 4777
+      "sha256": "cb4324c202b4f62299738840f1bbbe8275daf80e7ecd13ef23ebc6259f2ab054",
+      "bytes": 4183
     },
     {
       "path": "specs/2026-05-12-issue-272-273-v110-docs-hotfix/spec.md",
@@ -51,8 +51,8 @@
     },
     {
       "path": "specs/2026-05-12-issue-272-273-v110-docs-hotfix/traceability.md",
-      "sha256": "d4f7cbc0b683792a43ac892b925ba993950d56d52fd3e0722da5d3bd38423389",
-      "bytes": 4207
+      "sha256": "6a8fdc862e1cba8b2dc658712d852c187071c883785d063879f342ebe687a175",
+      "bytes": 4291
     }
   ]
 }
