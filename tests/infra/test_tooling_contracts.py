@@ -1626,6 +1626,49 @@ render_optional_module_secret_manifests "messaging" "blueprint-rabbitmq-auth" "r
             contract_template_path.write_text(original_contract_template, encoding="utf-8")
             makefile_path.write_text(original_makefile, encoding="utf-8")
 
+    def test_optional_modules_not_enabled_by_default_in_blueprint_source(self) -> None:
+        """Optional infra modules MUST have enabled_by_default: false in the blueprint source contract.
+
+        Modules that should only be opt-in for consumers must not be silently flipped to true
+        by tooling side-effects (e.g. makefile render hooks). This guards against regressions
+        introduced by commit e5d4ac5 where the pre-push hook auto-flipped postgres and
+        public-endpoints to enabled_by_default: true, breaking test_infra_validate_renders_makefile.
+        """
+        contract_path = REPO_ROOT / "blueprint" / "contract.yaml"
+        contract_template_path = (
+            REPO_ROOT / "scripts" / "templates" / "blueprint" / "bootstrap" / "blueprint" / "contract.yaml"
+        )
+        opt_in_only_modules = [
+            "postgres",
+            "public-endpoints",
+            "neo4j",
+            "object-storage",
+            "rabbitmq",
+            "opensearch",
+            "dns",
+            "observability",
+            "workflows",
+            "langfuse",
+            "secrets-manager",
+            "kms",
+            "identity-aware-proxy",
+        ]
+        pattern = re.compile(
+            rf"(^\s{{6}}({'|'.join(re.escape(m) for m in opt_in_only_modules)}):\n(?:\s{{8}}.*\n)*?\s{{8}}enabled_by_default:\s*)(true|false)",
+            re.MULTILINE,
+        )
+        for label, path in [("contract", contract_path), ("template contract", contract_template_path)]:
+            text = path.read_text(encoding="utf-8")
+            for match in pattern.finditer(text):
+                module_name = match.group(2)
+                value = match.group(3)
+                self.assertEqual(
+                    value,
+                    "false",
+                    f"{label}: optional module '{module_name}' MUST have enabled_by_default: false "
+                    f"(found: true). Opt-in modules must not be auto-enabled.",
+                )
+
     def test_touchpoints_pnpm_lane_unsets_no_color_for_child_processes(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             touchpoints_root = Path(tmpdir) / "apps" / "touchpoints"
