@@ -46,7 +46,10 @@ Write `tests/infra/test_conflict_resolve_issue_265.py` with tests that FAIL agai
 - `test_upgrade_resolve_json_written`: assert `artifacts/blueprint/upgrade_resolve.json` exists and lists applied actions.
 - `test_resolve_is_idempotent`: run resolve twice; assert second run produces no changes and exits 0.
 - `test_resolve_exits_nonzero_if_triage_missing`: assert non-zero exit when triage JSON is absent.
-- `test_residual_table_sorted_and_truncated`: assert >20 `human_required` rows produce a truncation footer.
+- `test_residual_table_sorted_and_truncated_above_20`: assert >20 `human_required` rows produce a truncation footer.
+- `test_dry_run_makes_no_file_changes`: assert `--dry-run` flag produces no working-tree writes and no `.conflict.json` deletions (FR-012).
+- `test_accept_source_all_applies_human_required_rows`: assert `--accept-source ALL` applies all `human_required` rows with source content without prompting (FR-011).
+- `test_resolve_prints_action_per_row`: assert stdout contains one `upgrade-resolve: <action> <path>` line per applied row (NFR-OBS-001).
 
 ### Slice 4 (GREEN) — Resolve script, make target, docs
 Implement:

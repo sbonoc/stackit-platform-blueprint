@@ -23,13 +23,16 @@
 - [ ] T-006 Confirm all Slice 1 tests GREEN
 
 ## Slice 3 — RED: Resolve script failing tests
-- [ ] T-007 Write `tests/infra/test_conflict_resolve_issue_265.py` with 6 failing tests:
+- [ ] T-007 Write `tests/infra/test_conflict_resolve_issue_265.py` with 9 failing tests:
   - `test_take_source_rows_applied_to_working_tree`
   - `test_human_required_rows_not_touched`
   - `test_upgrade_resolve_json_written`
   - `test_resolve_is_idempotent`
   - `test_resolve_exits_nonzero_if_triage_missing`
   - `test_residual_table_sorted_and_truncated_above_20`
+  - `test_dry_run_makes_no_file_changes`
+  - `test_accept_source_all_applies_human_required_rows`
+  - `test_resolve_prints_action_per_row`
 
 ## Slice 4 — GREEN: Resolve script, make target, docs
 - [ ] T-008 Implement `scripts/lib/blueprint/upgrade_consumer_resolve.py`:
@@ -46,7 +49,7 @@
 
 ## Test Automation
 - [ ] T-101 `test_conflict_triage_issue_265.py` — 5 tests (Slice 1 RED, Slice 2 GREEN)
-- [ ] T-102 `test_conflict_resolve_issue_265.py` — 6 tests (Slice 3 RED, Slice 4 GREEN)
+- [ ] T-102 `test_conflict_resolve_issue_265.py` — 9 tests (Slice 3 RED, Slice 4 GREEN)
 - [ ] T-103 N/A — no HTTP filter/transform routes
 - [ ] T-104 N/A — all tests are new regression tests derived from issue evidence; no pre-PR smoke findings to translate
 - [ ] T-105 Schema validation: `jsonschema` validation of `upgrade_triage.json` against `upgrade_triage.schema.json` in test suite and at resolve-script startup

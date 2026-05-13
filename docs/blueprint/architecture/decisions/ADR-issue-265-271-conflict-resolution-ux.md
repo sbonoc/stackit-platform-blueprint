@@ -1,10 +1,10 @@
 # ADR: Issues #265 + #271 — Conflict Resolution UX: Triage Manifest and Auto-Resolve Target
 
-- **Status**: proposed
+- **Status**: approved
 - **Date**: 2026-05-13
 - **Issues**: #265, #271
 - **Work item**: `specs/2026-05-13-issue-265-271-conflict-resolution-ux/`
-- **ADR technical decision sign-off**: pending
+- **ADR technical decision sign-off**: approved
 
 ## Context
 

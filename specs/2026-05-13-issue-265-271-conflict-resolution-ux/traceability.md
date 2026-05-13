@@ -13,14 +13,14 @@
 | FR-007 | SDD-C-023 | N/A | architecture.md § Resolve context | `upgrade_consumer_resolve.py` apply loop | `test_conflict_resolve_issue_265.py: test_take_source_rows_applied_to_working_tree` | `upgrade_consumer_resolve.py` | `upgrade_resolve.json` artifact |
 | FR-008 | SDD-C-005 | N/A | architecture.md § High-Level Component Design | `upgrade_consumer_resolve.py` residual table print | `test_conflict_resolve_issue_265.py: test_residual_table_sorted_and_truncated_above_20` | `upgrade_consumer_pipeline.sh` usage | — |
 | FR-009 | SDD-C-004 | N/A | spec.md § AC-009 | `upgrade_consumer_resolve.py` sort + slice with footer | `test_conflict_resolve_issue_265.py: test_residual_table_sorted_and_truncated_above_20` | — | — |
-| FR-010 | SDD-C-004 | N/A | spec.md § FR-010 | `upgrade_consumer_resolve.py` `--interactive` branch | `test_conflict_resolve_issue_265.py` interactive path | `blueprint-consumer-upgrade/SKILL.md` | — |
-| FR-011 | SDD-C-004 | N/A | spec.md § FR-011 | `upgrade_consumer_resolve.py` `--accept-source`, `--accept-target` | `test_conflict_resolve_issue_265.py` | — | — |
-| FR-012 | SDD-C-004 | N/A | spec.md § FR-012 | `upgrade_consumer_resolve.py` `--dry-run` no-op path | `test_conflict_resolve_issue_265.py` | — | — |
+| FR-010 | SDD-C-004 | N/A | spec.md § FR-010 | `upgrade_consumer_resolve.py` `--interactive` branch | `test_conflict_resolve_issue_265.py: test_accept_source_all_applies_human_required_rows` (batch-mode proxy; full interactive requires stdin mock) | `blueprint-consumer-upgrade/SKILL.md` | — |
+| FR-011 | SDD-C-004 | N/A | spec.md § FR-011 | `upgrade_consumer_resolve.py` `--accept-source`, `--accept-target` | `test_conflict_resolve_issue_265.py: test_accept_source_all_applies_human_required_rows` | — | — |
+| FR-012 | SDD-C-004 | N/A | spec.md § FR-012 | `upgrade_consumer_resolve.py` `--dry-run` no-op path | `test_conflict_resolve_issue_265.py: test_dry_run_makes_no_file_changes` | — | — |
 | NFR-IDM-001 | SDD-C-023 | N/A | plan.md § Change Strategy | `upgrade_consumer_resolve.py` idempotency guard | `test_conflict_resolve_issue_265.py: test_resolve_is_idempotent` | — | — |
 | NFR-SCH-001 | SDD-C-019 | N/A | architecture.md § Schema layer | `upgrade_triage.schema.json` + resolve-script startup validation | `test_conflict_triage_issue_265.py: test_triage_json_schema_valid` | `upgrade_triage.schema.json` | — |
 | NFR-SEC-001 | SDD-C-007 | N/A | architecture.md § Security | `upgrade_consumer.py: _write_upgrade_triage()` diff-summaries-only | `test_conflict_triage_issue_265.py: test_triage_entries_contain_no_file_contents` | `spec.md` § NFR-SEC-001 | — |
 | NFR-REL-001 | SDD-C-023 | N/A | plan.md § Risks | `upgrade_consumer_resolve.py` startup triage validation | `test_conflict_resolve_issue_265.py: test_resolve_exits_nonzero_if_triage_missing` | — | — |
-| NFR-OBS-001 | SDD-C-011 | N/A | plan.md § Operational Readiness | `upgrade_consumer_resolve.py` `print(f"upgrade-resolve: ...")` | `test_conflict_resolve_issue_265.py` stdout capture | — | `upgrade_resolve.json` |
+| NFR-OBS-001 | SDD-C-011 | N/A | plan.md § Operational Readiness | `upgrade_consumer_resolve.py` `print(f"upgrade-resolve: ...")` | `test_conflict_resolve_issue_265.py: test_resolve_prints_action_per_row` | — | `upgrade_resolve.json` |
 | NFR-A11Y-001 | — | N/A | spec.md | N/A — CLI tool, no UI surface | N/A | spec.md § NFR-A11Y-001 | — |
 | NFR-OPS-001 | — | N/A | spec.md | N/A — offline tooling | N/A | spec.md § NFR-OPS-001 | — |
 | AC-001 | SDD-C-023 | N/A | FR-001 | `upgrade_consumer.py: _write_upgrade_triage()` | `test_conflict_triage_issue_265.py: test_triage_json_schema_valid` | — | — |
