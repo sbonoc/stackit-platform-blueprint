@@ -1,24 +1,24 @@
 # Tasks
 
 ## Gate Checks (Required Before Implementation)
-- [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`
-- [ ] G-002 Confirm open questions and unresolved alternatives are `0`
-- [ ] G-003 Confirm required sign-offs are approved
-- [ ] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
-- [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
+- [x] G-001 Confirm `SPEC_READY=true` in `spec.md`
+- [x] G-002 Confirm open questions and unresolved alternatives are `0`
+- [x] G-003 Confirm required sign-offs are approved
+- [x] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
+- [x] G-005 Confirm `Implementation Stack Profile` section is fully populated
 
 ## Implementation — Slice 1 (RED)
 
-- [ ] T-001 Add `test_opensearch_seed_values_allow_insecure_images` to `OpenSearchLocalHelmChartTests` in `tests/infra/modules/opensearch/test_opensearch_module.py` — assert `parsed["global"]["security"]["allowInsecureImages"] is True` (expected: FAIL before YAML fix)
-- [ ] T-002 Add `test_opensearch_seed_values_sysctl_image_disabled` to `OpenSearchLocalHelmChartTests` in `tests/infra/modules/opensearch/test_opensearch_module.py` — assert `parsed["sysctlImage"]["enabled"] is False` (expected: FAIL before YAML fix)
-- [ ] T-003 Run `uv run python3 -m pytest tests/infra/modules/opensearch/test_opensearch_module.py -v` — confirm 2 new FAIL, all pre-existing GREEN
+- [x] T-001 Add `test_opensearch_seed_values_allow_insecure_images` to `OpenSearchLocalHelmChartTests` in `tests/infra/modules/opensearch/test_opensearch_module.py` — assert `parsed["global"]["security"]["allowInsecureImages"] is True` (expected: FAIL before YAML fix)
+- [x] T-002 Add `test_opensearch_seed_values_sysctl_image_disabled` to `OpenSearchLocalHelmChartTests` in `tests/infra/modules/opensearch/test_opensearch_module.py` — assert `parsed["sysctlImage"]["enabled"] is False` (expected: FAIL before YAML fix)
+- [x] T-003 Run `uv run python3 -m pytest tests/infra/modules/opensearch/test_opensearch_module.py -v` — confirm 2 new FAIL, all pre-existing GREEN
 
 ## Implementation — Slice 2 (GREEN)
 
-- [ ] T-004 Add `global.security.allowInsecureImages: true` and `sysctlImage.enabled: false` to `scripts/templates/infra/bootstrap/infra/local/helm/opensearch/values.yaml`
-- [ ] T-005 Add same keys to `infra/local/helm/opensearch/values.yaml`
-- [ ] T-006 Add same keys to `artifacts/infra/rendered/opensearch.values.yaml`
-- [ ] T-007 Run `uv run python3 -m pytest tests/infra/modules/opensearch/test_opensearch_module.py -v` — confirm all tests GREEN
+- [x] T-004 Add `global.security.allowInsecureImages: true` and `sysctlImage.enabled: false` to `scripts/templates/infra/bootstrap/infra/local/helm/opensearch/values.yaml`
+- [x] T-005 Add same keys to `infra/local/helm/opensearch/values.yaml`
+- [x] T-006 Add same keys to `artifacts/infra/rendered/opensearch.values.yaml`
+- [x] T-007 Run `uv run python3 -m pytest tests/infra/modules/opensearch/test_opensearch_module.py -v` — confirm all tests GREEN (47/47 passed)
 
 ## Accessibility Testing (Normative — N/A)
 - [x] T-A01 N/A — infrastructure-only work item; no UI components (NFR-A11Y-001)
