@@ -1,14 +1,14 @@
 # Tasks
 
 ## Gate Checks (Required Before Implementation)
-- [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`
-- [ ] G-002 Confirm open questions and unresolved alternatives are `0`
-- [ ] G-003 Confirm required sign-offs are approved
-- [ ] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
-- [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
+- [x] G-001 Confirm `SPEC_READY=true` in `spec.md`
+- [x] G-002 Confirm open questions and unresolved alternatives are `0`
+- [x] G-003 Confirm required sign-offs are approved
+- [x] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
+- [x] G-005 Confirm `Implementation Stack Profile` section is fully populated
 
 ## Slice 1 — RED: Triage JSON failing tests
-- [ ] T-001 Write `tests/infra/test_conflict_triage_issue_265.py` with 5 failing tests:
+- [x] T-001 Write `tests/infra/test_conflict_triage_issue_265.py` with 5 failing tests:
   - `test_recommended_action_blueprint_managed_root_is_take_source`
   - `test_recommended_action_blueprint_managed_catch_all_is_human_required`
   - `test_triage_excludes_contract_yaml`
@@ -16,11 +16,11 @@
   - `test_triage_json_schema_valid`
 
 ## Slice 2 — GREEN: Engine triage emission
-- [ ] T-002 Implement `_recommended_action(ownership_class: str) -> str` in `upgrade_consumer.py`
-- [ ] T-003 Implement `_write_upgrade_triage(...)` in `upgrade_consumer.py` (reads diff summaries from `.conflict.json` via difflib; excludes `blueprint/contract.yaml`; writes `artifacts/blueprint/upgrade_triage.json`)
-- [ ] T-004 Call `_write_upgrade_triage` at end of `_run_apply()` when `conflict_count > 0`
-- [ ] T-005 Add `scripts/lib/blueprint/schemas/upgrade_triage.schema.json` (JSON Schema draft-07; `schema_version`, `conflicts[]` with required fields, `recommended_action` enum, `ownership_class` enum)
-- [ ] T-006 Confirm all Slice 1 tests GREEN
+- [x] T-002 Implement `_recommended_action(ownership_class: str) -> str` in `upgrade_consumer.py`
+- [x] T-003 Implement `_write_upgrade_triage(...)` in `upgrade_consumer.py` (reads diff summaries from `.conflict.json` via difflib; excludes `blueprint/contract.yaml`; writes `artifacts/blueprint/upgrade_triage.json`)
+- [x] T-004 Call `_write_upgrade_triage` at end of `_run_apply()` when `conflict_count > 0`
+- [x] T-005 Add `scripts/lib/blueprint/schemas/upgrade_triage.schema.json` (JSON Schema draft-07; `schema_version`, `conflicts[]` with required fields, `recommended_action` enum, `ownership_class` enum)
+- [x] T-006 Confirm all Slice 1 tests GREEN
 
 ## Slice 3 — RED: Resolve script failing tests
 - [ ] T-007 Write `tests/infra/test_conflict_resolve_issue_265.py` with 9 failing tests:
