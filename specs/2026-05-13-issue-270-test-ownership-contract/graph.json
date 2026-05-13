@@ -96,6 +96,7 @@
     { "from": "FR-005", "to": "AC-004", "relation": "validated_by" },
     { "from": "FR-006", "to": "AC-002", "relation": "validated_by" },
     { "from": "NFR-REL-001", "to": "AC-003", "relation": "constrains" },
-    { "from": "NFR-OPS-001", "to": "AC-006", "relation": "constrains" }
+    { "from": "NFR-OPS-001", "to": "AC-006", "relation": "constrains" },
+    { "from": "NFR-A11Y-001", "to": "FR-001", "relation": "not_applicable" }
   ]
 }

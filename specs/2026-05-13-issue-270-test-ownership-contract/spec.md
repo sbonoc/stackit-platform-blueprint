@@ -5,11 +5,11 @@
      SPEC_READY=true: implementation gate — all sign-offs required; unlocks coding. -->
 - SPEC_READY: false
 - SPEC_PRODUCT_READY: false
-- Open questions count: 1
-- Unresolved alternatives count: 1
+- Open questions count: 0
+- Unresolved alternatives count: 0
 - Unresolved TODO markers count: 0
 - Pending assumptions count: 0
-- Open clarification markers count: 1
+- Open clarification markers count: 0
 - Product sign-off: pending
 - Architecture sign-off: pending
 - Security sign-off: pending
@@ -87,15 +87,9 @@
 
 - AC-006: `make quality-hooks-fast` passes with zero violations.
 
-## Open Questions
+## Resolved Questions
 
-> **[NEEDS CLARIFICATION]** Q-1: Should mixed files be split (Option 1 extended) or should a new `source_only` override per-file be introduced in `contract.yaml` to avoid splitting (Option 2)?
->
-> **Options:**
-> - **A) Split mixed files** — Extract blueprint-author classes to `tests/blueprint/`, leave consumer-runtime classes in `tests/infra/`. No new contract field. Taxonomy is immediately clear. Requires auditing and splitting each mixed file. (agent recommendation)
-> - **B) Per-file source_only override** — Add a list under `ownership_path_classes.source_only` for the specific mixed-file paths, and remove them from `required_seed_files`. Avoids file splitting but leaves blueprint-author classes in `tests/infra/` — taxonomy remains ambiguous for maintainers.
->
-> **Agent recommendation:** Option A (split). The split is a one-time cost and produces a permanently clean taxonomy. Option B postpones the problem and leaves blueprint-author test classes in a directory whose name implies consumer-runtime scope. The issue author also marks Option 1 (full relocation) as preferred.
+- Q-1 (resolved 2026-05-13): **Option A — Split mixed files.** Blueprint-author classes extracted to `tests/blueprint/`, consumer-runtime classes stay in `tests/infra/`. No new contract field needed; the existing `source_only` classification on `tests/blueprint/` provides the correct delivery model. Decision by sbonoc PR #290 comment.
 
 ## Blueprint Upstream Defect Escalation (Normative)
 - Upstream issue URL: none — this work item IS the upstream blueprint fix for issue #270
@@ -106,4 +100,4 @@
 ## Informative Notes (Non-Normative)
 - Context: Issue #270 documents false-positive failures in consumer CI caused by the upgrade resolver 3-way-merging `tests/infra/` blueprint-author test files into consumer repos. Evidence from sbonoc/dhe-marketplace v1.7.0 → v1.10.0 upgrade (PR #62): 19 false-positive test failures. `tests/blueprint/` is already classified `source_only` in `ownership_path_classes` — files there are never written to consumer repos.
 - Tradeoffs: Splitting mixed files is a one-time authoring cost; benefit is a permanently unambiguous taxonomy enforced by the FR-005 contract assertion.
-- Clarifications: Q-1 (split vs per-file source_only override) is the only open question; all other scope is settled.
+- Clarifications: Q-1 resolved 2026-05-13 — split mixed files (Option A). No remaining open questions.
