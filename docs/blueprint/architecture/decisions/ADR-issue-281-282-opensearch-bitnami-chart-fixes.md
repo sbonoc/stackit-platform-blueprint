@@ -1,7 +1,8 @@
 # ADR: OpenSearch Bitnami Chart 1.6.x Breaking Changes — Local Dev Fixes
 
-- Status: proposed
+- Status: approved
 - Date: 2026-05-13
+- ADR technical decision sign-off: approved
 - Work item: `specs/2026-05-13-issue-281-282-opensearch-bitnami-chart-fixes/`
 - Issues: #281, #282
 
