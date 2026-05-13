@@ -1,0 +1,102 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-05-13-issue-270-test-ownership-contract",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "Audit all required_seed_files tests/infra/ files and classify each as blueprint-author, consumer-runtime, or mixed"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "Entirely blueprint-author files MUST be moved to tests/blueprint/ and removed from required_seed_files"
+    },
+    {
+      "id": "FR-003",
+      "type": "requirement",
+      "summary": "Mixed files MUST be split: blueprint-author classes to tests/blueprint/, consumer-runtime classes stay in tests/infra/"
+    },
+    {
+      "id": "FR-004",
+      "type": "requirement",
+      "summary": "blueprint/contract.yaml required_seed_files MUST be updated to remove fully-relocated paths"
+    },
+    {
+      "id": "FR-005",
+      "type": "requirement",
+      "summary": "Contract assertion MUST verify no required_seed_files test imports blueprint/modules/ content"
+    },
+    {
+      "id": "FR-006",
+      "type": "requirement",
+      "summary": "All relocated test classes MUST pass in template-source pytest run after relocation"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "No consumer-runtime test class currently in tests/infra/ MUST be removed or broken"
+    },
+    {
+      "id": "NFR-REL-002",
+      "type": "requirement",
+      "summary": "required_seed_files count MUST shrink as a result of this change"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "Taxonomy rule MUST be documented in docs/blueprint/governance/"
+    },
+    {
+      "id": "NFR-A11Y-001",
+      "type": "requirement",
+      "summary": "N/A — blueprint tooling only; no UI components"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "All test classes asserting against blueprint/modules/ live under tests/blueprint/ after change"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "pytest tests/blueprint/ passes with all relocated classes green"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "pytest tests/infra/ passes; no consumer-runtime classes missing"
+    },
+    {
+      "id": "AC-004",
+      "type": "acceptance",
+      "summary": "Contract assertion test_required_seed_files_contain_no_blueprint_module_refs is green"
+    },
+    {
+      "id": "AC-005",
+      "type": "acceptance",
+      "summary": "make infra-validate passes after required_seed_files update"
+    },
+    {
+      "id": "AC-006",
+      "type": "acceptance",
+      "summary": "make quality-hooks-fast passes with zero violations"
+    }
+  ],
+  "edges": [
+    { "from": "FR-001", "to": "FR-002", "relation": "enables" },
+    { "from": "FR-001", "to": "FR-003", "relation": "enables" },
+    { "from": "FR-002", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-002", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-002", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-003", "relation": "validated_by" },
+    { "from": "FR-004", "to": "AC-005", "relation": "validated_by" },
+    { "from": "FR-004", "to": "NFR-REL-002", "relation": "satisfies" },
+    { "from": "FR-005", "to": "AC-004", "relation": "validated_by" },
+    { "from": "FR-006", "to": "AC-002", "relation": "validated_by" },
+    { "from": "NFR-REL-001", "to": "AC-003", "relation": "constrains" },
+    { "from": "NFR-OPS-001", "to": "AC-006", "relation": "constrains" },
+    { "from": "NFR-A11Y-001", "to": "FR-001", "relation": "not_applicable" }
+  ]
+}

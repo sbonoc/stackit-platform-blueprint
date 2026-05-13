@@ -35,11 +35,11 @@ base_tests=(
   "tests/infra/test_runtime_identity_contract_cli.py"
   "tests/infra/test_argocd_repo_contract_cli.py"
   "tests/infra/test_state_artifact_contract.py"
-  "tests/infra/test_root_dir_resolution.py"
-  "tests/infra/test_optional_module_required_env_contract.py"
   "tests/infra/test_tooling_contracts.py"
 )
 template_source_only_tests=(
+  "tests/blueprint/test_root_dir_resolution.py"
+  "tests/blueprint/test_optional_module_required_env_contract.py"
   "tests/blueprint/test_upgrade_fixture_matrix.py"
   "tests/blueprint/test_template_smoke_assertions.py"
   "tests/infra/test_sdd_asset_checker.py"

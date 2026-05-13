@@ -1,0 +1,58 @@
+{
+  "manifest_version": 1,
+  "work_item": "specs/2026-05-13-issue-270-test-ownership-contract",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-05-13T20:51:04Z",
+  "files": [
+    {
+      "path": "specs/2026-05-13-issue-270-test-ownership-contract/architecture.md",
+      "sha256": "39e252e30f4b2e756b50171fc5af4d97da0a9555dd4e2b58469bfe970a7e8a73",
+      "bytes": 6480
+    },
+    {
+      "path": "specs/2026-05-13-issue-270-test-ownership-contract/context_pack.md",
+      "sha256": "d6a81e4deebe649cc7ed829bebdd0314460e5bc67e96397d83ef22f5d8811e23",
+      "bytes": 890
+    },
+    {
+      "path": "specs/2026-05-13-issue-270-test-ownership-contract/evidence_manifest.json",
+      "sha256": "ecb0eea40122794ca8f062212e022ba451f6d0a543b88db3d7c15e65a071e7f7",
+      "bytes": 161
+    },
+    {
+      "path": "specs/2026-05-13-issue-270-test-ownership-contract/graph.json",
+      "sha256": "e523a62a64db02a629e3735b1fd5d473283fe275475976e7ac0b442553273e58",
+      "bytes": 3739
+    },
+    {
+      "path": "specs/2026-05-13-issue-270-test-ownership-contract/hardening_review.md",
+      "sha256": "1e5f38425b7d64a42d7d6e9b6b390771ef7c073d9660f223a898ff6ed545851c",
+      "bytes": 2015
+    },
+    {
+      "path": "specs/2026-05-13-issue-270-test-ownership-contract/plan.md",
+      "sha256": "0f60d4ecde5d8f6a5fc3ee324bb7f712e924eea793efaf2bfe819f7a4ee4b888",
+      "bytes": 4050
+    },
+    {
+      "path": "specs/2026-05-13-issue-270-test-ownership-contract/pr_context.md",
+      "sha256": "675a7f9a1e43c795f6abe86a0a8f6983d5e19d68413728613068709e5ddf30f8",
+      "bytes": 4318
+    },
+    {
+      "path": "specs/2026-05-13-issue-270-test-ownership-contract/spec.md",
+      "sha256": "c2d4f64656fe6f82f927fb999d0dbe56ff262e84d33cd0289fe285d8ddc4407f",
+      "bytes": 8210
+    },
+    {
+      "path": "specs/2026-05-13-issue-270-test-ownership-contract/tasks.md",
+      "sha256": "2fd0c21fffaf8cd41f50efcbd74174272362964b056509e798e166effe0ee921",
+      "bytes": 3961
+    },
+    {
+      "path": "specs/2026-05-13-issue-270-test-ownership-contract/traceability.md",
+      "sha256": "fb296f742a58784da292e2193c36f612b83a0d5c41502fa99ab3d07e9c044cc7",
+      "bytes": 4696
+    }
+  ]
+}

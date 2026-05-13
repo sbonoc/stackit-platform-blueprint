@@ -9,6 +9,8 @@ import sys
 import tempfile
 import unittest
 
+import yaml
+
 from scripts.lib.blueprint.contract_schema import load_blueprint_contract
 from tests._shared.helpers import REPO_ROOT, run
 
@@ -1805,6 +1807,43 @@ class QualityContractsTests(unittest.TestCase):
             content,
             "blueprint.generated.mk.tmpl must declare quality-validate-bootstrap-template-drift target "
             "(issue #286: target is invoked by the commit-stage pre-commit hook)",
+        )
+
+
+_BLUEPRINT_AUTHOR_MARKERS = (
+    "blueprint/modules/",
+    "scripts/lib/blueprint/",
+    "scripts/bin/blueprint/",
+)
+
+
+class OwnershipContractTests(unittest.TestCase):
+    """FR-005 — no required_files test in tests/infra/ may reference blueprint-author paths."""
+
+    def test_required_seed_files_contain_no_blueprint_module_refs(self) -> None:
+        contract = yaml.safe_load(_read("blueprint/contract.yaml"))
+        required_files: list[str] = (
+            contract.get("spec", {}).get("repository", {}).get("required_files", [])
+        )
+        infra_test_files = [
+            p for p in required_files
+            if p.startswith("tests/infra/test_") and p.endswith(".py")
+        ]
+        violations: list[str] = []
+        for rel_path in infra_test_files:
+            path = REPO_ROOT / rel_path
+            if path.is_file():
+                content = path.read_text(encoding="utf-8")
+                if any(marker in content for marker in _BLUEPRINT_AUTHOR_MARKERS):
+                    violations.append(rel_path)
+        self.assertFalse(
+            violations,
+            msg=(
+                "The following files in required_files reference blueprint-author paths "
+                f"({', '.join(_BLUEPRINT_AUTHOR_MARKERS)}) "
+                "and must be relocated to tests/blueprint/ (issue #270):\n  "
+                + "\n  ".join(violations)
+            ),
         )
 
 
