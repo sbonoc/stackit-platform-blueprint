@@ -61,6 +61,15 @@ The Bitnami chart's defaults deploy 8 pods (master×2 + data×2 + ingest×2 + co
 
 Total local memory limit: 1 Gi (master) + 512 Mi (coordinating) ≈ 1.5 Gi.
 
+### Bitnami chart 1.6.x compatibility
+
+Bitnami chart 1.6.x introduced two breaking changes that require explicit values overrides:
+
+- `global.security.allowInsecureImages: true` — chart 1.6.x rejects `bitnamilegacy/` repository images unless this flag is set; without it the chart template renders an admission error before any pod is scheduled.
+- `sysctlImage.enabled: false` — the `bitnami/os-shell` init container tag referenced by chart 1.6.x was removed from Docker Hub; the container cannot be pulled and pod startup fails. Disabling the sysctl init container is safe for local dev (the `vm.max_map_count` kernel parameter is already set by Docker Desktop on both amd64 and arm64 hosts).
+
+Both values are set in `infra/local/helm/opensearch/values.yaml` (seed file) and the consumer template at `scripts/templates/infra/bootstrap/infra/local/helm/opensearch/values.yaml`. They pass through `opensearch_render_values_file()` unchanged and appear in the generated `artifacts/infra/rendered/opensearch.values.yaml` at runtime.
+
 ## STACKIT lane
 
 ```bash

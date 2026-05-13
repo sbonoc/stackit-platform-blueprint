@@ -24,16 +24,16 @@
 - [x] T-A01 N/A — infrastructure-only work item; no UI components (NFR-A11Y-001)
 
 ## Validation and Release Readiness
-- [ ] T-201 Run `make quality-hooks-fast` — confirm zero violations
-- [ ] T-202 Run `make infra-validate` — confirm no contract violations
-- [ ] T-203 Review `docs/platform/modules/opensearch/README.md` and `scripts/templates/blueprint/bootstrap/docs/platform/modules/opensearch/README.md` for chart version compatibility note — add if absent
-- [ ] T-204 Run `make docs-build` and `make docs-smoke` — confirm no docs build failures
-- [ ] T-205 Run `make quality-hardening-review` — complete hardening review
+- [x] T-201 Run `make quality-hooks-fast` — confirm zero violations
+- [x] T-202 Run `make infra-validate` — confirm no contract violations
+- [x] T-203 Review `docs/platform/modules/opensearch/README.md` and `scripts/templates/blueprint/bootstrap/docs/platform/modules/opensearch/README.md` for chart version compatibility note — add if absent
+- [x] T-204 Run `make docs-build` and `make docs-smoke` — confirm no docs build failures
+- [x] T-205 Run `make quality-hardening-review` — complete hardening review
 
 ## Publish
-- [ ] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
-- [ ] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
-- [ ] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
+- [x] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
+- [x] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
+- [x] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
 
 ## App Onboarding Minimum Targets (Normative)
 - [x] A-001 `apps-bootstrap` and `apps-smoke` — N/A: no app delivery workflow scope (no-impact; targets pre-existing and unaffected)
