@@ -30,23 +30,23 @@
 - [x] T-105 Run `make infra-contract-test-fast` — confirm 0 new failures
 
 ## Accessibility Testing (Normative — N/A for this work item)
-- [ ] T-A01 NFR-A11Y-001 declared as N/A in spec.md — CLI tool with no browser-rendered UI surface
+- [x] T-A01 NFR-A11Y-001 declared as N/A in spec.md — CLI tool with no browser-rendered UI surface
 - [x] T-A02 N/A — no browser-rendered UI surface
 - [x] T-A03 N/A — no browser-rendered UI surface
 - [x] T-A04 N/A — no browser-rendered UI surface
 - [x] T-A05 N/A — no browser-rendered UI surface
 
 ## Validation and Release Readiness
-- [ ] T-201 Run `make infra-contract-test-fast` and `make quality-hooks-fast` — confirm all pass
-- [ ] T-202 Attach evidence to traceability document
-- [ ] T-203 Confirm no stale TODOs/dead code/drift in modified files
-- [ ] T-204 Run documentation validation (`make docs-build` and `make docs-smoke`)
-- [ ] T-205 Run hardening review validation bundle (`make quality-hardening-review`)
+- [x] T-201 Run `make infra-contract-test-fast` and `make quality-hooks-fast` — confirm all pass
+- [x] T-202 Attach evidence to traceability document
+- [x] T-203 Confirm no stale TODOs/dead code/drift in modified files
+- [x] T-204 Run documentation validation (`make docs-build` and `make docs-smoke`)
+- [x] T-205 Run hardening review validation bundle (`make quality-hardening-review`)
 
 ## Publish
-- [ ] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
-- [ ] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
-- [ ] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
+- [x] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
+- [x] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
+- [x] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
 
 ## App Onboarding Minimum Targets (Normative — N/A for this work item)
 - [x] A-001 `apps-bootstrap` and `apps-smoke` — N/A; no app delivery scope; targets unchanged

@@ -1,7 +1,58 @@
 {
   "manifest_version": 1,
-  "work_item": "<YYYY-MM-DD>-<work-item-slug>",
+  "work_item": "specs/2026-05-13-issue-267-269-pipeline-finalize-auto-clone",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "",
-  "files": []
+  "generated_at_utc": "2026-05-13T13:36:26Z",
+  "files": [
+    {
+      "path": "specs/2026-05-13-issue-267-269-pipeline-finalize-auto-clone/architecture.md",
+      "sha256": "f40496489b72ee5d75ed33beef0b1a84a0a4b857b63147b46f6f722b7d1444b0",
+      "bytes": 7278
+    },
+    {
+      "path": "specs/2026-05-13-issue-267-269-pipeline-finalize-auto-clone/context_pack.md",
+      "sha256": "a2e7ac4585e1931b95c51f0a1ec3fec360ae858841c6ab358d9176f38acb09cf",
+      "bytes": 919
+    },
+    {
+      "path": "specs/2026-05-13-issue-267-269-pipeline-finalize-auto-clone/evidence_manifest.json",
+      "sha256": "ecb0eea40122794ca8f062212e022ba451f6d0a543b88db3d7c15e65a071e7f7",
+      "bytes": 161
+    },
+    {
+      "path": "specs/2026-05-13-issue-267-269-pipeline-finalize-auto-clone/graph.json",
+      "sha256": "da16a779e7290df7b3abcf62134253df66c6c8e1b212e4f4a7845e256daae444",
+      "bytes": 5080
+    },
+    {
+      "path": "specs/2026-05-13-issue-267-269-pipeline-finalize-auto-clone/hardening_review.md",
+      "sha256": "9f0e41be159269a71419a05ee4772304ac9d5a2ded2d06736e4310a0751e3fa4",
+      "bytes": 5004
+    },
+    {
+      "path": "specs/2026-05-13-issue-267-269-pipeline-finalize-auto-clone/plan.md",
+      "sha256": "0cef2ac4c285be81db9f3578e87501b41751379923cceba6bbe05a13bd03518a",
+      "bytes": 8983
+    },
+    {
+      "path": "specs/2026-05-13-issue-267-269-pipeline-finalize-auto-clone/pr_context.md",
+      "sha256": "d80ddb30474ef2ea2d9af580b08764fe931a7ffb38077fbc15d0d936fa08b1fa",
+      "bytes": 10903
+    },
+    {
+      "path": "specs/2026-05-13-issue-267-269-pipeline-finalize-auto-clone/spec.md",
+      "sha256": "e595a20c73eee3ee7e9799ca05e1215681a0b2b41db77c5b79bfc8d5ee3c85e4",
+      "bytes": 11684
+    },
+    {
+      "path": "specs/2026-05-13-issue-267-269-pipeline-finalize-auto-clone/tasks.md",
+      "sha256": "b6adc44eb1dca016c04889da5ca44838294bccdab1731d359bf3598fafcb65f3",
+      "bytes": 4433
+    },
+    {
+      "path": "specs/2026-05-13-issue-267-269-pipeline-finalize-auto-clone/traceability.md",
+      "sha256": "c61bfd3a2955d266f27e4d43433fb5f7f010bde0160ecc1ef6d7e16d776f9c05",
+      "bytes": 7326
+    }
+  ]
 }

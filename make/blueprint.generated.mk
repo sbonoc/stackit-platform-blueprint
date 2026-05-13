@@ -20,8 +20,7 @@ SHELL := /bin/bash
   touchpoints-test-unit touchpoints-test-integration touchpoints-test-contracts touchpoints-test-e2e \
   test-unit-all test-integration-all test-contracts-all test-e2e-all-local test-e2e-all-local-full test-e2e-all-local-execute \
   auth-reconcile-eso-runtime-secrets auth-reconcile-argocd-repo-credentials auth-reconcile-runtime-identity \
-  docs-install docs-run docs-build docs-smoke \
-  infra-stackit-workflows-plan infra-stackit-workflows-apply infra-stackit-workflows-reconcile infra-stackit-workflows-dag-deploy infra-stackit-workflows-dag-parse-smoke infra-stackit-workflows-smoke infra-stackit-workflows-destroy
+  docs-install docs-run docs-build docs-smoke
 
 help: ## Show targets
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z0-9_.-]+:.*## / {printf "%-50s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -390,8 +389,7 @@ INFRA_ENV_GUARDED_TARGETS := \
 	infra-stackit-foundation-fetch-kubeconfig infra-stackit-foundation-refresh-kubeconfig infra-stackit-foundation-seed-runtime-secret \
 	infra-stackit-ci-github-setup infra-stackit-destroy-all infra-runtime-inventory infra-local-runtime-inventory infra-stackit-runtime-prerequisites infra-stackit-runtime-inventory infra-stackit-runtime-deploy \
 	infra-stackit-smoke-foundation infra-stackit-smoke-runtime infra-stackit-provision-deploy infra-argocd-topology-render infra-argocd-topology-validate \
-	infra-doctor infra-context infra-status infra-status-json infra-audit-version infra-audit-version-cached \
-  infra-stackit-workflows-plan infra-stackit-workflows-apply infra-stackit-workflows-reconcile infra-stackit-workflows-dag-deploy infra-stackit-workflows-dag-parse-smoke infra-stackit-workflows-smoke infra-stackit-workflows-destroy
+	infra-doctor infra-context infra-status infra-status-json infra-audit-version infra-audit-version-cached
 
 $(INFRA_ENV_GUARDED_TARGETS): blueprint-check-placeholders
 
@@ -519,25 +517,3 @@ docs-build: ## Build docs site
 
 docs-smoke: ## Smoke docs site output
 	@scripts/bin/docs/smoke.sh
-
-
-infra-stackit-workflows-plan: ## Plan Workflows resources
-	@scripts/bin/infra/stackit_workflows_plan.sh
-
-infra-stackit-workflows-apply: ## Apply Workflows resources
-	@scripts/bin/infra/stackit_workflows_apply.sh
-
-infra-stackit-workflows-reconcile: ## Reconcile existing/desired Workflows state
-	@scripts/bin/infra/stackit_workflows_reconcile.sh
-
-infra-stackit-workflows-dag-deploy: ## Deploy DAGs to managed Airflow
-	@scripts/bin/infra/stackit_workflows_dag_deploy.sh
-
-infra-stackit-workflows-dag-parse-smoke: ## DAG import/parse smoke
-	@scripts/bin/infra/stackit_workflows_dag_parse_smoke.sh
-
-infra-stackit-workflows-smoke: ## Workflows runtime smoke
-	@scripts/bin/infra/stackit_workflows_smoke.sh
-
-infra-stackit-workflows-destroy: ## Destroy Workflows resources
-	@scripts/bin/infra/stackit_workflows_destroy.sh

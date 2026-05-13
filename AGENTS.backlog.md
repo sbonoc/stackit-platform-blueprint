@@ -91,7 +91,7 @@ To introduce a new tag, append a row here in the same commit that uses it.
 
 ### Consumer upgrade flow improvements
 
-The items below form a layered programme: #166 and #169 ship first (#160 already done); #162 and #163 run inside the CI job introduced by #169; #164 and #165 improve the reporting layer once the correctness foundation is solid; #167 and #168 deliver the best long-term consumer experience on top of a proven baseline.
+Phases 1–3 and all correctness and hotfix work are complete. Remaining open items in recommended execution order: **#184** (extensible symbol exclusion, quick win) → **#270** (test ownership contract, unblocks Option B source-exists inference) → **#268** (versioned workarounds catalogue) → **#183** (stale reconcile report) → **#167** (dry run mode) → **#168** (incremental upgrade, most complex, last in sequence).
 
 #### Phase 1 — Foundation and quick wins (parallel)
 
@@ -124,8 +124,13 @@ Four independent tracks; all P1, can be started in parallel.
       trigger: on-scope: blueprint
       rationale: variable-name grep covers the common case; value scanning is a deeper semantic problem (false positives, multi-format strings) — surfaces naturally when template scanning scope is next touched
 - [x] P2 (Consumer upgrade flow): Issue #165 — enrich merge-required plan entries with semantic annotations describing what changed in each file and what the consumer should verify after applying the merge. **Done**: `specs/2026-04-23-issue-165-semantic-annotations/`
-- [ ] P2 (Consumer upgrade flow): Issue #183 — `upgrade_consumer_postcheck`: detect when the reconcile report on disk was generated against a different source/target tag pair than the current run and auto-rebuild it rather than silently operating on stale data. *(parked: deterministic pipeline always regenerates the reconcile report in the same run; standalone postcheck usage is the remaining risk surface — trigger: triage: next-session)*
 - [ ] P2 (Consumer upgrade flow): Issue #184 — `upgrade_shell_behavioral_check`: make the symbol exclusion set extensible via consumer configuration (e.g. `BEHAVIORAL_CHECK_EXCLUDED_TOKENS` in `versions.sh` or a dedicated config file) so consumers can suppress project-specific false positives without patching blueprint code. Follow-on to #181.
+- [ ] P2 (Consumer upgrade flow): Issue #183 — `upgrade_consumer_postcheck`: detect when the reconcile report on disk was generated against a different source/target tag pair than the current run and auto-rebuild it rather than silently operating on stale data. *(parked: deterministic pipeline always regenerates the reconcile report in the same run; standalone postcheck usage is the remaining risk surface — trigger: triage: next-session)*
+
+#### Contract and skill additions (P2, two standalone PRs)
+
+- [ ] P2 (Blueprint contract): Issue #270 — **test ownership contract**: introduce an explicit consumer-vs-blueprint ownership marker for test files under `tests/infra/` so the upgrade resolver never overwrites consumer-owned tests during Stage 2 apply. Standalone PR.
+- [ ] P2 (Blueprint skills): Issue #268 — **versioned consumer-side workarounds catalogue**: ship a per-release workarounds manifest in the blueprint; `blueprint-consumer-upgrade` skill applies the relevant workarounds automatically by version so every consumer does not have to rediscover and hand-apply the same fixes. Standalone PR.
 
 #### Phase 4 — Major UX improvements (build on the stable correctness foundation)
 
@@ -200,14 +205,18 @@ Reported by consumer sbonoc/dhe-marketplace from their v1.7.0→v1.8.0 upgrade e
 - [x] (rejected) proposal(issue-265-271-conflict-resolution-ux): Interactive TUI (ncurses/lazygit-style conflict resolver) — rejected: heavy external dependency, not portable across consumer environments; residual table is typically under 10 rows; explicitly rejected in ADR at design time
 - [x] (rejected) proposal(issue-265-271-conflict-resolution-ux): HTML conflict report — rejected: browser context-switch adds friction for a small residual table; CLI display is sufficient; explicitly rejected in ADR at design time
 
-#### Pipeline feature additions (P2, one PR)
+#### Pipeline feature additions — Done (P2, PR #285)
 
-- [ ] P2 (Consumer upgrade flow): Issues #267 + #269 — **pipeline features**: (1) #267: add a new `blueprint-upgrade-consumer-finalize` target as the canonical post-apply quality cycle — runs Stage 3 contract resolve, postcheck, and fresh-env-gate in the correct order, replacing the implicit sequence consumers must currently discover and run by hand; (2) #269: at pipeline start, auto-clone `BLUEPRINT_UPGRADE_SOURCE` when it is a URL so all subsequent stages receive a consistent local path — eliminates per-stage URL vs. local-path handling inconsistencies. Ship as one PR.
-
-#### Contract and skill additions (P2, two standalone PRs)
-
-- [ ] P2 (Blueprint contract): Issue #270 — **test ownership contract**: introduce an explicit consumer-vs-blueprint ownership marker for test files under `tests/infra/` so the upgrade resolver never overwrites consumer-owned tests during Stage 2 apply. Standalone PR.
-- [ ] P2 (Blueprint skills): Issue #268 — **versioned consumer-side workarounds catalogue**: ship a per-release workarounds manifest in the blueprint; `blueprint-consumer-upgrade` skill applies the relevant workarounds automatically by version so every consumer does not have to rediscover and hand-apply the same fixes. Standalone PR.
+- [x] P2 (Consumer upgrade flow): Issues #267 + #269 — **pipeline features**: (1) #267: add a new `blueprint-upgrade-consumer-finalize` target as the canonical post-apply quality cycle — two-pass sync + verify, replacing the implicit per-target list that cost consumers 5 fix→re-run cycles (~15 min) per upgrade; (2) #269: at pipeline start, auto-clone `BLUEPRINT_UPGRADE_SOURCE` when it is a URL so all subsequent stages receive a consistent local path — eliminates Stage 1b/Stage 5 fatal-exit for the documented canonical URL form. **Done**: `specs/2026-05-13-issue-267-269-pipeline-finalize-auto-clone/`, PR #285. 25 tests green; all quality gates pass.
+- [ ] (parked) proposal(issue-267-269-pipeline-finalize-auto-clone): deepen clone for ancestry traversal — current `--depth 1` clone sufficient for Stage 5 `git show`; would fail if a future pipeline stage requires `git log` across commit history
+      trigger: on-scope: blueprint
+      rationale: no current stage needs ancestry; adding depth only when a future stage requires it avoids unnecessary network cost today
+- [ ] (parked) proposal(issue-267-269-pipeline-finalize-auto-clone): standalone finalize precondition guard — `blueprint-upgrade-consumer-finalize` aborts with an unhelpful postcheck failure if called before Stage 3–7 artifacts exist; a `--skip-postcheck` flag or artifact-presence check would improve standalone UX
+      trigger: on-scope: blueprint
+      rationale: usage block documents the precondition; standalone UX improvement is out of scope for this work item; surfaces when finalize target is next touched
+- [ ] (parked) proposal(issue-267-269-pipeline-finalize-auto-clone): sync pass target expansion — dynamic discovery of sync targets (reading `quality-sdd-sync-all` deps) instead of the current explicit three-target list
+      trigger: on-scope: blueprint
+      rationale: current three-target list is complete; dynamic discovery adds robustness against future targets being missed; surfaces when a new sync target is next added
 
 ---
 
