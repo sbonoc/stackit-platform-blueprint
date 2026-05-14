@@ -1,7 +1,58 @@
 {
   "manifest_version": 1,
-  "work_item": "<YYYY-MM-DD>-<work-item-slug>",
+  "work_item": "specs/2026-05-14-issue-268-consumer-workarounds-catalogue",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "",
-  "files": []
+  "generated_at_utc": "2026-05-14T09:46:41Z",
+  "files": [
+    {
+      "path": "specs/2026-05-14-issue-268-consumer-workarounds-catalogue/architecture.md",
+      "sha256": "54128c247225ce9324b5b6ec10b2bdc9c4340a694897aff737010532b9445838",
+      "bytes": 11996
+    },
+    {
+      "path": "specs/2026-05-14-issue-268-consumer-workarounds-catalogue/context_pack.md",
+      "sha256": "76b73561acd2a1c60592bf25a32635f20e7394fb86ef74f676b6644f37f2b1d3",
+      "bytes": 926
+    },
+    {
+      "path": "specs/2026-05-14-issue-268-consumer-workarounds-catalogue/evidence_manifest.json",
+      "sha256": "ecb0eea40122794ca8f062212e022ba451f6d0a543b88db3d7c15e65a071e7f7",
+      "bytes": 161
+    },
+    {
+      "path": "specs/2026-05-14-issue-268-consumer-workarounds-catalogue/graph.json",
+      "sha256": "cb8ffc48ee925f61e981ae109a0f63498b9bbb39401f62607517433a203ddf24",
+      "bytes": 6716
+    },
+    {
+      "path": "specs/2026-05-14-issue-268-consumer-workarounds-catalogue/hardening_review.md",
+      "sha256": "f6af9bf881b8b93b76ff91a38d37f6cb299e2893bf82da43e47aeab0278febff",
+      "bytes": 3344
+    },
+    {
+      "path": "specs/2026-05-14-issue-268-consumer-workarounds-catalogue/plan.md",
+      "sha256": "43e47de475e6153c152c06f4de3813823ef87b15cb92362c2083b825dee544e8",
+      "bytes": 8714
+    },
+    {
+      "path": "specs/2026-05-14-issue-268-consumer-workarounds-catalogue/pr_context.md",
+      "sha256": "401192710c69c9ae7eea42035f163888a21a23780fd620b025364ca7093bd4d5",
+      "bytes": 4380
+    },
+    {
+      "path": "specs/2026-05-14-issue-268-consumer-workarounds-catalogue/spec.md",
+      "sha256": "b07d80e6618997aa11700b02a16984c026ee3ba1bae3f595d757a70c71b1d085",
+      "bytes": 21700
+    },
+    {
+      "path": "specs/2026-05-14-issue-268-consumer-workarounds-catalogue/tasks.md",
+      "sha256": "8d181e02e6bfb9c1f1486e2b75b21fd95aa1f29759648c7a661c6b60c308fb1a",
+      "bytes": 3504
+    },
+    {
+      "path": "specs/2026-05-14-issue-268-consumer-workarounds-catalogue/traceability.md",
+      "sha256": "b9b527ba6f3f23a9e5ff2e30292adfe9b2de2b6665ec5d812301e6fd115604d8",
+      "bytes": 6619
+    }
+  ]
 }

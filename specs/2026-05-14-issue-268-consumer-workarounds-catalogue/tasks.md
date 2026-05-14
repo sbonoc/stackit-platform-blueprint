@@ -40,16 +40,21 @@
 - [x] T-019 Slice 7: ALL SKILL.md additions (catalogue section + filing step) + ADR finalisation
 
 ### Wave 5 (sequential — waits for Wave 4)
-- [ ] T-020 Slice 8: publish artefacts (hardening_review, pr_context, traceability summary)
+- [x] T-020 Slice 8: publish artefacts (hardening_review, pr_context, traceability summary)
 
 ## App Onboarding Minimum Targets (Normative)
-- [ ] A-001 `apps-bootstrap` and `apps-smoke` are implemented and verified for the affected app scope — no-impact (upgrade pipeline tooling only)
-- [ ] A-002 Backend app lanes (`backend-test-unit`, `backend-test-integration`, `backend-test-contracts`, `backend-test-e2e`) are available — no-impact
-- [ ] A-003 Frontend app lanes (`touchpoints-test-unit`, `touchpoints-test-integration`, `touchpoints-test-contracts`, `touchpoints-test-e2e`) are available — no-impact
-- [ ] A-004 Aggregate gates (`test-unit-all`, `test-integration-all`, `test-contracts-all`, `test-e2e-all-local`) are available — no-impact
-- [ ] A-005 Port-forward operational wrappers (`infra-port-forward-start`, `infra-port-forward-stop`, `infra-port-forward-cleanup`) are available — no-impact
+- [x] A-001 `apps-bootstrap` and `apps-smoke` are implemented and verified for the affected app scope — no-impact (upgrade pipeline tooling only)
+- [x] A-002 Backend app lanes (`backend-test-unit`, `backend-test-integration`, `backend-test-contracts`, `backend-test-e2e`) are available — no-impact
+- [x] A-003 Frontend app lanes (`touchpoints-test-unit`, `touchpoints-test-integration`, `touchpoints-test-contracts`, `touchpoints-test-e2e`) are available — no-impact
+- [x] A-004 Aggregate gates (`test-unit-all`, `test-integration-all`, `test-contracts-all`, `test-e2e-all-local`) are available — no-impact
+- [x] A-005 Port-forward operational wrappers (`infra-port-forward-start`, `infra-port-forward-stop`, `infra-port-forward-cleanup`) are available — no-impact
 
 ## Quality Gate Checks (pre-PR)
-- [ ] T-021 `make blueprint-test-unit` — 0 failures
-- [ ] T-022 `make quality-hooks-run QUALITY_HOOKS_FORCE_FULL=true` — all gates green
-- [ ] T-023 `make quality-sdd-check` — spec validity confirmed
+- [x] T-021 `make blueprint-test-unit` — 0 failures
+- [x] T-022 `make quality-hooks-run QUALITY_HOOKS_FORCE_FULL=true` — all gates green (exception: `blueprint-template-smoke` fails on macOS due to pre-existing `declare -A` bash-4-only syntax in `prune_codex_skills.sh`; predates this branch; CI runs Linux bash 5+ and is unaffected)
+- [x] T-023 `make quality-sdd-check` — spec validity confirmed
+
+## Publish Tasks (pre-PR)
+- [x] P-001 Update `hardening_review.md` with repository-wide findings fixed, observability changes, accessibility gate (N/A), and proposals-only section
+- [x] P-002 Update `pr_context.md` with FR-001–FR-014, NFR-SEC-001/002, NFR-REL-001/002/003, NFR-OPS-001, NFR-A11Y-001 coverage; key reviewer files; validation evidence; rollback notes
+- [x] P-003 Ensure PR description follows repository template headings and references `pr_context.md` — PR #292 description set at intake (Step 01); final reviewer-package update lands at Step 07 (PR packager)
