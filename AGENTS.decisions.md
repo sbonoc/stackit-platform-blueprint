@@ -1,6 +1,9 @@
 # Decisions Log
 
-## Current Baseline
+This file records standing decisions that govern agent and contributor behavior across the blueprint repository. Entries are grouped by domain. Change history for individual decisions lives in Git; entries here describe current standing policy.
+
+## Contract & Repository Ownership
+
 - `blueprint/contract.yaml` is the executable source of truth for repository behavior, ownership boundaries, and required automation.
 - Consumer app metadata direction is `apps/descriptor.yaml`:
   - the descriptor is the future canonical consumer-owned app topology and manifest-reference contract
@@ -30,6 +33,8 @@
   - Safe deterministic refreshes are classified as `auto-refresh`; potentially customized files are classified as `manual-merge`.
   - `BLUEPRINT_RESYNC_APPLY_SAFE=true` applies only auto-refresh paths, while `BLUEPRINT_RESYNC_APPLY_ALL=true` is an explicit full-overwrite opt-in.
   - Resync rendering now includes `DEFAULT_BRANCH` replacements and fails fast when unresolved `{{TOKEN}}` placeholders remain in rendered consumer-seeded content, preventing invalid workflow/template writes.
+## Upgrade Engine & Pipeline
+
 - Generated repos use a non-destructive pinned-source upgrade workflow for blueprint-managed drift:
   - `make blueprint-upgrade-consumer` plans/applies upgrade actions from a pinned source ref (`BLUEPRINT_UPGRADE_REF`) and emits `artifacts/blueprint/upgrade_plan.json`, `artifacts/blueprint/upgrade_apply.json`, and `artifacts/blueprint/upgrade_summary.md`.
   - Default execution is plan-only (`BLUEPRINT_UPGRADE_APPLY=false`), with dirty-worktree and delete operations blocked unless explicitly enabled.
@@ -79,6 +84,8 @@
     - `local-*` profiles keep deterministic no-op plan/apply/destroy behavior (no managed local OpenSearch fallback runtime)
 - Runtime dependency policy keeps pinned latest-stable versions, with one explicit vendor exception:
   - current multi-arch Bitnami images published under `bitnamilegacy/*` are allowed when the pinned tag is the supported stable line validated by this repo
+## CI & Quality Gates
+
 - Quality gates are split by operator intent:
   - `make quality-hooks-fast` for default local and PR feedback
   - `make quality-hooks-strict` for slower audit lanes
@@ -86,6 +93,8 @@
 - Branch naming contract explicitly allows `codex/` and `copilot/` in addition to GitHub Flow purpose prefixes so assistant-authored branches remain policy-valid during CI validation.
 - Branch naming validation keeps backward-compatible `codex/` and `copilot/` acceptance even for stale generated-consumer contracts that do not yet list those prefixes, so `infra-validate` remains upgrade-safe.
 - Backlog entries represent open work only. Change history lives in Git; finished work does not stay in the backlog.
+## Runtime & Infrastructure
+
 - Runtime credentials reconciliation is now a blueprint-native ESO contract:
   - blueprint-owned manifests live under `infra/gitops/platform/base/security/**`
   - runtime ESO manifests and renderer target `external-secrets.io/v1` (no `v1beta1`) to match pinned External Secrets CRDs.
@@ -230,7 +239,8 @@
   - added `tests/blueprint/test_upgrade_fixture_matrix.py` with legacy generated-consumer snapshot fixtures that exercise `resync_consumer_seeds.py` + `upgrade_consumer.py` end-to-end in two scenarios (`features-disabled`, `features-enabled`).
   - the matrix now validates that legacy snapshots can be upgraded non-destructively, required runtime contract artifacts are materialized, and strict runtime drift reporting remains in-sync when toggles are disabled and when enabled.
   - fast contract lane now executes this matrix through `scripts/bin/infra/contract_test_fast.sh` so CI catches upgrade/resync regressions before release tagging.
-  - deferred simplification/refactor proposals (declarative module action manifest, shared validation package, script trace-id propagation, docs snippet generation, path-aware CI partitioning) were intentionally moved to `AGENTS.backlog.md` as explicit priorities rather than bundled into this change.
+## SDD Governance
+
 - Spec-Driven Development is now a first-class governance contract:
   - canonical lifecycle is `Discover -> High-Level Architecture -> Specify -> Plan -> Implement -> Verify -> Operate`.
   - canonical SDD assets live under `.spec-kit/**` and `specs/**` for blueprint maintainers, with consumer-seeded `.spec-kit/**` + `specs/README.md` templates.
@@ -257,9 +267,6 @@
   - generated SDD policy snapshot blocks in `AGENTS.md`, consumer-init `AGENTS.md.tmpl`, and blueprint governance docs are rendered from contract fields via `scripts/lib/spec_kit/render_policy_snippets.py`.
   - canonical make targets now include `spec-scaffold` and SDD sync/check aggregators (`quality-sdd-sync-all`, `quality-sdd-check-all`).
   - docs sync/check recipes are centralized through `scripts/lib/docs/orchestrate_sync.py`, including changed-scope fast checks (`quality-docs-check-changed`) used by `quality-hooks-fast`.
-- SDD agent workflows are now first-class bundled Codex skills for generated-consumer execution:
-  - added canonical skills (source + consumer-template fallback) for intake/decomposition, clarification gate, plan slicing, traceability upkeep, and document-phase sync (superseded — see skill redesign entry below).
-  - `make blueprint-install-codex-skills` installs consumer upgrade/ops plus all bundled SDD skills in one deterministic command.
 - Managed-service-first and multi-assistant SDD execution policy is now explicit:
   - `AGENTS.md` and consumer `AGENTS.md.tmpl` now define managed-service-first behavior for `stackit-*` runtime capabilities with explicit exception recording requirements.
   - SDD spec contract now requires managed-service decision fields in `Implementation Stack Profile` and validates explicit exception rationale when `explicit-consumer-exception` is selected.
@@ -273,7 +280,7 @@
   - new operational entrypoints:
     - `make spec-pr-context`
     - `make quality-hardening-review`
-  - added canonical skill `blueprint-sdd-step07-pr-packager` (source + consumer template fallback) to package Publish-phase review context consistently (superseded from `blueprint-sdd-pr-packager` by skill redesign — see entry below).
+  - canonical skill `blueprint-sdd-step07-pr-packager` (source + consumer template fallback) packages Publish-phase review context consistently.
 - SDD enforcement defaults are now explicit and executable:
   - assistant execution defaults to full SDD lifecycle unless the user explicitly opts out.
   - `spec_scaffold` now enforces dedicated branch creation by default using contract-driven settings (`branch_contract`) and supports explicit opt-out (`--no-create-branch` / `SPEC_NO_BRANCH=true`).
@@ -313,62 +320,39 @@
   - new target `make blueprint-upgrade-consumer-postcheck` executes validate + convergence checks and writes `artifacts/blueprint/upgrade_postcheck.json`, failing on unresolved merge markers/conflicts.
   - source-ref upgrade wrapper now detects whether historical source engines support `--reconcile-report-path` and degrades compatibly when they do not.
   - generated-reference `conflict`/`merge-required` plan entries now classify into `generated_references_regenerate` in addition to unresolved-conflict tracking to keep regeneration risk explicit.
-- Additive-file conflict reclassification and platform helper namespace correction (Issues #104, #106, #107):
-  - `_classify_entries` in `scripts/lib/blueprint/upgrade_consumer.py` no longer emits `action=conflict` when `baseline_content` is unavailable; a 3-way merge conflict requires a common ancestor.
-  - when baseline content is unavailable and source==target, the entry is classified as `action=skip` with reason "additive file already at source version; safe to take" and `baseline_content_available=false`.
-  - when baseline content is unavailable and source!=target, the entry is classified as `action=merge-required` (advisory) with reason "additive file: not present at baseline ref; target diverges from source; manual merge advisory".
-  - `action=conflict` is now reserved exclusively for cases where `baseline_ref` is unavailable and a 3-way merge cannot be attempted.
-  - `scripts/lib/platform/apps/runtime_workload_helpers.py` and `scripts/lib/platform/auth/argocd_repo_credentials_json.py` relocated to `scripts/lib/infra/` (blueprint-managed root) so the upgrade engine distributes them automatically; `scripts/lib/platform/` is a protected root and was never distributable.
-  - `scripts/bin/platform/apps/smoke.sh` and `scripts/bin/platform/auth/reconcile_argocd_repo_credentials.sh` updated to reference new helper paths.
-  - `scripts/bin/quality/check_infra_shell_source_graph.py` extended with `_validate_platform_python_refs` to detect absent `python3 "$ROOT_DIR/scripts/lib/..."` references in `scripts/bin/platform/**` and fail the fast quality lane deterministically.
+- Upgrade engine conflict classification rules (Issues #104, #106, #107):
+  - `action=conflict` is reserved exclusively for cases where `baseline_ref` is unavailable and a 3-way merge cannot be attempted.
+  - When `baseline_content` is unavailable and source==target: `action=skip` ("additive file already at source version; safe to take", `baseline_content_available=false`).
+  - When `baseline_content` is unavailable and source!=target: `action=merge-required` (advisory) with reason "additive file: not present at baseline ref; target diverges from source; manual merge advisory".
+  - Distributable runtime helpers must live under `scripts/lib/infra/` (blueprint-managed root); `scripts/lib/platform/` is protected and is not distributed by the upgrade engine.
+  - `check_infra_shell_source_graph.py::_validate_platform_python_refs` fails the fast quality lane when `scripts/bin/platform/**` references absent `python3 "$ROOT_DIR/scripts/lib/..."` paths.
 - Generated-consumer fast contract lane selection is now repo-mode aware (Issue #103):
   - `scripts/bin/infra/contract_test_fast.sh` now selects deterministic test sets by `repo_mode` from contract runtime (`template-source` vs `generated-consumer`).
   - template-source-only tests (`tests/blueprint/test_upgrade_fixture_matrix.py`) are skipped in generated-consumer mode; `tests/infra/test_optional_module_required_env_contract.py` runs in both modes as a shared fast-lane contract gate.
   - selected tests are now existence-validated before `pytest` execution, so template-source mode remains fail-fast when required fast-lane tests are missing.
   - `infra_contract_test_fast_test_selection_total` metrics now expose selected/skipped counts and active repo mode for diagnostics.
-- ArgoCD AppProject namespace policy gap fixed (Issues #108, #109):
-  - All four ArgoCD AppProject overlay files (`local`, `dev`, `stage`, `prod`) and the bootstrap template copy were missing `external-secrets` in `spec.destinations`, blocking ArgoCD from syncing RBAC resources that the External Secrets Operator creates in the `external-secrets` namespace.
-  - `external-secrets` destination entry added to all five AppProject files.
-  - `tests/infra/test_tooling_contracts.py::AppProjectNamespacePolicyTests` added to guard against regression; test verifies all overlay files and the bootstrap template contain the required destination.
-  - `tests/infra/test_tooling_contracts.py` added to `base_tests` in `scripts/bin/infra/contract_test_fast.sh` so the guard runs in both `template-source` and `generated-consumer` fast-lane modes.
-  - Test isolation fix: `profile_module_enablement_contract` now passes `ROOT_DIR` pointing to the temp repo root so `profile.sh` resolves the patched contract from the temp dir when run inside the `make infra-contract-test-fast` process environment.
-- SDD scaffold placeholder guard added (Issue #152):
-  - `check_sdd_assets.py` previously allowed `SPEC_READY=true` work items to pass `make quality-hardening-review` with scaffold placeholder (empty) values in `context_pack.md` and `architecture.md`.
-  - `blueprint/contract.yaml` now declares `readiness_gate.work_item_document_required_fields` mapping filenames to lists of required field names; bootstrap template copy is kept in sync.
-  - `check_sdd_assets.py` reads this config and asserts each required field has a non-empty value for all `spec_ready=True` work items; "none" is accepted as a valid explicit value.
+- ArgoCD AppProject namespace policy (Issues #108, #109):
+  - All four ArgoCD AppProject overlay files (`local`, `dev`, `stage`, `prod`) and the bootstrap template copy must include `external-secrets` in `spec.destinations` so ArgoCD can sync RBAC resources that the External Secrets Operator creates in the `external-secrets` namespace.
+  - `tests/infra/test_tooling_contracts.py::AppProjectNamespacePolicyTests` guards against regression and runs in both `template-source` and `generated-consumer` fast-lane modes.
+- SDD scaffold placeholder guard (Issue #152):
+  - `blueprint/contract.yaml` declares `readiness_gate.work_item_document_required_fields` mapping filenames to lists of required field names; bootstrap template copy is kept in sync.
+  - `check_sdd_assets.py` reads this config and asserts each required field has a non-empty value for all `SPEC_READY=true` work items; `"none"` is accepted as an explicit valid value.
   - Violation messages name the document path and field for precise remediation.
-  - Three contract tests added (`SddPlaceholderGuardTests`): fail on empty field when SPEC_READY=true, accept "none" as valid, pass when SPEC_READY=false.
-  - Issue #109 cause #2 (optional-module ESOs NotReady when modules are not seeded) is tracked separately in Issue #137.
-- Runtime auth best-effort fixes (Issues #105, #110):
-  - `reconcile_eso_runtime_secrets.sh` now wraps `run_kustomize_apply` in `if !` so `set -e` cannot abort the script before the state file is written when `RUNTIME_CREDENTIALS_REQUIRED=false`. Failure is captured by `record_reconcile_issue`; the existing status logic determines `warn-and-skip` vs `failed-required`.
-  - `reconcile_argocd_repo_credentials.sh` now accepts `gho_` GitHub OAuth tokens via `log_info` instead of raising a reconcile issue. This eliminates the ambiguous `success-with-warnings` state when a `gho_` token authenticates successfully. PAT preference remains communicated via INFO log.
-  - Two structural contract tests added (`RuntimeAuthBestEffortTests`): assert the `if !` guard is present and that `gho_` does not trigger `record_reconcile_issue`.
-- App Dockerfile scaffold and runtime deployment fix (Issues #111, #112):
-  - `apps/backend/Dockerfile` and `apps/touchpoints/Dockerfile` added as multi-stage scaffold Dockerfiles. Backend uses Python/uvicorn with `EXPOSE 8080`; touchpoints uses Node.js builder + nginx runtime with `EXPOSE 80`. Both allow `publish_ghcr.sh` to proceed with `candidate_count=2` instead of warning and skipping.
-  - `infra/gitops/platform/base/apps/backend-api-deployment.yaml` updated: image changed from `python:3.13.9` to `ghcr.io/example-org/platform-blueprint-backend:0.1.0-dev` (matching default `publish_ghcr.sh` output with `APP_RELEASE=0`); hardcoded `command:` override removed (CMD is now defined in the Dockerfile). `touchpoints-web-deployment.yaml` updated: image changed from `nginx:1.29.2` to `ghcr.io/example-org/platform-blueprint-touchpoints:0.1.0-dev`. Both bootstrap template copies synced.
-  - Four structural contract tests added (`AppDockerfileAndRuntimeTests`): assert Dockerfile existence, multi-stage pattern, EXPOSE ports, GHCR image references, and absence of command override.
-- SDD skills redesigned as step-numbered, alphabetically sortable lifecycle skills (Issue #191):
-  - retired skills `blueprint-sdd-intake-decompose`, `blueprint-sdd-clarification-gate`, `blueprint-sdd-plan-slicer`, `blueprint-sdd-document-sync`, `blueprint-sdd-pr-packager`, and `blueprint-sdd-po-spec`; their responsibilities are absorbed by the step-numbered skills below.
-  - new step-numbered skills introduced (source + consumer-template + Claude Code command): `blueprint-sdd-step01-intake`, `blueprint-sdd-step02-resolve-questions`, `blueprint-sdd-step03-spec-complete`, `blueprint-sdd-step04-plan-slicer`, `blueprint-sdd-step05-implement`, `blueprint-sdd-step06-document-sync`, `blueprint-sdd-step07-pr-packager`; `blueprint-sdd-traceability-keeper` retained unchanged.
-  - `step01-intake` and `step02-resolve-questions` auto-scaffold the spec directory (`make spec-scaffold SPEC_SLUG=<slug>`) when it does not yet exist, removing the need for a manual pre-step.
-  - actor expanded to `Any stakeholder` for Steps 0–3 (intake, resolve questions) from `Software Engineer` only; CPO/PO/CTO/Architect may now drive early-lifecycle steps directly.
+- Runtime auth best-effort behavior (Issues #105, #110):
+  - `reconcile_eso_runtime_secrets.sh` wraps `run_kustomize_apply` in `if !` so `set -e` cannot abort before the state file is written when `RUNTIME_CREDENTIALS_REQUIRED=false`. Failure is captured by `record_reconcile_issue`; status logic determines `warn-and-skip` vs `failed-required`.
+  - `reconcile_argocd_repo_credentials.sh` accepts `gho_` GitHub OAuth tokens via `log_info` instead of raising a reconcile issue; PAT preference remains an INFO log.
+- App Dockerfile and runtime image references (Issues #111, #112):
+  - `apps/backend/Dockerfile` (Python/uvicorn, `EXPOSE 8080`) and `apps/touchpoints/Dockerfile` (Node.js builder + nginx runtime, `EXPOSE 80`) are multi-stage scaffold Dockerfiles so `publish_ghcr.sh` proceeds with `candidate_count=2`.
+  - `infra/gitops/platform/base/apps/backend-api-deployment.yaml` references `ghcr.io/example-org/platform-blueprint-backend:0.1.0-dev`; `touchpoints-web-deployment.yaml` references `ghcr.io/example-org/platform-blueprint-touchpoints:0.1.0-dev`. Hardcoded `command:` overrides are removed (CMD lives in the Dockerfile). Both bootstrap template copies are synced.
+## Skills & Agent Tooling
+
+- SDD skills are step-numbered lifecycle skills (Issue #191):
+  - Canonical SDD skills are `blueprint-sdd-step01-intake`, `blueprint-sdd-step02-resolve-questions`, `blueprint-sdd-step03-spec-complete`, `blueprint-sdd-step04-plan-slicer`, `blueprint-sdd-step05-implement`, `blueprint-sdd-step06-document-sync`, `blueprint-sdd-step07-pr-packager`, plus `blueprint-sdd-traceability-keeper`. Each ships as source + consumer-template fallback + Claude Code command.
+  - `step01-intake` and `step02-resolve-questions` auto-scaffold the spec directory (`make spec-scaffold SPEC_SLUG=<slug>`) when it does not yet exist.
+  - Actor for Steps 1–3 is `Any stakeholder` (CPO/PO/CTO/Architect may drive early-lifecycle steps directly).
   - `step05-implement` is stack-agnostic: reads `Implementation Stack Profile` from `spec.md` and uses canonical Make targets (`make backend-test-unit`, `make touchpoints-test-unit`, `make test-unit-all`) as primary; stack-specific raw test runners are documented only as fallback for new apps not yet wired to Make.
-  - `step07-pr-packager` now requires filing a GitHub issue per non-trivial deferred proposal and recording the URL in `pr_context.md` Deferred Proposals and `AGENTS.backlog.md`; proposals without an issue must carry an explicit "no issue filed — [rationale]" note.
-  - canonical install targets updated to step-numbered names:
-    - `blueprint-install-codex-skill-sdd-step01-intake`
-    - `blueprint-install-codex-skill-sdd-step02-resolve-questions`
-    - `blueprint-install-codex-skill-sdd-step03-spec-complete`
-    - `blueprint-install-codex-skill-sdd-step04-plan-slicer`
-    - `blueprint-install-codex-skill-sdd-step05-implement`
-    - `blueprint-install-codex-skill-sdd-step06-document-sync`
-    - `blueprint-install-codex-skill-sdd-step07-pr-packager`
-    - `blueprint-install-codex-skill-sdd-traceability-keeper` (unchanged)
-  - `blueprint/contract.yaml` and its bootstrap template mirror updated to list new skill files; consumer-init skill templates updated in parallel; `infra-validate` passes with new file set.
-  - `sdd_execution_guide.md` updated: swimlane actor label, agent boxes, skill map table (with "Invoked by" column), summary table (with "Who invokes" column and stack-agnostic Step 6 checks), Step 8 artifacts list.
-- SDD skill sequential renumbering — gap removed (Issue #191 continuation):
-  - skills were introduced as step01, step03, step04, step05, step06, step07, step08 (step02 was never created), leaving a visible gap that implied a missing skill.
-  - renumbered to step01–step07 (no gap): step03→step02, step04→step03, step05→step04, step06→step05, step07→step06, step08→step07; all references updated across docs, diagrams, contract.yaml, Makefile targets, and consumer templates in a single commit.
-  - H1 titles inside each SKILL.md corrected to match the new sequential numbers.
+  - `step07-pr-packager` requires filing a GitHub issue per non-trivial deferred proposal and recording the URL in `pr_context.md` Deferred Proposals and `AGENTS.backlog.md`; proposals without an issue must carry an explicit "no issue filed — [rationale]" note.
+  - Canonical install targets follow `blueprint-install-codex-skill-sdd-step<NN>-<name>` (and `blueprint-install-codex-skill-sdd-traceability-keeper`); `make blueprint-install-codex-skills` installs consumer upgrade/ops plus all bundled SDD skills in one deterministic command.
 - Governance Context pattern for SKILL.md files (Issue #191 continuation):
   - each SKILL.md gains a `## Governance Context` block positioned between `## Actor` and `## Guardrails` listing the AGENTS.md sections that govern that specific lifecycle phase.
   - AGENTS.md § Assistant Interoperability gains a maintenance rule: any update to cross-cutting guardrails or lifecycle policy in AGENTS.md MUST be reflected in the Governance Context of affected SKILL.md files, and vice versa.
