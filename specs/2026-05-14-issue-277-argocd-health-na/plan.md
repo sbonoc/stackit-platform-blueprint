@@ -5,16 +5,11 @@
 - If required inputs are missing, add `BLOCKED_MISSING_INPUTS` in `spec.md` and keep the gate closed.
 
 ## Constitution Gates (Pre-Implementation)
-- Simplicity gate:
-  - Two YAML files each gain one key (`configs.cm.resource.customizations.ignoreResourceUpdates.all: ""`). One new pytest file with two test cases. No abstractions introduced.
-- Anti-abstraction gate:
-  - Direct YAML override; no wrapper scripts or helper code.
-- Integration-first testing gate:
-  - Regression tests verify the YAML override is present in both files. No live cluster required.
-- Positive-path filter/transform test gate:
-  - N/A — no filter or payload-transform logic.
-- Finding-to-test translation gate:
-  - The reproducible finding (health=N/A) is translated into AC-001 and AC-002: tests that would have caught the missing override before it shipped. These tests are written as failing first (they assert the override IS present, which is false until the YAML is changed), then turned green by the fix.
+- Simplicity gate: Two YAML files each gain one key (`configs.cm.resource.customizations.ignoreResourceUpdates.all: ""`). One new pytest file. No abstractions introduced.
+- Anti-abstraction gate: Direct YAML override; no wrapper scripts or helper code.
+- Integration-first testing gate: Regression tests verify the YAML override is present in both files. No live cluster required.
+- Positive-path filter/transform test gate: N/A — no filter or payload-transform logic.
+- Finding-to-test translation gate: The reproducible health=N/A finding is translated into AC-001/AC-002/AC-003 tests that fail without the fix and pass with it.
 
 ## Delivery Slices
 

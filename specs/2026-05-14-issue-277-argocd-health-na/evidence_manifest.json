@@ -1,7 +1,58 @@
 {
   "manifest_version": 1,
-  "work_item": "<YYYY-MM-DD>-<work-item-slug>",
+  "work_item": "specs/2026-05-14-issue-277-argocd-health-na",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "",
-  "files": []
+  "generated_at_utc": "2026-05-14T13:52:44Z",
+  "files": [
+    {
+      "path": "specs/2026-05-14-issue-277-argocd-health-na/architecture.md",
+      "sha256": "660911d04a913a6893c9095465521dbbf5e91ef3f1674bd144286b67159f53ed",
+      "bytes": 4444
+    },
+    {
+      "path": "specs/2026-05-14-issue-277-argocd-health-na/context_pack.md",
+      "sha256": "a46bd4c4107a122a24a22e2e23f4de4c3283e589775f0aed08340a77ce2ce1ae",
+      "bytes": 1977
+    },
+    {
+      "path": "specs/2026-05-14-issue-277-argocd-health-na/evidence_manifest.json",
+      "sha256": "ecb0eea40122794ca8f062212e022ba451f6d0a543b88db3d7c15e65a071e7f7",
+      "bytes": 161
+    },
+    {
+      "path": "specs/2026-05-14-issue-277-argocd-health-na/graph.json",
+      "sha256": "50dfb00ee7096b1e436dfdaa3ded524d421e2d72320b632e5f4779c440e816e8",
+      "bytes": 2633
+    },
+    {
+      "path": "specs/2026-05-14-issue-277-argocd-health-na/hardening_review.md",
+      "sha256": "180c270281b26a89bd05143aa36c52a8f29682f3a175ec99f369f8490532b0f7",
+      "bytes": 1164
+    },
+    {
+      "path": "specs/2026-05-14-issue-277-argocd-health-na/plan.md",
+      "sha256": "29484dd9f65852e7a472cdf1982f1a90e4fd8901adbe80077f85233aa65f12e3",
+      "bytes": 6317
+    },
+    {
+      "path": "specs/2026-05-14-issue-277-argocd-health-na/pr_context.md",
+      "sha256": "26b7a261f5f07f472d3d30b255eb9d1b35c3633cb84be062b9e5f461c488d33c",
+      "bytes": 465
+    },
+    {
+      "path": "specs/2026-05-14-issue-277-argocd-health-na/spec.md",
+      "sha256": "fb38169f707b562c47e283f5c7daea3786651318327243c3d13f1fd19c2d9d29",
+      "bytes": 8081
+    },
+    {
+      "path": "specs/2026-05-14-issue-277-argocd-health-na/tasks.md",
+      "sha256": "54e40b8f2a63c5d3b58698dc403d779ef27ff5205582a2ea003cef03b662cb97",
+      "bytes": 3520
+    },
+    {
+      "path": "specs/2026-05-14-issue-277-argocd-health-na/traceability.md",
+      "sha256": "9362337bda7c7ba79332c057e52a6cae0bedb024b0ad87a87a2dd4fc516fe9a7",
+      "bytes": 3640
+    }
+  ]
 }
