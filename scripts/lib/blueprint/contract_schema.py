@@ -220,8 +220,28 @@ def _strip_quotes(value: str) -> str:
     return value
 
 
+def _strip_inline_comment(value: str) -> str:
+    if not value:
+        return value
+    if value[0] in {'"', "'"}:
+        q = value[0]
+        i = 1
+        while i < len(value):
+            if value[i] == "\\" and i + 1 < len(value):
+                i += 2
+                continue
+            if value[i] == q:
+                return value[: i + 1]
+            i += 1
+    else:
+        m = re.search(r"\s+#", value)
+        if m:
+            return value[: m.start()]
+    return value
+
+
 def _parse_scalar(raw_value: str) -> Any:
-    value = raw_value.strip()
+    value = _strip_inline_comment(raw_value.strip())
     if not value:
         return ""
     if value == "[]":

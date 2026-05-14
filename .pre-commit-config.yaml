@@ -75,6 +75,15 @@ repos:
         pass_filenames: false
         stages: [pre-push]
         files: (^|/)package\.json$
+      - id: blueprint-test-unit
+        name: blueprint unit test suite (pre-push)
+        language: system
+        # always_run: blueprint tests cover cross-cutting contracts; any file change can break them.
+        # The target no-ops in generated-consumer repos where tests/blueprint is source-only.
+        entry: make blueprint-test-unit
+        pass_filenames: false
+        stages: [pre-push]
+        always_run: true
       - id: quality-consumer-pre-push
         name: consumer pre-push quality gate
         language: system

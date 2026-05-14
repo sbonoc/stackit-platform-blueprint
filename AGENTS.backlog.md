@@ -210,9 +210,17 @@ Reported by consumer sbonoc/dhe-marketplace from their v1.7.0→v1.8.0 upgrade e
 
 - [x] P2 (Consumer upgrade flow): Issues #265 + #271 — **conflict resolution UX**: (1) #265: after Stage 2 conflicts, the engine writes one `*.conflict.json` per file with no ownership classification or recommended action; emit `artifacts/blueprint/upgrade_triage.json` with per-conflict `ownership_class` and `recommended_action` (`take_source` / `take_target` / `delete` / `human_required`), and add a new `blueprint-upgrade-consumer-resolve` target that auto-applies the unambiguous rows and prints a residual table for the `human_required` ones; (2) #271 (UX layer, hard-depends on #265): extends the resolve target with interactive one-at-a-time prompting (`INTERACTIVE=true`), batch flags (`--accept-source ALL`, `--accept-target ALL`), sorted+truncated display (>20 rows shows footer), and agent-flow guidance. Evidence: real upgrade hit 88 conflicts, 85 were auto-resolvable, 25 min of manual work. Ship #265 + #271 as one PR.
   **Done**: `specs/2026-05-13-issue-265-271-conflict-resolution-ux/`, PR #283. 14/14 tests green; all quality gates pass.
-- [ ] (parked) proposal(issue-265-271-conflict-resolution-ux): Option B — source-exists inference for blueprint-managed catch-all; if `source_exists=True` and ownership is `blueprint-managed`, infer `take_source` instead of `human_required`
-      trigger: after: issue-270
-      rationale: safe once Issue #270 ships explicit consumer ownership markers; without those markers, auto-overwriting consumer-modified catch-all files is a correctness risk
+- [x] (done) proposal(issue-265-271-conflict-resolution-ux): Option B — source-exists inference for blueprint-managed catch-all; if `source_exists=True` and ownership is `blueprint-managed`, infer `take_source` instead of `human_required`
+      **Done**: `specs/2026-05-13-issue-265-271-source-exists-inference/`, PR #291. 953 tests green; all quality gates pass.
+- [ ] (parked) proposal(issue-265-271-source-exists-inference): active cleanup of stale consumer-created files in `blueprint_managed_roots` paths that coincidentally match blueprint source paths
+      trigger: on-scope: blueprint
+      rationale: `blueprint_managed_roots` exclusivity contract governs this; no new risk introduced by the inference change; worth revisiting when upgrade resolution logic is next touched
+- [ ] (parked) proposal(issue-265-271-source-exists-inference): `test_pyramid_contract.json` path references drift silently when files move — automate path existence check to prevent stale assertions
+      trigger: on-scope: quality
+      rationale: demonstrated by `tests/infra/` → `tests/blueprint/` moves causing 2 of the 9 pre-existing stale failures; fix surfaces naturally when quality tooling is next touched
+- [ ] (parked) proposal(issue-265-271-source-exists-inference): `quality-ci-upgrade-validate` runs only on push to main, not PRs — a breaking upgrade regression could merge undetected
+      trigger: on-scope: blueprint
+      rationale: making it a non-blocking PR annotation or required status closes the gap; surfaces when upgrade pipeline CI is next touched
 - [x] (rejected) proposal(issue-265-271-conflict-resolution-ux): Interactive TUI (ncurses/lazygit-style conflict resolver) — rejected: heavy external dependency, not portable across consumer environments; residual table is typically under 10 rows; explicitly rejected in ADR at design time
 - [x] (rejected) proposal(issue-265-271-conflict-resolution-ux): HTML conflict report — rejected: browser context-switch adds friction for a small residual table; CLI display is sufficient; explicitly rejected in ADR at design time
 

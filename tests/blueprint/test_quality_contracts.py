@@ -76,7 +76,7 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn("quality-docs-check-module-contract-summaries-sync", make_template)
         self.assertIn("quality-test-pyramid", make_template)
         self.assertIn(
-            "@python3 scripts/lib/docs/orchestrate_sync.py --mode check --changed-only\n\t@python3 scripts/bin/quality/check_test_pyramid.py",
+            "@uv run python3 scripts/lib/docs/orchestrate_sync.py --mode check --changed-only\n\t@uv run python3 scripts/bin/quality/check_test_pyramid.py",
             make_template,
         )
         self.assertIn("infra-contract-test-fast", make_template)
@@ -125,7 +125,7 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn("quality-docs-check-module-contract-summaries-sync", generated_make)
         self.assertIn("quality-test-pyramid", generated_make)
         self.assertIn(
-            "@python3 scripts/lib/docs/orchestrate_sync.py --mode check --changed-only\n\t@python3 scripts/bin/quality/check_test_pyramid.py",
+            "@uv run python3 scripts/lib/docs/orchestrate_sync.py --mode check --changed-only\n\t@uv run python3 scripts/bin/quality/check_test_pyramid.py",
             generated_make,
         )
         self.assertIn("infra-contract-test-fast", generated_make)
@@ -1048,7 +1048,7 @@ class QualityContractsTests(unittest.TestCase):
         self.assertIn("tests/blueprint/test_contract_stackit_runtime.py", contract)
         self.assertIn("tests/blueprint/test_init_repo_env.py", contract)
         self.assertIn("tests/blueprint/test_upgrade_consumer.py", contract)
-        self.assertIn("tests/infra/test_async_message_contracts.py", contract)
+        self.assertIn("tests/blueprint/test_async_message_contracts.py", contract)
         self.assertIn("tests/blueprint/test_optional_runtime_contract_validation.py", contract)
         self.assertIn("tests/docs/test_orchestrate_sync.py", contract)
         self.assertIn("tests/infra/test_workload_health_check.py", contract)

@@ -44,6 +44,7 @@ This file is auto-generated. Do not edit it manually.
 | `test-contracts-async-producer` | Run async Pact message-contract producer lane (opt-in) |
 | `test-contracts-async-consumer` | Run async Pact message-contract consumer lane (opt-in) |
 | `test-contracts-async-all` | Run async Pact message-contract producer+consumer lanes (opt-in) |
+| `blueprint-test-unit` | Run blueprint tooling unit test suite (upgrade engine, pipeline, contracts; no-op in generated-consumer repos where tests/blueprint is source-only) |
 | `quality-hooks-fast` | Run fast local quality checks (set QUALITY_HOOKS_KEEP_GOING=true to aggregate all failures; QUALITY_HOOKS_FORCE_FULL=true to bypass path/phase gating) |
 | `quality-hooks-strict` | Run slower audit-focused quality checks (set QUALITY_HOOKS_KEEP_GOING=true to aggregate all failures) |
 | `quality-hooks-run` | Run pre-commit hooks and quality gates (set QUALITY_HOOKS_KEEP_GOING=true to aggregate all failures across both phases) |

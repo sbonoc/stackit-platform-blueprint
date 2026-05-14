@@ -54,6 +54,9 @@
           "reason": {
             "type": "string"
           },
+          "source_exists": {
+            "type": "boolean"
+          },
           "source_diff_summary": {
             "type": "string"
           },

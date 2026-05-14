@@ -1705,7 +1705,15 @@ _CONTRACT_YAML_EXCLUDED_FROM_TRIAGE = "blueprint/contract.yaml"
 _TRIAGE_SCHEMA_PATH = Path(__file__).parent / "schemas" / "upgrade_triage.schema.json"
 
 
-def _recommended_action(ownership_class: str) -> str:
+_BLUEPRINT_MANAGED_INFERRED_REASON = (
+    "source_exists=True; blueprint-managed ownership inferred"
+    " (issue #270 consumer ownership markers shipped)"
+)
+
+
+def _recommended_action(ownership_class: str, source_exists: bool = False) -> str:
+    if ownership_class == "blueprint-managed" and source_exists:
+        return "take_source"
     return _RECOMMENDED_ACTION_MAP.get(ownership_class, "human_required")
 
 
@@ -1738,7 +1746,14 @@ def _write_upgrade_triage(
 
         entry = entry_by_path.get(rel_path)
         ownership_class = entry.ownership if entry else "blueprint-managed"
-        reason = entry.reason if entry else result.reason
+        ownership_evidence = entry.reason if entry else result.reason
+        source_exists = entry.source_exists if entry else False
+
+        action = _recommended_action(ownership_class, source_exists)
+        if ownership_class == "blueprint-managed" and source_exists:
+            reason = _BLUEPRINT_MANAGED_INFERRED_REASON
+        else:
+            reason = ownership_evidence
 
         artifact_path = conflicts_dir / f"{rel_path}.conflict.json"
         source_diff_summary = "unavailable"
@@ -1757,9 +1772,10 @@ def _write_upgrade_triage(
         triage_entries.append({
             "path": rel_path,
             "ownership_class": ownership_class,
-            "ownership_evidence": reason,
-            "recommended_action": _recommended_action(ownership_class),
+            "ownership_evidence": ownership_evidence,
+            "recommended_action": action,
             "reason": reason,
+            "source_exists": source_exists,
             "source_diff_summary": source_diff_summary,
             "target_diff_from_baseline": target_diff_from_baseline,
         })

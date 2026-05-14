@@ -10,7 +10,7 @@ from unittest import mock
 
 from scripts.lib.blueprint import upgrade_consumer
 from scripts.lib.blueprint import upgrade_consumer_validate as validate_module
-from scripts.lib.blueprint.contract_schema import load_blueprint_contract
+from scripts.lib.blueprint.contract_schema import load_blueprint_contract, _strip_inline_comment
 from tests._shared.exec import run_command
 from tests._shared.json_schema import assert_json_matches_schema, load_json_schema
 from tests._shared.helpers import REPO_ROOT
@@ -1072,7 +1072,10 @@ class UpgradeConsumerTests(unittest.TestCase):
             path_result = _apply_result(apply_report, executable_path)
             self.assertEqual(path_result.get("result"), "applied")
 
-    def test_apply_conflict_creates_artifact_and_fails(self) -> None:
+    def test_apply_conflict_creates_artifact_and_writes_conflicts_status(self) -> None:
+        # Engine exits 0 for file conflicts (AC-004, issue #264): conflicts are
+        # deferrable — the triage file + resolve script handle them. Exit 1 is
+        # reserved for unresolved merge markers (AC-005).
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp_root = Path(tmpdir)
             source_repo = _create_source_repo(
@@ -1097,11 +1100,11 @@ class UpgradeConsumerTests(unittest.TestCase):
                 ],
                 cwd=REPO_ROOT,
             )
-            self.assertEqual(result.returncode, 1)
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
             self.assertIn("conflict", result.stderr)
 
             apply_report = _load_json(target_repo / "artifacts/blueprint/upgrade_apply.json")
-            self.assertEqual(apply_report.get("status"), "failure")
+            self.assertEqual(apply_report.get("status"), "conflicts")
             path_result = _apply_result(apply_report, MANAGED_TEST_PATH)
             self.assertEqual(path_result.get("result"), "conflict")
             _assert_json_schema(
@@ -2901,6 +2904,183 @@ class TerraformBlockDeduplicationTests(unittest.TestCase):
         self.assertEqual(dedup_log, [])
         self.assertEqual(conflict_keys, [])
         self.assertIn('alias  = "us"', processed)
+
+
+class SourceExistsInferenceTests(unittest.TestCase):
+    """Issue #265/#271 Option B — source_exists inference for blueprint-managed catch-all.
+
+    FR-001, FR-002, FR-003, FR-004, AC-001, AC-002, AC-004
+    """
+
+    def test_triage_blueprint_managed_source_exists_true_yields_take_source(self) -> None:
+        """blueprint-managed + source_exists=True MUST return take_source (FR-001, AC-001)."""
+        self.assertEqual(
+            upgrade_consumer._recommended_action("blueprint-managed", True),
+            "take_source",
+        )
+
+    def test_triage_blueprint_managed_source_exists_false_yields_human_required(self) -> None:
+        """blueprint-managed + source_exists=False MUST return human_required (FR-002, AC-002)."""
+        self.assertEqual(
+            upgrade_consumer._recommended_action("blueprint-managed", False),
+            "human_required",
+        )
+
+    def _emit_triage_for_path(
+        self,
+        repo_root: Path,
+        conflict_path: str,
+        ownership_class: str,
+        source_exists: bool,
+    ) -> dict:
+        artifact_path = repo_root / "artifacts/blueprint/conflicts" / f"{conflict_path}.conflict.json"
+        artifact_path.parent.mkdir(parents=True, exist_ok=True)
+        artifact_path.write_text(
+            json.dumps({
+                "path": conflict_path,
+                "reason": "merge conflict",
+                "source_sha256": "aaa",
+                "target_sha256": "bbb",
+                "baseline_sha256": "ccc",
+                "merged_sha256": None,
+                "source_content": "source\n",
+                "target_content": "target\n",
+                "baseline_content": "baseline\n",
+                "merged_content": None,
+            }),
+            encoding="utf-8",
+        )
+        results = [
+            upgrade_consumer.ApplyResult(
+                path=conflict_path,
+                planned_action="conflict",
+                planned_operation="write",
+                result="conflict",
+                reason="merge conflict",
+                conflict_artifact=f"artifacts/blueprint/conflicts/{conflict_path}.conflict.json",
+            )
+        ]
+        entries = [
+            upgrade_consumer.UpgradeEntry(
+                path=conflict_path,
+                ownership=ownership_class,
+                action="conflict",
+                operation="write",
+                reason="merge conflict",
+                source_exists=source_exists,
+                target_exists=True,
+                baseline_ref="v1.7.0",
+                baseline_content_available=True,
+            )
+        ]
+        upgrade_consumer._write_upgrade_triage(
+            repo_root=repo_root,
+            conflict_results=results,
+            entries=entries,
+            source_ref="v1.10.0",
+            baseline_ref="v1.7.0",
+        )
+        triage_path = repo_root / "artifacts/blueprint/upgrade_triage.json"
+        return json.loads(triage_path.read_text(encoding="utf-8"))
+
+    def test_triage_entry_includes_source_exists_field(self) -> None:
+        """All conflict entries in upgrade_triage.json MUST include source_exists boolean (FR-003, AC-004)."""
+        with tempfile.TemporaryDirectory() as tmp:
+            triage = self._emit_triage_for_path(
+                Path(tmp),
+                "scripts/bin/blueprint/some_script.sh",
+                "blueprint-managed",
+                source_exists=True,
+            )
+            conflicts = triage.get("conflicts", [])
+            self.assertEqual(len(conflicts), 1)
+            entry = conflicts[0]
+            self.assertIn(
+                "source_exists",
+                entry,
+                "Each conflict entry MUST include a 'source_exists' boolean field (FR-003, AC-004)",
+            )
+            self.assertIsInstance(entry["source_exists"], bool)
+            self.assertTrue(entry["source_exists"])
+            self.assertEqual(
+                entry.get("recommended_action"),
+                "take_source",
+                "blueprint-managed + source_exists=True MUST produce recommended_action: take_source (FR-001, AC-001)",
+            )
+            self.assertIn(
+                "source_exists=True",
+                entry.get("reason", ""),
+                "reason MUST identify the inference basis for promoted blueprint-managed entries (FR-004)",
+            )
+            self.assertIn(
+                "blueprint-managed ownership inferred",
+                entry.get("reason", ""),
+                "reason MUST identify blueprint-managed ownership inference basis (FR-004)",
+            )
+
+
+class StripInlineCommentTests(unittest.TestCase):
+    """Direct unit tests for _strip_inline_comment() (contract_schema.py).
+
+    The function is non-trivial (escape-aware quote loop); testing it directly makes
+    regressions immediately visible without tracing through integration tests.
+    """
+
+    def test_unquoted_value_with_inline_comment(self) -> None:
+        self.assertEqual(_strip_inline_comment("some-value  # a comment"), "some-value")
+
+    def test_unquoted_value_no_comment(self) -> None:
+        self.assertEqual(_strip_inline_comment("plain-value"), "plain-value")
+
+    def test_double_quoted_value_with_hash_inside(self) -> None:
+        self.assertEqual(_strip_inline_comment('"path/to/some#thing"'), '"path/to/some#thing"')
+
+    def test_double_quoted_value_with_escaped_quote(self) -> None:
+        self.assertEqual(
+            _strip_inline_comment(r'"make -C \"$ROOT_DIR\" infra-post-deploy-consumer"'),
+            r'"make -C \"$ROOT_DIR\" infra-post-deploy-consumer"',
+        )
+
+    def test_empty_string(self) -> None:
+        self.assertEqual(_strip_inline_comment(""), "")
+
+    def test_double_quoted_empty_string(self) -> None:
+        self.assertEqual(_strip_inline_comment('""'), '""')
+
+    def test_double_quoted_empty_string_with_comment(self) -> None:
+        self.assertEqual(_strip_inline_comment('""  # engine-managed'), '""')
+
+    def test_hash_with_no_preceding_whitespace_is_not_a_comment(self) -> None:
+        self.assertEqual(_strip_inline_comment("value#nospace"), "value#nospace")
+
+
+class RecommendedActionOwnershipClassTests(unittest.TestCase):
+    """FR-006 / AC-005 — all non-blueprint-managed ownership classes are unaffected by source_exists."""
+
+    _MAP_CASES: list[tuple[str, bool, str]] = [
+        ("blueprint-managed-root", True, "take_source"),
+        ("blueprint-managed-root", False, "take_source"),
+        ("required-file", True, "take_source"),
+        ("required-file", False, "take_source"),
+        ("init-managed", True, "take_source"),
+        ("init-managed", False, "take_source"),
+        ("conditional-scaffold", True, "take_source"),
+        ("conditional-scaffold", False, "take_source"),
+        ("consumer-seeded", True, "take_target"),
+        ("consumer-seeded", False, "take_target"),
+        ("unknown-class", True, "human_required"),
+        ("unknown-class", False, "human_required"),
+    ]
+
+    def test_other_ownership_classes_unaffected_by_source_exists(self) -> None:
+        """Non-blueprint-managed classes MUST return the same action regardless of source_exists (FR-006, AC-005)."""
+        for ownership_class, source_exists, expected in self._MAP_CASES:
+            with self.subTest(ownership_class=ownership_class, source_exists=source_exists):
+                self.assertEqual(
+                    upgrade_consumer._recommended_action(ownership_class, source_exists),
+                    expected,
+                    f"_recommended_action({ownership_class!r}, {source_exists}) should be {expected!r}",
+                )
 
 
 if __name__ == "__main__":

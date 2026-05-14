@@ -1,0 +1,58 @@
+{
+  "manifest_version": 1,
+  "work_item": "specs/2026-05-13-issue-265-271-source-exists-inference",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-05-13T22:20:20Z",
+  "files": [
+    {
+      "path": "specs/2026-05-13-issue-265-271-source-exists-inference/architecture.md",
+      "sha256": "6a7687631eba8da409562281cc3f81c7fc416c11c68d81a005e52b6d2bde6031",
+      "bytes": 3725
+    },
+    {
+      "path": "specs/2026-05-13-issue-265-271-source-exists-inference/context_pack.md",
+      "sha256": "e7b453f7fcd4f5769eaceea74e37e3aa218bfc994c3affaf4d3e8d00c32f74c2",
+      "bytes": 888
+    },
+    {
+      "path": "specs/2026-05-13-issue-265-271-source-exists-inference/evidence_manifest.json",
+      "sha256": "ecb0eea40122794ca8f062212e022ba451f6d0a543b88db3d7c15e65a071e7f7",
+      "bytes": 161
+    },
+    {
+      "path": "specs/2026-05-13-issue-265-271-source-exists-inference/graph.json",
+      "sha256": "f95fb646df1f2c7fc81aeccadf2a44a943140c5544f47887f51153789ae12ea2",
+      "bytes": 3463
+    },
+    {
+      "path": "specs/2026-05-13-issue-265-271-source-exists-inference/hardening_review.md",
+      "sha256": "180c270281b26a89bd05143aa36c52a8f29682f3a175ec99f369f8490532b0f7",
+      "bytes": 1164
+    },
+    {
+      "path": "specs/2026-05-13-issue-265-271-source-exists-inference/plan.md",
+      "sha256": "9f39cd18bfb9bc1f9b967d710148762f83fc2ab5b1e0e9b43bcda69342ec6e54",
+      "bytes": 5829
+    },
+    {
+      "path": "specs/2026-05-13-issue-265-271-source-exists-inference/pr_context.md",
+      "sha256": "26b7a261f5f07f472d3d30b255eb9d1b35c3633cb84be062b9e5f461c488d33c",
+      "bytes": 465
+    },
+    {
+      "path": "specs/2026-05-13-issue-265-271-source-exists-inference/spec.md",
+      "sha256": "06f9206712c64284036060b27feca4cd902e919f00a445d3b7b833618a8e4262",
+      "bytes": 7929
+    },
+    {
+      "path": "specs/2026-05-13-issue-265-271-source-exists-inference/tasks.md",
+      "sha256": "259c41ef4202b70db6468cb3d1ae51afffe5e61980ca5463d127580cc5bdd587",
+      "bytes": 4307
+    },
+    {
+      "path": "specs/2026-05-13-issue-265-271-source-exists-inference/traceability.md",
+      "sha256": "1afb3fa4adba8156639cbdec093aba50ca4445990dae66c4ce498ccdb2b94962",
+      "bytes": 4617
+    }
+  ]
+}
