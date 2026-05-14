@@ -58,6 +58,11 @@
       "summary": "N/A — developer tooling change; no Kubernetes runtime operation affected"
     },
     {
+      "id": "NFR-A11Y-001",
+      "type": "requirement",
+      "summary": "N/A — no UI surfaces introduced or modified"
+    },
+    {
       "id": "AC-001",
       "type": "acceptance",
       "summary": "bypass path skips non-essential artifact checks for valid exception + authorized-by"

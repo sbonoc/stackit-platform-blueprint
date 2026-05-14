@@ -15,6 +15,7 @@
 | NFR-OBS-001 | SDD-C-010 | N/A | architecture.md §Non-Functional Architecture Notes | `[METRIC]` line in `check_sdd_assets.py` | AC-004 test (metric line emitted) | `AGENTS.md` §Lightweight SDD Bypass Track | CI job log `sdd_exception_gate_total` |
 | NFR-REL-001 | SDD-C-012 | N/A | architecture.md §Reliability | backward-compatible defaults (`SPEC_READY_EXCEPTION: none`); no existing spec.md migration | AC-002 (no specs/ dir → exit 0); AC-003 (full-SDD path unaffected) | spec.md §Contract Changes | remove exception field → full-SDD restored |
 | NFR-OPS-001 | N/A | N/A | N/A | N/A — developer tooling change; no Kubernetes runtime operation affected | N/A | spec.md §NFR-OPS-001 (declared not applicable) | N/A |
+| NFR-A11Y-001 | N/A | N/A | N/A | N/A — no UI surfaces introduced or modified | N/A | spec.md §NFR-A11Y-001 (declared not applicable) | N/A |
 | AC-001 | SDD-C-012 | N/A | N/A | `tests/blueprint/test_sdd_bypass_track.py` | pytest pass | N/A | N/A |
 | AC-002 | SDD-C-012 | N/A | N/A | `tests/blueprint/test_sdd_bypass_track.py` | pytest pass | N/A | N/A |
 | AC-003 | SDD-C-012 | N/A | N/A | `tests/blueprint/test_sdd_bypass_track.py` | pytest pass | N/A | N/A |
@@ -37,6 +38,7 @@
   - NFR-OBS-001
   - NFR-REL-001
   - NFR-OPS-001
+  - NFR-A11Y-001
   - AC-001
   - AC-002
   - AC-003

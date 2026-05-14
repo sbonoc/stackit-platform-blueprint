@@ -2,11 +2,11 @@
 
 ## Status
 
-proposed
+approved
 
 ## Sign-offs
 
-- ADR technical decision sign-off: pending
+- ADR technical decision sign-off: approved
 
 ## Context
 
