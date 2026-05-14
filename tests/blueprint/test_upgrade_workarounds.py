@@ -566,3 +566,158 @@ class TestPythonScriptActionKind(unittest.TestCase):
         self.assertIn("PATH", _PYTHON_SCRIPT_ENV_ALLOWLIST)
         self.assertIn("BLUEPRINT_UPGRADE_REF", _PYTHON_SCRIPT_ENV_ALLOWLIST)
         self.assertIn("BLUEPRINT_UPGRADE_SOURCE", _PYTHON_SCRIPT_ENV_ALLOWLIST)
+
+
+# ===========================================================================
+# AC-002 — initial v1.10.0 catalogue entries
+# ===========================================================================
+
+
+class TestInitialCatalogueEntries(unittest.TestCase):
+    def test_initial_catalogue_entries_present(self) -> None:
+        """AC-002: manifest must ship entries for issues #258, #259, #260, #261."""
+        entries = load_manifest(_WORKAROUNDS_ROOT, "v1.10.0")
+        ids = {str(e["id"]) for e in entries}
+        self.assertIn("258", ids)
+        self.assertIn("259", ids)
+        self.assertIn("260", ids)
+        self.assertIn("261", ids)
+
+
+# ===========================================================================
+# AC-004 / NFR-OPS-001 — workarounds_applied.json output fields
+# ===========================================================================
+
+
+class TestAppliedJsonOutput(unittest.TestCase):
+    def setUp(self) -> None:
+        self._tmp = tempfile.TemporaryDirectory()
+        self.repo_root = Path(self._tmp.name)
+        _make_contract(self.repo_root, repo_mode="generated-consumer")
+
+        self.workarounds_root = self.repo_root / "workarounds"
+        action_dir = self.workarounds_root / "v1.10.0"
+        action_dir.mkdir(parents=True)
+
+        (action_dir / "258_source_coverage_gap.yaml").write_text(
+            "spec:\n  repository:\n    ownership_path_classes:\n      source_only:\n        - pyproject.toml\n",
+            encoding="utf-8",
+        )
+
+        manifest = {
+            "schema_version": 1,
+            "versions": {
+                "v1.10.0": {
+                    "workarounds": [
+                        {
+                            "id": "258",
+                            "upstream_issue": "https://github.com/sbonoc/stackit-platform-blueprint/issues/258",
+                            "title": "source-tree coverage gap",
+                            "applies_when": "always",
+                            "action_kind": "contract_merge",
+                            "action_path": "workarounds/v1.10.0/258_source_coverage_gap.yaml",
+                            "apply_phase": "before_apply",
+                            "landed_in": None,
+                        }
+                    ]
+                }
+            },
+        }
+        _write_manifest(self.workarounds_root / "manifest.yaml", manifest)
+        self.engine = UpgradeWorkaroundsEngine(
+            catalogue_root=self.workarounds_root,
+            repo_root=self.repo_root,
+            target_version="v1.10.0",
+        )
+
+    def tearDown(self) -> None:
+        self._tmp.cleanup()
+
+    def test_run_before_apply_writes_applied_json_with_required_fields(self) -> None:
+        """AC-004, NFR-OPS-001: applied JSON must contain catalogue_version, target_blueprint_version, applied_at, entries with status."""
+        self.engine.run_before_apply()
+        applied_path = self.repo_root / "artifacts" / "blueprint" / "workarounds_applied.json"
+        self.assertTrue(applied_path.exists(), "workarounds_applied.json must be written after run_before_apply")
+        data = json.loads(applied_path.read_text())
+        self.assertEqual(data["catalogue_version"], 1)
+        self.assertEqual(data["target_blueprint_version"], "v1.10.0")
+        self.assertIn("applied_at", data)
+        self.assertEqual(len(data["entries"]), 1)
+        entry = data["entries"][0]
+        self.assertEqual(str(entry["id"]), "258")
+        self.assertEqual(entry["status"], "applied")
+        self.assertEqual(entry["action_kind"], "contract_merge")
+
+
+# ===========================================================================
+# FR-010 / AC-009 — per-action_kind failure policy
+# ===========================================================================
+
+
+class TestFailurePolicy(unittest.TestCase):
+    def _engine_with_manifest(self, manifest: dict, repo_root: Path) -> UpgradeWorkaroundsEngine:
+        workarounds_root = repo_root / "workarounds"
+        _write_manifest(workarounds_root / "manifest.yaml", manifest)
+        return UpgradeWorkaroundsEngine(
+            catalogue_root=workarounds_root,
+            repo_root=repo_root,
+            target_version="v1.10.0",
+        )
+
+    def test_contract_merge_failure_in_run_before_apply_is_fatal(self) -> None:
+        """FR-010/AC-009: contract_merge failure must abort run_before_apply (fatal)."""
+        with tempfile.TemporaryDirectory() as tmp:
+            repo_root = Path(tmp)
+            _make_contract(repo_root)
+            manifest = {
+                "schema_version": 1,
+                "versions": {
+                    "v1.10.0": {
+                        "workarounds": [
+                            {
+                                "id": "fatal-cm",
+                                "upstream_issue": "https://example.com",
+                                "title": "missing action file",
+                                "applies_when": "always",
+                                "action_kind": "contract_merge",
+                                "action_path": "workarounds/v1.10.0/nonexistent.yaml",
+                                "apply_phase": "before_apply",
+                                "landed_in": None,
+                            }
+                        ]
+                    }
+                },
+            }
+            engine = self._engine_with_manifest(manifest, repo_root)
+            with self.assertRaises((RuntimeError, FileNotFoundError)):
+                engine.run_before_apply()
+
+    def test_patch_failure_in_run_after_apply_is_nonfatal(self) -> None:
+        """FR-010/AC-009: patch failure must not abort run_after_apply (non-fatal)."""
+        with tempfile.TemporaryDirectory() as tmp:
+            repo_root = Path(tmp)
+            _make_contract(repo_root)
+            manifest = {
+                "schema_version": 1,
+                "versions": {
+                    "v1.10.0": {
+                        "workarounds": [
+                            {
+                                "id": "nonfatal-patch",
+                                "upstream_issue": "https://example.com",
+                                "title": "nonexistent patch",
+                                "applies_when": "always",
+                                "action_kind": "patch",
+                                "action_path": "workarounds/v1.10.0/nonexistent.patch",
+                                "apply_phase": "after_apply",
+                                "landed_in": None,
+                            }
+                        ]
+                    }
+                },
+            }
+            engine = self._engine_with_manifest(manifest, repo_root)
+            try:
+                engine.run_after_apply()
+            except Exception as exc:
+                self.fail(f"run_after_apply() raised unexpectedly for patch failure: {exc}")
