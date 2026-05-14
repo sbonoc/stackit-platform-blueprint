@@ -1,0 +1,106 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-05-14-issue-275-sdd-bypass-track",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "SPEC_READY_EXCEPTION field accepted with allowed values in spec.md"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "authorized-by field required when SPEC_READY_EXCEPTION is set"
+    },
+    {
+      "id": "FR-003",
+      "type": "requirement",
+      "summary": "bypass branch skips non-essential artifact checks when exception + authorized-by valid"
+    },
+    {
+      "id": "FR-004",
+      "type": "requirement",
+      "summary": "impl-tasks-checked warning demoted to non-blocking on bypass path"
+    },
+    {
+      "id": "FR-005",
+      "type": "requirement",
+      "summary": "full-SDD path unchanged — no regression when exception absent"
+    },
+    {
+      "id": "FR-006",
+      "type": "requirement",
+      "summary": "emit sdd_exception_gate_total metric on bypass path"
+    },
+    {
+      "id": "FR-007",
+      "type": "requirement",
+      "summary": "spec.md scaffold template includes SPEC_READY_EXCEPTION and authorized-by defaults"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "authorized-by provides human-readable audit trail in git history and CI logs"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "sdd_exception_gate_total metric follows existing blueprint structured log format"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "fully backward-compatible — existing spec.md files require no modification"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "N/A — developer tooling change; no Kubernetes runtime operation affected"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "bypass path skips non-essential artifact checks for valid exception + authorized-by"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "no specs/ dir → exit 0 (chore passive pass, regression guard)"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "SPEC_READY:true + no exception → all 10 artifacts still required (no regression)"
+    },
+    {
+      "id": "AC-004",
+      "type": "acceptance",
+      "summary": "bypass path emits sdd_exception_gate_total metric line"
+    },
+    {
+      "id": "AC-005",
+      "type": "acceptance",
+      "summary": "exception set but no authorized-by → violation raised"
+    },
+    {
+      "id": "AC-006",
+      "type": "acceptance",
+      "summary": "make quality-sdd-check on this work item's own spec.md passes"
+    }
+  ],
+  "edges": [
+    { "from": "FR-001", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-001", "to": "AC-006", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-005", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-004", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-005", "to": "AC-003", "relation": "validated_by" },
+    { "from": "FR-006", "to": "AC-004", "relation": "validated_by" },
+    { "from": "FR-007", "to": "AC-003", "relation": "validated_by" },
+    { "from": "NFR-SEC-001", "to": "FR-002", "relation": "constrains" },
+    { "from": "NFR-OBS-001", "to": "FR-006", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "FR-005", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "FR-007", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "AC-002", "relation": "constrains" }
+  ]
+}
