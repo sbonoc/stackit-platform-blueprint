@@ -44,7 +44,7 @@ Each consumer declares the workarounds it has applied in its own contract.
 
 ## Decision
 
-**Option A** — versioned catalogue inside the skill tree, with pipeline Stage 1c for pre-apply workarounds and Stage 2c for post-apply workarounds (pending Q-1 resolution on `apply_phase` model).
+**Option A** — versioned catalogue inside the skill tree, with pipeline Stage 1c for `before_apply` workarounds and Stage 2c for `after_apply` workarounds. `apply_phase` field makes ordering explicit in the manifest (Q-1 resolved Option A, 2026-05-14).
 
 ## Manifest Schema (v1)
 
@@ -108,7 +108,7 @@ Two-phase execution resolves the ordering conflict between consumer-owned and bl
 
 ## Security Posture
 
-`python_script` workarounds execute code committed to the blueprint repo, which is already trusted (consumers execute make targets, shell scripts, and Python helpers from the blueprint on every upgrade). No additional trust boundary is introduced. Subprocess env is limited to a curated allowlist per NFR-SEC-001. See open question Q-3 for discussion of an optional explicit opt-in flag.
+`python_script` workarounds execute code committed to the blueprint repo, which is already trusted (consumers execute make targets, shell scripts, and Python helpers from the blueprint on every upgrade). No additional trust boundary is introduced. Subprocess env is limited to a curated allowlist per NFR-SEC-001. No consumer opt-in flag is required (Q-3 resolved Option A, 2026-05-14).
 
 ## Consequences
 
@@ -116,6 +116,50 @@ Two-phase execution resolves the ordering conflict between consumer-owned and bl
 - `artifacts/blueprint/workarounds_applied.json` becomes a new artefact that must be committed alongside the upgrade result.
 - Blueprint maintainers MUST bump `landed_in` in the manifest when a defect fix is tagged, or workarounds will never auto-revert.
 - Initial catalogue ships the 4 known v1.10.0 workarounds (#258–#261) with `landed_in: null`; a follow-up commit sets these values once the next release tag is cut.
+
+## Workaround Feedback Loop
+
+The catalogue engine alone does not close the discovery gap — it only helps after a workaround is already in the catalogue. Three components route newly discovered consumer-side workarounds back into the blueprint automatically.
+
+### 1. Bug report template extension (FR-011)
+
+`.github/ISSUE_TEMPLATE/bug_report.yml` is extended with an optional `## Automated Workaround Catalogue Entry` section containing four fields: `affected_version`, `action_kind` (dropdown), `applies_when`, `action_content`. When a reporter has a working consumer-side fix ready to automate, they fill the section and manually apply the `workaround-report` label. The label is **not** auto-applied by the template — plain bug reports without a workaround must not trigger the scaffolder.
+
+**Why embed in bug_report.yml rather than a standalone template:** A separate `workaround_report.yml` was considered and rejected for two reasons. First, reporters — human and agent alike — must choose between templates at filing time, and they frequently choose wrong. Second, workarounds are usually discovered after the bug is first filed, sometimes by a different person. A standalone template forces bug description and workaround to exist in the same filing event and requires a cross-reference field (`upstream_issue`) that may be filled incorrectly or left pointing to the same issue. Embedding the section means the workaround can be added to an existing bug issue at any time; the manual `workaround-report` label acts as an explicit "ready to scaffold" signal rather than an artifact of template selection.
+
+### 2. GitHub Actions scaffolder (FR-012)
+
+`.github/workflows/workaround_report_scaffolder.yml` triggers on `issues: types: [labeled]` for the `workaround-report` label. It invokes `scripts/lib/blueprint/workaround_report_parser.py`, which locates the `## Automated Workaround Catalogue Entry` section by heading and extracts fields from the GitHub form's rendered markdown (`### <label>\n\n<value>`). If the section is absent or all four fields are blank, the parser returns `None` and the scaffolder exits 0 without creating files or a PR.
+
+The scaffolder writes `action_content` verbatim (no `eval`, no `exec`, no shell expansion — NFR-SEC-002). It opens a draft PR with a manifest entry stub; `apply_phase` is left as a TODO comment for the blueprint author to complete during review, since the scaffolder cannot determine whether the workaround targets a consumer-owned or blueprint-managed file.
+
+**Manifest entry stub fields populated by the scaffolder:**
+
+| Field | Value |
+|---|---|
+| `id` | GitHub issue number (string) |
+| `upstream_issue` | URL of the GitHub issue |
+| `title` | Issue title with `[workaround]` prefix stripped |
+| `applies_when` | Parsed from field; `always` if blank |
+| `action_kind` | Parsed from dropdown |
+| `action_path` | Relative path to the scaffolded action file |
+| `apply_phase` | `# TODO: set before_apply or after_apply` |
+| `landed_in` | `null` |
+
+### 3. Consumer skill extension — automatic filing (FR-013, FR-014)
+
+The `blueprint-consumer-upgrade` skill is extended: after the agent applies a manual fix to a blueprint-managed file not covered by Stage 1c, it files a `workaround-report` issue automatically:
+
+```
+gh issue create --repo <blueprint_repo> \
+  --title "[workaround] <short description> (v<affected_version>)" \
+  --label workaround-report \
+  --body "..."
+```
+
+The body MUST include the `## Automated Workaround Catalogue Entry` section with all four fields populated. Required bug template fields (`scope`, `problem`, `reproduction`, `expected`, `workaround_path`, `replacement_trigger`, `workaround_review_date`) are stubbed with `n/a — filed automatically by blueprint-consumer-upgrade skill` when the agent cannot derive meaningful values from the upgrade context. Filing is non-blocking (NFR-REL-003).
+
+Before filing, the agent searches for an existing open issue with a title matching `[workaround] * (v<affected_version>)` via `gh issue list --label workaround-report --state open --search "[workaround]"` to prevent duplicates (FR-014).
 
 ## Resolved Decisions (PR #292, 2026-05-14)
 
