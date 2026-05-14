@@ -23,7 +23,7 @@
 ## Implementation Tasks (SPEC_READY=true — implementation unlocked)
 
 ### Wave 1 (parallel — disjoint file sets)
-- [ ] T-011 Slice 0: extend `bug_report.yml` with workaround section + GitHub Actions scaffolder + `workaround_report_parser.py` + tests
+- [x] T-011 Slice 0: extend `bug_report.yml` with workaround section + GitHub Actions scaffolder + `workaround_report_parser.py` + tests
 - [ ] T-012 Slice 1: schema + engine skeleton `upgrade_workarounds.py` (load/evaluate/dispatch/write) + `test_upgrade_workarounds.py`
 - [ ] T-018 Slice 6b: `workaround_report_filer.py` + `test_workaround_report_filer.py` (NO SKILL.md)
 

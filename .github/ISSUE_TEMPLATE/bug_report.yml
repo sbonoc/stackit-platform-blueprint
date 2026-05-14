@@ -65,3 +65,43 @@ body:
       placeholder: YYYY-MM-DD
     validations:
       required: true
+  - type: markdown
+    attributes:
+      value: |
+        ## Automated Workaround Catalogue Entry
+
+        Fill this section only when you have a concrete consumer-side fix to automate. Then add the `workaround-report` label to trigger the scaffolder.
+  - type: input
+    id: affected_version
+    attributes:
+      label: affected_version
+      description: The blueprint version where this defect exists (e.g. v1.10.0).
+      placeholder: v1.10.0
+    validations:
+      required: false
+  - type: dropdown
+    id: action_kind
+    attributes:
+      label: action_kind
+      description: How the workaround is applied.
+      options:
+        - contract_merge
+        - patch
+        - python_script
+    validations:
+      required: false
+  - type: input
+    id: applies_when
+    attributes:
+      label: applies_when
+      description: "Condition under which this workaround applies. Use `always` or a field condition (e.g. `repo_mode: generated-consumer`)."
+      placeholder: always
+    validations:
+      required: false
+  - type: textarea
+    id: action_content
+    attributes:
+      label: action_content
+      description: The exact YAML fragment (contract_merge), unified diff (patch), or Python code (python_script) for the workaround.
+    validations:
+      required: false
