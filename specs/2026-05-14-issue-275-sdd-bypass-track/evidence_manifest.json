@@ -1,7 +1,58 @@
 {
   "manifest_version": 1,
-  "work_item": "<YYYY-MM-DD>-<work-item-slug>",
+  "work_item": "specs/2026-05-14-issue-275-sdd-bypass-track",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "",
-  "files": []
+  "generated_at_utc": "2026-05-14T19:15:52Z",
+  "files": [
+    {
+      "path": "specs/2026-05-14-issue-275-sdd-bypass-track/architecture.md",
+      "sha256": "e145c3857f64533649207ce10f01cf0581f6aac5d89e0bed9ddb682700e0fe2b",
+      "bytes": 4967
+    },
+    {
+      "path": "specs/2026-05-14-issue-275-sdd-bypass-track/context_pack.md",
+      "sha256": "c534ceb6b646f07eb932bd46be7d79006c6b94a22fe1de56dc0c6146458b2885",
+      "bytes": 865
+    },
+    {
+      "path": "specs/2026-05-14-issue-275-sdd-bypass-track/evidence_manifest.json",
+      "sha256": "ecb0eea40122794ca8f062212e022ba451f6d0a543b88db3d7c15e65a071e7f7",
+      "bytes": 161
+    },
+    {
+      "path": "specs/2026-05-14-issue-275-sdd-bypass-track/graph.json",
+      "sha256": "a1cccb9e3957793cc58482ea12bf8e4c484b226b0c7fb5e1ca002412ead29a16",
+      "bytes": 3795
+    },
+    {
+      "path": "specs/2026-05-14-issue-275-sdd-bypass-track/hardening_review.md",
+      "sha256": "180c270281b26a89bd05143aa36c52a8f29682f3a175ec99f369f8490532b0f7",
+      "bytes": 1164
+    },
+    {
+      "path": "specs/2026-05-14-issue-275-sdd-bypass-track/plan.md",
+      "sha256": "73cab26cf4abedf14fe6c9c376c0eba37f87c9f25b9e29c989c5ceb43a1be7e9",
+      "bytes": 6900
+    },
+    {
+      "path": "specs/2026-05-14-issue-275-sdd-bypass-track/pr_context.md",
+      "sha256": "26b7a261f5f07f472d3d30b255eb9d1b35c3633cb84be062b9e5f461c488d33c",
+      "bytes": 465
+    },
+    {
+      "path": "specs/2026-05-14-issue-275-sdd-bypass-track/spec.md",
+      "sha256": "52a458e0e472282c2d3ab083f964ebfa29a0d35eb6d54d7264961a7017dc1c39",
+      "bytes": 10626
+    },
+    {
+      "path": "specs/2026-05-14-issue-275-sdd-bypass-track/tasks.md",
+      "sha256": "b68d80406ee43a8b5c3b58775f1caaa930cb8a84e206456b8c66b7b7040a5abb",
+      "bytes": 4006
+    },
+    {
+      "path": "specs/2026-05-14-issue-275-sdd-bypass-track/traceability.md",
+      "sha256": "5ebfeaf1b2719d26c4eac0df82bf1dfecf0d1c41e99947bb7a9a7fdb5f5c0423",
+      "bytes": 5005
+    }
+  ]
 }

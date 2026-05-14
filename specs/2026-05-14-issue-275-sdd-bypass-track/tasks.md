@@ -18,7 +18,7 @@
 - [x] T-008 Update `spec.md` scaffold template to include `SPEC_READY_EXCEPTION: none` and `authorized-by: none` default fields
 - [x] T-009 Register `tests/blueprint/test_sdd_bypass_track.py` in `test_pyramid_contract.json` unit scope
 - [x] T-010 Confirm all 5 tests pass (green)
-- [ ] T-011 Add `## Lightweight SDD Bypass Track` subsection to `AGENTS.md`
+- [x] T-011 Add `## Lightweight SDD Bypass Track` subsection to `AGENTS.md`
 
 ## Test Automation
 - [x] T-101 `tests/blueprint/test_sdd_bypass_track.py` — AC-001: bypass path skips non-essential artifact checks for valid exception + authorized-by
@@ -35,16 +35,16 @@
 - [x] T-A05 N/A — no UI changes
 
 ## Validation and Release Readiness
-- [ ] T-201 Run `uv run python3 -m pytest tests/blueprint/test_sdd_bypass_track.py -v` and `make test-unit-all`
-- [ ] T-202 Attach test evidence to traceability document
-- [ ] T-203 Confirm no stale TODOs or drift — `make quality-sdd-check-all` PASS
-- [ ] T-204 Run `make docs-build` and `make docs-smoke`
-- [ ] T-205 Run `make quality-hardening-review`
+- [x] T-201 Run `uv run python3 -m pytest tests/blueprint/test_sdd_bypass_track.py -v` and `make test-unit-all`
+- [x] T-202 Attach test evidence to traceability document
+- [x] T-203 Confirm no stale TODOs or drift — `make quality-sdd-check-all` PASS
+- [x] T-204 Run `make docs-build` and `make docs-smoke`
+- [x] T-205 Run `make quality-hardening-review`
 
 ## Publish
-- [ ] P-001 Update `hardening_review.md` with findings and proposals-only section
-- [ ] P-002 Update `pr_context.md` with requirement coverage, key reviewer files, test evidence, and rollback notes
-- [ ] P-003 Ensure PR description references `pr_context.md` and closes #275
+- [x] P-001 Update `hardening_review.md` with findings and proposals-only section
+- [x] P-002 Update `pr_context.md` with requirement coverage, key reviewer files, test evidence, and rollback notes
+- [x] P-003 Ensure PR description references `pr_context.md` and closes #275
 
 ## App Onboarding Minimum Targets (Normative)
 - [x] A-001 `apps-bootstrap` and `apps-smoke` — no-impact; targets unchanged by this work item
