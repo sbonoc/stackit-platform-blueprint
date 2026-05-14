@@ -24,9 +24,9 @@ Responsibilities: manifest loading, schema validation, `applies_when` evaluation
 `artifacts/blueprint/workarounds_applied.json` — written by Stage 1c; read on the next upgrade run to decide revert eligibility.
 `blueprint/contract.yaml` — mutated by `contract_merge` workarounds; its `repo_mode` field is the primary `applies_when` discriminator.
 
-### 5. Workaround Report Issue Template (blueprint-owned, GitHub-native)
-Canonical location: `.github/ISSUE_TEMPLATE/workaround_report.yml`.
-Structured GitHub issue form with fields: `affected_version`, `action_kind`, `applies_when`, `action_content`, `upstream_issue`. Automatically labels issues `workaround-report`. Blueprint repo only — consumers do not need a copy.
+### 5. Workaround Report Section (blueprint-owned, GitHub-native)
+Canonical location: `.github/ISSUE_TEMPLATE/bug_report.yml` (extended).
+Optional structured workaround section appended to the existing bug template, with fields: `affected_version`, `action_kind` (dropdown), `applies_when`, `action_content`. Section carries a visible instruction: add the `workaround-report` label manually when all fields are intentionally complete. The label is NOT auto-applied by the template — plain bug reports without a workaround must not be routed to the scaffolder. Blueprint repo only — consumers do not need a copy.
 
 ### 6. Workaround Report Scaffolder (GitHub Actions workflow)
 Canonical location: `.github/workflows/workaround_report_scaffolder.yml`.
@@ -89,8 +89,8 @@ Rationale: Before applying any workaround, the engine checks if its id is alread
 ### D-6: Revert only when `landed_in` is satisfied AND entry was previously applied
 Rationale: Revert is not attempted when `landed_in` is null (fix not yet tagged) or when the workaround id is absent from `workarounds_applied.json` (never applied in this consumer repo). Prevents spurious reversions on fresh consumers.
 
-### D-8: Issue template in the blueprint repo (not consumer repos)
-Rationale: Consumers file workaround reports directly in the blueprint repo via `gh issue create --repo`. This requires only a GitHub token with `issues: write` on the blueprint repo — no cross-repo webhooks, no GitHub App permissions, no consumer-side template changes. The skill extension provides the filing step; consumers do not need to know the template exists.
+### D-8: Workaround section embedded in bug_report.yml, not a standalone template
+Rationale: A separate `workaround_report.yml` would require reporters to choose between two templates at filing time — a decision most will get wrong, and one that agents might get wrong too. The existing `bug_report.yml` already has `workaround_path` and `replacement_trigger` fields for documenting manual workarounds; extending it with a structured automation section is a natural extension. Co-location also solves the timing problem: the workaround section is usually filled in after the bug is filed (often by a different person), so having both in one issue avoids a `upstream_issue` back-reference that could be missed. The manual `workaround-report` label requirement (rather than auto-apply) ensures the scaffolder only fires when the reporter explicitly declares the section is complete — an empty or partially filled workaround section on a plain bug report does not trigger automation.
 
 ### D-9: GitHub Actions scaffolder writes content verbatim without executing it
 Rationale: The `action_content` field is untrusted user input (from an issue body). Writing it verbatim into an action file and opening a draft PR for human review provides the necessary security gate. The blueprint author's PR review is the execution trust boundary — no auto-merge.

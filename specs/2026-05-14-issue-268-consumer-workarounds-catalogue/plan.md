@@ -16,7 +16,7 @@ Failing tests first:
 - `test_workaround_report_parser_unknown_action_kind_raises`
 
 Files:
-- `.github/ISSUE_TEMPLATE/workaround_report.yml` (new)
+- `.github/ISSUE_TEMPLATE/bug_report.yml` (extend: add optional structured workaround section with instruction to manually apply `workaround-report` label)
 - `.github/workflows/workaround_report_scaffolder.yml` (new)
 - `scripts/lib/blueprint/workaround_report_parser.py` (new)
 - `tests/blueprint/test_workaround_report_parser.py` (new)

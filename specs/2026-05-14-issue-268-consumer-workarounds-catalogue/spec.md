@@ -43,7 +43,7 @@
 
 ## Objective
 - Business outcome: Eliminate per-consumer rediscovery of blueprint-version-specific upstream defects by shipping a versioned workaround catalogue inside the consumer-upgrade skill, AND close the catalogue authoring loop so discovered workarounds feed back into the blueprint automatically. The pipeline applies catalogue entries for the target version, reverts them when the fix lands, and — when a consumer agent discovers a new workaround not yet in the catalogue — files a structured report directly in the blueprint repo so the next release can include it. A representative upgrade previously requiring ~30 min of manual workaround work MUST complete with zero manual workaround steps once the catalogue is populated.
-- Success metric: (1) `workarounds/manifest.yaml` present and schema-valid. (2) Pipeline applies matching workarounds and logs each with id, title, outcome. (3) `artifacts/blueprint/workarounds_applied.json` written. (4) `contract_merge` workaround applies and reverts cleanly in an automated test. (5) `applies_when` mismatch skips correctly. (6) Initial catalogue ships entries for #258–#261. (7) `workaround_report.yml` issue template exists in blueprint repo. (8) GitHub Actions scaffolder opens a draft PR from a synthetic workaround-report issue. (9) Skill extension files a structured issue after a manual workaround is applied.
+- Success metric: (1) `workarounds/manifest.yaml` present and schema-valid. (2) Pipeline applies matching workarounds and logs each with id, title, outcome. (3) `artifacts/blueprint/workarounds_applied.json` written. (4) `contract_merge` workaround applies and reverts cleanly in an automated test. (5) `applies_when` mismatch skips correctly. (6) Initial catalogue ships entries for #258–#261. (7) `bug_report.yml` has an optional structured workaround section; adding the `workaround-report` label triggers the scaffolder. (8) GitHub Actions scaffolder opens a draft PR from a synthetic workaround-report issue. (9) Skill extension files a structured issue after a manual workaround is applied.
 
 ## Normative Requirements
 
@@ -67,7 +67,7 @@
 
 - FR-009: Workaround application MUST be idempotent — applying an already-applied workaround MUST produce a log entry and exit 0 without mutating the working tree again.
 
-- FR-011: Blueprint MUST ship a GitHub structured issue template at `.github/ISSUE_TEMPLATE/workaround_report.yml` with the following required fields: `affected_version` (the blueprint version where the defect exists), `action_kind` (dropdown: `contract_merge`, `patch`, `python_script`), `applies_when` (free-text; `always` or a `key: value` condition), `action_content` (multi-line textarea; the exact YAML fragment, unified diff, or Python code), and `upstream_issue` (URL to the originating consumer or blueprint issue). The template MUST automatically apply the label `workaround-report` to all issues created from it.
+- FR-011: Blueprint MUST extend the existing bug report template at `.github/ISSUE_TEMPLATE/bug_report.yml` with an optional structured workaround section containing the following fields: `affected_version` (the blueprint version where the defect exists), `action_kind` (dropdown: `contract_merge`, `patch`, `python_script`), `applies_when` (free-text; `always` or a `key: value` condition), `action_content` (multi-line textarea; the exact YAML fragment, unified diff, or Python code). The section MUST include a visible note: "Fill this section only when you have a concrete consumer-side fix to automate. Then add the `workaround-report` label to trigger the scaffolder." The `workaround-report` label MUST be applied manually by the reporter when all workaround fields are intentionally complete; it MUST NOT be auto-applied by the template so that plain bug reports without a workaround are not inadvertently routed to the scaffolder.
 
 - FR-012: Blueprint MUST ship a GitHub Actions workflow at `.github/workflows/workaround_report_scaffolder.yml` that triggers on `issues: types: [labeled]` when the label `workaround-report` is present. The workflow MUST: (1) parse the structured issue body fields using a Python helper (`scripts/lib/blueprint/workaround_report_parser.py`), (2) scaffold the action file at `.agents/skills/blueprint-consumer-upgrade/workarounds/v<affected_version>/<id>_<slug>.<ext>` with the verbatim `action_content` from the issue, (3) add a manifest entry stub with `landed_in: null` to `manifest.yaml`, and (4) open a draft PR linking to the originating issue. The workflow MUST run with minimal GitHub token permissions: `issues: read`, `contents: write`, `pull-requests: write`.
 
@@ -104,7 +104,7 @@
 - Event contract: none
 - Make/CLI contract: no new make targets required; Stage 1c and Stage 2c are internal to the existing pipeline shell script
 - Docs contract: `.agents/skills/blueprint-consumer-upgrade/SKILL.md` MUST be updated to document the workaround catalogue mechanism, how to author a new entry, and the automatic issue-filing step; `docs/blueprint/architecture/decisions/ADR-issue-268-consumer-workarounds-catalogue.md` MUST be created
-- GitHub contract: `.github/ISSUE_TEMPLATE/workaround_report.yml` (new structured issue template); `.github/workflows/workaround_report_scaffolder.yml` (new Actions workflow)
+- GitHub contract: `.github/ISSUE_TEMPLATE/bug_report.yml` (extended with optional structured workaround section); `.github/workflows/workaround_report_scaffolder.yml` (new Actions workflow)
 
 ## Blueprint Upstream Defect Escalation (Normative)
 - Upstream issue URL: none — this spec implements the escalation mechanism itself
@@ -132,7 +132,7 @@
 
 - AC-009: Per-action-kind failure policy is enforced: a `contract_merge` application failure exits non-zero (fatal); a `patch` application failure logs a warning, records `status: failed` in `workarounds_applied.json`, and continues (non-fatal); a `python_script` application failure exits non-zero (fatal).
 
-- AC-010: `.github/ISSUE_TEMPLATE/workaround_report.yml` exists with all required fields (`affected_version`, `action_kind`, `applies_when`, `action_content`, `upstream_issue`) and automatically applies the `workaround-report` label.
+- AC-010: `.github/ISSUE_TEMPLATE/bug_report.yml` contains an optional structured workaround section with all required fields (`affected_version`, `action_kind`, `applies_when`, `action_content`) and a visible instruction to manually apply the `workaround-report` label when the section is complete.
 
 - AC-011: Given a synthetic `workaround-report` issue body with all required fields, the GitHub Actions scaffolder workflow produces: (a) a correctly named action file at `workarounds/v<affected_version>/` containing the verbatim `action_content`, and (b) a manifest entry stub in `manifest.yaml` with `landed_in: null`, and (c) a draft PR linking to the originating issue.
 
