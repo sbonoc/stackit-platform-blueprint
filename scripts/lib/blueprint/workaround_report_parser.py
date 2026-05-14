@@ -107,6 +107,12 @@ def parse_issue_body(
     if all(_is_blank(v) for v in (affected_version, action_kind, applies_when_raw, action_content)):
         return None
 
+    if _is_blank(affected_version):
+        raise ValueError(
+            "affected_version is required to construct action_path but was blank. "
+            "Fill in the affected_version field (e.g. 'v1.10.0') and resubmit."
+        )
+
     if action_kind not in _VALID_ACTION_KINDS:
         raise ValueError(
             f"Unknown action_kind {action_kind!r}. "

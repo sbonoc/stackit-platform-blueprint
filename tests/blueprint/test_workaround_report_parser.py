@@ -216,6 +216,25 @@ def test_workaround_report_parser_returns_none_when_all_fields_blank() -> None:
 
 
 # ---------------------------------------------------------------------------
+# FR-012: blank affected_version raises ValueError (action_path would be malformed)
+# ---------------------------------------------------------------------------
+
+
+def test_workaround_report_parser_raises_when_affected_version_blank() -> None:
+    body_no_version = _KNOWN_VALID_BODY.replace(
+        "### affected_version\n\nv1.10.0",
+        "### affected_version\n\n_No response_",
+    )
+    with pytest.raises(ValueError, match="affected_version"):
+        parse_issue_body(
+            body=body_no_version,
+            issue_number=_ISSUE_NUMBER,
+            issue_url=_ISSUE_URL,
+            issue_title=_ISSUE_TITLE,
+        )
+
+
+# ---------------------------------------------------------------------------
 # patch action kind → .patch extension
 # ---------------------------------------------------------------------------
 

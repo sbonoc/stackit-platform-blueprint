@@ -49,6 +49,27 @@ def load_manifest(catalogue_root: Path, target_version: str) -> list[dict[str, A
     return list(version_block.get("workarounds", []))
 
 
+def _load_all_manifest_entries(
+    catalogue_root: Path, exclude_version: str
+) -> list[dict[str, Any]]:
+    """Return all entries from version blocks other than exclude_version.
+
+    Used to scan prior-version entries whose landed_in is now satisfied by
+    the current target_version (cross-version revert, FR-006).
+    """
+    manifest_path = catalogue_root / _MANIFEST_FILENAME
+    if not manifest_path.exists():
+        return []
+    raw = yaml.safe_load(manifest_path.read_text(encoding="utf-8")) or {}
+    versions = raw.get("versions", {})
+    result: list[dict[str, Any]] = []
+    for ver, block in versions.items():
+        if ver == exclude_version:
+            continue
+        result.extend(block.get("workarounds", []))
+    return result
+
+
 # ---------------------------------------------------------------------------
 # Applied JSON helpers
 # ---------------------------------------------------------------------------
@@ -238,7 +259,12 @@ class UpgradeWorkaroundsEngine:
     # ------------------------------------------------------------------
 
     def _patch_apply(self, entry: dict[str, Any]) -> None:
-        """FR-010: patch failures are non-fatal (git apply already applied → exit 1 is safe)."""
+        """Raise RuntimeError on non-zero exit so callers record status: failed (FR-010).
+
+        Non-fatal semantics are enforced by the except branch in run_before_apply/run_after_apply,
+        not by silent swallowing here — silent return caused callers to record status: applied
+        for genuinely failed patches, making the workaround permanently idempotent.
+        """
         action_file = self._action_file(entry)
         result = subprocess.run(
             ["git", "apply", "--whitespace=fix", str(action_file)],
@@ -247,10 +273,8 @@ class UpgradeWorkaroundsEngine:
             text=True,
         )
         if result.returncode != 0:
-            log.warning(
-                "patch apply non-fatal: entry #%s — %s",
-                entry.get("id"),
-                result.stderr.strip(),
+            raise RuntimeError(
+                f"patch apply failed: entry #{entry.get('id')} — {result.stderr.strip()}"
             )
 
     def _patch_revert(self, entry: dict[str, Any]) -> None:
@@ -262,10 +286,8 @@ class UpgradeWorkaroundsEngine:
             text=True,
         )
         if result.returncode != 0:
-            log.warning(
-                "patch revert non-fatal: entry #%s — %s",
-                entry.get("id"),
-                result.stderr.strip(),
+            raise RuntimeError(
+                f"patch revert failed: entry #{entry.get('id')} — {result.stderr.strip()}"
             )
 
     # ------------------------------------------------------------------
@@ -304,6 +326,27 @@ class UpgradeWorkaroundsEngine:
             e for e in applied_json.get("entries", [])
             if e.get("status") != "reverted"
         ]
+
+        # FR-006: scan prior-version entries for cross-version revert candidates.
+        # load_manifest only returns the target version block; entries from older
+        # versions with landed_in satisfied by target_version must also be reverted.
+        for entry in _load_all_manifest_entries(self._catalogue_root, self._target_version):
+            if entry.get("apply_phase") != "before_apply":
+                continue
+            if not self.should_revert(entry, applied_json):
+                continue
+            entry_id = str(entry.get("id", ""))
+            title = entry.get("title", "")
+            self.revert(entry)
+            print(
+                f"[PIPELINE] Stage 1c: reverted workaround #{entry_id} — {title} "
+                f"(landed in {entry.get('landed_in')})"
+            )
+            result_entries = [e for e in result_entries if str(e.get("id")) != entry_id]
+            result_entries.append(
+                {"id": entry_id, "title": title, "action_kind": entry.get("action_kind"),
+                 "apply_phase": "before_apply", "status": "reverted"}
+            )
 
         for entry in entries:
             if entry.get("apply_phase") != "before_apply":
@@ -363,6 +406,29 @@ class UpgradeWorkaroundsEngine:
         """Stage 2c: apply after_apply entries. FR-003, FR-004."""
         applied_json = _load_applied_json(self._repo_root)
         entries = load_manifest(self._catalogue_root, self._target_version)
+
+        # FR-006: revert prior-version after_apply entries whose landed_in is satisfied.
+        for entry in _load_all_manifest_entries(self._catalogue_root, self._target_version):
+            if entry.get("apply_phase") != "after_apply":
+                continue
+            if not self.should_revert(entry, applied_json):
+                continue
+            entry_id = str(entry.get("id", ""))
+            title = entry.get("title", "")
+            self.revert(entry)
+            print(
+                f"[PIPELINE] Stage 2c: reverted workaround #{entry_id} — {title} "
+                f"(landed in {entry.get('landed_in')})"
+            )
+            new_entries = [
+                e for e in applied_json.get("entries", []) if str(e.get("id")) != entry_id
+            ]
+            new_entries.append(
+                {"id": entry_id, "title": title, "action_kind": entry.get("action_kind"),
+                 "apply_phase": "after_apply", "status": "reverted"}
+            )
+            applied_json["entries"] = new_entries
+            _write_applied_json(self._repo_root, self._target_version, new_entries)
 
         for entry in entries:
             if entry.get("apply_phase") != "after_apply":

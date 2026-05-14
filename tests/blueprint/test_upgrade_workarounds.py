@@ -18,6 +18,7 @@ import yaml
 
 from scripts.lib.blueprint.upgrade_workarounds import (
     UpgradeWorkaroundsEngine,
+    _load_all_manifest_entries,
     load_manifest,
 )
 
@@ -207,6 +208,108 @@ class TestShouldRevert(unittest.TestCase):
         entry = {"id": "258", "landed_in": "v1.11.0"}
         applied_json = {"catalogue_version": 1, "entries": []}
         self.assertFalse(self.engine.should_revert(entry, applied_json))
+
+
+# ===========================================================================
+# Slice 1 — cross-version revert (FR-006)
+# ===========================================================================
+
+
+class TestCrossVersionRevert(unittest.TestCase):
+    """FR-006: entries from older version blocks must be reverted when landed_in is satisfied."""
+
+    def setUp(self) -> None:
+        self._tmp = tempfile.TemporaryDirectory()
+        self.repo_root = Path(self._tmp.name)
+        _make_contract(self.repo_root, repo_mode="generated-consumer")
+
+        self.workarounds_root = self.repo_root / "workarounds"
+        action_dir = self.workarounds_root / "v1.10.0"
+        action_dir.mkdir(parents=True)
+
+        (action_dir / "258_source_coverage_gap.yaml").write_text(
+            "spec:\n  repository:\n    ownership_path_classes:\n      source_only:\n        - pyproject.toml\n",
+            encoding="utf-8",
+        )
+
+        # v1.10.0 entry has landed_in: v1.11.0; v1.11.0 block is empty
+        self.manifest = {
+            "schema_version": 1,
+            "versions": {
+                "v1.10.0": {
+                    "workarounds": [
+                        {
+                            "id": "258",
+                            "upstream_issue": "https://github.com/sbonoc/stackit-platform-blueprint/issues/258",
+                            "title": "source-tree coverage gap",
+                            "applies_when": "always",
+                            "action_kind": "contract_merge",
+                            "action_path": "workarounds/v1.10.0/258_source_coverage_gap.yaml",
+                            "apply_phase": "before_apply",
+                            "landed_in": "v1.11.0",
+                        }
+                    ]
+                },
+                "v1.11.0": {"workarounds": []},
+            },
+        }
+        _write_manifest(self.workarounds_root / "manifest.yaml", self.manifest)
+
+    def tearDown(self) -> None:
+        self._tmp.cleanup()
+
+    def test_load_all_manifest_entries_excludes_target_version(self) -> None:
+        entries = _load_all_manifest_entries(self.workarounds_root, "v1.11.0")
+        ids = {str(e["id"]) for e in entries}
+        self.assertIn("258", ids)
+
+    def test_run_before_apply_reverts_cross_version_entry_when_landed_in_satisfied(self) -> None:
+        """Engine targeting v1.11.0 must revert v1.10.0 entry whose landed_in=v1.11.0."""
+        # Pre-populate applied_json to simulate a prior upgrade that applied entry #258
+        applied_path = self.repo_root / "artifacts" / "blueprint" / "workarounds_applied.json"
+        applied_path.parent.mkdir(parents=True, exist_ok=True)
+        applied_path.write_text(
+            json.dumps(
+                {
+                    "catalogue_version": 1,
+                    "target_blueprint_version": "v1.10.0",
+                    "applied_at": "2026-01-01T00:00:00+00:00",
+                    "entries": [
+                        {
+                            "id": "258",
+                            "title": "source-tree coverage gap",
+                            "action_kind": "contract_merge",
+                            "apply_phase": "before_apply",
+                            "status": "applied",
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+        # Also apply the merge so there's something to revert
+        engine_setup = UpgradeWorkaroundsEngine(
+            catalogue_root=self.workarounds_root,
+            repo_root=self.repo_root,
+            target_version="v1.10.0",
+        )
+        engine_setup.apply(
+            {
+                "id": "258",
+                "action_kind": "contract_merge",
+                "action_path": "workarounds/v1.10.0/258_source_coverage_gap.yaml",
+            }
+        )
+
+        engine = UpgradeWorkaroundsEngine(
+            catalogue_root=self.workarounds_root,
+            repo_root=self.repo_root,
+            target_version="v1.11.0",
+        )
+        result = engine.run_before_apply()
+
+        reverted = [e for e in result if str(e["id"]) == "258" and e["status"] == "reverted"]
+        self.assertEqual(len(reverted), 1, "entry #258 must be reverted by cross-version scan")
 
 
 # ===========================================================================
@@ -438,8 +541,10 @@ class TestPatchActionKind(unittest.TestCase):
             "title": "template-smoke skip",
         }
         self.engine.apply(entry)
-        # Second apply on an already-patched file — must not raise (non-fatal)
-        self.engine.apply(entry)
+        # Second direct apply raises — pipeline-level idempotency is enforced by
+        # is_idempotent() in run_before_apply/run_after_apply, not by silent swallow here.
+        with self.assertRaises(RuntimeError):
+            self.engine.apply(entry)
 
     def test_patch_revert_reverses_unified_diff(self) -> None:
         entry = {
