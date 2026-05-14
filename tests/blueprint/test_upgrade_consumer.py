@@ -10,7 +10,7 @@ from unittest import mock
 
 from scripts.lib.blueprint import upgrade_consumer
 from scripts.lib.blueprint import upgrade_consumer_validate as validate_module
-from scripts.lib.blueprint.contract_schema import load_blueprint_contract
+from scripts.lib.blueprint.contract_schema import load_blueprint_contract, _strip_inline_comment
 from tests._shared.exec import run_command
 from tests._shared.json_schema import assert_json_matches_schema, load_json_schema
 from tests._shared.helpers import REPO_ROOT
@@ -3017,6 +3017,70 @@ class SourceExistsInferenceTests(unittest.TestCase):
                 entry.get("reason", ""),
                 "reason MUST identify blueprint-managed ownership inference basis (FR-004)",
             )
+
+
+class StripInlineCommentTests(unittest.TestCase):
+    """Direct unit tests for _strip_inline_comment() (contract_schema.py).
+
+    The function is non-trivial (escape-aware quote loop); testing it directly makes
+    regressions immediately visible without tracing through integration tests.
+    """
+
+    def test_unquoted_value_with_inline_comment(self) -> None:
+        self.assertEqual(_strip_inline_comment("some-value  # a comment"), "some-value")
+
+    def test_unquoted_value_no_comment(self) -> None:
+        self.assertEqual(_strip_inline_comment("plain-value"), "plain-value")
+
+    def test_double_quoted_value_with_hash_inside(self) -> None:
+        self.assertEqual(_strip_inline_comment('"path/to/some#thing"'), '"path/to/some#thing"')
+
+    def test_double_quoted_value_with_escaped_quote(self) -> None:
+        self.assertEqual(
+            _strip_inline_comment(r'"make -C \"$ROOT_DIR\" infra-post-deploy-consumer"'),
+            r'"make -C \"$ROOT_DIR\" infra-post-deploy-consumer"',
+        )
+
+    def test_empty_string(self) -> None:
+        self.assertEqual(_strip_inline_comment(""), "")
+
+    def test_double_quoted_empty_string(self) -> None:
+        self.assertEqual(_strip_inline_comment('""'), '""')
+
+    def test_double_quoted_empty_string_with_comment(self) -> None:
+        self.assertEqual(_strip_inline_comment('""  # engine-managed'), '""')
+
+    def test_hash_with_no_preceding_whitespace_is_not_a_comment(self) -> None:
+        self.assertEqual(_strip_inline_comment("value#nospace"), "value#nospace")
+
+
+class RecommendedActionOwnershipClassTests(unittest.TestCase):
+    """FR-006 / AC-005 — all non-blueprint-managed ownership classes are unaffected by source_exists."""
+
+    _MAP_CASES: list[tuple[str, bool, str]] = [
+        ("blueprint-managed-root", True, "take_source"),
+        ("blueprint-managed-root", False, "take_source"),
+        ("required-file", True, "take_source"),
+        ("required-file", False, "take_source"),
+        ("init-managed", True, "take_source"),
+        ("init-managed", False, "take_source"),
+        ("conditional-scaffold", True, "take_source"),
+        ("conditional-scaffold", False, "take_source"),
+        ("consumer-seeded", True, "take_target"),
+        ("consumer-seeded", False, "take_target"),
+        ("unknown-class", True, "human_required"),
+        ("unknown-class", False, "human_required"),
+    ]
+
+    def test_other_ownership_classes_unaffected_by_source_exists(self) -> None:
+        """Non-blueprint-managed classes MUST return the same action regardless of source_exists (FR-006, AC-005)."""
+        for ownership_class, source_exists, expected in self._MAP_CASES:
+            with self.subTest(ownership_class=ownership_class, source_exists=source_exists):
+                self.assertEqual(
+                    upgrade_consumer._recommended_action(ownership_class, source_exists),
+                    expected,
+                    f"_recommended_action({ownership_class!r}, {source_exists}) should be {expected!r}",
+                )
 
 
 if __name__ == "__main__":

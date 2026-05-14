@@ -194,8 +194,8 @@ test-contracts-async-all: ## Run async Pact message-contract producer+consumer l
 # Augment the platform-owned aggregate contract lane without overriding its recipe.
 test-contracts-all: test-contracts-async-all
 
-blueprint-test-unit: ## Run blueprint tooling unit test suite (upgrade engine, pipeline, contracts)
-	@uv run python3 -m pytest tests/blueprint/ -q
+blueprint-test-unit: ## Run blueprint tooling unit test suite (upgrade engine, pipeline, contracts; no-op in generated-consumer repos where tests/blueprint is source-only)
+	@if [ -d tests/blueprint ]; then uv run python3 -m pytest tests/blueprint/ -q; fi
 
 # Augment the platform-owned aggregate unit lane without overriding its recipe.
 test-unit-all: blueprint-test-unit
