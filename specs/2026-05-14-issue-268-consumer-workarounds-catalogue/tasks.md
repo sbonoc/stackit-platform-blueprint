@@ -21,14 +21,16 @@
 - [x] T-010 Commit and open Draft PR
 
 ## Implementation Tasks (blocked on SPEC_READY=true)
-- [ ] T-011 Slice 1: schema + engine skeleton (load/evaluate/dispatch/write) + unit tests
-- [ ] T-012 Slice 2: `contract_merge` action kind apply + revert + idempotency tests
-- [ ] T-013 Slice 3: `patch` action kind + `apply_phase` field + phase-split entry points
-- [ ] T-014 Slice 4: `python_script` action kind + security isolation + tests
-- [ ] T-015 Slice 5: pipeline Stage 1c + Stage 2c wiring in `upgrade_consumer_pipeline.sh`
-- [ ] T-016 Slice 6: author v1.10.0 catalogue entries (#258, #259, #260, #261)
-- [ ] T-017 Slice 7: SKILL.md update + ADR finalisation
-- [ ] T-018 Slice 8: publish artefacts (hardening_review, pr_context, traceability summary)
+- [ ] T-011 Slice 0: issue template + GitHub Actions scaffolder + `workaround_report_parser.py` + tests
+- [ ] T-012 Slice 1: schema + engine skeleton (load/evaluate/dispatch/write) + unit tests
+- [ ] T-013 Slice 2: `contract_merge` action kind apply + revert + idempotency tests
+- [ ] T-014 Slice 3: `patch` action kind + `apply_phase` field + phase-split entry points
+- [ ] T-015 Slice 4: `python_script` action kind + security isolation + tests
+- [ ] T-016 Slice 5: pipeline Stage 1c + Stage 2c wiring in `upgrade_consumer_pipeline.sh`
+- [ ] T-017 Slice 6: author v1.10.0 catalogue entries (#258, #259, #260, #261)
+- [ ] T-018 Slice 6b: skill extension — `workaround_report_filer.py` + duplicate detection + SKILL.md update
+- [ ] T-019 Slice 7: SKILL.md catalogue section + ADR finalisation
+- [ ] T-020 Slice 8: publish artefacts (hardening_review, pr_context, traceability summary)
 
 ## App Onboarding Minimum Targets (Normative)
 - [ ] A-001 `apps-bootstrap` and `apps-smoke` are implemented and verified for the affected app scope — no-impact (upgrade pipeline tooling only)
@@ -38,6 +40,6 @@
 - [ ] A-005 Port-forward operational wrappers (`infra-port-forward-start`, `infra-port-forward-stop`, `infra-port-forward-cleanup`) are available — no-impact
 
 ## Quality Gate Checks (pre-PR)
-- [ ] T-019 `make blueprint-test-unit` — 0 failures
-- [ ] T-020 `make quality-hooks-run QUALITY_HOOKS_FORCE_FULL=true` — all gates green
-- [ ] T-021 `make quality-sdd-check` — spec validity confirmed
+- [ ] T-021 `make blueprint-test-unit` — 0 failures
+- [ ] T-022 `make quality-hooks-run QUALITY_HOOKS_FORCE_FULL=true` — all gates green
+- [ ] T-023 `make quality-sdd-check` — spec validity confirmed

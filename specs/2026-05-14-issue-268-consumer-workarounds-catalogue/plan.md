@@ -4,9 +4,24 @@
 - Implementation tasks MUST remain unchecked until `SPEC_READY=true`.
 - If required inputs are missing, add `BLOCKED_MISSING_INPUTS` in `spec.md` and keep the gate closed.
 
-> **BLOCKED_MISSING_INPUTS** — 4 open questions (Q-1 through Q-4) must be resolved before slices can be finalised. Slice boundaries below are provisional and will be updated once Q-1 (apply_phase model) is confirmed.
+## Delivery Slices
 
-## Delivery Slices (provisional, pending Q-1/Q-2 resolution)
+### Slice 0 — Issue template + GitHub Actions scaffolder (red → green)
+**Goal:** Ship the feedback loop infrastructure before the catalogue engine — can be merged independently and immediately starts capturing new workaround reports.
+
+Failing tests first:
+- `test_workaround_report_parser_extracts_all_fields`
+- `test_workaround_report_parser_produces_correct_action_filename`
+- `test_workaround_report_parser_produces_manifest_entry_stub`
+- `test_workaround_report_parser_unknown_action_kind_raises`
+
+Files:
+- `.github/ISSUE_TEMPLATE/workaround_report.yml` (new)
+- `.github/workflows/workaround_report_scaffolder.yml` (new)
+- `scripts/lib/blueprint/workaround_report_parser.py` (new)
+- `tests/blueprint/test_workaround_report_parser.py` (new)
+
+Gate: `make blueprint-test-unit` green. Manual smoke: create a test issue with the template and verify the Action scaffolds the draft PR correctly.
 
 ### Slice 1 — Schema + engine skeleton (red → green)
 **Goal:** Define `manifest.yaml` schema, implement `upgrade_workarounds.py` engine with load/evaluate/dispatch/write; unit tests for each public function.
@@ -93,8 +108,23 @@ Files:
 
 Gate: `make quality-hooks-fast` green. Manual smoke: run Stage 1c in isolation against a v1.10.0 consumer clone.
 
+### Slice 6b — Skill extension: workaround-report filer (red → green)
+**Goal:** Extend the `blueprint-consumer-upgrade` skill with the issue-filing step. Implement duplicate detection (`gh issue list --search`) and the `gh issue create` call with structured fields.
+
+Failing tests first:
+- `test_workaround_report_filer_calls_gh_issue_create_with_correct_fields`
+- `test_workaround_report_filer_skips_when_duplicate_exists`
+- `test_workaround_report_filer_is_nonfatal_on_gh_failure`
+
+Files:
+- `scripts/lib/blueprint/workaround_report_filer.py` (new)
+- `tests/blueprint/test_workaround_report_filer.py` (new)
+- `.agents/skills/blueprint-consumer-upgrade/SKILL.md` (extend: filing step)
+
+Gate: `make blueprint-test-unit` green.
+
 ### Slice 7 — Documentation + skill update
-**Goal:** Update `SKILL.md` with catalogue section (how to author a new entry, how to mark `landed_in`). Create ADR.
+**Goal:** Update `SKILL.md` with catalogue section (how to author a new entry, how to mark `landed_in`, how the issue-filing loop works). Finalise ADR.
 
 Files:
 - `.agents/skills/blueprint-consumer-upgrade/SKILL.md` (extend)

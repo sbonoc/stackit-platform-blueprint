@@ -24,22 +24,49 @@ Responsibilities: manifest loading, schema validation, `applies_when` evaluation
 `artifacts/blueprint/workarounds_applied.json` — written by Stage 1c; read on the next upgrade run to decide revert eligibility.
 `blueprint/contract.yaml` — mutated by `contract_merge` workarounds; its `repo_mode` field is the primary `applies_when` discriminator.
 
+### 5. Workaround Report Issue Template (blueprint-owned, GitHub-native)
+Canonical location: `.github/ISSUE_TEMPLATE/workaround_report.yml`.
+Structured GitHub issue form with fields: `affected_version`, `action_kind`, `applies_when`, `action_content`, `upstream_issue`. Automatically labels issues `workaround-report`. Blueprint repo only — consumers do not need a copy.
+
+### 6. Workaround Report Scaffolder (GitHub Actions workflow)
+Canonical location: `.github/workflows/workaround_report_scaffolder.yml`.
+Triggers on `workaround-report` label; parses issue body via `scripts/lib/blueprint/workaround_report_parser.py`; scaffolds action file + manifest entry stub; opens draft PR. Runs in blueprint repo only with minimal permissions.
+
+### 7. Skill Extension — Workaround Report Filer (consumer-side)
+Extension to `.agents/skills/blueprint-consumer-upgrade/SKILL.md`.
+After the consumer agent applies a manual fix to a blueprint-managed file not covered by Stage 1c, the skill instructs the agent to call `gh issue create --repo <blueprint_repo> --label workaround-report` with structured fields. Non-blocking: failure to file does not abort the upgrade.
+
 ## Integration Edges
 
 ```
-upgrade_consumer_pipeline.sh
-  └─ Stage 1  (preflight: clean tree, valid ref, parseable contract)
-  └─ Stage 1b (version pin diff — non-blocking)
-  └─ Stage 1c (workaround apply/revert) ← NEW
-       └─ upgrade_workarounds.py
-            ├─ reads:  .agents/skills/blueprint-consumer-upgrade/workarounds/manifest.yaml
-            ├─ reads:  artifacts/blueprint/workarounds_applied.json  (if present)
-            ├─ reads:  blueprint/contract.yaml  (repo_mode for applies_when evaluation)
-            ├─ writes: artifacts/blueprint/workarounds_applied.json
-            └─ mutates consumer files per action_kind (apply_phase: before_apply)
-  └─ Stage 2  (apply with delete)
-  └─ Stage 2c (post-apply patch workarounds — apply_phase: after_apply) ← NEW
-  └─ Stages 3–10 (existing — unchanged)
+Consumer environment:
+  blueprint-consumer-upgrade skill
+    └─ agent applies manual fix to blueprint-managed file
+    └─ gh issue create --repo <blueprint_repo>  ← NEW (FR-013/FR-014)
+         └─ files structured workaround-report issue
+
+  upgrade_consumer_pipeline.sh
+    └─ Stage 1  (preflight: clean tree, valid ref, parseable contract)
+    └─ Stage 1b (version pin diff — non-blocking)
+    └─ Stage 1c (workaround apply/revert — before_apply) ← NEW
+         └─ upgrade_workarounds.py
+              ├─ reads:  .agents/skills/blueprint-consumer-upgrade/workarounds/manifest.yaml
+              ├─ reads:  artifacts/blueprint/workarounds_applied.json  (if present)
+              ├─ reads:  blueprint/contract.yaml  (repo_mode for applies_when)
+              ├─ writes: artifacts/blueprint/workarounds_applied.json
+              └─ mutates consumer files (apply_phase: before_apply)
+    └─ Stage 2  (apply with delete)
+    └─ Stage 2c (workaround apply — after_apply) ← NEW
+    └─ Stages 3–10 (existing — unchanged)
+
+Blueprint repo (GitHub):
+  workaround-report issue filed
+    └─ GitHub Actions: workaround_report_scaffolder.yml ← NEW (FR-012)
+         └─ workaround_report_parser.py
+              ├─ parses issue body fields
+              ├─ writes: workarounds/v<N>/<id>_<slug>.<ext>  (action file)
+              └─ updates: manifest.yaml  (entry stub, landed_in: null)
+         └─ opens draft PR for blueprint author review
 ```
 
 ## Key Design Decisions
@@ -61,6 +88,15 @@ Rationale: Before applying any workaround, the engine checks if its id is alread
 
 ### D-6: Revert only when `landed_in` is satisfied AND entry was previously applied
 Rationale: Revert is not attempted when `landed_in` is null (fix not yet tagged) or when the workaround id is absent from `workarounds_applied.json` (never applied in this consumer repo). Prevents spurious reversions on fresh consumers.
+
+### D-8: Issue template in the blueprint repo (not consumer repos)
+Rationale: Consumers file workaround reports directly in the blueprint repo via `gh issue create --repo`. This requires only a GitHub token with `issues: write` on the blueprint repo — no cross-repo webhooks, no GitHub App permissions, no consumer-side template changes. The skill extension provides the filing step; consumers do not need to know the template exists.
+
+### D-9: GitHub Actions scaffolder writes content verbatim without executing it
+Rationale: The `action_content` field is untrusted user input (from an issue body). Writing it verbatim into an action file and opening a draft PR for human review provides the necessary security gate. The blueprint author's PR review is the execution trust boundary — no auto-merge.
+
+### D-10: Skill extension fires on manual blueprint-managed file changes, not on catalogue hits
+Rationale: Stage 1c already handles known workarounds automatically — no issue filing needed for those. The skill extension targets only cases where the agent applies a fix that Stage 1c did not cover (new defect, not yet in catalogue). The discriminator is: did the agent touch `scripts/lib/blueprint/`, `scripts/bin/blueprint/`, or add non-consumer-seeded entries to `blueprint/contract.yaml`?
 
 ### D-7: `env_var` action kind excluded from initial scope
 Rationale: Modifying `.envrc` creates persistent consumer environment state that is hard to revert reliably. No concrete v1.10.0 workaround requires it. Revisit if a future defect demands it.

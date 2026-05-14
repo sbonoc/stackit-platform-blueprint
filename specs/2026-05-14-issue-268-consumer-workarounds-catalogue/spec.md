@@ -42,8 +42,8 @@
 - Local-first exception rationale: N/A — upgrade tooling only; no local runtime provisioning scope
 
 ## Objective
-- Business outcome: Eliminate per-consumer rediscovery of blueprint-version-specific upstream defects by shipping a versioned workaround catalogue inside the consumer-upgrade skill. The pipeline automatically applies catalogue entries matching the target version, logs each application, and reverts them when the upstream fix is adopted in a later version. A representative upgrade that previously required ~30 min of trial-and-error to discover and apply 4 workarounds (as in dhe-marketplace v1.7.0 → v1.10.0) MUST complete with zero manual workaround steps.
-- Success metric: (1) `workarounds/manifest.yaml` is present and schema-valid. (2) Pipeline applies all matching workarounds and logs each with id, title, and outcome. (3) `artifacts/blueprint/workarounds_applied.json` is written after application. (4) A `contract_merge` workaround applies and reverts cleanly in an automated test with a synthetic blueprint version. (5) A workaround whose `applies_when` does not match is skipped. (6) The initial catalogue ships entries for issues #258, #259, #260, #261.
+- Business outcome: Eliminate per-consumer rediscovery of blueprint-version-specific upstream defects by shipping a versioned workaround catalogue inside the consumer-upgrade skill, AND close the catalogue authoring loop so discovered workarounds feed back into the blueprint automatically. The pipeline applies catalogue entries for the target version, reverts them when the fix lands, and — when a consumer agent discovers a new workaround not yet in the catalogue — files a structured report directly in the blueprint repo so the next release can include it. A representative upgrade previously requiring ~30 min of manual workaround work MUST complete with zero manual workaround steps once the catalogue is populated.
+- Success metric: (1) `workarounds/manifest.yaml` present and schema-valid. (2) Pipeline applies matching workarounds and logs each with id, title, outcome. (3) `artifacts/blueprint/workarounds_applied.json` written. (4) `contract_merge` workaround applies and reverts cleanly in an automated test. (5) `applies_when` mismatch skips correctly. (6) Initial catalogue ships entries for #258–#261. (7) `workaround_report.yml` issue template exists in blueprint repo. (8) GitHub Actions scaffolder opens a draft PR from a synthetic workaround-report issue. (9) Skill extension files a structured issue after a manual workaround is applied.
 
 ## Normative Requirements
 
@@ -67,6 +67,14 @@
 
 - FR-009: Workaround application MUST be idempotent — applying an already-applied workaround MUST produce a log entry and exit 0 without mutating the working tree again.
 
+- FR-011: Blueprint MUST ship a GitHub structured issue template at `.github/ISSUE_TEMPLATE/workaround_report.yml` with the following required fields: `affected_version` (the blueprint version where the defect exists), `action_kind` (dropdown: `contract_merge`, `patch`, `python_script`), `applies_when` (free-text; `always` or a `key: value` condition), `action_content` (multi-line textarea; the exact YAML fragment, unified diff, or Python code), and `upstream_issue` (URL to the originating consumer or blueprint issue). The template MUST automatically apply the label `workaround-report` to all issues created from it.
+
+- FR-012: Blueprint MUST ship a GitHub Actions workflow at `.github/workflows/workaround_report_scaffolder.yml` that triggers on `issues: types: [labeled]` when the label `workaround-report` is present. The workflow MUST: (1) parse the structured issue body fields using a Python helper (`scripts/lib/blueprint/workaround_report_parser.py`), (2) scaffold the action file at `.agents/skills/blueprint-consumer-upgrade/workarounds/v<affected_version>/<id>_<slug>.<ext>` with the verbatim `action_content` from the issue, (3) add a manifest entry stub with `landed_in: null` to `manifest.yaml`, and (4) open a draft PR linking to the originating issue. The workflow MUST run with minimal GitHub token permissions: `issues: read`, `contents: write`, `pull-requests: write`.
+
+- FR-013: The `blueprint-consumer-upgrade` skill MUST be extended with a workaround-report filing step. After the consumer agent applies any manual fix to a blueprint-managed file (files under `scripts/lib/blueprint/`, `scripts/bin/blueprint/`, or entries added to `blueprint/contract.yaml` that are not consumer-seeded) during an upgrade that is NOT already covered by a Stage 1c catalogue entry, the agent MUST file a structured `workaround-report` issue in the blueprint repo using `gh issue create --repo <blueprint_repo> --label workaround-report`. The issue body MUST populate all fields required by the issue template (FR-011). Failing to file the issue MUST be non-fatal for the upgrade (see NFR-REL-003).
+
+- FR-014: Before filing a `workaround-report` issue, the agent MUST search existing open issues in the blueprint repo for a matching `affected_version` and workaround title. If a matching issue already exists, the agent MUST NOT file a duplicate and MUST log: `[UPGRADE] workaround-report already filed: <issue URL>`.
+
 - FR-010: Workaround application failure MUST follow a per-`action_kind` policy (Option C, decided by owner comment on PR #292, 2026-05-14): `contract_merge` failures MUST be fatal (pipeline exits non-zero) because a partial YAML write corrupts `blueprint/contract.yaml` before Stage 2 reads it. `patch` failures MUST be non-fatal (log a warning, record `status: failed` in `workarounds_applied.json`, continue) because `git apply` returns non-zero when a patch is already applied, which is a safe no-op. `python_script` failures MUST be fatal because arbitrary mutation state after a partial apply is unknown and dangerous.
 
 ### Non-Functional Requirements (Normative)
@@ -79,6 +87,10 @@
 
 - NFR-OPS-001: `artifacts/blueprint/workarounds_applied.json` MUST include a `catalogue_version`, `target_blueprint_version`, `applied_at` timestamp, and per-workaround `status` (`applied`, `skipped`, `failed`, `reverted`) so downstream tooling can reason about upgrade state without re-parsing logs.
 
+- NFR-SEC-002: The GitHub Actions workflow scaffolder (FR-012) MUST write the `action_content` field verbatim into the action file without executing or evaluating it. The workflow MUST NOT use `eval`, `exec`, or shell expansion on any field sourced from the issue body.
+
+- NFR-REL-003: Filing a `workaround-report` issue (FR-013) MUST be non-blocking — if `gh issue create` fails (e.g. insufficient permissions, network error, or the agent is running without blueprint repo access), the consumer upgrade MUST continue and log: `[UPGRADE] warning: failed to file workaround-report issue — <reason>`. The upgrade MUST NOT be aborted.
+
 - NFR-A11Y-001: N/A — no UI components.
 
 ## Normative Option Decision
@@ -90,8 +102,9 @@
 - API contract: none
 - OpenAPI / Pact contract path: none
 - Event contract: none
-- Make/CLI contract: no new make targets required; Stage 1c is internal to the existing pipeline shell script
-- Docs contract: `.agents/skills/blueprint-consumer-upgrade/SKILL.md` MUST be updated to document the workaround catalogue mechanism and how to author a new entry; `docs/blueprint/architecture/decisions/ADR-issue-268-consumer-workarounds-catalogue.md` MUST be created
+- Make/CLI contract: no new make targets required; Stage 1c and Stage 2c are internal to the existing pipeline shell script
+- Docs contract: `.agents/skills/blueprint-consumer-upgrade/SKILL.md` MUST be updated to document the workaround catalogue mechanism, how to author a new entry, and the automatic issue-filing step; `docs/blueprint/architecture/decisions/ADR-issue-268-consumer-workarounds-catalogue.md` MUST be created
+- GitHub contract: `.github/ISSUE_TEMPLATE/workaround_report.yml` (new structured issue template); `.github/workflows/workaround_report_scaffolder.yml` (new Actions workflow)
 
 ## Blueprint Upstream Defect Escalation (Normative)
 - Upstream issue URL: none — this spec implements the escalation mechanism itself
@@ -119,6 +132,14 @@
 
 - AC-009: Per-action-kind failure policy is enforced: a `contract_merge` application failure exits non-zero (fatal); a `patch` application failure logs a warning, records `status: failed` in `workarounds_applied.json`, and continues (non-fatal); a `python_script` application failure exits non-zero (fatal).
 
+- AC-010: `.github/ISSUE_TEMPLATE/workaround_report.yml` exists with all required fields (`affected_version`, `action_kind`, `applies_when`, `action_content`, `upstream_issue`) and automatically applies the `workaround-report` label.
+
+- AC-011: Given a synthetic `workaround-report` issue body with all required fields, the GitHub Actions scaffolder workflow produces: (a) a correctly named action file at `workarounds/v<affected_version>/` containing the verbatim `action_content`, and (b) a manifest entry stub in `manifest.yaml` with `landed_in: null`, and (c) a draft PR linking to the originating issue.
+
+- AC-012: After a consumer agent applies a manual fix to a blueprint-managed file during an upgrade, `gh issue create --repo <blueprint_repo> --label workaround-report` is called with all required template fields populated.
+
+- AC-013: If a `workaround-report` issue already exists for the same `affected_version` and title, the agent does not file a duplicate and logs `[UPGRADE] workaround-report already filed: <issue URL>`.
+
 ## Informative Notes (Non-Normative)
 - Context: This is the last open child of tracking issue #262. All Tier 1 items (#263–#267, #269) are closed; #270 and #271 are also closed. This item closes the per-consumer rediscovery cost for known upstream defects.
 - Referenced upstream defects: #258 (source-tree coverage gap), #259 (behavioral check false-positive symbols), #260 (template-smoke skip for generated-consumer), #261 (volatile artifacts in fresh-env-gate). Fixes are in PR #274 (merged), not yet tagged.
@@ -128,4 +149,6 @@
 ## Explicit Exclusions
 - `env_var` action kind (modifying `.envrc`) — excluded from initial implementation; risk of persistent consumer environment pollution; revisit if a concrete use case arises.
 - Workaround authoring CI validation (ensuring `action_path` files exist in the manifest) — excluded from initial scope; documented as a follow-up in `hardening_review.md`.
-- Automatic `landed_in` bumping via CI — excluded; catalogue maintainer responsibility.
+- Automatic `landed_in` bumping via CI — excluded; catalogue maintainer responsibility (bumped in same PR that cuts the release).
+- Automatic approval or merge of scaffolded PRs (FR-012) — blueprint author review is always required before a scaffolded entry merges; no auto-merge.
+- Cross-repo issue monitoring (watching consumer repos for labelled issues) — excluded; consumers file reports directly in the blueprint repo via the skill extension (FR-013).

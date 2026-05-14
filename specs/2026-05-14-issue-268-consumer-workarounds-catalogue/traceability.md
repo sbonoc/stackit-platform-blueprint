@@ -28,6 +28,16 @@
 | FR-010 | SDD-C-001 | N/A | D-3 | `upgrade_workarounds.py` — per-action_kind failure dispatch | `test_contract_merge_failure_is_fatal`, `test_patch_failure_is_nonfatal_and_recorded`, `test_python_script_failure_is_fatal` | ADR § Resolved Decisions (Q-2) | pipeline exit code; `workarounds_applied.json` status: failed |
 | NFR-A11Y-001 | — | N/A | — | N/A — no UI components | N/A | N/A | N/A |
 | AC-009 | SDD-C-008 | N/A | D-3 | `upgrade_workarounds.py` — per-action_kind failure dispatch | `test_contract_merge_failure_is_fatal`, `test_patch_failure_is_nonfatal_and_recorded`, `test_python_script_failure_is_fatal` | — | — |
+| FR-011 | SDD-C-004, SDD-C-009 | N/A | D-8 | `.github/ISSUE_TEMPLATE/workaround_report.yml` | AC-010 — template field presence test | `SKILL.md` § Workaround Report Filing | GitHub issue creation UI |
+| FR-012 | SDD-C-004, SDD-C-009 | N/A | D-8, D-9 | `.github/workflows/workaround_report_scaffolder.yml`, `scripts/lib/blueprint/workaround_report_parser.py` | AC-011 — parser unit test + workflow smoke | ADR § Scaffolder | GitHub Actions run log |
+| FR-013 | SDD-C-004 | N/A | D-10 | `scripts/lib/blueprint/workaround_report_filer.py`, `SKILL.md` (filing step) | AC-012 — `test_workaround_report_filer_calls_gh_issue_create_with_correct_fields` | `SKILL.md` § Manual Workaround Filing | upgrade session log |
+| FR-014 | SDD-C-004 | N/A | D-10 | `workaround_report_filer.py` — duplicate detection via `gh issue list --search` | AC-013 — `test_workaround_report_filer_skips_when_duplicate_exists` | — | log: "workaround-report already filed" |
+| NFR-SEC-002 | SDD-C-009 | N/A | D-9 | `workaround_report_scaffolder.yml` — verbatim write, no eval | `test_workaround_report_parser_does_not_evaluate_content` | ADR § Security | GitHub Actions permissions |
+| NFR-REL-003 | SDD-C-008 | N/A | D-10 | `workaround_report_filer.py` — non-fatal on gh failure | `test_workaround_report_filer_is_nonfatal_on_gh_failure` | — | upgrade log warning |
+| AC-010 | SDD-C-008 | N/A | D-8 | `.github/ISSUE_TEMPLATE/workaround_report.yml` | `test_workaround_report_parser_extracts_all_fields` (uses template fixture) | — | — |
+| AC-011 | SDD-C-008 | N/A | D-8, D-9 | `workaround_report_parser.py` + scaffolder workflow | `test_workaround_report_parser_produces_correct_action_filename`, `test_workaround_report_parser_produces_manifest_entry_stub` | — | — |
+| AC-012 | SDD-C-008 | N/A | D-10 | `workaround_report_filer.py` | `test_workaround_report_filer_calls_gh_issue_create_with_correct_fields` | — | — |
+| AC-013 | SDD-C-008 | N/A | D-10 | `workaround_report_filer.py` — `gh issue list --search` | `test_workaround_report_filer_skips_when_duplicate_exists` | — | log output |
 
 ## Validation Summary
 <!-- To be completed at Publish phase (Step 7) -->

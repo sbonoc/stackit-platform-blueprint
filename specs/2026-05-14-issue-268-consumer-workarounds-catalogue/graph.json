@@ -25,7 +25,17 @@
     {"id": "AC-007", "type": "acceptance", "summary": "Synthetic-version apply+revert cycle test"},
     {"id": "AC-008", "type": "acceptance", "summary": "repo_mode mismatch workaround skipped"},
     {"id": "AC-009", "type": "acceptance", "summary": "Per-action-kind failure policy: contract_merge fatal, patch non-fatal, python_script fatal"},
-    {"id": "NFR-A11Y-001", "type": "requirement", "summary": "N/A — no UI components"}
+    {"id": "NFR-A11Y-001", "type": "requirement", "summary": "N/A — no UI components"},
+    {"id": "FR-011", "type": "requirement", "summary": "Structured issue template workaround_report.yml with required fields and workaround-report label"},
+    {"id": "FR-012", "type": "requirement", "summary": "GitHub Actions scaffolder: parse issue, scaffold action file + manifest stub, open draft PR"},
+    {"id": "FR-013", "type": "requirement", "summary": "Skill extension: file structured workaround-report issue after manual blueprint-managed file fix"},
+    {"id": "FR-014", "type": "requirement", "summary": "Duplicate detection before filing workaround-report issue"},
+    {"id": "NFR-SEC-002", "type": "requirement", "summary": "Scaffolder writes action_content verbatim without executing; minimal GitHub token permissions"},
+    {"id": "NFR-REL-003", "type": "requirement", "summary": "Issue filing is non-blocking; upgrade continues on gh failure"},
+    {"id": "AC-010", "type": "acceptance", "summary": "workaround_report.yml exists with all required fields and auto-label"},
+    {"id": "AC-011", "type": "acceptance", "summary": "Scaffolder produces correct action file, manifest stub, and draft PR from synthetic issue"},
+    {"id": "AC-012", "type": "acceptance", "summary": "Skill extension calls gh issue create with correct structured fields"},
+    {"id": "AC-013", "type": "acceptance", "summary": "Duplicate detection: no second issue filed when one exists"}
   ],
   "edges": [
     {"from": "FR-001", "to": "AC-001", "relation": "validated_by"},
@@ -54,6 +64,15 @@
     {"from": "FR-006", "to": "FR-005", "relation": "depends_on"},
     {"from": "FR-008", "to": "FR-001", "relation": "depends_on"},
     {"from": "FR-008", "to": "FR-002", "relation": "depends_on"},
-    {"from": "FR-010", "to": "AC-009", "relation": "validated_by"}
+    {"from": "FR-010", "to": "AC-009", "relation": "validated_by"},
+    {"from": "FR-011", "to": "AC-010", "relation": "validated_by"},
+    {"from": "FR-012", "to": "AC-011", "relation": "validated_by"},
+    {"from": "FR-013", "to": "AC-012", "relation": "validated_by"},
+    {"from": "FR-014", "to": "AC-013", "relation": "validated_by"},
+    {"from": "NFR-SEC-002", "to": "FR-012", "relation": "constrains"},
+    {"from": "NFR-REL-003", "to": "FR-013", "relation": "constrains"},
+    {"from": "FR-013", "to": "FR-011", "relation": "depends_on"},
+    {"from": "FR-013", "to": "FR-014", "relation": "depends_on"},
+    {"from": "FR-012", "to": "FR-011", "relation": "depends_on"}
   ]
 }
