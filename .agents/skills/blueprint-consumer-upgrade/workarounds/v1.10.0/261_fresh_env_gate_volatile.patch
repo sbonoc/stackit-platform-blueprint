@@ -1,0 +1,14 @@
+diff --git a/scripts/lib/blueprint/upgrade_fresh_env_gate.py b/scripts/lib/blueprint/upgrade_fresh_env_gate.py
+index 867bc23..93c7cff 100644
+--- a/scripts/lib/blueprint/upgrade_fresh_env_gate.py
++++ b/scripts/lib/blueprint/upgrade_fresh_env_gate.py
+@@ -136,6 +136,11 @@ _VOLATILE_ARTIFACT_NAMES: frozenset[str] = frozenset({
+     "upgrade_preflight.json",
+     "upgrade_reconcile_report.json",
+     "fresh_env_gate.json",
++    # upgrade_validate.json and required_files_status.json embed absolute repo
++    # paths in captured make-target stdout; excluding them prevents false-positive
++    # divergences when comparing worktree vs working-tree runs (#261 / FR-003).
++    "upgrade_validate.json",
++    "required_files_status.json",
+ })

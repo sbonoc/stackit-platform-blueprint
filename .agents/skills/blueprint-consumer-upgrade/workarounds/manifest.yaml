@@ -1,0 +1,40 @@
+schema_version: 1
+versions:
+  v1.10.0:
+    workarounds:
+      - id: "258"
+        upstream_issue: https://github.com/sbonoc/stackit-platform-blueprint/issues/258
+        title: "source-tree coverage gap — 4 unclassified source files"
+        applies_when: always
+        action_kind: contract_merge
+        action_path: workarounds/v1.10.0/258_source_coverage_gap.yaml
+        apply_phase: before_apply
+        landed_in: null   # fix on main via PR #274; bump to next release tag when cut
+
+      - id: "259"
+        upstream_issue: https://github.com/sbonoc/stackit-platform-blueprint/issues/259
+        title: "postcheck behavioral check flags 29 false-positive symbols in blueprint-managed scripts"
+        applies_when: always
+        action_kind: patch
+        action_path: workarounds/v1.10.0/259_behavioral_check_false_positives.patch
+        apply_phase: after_apply
+        landed_in: null   # fix on main via PR #274; bump to next release tag when cut
+
+      - id: "260"
+        upstream_issue: https://github.com/sbonoc/stackit-platform-blueprint/issues/260
+        title: "blueprint-template-smoke in upgrade validate target list breaks postcheck for generated-consumer repos"
+        applies_when:
+          repo_mode: generated-consumer
+        action_kind: patch
+        action_path: workarounds/v1.10.0/260_template_smoke_skip.patch
+        apply_phase: after_apply
+        landed_in: null   # fix on main via PR #274; bump to next release tag when cut
+
+      - id: "261"
+        upstream_issue: https://github.com/sbonoc/stackit-platform-blueprint/issues/261
+        title: "fresh-env-gate fails because upgrade_validate.json + required_files_status.json embed absolute paths"
+        applies_when: always
+        action_kind: patch
+        action_path: workarounds/v1.10.0/261_fresh_env_gate_volatile.patch
+        apply_phase: after_apply
+        landed_in: null   # fix on main via PR #274; bump to next release tag when cut

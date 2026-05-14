@@ -1,0 +1,8 @@
+spec:
+  repository:
+    ownership_path_classes:
+      source_only:
+        - pyproject.toml
+        - uv.lock
+        - infra/local/helm/opensearch/values.yaml
+        - infra/local/helm/kms/values.yaml
