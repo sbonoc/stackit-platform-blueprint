@@ -50,6 +50,7 @@
                 "tests/blueprint/test_quality_hooks_fast_dedup.py",
                 "tests/blueprint/test_step05_skill_per_slice_gate.py",
                 "tests/blueprint/test_agents_md_quality_hooks_subsection.py",
+                "tests/blueprint/test_sdd_bypass_track.py",
                 "tests/blueprint/test_skill_quality_hooks_cross_links.py",
                 "tests/blueprint/test_envrc_and_claude_settings.py",
                 "tests/docs/test_docs_lint.py",
