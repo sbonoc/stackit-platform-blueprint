@@ -5,11 +5,11 @@
      SPEC_READY=true: implementation gate — all sign-offs required; unlocks coding. -->
 - SPEC_READY: false
 - SPEC_PRODUCT_READY: false
-- Open questions count: 2
+- Open questions count: 0
 - Unresolved alternatives count: 0
 - Unresolved TODO markers count: 0
 - Pending assumptions count: 0
-- Open clarification markers count: 2
+- Open clarification markers count: 0
 - Product sign-off: pending
 - Architecture sign-off: pending
 - Security sign-off: pending
@@ -99,21 +99,9 @@
 - Tradeoffs: Exception-path specs skip traceability.md and graph.json, so requirement-to-test linkage is not machine-verifiable for bypass-track work items. This is acceptable for fix/refactor/upgrade/chore changes where the traceability takes a different form (failing test, pipeline report, etc.) and is documented in pr_context.md.
 - Clarifications:
 
-  > **[NEEDS CLARIFICATION — Q-1]** For the `chore` exception type with NO `specs/` directory at all: MUST `quality-sdd-check` actively verify that `AGENTS.decisions.md` contains an entry referencing the current PR/branch, or is the passive pass (checker finds no specs to validate) sufficient?
-  >
-  > **Options:**
-  > - **A)** Passive pass is sufficient — the checker iterates over existing `specs/*/spec.md` files; if none exist, it passes. The `AGENTS.decisions.md` requirement is a process convention documented in `AGENTS.md`, not a technical gate. (Agent recommendation)
-  > - **B)** Active verification — the checker reads the current git branch, extracts the PR number, and searches `AGENTS.decisions.md` for a matching entry.
-  >
-  > **Agent recommendation:** Option A — Option B requires the checker to know the current branch/PR context, which introduces a tight CI-environment coupling and makes the script non-deterministic in local runs. The passive pass (AC-002) is sufficient for the technical gate; the `AGENTS.decisions.md` entry is enforced by convention and code review.
+  > **[RESOLVED — Q-1]** Chore with no `specs/` dir: passive pass is sufficient. The `AGENTS.decisions.md` requirement is a process convention documented in `AGENTS.md`, not a technical gate. Decision: Option A.
 
-  > **[NEEDS CLARIFICATION — Q-2]** For the `upgrade` exception type, the issue proposal mentions "`spec.md` + `pr_context.md` + link to `artifacts/blueprint/upgrade/`". MUST this link be enforced by the checker as a required field in `pr_context.md`, or is it a recommended convention documented in `AGENTS.md`?
-  >
-  > **Options:**
-  > - **A)** Convention only — documented in `AGENTS.md` under the upgrade exception type; not checked by `check_sdd_assets.py`. (Agent recommendation)
-  > - **B)** Enforced — checker verifies that `pr_context.md` contains a reference to the `artifacts/blueprint/upgrade/` path when `SPEC_READY_EXCEPTION: upgrade` is set.
-  >
-  > **Agent recommendation:** Option A — the artifact link varies by upgrade (different slug, dates); enforcing a path pattern would create false positives. Convention + pr_context.md Validation Evidence section is sufficient.
+  > **[RESOLVED — Q-2]** Upgrade exception type: the `artifacts/blueprint/upgrade/` link is a recommended convention documented in `AGENTS.md`, not enforced by `check_sdd_assets.py`. Decision: Option A.
 
 ## Explicit Exclusions
 - Full SDD lifecycle for feature/enhancement change types: this work item does not modify the existing 10-artifact requirement for `SPEC_READY: true` specs. That path is unchanged.
