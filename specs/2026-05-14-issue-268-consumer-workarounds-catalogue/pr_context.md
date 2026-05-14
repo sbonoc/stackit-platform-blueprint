@@ -29,5 +29,5 @@
 - Rollback strategy: remove the Stage 1c and Stage 2c blocks from `upgrade_consumer_pipeline.sh` (two self-contained blocks bounded by log lines). Delete or ignore `artifacts/blueprint/workarounds_applied.json`. No schema migrations, no database changes.
 
 ## Deferred Proposals
-- Proposal 1 (`env_var` action kind — not implemented): modifying `.envrc` as a workaround action; excluded due to persistent environment pollution risk; revisit with a concrete use case.
-- Proposal 2 (manifest `action_path` CI validation — not implemented): quality gate verifying every `action_path` in `manifest.yaml` points to an existing file; prevents silent consumer-time failures; suitable for next hardening cycle.
+- Proposal 1 (`env_var` action kind — not implemented): Parked — trigger: on-scope: blueprint — modifying `.envrc` as a workaround action; excluded due to persistent environment pollution risk; no concrete use case yet; surfaces when workaround catalogue or blueprint upgrade tooling is next touched.
+- Proposal 2 (manifest `action_path` CI validation — not implemented): Filed — https://github.com/sbonoc/stackit-platform-blueprint/issues/296 — quality gate verifying every `action_path` in `manifest.yaml` points to an existing file; prevents silent consumer-time failures; no current safeguard.
