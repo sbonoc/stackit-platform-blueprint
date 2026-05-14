@@ -97,7 +97,10 @@
                 "tests/blueprint/test_optional_module_required_env_contract.py",
                 "tests/blueprint/test_python_helper_extractions.py",
                 "tests/blueprint/test_root_dir_resolution.py",
-                "tests/blueprint/test_tooling_contracts.py"
+                "tests/blueprint/test_tooling_contracts.py",
+                "tests/blueprint/test_workaround_report_parser.py",
+                "tests/blueprint/test_upgrade_workarounds.py",
+                "tests/blueprint/test_workaround_report_filer.py"
             ]
         },
         {

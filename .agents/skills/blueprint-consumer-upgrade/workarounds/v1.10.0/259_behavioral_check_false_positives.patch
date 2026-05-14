@@ -1,0 +1,113 @@
+diff --git a/scripts/lib/blueprint/upgrade_shell_behavioral_check.py b/scripts/lib/blueprint/upgrade_shell_behavioral_check.py
+index 8dacca8..10b4d67 100644
+--- a/scripts/lib/blueprint/upgrade_shell_behavioral_check.py
++++ b/scripts/lib/blueprint/upgrade_shell_behavioral_check.py
+@@ -11,7 +11,6 @@ a function definition silently dropped by a 3-way merge while its call site
+ is retained — without requiring a full POSIX shell parser.
+
+ Scope limitations (by design for MVP):
+-  - Source-chain resolution is capped at depth 1.
+   - Dynamically constructed function names are not detected.
+   - Only functions that look "local" (not in the builtins exclusion set) are
+     checked as call-site candidates.
+@@ -23,6 +22,7 @@ from __future__ import annotations
+ import re
+ import subprocess
+ import sys
++from collections import deque
+ from dataclasses import dataclass, field
+ from pathlib import Path
+ from typing import Any
+@@ -64,6 +64,8 @@ _EXCLUDED_TOKENS: frozenset[str] = frozenset({
+     "resolve_repo_root", "display_repo_path",
+     # common OS tools absent from the original set (FR-007)
+     "tar", "pnpm",
++    # tools added in v1.10.0 blueprint scripts (FR-004 / #259)
++    "uv", "validate",
+     # blueprint bootstrap-chain runtime functions (FR-008)
+     "blueprint_require_runtime_env",
+     "blueprint_sanitize_init_placeholder_defaults",
+@@ -183,15 +185,42 @@ def _resolve_sourced_paths(script_path: Path, content: str) -> list[Path]:
+     return sourced
+
+
+-def _collect_available_definitions(script_path: Path, content: str) -> set[str]:
+-    """Collect all function definitions reachable from a script at depth-1."""
+-    defs = _extract_definitions(content)
+-    for sourced_path in _resolve_sourced_paths(script_path, content):
++def _collect_defined_functions_transitive(
++    script_path: Path,
++    repo_root: Path,
++) -> set[str]:
++    """Collect all function definitions reachable from script_path via BFS.
++
++    Traverses the full transitive source chain (not capped at depth 1).
++    A mutable visited set prevents infinite recursion on cycles.
++    Sourced paths that resolve outside repo_root are skipped (boundary guard).
++    """
++    try:
++        content = script_path.read_text(encoding="utf-8")
++    except OSError:
++        return set()
++
++    defs: set[str] = _extract_definitions(content)
++    visited: set[Path] = {script_path}
++    repo_root_resolved = repo_root.resolve()
++
++    queue: deque[Path] = deque(_resolve_sourced_paths(script_path, content))
++    while queue:
++        next_path = queue.popleft()
++        if next_path in visited:
++            continue
+         try:
+-            sourced_content = sourced_path.read_text(encoding="utf-8")
++            next_path.resolve().relative_to(repo_root_resolved)
++        except ValueError:
++            continue  # sourced path escapes repo root — skip
++        visited.add(next_path)
++        try:
++            next_content = next_path.read_text(encoding="utf-8")
+         except OSError:
+             continue
+-        defs.update(_extract_definitions(sourced_content))
++        defs.update(_extract_definitions(next_content))
++        queue.extend(_resolve_sourced_paths(next_path, next_content))
++
+     return defs
+
+
+@@ -348,6 +377,18 @@ def run_behavioral_check(
+             f"[BEHAVIORAL-CHECK] applying {len(valid_extra)} consumer extra excluded tokens",
+             file=sys.stderr,
+         )
++    # Warn when the consumer's extra_excluded_tokens list contains tokens that are now
++    # in the base _EXCLUDED_TOKENS set (e.g. 'uv', 'validate' added in v1.10.0 fix).
++    # The tokens still work — this is a cleanup prompt only.
++    stale_tokens: frozenset[str] = valid_extra & _EXCLUDED_TOKENS
++    if stale_tokens:
++        for tok in sorted(stale_tokens):
++            print(
++                f"[BEHAVIORAL-CHECK] WARNING: extra_excluded_tokens contains '{tok}' which is "
++                f"now in the base exclusion set; remove it from blueprint/contract.yaml "
++                f"spec.upgrade.behavioral_check.extra_excluded_tokens",
++                file=sys.stderr,
++            )
+     effective_excluded = _EXCLUDED_TOKENS | valid_extra
+
+     if skip:
+@@ -378,13 +419,13 @@ def run_behavioral_check(
+             syntax_errors.append({"file": display_path, "error": error})
+             continue  # skip symbol check for files with syntax errors
+
+-        # Step 2 — symbol resolution
++        # Step 2 — symbol resolution (full transitive BFS, cycle-safe)
+         try:
+             content = script_path.read_text(encoding="utf-8")
+         except OSError:
+             continue
+
+-        available_defs = _collect_available_definitions(script_path, content)
++        available_defs = _collect_defined_functions_transitive(script_path, repo_root)
+         call_site_findings = _find_unresolved_call_sites(
+             content, available_defs, excluded=effective_excluded
+         )

@@ -236,6 +236,77 @@ Always return:
 5. Validation commands run and outcome.
 6. Suggested next step.
 
+## Workaround Catalogue
+
+The pipeline automatically applies and reverts known upstream defect workarounds via Stage 1c
+(before_apply) and Stage 2c (after_apply). No consumer action is required for catalogue entries.
+
+### How Stage 1c + Stage 2c work
+
+1. Stage 1c reads `workarounds/manifest.yaml`, evaluates `applies_when` against `blueprint/contract.yaml`,
+   and applies all matching `before_apply` entries before Stage 2 (apply) runs.
+2. Stage 2c applies `after_apply` entries after Stage 2 so blueprint-managed files are patched AFTER
+   Stage 2 overwrites them.
+3. Applied entries are written to `artifacts/blueprint/workarounds_applied.json`.
+4. On the next upgrade, if a workaround's `landed_in` version is <= the target version AND the workaround
+   was previously applied, Stage 1c reverts it automatically.
+
+### Filing a workaround-report issue (FR-013, FR-014)
+
+When you apply a **manual fix** to a blueprint-managed file (under `scripts/lib/blueprint/`,
+`scripts/bin/blueprint/`, or non-consumer-seeded entries in `blueprint/contract.yaml`) during an
+upgrade that is **not already covered by a Stage 1c catalogue entry**, file a structured
+`workaround-report` issue in the blueprint repo:
+
+**1. Check for duplicates first:**
+
+```bash
+gh issue list \
+  --repo sbonoc/stackit-platform-blueprint \
+  --label workaround-report \
+  --state open \
+  --search "[workaround]"
+```
+
+If a matching `[workaround] <description> (v<affected_version>)` issue already exists, log:
+`[UPGRADE] workaround-report already filed: <issue URL>` and skip.
+
+**2. File the issue (non-blocking — do not abort the upgrade on failure):**
+
+```bash
+gh issue create \
+  --repo sbonoc/stackit-platform-blueprint \
+  --title "[workaround] <short description> (v<affected_version>)" \
+  --label workaround-report \
+  --body "..."
+```
+
+The issue body MUST include the `## Automated Workaround Catalogue Entry` section with all four
+fields populated (`affected_version`, `action_kind`, `applies_when`, `action_content`). The bug
+template's required fields (`scope`, `problem`, `reproduction`, `expected`, `workaround_path`,
+`replacement_trigger`, `workaround_review_date`) MUST be stubbed with
+`n/a — filed automatically by blueprint-consumer-upgrade skill`.
+
+**3. Log the result:**
+- Success: `[UPGRADE] filed workaround-report issue: <issue URL>`
+- Failure: `[UPGRADE] warning: failed to file workaround-report issue — <reason>`
+
+Filing failure is non-fatal: continue the upgrade regardless.
+
+### How to author a new catalogue entry (blueprint maintainers)
+
+1. Create the action file at `.agents/skills/blueprint-consumer-upgrade/workarounds/v<N>/<id>_<slug>.<ext>`:
+   - `contract_merge` → `.yaml` (YAML fragment merged into `blueprint/contract.yaml`)
+   - `patch` → `.patch` (unified diff produced by `git diff v<N> HEAD -- <file>`)
+   - `python_script` → `.py` (Python module with `apply(repo_root)` and `revert(repo_root)`)
+2. Add an entry to `manifest.yaml` under the `versions.v<N>.workarounds` list with all eight fields.
+   Set `apply_phase` to `before_apply` (consumer-owned files) or `after_apply` (blueprint-managed files).
+   Set `landed_in: null` until the fix is tagged.
+3. When the fix lands in a release tag, set `landed_in: "v<X.Y.Z>"` — the engine reverts the workaround
+   automatically on the next consumer upgrade to >= that version.
+
 ## References
 
 - Manual merge checklist: `references/manual_merge_checklist.md`
+- Workaround catalogue: `.agents/skills/blueprint-consumer-upgrade/workarounds/manifest.yaml`
+- ADR: `docs/blueprint/architecture/decisions/ADR-issue-268-consumer-workarounds-catalogue.md`

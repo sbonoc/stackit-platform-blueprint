@@ -1,0 +1,129 @@
+name: Workaround Report Scaffolder
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  issues: read
+  contents: write
+  pull-requests: write
+
+jobs:
+  scaffold:
+    if: github.event.label.name == 'workaround-report'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: pip install pyyaml
+
+      - name: Parse issue and scaffold workaround entry
+        id: scaffold
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          python3 - <<'PYEOF'
+          import os, re, sys
+          from pathlib import Path
+
+          sys.path.insert(0, str(Path.cwd()))
+          from scripts.lib.blueprint.workaround_report_parser import parse_issue_body
+          import yaml
+
+          body = os.environ.get("ISSUE_BODY", "")
+          number = os.environ["ISSUE_NUMBER"]
+          url = os.environ["ISSUE_URL"]
+          title = os.environ["ISSUE_TITLE"]
+
+          try:
+              result = parse_issue_body(
+                  body=body,
+                  issue_number=number,
+                  issue_url=url,
+                  issue_title=title,
+              )
+          except ValueError as exc:
+              print(f"::warning::workaround_report_scaffolder: {exc} — skipping scaffold")
+              sys.exit(0)
+
+          if result is None:
+              print("Section absent or all fields blank — nothing to scaffold.")
+              sys.exit(0)
+
+          skill_root = Path(".agents/skills/blueprint-consumer-upgrade")
+          action_path = skill_root / result.action_path
+          action_path.parent.mkdir(parents=True, exist_ok=True)
+          action_path.write_text(result.action_content + "\n", encoding="utf-8")
+
+          manifest_path = skill_root / "workarounds" / "manifest.yaml"
+          if manifest_path.exists():
+              manifest = yaml.safe_load(manifest_path.read_text(encoding="utf-8")) or {}
+          else:
+              manifest = {"schema_version": 1, "versions": {}}
+
+          versions = manifest.setdefault("versions", {})
+          version_block = versions.setdefault(result.affected_version, {"workarounds": []})
+          workarounds = version_block.setdefault("workarounds", [])
+
+          if not any(str(w.get("id")) == str(result.issue_number) for w in workarounds):
+              workarounds.append(result.manifest_entry_stub())
+
+          raw_yaml = yaml.dump(manifest, default_flow_style=False, allow_unicode=True)
+          raw_yaml = re.sub(
+              r"apply_phase: ['\"]# <set to before_apply or after_apply>['\"]",
+              "apply_phase: # <set to before_apply or after_apply>",
+              raw_yaml,
+          )
+          manifest_path.write_text(raw_yaml, encoding="utf-8")
+
+          branch = f"workaround/issue-{number}-scaffold"
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              print(f"branch_name={branch}", file=f)
+
+          print(f"Scaffolded: {action_path}")
+          PYEOF
+
+      - name: Commit scaffolded files
+        if: steps.scaffold.outputs.branch_name != ''
+        env:
+          BRANCH_NAME: ${{ steps.scaffold.outputs.branch_name }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --heads origin "${BRANCH_NAME}" | grep -q "${BRANCH_NAME}"; then
+            echo "Branch ${BRANCH_NAME} already exists on remote — skipping (duplicate label event)"
+            exit 0
+          fi
+          git checkout -b "${BRANCH_NAME}"
+          git add .agents/skills/blueprint-consumer-upgrade/workarounds/
+          git commit -m "chore: scaffold workaround entry from issue #${ISSUE_NUMBER}"
+          git push origin "${BRANCH_NAME}"
+
+      - name: Create draft PR
+        if: steps.scaffold.outputs.branch_name != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH_NAME: ${{ steps.scaffold.outputs.branch_name }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+        run: |
+          gh pr create \
+            --title "[workaround] Scaffold from issue #${ISSUE_NUMBER}" \
+            --body "Scaffolded workaround entry from ${ISSUE_URL}.
+
+          Review and set \`apply_phase\` before merging." \
+            --head "${BRANCH_NAME}" \
+            --base main \
+            --draft

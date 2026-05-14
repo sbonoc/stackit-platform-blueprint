@@ -1437,3 +1437,41 @@ class TestContractResolverYamlDumpFormat(unittest.TestCase):
             parsed = yaml.safe_load(raw)
             required = parsed["spec"]["repository"]["required_files"]
             self.assertIn(long_path, required, "long path must survive round-trip without wrapping")
+
+
+# ===========================================================================
+# Issue #268 — Workaround catalogue Stage 1c + Stage 2c pipeline wiring
+# ===========================================================================
+
+
+class TestWorkaroundCatalogueStages(unittest.TestCase):
+    """FR-003: pipeline contains Stage 1c (before_apply) and Stage 2c (after_apply) wiring."""
+
+    def test_pipeline_stage_1c_log_present(self) -> None:
+        script = _PIPELINE_SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(
+            "Stage 1c:",
+            script,
+            "upgrade_consumer_pipeline.sh missing Stage 1c progress line (workaround catalogue before_apply)",
+        )
+
+    def test_pipeline_stage_2c_log_present(self) -> None:
+        script = _PIPELINE_SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(
+            "Stage 2c:",
+            script,
+            "upgrade_consumer_pipeline.sh missing Stage 2c progress line (workaround catalogue after_apply)",
+        )
+
+    def test_pipeline_calls_upgrade_workarounds_before_apply(self) -> None:
+        script = _PIPELINE_SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(
+            "upgrade_workarounds",
+            script,
+            "Stage 1c must invoke upgrade_workarounds.py with phase=before_apply",
+        )
+
+    def test_pipeline_calls_upgrade_workarounds_after_apply(self) -> None:
+        script = _PIPELINE_SCRIPT.read_text(encoding="utf-8")
+        # after_apply phase must also be present
+        self.assertIn("after_apply", script)
