@@ -141,7 +141,7 @@ Four independent tracks; all P1, can be started in parallel.
 - [ ] (parked) proposal(issue-270-test-ownership-contract): active delete-on-upgrade for stale relocated test files in consumer repos
       trigger: on-scope: blueprint
       rationale: no active consumer complaint; D-3 in architecture.md documents the conscious deferral; surfaces when upgrade resolver apply stage is next touched
-- [ ] P2 (Blueprint skills): Issue #268 — **versioned consumer-side workarounds catalogue**: ship a per-release workarounds manifest in the blueprint; `blueprint-consumer-upgrade` skill applies the relevant workarounds automatically by version so every consumer does not have to rediscover and hand-apply the same fixes. Standalone PR.
+- [ ] P2 (Blueprint skills): Issue #268 — **versioned consumer-side workarounds catalogue**: ship a per-release workarounds manifest in the blueprint; `blueprint-consumer-upgrade` skill applies the relevant workarounds automatically by version so every consumer does not have to rediscover and hand-apply the same fixes. Standalone PR. **SPEC_READY=true** — implementation unlocked. Spec: `specs/2026-05-14-issue-268-consumer-workarounds-catalogue/`, PR #292.
 
 #### Phase 4 — Major UX improvements (build on the stable correctness foundation)
 

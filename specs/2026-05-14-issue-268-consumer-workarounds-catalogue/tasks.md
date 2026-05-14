@@ -1,12 +1,12 @@
 # Tasks
 
 ## Gate Checks (Required Before Implementation)
-- [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`
-- [ ] G-002 Confirm open questions count is `0` and all sign-offs are approved
-- [ ] G-003 Resolve Q-1 (apply_phase model / Stage-1c-vs-2c ordering)
-- [ ] G-004 Resolve Q-2 (failure policy for workaround application errors)
-- [ ] G-005 Resolve Q-3 (python_script security model)
-- [ ] G-006 Resolve Q-4 (landed_in values for v1.10.0 workarounds / next release tag)
+- [x] G-001 Confirm `SPEC_READY=true` in `spec.md`
+- [x] G-002 Confirm open questions count is `0` and all sign-offs are approved
+- [x] G-003 Resolve Q-1 (apply_phase model / Stage-1c-vs-2c ordering) — Option A
+- [x] G-004 Resolve Q-2 (failure policy for workaround application errors) — Option C
+- [x] G-005 Resolve Q-3 (python_script security model) — Option A
+- [x] G-006 Resolve Q-4 (landed_in values for v1.10.0 workarounds / next release tag) — Option A
 
 ## Intake Tasks (current phase)
 - [x] T-001 Scaffold spec directory and branch
@@ -20,16 +20,26 @@
 - [x] T-009 Run `make quality-sdd-check`
 - [x] T-010 Commit and open Draft PR
 
-## Implementation Tasks (blocked on SPEC_READY=true)
-- [ ] T-011 Slice 0: issue template + GitHub Actions scaffolder + `workaround_report_parser.py` + tests
-- [ ] T-012 Slice 1: schema + engine skeleton (load/evaluate/dispatch/write) + unit tests
+## Implementation Tasks (SPEC_READY=true — implementation unlocked)
+
+### Wave 1 (parallel — disjoint file sets)
+- [ ] T-011 Slice 0: extend `bug_report.yml` with workaround section + GitHub Actions scaffolder + `workaround_report_parser.py` + tests
+- [ ] T-012 Slice 1: schema + engine skeleton `upgrade_workarounds.py` (load/evaluate/dispatch/write) + `test_upgrade_workarounds.py`
+- [ ] T-018 Slice 6b: `workaround_report_filer.py` + `test_workaround_report_filer.py` (NO SKILL.md)
+
+### Wave 2 (sequential internally — one agent owns both files)
 - [ ] T-013 Slice 2: `contract_merge` action kind apply + revert + idempotency tests
 - [ ] T-014 Slice 3: `patch` action kind + `apply_phase` field + phase-split entry points
 - [ ] T-015 Slice 4: `python_script` action kind + security isolation + tests
+
+### Wave 3 (parallel — disjoint file sets)
 - [ ] T-016 Slice 5: pipeline Stage 1c + Stage 2c wiring in `upgrade_consumer_pipeline.sh`
-- [ ] T-017 Slice 6: author v1.10.0 catalogue entries (#258, #259, #260, #261)
-- [ ] T-018 Slice 6b: skill extension — `workaround_report_filer.py` + duplicate detection + SKILL.md update
-- [ ] T-019 Slice 7: SKILL.md catalogue section + ADR finalisation
+- [ ] T-017 Slice 6: author v1.10.0 catalogue entries in `workarounds/manifest.yaml` + `workarounds/v1.10.0/`
+
+### Wave 4 (sequential — waits for Waves 1–3)
+- [ ] T-019 Slice 7: ALL SKILL.md additions (catalogue section + filing step) + ADR finalisation
+
+### Wave 5 (sequential — waits for Wave 4)
 - [ ] T-020 Slice 8: publish artefacts (hardening_review, pr_context, traceability summary)
 
 ## App Onboarding Minimum Targets (Normative)

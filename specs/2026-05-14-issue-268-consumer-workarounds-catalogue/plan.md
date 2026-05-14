@@ -4,6 +4,32 @@
 - Implementation tasks MUST remain unchecked until `SPEC_READY=true`.
 - If required inputs are missing, add `BLOCKED_MISSING_INPUTS` in `spec.md` and keep the gate closed.
 
+## Parallel Execution Map
+
+Slices are grouped into sequential waves. Within each wave, all slices touch disjoint file sets and can be assigned to independent subagents working in separate git worktrees on the same branch, committing in any order.
+
+```
+Wave 1 ── Slice 0   (feedback template + scaffolder + parser)
+       ├─ Slice 6b  (filer.py + filer tests — NO SKILL.md)
+       └─ Slice 1   (engine skeleton — upgrade_workarounds.py new)
+           │
+Wave 2 ── Slice 2+3+4  (all action kinds — ONE agent, sequential internally)
+           │            upgrade_workarounds.py + test_upgrade_workarounds.py extended
+           │
+Wave 3 ── Slice 5   (pipeline Stage 1c + Stage 2c wiring)
+       └─ Slice 6   (v1.10.0 catalogue entries)
+           │
+Wave 4 ── Slice 7   (ALL SKILL.md additions + ADR; waits for Slices 0, 6b, 5, 6)
+           │
+Wave 5 ── Slice 8   (publish artifacts)
+```
+
+**Collision rules enforced by this ordering:**
+- `upgrade_workarounds.py` and `test_upgrade_workarounds.py` are owned exclusively by the Wave 2 agent. No other wave touches them.
+- `SKILL.md` is owned exclusively by the Wave 4 agent. Slice 6b does NOT touch SKILL.md (moved to Slice 7).
+- `upgrade_consumer_pipeline.sh` is owned exclusively by Slice 5 (Wave 3).
+- `workarounds/manifest.yaml` and `workarounds/v1.10.0/` are owned exclusively by Slice 6 (Wave 3).
+
 ## Delivery Slices
 
 ### Slice 0 — Issue template + GitHub Actions scaffolder (red → green)
@@ -58,7 +84,7 @@ Files:
 
 Gate: `make blueprint-test-unit` green.
 
-### Slice 3 — `patch` action kind (red → green, pending Q-1)
+### Slice 3 — `patch` action kind (red → green)
 **Goal:** Implement `patch` apply (`git apply`) and revert (`git apply -R`). Introduce `apply_phase` field; split engine into `run_before_apply()` and `run_after_apply()` entry points.
 
 Failing tests first:
@@ -119,15 +145,14 @@ Failing tests first:
 Files:
 - `scripts/lib/blueprint/workaround_report_filer.py` (new)
 - `tests/blueprint/test_workaround_report_filer.py` (new)
-- `.agents/skills/blueprint-consumer-upgrade/SKILL.md` (extend: filing step)
 
 Gate: `make blueprint-test-unit` green.
 
-### Slice 7 — Documentation + skill update
-**Goal:** Update `SKILL.md` with catalogue section (how to author a new entry, how to mark `landed_in`, how the issue-filing loop works). Finalise ADR.
+### Slice 7 — Documentation + skill update (ALL SKILL.md additions + ADR)
+**Goal:** Consolidate all `SKILL.md` additions in one pass: (a) catalogue section (how to author a new entry, how to mark `landed_in`) from the engine work; (b) issue-filing step instructions (how and when the agent files a `workaround-report` issue, duplicate detection, non-blocking behaviour) from Slice 6b. Finalise ADR.
 
 Files:
-- `.agents/skills/blueprint-consumer-upgrade/SKILL.md` (extend)
+- `.agents/skills/blueprint-consumer-upgrade/SKILL.md` (extend: catalogue section + filing step)
 - `docs/blueprint/architecture/decisions/ADR-issue-268-consumer-workarounds-catalogue.md` (finalise)
 
 Gate: `make quality-docs-lint` green.
