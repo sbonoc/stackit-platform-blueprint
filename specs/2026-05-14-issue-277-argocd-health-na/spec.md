@@ -42,14 +42,15 @@
 - Local-first exception rationale: none
 
 ## Objective
-- Business outcome: ArgoCD health status correctly reflects actual pod readiness for all local-lane managed resources; operators can trust the ArgoCD UI/CLI health rollup and unblock notifications/alerting adoption.
-- Success metric: `argocd app get platform-local-core` reports `Health: Healthy` (not `Degraded`) after a clean `make infra-post-deploy-consumer` when all pods are running.
+- Business outcome: ArgoCD health status correctly reflects actual pod readiness for all local-lane managed resources, and the blueprint tracks ArgoCD v3.4.1 (chart 9.5.13); operators can trust the ArgoCD UI/CLI health rollup and unblock notifications/alerting adoption.
+- Success metric: `argocd app get platform-local-core` reports `Health: Healthy` (not `Degraded`) after a clean `make infra-post-deploy-consumer` when all pods are running; `infra-audit-version` reports `ARGOCD_CHART_VERSION=9.5.13`.
 
 ## Normative Requirements
 
 ### Functional Requirements (Normative)
-- FR-001 The blueprint MUST override `resource.customizations.ignoreResourceUpdates.all` to an empty string in `infra/local/helm/core/argocd.values.yaml`, neutralising the argo-cd Helm chart 9.4.16 default that suppresses `/status` watch events for all resource types.
+- FR-001 The blueprint MUST override `resource.customizations.ignoreResourceUpdates.all` to an empty string in `infra/local/helm/core/argocd.values.yaml`, neutralising the argo-cd Helm chart default that suppresses `/status` watch events for all resource types.
 - FR-002 The blueprint MUST apply the same override in the bootstrap template `scripts/templates/infra/bootstrap/infra/local/helm/core/argocd.values.yaml` so that new consumers receive the fix on `make blueprint-init-repo` and existing consumers receive it on the next blueprint upgrade.
+- FR-003 The blueprint MUST bump `ARGOCD_CHART_VERSION` from `9.4.16` to `9.5.13` in `scripts/lib/infra/versions.sh` and `scripts/lib/infra/versions.baseline.sh`, tracking ArgoCD v3.4.1 as the current pinned version.
 
 ### Non-Functional Requirements (Normative)
 - NFR-SEC-001 N/A — no security surface changed by this fix.
@@ -59,13 +60,13 @@
 - NFR-A11Y-001 N/A — no UI changes.
 
 ## Normative Option Decision
-- Option A: Override `resource.customizations.ignoreResourceUpdates.all` to empty string in `argocd.values.yaml`, disabling the broad all-resource `/status` suppression while preserving per-resource-type ignoreResourceUpdates defaults shipped by the Helm chart for argoproj.io_Application, argoproj.io_Rollout, and HPA.
-- Option B: Pin to a patched ArgoCD chart version where the health evaluation regression is fixed upstream, deferring the values-file fix.
-- Selected option: OPTION_A
-- Rationale: Option A directly targets the confirmed root cause with minimal blast radius and is the approach explicitly suggested in issue #277. Option B requires upstream chart release tracking and leaves the bug active for an unknown period; ArgoCD v3.3.5 / chart 9.4.16 is the current blueprint pin and no patched chart has been identified.
+- Option A: Apply values override only — override `resource.customizations.ignoreResourceUpdates.all` to empty string; keep chart at 9.4.16.
+- Option B: Apply values override AND bump chart to 9.5.13 (ArgoCD v3.4.1) in the same work item.
+- Selected option: OPTION_B
+- Rationale: The values override guarantees the fix regardless of ArgoCD version. The chart bump (9.4.16 → 9.5.13, ArgoCD v3.3.5 → v3.4.1) is a low-risk minor increment with ~5 weeks of upstream fixes; both changes touch the same files in the same diff; doing them together avoids an immediate follow-up P2 chart upgrade work item. The override acts as a permanent safety net even if a future chart version re-introduces the default.
 
 ## Contract Changes (Normative)
-- Config/Env contract: `infra/local/helm/core/argocd.values.yaml` gains a `configs.cm` block that overrides one Helm chart default key. `scripts/templates/infra/bootstrap/infra/local/helm/core/argocd.values.yaml` receives the identical change.
+- Config/Env contract: `infra/local/helm/core/argocd.values.yaml` gains a `configs.cm` block overriding one Helm chart default key. `scripts/templates/infra/bootstrap/infra/local/helm/core/argocd.values.yaml` receives the identical change. `scripts/lib/infra/versions.sh` and `scripts/lib/infra/versions.baseline.sh` change `ARGOCD_CHART_VERSION` from `9.4.16` to `9.5.13`.
 - API contract: none
 - OpenAPI / Pact contract path: none
 - Event contract: none
@@ -81,8 +82,9 @@
 ## Normative Acceptance Criteria
 - AC-001 A regression test MUST parse `infra/local/helm/core/argocd.values.yaml` and assert that `configs.cm["resource.customizations.ignoreResourceUpdates.all"]` is an empty string (not a jsonPointers block).
 - AC-002 A regression test MUST parse `scripts/templates/infra/bootstrap/infra/local/helm/core/argocd.values.yaml` and assert the same empty-string override.
-- AC-003 Both regression tests MUST pass in the `blueprint-test-unit` lane without a live cluster.
-- AC-004 After running `make infra-deploy` on a Docker Desktop cluster with the fix applied, `argocd app get platform-local-core` SHALL NOT report `health=N/A` for Deployment or Service resources when all pods are in `Running/Ready` state. (Manual verification; no live-cluster CI gate.)
+- AC-003 A regression test MUST read `scripts/lib/infra/versions.sh` and assert that `ARGOCD_CHART_VERSION` equals `9.5.13`.
+- AC-004 All regression tests MUST pass in the existing test suite without a live cluster.
+- AC-005 After running `make infra-deploy` on a Docker Desktop cluster with the fix applied, `argocd app get platform-local-core` SHALL NOT report `health=N/A` for Deployment or Service resources when all pods are in `Running/Ready` state. (Manual verification; no live-cluster CI gate.)
 
 ## Informative Notes (Non-Normative)
 - Context: The argo-cd Helm chart 9.4.16 (bundling ArgoCD v3.3.5) ships `resource.customizations.ignoreResourceUpdates.all` with a `/status` jsonPointer as a default `configs.cm` entry. The intent is to reduce reconciliation churn from noisy status-only updates. In ArgoCD v3.x this optimization inadvertently suppresses the watch events that the health evaluator depends on, leaving all resources permanently at `health=N/A`. Setting the key to empty string restores standard health evaluation while keeping the per-resource-type entries (argoproj.io_Application, Rollout, HPA) that target genuinely noisy annotation churn.

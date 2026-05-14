@@ -18,31 +18,36 @@
 
 ## Delivery Slices
 
-### Slice 1 — Regression tests (red) + YAML fix (green)
+### Slice 1 — Regression tests (red) + YAML fix + chart bump (green)
 
-Write failing regression tests for AC-001 and AC-002, then apply the YAML override to turn them green.
+Write failing regression tests for AC-001, AC-002, and AC-003, then apply the YAML override and chart pin bump to turn them green.
 
 **Files touched:**
 - `tests/infra/test_argocd_values_health_fix.py` (new)
 - `infra/local/helm/core/argocd.values.yaml`
 - `scripts/templates/infra/bootstrap/infra/local/helm/core/argocd.values.yaml`
+- `scripts/lib/infra/versions.sh`
+- `scripts/lib/infra/versions.baseline.sh`
 
 **Steps (red → green):**
-1. Write `test_argocd_values_health_fix.py` with two test cases:
+1. Write `test_argocd_values_health_fix.py` with three test cases:
    - `test_argocd_values_ignoreResourceUpdates_all_is_empty`: reads `infra/local/helm/core/argocd.values.yaml`, asserts `configs.cm["resource.customizations.ignoreResourceUpdates.all"] == ""`
    - `test_argocd_template_ignoreResourceUpdates_all_is_empty`: reads `scripts/templates/infra/bootstrap/infra/local/helm/core/argocd.values.yaml`, asserts the same.
-2. Confirm both tests fail (`uv run python3 -m pytest tests/infra/test_argocd_values_health_fix.py -v`).
+   - `test_argocd_chart_version_is_9_5_13`: reads `scripts/lib/infra/versions.sh`, asserts `ARGOCD_CHART_VERSION="9.5.13"` is present.
+2. Confirm all three tests fail.
 3. Add `configs.cm` block to `infra/local/helm/core/argocd.values.yaml`:
    ```yaml
    configs:
      cm:
-       # Override argo-cd chart 9.4.16 default: the all-resource /status
-       # ignoreResourceUpdates suppresses health evaluation events in ArgoCD v3.x.
+       # Override argo-cd chart default: the all-resource /status ignoreResourceUpdates
+       # suppresses health evaluation events in ArgoCD v3.x (issue #277).
        resource.customizations.ignoreResourceUpdates.all: ""
    ```
 4. Apply the identical change to `scripts/templates/infra/bootstrap/infra/local/helm/core/argocd.values.yaml`.
-5. Confirm both tests pass.
-6. Run `make infra-contract-test-fast` to verify no existing contract tests regress.
+5. Bump `ARGOCD_CHART_VERSION` from `9.4.16` to `9.5.13` in `scripts/lib/infra/versions.sh`.
+6. Bump `ARGOCD_CHART_VERSION` from `9.4.16` to `9.5.13` in `scripts/lib/infra/versions.baseline.sh`.
+7. Confirm all three tests pass.
+8. Run `make infra-contract-test-fast` to verify no existing contract tests regress.
 
 ## Change Strategy
 - Migration/rollout sequence: `make infra-deploy` on the next local install re-runs `helm upgrade --install` with the updated values, which regenerates `argocd-cm`. No manual steps required.
@@ -50,10 +55,10 @@ Write failing regression tests for AC-001 and AC-002, then apply the YAML overri
 - Rollback plan: Remove the `configs.cm` block from `argocd.values.yaml` and re-run `make infra-deploy`. No state migration.
 
 ## Validation Strategy (Shift-Left)
-- Unit checks: `uv run python3 -m pytest tests/infra/test_argocd_values_health_fix.py -v` (AC-001, AC-002, AC-003)
+- Unit checks: `uv run python3 -m pytest tests/infra/test_argocd_values_health_fix.py -v` (AC-001, AC-002, AC-003, AC-004)
 - Contract checks: `make infra-contract-test-fast`
 - Integration checks: N/A — no running services touched by unit-testable code paths.
-- E2E checks: Manual smoke on Docker Desktop (AC-004): after `make infra-deploy`, run `argocd app get platform-local-core` and confirm `Health: Healthy`. Not automated in CI (no live-cluster lane).
+- E2E checks: Manual smoke on Docker Desktop (AC-005): after `make infra-deploy`, run `argocd app get platform-local-core` and confirm `Health: Healthy`. Not automated in CI (no live-cluster lane).
 
 ## App Onboarding Contract (Normative)
 - Required minimum make targets:

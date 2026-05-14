@@ -22,7 +22,9 @@ In ArgoCD v3.x, this optimization inadvertently suppresses the watch events that
 
 ## Decision
 
-Override `resource.customizations.ignoreResourceUpdates.all` to an empty string in both:
+Apply two changes together:
+
+**1 — Override `resource.customizations.ignoreResourceUpdates.all` to empty string** in both:
 - `infra/local/helm/core/argocd.values.yaml`
 - `scripts/templates/infra/bootstrap/infra/local/helm/core/argocd.values.yaml`
 
@@ -32,19 +34,27 @@ configs:
     resource.customizations.ignoreResourceUpdates.all: ""
 ```
 
-Setting the key to empty string neutralises the Helm chart default for the `all` resource scope. Per-resource-type entries that the Helm chart also ships by default (`argoproj.io_Application`, `argoproj.io_Rollout`, HPA annotation ignores) are not overridden and continue to reduce annotation churn for those specific types.
+Setting the key to empty string neutralises the Helm chart default for the `all` resource scope. Per-resource-type entries (`argoproj.io_Application`, `argoproj.io_Rollout`, HPA annotation ignores) are not overridden and continue to reduce annotation churn for those types.
+
+**2 — Bump `ARGOCD_CHART_VERSION` from `9.4.16` to `9.5.13`** in:
+- `scripts/lib/infra/versions.sh`
+- `scripts/lib/infra/versions.baseline.sh`
+
+This tracks ArgoCD v3.4.1, which contains ~5 weeks of upstream fixes over v3.3.5. The chart bump is a minor increment (9.4 → 9.5) with no breaking API or CRD changes in the release notes. The values override acts as a permanent safety net regardless of ArgoCD version.
 
 ## Alternatives Considered
 
-**Option B — Pin to a patched ArgoCD chart version:** Wait for an upstream fix in a newer argo-cd Helm chart or ArgoCD release where the health evaluation regression is resolved. Rejected: no patched version has been identified; the bug would remain active for an unknown period; the blueprint chart pin (9.4.16 / ArgoCD v3.3.5) is current.
+**Option A — Values override only, keep chart at 9.4.16:** Fixes the immediate bug but leaves the blueprint on an older ArgoCD version. Rejected: the chart upgrade is a low-risk minor increment and avoiding it would require an immediate follow-up work item; both changes touch the same files so the cost of combining them is negligible.
 
 ## Consequences
 
 - ArgoCD health status correctly reflects actual pod readiness after `make infra-deploy`.
 - The `platform-local-core` Application reports `Health: Healthy` when pods are running.
 - ArgoCD health-based alerting and notifications can be adopted for local development workflows.
-- Reconciliation CPU may slightly increase on large clusters due to more status events being processed. Not a concern for local Docker Desktop development.
+- Reconciliation CPU can slightly increase on large clusters due to more status events being processed. Not a concern for local Docker Desktop development.
+- Blueprint tracks ArgoCD v3.4.1 (chart 9.5.13) as the pinned version.
 - This fix is local-lane only. Cloud-lane ArgoCD topology is managed separately and is not affected.
+- Rollback: remove `configs.cm` block, revert `ARGOCD_CHART_VERSION` to `9.4.16`, run `make infra-deploy`.
 
 ## References
 

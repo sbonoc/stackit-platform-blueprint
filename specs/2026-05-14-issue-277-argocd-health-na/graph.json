@@ -13,6 +13,11 @@
       "summary": "Apply same override in bootstrap template argocd.values.yaml"
     },
     {
+      "id": "FR-003",
+      "type": "requirement",
+      "summary": "Bump ARGOCD_CHART_VERSION to 9.5.13 in versions.sh and versions.baseline.sh"
+    },
+    {
       "id": "NFR-SEC-001",
       "type": "requirement",
       "summary": "N/A — no security surface changed"
@@ -45,22 +50,29 @@
     {
       "id": "AC-003",
       "type": "acceptance",
-      "summary": "Both regression tests pass in blueprint-test-unit lane without live cluster"
+      "summary": "Test asserts ARGOCD_CHART_VERSION equals 9.5.13 in versions.sh"
     },
     {
       "id": "AC-004",
+      "type": "acceptance",
+      "summary": "All regression tests pass without a live cluster"
+    },
+    {
+      "id": "AC-005",
       "type": "acceptance",
       "summary": "Manual smoke: argocd app get platform-local-core reports Health: Healthy after make infra-deploy"
     }
   ],
   "edges": [
     { "from": "FR-001", "to": "AC-001", "relation": "validated_by" },
-    { "from": "FR-001", "to": "AC-003", "relation": "validated_by" },
+    { "from": "FR-001", "to": "AC-004", "relation": "validated_by" },
     { "from": "FR-002", "to": "AC-002", "relation": "validated_by" },
-    { "from": "FR-002", "to": "AC-003", "relation": "validated_by" },
-    { "from": "NFR-OBS-001", "to": "AC-004", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-004", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-003", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-004", "relation": "validated_by" },
+    { "from": "NFR-OBS-001", "to": "AC-005", "relation": "validated_by" },
     { "from": "NFR-OBS-001", "to": "FR-001", "relation": "constrains" },
     { "from": "NFR-REL-001", "to": "FR-001", "relation": "constrains" },
-    { "from": "NFR-OPS-001", "to": "AC-004", "relation": "validated_by" }
+    { "from": "NFR-OPS-001", "to": "AC-005", "relation": "validated_by" }
   ]
 }

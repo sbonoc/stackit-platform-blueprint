@@ -8,18 +8,21 @@
 - [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
 
 ## Implementation
-- [ ] T-001 Write `tests/infra/test_argocd_values_health_fix.py` with AC-001 and AC-002 test cases (red)
-- [ ] T-002 Confirm both tests fail before the fix is applied
+- [ ] T-001 Write `tests/infra/test_argocd_values_health_fix.py` with AC-001, AC-002, and AC-003 test cases (red)
+- [ ] T-002 Confirm all three tests fail before the fix is applied
 - [ ] T-003 Add `configs.cm.resource.customizations.ignoreResourceUpdates.all: ""` to `infra/local/helm/core/argocd.values.yaml`
 - [ ] T-004 Apply the identical override to `scripts/templates/infra/bootstrap/infra/local/helm/core/argocd.values.yaml`
-- [ ] T-005 Confirm both regression tests pass (green)
+- [ ] T-005 Bump `ARGOCD_CHART_VERSION` from `9.4.16` to `9.5.13` in `scripts/lib/infra/versions.sh`
+- [ ] T-006 Bump `ARGOCD_CHART_VERSION` from `9.4.16` to `9.5.13` in `scripts/lib/infra/versions.baseline.sh`
+- [ ] T-007 Confirm all three regression tests pass (green)
 
 ## Test Automation
 - [ ] T-101 `tests/infra/test_argocd_values_health_fix.py` — AC-001: argocd.values.yaml override assertion
 - [ ] T-102 `tests/infra/test_argocd_values_health_fix.py` — AC-002: bootstrap template override assertion
-- [ ] T-103 N/A — no filter/payload-transform logic in this work item
-- [ ] T-104 Finding-to-test: regression tests for AC-001/AC-002 are the automated translation of the health=N/A finding; they fail without the fix and pass with it
-- [ ] T-105 Run `make infra-contract-test-fast` — confirm no existing contract tests regress
+- [ ] T-103 `tests/infra/test_argocd_values_health_fix.py` — AC-003: ARGOCD_CHART_VERSION pin assertion
+- [ ] T-104 N/A — no filter/payload-transform logic in this work item
+- [ ] T-105 Finding-to-test: all three regression tests are the automated translation of the health=N/A finding; they fail without the fix and pass with it
+- [ ] T-106 Run `make infra-contract-test-fast` — confirm no existing contract tests regress
 
 ## Accessibility Testing (Normative — mark N/A with rationale for non-UI specs)
 - [x] T-A01 N/A — NFR-A11Y-001 declared in spec.md as not applicable (no UI changes)
