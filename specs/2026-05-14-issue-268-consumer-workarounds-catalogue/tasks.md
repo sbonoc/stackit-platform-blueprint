@@ -33,7 +33,7 @@
 - [x] T-015 Slice 4: `python_script` action kind + security isolation + tests
 
 ### Wave 3 (parallel — disjoint file sets)
-- [ ] T-016 Slice 5: pipeline Stage 1c + Stage 2c wiring in `upgrade_consumer_pipeline.sh`
+- [x] T-016 Slice 5: pipeline Stage 1c + Stage 2c wiring in `upgrade_consumer_pipeline.sh`
 - [ ] T-017 Slice 6: author v1.10.0 catalogue entries in `workarounds/manifest.yaml` + `workarounds/v1.10.0/`
 
 ### Wave 4 (sequential — waits for Waves 1–3)

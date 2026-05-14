@@ -131,6 +131,24 @@ uv run python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_version_pin_diff.py" \
 log_info "[PIPELINE] Stage 1b: complete"
 
 # ---------------------------------------------------------------------------
+# Stage 1c — Workaround catalogue: before_apply phase
+# ---------------------------------------------------------------------------
+log_info "[PIPELINE] Stage 1c: starting — workaround catalogue (before_apply)"
+stage1c_rc=0
+_catalogue_root="$ROOT_DIR/.agents/skills/blueprint-consumer-upgrade/workarounds"
+uv run python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_workarounds.py" \
+  --repo-root "$ROOT_DIR" \
+  --catalogue-root "$_catalogue_root" \
+  --target-version "${BLUEPRINT_UPGRADE_REF:-}" \
+  --phase before_apply || stage1c_rc=$?
+if [[ "$stage1c_rc" -ne 0 ]]; then
+  pipeline_exit=$stage1c_rc
+  log_fatal "[PIPELINE] Stage 1c: FAILED — workaround engine exited $stage1c_rc; aborting."
+fi
+unset _catalogue_root
+log_info "[PIPELINE] Stage 1c: complete"
+
+# ---------------------------------------------------------------------------
 # Stage 2 — Apply with delete
 # ---------------------------------------------------------------------------
 log_info "[PIPELINE] Stage 2: starting — apply"
@@ -152,6 +170,24 @@ if [[ -f "$apply_artifact" ]]; then
   stage2_status="$(uv run python3 -c "import json,sys; d=json.load(open('$apply_artifact')); print(d.get('status',''))" 2>/dev/null || true)"
 fi
 log_info "[PIPELINE] Stage 2: complete (status=${stage2_status:-unknown})"
+
+# ---------------------------------------------------------------------------
+# Stage 2c — Workaround catalogue: after_apply phase
+# ---------------------------------------------------------------------------
+log_info "[PIPELINE] Stage 2c: starting — workaround catalogue (after_apply)"
+stage2c_rc=0
+_catalogue_root="$ROOT_DIR/.agents/skills/blueprint-consumer-upgrade/workarounds"
+uv run python3 "$ROOT_DIR/scripts/lib/blueprint/upgrade_workarounds.py" \
+  --repo-root "$ROOT_DIR" \
+  --catalogue-root "$_catalogue_root" \
+  --target-version "${BLUEPRINT_UPGRADE_REF:-}" \
+  --phase after_apply || stage2c_rc=$?
+if [[ "$stage2c_rc" -ne 0 ]]; then
+  pipeline_exit=$stage2c_rc
+  log_fatal "[PIPELINE] Stage 2c: FAILED — workaround engine exited $stage2c_rc; aborting."
+fi
+unset _catalogue_root
+log_info "[PIPELINE] Stage 2c: complete"
 
 # ---------------------------------------------------------------------------
 # Stage 3 — Contract file resolution
