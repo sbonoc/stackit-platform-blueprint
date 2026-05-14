@@ -360,7 +360,7 @@ class TestPatchActionKind(unittest.TestCase):
         patch_content = """\
 --- a/scripts/lib/blueprint/upgrade_consumer_validate.py
 +++ b/scripts/lib/blueprint/upgrade_consumer_validate.py
-@@ -1,4 +1,7 @@
+@@ -1,4 +1,6 @@
  VALIDATION_TARGETS = (
      'quality-hooks-fast',
      'blueprint-template-smoke',

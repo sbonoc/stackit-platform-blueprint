@@ -24,13 +24,13 @@
 
 ### Wave 1 (parallel — disjoint file sets)
 - [x] T-011 Slice 0: extend `bug_report.yml` with workaround section + GitHub Actions scaffolder + `workaround_report_parser.py` + tests
-- [ ] T-012 Slice 1: schema + engine skeleton `upgrade_workarounds.py` (load/evaluate/dispatch/write) + `test_upgrade_workarounds.py`
+- [x] T-012 Slice 1: schema + engine skeleton `upgrade_workarounds.py` (load/evaluate/dispatch/write) + `test_upgrade_workarounds.py`
 - [ ] T-018 Slice 6b: `workaround_report_filer.py` + `test_workaround_report_filer.py` (NO SKILL.md)
 
 ### Wave 2 (sequential internally — one agent owns both files)
-- [ ] T-013 Slice 2: `contract_merge` action kind apply + revert + idempotency tests
-- [ ] T-014 Slice 3: `patch` action kind + `apply_phase` field + phase-split entry points
-- [ ] T-015 Slice 4: `python_script` action kind + security isolation + tests
+- [x] T-013 Slice 2: `contract_merge` action kind apply + revert + idempotency tests
+- [x] T-014 Slice 3: `patch` action kind + `apply_phase` field + phase-split entry points
+- [x] T-015 Slice 4: `python_script` action kind + security isolation + tests
 
 ### Wave 3 (parallel — disjoint file sets)
 - [ ] T-016 Slice 5: pipeline Stage 1c + Stage 2c wiring in `upgrade_consumer_pipeline.sh`
