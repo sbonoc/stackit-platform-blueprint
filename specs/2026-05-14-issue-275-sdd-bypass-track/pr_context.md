@@ -28,4 +28,4 @@
 - Rollback strategy: set `SPEC_READY_EXCEPTION: none` (or remove the field) in any `spec.md` to immediately restore full-SDD validation for that work item. Revert `check_sdd_assets.py` commit to remove the bypass branch for all specs. No database migration or data loss risk.
 
 ## Deferred Proposals
-- Proposal 1 (parked): add `SPEC_READY_EXCEPTION: chore` + active `AGENTS.decisions.md` machine-verifiable validation (Q-1 Option B). Trigger: on-scope: quality. Rationale: Option B requires branch/PR context coupling in the checker, making it non-deterministic in local runs; passive pass + convention is sufficient.
+- Proposal 1: add `SPEC_READY_EXCEPTION: chore` + active `AGENTS.decisions.md` machine-verifiable validation (Q-1 Option B). Parked — trigger: on-scope: quality — checker needs branch/PR context to look up `AGENTS.decisions.md` entry, making `quality-sdd-check` non-deterministic in local runs; convention + code review is sufficient. Recorded in `AGENTS.backlog.md §on-scope: quality`.
