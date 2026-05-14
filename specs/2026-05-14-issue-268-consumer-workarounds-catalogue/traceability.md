@@ -25,7 +25,9 @@
 | AC-006 | SDD-C-008 | N/A | D-3 | `upgrade_workarounds.py` — `evaluate_applies_when()` | `test_evaluate_applies_when_repo_mode_mismatch_returns_false` | — | — |
 | AC-007 | SDD-C-008, SDD-C-023 | N/A | D-3, D-5, D-6 | `upgrade_workarounds.py` — full apply+revert cycle | `test_contract_merge_apply_revert_cycle_synthetic_version` | — | — |
 | AC-008 | SDD-C-008 | N/A | D-3 | `upgrade_workarounds.py` — `evaluate_applies_when()` | `test_evaluate_applies_when_repo_mode_mismatch_returns_false` | — | — |
-| FR-010 | SDD-C-001 | N/A | D-3 | `upgrade_workarounds.py` — failure policy per action_kind (pending Q-2) | Slice 2/3 error-path tests (to be defined post Q-2) | ADR § Failure Policy | pipeline exit code |
+| FR-010 | SDD-C-001 | N/A | D-3 | `upgrade_workarounds.py` — per-action_kind failure dispatch | `test_contract_merge_failure_is_fatal`, `test_patch_failure_is_nonfatal_and_recorded`, `test_python_script_failure_is_fatal` | ADR § Resolved Decisions (Q-2) | pipeline exit code; `workarounds_applied.json` status: failed |
+| NFR-A11Y-001 | — | N/A | — | N/A — no UI components | N/A | N/A | N/A |
+| AC-009 | SDD-C-008 | N/A | D-3 | `upgrade_workarounds.py` — per-action_kind failure dispatch | `test_contract_merge_failure_is_fatal`, `test_patch_failure_is_nonfatal_and_recorded`, `test_python_script_failure_is_fatal` | — | — |
 
 ## Validation Summary
 <!-- To be completed at Publish phase (Step 7) -->

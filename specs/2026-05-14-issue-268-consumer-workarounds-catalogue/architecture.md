@@ -38,7 +38,7 @@ upgrade_consumer_pipeline.sh
             ├─ writes: artifacts/blueprint/workarounds_applied.json
             └─ mutates consumer files per action_kind (apply_phase: before_apply)
   └─ Stage 2  (apply with delete)
-  └─ Stage 2c (post-apply patch workarounds — apply_phase: after_apply) ← CONDITIONAL ON Q-1
+  └─ Stage 2c (post-apply patch workarounds — apply_phase: after_apply) ← NEW
   └─ Stages 3–10 (existing — unchanged)
 ```
 
@@ -53,7 +53,7 @@ Rationale: A single file is easier to validate, diff, and review than a glob of 
 ### D-3: Python library module (`upgrade_workarounds.py`) for all engine logic
 Rationale: Shell handles stage chaining; all stateful logic (manifest parsing, idempotency check, JSON artefact, action dispatch) lives in Python for unit testability. Pattern follows `upgrade_pipeline_preflight.py` and `upgrade_consumer_resolve.py`.
 
-### D-4: `apply_phase` field resolves the Stage-1c-vs-2c ordering problem (pending Q-1 confirmation)
+### D-4: `apply_phase` field — two-phase execution (decided by owner comment on PR #292, 2026-05-14)
 Rationale: `before_apply` workarounds (consumer-owned files, e.g. `contract_merge` entries for `blueprint/contract.yaml`) run before Stage 2. `after_apply` workarounds (blueprint-managed files, e.g. `patch` on `scripts/lib/blueprint/*.py`) run after Stage 2 so Stage 2 does not overwrite the patch. Ordering is explicit in the manifest rather than implicit in the action kind, preserving forward-compatibility if new action kinds are added.
 
 ### D-5: Idempotency via `workarounds_applied.json` presence check

@@ -72,7 +72,7 @@ versions:
         landed_in: null
 ```
 
-## `apply_phase` Model
+## `apply_phase` Model (decided by owner comment on PR #292, 2026-05-14)
 
 Two-phase execution resolves the ordering conflict between consumer-owned and blueprint-managed file patches:
 
@@ -117,9 +117,9 @@ Two-phase execution resolves the ordering conflict between consumer-owned and bl
 - Blueprint maintainers MUST bump `landed_in` in the manifest when a defect fix is tagged, or workarounds will never auto-revert.
 - Initial catalogue ships the 4 known v1.10.0 workarounds (#258–#261) with `landed_in: null`; a follow-up commit sets these values once the next release tag is cut.
 
-## Open Questions (blocking SPEC_READY)
+## Resolved Decisions (PR #292, 2026-05-14)
 
-- Q-1: `apply_phase` model — confirmed in this ADR as Option A; pending Architecture sign-off.
-- Q-2: Failure policy for broken workaround application — fatal vs non-fatal per action kind.
-- Q-3: `python_script` security model — inherited trust vs explicit opt-in flag.
-- Q-4: `landed_in` values for v1.10.0 workarounds — null now, bumped at next tag.
+- Q-1 (apply_phase): Option A — `apply_phase` field with Stage 1c (before_apply) and Stage 2c (after_apply).
+- Q-2 (failure policy): Option C — per action-kind: `contract_merge` fatal, `patch` non-fatal, `python_script` fatal.
+- Q-3 (python_script trust): Option A — inherit blueprint trust; no consumer opt-in flag required.
+- Q-4 (landed_in): Option A — ship v1.10.0 entries with `landed_in: null`; bump in next release PR.

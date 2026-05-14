@@ -23,7 +23,9 @@
     {"id": "AC-005", "type": "acceptance", "summary": "contract_merge apply+revert cycle clean in automated test"},
     {"id": "AC-006", "type": "acceptance", "summary": "applies_when mismatch causes skip with log"},
     {"id": "AC-007", "type": "acceptance", "summary": "Synthetic-version apply+revert cycle test"},
-    {"id": "AC-008", "type": "acceptance", "summary": "repo_mode mismatch workaround skipped"}
+    {"id": "AC-008", "type": "acceptance", "summary": "repo_mode mismatch workaround skipped"},
+    {"id": "AC-009", "type": "acceptance", "summary": "Per-action-kind failure policy: contract_merge fatal, patch non-fatal, python_script fatal"},
+    {"id": "NFR-A11Y-001", "type": "requirement", "summary": "N/A — no UI components"}
   ],
   "edges": [
     {"from": "FR-001", "to": "AC-001", "relation": "validated_by"},
@@ -51,6 +53,7 @@
     {"from": "FR-005", "to": "FR-003", "relation": "depends_on"},
     {"from": "FR-006", "to": "FR-005", "relation": "depends_on"},
     {"from": "FR-008", "to": "FR-001", "relation": "depends_on"},
-    {"from": "FR-008", "to": "FR-002", "relation": "depends_on"}
+    {"from": "FR-008", "to": "FR-002", "relation": "depends_on"},
+    {"from": "FR-010", "to": "AC-009", "relation": "validated_by"}
   ]
 }
