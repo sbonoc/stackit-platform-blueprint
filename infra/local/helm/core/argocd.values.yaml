@@ -2,3 +2,9 @@
 server:
   service:
     type: ClusterIP
+configs:
+  cm:
+    # Override chart default: the all-resource /status ignoreResourceUpdates suppresses
+    # health evaluation events in ArgoCD v3.x, causing health=N/A for all resources.
+    # Issue #277. Keep empty to restore standard health evaluation.
+    resource.customizations.ignoreResourceUpdates.all: ""
