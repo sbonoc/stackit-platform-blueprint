@@ -22,283 +22,154 @@ To introduce a new tag, append a row here in the same commit that uses it.
 
 ---
 
-## Current Priorities
+## Active Work
 
-### Next Up — Planned for next blueprint release
-
-Priority order confirmed (2026-05-14):
+### P1 — Next Up (priority order confirmed 2026-05-14)
 
 - [ ] P1 (Architecture gate): Issue #295 — re-evaluate OpenMetadata as a blueprint baseline component; architecture decision required before any remaining STACKIT-managed service module work under #248.
 - [ ] P1 (Bug — ArgoCD health): Issue #277 — all ArgoCD managed resources report `health=N/A`; platform-logging likely not initialised correctly. Blocks consumer runtime observability.
 - [ ] P1 (SDD governance): Issue #275 — lightweight SDD bypass track for fix/refactor/chore/upgrade changes: single-PR path without full intake→spec→plan ceremony. Delivery multiplier for all maintenance and non-feature work.
 - [ ] P1 (Quality tooling): Issues #293 + #294 — (1) AGENTS.md template enforces architecture gate sign-off before implementation slices begin; (2) `quality-docs-cross-reference-check` hook catches stale doc cross-references in CI.
 
-### Untracked open issues (added 2026-05-14)
+### P2 — Consumer upgrade flow
 
-- [ ] P2 (Consumer upgrade flow): Issue #218 — move upstream example app names out of `consumer_settings.py` into explicit consumer configuration so blueprint seed workload names do not leak into consumer-facing tooling.
-- [ ] P2 (Consumer upgrade flow): Issue #222 — clean stale `artifacts/blueprint/conflicts/` entries after a successful Stage 2 apply so the artifacts directory does not accumulate stale conflict records across upgrade runs.
-- [ ] P2 (Consumer upgrade flow): Issue #224 — reconcile bucket policy: do not mark consumer-owned files as blueprint-managed; bucket policy decisions in `contract.yaml` should reflect actual ownership class.
-- [ ] P2 (Consumer upgrade flow): Issue #225 — guided descriptor adoption target for existing consumers that pre-date the `apps/descriptor.yaml` contract (new `blueprint-adopt-descriptor` make target to be added).
-- [ ] P2 (SDD tooling): Issue #247 — step-05-implement: add deterministic slice-done markers so parallel agent slices do not replay completed work on context restart.
-- [ ] P2 (Local dev): Issue #284 — support `ARGOCD_LOCAL_TARGET_REVISION` env var to track a non-default branch in local ArgoCD (replaces hard-coded `main` in the local target revision).
+- [ ] Issue #167 — dry-run mode (`BLUEPRINT_UPGRADE_DRY_RUN=true`): simulate all file mutations and output a unified diff without touching the working tree; same warnings and conflicts as a real apply.
+- [ ] Issue #168 — incremental tag-to-tag upgrade mode (`BLUEPRINT_UPGRADE_INCREMENTAL=true`): apply one release at a time with per-release changelog and resume support on conflict; batch mode remains the default.
+- [ ] Issue #183 — stale reconcile report: detect when the report on disk was generated against a different source/target tag pair and auto-rebuild it; standalone postcheck usage is the remaining risk surface.
+- [ ] Issue #196 — automated template sync after version pin changes (`BLUEPRINT_UPGRADE_SYNC_TEMPLATES=true`).
+- [ ] Issue #218 — move upstream example app names out of `consumer_settings.py` into explicit consumer configuration.
+- [ ] Issue #222 — clean stale `artifacts/blueprint/conflicts/` entries after a successful Stage 2 apply.
+- [ ] Issue #224 — reconcile bucket policy: do not mark consumer-owned files as blueprint-managed.
+- [ ] Issue #225 — guided descriptor adoption target for consumers that pre-date `apps/descriptor.yaml` (new make target to be added).
+- [ ] Issue #229 — add validator warning for `**` in `source_only` glob entries (fnmatch limitation).
+- [ ] Issue #244 — `consumer_fitness_status.sh` for consumer-side fitness checks (a11y compliance follow-on).
+- [ ] Issue #245 — add `layer:` field to `spec.md` template for conditional a11y sections.
+
+### P2 — Blueprint tooling and SDD
+
+- [ ] Issue #247 — step-05-implement: add deterministic slice-done markers so parallel agent slices do not replay completed work on context restart.
+- [ ] Issue #284 — support `ARGOCD_LOCAL_TARGET_REVISION` env var to track a non-default branch in local ArgoCD.
+- [ ] Issue #296 — workaround manifest `action_path` CI validation gate.
+- [ ] (no issue) Ownership checker robustness: support normalized equivalence for semantically-identical prune-glob expressions in ownership-matrix documentation checks.
+
+### P2 — Platform modules
+
+- [ ] (gated on #295) Issue #248 remaining modules — OpenMetadata and future STACKIT-managed service candidates. Do not start until the architecture decision in #295 is recorded.
+- [ ] Issue #171 — managed-cache module: STACKIT Managed Redis as a first-class optional module (Helm/ArgoCD-managed, provider-backed via STACKIT Terraform).
+- [ ] Issue #172 — platform-email module: Helm/ArgoCD-managed Postal for transactional email as an optional module.
 
 ---
 
-- [x] P1 (Platform modules — first-class): Issue #248 — Postgres module dual-lane implementation (Bitnami Helm local + STACKIT `stackit_postgresflex_*` Terraform). **Done**: `specs/2026-05-07-issue-248-postgres-module/`, PR #251. 4 slices complete; `SPEC_READY: true`.
-- [x] P1 (Platform modules — first-class): Issue #248 — RabbitMQ module dual-lane implementation (Bitnami Helm local + STACKIT `stackit_rabbitmq_*` Terraform). **Done**: `specs/2026-05-07-issue-248-rabbitmq-module/`, PR #255. 4 slices complete; 22/22 tests green; 9/9 quality gates pass. `SPEC_READY: true`.
-- [ ] (parked) proposal(issue-248-rabbitmq-module): vhost customisation — per-consumer non-default vhost support
-      trigger: on-scope: infra
-      rationale: STACKIT provider exposes no vhost attribute; constant '/' is correct for generic use; per-consumer vhost is consumer-side configuration
-- [ ] (parked) proposal(issue-248-rabbitmq-module): HA replica configuration — stackit_rabbitmq_instance.replicas > 1
-      trigger: on-scope: infra
-      rationale: single-replica default is sufficient for initial module; HA requires separate capacity planning and consumer awareness
-- [x] P1 (Platform modules — first-class): Issue #248 — KMS module dual-lane implementation (Vault Transit local + STACKIT `stackit_kms_keyring` + `stackit_kms_key` Terraform). **Done**: `specs/2026-05-07-issue-248-kms-module/`, PR #256. 4 slices complete; 23/23 tests green; quality gates pass. `SPEC_READY: true`.
-- [ ] (parked) proposal(issue-248-kms-module): KMS_KEY_ROTATION_PERIOD input — add to module.contract.yaml and stackit_kms_key when stackit_kms_key exposes rotation_period attribute in a future provider version
-      trigger: on-scope: infra
-      rationale: stackit_kms_key v0.88.0 does not expose rotation_period; shipping a no-op contract input would mislead consumers; surfaces when provider support lands
-- [ ] (parked) proposal(issue-248-kms-module): Vault HA/persistent storage for local lane — Vault standalone mode with raft storage
-      trigger: on-scope: infra
-      rationale: dev-mode ephemeral storage is sufficient for local development; HA adds PVC provisioning and startup complexity disproportionate to local dev needs; surfaces if a consumer requires key persistence across pod restarts
-- [x] P1 (Platform modules — first-class): Issue #248 — Object-storage module dual-lane implementation (MinIO local + STACKIT Terraform). **Done**: `specs/2026-05-06-issue-248-object-storage-module/`, PR #250. 5 slices complete; 27/27 tests green; 9/9 quality gates pass. `SPEC_READY: true`.
-- [ ] (parked) proposal(issue-248-object-storage-module): per-bucket credential scoping via STACKIT credentials_group
-      trigger: on-scope: infra
+## Parked Proposals
+
+Surface automatically when the named scope is next touched. Do not promote to active unless the trigger condition is met.
+
+### on-scope: infra
+
+- [ ] proposal(issue-248-rabbitmq-module): vhost customisation — per-consumer non-default vhost support.
+      rationale: STACKIT provider exposes no vhost attribute; `'/'` is correct for generic use; per-consumer vhost is consumer-side configuration
+- [ ] proposal(issue-248-rabbitmq-module): HA replica configuration — `stackit_rabbitmq_instance.replicas > 1`.
+      rationale: single-replica default is sufficient; HA requires separate capacity planning and consumer awareness
+- [ ] proposal(issue-248-kms-module): KMS_KEY_ROTATION_PERIOD input — add when `stackit_kms_key` exposes `rotation_period` attribute in a future provider version.
+      rationale: v0.88.0 does not expose this attribute; a no-op contract input would mislead consumers
+- [ ] proposal(issue-248-kms-module): Vault HA/persistent storage for local lane — standalone mode with raft storage.
+      rationale: dev-mode ephemeral storage is sufficient for local development; HA adds PVC provisioning disproportionate to local dev needs
+- [ ] proposal(issue-248-object-storage-module): per-bucket credential scoping via STACKIT `credentials_group`.
       rationale: no active consumer need; surfaces when a consumer requests bucket-scoped access keys
-- [ ] (parked) proposal(issue-248-object-storage-module): explicit test for object-storage smoke failing when runtime state file is entirely absent
-      trigger: on-scope: infra
-      rationale: state_file_exists has no unit test; smoke absent-state path is currently untested at module level
-- [x] P1 (Platform modules — first-class): Issue #248 — OpenSearch module dual-lane implementation (local Helm + STACKIT Terraform). **Done**: `specs/2026-05-06-issue-248-opensearch-module/`, PR #249.
-- [ ] (gated) Issue #248 — remaining STACKIT-managed service module candidates (OpenMetadata and any future additions): **blocked by #295 architecture gate**. Do not start until the architecture decision in #295 is recorded.
-- [x] (rejected) proposal(issue-248-opensearch-module): consumer-side adoption of infra-opensearch-local-apply in dhe-marketplace — rejected: consumer-repo work, not blueprint scope.
-- [x] (rejected) proposal(issue-248-opensearch-module): Q-1 Option B cross-cutting naming change for all modules — rejected: speculative; Q-1 resolved to Option A.
-- [x] P1 (OpenSearch module — Bitnami chart 1.6.x fixes): Issues #281 + #282 — `global.security.allowInsecureImages: true` and `sysctlImage.enabled: false` added to local Helm values seed file and consumer template; TDD assertions added. **Done**: `specs/2026-05-13-issue-281-282-opensearch-bitnami-chart-fixes/`, PR #287.
-- [ ] (parked) proposal(issue-281-282-opensearch-bitnami-chart-fixes): Bitnami chart 2.x upgrade — chart 2.x targets OpenSearch 3.x, incompatible with 2.17/2.19 image line; requires STACKIT managed-service plan validation before migration
-      trigger: on-scope: infra
-      rationale: low urgency, no active blocker; migration requires OpenSearch 3.x compatibility validation with STACKIT managed-service plan family; surfaces when infra/Helm scope is next touched
-- [x] P1 (CI template + quality tooling): Issues #286 + #288 — consumer CI template propagated draft-PR types filter and job guard from blueprint v1.10.0; bootstrap drift commit hook added (`quality-validate-bootstrap-template-drift` target + `--bootstrap-drift-only` flag) to catch local root-dotfile drift that `_QG_INFRA_GATE_PATHS` path-gating silently skipped. **Done**: `specs/2026-05-13-issue-286-288-ci-template-draft-guard-drift-hook/`, PR #289.
-- [ ] (parked) proposal(issue-286-288-ci-template-draft-guard-drift-hook): add root dotfiles to `_QG_INFRA_GATE_PATHS` for local `infra-validate` drift coverage beyond the commit hook
-      trigger: on-scope: quality
-      rationale: commit hook is faster and more targeted (~1–2s vs ~9s full infra-validate); extending path-gating has broader scope implications; surfaces when quality gate infrastructure is next touched
-- [x] P0 (SDD UX): Issue #138 — local smoke + positive-path filter/transform guardrails are now enforced in SDD templates/governance, including red->green translation for reproducible pre-PR findings.
-- [x] P0 (Upgrade preflight ergonomics): Issue #102 — detect missing consumer-owned required Make targets in preflight with explicit remediation guidance.
-- [x] P0 (Upgrade validation determinism): Issue #129 — add repo-mode-aware required-file reconciliation checks and deterministic remediation hints.
-- [x] P0 (Docs ownership boundary for generated consumers): implemented repo-mode-aware docs sync/check behavior so generated-consumer repos keep one-way `docs/platform/**` ownership, template-source retains strict sync, and generated-consumer upgrade/bootstrap now cleans template-orphan platform docs outside contract-declared `required_seed_files`.
-- [x] P1 (Upgrade convergence safety): Issue #128 — implemented ownership-aware reconcile report artifact and `blueprint-upgrade-consumer-postcheck` gate, including preflight merge-risk bucketing, postcheck convergence enforcement, and source-ref wrapper compatibility for legacy engines.
-- [x] P1 (Fixture-contract hardening): Issue #130 — enforce optional-module `required_env` fixture parity in fast infra contract checks (canonical fixture resolver wiring + fast-lane parity tests).
-- [x] P1 (Generated-consumer upgrade regressions): Issue #103 — `infra-contract-test-fast` is now repo-mode aware (generated-consumer skips template-source-only tests; template-source remains fail-fast for missing selected tests).
-- [x] P1 (Generated-consumer upgrade regressions): Issues #104, #106, #107 — fix additive-file conflict classification and missing helper distribution. **Done**: `specs/2026-04-22-issue-104-106-107-upgrade-additive-file-helper-gaps/`
-- [x] P1 (ArgoCD AppProject namespace policy gap): Issues #108, #109 — `external-secrets` destination added to all overlay AppProject files; guard test added in `infra-contract-test-fast`; Issue #109 cause #2 (ESO NotReady for unneeded optional modules) deferred to #137. **Done**: `specs/2026-04-22-issue-108-109-argocd-appproject-namespace-policy/`
-- [x] P1 (SDD quality gate gap): Issue #152 — `check_sdd_assets.py` does not detect unfilled scaffold placeholders in `architecture.md` or `context_pack.md`; both can ship as pure scaffold output and pass `make quality-hardening-review`. **Done**: `specs/2026-04-22-issue-152-sdd-placeholder-guard/`
-- [x] P1 (Runtime operability correctness) — Work item A: Issues #105 + #110 — fix best-effort provision hard-fail in reconcile_eso_runtime_secrets.sh and clarify gho_ token policy in reconcile_argocd_repo_credentials.sh (both in scripts/bin/platform/auth/). **Done**: `specs/2026-04-22-issue-105-110-runtime-auth-best-effort-fix/`
-- [x] P1 (Runtime operability correctness) — Work item B: Issues #111 + #112 — scaffold canonical backend/touchpoints Dockerfiles so image lanes work out of the box, and replace placeholder workloads (http.server/nginx) with real app runtime in generated consumers. **Done**: `specs/2026-04-22-issue-111-112-app-dockerfile-and-runtime/`
-- [x] P1 (Runtime operability correctness) — Work item C: Issues #118 + #137 — add upgrade preflight detection for removed infra-<module>-* make targets (#118) and fix postgres ESO seed key mismatch causing continuous UpdateFailed events (#137, P2 in GH). **Done**: `specs/2026-04-22-issue-118-137-preflight-module-targets-postgres-eso-key/`
-- [x] P1 (SDD publish-gate gap): add a `quality-spec-pr-ready` make target (new script `scripts/bin/quality/check_spec_pr_ready.py`) to detect unfilled scaffold placeholders and incomplete publish artifacts in `plan.md`, `tasks.md`, `hardening_review.md`, and `pr_context.md` before a PR is opened. **Done**: `specs/2026-04-22-quality-spec-pr-ready-publish-gate/`
-- [x] P1 (Agent inner-loop quality ergonomics): PR #232 — keep-going aggregation mode (`--keep-going` / `QUALITY_HOOKS_KEEP_GOING=true`), path-gating of infra checks, phase-gating of `quality-spec-pr-ready`, dedup of pre-commit-redundant checks, Step 5 skill per-slice gate clarification, and agent-agnostic env propagation. `make quality-hooks-fast` on docs/spec-only commits drops from ~107 s to under 15 s. **Done**: `specs/2026-04-28-quality-hooks-keep-going-mode/`
-- [x] P1 (Runtime auth correctness): Issue #234 — `parse_literal_pairs()` splits `RUNTIME_CREDENTIALS_SOURCE_SECRET_LITERALS` on commas, silently truncating values containing commas (data URIs, base64 payloads); ESO source secret never created, all ExternalSecrets `NotReady`. Fix: newline-only `while IFS= read -r pair` loop; comma-separated input rejected with `log_warn`. Breaking change (Option B). **Done**: `specs/2026-04-28-issue-234-literal-pairs-newline-format/`, PR #235.
-- [x] P1 (Make target ergonomics): Issue #241 (bug) — GNU Make override warnings when consumer re-defines blueprint-generated targets; expose `?=` override-point variables (`SPEC_SCAFFOLD_DEFAULT_TRACK`, `BLUEPRINT_UPLIFT_STATUS_SCRIPT`) in `blueprint.generated.mk` so consumers customise target behaviour without full target re-definition. **Done**: `specs/2026-04-30-issue-241-make-override-warnings/`, PR #242.
-- [ ] (parked) proposal(issue-241-make-override-warnings): extend `?=` override-point pattern to other blueprint-managed targets
-      trigger: on-scope: blueprint
-      rationale: no consumer request for specific targets; same pattern directly applicable; surfaces when blueprint template/upgrade scope is next touched
-- [x] P1 (Accessibility compliance): Issues #238 + #239 + #240 — **Done**: `specs/2026-04-30-issue-238-239-240-a11y-compliance/`, PR #243.
-- [ ] proposal(issue-238-239-240-a11y-compliance): create consumer_fitness_status.sh for consumer-side fitness checks — https://github.com/sbonoc/stackit-platform-blueprint/issues/244
-- [ ] proposal(issue-238-239-240-a11y-compliance): add layer: field to spec.md template for conditional a11y sections — https://github.com/sbonoc/stackit-platform-blueprint/issues/245
-- [ ] (parked) proposal(issue-238-239-240-a11y-compliance): wire quality-a11y-acr-check into quality-ci-blueprint
-      trigger: on-scope: quality
-      rationale: revisit when CI blueprint gains a stable ACR or a skip mechanism; false-positive risk currently blocks this
-- [ ] (parked) proposal(issue-238-239-240-a11y-compliance): automated W3C JSON fetch in sync_acr_criteria.py
-      trigger: on-scope: a11y
-      rationale: adds network dependency at CI time; surface when any a11y-scope work item is next in flight
-- [x] P2 (Quality gate extensions): Issues #236 + #237 — **Done** — `specs/2026-04-30-issue-236-237-quality-gate-extensions/`, PR #246. (1) #236: `pnpm-lockfile-sync` pre-push hook in `.pre-commit-config.yaml` bootstrap template; (2) #237: `quality-consumer-pre-push` + `quality-consumer-ci` no-op stubs in `blueprint.generated.mk`, wired into pre-push hook and `quality-ci-blueprint`; `AGENTS.md.tmpl` tier documentation; 7 new contract assertions; 136 total passing.
-- [ ] (parked) proposal(quality-hooks-keep-going-mode): parallel execution of independent quality-hooks checks
-      trigger: on-scope: quality
-      rationale: real optimization but non-trivial (log ordering, signal propagation, interleaved output); see ADR-20260428 Alternative D and ADR-20260430 Alternative D; surfaces when quality infrastructure is next touched
-- [ ] (parked) proposal(quality-hooks-keep-going-mode): structured JSON summary output for machine consumers of the keep-going summary block
-      trigger: on-scope: quality
+- [ ] proposal(issue-248-object-storage-module): explicit test for object-storage smoke failing when runtime state file is entirely absent.
+      rationale: `state_file_exists` has no unit test; smoke absent-state path is currently untested at module level
+- [ ] proposal(issue-281-282-opensearch-bitnami-chart-fixes): Bitnami chart 2.x upgrade — targets OpenSearch 3.x, incompatible with 2.17/2.19 image line.
+      rationale: requires STACKIT managed-service plan validation before migration; no current blocker
+
+### on-scope: blueprint
+
+- [ ] proposal(issue-241-make-override-warnings): extend `?=` override-point pattern to other blueprint-managed targets.
+      rationale: no consumer request for specific targets; same pattern directly applicable
+- [ ] proposal(issue-164): value-based template scanning — detect hardcoded version strings in templates, not just variable name references.
+      rationale: variable-name grep covers the common case; value scanning risks false positives and multi-format string handling
+- [ ] proposal(issue-270-test-ownership-contract): active delete-on-upgrade for stale relocated test files in consumer repos.
+      rationale: no active consumer complaint; D-3 in architecture.md documents the deferral
+- [ ] proposal(issue-268-consumer-workarounds-catalogue): `env_var` action kind — modify `.envrc` as a workaround action.
+      rationale: no concrete use case yet; risk of persistent consumer environment pollution
+- [ ] proposal(issue-258-259-260-261-v110-engine-hotfix): Full POSIX shell parser in `upgrade_shell_behavioral_check.py` — replace grep-based heuristic with `shellcheck --format=json`.
+      rationale: heuristic covers all known production failure classes; full parser requires new external binary dependency
+- [ ] proposal(issue-272-273-v110-docs-hotfix): `blueprint-align-pnpm-pins` migration target — takes `docs/package.json` as canonical and rewrites all other `packageManager` fields.
+      rationale: improved error message (Option A) is sufficient for operators to resolve drift manually; automation belongs in a dedicated work item
+- [ ] proposal(issue-265-271-source-exists-inference): active cleanup of stale consumer-created files in `blueprint_managed_roots` paths.
+      rationale: `blueprint_managed_roots` exclusivity contract governs this; no new risk introduced; revisit when upgrade resolution logic is next touched
+- [ ] proposal(issue-265-271-source-exists-inference): `quality-ci-upgrade-validate` runs only on push to main, not PRs — a breaking upgrade regression could merge undetected.
+      rationale: making it a non-blocking PR annotation or required status closes the gap
+- [ ] proposal(issue-267-269-pipeline-finalize-auto-clone): deepen clone for ancestry traversal — current `--depth 1` sufficient for Stage 5 `git show`.
+      rationale: no current stage needs ancestry; adding depth only when a future stage requires it avoids unnecessary network cost
+- [ ] proposal(issue-267-269-pipeline-finalize-auto-clone): standalone finalize precondition guard — aborts with an unhelpful postcheck failure if called before Stage 3–7 artifacts exist.
+      rationale: usage block documents the precondition; standalone UX improvement is out of scope for the original work item
+- [ ] proposal(issue-267-269-pipeline-finalize-auto-clone): sync pass target expansion — dynamic discovery of sync targets instead of the current explicit three-target list.
+      rationale: current list is complete; dynamic discovery adds robustness when a new sync target is added
+- [ ] proposal(issue-206): source-only seed change advisory — emit an advisory plan entry when a `source_only` file has changed blueprint content between tags.
+      rationale: surfaces when blueprint maintainers next improve seed workload content (health probes, security contexts, resource limits) or a consumer reports silently missing a seed update
+- [ ] proposal(issue-217): extract `_assert_descriptor_kustomization_agreement` as shared module helper for future smoke scenario reuse.
+      rationale: no additional callers today; surfaces when the next blueprint smoke scenario is developed
+
+### on-scope: quality
+
+- [ ] proposal(issue-286-288-ci-template-draft-guard-drift-hook): add root dotfiles to `_QG_INFRA_GATE_PATHS` for `infra-validate` drift coverage beyond the commit hook.
+      rationale: commit hook is faster and more targeted (~1–2 s); extending path-gating has broader scope implications
+- [ ] proposal(quality-hooks-keep-going-mode): parallel execution of independent quality-hooks checks.
+      rationale: real optimization but non-trivial (log ordering, signal propagation, interleaved output); see ADR-20260428 Alt D and ADR-20260430 Alt D
+- [ ] proposal(quality-hooks-keep-going-mode): structured JSON summary output for machine consumers of the keep-going summary block.
       rationale: no current consumer; plain-text v1 contract is sufficient; design when a concrete integration need arises
+- [ ] proposal(issue-272-273-v110-docs-hotfix): preflight pnpm version drift detection — scan all `package.json` `packageManager` fields and report drift before any install runs.
+      rationale: out of scope for a two-line hotfix; surfaces when quality hook scope is next extended
+- [ ] proposal(issue-265-271-source-exists-inference): `test_pyramid_contract.json` path references drift silently when files move — automate path existence check.
+      rationale: demonstrated by `tests/infra/` → `tests/blueprint/` moves causing stale assertions
 
-- [ ] P2 (Ownership checker robustness): support normalized equivalence for semantically-identical prune-glob expressions in ownership-matrix documentation checks.
-- [x] P2 (Capability enhancements): Issue #56 — expand app dependency pin auditing. **Done**: `specs/2026-04-23-issue-56-app-version-contract-checks/`
-- [x] P2 (Capability enhancements): Issue #131 — add blueprint uplift convergence status command. **Done**: `specs/2026-04-22-issue-131-blueprint-uplift-status/`
+### on-scope: a11y
 
-### Consumer upgrade flow improvements
+- [ ] proposal(issue-238-239-240-a11y-compliance): wire `quality-a11y-acr-check` into `quality-ci-blueprint`.
+      rationale: revisit when CI blueprint gains a stable ACR or a skip mechanism; false-positive risk currently blocks this
+- [ ] proposal(issue-238-239-240-a11y-compliance): automated W3C JSON fetch in `sync_acr_criteria.py`.
+      rationale: adds network dependency at CI time; surface when any a11y-scope work item is next in flight
 
-Phases 1–3 and all correctness and hotfix work are complete. Remaining open items in recommended execution order: **#184** (extensible symbol exclusion, quick win) → **#270** (test ownership contract, unblocks Option B source-exists inference) → **#268** (versioned workarounds catalogue) → **#183** (stale reconcile report) → **#167** (dry run mode) → **#168** (incremental upgrade, most complex, last in sequence).
+### after: consumer-app-descriptor-adoption
 
-#### Phase 1 — Foundation and quick wins (parallel)
-
-- [x] P1 (Consumer upgrade flow): Issue #160 — `consumer_seeded_paths` not honoured in `ensure_infra_template_file`/`ensure_infra_rendered_file`; placeholder manifests recreated on every bootstrap run. **Done**: `specs/2026-04-23-issue-160-bootstrap-consumer-seeded-paths-guard/`
-- [x] P1 (Consumer upgrade flow): Issue #166 — `run_cmd_capture` merges stderr into stdout, corrupting parsed command output; any caller that parses the result receives injected warning lines, silently returning wrong values in environment-dependent ways. Fixed by removing `2>&1` from `run_cmd_capture` so it captures stdout only. **Done**: `specs/2026-04-23-issue-166-run-cmd-capture-stderr-isolation/`
-- [x] P1 (Consumer upgrade flow): Issue #169 — add end-to-end consumer upgrade validation job in blueprint CI before tag publication; provisions a reference consumer at the previous stable tag, runs the full upgrade flow to the candidate tag, and runs post-upgrade smoke gates in a clean environment. Foundation that makes all Phase 2 correctness gates (#162, #163) automated regression tests on every release. **Done**: `specs/2026-04-23-issue-169-upgrade-ci-e2e-validation/`
-
-#### Phase 2 — Correctness gates (implement inside the Phase 1 CI job)
-
-- [x] P1 (Consumer upgrade flow): Issue #162 — add post-merge behavioral validation gate for merge-required plan entries; run `bash -n` on all modified shell scripts and resolve function call sites to verify no definition was silently dropped by a 3-way merge. **Done**: `specs/2026-04-23-issue-162-post-merge-behavioral-validation/`
-- [x] P1 (Consumer upgrade flow): Issue #163 — run the post-upgrade smoke gate in a temporary clean worktree (fresh-environment simulation) so CI-only failures are surfaced during the local upgrade run, before the PR is opened. **Done**: `specs/2026-04-23-issue-163-fresh-env-smoke-gate/`
-
-#### Phase 2 — Bug-fix layer (correctness regressions in the gates above)
-
-Four independent tracks; all P1, can be started in parallel.
-
-- [x] P1 (Consumer upgrade flow): Issue #182 — `upgrade_fresh_env_gate`: clean worktree missing gitignored upgrade artifacts; postcheck always fails. **Done**: `specs/2026-04-24-issue-182-fresh-env-gate-gitignored-artifacts/`
-- [x] P1 (Consumer upgrade flow): Issue #189 — upgrade planner and postcheck do not enforce `source_artifact_prune_globs_on_init`; consumer repos can re-acquire blueprint-internal files (e.g. ADRs, specs) during upgrade with no warning. Reported from a real consumer upgrade incident (sbonoc/dhe-marketplace#40 — 25 ADRs re-introduced). Requires: planner emits `prune-glob-excluded`/`prune-glob-violation` entries; validate scans for violations; postcheck blocks on non-empty `prune_glob_violations`. **Done**: `specs/2026-04-24-issue-189-prune-glob-enforcement/` (PR #190 + PR #194 pipeline-wiring fix).
-- [x] P1 (Consumer upgrade flow): Issues #180 + #181 — `upgrade_shell_behavioral_check`: false positives on case-label `|` alternation and array literal bare-words (#180, P1) and `_EXCLUDED_TOKENS` incomplete — blueprint runtime functions and common OS tools flagged as unresolved (#181, P2); bundle into one work item as they affect the same component. Gate is unreliable until both are resolved. **Done**: `specs/2026-04-24-issue-179-180-181-185-186-187-upgrade-correctness/`
-- [x] P1 (Consumer upgrade flow): Issue #179 — `upgrade_reconcile_report`: `conflicts_unresolved` bucket incorrectly includes files that have already been resolved; consumers receive a wrong conflict count and may act on stale data. **Done**: `specs/2026-04-24-issue-179-180-181-185-186-187-upgrade-correctness/`
-- [x] P1 (Consumer upgrade flow): Issue #185 — upgrade planner silently skips new blueprint files not enumerated in `required_files` or `blueprint_managed_roots`; uncovered files produce no warning and the validate gate does not enforce coverage. **Done**: `specs/2026-04-24-issue-179-180-181-185-186-187-upgrade-correctness/`
-- [x] P1 (Consumer upgrade flow): Issue #186 — `upgrade_fresh_env_gate`: gate passes on exit code only; file-state divergence check between clean worktree and working tree is not implemented, so the gate can report PASS while producing different output files. **Done**: `specs/2026-04-24-issue-179-180-181-185-186-187-upgrade-correctness/`
-- [x] P2 (Consumer upgrade flow): Issue #187 — `render_ci_workflow`: generated `ci.yml` omits `permissions:` block; GITHUB_TOKEN inherits implicit write access on orgs with non-restrictive defaults. **Done**: `specs/2026-04-24-issue-179-180-181-185-186-187-upgrade-correctness/`
-
-#### Phase 3 — Reporting and guidance improvements
-
-- [x] P2 (Consumer upgrade flow): Issue #164 — in the upgrade preflight report, list all version pin changes in `versions.sh` between the two tags and map each changed pin to the template files it affects; provide an explicit action item to sync them after `infra-bootstrap` rather than leaving the consumer to discover template drift reactively via `infra-validate`. **Done**: `specs/2026-04-26-issue-164-upgrade-version-pin-report/`, PR #195.
-- [ ] proposal(issue-164): automated template sync (`BLUEPRINT_UPGRADE_SYNC_TEMPLATES=true`) after version pin changes — https://github.com/sbonoc/stackit-platform-blueprint/issues/196
-- [ ] (parked) proposal(issue-164): value-based template scanning — detect hardcoded version strings in templates, not just variable name references
-      trigger: on-scope: blueprint
-      rationale: variable-name grep covers the common case; value scanning is a deeper semantic problem (false positives, multi-format strings) — surfaces naturally when template scanning scope is next touched
-- [x] P2 (Consumer upgrade flow): Issue #165 — enrich merge-required plan entries with semantic annotations describing what changed in each file and what the consumer should verify after applying the merge. **Done**: `specs/2026-04-23-issue-165-semantic-annotations/`
-- [x] P2 (Consumer upgrade flow): Issue #184 — `upgrade_shell_behavioral_check`: make the symbol exclusion set extensible via consumer configuration (`upgrade.behavioral_check.extra_excluded_tokens` in `blueprint/contract.yaml`). **Done**: `specs/2026-04-26-issue-184-behavioral-check-extensible-exclusion/`, PR #197.
-- [ ] P2 (Consumer upgrade flow): Issue #183 — `upgrade_consumer_postcheck`: detect when the reconcile report on disk was generated against a different source/target tag pair than the current run and auto-rebuild it rather than silently operating on stale data. *(parked: deterministic pipeline always regenerates the reconcile report in the same run; standalone postcheck usage is the remaining risk surface — trigger: triage: next-session)*
-
-#### Contract and skill additions (P2, two standalone PRs)
-
-- [x] P2 (Blueprint contract): Issue #270 — **test ownership contract**: relocate blueprint-author tests from `tests/infra/` to `tests/blueprint/`; remove 4 entries from `required_files`; add FR-005 contract assertion. **Done**: `specs/2026-05-13-issue-270-test-ownership-contract/`, PR #290.
-- [ ] (parked) proposal(issue-270-test-ownership-contract): active delete-on-upgrade for stale relocated test files in consumer repos
-      trigger: on-scope: blueprint
-      rationale: no active consumer complaint; D-3 in architecture.md documents the conscious deferral; surfaces when upgrade resolver apply stage is next touched
-- [x] P2 (Blueprint skills): Issue #268 — **versioned consumer-side workarounds catalogue**: ship a per-release workarounds manifest in the blueprint; `blueprint-consumer-upgrade` skill applies the relevant workarounds automatically by version so every consumer does not have to rediscover and hand-apply the same fixes. **Done**: `specs/2026-05-14-issue-268-consumer-workarounds-catalogue/`, PR #292.
-- [ ] (parked) proposal(issue-268-consumer-workarounds-catalogue): `env_var` action kind — modify `.envrc` as a workaround action
-      trigger: on-scope: blueprint
-      rationale: no concrete use case yet; risk of persistent consumer environment pollution; surfaces when workaround catalogue or blueprint upgrade tooling is next touched
-- [ ] proposal(issue-268-consumer-workarounds-catalogue): manifest `action_path` CI validation gate — https://github.com/sbonoc/stackit-platform-blueprint/issues/296
-
-#### Phase 4 — Major UX improvements (build on the stable correctness foundation)
-
-- [x] P2 (Consumer upgrade flow): scripted upgrade pipeline — replace `blueprint-consumer-upgrade` runbook with a deterministic 10-stage pipeline (`make blueprint-upgrade-consumer`); resolves F-001–F-010 from the v1.0.0→v1.6.0 upgrade. **In progress**: `specs/2026-04-25-scripted-upgrade-pipeline/`, PR #193.
-- [ ] P2 (Consumer upgrade flow): Issue #167 — add `BLUEPRINT_UPGRADE_DRY_RUN=true` flag that simulates all file mutations (copy, 3-way merge, skip, consumer-owned) and outputs a unified diff of the full change set without touching the working tree; reports the same warnings, conflicts, and behavioral failures the real apply would surface so consumers can review the exact change before committing to apply.
-- [ ] P2 (Consumer upgrade flow): Issue #168 — add incremental tag-to-tag upgrade mode (`BLUEPRINT_UPGRADE_INCREMENTAL=true`) that applies changes one release at a time, surfacing a per-release changelog and cherry-pick plan at each step with resume support on conflict; batch mode remains the default.
-
-#### v1.7.0 upgrade findings (pipeline correctness gaps)
-
-- [x] P1 (Consumer upgrade flow): Issues #198 + #199 + #205 — four latent pipeline gaps uncovered during v1.7.0 adoption: (1) `blueprint-template-smoke` absent from `VALIDATION_TARGETS`; (2) `infra-argocd-topology-validate` absent from `VALIDATION_TARGETS`; (3) `apps/catalog*` paths not in `ownership_path_classes`, causing false-positive "uncovered file" warnings; (4) `resolve_contract_upgrade.py` uses bare `yaml.dump()`, producing indentless sequences and wrapped scalars that break `parse_yaml_subset`. **Done**: `specs/2026-04-26-issue-198-199-upgrade-coverage-gaps/`, PR #202.
-- [x] P2 (Consumer upgrade flow): Issues #203 + #204 — **Done**: `specs/2026-04-27-issue-203-204-upgrade-apply-correctness/`, PR #212. (1) #203: generalise prune guard beyond `base/apps/` via `_is_kustomization_referenced` — checks consumer kustomization.yaml refs before any delete; supersedes the earlier app-descriptor prune-safety motivation noted below. (2) #204: post-merge Terraform block deduplication via `_tf_deduplicate_blocks` — auto-deduplicates byte-identical blocks, emits conflict artifact for non-identical ones.
-- [x] P2 (Consumer upgrade flow): consumer app descriptor (`apps/descriptor.yaml`, `consumer_seeded`) — **Done**: `specs/2026-04-27-consumer-app-descriptor/`, PR #213. Declares app/component topology, owner team, service ports, health checks, and explicit manifest refs in a schema-validated, upgrade-safe file seeded by `blueprint-init-repo` and owned by the consumer thereafter. Blueprint validates descriptor refs against `infra/gitops/platform/base/apps/kustomization.yaml`, renders `apps/catalog/manifest.yaml` only as a deprecated compatibility artifact for two blueprint minor releases, and emits `artifacts/blueprint/app_descriptor.suggested.yaml` for existing consumers without silently writing it during upgrade apply. Upgrade prune classifies descriptor-listed paths as `consumer-app-descriptor` ahead of the deprecated `_is_consumer_owned_workload()` bridge guard and the kustomization-ref fallback; both deprecated guards remain for two blueprint minor releases (decommission triggers tracked below as `after: consumer-app-descriptor-adoption`).
-- [ ] (parked) decommission: remove deprecated generated `apps/catalog/manifest.yaml` compatibility artifact after the consumer app descriptor migration window.
+- [ ] decommission: remove deprecated generated `apps/catalog/manifest.yaml` compatibility artifact.
       trigger: after: consumer-app-descriptor-adoption
-      rationale: `apps/descriptor.yaml` becomes the canonical app metadata source; keeping generated catalog output forever would create duplicate contract surfaces.
-- [ ] (parked) decommission: remove deprecated `_is_consumer_owned_workload()` bridge guard after descriptor adoption becomes mandatory or two blueprint minor releases have passed, whichever is later.
+      rationale: `apps/descriptor.yaml` becomes the canonical app metadata source; keeping generated catalog output forever creates a duplicate contract surface
+- [ ] decommission: remove deprecated `_is_consumer_owned_workload()` bridge guard after descriptor adoption becomes mandatory or two blueprint minor releases have passed, whichever is later.
       trigger: after: consumer-app-descriptor-adoption
-      rationale: descriptor ownership and kustomization-ref fallback supersede the path-prefix bridge; tracking prevents the bridge from becoming permanent hidden behavior.
-
-#### v1.7.0 upgrade findings (consumer domain boundary violations)
-
-Reported by consumer sbonoc/dhe-marketplace from their v1.7.0 upgrade experience. All three share a root cause: blueprint code hardcodes consumer workload names that belong to the consumer's product domain.
-
-- [x] P1 (Consumer upgrade experience): Issue #208 (bug) — `bootstrap.sh` and `template_smoke_assertions.py` hardcode blueprint seed workload names; consumer topology renames cause `generated-consumer-smoke` CI failures with no local signal. **Done**: `specs/2026-04-26-issue-208-dynamic-workload-derivation/`, PR #209.
-- [x] P1 (Consumer upgrade experience): Issue #207 (bug) — upgrade prune deletes consumer workload manifests in `base/apps/` when `BLUEPRINT_UPGRADE_ALLOW_DELETE=true`; `kustomize build` breaks silently post-upgrade. **Done**: `specs/2026-04-26-issue-207-apps-prune-exclusion/`, PR #210.
-- [x] P2 (Consumer upgrade experience): Issue #206 (enhancement) — `app_runtime_gitops_contract` hardcodes workload manifest names in `required_files` and `required_paths_when_enabled`; consumer must re-patch the contract after every upgrade. **Done**: `specs/2026-04-26-issue-206-contract-consumer-owned-workloads/`, PR #211.
-- [ ] (parked) proposal(issue-206): source-only seed change advisory in upgrade plan — when a file reclassified to `source_only` (e.g. the four seed workload manifests from #206) has changed content between the previous and current blueprint tag, the upgrade planner MUST emit an advisory plan entry that (a) identifies the file, (b) shows a unified diff of what blueprint changed, and (c) instructs the consumer/agent to review and decide whether to apply the delta manually. Without this, the plan silently shows `source-only / skip` with no signal that blueprint improved the seed content (e.g. added health probes, security contexts, resource limits) — the consumer has no way to notice and no guidance on what to do. This is the necessary long-term companion to Option A from ADR-2026-04-26-issue-206; Option A is the correct minimal fix but becomes unsafe over time without this advisory layer. Conceptually analogous to issue #165 (semantic annotations for merge-required entries) applied to source-only files. Prerequisite: #206 implementation shipped.
-      trigger: on-scope: blueprint
-      rationale: surfaces naturally when blueprint maintainers next improve seed workload content (health probes, security contexts, resource limits) or when a consumer reports silently missing a seed update after upgrade
-
-#### v1.8.0 upgrade findings (dhe-marketplace v1.7.0 → v1.8.0)
-
-Reported by consumer sbonoc/dhe-marketplace from their v1.7.0→v1.8.0 upgrade experience. All three are genuine v1.8.0 defects fixed in v1.8.1. Consumer workarounds in place until 2026-07-27.
-
-- [x] P1 (Consumer upgrade experience): Issues #214 + #215 (bug) — **Done**: `specs/2026-04-27-issue-214-215-source-only-glob-and-validate/`, PR #226. Group A: `audit_source_tree_coverage` now counts prune-glob matched files as covered via `fnmatch`; `_validate_absent_files` uses `is_file()` instead of `exists()` and supports glob/directory-prefix entries.
-- [ ] proposal(issue-214-215): add validator warning for `**` in source_only glob entries (fnmatch limitation) — https://github.com/sbonoc/stackit-platform-blueprint/issues/229
-- [x] P1 (Consumer upgrade experience): Issue #216 (bug) — **Done**: `specs/2026-04-27-issue-216-upgrade-source-only-filter/`, PR #227. Group B: Stage 3 `_filter_source_only` Phase 1+2 restored — drops source entries whose paths exist on disk in consumer; carries forward consumer-added entries.
-- [x] P1 (Consumer upgrade experience): Issue #217 (bug) — **Done**: `specs/2026-04-27-issue-217-template-descriptor-kustomization-sync/`, PR #228. Group C: `template_smoke_assertions.py` cross-checks descriptor manifest filenames against kustomization resources; drift caught at template-edit time with named AssertionError.
-- [ ] (parked) proposal(issue-217): extract `_assert_descriptor_kustomization_agreement` as shared module helper for future smoke scenario reuse
-      trigger: on-scope: blueprint
-      rationale: no additional callers exist today; surfaces when the next blueprint smoke scenario is developed
-
-#### v1.10.0 upgrade regressions — next to work on (P1, two hotfix PRs)
-
-- [x] P1 (Consumer upgrade flow): Issues #258 + #259 + #260 + #261 — **v1.10.0 engine hotfix**: (1) #258: four blueprint source files (`pyproject.toml`, `uv.lock`, `infra/local/helm/opensearch/values.yaml`, `infra/local/helm/kms/values.yaml`) unclassified in `blueprint/contract.yaml`; (2) #259: transitive BFS resolver + bare-command suppression in `upgrade_shell_behavioral_check`; (3) #260: `blueprint-template-smoke` filtered from `VALIDATION_TARGETS` for generated-consumer repos; (4) #261: `upgrade_validate.json`/`required_files_status.json` added to `_VOLATILE_ARTIFACT_NAMES`; (5) stale `extra_excluded_tokens` WARNING added to `run_behavioral_check`. **Done**: `specs/2026-05-12-issue-258-259-260-261-v110-engine-hotfix/`, PR #274.
-- [ ] (parked) proposal(issue-258-259-260-261-v110-engine-hotfix): Full POSIX shell parser — replace grep-based `_FUNC_DEF_EXTRACT` heuristic in `upgrade_shell_behavioral_check.py` with `shellcheck --format=json` or equivalent to eliminate missed definitions from complex multi-line or heredoc-embedded function declarations.
-      trigger: on-scope: blueprint
-      rationale: heuristic covers all known production failure classes; full parser requires new external binary dependency; out of scope for hotfix; surfaces when behavioral-check scope is next touched
-- [x] P1 (Consumer upgrade flow): Issues #272 + #273 — **v1.10.0 docs hotfix**: (1) #272: `scripts/lib/docs/site.sh` v1.10.0 dropped `--ignore-workspace` from all three pnpm invocations, breaking consumers whose root `pnpm-workspace.yaml` excludes `docs/`; (2) #273: same release added a strict pnpm version assertion with no migration path, unmasking latent root-vs-docs pnpm version drift across all consumers. Both live in `scripts/lib/docs/site.sh`; ship as one PR. **Done**: `specs/2026-05-12-issue-272-273-v110-docs-hotfix/`, PR #276.
-- [ ] (parked) proposal(issue-272-273-v110-docs-hotfix): `blueprint-align-pnpm-pins` migration target — Add a `blueprint-align-pnpm-pins` Make target backed by `scripts/bin/blueprint/align_pnpm_pins.sh` that takes `docs/package.json` as canonical and rewrites all other `packageManager` fields in the repo to match. Deferred from #273 hotfix (Option B).
-      trigger: on-scope: blueprint
-      rationale: migration script is valuable but expands hotfix scope; the improved error message (Option A) is sufficient for operators to resolve drift manually; automation belongs in a dedicated blueprint-scope work item
-- [ ] (parked) proposal(issue-272-273-v110-docs-hotfix): Preflight pnpm version drift detection — Add a `quality-pnpm-version-contract` check (or fold into `infra-validate`) that scans all `package.json` `packageManager` fields in the repo and reports drift before any install runs. Deferred from #273 hotfix.
-      trigger: on-scope: quality
-      rationale: preflight drift detection reduces operator toil but is a new quality hook; out of scope for a two-line hotfix; surfaces when quality hook scope is next extended
-
-#### Pipeline and engine correctness — **Done** (P1, PR #278)
-
-- [x] P1 (Consumer upgrade flow): Issues #263 + #264 + #266 — **pipeline/engine correctness**: (1) #263: the upgrade engine resolves the 3-way merge baseline from `spec.repository.template_bootstrap.template_version`, which is set at init and never advanced — multi-version upgraders silently use the wrong baseline and can receive incorrect merges; fix by tracking `last_applied_blueprint_version` as a separate field updated after each successful upgrade; (2) #264: `upgrade_consumer_pipeline.sh` Stage 2 treats any non-zero make exit code as a conflict indicator, but cannot distinguish a real engine crash (exit >1) from engine-reported conflicts (exit 1) — reliable error routing is impossible; (3) #266: `upgrade_consumer.sh` defaults `BLUEPRINT_UPGRADE_APPLY=false`; the pipeline wrapper never overrides this, so Stage 2 is a no-op by default. All three are correctness bugs in the apply cycle; ship as one PR.
-  - **Status**: **Done** — 4 TDD slices complete; 9/9 regression tests GREEN; all quality hooks pass. PR #278 on branch `codex/2026-05-12-issue-263-264-266-pipeline-engine-correctness`.
-  - **Spec**: `specs/2026-05-12-issue-263-264-266-pipeline-engine-correctness/spec.md`
-  - **Plan**: `specs/2026-05-12-issue-263-264-266-pipeline-engine-correctness/plan.md`
-  - **Tasks**: `specs/2026-05-12-issue-263-264-266-pipeline-engine-correctness/tasks.md`
-
-#### Conflict resolution UX (P2, one PR)
-
-- [x] P2 (Consumer upgrade flow): Issues #265 + #271 — **conflict resolution UX**: (1) #265: after Stage 2 conflicts, the engine writes one `*.conflict.json` per file with no ownership classification or recommended action; emit `artifacts/blueprint/upgrade_triage.json` with per-conflict `ownership_class` and `recommended_action` (`take_source` / `take_target` / `delete` / `human_required`), and add a new `blueprint-upgrade-consumer-resolve` target that auto-applies the unambiguous rows and prints a residual table for the `human_required` ones; (2) #271 (UX layer, hard-depends on #265): extends the resolve target with interactive one-at-a-time prompting (`INTERACTIVE=true`), batch flags (`--accept-source ALL`, `--accept-target ALL`), sorted+truncated display (>20 rows shows footer), and agent-flow guidance. Evidence: real upgrade hit 88 conflicts, 85 were auto-resolvable, 25 min of manual work. Ship #265 + #271 as one PR.
-  **Done**: `specs/2026-05-13-issue-265-271-conflict-resolution-ux/`, PR #283. 14/14 tests green; all quality gates pass.
-- [x] (done) proposal(issue-265-271-conflict-resolution-ux): Option B — source-exists inference for blueprint-managed catch-all; if `source_exists=True` and ownership is `blueprint-managed`, infer `take_source` instead of `human_required`
-      **Done**: `specs/2026-05-13-issue-265-271-source-exists-inference/`, PR #291. 953 tests green; all quality gates pass.
-- [ ] (parked) proposal(issue-265-271-source-exists-inference): active cleanup of stale consumer-created files in `blueprint_managed_roots` paths that coincidentally match blueprint source paths
-      trigger: on-scope: blueprint
-      rationale: `blueprint_managed_roots` exclusivity contract governs this; no new risk introduced by the inference change; worth revisiting when upgrade resolution logic is next touched
-- [ ] (parked) proposal(issue-265-271-source-exists-inference): `test_pyramid_contract.json` path references drift silently when files move — automate path existence check to prevent stale assertions
-      trigger: on-scope: quality
-      rationale: demonstrated by `tests/infra/` → `tests/blueprint/` moves causing 2 of the 9 pre-existing stale failures; fix surfaces naturally when quality tooling is next touched
-- [ ] (parked) proposal(issue-265-271-source-exists-inference): `quality-ci-upgrade-validate` runs only on push to main, not PRs — a breaking upgrade regression could merge undetected
-      trigger: on-scope: blueprint
-      rationale: making it a non-blocking PR annotation or required status closes the gap; surfaces when upgrade pipeline CI is next touched
-- [x] (rejected) proposal(issue-265-271-conflict-resolution-ux): Interactive TUI (ncurses/lazygit-style conflict resolver) — rejected: heavy external dependency, not portable across consumer environments; residual table is typically under 10 rows; explicitly rejected in ADR at design time
-- [x] (rejected) proposal(issue-265-271-conflict-resolution-ux): HTML conflict report — rejected: browser context-switch adds friction for a small residual table; CLI display is sufficient; explicitly rejected in ADR at design time
-
-#### Pipeline feature additions — Done (P2, PR #285)
-
-- [x] P2 (Consumer upgrade flow): Issues #267 + #269 — **pipeline features**: (1) #267: add a new `blueprint-upgrade-consumer-finalize` target as the canonical post-apply quality cycle — two-pass sync + verify, replacing the implicit per-target list that cost consumers 5 fix→re-run cycles (~15 min) per upgrade; (2) #269: at pipeline start, auto-clone `BLUEPRINT_UPGRADE_SOURCE` when it is a URL so all subsequent stages receive a consistent local path — eliminates Stage 1b/Stage 5 fatal-exit for the documented canonical URL form. **Done**: `specs/2026-05-13-issue-267-269-pipeline-finalize-auto-clone/`, PR #285. 25 tests green; all quality gates pass.
-- [ ] (parked) proposal(issue-267-269-pipeline-finalize-auto-clone): deepen clone for ancestry traversal — current `--depth 1` clone sufficient for Stage 5 `git show`; would fail if a future pipeline stage requires `git log` across commit history
-      trigger: on-scope: blueprint
-      rationale: no current stage needs ancestry; adding depth only when a future stage requires it avoids unnecessary network cost today
-- [ ] (parked) proposal(issue-267-269-pipeline-finalize-auto-clone): standalone finalize precondition guard — `blueprint-upgrade-consumer-finalize` aborts with an unhelpful postcheck failure if called before Stage 3–7 artifacts exist; a `--skip-postcheck` flag or artifact-presence check would improve standalone UX
-      trigger: on-scope: blueprint
-      rationale: usage block documents the precondition; standalone UX improvement is out of scope for this work item; surfaces when finalize target is next touched
-- [ ] (parked) proposal(issue-267-269-pipeline-finalize-auto-clone): sync pass target expansion — dynamic discovery of sync targets (reading `quality-sdd-sync-all` deps) instead of the current explicit three-target list
-      trigger: on-scope: blueprint
-      rationale: current three-target list is complete; dynamic discovery adds robustness against future targets being missed; surfaces when a new sync target is next added
+      rationale: descriptor ownership and kustomization-ref fallback supersede the path-prefix bridge; tracking prevents it from becoming permanent hidden behavior
 
 ---
 
-### Generalize consumer-seeded feature gates
+## Long Horizon
 
-- [x] P1 (Blueprint init flow): `consumer_seeded_feature_gates` — introduce a generic list in `blueprint/contract.yaml` to optionally seed subsets of `consumer_seeded_paths` via env var flags at init time; wire `CLAUDE_AI_ENABLED` as the first gate for Claude AI GH Actions workflows from PR #252; add `blueprint-seed-feature FEATURE=<gate-id>` Make target for existing consumers to self-serve adoption post-init. **Done**: `specs/2026-05-07-generalize-consumer-seeded-feature-gates/`, PR #253.
+Ideas without a delivery commitment. Promote to active only when a concrete triggering use case exists.
 
----
+### Blueprint and quality tooling
 
 - [ ] Add an automated bundled-skill contract verifier to enforce parity across `.agents/skills/**`, consumer-template fallbacks, install make targets, and docs references.
 - [ ] Add a contract-level traceability verifier that checks every declared requirement ID in `spec.md` maps to implementation paths and at least one automated test assertion.
 - [ ] Add a declarative module action manifest (`apply/plan/smoke/destroy`) to replace duplicated wrapper branching and keep runtime/CI execution paths deterministic.
 - [ ] Extract artifact/schema validation orchestration into a shared Python package entrypoint consumed by blueprint wrappers (single validation surface for state/schema contracts).
 - [ ] Add a repository-wide script trace identifier contract propagated across wrapper calls and metrics to improve CI/runtime diagnosability for multi-script failures.
-- [ ] Auto-generate docs snippets for canonical blueprint lifecycle + audit targets from source metadata to reduce docs drift and manual synchronization load.
+- [ ] Auto-generate docs snippets for canonical blueprint lifecycle and audit targets from source metadata to reduce docs drift and manual synchronization load.
 - [ ] Split CI into path-aware lane selection for contract/docs-only vs infra/runtime-heavy changes while preserving full strict gates on merge/main updates.
 - [ ] Backport the new runtime-credentials ESO source-to-target contract (including mandatory Keycloak/IAP runtime targets) and drift-safe platform extension surface to existing generated-consumer repositories.
-- [ ] Add a DNS contract mode where generated-consumer repos can provide pre-created Keycloak/IAP DNS entries instead of blueprint-managed STACKIT DNS record reconciliation.
 - [ ] Add a CI-grade execute-mode full e2e lane (ephemeral cluster + `test-e2e-all-local-execute`) so merge gating covers real apply paths, not only dry-run orchestration.
 - [ ] Tune and baseline `E2E_*_BUDGET_SECONDS` from collected CI metrics (p95 per lane) and fail budgets only once the baseline is stable.
-- [x] Full `uv run` adoption (Phase 2): replaced all `python3 <script>` / `python3 -m pytest` invocations with `uv run python3` in Makefile targets, pre-commit hooks, and CI; swapped `PYENV_VERSION` for `UV_PYTHON` in `.envrc`; updated AGENTS.md invocation policy.
-- [ ] Define the Python version split strategy before STACKIT Workflows (Airflow) integration: establish how the blueprint tooling version (pinned in `scripts/lib/platform/apps/versions.sh` and loaded via `.envrc` → `PYENV_VERSION`) will coexist with the Airflow runtime-constrained Python, so integration work starts with a clear versioning policy rather than discovering the conflict mid-implementation.
-- [ ] Continue migrating `workflows` to provider-backed STACKIT execution when official resources become available.
-- [ ] Add optional Neo4j Keycloak realm/client reconciliation (gated by `KEYCLOAK_OPTIONAL_MODULE_RECONCILIATION_ENABLED`) as a follow-up to current Workflows/Langfuse reconciliation.
+- [ ] Define the Python version split strategy before STACKIT Workflows (Airflow) integration: establish how the blueprint tooling Python version will coexist with the Airflow runtime-constrained Python.
 - [ ] Extend the consumer seed resync workflow with optional merge-assist coverage for selected init-managed identity files without weakening customization boundaries.
 - [ ] Add pluggable async message-contract provider support beyond Pact while preserving the canonical producer/consumer lane contract and upgrade safety guarantees.
 
-## Platform Module Candidates
-- [ ] Issue #171 — managed-cache module: STACKIT Managed Redis as a first-class optional module (Helm/ArgoCD-managed); provider-backed via official STACKIT Terraform resources.
-- [ ] Issue #172 — platform-email module: Helm/ArgoCD-managed Postal for transactional email as an optional module alongside existing platform modules.
+### STACKIT platform expansion
 
-## Provider-Backed STACKIT Expansion Candidates
-- [ ] Evaluate and add a provider-backed Redis module built on official STACKIT Terraform resources. *(tracked as Issue #171 — see Platform Module Candidates above)*
-- [ ] Evaluate and add provider-backed relational/NoSQL data-service modules for the currently available STACKIT Terraform resources (`mariadb`, `mongodbflex`, `sqlserverflex`).
-- [ ] Evaluate and add a provider-backed Logs/LogMe module or baseline observability extension using official STACKIT Terraform resources.
-- [ ] Evaluate and add a provider-backed File Storage module using STACKIT SFS Terraform resources.
-- [ ] Evaluate whether STACKIT Application Load Balancer, CDN, and Public IP resources should become first-class edge modules alongside or instead of the current Gateway API baseline.
-- [ ] Evaluate whether STACKIT network and security primitives (`network`, `network_area`, `routing_table`, `security_group`) should become first-class foundation capabilities in this blueprint.
+- [ ] Add a DNS contract mode where generated-consumer repos can provide pre-created Keycloak/IAP DNS entries instead of blueprint-managed STACKIT DNS record reconciliation.
+- [ ] Add optional Neo4j Keycloak realm/client reconciliation (gated by `KEYCLOAK_OPTIONAL_MODULE_RECONCILIATION_ENABLED`).
+- [ ] Continue migrating `workflows` to provider-backed STACKIT execution when official resources become available.
+- [ ] Evaluate provider-backed relational/NoSQL data-service modules (`mariadb`, `mongodbflex`, `sqlserverflex`).
+- [ ] Evaluate a provider-backed Logs/LogMe module or baseline observability extension using STACKIT Terraform resources.
+- [ ] Evaluate a provider-backed File Storage module using STACKIT SFS Terraform resources.
+- [ ] Evaluate whether STACKIT Application Load Balancer, CDN, and Public IP resources should become first-class edge modules.
+- [ ] Evaluate whether STACKIT network and security primitives (`network`, `network_area`, `routing_table`, `security_group`) should become first-class foundation capabilities.
 - [ ] Evaluate whether STACKIT identity/project primitives (`service_account`, role assignments, Resource Manager folders/projects) should become blueprint-managed bootstrap/foundation capabilities.
 - [ ] Evaluate whether STACKIT compute-oriented primitives (`server`, `volume`, `edgecloud`, `modelserving`) belong in blueprint scope for future workload patterns.
