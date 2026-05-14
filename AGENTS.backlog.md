@@ -23,6 +23,27 @@ To introduce a new tag, append a row here in the same commit that uses it.
 ---
 
 ## Current Priorities
+
+### Next Up — Planned for next blueprint release
+
+Priority order confirmed (2026-05-14):
+
+- [ ] P1 (Architecture gate): Issue #295 — re-evaluate OpenMetadata as a blueprint baseline component; architecture decision required before any remaining STACKIT-managed service module work under #248.
+- [ ] P1 (Bug — ArgoCD health): Issue #277 — all ArgoCD managed resources report `health=N/A`; platform-logging likely not initialised correctly. Blocks consumer runtime observability.
+- [ ] P1 (SDD governance): Issue #275 — lightweight SDD bypass track for fix/refactor/chore/upgrade changes: single-PR path without full intake→spec→plan ceremony. Delivery multiplier for all maintenance and non-feature work.
+- [ ] P1 (Quality tooling): Issues #293 + #294 — (1) AGENTS.md template enforces architecture gate sign-off before implementation slices begin; (2) `quality-docs-cross-reference-check` hook catches stale doc cross-references in CI.
+
+### Untracked open issues (added 2026-05-14)
+
+- [ ] P2 (Consumer upgrade flow): Issue #218 — move upstream example app names out of `consumer_settings.py` into explicit consumer configuration so blueprint seed workload names do not leak into consumer-facing tooling.
+- [ ] P2 (Consumer upgrade flow): Issue #222 — clean stale `artifacts/blueprint/conflicts/` entries after a successful Stage 2 apply so the artifacts directory does not accumulate stale conflict records across upgrade runs.
+- [ ] P2 (Consumer upgrade flow): Issue #224 — reconcile bucket policy: do not mark consumer-owned files as blueprint-managed; bucket policy decisions in `contract.yaml` should reflect actual ownership class.
+- [ ] P2 (Consumer upgrade flow): Issue #225 — guided descriptor adoption target for existing consumers that pre-date the `apps/descriptor.yaml` contract (new `blueprint-adopt-descriptor` make target to be added).
+- [ ] P2 (SDD tooling): Issue #247 — step-05-implement: add deterministic slice-done markers so parallel agent slices do not replay completed work on context restart.
+- [ ] P2 (Local dev): Issue #284 — support `ARGOCD_LOCAL_TARGET_REVISION` env var to track a non-default branch in local ArgoCD (replaces hard-coded `main` in the local target revision).
+
+---
+
 - [x] P1 (Platform modules — first-class): Issue #248 — Postgres module dual-lane implementation (Bitnami Helm local + STACKIT `stackit_postgresflex_*` Terraform). **Done**: `specs/2026-05-07-issue-248-postgres-module/`, PR #251. 4 slices complete; `SPEC_READY: true`.
 - [x] P1 (Platform modules — first-class): Issue #248 — RabbitMQ module dual-lane implementation (Bitnami Helm local + STACKIT `stackit_rabbitmq_*` Terraform). **Done**: `specs/2026-05-07-issue-248-rabbitmq-module/`, PR #255. 4 slices complete; 22/22 tests green; 9/9 quality gates pass. `SPEC_READY: true`.
 - [ ] (parked) proposal(issue-248-rabbitmq-module): vhost customisation — per-consumer non-default vhost support
@@ -46,6 +67,7 @@ To introduce a new tag, append a row here in the same commit that uses it.
       trigger: on-scope: infra
       rationale: state_file_exists has no unit test; smoke absent-state path is currently untested at module level
 - [x] P1 (Platform modules — first-class): Issue #248 — OpenSearch module dual-lane implementation (local Helm + STACKIT Terraform). **Done**: `specs/2026-05-06-issue-248-opensearch-module/`, PR #249.
+- [ ] (gated) Issue #248 — remaining STACKIT-managed service module candidates (OpenMetadata and any future additions): **blocked by #295 architecture gate**. Do not start until the architecture decision in #295 is recorded.
 - [x] (rejected) proposal(issue-248-opensearch-module): consumer-side adoption of infra-opensearch-local-apply in dhe-marketplace — rejected: consumer-repo work, not blueprint scope.
 - [x] (rejected) proposal(issue-248-opensearch-module): Q-1 Option B cross-cutting naming change for all modules — rejected: speculative; Q-1 resolved to Option A.
 - [x] P1 (OpenSearch module — Bitnami chart 1.6.x fixes): Issues #281 + #282 — `global.security.allowInsecureImages: true` and `sysctlImage.enabled: false` added to local Helm values seed file and consumer template; TDD assertions added. **Done**: `specs/2026-05-13-issue-281-282-opensearch-bitnami-chart-fixes/`, PR #287.
