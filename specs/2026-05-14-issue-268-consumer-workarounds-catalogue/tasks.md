@@ -25,7 +25,7 @@
 ### Wave 1 (parallel — disjoint file sets)
 - [x] T-011 Slice 0: extend `bug_report.yml` with workaround section + GitHub Actions scaffolder + `workaround_report_parser.py` + tests
 - [x] T-012 Slice 1: schema + engine skeleton `upgrade_workarounds.py` (load/evaluate/dispatch/write) + `test_upgrade_workarounds.py`
-- [ ] T-018 Slice 6b: `workaround_report_filer.py` + `test_workaround_report_filer.py` (NO SKILL.md)
+- [x] T-018 Slice 6b: `workaround_report_filer.py` + `test_workaround_report_filer.py` (NO SKILL.md)
 
 ### Wave 2 (sequential internally — one agent owns both files)
 - [x] T-013 Slice 2: `contract_merge` action kind apply + revert + idempotency tests
