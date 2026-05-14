@@ -190,4 +190,4 @@ Caption: Each catalogue entry declares both `action_kind` (what to do) and `appl
 
 ## ADR Reference
 ADR path: `docs/blueprint/architecture/decisions/ADR-issue-268-consumer-workarounds-catalogue.md`
-ADR status: proposed
+ADR status: approved

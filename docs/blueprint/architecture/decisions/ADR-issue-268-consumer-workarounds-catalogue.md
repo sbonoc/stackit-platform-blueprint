@@ -1,9 +1,10 @@
 # ADR: Versioned Consumer-Side Workarounds Catalogue
 
-**Status:** proposed
+**Status:** approved
 **Date:** 2026-05-14
 **Issue:** #268
 **Spec:** `specs/2026-05-14-issue-268-consumer-workarounds-catalogue/`
+**ADR technical decision sign-off:** approved
 
 ## Context
 
@@ -143,7 +144,7 @@ The scaffolder writes `action_content` verbatim (no `eval`, no `exec`, no shell 
 | `applies_when` | Parsed from field; `always` if blank |
 | `action_kind` | Parsed from dropdown |
 | `action_path` | Relative path to the scaffolded action file |
-| `apply_phase` | `# TODO: set before_apply or after_apply` |
+| `apply_phase` | `# <set to before_apply or after_apply>` — author fills during PR review |
 | `landed_in` | `null` |
 
 ### 3. Consumer skill extension — automatic filing (FR-013, FR-014)
