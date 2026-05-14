@@ -1,31 +1,31 @@
 # Tasks
 
 ## Gate Checks (Required Before Implementation)
-- [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`
-- [ ] G-002 Confirm open questions and unresolved alternatives are `0`
-- [ ] G-003 Confirm required sign-offs are approved
-- [ ] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
-- [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
+- [x] G-001 Confirm `SPEC_READY=true` in `spec.md`
+- [x] G-002 Confirm open questions and unresolved alternatives are `0`
+- [x] G-003 Confirm required sign-offs are approved
+- [x] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
+- [x] G-005 Confirm `Implementation Stack Profile` section is fully populated
 
 ## Implementation
-- [ ] T-001 Write `tests/blueprint/test_sdd_bypass_track.py` with AC-001 through AC-005 test cases (red)
-- [ ] T-002 Confirm all 5 tests fail before the bypass logic is added
-- [ ] T-003 Add `SPEC_READY_EXCEPTION` + `authorized-by` field parsing to `check_sdd_assets.py`
-- [ ] T-004 Add bypass branch: skip non-`{spec.md, pr_context.md}` artifact checks when exception is valid and `authorized-by` is present
-- [ ] T-005 Add `authorized-by` required violation when exception is set but field is absent/empty/`none`
-- [ ] T-006 Demote "implementation tasks checked while SPEC_READY not true" to warning when exception + `authorized-by` are set
-- [ ] T-007 Emit `[METRIC] name=sdd_exception_gate_total value=1 type=<type> authorized_by=<handle>` on the bypass path
-- [ ] T-008 Update `spec.md` scaffold template to include `SPEC_READY_EXCEPTION: none` and `authorized-by: none` default fields
-- [ ] T-009 Register `tests/blueprint/test_sdd_bypass_track.py` in `test_pyramid_contract.json` unit scope
-- [ ] T-010 Confirm all 5 tests pass (green)
+- [x] T-001 Write `tests/blueprint/test_sdd_bypass_track.py` with AC-001 through AC-005 test cases (red)
+- [x] T-002 Confirm all 5 tests fail before the bypass logic is added
+- [x] T-003 Add `SPEC_READY_EXCEPTION` + `authorized-by` field parsing to `check_sdd_assets.py`
+- [x] T-004 Add bypass branch: skip non-`{spec.md, pr_context.md}` artifact checks when exception is valid and `authorized-by` is present
+- [x] T-005 Add `authorized-by` required violation when exception is set but field is absent/empty/`none`
+- [x] T-006 Demote "implementation tasks checked while SPEC_READY not true" to warning when exception + `authorized-by` are set
+- [x] T-007 Emit `[METRIC] name=sdd_exception_gate_total value=1 type=<type> authorized_by=<handle>` on the bypass path
+- [x] T-008 Update `spec.md` scaffold template to include `SPEC_READY_EXCEPTION: none` and `authorized-by: none` default fields
+- [x] T-009 Register `tests/blueprint/test_sdd_bypass_track.py` in `test_pyramid_contract.json` unit scope
+- [x] T-010 Confirm all 5 tests pass (green)
 - [ ] T-011 Add `## Lightweight SDD Bypass Track` subsection to `AGENTS.md`
 
 ## Test Automation
-- [ ] T-101 `tests/blueprint/test_sdd_bypass_track.py` — AC-001: bypass path skips non-essential artifact checks for valid exception + authorized-by
-- [ ] T-102 `tests/blueprint/test_sdd_bypass_track.py` — AC-002: no specs/ dir → exit 0 (chore passive pass, regression guard)
-- [ ] T-103 `tests/blueprint/test_sdd_bypass_track.py` — AC-003: SPEC_READY:true + no exception → all 10 artifacts still required (no regression)
-- [ ] T-104 `tests/blueprint/test_sdd_bypass_track.py` — AC-004: bypass path emits sdd_exception_gate_total metric line
-- [ ] T-105 `tests/blueprint/test_sdd_bypass_track.py` — AC-005: exception set but no authorized-by → violation raised
+- [x] T-101 `tests/blueprint/test_sdd_bypass_track.py` — AC-001: bypass path skips non-essential artifact checks for valid exception + authorized-by
+- [x] T-102 `tests/blueprint/test_sdd_bypass_track.py` — AC-002: no specs/ dir → exit 0 (chore passive pass, regression guard)
+- [x] T-103 `tests/blueprint/test_sdd_bypass_track.py` — AC-003: SPEC_READY:true + no exception → all 10 artifacts still required (no regression)
+- [x] T-104 `tests/blueprint/test_sdd_bypass_track.py` — AC-004: bypass path emits sdd_exception_gate_total metric line
+- [x] T-105 `tests/blueprint/test_sdd_bypass_track.py` — AC-005: exception set but no authorized-by → violation raised
 
 ## Accessibility Testing (Normative — mark N/A with rationale for non-UI specs)
 - [x] T-A01 N/A — NFR-A11Y-001 declared in spec.md as not applicable (no UI changes)
