@@ -17,8 +17,10 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 _ARGOCD_VALUES = REPO_ROOT / "infra/local/helm/core/argocd.values.yaml"
 _ARGOCD_TEMPLATE = REPO_ROOT / "scripts/templates/infra/bootstrap/infra/local/helm/core/argocd.values.yaml"
 _VERSIONS_SH = REPO_ROOT / "scripts/lib/infra/versions.sh"
+_VERSIONS_BASELINE_SH = REPO_ROOT / "scripts/lib/infra/versions.baseline.sh"
 _EXPECTED_CHART_VERSION = "9.5.13"
 _IGNORE_KEY = "resource.customizations.ignoreResourceUpdates.all"
+_VERSION_RE = re.compile(r'^ARGOCD_CHART_VERSION="([^"]+)"', re.MULTILINE)
 
 
 class ArgoCDHealthFixTests(unittest.TestCase):
@@ -48,13 +50,12 @@ class ArgoCDHealthFixTests(unittest.TestCase):
         """AC-002: bootstrap template argocd.values.yaml must carry the same override."""
         self._assert_ignore_all_is_empty(_ARGOCD_TEMPLATE)
 
-    def test_argocd_chart_version_is_9_5_13(self) -> None:
-        """AC-003: ARGOCD_CHART_VERSION must be pinned to 9.5.13 in versions.sh."""
-        content = _VERSIONS_SH.read_text(encoding="utf-8")
-        match = re.search(r'^ARGOCD_CHART_VERSION="([^"]+)"', content, re.MULTILINE)
+    def _assert_chart_version(self, path: Path) -> None:
+        content = path.read_text(encoding="utf-8")
+        match = _VERSION_RE.search(content)
         self.assertIsNotNone(
             match,
-            msg=f"ARGOCD_CHART_VERSION not found in {_VERSIONS_SH.relative_to(REPO_ROOT)}",
+            msg=f"ARGOCD_CHART_VERSION not found in {path.relative_to(REPO_ROOT)}",
         )
         actual = match.group(1)
         self.assertEqual(
@@ -62,6 +63,14 @@ class ArgoCDHealthFixTests(unittest.TestCase):
             _EXPECTED_CHART_VERSION,
             msg=f"ARGOCD_CHART_VERSION is {actual!r}; expected {_EXPECTED_CHART_VERSION!r} (issue #277 chart bump)",
         )
+
+    def test_argocd_chart_version_is_9_5_13(self) -> None:
+        """AC-003: ARGOCD_CHART_VERSION must be pinned to 9.5.13 in versions.sh."""
+        self._assert_chart_version(_VERSIONS_SH)
+
+    def test_argocd_baseline_chart_version_is_9_5_13(self) -> None:
+        """AC-003: ARGOCD_CHART_VERSION must be pinned to 9.5.13 in versions.baseline.sh."""
+        self._assert_chart_version(_VERSIONS_BASELINE_SH)
 
 
 if __name__ == "__main__":
