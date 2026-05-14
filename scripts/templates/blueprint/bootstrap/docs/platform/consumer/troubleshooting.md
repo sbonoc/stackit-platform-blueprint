@@ -274,7 +274,13 @@ release — no consumer-side workaround is required.
 | `make blueprint-upgrade-consumer-postcheck` reports 29+ unresolved symbols (`uv`, `validate`, or blueprint functions defined in transitively sourced files) | #259 | blueprint post-v1.10.0 |
 | `make blueprint-upgrade-fresh-env-gate` fails with checksum divergences on `upgrade_validate.json` or `required_files_status.json` | #261 | blueprint post-v1.10.0 |
 
-If you cannot upgrade the blueprint immediately and need a consumer-side workaround:
+**Automated workarounds (issue #268):** if you are running the blueprint pipeline with the
+workaround catalogue (shipped alongside issue #268), the upgrade pipeline applies workarounds for
+#258 (Stage 1c, before apply) and #259, #260, #261 (Stage 2c, after apply) automatically.
+No manual steps are needed. Check `artifacts/blueprint/workarounds_applied.json` after the upgrade
+to confirm which entries were applied.
+
+If you are running an older pipeline without the catalogue, or need to apply workarounds manually:
 - **#259 (`uv`, `validate` false positives):** add them to `spec.upgrade.behavioral_check.extra_excluded_tokens` in `blueprint/contract.yaml`. Remove this workaround after upgrading to the fixed blueprint.
 - **#260 (template-smoke on generated-consumer):** no consumer-side workaround is available without patching the blueprint; upgrade the blueprint.
 - **#258 (contract coverage gap):** manually add the 4 missing files to the correct ownership classes in `blueprint/contract.yaml`: `pyproject.toml` and `uv.lock` under `init_managed`, `infra/local/helm/opensearch/values.yaml` and `infra/local/helm/kms/values.yaml` under `conditional_scaffold`. Remove these entries after upgrading to the fixed blueprint.
