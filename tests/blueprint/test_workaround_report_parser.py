@@ -235,6 +235,23 @@ def test_workaround_report_parser_raises_when_affected_version_blank() -> None:
 
 
 # ---------------------------------------------------------------------------
+# FR-012: manifest_entry_stub strips [workaround] prefix from title
+# ---------------------------------------------------------------------------
+
+
+def test_workaround_report_parser_strips_workaround_prefix_from_stub_title() -> None:
+    result = parse_issue_body(
+        body=_KNOWN_VALID_BODY,
+        issue_number=_ISSUE_NUMBER,
+        issue_url=_ISSUE_URL,
+        issue_title="[workaround] v1.10.0: source-tree coverage gap",
+    )
+    assert result is not None
+    stub = result.manifest_entry_stub()
+    assert stub["title"] == "v1.10.0: source-tree coverage gap"
+
+
+# ---------------------------------------------------------------------------
 # patch action kind → .patch extension
 # ---------------------------------------------------------------------------
 

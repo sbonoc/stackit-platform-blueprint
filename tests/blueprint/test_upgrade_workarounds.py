@@ -663,9 +663,13 @@ class TestPythonScriptActionKind(unittest.TestCase):
         self.assertFalse((self.repo_root / "applied.txt").exists())
 
     def test_python_script_isolation_env_allowlist(self) -> None:
-        """NFR-SEC-001: python_script subprocess must only see the curated env allowlist."""
-        # The engine runs python_script via importlib (in-process), passing only repo_root.
-        # For subprocess-based isolation verify the env filtering logic exists.
+        """NFR-SEC-001: allowlist constant exists for future subprocess isolation.
+
+        python_script actions currently run in-process via importlib with full env
+        access; trust is inherited from the blueprint author.  This test ensures the
+        allowlist constant is present and contains the expected keys so the list stays
+        intentional when subprocess isolation is added later.
+        """
         from scripts.lib.blueprint.upgrade_workarounds import _PYTHON_SCRIPT_ENV_ALLOWLIST
         self.assertIn("HOME", _PYTHON_SCRIPT_ENV_ALLOWLIST)
         self.assertIn("PATH", _PYTHON_SCRIPT_ENV_ALLOWLIST)
@@ -826,3 +830,35 @@ class TestFailurePolicy(unittest.TestCase):
                 engine.run_after_apply()
             except Exception as exc:
                 self.fail(f"run_after_apply() raised unexpectedly for patch failure: {exc}")
+
+    def test_patch_failure_in_run_after_apply_records_failed_status(self) -> None:
+        """run_after_apply must write status:failed for a non-fatal patch error (mirrors run_before_apply)."""
+        with tempfile.TemporaryDirectory() as tmp:
+            repo_root = Path(tmp)
+            _make_contract(repo_root)
+            manifest = {
+                "schema_version": 1,
+                "versions": {
+                    "v1.10.0": {
+                        "workarounds": [
+                            {
+                                "id": "nonfatal-patch",
+                                "upstream_issue": "https://example.com",
+                                "title": "nonexistent patch",
+                                "applies_when": "always",
+                                "action_kind": "patch",
+                                "action_path": "workarounds/v1.10.0/nonexistent.patch",
+                                "apply_phase": "after_apply",
+                                "landed_in": None,
+                            }
+                        ]
+                    }
+                },
+            }
+            engine = self._engine_with_manifest(manifest, repo_root)
+            engine.run_after_apply()
+            applied_path = repo_root / "artifacts" / "blueprint" / "workarounds_applied.json"
+            data = json.loads(applied_path.read_text())
+            failed = [e for e in data["entries"] if str(e["id"]) == "nonfatal-patch"]
+            self.assertEqual(len(failed), 1)
+            self.assertEqual(failed[0]["status"], "failed")

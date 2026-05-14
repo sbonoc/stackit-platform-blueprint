@@ -20,7 +20,10 @@ import yaml
 
 log = logging.getLogger(__name__)
 
-# NFR-SEC-001: curated allowlist for python_script subprocess env.
+# NFR-SEC-001: allowlist reserved for future subprocess-based isolation of
+# python_script workarounds.  Currently python_script actions run in-process
+# via importlib (full env access); trust is inherited from the blueprint author,
+# the same trust surface as existing make targets and shell scripts.
 _PYTHON_SCRIPT_ENV_ALLOWLIST: frozenset[str] = frozenset(
     {"HOME", "PATH", "BLUEPRINT_UPGRADE_REF", "BLUEPRINT_UPGRADE_SOURCE"}
 )
@@ -468,6 +471,16 @@ class UpgradeWorkaroundsEngine:
                         f"[PIPELINE] Stage 2c: fatal — workaround #{entry_id} failed: {exc}"
                     ) from exc
                 log.warning("Stage 2c: non-fatal error for #%s: %s", entry_id, exc)
+                new_entries = [
+                    e for e in applied_json.get("entries", [])
+                    if str(e.get("id")) != entry_id
+                ]
+                new_entries.append(
+                    {"id": entry_id, "title": title, "action_kind": kind,
+                     "apply_phase": "after_apply", "status": "failed"}
+                )
+                applied_json["entries"] = new_entries
+                _write_applied_json(self._repo_root, self._target_version, new_entries)
 
         return applied_json.get("entries", [])
 

@@ -34,7 +34,7 @@ jobs:
           ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
           python3 - <<'PYEOF'
-          import os, sys
+          import os, re, sys
           from pathlib import Path
 
           sys.path.insert(0, str(Path.cwd()))
@@ -80,9 +80,10 @@ jobs:
               workarounds.append(result.manifest_entry_stub())
 
           raw_yaml = yaml.dump(manifest, default_flow_style=False, allow_unicode=True)
-          raw_yaml = raw_yaml.replace(
-              "apply_phase: '# <set to before_apply or after_apply>'",
+          raw_yaml = re.sub(
+              r"apply_phase: ['\"]# <set to before_apply or after_apply>['\"]",
               "apply_phase: # <set to before_apply or after_apply>",
+              raw_yaml,
           )
           manifest_path.write_text(raw_yaml, encoding="utf-8")
 
@@ -101,6 +102,10 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --heads origin "${BRANCH_NAME}" | grep -q "${BRANCH_NAME}"; then
+            echo "Branch ${BRANCH_NAME} already exists on remote — skipping (duplicate label event)"
+            exit 0
+          fi
           git checkout -b "${BRANCH_NAME}"
           git add .agents/skills/blueprint-consumer-upgrade/workarounds/
           git commit -m "chore: scaffold workaround entry from issue #${ISSUE_NUMBER}"

@@ -44,8 +44,11 @@ class ParsedWorkaroundReport:
         ext = _EXTENSION_MAP[self.action_kind]
         slug = _slugify(self.issue_title)
         filename = f"{self.issue_number}_{slug}{ext}"
-        version = self.affected_version.lstrip("v") if self.affected_version else "unknown"
-        version_dir = f"v{version}" if not self.affected_version.startswith("v") else self.affected_version
+        version_dir = (
+            self.affected_version
+            if self.affected_version.startswith("v")
+            else f"v{self.affected_version}"
+        )
         object.__setattr__(self, "action_filename", filename)
         object.__setattr__(self, "action_path", f"workarounds/{version_dir}/{filename}")
 
