@@ -2,7 +2,7 @@
 
 AC-001: argocd.values.yaml overrides ignoreResourceUpdates.all to empty string.
 AC-002: bootstrap template argocd.values.yaml applies the same override.
-AC-003: ARGOCD_CHART_VERSION is pinned to 9.5.13 in versions.sh.
+AC-003: ARGOCD_CHART_VERSION is pinned to 9.5.13 in versions.sh and versions.baseline.sh.
 """
 from __future__ import annotations
 
