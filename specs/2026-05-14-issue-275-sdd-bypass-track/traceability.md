@@ -4,12 +4,12 @@
 
 | Requirement ID | Control IDs | WCAG SC | Design Element | Implementation Path(s) | Test Evidence | Documentation Evidence | Operational Evidence |
 |---|---|---|---|---|---|---|---|
-| FR-001 | SDD-C-005, SDD-C-015 | N/A | architecture.md §Bounded Context | `scripts/bin/quality/check_sdd_assets.py` — `SPEC_READY_EXCEPTION` field parsing | `test_sdd_bypass_track.py::test_exception_field_accepted` | `AGENTS.md` §Lightweight SDD Bypass Track | `quality-sdd-check` gate output |
+| FR-001 | SDD-C-005, SDD-C-015 | N/A | architecture.md §Bounded Context | `scripts/bin/quality/check_sdd_assets.py` — `SPEC_READY_EXCEPTION` field parsing | `test_sdd_bypass_track.py::test_bypass_path_skips_artifact_checks` (AC-001) | `AGENTS.md` §Lightweight SDD Bypass Track | `quality-sdd-check` gate output |
 | FR-002 | SDD-C-011, SDD-C-015 | N/A | ADR §Decision | `check_sdd_assets.py` — `authorized-by` validation | `test_sdd_bypass_track.py::test_missing_authorized_by_raises_violation` (AC-005) | `AGENTS.md` §Lightweight SDD Bypass Track | `quality-sdd-check` gate output |
 | FR-003 | SDD-C-005, SDD-C-015 | N/A | architecture.md §Gate Evaluation Flow | `check_sdd_assets.py` — bypass branch skips non-essential artifact checks | `test_sdd_bypass_track.py::test_bypass_path_skips_artifact_checks` (AC-001) | ADR §Decision | `quality-sdd-check` gate output |
 | FR-004 | SDD-C-007, SDD-C-015 | N/A | architecture.md §Gate Evaluation Flow | `check_sdd_assets.py` — warning demotion logic | `test_sdd_bypass_track.py` — impl-tasks-checked warning test | `AGENTS.md` §Lightweight SDD Bypass Track | `quality-sdd-check` warning output |
 | FR-005 | SDD-C-005, SDD-C-015 | N/A | ADR §Decision | `check_sdd_assets.py` — full-SDD path unchanged | `test_sdd_bypass_track.py::test_full_sdd_path_unaffected` (AC-003) | spec.md §Explicit Exclusions | `quality-sdd-check` gate output |
-| FR-006 | SDD-C-010 | N/A | architecture.md §Non-Functional Architecture Notes | `check_sdd_assets.py` — `[METRIC] name=sdd_exception_gate_total` emit | `test_sdd_bypass_track.py::test_metric_emitted` (AC-004) | `AGENTS.md` §Lightweight SDD Bypass Track | CI job log |
+| FR-006 | SDD-C-010 | N/A | architecture.md §Non-Functional Architecture Notes | `check_sdd_assets.py` — `[METRIC] name=sdd_exception_gate_total` emit | `test_sdd_bypass_track.py::test_metric_emitted_on_bypass_path` (AC-004) | `AGENTS.md` §Lightweight SDD Bypass Track | CI job log |
 | FR-007 | SDD-C-005, SDD-C-014 | N/A | plan.md §Slice 1 | `spec_scaffold.py` or spec.md template — `SPEC_READY_EXCEPTION: none` and `authorized-by: none` defaults | `make quality-sdd-check` on a freshly scaffolded spec | `AGENTS.md` §Lightweight SDD Bypass Track | scaffold output |
 | NFR-SEC-001 | SDD-C-011 | N/A | ADR §Decision | `authorized-by` field in spec.md | AC-005 test (missing field → violation) | `AGENTS.md` §authorized-by requirement | git log audit trail |
 | NFR-OBS-001 | SDD-C-010 | N/A | architecture.md §Non-Functional Architecture Notes | `[METRIC]` line in `check_sdd_assets.py` | AC-004 test (metric line emitted) | `AGENTS.md` §Lightweight SDD Bypass Track | CI job log `sdd_exception_gate_total` |
@@ -47,11 +47,11 @@
   - AC-006
 
 ## Validation Summary
-- Required bundles executed: (to be completed at Verify phase)
-- Result summary: (to be completed at Verify phase)
+- Required bundles executed: `uv run pytest tests/blueprint/test_sdd_bypass_track.py -v` · `make test-unit-all` · `make quality-sdd-check` · `make quality-sdd-check-all` · `make docs-build` · `make docs-smoke` · `make quality-hardening-review`
+- Result summary: 5/5 AC tests green; 1014 total unit tests pass; quality-sdd-check-all PASS; docs-build PASS; docs-smoke PASS
 - Documentation validation:
-  - `make docs-build`
-  - `make docs-smoke`
+  - `make docs-build` — PASS
+  - `make docs-smoke` — PASS
 
 ## Evidence Manifest
 - Manifest file: `evidence_manifest.json`

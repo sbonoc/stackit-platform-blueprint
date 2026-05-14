@@ -79,6 +79,11 @@ Each work item should include:
 - `hardening_review.md`
 - Finalized ADR document (using `.spec-kit/templates/<track>/adr.md`)
 
+Non-feature change types (bug fix, upgrade, refactor, chore) MUST NOT be forced through
+the full 10-artifact cycle. Use the Lightweight SDD Bypass Track: set `SPEC_READY_EXCEPTION`
+and `authorized-by` in `spec.md` to reduce the required artifact set to `{spec.md, pr_context.md}`.
+See `AGENTS.md §Lightweight SDD Bypass Track` for activation, tiered minimum traceability, and rollback.
+
 Optional for complex work:
 - `research.md`
 - `data-model.md`
