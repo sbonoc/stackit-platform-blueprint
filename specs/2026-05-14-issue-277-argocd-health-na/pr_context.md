@@ -27,4 +27,4 @@
 - Rollback strategy: Remove the `configs.cm` block from `argocd.values.yaml` (and bootstrap template), revert `ARGOCD_CHART_VERSION` to `9.4.16` in both `versions.sh` and `versions.baseline.sh`, run `make infra-deploy`. No state migration required.
 
 ## Deferred Proposals
-- none
+- Proposal 1 (parked): Per-resource-type `ignoreResourceUpdates` tuning for noisy resource types (ConfigMap, Endpoints) if reconciliation CPU becomes a concern at scale. Parked — trigger: on-scope: infra — no current evidence of CPU pressure on local Docker Desktop; AGENTS.backlog.md entry added under `### on-scope: infra`.

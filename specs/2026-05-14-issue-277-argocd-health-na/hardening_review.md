@@ -21,4 +21,4 @@
 - [x] axe-core WCAG 2.1 AA scan evidence: N/A — no UI changes
 
 ## Proposals Only (Not Implemented)
-- none
+- Proposal 1: Per-resource-type `ignoreResourceUpdates` tuning for genuinely noisy types (ConfigMap, Endpoints) if reconciliation CPU becomes a concern at scale. Parked — trigger: on-scope: infra — no current CPU pressure evidence on local Docker Desktop; backlog entry added.

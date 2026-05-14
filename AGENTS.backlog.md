@@ -80,6 +80,9 @@ Surface automatically when the named scope is next touched. Do not promote to ac
       rationale: `state_file_exists` has no unit test; smoke absent-state path is currently untested at module level
 - [ ] proposal(issue-281-282-opensearch-bitnami-chart-fixes): Bitnami chart 2.x upgrade — targets OpenSearch 3.x, incompatible with 2.17/2.19 image line.
       rationale: requires STACKIT managed-service plan validation before migration; no current blocker
+- [ ] (parked) proposal(issue-277-argocd-health-na): per-resource-type ignoreResourceUpdates tuning for noisy types (ConfigMap, Endpoints)
+      trigger: on-scope: infra
+      rationale: no current CPU pressure evidence on local Docker Desktop; surfaces when future ArgoCD or infra work is scoped
 
 ### on-scope: blueprint
 
