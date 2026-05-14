@@ -37,7 +37,7 @@
 - [x] T-017 Slice 6: author v1.10.0 catalogue entries in `workarounds/manifest.yaml` + `workarounds/v1.10.0/`
 
 ### Wave 4 (sequential — waits for Waves 1–3)
-- [ ] T-019 Slice 7: ALL SKILL.md additions (catalogue section + filing step) + ADR finalisation
+- [x] T-019 Slice 7: ALL SKILL.md additions (catalogue section + filing step) + ADR finalisation
 
 ### Wave 5 (sequential — waits for Wave 4)
 - [ ] T-020 Slice 8: publish artefacts (hardening_review, pr_context, traceability summary)
