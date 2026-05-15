@@ -19,6 +19,18 @@ This file is the canonical governance source for this generated platform reposit
      Include: platform purpose, tech stack (backend/frontend/auth/infra), app layout, key make targets.
      Keep it factual and concise — agents read this at the start of every session. -->
 
+## Architecture Invariants — Pointers
+
+AGENTS.md does NOT contain architecture content. Architecture decisions and domain invariants live exclusively in `docs/platform/architecture/north_star.md` and the relevant ADRs under `docs/platform/architecture/decisions/`. Inlining architecture content here creates silent duplication that drifts without automated enforcement.
+
+Add one row per cross-cutting concern. The **Domain** name MUST match the exact `north_star.md` heading text so the `check_docs_cross_reference.py` hook correctly identifies sanctioned navigation pointers.
+
+| Domain | `north_star.md` section | Canonical ADR(s) |
+|---|---|---|
+| Example Domain | § Example Section | ADR-issue-XXX |
+
+New cross-cutting concerns MUST be recorded in `north_star.md` and the appropriate ADR. Do NOT inline architecture content in this file.
+
 ## Mandatory Workflow
 1. Read `AGENTS.md` before starting work.
 2. During `Discover`, `High-Level Architecture`, `Specify`, and `Plan`, do not use assumptions as substitutes for missing requirements; resolve ambiguity explicitly or mark the work item blocked.
@@ -38,6 +50,7 @@ This file is the canonical governance source for this generated platform reposit
 10. Update `AGENTS.decisions.md` when scope, contracts, or operating policy change.
 11. Update `AGENTS.backlog.md` when priorities or status change.
 12. Do not run `git commit` or `git push` unless explicitly requested in the current conversation.
+13. Before any SDD work item touching a domain covered in `docs/platform/architecture/north_star.md`, MUST read the relevant `north_star.md` section and the canonical ADR(s) cited in the Pointers table in the Architecture Invariants — Pointers section above. MUST NOT duplicate architecture content from `north_star.md` in `AGENTS.md`.
 
 ## Quality Hooks — Inner-Loop and Pre-PR Usage
 

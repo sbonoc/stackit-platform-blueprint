@@ -110,6 +110,7 @@ In keep-going mode, a single root cause (e.g. a syntax error in a shared helper)
 10. Update `AGENTS.decisions.md` when scope/contracts/priorities change.
 11. Update `AGENTS.backlog.md` when status/priorities change.
 12. Do not run `git commit`/`git push` unless explicitly requested in the current conversation.
+13. Before any SDD work item touching a domain covered in `docs/blueprint/architecture/north_star.md`, MUST read the relevant `north_star.md` section and the canonical ADR(s) cited in the Pointers table (or the ADR index `docs/blueprint/architecture/decisions/` if no Pointers table is present). MUST NOT duplicate architecture content from `north_star.md` in `AGENTS.md`.
 
 ## Spec-Driven Development (SDD) Lifecycle
 - Canonical phase order:

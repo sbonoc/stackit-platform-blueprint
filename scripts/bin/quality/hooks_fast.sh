@@ -144,6 +144,33 @@ else
   fi
 fi
 
+if keep_going_active; then
+  run_check "quality-docs-cross-reference-check" -- make -C "$ROOT_DIR" quality-docs-cross-reference-check
+else
+  if run_cmd make -C "$ROOT_DIR" quality-docs-cross-reference-check; then
+    log_metric "quality_docs_cross_reference_check_total" "1" "status=success"
+  else
+    log_metric "quality_docs_cross_reference_check_total" "1" "status=failure"
+    exit 1
+  fi
+fi
+
+if blueprint_repo_is_generated_consumer; then
+  if keep_going_active; then
+    run_check "quality-docs-agents-md-structure-check" -- make -C "$ROOT_DIR" quality-docs-agents-md-structure-check
+  else
+    if run_cmd make -C "$ROOT_DIR" quality-docs-agents-md-structure-check; then
+      log_metric "quality_docs_agents_md_structure_check_total" "1" "status=success"
+    else
+      log_metric "quality_docs_agents_md_structure_check_total" "1" "status=failure"
+      exit 1
+    fi
+  fi
+else
+  log_info "skipping quality-docs-agents-md-structure-check: blueprint repo (not a consumer)"
+  log_metric "quality_hooks_skip_total" "1" "phase=fast check=quality-docs-agents-md-structure-check reason=blueprint-repo"
+fi
+
 # Infra checks: path-gated
 # _quality_changed_paths returns 1 when git is unavailable (e.g. CI shallow clone where the
 # main-branch ref cannot be resolved as a local ref). Use || to prevent set -e from exiting here;

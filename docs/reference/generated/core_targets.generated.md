@@ -74,6 +74,8 @@ This file is auto-generated. Do not edit it manually.
 | `quality-consumer-ci` | Consumer CI quality gate extension — override in platform.mk |
 | `quality-ci-generated-consumer-smoke` | Run generated-consumer template smoke lane (covers issue #230 v1.8.0 paired-reseed scenario) |
 | `quality-ci-upgrade-validate` | Run end-to-end consumer upgrade validation lane (push-to-main gate) |
+| `quality-docs-cross-reference-check` | Detect heading duplication between AGENTS.md and north_star.md |
+| `quality-docs-agents-md-structure-check` | Verify AGENTS.md contains required structural elements for north_star.md contract |
 | `quality-docs-lint` | Lint markdown docs, governance links, and make target references |
 | `quality-docs-sync-all` | Run all docs sync generators in canonical order |
 | `quality-docs-check-changed` | Run docs drift checks only for sync steps that match current changed paths |
