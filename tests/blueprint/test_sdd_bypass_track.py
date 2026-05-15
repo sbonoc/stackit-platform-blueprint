@@ -4,7 +4,12 @@ AC-001: bypass path skips non-essential artifact checks for valid exception + au
 AC-002: no specs/ dir -> exit 0 (chore passive pass, regression guard).
 AC-003: SPEC_READY:true + no exception -> all 10 artifacts still required (no regression).
 AC-004: bypass path emits sdd_exception_gate_total metric line.
-AC-005: exception set but no authorized-by -> violation raised.
+AC-005: exception set but no authorized-by (none) -> violation raised.
+AC-005b: exception set but authorized-by field absent entirely -> violation raised.
+AC-006b: pr_context.md missing on bypass path still raises missing-doc violation.
+AC-007: unrecognised SPEC_READY_EXCEPTION value with valid authorized-by emits violation.
+AC-008: SPEC_READY_EXCEPTION: none (template default) -> no bypass, no spurious violation.
+AC-009: bypass active + tasks.md has checked implementation task -> [WARNING] emitted.
 """
 
 from __future__ import annotations
@@ -362,6 +367,105 @@ def _full_sdd_spec_md() -> str:
     return "\n".join(lines) + "\n"
 
 
+def _exception_set_no_authorized_by_field_spec_md() -> str:
+    """Like _exception_set_no_authorized_by_spec_md but the field is completely absent."""
+    lines = [
+        "# Specification",
+        "",
+        "## Spec Readiness Gate (Blocking)",
+        "- SPEC_READY: false",
+        "- SPEC_PRODUCT_READY: false",
+        "- Open questions count: 0",
+        "- Unresolved alternatives count: 0",
+        "- Unresolved TODO markers count: 0",
+        "- Pending assumptions count: 0",
+        "- Open clarification markers count: 0",
+        "- Product sign-off: pending",
+        "- Architecture sign-off: pending",
+        "- Security sign-off: pending",
+        "- Operations sign-off: pending",
+        "- Missing input blocker token: none",
+        "- ADR path: docs/example-adr.md",
+        "- ADR status: proposed",
+        "- SPEC_READY_EXCEPTION: bug-fix",
+        # authorized-by field intentionally omitted
+        "",
+        "## Applicable Guardrail Controls (Normative)",
+        "- Applicable control IDs: SDD-C-001",
+        "- Control exception rationale: none",
+        "",
+        "## Implementation Stack Profile (Normative)",
+        "- Backend stack profile: none",
+        "- Frontend stack profile: none",
+        "- Test automation profile: pytest",
+        "- Agent execution model: single-agent",
+        "- Managed service preference: explicit-consumer-exception",
+        "- Managed service exception rationale: tooling only",
+        "- Runtime profile: local-first-docker-desktop-kubernetes",
+        "- Local Kubernetes context policy: docker-desktop-preferred",
+        "- Local provisioning stack: crossplane-plus-helm",
+        "- Runtime identity baseline: custom-approved-exception",
+        "- Local-first exception rationale: tooling only",
+        "",
+        "## Normative Requirements",
+        "### Functional Requirements (Normative)",
+        "- FR-001 MUST define behavior.",
+        "",
+        "## Informative Notes (Non-Normative)",
+        "- Context: test fixture.",
+    ]
+    return "\n".join(lines) + "\n"
+
+
+def _invalid_exception_spec_md(authorized_by: str = "testuser") -> str:
+    lines = [
+        "# Specification",
+        "",
+        "## Spec Readiness Gate (Blocking)",
+        "- SPEC_READY: false",
+        "- SPEC_PRODUCT_READY: false",
+        "- Open questions count: 0",
+        "- Unresolved alternatives count: 0",
+        "- Unresolved TODO markers count: 0",
+        "- Pending assumptions count: 0",
+        "- Open clarification markers count: 0",
+        "- Product sign-off: pending",
+        "- Architecture sign-off: pending",
+        "- Security sign-off: pending",
+        "- Operations sign-off: pending",
+        "- Missing input blocker token: none",
+        "- ADR path: docs/example-adr.md",
+        "- ADR status: proposed",
+        "- SPEC_READY_EXCEPTION: not-a-valid-type",
+        f"- authorized-by: {authorized_by}",
+        "",
+        "## Applicable Guardrail Controls (Normative)",
+        "- Applicable control IDs: SDD-C-001",
+        "- Control exception rationale: none",
+        "",
+        "## Implementation Stack Profile (Normative)",
+        "- Backend stack profile: none",
+        "- Frontend stack profile: none",
+        "- Test automation profile: pytest",
+        "- Agent execution model: single-agent",
+        "- Managed service preference: explicit-consumer-exception",
+        "- Managed service exception rationale: tooling only",
+        "- Runtime profile: local-first-docker-desktop-kubernetes",
+        "- Local Kubernetes context policy: docker-desktop-preferred",
+        "- Local provisioning stack: crossplane-plus-helm",
+        "- Runtime identity baseline: custom-approved-exception",
+        "- Local-first exception rationale: tooling only",
+        "",
+        "## Normative Requirements",
+        "### Functional Requirements (Normative)",
+        "- FR-001 MUST define behavior.",
+        "",
+        "## Informative Notes (Non-Normative)",
+        "- Context: test fixture.",
+    ]
+    return "\n".join(lines) + "\n"
+
+
 class SddBypassTrackTests(unittest.TestCase):
     def test_bypass_path_skips_artifact_checks(self) -> None:
         """AC-001: bypass path skips non-essential artifact checks."""
@@ -483,6 +587,168 @@ class SddBypassTrackTests(unittest.TestCase):
             self.assertTrue(
                 any("authorized-by" in v.message for v in violations),
                 msg=f"expected authorized-by violation, got: {[v.message for v in violations]}",
+            )
+
+
+    def test_missing_pr_context_raises_violation_on_bypass_path(self) -> None:
+        """AC-006b: pr_context.md missing on bypass path still raises missing-doc violation."""
+        checker = _load_checker()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _write_control_catalog(repo_root / ".spec-kit/control-catalog.md")
+            work_item = repo_root / "specs" / _WORK_ITEM_SLUG
+            work_item.mkdir(parents=True, exist_ok=True)
+            (repo_root / "specs" / "README.md").write_text("# Specs\n", encoding="utf-8")
+            (work_item / "spec.md").write_text(
+                _bypass_spec_md(exception_type="upgrade", authorized_by="testuser"),
+                encoding="utf-8",
+            )
+            # pr_context.md intentionally absent
+
+            contract_raw = _contract_raw()
+            _, catalog_ids = checker._load_control_catalog(contract_raw=contract_raw, repo_root=repo_root)
+            violations = checker._validate_work_item_specs(contract_raw, repo_root, catalog_ids)
+
+            missing_pr_context = [
+                v for v in violations
+                if "missing required SDD work-item document" in v.message and "pr_context.md" in v.path
+            ]
+            self.assertGreater(
+                len(missing_pr_context),
+                0,
+                msg=f"expected missing-doc violation for pr_context.md on bypass path, got: {violations}",
+            )
+
+    def test_invalid_exception_type_emits_violation(self) -> None:
+        """AC-007: unrecognised SPEC_READY_EXCEPTION value with valid authorized-by emits violation."""
+        checker = _load_checker()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _write_control_catalog(repo_root / ".spec-kit/control-catalog.md")
+            work_item = repo_root / "specs" / _WORK_ITEM_SLUG
+            work_item.mkdir(parents=True, exist_ok=True)
+            (repo_root / "specs" / "README.md").write_text("# Specs\n", encoding="utf-8")
+            (work_item / "spec.md").write_text(
+                _invalid_exception_spec_md(authorized_by="testuser"),
+                encoding="utf-8",
+            )
+            (work_item / "pr_context.md").write_text("# PR Context\n", encoding="utf-8")
+
+            contract_raw = _contract_raw()
+            _, catalog_ids = checker._load_control_catalog(contract_raw=contract_raw, repo_root=repo_root)
+            violations = checker._validate_work_item_specs(contract_raw, repo_root, catalog_ids)
+
+            unrecognised_violations = [
+                v for v in violations if "unrecognised SPEC_READY_EXCEPTION" in v.message
+            ]
+            self.assertGreater(
+                len(unrecognised_violations),
+                0,
+                msg=f"expected unrecognised-value violation, got: {[v.message for v in violations]}",
+            )
+            self.assertIn(
+                "not-a-valid-type",
+                unrecognised_violations[0].message,
+                msg="violation message should name the bad value",
+            )
+
+
+    def test_missing_authorized_by_field_raises_violation(self) -> None:
+        """AC-005b: exception set but authorized-by field absent entirely -> violation raised."""
+        checker = _load_checker()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _write_control_catalog(repo_root / ".spec-kit/control-catalog.md")
+            work_item = repo_root / "specs" / _WORK_ITEM_SLUG
+            work_item.mkdir(parents=True, exist_ok=True)
+            (repo_root / "specs" / "README.md").write_text("# Specs\n", encoding="utf-8")
+            (work_item / "spec.md").write_text(
+                _exception_set_no_authorized_by_field_spec_md(),
+                encoding="utf-8",
+            )
+            (work_item / "pr_context.md").write_text("# PR Context\n", encoding="utf-8")
+
+            contract_raw = _contract_raw()
+            _, catalog_ids = checker._load_control_catalog(contract_raw=contract_raw, repo_root=repo_root)
+            violations = checker._validate_work_item_specs(contract_raw, repo_root, catalog_ids)
+
+            self.assertTrue(
+                any("authorized-by" in v.message for v in violations),
+                msg=f"expected authorized-by violation when field is absent, got: {[v.message for v in violations]}",
+            )
+
+    def test_exception_none_does_not_activate_bypass(self) -> None:
+        """AC-008: SPEC_READY_EXCEPTION: none (template default) -> no bypass, no spurious violation."""
+        checker = _load_checker()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _write_control_catalog(repo_root / ".spec-kit/control-catalog.md")
+            work_item = repo_root / "specs" / _WORK_ITEM_SLUG
+            work_item.mkdir(parents=True, exist_ok=True)
+            (repo_root / "specs" / "README.md").write_text("# Specs\n", encoding="utf-8")
+            (work_item / "spec.md").write_text(
+                _bypass_spec_md(exception_type="none", authorized_by="none"),
+                encoding="utf-8",
+            )
+            (work_item / "pr_context.md").write_text("# PR Context\n", encoding="utf-8")
+
+            contract_raw = _contract_raw()
+            _, catalog_ids = checker._load_control_catalog(contract_raw=contract_raw, repo_root=repo_root)
+            violations = checker._validate_work_item_specs(contract_raw, repo_root, catalog_ids)
+
+            spurious = [v for v in violations if "unrecognised SPEC_READY_EXCEPTION" in v.message]
+            self.assertEqual(
+                spurious,
+                [],
+                msg=f"SPEC_READY_EXCEPTION: none must not produce an unrecognised-value violation, got: {spurious}",
+            )
+            missing_doc_violations = [v for v in violations if "missing required SDD work-item document" in v.message]
+            self.assertGreater(
+                len(missing_doc_violations),
+                0,
+                msg="expected full-SDD missing-doc violations when exception is none (bypass not active)",
+            )
+
+    def test_warning_emitted_when_tasks_checked_under_bypass(self) -> None:
+        """AC-009: bypass active + tasks.md has checked implementation task -> [WARNING] emitted."""
+        checker = _load_checker()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _write_control_catalog(repo_root / ".spec-kit/control-catalog.md")
+            work_item = repo_root / "specs" / _WORK_ITEM_SLUG
+            work_item.mkdir(parents=True, exist_ok=True)
+            (repo_root / "specs" / "README.md").write_text("# Specs\n", encoding="utf-8")
+            (work_item / "spec.md").write_text(
+                _bypass_spec_md(exception_type="bug-fix", authorized_by="testuser"),
+                encoding="utf-8",
+            )
+            (work_item / "pr_context.md").write_text("# PR Context\n", encoding="utf-8")
+            (work_item / "tasks.md").write_text(
+                "# Tasks\n\n## Implementation\n\n- [x] Implement the fix.\n",
+                encoding="utf-8",
+            )
+
+            contract_raw = _contract_raw()
+            _, catalog_ids = checker._load_control_catalog(contract_raw=contract_raw, repo_root=repo_root)
+
+            captured = io.StringIO()
+            old_stdout = sys.stdout
+            sys.stdout = captured
+            try:
+                violations = checker._validate_work_item_specs(contract_raw, repo_root, catalog_ids)
+            finally:
+                sys.stdout = old_stdout
+
+            output = captured.getvalue()
+            self.assertIn(
+                "[WARNING]",
+                output,
+                msg=f"expected [WARNING] line in stdout when tasks are checked under bypass, got: {output!r}",
+            )
+            self.assertEqual(
+                [v for v in violations if "implementation tasks are checked" in v.message],
+                [],
+                msg="checked-tasks finding must be a warning (not a violation) on bypass path",
             )
 
 

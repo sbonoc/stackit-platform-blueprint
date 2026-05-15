@@ -67,6 +67,7 @@ New subsection documents the lightweight bypass track, per-type minimum traceabi
 - Blueprint maintainers and consumer engineers can start a bypass-track work item by scaffolding, setting `SPEC_READY_EXCEPTION`, and working directly toward `{spec.md, pr_context.md}` — no stub artifact ceremony.
 - The `authorized-by` field provides an explicit human-readable audit trail for every exception-path evaluation visible in `git log` and CI metric output.
 - Traceability for exception-path specs is lighter: requirement-to-test linkage is documented in pr_context.md as prose evidence rather than a machine-verifiable `traceability.md` table. This is a deliberate tradeoff for non-feature change types.
+- `pr_context.md` required-section content validation is skipped on the bypass path; only presence is checked. This is intentional — the lightweight track removes ceremony, and section-content enforcement is disproportionate for non-feature changes. Engineers are expected to fill in the summary and evidence in good faith.
 - No existing `spec.md` file requires modification. The new fields default to `none` and the checker is fully backward-compatible.
 - Rollback: set `SPEC_READY_EXCEPTION: none` (or remove the field) to immediately restore full-SDD validation.
 
