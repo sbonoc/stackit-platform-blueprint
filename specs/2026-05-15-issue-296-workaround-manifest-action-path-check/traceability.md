@@ -32,11 +32,11 @@
   - AC-001, AC-002, AC-003, AC-004, AC-005
 
 ## Validation Summary
-- Required bundles executed: TBD — post-implementation
-- Result summary: TBD
+- Required bundles executed: pending post-implementation — post-implementation
+- Result summary: pending post-implementation
 - Documentation validation:
-  - `make docs-build`: TBD
-  - `make docs-smoke`: TBD
+  - `make docs-build`: pending post-implementation
+  - `make docs-smoke`: pending post-implementation
 
 ## Evidence Manifest
 - Manifest file: `evidence_manifest.json`

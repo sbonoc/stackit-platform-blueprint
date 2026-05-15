@@ -1,10 +1,10 @@
 # ADR — Workaround Manifest `action_path` CI Validation Gate
 
-- Status: proposed
+- Status: approved
 - Work item: 2026-05-15-issue-296-workaround-manifest-action-path-check
 - Closes: #296
 - Date: 2026-05-15
-- ADR technical decision sign-off: pending
+- ADR technical decision sign-off: sbonoc
 
 ## Context
 
