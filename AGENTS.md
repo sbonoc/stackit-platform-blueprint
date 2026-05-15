@@ -301,6 +301,7 @@ these fields are treated as `SPEC_READY_EXCEPTION: none` (full-SDD path).
   or changed service interfaces MUST be drafted in the Specify phase before implementation
   code is written. Record the contract file path in `spec.md` under Contract Impacts.
 - Positive-path filter/payload-transform test coverage: any filter or payload-transform logic MUST include at least one unit test with a matching fixture/request value that returns a record and preserves relevant output fields; empty-result-only assertions MUST NOT satisfy coverage.
+- API response field-coverage gate: for any HTTP-scope change that adds or modifies fields on a response schema, a backend integration test using FastAPI `TestClient` (no live cluster, no port-forward) MUST assert that ALL declared response contract fields are non-null/non-empty against a fixture with real (non-empty) data. Asserting only a 200 response or a non-empty body MUST NOT satisfy this gate. This assertion is a pyramid-level integration test; `make test-smoke-all-local` is a separate coarser reachability gate and MUST NOT be used as a substitute.
 - Local smoke gate for HTTP/filter scope: work touching HTTP route handlers, query/filter logic, or new API endpoints MUST run `make test-smoke-all-local` and capture the pass/fail result as test evidence in `pr_context.md`; hand-crafted `curl` assertions are no longer sufficient as evidence.
 - Reproducible-finding translation gate: any reproducible pre-PR smoke/`curl`/deterministic-check failure MUST be captured as a failing automated test first and turned green with the implementation fix in the same work item; deterministic exceptions MUST be documented in publish artifacts.
 - Local-first baseline for local execution (Docker Desktop Kubernetes context policy + Crossplane/Helm provisioning + ESO/Argo/Keycloak runtime identity) with explicit approved exception rationale when deviating.
@@ -390,6 +391,11 @@ A task is done only when all applicable items pass:
   - `make apps-bootstrap`
   - `make apps-smoke`
   - `make apps-audit-versions`
+- HTTP route / filter / query scope:
+  - `make test-smoke-all-local` — REQUIRED, non-optional (record pass/fail in `pr_context.md`)
+- HTTP route + UI rendering scope:
+  - `make test-smoke-all-local` — REQUIRED, non-optional
+  - Vitest Browser Mode component test suite green — REQUIRED (record pass/fail in `pr_context.md`)
 - Full chain (when applicable):
   - `make infra-provision`
   - `make infra-deploy`
@@ -422,6 +428,12 @@ A task is done only when all applicable items pass:
 - E2E tests are reserved for the smallest possible set of business-critical user
   journeys that cannot be validated by component or contract tests. Never add an E2E
   test where a Pact contract or component test provides equivalent confidence.
+- Vue SFC rendering-branch coverage: for any Vue SFC rendering change (new component,
+  modified template, or touched conditional branch), unit and component tests MUST cover
+  every rendering branch touched — including fallback, degraded, and error paths —
+  before the slice is declared done. A slice MUST NOT be declared done if any rendering
+  branch that was added or modified is absent from the Vitest Browser Mode component
+  test suite.
 
 ## Contract Testing Standards
 - Consumer-Driven Contract Testing (Pact) is the standard for verifying API integration
@@ -435,6 +447,13 @@ A task is done only when all applicable items pass:
   environment.
 - During frontend development, use the Pact Stub Server to simulate provider responses
   instead of pointing tests at a live backend service.
+- Same-repo Pact provider timing: when both consumer (frontend) and provider (backend)
+  live in the same repository, Pact provider verification MUST run in the same
+  implementation slice as the consumer interaction test. Writing only the consumer
+  interaction without verifying the same-repo provider in the same slice MUST NOT be
+  treated as a complete Pact contract gate. Cross-repo provider verification is deferred
+  to the provider repository; the consumer slice-done report MUST explicitly record
+  "Pact provider verification: deferred to provider repo <name>".
 - OpenAPI specs and event/message contracts that define new or changed service interfaces
   MUST be drafted in the Specify phase before implementation code is written. Record the
   contract file path in `spec.md` under Contract Impacts.
