@@ -6,16 +6,11 @@
 - **Gate status: OPEN — `SPEC_READY: true` confirmed.**
 
 ## Constitution Gates (Pre-Implementation)
-- Simplicity gate:
-  - All changes are additive prose edits to two existing files and one new file. No new scripts, no new Make targets, no new abstractions introduced.
-- Anti-abstraction gate:
-  - Direct prose additions to SKILL.md and AGENTS.md. No wrapper layer added.
-- Integration-first testing gate:
-  - N/A — docs-only change; no code integration boundaries.
-- Positive-path filter/transform test gate:
-  - N/A — no filter or payload-transform logic.
-- Finding-to-test translation gate:
-  - N/A — no reproducible deterministic pre-PR finding to automate; the incident that triggered this work item was a human-review gap, not a repeatable CI assertion.
+- Simplicity gate: All changes are additive prose edits to two existing files and one new file. No new scripts, no new Make targets, no new abstractions introduced.
+- Anti-abstraction gate: Direct prose additions to SKILL.md and AGENTS.md. No wrapper layer added.
+- Integration-first testing gate: N/A — docs-only change; no code integration boundaries.
+- Positive-path filter/transform test gate: N/A — no filter or payload-transform logic.
+- Finding-to-test translation gate: N/A — no reproducible deterministic pre-PR finding to automate; the incident that triggered this work item was a human-review gap, not a repeatable CI assertion.
 
 ## Parallel-Safe Execution Model
 

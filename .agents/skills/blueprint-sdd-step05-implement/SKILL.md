@@ -149,6 +149,30 @@ dependencies. These are mandatory defaults — deviate only with documented rati
 12. Observability: new code paths MUST emit structured log entries for significant
     operations; add metrics or trace spans where the declared observability baseline
     in `spec.md` requires coverage.
+13. API response field coverage: for any HTTP-scope slice that adds or modifies fields
+    on a response schema, a backend integration test MUST assert that ALL fields
+    declared in the response contract are present and non-null/non-empty in the HTTP
+    response for a fixture with real (non-empty) data. Asserting only that the handler
+    returns 200 or that the response is not empty MUST NOT satisfy this gate. This
+    assertion MUST be implemented using FastAPI `TestClient` (no live cluster, no
+    port-forward) — it is a pyramid-level integration test, not a smoke test. The local
+    smoke gate (`make test-smoke-all-local`) is a separate, coarser reachability gate
+    and MUST NOT be used as a substitute for this field-coverage assertion.
+14. Vue component test per rendering branch: for any Vue SFC rendering change (new
+    component, modified template, or touched conditional branch), before marking the
+    slice done the implementer MUST enumerate which Vitest Browser Mode component test
+    covers each rendering branch touched — including fallback, degraded, and error paths.
+    A slice MUST NOT be declared done if any rendering branch that was added or modified
+    is absent from the component test suite.
+15. Pact consumer + provider (same-slice, same-repo): for any HTTP-scope slice that
+    adds or modifies fields on an API response contract (TypeScript type, Pydantic
+    schema, or OpenAPI spec): (a) a Pact consumer interaction asserting the new/modified
+    field shape MUST be written in the same slice; (b) when the provider lives in the
+    same repository, provider verification MUST pass in the same slice; (c) when the
+    provider lives in a separate repository, the generated pact file MUST be committed
+    and the slice-done report MUST explicitly record "Pact provider verification:
+    deferred to provider repo <name>". A slice that extends an API contract without a
+    Pact consumer interaction MUST NOT be declared done.
 
 ## Workflow
 
@@ -184,6 +208,20 @@ SLICE N — IMPLEMENTATION (green)
 Repeat for each slice in plan.md order.
 ```
 
+## 3. Local smoke gate (HTTP and UI-rendering scope)
+
+This step is REQUIRED and non-optional for HTTP and UI-rendering scope. A PR MUST NOT
+be opened until it passes.
+
+For **HTTP route / filter / query scope**: run `make test-smoke-all-local` and capture
+the pass/fail result in `pr_context.md` Validation Evidence.
+
+For **HTTP route + UI rendering scope**: BOTH of the following MUST pass before the PR
+is opened:
+- `make test-smoke-all-local` — REQUIRED, non-optional
+- Vitest Browser Mode component test suite green (all rendering branches covered by
+  Guardrail #14 enumeration) — REQUIRED
+
 ## After All Slices Complete
 
 Run these steps in order after the last slice is committed:
@@ -197,7 +235,8 @@ Run the bundle matching the change type declared in `spec.md` (from AGENTS.md):
 | Governance / docs / contracts only | `make quality-hooks-run` · `make infra-validate` |
 | Infra / runtime wrapper changes | `make infra-validate` · `make infra-smoke` · `make infra-audit-version` |
 | App delivery / build / deploy changes | `make apps-bootstrap` · `make apps-smoke` · `make apps-audit-versions` |
-| HTTP route / filter / query scope | `make test-smoke-all-local` (record pass/fail in `pr_context.md`) |
+| HTTP route / filter / query scope | `make test-smoke-all-local` — REQUIRED, non-optional (record pass/fail in `pr_context.md`) |
+| HTTP route + UI rendering scope | `make test-smoke-all-local` — REQUIRED, non-optional · Vitest Browser Mode component test suite green — REQUIRED (record pass/fail in `pr_context.md`) |
 
 ### 2. Traceability Verification
 
@@ -218,14 +257,6 @@ git push
 Positive-path assertion MUST verify that a request with a matching fixture
 value returns the expected record and that output fields are preserved. An
 assertion that only tests the empty-result case is not sufficient.
-
-### HTTP route / query scope
-
-Run local smoke test after implementation:
-```bash
-make test-smoke-all-local
-```
-Capture the pass/fail output and record it in `pr_context.md` Validation Evidence.
 
 ### Reproducible pre-commit failures
 

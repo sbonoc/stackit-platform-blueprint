@@ -10,11 +10,11 @@
 ## Implementation
 
 ### Slice 1A — Update SKILL.md (Phase 1, parallel-safe — no file overlap with Slice 1B)
-- [ ] T-001 Add Guardrail #13 (API response field coverage) to SKILL.md Guardrails section after existing #12
-- [ ] T-002 Add Guardrail #14 (Vue component test per rendering branch) to SKILL.md Guardrails section after #13
-- [ ] T-003 Add Guardrail #15 (Pact consumer + provider) to SKILL.md Guardrails section after #14
-- [ ] T-004 Update "After All Slices Complete — Minimum validation bundle" table: add REQUIRED row for HTTP scope and REQUIRED row for HTTP+UI rendering scope
-- [ ] T-005 Add numbered workflow step "3. Local smoke gate (HTTP and UI-rendering scope)" to SKILL.md main workflow (before "After All Slices Complete"); remove the now-duplicated HTTP block from "Special cases"
+- [x] T-001 Add Guardrail #13 (API response field coverage) to SKILL.md Guardrails section after existing #12
+- [x] T-002 Add Guardrail #14 (Vue component test per rendering branch) to SKILL.md Guardrails section after #13
+- [x] T-003 Add Guardrail #15 (Pact consumer + provider) to SKILL.md Guardrails section after #14
+- [x] T-004 Update "After All Slices Complete — Minimum validation bundle" table: add REQUIRED row for HTTP scope and REQUIRED row for HTTP+UI rendering scope
+- [x] T-005 Add numbered workflow step "3. Local smoke gate (HTTP and UI-rendering scope)" to SKILL.md main workflow (before "After All Slices Complete"); remove the now-duplicated HTTP block from "Special cases"
 
 ### Slice 1B — Update AGENTS.md (Phase 1, parallel-safe — no file overlap with Slice 1A)
 - [ ] T-007 Add field-coverage gate requirement to AGENTS.md § Cross-Cutting Guardrails (FR-007)
@@ -27,14 +27,14 @@
       depends-on: T-001, T-002, T-003, T-004, T-005 (Slice 1A must be committed first)
 
 ## Test Automation
-- [ ] T-101 N/A — docs-only change; no automated test suite applicable. Verification is `make quality-hooks-run` (see T-201).
+- [x] T-101 N/A — docs-only change; no automated test suite applicable. Verification is `make quality-hooks-run` (see T-201).
 
 ## Accessibility Testing (Normative — mark N/A with rationale for non-UI specs)
-- [ ] T-A01 NFR-A11Y-001 declared in spec.md as "N/A — no UI or frontend changes"
-- [ ] T-A02 N/A — no UI changes
-- [ ] T-A03 N/A — no UI changes
-- [ ] T-A04 N/A — no UI changes
-- [ ] T-A05 N/A — no UI changes
+- [x] T-A01 NFR-A11Y-001 declared in spec.md as "N/A — no UI or frontend changes"
+- [x] T-A02 N/A — no UI changes
+- [x] T-A03 N/A — no UI changes
+- [x] T-A04 N/A — no UI changes
+- [x] T-A05 N/A — no UI changes
 
 ## Validation and Release Readiness
 - [ ] T-201 Run governance/docs validation bundle: `make quality-hooks-run` and `make infra-validate`
