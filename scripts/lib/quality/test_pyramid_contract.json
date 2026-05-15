@@ -104,6 +104,7 @@
                 "tests/blueprint/test_workaround_report_parser.py",
                 "tests/blueprint/test_upgrade_workarounds.py",
                 "tests/blueprint/test_workaround_report_filer.py",
+                "tests/blueprint/test_workaround_manifest_check.py",
                 "tests/infra/test_argocd_values_health_fix.py"
             ]
         },
