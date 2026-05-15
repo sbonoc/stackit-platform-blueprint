@@ -211,6 +211,88 @@ class TestAbsentManifest:
 
 
 # ---------------------------------------------------------------------------
+# P1/P2 hardening — malformed action_path values → exit 1 + prefixed stderr
+# ---------------------------------------------------------------------------
+
+
+class TestMalformedActionPath:
+    """Hardening: missing key, empty value, absolute path, traversal escape all exit 1."""
+
+    @pytest.fixture
+    def checker(self):
+        return _load_checker()
+
+    def _write_manifest(self, workarounds_dir: Path, workarounds: list) -> None:
+        manifest = {
+            "schema_version": 1,
+            "versions": {"v1.0.0": {"workarounds": workarounds}},
+        }
+        (workarounds_dir / "manifest.yaml").write_text(
+            yaml.dump(manifest), encoding="utf-8"
+        )
+
+    def test_missing_action_path_key_exits_one(
+        self, checker, tmp_path: Path, monkeypatch, capsys
+    ) -> None:
+        skill_root = tmp_path / ".agents" / "skills" / "blueprint-consumer-upgrade"
+        workarounds_dir = skill_root / "workarounds"
+        workarounds_dir.mkdir(parents=True)
+        self._write_manifest(workarounds_dir, [{"id": "1"}])  # no action_path key
+
+        monkeypatch.setattr(checker, "SKILL_ROOT", skill_root)
+        monkeypatch.setattr(checker, "MANIFEST_PATH", workarounds_dir / "manifest.yaml")
+        assert checker.main() == 1
+        assert "[quality-workaround-manifest-check]" in capsys.readouterr().err
+
+    def test_empty_action_path_value_exits_one(
+        self, checker, tmp_path: Path, monkeypatch, capsys
+    ) -> None:
+        skill_root = tmp_path / ".agents" / "skills" / "blueprint-consumer-upgrade"
+        workarounds_dir = skill_root / "workarounds"
+        workarounds_dir.mkdir(parents=True)
+        self._write_manifest(workarounds_dir, [{"id": "2", "action_path": ""}])
+
+        monkeypatch.setattr(checker, "SKILL_ROOT", skill_root)
+        monkeypatch.setattr(checker, "MANIFEST_PATH", workarounds_dir / "manifest.yaml")
+        assert checker.main() == 1
+        assert "[quality-workaround-manifest-check]" in capsys.readouterr().err
+
+    def test_absolute_action_path_exits_one(
+        self, checker, tmp_path: Path, monkeypatch, capsys
+    ) -> None:
+        skill_root = tmp_path / ".agents" / "skills" / "blueprint-consumer-upgrade"
+        workarounds_dir = skill_root / "workarounds"
+        workarounds_dir.mkdir(parents=True)
+        self._write_manifest(
+            workarounds_dir, [{"id": "3", "action_path": "/etc/passwd"}]
+        )
+
+        monkeypatch.setattr(checker, "SKILL_ROOT", skill_root)
+        monkeypatch.setattr(checker, "MANIFEST_PATH", workarounds_dir / "manifest.yaml")
+        assert checker.main() == 1
+        assert "[quality-workaround-manifest-check]" in capsys.readouterr().err
+
+    def test_traversal_action_path_exits_one(
+        self, checker, tmp_path: Path, monkeypatch, capsys
+    ) -> None:
+        skill_root = tmp_path / ".agents" / "skills" / "blueprint-consumer-upgrade"
+        workarounds_dir = skill_root / "workarounds"
+        workarounds_dir.mkdir(parents=True)
+        # Create a file that traversal would reach — should still fail because it escapes skill_root
+        escape_target = tmp_path / "outside.yaml"
+        escape_target.write_text("---\n", encoding="utf-8")
+        self._write_manifest(
+            workarounds_dir,
+            [{"id": "4", "action_path": "../../../outside.yaml"}],
+        )
+
+        monkeypatch.setattr(checker, "SKILL_ROOT", skill_root)
+        monkeypatch.setattr(checker, "MANIFEST_PATH", workarounds_dir / "manifest.yaml")
+        assert checker.main() == 1
+        assert "[quality-workaround-manifest-check]" in capsys.readouterr().err
+
+
+# ---------------------------------------------------------------------------
 # AC-004(c) — live manifest: all real entries resolve to existing files
 # ---------------------------------------------------------------------------
 
