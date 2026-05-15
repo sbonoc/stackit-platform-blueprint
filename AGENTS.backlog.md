@@ -50,7 +50,7 @@ To introduce a new tag, append a row here in the same commit that uses it.
 
 ### P2 — Blueprint tooling and SDD
 
-- [ ] Issue #247 — step-05-implement: add deterministic slice-done gate for HTTP+UI-rendering scope (Guardrails #13, #14, #15 + promoted smoke step + AGENTS.md canonical normative home FR-007–FR-010). SPEC_READY. Draft PR #303. Plan refined: Phase 1 parallel (Slice 1A SKILL.md + Slice 1B AGENTS.md), Phase 2 sequential (Slice 2 implement_checklist.md, depends on 1A).
+- [x] Issue #247 — step-05-implement: add deterministic slice-done gate for HTTP+UI-rendering scope (Guardrails #13, #14, #15 + promoted smoke step + AGENTS.md canonical normative home FR-007–FR-010). Closed by PR #303.
 - [ ] Issue #284 — support `ARGOCD_LOCAL_TARGET_REVISION` env var to track a non-default branch in local ArgoCD.
 - [ ] Issue #296 — workaround manifest `action_path` CI validation gate.
 - [ ] (no issue) Ownership checker robustness: support normalized equivalence for semantically-identical prune-glob expressions in ownership-matrix documentation checks.
