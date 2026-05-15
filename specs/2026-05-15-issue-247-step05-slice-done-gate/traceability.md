@@ -14,8 +14,8 @@
 | FR-008 | SDD-C-005, SDD-C-011 | — | AGENTS.md § Testing and Quality Ratios — per-SFC branch coverage rule | `AGENTS.md` § Testing and Quality Ratios | AC-009 confirmed by human review of AGENTS.md section | AGENTS.md is self-documenting governance | n/a |
 | FR-009 | SDD-C-005, SDD-C-011 | — | AGENTS.md § Contract Testing Standards — same-repo provider timing | `AGENTS.md` § Contract Testing Standards | AC-010 confirmed by human review of AGENTS.md section | AGENTS.md is self-documenting governance | n/a |
 | FR-010 | SDD-C-005, SDD-C-011 | — | AGENTS.md § Minimum Validation Bundles — HTTP-scope entries | `AGENTS.md` § Minimum Validation Bundles | AC-011 confirmed by human review of AGENTS.md section | AGENTS.md is self-documenting governance | n/a |
-| NFR-MAINT-001 | SDD-C-004 | — | Guardrails additive-only constraint | SKILL.md guardrail section (no removal of #1–#12) | PR diff review confirms no deletions in guardrail list | n/a | n/a |
-| NFR-COMPAT-001 | SDD-C-004 | — | Additive-only change policy | SKILL.md diff — additions only | PR diff review confirms additive-only | n/a | n/a |
+| NFR-MAINT-001 | SDD-C-004 | — | Guardrails additive-only constraint | SKILL.md guardrail section (no removal of #1–#12); AGENTS.md additions (FR-007–FR-009) MUST follow existing normative language and format | PR diff review confirms no deletions in SKILL.md guardrail list; AGENTS.md additions use MUST/MUST NOT and follow section conventions | n/a | n/a |
+| NFR-COMPAT-001 | SDD-C-004 | — | Additive-only change policy | SKILL.md diff — additions only; AGENTS.md diff — additions only (FR-007–FR-010) | PR diff review confirms additive-only across both files | n/a | n/a |
 | NFR-A11Y-001 | — | — | N/A — no UI changes | — | — | — | — |
 | AC-001 | SDD-C-012 | — | Guardrail #13 text | SKILL.md § Guardrails #13 | Human review confirms exact text matches spec | — | n/a |
 | AC-002 | SDD-C-012 | — | Guardrail #14 text | SKILL.md § Guardrails #14 | Human review confirms exact text matches spec | — | n/a |
