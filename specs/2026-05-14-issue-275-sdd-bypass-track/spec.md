@@ -91,8 +91,13 @@
 - AC-002 A regression test MUST invoke `check_sdd_assets.py` against a repository state with no `specs/` directory and assert that the script exits 0 (existing behavior preserved; regression guard).
 - AC-003 A regression test MUST parse a synthetic `spec.md` with `SPEC_READY: true` and no `SPEC_READY_EXCEPTION` and assert that all 10-artifact existence checks still apply (no regression for full-SDD path).
 - AC-004 A regression test MUST parse a synthetic `spec.md` with `SPEC_READY_EXCEPTION: bug-fix` and `authorized-by: testuser` and assert that the metric line `name=sdd_exception_gate_total` is emitted to stdout.
-- AC-005 A regression test MUST parse a synthetic `spec.md` with `SPEC_READY_EXCEPTION: bug-fix` but NO `authorized-by` field (or `authorized-by: none`) and assert that the checker raises a violation requiring `authorized-by` to be set.
+- AC-005 A regression test MUST parse a synthetic `spec.md` with `SPEC_READY_EXCEPTION: bug-fix` but `authorized-by: none` and assert that the checker raises a violation requiring `authorized-by` to be set.
+- AC-005b A regression test MUST parse a synthetic `spec.md` with `SPEC_READY_EXCEPTION: bug-fix` and the `authorized-by` field entirely absent (not just `none`) and assert that a violation is raised (same gate as AC-005, different input).
 - AC-006 `make quality-sdd-check` MUST pass for this work item's own `spec.md` (self-consistency gate).
+- AC-006b A regression test MUST parse a bypass-active work item with `pr_context.md` absent and assert that a missing-required-document violation is raised for `pr_context.md` (bypass must not waive `pr_context.md`).
+- AC-007 A regression test MUST parse a synthetic `spec.md` with an unrecognised `SPEC_READY_EXCEPTION` value (e.g. `not-a-valid-type`) and a valid `authorized-by` and assert that a violation is raised naming the bad value and the allowed list.
+- AC-008 A regression test MUST parse a synthetic `spec.md` with `SPEC_READY_EXCEPTION: none` and `authorized-by: none` (the scaffold template defaults) and assert that (a) no unrecognised-value violation is raised and (b) full-SDD missing-doc violations still fire (bypass is not active).
+- AC-009 A regression test MUST place a `tasks.md` with a checked implementation task alongside a bypass-active `spec.md`, invoke the checker, and assert that (a) a `[WARNING]` line appears in stdout and (b) no violation is raised for the checked task (non-blocking, demoted per FR-004).
 
 ## Informative Notes (Non-Normative)
 - Context: The motivating case is `sbonoc/dhe-marketplace` PR #62 — a blueprint v1.10.0 upgrade corrective convergence that required 10 stub SDD artifacts to satisfy `quality-sdd-check`. The workaround (`AGENTS.decisions.md` deviation record) is the current approach; FR-001–006 make it unnecessary by providing a first-class supported path.

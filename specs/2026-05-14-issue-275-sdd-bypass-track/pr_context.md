@@ -7,7 +7,7 @@
 
 ## Requirement Coverage
 - Requirement IDs covered: FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-007, NFR-SEC-001, NFR-OBS-001, NFR-REL-001, NFR-OPS-001 (N/A), NFR-A11Y-001 (N/A)
-- Acceptance criteria covered: AC-001 (bypass skips artifact checks), AC-002 (no specs/ dir → exit 0), AC-003 (full-SDD path unaffected), AC-004 (metric emitted), AC-005 (missing authorized-by → violation), AC-006 (quality-sdd-check on own spec.md passes)
+- Acceptance criteria covered: AC-001 (bypass skips artifact checks), AC-002 (no specs/ dir → exit 0), AC-003 (full-SDD path unaffected), AC-004 (metric emitted), AC-005 (authorized-by: none → violation), AC-005b (authorized-by field absent → violation), AC-006 (quality-sdd-check on own spec.md passes), AC-006b (pr_context.md missing on bypass → missing-doc violation), AC-007 (unrecognised exception type → named violation), AC-008 (SPEC_READY_EXCEPTION: none template default → no bypass, no spurious violation), AC-009 (tasks.md with checked tasks under bypass → [WARNING] emitted, not a violation)
 - Contract surfaces changed: `spec.md` Spec Readiness Gate section — two new optional fields (`SPEC_READY_EXCEPTION`, `authorized-by`) with backward-compatible `none` defaults; `check_sdd_assets.py` — bypass branch in work-item loop; no API, database, or event contract changes
 
 ## Key Reviewer Files
@@ -20,8 +20,8 @@
 
 ## Validation Evidence
 - Required commands executed: `uv run pytest tests/blueprint/test_sdd_bypass_track.py -v` · `make test-unit-all` · `make quality-sdd-check` · `make quality-sdd-check-all` · `make docs-build` · `make docs-smoke` · `make quality-hardening-review`
-- Result summary: all 5 AC tests green; 1014 total unit tests pass; quality-sdd-check-all PASS
-- Artifact references: `tests/blueprint/test_sdd_bypass_track.py` (5 tests); `scripts/bin/quality/check_sdd_assets.py` (bypass logic); `AGENTS.md §Lightweight SDD Bypass Track`
+- Result summary: all 10 AC tests green (5 original + 5 added in response to PR review findings); 1016 total unit tests pass; quality-sdd-check-all PASS
+- Artifact references: `tests/blueprint/test_sdd_bypass_track.py` (10 tests); `scripts/bin/quality/check_sdd_assets.py` (bypass logic); `AGENTS.md §Lightweight SDD Bypass Track`
 
 ## Risk and Rollback
 - Main risks: (1) Exception mechanism could be misused to bypass full SDD on feature work — mitigated by `authorized-by` requirement creating a visible accountability trail in git history and CI logs; code review provides the human gate. (2) `SPEC_READY_EXCEPTION: none` default means no existing spec is affected without opt-in.
