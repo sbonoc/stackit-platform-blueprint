@@ -7,20 +7,36 @@
 
 ## Context
 
-Consumer repositories initialized from the blueprint template contain two governance files that are both auto-loaded by code assistants:
+### Auto-loading tiers and the structural root cause
 
-- `AGENTS.md` — process, workflow, SDD lifecycle policy, quality-hook rules
-- `docs/platform/architecture/north_star.md` — cross-cutting architecture invariants, bounded-context decisions, long-lived platform guidance
+Agent sessions operate on a tiered loading model:
 
-Because AGENTS.md is auto-loaded on every agent session, there is a recurring temptation to inline architecture content there directly (e.g. "OpenMetadata Integration Architecture" section) so agents see it without a separate read step. This has already caused measurable harm in the dhe-marketplace consumer: a substantial `## OpenMetadata Integration Architecture` section grew in AGENTS.md over multiple spec sessions, duplicating the content already in north_star.md. The duplication was caught and corrected in commit `9586424`, but the correction required manual audit. The pattern will recur in every consumer unless the template enforces the separation from initialization.
+- **Tier 1 — always auto-loaded**: `AGENTS.md` via the `CLAUDE.md` directive. Every agent session reads this file unconditionally.
+- **Tier 2 — read on demand**: `docs/platform/architecture/north_star.md` (consumer), `docs/blueprint/architecture/north_star.md` (blueprint), ADRs. These are referenced as soft pointers but have no normative MUST-read instruction forcing agents to load them before starting work.
 
-The blueprint's existing template provides only a soft pointer in `AGENTS.md § SDD Artifacts`:
+The Tier 2 gap is the structural root cause of the duplication pattern. Because `north_star.md` is not auto-loaded, agents have an incentive to inline its content into `AGENTS.md` so it is visible without a separate read step. This creates silent drift: `AGENTS.md` accumulates architecture content that already exists in `north_star.md`, but neither file enforces exclusivity.
+
+### north_star.md ownership model
+
+`docs/platform/architecture/north_star.md` is seeded from the blueprint at consumer init (`seed_mode: create_if_missing` in `contract.yaml`) and is thereafter fully consumer-owned — it is never overwritten on blueprint upgrade. `docs/blueprint/architecture/north_star.md` is blueprint-managed and drift-checked on upgrade. This ownership split is why the hooks use two different file paths depending on context (consumer vs. blueprint repo).
+
+### Observed harm
+
+The dhe-marketplace consumer demonstrates the failure mode: a substantial `## OpenMetadata Integration Architecture` section grew in `AGENTS.md` over multiple spec sessions, duplicating content already in `north_star.md`. The duplication was caught and corrected in commit `9586424`, but only through manual audit. The pattern will recur in every consumer unless the template enforces the boundary from initialization.
+
+### Gap in the blueprint repo itself
+
+The same Tier 2 gap exists in the blueprint repo's own `AGENTS.md`. The blueprint template provides only a soft pointer:
 _"Use the north-star architecture references: `docs/platform/architecture/north_star.md`"_
 
-This is insufficient because:
-1. It says where to look, not what must NOT be inlined.
-2. There is no structural section in AGENTS.md that names the boundary explicitly.
+This is insufficient for the same three reasons that apply to consumer repos:
+1. It says where to look, not what MUST NOT be inlined.
+2. There is no structural section naming the boundary explicitly.
 3. There is no automated enforcement — convention is the only guardrail.
+
+### Gap for existing consumers
+
+Consumer repos initialized before this change have no automatic path to adopt the structural contract. `AGENTS.md` is consumer-owned post-init and is never auto-overwritten on blueprint upgrade. Without an active enforcement signal, existing consumers would silently miss the new contract indefinitely.
 
 ## Decision
 
@@ -83,12 +99,13 @@ Chosen over Option B (section-heading + body heuristic) because:
 - Blueprint's own `AGENTS.md` gains the same Mandatory Workflow rule (FR-007), closing the auto-loading gap in the blueprint repo itself.
 - Existing consumers are not auto-overwritten. After blueprint upgrade they receive the new hooks; on the next push the structure check (Layer 3) fires if the required sections are absent, prompting the consumer to add them manually using the updated template as a reference.
 - The Pointers table exemption requires that table rows use the exact heading text from north_star.md as the domain key. Paraphrased rows will still trigger violations — by design.
+- `north_star.md` ownership is unchanged: the consumer path (`docs/platform/architecture/north_star.md`) remains seeded-at-init and consumer-owned; the blueprint path (`docs/blueprint/architecture/north_star.md`) remains blueprint-managed. No change to `contract.yaml`.
 - Option B (body-heuristic) is explicitly deferred as a parked proposal (on-scope: quality).
-- `pr_context.md` required-section content validation is skipped for bypass-track specs; this hook applies to full-SDD work items where the spec is SPEC_READY.
 
 ## Alternatives Considered
 
 - **Convention only (status quo):** Soft pointer in AGENTS.md with no structural section and no automated enforcement. Rejected — the dhe-marketplace drift proves convention fails silently across multiple sessions.
 - **Option B — body heuristic:** Scan shared MUST/MUST-NOT clauses and bullet text across matched sections. Rejected for initial implementation (higher complexity, false-positive risk); parked for future iteration.
-- **Auto-update existing consumers on upgrade:** Rejected — AGENTS.md is consumer-owned; blueprint-managed auto-overwrite would break the ownership contract.
+- **Auto-overwrite existing consumers on upgrade:** Rejected — AGENTS.md is consumer-owned; blueprint-managed auto-overwrite would destroy consumer-specific content and break the ownership contract.
+- **Additive auto-patch on upgrade:** Insert only the missing sections into existing consumer AGENTS.md files without touching existing content. Rejected — auto-patching prose files is fragile: consumers may have reorganized sections, renamed headings, or restructured the Mandatory Workflow block; insertion point heuristics produce incorrect results. The check-and-signal approach (Layer 3) is safer: the consumer receives a clear violation message and adds the sections manually using the updated template as reference.
 - **`AGENTS.decisions.md` decisions ledger:** A separate file of past decisions that agents MUST scan before each Discover phase. Rejected — no lifecycle management (entries get superseded with no staleness signal), context window cost grows unboundedly as the file grows, and the requirement duplicates what the ADR system already provides with proper lifecycle states. If needed in the future, it requires its own spec covering format contract, lifecycle fields, and index structure.
