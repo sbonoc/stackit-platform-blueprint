@@ -19,7 +19,11 @@
     {"id": "AC-006", "type": "acceptance", "summary": "quality-docs-cross-reference-check make target exists; quality-hooks-fast triggers it"},
     {"id": "AC-007", "type": "acceptance", "summary": "Absent AGENTS.md or north_star.md → exit 0; missing allowlist → exit 0; clean files → exit 0"},
     {"id": "FR-007", "type": "requirement", "summary": "Blueprint's own AGENTS.md Mandatory Workflow includes north_star.md MUST-read rule prohibiting duplication"},
-    {"id": "AC-008", "type": "acceptance", "summary": "Blueprint's own AGENTS.md Mandatory Workflow contains north_star.md MUST-read rule"}
+    {"id": "AC-008", "type": "acceptance", "summary": "Blueprint's own AGENTS.md Mandatory Workflow contains north_star.md MUST-read rule"},
+    {"id": "FR-010", "type": "requirement", "summary": "check_agents_md_structure.py: verify AGENTS.md contains Pointers section header and north_star.md Mandatory Workflow rule"},
+    {"id": "FR-011", "type": "requirement", "summary": "quality-docs-agents-md-structure-check make target + hooks_fast.sh wiring + bootstrap propagation"},
+    {"id": "AC-011", "type": "acceptance", "summary": "Missing Pointers section or missing north_star.md rule → exit 1 with named violation per missing element"},
+    {"id": "AC-012", "type": "acceptance", "summary": "All structural elements present → exit 0; absent AGENTS.md → exit 0 (graceful skip)"}
   ],
   "edges": [
     {"from": "FR-001", "to": "AC-001", "relation": "validated_by"},
@@ -34,6 +38,11 @@
     {"from": "NFR-MAINT-001", "to": "AC-001", "relation": "constrains"},
     {"from": "NFR-COMPAT-001", "to": "AC-007", "relation": "validated_by"},
     {"from": "FR-007", "to": "AC-008", "relation": "validated_by"},
-    {"from": "FR-002", "to": "FR-007", "relation": "constrains"}
+    {"from": "FR-002", "to": "FR-007", "relation": "constrains"},
+    {"from": "FR-010", "to": "AC-011", "relation": "validated_by"},
+    {"from": "FR-010", "to": "AC-012", "relation": "validated_by"},
+    {"from": "FR-011", "to": "AC-011", "relation": "validated_by"},
+    {"from": "FR-001", "to": "FR-010", "relation": "constrains"},
+    {"from": "FR-002", "to": "FR-010", "relation": "constrains"}
   ]
 }

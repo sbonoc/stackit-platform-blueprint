@@ -18,6 +18,8 @@
 | NFR-MAINT-001 (Pointers table ≥1 placeholder row) | architecture.md § Template governance context | `scripts/templates/consumer/init/AGENTS.md.tmpl` | `tests/blueprint/test_docs_cross_reference.py::TemplateSectionTests::test_pointers_table_has_placeholder_row` | N/A | N/A |
 | NFR-COMPAT-001 (graceful no-op when files absent) | architecture.md § Application layer (main() path) | `scripts/bin/quality/check_docs_cross_reference.py` | `tests/blueprint/test_docs_cross_reference.py::GracefulSkipTests` (AC-007) | N/A | exit 0 in consumer repos without these files |
 | FR-007 (north_star.md MUST-read rule in blueprint AGENTS.md) | architecture.md § Blueprint governance context; ADR § Layer 1 | `AGENTS.md` (blueprint root) | `tests/blueprint/test_docs_cross_reference.py::BlueprintAgentsMdTests::test_blueprint_agents_md_north_star_rule_present` | ADR | N/A — text instruction, no runtime |
+| FR-010 (check_agents_md_structure.py structure detection) | architecture.md § Structure enforcement context; ADR § Layer 3 | `scripts/bin/quality/check_agents_md_structure.py` | `tests/blueprint/test_agents_md_structure.py::StructureCheckTests` (AC-011, AC-012) | ADR | exit code 0/1; stdout violation messages |
+| FR-011 (make target + hooks wiring for structure check) | architecture.md § Integration and Dependency Edges | `make/blueprint.generated.mk`, `scripts/bin/quality/hooks_fast.sh`, bootstrap template path | `make infra-contract-test-fast` (AC-011 integration); `make quality-hooks-fast` | `docs/blueprint/core_targets.md` auto-updated via `make quality-docs-sync-core-targets` | hooks_fast.sh run log |
 
 ## Acceptance Criteria → Test Mapping
 
@@ -31,9 +33,11 @@
 | AC-006 | `make quality-docs-cross-reference-check` target presence | `make infra-contract-test-fast` | pending |
 | AC-007 | `test_absent_agents_md_exits_zero`, `test_absent_north_star_exits_zero`, `test_clean_files_exit_zero`, `test_missing_allowlist_exits_zero` | `tests/blueprint/test_docs_cross_reference.py` | pending |
 | AC-008 | `test_blueprint_agents_md_north_star_rule_present` | `tests/blueprint/test_docs_cross_reference.py` | pending |
+| AC-011 | `test_missing_pointers_section_exits_one`, `test_missing_north_star_rule_exits_one`, `test_both_missing_exits_one_two_violations` | `tests/blueprint/test_agents_md_structure.py` | pending |
+| AC-012 | `test_all_present_exits_zero`, `test_absent_agents_md_exits_zero` | `tests/blueprint/test_agents_md_structure.py` | pending |
 
 ## Validation Summary
-- Total unit tests planned: 11 (4 template/blueprint content assertions, 7 detection/edge-case)
+- Total unit tests planned: 16 (4 template/blueprint content assertions, 7 duplication detection/edge-case, 5 structure check)
 - Contract gate: `make infra-contract-test-fast`
 - Integration gate: `make quality-hooks-fast`
 - Docs gate: `make docs-build` + `make docs-smoke`

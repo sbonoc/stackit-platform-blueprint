@@ -24,6 +24,8 @@
 
 - **Quality enforcement context** (`scripts/bin/quality/check_docs_cross_reference.py`): Stateless check — reads two markdown files, extracts headings, computes set intersection minus exemptions, emits violations. Runs in consumer repo context (hooks_fast.sh) and in blueprint repo context (development). No persistent state, no external I/O.
 
+- **Structure enforcement context** (`scripts/bin/quality/check_agents_md_structure.py`): Stateless check — reads `AGENTS.md`, scans for the presence of required structural elements (Pointers section header, north_star.md reference in Mandatory Workflow section), emits a named violation per missing element. Targets existing consumers that pre-date the template change: on the next push after blueprint upgrade, the check fires if the required sections are absent. Graceful no-op when `AGENTS.md` is absent. No persistent state, no external I/O. Propagated to consumer repos via blueprint bootstrap template path.
+
 ## High-Level Component Design
 
 - Domain layer: Heading normalization function (`_normalize_heading`) — lowercase + collapse whitespace. Heading extraction function (`_extract_headings`) — parse `##`/`###` lines from markdown. Pointers-table extraction function (`_extract_pointer_headings`) — parse AGENTS.md "Architecture Invariants — Pointers" table to get exempted headings. Allowlist loader (`_load_allowlist`) — parse `.quality-docs-cross-reference-allowlist.yml`, validate `justification` fields.
@@ -34,7 +36,7 @@
 ## Integration and Dependency Edges
 
 - Upstream dependencies: `AGENTS.md` (consumer-owned root file), `docs/platform/architecture/north_star.md` (consumer-owned, blueprint seed), `.quality-docs-cross-reference-allowlist.yml` (optional, consumer-owned).
-- Downstream consumers: `hooks_fast.sh` invokes the make target; `quality-docs-check-changed` group in hooks_fast.sh. The script is also propagated to consumer repos via the blueprint bootstrap template path (`scripts/templates/blueprint/bootstrap/scripts/bin/quality/`).
+- Downstream consumers: `hooks_fast.sh` invokes both make targets; `quality-docs-check-changed` group in hooks_fast.sh. Both scripts are propagated to consumer repos via the blueprint bootstrap template path (`scripts/templates/blueprint/bootstrap/scripts/bin/quality/`).
 - Blueprint template propagation: `scripts/bin/quality/check_docs_cross_reference.py` is blueprint-managed and propagated to consumers on upgrade via the existing drift-check mechanism.
 
 ## Mermaid Diagrams

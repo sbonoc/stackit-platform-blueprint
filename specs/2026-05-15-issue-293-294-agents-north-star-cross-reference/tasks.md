@@ -28,6 +28,15 @@
 - [ ] T-204 Wire `quality-docs-cross-reference-check` into `scripts/bin/quality/hooks_fast.sh` in the `quality-docs-check-changed` group alongside existing `quality-docs-check-changed` invocation
 - [ ] T-205 Turn all slice-2 tests green
 
+## Slice 3 — AGENTS.md structure check for existing consumers
+
+### Implementation
+- [ ] T-601 Write failing unit tests for AC-011 and AC-012 (missing Pointers section → exit 1; missing north_star.md rule → exit 1; both missing → exit 1 with two violations; all present → exit 0; absent AGENTS.md → exit 0) — red phase
+- [ ] T-602 Implement `scripts/bin/quality/check_agents_md_structure.py`: scan for `## Architecture Invariants — Pointers` header and `north_star.md` reference within `## Mandatory Workflow` section; emit `[quality-docs-agents-md-structure-check]` violations; exit 0/1 semantics; graceful no-op when AGENTS.md absent
+- [ ] T-603 Add `quality-docs-agents-md-structure-check` make target to `make/blueprint.generated.mk` with consistent comment/formatting matching existing `quality-docs-*` targets
+- [ ] T-604 Wire `quality-docs-agents-md-structure-check` into `scripts/bin/quality/hooks_fast.sh` in the `quality-docs-check-changed` group; add script to bootstrap template propagation path
+- [ ] T-605 Turn all slice-3 tests green
+
 ## Accessibility Testing (Normative — mark N/A with rationale for non-UI specs)
 - [ ] T-A01 N/A — tooling-only change; no UI or frontend involved (see NFR-A11Y-001 in spec.md)
 

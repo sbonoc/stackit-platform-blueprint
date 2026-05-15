@@ -17,6 +17,8 @@
 
 2. Slice 2 — Cross-reference quality hook (closes #294): Write failing unit tests for AC-003 through AC-007 (heading detection, Pointers-table exemption, allowlist, graceful skip). Implement `scripts/bin/quality/check_docs_cross_reference.py`. Add `quality-docs-cross-reference-check` make target to `make/blueprint.generated.mk`. Wire into `scripts/bin/quality/hooks_fast.sh`. Turn tests green. Run `make quality-hooks-fast`.
 
+3. Slice 3 — AGENTS.md structure check for existing consumers: Write failing unit tests for AC-011 and AC-012 (missing sections → exit 1, all present → exit 0, absent file → exit 0). Implement `scripts/bin/quality/check_agents_md_structure.py`. Add `quality-docs-agents-md-structure-check` make target to `make/blueprint.generated.mk`. Wire into `scripts/bin/quality/hooks_fast.sh`. Propagate script to consumer repos via bootstrap template path. Turn tests green. Run `make quality-hooks-fast`.
+
 ## Change Strategy
 - Migration/rollout sequence: Additive only. Slice 1 is a template text change; existing consumers are unaffected until they re-run init or explicitly pull the updated template. Slice 2 adds a new make target and hook invocation — existing consumers see the hook on blueprint upgrade; clean consumers pass immediately.
 - Backward compatibility policy: No existing behavior is removed or modified. The new hook is an additive check. Consumers with pre-existing AGENTS.md ↔ north_star.md heading overlap will see violations on upgrade; the allowlist mechanism provides a structured escape hatch.
