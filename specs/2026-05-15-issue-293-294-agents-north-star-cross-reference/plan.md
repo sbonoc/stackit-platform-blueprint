@@ -13,7 +13,7 @@
 
 ## Delivery Slices
 
-1. Slice 1 — AGENTS.md template + blueprint AGENTS.md update (closes #293): Add "Architecture Invariants — Pointers" section, north_star.md MUST-read Mandatory Workflow rule (FR-002), and AGENTS.decisions.md scan Mandatory Workflow rule (FR-008) to `scripts/templates/consumer/init/AGENTS.md.tmpl`. Add the same north_star.md MUST-read rule (FR-007) and AGENTS.decisions.md scan rule (FR-009) to blueprint's own `AGENTS.md`. Write failing unit tests for AC-001, AC-002, AC-008, AC-009, AC-010 (template/blueprint content assertions); turn green with the text updates. Run `make quality-hooks-fast`.
+1. Slice 1 — AGENTS.md template + blueprint AGENTS.md update (closes #293): Add "Architecture Invariants — Pointers" section and north_star.md MUST-read Mandatory Workflow rule (FR-002) to `scripts/templates/consumer/init/AGENTS.md.tmpl`. Add the same north_star.md MUST-read rule (FR-007) to blueprint's own `AGENTS.md`. Write failing unit tests for AC-001, AC-002, AC-008 (template/blueprint content assertions); turn green with the text updates. Run `make quality-hooks-fast`.
 
 2. Slice 2 — Cross-reference quality hook (closes #294): Write failing unit tests for AC-003 through AC-007 (heading detection, Pointers-table exemption, allowlist, graceful skip). Implement `scripts/bin/quality/check_docs_cross_reference.py`. Add `quality-docs-cross-reference-check` make target to `make/blueprint.generated.mk`. Wire into `scripts/bin/quality/hooks_fast.sh`. Turn tests green. Run `make quality-hooks-fast`.
 

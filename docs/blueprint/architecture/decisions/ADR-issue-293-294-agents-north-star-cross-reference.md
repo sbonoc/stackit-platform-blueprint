@@ -26,7 +26,7 @@ This is insufficient because:
 
 **Enforce AGENTS.md = process-and-governance only; north_star.md = architecture content only** at two layers:
 
-### Layer 1 — Template governance and blueprint AGENTS.md update (FR-001, FR-002, FR-007, FR-008, FR-009)
+### Layer 1 — Template governance and blueprint AGENTS.md update (FR-001, FR-002, FR-007)
 
 Update `scripts/templates/consumer/init/AGENTS.md.tmpl` with:
 
@@ -37,15 +37,13 @@ Update `scripts/templates/consumer/init/AGENTS.md.tmpl` with:
 
 2. A new **Mandatory Workflow rule** (FR-002) that before any SDD work item touching a domain in `north_star.md`, the agent MUST read the relevant `north_star.md` section and canonical ADR(s) in the Pointers table, and MUST NOT inline that content in AGENTS.md.
 
-3. A new **Mandatory Workflow rule** (FR-008) that before the Discover phase of any SDD work item, the agent MUST scan `AGENTS.decisions.md` for entries whose scope intersects the work item's domain. Where intersection exists, the agent MUST read those entries in full before making design choices.
-
 Update the blueprint's own `AGENTS.md` with:
 
-4. The same north_star.md MUST-read Mandatory Workflow rule as item 2 above (FR-007), referencing `docs/blueprint/architecture/north_star.md`.
+3. The same north_star.md MUST-read Mandatory Workflow rule as item 2 above (FR-007), referencing `docs/blueprint/architecture/north_star.md`.
 
-5. The same AGENTS.decisions.md scan Mandatory Workflow rule as item 3 above (FR-009).
+**Rationale for extending to the blueprint's own AGENTS.md**: AGENTS.md is always auto-loaded by agents, but `north_star.md` is only a soft pointer with no normative MUST-read instruction. This gap applies equally to the blueprint repo and consumer repos; fixing only the template would leave the blueprint repo with the same vulnerability.
 
-**Rationale for extending to the blueprint's own AGENTS.md**: The auto-loading tiered protocol means AGENTS.md is always auto-loaded by agents, but `north_star.md` and `AGENTS.decisions.md` are only soft pointers with no normative MUST-read instruction. This gap applies equally to the blueprint repo and consumer repos; fixing only the template would leave the blueprint repo with the same vulnerability.
+**Rationale for NOT introducing `AGENTS.decisions.md`**: A flat decisions ledger has no lifecycle management — decisions get superseded or made obsolete with no mechanism to signal staleness. An agent following a MUST-read rule on a growing file gets actively wrong guidance when entries are stale, and context window cost grows unboundedly. The existing ADR system (numbered, with `proposed/accepted/superseded/obsolete` lifecycle) + `north_star.md` (current settled state) + Pointers table (domain → north_star section → canonical ADR) already provide selective, lifecycle-aware decision surfacing. No separate decisions ledger is introduced.
 
 ### Layer 2 — Programmatic enforcement (FR-003 through FR-006)
 
@@ -69,11 +67,10 @@ Chosen over Option B (section-heading + body heuristic) because:
 
 ## Consequences
 
-- New consumer repos initialized after this change have the anti-duplication contract visible from day one, plus normative instructions to read north_star.md and AGENTS.decisions.md before each SDD work item's Discover phase.
-- Blueprint's own `AGENTS.md` gains the same two normative Mandatory Workflow rules (FR-007, FR-009), closing the auto-loading gap in the blueprint repo itself.
+- New consumer repos initialized after this change have the anti-duplication contract visible from day one, with a normative instruction to read the relevant north_star.md section and canonical ADR(s) before touching a covered domain.
+- Blueprint's own `AGENTS.md` gains the same Mandatory Workflow rule (FR-007), closing the auto-loading gap in the blueprint repo itself.
 - Existing consumers are not auto-updated (AGENTS.md is consumer-owned post-init). They see the new hook on blueprint upgrade; clean consumers pass; consumers with duplication see violations on the next push and fix manually.
 - The Pointers table exemption requires that table rows use the exact heading text from north_star.md as the domain key. Paraphrased rows will still trigger violations — by design.
-- The AGENTS.decisions.md scan rule (FR-008, FR-009) is an agent-instruction-only control; there is no programmatic enforcement. Compliance relies on the MUST-read instruction being followed by the agent. Programmatic enforcement is deferred as a future iteration.
 - Option B (body-heuristic) is explicitly deferred as a parked proposal (on-scope: quality).
 - `pr_context.md` required-section content validation is skipped for bypass-track specs; this hook applies to full-SDD work items where the spec is SPEC_READY.
 
@@ -82,3 +79,4 @@ Chosen over Option B (section-heading + body heuristic) because:
 - **Convention only (status quo):** Soft pointer in AGENTS.md with no structural section and no automated enforcement. Rejected — the dhe-marketplace drift proves convention fails silently across multiple sessions.
 - **Option B — body heuristic:** Scan shared MUST/MUST-NOT clauses and bullet text across matched sections. Rejected for initial implementation (higher complexity, false-positive risk); parked for future iteration.
 - **Auto-update existing consumers on upgrade:** Rejected — AGENTS.md is consumer-owned; blueprint-managed auto-overwrite would break the ownership contract.
+- **`AGENTS.decisions.md` decisions ledger:** A separate file of past decisions that agents MUST scan before each Discover phase. Rejected — no lifecycle management (entries get superseded with no staleness signal), context window cost grows unboundedly as the file grows, and the requirement duplicates what the ADR system already provides with proper lifecycle states. If needed in the future, it requires its own spec covering format contract, lifecycle fields, and index structure.
