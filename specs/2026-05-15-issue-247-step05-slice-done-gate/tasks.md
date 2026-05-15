@@ -16,6 +16,12 @@
 - [ ] T-004 Update "After All Slices Complete — Minimum validation bundle" table: add REQUIRED row for HTTP scope and REQUIRED row for HTTP+UI rendering scope
 - [ ] T-005 Add numbered workflow step "3. Local smoke gate (HTTP and UI-rendering scope)" to SKILL.md main workflow (before "After All Slices Complete"); remove the now-duplicated HTTP block from "Special cases"
 
+### Slice 3 — Update AGENTS.md
+- [ ] T-007 Add field-coverage gate requirement to AGENTS.md § Cross-Cutting Guardrails (FR-007)
+- [ ] T-008 Add per-SFC rendering-branch coverage rule to AGENTS.md § Testing and Quality Ratios (FR-008)
+- [ ] T-009 Add same-repo Pact provider timing requirement to AGENTS.md § Contract Testing Standards (FR-009)
+- [ ] T-010 Add two HTTP-scope entries to AGENTS.md § Minimum Validation Bundles (FR-010)
+
 ### Slice 2 — Create checklist file
 - [ ] T-006 Create `.agents/skills/blueprint-sdd-step05-implement/references/implement_checklist.md` (contract compliance gap — file absent on disk); content derived from Slice 1 SKILL.md changes; MUST NOT introduce requirements beyond SKILL.md (FR-006)
 

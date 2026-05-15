@@ -81,6 +81,46 @@
       "id": "AC-007",
       "type": "acceptance",
       "summary": "make quality-hooks-run passes clean after all changes applied"
+    },
+    {
+      "id": "FR-007",
+      "type": "requirement",
+      "summary": "AGENTS.md § Cross-Cutting Guardrails MUST add field-coverage gate — canonical normative home for Guardrail #13"
+    },
+    {
+      "id": "FR-008",
+      "type": "requirement",
+      "summary": "AGENTS.md § Testing and Quality Ratios MUST add per-SFC rendering-branch coverage rule — canonical normative home for Guardrail #14"
+    },
+    {
+      "id": "FR-009",
+      "type": "requirement",
+      "summary": "AGENTS.md § Contract Testing Standards MUST add same-repo Pact provider timing requirement — canonical normative home for Guardrail #15 same-repo clause"
+    },
+    {
+      "id": "FR-010",
+      "type": "requirement",
+      "summary": "AGENTS.md § Minimum Validation Bundles MUST add two HTTP-scope entries resolving drift with § Cross-Cutting Guardrails"
+    },
+    {
+      "id": "AC-008",
+      "type": "acceptance",
+      "summary": "AGENTS.md § Cross-Cutting Guardrails contains field-coverage gate for HTTP-scope schema changes"
+    },
+    {
+      "id": "AC-009",
+      "type": "acceptance",
+      "summary": "AGENTS.md § Testing and Quality Ratios contains per-SFC rendering-branch coverage rule"
+    },
+    {
+      "id": "AC-010",
+      "type": "acceptance",
+      "summary": "AGENTS.md § Contract Testing Standards contains same-repo Pact provider timing requirement"
+    },
+    {
+      "id": "AC-011",
+      "type": "acceptance",
+      "summary": "AGENTS.md § Minimum Validation Bundles contains two HTTP-scope entries"
     }
   ],
   "edges": [
@@ -103,6 +143,18 @@
     { "from": "NFR-COMPAT-001", "to": "FR-002", "relation": "constrains" },
     { "from": "NFR-COMPAT-001", "to": "FR-003", "relation": "constrains" },
     { "from": "NFR-COMPAT-001", "to": "FR-004", "relation": "constrains" },
-    { "from": "NFR-COMPAT-001", "to": "FR-005", "relation": "constrains" }
+    { "from": "NFR-COMPAT-001", "to": "FR-005", "relation": "constrains" },
+    { "from": "FR-007", "to": "AC-008", "relation": "validated_by" },
+    { "from": "FR-008", "to": "AC-009", "relation": "validated_by" },
+    { "from": "FR-009", "to": "AC-010", "relation": "validated_by" },
+    { "from": "FR-010", "to": "AC-011", "relation": "validated_by" },
+    { "from": "FR-007", "to": "AC-007", "relation": "validated_by" },
+    { "from": "FR-008", "to": "AC-007", "relation": "validated_by" },
+    { "from": "FR-009", "to": "AC-007", "relation": "validated_by" },
+    { "from": "FR-010", "to": "AC-007", "relation": "validated_by" },
+    { "from": "FR-001", "to": "FR-007", "relation": "requires" },
+    { "from": "FR-002", "to": "FR-008", "relation": "requires" },
+    { "from": "FR-003", "to": "FR-009", "relation": "requires" },
+    { "from": "FR-004", "to": "FR-010", "relation": "requires" }
   ]
 }

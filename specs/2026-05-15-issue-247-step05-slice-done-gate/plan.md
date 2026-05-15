@@ -23,6 +23,17 @@ Add Guardrails #13, #14, #15 to the existing Guardrails section. Update the "Aft
 
 Verification: read SKILL.md to confirm all three guardrails are present, the table has the new rows, and the numbered smoke step exists before "After All Slices Complete". Run `make quality-hooks-fast` to confirm no regressions.
 
+### Slice 3 — Update AGENTS.md (canonical normative source)
+Update four sections of `AGENTS.md` to provide the canonical normative home for the governance introduced by Guardrails #13, #14, and #15:
+- § Cross-Cutting Guardrails: add field-coverage gate (extends existing positive-path bullet) — FR-007
+- § Testing and Quality Ratios: add per-SFC rendering-branch coverage rule — FR-008
+- § Contract Testing Standards: add same-repo Pact provider timing requirement — FR-009
+- § Minimum Validation Bundles: add two HTTP-scope entries — FR-010
+
+AGENTS.md is the canonical source; SKILL.md derives from it. This slice MUST be applied consistently with Slice 1 (SKILL.md) so the two files do not drift.
+
+Verification: read each updated AGENTS.md section to confirm the four additions are present and consistent with the corresponding SKILL.md guardrails. Run `make quality-hooks-fast`.
+
 ### Slice 2 — Create `references/implement_checklist.md`
 Create `.agents/skills/blueprint-sdd-step05-implement/references/implement_checklist.md`. The file is listed as a `required_file` in `blueprint/contract.yaml` but absent on disk; this slice resolves the contract compliance gap. Content is derived from the SKILL.md changes in Slice 1 — a concise checklist summary of Guardrails #13, #14, #15 and the promoted smoke gate. SKILL.md is the normative source; the checklist MUST NOT introduce additional requirements.
 
