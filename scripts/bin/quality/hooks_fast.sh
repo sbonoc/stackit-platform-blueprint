@@ -94,10 +94,12 @@ if keep_going_active; then
   run_check "quality-root-dir-prelude-check" -- make -C "$ROOT_DIR" quality-root-dir-prelude-check
   run_check "quality-infra-shell-source-graph-check" -- make -C "$ROOT_DIR" quality-infra-shell-source-graph-check
   run_check "quality-sdd-check-all" -- make -C "$ROOT_DIR" quality-sdd-check-all
+  run_check "quality-workaround-manifest-check" -- make -C "$ROOT_DIR" quality-workaround-manifest-check
 else
   run_cmd make -C "$ROOT_DIR" quality-root-dir-prelude-check
   run_cmd make -C "$ROOT_DIR" quality-infra-shell-source-graph-check
   run_cmd make -C "$ROOT_DIR" quality-sdd-check-all
+  run_cmd make -C "$ROOT_DIR" quality-workaround-manifest-check
 fi
 
 _current_branch="$(git branch --show-current 2>/dev/null || true)"

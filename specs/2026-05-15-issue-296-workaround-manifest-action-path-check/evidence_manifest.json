@@ -1,7 +1,58 @@
 {
   "manifest_version": 1,
-  "work_item": "<YYYY-MM-DD>-<work-item-slug>",
+  "work_item": "specs/2026-05-15-issue-296-workaround-manifest-action-path-check",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "",
-  "files": []
+  "generated_at_utc": "2026-05-15T22:26:20Z",
+  "files": [
+    {
+      "path": "specs/2026-05-15-issue-296-workaround-manifest-action-path-check/architecture.md",
+      "sha256": "03a2db8f8b32fe32fe43f27d22ea5ed4a3a4207b765444e7da6333d25068e5cf",
+      "bytes": 4581
+    },
+    {
+      "path": "specs/2026-05-15-issue-296-workaround-manifest-action-path-check/context_pack.md",
+      "sha256": "b23c688d84773ef71430100b91f40d1bb360309bbd88f135f1fa67ad15e19b8b",
+      "bytes": 1082
+    },
+    {
+      "path": "specs/2026-05-15-issue-296-workaround-manifest-action-path-check/evidence_manifest.json",
+      "sha256": "ecb0eea40122794ca8f062212e022ba451f6d0a543b88db3d7c15e65a071e7f7",
+      "bytes": 161
+    },
+    {
+      "path": "specs/2026-05-15-issue-296-workaround-manifest-action-path-check/graph.json",
+      "sha256": "5ce04fbb6be80f24babeca7b3bc9da8de5992a4621a2cb3d2d8c0ce6c0bec01b",
+      "bytes": 3683
+    },
+    {
+      "path": "specs/2026-05-15-issue-296-workaround-manifest-action-path-check/hardening_review.md",
+      "sha256": "180c270281b26a89bd05143aa36c52a8f29682f3a175ec99f369f8490532b0f7",
+      "bytes": 1164
+    },
+    {
+      "path": "specs/2026-05-15-issue-296-workaround-manifest-action-path-check/plan.md",
+      "sha256": "27983d67056a158dd4687551003961ccae797cb21199a86c205fe18d1979dd7f",
+      "bytes": 5939
+    },
+    {
+      "path": "specs/2026-05-15-issue-296-workaround-manifest-action-path-check/pr_context.md",
+      "sha256": "26b7a261f5f07f472d3d30b255eb9d1b35c3633cb84be062b9e5f461c488d33c",
+      "bytes": 465
+    },
+    {
+      "path": "specs/2026-05-15-issue-296-workaround-manifest-action-path-check/spec.md",
+      "sha256": "5de26c754e63c4558033395f461ff763932b64489d9067f3fa73b5b0b3143f24",
+      "bytes": 7873
+    },
+    {
+      "path": "specs/2026-05-15-issue-296-workaround-manifest-action-path-check/tasks.md",
+      "sha256": "dba0c62116b38a08091fe1135f6f545a935859fbe479173a232ad99eb7554f6f",
+      "bytes": 4461
+    },
+    {
+      "path": "specs/2026-05-15-issue-296-workaround-manifest-action-path-check/traceability.md",
+      "sha256": "44be5bae34f7c2639d260d8d5b13b9e0e519f8974bfdb730a97993f557ccce27",
+      "bytes": 4243
+    }
+  ]
 }
