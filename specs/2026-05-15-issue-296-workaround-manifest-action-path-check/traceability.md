@@ -35,8 +35,8 @@
 - Required bundles executed: `make quality-hooks-fast`, `make infra-validate`, `uv run pytest tests/blueprint/test_workaround_manifest_check.py -v`
 - Result summary: 6 pytest tests pass; `make quality-workaround-manifest-check` exits 0; `quality-workaround-manifest-check PASS` in `quality-hooks-fast` summary; all other fast-gate checks pass.
 - Documentation validation:
-  - `make docs-build`: pending post-implementation
-  - `make docs-smoke`: pending post-implementation
+  - `make docs-build`: PASS — static site generated successfully
+  - `make docs-smoke`: PASS
 
 ## Evidence Manifest
 - Manifest file: `evidence_manifest.json`
