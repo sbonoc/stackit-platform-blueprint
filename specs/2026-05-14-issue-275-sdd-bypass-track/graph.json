@@ -91,6 +91,21 @@
       "id": "AC-006",
       "type": "acceptance",
       "summary": "make quality-sdd-check on this work item's own spec.md passes"
+    },
+    {
+      "id": "AC-007",
+      "type": "acceptance",
+      "summary": "unrecognised SPEC_READY_EXCEPTION value with valid authorized-by emits named violation"
+    },
+    {
+      "id": "AC-008",
+      "type": "acceptance",
+      "summary": "SPEC_READY_EXCEPTION: none (template default) does not activate bypass and emits no spurious violation"
+    },
+    {
+      "id": "AC-009",
+      "type": "acceptance",
+      "summary": "bypass active + tasks.md has checked implementation task → [WARNING] emitted, not a violation"
     }
   ],
   "edges": [
@@ -106,6 +121,10 @@
     { "from": "NFR-OBS-001", "to": "FR-006", "relation": "constrains" },
     { "from": "NFR-REL-001", "to": "FR-005", "relation": "constrains" },
     { "from": "NFR-REL-001", "to": "FR-007", "relation": "constrains" },
-    { "from": "NFR-REL-001", "to": "AC-002", "relation": "constrains" }
+    { "from": "NFR-REL-001", "to": "AC-002", "relation": "constrains" },
+    { "from": "FR-001", "to": "AC-007", "relation": "validated_by" },
+    { "from": "FR-005", "to": "AC-008", "relation": "validated_by" },
+    { "from": "NFR-REL-001", "to": "AC-008", "relation": "constrains" },
+    { "from": "FR-004", "to": "AC-009", "relation": "validated_by" }
   ]
 }

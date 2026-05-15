@@ -7,7 +7,7 @@
 | FR-001 | SDD-C-005, SDD-C-015 | N/A | architecture.md §Bounded Context | `scripts/bin/quality/check_sdd_assets.py` — `SPEC_READY_EXCEPTION` field parsing | `test_sdd_bypass_track.py::test_bypass_path_skips_artifact_checks` (AC-001) | `AGENTS.md` §Lightweight SDD Bypass Track | `quality-sdd-check` gate output |
 | FR-002 | SDD-C-011, SDD-C-015 | N/A | ADR §Decision | `check_sdd_assets.py` — `authorized-by` validation | `test_sdd_bypass_track.py::test_missing_authorized_by_raises_violation` (AC-005) | `AGENTS.md` §Lightweight SDD Bypass Track | `quality-sdd-check` gate output |
 | FR-003 | SDD-C-005, SDD-C-015 | N/A | architecture.md §Gate Evaluation Flow | `check_sdd_assets.py` — bypass branch skips non-essential artifact checks | `test_sdd_bypass_track.py::test_bypass_path_skips_artifact_checks` (AC-001) | ADR §Decision | `quality-sdd-check` gate output |
-| FR-004 | SDD-C-007, SDD-C-015 | N/A | architecture.md §Gate Evaluation Flow | `check_sdd_assets.py` — warning demotion logic | `test_sdd_bypass_track.py` — impl-tasks-checked warning test | `AGENTS.md` §Lightweight SDD Bypass Track | `quality-sdd-check` warning output |
+| FR-004 | SDD-C-007, SDD-C-015 | N/A | architecture.md §Gate Evaluation Flow | `check_sdd_assets.py` — warning demotion logic | `test_sdd_bypass_track.py::test_warning_emitted_when_tasks_checked_under_bypass` (AC-009) | `AGENTS.md` §Lightweight SDD Bypass Track | `quality-sdd-check` warning output |
 | FR-005 | SDD-C-005, SDD-C-015 | N/A | ADR §Decision | `check_sdd_assets.py` — full-SDD path unchanged | `test_sdd_bypass_track.py::test_full_sdd_path_unaffected` (AC-003) | spec.md §Explicit Exclusions | `quality-sdd-check` gate output |
 | FR-006 | SDD-C-010 | N/A | architecture.md §Non-Functional Architecture Notes | `check_sdd_assets.py` — `[METRIC] name=sdd_exception_gate_total` emit | `test_sdd_bypass_track.py::test_metric_emitted_on_bypass_path` (AC-004) | `AGENTS.md` §Lightweight SDD Bypass Track | CI job log |
 | FR-007 | SDD-C-005, SDD-C-014 | N/A | plan.md §Slice 1 | `spec_scaffold.py` or spec.md template — `SPEC_READY_EXCEPTION: none` and `authorized-by: none` defaults | `make quality-sdd-check` on a freshly scaffolded spec | `AGENTS.md` §Lightweight SDD Bypass Track | scaffold output |
@@ -22,6 +22,9 @@
 | AC-004 | SDD-C-010, SDD-C-012 | N/A | N/A | `tests/blueprint/test_sdd_bypass_track.py` | pytest pass | N/A | N/A |
 | AC-005 | SDD-C-011, SDD-C-012 | N/A | N/A | `tests/blueprint/test_sdd_bypass_track.py` | pytest pass | N/A | N/A |
 | AC-006 | SDD-C-016 | N/A | N/A | `make quality-sdd-check` on this work item's own spec.md | quality-sdd-check PASS | N/A | N/A |
+| AC-007 | SDD-C-005, SDD-C-012 | N/A | N/A | `tests/blueprint/test_sdd_bypass_track.py` | pytest pass | N/A | N/A |
+| AC-008 | SDD-C-012, SDD-C-015 | N/A | N/A | `tests/blueprint/test_sdd_bypass_track.py` | pytest pass | N/A | N/A |
+| AC-009 | SDD-C-007, SDD-C-012 | N/A | N/A | `tests/blueprint/test_sdd_bypass_track.py` | pytest pass | N/A | N/A |
 
 ## Graph Linkage
 - Graph file: `graph.json`
@@ -45,10 +48,13 @@
   - AC-004
   - AC-005
   - AC-006
+  - AC-007
+  - AC-008
+  - AC-009
 
 ## Validation Summary
 - Required bundles executed: `uv run pytest tests/blueprint/test_sdd_bypass_track.py -v` · `make test-unit-all` · `make quality-sdd-check` · `make quality-sdd-check-all` · `make docs-build` · `make docs-smoke` · `make quality-hardening-review`
-- Result summary: 5/5 AC tests green; 1014 total unit tests pass; quality-sdd-check-all PASS; docs-build PASS; docs-smoke PASS
+- Result summary: 10/10 AC tests green; 1016 total unit tests pass; quality-sdd-check-all PASS; docs-build PASS; docs-smoke PASS
 - Documentation validation:
   - `make docs-build` — PASS
   - `make docs-smoke` — PASS
