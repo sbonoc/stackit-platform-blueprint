@@ -32,8 +32,8 @@
   - AC-001, AC-002, AC-003, AC-004, AC-005
 
 ## Validation Summary
-- Required bundles executed: pending post-implementation — post-implementation
-- Result summary: pending post-implementation
+- Required bundles executed: `make quality-hooks-fast`, `make infra-validate`, `uv run pytest tests/blueprint/test_workaround_manifest_check.py -v`
+- Result summary: 6 pytest tests pass; `make quality-workaround-manifest-check` exits 0; `quality-workaround-manifest-check PASS` in `quality-hooks-fast` summary; all other fast-gate checks pass.
 - Documentation validation:
   - `make docs-build`: pending post-implementation
   - `make docs-smoke`: pending post-implementation
