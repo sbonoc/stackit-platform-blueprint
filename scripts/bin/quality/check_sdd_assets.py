@@ -20,6 +20,22 @@ from scripts.lib.blueprint.contract_schema import load_blueprint_contract  # noq
 
 APPROVED_SIGNOFF_VALUES = {"approved", "true", "yes", "done", "signed"}
 
+_BYPASS_ALLOWED_VALUES: frozenset[str] = frozenset(
+    {"bug-fix", "upgrade", "refactor", "chore", "authorized-deviation"}
+)
+_BYPASS_OPTIONAL_DOCS: frozenset[str] = frozenset(
+    {
+        "plan.md",
+        "tasks.md",
+        "architecture.md",
+        "traceability.md",
+        "graph.json",
+        "evidence_manifest.json",
+        "context_pack.md",
+        "hardening_review.md",
+    }
+)
+
 
 @dataclass(frozen=True)
 class Violation:
@@ -509,10 +525,58 @@ def _validate_work_item_specs(
     acceptance_pattern = re.compile(r"\bAC-\d{3}\b")
 
     for work_item_dir in work_items:
+        # Bypass pre-flight: read spec.md early to determine exception status.
+        # spec.md is always required; if absent the missing_docs check below handles it.
+        _bypass_exception_type = ""
+        _authorized_by = ""
+        _spec_path_pre = work_item_dir / "spec.md"
+        if _spec_path_pre.is_file():
+            try:
+                _pre_content = _spec_path_pre.read_text(encoding="utf-8", errors="surrogateescape")
+                _pre_sections = _split_markdown_sections(_pre_content)
+                _pre_readiness = _find_section(_pre_sections, "Readiness Gate")
+                if _pre_readiness:
+                    _pre_fields = _parse_bullet_kv(_pre_readiness.content)
+                    _bypass_exception_type = _pre_fields.get("spec_ready_exception", "").strip().lower()
+                    _authorized_by = _pre_fields.get("authorized-by", "").strip()
+            except Exception as exc:
+                print(
+                    f"[quality-sdd-check] warning: could not pre-read {_spec_path_pre}: {exc}",
+                    file=sys.stderr,
+                )
+
+        _exception_set = _bypass_exception_type in _BYPASS_ALLOWED_VALUES
+        _authorized_by_valid = bool(_authorized_by) and _authorized_by.lower() != "none"
+        bypass_active = _exception_set and _authorized_by_valid
+
+        if _bypass_exception_type and _bypass_exception_type != "none" and not _exception_set:
+            violations.append(
+                Violation(
+                    path=str(_spec_path_pre.relative_to(repo_root)),
+                    message=(
+                        f"unrecognised SPEC_READY_EXCEPTION value '{_bypass_exception_type}';"
+                        f" allowed values: {', '.join(sorted(_BYPASS_ALLOWED_VALUES))}"
+                    ),
+                )
+            )
+
+        if _exception_set and not _authorized_by_valid:
+            violations.append(
+                Violation(
+                    path=str(_spec_path_pre.relative_to(repo_root)),
+                    message=(
+                        "SPEC_READY_EXCEPTION is set but authorized-by is absent, empty, or 'none';"
+                        " authorized-by is required"
+                    ),
+                )
+            )
+
         missing_docs: list[str] = []
         for document_name in required_documents:
             doc_path = work_item_dir / document_name
             if not doc_path.is_file():
+                if bypass_active and document_name in _BYPASS_OPTIONAL_DOCS:
+                    continue
                 missing_docs.append(document_name)
         for document_name in missing_docs:
             violations.append(
@@ -522,6 +586,21 @@ def _validate_work_item_specs(
                 )
             )
         if missing_docs:
+            continue
+
+        if bypass_active:
+            _tasks_path_pre = work_item_dir / "tasks.md"
+            if _tasks_path_pre.is_file():
+                _tasks_pre_content = _tasks_path_pre.read_text(encoding="utf-8", errors="surrogateescape")
+                if _checked_tasks_in_sections(_tasks_pre_content, implementation_sections):
+                    print(
+                        f"[WARNING] {work_item_dir.name}: implementation tasks are checked"
+                        f" while SPEC_READY is not true (bypass-track active, non-blocking)"
+                    )
+            print(
+                f"[METRIC] name=sdd_exception_gate_total value=1"
+                f" type={_bypass_exception_type} authorized_by={_authorized_by}"
+            )
             continue
 
         plan_path = work_item_dir / "plan.md"

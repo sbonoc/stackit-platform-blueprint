@@ -219,6 +219,65 @@ The canonical phrase is the only evidence the agent may act on.
   - blueprint track: `docs/blueprint/architecture/north_star.md`, `docs/blueprint/architecture/tech_stack.md`
   - generated-consumer track: `docs/platform/architecture/north_star.md`, `docs/platform/architecture/tech_stack.md`
 
+## Lightweight SDD Bypass Track
+
+Non-feature change types (bug fixes, upgrades, refactors, chores) MUST NOT be forced to complete
+the full 10-artifact SDD cycle. The bypass track reduces the required artifact set while preserving
+the audit trail.
+
+### Activation
+
+Add two optional fields to the `Spec Readiness Gate` section of `spec.md`:
+
+```
+- SPEC_READY_EXCEPTION: <bug-fix|upgrade|refactor|chore|authorized-deviation>
+- authorized-by: <github-handle>
+```
+
+`check_sdd_assets.py` activates the bypass track when both conditions are met:
+- `SPEC_READY_EXCEPTION` is set to a recognised value (not `none` or absent).
+- `authorized-by` is non-empty and not `none`.
+
+When the bypass track is active, `quality-sdd-check` requires only `{spec.md, pr_context.md}`.
+The following artifacts are optional: `plan.md`, `tasks.md`, `architecture.md`, `traceability.md`,
+`graph.json`, `evidence_manifest.json`, `context_pack.md`, `hardening_review.md`.
+
+`authorized-by` is **required** when `SPEC_READY_EXCEPTION` is set. A missing or `none`
+`authorized-by` is a gate violation.
+
+### Tiered minimum traceability
+
+| Change type | `SPEC_READY_EXCEPTION` value | Minimum artifacts | Recommended traceability evidence in `pr_context.md` |
+|---|---|---|---|
+| Feature / Enhancement | `none` (or absent) | All 10 current artifacts | Full SDD — no change |
+| Bug fix | `bug-fix` | `spec.md` + `pr_context.md` | Failing test (red) → fix commit → passing test (green) |
+| Blueprint upgrade | `upgrade` | `spec.md` + `pr_context.md` | Link to `artifacts/blueprint/upgrade/` pipeline report |
+| Refactor | `refactor` | `spec.md` + `pr_context.md` | Before/after suite green; no behavior change assertion |
+| Chore / maintenance | `chore` | `spec.md` + `pr_context.md` OR no `specs/` dir + `AGENTS.decisions.md` entry | `AGENTS.decisions.md` entry with change rationale |
+
+### Chore with no specs/ directory
+
+A pure chore with no `specs/` directory is a passive pass: `quality-sdd-check` finds no work
+items and exits 0. The convention (not a technical gate) is to record a rationale entry in
+`AGENTS.decisions.md` so the decision is traceable in git history.
+
+### Audit metric
+
+Every bypass-path evaluation emits:
+
+```
+[METRIC] name=sdd_exception_gate_total value=1 type=<exception-type> authorized_by=<handle>
+```
+
+This line is visible in CI job logs and provides an audit trail for every exception without
+requiring a separate reporting mechanism.
+
+### Rollback
+
+Set `SPEC_READY_EXCEPTION: none` (or remove the field) to immediately restore full-SDD
+validation for a work item. No migration step is required. Existing `spec.md` files without
+these fields are treated as `SPEC_READY_EXCEPTION: none` (full-SDD path).
+
 ## Guardrail Control Statements (Mandatory)
 - Guardrails must be written and maintained as control statements with stable IDs (`SDD-C-###`) in `.spec-kit/control-catalog.json` and rendered to `.spec-kit/control-catalog.md`.
 - Every control statement must include:

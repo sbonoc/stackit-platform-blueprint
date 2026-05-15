@@ -125,6 +125,9 @@ Surface automatically when the named scope is next touched. Do not promote to ac
       rationale: out of scope for a two-line hotfix; surfaces when quality hook scope is next extended
 - [ ] proposal(issue-265-271-source-exists-inference): `test_pyramid_contract.json` path references drift silently when files move — automate path existence check.
       rationale: demonstrated by `tests/infra/` → `tests/blueprint/` moves causing stale assertions
+- [ ] (parked) proposal(issue-275-sdd-bypass-track): SPEC_READY_EXCEPTION: chore + AGENTS.decisions.md machine-verifiable validation (Option B)
+      trigger: on-scope: quality
+      rationale: checker needs branch/PR context to look up AGENTS.decisions.md entry — makes quality-sdd-check non-deterministic in local runs; convention + code review sufficient
 
 ### on-scope: a11y
 
