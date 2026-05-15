@@ -86,12 +86,12 @@ Depends on: Gate 2 (Streams D and E merged)
 - [x] T-303 Attach evidence to traceability document (traceability.md updated with exact test names and PASS status for all 25 tests)
 - [x] T-304 Confirm no stale TODOs/dead code/drift
 - [x] T-305 Run `make docs-build` and `make docs-smoke` — PASS
-- [ ] T-306 Run `make quality-hardening-review`
+- [x] T-306 Run `make quality-hardening-review` — PASS (no findings)
 
 ## Publish
-- [ ] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
-- [ ] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
-- [ ] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
+- [x] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
+- [x] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
+- [x] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
 
 ## App Onboarding Minimum Targets (Normative)
 - [x] A-001 `apps-bootstrap` and `apps-smoke` — no-impact; tooling-only change does not modify app delivery targets
