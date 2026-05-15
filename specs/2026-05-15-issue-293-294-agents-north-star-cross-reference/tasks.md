@@ -16,7 +16,7 @@ Exclusively owns: `scripts/templates/consumer/init/AGENTS.md.tmpl`, `AGENTS.md` 
 - [x] T-004 Add north_star.md MUST-read Mandatory Workflow rule to blueprint's own `AGENTS.md`, prohibiting architecture content duplication (FR-007)
 
 ### Validation
-- [ ] Run `make quality-hooks-fast` — confirm no regression in existing hook chain
+- [x] Run `make quality-hooks-fast` — confirm no regression in existing hook chain
 
 ## Stream B — Duplication check script (FR-003, FR-004, FR-006)
 Exclusively owns: `scripts/bin/quality/check_docs_cross_reference.py` (new file)
@@ -74,18 +74,18 @@ Depends on: Gate 2 (Streams D and E merged)
 - [x] T-604 Wire `quality-docs-agents-md-structure-check` into `scripts/bin/quality/hooks_fast.sh` gated by `blueprint_repo_is_generated_consumer` (consumer-only); propagation via `scripts/bin/quality/` blueprint_managed_root in contract.yaml (no contract.yaml change needed)
 
 ### Validation
-- [ ] Run `make quality-hooks-fast` — confirm hook chain passes including both new checks
-- [ ] Run `make infra-contract-test-fast` — confirm make target list contract is satisfied
+- [x] Run `make quality-hooks-fast` — confirm hook chain passes including both new checks
+- [x] Run `make infra-contract-test-fast` — confirm make target list contract is satisfied
 
 ## Accessibility Testing (Normative — mark N/A with rationale for non-UI specs)
 - [x] T-A01 N/A — tooling-only change; no UI or frontend involved (see NFR-A11Y-001 in spec.md)
 
 ## Validation and Release Readiness
-- [ ] T-301 Run `make quality-hooks-fast` — confirm hook chain passes including new `quality-docs-cross-reference-check` and `quality-docs-agents-md-structure-check`
-- [ ] T-302 Run `make infra-contract-test-fast` — confirm make target list contract is satisfied
-- [ ] T-303 Attach evidence to traceability document
-- [ ] T-304 Confirm no stale TODOs/dead code/drift
-- [ ] T-305 Run `make docs-build` and `make docs-smoke`
+- [x] T-301 Run `make quality-hooks-fast` — confirm hook chain passes including new `quality-docs-cross-reference-check` and `quality-docs-agents-md-structure-check`
+- [x] T-302 Run `make infra-contract-test-fast` — confirm make target list contract is satisfied
+- [x] T-303 Attach evidence to traceability document (traceability.md updated with exact test names and PASS status for all 25 tests)
+- [x] T-304 Confirm no stale TODOs/dead code/drift
+- [x] T-305 Run `make docs-build` and `make docs-smoke` — PASS
 - [ ] T-306 Run `make quality-hardening-review`
 
 ## Publish
