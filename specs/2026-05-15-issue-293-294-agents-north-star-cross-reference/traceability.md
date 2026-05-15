@@ -25,7 +25,7 @@
 
 | AC | Test name | Test file | Status |
 |---|---|---|---|
-| AC-001 | `test_pointers_section_present` | `tests/blueprint/test_docs_cross_reference.py` | pending |
+| AC-001 | `test_pointers_section_present`, `test_pointers_table_has_placeholder_row` | `tests/blueprint/test_docs_cross_reference.py` | pending |
 | AC-002 | `test_mandatory_workflow_rule_present` | `tests/blueprint/test_docs_cross_reference.py` | pending |
 | AC-003 | `test_heading_match_without_allowlist_exits_one` | `tests/blueprint/test_docs_cross_reference.py` | pending |
 | AC-004 | `test_heading_in_pointers_table_exits_zero` | `tests/blueprint/test_docs_cross_reference.py` | pending |
@@ -37,7 +37,7 @@
 | AC-010 | `test_blueprint_agents_md_decisions_scan_rule_present` | `tests/blueprint/test_docs_cross_reference.py` | pending |
 
 ## Validation Summary
-- Total unit tests planned: 12 (5 template/blueprint content assertions, 7 detection/edge-case)
+- Total unit tests planned: 13 (6 template/blueprint content assertions, 7 detection/edge-case)
 - Contract gate: `make infra-contract-test-fast`
 - Integration gate: `make quality-hooks-fast`
 - Docs gate: `make docs-build` + `make docs-smoke`
