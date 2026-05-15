@@ -1,9 +1,10 @@
 # ADR — AGENTS.md ↔ north_star.md Anti-Duplication Contract
 
-- Status: proposed
+- Status: approved
 - Work item: 2026-05-15-issue-293-294-agents-north-star-cross-reference
 - Closes: #293, #294
 - Date: 2026-05-15
+- ADR technical decision sign-off: sbonoc
 
 ## Context
 

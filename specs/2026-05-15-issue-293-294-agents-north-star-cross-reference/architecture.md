@@ -66,12 +66,12 @@ flowchart TD
     O --> P[exit 1]
 ```
 
-One diagram sufficient — the detection flow covers the full control path.
+This diagram covers the Layer 2 duplication detection flow (`check_docs_cross_reference.py`). Layer 3 structure check (`check_agents_md_structure.py`) follows the same entry pattern (file exists? → scan elements → emit violations → exit) and is fully described in prose in the Structure enforcement bounded context above.
 
 ## ADR Reference
 
 `docs/blueprint/architecture/decisions/ADR-issue-293-294-agents-north-star-cross-reference.md`
-Status: proposed
+Status: approved
 
 ## Risks and Mitigations
 
