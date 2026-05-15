@@ -38,8 +38,8 @@
 - Local-first exception rationale: no runtime changes; quality tooling only
 
 ## Objective
-- Business outcome: Eliminate the recurring pattern of AGENTS.md ↔ north_star.md content duplication in consumer repos. The dhe-marketplace consumer demonstrates the failure mode: cross-cutting architecture invariants (e.g. OpenMetadata section) were inlined in AGENTS.md across multiple spec sessions because AGENTS.md is auto-loaded by agents, creating silent drift with north_star.md. This work item: (1) updates the consumer init template so every new consumer starts with an explicit "Architecture Invariants — Pointers" section that makes the single-source-of-truth contract visible from day one; and (2) adds a programmatic quality hook that catches heading duplication before it reaches review.
-- Success metric: (1) New consumer repos initialized from the updated template contain an "Architecture Invariants — Pointers" section with anti-duplication instruction. (2) `quality-docs-cross-reference-check` exits 1 and reports the duplicate heading when AGENTS.md contains a heading identical to a north_star.md heading outside the Pointers table. (3) Clean consumer repos (no duplication) and repos with allowlisted exceptions pass the check with exit 0.
+- Business outcome: Eliminate the recurring pattern of AGENTS.md ↔ north_star.md content duplication in both consumer repos and the blueprint repo itself, and close the gap where agents have no normative instruction to consult `AGENTS.decisions.md` before starting SDD work. The dhe-marketplace consumer demonstrates the first failure mode: cross-cutting architecture invariants were inlined in AGENTS.md across multiple spec sessions because AGENTS.md is auto-loaded by agents, creating silent drift. The second failure mode: `AGENTS.decisions.md` records past decisions that constrain future design choices, but no MUST-read rule directs agents to scan it before the Discover phase. This work item: (1) updates the consumer init template and the blueprint's own AGENTS.md with the north_star.md MUST-read rule; (2) updates both files with a Mandatory Workflow rule requiring agents to scan AGENTS.decisions.md for scope-intersecting decisions before any SDD work item's Discover phase; and (3) adds a programmatic quality hook that catches heading duplication before it reaches review.
+- Success metric: (1) New consumer repos initialized from the updated template contain an "Architecture Invariants — Pointers" section with anti-duplication instruction, the north_star.md MUST-read rule, and the AGENTS.decisions.md scan rule. (2) Blueprint's own AGENTS.md contains the same north_star.md MUST-read rule and AGENTS.decisions.md scan rule. (3) `quality-docs-cross-reference-check` exits 1 and reports the duplicate heading when AGENTS.md contains a heading identical to a north_star.md heading outside the Pointers table. (4) Clean consumer repos (no duplication) and repos with allowlisted exceptions pass the check with exit 0.
 
 ## Normative Requirements
 
@@ -50,6 +50,9 @@
 - FR-004 `check_docs_cross_reference.py` MUST support a per-consumer allowlist file `.quality-docs-cross-reference-allowlist.yml`. Each allowlist entry MUST include a `justification` field with non-empty text. Headings listed in the allowlist MUST NOT generate violations.
 - FR-005 A make target `quality-docs-cross-reference-check` MUST be added to `make/blueprint.generated.mk`. The target MUST invoke `check_docs_cross_reference.py` and be wired into `scripts/bin/quality/hooks_fast.sh` in the `quality-docs-check-changed` group alongside the existing `quality-docs-check-changed` invocation.
 - FR-006 `check_docs_cross_reference.py` MUST exit 0 when no violations are found and exit 1 when at least one violation is detected. Violation output format MUST use a `[quality-docs-cross-reference-check]` prefix consistent with existing `check_*.py` scripts.
+- FR-007 The blueprint's own `AGENTS.md` Mandatory Workflow MUST include a new rule that before any SDD work item touching a domain covered in `docs/blueprint/architecture/north_star.md`, the agent MUST read the relevant `north_star.md` section and the canonical ADR(s) cited in the Pointers table (or the ADR index if no Pointers table is present). AGENTS.md MUST NOT duplicate architecture content present in `north_star.md`.
+- FR-008 `scripts/templates/consumer/init/AGENTS.md.tmpl` Mandatory Workflow MUST include a new rule that before the Discover phase of any SDD work item, the agent MUST scan `AGENTS.decisions.md` for entries whose scope intersects the work item's domain. Where intersection exists, the agent MUST read those entries in full before making design choices.
+- FR-009 The blueprint's own `AGENTS.md` Mandatory Workflow MUST include the same `AGENTS.decisions.md` scan rule as FR-008.
 
 ### Non-Functional Requirements (Normative)
 - NFR-PERF-001 `check_docs_cross_reference.py` MUST complete in under 2 seconds on a consumer repository. The script MUST NOT invoke external processes or make network calls; markdown parsing MUST use only Python stdlib.
@@ -69,7 +72,7 @@
 - OpenAPI / Pact contract path: none
 - Event contract: none
 - Make/CLI contract: adds `quality-docs-cross-reference-check` make target to `make/blueprint.generated.mk`; wires into `quality-hooks-fast` via `hooks_fast.sh`
-- Docs contract: `scripts/templates/consumer/init/AGENTS.md.tmpl` gains "Architecture Invariants — Pointers" section and a new Mandatory Workflow rule
+- Docs contract: `scripts/templates/consumer/init/AGENTS.md.tmpl` gains "Architecture Invariants — Pointers" section and two new Mandatory Workflow rules (north_star.md MUST-read + AGENTS.decisions.md scan); blueprint's own `AGENTS.md` gains the same two Mandatory Workflow rules
 
 ## Blueprint Upstream Defect Escalation (Normative)
 - Upstream issue URL: none
@@ -85,6 +88,9 @@
 - AC-005 `check_docs_cross_reference.py` exits 0 when the matching heading is listed in `.quality-docs-cross-reference-allowlist.yml` with a non-empty `justification` value.
 - AC-006 `quality-docs-cross-reference-check` make target exists; `make quality-hooks-fast` triggers the check.
 - AC-007 Unit test suite covers: clean files → exit 0; heading match without allowlist → exit 1 with violation message; heading in Pointers table → exit 0; heading in allowlist file → exit 0; missing allowlist file → exit 0; absent `AGENTS.md` → exit 0 (graceful skip); absent `north_star.md` → exit 0 (graceful skip).
+- AC-008 Blueprint's own `AGENTS.md` Mandatory Workflow contains a MUST-read rule for the relevant `docs/blueprint/architecture/north_star.md` section and canonical ADR(s) before any SDD work item touching a covered domain, and explicitly prohibits duplicating architecture content in AGENTS.md.
+- AC-009 `AGENTS.md.tmpl` Mandatory Workflow contains a rule requiring the agent to scan `AGENTS.decisions.md` for scope-intersecting decisions before the Discover phase of any SDD work item.
+- AC-010 Blueprint's own `AGENTS.md` Mandatory Workflow contains the same `AGENTS.decisions.md` scan rule as AC-009.
 
 ## Informative Notes (Non-Normative)
 - Context: dhe-marketplace consumer commit `9586424` is the reference implementation. Its restructured AGENTS.md (process-and-governance only, with a Pointers table) and `north_star.md` (all domain invariants) define the target state this work item encodes as a template and enforces with the hook.
@@ -95,4 +101,4 @@
 ## Explicit Exclusions
 - Existing consumer AGENTS.md files are NOT auto-updated; the template change applies to new consumers only.
 - Content-body heuristic detection (Option B) is explicitly out of scope for this work item.
-- The hook does NOT check `docs/blueprint/architecture/north_star.md` against the blueprint's own AGENTS.md headings (only the consumer path `docs/platform/architecture/north_star.md` is the primary target; blueprint fallback is for development convenience when running the hook inside the blueprint repo itself).
+- The programmatic heading-overlap hook does NOT check `docs/blueprint/architecture/north_star.md` against the blueprint's own AGENTS.md headings (only the consumer path `docs/platform/architecture/north_star.md` is the primary target; blueprint fallback is for development convenience when running the hook inside the blueprint repo itself). The blueprint-side change is textual only: adding the same Mandatory Workflow rules to `AGENTS.md` (FR-007, FR-009).

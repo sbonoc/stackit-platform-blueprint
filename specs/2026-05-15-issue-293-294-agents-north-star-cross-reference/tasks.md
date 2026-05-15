@@ -11,11 +11,17 @@
 
 ### Implementation
 - [ ] T-001 Add "Architecture Invariants — Pointers" section to `scripts/templates/consumer/init/AGENTS.md.tmpl` with anti-duplication statement, placeholder pointers table (≥1 example domain row), and "add to north_star.md/ADR only" instruction
-- [ ] T-002 Add new Mandatory Workflow rule to `AGENTS.md.tmpl` requiring agent to read north_star.md section + ADR before touching a covered domain, prohibiting AGENTS.md content duplication
+- [ ] T-002 Add Mandatory Workflow rule to `AGENTS.md.tmpl` requiring agent to read north_star.md section + ADR before touching a covered domain, prohibiting AGENTS.md content duplication (FR-002)
+- [ ] T-003 Add Mandatory Workflow rule to `AGENTS.md.tmpl` requiring agent to scan `AGENTS.decisions.md` for scope-intersecting decisions before the Discover phase of any SDD work item (FR-008)
+- [ ] T-004 Add north_star.md MUST-read Mandatory Workflow rule to blueprint's own `AGENTS.md`, prohibiting architecture content duplication (FR-007)
+- [ ] T-005 Add AGENTS.decisions.md scan Mandatory Workflow rule to blueprint's own `AGENTS.md` (FR-009)
 
 ### Test Automation
 - [ ] T-101 Write unit tests asserting `AGENTS.md.tmpl` contains the "Architecture Invariants — Pointers" section header (AC-001)
-- [ ] T-102 Write unit tests asserting `AGENTS.md.tmpl` contains the anti-duplication Mandatory Workflow rule (AC-002)
+- [ ] T-102 Write unit tests asserting `AGENTS.md.tmpl` contains the north_star.md anti-duplication Mandatory Workflow rule (AC-002)
+- [ ] T-103 Write unit tests asserting blueprint's own `AGENTS.md` contains the north_star.md MUST-read Mandatory Workflow rule (AC-008)
+- [ ] T-104 Write unit tests asserting `AGENTS.md.tmpl` contains the AGENTS.decisions.md scan Mandatory Workflow rule (AC-009)
+- [ ] T-105 Write unit tests asserting blueprint's own `AGENTS.md` contains the AGENTS.decisions.md scan Mandatory Workflow rule (AC-010)
 
 ## Slice 2 — Cross-reference quality hook (closes #294)
 
