@@ -52,7 +52,7 @@ To introduce a new tag, append a row here in the same commit that uses it.
 
 - [x] Issue #247 — step-05-implement: add deterministic slice-done gate for HTTP+UI-rendering scope (Guardrails #13, #14, #15 + promoted smoke step + AGENTS.md canonical normative home FR-007–FR-010). Closed by PR #303.
 - [ ] Issue #284 — support `ARGOCD_LOCAL_TARGET_REVISION` env var to track a non-default branch in local ArgoCD.
-- [ ] Issue #296 — workaround manifest `action_path` CI validation gate.
+- [x] Issue #296 — workaround manifest `action_path` CI validation gate. Closed by PR #304.
 - [ ] (no issue) Ownership checker robustness: support normalized equivalence for semantically-identical prune-glob expressions in ownership-matrix documentation checks.
 
 ### P2 — Platform modules
