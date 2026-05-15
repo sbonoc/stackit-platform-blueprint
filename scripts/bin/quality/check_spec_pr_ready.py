@@ -25,6 +25,52 @@ PREFIX = "[quality-spec-pr-ready]"
 
 _SDD_BRANCH_PATTERN = re.compile(r"^codex/(\d{4}-\d{2}-\d{2}-.+)$")
 
+# Must stay in sync with _BYPASS_ALLOWED_VALUES in check_sdd_assets.py.
+_BYPASS_ALLOWED_VALUES: frozenset[str] = frozenset(
+    {"bug-fix", "upgrade", "refactor", "chore", "authorized-deviation"}
+)
+# Files skipped by quality-spec-pr-ready when bypass is active.
+# Must stay in sync with _BYPASS_OPTIONAL_DOCS in check_sdd_assets.py.
+_BYPASS_OPTIONAL_FILES: frozenset[str] = frozenset(
+    {"plan.md", "tasks.md", "architecture.md", "hardening_review.md"}
+)
+_READINESS_SECTION_RE = re.compile(r"^##\s+Spec Readiness Gate", re.IGNORECASE)
+_BULLET_KV_RE = re.compile(r"^\s*-\s+([^:]+):\s*(.*)")
+
+
+def _is_bypass_active(spec_dir: Path) -> bool:
+    """Return True when spec.md declares a valid SPEC_READY_EXCEPTION with a real authorized-by."""
+    spec_path = spec_dir / "spec.md"
+    if not spec_path.is_file():
+        return False
+    try:
+        in_readiness = False
+        exception_type = ""
+        authorized_by = ""
+        for line in spec_path.read_text(encoding="utf-8", errors="surrogateescape").splitlines():
+            if _READINESS_SECTION_RE.match(line):
+                in_readiness = True
+                continue
+            if in_readiness and line.startswith("##"):
+                break
+            if not in_readiness:
+                continue
+            m = _BULLET_KV_RE.match(line)
+            if not m:
+                continue
+            key, val = m.group(1).strip().lower(), m.group(2).strip()
+            if key == "spec_ready_exception":
+                exception_type = val.lower()
+            elif key == "authorized-by":
+                authorized_by = val
+    except Exception:
+        return False
+    return (
+        exception_type in _BYPASS_ALLOWED_VALUES
+        and bool(authorized_by)
+        and authorized_by.lower() != "none"
+    )
+
 # Verbatim scaffold task subjects from the tasks.md template (T-001 through T-004).
 # These must be replaced with actual work descriptions before opening a PR.
 _SCAFFOLD_TASK_SUBJECTS: tuple[str, ...] = (
@@ -117,7 +163,9 @@ def _token_present(line: str, token: str) -> bool:
     return needle in haystack
 
 
-def _check_spec_marker_tokens(spec_dir: Path) -> list[str]:
+def _check_spec_marker_tokens(
+    spec_dir: Path, bypass_optional_files: frozenset[str] | None = None
+) -> list[str]:
     """Check spec.md, tasks.md, and traceability.md for unresolved marker tokens.
 
     This mirrors the token scan performed by check_sdd_assets.py so that
@@ -128,6 +176,8 @@ def _check_spec_marker_tokens(spec_dir: Path) -> list[str]:
     """
     violations: list[str] = []
     for file_name in _MARKER_SCAN_FILES:
+        if bypass_optional_files and file_name in bypass_optional_files:
+            continue
         path = spec_dir / file_name
         if not path.is_file():
             # Missing optional file: skip gracefully; main() reports missing required files
@@ -446,6 +496,7 @@ def main(repo_root: Path | None = None) -> int:
         return 1
 
     all_violations: list[str] = []
+    bypass_active = _is_bypass_active(spec_dir)
 
     for file_name, check_fn in (
         ("tasks.md", _check_tasks),
@@ -454,6 +505,8 @@ def main(repo_root: Path | None = None) -> int:
         ("pr_context.md", _check_pr_context),
         ("architecture.md", _check_architecture),
     ):
+        if bypass_active and file_name in _BYPASS_OPTIONAL_FILES:
+            continue  # skip both existence and content checks when bypass is active
         path = spec_dir / file_name
         if not path.is_file():
             all_violations.append(f"{PREFIX} {file_name}: file not found in spec directory {spec_dir.name}")
@@ -465,7 +518,12 @@ def main(repo_root: Path | None = None) -> int:
     # This check runs here (not only in check_sdd_assets.py) so that it fires
     # when quality-spec-pr-ready is invoked directly via SPEC_SLUG, regardless
     # of which branch is currently checked out.
-    all_violations.extend(_check_spec_marker_tokens(spec_dir))
+    all_violations.extend(
+        _check_spec_marker_tokens(
+            spec_dir,
+            bypass_optional_files=_BYPASS_OPTIONAL_FILES if bypass_active else None,
+        )
+    )
 
     # Check evidence_manifest.json is not the scaffold placeholder.
     all_violations.extend(_check_evidence_manifest(spec_dir))

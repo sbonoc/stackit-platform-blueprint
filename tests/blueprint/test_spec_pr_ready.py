@@ -895,5 +895,129 @@ class MissingSpecDirTests(unittest.TestCase):
             self.assertNotEqual(result, 0)
 
 
+_BYPASS_SPEC_MD = """\
+# Specification
+
+## Spec Readiness Gate (Blocking)
+- SPEC_READY: true
+- SPEC_PRODUCT_READY: true
+- Open questions count: 0
+- Unresolved alternatives count: 0
+- Unresolved TODO markers count: 0
+- Pending assumptions count: 0
+- Open clarification markers count: 0
+- Product sign-off: approved
+- Architecture sign-off: approved
+- Security sign-off: approved
+- Operations sign-off: approved
+- Missing input blocker token: none
+- ADR path: none
+- ADR status: none
+- SPEC_READY_EXCEPTION: chore
+- authorized-by: testuser
+"""
+
+_MINIMAL_PR_CONTEXT = """\
+# PR Context
+
+## Summary
+- Work item: test — a minimal bypass-track work item
+- Objective: verify bypass track suppresses optional-file checks
+- Scope: governance housekeeping only
+
+## Requirement Coverage
+- Acceptance criteria covered: AC-001
+
+## Key Reviewer Files
+- Primary files to review first:
+  - AGENTS.backlog.md — backlog updated
+
+## Validation Evidence
+- make quality-hooks-fast — PASS
+
+## Risk and Rollback
+- No code changes. Rollback is a revert.
+
+## Deferred Proposals
+- none
+"""
+
+
+class BypassTrackTests(unittest.TestCase):
+    """quality-spec-pr-ready must skip optional-file checks when bypass is active."""
+
+    def _make_bypass_spec_dir(self, repo_root: Path, slug: str = "2026-01-01-bypass") -> Path:
+        spec_dir = repo_root / "specs" / slug
+        spec_dir.mkdir(parents=True)
+        (spec_dir / "spec.md").write_text(_BYPASS_SPEC_MD, encoding="utf-8")
+        (spec_dir / "pr_context.md").write_text(_MINIMAL_PR_CONTEXT, encoding="utf-8")
+        return spec_dir
+
+    def test_bypass_active_optional_files_absent_exits_zero(self) -> None:
+        """Bypass track: missing plan.md, tasks.md, architecture.md, hardening_review.md → no violation."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            slug = "2026-01-01-bypass"
+            self._make_bypass_spec_dir(repo_root, slug)
+            with mock.patch.dict(os.environ, {"SPEC_SLUG": slug}):
+                result = _checker.main(repo_root=repo_root)
+            self.assertEqual(result, 0)
+
+    def test_bypass_inactive_optional_files_absent_exits_nonzero(self) -> None:
+        """Full SDD: missing plan.md still produces a violation even when spec is otherwise valid."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            slug = "2026-01-01-full-sdd"
+            spec_dir = repo_root / "specs" / slug
+            spec_dir.mkdir(parents=True)
+            # Write a spec with no bypass exception (full SDD)
+            full_sdd_spec = _BYPASS_SPEC_MD.replace(
+                "- SPEC_READY_EXCEPTION: chore", "- SPEC_READY_EXCEPTION: none"
+            ).replace("- authorized-by: testuser", "- authorized-by: none")
+            (spec_dir / "spec.md").write_text(full_sdd_spec, encoding="utf-8")
+            (spec_dir / "pr_context.md").write_text(_MINIMAL_PR_CONTEXT, encoding="utf-8")
+            with mock.patch.dict(os.environ, {"SPEC_SLUG": slug}):
+                result = _checker.main(repo_root=repo_root)
+            self.assertNotEqual(result, 0)
+
+    def test_is_bypass_active_recognises_valid_exception(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            spec_dir = Path(tmpdir)
+            (spec_dir / "spec.md").write_text(_BYPASS_SPEC_MD, encoding="utf-8")
+            self.assertTrue(_checker._is_bypass_active(spec_dir))
+
+    def test_is_bypass_active_false_when_exception_none(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            spec_dir = Path(tmpdir)
+            none_spec = _BYPASS_SPEC_MD.replace(
+                "- SPEC_READY_EXCEPTION: chore", "- SPEC_READY_EXCEPTION: none"
+            ).replace("- authorized-by: testuser", "- authorized-by: none")
+            (spec_dir / "spec.md").write_text(none_spec, encoding="utf-8")
+            self.assertFalse(_checker._is_bypass_active(spec_dir))
+
+    def test_is_bypass_active_false_when_no_spec(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            self.assertFalse(_checker._is_bypass_active(Path(tmpdir)))
+
+    def test_bypass_active_optional_files_present_with_scaffold_content_exits_zero(self) -> None:
+        """Bypass: optional files present with scaffold placeholder content → no violations."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            slug = "2026-01-01-bypass-scaffold"
+            spec_dir = self._make_bypass_spec_dir(repo_root, slug)
+            # Write scaffold placeholder content that would normally fail content checks
+            (spec_dir / "tasks.md").write_text(
+                "# Tasks\n\n## Implementation\n- [ ] T-001 Update contract/governance surfaces\n",
+                encoding="utf-8",
+            )
+            (spec_dir / "plan.md").write_text(
+                "# Implementation Plan\n\n## Delivery Slices\n1. Slice 1:\n",
+                encoding="utf-8",
+            )
+            with mock.patch.dict(os.environ, {"SPEC_SLUG": slug}):
+                result = _checker.main(repo_root=repo_root)
+            self.assertEqual(result, 0, "bypass should suppress content checks for optional files")
+
+
 if __name__ == "__main__":
     unittest.main()
