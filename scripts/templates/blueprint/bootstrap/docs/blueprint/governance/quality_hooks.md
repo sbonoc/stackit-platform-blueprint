@@ -13,7 +13,7 @@ For the normative policy, see `AGENTS.md § Quality Hooks — Inner-Loop and Pre
 
 | Target | Purpose | Typical gate |
 |---|---|---|
-| `make quality-hooks-fast` | Fast checks (shellcheck, SDD drift, CI sync, docs drift, path-gated infra, ACR staleness) | Slice boundary / pre-PR |
+| `make quality-hooks-fast` | Fast checks (shellcheck, SDD drift, CI sync, docs drift, AGENTS.md ↔ north_star.md cross-reference, path-gated infra, ACR staleness) | Slice boundary / pre-PR |
 | `make quality-hooks-strict` | Slower audit checks (version audit, template smoke) | Pre-push / PR Packager |
 | `make quality-hooks-run` | Composite: fast then strict | Full pre-push gate |
 
@@ -151,6 +151,60 @@ the main `hooks_fast.sh` run. The check validates that
 The check is wired into the consumer-side fast gate only. It is intentionally
 **not** added to `quality-ci-blueprint` to avoid false positives in the blueprint's
 own CI where no consumer ACR exists by default.
+
+---
+
+## AGENTS.md ↔ north_star.md Checks
+
+Two dedicated make targets enforce the architectural boundary between
+`AGENTS.md` (process and governance only) and `north_star.md` (architecture
+content only). Both run as part of `quality-hooks-fast`.
+
+### `quality-docs-cross-reference-check` — heading duplication detection
+
+Runs in **all repos** (blueprint and consumer). Detects when `AGENTS.md`
+contains a `##`/`###` heading that exactly matches (case-insensitive,
+whitespace-normalized) a heading in `docs/platform/architecture/north_star.md`
+(consumer path) or `docs/blueprint/architecture/north_star.md` (blueprint
+fallback). Each match is reported as a named violation unless:
+
+- The heading appears in the **Architecture Invariants — Pointers table** in
+  `AGENTS.md` (sanctioned navigation pointer — the domain name MUST match the
+  exact `north_star.md` heading text), or
+- The heading is listed in `.quality-docs-cross-reference-allowlist.yml` at
+  the repo root with a non-empty `justification` field.
+
+Exits 0 when no violations are found, 1 when at least one violation is
+detected. Graceful no-op (exit 0) when `AGENTS.md` or the resolved
+`north_star.md` path is absent.
+
+**Allowlist format** (`.quality-docs-cross-reference-allowlist.yml`):
+
+```yaml
+entries:
+  - heading: Architecture Invariants
+    justification: Intentionally mirrored as a navigation pointer in AGENTS.md.
+```
+
+### `quality-docs-agents-md-structure-check` — structural contract enforcement
+
+Runs in **consumer repos only** (skipped in the blueprint template source via
+the `blueprint_repo_is_generated_consumer` gate). Verifies that `AGENTS.md`
+contains the two required structural elements introduced by the
+AGENTS.md ↔ north_star.md anti-duplication contract:
+
+1. `## Architecture Invariants — Pointers` section header.
+2. A `north_star.md` reference within the `## Mandatory Workflow` section.
+
+Each missing element produces exactly one violation with the
+`[quality-docs-agents-md-structure-check]` prefix. Exits 1 when any element is
+absent. Exits 0 when all elements are present or when `AGENTS.md` is absent.
+
+**Consumer remediation after blueprint upgrade**: if the structure check fires,
+add the missing sections to your `AGENTS.md` using the updated
+`scripts/templates/consumer/init/AGENTS.md.tmpl` as a reference. The template
+is self-documenting. See also:
+`docs/platform/consumer/troubleshooting.md` § *AGENTS.md structure check fails after blueprint upgrade*.
 
 ---
 

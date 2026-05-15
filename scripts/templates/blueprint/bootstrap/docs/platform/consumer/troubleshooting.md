@@ -631,6 +631,56 @@ For operator workflow details, see [Runtime Credentials (ESO)](runtime_credentia
   - check whether corporate DNS, VPN, or local resolver policy is blocking `*.ske.<region>.onstackit.cloud`
 - Inspect `artifacts/infra/stackit_runtime_prerequisites.env` for the recorded `kube_api_server` and readiness status before retrying deploy.
 
+## AGENTS.md structure check fails after blueprint upgrade
+
+After a blueprint upgrade that introduces the AGENTS.md ↔ north_star.md anti-duplication
+contract, `make quality-hooks-fast` may fail with:
+
+```
+[quality-docs-agents-md-structure-check] missing required section: ## Architecture Invariants — Pointers
+[quality-docs-agents-md-structure-check] missing north_star.md reference within ## Mandatory Workflow section
+```
+
+**Why this happens**: the `quality-docs-agents-md-structure-check` hook enforces two structural
+elements required by the AGENTS.md ↔ north_star.md contract. Consumer `AGENTS.md` files created
+before this blueprint upgrade do not contain these elements.
+
+**Remediation**:
+
+1. Open your consumer repo's `AGENTS.md`.
+2. Add the `## Architecture Invariants — Pointers` section **before** `## Mandatory Workflow`.
+   Use `scripts/templates/consumer/init/AGENTS.md.tmpl` as a reference (the section is
+   self-documenting). Minimum content:
+   ```markdown
+   ## Architecture Invariants — Pointers
+
+   AGENTS.md does NOT contain architecture content. Architecture decisions and domain
+   invariants live exclusively in `docs/platform/architecture/north_star.md` and the
+   relevant ADRs under `docs/platform/architecture/decisions/`. Inlining architecture
+   content here creates silent duplication that drifts without automated enforcement.
+
+   Add one row per cross-cutting concern. The **Domain** name MUST match the exact
+   `north_star.md` heading text so the cross-reference hook correctly identifies
+   sanctioned navigation pointers.
+
+   | Domain | `north_star.md` section | Canonical ADR(s) |
+   |---|---|---|
+   ```
+   Add one row per cross-cutting concern relevant to your repository. Leave the table
+   empty if no cross-cutting concerns are documented yet — an empty table satisfies
+   the structural contract.
+3. Add a `north_star.md` Mandatory Workflow rule inside your `## Mandatory Workflow` section.
+   Reference the template for exact wording. At minimum, add:
+   > Before any SDD work item touching a domain covered in
+   > `docs/platform/architecture/north_star.md`, MUST read the relevant `north_star.md`
+   > section and the canonical ADR(s) cited in the Pointers table above. MUST NOT
+   > duplicate architecture content from `north_star.md` in `AGENTS.md`.
+4. Run `make quality-docs-agents-md-structure-check` to confirm the check passes.
+5. Run `make quality-hooks-fast` to confirm no regression in the full hook chain.
+
+For background on the two-check enforcement model, see
+`docs/blueprint/governance/quality_hooks.md` § *AGENTS.md ↔ north_star.md Checks*.
+
 ## STACKIT test resources still need cleanup
 - Run the canonical destroy chain:
   ```bash

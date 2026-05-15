@@ -29,7 +29,10 @@ To introduce a new tag, append a row here in the same commit that uses it.
 - [x] P1 (Architecture gate): Issue #295 — CLOSED 2026-05-15. Audit confirmed blueprint templates contain no OpenMetadata content; `AGENTS.decisions.md` already records the architectural decision (OM is consumer/product-owned). No template changes required.
 - [x] P1 (Bug — ArgoCD health): Issue #277 — CLOSED. `ignoreResourceUpdates.all` `/status` rule narrowed; health reporting restored. Merged PR #298.
 - [x] P1 (SDD governance): Issue #275 — CLOSED. Lightweight bypass track shipped. Merged PR #299.
-- [ ] P1 (Quality tooling): Issues #293 + #294 — (1) AGENTS.md template enforces architecture gate sign-off before implementation slices begin; (2) `quality-docs-cross-reference-check` hook catches stale doc cross-references in CI.
+- [x] P1 (Quality tooling): Issues #293 + #294 — CLOSED. Three-layer AGENTS.md ↔ north_star.md anti-duplication contract shipped. Merged PR #301.
+- [ ] (parked) proposal(issue-293-294-agents-north-star-cross-reference): Option B — body-heuristic duplication detection
+      trigger: on-scope: quality
+      rationale: OPTION_A (exact heading match) selected in spec as the starting point; Option B adds false-positive risk before consumer feedback on Option A is gathered.
 
 ### P2 — Consumer upgrade flow
 

@@ -1,0 +1,58 @@
+{
+  "manifest_version": 1,
+  "work_item": "specs/2026-05-15-issue-293-294-agents-north-star-cross-reference",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-05-15T12:33:19Z",
+  "files": [
+    {
+      "path": "specs/2026-05-15-issue-293-294-agents-north-star-cross-reference/architecture.md",
+      "sha256": "6a3d07adf335e498818aa811d7ec44fab74c848822d6e02456151d2fcb2f8498",
+      "bytes": 7324
+    },
+    {
+      "path": "specs/2026-05-15-issue-293-294-agents-north-star-cross-reference/context_pack.md",
+      "sha256": "69a6662e914407da8d8790ea2766e0ed1d07679de5e740eb45f3834a368d7005",
+      "bytes": 907
+    },
+    {
+      "path": "specs/2026-05-15-issue-293-294-agents-north-star-cross-reference/evidence_manifest.json",
+      "sha256": "0fe01a56e1ca0192c7cefb6a33bf6467570177cc0bca8a6e14034cc1de7046c6",
+      "bytes": 2349
+    },
+    {
+      "path": "specs/2026-05-15-issue-293-294-agents-north-star-cross-reference/graph.json",
+      "sha256": "f1fc71d507fe90c87485fa7e9b9476c596397a996a5acd968b81f2f57c30afe0",
+      "bytes": 4492
+    },
+    {
+      "path": "specs/2026-05-15-issue-293-294-agents-north-star-cross-reference/hardening_review.md",
+      "sha256": "a28e5367305fdb5b49341936de28b6d7f895b4b918bec9ae7ebd87f8d58033f2",
+      "bytes": 2842
+    },
+    {
+      "path": "specs/2026-05-15-issue-293-294-agents-north-star-cross-reference/plan.md",
+      "sha256": "fae8bd2e9f3a8f96b0e611729bba9e880a7ea51122aacce58eba3d7045c3f85f",
+      "bytes": 10111
+    },
+    {
+      "path": "specs/2026-05-15-issue-293-294-agents-north-star-cross-reference/pr_context.md",
+      "sha256": "9bec2c2cf41d9f76cc40dce27c8d12fb51ae3009342e255c84169cbc10e0ec7c",
+      "bytes": 6093
+    },
+    {
+      "path": "specs/2026-05-15-issue-293-294-agents-north-star-cross-reference/spec.md",
+      "sha256": "c5d57afea172fcc45bcc4e8ce6133a4ac655d7517814df1491a4edb0400f1fc2",
+      "bytes": 15832
+    },
+    {
+      "path": "specs/2026-05-15-issue-293-294-agents-north-star-cross-reference/tasks.md",
+      "sha256": "70a4b7929d3fc40bcef177a7db831d9a5a16ff039141d83c7502354a0856f078",
+      "bytes": 6872
+    },
+    {
+      "path": "specs/2026-05-15-issue-293-294-agents-north-star-cross-reference/traceability.md",
+      "sha256": "3b0f871c4ac21297f4d5360954d941e1291f22b124a171c1127deac0d4e61596",
+      "bytes": 7547
+    }
+  ]
+}
