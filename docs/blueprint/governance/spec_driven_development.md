@@ -112,8 +112,11 @@ Each work-item `spec.md` must define:
 - Architecture quality (SOLID, Clean Architecture/Clean Code, DDD adapted to stack)
 - Shift-left test automation and test-pyramid adherence
 - Positive-path filter/payload-transform coverage (matching fixture/request value returns record and output fields are preserved; empty-result-only assertions are insufficient)
-- Local smoke gate for HTTP route/filter scope with positive-path `curl` assertions and explicit `pr_context.md` evidence
-- Reproducible-finding translation gate (pre-PR smoke/`curl`/deterministic-check failures become failing automated tests first, then green with the fix in the same work item; deterministic exceptions are documented)
+- API response field-coverage gate (HTTP-scope slices adding/modifying response schema fields): backend integration test using FastAPI `TestClient` MUST assert ALL declared response contract fields are non-null/non-empty against a real-data fixture; asserting only a 200 response or non-empty body is insufficient
+- Vue SFC rendering-branch coverage: for any Vue SFC change, Vitest Browser Mode component tests MUST cover every rendering branch touched — including fallback, degraded, and error paths — before the slice is done
+- Pact consumer + same-repo provider timing: for HTTP-scope slices modifying API contracts, a Pact consumer interaction MUST be written in the same slice; same-repo provider verification MUST run in the same slice; cross-repo deferral MUST be explicitly recorded in the slice-done report
+- Local smoke gate for HTTP route/filter scope: `make test-smoke-all-local` is a mandatory numbered main workflow step (Step 3) — not optional — and a PR MUST NOT be opened until it passes; `pr_context.md` evidence required
+- Reproducible-finding translation gate (pre-PR smoke/deterministic-check failures become failing automated tests first, then green with the fix in the same work item; deterministic exceptions are documented)
 - Managed-service-first runtime posture (`stackit-*` profiles default to managed STACKIT services; exceptions require explicit approved rationale)
 - Local-first runtime baseline for local execution (`docker-desktop` context policy + Crossplane/Helm provisioning + ESO/Argo/Keycloak runtime identity), with explicit approved exception rationale when deviating
 - App onboarding minimum Make-target contract, including canonical port-forward wrappers
