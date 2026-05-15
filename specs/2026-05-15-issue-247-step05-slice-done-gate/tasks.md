@@ -23,7 +23,7 @@
 - [x] T-010 Add two HTTP-scope entries to AGENTS.md § Minimum Validation Bundles (FR-010)
 
 ### Slice 2 — Create checklist file (Phase 2 — after Slice 1A only; Slice 1B is independent)
-- [ ] T-006 Create `.agents/skills/blueprint-sdd-step05-implement/references/implement_checklist.md` (contract compliance gap — file absent on disk); content derived from Slice 1A SKILL.md changes; MUST NOT introduce requirements beyond SKILL.md (FR-006)
+- [x] T-006 Create `.agents/skills/blueprint-sdd-step05-implement/references/implement_checklist.md` (contract compliance gap — file absent on disk); content derived from Slice 1A SKILL.md changes; MUST NOT introduce requirements beyond SKILL.md (FR-006)
       depends-on: T-001, T-002, T-003, T-004, T-005 (Slice 1A must be committed first)
 
 ## Test Automation
@@ -37,15 +37,15 @@
 - [x] T-A05 N/A — no UI changes
 
 ## Validation and Release Readiness
-- [ ] T-201 Run governance/docs validation bundle: `make quality-hooks-run` and `make infra-validate`
-- [ ] T-202 Attach evidence to traceability document
-- [ ] T-203 Confirm no stale TODOs/dead code/drift
-- [ ] T-204 Run documentation validation (`make docs-build` and `make docs-smoke`)
-- [ ] T-205 Run hardening review validation bundle (`make quality-hardening-review`)
+- [x] T-201 Run governance/docs validation bundle: `make quality-hooks-run` and `make infra-validate`
+- [x] T-202 Attach evidence to traceability document
+- [x] T-203 Confirm no stale TODOs/dead code/drift
+- [x] T-204 Run documentation validation (`make docs-build` and `make docs-smoke`)
+- [x] T-205 Run hardening review validation bundle (`make quality-hardening-review`)
 
 ## Publish
-- [ ] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
-- [ ] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
+- [x] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
+- [x] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
 - [ ] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
 
 ## App Onboarding Minimum Targets (Normative)

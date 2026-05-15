@@ -46,7 +46,7 @@ For any Vue SFC rendering change, before marking the slice done the implementer 
 
 ### Guardrail #15 — Pact consumer + provider (same-slice, same-repo)
 
-For any HTTP-scope slice that adds or modifies fields on an API response contract: (a) a Pact consumer interaction asserting the new/modified field shape MUST be written in the same slice; (b) when the provider lives in the same repository, provider verification MUST pass in the same slice; (c) when the provider lives in a separate repository, the generated pact file MUST be committed and the slice-done report MUST explicitly record "Pact provider verification: deferred to provider repo <name>". A slice that extends an API contract without a Pact consumer interaction MUST NOT be declared done.
+For any HTTP-scope slice that adds or modifies fields on an API response contract: (a) a Pact consumer interaction asserting the new/modified field shape MUST be written in the same slice; (b) when the provider lives in the same repository, provider verification MUST pass in the same slice; (c) when the provider lives in a separate repository, the generated pact file MUST be committed and the slice-done report MUST explicitly record "Pact provider verification: deferred to provider repo `<name>`". A slice that extends an API contract without a Pact consumer interaction MUST NOT be declared done.
 
 **Rationale**: Writing only the consumer interaction without verifying the same-repo provider leaves the contract loop open — the interaction documents what the frontend expects but does not confirm the backend delivers it. The cross-repo deferral path acknowledges the practical constraint while requiring an explicit acknowledgment in the slice-done report.
 

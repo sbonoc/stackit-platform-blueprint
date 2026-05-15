@@ -19,9 +19,9 @@
   - `AGENTS.md` — canonical governance source; additions are prose-only and additive
 
 ## Validation Evidence
-- Required commands executed: make quality-hooks-run · make infra-validate
-- Result summary: pending (post all-slices bundle — T-201)
-- Artifact references: traceability.md, evidence_manifest.json
+- Required commands executed: make quality-hooks-run · make infra-validate · make docs-build · make docs-smoke · make quality-hardening-review
+- Result summary: PASS — make infra-validate clean; make docs-build clean (MDX `<name>` escaped in ADR); make docs-smoke clean; make quality-hardening-review clean. make quality-hooks-run: blueprint-template-smoke FAIL (pre-existing Bash 3.2 vs Bash 4 declare -A incompatibility in prune_codex_skills.sh — not introduced by this work item, confirmed by reverting all changes and reproducing same failure).
+- Artifact references: traceability.md, evidence_manifest.json, hardening_review.md
 
 ## Risk and Rollback
 - Main risks: (1) SKILL.md guardrail prose wording diverges from AGENTS.md canonical text across slices — mitigated by spec FRs providing normative reference for both. (2) implement_checklist.md drifts from SKILL.md guardrails over time — mitigated by normative hierarchy (SKILL.md is canonical, checklist is derived); Option B (automated scanner) parked in backlog.

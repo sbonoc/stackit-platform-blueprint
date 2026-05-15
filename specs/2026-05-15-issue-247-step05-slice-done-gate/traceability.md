@@ -38,11 +38,11 @@
   - AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009, AC-010, AC-011
 
 ## Validation Summary
-- Required bundles executed: pending (governance/docs bundle — `make quality-hooks-run` · `make infra-validate`)
-- Result summary: pending
+- Required bundles executed: governance/docs bundle — `make quality-hooks-run` · `make infra-validate`
+- Result summary: PASS — `make infra-validate` clean; `make quality-hooks-run` partial (blueprint-template-smoke pre-existing Bash 3.2/4 incompatibility, not introduced by this work item); `make quality-hardening-review` clean
 - Documentation validation:
-  - `make docs-build`: pending
-  - `make docs-smoke`: pending
+  - `make docs-build`: PASS (MDX `<name>` escape fixed in ADR)
+  - `make docs-smoke`: PASS
 
 ## Evidence Manifest
 - Manifest file: `evidence_manifest.json`
