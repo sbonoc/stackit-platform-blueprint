@@ -466,8 +466,27 @@ plan. Mark each task `[x]` in `tasks.md` as it completes.
 make backend-test-unit          # backend unit tests
 make touchpoints-test-unit      # frontend/touchpoints unit tests
 make test-unit-all              # full unit suite — no regressions
-make test-smoke-all-local       # HTTP route / filter / query scope only
 ```
+
+### Step 3 — Local smoke gate (HTTP and UI-rendering scope — REQUIRED)
+
+For HTTP route / filter / query scope or HTTP + UI rendering scope, the local
+smoke gate is a mandatory numbered step before opening the PR:
+
+```bash
+make test-smoke-all-local       # REQUIRED, non-optional — record pass/fail in pr_context.md
+```
+
+For HTTP + UI rendering scope, Vitest Browser Mode component tests (all rendering
+branches covered) must also be green before opening the PR.
+
+### Per-scope slice-done guardrails (SKILL.md Guardrails #13–#15)
+
+HTTP-scope slices that add or modify response schema fields must also satisfy:
+
+- **Guardrail #13** — backend integration test (FastAPI `TestClient`) asserts ALL response contract fields non-null/non-empty for a real-data fixture.
+- **Guardrail #14** — (Vue SFC changes) Vitest Browser Mode component test covers every rendering branch touched; no branch may be absent.
+- **Guardrail #15** — Pact consumer interaction written in same slice; same-repo provider verification passes in same slice; cross-repo deferral explicitly recorded.
 
 ---
 

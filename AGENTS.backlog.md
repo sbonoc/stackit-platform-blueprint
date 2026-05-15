@@ -50,7 +50,7 @@ To introduce a new tag, append a row here in the same commit that uses it.
 
 ### P2 — Blueprint tooling and SDD
 
-- [ ] Issue #247 — step-05-implement: add deterministic slice-done markers so parallel agent slices do not replay completed work on context restart.
+- [x] Issue #247 — step-05-implement: add deterministic slice-done gate for HTTP+UI-rendering scope (Guardrails #13, #14, #15 + promoted smoke step + AGENTS.md canonical normative home FR-007–FR-010). Closed by PR #303.
 - [ ] Issue #284 — support `ARGOCD_LOCAL_TARGET_REVISION` env var to track a non-default branch in local ArgoCD.
 - [ ] Issue #296 — workaround manifest `action_path` CI validation gate.
 - [ ] (no issue) Ownership checker robustness: support normalized equivalence for semantically-identical prune-glob expressions in ownership-matrix documentation checks.
@@ -138,6 +138,12 @@ Surface automatically when the named scope is next touched. Do not promote to ac
       rationale: revisit when CI blueprint gains a stable ACR or a skip mechanism; false-positive risk currently blocks this
 - [ ] proposal(issue-238-239-240-a11y-compliance): automated W3C JSON fetch in `sync_acr_criteria.py`.
       rationale: adds network dependency at CI time; surface when any a11y-scope work item is next in flight
+
+### on-scope: skills
+
+- [ ] (parked) proposal(issue-247-step05-slice-done-gate): automated SKILL.md content scanner — verify SKILL.md contains required guardrail patterns and the smoke gate step as automated regression protection
+      trigger: on-scope: skills
+      rationale: skill runbook is human-authored governance prose, not a machine-verifiable interface contract; automated scanner couples check to prose phrasing and requires updates on any reword; spec-to-code review gap is sufficient for now
 
 ### after: consumer-app-descriptor-adoption
 

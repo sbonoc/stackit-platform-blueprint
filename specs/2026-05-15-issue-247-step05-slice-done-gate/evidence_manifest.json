@@ -1,0 +1,58 @@
+{
+  "manifest_version": 1,
+  "work_item": "specs/2026-05-15-issue-247-step05-slice-done-gate",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-05-15T14:38:52Z",
+  "files": [
+    {
+      "path": "specs/2026-05-15-issue-247-step05-slice-done-gate/architecture.md",
+      "sha256": "268640f19624526c8ddb2d255d67ca581888d6281d8cb906be9f12d4ac712c77",
+      "bytes": 5079
+    },
+    {
+      "path": "specs/2026-05-15-issue-247-step05-slice-done-gate/context_pack.md",
+      "sha256": "8d2df90e2dc7ccc65fe9ffd6946d16e40d798e33f0caf4efbbdca438c25f3d4c",
+      "bytes": 855
+    },
+    {
+      "path": "specs/2026-05-15-issue-247-step05-slice-done-gate/evidence_manifest.json",
+      "sha256": "ecb0eea40122794ca8f062212e022ba451f6d0a543b88db3d7c15e65a071e7f7",
+      "bytes": 161
+    },
+    {
+      "path": "specs/2026-05-15-issue-247-step05-slice-done-gate/graph.json",
+      "sha256": "ce0d0641a46e55e649ce53fa2169d0e20a003c985b700ac2d66c6b456a5dfa16",
+      "bytes": 7605
+    },
+    {
+      "path": "specs/2026-05-15-issue-247-step05-slice-done-gate/hardening_review.md",
+      "sha256": "180c270281b26a89bd05143aa36c52a8f29682f3a175ec99f369f8490532b0f7",
+      "bytes": 1164
+    },
+    {
+      "path": "specs/2026-05-15-issue-247-step05-slice-done-gate/plan.md",
+      "sha256": "5f825ebeabf0bbc4eda2bb1f8d273af774c8cfaf8829d94e9c370f6ed8cbd162",
+      "bytes": 9980
+    },
+    {
+      "path": "specs/2026-05-15-issue-247-step05-slice-done-gate/pr_context.md",
+      "sha256": "26b7a261f5f07f472d3d30b255eb9d1b35c3633cb84be062b9e5f461c488d33c",
+      "bytes": 465
+    },
+    {
+      "path": "specs/2026-05-15-issue-247-step05-slice-done-gate/spec.md",
+      "sha256": "ca2503bc194b247cde9f1f962ac2f5018bd5404b74addbe899ebadcf5debe4d4",
+      "bytes": 16449
+    },
+    {
+      "path": "specs/2026-05-15-issue-247-step05-slice-done-gate/tasks.md",
+      "sha256": "fa13cd58142f057699731259164c06bfcff4f63e9b9edd2ae6420ab0c0e946f4",
+      "bytes": 4168
+    },
+    {
+      "path": "specs/2026-05-15-issue-247-step05-slice-done-gate/traceability.md",
+      "sha256": "d751b2e9f289ecf77c67f7de8cdefc2286e2554dff2dceff6c05c47274ec5d03",
+      "bytes": 6402
+    }
+  ]
+}

@@ -1,0 +1,167 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-05-15-issue-247-step05-slice-done-gate",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "SKILL.md MUST include Guardrail #13 — API response field coverage (all fields non-null/non-empty in integration test)"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "SKILL.md MUST include Guardrail #14 — Vue component test per rendering branch (fallback/degraded/error enumerated)"
+    },
+    {
+      "id": "FR-003",
+      "type": "requirement",
+      "summary": "SKILL.md MUST include Guardrail #15 — Pact consumer interaction in same slice; same-repo provider verification in same slice; cross-repo deferral protocol"
+    },
+    {
+      "id": "FR-004",
+      "type": "requirement",
+      "summary": "Minimum validation bundle table MUST have two distinct REQUIRED rows for HTTP scope and HTTP+UI rendering scope"
+    },
+    {
+      "id": "FR-005",
+      "type": "requirement",
+      "summary": "Local smoke gate MUST be promoted from Special cases to numbered main workflow step; MUST NOT be optional"
+    },
+    {
+      "id": "FR-006",
+      "type": "requirement",
+      "summary": "references/implement_checklist.md MUST exist on disk (contract compliance gap); content derived from SKILL.md guardrails; MUST NOT introduce requirements beyond SKILL.md"
+    },
+    {
+      "id": "NFR-MAINT-001",
+      "type": "requirement",
+      "summary": "New guardrails MUST follow existing numbered format and MUST NOT alter or remove guardrails 1–12"
+    },
+    {
+      "id": "NFR-COMPAT-001",
+      "type": "requirement",
+      "summary": "All changes MUST be additive; existing slices satisfying the gate MUST require no rework"
+    },
+    {
+      "id": "NFR-A11Y-001",
+      "type": "requirement",
+      "summary": "N/A — no UI or frontend changes"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "Guardrail #13 exists: requires ALL response contract fields non-null/non-empty integration test against real-data fixture"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "Guardrail #14 exists: requires enumeration of component test per rendering branch; slice MUST NOT be done if any branch absent"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "Guardrail #15 exists: Pact consumer interaction required; same-repo provider verification in same slice; cross-repo deferral recorded"
+    },
+    {
+      "id": "AC-004",
+      "type": "acceptance",
+      "summary": "Minimum validation bundle table has two REQUIRED HTTP rows (query scope and UI rendering scope)"
+    },
+    {
+      "id": "AC-005",
+      "type": "acceptance",
+      "summary": "Numbered main workflow step 3 exists; marked non-optional; PR MUST NOT open until it passes"
+    },
+    {
+      "id": "AC-006",
+      "type": "acceptance",
+      "summary": "references/implement_checklist.md exists on disk (contract compliance gap resolved); content is consistent summary of SKILL.md gates; introduces no additional requirements"
+    },
+    {
+      "id": "AC-007",
+      "type": "acceptance",
+      "summary": "make quality-hooks-run passes clean after all changes applied"
+    },
+    {
+      "id": "FR-007",
+      "type": "requirement",
+      "summary": "AGENTS.md § Cross-Cutting Guardrails MUST add field-coverage gate — canonical normative home for Guardrail #13"
+    },
+    {
+      "id": "FR-008",
+      "type": "requirement",
+      "summary": "AGENTS.md § Testing and Quality Ratios MUST add per-SFC rendering-branch coverage rule — canonical normative home for Guardrail #14"
+    },
+    {
+      "id": "FR-009",
+      "type": "requirement",
+      "summary": "AGENTS.md § Contract Testing Standards MUST add same-repo Pact provider timing requirement — canonical normative home for Guardrail #15 same-repo clause"
+    },
+    {
+      "id": "FR-010",
+      "type": "requirement",
+      "summary": "AGENTS.md § Minimum Validation Bundles MUST add two HTTP-scope entries resolving drift with § Cross-Cutting Guardrails"
+    },
+    {
+      "id": "AC-008",
+      "type": "acceptance",
+      "summary": "AGENTS.md § Cross-Cutting Guardrails contains field-coverage gate for HTTP-scope schema changes"
+    },
+    {
+      "id": "AC-009",
+      "type": "acceptance",
+      "summary": "AGENTS.md § Testing and Quality Ratios contains per-SFC rendering-branch coverage rule"
+    },
+    {
+      "id": "AC-010",
+      "type": "acceptance",
+      "summary": "AGENTS.md § Contract Testing Standards contains same-repo Pact provider timing requirement"
+    },
+    {
+      "id": "AC-011",
+      "type": "acceptance",
+      "summary": "AGENTS.md § Minimum Validation Bundles contains two HTTP-scope entries"
+    }
+  ],
+  "edges": [
+    { "from": "FR-001", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-002", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-003", "relation": "validated_by" },
+    { "from": "FR-004", "to": "AC-004", "relation": "validated_by" },
+    { "from": "FR-005", "to": "AC-005", "relation": "validated_by" },
+    { "from": "FR-006", "to": "AC-006", "relation": "validated_by" },
+    { "from": "FR-001", "to": "AC-007", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-007", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-007", "relation": "validated_by" },
+    { "from": "FR-004", "to": "AC-007", "relation": "validated_by" },
+    { "from": "FR-005", "to": "AC-007", "relation": "validated_by" },
+    { "from": "FR-006", "to": "AC-007", "relation": "validated_by" },
+    { "from": "NFR-MAINT-001", "to": "FR-001", "relation": "constrains" },
+    { "from": "NFR-MAINT-001", "to": "FR-002", "relation": "constrains" },
+    { "from": "NFR-MAINT-001", "to": "FR-003", "relation": "constrains" },
+    { "from": "NFR-COMPAT-001", "to": "FR-001", "relation": "constrains" },
+    { "from": "NFR-COMPAT-001", "to": "FR-002", "relation": "constrains" },
+    { "from": "NFR-COMPAT-001", "to": "FR-003", "relation": "constrains" },
+    { "from": "NFR-COMPAT-001", "to": "FR-004", "relation": "constrains" },
+    { "from": "NFR-COMPAT-001", "to": "FR-005", "relation": "constrains" },
+    { "from": "NFR-MAINT-001", "to": "FR-007", "relation": "constrains" },
+    { "from": "NFR-MAINT-001", "to": "FR-008", "relation": "constrains" },
+    { "from": "NFR-MAINT-001", "to": "FR-009", "relation": "constrains" },
+    { "from": "NFR-COMPAT-001", "to": "FR-007", "relation": "constrains" },
+    { "from": "NFR-COMPAT-001", "to": "FR-008", "relation": "constrains" },
+    { "from": "NFR-COMPAT-001", "to": "FR-009", "relation": "constrains" },
+    { "from": "NFR-COMPAT-001", "to": "FR-010", "relation": "constrains" },
+    { "from": "FR-007", "to": "AC-008", "relation": "validated_by" },
+    { "from": "FR-008", "to": "AC-009", "relation": "validated_by" },
+    { "from": "FR-009", "to": "AC-010", "relation": "validated_by" },
+    { "from": "FR-010", "to": "AC-011", "relation": "validated_by" },
+    { "from": "FR-007", "to": "AC-007", "relation": "validated_by" },
+    { "from": "FR-008", "to": "AC-007", "relation": "validated_by" },
+    { "from": "FR-009", "to": "AC-007", "relation": "validated_by" },
+    { "from": "FR-010", "to": "AC-007", "relation": "validated_by" },
+    { "from": "FR-001", "to": "FR-007", "relation": "requires" },
+    { "from": "FR-002", "to": "FR-008", "relation": "requires" },
+    { "from": "FR-003", "to": "FR-009", "relation": "requires" },
+    { "from": "FR-004", "to": "FR-010", "relation": "requires" }
+  ]
+}
