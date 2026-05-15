@@ -1,10 +1,10 @@
 # ADR — step-05-implement: Deterministic Slice-Done Gate for HTTP+UI-Rendering Scope
 
-- Status: proposed
+- Status: approved
 - Work item: 2026-05-15-issue-247-step05-slice-done-gate
 - Closes: #247
 - Date: 2026-05-15
-- ADR technical decision sign-off: pending
+- ADR technical decision sign-off: approved
 
 ## Context
 
@@ -59,6 +59,17 @@ The "HTTP route / query scope" block is moved from "Special cases" to a numbered
 ### references/implement_checklist.md
 
 Create `.agents/skills/blueprint-sdd-step05-implement/references/implement_checklist.md` with four per-slice checklist items corresponding to the four gaps. The file is already listed as a `required_file` in `blueprint/contract.yaml`; this ADR resolves the on-disk gap.
+
+### AGENTS.md canonical normative home (scope extension)
+
+The `AGENTS.md § Assistant Interoperability` mandate requires that when a SKILL.md introduces new operator-facing guidance, a corresponding canonical normative entry must exist in AGENTS.md. Accordingly, four additions are required:
+
+- **§ Cross-Cutting Guardrails** — field-coverage gate requirement (canonical home for Guardrail #13)
+- **§ Testing and Quality Ratios** — per-SFC rendering-branch coverage rule (canonical home for Guardrail #14; audit confirmed this rule did not previously exist in AGENTS.md)
+- **§ Contract Testing Standards** — same-repo Pact provider timing requirement (canonical home for Guardrail #15 same-repo clause)
+- **§ Minimum Validation Bundles** — two HTTP-scope entries resolving drift with § Cross-Cutting Guardrails (which already requires `test-smoke-all-local` for HTTP scope but the bundles table had no HTTP-scope row)
+
+All four additions are additive prose; no existing AGENTS.md text is altered.
 
 ## Option not taken — Option B: automated SKILL.md content scanner
 

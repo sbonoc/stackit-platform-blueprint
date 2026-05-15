@@ -13,12 +13,13 @@
 
 ## Problem Statement
 - What needs to change and why: `.agents/skills/blueprint-sdd-step05-implement/SKILL.md` defines the per-slice definition of done for all implementation work. It currently allows a slice to be declared done as soon as the unit test suite passes, with no gate on API response field completeness, Vue rendering branch coverage, Pact same-repo provider verification, or local smoke. A real delivery failure (six missing catalog fields visible in the browser) confirmed all four gaps. Three new guardrails and a promoted smoke gate close the gaps.
-- Scope boundaries: `.agents/skills/blueprint-sdd-step05-implement/SKILL.md` (guardrail section and main workflow section) and `.agents/skills/blueprint-sdd-step05-implement/references/implement_checklist.md` (new file). No other files change.
-- Out of scope: All other SDD step skill runbooks. `AGENTS.md`. `blueprint/contract.yaml`. Make targets. Any code or test changes.
+- Scope boundaries: `.agents/skills/blueprint-sdd-step05-implement/SKILL.md` (guardrail section and main workflow section); `.agents/skills/blueprint-sdd-step05-implement/references/implement_checklist.md` (new file); `AGENTS.md` (four additive prose additions to § Cross-Cutting Guardrails, § Testing and Quality Ratios, § Contract Testing Standards, and § Minimum Validation Bundles — canonical normative home for Guardrails #13–#15 and smoke gate, mandated by § Assistant Interoperability).
+- Out of scope: All other SDD step skill runbooks. `blueprint/contract.yaml`. Make targets. Any code or test changes.
 
 ## Bounded Contexts and Responsibilities
 - Skill runbook governance layer: `.agents/skills/blueprint-sdd-step05-implement/SKILL.md` is the normative source of truth for step-05 per-slice definition of done. It is agent-consumed and human-reviewed. It does not execute code; it governs agent behavior at each slice boundary.
 - Reference checklist layer: `.agents/skills/blueprint-sdd-step05-implement/references/implement_checklist.md` is a short, checklist-format companion to SKILL.md. It is contract-governed (`blueprint/contract.yaml` required_files) and propagated to consumer repos. It provides a per-slice self-check artifact; its content MUST stay in sync with the guardrails in SKILL.md.
+- Canonical normative layer: `AGENTS.md` is the canonical source of governance policy. The four additions (FR-007–FR-010) create normative homes in AGENTS.md for the operator-facing rules introduced by Guardrails #13–#15 and resolve the drift between § Cross-Cutting Guardrails and § Minimum Validation Bundles. SKILL.md and the checklist derive from AGENTS.md; changes to either MUST be consistent with the AGENTS.md canonical text.
 
 ## High-Level Component Design
 - Domain layer: governance rules (Guardrails #13–#15 and the smoke gate promotion) — define what constitutes a complete slice for HTTP and UI-rendering scope
