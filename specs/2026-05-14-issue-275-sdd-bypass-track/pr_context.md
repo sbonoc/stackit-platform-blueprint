@@ -13,7 +13,7 @@
 ## Key Reviewer Files
 - Primary files to review first:
   - `scripts/bin/quality/check_sdd_assets.py` — bypass logic at the top of the work-item loop (search for `_BYPASS_ALLOWED_VALUES`)
-  - `tests/blueprint/test_sdd_bypass_track.py` — AC-001 through AC-005 regression tests
+  - `tests/blueprint/test_sdd_bypass_track.py` — 10 regression tests (AC-001 through AC-009, plus AC-005b and AC-006b)
   - `AGENTS.md §Lightweight SDD Bypass Track` — policy documentation for the bypass track
 - High-risk files:
   - `scripts/bin/quality/check_sdd_assets.py` — any regression in the existing missing-docs check affects all spec validation; AC-003 regression guard covers the full-SDD path

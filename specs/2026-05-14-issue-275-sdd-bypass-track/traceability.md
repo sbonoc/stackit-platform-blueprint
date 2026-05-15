@@ -21,7 +21,9 @@
 | AC-003 | SDD-C-012 | N/A | N/A | `tests/blueprint/test_sdd_bypass_track.py` | pytest pass | N/A | N/A |
 | AC-004 | SDD-C-010, SDD-C-012 | N/A | N/A | `tests/blueprint/test_sdd_bypass_track.py` | pytest pass | N/A | N/A |
 | AC-005 | SDD-C-011, SDD-C-012 | N/A | N/A | `tests/blueprint/test_sdd_bypass_track.py` | pytest pass | N/A | N/A |
+| AC-005b | SDD-C-011, SDD-C-012 | N/A | N/A | `tests/blueprint/test_sdd_bypass_track.py` | pytest pass | N/A | N/A |
 | AC-006 | SDD-C-016 | N/A | N/A | `make quality-sdd-check` on this work item's own spec.md | quality-sdd-check PASS | N/A | N/A |
+| AC-006b | SDD-C-005, SDD-C-012 | N/A | N/A | `tests/blueprint/test_sdd_bypass_track.py` | pytest pass | N/A | N/A |
 | AC-007 | SDD-C-005, SDD-C-012 | N/A | N/A | `tests/blueprint/test_sdd_bypass_track.py` | pytest pass | N/A | N/A |
 | AC-008 | SDD-C-012, SDD-C-015 | N/A | N/A | `tests/blueprint/test_sdd_bypass_track.py` | pytest pass | N/A | N/A |
 | AC-009 | SDD-C-007, SDD-C-012 | N/A | N/A | `tests/blueprint/test_sdd_bypass_track.py` | pytest pass | N/A | N/A |
@@ -47,7 +49,9 @@
   - AC-003
   - AC-004
   - AC-005
+  - AC-005b
   - AC-006
+  - AC-006b
   - AC-007
   - AC-008
   - AC-009

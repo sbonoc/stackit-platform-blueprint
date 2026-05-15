@@ -88,9 +88,19 @@
       "summary": "exception set but no authorized-by → violation raised"
     },
     {
+      "id": "AC-005b",
+      "type": "acceptance",
+      "summary": "authorized-by field completely absent (not just none) → violation raised"
+    },
+    {
       "id": "AC-006",
       "type": "acceptance",
       "summary": "make quality-sdd-check on this work item's own spec.md passes"
+    },
+    {
+      "id": "AC-006b",
+      "type": "acceptance",
+      "summary": "pr_context.md missing on bypass path still raises missing-doc violation"
     },
     {
       "id": "AC-007",
@@ -112,6 +122,8 @@
     { "from": "FR-001", "to": "AC-001", "relation": "validated_by" },
     { "from": "FR-001", "to": "AC-006", "relation": "validated_by" },
     { "from": "FR-002", "to": "AC-005", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-005b", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-006b", "relation": "validated_by" },
     { "from": "FR-003", "to": "AC-001", "relation": "validated_by" },
     { "from": "FR-004", "to": "AC-001", "relation": "validated_by" },
     { "from": "FR-005", "to": "AC-003", "relation": "validated_by" },
