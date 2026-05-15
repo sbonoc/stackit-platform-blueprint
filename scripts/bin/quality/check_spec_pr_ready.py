@@ -25,6 +25,52 @@ PREFIX = "[quality-spec-pr-ready]"
 
 _SDD_BRANCH_PATTERN = re.compile(r"^codex/(\d{4}-\d{2}-\d{2}-.+)$")
 
+# Must stay in sync with _BYPASS_ALLOWED_VALUES in check_sdd_assets.py.
+_BYPASS_ALLOWED_VALUES: frozenset[str] = frozenset(
+    {"bug-fix", "upgrade", "refactor", "chore", "authorized-deviation"}
+)
+# Files skipped by quality-spec-pr-ready when bypass is active.
+# Must stay in sync with _BYPASS_OPTIONAL_DOCS in check_sdd_assets.py.
+_BYPASS_OPTIONAL_FILES: frozenset[str] = frozenset(
+    {"plan.md", "tasks.md", "architecture.md", "hardening_review.md"}
+)
+_READINESS_SECTION_RE = re.compile(r"^##\s+Spec Readiness Gate", re.IGNORECASE)
+_BULLET_KV_RE = re.compile(r"^\s*-\s+([^:]+):\s*(.*)")
+
+
+def _is_bypass_active(spec_dir: Path) -> bool:
+    """Return True when spec.md declares a valid SPEC_READY_EXCEPTION with a real authorized-by."""
+    spec_path = spec_dir / "spec.md"
+    if not spec_path.is_file():
+        return False
+    try:
+        in_readiness = False
+        exception_type = ""
+        authorized_by = ""
+        for line in spec_path.read_text(encoding="utf-8", errors="surrogateescape").splitlines():
+            if _READINESS_SECTION_RE.match(line):
+                in_readiness = True
+                continue
+            if in_readiness and line.startswith("##"):
+                break
+            if not in_readiness:
+                continue
+            m = _BULLET_KV_RE.match(line)
+            if not m:
+                continue
+            key, val = m.group(1).strip().lower(), m.group(2).strip()
+            if key == "spec_ready_exception":
+                exception_type = val.lower()
+            elif key == "authorized-by":
+                authorized_by = val
+    except Exception:
+        return False
+    return (
+        exception_type in _BYPASS_ALLOWED_VALUES
+        and bool(authorized_by)
+        and authorized_by.lower() != "none"
+    )
+
 # Verbatim scaffold task subjects from the tasks.md template (T-001 through T-004).
 # These must be replaced with actual work descriptions before opening a PR.
 _SCAFFOLD_TASK_SUBJECTS: tuple[str, ...] = (
@@ -446,6 +492,7 @@ def main(repo_root: Path | None = None) -> int:
         return 1
 
     all_violations: list[str] = []
+    bypass_active = _is_bypass_active(spec_dir)
 
     for file_name, check_fn in (
         ("tasks.md", _check_tasks),
@@ -456,6 +503,8 @@ def main(repo_root: Path | None = None) -> int:
     ):
         path = spec_dir / file_name
         if not path.is_file():
+            if bypass_active and file_name in _BYPASS_OPTIONAL_FILES:
+                continue
             all_violations.append(f"{PREFIX} {file_name}: file not found in spec directory {spec_dir.name}")
             continue
         content = path.read_text(encoding="utf-8", errors="surrogateescape")

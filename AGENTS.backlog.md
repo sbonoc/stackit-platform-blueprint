@@ -24,11 +24,11 @@ To introduce a new tag, append a row here in the same commit that uses it.
 
 ## Active Work
 
-### P1 — Next Up (priority order confirmed 2026-05-14)
+### P1 — Next Up (priority order confirmed 2026-05-15)
 
-- [ ] P1 (Architecture gate): Issue #295 — re-evaluate OpenMetadata as a blueprint baseline component; architecture decision required before any remaining STACKIT-managed service module work under #248.
-- [ ] P1 (Bug — ArgoCD health): Issue #277 — all ArgoCD managed resources report `health=N/A`; platform-logging likely not initialised correctly. Blocks consumer runtime observability.
-- [ ] P1 (SDD governance): Issue #275 — lightweight SDD bypass track for fix/refactor/chore/upgrade changes: single-PR path without full intake→spec→plan ceremony. Delivery multiplier for all maintenance and non-feature work.
+- [x] P1 (Architecture gate): Issue #295 — CLOSED 2026-05-15. Audit confirmed blueprint templates contain no OpenMetadata content; `AGENTS.decisions.md` already records the architectural decision (OM is consumer/product-owned). No template changes required.
+- [x] P1 (Bug — ArgoCD health): Issue #277 — CLOSED. `ignoreResourceUpdates.all` `/status` rule narrowed; health reporting restored. Merged PR #298.
+- [x] P1 (SDD governance): Issue #275 — CLOSED. Lightweight bypass track shipped. Merged PR #299.
 - [ ] P1 (Quality tooling): Issues #293 + #294 — (1) AGENTS.md template enforces architecture gate sign-off before implementation slices begin; (2) `quality-docs-cross-reference-check` hook catches stale doc cross-references in CI.
 
 ### P2 — Consumer upgrade flow
@@ -54,7 +54,7 @@ To introduce a new tag, append a row here in the same commit that uses it.
 
 ### P2 — Platform modules
 
-- [ ] (gated on #295) Issue #248 remaining modules — OpenMetadata and future STACKIT-managed service candidates. Do not start until the architecture decision in #295 is recorded.
+- [ ] Issue #248 remaining modules — STACKIT-managed service candidates (postgres, rabbitmq, secrets-manager, kms, dns, public-endpoints, observability, workflows, identity-aware-proxy). Gate on #295 removed — architecture decision recorded in `AGENTS.decisions.md`: OM is consumer/product-owned and not a blueprint module candidate.
 - [ ] Issue #171 — managed-cache module: STACKIT Managed Redis as a first-class optional module (Helm/ArgoCD-managed, provider-backed via STACKIT Terraform).
 - [ ] Issue #172 — platform-email module: Helm/ArgoCD-managed Postal for transactional email as an optional module.
 
