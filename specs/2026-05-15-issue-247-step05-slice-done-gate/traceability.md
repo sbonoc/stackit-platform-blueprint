@@ -9,7 +9,7 @@
 | FR-003 | SDD-C-005, SDD-C-011 | — | Guardrail #15 — Pact consumer + provider | `.agents/skills/blueprint-sdd-step05-implement/SKILL.md` § Guardrails | AC-003 confirmed by human review of SKILL.md content | SKILL.md is self-documenting governance | n/a |
 | FR-004 | SDD-C-005, SDD-C-011 | — | Minimum validation bundle table update | `.agents/skills/blueprint-sdd-step05-implement/SKILL.md` § After All Slices Complete | AC-004 confirmed by human review of SKILL.md table | SKILL.md is self-documenting governance | n/a |
 | FR-005 | SDD-C-005, SDD-C-011 | — | Numbered workflow step "3. Local smoke gate" | `.agents/skills/blueprint-sdd-step05-implement/SKILL.md` § Workflow | AC-005 confirmed by human review of SKILL.md workflow | SKILL.md is self-documenting governance | n/a |
-| FR-006 | SDD-C-005, SDD-C-011 | — | New checklist file | `.agents/skills/blueprint-sdd-step05-implement/references/implement_checklist.md` | AC-006 confirmed by file existence check | checklist file is self-documenting | n/a |
+| FR-006 | SDD-C-005, SDD-C-011 | — | Checklist file (derived artifact — contract compliance gap) | `.agents/skills/blueprint-sdd-step05-implement/references/implement_checklist.md` | AC-006 confirmed by file existence + consistency with SKILL.md | checklist is summary of SKILL.md; SKILL.md is normative | n/a |
 | NFR-MAINT-001 | SDD-C-004 | — | Guardrails additive-only constraint | SKILL.md guardrail section (no removal of #1–#12) | PR diff review confirms no deletions in guardrail list | n/a | n/a |
 | NFR-COMPAT-001 | SDD-C-004 | — | Additive-only change policy | SKILL.md diff — additions only | PR diff review confirms additive-only | n/a | n/a |
 | NFR-A11Y-001 | — | — | N/A — no UI changes | — | — | — | — |
@@ -18,7 +18,7 @@
 | AC-003 | SDD-C-012 | — | Guardrail #15 text | SKILL.md § Guardrails #15 | Human review confirms exact text matches spec | — | n/a |
 | AC-004 | SDD-C-012 | — | Validation bundle table rows | SKILL.md § After All Slices Complete | Human review confirms two REQUIRED HTTP rows present | — | n/a |
 | AC-005 | SDD-C-012 | — | Numbered smoke step | SKILL.md § Workflow step 3 | Human review confirms step 3 exists with non-optional language | — | n/a |
-| AC-006 | SDD-C-012 | — | Checklist file | `.agents/skills/blueprint-sdd-step05-implement/references/implement_checklist.md` | File existence + content review | — | n/a |
+| AC-006 | SDD-C-012 | — | Checklist file on disk (contract compliance) | `.agents/skills/blueprint-sdd-step05-implement/references/implement_checklist.md` | File existence confirmed; content consistency with SKILL.md confirmed by review | — | n/a |
 | AC-007 | SDD-C-012 | — | Quality gate | `make quality-hooks-run` | Output: clean exit 0 | — | n/a |
 
 ## Graph Linkage

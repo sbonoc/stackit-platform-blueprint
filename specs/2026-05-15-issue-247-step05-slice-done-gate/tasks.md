@@ -17,7 +17,7 @@
 - [ ] T-005 Add numbered workflow step "3. Local smoke gate (HTTP and UI-rendering scope)" to SKILL.md main workflow (before "After All Slices Complete"); remove the now-duplicated HTTP block from "Special cases"
 
 ### Slice 2 — Create checklist file
-- [ ] T-006 Create `.agents/skills/blueprint-sdd-step05-implement/references/implement_checklist.md` with four per-slice checklist items (FR-006)
+- [ ] T-006 Create `.agents/skills/blueprint-sdd-step05-implement/references/implement_checklist.md` (contract compliance gap — file absent on disk); content derived from Slice 1 SKILL.md changes; MUST NOT introduce requirements beyond SKILL.md (FR-006)
 
 ## Test Automation
 - [ ] T-101 N/A — docs-only change; no automated test suite applicable. Verification is `make quality-hooks-run` (see T-201).

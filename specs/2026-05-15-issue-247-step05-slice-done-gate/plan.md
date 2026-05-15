@@ -24,9 +24,9 @@ Add Guardrails #13, #14, #15 to the existing Guardrails section. Update the "Aft
 Verification: read SKILL.md to confirm all three guardrails are present, the table has the new rows, and the numbered smoke step exists before "After All Slices Complete". Run `make quality-hooks-fast` to confirm no regressions.
 
 ### Slice 2 — Create `references/implement_checklist.md`
-Create `.agents/skills/blueprint-sdd-step05-implement/references/implement_checklist.md` with the four per-slice checklist items from FR-006. The file is already listed as a required_file in `blueprint/contract.yaml`; this slice resolves the on-disk gap.
+Create `.agents/skills/blueprint-sdd-step05-implement/references/implement_checklist.md`. The file is listed as a `required_file` in `blueprint/contract.yaml` but absent on disk; this slice resolves the contract compliance gap. Content is derived from the SKILL.md changes in Slice 1 — a concise checklist summary of Guardrails #13, #14, #15 and the promoted smoke gate. SKILL.md is the normative source; the checklist MUST NOT introduce additional requirements.
 
-Verification: confirm file exists at the correct path. Run `make quality-hooks-fast`.
+Verification: confirm file exists at the correct path. Confirm content is consistent with the SKILL.md guardrail text. Run `make quality-hooks-fast`.
 
 ## Change Strategy
 - Migration/rollout sequence: Slice 1 then Slice 2. No dependency inversion — both can be done in either order, but Slice 1 is the primary change.

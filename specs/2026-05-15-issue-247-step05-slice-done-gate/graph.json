@@ -30,7 +30,7 @@
     {
       "id": "FR-006",
       "type": "requirement",
-      "summary": "references/implement_checklist.md MUST be created with four per-slice checklist items"
+      "summary": "references/implement_checklist.md MUST exist on disk (contract compliance gap); content derived from SKILL.md guardrails; MUST NOT introduce requirements beyond SKILL.md"
     },
     {
       "id": "NFR-MAINT-001",
@@ -75,7 +75,7 @@
     {
       "id": "AC-006",
       "type": "acceptance",
-      "summary": "references/implement_checklist.md exists with four per-slice items (field coverage, branch enumeration, Pact, smoke)"
+      "summary": "references/implement_checklist.md exists on disk (contract compliance gap resolved); content is consistent summary of SKILL.md gates; introduces no additional requirements"
     },
     {
       "id": "AC-007",
