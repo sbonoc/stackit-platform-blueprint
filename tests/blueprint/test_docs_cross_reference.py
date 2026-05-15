@@ -189,3 +189,19 @@ class TestHeadingDetection:
         self._write_north_star(repo, "## Architecture Invariants\n\nContent here.\n")
         monkeypatch.setattr(checker, "REPO_ROOT", repo)
         assert checker.main() == 1
+
+    def test_allowlist_entry_missing_justification_does_not_exempt(
+        self, checker, repo: Path, monkeypatch, capsys
+    ) -> None:
+        self._write_agents(repo, "## Architecture Invariants\n\n- Some rule.\n")
+        self._write_north_star(repo, "## Architecture Invariants\n\nContent here.\n")
+        allowlist = (
+            "entries:\n"
+            "  - heading: Architecture Invariants\n"
+            "    justification: \n"
+        )
+        (repo / ".quality-docs-cross-reference-allowlist.yml").write_text(allowlist, encoding="utf-8")
+        monkeypatch.setattr(checker, "REPO_ROOT", repo)
+        result = checker.main()
+        assert result == 1
+        assert "missing justification" in capsys.readouterr().err

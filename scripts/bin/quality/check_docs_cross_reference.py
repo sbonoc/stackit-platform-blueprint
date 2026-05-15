@@ -72,7 +72,7 @@ def _load_allowlist(path: Path) -> set[str]:
     result: set[str] = set()
     for entry in entries:
         heading = entry.get('heading', '')
-        justification = entry.get('justification', '').strip()
+        justification = (entry.get('justification') or '').strip()
         if not justification:
             print(
                 f'[quality-docs-cross-reference-check] allowlist entry missing justification: {heading!r}',
@@ -113,7 +113,7 @@ def main() -> int:
     allowlist = _load_allowlist(allowlist_path)
 
     exempted = pointer_headings | allowlist
-    violations = sorted(agents_headings & north_star_headings - exempted)
+    violations = sorted((agents_headings & north_star_headings) - exempted)
 
     if not violations:
         print(
