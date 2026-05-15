@@ -46,7 +46,7 @@
 ## Publish
 - [x] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
 - [x] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
-- [ ] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
+- [x] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
 
 ## App Onboarding Minimum Targets (Normative)
 - [x] A-001 `apps-bootstrap` and `apps-smoke` — N/A; no app delivery workflow impact
