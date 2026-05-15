@@ -999,6 +999,25 @@ class BypassTrackTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             self.assertFalse(_checker._is_bypass_active(Path(tmpdir)))
 
+    def test_bypass_active_optional_files_present_with_scaffold_content_exits_zero(self) -> None:
+        """Bypass: optional files present with scaffold placeholder content → no violations."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            slug = "2026-01-01-bypass-scaffold"
+            spec_dir = self._make_bypass_spec_dir(repo_root, slug)
+            # Write scaffold placeholder content that would normally fail content checks
+            (spec_dir / "tasks.md").write_text(
+                "# Tasks\n\n## Implementation\n- [ ] T-001 Update contract/governance surfaces\n",
+                encoding="utf-8",
+            )
+            (spec_dir / "plan.md").write_text(
+                "# Implementation Plan\n\n## Delivery Slices\n1. Slice 1:\n",
+                encoding="utf-8",
+            )
+            with mock.patch.dict(os.environ, {"SPEC_SLUG": slug}):
+                result = _checker.main(repo_root=repo_root)
+            self.assertEqual(result, 0, "bypass should suppress content checks for optional files")
+
 
 if __name__ == "__main__":
     unittest.main()

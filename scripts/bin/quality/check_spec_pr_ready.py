@@ -163,7 +163,9 @@ def _token_present(line: str, token: str) -> bool:
     return needle in haystack
 
 
-def _check_spec_marker_tokens(spec_dir: Path) -> list[str]:
+def _check_spec_marker_tokens(
+    spec_dir: Path, bypass_optional_files: frozenset[str] | None = None
+) -> list[str]:
     """Check spec.md, tasks.md, and traceability.md for unresolved marker tokens.
 
     This mirrors the token scan performed by check_sdd_assets.py so that
@@ -174,6 +176,8 @@ def _check_spec_marker_tokens(spec_dir: Path) -> list[str]:
     """
     violations: list[str] = []
     for file_name in _MARKER_SCAN_FILES:
+        if bypass_optional_files and file_name in bypass_optional_files:
+            continue
         path = spec_dir / file_name
         if not path.is_file():
             # Missing optional file: skip gracefully; main() reports missing required files
@@ -501,10 +505,10 @@ def main(repo_root: Path | None = None) -> int:
         ("pr_context.md", _check_pr_context),
         ("architecture.md", _check_architecture),
     ):
+        if bypass_active and file_name in _BYPASS_OPTIONAL_FILES:
+            continue  # skip both existence and content checks when bypass is active
         path = spec_dir / file_name
         if not path.is_file():
-            if bypass_active and file_name in _BYPASS_OPTIONAL_FILES:
-                continue
             all_violations.append(f"{PREFIX} {file_name}: file not found in spec directory {spec_dir.name}")
             continue
         content = path.read_text(encoding="utf-8", errors="surrogateescape")
@@ -514,7 +518,12 @@ def main(repo_root: Path | None = None) -> int:
     # This check runs here (not only in check_sdd_assets.py) so that it fires
     # when quality-spec-pr-ready is invoked directly via SPEC_SLUG, regardless
     # of which branch is currently checked out.
-    all_violations.extend(_check_spec_marker_tokens(spec_dir))
+    all_violations.extend(
+        _check_spec_marker_tokens(
+            spec_dir,
+            bypass_optional_files=_BYPASS_OPTIONAL_FILES if bypass_active else None,
+        )
+    )
 
     # Check evidence_manifest.json is not the scaffold placeholder.
     all_violations.extend(_check_evidence_manifest(spec_dir))
