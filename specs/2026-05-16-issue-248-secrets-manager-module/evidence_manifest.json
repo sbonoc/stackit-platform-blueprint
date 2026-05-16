@@ -2,49 +2,61 @@
   "manifest_version": 1,
   "work_item": "2026-05-16-issue-248-secrets-manager-module",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "2026-05-16T00:00:00Z",
+  "generated_at_utc": "2026-05-17T00:00:00Z",
   "files": [
     {
       "path": "specs/2026-05-16-issue-248-secrets-manager-module/spec.md",
       "role": "specification",
-      "status": "draft",
-      "sha256": "32867e516afb89d19d4203bfd3a691db1509825bb9739083bf80929284190c3f"
+      "status": "approved",
+      "sha256": "433e7d4fcf7d3efe86929a0369d1e18ee3a3e8dd374bef38fcadba451458dd17"
     },
     {
       "path": "specs/2026-05-16-issue-248-secrets-manager-module/architecture.md",
       "role": "architecture",
-      "status": "draft",
+      "status": "approved",
       "sha256": "f9127e2f427ef09be1803f3d96e268a67d5fb4103e5a266f2f6ea5ab862b9454"
     },
     {
       "path": "specs/2026-05-16-issue-248-secrets-manager-module/plan.md",
       "role": "implementation-plan",
-      "status": "draft",
-      "sha256": "c041a438fd4cc780df980eec139ce424fdb0a1e34f0ced338b31e025978b7eb4"
+      "status": "approved",
+      "sha256": "630a45c6373f02fc3992f4aeb06897b09c3bae58bd12b8b285630d2c3e7258ce"
     },
     {
       "path": "specs/2026-05-16-issue-248-secrets-manager-module/tasks.md",
       "role": "task-list",
-      "status": "draft",
-      "sha256": "ed38dbee4c505351f93a2af3ce631ad80ec6202c81441412d87fd340ee3f0557"
+      "status": "complete",
+      "sha256": "1c00fa24120022325ae71fdd13ea9176fa2634eb2f836121f86601381822b8d1"
     },
     {
       "path": "specs/2026-05-16-issue-248-secrets-manager-module/graph.json",
       "role": "traceability-graph",
-      "status": "draft",
-      "sha256": "2af122b4025d6678ed8ad1fa5eac39845d2f7ca5612450f73f3eb74ef387c51a"
+      "status": "complete",
+      "sha256": "1be25d901428ae3aa84d0fd9579355ee324f866b9bb09c5317ffc4bf38cad172"
     },
     {
       "path": "specs/2026-05-16-issue-248-secrets-manager-module/traceability.md",
       "role": "traceability-matrix",
-      "status": "draft",
-      "sha256": "45eef507b41b2a36ccabf1ec02481614821a848d33fa69136e9d086d2067041c"
+      "status": "complete",
+      "sha256": "1e0cdef5023b28b03750170bc13b1fc4386f360fe98402e222ae626ba3a1acb0"
     },
     {
       "path": "docs/blueprint/architecture/decisions/ADR-issue-248-secrets-manager-module.md",
       "role": "adr",
-      "status": "proposed",
-      "sha256": "e80bb8df08d505cccf7996d28a7dd75fef760ad37452a62072f74babe6d8802f"
+      "status": "approved",
+      "sha256": "6ba04a7c4c50b224b399717a98acf2fcf34f2f48a12430d23018bd4e8f158fbf"
+    },
+    {
+      "path": "specs/2026-05-16-issue-248-secrets-manager-module/pr_context.md",
+      "role": "pr-context",
+      "status": "complete",
+      "sha256": "1d718654da57eba1924e86063e30a5e1723198ee940c0def556a854cef94d46e"
+    },
+    {
+      "path": "specs/2026-05-16-issue-248-secrets-manager-module/hardening_review.md",
+      "role": "hardening-review",
+      "status": "complete",
+      "sha256": "d5f314b49328b1a2e38e6229b92ace2e15c16809dd9fae1e79c338b520ed0208"
     }
   ]
 }
