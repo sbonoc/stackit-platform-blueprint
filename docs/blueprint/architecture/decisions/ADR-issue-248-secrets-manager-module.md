@@ -1,7 +1,7 @@
 # ADR: Issue #248 — Secrets Manager Module Implementation (STACKIT-Only)
 
-- **Status**: proposed
-- **ADR technical decision sign-off**: pending
+- **Status**: approved
+- **ADR technical decision sign-off**: approved
 - **Date**: 2026-05-16
 - **Issue**: #248
 - **Work item**: `specs/2026-05-16-issue-248-secrets-manager-module/`

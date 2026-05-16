@@ -35,7 +35,7 @@
     {
       "id": "FR-007",
       "type": "requirement",
-      "summary": "Implement secrets_manager_reconcile_runtime_secret() writing blueprint-secrets-manager-auth K8s Secret"
+      "summary": "Implement secrets_manager_reconcile_runtime_secret() and secrets_manager_delete_runtime_secret() — reconcile writes K8s Secret, delete removes it"
     },
     {
       "id": "FR-008",
@@ -50,7 +50,7 @@
     {
       "id": "FR-010",
       "type": "requirement",
-      "summary": "Update secrets_manager_smoke.sh to validate namespace key is non-empty"
+      "summary": "Update secrets_manager_smoke.sh to validate namespace and auth_method_details keys are non-empty"
     },
     {
       "id": "FR-011",
@@ -75,7 +75,7 @@
     {
       "id": "NFR-OBS-001",
       "type": "requirement",
-      "summary": "namespace and auth_method_details in runtime state; smoke validates namespace; prefixed output"
+      "summary": "namespace and auth_method_details in runtime state; smoke validates both keys non-empty; prefixed output"
     },
     {
       "id": "NFR-REL-001",
@@ -113,6 +113,11 @@
       "summary": "outputs.tf declares instance_id, username, password (sensitive)"
     },
     {
+      "id": "AC-004b",
+      "type": "acceptance",
+      "summary": "versions.tf exists and declares stackitcloud/stackit required provider with pinned version constraint"
+    },
+    {
       "id": "AC-005",
       "type": "acceptance",
       "summary": "module.contract.yaml includes SECRETS_MANAGER_NAMESPACE and SECRETS_MANAGER_AUTH_METHOD_DETAILS"
@@ -130,7 +135,7 @@
     {
       "id": "AC-008",
       "type": "acceptance",
-      "summary": "secrets_manager_reconcile_runtime_secret() writes blueprint-secrets-manager-auth K8s Secret"
+      "summary": "secrets_manager_reconcile_runtime_secret() and secrets_manager_delete_runtime_secret() both exist and operate on blueprint-secrets-manager-auth"
     },
     {
       "id": "AC-009",
@@ -145,7 +150,7 @@
     {
       "id": "AC-011",
       "type": "acceptance",
-      "summary": "secrets_manager_smoke.sh exits non-zero if namespace absent or empty"
+      "summary": "secrets_manager_smoke.sh exits non-zero if namespace or auth_method_details absent or empty"
     },
     {
       "id": "AC-012",
@@ -173,6 +178,7 @@
     { "from": "FR-001", "to": "AC-002", "relation": "validated_by" },
     { "from": "FR-002", "to": "AC-003", "relation": "validated_by" },
     { "from": "FR-003", "to": "AC-004", "relation": "validated_by" },
+    { "from": "FR-001", "to": "AC-004b", "relation": "validated_by" },
     { "from": "FR-004", "to": "AC-005", "relation": "validated_by" },
     { "from": "FR-005", "to": "AC-006", "relation": "validated_by" },
     { "from": "FR-006", "to": "AC-007", "relation": "validated_by" },
