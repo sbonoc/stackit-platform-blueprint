@@ -13,14 +13,39 @@
 
 ## Delivery Slices
 
-### Slice 1 — Terraform standalone module (red → green)
-1. Write failing `test_contract.py` assertions for TF module structure (AC-001–AC-004).
-2. Write `main.tf`, `variables.tf`, `outputs.tf` → turn assertions green.
+### Slice 1 — Terraform standalone module + pre-commit wiring (red → green)
 
-### Slice 2 — Shell layer and contract (red → green)
-1. Write failing `test_contract.py` assertions for contract outputs, namespace/auth helpers, reconcile secret, apply/plan/smoke state keys, and security invariant (AC-005–AC-013).
-2. Update `module.contract.yaml`, `secrets_manager.sh` (add `secrets_manager_namespace`, `secrets_manager_auth_method_details`, `secrets_manager_reconcile_runtime_secret`), `secrets_manager_apply.sh`, `secrets_manager_plan.sh`, `secrets_manager_smoke.sh` → turn assertions green.
-3. Update `tests/infra/test_optional_modules.py` to assert `namespace` and `auth_method_details` in runtime state (additive).
+**Owner:** Software Engineer
+**Inputs:** None (new files only)
+**Outputs:** `main.tf`, `variables.tf`, `outputs.tf`, `versions.tf`; `test_pyramid_contract.json` entry; all AC-001–AC-004b green
+**Dependency:** none — start here
+
+1. Add `tests/infra/modules/secrets-manager/test_contract.py` to `scripts/lib/quality/test_pyramid_contract.json` (T-000) — MUST precede test file creation to avoid pre-commit hook failure.
+2. Write failing `test_contract.py` assertions for TF module structure: AC-001 (`main.tf` instance resource + lifecycle), AC-002 (`main.tf` user resource), AC-003 (`variables.tf` six vars), AC-004 (`outputs.tf` three outputs), AC-004b (`versions.tf` provider pin). Confirm red.
+3. Write `main.tf` (`stackit_secretsmanager_instance.this` + `stackit_secretsmanager_user.this` + lifecycle block), `variables.tf`, `outputs.tf`, `versions.tf` (pinned `stackitcloud/stackit` version matching all other modules).
+4. Run `uv run pytest tests/infra/modules/secrets-manager/test_contract.py -v -k "slice1 or tf_module"` — AC-001–AC-004b green.
+
+**Per-slice gate:** `uv run pytest tests/infra/modules/secrets-manager/test_contract.py -v`
+
+### Slice 2 — Shell layer, contract, and cleanup (red → green)
+
+**Owner:** Software Engineer
+**Inputs:** Slice 1 complete (TF module files exist; pyramid contract entry present)
+**Outputs:** updated `secrets_manager.sh`, `apply.sh`, `plan.sh`, `smoke.sh`, `destroy.sh`; updated `module.contract.yaml`; all AC-005–AC-015 green
+**Dependency:** Slice 1
+
+1. Write failing `test_contract.py` assertions for: AC-005 (contract outputs), AC-006 (`namespace()` returns instance_name), AC-007 (`auth_method_details()` returns username), AC-008 (reconcile + delete functions exist), AC-009 (apply writes namespace + auth_method_details + calls reconcile), AC-010 (plan writes namespace), AC-011 (smoke exits non-zero if namespace or auth_method_details absent), AC-012 (password never in state file), AC-013 (≥10 assertions pass), AC-014 (destroy calls delete_runtime_secret), AC-015 (pyramid contract entry present). Confirm red.
+2. Update `module.contract.yaml` — add `SECRETS_MANAGER_NAMESPACE`, `SECRETS_MANAGER_AUTH_METHOD_DETAILS` to `outputs.produced`.
+3. Update `scripts/lib/infra/secrets_manager.sh` — add `source` statements for `stackit_foundation_outputs.sh`, `versions.sh`, `fallback_runtime.sh`; add `secrets_manager_namespace()`, `secrets_manager_auth_method_details()`, `secrets_manager_reconcile_runtime_secret()`, `secrets_manager_delete_runtime_secret()`.
+4. Update `scripts/bin/infra/secrets_manager_apply.sh` — call `secrets_manager_reconcile_runtime_secret()` after provision step; add `namespace` and `auth_method_details` to state file write.
+5. Update `scripts/bin/infra/secrets_manager_plan.sh` — add `namespace` to plan state output.
+6. Update `scripts/bin/infra/secrets_manager_smoke.sh` — add non-empty existence checks for both `namespace` and `auth_method_details`.
+7. Update `scripts/bin/infra/secrets_manager_destroy.sh` — call `secrets_manager_delete_runtime_secret()` before state file removal.
+8. Update `tests/infra/test_optional_modules.py` `test_secrets_manager_module_flow` — add assertions for `namespace` and `auth_method_details` in runtime state.
+9. Run `uv run pytest tests/infra/modules/secrets-manager/test_contract.py -v` — all ≥10 assertions green.
+10. Run `uv run pytest tests/infra/test_optional_modules.py -v -k secrets_manager` — green.
+
+**Per-slice gate:** `uv run pytest tests/infra/modules/secrets-manager/test_contract.py tests/infra/test_optional_modules.py -v -k "secrets_manager"`
 
 ## Change Strategy
 - Migration/rollout sequence: All changes are additive. No existing state file keys are renamed. No existing script behaviour is altered. New state keys appear on next `infra-provision MODULE=secrets-manager` run.
