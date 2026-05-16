@@ -27,6 +27,7 @@ noop)
   ;;
 esac
 
+secrets_manager_delete_runtime_secret
 remove_state_files_by_prefix "secrets_manager_"
 state_file="$(write_state_file "secrets_manager_destroy" \
   "profile=$BLUEPRINT_PROFILE" \

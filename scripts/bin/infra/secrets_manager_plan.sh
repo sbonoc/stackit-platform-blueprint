@@ -40,6 +40,7 @@ state_file="$(write_state_file "secrets_manager_plan" \
   "provision_path=$provision_path" \
   "instance_name=$SECRETS_MANAGER_INSTANCE_NAME" \
   "endpoint=$(secrets_manager_endpoint)" \
+  "namespace=$(secrets_manager_namespace)" \
   "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")")"
 
 log_info "secrets-manager plan state written to $state_file"

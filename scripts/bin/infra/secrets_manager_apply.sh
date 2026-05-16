@@ -36,6 +36,8 @@ noop)
   ;;
 esac
 
+secrets_manager_reconcile_runtime_secret
+
 state_file="$(write_state_file "secrets_manager_runtime" \
   "profile=$BLUEPRINT_PROFILE" \
   "stack=$(active_stack)" \
@@ -44,6 +46,8 @@ state_file="$(write_state_file "secrets_manager_runtime" \
   "provision_path=$provision_path" \
   "instance_name=$SECRETS_MANAGER_INSTANCE_NAME" \
   "endpoint=$(secrets_manager_endpoint)" \
+  "namespace=$(secrets_manager_namespace)" \
+  "auth_method_details=$(secrets_manager_auth_method_details)" \
   "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")")"
 
 log_info "secrets-manager runtime state written to $state_file"

@@ -592,6 +592,8 @@ class OptionalModulesTests(unittest.TestCase):
         runtime_content = runtime_file.read_text(encoding="utf-8")
         self.assertIn("instance_name=marketplace-secrets-dev", runtime_content)
         self.assertIn("endpoint=https://secrets.", runtime_content)
+        self.assertIn("namespace=marketplace-secrets-dev", runtime_content)
+        self.assertIn("auth_method_details=", runtime_content)
 
         destroy = run(["make", "infra-secrets-manager-destroy"], env)
         self.assertEqual(destroy.returncode, 0, msg=destroy.stdout + destroy.stderr)
