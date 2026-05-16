@@ -1,0 +1,50 @@
+{
+  "manifest_version": 1,
+  "work_item": "2026-05-16-issue-248-secrets-manager-module",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-05-16T00:00:00Z",
+  "files": [
+    {
+      "path": "specs/2026-05-16-issue-248-secrets-manager-module/spec.md",
+      "role": "specification",
+      "status": "draft",
+      "sha256": "2db6018ba67608b9d9c3bf67b3872bb44e6a8aed339a4cb20fdf39a1715344b5"
+    },
+    {
+      "path": "specs/2026-05-16-issue-248-secrets-manager-module/architecture.md",
+      "role": "architecture",
+      "status": "draft",
+      "sha256": "f9127e2f427ef09be1803f3d96e268a67d5fb4103e5a266f2f6ea5ab862b9454"
+    },
+    {
+      "path": "specs/2026-05-16-issue-248-secrets-manager-module/plan.md",
+      "role": "implementation-plan",
+      "status": "draft",
+      "sha256": "c041a438fd4cc780df980eec139ce424fdb0a1e34f0ced338b31e025978b7eb4"
+    },
+    {
+      "path": "specs/2026-05-16-issue-248-secrets-manager-module/tasks.md",
+      "role": "task-list",
+      "status": "draft",
+      "sha256": "ef0f4e7c9a8af8b84b1cb71c5f0f98c282a61365d51ede9f6150453f255c6e61"
+    },
+    {
+      "path": "specs/2026-05-16-issue-248-secrets-manager-module/graph.json",
+      "role": "traceability-graph",
+      "status": "draft",
+      "sha256": "c818ceaefb05b3287090ee0697d92b592f10c8b91e60e8840ed4eefbcf84cf59"
+    },
+    {
+      "path": "specs/2026-05-16-issue-248-secrets-manager-module/traceability.md",
+      "role": "traceability-matrix",
+      "status": "draft",
+      "sha256": "959190262ad5a413064d745f182c3fd7bf9ee134405861ef0a4fc62654495667"
+    },
+    {
+      "path": "docs/blueprint/architecture/decisions/ADR-issue-248-secrets-manager-module.md",
+      "role": "adr",
+      "status": "proposed",
+      "sha256": "e80bb8df08d505cccf7996d28a7dd75fef760ad37452a62072f74babe6d8802f"
+    }
+  ]
+}
