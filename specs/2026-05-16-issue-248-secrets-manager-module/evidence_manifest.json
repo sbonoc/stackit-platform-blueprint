@@ -8,7 +8,7 @@
       "path": "specs/2026-05-16-issue-248-secrets-manager-module/spec.md",
       "role": "specification",
       "status": "draft",
-      "sha256": "2db6018ba67608b9d9c3bf67b3872bb44e6a8aed339a4cb20fdf39a1715344b5"
+      "sha256": "32867e516afb89d19d4203bfd3a691db1509825bb9739083bf80929284190c3f"
     },
     {
       "path": "specs/2026-05-16-issue-248-secrets-manager-module/architecture.md",
@@ -26,19 +26,19 @@
       "path": "specs/2026-05-16-issue-248-secrets-manager-module/tasks.md",
       "role": "task-list",
       "status": "draft",
-      "sha256": "ef0f4e7c9a8af8b84b1cb71c5f0f98c282a61365d51ede9f6150453f255c6e61"
+      "sha256": "ed38dbee4c505351f93a2af3ce631ad80ec6202c81441412d87fd340ee3f0557"
     },
     {
       "path": "specs/2026-05-16-issue-248-secrets-manager-module/graph.json",
       "role": "traceability-graph",
       "status": "draft",
-      "sha256": "c818ceaefb05b3287090ee0697d92b592f10c8b91e60e8840ed4eefbcf84cf59"
+      "sha256": "2af122b4025d6678ed8ad1fa5eac39845d2f7ca5612450f73f3eb74ef387c51a"
     },
     {
       "path": "specs/2026-05-16-issue-248-secrets-manager-module/traceability.md",
       "role": "traceability-matrix",
       "status": "draft",
-      "sha256": "959190262ad5a413064d745f182c3fd7bf9ee134405861ef0a4fc62654495667"
+      "sha256": "45eef507b41b2a36ccabf1ec02481614821a848d33fa69136e9d086d2067041c"
     },
     {
       "path": "docs/blueprint/architecture/decisions/ADR-issue-248-secrets-manager-module.md",

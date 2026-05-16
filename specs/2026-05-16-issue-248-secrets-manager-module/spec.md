@@ -45,22 +45,24 @@
 
 ### Functional Requirements (Normative)
 
-- FR-001 MUST implement `infra/cloud/stackit/terraform/modules/secrets-manager/main.tf` with `stackit_secretsmanager_instance` and `stackit_secretsmanager_user` resources, including `lifecycle { create_before_destroy = true }` on the instance resource, mirroring the foundation pattern.
+- FR-001 MUST implement the following files in `infra/cloud/stackit/terraform/modules/secrets-manager/`: `main.tf` with `stackit_secretsmanager_instance` and `stackit_secretsmanager_user` resources (including `lifecycle { create_before_destroy = true }` on the instance resource), `variables.tf`, `outputs.tf`, and `versions.tf` (declaring the `stackitcloud/stackit` required provider with the pinned version constraint matching all other modules), mirroring the foundation pattern.
 - FR-002 MUST implement `infra/cloud/stackit/terraform/modules/secrets-manager/variables.tf` declaring: `stackit_project_id`, `stackit_region`, `secrets_manager_instance_name`, `secrets_manager_user_description`, `secrets_manager_user_write_enabled`, `secrets_manager_acl`.
 - FR-003 MUST implement `infra/cloud/stackit/terraform/modules/secrets-manager/outputs.tf` declaring: `instance_id` (from `stackit_secretsmanager_instance.this.instance_id`), `username` (from `stackit_secretsmanager_user.this.username`), `password` (sensitive; from `stackit_secretsmanager_user.this.password`).
 - FR-004 MUST add `SECRETS_MANAGER_NAMESPACE` and `SECRETS_MANAGER_AUTH_METHOD_DETAILS` to `blueprint/modules/secrets-manager/module.contract.yaml` under `outputs.produced`.
 - FR-005 MUST implement `secrets_manager_namespace()` in `scripts/lib/infra/secrets_manager.sh` returning `"$SECRETS_MANAGER_INSTANCE_NAME"` (the namespace equals the instance name per STACKIT SM URL structure).
 - FR-006 MUST implement `secrets_manager_auth_method_details()` in `scripts/lib/infra/secrets_manager.sh` returning the username (non-sensitive string) from the runtime state file.
-- FR-007 MUST implement `secrets_manager_reconcile_runtime_secret()` in `scripts/lib/infra/secrets_manager.sh` that writes a K8s Secret named `blueprint-secrets-manager-auth` containing the password, using the existing `reconcile_runtime_secret()` pattern from other modules.
+- FR-007 MUST implement both `secrets_manager_reconcile_runtime_secret()` and `secrets_manager_delete_runtime_secret()` in `scripts/lib/infra/secrets_manager.sh`, following the pattern of all credential-bearing modules. `reconcile_runtime_secret()` writes a K8s Secret named `blueprint-secrets-manager-auth` containing the username and password. `delete_runtime_secret()` removes the K8s Secret on destroy.
 - FR-008 MUST update `scripts/bin/infra/secrets_manager_apply.sh` to: call `secrets_manager_reconcile_runtime_secret()` after the provision step; write `namespace` and `auth_method_details` keys to the state file.
 - FR-009 MUST update `scripts/bin/infra/secrets_manager_plan.sh` to write `namespace` to the state file output (dry-run safe).
-- FR-010 MUST update `scripts/bin/infra/secrets_manager_smoke.sh` to add a non-empty existence check for the `namespace` key in the runtime state file.
+- FR-010 MUST update `scripts/bin/infra/secrets_manager_smoke.sh` to add non-empty existence checks for both `namespace` and `auth_method_details` keys in the runtime state file.
 - FR-011 MUST implement `tests/infra/modules/secrets-manager/test_contract.py` with ≥ 10 assertions covering the contract, state structure, smoke logic, and security invariants.
+- FR-012 MUST update `scripts/bin/infra/secrets_manager_destroy.sh` to call `secrets_manager_delete_runtime_secret()` so the `blueprint-secrets-manager-auth` K8s Secret is removed on destroy, consistent with all credential-bearing modules.
+- FR-013 MUST add `tests/infra/modules/secrets-manager/test_contract.py` to `scripts/lib/quality/test_pyramid_contract.json` under the `unit` scope before creating the test file, so the pre-commit pyramid gate does not block the commit.
 
 ### Non-Functional Requirements (Normative)
 
 - NFR-SEC-001 MUST ensure the password value NEVER appears in the state file (`artifacts/infra/secrets_manager_runtime.env`), CI logs, or any non-sensitive artifact. `auth_method_details` MUST contain only the username (non-sensitive). The password MUST be delivered exclusively via the `blueprint-secrets-manager-auth` K8s Secret through `secrets_manager_reconcile_runtime_secret()`.
-- NFR-OBS-001 MUST ensure `namespace` and `auth_method_details` are present in the runtime state artifact and that `secrets_manager_smoke.sh` validates the `namespace` key is non-empty. All script output MUST be prefixed with `[secrets-manager]`.
+- NFR-OBS-001 MUST ensure `namespace` and `auth_method_details` are present in the runtime state artifact and that `secrets_manager_smoke.sh` validates both `namespace` and `auth_method_details` keys are non-empty. All script output MUST be prefixed with `[secrets-manager]`.
 - NFR-REL-001 MUST include `lifecycle { create_before_destroy = true }` on `stackit_secretsmanager_instance.this` to minimise downtime during instance replacement.
 - NFR-OPS-001 MUST write `namespace` and `auth_method_details` to the runtime state file so operators can derive the ESO SecretStore endpoint and credential lookup without manual console access.
 - NFR-A11Y-001 N/A — no UI or frontend changes in this work item.
@@ -101,15 +103,18 @@
 - AC-002 `infra/cloud/stackit/terraform/modules/secrets-manager/main.tf` declares `stackit_secretsmanager_user.this` with `project_id`, `instance_id`, `description`, `write_enabled`.
 - AC-003 `infra/cloud/stackit/terraform/modules/secrets-manager/variables.tf` declares all six required variables: `stackit_project_id`, `stackit_region`, `secrets_manager_instance_name`, `secrets_manager_user_description`, `secrets_manager_user_write_enabled`, `secrets_manager_acl`.
 - AC-004 `infra/cloud/stackit/terraform/modules/secrets-manager/outputs.tf` declares `instance_id`, `username`, and `password` (sensitive).
+- AC-004b `infra/cloud/stackit/terraform/modules/secrets-manager/versions.tf` exists and declares the `stackitcloud/stackit` required provider with the pinned version constraint (`= 0.88.0` or the current pinned version used by all other modules).
 - AC-005 `blueprint/modules/secrets-manager/module.contract.yaml` includes `SECRETS_MANAGER_NAMESPACE` and `SECRETS_MANAGER_AUTH_METHOD_DETAILS` under `outputs.produced`.
 - AC-006 `secrets_manager_namespace()` returns `"$SECRETS_MANAGER_INSTANCE_NAME"` when called with a valid env.
 - AC-007 `secrets_manager_auth_method_details()` returns the username string from the runtime state (non-sensitive).
-- AC-008 `secrets_manager_reconcile_runtime_secret()` exists in `secrets_manager.sh` and writes a K8s Secret named `blueprint-secrets-manager-auth`.
+- AC-008 Both `secrets_manager_reconcile_runtime_secret()` and `secrets_manager_delete_runtime_secret()` exist in `secrets_manager.sh`. The former writes a K8s Secret named `blueprint-secrets-manager-auth`; the latter removes it.
 - AC-009 `secrets_manager_apply.sh` writes `namespace` and `auth_method_details` to the state file and calls `secrets_manager_reconcile_runtime_secret()`.
 - AC-010 `secrets_manager_plan.sh` writes `namespace` to the plan state output.
-- AC-011 `secrets_manager_smoke.sh` exits non-zero if `namespace` is absent or empty in the runtime state file.
+- AC-011 `secrets_manager_smoke.sh` exits non-zero if `namespace` or `auth_method_details` is absent or empty in the runtime state file.
 - AC-012 The runtime state file (`artifacts/infra/secrets_manager_runtime.env`) MUST NOT contain the password value at any point (NFR-SEC-001).
 - AC-013 `tests/infra/modules/secrets-manager/test_contract.py` passes with ≥ 10 assertions, all green.
+- AC-014 `scripts/bin/infra/secrets_manager_destroy.sh` calls `secrets_manager_delete_runtime_secret()` to remove the `blueprint-secrets-manager-auth` K8s Secret on destroy.
+- AC-015 `tests/infra/modules/secrets-manager/test_contract.py` has an entry in `scripts/lib/quality/test_pyramid_contract.json` under the `unit` scope.
 
 ## Informative Notes (Non-Normative)
 - Context: This is one of 6 remaining stub modules under issue #248. The other 5 (dns, public-endpoints, observability, workflows, identity-aware-proxy) will be implemented in separate work items. All are STACKIT-only (local lane = noop).

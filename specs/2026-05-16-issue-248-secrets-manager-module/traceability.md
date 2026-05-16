@@ -15,6 +15,8 @@
 | FR-009 | SDD-C-005, SDD-C-010 | — | `secrets_manager_plan.sh` namespace key | `scripts/bin/infra/secrets_manager_plan.sh` | AC-010: test_contract.py assertion | n/a | n/a |
 | FR-010 | SDD-C-005, SDD-C-012 | — | `secrets_manager_smoke.sh` namespace check | `scripts/bin/infra/secrets_manager_smoke.sh` | AC-011: test_contract.py assertion | n/a | n/a |
 | FR-011 | SDD-C-005, SDD-C-012 | — | `test_contract.py` with >= 10 assertions | `tests/infra/modules/secrets-manager/test_contract.py` | AC-013: pytest PASS | n/a | n/a |
+| FR-012 | SDD-C-005, SDD-C-009 | — | `secrets_manager_destroy.sh` calls `secrets_manager_delete_runtime_secret()` | `scripts/bin/infra/secrets_manager_destroy.sh` | AC-014: test_contract.py assertion | n/a | n/a |
+| FR-013 | SDD-C-005, SDD-C-012 | — | `test_pyramid_contract.json` entry added before test file creation | `scripts/lib/quality/test_pyramid_contract.json` | AC-015: pre-commit passes | n/a | n/a |
 | NFR-SEC-001 | SDD-C-009 | — | Password NEVER in state file; auth_method_details = username only | `secrets_manager_apply.sh` + `secrets_manager.sh` | AC-012: test_contract.py assertion | ADR D-3 | n/a |
 | NFR-OBS-001 | SDD-C-010 | — | namespace + auth_method_details in state; smoke validates namespace; prefixed output | `secrets_manager_smoke.sh` + apply.sh | AC-011: smoke non-empty check | n/a | n/a |
 | NFR-REL-001 | SDD-C-012 | — | `lifecycle { create_before_destroy = true }` on instance | `main.tf` | AC-001: test_contract.py structural check | ADR D-1 | n/a |
@@ -33,14 +35,16 @@
 | AC-011 | SDD-C-012 | — | smoke.sh exits non-zero if namespace absent | test_contract.py | pytest PASS | — | n/a |
 | AC-012 | SDD-C-009 | — | runtime state MUST NOT contain password | test_contract.py security assertion | pytest PASS | — | n/a |
 | AC-013 | SDD-C-012 | — | test_contract.py passes >= 10 assertions | test_contract.py | pytest PASS | — | n/a |
+| AC-014 | SDD-C-009 | — | destroy.sh calls delete_runtime_secret() | secrets_manager_destroy.sh | test_contract.py assertion | — | n/a |
+| AC-015 | SDD-C-012 | — | test_contract.py in test_pyramid_contract.json | scripts/lib/quality/test_pyramid_contract.json | pre-commit PASS | — | n/a |
 
 ## Graph Linkage
 - Graph file: `graph.json`
 - Every `FR-###`, `NFR-*-###`, and `AC-###` listed in this file MUST have a corresponding node in `graph.json`.
 - Node IDs referenced:
-  - FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-007, FR-008, FR-009, FR-010, FR-011
+  - FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-007, FR-008, FR-009, FR-010, FR-011, FR-012, FR-013
   - NFR-SEC-001, NFR-OBS-001, NFR-REL-001, NFR-OPS-001, NFR-A11Y-001
-  - AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009, AC-010, AC-011, AC-012, AC-013
+  - AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009, AC-010, AC-011, AC-012, AC-013, AC-014, AC-015
 
 ## Validation Summary
 - Required bundles executed: (pending implementation)

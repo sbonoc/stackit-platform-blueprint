@@ -10,25 +10,29 @@
 ## Implementation
 
 ### Slice 1 — Terraform standalone module (red → green)
-- [ ] T-001 Write failing `test_contract.py` assertions for TF module structure (AC-001 through AC-004):
+- [ ] T-000 Add `tests/infra/modules/secrets-manager/test_contract.py` to `scripts/lib/quality/test_pyramid_contract.json` under the `unit` scope (AC-015) — MUST be done before T-001 to avoid pre-commit hook failure
+- [ ] T-001 Write failing `test_contract.py` assertions for TF module structure (AC-001, AC-002, AC-003, AC-004, AC-004b):
       - AC-001: `main.tf` declares `stackit_secretsmanager_instance.this` with required attributes and `lifecycle { create_before_destroy = true }`
       - AC-002: `main.tf` declares `stackit_secretsmanager_user.this` with required attributes
       - AC-003: `variables.tf` declares all six required variables
       - AC-004: `outputs.tf` declares `instance_id`, `username`, `password` (sensitive)
+      - AC-004b: `versions.tf` exists and declares `stackitcloud/stackit` required provider with pinned version constraint
       Run pytest — confirm assertions fail (files not yet created).
 - [ ] T-002 Write `infra/cloud/stackit/terraform/modules/secrets-manager/main.tf` with `stackit_secretsmanager_instance.this` and `stackit_secretsmanager_user.this`
 - [ ] T-003 Write `infra/cloud/stackit/terraform/modules/secrets-manager/variables.tf` with six variables
 - [ ] T-004 Write `infra/cloud/stackit/terraform/modules/secrets-manager/outputs.tf` with `instance_id`, `username`, `password`
-- [ ] T-005 Run pytest on slice 1 assertions — confirm AC-001 through AC-004 green
+- [ ] T-004b Write `infra/cloud/stackit/terraform/modules/secrets-manager/versions.tf` with `stackitcloud/stackit` required provider at pinned version (match all other module versions.tf files)
+- [ ] T-005 Run pytest on slice 1 assertions — confirm AC-001 through AC-004b green
 
 ### Slice 2 — Shell layer and contract (red → green)
-- [ ] T-006 Write failing `test_contract.py` assertions for AC-005 through AC-013 (contract outputs, namespace/auth helpers, reconcile secret, state keys, security invariant)
+- [ ] T-006 Write failing `test_contract.py` assertions for AC-005 through AC-015 (contract outputs, namespace/auth helpers, reconcile+delete secret, state keys, security invariant, versions.tf, pyramid contract entry)
       Run pytest — confirm AC-005 through AC-013 fail (not yet implemented).
 - [ ] T-007 Update `blueprint/modules/secrets-manager/module.contract.yaml` — add `SECRETS_MANAGER_NAMESPACE` and `SECRETS_MANAGER_AUTH_METHOD_DETAILS` to `outputs.produced`
-- [ ] T-008 Add `secrets_manager_namespace()`, `secrets_manager_auth_method_details()`, `secrets_manager_reconcile_runtime_secret()` to `scripts/lib/infra/secrets_manager.sh`
+- [ ] T-008 Add required `source` statements to `scripts/lib/infra/secrets_manager.sh` (for `stackit_foundation_outputs.sh`, `versions.sh`, `fallback_runtime.sh`); add `secrets_manager_namespace()`, `secrets_manager_auth_method_details()`, `secrets_manager_reconcile_runtime_secret()`, and `secrets_manager_delete_runtime_secret()` functions
 - [ ] T-009 Update `scripts/bin/infra/secrets_manager_apply.sh` — call `secrets_manager_reconcile_runtime_secret()` and write `namespace` + `auth_method_details` to state file
 - [ ] T-010 Update `scripts/bin/infra/secrets_manager_plan.sh` — write `namespace` to plan state output
-- [ ] T-011 Update `scripts/bin/infra/secrets_manager_smoke.sh` — add non-empty check for `namespace` key
+- [ ] T-011 Update `scripts/bin/infra/secrets_manager_smoke.sh` — add non-empty checks for both `namespace` and `auth_method_details` keys
+- [ ] T-011b Update `scripts/bin/infra/secrets_manager_destroy.sh` — call `secrets_manager_delete_runtime_secret()` before removing state files (AC-014)
 - [ ] T-012 Update `tests/infra/test_optional_modules.py` `test_secrets_manager_module_flow` — add assertions for `namespace` and `auth_method_details` keys in runtime state
 - [ ] T-013 Run `uv run pytest tests/infra/modules/secrets-manager/test_contract.py -v` — all ≥ 10 assertions green (AC-013)
 - [ ] T-014 Run `uv run pytest tests/infra/test_optional_modules.py -v -k secrets_manager` — green

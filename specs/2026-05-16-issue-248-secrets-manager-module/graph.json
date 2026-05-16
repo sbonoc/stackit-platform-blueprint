@@ -58,6 +58,16 @@
       "summary": "Implement test_contract.py with >= 10 assertions"
     },
     {
+      "id": "FR-012",
+      "type": "requirement",
+      "summary": "Update secrets_manager_destroy.sh to call secrets_manager_delete_runtime_secret()"
+    },
+    {
+      "id": "FR-013",
+      "type": "requirement",
+      "summary": "Add test_contract.py to test_pyramid_contract.json before creating the test file"
+    },
+    {
       "id": "NFR-SEC-001",
       "type": "requirement",
       "summary": "Password MUST NOT appear in state file, CI logs, or non-sensitive artifacts"
@@ -146,6 +156,16 @@
       "id": "AC-013",
       "type": "acceptance",
       "summary": "test_contract.py passes with >= 10 assertions"
+    },
+    {
+      "id": "AC-014",
+      "type": "acceptance",
+      "summary": "secrets_manager_destroy.sh calls secrets_manager_delete_runtime_secret()"
+    },
+    {
+      "id": "AC-015",
+      "type": "acceptance",
+      "summary": "test_contract.py has entry in test_pyramid_contract.json under unit scope"
     }
   ],
   "edges": [
@@ -161,6 +181,9 @@
     { "from": "FR-009", "to": "AC-010", "relation": "validated_by" },
     { "from": "FR-010", "to": "AC-011", "relation": "validated_by" },
     { "from": "FR-011", "to": "AC-013", "relation": "validated_by" },
+    { "from": "FR-012", "to": "AC-014", "relation": "validated_by" },
+    { "from": "FR-013", "to": "AC-015", "relation": "validated_by" },
+    { "from": "NFR-SEC-001", "to": "FR-012", "relation": "constrains" },
     { "from": "NFR-SEC-001", "to": "AC-012", "relation": "constrains" },
     { "from": "NFR-SEC-001", "to": "FR-007", "relation": "constrains" },
     { "from": "NFR-SEC-001", "to": "FR-008", "relation": "constrains" },
