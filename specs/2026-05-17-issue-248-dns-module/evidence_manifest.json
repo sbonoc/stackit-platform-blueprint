@@ -26,7 +26,7 @@
       "path": "specs/2026-05-17-issue-248-dns-module/tasks.md",
       "role": "task-list",
       "status": "approved",
-      "sha256": "dfec0ea86c4900091e53594a704781eabea6569e5195af98f5f3fd8708562b0d"
+      "sha256": "3f3b754d59ed4d418c0917bade966349af4282c5d4c46024aa0d0c26103b87e8"
     },
     {
       "path": "specs/2026-05-17-issue-248-dns-module/graph.json",
@@ -44,7 +44,7 @@
       "path": "docs/blueprint/architecture/decisions/ADR-issue-248-dns-module.md",
       "role": "adr",
       "status": "approved",
-      "sha256": "8f74637f57234c7161fd916981ba08deeae08c0aa8426248424a7ffe92ce3fe4"
+      "sha256": "e9ef9a4f2671db52ed95625fc7a99c3e0ae1dcee61a80fc217372007abb6f179"
     }
   ]
 }
