@@ -4,7 +4,7 @@ variable "stackit_project_id" {
 }
 
 variable "stackit_region" {
-  description = "STACKIT region for all resources."
+  description = "STACKIT region for all resources. Declared for caller API consistency; not forwarded to provider resources — stackit_secretsmanager_instance and stackit_secretsmanager_user do not accept a region attribute."
   type        = string
   default     = "eu01"
 }

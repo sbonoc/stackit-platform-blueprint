@@ -146,6 +146,8 @@ class SecretsManagerContractYamlTests(unittest.TestCase):
 
 
 class SecretsManagerShellLibTests(unittest.TestCase):
+    # STACKIT-lane branch of secrets_manager_auth_method_details() (stackit_foundation_output_value_or_default)
+    # requires live foundation TF outputs and is not exercised here; local-lane path is covered by mock fixture.
     def _lib(self) -> str:
         return _SHELL_LIB.read_text(encoding="utf-8")
 
