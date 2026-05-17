@@ -9,7 +9,7 @@
 | FR-003 | SDD-C-005 | N/A | D-2 Certificate | `public_endpoints.sh`, `public_endpoints_apply.sh` | `test_ac003_*` | README TLS section | smoke: Certificate manifest on disk |
 | FR-004 | SDD-C-005 | N/A | D-3 external-dns annotation | `gateway/public-endpoints.yaml.tmpl` | `test_ac004_*` | README external-dns section | smoke: annotation check |
 | FR-005 | SDD-C-002 | N/A | D-4 cert-manager featureGate | `cert-manager.values.yaml` + template mirror | `test_ac005_*` | ADR D-4 | core runtime bootstrap picks up featureGate |
-| FR-006 | SDD-C-006 | N/A | contract API surface | `module.contract.yaml` | `test_ac011_*` | README Optional Inputs | init_repo_env.py defaults |
+| FR-006 | SDD-C-006 | N/A | contract API surface | `module.contract.yaml` | `test_ac016_*` | README Optional Inputs | init_repo_env.py defaults |
 | FR-007 | SDD-C-007 | N/A | ArgoCD policy | `appproject-edge.yaml` (4 envs) | `test_ac010_*` | ADR D-5 | smoke: AppProject validation |
 | FR-008 | SDD-C-012 | N/A | test contract | `test_contract.py` | AC-011, AC-012 | test_pyramid_contract.json | CI quality gate |
 | NFR-SEC-001 | SDD-C-009 | N/A | ACME secret isolation | `public_endpoints_apply.sh` (no email in state) | structural: no email in state keys | README security note | runtime state review |
@@ -37,6 +37,7 @@
 | AC-013 | SDD-C-009 | N/A | TLS min version in gateway listener | `gateway/public-endpoints.yaml.tmpl` | `test_ac013_*` | README security note | gateway listener options |
 | AC-014 | SDD-C-009 | N/A | profile-aware ACME server default | `public_endpoints.sh` | `test_ac014_*` | README TLS section | staging vs prod env var default |
 | AC-015 | SDD-C-011 | N/A | Certificate renewBefore field | `public_endpoints.sh` Certificate renderer | `test_ac015_*` | README TLS section | rendered cert manifest |
+| AC-016 | SDD-C-006 | N/A | FR-006 module.contract.yaml env vars | `module.contract.yaml` | `test_ac016_*` | README Optional Inputs | init_repo_env.py defaults |
 
 ## Graph Linkage
 - Graph file: `graph.json`

@@ -99,6 +99,7 @@
 - AC-013 MUST: the rendered gateway manifest HTTPS listener contains a minimum TLS version configuration that excludes TLS 1.0 and TLS 1.1.
 - AC-014 MUST: `public_endpoints_init_env` sets `PUBLIC_ENDPOINTS_ACME_SERVER` to the Let's Encrypt staging endpoint when `BLUEPRINT_PROFILE` is `stackit-dev` or `stackit-stage`, and to the production endpoint when `BLUEPRINT_PROFILE` is `stackit-prod`.
 - AC-015 MUST: the rendered Certificate manifest contains a `renewBefore` field.
+- AC-016 MUST: `blueprint/modules/public-endpoints/module.contract.yaml` declares `PUBLIC_ENDPOINTS_CLUSTER_ISSUER_NAME`, `PUBLIC_ENDPOINTS_CLUSTER_ISSUER_EMAIL`, `PUBLIC_ENDPOINTS_ACME_SERVER`, and `PUBLIC_ENDPOINTS_GATEWAY_TLS_SECRET_NAME` as optional env vars.
 
 ## Informative Notes (Non-Normative)
 - Context: cert-manager is already installed as a core runtime component (`core_runtime_bootstrap.sh`, v1.20.1). The Gateway API feature gate (`ExperimentalGatewayAPISupport`) is the only missing configuration — without it, cert-manager silently ignores `gatewayHTTPRoute` solver configuration and no HTTP01 challenge is issued.

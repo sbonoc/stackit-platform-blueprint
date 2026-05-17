@@ -39,7 +39,7 @@ Run pytest — confirm all assertions green.
 ### Slice 3 — AppProject edge + contract YAML + smoke validations + profile-aware ACME (red → green)
 Write failing assertions for AC-006, AC-007, AC-008, AC-010, AC-014. Implement:
 - `appproject-edge.yaml` (all 4 envs): add cert-manager Issuer + Certificate to `namespaceResourceWhitelist` for `network` namespace (AC-010, FR-007).
-- `module.contract.yaml`: add new optional env vars (FR-006); document profile-aware ACME server default (NFR-SEC-004).
+- `module.contract.yaml`: add new optional env vars (FR-006, AC-016); document profile-aware ACME server default (NFR-SEC-004).
 - `public_endpoints_smoke.sh`: add HTTPS listener check, external-dns annotation check, Issuer + Certificate manifest checks (AC-006, AC-007, AC-008).
 - Verify `public_endpoints_init_env` profile-aware ACME server default (AC-014, NFR-SEC-004).
 Run pytest — confirm all 15 AC assertions green.
