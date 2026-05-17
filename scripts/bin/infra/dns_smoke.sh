@@ -19,7 +19,7 @@ if ! state_file_exists dns_runtime; then
 fi
 
 runtime_state="$(state_file_path dns_runtime)"
-if ! grep -q '^zone_count=[1-9]' "$runtime_state"; then
+if ! grep -q '^zone_count=[1-9][0-9]*$' "$runtime_state"; then
   log_fatal "dns runtime zone_count is zero or missing"
 fi
 if ! grep -q '^zone_ids=.\+' "$runtime_state"; then

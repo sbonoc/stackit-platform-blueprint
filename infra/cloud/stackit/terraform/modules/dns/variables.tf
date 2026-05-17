@@ -17,6 +17,11 @@ variable "dns_zone_fqdns" {
 variable "dns_naming_prefix" {
   type        = string
   description = "Naming prefix for zone display names, constructed by the shell layer as {DNS_NAMING_PREFIX}-{active_stack} (e.g. myapp-dev). Zone name: {dns_naming_prefix}-dns-{sha1(fqdn)[0:8]}."
+
+  validation {
+    condition     = length(var.dns_naming_prefix) <= 50
+    error_message = "dns_naming_prefix must be 50 characters or fewer to ensure the zone display name stays within the 63-character STACKIT name limit."
+  }
 }
 
 variable "dns_record_ttl" {

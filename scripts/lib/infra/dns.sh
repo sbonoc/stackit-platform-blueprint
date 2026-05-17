@@ -20,9 +20,9 @@ dns_zone_ids() {
   for fqdn in $DNS_ZONE_FQDNS; do
     local id
     if is_stackit_profile; then
-      id="$(stackit_foundation_output_map_value_or_default "dns_zone_ids" "$fqdn" "${DNS_NAMING_PREFIX}-local")"
+      id="$(stackit_foundation_output_map_value_or_default "dns_zone_ids" "$fqdn" "${DNS_NAMING_PREFIX}-local-${fqdn%%.*}")"
     else
-      id="${DNS_NAMING_PREFIX}-local"
+      id="${DNS_NAMING_PREFIX}-local-${fqdn%%.*}"
     fi
     ids="${ids:+$ids }$id"
   done
