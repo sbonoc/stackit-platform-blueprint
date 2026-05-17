@@ -69,6 +69,8 @@ Surface automatically when the named scope is next touched. Do not promote to ac
 
 ### on-scope: infra
 
+- [ ] proposal(issue-248-dns-module): external-DNS module — K8s-native DNS record management via external-dns controller (analogous to ESO for secrets); surfaces when public-endpoints or ingress TLS work is next in scope.
+      rationale: zone-only TF module is the correct separation; record lifecycle belongs in the cluster operator layer; no active consumer need for static record management via stackit_dns_record_set
 - [ ] proposal(issue-248-rabbitmq-module): vhost customisation — per-consumer non-default vhost support.
       rationale: STACKIT provider exposes no vhost attribute; `'/'` is correct for generic use; per-consumer vhost is consumer-side configuration
 - [ ] proposal(issue-248-rabbitmq-module): HA replica configuration — `stackit_rabbitmq_instance.replicas > 1`.
@@ -89,6 +91,8 @@ Surface automatically when the named scope is next touched. Do not promote to ac
 
 ### on-scope: blueprint
 
+- [ ] proposal(issue-248-dns-module): domain contract JSON pattern — single SSOT JSON file (per-environment hostnames, acme emails, dns_zones list) driving TF tfvars + ArgoCD Helm values via a renderer script with --check mode; cross-cutting refactor affecting all optional modules.
+      rationale: pattern observed in sbonoc/agentic-graphrag; requires refactor of all optional module env var surfaces; deferred until blueprint multi-module configuration surface is next in scope
 - [ ] proposal(issue-241-make-override-warnings): extend `?=` override-point pattern to other blueprint-managed targets.
       rationale: no consumer request for specific targets; same pattern directly applicable
 - [ ] proposal(issue-164): value-based template scanning — detect hardcoded version strings in templates, not just variable name references.
