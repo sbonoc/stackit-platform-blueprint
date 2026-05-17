@@ -7,7 +7,7 @@
 
 ## Context
 
-The public-endpoints module provides the shared Kubernetes Gateway API edge (Envoy Gateway controller + shared `GatewayClass`/`Gateway`) that exposes marketplace UI, API, and auth surfaces. The module previously exposed only an HTTP listener on port 80. Two capabilities are added in this work item:
+The public-endpoints module provides the shared Kubernetes Gateway API edge (Envoy Gateway controller + shared `GatewayClass`/`Gateway`) that exposes consumer application UI, API, and auth surfaces. The module previously exposed only an HTTP listener on port 80. Two capabilities are added in this work item:
 
 1. **HTTPS with cert-manager** — TLS termination at the shared Gateway using automatically provisioned certificates.
 2. **Automatic DNS record management** — The STACKIT SKE DNS extension creates A-records for the base domain from a standard annotation on the Gateway resource.

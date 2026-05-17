@@ -36,7 +36,7 @@
 - Local-first exception rationale: none
 
 ## Objective
-- Business outcome: Consumers can expose marketplace UI, API, and auth surfaces over HTTPS on a stable base domain with automatic DNS record creation and TLS certificate provisioning — without manual registrar delegation or per-app cert-manager wiring.
+- Business outcome: Consumers can expose their application UI, API, and auth surfaces over HTTPS on a stable base domain with automatic DNS record creation and TLS certificate provisioning — without manual registrar delegation or per-app cert-manager wiring.
 - Success metric: `infra-public-endpoints-smoke` passes with HTTPS listener validated, Issuer and Certificate manifests present, and the external-dns annotation confirmed on the rendered gateway manifest.
 
 ## Normative Requirements
