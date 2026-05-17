@@ -65,9 +65,64 @@ Both capabilities were validated against the `sbonoc/agentic-graphrag` consumer 
 
 **Rationale:** The `platform-edge-*` ArgoCD projects own the shared Gateway, Issuer, and Certificate in the `network` namespace. Without this whitelist entry, ArgoCD cannot apply or sync the Issuer and Certificate resources, and the app would show an OutOfSync status.
 
+---
+
+### D-6: Minimum TLS version 1.2 enforced via gateway TLS policy manifest
+
+**Decision:** A gateway listener TLS policy manifest is rendered and applied alongside the Gateway, enforcing TLS 1.2 as the minimum version and prohibiting TLS 1.0 and TLS 1.1.
+
+**Rationale:** TLS 1.0 and 1.1 have known protocol weaknesses (BEAST, POODLE, CRIME). Enforcing TLS 1.2+ at the platform edge is a baseline security requirement. cert-manager v1.20.1 and Envoy Gateway fully support TLS 1.2+ listener configuration. Placing the policy at the platform module level ensures all consumer surfaces benefit without requiring per-consumer configuration.
+
+---
+
+### D-7: HSTS `Strict-Transport-Security` header via gateway TLS policy manifest
+
+**Decision:** The gateway TLS policy manifest adds `Strict-Transport-Security: max-age=31536000; includeSubDomains` to all HTTPS listener responses.
+
+**Alternatives considered:**
+- **D-7-A (rejected): HSTS at consumer HTTPRoute level** — Requires each consumer to add a `responseHeaderModifier` filter. Platform HSTS coverage would be incomplete and inconsistent across consumers.
+
+**Rationale:** Platform-level HSTS ensures all consumer services benefit without consumer opt-in. `includeSubDomains` ensures subdomain coverage is also enforced.
+
+---
+
+### D-8: NetworkPolicy for `network` namespace (default-deny + explicit allow)
+
+**Decision:** `NetworkPolicy` resources are rendered and applied to `PUBLIC_ENDPOINTS_NAMESPACE`: (a) default-deny all ingress to namespace pods; (b) explicit allow ingress on ports 80 and 443 to Envoy proxy pods from any source (public traffic); (c) explicit allow ingress from the `cert-manager` namespace to Envoy proxy pods for ACME HTTP01 challenge traffic.
+
+**Alternatives considered:**
+- **D-8-A (rejected): No NetworkPolicy** — Leaves the `network` namespace open to direct pod-to-pod traffic from any cluster workload, enabling lateral movement to internal Envoy endpoints.
+
+**Rationale:** Default-deny enforces least-privilege at the network layer. The explicit cert-manager allow is necessary for the ACME HTTP01 solver to place challenge HTTPRoutes via the Envoy Gateway.
+
+---
+
+### D-9: Profile-aware ACME server (staging for dev/stage, production for prod)
+
+**Decision:** `public_endpoints_init_env` sets `PUBLIC_ENDPOINTS_ACME_SERVER` to the Let's Encrypt staging endpoint (`https://acme-staging-v02.api.letsencrypt.org/directory`) for `stackit-dev` and `stackit-stage` profiles, and the production endpoint (`https://acme-v02.api.letsencrypt.org/directory`) for `stackit-prod`. Local profiles use a `selfSigned` Issuer and the ACME server is not applicable.
+
+**Rationale:** Let's Encrypt enforces a production rate limit of 5 certificates per registered domain per week. Using staging for non-production profiles prevents rate limit exhaustion during development and CI. Staging certificates are issued by a staging CA not trusted by browsers — this is expected and documented behavior for dev/stage environments.
+
+---
+
+### D-10: KMS module as required dependency for `stackit-prod` (encryption-at-rest)
+
+**Decision:** For `stackit-prod` profiles, the STACKIT KMS module MUST be enabled to provide Kubernetes Secret encryption at rest via envelope encryption. `public_endpoints_apply.sh` emits a warning when the KMS module is not enabled and the profile is `stackit-prod`. This protects `PUBLIC_ENDPOINTS_GATEWAY_TLS_SECRET_NAME` (TLS private key) and the cert-manager ACME account key stored in the `cert-manager` namespace.
+
+**Alternatives considered:**
+- **D-10-A (rejected): cert-manager KMS signer plugin** — Store private keys directly in STACKIT KMS rather than Kubernetes Secrets. No production-ready STACKIT cert-manager KMS plugin exists as of v1.20.1; parked in backlog `on-scope: infra`.
+
+**Rationale:** The TLS private key and ACME account key are high-value secrets. Without KMS-backed Kubernetes encryption provider, both are stored in plaintext in etcd. The STACKIT KMS module already provides this envelope encryption integration. The requirement is prod-only; dev/stage use staging certs with a lower risk profile.
+
+---
+
 ## Consequences
 
 - cert-manager restarts once when the featureGate is applied on next `infra-deploy`. Issued certs in other namespaces are unaffected.
 - DNS record creation depends on `DNS_ENABLED=true` and the SKE DNS extension being active. If `DNS_ENABLED=false`, the external-dns annotation is present but ignored — no records are created, no error.
 - TLS certificate issuance requires HTTP01 challenge traffic to reach the Envoy Gateway. Firewall rules must allow inbound HTTP on port 80 to the STACKIT LB (Let's Encrypt ACME challenge solver will create a temporary HTTPRoute for `/.well-known/acme-challenge/` — this is handled automatically by cert-manager and the `gatewayHTTPRoute` solver).
+- HSTS pinning is effectively irreversible for the `max-age` duration (1 year). If the HTTPS listener is removed after HSTS headers have been served, browsers that received the header will refuse HTTP connections for up to 1 year. Operators must not remove the HTTPS listener without a planned HSTS expiry migration.
+- NetworkPolicy restricts pod-to-pod traffic in the `network` namespace. Direct `kubectl port-forward` or debug pod connections to Envoy proxy pods from other namespaces will be blocked. Operators debugging Gateway issues must use a pod within the `network` namespace or temporarily relax the policy.
+- Staging ACME certificates (`stackit-dev`, `stackit-stage`) are issued by the Let's Encrypt staging CA and are not trusted by browsers or standard TLS clients — this is expected and intentional for non-production environments.
+- `stackit-prod` deployments emit a warning and may proceed (non-fatal) if the KMS module is not enabled, but the TLS Secret and ACME account key will not be encrypted at rest. Operators must treat this warning as a blocker before serving production traffic.
 - Wildcard certificates (DNS01 ACME challenge) are out of scope — no STACKIT cert-manager DNS01 webhook exists as of provider v0.88.0. Parked in backlog `on-scope: infra`.
