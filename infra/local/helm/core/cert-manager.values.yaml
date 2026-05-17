@@ -4,3 +4,4 @@ crds:
   enabled: true
 prometheus:
   enabled: false
+featureGates: ExperimentalGatewayAPISupport=true

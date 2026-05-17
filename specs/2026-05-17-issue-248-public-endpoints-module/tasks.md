@@ -12,15 +12,15 @@
 ### Slice 1 — cert-manager feature gate + test contract scaffold (red → green)
 Dependencies: none
 Owner: bonos
-- [ ] T-000 Register `tests/infra/modules/public-endpoints/test_contract.py` in `scripts/lib/quality/test_pyramid_contract.json` under `unit` scope (AC-011) — MUST be done before T-001 to avoid pre-commit hook failure
-- [ ] T-001 Write failing assertions in `test_contract.py` for AC-005, AC-011, AC-012, AC-020:
+- [x] T-000 Register `tests/infra/modules/public-endpoints/test_contract.py` in `scripts/lib/quality/test_pyramid_contract.json` under `unit` scope (AC-011) — MUST be done before T-001 to avoid pre-commit hook failure
+- [x] T-001 Write failing assertions in `test_contract.py` for AC-005, AC-011, AC-012, AC-020:
       - AC-005: `cert-manager.values.yaml` and its bootstrap template mirror both contain `ExperimentalGatewayAPISupport` under `featureGates`
       - AC-011: `test_contract.py` is registered in `test_pyramid_contract.json` under `unit` scope
       - AC-012: ≥10 assertions are present in `test_contract.py`
       - AC-020 (scaffold): in `public_endpoints_destroy.sh`, the Certificate delete appears before the Issuer delete, and the Issuer delete appears before gateway baseline removal — verified by static analysis of script content
       Run pytest — confirm AC-005, AC-020 fail (gate not yet enabled, destroy not yet updated)
-- [ ] T-002 Enable cert-manager Gateway API feature gate in `infra/local/helm/core/cert-manager.values.yaml` and `scripts/templates/infra/bootstrap/infra/local/helm/core/cert-manager.values.yaml` (FR-005, AC-005)
-- [ ] T-003 Run pytest on slice 1 assertions — confirm AC-005 green; AC-020 still fails (expected — destroy updated in slice 2)
+- [x] T-002 Enable cert-manager Gateway API feature gate in `infra/local/helm/core/cert-manager.values.yaml` and `scripts/templates/infra/bootstrap/infra/local/helm/core/cert-manager.values.yaml` (FR-005, AC-005)
+- [x] T-003 Run pytest on slice 1 assertions — confirm AC-005 green; AC-020 still fails (expected — destroy updated in slice 2)
 
 ### Slice 2 — HTTPS listener + external-dns + Issuer + Certificate + security policies (red → green)
 Dependencies: Slice 1 complete
