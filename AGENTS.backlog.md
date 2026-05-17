@@ -75,6 +75,8 @@ Surface automatically when the named scope is next touched. Do not promote to ac
       rationale: STACKIT provider exposes no vhost attribute; `'/'` is correct for generic use; per-consumer vhost is consumer-side configuration
 - [ ] proposal(issue-248-rabbitmq-module): HA replica configuration — `stackit_rabbitmq_instance.replicas > 1`.
       rationale: single-replica default is sufficient; HA requires separate capacity planning and consumer awareness
+- [ ] proposal(issue-248-dns-module): DNSSEC `dnssec_enabled` variable — add when `stackit_dns_zone` exposes a `dnssec_enabled` attribute in a future provider version.
+      rationale: v0.88.0 does not expose this attribute; STACKIT manages DNSSEC at the platform level; a no-op contract input would mislead consumers
 - [ ] proposal(issue-248-kms-module): KMS_KEY_ROTATION_PERIOD input — add when `stackit_kms_key` exposes `rotation_period` attribute in a future provider version.
       rationale: v0.88.0 does not expose this attribute; a no-op contract input would mislead consumers
 - [ ] proposal(issue-248-kms-module): Vault HA/persistent storage for local lane — standalone mode with raft storage.

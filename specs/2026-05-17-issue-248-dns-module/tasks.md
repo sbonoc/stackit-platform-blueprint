@@ -57,12 +57,12 @@
 - [x] T-202 Traceability document updated post-implementation (multi-zone matrix, evidence manifest SHA256s refreshed); traceability keeper run twice (post single-zone + post multi-zone)
 - [x] T-203 No stale TODOs/dead code/drift — all single-zone variable names (`dns_zone_fqdn`, `dns_zone_name`, `dns_zone_id`) replaced with multi-zone equivalents across TF, shell, contract, and test files
 - [x] T-204 Documentation validation — `docs/platform/modules/dns/README.md` and template mirror updated with multi-zone content; `make quality-docs-check-changed` PASS
-- [ ] T-205 Run hardening review validation bundle (`make quality-hardening-review`) — deferred to publish step
+- [x] T-205 Run hardening review validation bundle (`make quality-hardening-review`) — PASS
 
 ## Publish
-- [ ] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
-- [ ] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
-- [ ] P-003 Ensure PR description follows repository template headings and references `pr_context.md`; use "Part of #248" (NOT "Closes #248")
+- [x] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section — complete
+- [x] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes — complete
+- [x] P-003 Ensure PR description follows repository template headings and references `pr_context.md`; use "Part of #248" (NOT "Closes #248") — complete
 
 ## App Onboarding Minimum Targets (Normative)
 - [x] A-001 `apps-bootstrap` and `apps-smoke` — N/A; tooling/infrastructure-only change, no app delivery workflow impact

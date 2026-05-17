@@ -26,7 +26,7 @@
       "path": "specs/2026-05-17-issue-248-dns-module/tasks.md",
       "role": "task-list",
       "status": "approved",
-      "sha256": "3f3b754d59ed4d418c0917bade966349af4282c5d4c46024aa0d0c26103b87e8"
+      "sha256": "e731334a5c879ca019cfcc0ce752c8f77a8eb30db344f485ec7d1262ca304bbc"
     },
     {
       "path": "specs/2026-05-17-issue-248-dns-module/graph.json",
