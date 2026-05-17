@@ -71,6 +71,12 @@ Surface automatically when the named scope is next touched. Do not promote to ac
 
 - [ ] proposal(issue-248-dns-module): external-DNS module — K8s-native DNS record management via external-dns controller (analogous to ESO for secrets); surfaces when public-endpoints or ingress TLS work is next in scope.
       rationale: zone-only TF module is the correct separation; record lifecycle belongs in the cluster operator layer; no active consumer need for static record management via stackit_dns_record_set
+- [ ] proposal(issue-248-public-endpoints-module): BackendTLSPolicy (Gateway→Pod encryption) — encrypt east-west traffic from Envoy proxy to backend pods using Envoy Gateway `BackendTLSPolicy`; surfaces when a consumer requires end-to-end TLS or zero-trust east-west encryption.
+      rationale: requires per-service TLS provisioning by each consumer; not addressable at the platform module level without consumer participation; deferred until a consumer requests it or a service mesh decision is made
+- [ ] proposal(issue-248-public-endpoints-module): OCSP stapling — enable OCSP stapling for production TLS certificates to allow clients to verify revocation status inline without a separate OCSP lookup.
+      rationale: no documented Envoy Gateway `ClientTrafficPolicy` support path as of cert-manager v1.20.1; surfaces when Envoy Gateway adds explicit OCSP stapling configuration
+- [ ] proposal(issue-248-public-endpoints-module): cert-manager KMS signer plugin — store TLS private keys in STACKIT KMS rather than Kubernetes Secrets using a cert-manager external key manager plugin.
+      rationale: unstable plugin ecosystem; no production-ready STACKIT KMS integration for cert-manager signers; surfaces when a stable STACKIT cert-manager KMS plugin is available
 - [ ] proposal(issue-248-rabbitmq-module): vhost customisation — per-consumer non-default vhost support.
       rationale: STACKIT provider exposes no vhost attribute; `'/'` is correct for generic use; per-consumer vhost is consumer-side configuration
 - [ ] proposal(issue-248-rabbitmq-module): HA replica configuration — `stackit_rabbitmq_instance.replicas > 1`.
@@ -95,6 +101,8 @@ Surface automatically when the named scope is next touched. Do not promote to ac
 
 - [ ] proposal(issue-248-dns-module): domain contract JSON pattern — single SSOT JSON file (per-environment hostnames, acme emails, dns_zones list) driving TF tfvars + ArgoCD Helm values via a renderer script with --check mode; cross-cutting refactor affecting all optional modules.
       rationale: pattern observed in sbonoc/agentic-graphrag; requires refactor of all optional module env var surfaces; deferred until blueprint multi-module configuration surface is next in scope
+- [ ] proposal(issue-248-public-endpoints-module): ReferenceGrant per-namespace enforcement — replace `allowedRoutes.namespaces.from: All` with explicit `ReferenceGrant` resources requiring platform sign-off per consumer namespace to attach HTTPRoutes to the shared Gateway.
+      rationale: architectural change to the consumer onboarding model; current self-service HTTPRoute attachment is intentional for developer velocity; surfaces when a consumer requires namespace-level isolation at the Gateway routing layer
 - [ ] proposal(issue-241-make-override-warnings): extend `?=` override-point pattern to other blueprint-managed targets.
       rationale: no consumer request for specific targets; same pattern directly applicable
 - [ ] proposal(issue-164): value-based template scanning — detect hardcoded version strings in templates, not just variable name references.
@@ -181,6 +189,13 @@ Ideas without a delivery commitment. Promote to active only when a concrete trig
 - [ ] Define the Python version split strategy before STACKIT Workflows (Airflow) integration: establish how the blueprint tooling Python version will coexist with the Airflow runtime-constrained Python.
 - [ ] Extend the consumer seed resync workflow with optional merge-assist coverage for selected init-managed identity files without weakening customization boundaries.
 - [ ] Add pluggable async message-contract provider support beyond Pact while preserving the canonical producer/consumer lane contract and upgrade safety guarantees.
+
+### on-scope: platform
+
+- [ ] proposal(issue-248-public-endpoints-module): service mesh / mTLS east-west — encrypt and mutually authenticate pod-to-pod traffic using a service mesh (Istio, Linkerd, or Cilium); fully realises zero-trust for east-west traffic alongside the public-endpoints north-south TLS edge.
+      rationale: separate architectural decision with major operational implications (sidecar injection, mTLS policy, control plane overhead); surfaces when a platform-wide zero-trust east-west policy is formally adopted
+- [ ] proposal(issue-248-public-endpoints-module): SPIFFE/SPIRE workload identity — cryptographic workload identity for service-to-service authentication without shared secrets; prerequisite for mTLS without a full service mesh.
+      rationale: requires platform-wide identity infrastructure; surfaces alongside or after the service mesh decision
 
 ### STACKIT platform expansion
 

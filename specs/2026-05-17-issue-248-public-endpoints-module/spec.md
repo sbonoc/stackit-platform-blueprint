@@ -62,6 +62,9 @@
 - NFR-SEC-004 `public_endpoints_init_env` MUST set `PUBLIC_ENDPOINTS_ACME_SERVER` to the Let's Encrypt staging endpoint (`https://acme-staging-v02.api.letsencrypt.org/directory`) when `BLUEPRINT_PROFILE` is `stackit-dev` or `stackit-stage`, and to the production endpoint (`https://acme-v02.api.letsencrypt.org/directory`) when `BLUEPRINT_PROFILE` is `stackit-prod`; for local profiles the ACME server is not applicable (selfSigned Issuer).
 - NFR-SEC-005 The HTTP listener on port 80 remains open on the shared Gateway alongside the HTTPS listener; the absence of an HTTP-to-HTTPS redirect is a known security trade-off (explicitly excluded per scope). This trade-off MUST be documented in the module README as a security constraint: consumer HTTPRoute authors MUST explicitly restrict their routes to the HTTPS listener or accept plain-HTTP exposure.
 - NFR-OBS-002 The rendered Certificate manifest MUST include a `renewBefore` field (value ≤ 30 days) to make cert-manager renewal intent explicit; runtime certificate expiry monitoring is deferred to the observability module.
+- NFR-SEC-006 `public_endpoints_apply.sh` MUST render and apply a gateway listener policy manifest that adds the `Strict-Transport-Security: max-age=31536000; includeSubDomains` response header to all responses served through the HTTPS listener; this prevents protocol downgrade attacks for clients that have previously visited the domain over HTTPS.
+- NFR-SEC-007 `public_endpoints_apply.sh` MUST render and apply `NetworkPolicy` resources to `PUBLIC_ENDPOINTS_NAMESPACE` that: (a) default-deny all ingress to namespace pods; (b) explicitly allow ingress on ports 80 and 443 to Envoy proxy pods from any source (public traffic); (c) explicitly allow ingress from the `cert-manager` namespace to Envoy proxy pods for ACME HTTP01 challenge traffic.
+- NFR-SEC-008 For `stackit-prod` profiles, the platform KMS module MUST be enabled to provide envelope encryption of Kubernetes Secrets at rest, protecting `PUBLIC_ENDPOINTS_GATEWAY_TLS_SECRET_NAME` and the cert-manager ACME account key stored in the `cert-manager` namespace; `public_endpoints_apply.sh` MUST emit a warning when `BLUEPRINT_PROFILE=stackit-prod` and the KMS module is not enabled; this dependency MUST be documented in the module README.
 
 ## Normative Option Decision
 - Option A: Namespace-scoped `Issuer` per context (shared Gateway Issuer in `network` namespace; consumer apps create their own Issuers in their namespaces).
@@ -100,6 +103,9 @@
 - AC-014 MUST: `public_endpoints_init_env` sets `PUBLIC_ENDPOINTS_ACME_SERVER` to the Let's Encrypt staging endpoint when `BLUEPRINT_PROFILE` is `stackit-dev` or `stackit-stage`, and to the production endpoint when `BLUEPRINT_PROFILE` is `stackit-prod`.
 - AC-015 MUST: the rendered Certificate manifest contains a `renewBefore` field.
 - AC-016 MUST: `blueprint/modules/public-endpoints/module.contract.yaml` declares `PUBLIC_ENDPOINTS_CLUSTER_ISSUER_NAME`, `PUBLIC_ENDPOINTS_CLUSTER_ISSUER_EMAIL`, `PUBLIC_ENDPOINTS_ACME_SERVER`, and `PUBLIC_ENDPOINTS_GATEWAY_TLS_SECRET_NAME` as optional env vars.
+- AC-017 MUST: the rendered gateway listener policy manifest includes `Strict-Transport-Security` response header configuration for the HTTPS listener with `max-age` ≥ 31536000 and `includeSubDomains`.
+- AC-018 MUST: the rendered `NetworkPolicy` manifests for `PUBLIC_ENDPOINTS_NAMESPACE` include a default-deny ingress policy and an explicit-allow ingress policy for Envoy proxy pods on ports 80 and 443.
+- AC-019 MUST: `public_endpoints_apply.sh` emits a warning log when `BLUEPRINT_PROFILE=stackit-prod` and the KMS module is not enabled.
 
 ## Informative Notes (Non-Normative)
 - Context: cert-manager is already installed as a core runtime component (`core_runtime_bootstrap.sh`, v1.20.1). The Gateway API feature gate (`ExperimentalGatewayAPISupport`) is the only missing configuration — without it, cert-manager silently ignores `gatewayHTTPRoute` solver configuration and no HTTP01 challenge is issued.
@@ -113,3 +119,8 @@
 - Per-consumer `Certificate` management — consumer apps create their own Issuer + Certificate resources via ArgoCD; out of scope for the platform module.
 - Standalone external-dns Helm chart deployment — the STACKIT SKE DNS extension already handles record management when `DNS_ENABLED=true`.
 - HTTP-to-HTTPS redirect — consumer HTTPRoute concern; not part of the shared gateway contract. The security trade-off of leaving port 80 open is documented as NFR-SEC-005.
+- BackendTLSPolicy (Gateway→Pod encryption) — requires per-service TLS provisioning by each consumer; not addressable at the platform module level. Parked in backlog `on-scope: infra`.
+- ReferenceGrant per-namespace enforcement — replacing `allowedRoutes.namespaces.from: All` with explicit ReferenceGrant is an architectural change to the consumer onboarding model; parked in backlog `on-scope: blueprint`.
+- OCSP stapling — no documented Envoy Gateway support path as of cert-manager v1.20.1; parked in backlog `on-scope: infra`.
+- Service mesh / mTLS east-west / SPIFFE — requires a separate platform-level architectural decision (Istio, Linkerd, Cilium); parked in backlog `on-scope: platform`.
+- cert-manager KMS signer plugin — unstable ecosystem, no production-ready STACKIT KMS integration; parked in backlog `on-scope: infra`.

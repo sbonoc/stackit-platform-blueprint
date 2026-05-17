@@ -28,11 +28,11 @@
 ### Slice 1 — cert-manager feature gate + test contract scaffold (red → green)
 Register `test_contract.py` in `test_pyramid_contract.json` first (prevents pre-commit hook failure), then write failing assertions for AC-005, AC-011, AC-012. Enable cert-manager Gateway API feature gate (AC-005). All assertions green.
 
-### Slice 2 — HTTPS listener + external-dns annotation + Issuer + Certificate (red → green)
-Write failing assertions for AC-001, AC-002, AC-003, AC-004, AC-013, AC-015. Implement:
-- Gateway template: add HTTPS listener (with minimum TLS 1.2 options) + external-dns annotation (AC-001, AC-004, AC-013, NFR-SEC-002).
-- `public_endpoints.sh`: add `public_endpoints_render_issuer_manifest()` and `public_endpoints_render_certificate_manifest()` helpers; add new env var defaults including profile-aware `PUBLIC_ENDPOINTS_ACME_SERVER` (NFR-SEC-004); include `renewBefore` in Certificate manifest (AC-015, NFR-OBS-002).
-- `public_endpoints_apply.sh`: apply Issuer + Certificate manifests; extend runtime state with `cluster_issuer_name`, `cluster_issuer_type`, `tls_secret_name` (AC-009).
+### Slice 2 — HTTPS listener + external-dns annotation + Issuer + Certificate + security policies (red → green)
+Write failing assertions for AC-001, AC-002, AC-003, AC-004, AC-013, AC-015, AC-017, AC-018, AC-019. Implement:
+- Gateway template: add HTTPS listener + external-dns annotation (AC-001, AC-004).
+- `public_endpoints.sh`: add manifest rendering helpers for Issuer, Certificate (with `renewBefore`, AC-015, NFR-OBS-002), gateway TLS policy (HSTS + min TLS 1.2, AC-017, AC-013, NFR-SEC-006, NFR-SEC-002), and NetworkPolicy manifests (AC-018, NFR-SEC-007); add profile-aware `PUBLIC_ENDPOINTS_ACME_SERVER` default (NFR-SEC-004).
+- `public_endpoints_apply.sh`: apply Issuer + Certificate + gateway TLS policy + NetworkPolicy manifests; extend runtime state with `cluster_issuer_name`, `cluster_issuer_type`, `tls_secret_name` (AC-009); emit KMS warning for `stackit-prod` without KMS module (AC-019, NFR-SEC-008).
 - `public_endpoints_destroy.sh`: delete Certificate + Issuer before gateway baseline (NFR-REL-001).
 Run pytest — confirm all assertions green.
 
@@ -50,8 +50,11 @@ Run pytest — confirm all 15 AC assertions green.
   - TLS Secret RBAC constraint: only Envoy Gateway controller SA may read the Secret (NFR-SEC-003).
   - Profile-aware ACME server defaults table (NFR-SEC-004).
   - HTTP plain-text security trade-off warning (NFR-SEC-005).
+  - HSTS policy and network isolation design notes (NFR-SEC-006, NFR-SEC-007).
+  - KMS module dependency section: encryption-at-rest for TLS Secret and ACME account key on `stackit-prod` (NFR-SEC-008).
   - Certificate `renewBefore` and expiry monitoring note (NFR-OBS-002).
   - Destroy warning for Certificate + Issuer lifecycle (NFR-REL-001).
+  - Zero-trust parked items and follow-up triggers (BackendTLSPolicy, ReferenceGrant, OCSP, service mesh).
 - Write ADR at `docs/blueprint/architecture/decisions/ADR-issue-248-public-endpoints-module.md`.
 - Run full validation bundle: `make quality-sdd-check-all`, `make infra-validate`, `make quality-docs-check-changed`, `make docs-build`, `make docs-smoke`.
 - Write `pr_context.md` and `hardening_review.md`.
