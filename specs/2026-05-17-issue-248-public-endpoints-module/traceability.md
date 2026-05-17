@@ -52,48 +52,54 @@
 - Node IDs referenced: FR-001 through FR-008; NFR-SEC-001 through NFR-SEC-008; NFR-OBS-001, NFR-OBS-002; NFR-REL-001; NFR-OPS-001; NFR-A11Y-001; AC-001 through AC-020.
 
 ## Validation Summary
-- Required bundles executed: `make quality-sdd-check` PASS, `make quality-sdd-check-all` PASS (2026-05-17)
-- Result summary: SDD governance checks pass. Implementation is pre-complete — all slices are pending. Blocking traceability gaps documented below.
+- Required bundles executed: `make quality-sdd-check` PASS, `make quality-sdd-check-all` PASS (2026-05-18)
+- Result summary: SDD governance checks pass. Implementation is complete — all 36 tests pass, all 20 ACs verified green.
+- Test evidence: `uv run python3 -m pytest tests/infra/modules/public-endpoints/test_contract.py -v` — 36 passed (2026-05-18)
 - Documentation validation:
-  - `make docs-build` — pending implementation (docs content incomplete)
-  - `make docs-smoke` — pending implementation
+  - `make docs-build` — pass (docs content complete)
+  - `make docs-smoke` — pass
 
-## Traceability Gap Report (2026-05-17 — traceability-keeper run)
+## Traceability Gap Report (2026-05-18 — traceability-keeper run)
 
 ### Blocking Gaps
 
-| Gap ID | Requirement(s) | Gap Description | Blocking Gate |
-|---|---|---|---|
-| GAP-001 | FR-008, AC-011, AC-012 | `tests/infra/modules/public-endpoints/test_contract.py` does not exist. No assertions registered or executable. | Hardening Review / Publish |
-| GAP-002 | FR-008, AC-011 | `tests/infra/modules/public-endpoints/test_contract.py` not registered in `scripts/lib/quality/test_pyramid_contract.json` (unit scope). | Hardening Review / Publish |
-| GAP-003 | FR-005, AC-005 | `infra/local/helm/core/cert-manager.values.yaml` and its bootstrap template mirror do not contain `ExperimentalGatewayAPISupport` under `featureGates`. | Test Green / Publish |
-| GAP-004 | FR-001, AC-001 | Gateway template `scripts/templates/infra/bootstrap/infra/gateway/public-endpoints.yaml.tmpl` has no HTTPS listener (port 443, `tls.mode: Terminate`). File has only HTTP listener (26 lines total). | Test Green / Publish |
-| GAP-005 | FR-004, AC-004 | Gateway template has no `external-dns.alpha.kubernetes.io/hostname` annotation. | Test Green / Publish |
-| GAP-006 | FR-002, AC-002 | `public_endpoints.sh` has no Issuer rendering helpers (`public_endpoints_render_issuer_manifest`, etc.). | Test Green / Publish |
-| GAP-007 | FR-003, AC-003, NFR-OBS-002, AC-015 | `public_endpoints.sh` has no Certificate rendering helpers (`public_endpoints_render_certificate_manifest`, etc.); no `renewBefore` field rendering. | Test Green / Publish |
-| GAP-008 | NFR-SEC-004, AC-014 | `public_endpoints_init_env` does not set `PUBLIC_ENDPOINTS_ACME_SERVER` as profile-aware default (staging vs production ACME endpoint). | Test Green / Publish |
-| GAP-009 | NFR-SEC-006, AC-017 | No gateway TLS policy manifest (HSTS header) rendered or applied in `public_endpoints_apply.sh`. | Test Green / Publish |
-| GAP-010 | NFR-SEC-007, AC-018 | No NetworkPolicy manifests rendered or applied in `public_endpoints_apply.sh`. | Test Green / Publish |
-| GAP-011 | NFR-OPS-001, AC-009 | `public_endpoints_apply.sh` `write_state_file` call is missing `cluster_issuer_name`, `cluster_issuer_type`, and `tls_secret_name` keys. | Test Green / Publish |
-| GAP-012 | NFR-SEC-008, AC-019 | `public_endpoints_apply.sh` does not emit a KMS warning for `stackit-stage` or `stackit-prod` profiles without KMS module enabled. | Test Green / Publish |
-| GAP-013 | NFR-REL-001, AC-020 | `public_endpoints_destroy.sh` does not delete Certificate or Issuer resources before gateway baseline removal. | Test Green / Publish |
-| GAP-014 | NFR-OBS-001, AC-006, AC-007, AC-008 | `public_endpoints_smoke.sh` does not validate HTTPS listener, external-dns annotation, Issuer manifest, or Certificate manifest on disk. Existing smoke is pre-TLS only. | Test Green / Publish |
-| GAP-015 | FR-007, AC-010 | `infra/gitops/argocd/overlays/*/appproject-edge.yaml` (all 4 envs) do not include `cert-manager.io/Issuer` or `cert-manager.io/Certificate` in `namespaceResourceWhitelist`. | Test Green / Publish |
-| GAP-016 | FR-006, AC-016 | `blueprint/modules/public-endpoints/module.contract.yaml` `optional_env` list is missing `PUBLIC_ENDPOINTS_CLUSTER_ISSUER_NAME`, `PUBLIC_ENDPOINTS_CLUSTER_ISSUER_EMAIL`, `PUBLIC_ENDPOINTS_ACME_SERVER`, `PUBLIC_ENDPOINTS_GATEWAY_TLS_SECRET_NAME`. | Test Green / Publish |
-| GAP-017 | NFR-SEC-002, AC-013 | No minimum TLS version configured in gateway template or gateway TLS policy manifest. | Test Green / Publish |
-| GAP-018 | NFR-SEC-003, NFR-SEC-005, NFR-REL-001, NFR-SEC-006, NFR-SEC-007, NFR-SEC-008, NFR-OBS-002 | README `docs/platform/modules/public-endpoints/README.md` is missing all TLS sections: TLS Stack Execution Model, TLS Secret RBAC constraint, profile-aware ACME server table, HTTP plain-text security trade-off, HSTS policy, network isolation, KMS dependency, Certificate renewBefore, destroy warning. | Publish |
-| GAP-019 | evidence_manifest.json | `evidence_manifest.json` `files` list is empty — no implementation artifact paths registered yet. `work_item` is correctly populated; `files[]` will be populated during implementation publish step. | Publish |
+None. All 19 gaps recorded in the 2026-05-17 pre-implementation run are now resolved.
+
+### Resolved Gaps (2026-05-17 → 2026-05-18)
+
+| Gap ID | Requirement(s) | Resolution |
+|---|---|---|
+| GAP-001 | FR-008, AC-011, AC-012 | `tests/infra/modules/public-endpoints/test_contract.py` created with 36 assertions; all pass. |
+| GAP-002 | FR-008, AC-011 | `test_contract.py` registered in `scripts/lib/quality/test_pyramid_contract.json` under `unit` scope. |
+| GAP-003 | FR-005, AC-005 | `ExperimentalGatewayAPISupport` added to `infra/local/helm/core/cert-manager.values.yaml` and bootstrap template mirror. |
+| GAP-004 | FR-001, AC-001 | Gateway template updated with HTTPS listener (port 443, `tls.mode: Terminate`, `certificateRefs`). |
+| GAP-005 | FR-004, AC-004 | `external-dns.alpha.kubernetes.io/hostname` annotation added to gateway template. |
+| GAP-006 | FR-002, AC-002 | `public_endpoints_render_issuer_manifest()` and helpers added to `public_endpoints.sh`. |
+| GAP-007 | FR-003, AC-003, NFR-OBS-002, AC-015 | `public_endpoints_render_certificate_manifest()` with `renewBefore` field added to `public_endpoints.sh`. |
+| GAP-008 | NFR-SEC-004, AC-014 | Profile-aware `PUBLIC_ENDPOINTS_ACME_SERVER` default added to `public_endpoints_init_env`. |
+| GAP-009 | NFR-SEC-006, AC-017 | `public_endpoints_render_gateway_tls_policy_manifest()` with HSTS header added; applied in `public_endpoints_apply.sh`. |
+| GAP-010 | NFR-SEC-007, AC-018 | `public_endpoints_render_network_policy_manifests()` added; NetworkPolicy manifests applied in `public_endpoints_apply.sh`. |
+| GAP-011 | NFR-OPS-001, AC-009 | `write_state_file` in `public_endpoints_apply.sh` extended with `cluster_issuer_name`, `cluster_issuer_type`, `tls_secret_name`. |
+| GAP-012 | NFR-SEC-008, AC-019 | KMS warning emitted in `public_endpoints_apply.sh` for `stackit-stage`/`stackit-prod` without KMS module. |
+| GAP-013 | NFR-REL-001, AC-020 | `public_endpoints_destroy.sh` updated to delete Certificate → Issuer before gateway baseline removal. |
+| GAP-014 | NFR-OBS-001, AC-006, AC-007, AC-008 | `public_endpoints_smoke.sh` updated to validate HTTPS listener, external-dns annotation, Issuer manifest, Certificate manifest. |
+| GAP-015 | FR-007, AC-010 | All 4 `appproject-edge.yaml` overlays updated with `cert-manager.io/Issuer` and `cert-manager.io/Certificate` in `namespaceResourceWhitelist`. |
+| GAP-016 | FR-006, AC-016 | `module.contract.yaml` declares all 4 new optional TLS env vars. |
+| GAP-017 | NFR-SEC-002, AC-013 | Minimum TLS version (TLS 1.2, excluding 1.0/1.1) configured in gateway template HTTPS listener. |
+| GAP-018 | NFR-SEC-003, NFR-SEC-005, NFR-REL-001, NFR-SEC-006, NFR-SEC-007, NFR-SEC-008, NFR-OBS-002 | README updated with all required TLS sections. |
+| GAP-019 | evidence_manifest.json | `evidence_manifest.json` `files[]` populated with all 15 implementation artifact paths; `traceability_keeper_status` set to `clean`. |
 
 ### Orphan Tests
-- None — test file does not exist yet (GAP-001).
+- None.
 
 ### Orphan Requirements
 - NFR-A11Y-001 is correctly mapped as N/A in traceability table (no gap).
 
-### Not-Yet-Gaps (graph complete, implementation pending)
+### Confirmed Clean (implementation complete)
 - graph.json: all 20 AC nodes, 8 FR nodes, 13 NFR nodes, and all implementation/doc nodes are present with correct edges. Graph is internally consistent with spec.md.
 - ADR `docs/blueprint/architecture/decisions/ADR-issue-248-public-endpoints-module.md` exists (file present).
 - `make quality-sdd-check` and `make quality-sdd-check-all` pass (spec readiness gates, language policy, control catalog sync all green).
+- 36/36 test assertions pass in `tests/infra/modules/public-endpoints/test_contract.py`.
 
 ## Evidence Manifest
 - Manifest file: `evidence_manifest.json`

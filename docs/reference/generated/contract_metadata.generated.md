@@ -521,7 +521,7 @@
 
 ## Module: `public-endpoints`
 
-- Purpose: Provision Gateway API public edge baseline for marketplace UI and API surfaces.
+- Purpose: Provision Gateway API public edge baseline for consumer application UI, API, and auth surfaces.
 - Enabled by default: `false`
 - Enable flag: `PUBLIC_ENDPOINTS_ENABLED`
 
