@@ -8,7 +8,7 @@
       "path": "specs/2026-05-17-issue-248-dns-module/spec.md",
       "role": "specification",
       "status": "draft",
-      "sha256": "78f9b85a9d5ed9b5f28e605fde23a39751b63f1373f85efe095cb21bd459554c"
+      "sha256": "301894ae62c88f0240351bd77655fa15eb0eeb5f25b478d9ef4350f589c8e695"
     },
     {
       "path": "specs/2026-05-17-issue-248-dns-module/architecture.md",
@@ -20,25 +20,25 @@
       "path": "specs/2026-05-17-issue-248-dns-module/plan.md",
       "role": "implementation-plan",
       "status": "draft",
-      "sha256": "7875a0cf3523872a7cb132e9b2e62df47436fb31ca5c782b40e58c66e09b5691"
+      "sha256": "6d88ac71c0c8aa86490864149ec0414a0f9ccd7a814e3c05699e96a7cd21a545"
     },
     {
       "path": "specs/2026-05-17-issue-248-dns-module/tasks.md",
       "role": "task-list",
       "status": "draft",
-      "sha256": "e9fa9e56c02b3e32f24a22ddceac225c79cbea1b0ff99c5e67da766bc9da8fe4"
+      "sha256": "2359beded5813c239ed33dc9a41804f549f11347a984bca0d05a77596a985c6a"
     },
     {
       "path": "specs/2026-05-17-issue-248-dns-module/graph.json",
       "role": "traceability-graph",
       "status": "draft",
-      "sha256": "5e8e9e0cdeb9be7409335f6abc782348a97f187082cad5d2565271bf0127a808"
+      "sha256": "b3d63cab68b5c28494935ef4bd42664e2f460e9598f6f2f10f811d8fd130147d"
     },
     {
       "path": "specs/2026-05-17-issue-248-dns-module/traceability.md",
       "role": "traceability-matrix",
       "status": "draft",
-      "sha256": "a461171d9c06d0c09b28fd67c20b7535d61efe3fa8816f00c8fea00b7d2c0f54"
+      "sha256": "e3c289513a3f53c0bbb4efd89e850fd392ba3757cc6274b29af5795d9a64649a"
     },
     {
       "path": "docs/blueprint/architecture/decisions/ADR-issue-248-dns-module.md",

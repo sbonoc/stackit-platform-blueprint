@@ -25,7 +25,8 @@
     { "id": "AC-008", "type": "acceptance", "summary": "test_contract.py has entry in test_pyramid_contract.json under unit scope" },
     { "id": "AC-009", "type": "acceptance", "summary": "test_contract.py passes with >= 10 assertions" },
     { "id": "AC-010", "type": "acceptance", "summary": "Runtime state file contains zone_id, zone_name, zone_fqdn keys" },
-    { "id": "AC-011", "type": "acceptance", "summary": "module.contract.yaml includes DNS_PRIMARY_NAME_SERVER and dns_apply.sh writes primary_name_server to state" }
+    { "id": "AC-011", "type": "acceptance", "summary": "module.contract.yaml includes DNS_PRIMARY_NAME_SERVER and dns_apply.sh writes primary_name_server to state" },
+    { "id": "AC-012", "type": "acceptance", "summary": "dns_smoke.sh validates primary_name_server non-empty in runtime state and writes it to dns_smoke state artifact" }
   ],
   "edges": [
     { "from": "FR-001", "to": "AC-001", "relation": "validated_by" },
@@ -44,6 +45,8 @@
     { "from": "NFR-REL-001", "to": "AC-001", "relation": "constrains" },
     { "from": "NFR-OPS-001", "to": "FR-005", "relation": "constrains" },
     { "from": "NFR-OPS-001", "to": "AC-010", "relation": "constrains" },
+    { "from": "FR-005", "to": "AC-012", "relation": "validated_by" },
+    { "from": "NFR-OBS-001", "to": "AC-012", "relation": "constrains" },
     { "from": "NFR-A11Y-001", "to": "FR-001", "relation": "not_applicable" }
   ]
 }

@@ -12,7 +12,7 @@
 ### Slice 1 — Terraform standalone module (red → green)
 - [ ] T-000 Add `tests/infra/modules/dns/test_contract.py` to `scripts/lib/quality/test_pyramid_contract.json` under the `unit` scope (AC-008) — MUST be done before T-001 to avoid pre-commit hook failure
 - [ ] T-001 Write failing `test_contract.py` assertions for TF module structure (AC-001 through AC-004, AC-007):
-      - AC-001: `main.tf` declares `stackit_dns_zone.this` with `project_id`, `name`, `dns_name = trimsuffix(...)`
+      - AC-001: `main.tf` declares `stackit_dns_zone.this` with `project_id`, `name`, `dns_name = trimsuffix(...)`; includes `required_version = ">= 1.13.0"`; does NOT include `create_before_destroy`
       - AC-002: `variables.tf` declares five required variables
       - AC-003: `outputs.tf` declares `zone_id`, `dns_name`, and `primary_name_server`
       - AC-004: `versions.tf` declares `stackitcloud/stackit = 0.88.0`
@@ -24,18 +24,19 @@
 - [ ] T-006 Run pytest on slice 1 assertions — confirm AC-001 through AC-004 green
 
 ### Slice 2 — Smoke strengthening and test coverage (red → green)
-- [ ] T-007 Write failing `test_contract.py` assertions for AC-005, AC-006, AC-009, AC-010, AC-011:
+- [ ] T-007 Write failing `test_contract.py` assertions for AC-005, AC-006, AC-009, AC-010, AC-011, AC-012:
       - AC-005: `dns_smoke.sh` contains non-empty check for `zone_id`
       - AC-006: `dns_smoke.sh` contains non-empty check for `zone_fqdn`
       - AC-009: `test_contract.py` passes with ≥ 10 assertions
-      - AC-010: Mock runtime state fixture contains `zone_id`, `zone_name`, `zone_fqdn` keys
-      - AC-011: `module.contract.yaml` includes `DNS_PRIMARY_NAME_SERVER`; `dns_apply.sh` writes `primary_name_server` to state
-      Run pytest — confirm AC-005, AC-006, AC-011 fail
+      - AC-010: Mock runtime state fixture contains `zone_id`, `zone_name`, `zone_fqdn`, `primary_name_server` keys
+      - AC-011: `module.contract.yaml` includes `DNS_PRIMARY_NAME_SERVER`; `dns_apply.sh` writes `primary_name_server` to state; `dns.sh` declares `dns_primary_name_server()`
+      - AC-012: `dns_smoke.sh` contains non-empty check for `primary_name_server`; smoke state write includes `primary_name_server`
+      Run pytest — confirm AC-005, AC-006, AC-011, AC-012 fail
 - [ ] T-007b Implement FR-004b (green):
       - Add `DNS_PRIMARY_NAME_SERVER` to `blueprint/modules/dns/module.contract.yaml` under `outputs.produced`
       - Add `dns_primary_name_server()` helper to `scripts/lib/infra/dns.sh` (reads foundation output or falls back to local placeholder)
       - Update `scripts/bin/infra/dns_apply.sh` to write `primary_name_server=$(dns_primary_name_server)` to the runtime state file
-- [ ] T-008 Update `scripts/bin/infra/dns_smoke.sh` — add `zone_id` and `zone_fqdn` non-empty checks
+- [ ] T-008 Update `scripts/bin/infra/dns_smoke.sh` — add `zone_id`, `zone_fqdn`, and `primary_name_server` non-empty checks; extend smoke state write to include `zone_fqdn` and `primary_name_server` (matching KMS pattern)
 - [ ] T-009 Run `uv run pytest tests/infra/modules/dns/test_contract.py -v` — all ≥ 10 assertions green (AC-009)
 
 ## Test Automation

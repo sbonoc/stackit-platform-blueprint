@@ -35,18 +35,19 @@
 ### Slice 2 — Smoke strengthening and test coverage (red → green)
 
 **Red phase:**
-- T-007: Write failing test assertions for smoke script (AC-005, AC-006), state contract (AC-010), and primary_name_server contract (AC-011):
+- T-007: Write failing test assertions for smoke script (AC-005, AC-006, AC-012), state contract (AC-010), and primary_name_server contract (AC-011):
   - AC-005: `dns_smoke.sh` contains a non-empty check for `zone_id`.
   - AC-006: `dns_smoke.sh` contains a non-empty check for `zone_fqdn`.
   - AC-008: `test_pyramid_contract.json` entry exists for the dns test file.
   - AC-009: `test_contract.py` passes with ≥ 10 assertions.
-  - AC-010: Mock runtime state fixture contains `zone_id`, `zone_name`, `zone_fqdn` keys.
-  - AC-011: `module.contract.yaml` includes `DNS_PRIMARY_NAME_SERVER`; `dns_apply.sh` writes `primary_name_server` to state.
-  Run pytest — confirm AC-005, AC-006, AC-011 fail.
+  - AC-010: Mock runtime state fixture contains `zone_id`, `zone_name`, `zone_fqdn`, `primary_name_server` keys.
+  - AC-011: `module.contract.yaml` includes `DNS_PRIMARY_NAME_SERVER`; `dns_apply.sh` writes `primary_name_server` to state; `dns.sh` declares `dns_primary_name_server()`.
+  - AC-012: `dns_smoke.sh` contains a non-empty check for `primary_name_server`; smoke state write includes `primary_name_server`.
+  Run pytest — confirm AC-005, AC-006, AC-011, AC-012 fail.
 
 **Green phase:**
 - T-007b: Implement FR-004b — add `DNS_PRIMARY_NAME_SERVER` to `blueprint/modules/dns/module.contract.yaml` under `outputs.produced`; add `dns_primary_name_server()` helper to `scripts/lib/infra/dns.sh`; update `scripts/bin/infra/dns_apply.sh` to write `primary_name_server=$(dns_primary_name_server)` to runtime state.
-- T-008: Update `scripts/bin/infra/dns_smoke.sh` to add `zone_id` and `zone_fqdn` non-empty checks.
+- T-008: Update `scripts/bin/infra/dns_smoke.sh` to add non-empty checks for `zone_id`, `zone_fqdn`, and `primary_name_server`; extend smoke state write to include `zone_fqdn` and `primary_name_server` (matching KMS pattern).
 - T-009: Run `uv run pytest tests/infra/modules/dns/test_contract.py -v` — all ≥ 10 assertions green (AC-009).
 
 ## Change Strategy

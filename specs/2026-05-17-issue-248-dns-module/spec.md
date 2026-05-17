@@ -45,19 +45,19 @@
 
 ### Functional Requirements (Normative)
 
-- FR-001 MUST implement `infra/cloud/stackit/terraform/modules/dns/main.tf` declaring one resource: `stackit_dns_zone.this` with attributes `project_id`, `name`, and `dns_name = trimsuffix(var.dns_zone_fqdn, ".")`, following the structure used in `infra/cloud/stackit/terraform/foundation/main.tf`.
+- FR-001 MUST implement `infra/cloud/stackit/terraform/modules/dns/main.tf` declaring one resource: `stackit_dns_zone.this` with attributes `project_id`, `name`, and `dns_name = trimsuffix(var.dns_zone_fqdn, ".")`, following the structure used in `infra/cloud/stackit/terraform/foundation/main.tf`. The file MUST include a `terraform` block with `required_version = ">= 1.13.0"` and a `locals { contract = "blueprint" }` block, consistent with all other standalone modules (kms, secrets-manager).
 - FR-002 MUST implement `infra/cloud/stackit/terraform/modules/dns/variables.tf` declaring the following variables: `stackit_project_id` (required string), `stackit_region` (string, default `"eu01"`, declared for API consistency — not forwarded to the resource as `stackit_dns_zone` does not accept a region attribute), `dns_zone_name` (required string, display name), `dns_zone_fqdn` (required string, FQDN with trailing dot), `dns_record_ttl` (number, default `300`).
 - FR-003 MUST implement `infra/cloud/stackit/terraform/modules/dns/outputs.tf` declaring `zone_id` (from `stackit_dns_zone.this.zone_id`), `dns_name` (from `stackit_dns_zone.this.dns_name`), and `primary_name_server` (from `stackit_dns_zone.this.primary_name_server`, computed). The provider exposes exactly one nameserver via `primary_name_server` (String, FQDN); no plural nameservers attribute exists in v0.88.0.
 - FR-004 MUST implement `infra/cloud/stackit/terraform/modules/dns/versions.tf` declaring the `stackitcloud/stackit` required provider with the pinned version constraint `= 0.88.0`, matching all other modules.
 - FR-004b MUST add `DNS_PRIMARY_NAME_SERVER` to `blueprint/modules/dns/module.contract.yaml` under `outputs.produced`. The `dns_apply.sh` MUST write `primary_name_server=$(dns_primary_name_server)` to the runtime state file, and `dns.sh` MUST expose a `dns_primary_name_server()` helper that reads from the foundation output or falls back to a local placeholder.
-- FR-005 MUST update `scripts/bin/infra/dns_smoke.sh` to add non-empty existence checks for `zone_id` and `zone_fqdn` keys in the runtime state file (the existing check covers `zone_name` only).
+- FR-005 MUST update `scripts/bin/infra/dns_smoke.sh` to add non-empty existence checks for `zone_id`, `zone_fqdn`, and `primary_name_server` keys in the runtime state file (the existing check covers `zone_name` only). The smoke script MUST also write `zone_fqdn` and `primary_name_server` to the `dns_smoke` state file (in addition to the existing `zone_id` and `zone_name` writes), consistent with the KMS pattern where smoke writes all validated keys to the smoke state artifact.
 - FR-006 MUST add `tests/infra/modules/dns/test_contract.py` to `scripts/lib/quality/test_pyramid_contract.json` under the `unit` scope before creating the test file, so the pre-commit pyramid gate does not block the commit.
-- FR-007 MUST implement `tests/infra/modules/dns/test_contract.py` with ≥ 10 assertions covering TF module structure, state contract keys, smoke validation logic, and quality gate registration.
+- FR-007 MUST implement `tests/infra/modules/dns/test_contract.py` with ≥ 10 assertions covering: (a) TF module structure (`main.tf` resource declaration, `variables.tf` variables, `outputs.tf` outputs including `primary_name_server`, `versions.tf` provider pin); (b) shell library function presence — `dns_primary_name_server()` MUST be explicitly asserted to exist in `dns.sh`; (c) state contract keys in the `dns_apply.sh` state write (including `primary_name_server`); (d) smoke validation logic (zone_id, zone_fqdn, primary_name_server non-empty checks); and (e) quality gate registration in `test_pyramid_contract.json`.
 
 ### Non-Functional Requirements (Normative)
 
 - NFR-SEC-001 DNS zones carry no credentials. No secret handling is required. The `zone_id` output MUST be treated as a non-sensitive identifier and MUST NOT be written to any secret store.
-- NFR-OBS-001 MUST ensure `zone_id`, `zone_name`, and `zone_fqdn` are present in the runtime state artifact and that `dns_smoke.sh` validates all three keys are non-empty. All script output MUST be prefixed with `[dns]`.
+- NFR-OBS-001 MUST ensure `zone_id`, `zone_name`, `zone_fqdn`, and `primary_name_server` are present in the runtime state artifact and that `dns_smoke.sh` validates all four keys are non-empty. All script output MUST be prefixed with `[dns]`.
 - NFR-REL-001 MUST NOT declare `lifecycle { create_before_destroy = true }` on `stackit_dns_zone.this`. DNS zone recreation requires coordinated record migration; silent create-before-destroy would orphan existing DNS records and break downstream consumers.
 - NFR-OPS-001 MUST write `zone_id`, `zone_name`, and `zone_fqdn` to the runtime state file so operators and downstream modules (`public-endpoints`) can reference the zone without manual console access.
 - NFR-A11Y-001 N/A — no UI or frontend changes in this work item.
@@ -100,7 +100,7 @@
 
 ## Normative Acceptance Criteria
 
-- AC-001 `infra/cloud/stackit/terraform/modules/dns/main.tf` declares `stackit_dns_zone.this` with `project_id`, `name`, and `dns_name = trimsuffix(var.dns_zone_fqdn, ".")`.
+- AC-001 `infra/cloud/stackit/terraform/modules/dns/main.tf` declares `stackit_dns_zone.this` with `project_id`, `name`, and `dns_name = trimsuffix(var.dns_zone_fqdn, ".")`. The file includes a `terraform` block with `required_version = ">= 1.13.0"` and does NOT include `lifecycle { create_before_destroy }` (NFR-REL-001).
 - AC-002 `infra/cloud/stackit/terraform/modules/dns/variables.tf` declares all five variables: `stackit_project_id`, `stackit_region`, `dns_zone_name`, `dns_zone_fqdn`, `dns_record_ttl`.
 - AC-003 `infra/cloud/stackit/terraform/modules/dns/outputs.tf` declares `zone_id` (from `stackit_dns_zone.this.zone_id`), `dns_name` (from `stackit_dns_zone.this.dns_name`), and `primary_name_server` (from `stackit_dns_zone.this.primary_name_server`).
 - AC-004 `infra/cloud/stackit/terraform/modules/dns/versions.tf` declares the `stackitcloud/stackit` required provider at version `= 0.88.0`.
@@ -111,6 +111,7 @@
 - AC-009 `tests/infra/modules/dns/test_contract.py` passes with ≥ 10 assertions, all green.
 - AC-010 The runtime state file (`artifacts/infra/dns_runtime.env`) contains `zone_id`, `zone_name`, and `zone_fqdn` keys after a STACKIT-lane apply (validated by AC-005 + AC-006 smoke checks).
 - AC-011 `blueprint/modules/dns/module.contract.yaml` includes `DNS_PRIMARY_NAME_SERVER` under `outputs.produced`, and `dns_apply.sh` writes `primary_name_server` to the runtime state file.
+- AC-012 `scripts/bin/infra/dns_smoke.sh` validates `primary_name_server` is non-empty in the runtime state file, and writes `primary_name_server` to the `dns_smoke` state artifact.
 
 ## Informative Notes (Non-Normative)
 - Context: This is one of 5 remaining stub modules under issue #248. The other 4 (public-endpoints, observability, workflows, identity-aware-proxy) will be implemented in separate work items after this one.
