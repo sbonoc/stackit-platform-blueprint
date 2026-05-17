@@ -40,10 +40,10 @@
 | AC-016 | SDD-C-006 | N/A | FR-006 module.contract.yaml env vars | `module.contract.yaml` | `test_ac016_*` | README Optional Inputs | init_repo_env.py defaults |
 | NFR-SEC-006 | SDD-C-009 | N/A | HSTS response header on HTTPS listener | gateway policy manifest + `public_endpoints_apply.sh` | `test_ac017_*` | README security section | gateway policy manifest on disk |
 | NFR-SEC-007 | SDD-C-009 | N/A | NetworkPolicy for network namespace | `public_endpoints.sh` + `public_endpoints_apply.sh` | `test_ac018_*` | README network isolation section | NetworkPolicy manifests on disk |
-| NFR-SEC-008 | SDD-C-009 | N/A | KMS module dependency for stackit-prod | `public_endpoints_apply.sh` (warning) + README | `test_ac019_*` | README KMS dependency section | apply log warning |
+| NFR-SEC-008 | SDD-C-009 | N/A | KMS module dependency for stackit-stage and stackit-prod | `public_endpoints_apply.sh` (warning) + README | `test_ac019_*` | README KMS dependency section | apply log warning |
 | AC-017 | SDD-C-009 | N/A | HSTS policy manifest | gateway policy manifest | `test_ac017_*` | README security section | gateway policy manifest on disk |
 | AC-018 | SDD-C-009 | N/A | NetworkPolicy default-deny + allow 80/443 | NetworkPolicy manifests | `test_ac018_*` | README network isolation section | NetworkPolicy manifests on disk |
-| AC-019 | SDD-C-009 | N/A | KMS warning on stackit-prod without KMS | `public_endpoints_apply.sh` | `test_ac019_*` | README KMS dependency section | apply log warning |
+| AC-019 | SDD-C-009 | N/A | KMS warning on stackit-stage or stackit-prod without KMS | `public_endpoints_apply.sh` | `test_ac019_*` | README KMS dependency section | apply log warning |
 | AC-020 | SDD-C-011 | N/A | destroy ordering: Certificate → Issuer → gateway | `public_endpoints_destroy.sh` | `test_ac020_*` | README destroy warning | static analysis of destroy script |
 
 ## Graph Linkage

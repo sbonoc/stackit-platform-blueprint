@@ -32,7 +32,7 @@ Register `test_contract.py` in `test_pyramid_contract.json` first (prevents pre-
 Write failing assertions for AC-001, AC-002, AC-003, AC-004, AC-013, AC-015, AC-017, AC-018, AC-019. Implement:
 - Gateway template: add HTTPS listener + external-dns annotation (AC-001, AC-004).
 - `public_endpoints.sh`: add manifest rendering helpers for Issuer, Certificate (with `renewBefore`, AC-015, NFR-OBS-002), gateway TLS policy (HSTS + min TLS 1.2, AC-017, AC-013, NFR-SEC-006, NFR-SEC-002), and NetworkPolicy manifests (AC-018, NFR-SEC-007); add profile-aware `PUBLIC_ENDPOINTS_ACME_SERVER` default (NFR-SEC-004).
-- `public_endpoints_apply.sh`: apply Issuer + Certificate + gateway TLS policy + NetworkPolicy manifests; extend runtime state with `cluster_issuer_name`, `cluster_issuer_type`, `tls_secret_name` (AC-009); emit KMS warning for `stackit-prod` without KMS module (AC-019, NFR-SEC-008).
+- `public_endpoints_apply.sh`: apply Issuer + Certificate + gateway TLS policy + NetworkPolicy manifests; extend runtime state with `cluster_issuer_name`, `cluster_issuer_type`, `tls_secret_name` (AC-009); emit KMS warning for `stackit-stage` or `stackit-prod` without KMS module (AC-019, NFR-SEC-008).
 - `public_endpoints_destroy.sh`: delete Certificate before Issuer before gateway baseline (NFR-REL-001, AC-020).
 Run pytest — confirm all assertions green.
 
@@ -51,7 +51,7 @@ Run pytest — confirm all 20 AC assertions green.
   - Profile-aware ACME server defaults table (NFR-SEC-004).
   - HTTP plain-text security trade-off warning (NFR-SEC-005).
   - HSTS policy and network isolation design notes (NFR-SEC-006, NFR-SEC-007).
-  - KMS module dependency section: encryption-at-rest for TLS Secret and ACME account key on `stackit-prod` (NFR-SEC-008).
+  - KMS module dependency section: encryption-at-rest for TLS Secret and ACME account key on `stackit-stage` and `stackit-prod` (NFR-SEC-008).
   - Certificate `renewBefore` and expiry monitoring note (NFR-OBS-002).
   - Destroy warning for Certificate + Issuer lifecycle (NFR-REL-001).
   - Zero-trust parked items and follow-up triggers (BackendTLSPolicy, ReferenceGrant, OCSP, service mesh).

@@ -64,7 +64,7 @@
 - NFR-OBS-002 The rendered Certificate manifest MUST include a `renewBefore` field (value ≤ 30 days) to make cert-manager renewal intent explicit; runtime certificate expiry monitoring is deferred to the observability module.
 - NFR-SEC-006 `public_endpoints_apply.sh` MUST render and apply a gateway listener policy manifest that adds the `Strict-Transport-Security: max-age=31536000; includeSubDomains` response header to all responses served through the HTTPS listener; this prevents protocol downgrade attacks for clients that have previously visited the domain over HTTPS.
 - NFR-SEC-007 `public_endpoints_apply.sh` MUST render and apply `NetworkPolicy` resources to `PUBLIC_ENDPOINTS_NAMESPACE` that: (a) default-deny all ingress to namespace pods; (b) explicitly allow ingress on ports 80 and 443 to Envoy proxy pods from any source (public traffic); (c) explicitly allow ingress from the `cert-manager` namespace to Envoy proxy pods for ACME HTTP01 challenge traffic.
-- NFR-SEC-008 For `stackit-prod` profiles, the platform KMS module MUST be enabled to provide envelope encryption of Kubernetes Secrets at rest, protecting `PUBLIC_ENDPOINTS_GATEWAY_TLS_SECRET_NAME` and the cert-manager ACME account key stored in the `cert-manager` namespace; `public_endpoints_apply.sh` MUST emit a warning when `BLUEPRINT_PROFILE=stackit-prod` and the KMS module is not enabled; this dependency MUST be documented in the module README.
+- NFR-SEC-008 For `stackit-stage` and `stackit-prod` profiles, the platform KMS module MUST be enabled to provide envelope encryption of Kubernetes Secrets at rest, protecting `PUBLIC_ENDPOINTS_GATEWAY_TLS_SECRET_NAME` and the cert-manager ACME account key stored in the `cert-manager` namespace; `public_endpoints_apply.sh` MUST emit a warning when `BLUEPRINT_PROFILE` is `stackit-stage` or `stackit-prod` and the KMS module is not enabled; this dependency MUST be documented in the module README.
 
 ## Normative Option Decision
 - Option A: Namespace-scoped `Issuer` per context (shared Gateway Issuer in `network` namespace; consumer apps create their own Issuers in their namespaces).
@@ -105,7 +105,7 @@
 - AC-016 MUST: `blueprint/modules/public-endpoints/module.contract.yaml` declares `PUBLIC_ENDPOINTS_CLUSTER_ISSUER_NAME`, `PUBLIC_ENDPOINTS_CLUSTER_ISSUER_EMAIL`, `PUBLIC_ENDPOINTS_ACME_SERVER`, and `PUBLIC_ENDPOINTS_GATEWAY_TLS_SECRET_NAME` as optional env vars.
 - AC-017 MUST: the rendered gateway listener policy manifest includes `Strict-Transport-Security` response header configuration for the HTTPS listener with `max-age` ≥ 31536000 and `includeSubDomains`.
 - AC-018 MUST: the rendered `NetworkPolicy` manifests for `PUBLIC_ENDPOINTS_NAMESPACE` include a default-deny ingress policy and an explicit-allow ingress policy for Envoy proxy pods on ports 80 and 443.
-- AC-019 MUST: `public_endpoints_apply.sh` emits a warning log when `BLUEPRINT_PROFILE=stackit-prod` and the KMS module is not enabled.
+- AC-019 MUST: `public_endpoints_apply.sh` emits a warning log when `BLUEPRINT_PROFILE` is `stackit-stage` or `stackit-prod` and the KMS module is not enabled.
 - AC-020 MUST: in `public_endpoints_destroy.sh`, the delete operation for the `Certificate` resource appears before the delete operation for the `Issuer` resource, and the `Issuer` delete appears before the gateway baseline removal — verified by static analysis of the script content.
 
 ## Informative Notes (Non-Normative)

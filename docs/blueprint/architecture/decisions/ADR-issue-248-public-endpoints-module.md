@@ -105,14 +105,15 @@ Both capabilities were validated against the `sbonoc/agentic-graphrag` consumer 
 
 ---
 
-### D-10: KMS module as required dependency for `stackit-prod` (encryption-at-rest)
+### D-10: KMS module as required dependency for `stackit-stage` and `stackit-prod` (encryption-at-rest)
 
-**Decision:** For `stackit-prod` profiles, the STACKIT KMS module MUST be enabled to provide Kubernetes Secret encryption at rest via envelope encryption. `public_endpoints_apply.sh` emits a warning when the KMS module is not enabled and the profile is `stackit-prod`. This protects `PUBLIC_ENDPOINTS_GATEWAY_TLS_SECRET_NAME` (TLS private key) and the cert-manager ACME account key stored in the `cert-manager` namespace.
+**Decision:** For `stackit-stage` and `stackit-prod` profiles, the STACKIT KMS module MUST be enabled to provide Kubernetes Secret encryption at rest via envelope encryption. `public_endpoints_apply.sh` emits a warning when the KMS module is not enabled and the profile is `stackit-stage` or `stackit-prod`. This protects `PUBLIC_ENDPOINTS_GATEWAY_TLS_SECRET_NAME` (TLS private key) and the cert-manager ACME account key stored in the `cert-manager` namespace.
 
 **Alternatives considered:**
-- **D-10-A (rejected): cert-manager KMS signer plugin** — Store private keys directly in STACKIT KMS rather than Kubernetes Secrets. No production-ready STACKIT cert-manager KMS plugin exists as of v1.20.1; parked in backlog `on-scope: infra`.
+- **D-10-A (rejected): KMS required for `stackit-prod` only** — Limiting KMS to prod means the encryption-at-rest setup is first validated under live production traffic. Any misconfiguration in the KMS provider integration would surface only in prod, with no prior rehearsal.
+- **D-10-B (rejected): cert-manager KMS signer plugin** — Store private keys directly in STACKIT KMS rather than Kubernetes Secrets. No production-ready STACKIT cert-manager KMS plugin exists as of v1.20.1; parked in backlog `on-scope: infra`.
 
-**Rationale:** The TLS private key and ACME account key are high-value secrets. Without KMS-backed Kubernetes encryption provider, both are stored in plaintext in etcd. The STACKIT KMS module already provides this envelope encryption integration. The requirement is prod-only; dev/stage use staging certs with a lower risk profile.
+**Rationale:** The TLS private key and ACME account key are high-value secrets. Without KMS-backed Kubernetes encryption provider, both are stored in plaintext in etcd. Requiring KMS in `stackit-stage` validates the encryption-at-rest integration in the last pre-production environment before promotion to prod — consistent with the blueprint principle that stage mirrors production security controls. `stackit-dev` is excluded because it uses staging ACME certs (untrusted CA, low risk) and is optimised for developer velocity over security parity.
 
 ---
 
@@ -124,5 +125,5 @@ Both capabilities were validated against the `sbonoc/agentic-graphrag` consumer 
 - HSTS pinning is effectively irreversible for the `max-age` duration (1 year). If the HTTPS listener is removed after HSTS headers have been served, browsers that received the header will refuse HTTP connections for up to 1 year. Operators must not remove the HTTPS listener without a planned HSTS expiry migration.
 - NetworkPolicy restricts pod-to-pod traffic in the `network` namespace. Direct `kubectl port-forward` or debug pod connections to Envoy proxy pods from other namespaces will be blocked. Operators debugging Gateway issues must use a pod within the `network` namespace or temporarily relax the policy.
 - Staging ACME certificates (`stackit-dev`, `stackit-stage`) are issued by the Let's Encrypt staging CA and are not trusted by browsers or standard TLS clients — this is expected and intentional for non-production environments.
-- `stackit-prod` deployments emit a warning and may proceed (non-fatal) if the KMS module is not enabled, but the TLS Secret and ACME account key will not be encrypted at rest. Operators must treat this warning as a blocker before serving production traffic.
+- `stackit-stage` and `stackit-prod` deployments emit a warning and may proceed (non-fatal) if the KMS module is not enabled, but the TLS Secret and ACME account key will not be encrypted at rest. Operators must treat this warning as a hard blocker for both profiles; the stage requirement exists specifically to validate the KMS integration before production promotion.
 - Wildcard certificates (DNS01 ACME challenge) are out of scope — no STACKIT cert-manager DNS01 webhook exists as of provider v0.88.0. Parked in backlog `on-scope: infra`.

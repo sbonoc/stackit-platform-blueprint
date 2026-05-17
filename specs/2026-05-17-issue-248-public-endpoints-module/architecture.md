@@ -33,11 +33,11 @@ flowchart TD
         D --> D2[render gateway TLS policy\nmin TLS 1.2 + HSTS header]
         D2 --> D3[render NetworkPolicy manifests\ndefault-deny + allow 80/443\n+ cert-manager ns]
         D3 --> E{profile?}
-        E -->|stackit-prod| E2{KMS enabled?}
-        E2 -->|no| E3[warn: KMS required for prod]
+        E -->|stackit-stage/prod| E2{KMS enabled?}
+        E2 -->|no| E3[warn: KMS required\nfor stage + prod]
         E2 -->|yes| F
         E3 --> F[ArgoCD Application\ndeferred to deploy]
-        E -->|stackit-dev/stage| F
+        E -->|stackit-dev| F
         E -->|local| G[Helm install Envoy Gateway\napply namespace + gateway\n+ Issuer + Certificate\n+ TLS policy + NetworkPolicy]
     end
 
@@ -76,12 +76,12 @@ flowchart TD
 - **Presentation/API/workflow boundaries**: `infra-public-endpoints-{plan,apply,deploy,smoke,destroy}` make targets; module contract YAML API surface.
 
 ## Integration and Dependency Edges
-- **Upstream dependencies**: cert-manager core runtime (pre-existing, `core_runtime_bootstrap.sh`); Envoy Gateway controller (deployed by this module); Gateway API CRDs (installed by core bootstrap); DNS module (`DNS_ENABLED=true`) for SKE DNS extension to be active; foundation TF SKE cluster with `extensions.dns` wired; KMS module (`stackit-prod` only — required for Kubernetes Secret encryption at rest of TLS Secret and ACME account key).
+- **Upstream dependencies**: cert-manager core runtime (pre-existing, `core_runtime_bootstrap.sh`); Envoy Gateway controller (deployed by this module); Gateway API CRDs (installed by core bootstrap); DNS module (`DNS_ENABLED=true`) for SKE DNS extension to be active; foundation TF SKE cluster with `extensions.dns` wired; KMS module (`stackit-stage` and `stackit-prod` — required for Kubernetes Secret encryption at rest of TLS Secret and ACME account key; validates the security control in the last pre-production environment).
 - **Downstream dependencies**: IAP module (attaches `SecurityPolicy` to shared Gateway); consumer HTTPRoutes (attach via cross-namespace `allowedRoutes`).
 - **Data/API/event contracts touched**: `blueprint/modules/public-endpoints/module.contract.yaml` (new optional env vars); `appproject-edge.yaml` (expanded resource whitelist); `cert-manager.values.yaml` (feature gate addition); new rendered manifests: gateway TLS policy, NetworkPolicy (default-deny + allow).
 
 ## Non-Functional Architecture Notes
-- **Security**: ACME private keys stored only as Kubernetes Secrets in `cert-manager` namespace; ACME email not written to state; namespace-scoped Issuer limits ACME account blast radius to `network` namespace. TLS 1.2 minimum enforced at the HTTPS listener (TLS 1.0/1.1 prohibited). HSTS `Strict-Transport-Security: max-age=31536000; includeSubDomains` served on all HTTPS responses — irreversible for 1 year after first client contact. NetworkPolicy defaults-deny the `network` namespace with explicit allows for public traffic (80/443) and cert-manager ACME challenge. TLS Secret readable only by Envoy Gateway controller SA (documented constraint). ACME server is profile-aware: staging for `stackit-dev`/`stackit-stage` (staging CA, not browser-trusted); production Let's Encrypt for `stackit-prod`. KMS module required for `stackit-prod` to encrypt TLS Secret and ACME account key at rest in etcd.
+- **Security**: ACME private keys stored only as Kubernetes Secrets in `cert-manager` namespace; ACME email not written to state; namespace-scoped Issuer limits ACME account blast radius to `network` namespace. TLS 1.2 minimum enforced at the HTTPS listener (TLS 1.0/1.1 prohibited). HSTS `Strict-Transport-Security: max-age=31536000; includeSubDomains` served on all HTTPS responses — irreversible for 1 year after first client contact. NetworkPolicy defaults-deny the `network` namespace with explicit allows for public traffic (80/443) and cert-manager ACME challenge. TLS Secret readable only by Envoy Gateway controller SA (documented constraint). ACME server is profile-aware: staging for `stackit-dev`/`stackit-stage` (staging CA, not browser-trusted); production Let's Encrypt for `stackit-prod`. KMS module required for `stackit-stage` and `stackit-prod` to encrypt TLS Secret and ACME account key at rest in etcd; stage inclusion ensures the security control is validated before production promotion.
 - **Observability**: Smoke validates all five contract keys (HTTPS listener, external-dns annotation, Issuer manifest, Certificate manifest, `cluster_issuer_name` in runtime state). cert-manager exposes `certificate_expiration_timestamp_seconds` Prometheus metric for expiry monitoring (opt-in, not wired in this work item).
 - **Reliability and rollback**: Destroy deletes Certificate + Issuer before Gateway baseline; cert destruction invalidates active TLS sessions. Rollback: revert template changes and re-run apply; cert re-issuance takes up to 60s via HTTP01 challenge. DNS record TTL expiry (per zone TTL, typically 300s) must be accounted for after destroy.
 - **Monitoring/alerting**: No new alerting. cert-manager's certificate expiry metric surfaces in observability module when enabled.
@@ -91,6 +91,6 @@ flowchart TD
 - Risk 2: `ExperimentalGatewayAPISupport` feature gate is a breaking change to `cert-manager.values.yaml` — existing core bootstrap runs will pick up the new flag on next `infra-deploy`. Mitigation: the flag is additive and safe; cert-manager restarts gracefully with the new feature gate.
 - Risk 3: HSTS header is effectively irreversible for the `max-age` duration (1 year). Removing the HTTPS listener after HSTS headers have been served will block all browser clients for up to 1 year. Mitigation: operators must plan HSTS expiry migration before removing the HTTPS listener; module README documents this as a destroy warning.
 - Risk 4: NetworkPolicy in `network` namespace blocks direct pod-to-pod connections from other namespaces. Operator `kubectl port-forward` and debug pod access to Envoy proxy pods will be blocked from outside the `network` namespace. Mitigation: operators must use a pod within the `network` namespace for debugging; the policy can be temporarily relaxed during incident response.
-- Risk 5: `stackit-prod` deployments without KMS module proceed with a warning (non-fatal) — TLS Secret and ACME account key remain unencrypted at rest. Mitigation: treat the KMS warning as a hard blocker in production runbook; CI/CD pipeline should fail on warning in prod environments.
+- Risk 5: `stackit-stage` and `stackit-prod` deployments without KMS module proceed with a warning (non-fatal) — TLS Secret and ACME account key remain unencrypted at rest. Mitigation: treat the KMS warning as a hard blocker in both stage and prod runbooks; CI/CD pipeline should fail on warning for these profiles. Requiring KMS in stage ensures the setup is validated before production promotion.
 - Tradeoff 1: Namespace-scoped `Issuer` (not `ClusterIssuer`) means each consumer namespace must create its own Issuer for consumer-specific certs. This is intentional — it matches the agentic-graphrag pattern and keeps cert lifecycle isolated per context.
 - Tradeoff 2: Staging ACME server for `stackit-dev`/`stackit-stage` produces certificates not trusted by browsers. This is intentional — it prevents rate limit exhaustion on the production Let's Encrypt endpoint. Consumers must accept browser trust warnings in dev/stage environments or provision their own trusted certs.
