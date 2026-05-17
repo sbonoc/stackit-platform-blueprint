@@ -27,6 +27,7 @@ provision_path="$OPTIONAL_MODULE_EXECUTION_PATH"
 case "$provision_driver" in
 foundation_contract)
   optional_module_apply_foundation_contract "secrets-manager"
+  secrets_manager_reconcile_runtime_secret
   ;;
 noop)
   optional_module_log_execution_note
@@ -35,8 +36,6 @@ noop)
   optional_module_unexpected_driver "secrets-manager" "apply"
   ;;
 esac
-
-secrets_manager_reconcile_runtime_secret
 
 state_file="$(write_state_file "secrets_manager_runtime" \
   "profile=$BLUEPRINT_PROFILE" \
