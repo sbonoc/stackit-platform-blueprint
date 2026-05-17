@@ -92,10 +92,10 @@ Owner: bonos
 
 ## Test Automation
 - [x] T-101 `tests/infra/modules/public-endpoints/test_contract.py` written (T-001, T-004, T-010) and passing (T-014) — ≥20 assertions covering AC-001 through AC-020
-- [ ] T-102 N/A — no API contract or Pact test
-- [ ] T-103 N/A — no filter or payload-transform logic
-- [ ] T-104 N/A — no reproducible pre-PR smoke/curl finding; new capability, not bug fix
-- [ ] T-105 `tests/infra/test_optional_modules.py::OptionalModulesTests::test_public_endpoints_module_flow` — existing integration test; confirm still passes after gateway template and script changes
+- [x] T-102 N/A — no API contract or Pact test
+- [x] T-103 N/A — no filter or payload-transform logic
+- [x] T-104 N/A — no reproducible pre-PR smoke/curl finding; new capability, not bug fix
+- [x] T-105 `tests/infra/test_optional_modules.py::OptionalModulesTests::test_public_endpoints_module_flow` — existing integration test; confirm still passes after gateway template and script changes
 
 ## Accessibility Testing (Normative — mark N/A with rationale for non-UI specs)
 - [x] T-A01 NFR-A11Y-001 declared in spec.md as "N/A — no UI or frontend changes"
@@ -105,32 +105,32 @@ Owner: bonos
 - [x] T-A05 N/A — no UI changes
 
 ## Validation and Release Readiness
-- [ ] T-201 Run required Make validation bundles
-- [ ] T-202 Attach evidence to traceability document
-- [ ] T-203 Confirm no stale TODOs/dead code/drift
-- [ ] T-204 Run documentation validation (`make docs-build` and `make docs-smoke`)
-- [ ] T-205 Run hardening review validation bundle (`make quality-hardening-review`)
+- [x] T-201 Run required Make validation bundles
+- [x] T-202 Attach evidence to traceability document
+- [x] T-203 Confirm no stale TODOs/dead code/drift
+- [x] T-204 Run documentation validation (`make docs-build` and `make docs-smoke`)
+- [x] T-205 Run hardening review validation bundle (`make quality-hardening-review`)
 
 ## Publish
-- [ ] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
-- [ ] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
-- [ ] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
+- [x] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
+- [x] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
+- [x] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
 
 ## App Onboarding Minimum Targets (Normative)
-- [ ] A-001 `apps-bootstrap` — N/A; infra/tooling-only change
-- [ ] A-002 `apps-smoke` — N/A; infra/tooling-only change
-- [ ] A-003 `backend-test-unit` — N/A; infra/tooling-only change
-- [ ] A-004 `backend-test-integration` — N/A; infra/tooling-only change
-- [ ] A-005 `backend-test-contracts` — N/A; infra/tooling-only change
-- [ ] A-006 `backend-test-e2e` — N/A; infra/tooling-only change
-- [ ] A-007 `touchpoints-test-unit` — N/A; infra/tooling-only change
-- [ ] A-008 `touchpoints-test-integration` — N/A; infra/tooling-only change
-- [ ] A-009 `touchpoints-test-contracts` — N/A; infra/tooling-only change
-- [ ] A-010 `touchpoints-test-e2e` — N/A; infra/tooling-only change
-- [ ] A-011 `test-unit-all` — N/A; infra/tooling-only change
-- [ ] A-012 `test-integration-all` — N/A; infra/tooling-only change
-- [ ] A-013 `test-contracts-all` — N/A; infra/tooling-only change
-- [ ] A-014 `test-e2e-all-local` — N/A; infra/tooling-only change
-- [ ] A-015 `infra-port-forward-start` — N/A; infra/tooling-only change
-- [ ] A-016 `infra-port-forward-stop` — N/A; infra/tooling-only change
-- [ ] A-017 `infra-port-forward-cleanup` — N/A; infra/tooling-only change
+- [x] A-001 `apps-bootstrap` — N/A; infra/tooling-only change
+- [x] A-002 `apps-smoke` — N/A; infra/tooling-only change
+- [x] A-003 `backend-test-unit` — N/A; infra/tooling-only change
+- [x] A-004 `backend-test-integration` — N/A; infra/tooling-only change
+- [x] A-005 `backend-test-contracts` — N/A; infra/tooling-only change
+- [x] A-006 `backend-test-e2e` — N/A; infra/tooling-only change
+- [x] A-007 `touchpoints-test-unit` — N/A; infra/tooling-only change
+- [x] A-008 `touchpoints-test-integration` — N/A; infra/tooling-only change
+- [x] A-009 `touchpoints-test-contracts` — N/A; infra/tooling-only change
+- [x] A-010 `touchpoints-test-e2e` — N/A; infra/tooling-only change
+- [x] A-011 `test-unit-all` — N/A; infra/tooling-only change
+- [x] A-012 `test-integration-all` — N/A; infra/tooling-only change
+- [x] A-013 `test-contracts-all` — N/A; infra/tooling-only change
+- [x] A-014 `test-e2e-all-local` — N/A; infra/tooling-only change
+- [x] A-015 `infra-port-forward-start` — N/A; infra/tooling-only change
+- [x] A-016 `infra-port-forward-stop` — N/A; infra/tooling-only change
+- [x] A-017 `infra-port-forward-cleanup` — N/A; infra/tooling-only change

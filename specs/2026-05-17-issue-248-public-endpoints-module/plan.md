@@ -5,23 +5,11 @@
 - If required inputs are missing, add `BLOCKED_MISSING_INPUTS` in `spec.md` and keep the gate closed.
 
 ## Constitution Gates (Pre-Implementation)
-- Simplicity gate:
-  - Keep initial implementation scope minimal and explicit.
-  - Avoid speculative future-proof abstractions.
-- Anti-abstraction gate:
-  - Prefer direct framework primitives over wrapper layers unless justified.
-  - Keep model representations singular unless boundary separation is required.
-- Integration-first testing gate:
-  - Define contract and boundary tests before implementation details.
-  - Ensure realistic environment coverage for integration points.
-- Positive-path filter/transform test gate:
-  - For any filter or payload-transform logic, at least one unit test MUST assert that a matching fixture value returns a record.
-  - Positive-path assertions MUST verify relevant output fields remain intact after filtering/transform.
-  - Empty-result-only assertions MUST NOT satisfy this gate.
-- Finding-to-test translation gate:
-  - Any reproducible pre-PR finding from smoke/`curl`/deterministic manual checks MUST be translated into a failing automated test first.
-  - The implementation fix MUST turn that test green in the same work item.
-  - If no deterministic automation path exists, publish artifacts MUST record the exception rationale, owner, and follow-up trigger.
+- Simplicity gate: PASS — each new function has a single responsibility (render one manifest type); no speculative abstractions; env defaults use existing `set_default_env` primitive
+- Anti-abstraction gate: PASS — direct heredoc rendering consistent with all other public_endpoints.sh rendering functions; no wrapper layers added
+- Integration-first testing gate: PASS — test_contract.py written before implementation; all 36 assertions drove the implementation in red-first order across 3 slices
+- Positive-path filter/transform test gate: N/A — no filter or payload-transform logic in this work item; rendering functions produce fixed manifest content based on env vars, not filtered records
+- Finding-to-test translation gate: N/A — no reproducible pre-PR smoke/curl findings; this is a new capability addition, not a bug fix
 
 ## Delivery Slices
 
