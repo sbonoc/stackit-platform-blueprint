@@ -7,44 +7,44 @@
     {
       "path": "specs/2026-05-17-issue-248-dns-module/spec.md",
       "role": "specification",
-      "status": "draft",
-      "sha256": "301894ae62c88f0240351bd77655fa15eb0eeb5f25b478d9ef4350f589c8e695"
+      "status": "approved",
+      "sha256": "249151ac45e4bab0a1bddbfc37484c9bda762502173f7368aa04c4071181a62b"
     },
     {
       "path": "specs/2026-05-17-issue-248-dns-module/architecture.md",
       "role": "architecture",
-      "status": "draft",
-      "sha256": "8220abee99dbf0e1d31d8b8230958c0f75e280a897380eb66ff7c90c3a9a031b"
+      "status": "approved",
+      "sha256": "75287b636481cb724c92be9a4936200cc24ba2939a3508c6d5be59962e023a24"
     },
     {
       "path": "specs/2026-05-17-issue-248-dns-module/plan.md",
       "role": "implementation-plan",
-      "status": "draft",
+      "status": "approved",
       "sha256": "6d88ac71c0c8aa86490864149ec0414a0f9ccd7a814e3c05699e96a7cd21a545"
     },
     {
       "path": "specs/2026-05-17-issue-248-dns-module/tasks.md",
       "role": "task-list",
-      "status": "draft",
+      "status": "approved",
       "sha256": "2359beded5813c239ed33dc9a41804f549f11347a984bca0d05a77596a985c6a"
     },
     {
       "path": "specs/2026-05-17-issue-248-dns-module/graph.json",
       "role": "traceability-graph",
-      "status": "draft",
-      "sha256": "b3d63cab68b5c28494935ef4bd42664e2f460e9598f6f2f10f811d8fd130147d"
+      "status": "approved",
+      "sha256": "fe4289eb26b88d079a9e27fa680f2a25203a09515e052cc1da1b8bf884bf98b4"
     },
     {
       "path": "specs/2026-05-17-issue-248-dns-module/traceability.md",
       "role": "traceability-matrix",
-      "status": "draft",
+      "status": "approved",
       "sha256": "e3c289513a3f53c0bbb4efd89e850fd392ba3757cc6274b29af5795d9a64649a"
     },
     {
       "path": "docs/blueprint/architecture/decisions/ADR-issue-248-dns-module.md",
       "role": "adr",
-      "status": "proposed",
-      "sha256": "c825ee25b650daadeb57ec07a9f4d6d09a077ae2a065d57bb9cdabc912c9ceeb"
+      "status": "approved",
+      "sha256": "8f74637f57234c7161fd916981ba08deeae08c0aa8426248424a7ffe92ce3fe4"
     }
   ]
 }

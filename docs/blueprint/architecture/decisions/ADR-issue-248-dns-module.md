@@ -1,7 +1,7 @@
 # ADR: Issue #248 — DNS Module Implementation (STACKIT-Only)
 
-- **Status**: proposed
-- **ADR technical decision sign-off**: pending
+- **Status**: approved
+- **ADR technical decision sign-off**: approved
 - **Date**: 2026-05-17
 - **Issue**: #248
 - **Work item**: `specs/2026-05-17-issue-248-dns-module/`
@@ -16,7 +16,7 @@
 
 STACKIT DNS has no local-lane equivalent. The local driver is `noop` by design, consistent with other STACKIT-only optional modules (kms, observability, secrets-manager).
 
-Two open questions must be resolved before implementation begins (see spec.md Q-1, Q-2): whether `stackit_dns_zone` exposes nameservers as a computed attribute, and whether DNSSEC is configurable via a Terraform attribute in provider v0.88.0.
+Two open questions were resolved by direct inspection of the stackitcloud/terraform-provider-stackit source at v0.88.0: `stackit_dns_zone` exposes `primary_name_server` as a single computed FQDN (no plural nameservers attribute); no DNSSEC attribute exists in v0.88.0. Both resolutions are recorded in spec.md Q-1 and Q-2.
 
 ## Decisions
 
@@ -26,7 +26,7 @@ Implement `infra/cloud/stackit/terraform/modules/dns/main.tf` with `stackit_dns_
 
 The foundation does not pass `region`, nameservers, or DNSSEC attributes to `stackit_dns_zone` — their absence in the foundation is strong evidence these attributes are either not supported or not required by the provider in v0.88.0.
 
-**Rejected alternative:** Include nameservers output or DNSSEC variable — deferred to Q-1/Q-2 resolution. Adding unverified attributes risks a Terraform validation error (same class of error as `plan_name` in secrets-manager).
+**Rejected alternative:** Include plural nameservers output or DNSSEC variable. Q-1 resolved: `primary_name_server` (single FQDN, Computed) is the only nameserver attribute in v0.88.0 — added to `outputs.tf` and `module.contract.yaml` as `DNS_PRIMARY_NAME_SERVER`. Q-2 resolved: no DNSSEC attribute in v0.88.0; DNSSEC is STACKIT platform-managed and documented in the module README.
 
 ### D-2: `dns_name` uses `trimsuffix(var.dns_zone_fqdn, ".")` — trailing dot stripped before provider call
 
@@ -51,14 +51,14 @@ Create-before-destroy would attempt to create a new zone with the same FQDN whil
 
 **Rejected alternative:** Include `lifecycle { create_before_destroy = true }` for consistency with other modules — rejected; the risks of silent zone recreation outweigh the consistency benefit. The secrets-manager module's `create_before_destroy` applies to credential resources where short overlap is safe; DNS zones have no such overlap window.
 
-### D-5: Smoke strengthening adds `zone_id` and `zone_fqdn` checks (additive, non-breaking)
+### D-5: Smoke strengthening adds `zone_id`, `zone_fqdn`, and `primary_name_server` checks (additive, non-breaking)
 
-The existing smoke check validates only `zone_name`. `zone_id` is the primary downstream reference (used by `public-endpoints` to create DNS records), and `zone_fqdn` is the canonical contract output. Both MUST be validated non-empty after apply. The strengthening is additive — it does not change the smoke exit code for correctly applied zones.
+The existing smoke check validates only `zone_name`. `zone_id` is the primary downstream reference (used by `public-endpoints` to create DNS records), `zone_fqdn` is the canonical contract output, and `primary_name_server` confirms the STACKIT DNS zone is fully provisioned (resolves Q-1). All three MUST be validated non-empty after apply, consistent with the KMS pattern (which validates `key_ring_id`, `key_id`, and `endpoint`). The strengthening is additive — it does not change the smoke exit code for correctly applied zones.
 
 ## Consequences
 
 - Standalone Terraform module enables isolated DNS zone provisioning without the foundation layer.
-- `zone_id`, `zone_name`, and `zone_fqdn` are all validated by smoke — strengthens the operational contract.
-- Nameservers and DNSSEC remain out of scope pending Q-1/Q-2 resolution; follow-up issues will be filed if provider support is confirmed.
+- `zone_id`, `zone_name`, `zone_fqdn`, and `primary_name_server` are all written to runtime state and validated by smoke — strengthens the operational contract.
+- Q-1 resolved: `primary_name_server` added to `outputs.tf`, `module.contract.yaml`, `dns_apply.sh`, and `dns_smoke.sh`. Q-2 resolved: DNSSEC not configurable in v0.88.0; documented in module README.
 - DNS zone destruction is destructive — module README must warn consumers explicitly.
-- No changes to existing shell scripts except `dns_smoke.sh` (additive zone_id + zone_fqdn checks).
+- No changes to existing shell scripts except `dns_smoke.sh` (additive zone_id, zone_fqdn, and primary_name_server checks) and `dns_apply.sh` (primary_name_server state write).
