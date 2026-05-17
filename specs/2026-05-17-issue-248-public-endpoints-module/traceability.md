@@ -29,6 +29,14 @@
 | AC-010 | SDD-C-007 | N/A | D-5 AppProject whitelist | `appproject-edge.yaml` (4 envs) | `test_ac010_*` | ADR D-5 | smoke: AppProject validation |
 | AC-011 | SDD-C-012 | N/A | FR-008 test registration | `test_pyramid_contract.json` | AC-011 self | — | CI quality gate |
 | AC-012 | SDD-C-012 | N/A | FR-008 assertion count | `test_contract.py` | AC-012 self | — | CI quality gate |
+| NFR-SEC-002 | SDD-C-009 | N/A | TLS min version | `gateway/public-endpoints.yaml.tmpl` | `test_ac013_*` | README security note | gateway listener options |
+| NFR-SEC-003 | SDD-C-009 | N/A | TLS Secret RBAC doc | module README | structural: README section | README Secret access constraint | operator checklist |
+| NFR-SEC-004 | SDD-C-009 | N/A | profile-aware ACME server | `public_endpoints.sh` `public_endpoints_init_env` | `test_ac014_*` | README TLS section | staging vs prod env var default |
+| NFR-SEC-005 | SDD-C-009 | N/A | HTTP plain-text trade-off doc | module README | structural: README section | README security constraint | operator checklist |
+| NFR-OBS-002 | SDD-C-010, SDD-C-011 | N/A | Certificate renewBefore | `public_endpoints.sh` Certificate renderer | `test_ac015_*` | README TLS section | rendered cert manifest |
+| AC-013 | SDD-C-009 | N/A | TLS min version in gateway listener | `gateway/public-endpoints.yaml.tmpl` | `test_ac013_*` | README security note | gateway listener options |
+| AC-014 | SDD-C-009 | N/A | profile-aware ACME server default | `public_endpoints.sh` | `test_ac014_*` | README TLS section | staging vs prod env var default |
+| AC-015 | SDD-C-011 | N/A | Certificate renewBefore field | `public_endpoints.sh` Certificate renderer | `test_ac015_*` | README TLS section | rendered cert manifest |
 
 ## Graph Linkage
 - Graph file: `graph.json`

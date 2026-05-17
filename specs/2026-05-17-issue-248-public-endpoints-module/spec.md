@@ -57,6 +57,11 @@
 - NFR-REL-001 Destroy (`infra-public-endpoints-destroy`) MUST attempt to delete the `Certificate` and `Issuer` resources before removing the gateway baseline; certificate destruction invalidates active TLS sessions and is irreversible without re-provisioning — MUST be documented with a destroy warning in the module README.
 - NFR-OPS-001 Runtime state written by `public_endpoints_apply.sh` MUST include `cluster_issuer_name`, `cluster_issuer_type` (`acme` for STACKIT, `selfsigned` for local), and `tls_secret_name` keys in addition to the existing 11 keys.
 - NFR-A11Y-001 N/A — no UI or frontend changes in this work item.
+- NFR-SEC-002 MUST configure the HTTPS listener in the rendered Gateway manifest with a minimum TLS version of 1.2; TLS 1.0 and TLS 1.1 MUST NOT be permitted.
+- NFR-SEC-003 The `PUBLIC_ENDPOINTS_GATEWAY_TLS_SECRET_NAME` Kubernetes Secret in `PUBLIC_ENDPOINTS_NAMESPACE` MUST be documented in the module README as accessible only by the Envoy Gateway controller service account; consumer service accounts MUST NOT be granted read access to Secrets in `PUBLIC_ENDPOINTS_NAMESPACE`.
+- NFR-SEC-004 `public_endpoints_init_env` MUST set `PUBLIC_ENDPOINTS_ACME_SERVER` to the Let's Encrypt staging endpoint (`https://acme-staging-v02.api.letsencrypt.org/directory`) when `BLUEPRINT_PROFILE` is `stackit-dev` or `stackit-stage`, and to the production endpoint (`https://acme-v02.api.letsencrypt.org/directory`) when `BLUEPRINT_PROFILE` is `stackit-prod`; for local profiles the ACME server is not applicable (selfSigned Issuer).
+- NFR-SEC-005 The HTTP listener on port 80 remains open on the shared Gateway alongside the HTTPS listener; the absence of an HTTP-to-HTTPS redirect is a known security trade-off (explicitly excluded per scope). This trade-off MUST be documented in the module README as a security constraint: consumer HTTPRoute authors MUST explicitly restrict their routes to the HTTPS listener or accept plain-HTTP exposure.
+- NFR-OBS-002 The rendered Certificate manifest MUST include a `renewBefore` field (value ≤ 30 days) to make cert-manager renewal intent explicit; runtime certificate expiry monitoring is deferred to the observability module.
 
 ## Normative Option Decision
 - Option A: Namespace-scoped `Issuer` per context (shared Gateway Issuer in `network` namespace; consumer apps create their own Issuers in their namespaces).
@@ -65,7 +70,7 @@
 - Rationale: Matches the `sbonoc/agentic-graphrag` consumer reference pattern. Namespace scope limits the ACME account blast radius and keeps cert lifecycle isolation per context. `ClusterIssuer` would require cluster-admin permissions and conflicts with the blueprint's namespace-scoped policy model.
 
 ## Contract Changes (Normative)
-- Config/Env contract: New optional env vars: `PUBLIC_ENDPOINTS_CLUSTER_ISSUER_NAME` (default: `letsencrypt-public-endpoints`), `PUBLIC_ENDPOINTS_CLUSTER_ISSUER_EMAIL` (no default — must be set for STACKIT profiles), `PUBLIC_ENDPOINTS_ACME_SERVER` (default: `https://acme-v02.api.letsencrypt.org/directory`), `PUBLIC_ENDPOINTS_GATEWAY_TLS_SECRET_NAME` (default: `public-endpoints-gateway-tls`). No existing vars removed or renamed.
+- Config/Env contract: New optional env vars: `PUBLIC_ENDPOINTS_CLUSTER_ISSUER_NAME` (default: `letsencrypt-public-endpoints`), `PUBLIC_ENDPOINTS_CLUSTER_ISSUER_EMAIL` (no default — must be set for STACKIT profiles), `PUBLIC_ENDPOINTS_ACME_SERVER` (default: profile-aware — `https://acme-staging-v02.api.letsencrypt.org/directory` for `stackit-dev`/`stackit-stage`; `https://acme-v02.api.letsencrypt.org/directory` for `stackit-prod`; not applicable for local profiles), `PUBLIC_ENDPOINTS_GATEWAY_TLS_SECRET_NAME` (default: `public-endpoints-gateway-tls`). No existing vars removed or renamed.
 - API contract: none (infra-only).
 - OpenAPI / Pact contract path: none
 - Event contract: none
@@ -91,6 +96,9 @@
 - AC-010 MUST: `infra/gitops/argocd/overlays/*/appproject-edge.yaml` for all four environments includes `cert-manager.io/Issuer` and `cert-manager.io/Certificate` in `namespaceResourceWhitelist`.
 - AC-011 MUST: `tests/infra/modules/public-endpoints/test_contract.py` is registered in `scripts/lib/quality/test_pyramid_contract.json` under the `unit` scope.
 - AC-012 MUST: `tests/infra/modules/public-endpoints/test_contract.py` contains ≥10 assertions passing against the real file tree.
+- AC-013 MUST: the rendered gateway manifest HTTPS listener contains a minimum TLS version configuration that excludes TLS 1.0 and TLS 1.1.
+- AC-014 MUST: `public_endpoints_init_env` sets `PUBLIC_ENDPOINTS_ACME_SERVER` to the Let's Encrypt staging endpoint when `BLUEPRINT_PROFILE` is `stackit-dev` or `stackit-stage`, and to the production endpoint when `BLUEPRINT_PROFILE` is `stackit-prod`.
+- AC-015 MUST: the rendered Certificate manifest contains a `renewBefore` field.
 
 ## Informative Notes (Non-Normative)
 - Context: cert-manager is already installed as a core runtime component (`core_runtime_bootstrap.sh`, v1.20.1). The Gateway API feature gate (`ExperimentalGatewayAPISupport`) is the only missing configuration — without it, cert-manager silently ignores `gatewayHTTPRoute` solver configuration and no HTTP01 challenge is issued.
@@ -103,4 +111,4 @@
 - Wildcard certificate provisioning via DNS01 ACME challenge — requires a cert-manager DNS01 webhook for STACKIT DNS; not available as of STACKIT provider v0.88.0. Parked in backlog on-scope: infra.
 - Per-consumer `Certificate` management — consumer apps create their own Issuer + Certificate resources via ArgoCD; out of scope for the platform module.
 - Standalone external-dns Helm chart deployment — the STACKIT SKE DNS extension already handles record management when `DNS_ENABLED=true`.
-- HTTP-to-HTTPS redirect — consumer HTTPRoute concern; not part of the shared gateway contract.
+- HTTP-to-HTTPS redirect — consumer HTTPRoute concern; not part of the shared gateway contract. The security trade-off of leaving port 80 open is documented as NFR-SEC-005.

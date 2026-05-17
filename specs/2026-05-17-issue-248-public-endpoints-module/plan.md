@@ -29,22 +29,29 @@
 Register `test_contract.py` in `test_pyramid_contract.json` first (prevents pre-commit hook failure), then write failing assertions for AC-005, AC-011, AC-012. Enable cert-manager Gateway API feature gate (AC-005). All assertions green.
 
 ### Slice 2 — HTTPS listener + external-dns annotation + Issuer + Certificate (red → green)
-Write failing assertions for AC-001, AC-002, AC-003, AC-004. Implement:
-- Gateway template: add HTTPS listener + external-dns annotation (AC-001, AC-004).
-- `public_endpoints.sh`: add `public_endpoints_render_issuer_manifest()` and `public_endpoints_render_certificate_manifest()` helpers; add new env var defaults.
+Write failing assertions for AC-001, AC-002, AC-003, AC-004, AC-013, AC-015. Implement:
+- Gateway template: add HTTPS listener (with minimum TLS 1.2 options) + external-dns annotation (AC-001, AC-004, AC-013, NFR-SEC-002).
+- `public_endpoints.sh`: add `public_endpoints_render_issuer_manifest()` and `public_endpoints_render_certificate_manifest()` helpers; add new env var defaults including profile-aware `PUBLIC_ENDPOINTS_ACME_SERVER` (NFR-SEC-004); include `renewBefore` in Certificate manifest (AC-015, NFR-OBS-002).
 - `public_endpoints_apply.sh`: apply Issuer + Certificate manifests; extend runtime state with `cluster_issuer_name`, `cluster_issuer_type`, `tls_secret_name` (AC-009).
 - `public_endpoints_destroy.sh`: delete Certificate + Issuer before gateway baseline (NFR-REL-001).
 Run pytest — confirm all assertions green.
 
-### Slice 3 — AppProject edge + contract YAML + smoke validations (red → green)
-Write failing assertions for AC-006, AC-007, AC-008, AC-010. Implement:
+### Slice 3 — AppProject edge + contract YAML + smoke validations + profile-aware ACME (red → green)
+Write failing assertions for AC-006, AC-007, AC-008, AC-010, AC-014. Implement:
 - `appproject-edge.yaml` (all 4 envs): add cert-manager Issuer + Certificate to `namespaceResourceWhitelist` for `network` namespace (AC-010, FR-007).
-- `module.contract.yaml`: add new optional env vars (FR-006).
+- `module.contract.yaml`: add new optional env vars (FR-006); document profile-aware ACME server default (NFR-SEC-004).
 - `public_endpoints_smoke.sh`: add HTTPS listener check, external-dns annotation check, Issuer + Certificate manifest checks (AC-006, AC-007, AC-008).
-Run pytest — confirm all 12 AC assertions green.
+- Verify `public_endpoints_init_env` profile-aware ACME server default (AC-014, NFR-SEC-004).
+Run pytest — confirm all 15 AC assertions green.
 
 ### Slice 4 — Documentation + hardening review + publish
-- Update `docs/platform/modules/public-endpoints/README.md` and bootstrap template mirror for TLS + external-dns design.
+- Update `docs/platform/modules/public-endpoints/README.md` and bootstrap template mirror for TLS + external-dns design, including:
+  - TLS Stack Execution Model + minimum TLS version note (NFR-SEC-002).
+  - TLS Secret RBAC constraint: only Envoy Gateway controller SA may read the Secret (NFR-SEC-003).
+  - Profile-aware ACME server defaults table (NFR-SEC-004).
+  - HTTP plain-text security trade-off warning (NFR-SEC-005).
+  - Certificate `renewBefore` and expiry monitoring note (NFR-OBS-002).
+  - Destroy warning for Certificate + Issuer lifecycle (NFR-REL-001).
 - Write ADR at `docs/blueprint/architecture/decisions/ADR-issue-248-public-endpoints-module.md`.
 - Run full validation bundle: `make quality-sdd-check-all`, `make infra-validate`, `make quality-docs-check-changed`, `make docs-build`, `make docs-smoke`.
 - Write `pr_context.md` and `hardening_review.md`.
