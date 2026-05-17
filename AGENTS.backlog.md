@@ -57,7 +57,7 @@ To introduce a new tag, append a row here in the same commit that uses it.
 
 ### P2 — Platform modules
 
-- [ ] Issue #248 remaining modules — STACKIT-managed service candidates (kms ✅, dns, public-endpoints, observability, workflows, identity-aware-proxy). secrets-manager in progress: PR #305 (`codex/2026-05-16-issue-248-secrets-manager-module`, SPEC_READY). Gate on #295 removed — architecture decision recorded in `AGENTS.decisions.md`: OM is consumer/product-owned and not a blueprint module candidate.
+- [ ] Issue #248 remaining modules — STACKIT-managed service candidates (kms ✅, secrets-manager ✅ PR #305, dns SPEC_READY PR #306, public-endpoints, observability, workflows, identity-aware-proxy). Gate on #295 removed — architecture decision recorded in `AGENTS.decisions.md`: OM is consumer/product-owned and not a blueprint module candidate.
 - [ ] Issue #171 — managed-cache module: STACKIT Managed Redis as a first-class optional module (Helm/ArgoCD-managed, provider-backed via STACKIT Terraform).
 - [ ] Issue #172 — platform-email module: Helm/ArgoCD-managed Postal for transactional email as an optional module.
 
@@ -69,10 +69,14 @@ Surface automatically when the named scope is next touched. Do not promote to ac
 
 ### on-scope: infra
 
+- [ ] proposal(issue-248-dns-module): external-DNS module — K8s-native DNS record management via external-dns controller (analogous to ESO for secrets); surfaces when public-endpoints or ingress TLS work is next in scope.
+      rationale: zone-only TF module is the correct separation; record lifecycle belongs in the cluster operator layer; no active consumer need for static record management via stackit_dns_record_set
 - [ ] proposal(issue-248-rabbitmq-module): vhost customisation — per-consumer non-default vhost support.
       rationale: STACKIT provider exposes no vhost attribute; `'/'` is correct for generic use; per-consumer vhost is consumer-side configuration
 - [ ] proposal(issue-248-rabbitmq-module): HA replica configuration — `stackit_rabbitmq_instance.replicas > 1`.
       rationale: single-replica default is sufficient; HA requires separate capacity planning and consumer awareness
+- [ ] proposal(issue-248-dns-module): DNSSEC `dnssec_enabled` variable — add when `stackit_dns_zone` exposes a `dnssec_enabled` attribute in a future provider version.
+      rationale: v0.88.0 does not expose this attribute; STACKIT manages DNSSEC at the platform level; a no-op contract input would mislead consumers
 - [ ] proposal(issue-248-kms-module): KMS_KEY_ROTATION_PERIOD input — add when `stackit_kms_key` exposes `rotation_period` attribute in a future provider version.
       rationale: v0.88.0 does not expose this attribute; a no-op contract input would mislead consumers
 - [ ] proposal(issue-248-kms-module): Vault HA/persistent storage for local lane — standalone mode with raft storage.
@@ -89,6 +93,8 @@ Surface automatically when the named scope is next touched. Do not promote to ac
 
 ### on-scope: blueprint
 
+- [ ] proposal(issue-248-dns-module): domain contract JSON pattern — single SSOT JSON file (per-environment hostnames, acme emails, dns_zones list) driving TF tfvars + ArgoCD Helm values via a renderer script with --check mode; cross-cutting refactor affecting all optional modules.
+      rationale: pattern observed in sbonoc/agentic-graphrag; requires refactor of all optional module env var surfaces; deferred until blueprint multi-module configuration surface is next in scope
 - [ ] proposal(issue-241-make-override-warnings): extend `?=` override-point pattern to other blueprint-managed targets.
       rationale: no consumer request for specific targets; same pattern directly applicable
 - [ ] proposal(issue-164): value-based template scanning — detect hardcoded version strings in templates, not just variable name references.

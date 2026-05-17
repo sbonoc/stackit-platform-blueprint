@@ -19,14 +19,22 @@ if ! state_file_exists dns_runtime; then
 fi
 
 runtime_state="$(state_file_path dns_runtime)"
-if ! grep -q '^zone_name=' "$runtime_state"; then
-  log_fatal "dns runtime zone_name contract is missing"
+if ! grep -q '^zone_count=[1-9][0-9]*$' "$runtime_state"; then
+  log_fatal "dns runtime zone_count is zero or missing"
+fi
+if ! grep -q '^zone_ids=.\+' "$runtime_state"; then
+  log_fatal "dns runtime zone_ids is missing or empty"
+fi
+if ! grep -q '^primary_name_servers=.\+' "$runtime_state"; then
+  log_fatal "dns runtime primary_name_servers is missing or empty"
 fi
 
 state_file="$(write_state_file "dns_smoke" \
   "status=passed" \
-  "zone_id=$(dns_zone_id)" \
-  "zone_name=$DNS_ZONE_NAME" \
+  "zone_ids=$(dns_zone_ids)" \
+  "zone_fqdns=$DNS_ZONE_FQDNS" \
+  "zone_count=$(dns_zone_count)" \
+  "primary_name_servers=$(dns_primary_name_servers)" \
   "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")")"
 
 log_info "dns smoke state written to $state_file"

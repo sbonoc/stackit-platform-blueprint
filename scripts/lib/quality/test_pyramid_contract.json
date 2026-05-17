@@ -97,6 +97,7 @@
                 "tests/infra/modules/kms/test_kms_module.py",
                 "tests/infra/modules/kms/test_contract.py",
                 "tests/infra/modules/secrets-manager/test_contract.py",
+                "tests/infra/modules/dns/test_contract.py",
                 "tests/blueprint/test_async_message_contracts.py",
                 "tests/blueprint/test_optional_module_required_env_contract.py",
                 "tests/blueprint/test_python_helper_extractions.py",

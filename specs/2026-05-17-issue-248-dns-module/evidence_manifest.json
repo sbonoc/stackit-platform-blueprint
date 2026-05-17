@@ -1,0 +1,50 @@
+{
+  "manifest_version": 1,
+  "work_item": "2026-05-17-issue-248-dns-module",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-05-17T08:45:00Z",
+  "files": [
+    {
+      "path": "specs/2026-05-17-issue-248-dns-module/spec.md",
+      "role": "specification",
+      "status": "approved",
+      "sha256": "cf8cd0fdeeb3431f0140ee9971fa7230ad5b4c4f3bcb121ca0449c80a331f3a7"
+    },
+    {
+      "path": "specs/2026-05-17-issue-248-dns-module/architecture.md",
+      "role": "architecture",
+      "status": "approved",
+      "sha256": "e5ecaf8d90ebc8a04f64f8e981d0f26f717fdaca5269e45520efda6e056dadc8"
+    },
+    {
+      "path": "specs/2026-05-17-issue-248-dns-module/plan.md",
+      "role": "implementation-plan",
+      "status": "approved",
+      "sha256": "5dade3940eff2ec4ba9b5e9c7969ee2c0c9a08ed2a99926922f4bdfee78141e3"
+    },
+    {
+      "path": "specs/2026-05-17-issue-248-dns-module/tasks.md",
+      "role": "task-list",
+      "status": "approved",
+      "sha256": "e731334a5c879ca019cfcc0ce752c8f77a8eb30db344f485ec7d1262ca304bbc"
+    },
+    {
+      "path": "specs/2026-05-17-issue-248-dns-module/graph.json",
+      "role": "traceability-graph",
+      "status": "approved",
+      "sha256": "fe4289eb26b88d079a9e27fa680f2a25203a09515e052cc1da1b8bf884bf98b4"
+    },
+    {
+      "path": "specs/2026-05-17-issue-248-dns-module/traceability.md",
+      "role": "traceability-matrix",
+      "status": "approved",
+      "sha256": "193fef113839b91eaac55c7ea0dd4b3e55195c5f1734b7c9c29514bef794b22f"
+    },
+    {
+      "path": "docs/blueprint/architecture/decisions/ADR-issue-248-dns-module.md",
+      "role": "adr",
+      "status": "approved",
+      "sha256": "e9ef9a4f2671db52ed95625fc7a99c3e0ae1dcee61a80fc217372007abb6f179"
+    }
+  ]
+}

@@ -21,16 +21,17 @@ spec:
 
   inputs:
     required_env:
-      - DNS_ZONE_NAME
-      - DNS_ZONE_FQDN
+      - DNS_ZONE_FQDNS
+      - DNS_NAMING_PREFIX
     optional_env:
       - DNS_RECORD_TTL
 
   outputs:
     produced:
-      - DNS_ZONE_ID
-      - DNS_ZONE_NAME
-      - DNS_ZONE_FQDN
+      - DNS_ZONE_IDS
+      - DNS_ZONE_COUNT
+      - DNS_ZONE_FQDNS
+      - DNS_PRIMARY_NAME_SERVERS
 
   make_targets:
     plan: infra-dns-plan
