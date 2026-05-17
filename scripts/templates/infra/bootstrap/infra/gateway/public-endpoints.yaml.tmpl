@@ -10,6 +10,8 @@ kind: Gateway
 metadata:
   name: {{PUBLIC_ENDPOINTS_GATEWAY_NAME}}
   namespace: {{PUBLIC_ENDPOINTS_NAMESPACE}}
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: "{{PUBLIC_ENDPOINTS_BASE_DOMAIN}}"
   labels:
     app.kubernetes.io/part-of: platform-blueprint
     app.kubernetes.io/component: public-endpoints
@@ -24,3 +26,30 @@ spec:
       allowedRoutes:
         namespaces:
           from: All
+    - name: https
+      protocol: HTTPS
+      port: 443
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: {{PUBLIC_ENDPOINTS_GATEWAY_TLS_SECRET_NAME}}
+            namespace: {{PUBLIC_ENDPOINTS_NAMESPACE}}
+      allowedRoutes:
+        namespaces:
+          from: All
+---
+# Enforce TLS 1.2 minimum on the HTTPS listener; prohibit TLS 1.0 and TLS 1.1.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: ClientTrafficPolicy
+metadata:
+  name: {{PUBLIC_ENDPOINTS_GATEWAY_NAME}}-tls-policy
+  namespace: {{PUBLIC_ENDPOINTS_NAMESPACE}}
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: Gateway
+    name: {{PUBLIC_ENDPOINTS_GATEWAY_NAME}}
+    sectionName: https
+  tls:
+    minVersion: TLSv1.2
+    maxVersion: TLSv1.3

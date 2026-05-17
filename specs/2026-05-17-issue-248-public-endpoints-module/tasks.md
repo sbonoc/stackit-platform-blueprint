@@ -25,7 +25,7 @@ Owner: bonos
 ### Slice 2 — HTTPS listener + external-dns + Issuer + Certificate + security policies (red → green)
 Dependencies: Slice 1 complete
 Owner: bonos
-- [ ] T-004 Write failing assertions in `test_contract.py` for AC-001, AC-002, AC-003, AC-004, AC-013, AC-015, AC-017, AC-018, AC-019:
+- [x] T-004 Write failing assertions in `test_contract.py` for AC-001, AC-002, AC-003, AC-004, AC-013, AC-015, AC-017, AC-018, AC-019:
       - AC-001: rendered gateway manifest contains `kind: GatewayClass`, `kind: Gateway`, HTTP listener port 80, HTTPS listener port 443 with `tls.mode: Terminate`
       - AC-002: rendered Issuer manifest contains `kind: Issuer` and EXACTLY ONE OF: `spec.acme` (STACKIT profile) or `spec.selfSigned` (local profile)
       - AC-003: rendered Certificate manifest contains `kind: Certificate`, `dnsNames`, `issuerRef.name`
@@ -36,11 +36,11 @@ Owner: bonos
       - AC-018: rendered NetworkPolicy manifests include default-deny ingress policy and explicit-allow ingress on ports 80 and 443 for Envoy proxy pods
       - AC-019: `public_endpoints_apply.sh` source contains KMS warning logic for `stackit-stage` or `stackit-prod` profiles
       Run pytest — confirm all fail (templates and scripts not yet updated)
-- [ ] T-005 Update `scripts/templates/infra/bootstrap/infra/gateway/public-endpoints.yaml.tmpl`:
+- [x] T-005 Update `scripts/templates/infra/bootstrap/infra/gateway/public-endpoints.yaml.tmpl`:
       - Add HTTPS listener (port 443, `tls.mode: Terminate`, `certificateRefs` pointing to `PUBLIC_ENDPOINTS_GATEWAY_TLS_SECRET_NAME`) (FR-001, AC-001)
       - Add minimum TLS version configuration (TLS 1.2 minimum, TLS 1.0/1.1 prohibited) to HTTPS listener (NFR-SEC-002, AC-013)
       - Add `external-dns.alpha.kubernetes.io/hostname` annotation (FR-004, AC-004)
-- [ ] T-006 Add to `scripts/lib/infra/public_endpoints.sh`:
+- [x] T-006 Add to `scripts/lib/infra/public_endpoints.sh`:
       - New env var defaults: `PUBLIC_ENDPOINTS_CLUSTER_ISSUER_NAME`, `PUBLIC_ENDPOINTS_CLUSTER_ISSUER_EMAIL`, `PUBLIC_ENDPOINTS_GATEWAY_TLS_SECRET_NAME`
       - Profile-aware `PUBLIC_ENDPOINTS_ACME_SERVER` default in `public_endpoints_init_env`: staging endpoint for `stackit-dev`/`stackit-stage`, production endpoint for `stackit-prod`, not applicable for local (NFR-SEC-004, AC-014)
       - `public_endpoints_render_issuer_manifest()` — renders namespace-scoped `Issuer` (ACME/HTTP01 `gatewayHTTPRoute` for STACKIT, `selfSigned` for local) to `artifacts/infra/rendered/public-endpoints.issuer.yaml` (FR-002, AC-002)
@@ -48,13 +48,13 @@ Owner: bonos
       - `public_endpoints_render_gateway_tls_policy_manifest()` — renders gateway listener policy manifest with `Strict-Transport-Security: max-age=31536000; includeSubDomains` (NFR-SEC-006, AC-017)
       - `public_endpoints_render_network_policy_manifests()` — renders NetworkPolicy resources: (a) default-deny ingress, (b) explicit allow ports 80/443 for Envoy proxy pods, (c) explicit allow from `cert-manager` namespace for ACME challenge traffic (NFR-SEC-007, AC-018)
       - `public_endpoints_issuer_manifest_file()` and `public_endpoints_certificate_manifest_file()` path helpers
-- [ ] T-007 Update `scripts/bin/infra/public_endpoints_apply.sh`:
+- [x] T-007 Update `scripts/bin/infra/public_endpoints_apply.sh`:
       - Apply Issuer + Certificate + gateway TLS policy + NetworkPolicy manifests in both `helm` and `argocd_application_chart` paths
       - Extend `write_state_file` with `cluster_issuer_name`, `cluster_issuer_type` (`acme` for STACKIT, `selfsigned` for local), and `tls_secret_name` keys (NFR-OPS-001, AC-009)
       - Emit warning log when `BLUEPRINT_PROFILE` is `stackit-stage` or `stackit-prod` and KMS module is not enabled (NFR-SEC-008, AC-019)
-- [ ] T-008 Update `scripts/bin/infra/public_endpoints_destroy.sh`:
+- [x] T-008 Update `scripts/bin/infra/public_endpoints_destroy.sh`:
       - Delete Certificate resource before Issuer resource before gateway baseline removal (NFR-REL-001, AC-020)
-- [ ] T-009 Run pytest — confirm AC-001, AC-002, AC-003, AC-004, AC-013, AC-015, AC-017, AC-018, AC-019, AC-020 green
+- [x] T-009 Run pytest — confirm AC-001, AC-002, AC-003, AC-004, AC-013, AC-015, AC-017, AC-018, AC-019, AC-020 green
 
 ### Slice 3 — AppProject edge + contract YAML + smoke validations + profile-aware ACME (red → green)
 Dependencies: Slice 2 complete
