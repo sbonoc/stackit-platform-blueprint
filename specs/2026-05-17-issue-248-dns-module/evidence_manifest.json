@@ -2,7 +2,7 @@
   "manifest_version": 1,
   "work_item": "2026-05-17-issue-248-dns-module",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "2026-05-17T08:41:00Z",
+  "generated_at_utc": "2026-05-17T08:45:00Z",
   "files": [
     {
       "path": "specs/2026-05-17-issue-248-dns-module/spec.md",
@@ -38,7 +38,7 @@
       "path": "specs/2026-05-17-issue-248-dns-module/traceability.md",
       "role": "traceability-matrix",
       "status": "approved",
-      "sha256": "b9641f1712cdd5ea17870b3b213d1bd9fff362e57115edfe6261f3d09ab6a23a"
+      "sha256": "193fef113839b91eaac55c7ea0dd4b3e55195c5f1734b7c9c29514bef794b22f"
     },
     {
       "path": "docs/blueprint/architecture/decisions/ADR-issue-248-dns-module.md",
