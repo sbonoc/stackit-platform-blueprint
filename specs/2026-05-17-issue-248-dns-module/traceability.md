@@ -19,7 +19,7 @@
 | NFR-A11Y-001 | — | — | N/A — no UI changes | — | — | — | — |
 | AC-001 | SDD-C-012 | — | main.tf stackit_dns_zone.this with project_id, name, dns_name | test_contract.py | pytest PASS | — | n/a |
 | AC-002 | SDD-C-012 | — | variables.tf five variables | test_contract.py | pytest PASS | — | n/a |
-| AC-003 | SDD-C-012 | — | outputs.tf zone_id and dns_name | test_contract.py | pytest PASS | — | n/a |
+| AC-003 | SDD-C-012 | — | outputs.tf zone_id, dns_name, and primary_name_server | test_contract.py | pytest PASS | — | n/a |
 | AC-004 | SDD-C-012 | — | versions.tf stackitcloud/stackit = 0.88.0 | test_contract.py | pytest PASS | — | n/a |
 | AC-005 | SDD-C-012 | — | dns_smoke.sh validates zone_id non-empty | test_contract.py | pytest PASS | — | n/a |
 | AC-006 | SDD-C-012 | — | dns_smoke.sh validates zone_fqdn non-empty | test_contract.py | pytest PASS | — | n/a |
@@ -39,11 +39,17 @@
   - AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009, AC-010, AC-011, AC-012
 
 ## Validation Summary
-- Required bundles executed: pending
-- Result summary: pending
+- Required bundles executed: 2026-05-17
+- Result summary:
+  - `PYTHONPATH="$(pwd)" uv run pytest tests/infra/modules/dns/test_contract.py -v` — 18/18 PASSED
+  - `make infra-validate` — PASS
+  - `make infra-contract-test-fast` — PASS (68 passed)
+  - `make quality-sdd-check-all` — PASS
+  - `tests/infra/test_optional_modules.py::OptionalModulesTests::test_dns_module_flow` — PASS
+  - Graph linkage: 25 nodes, 20 edges, 0 orphans
 - Documentation validation:
-  - `make docs-build`: pending
-  - `make docs-smoke`: pending
+  - `make docs-build`: deferred to step-06 document-sync
+  - `make docs-smoke`: deferred to step-06 document-sync
 
 ## Evidence Manifest
 - Manifest file: `evidence_manifest.json`
