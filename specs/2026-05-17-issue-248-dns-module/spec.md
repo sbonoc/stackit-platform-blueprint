@@ -5,11 +5,11 @@
      SPEC_READY=true: implementation gate — all sign-offs required; unlocks coding. -->
 - SPEC_READY: false
 - SPEC_PRODUCT_READY: false
-- Open questions count: 2
+- Open questions count: 0
 - Unresolved alternatives count: 0
 - Unresolved TODO markers count: 0
 - Pending assumptions count: 0
-- Open clarification markers count: 2
+- Open clarification markers count: 0
 - Product sign-off: pending
 - Architecture sign-off: pending
 - Security sign-off: pending
@@ -47,8 +47,9 @@
 
 - FR-001 MUST implement `infra/cloud/stackit/terraform/modules/dns/main.tf` declaring one resource: `stackit_dns_zone.this` with attributes `project_id`, `name`, and `dns_name = trimsuffix(var.dns_zone_fqdn, ".")`, following the structure used in `infra/cloud/stackit/terraform/foundation/main.tf`.
 - FR-002 MUST implement `infra/cloud/stackit/terraform/modules/dns/variables.tf` declaring the following variables: `stackit_project_id` (required string), `stackit_region` (string, default `"eu01"`, declared for API consistency — not forwarded to the resource as `stackit_dns_zone` does not accept a region attribute), `dns_zone_name` (required string, display name), `dns_zone_fqdn` (required string, FQDN with trailing dot), `dns_record_ttl` (number, default `300`).
-- FR-003 MUST implement `infra/cloud/stackit/terraform/modules/dns/outputs.tf` declaring `zone_id` (from `stackit_dns_zone.this.zone_id`) and `dns_name` (from `stackit_dns_zone.this.dns_name`).
+- FR-003 MUST implement `infra/cloud/stackit/terraform/modules/dns/outputs.tf` declaring `zone_id` (from `stackit_dns_zone.this.zone_id`), `dns_name` (from `stackit_dns_zone.this.dns_name`), and `primary_name_server` (from `stackit_dns_zone.this.primary_name_server`, computed). The provider exposes exactly one nameserver via `primary_name_server` (String, FQDN); no plural nameservers attribute exists in v0.88.0.
 - FR-004 MUST implement `infra/cloud/stackit/terraform/modules/dns/versions.tf` declaring the `stackitcloud/stackit` required provider with the pinned version constraint `= 0.88.0`, matching all other modules.
+- FR-004b MUST add `DNS_PRIMARY_NAME_SERVER` to `blueprint/modules/dns/module.contract.yaml` under `outputs.produced`. The `dns_apply.sh` MUST write `primary_name_server=$(dns_primary_name_server)` to the runtime state file, and `dns.sh` MUST expose a `dns_primary_name_server()` helper that reads from the foundation output or falls back to a local placeholder.
 - FR-005 MUST update `scripts/bin/infra/dns_smoke.sh` to add non-empty existence checks for `zone_id` and `zone_fqdn` keys in the runtime state file (the existing check covers `zone_name` only).
 - FR-006 MUST add `tests/infra/modules/dns/test_contract.py` to `scripts/lib/quality/test_pyramid_contract.json` under the `unit` scope before creating the test file, so the pre-commit pyramid gate does not block the commit.
 - FR-007 MUST implement `tests/infra/modules/dns/test_contract.py` with ≥ 10 assertions covering TF module structure, state contract keys, smoke validation logic, and quality gate registration.
@@ -61,27 +62,11 @@
 - NFR-OPS-001 MUST write `zone_id`, `zone_name`, and `zone_fqdn` to the runtime state file so operators and downstream modules (`public-endpoints`) can reference the zone without manual console access.
 - NFR-A11Y-001 N/A — no UI or frontend changes in this work item.
 
-### Open Questions (Blocking — must resolve before SPEC_READY=true)
+### Open Questions — Resolved
 
-> **[NEEDS CLARIFICATION]** Q-1: Does `stackit_dns_zone` in provider v0.88.0 expose nameservers as a computed attribute?
->
-> Issue #248 requires `DNS_NAMESERVERS` as an output. The foundation `main.tf` only references `zone_id` and does not surface nameservers, suggesting this attribute may not be available (or may require a separate data source).
->
-> **Options:**
-> - **A)** Add a `nameservers` output to `outputs.tf` if the provider exposes it as a computed attribute on `stackit_dns_zone.this`. Update `module.contract.yaml` to include `DNS_NAMESERVERS`.
-> - **B)** Omit nameservers from module outputs in this work item; consumers query STACKIT API or portal for delegation. File a follow-up issue. (agent recommendation)
->
-> **Agent recommendation:** Option B — proceed with `zone_id` and `dns_name` outputs (matching foundation pattern). A stub output that is always empty misleads consumers. If nameserver retrieval is a confirmed blocker for public-endpoints, file a follow-up issue to add the attribute once provider support is verified.
+**Q-1 — Nameservers (RESOLVED):** Provider v0.88.0 schema confirmed via stackitcloud/terraform-provider-stackit source. `stackit_dns_zone` exposes exactly one computed attribute: `primary_name_server` (String, FQDN). No plural `nameservers` list exists. Decision: add `primary_name_server` to `outputs.tf` and add `DNS_PRIMARY_NAME_SERVER` to `module.contract.yaml` outputs.produced. Issue #248's `DNS_NAMESERVERS` (plural) is satisfied by the single `primary_name_server` output — this is the only nameserver the STACKIT provider exposes.
 
-> **[NEEDS CLARIFICATION]** Q-2: Is DNSSEC auto-enabled on all STACKIT DNS zones, configurable via a `stackit_dns_zone` Terraform attribute, or not yet supported in the provider?
->
-> Issue #248 states "DNSSEC MUST be supported." The foundation resource uses only `project_id`, `name`, `dns_name` — no DNSSEC attribute is present. STACKIT may manage DNSSEC at the platform level automatically.
->
-> **Options:**
-> - **A)** Accept STACKIT's default DNSSEC behaviour (platform-managed, not configurable via TF); document this in the module README. No Terraform changes required. (agent recommendation)
-> - **B)** Add a `dns_dnssec_enabled` variable if the provider schema exposes the attribute, and pass it to the resource.
->
-> **Agent recommendation:** Option A — document DNSSEC as STACKIT platform-managed in the module README. If provider v0.88.0 gains a DNSSEC attribute in a future release, add it as a follow-up. Confirm or override.
+**Q-2 — DNSSEC (RESOLVED):** Provider v0.88.0 schema confirmed. No DNSSEC-related attribute (`dnssec`, `dnssec_enabled`, `dnssec_config`, or similar) exists on `stackit_dns_zone`. DNSSEC is not configurable via Terraform in v0.88.0. Decision: document in module README that DNSSEC is managed at the STACKIT platform level and is not a Terraform-configurable attribute. No implementation change required.
 
 ## Normative Option Decision
 
@@ -100,7 +85,7 @@
 - Rationale: The standalone module provisions exactly one zone per invocation. The foundation uses a hash suffix for uniqueness when managing multiple zones in a single `for_each`. For a single-zone standalone module, passing `dns_zone_name` directly is simpler and gives consumers explicit control over the display name.
 
 ## Contract Changes (Normative)
-- Config/Env contract: `blueprint/modules/dns/module.contract.yaml` — no changes to `outputs.produced` in this work item; `DNS_ZONE_ID`, `DNS_ZONE_NAME`, `DNS_ZONE_FQDN` are already declared. `DNS_NAMESERVERS` deferred to Q-1 resolution.
+- Config/Env contract: `blueprint/modules/dns/module.contract.yaml` — add `DNS_PRIMARY_NAME_SERVER` to `outputs.produced` (provider exposes `primary_name_server` as a computed FQDN; existing `DNS_ZONE_ID`, `DNS_ZONE_NAME`, `DNS_ZONE_FQDN` already declared). `DNS_NAMESERVERS` (plural) from issue #248 is satisfied by this single nameserver output.
 - API contract: none
 - OpenAPI / Pact contract path: none
 - Event contract: none
@@ -117,7 +102,7 @@
 
 - AC-001 `infra/cloud/stackit/terraform/modules/dns/main.tf` declares `stackit_dns_zone.this` with `project_id`, `name`, and `dns_name = trimsuffix(var.dns_zone_fqdn, ".")`.
 - AC-002 `infra/cloud/stackit/terraform/modules/dns/variables.tf` declares all five variables: `stackit_project_id`, `stackit_region`, `dns_zone_name`, `dns_zone_fqdn`, `dns_record_ttl`.
-- AC-003 `infra/cloud/stackit/terraform/modules/dns/outputs.tf` declares `zone_id` (from `stackit_dns_zone.this.zone_id`) and `dns_name` (from `stackit_dns_zone.this.dns_name`).
+- AC-003 `infra/cloud/stackit/terraform/modules/dns/outputs.tf` declares `zone_id` (from `stackit_dns_zone.this.zone_id`), `dns_name` (from `stackit_dns_zone.this.dns_name`), and `primary_name_server` (from `stackit_dns_zone.this.primary_name_server`).
 - AC-004 `infra/cloud/stackit/terraform/modules/dns/versions.tf` declares the `stackitcloud/stackit` required provider at version `= 0.88.0`.
 - AC-005 `scripts/bin/infra/dns_smoke.sh` validates `zone_id` is non-empty in the runtime state file.
 - AC-006 `scripts/bin/infra/dns_smoke.sh` validates `zone_fqdn` is non-empty in the runtime state file.
@@ -125,6 +110,7 @@
 - AC-008 `tests/infra/modules/dns/test_contract.py` has an entry in `scripts/lib/quality/test_pyramid_contract.json` under the `unit` scope, added before the test file is created.
 - AC-009 `tests/infra/modules/dns/test_contract.py` passes with ≥ 10 assertions, all green.
 - AC-010 The runtime state file (`artifacts/infra/dns_runtime.env`) contains `zone_id`, `zone_name`, and `zone_fqdn` keys after a STACKIT-lane apply (validated by AC-005 + AC-006 smoke checks).
+- AC-011 `blueprint/modules/dns/module.contract.yaml` includes `DNS_PRIMARY_NAME_SERVER` under `outputs.produced`, and `dns_apply.sh` writes `primary_name_server` to the runtime state file.
 
 ## Informative Notes (Non-Normative)
 - Context: This is one of 5 remaining stub modules under issue #248. The other 4 (public-endpoints, observability, workflows, identity-aware-proxy) will be implemented in separate work items after this one.

@@ -8,6 +8,7 @@
 | FR-002 | SDD-C-005, SDD-C-011 | — | `variables.tf` with five required variables | `infra/cloud/stackit/terraform/modules/dns/variables.tf` | AC-002: test_contract.py assertion | n/a | n/a |
 | FR-003 | SDD-C-005, SDD-C-008 | — | `outputs.tf` with zone_id, dns_name | `infra/cloud/stackit/terraform/modules/dns/outputs.tf` | AC-003: test_contract.py assertion | n/a | n/a |
 | FR-004 | SDD-C-005, SDD-C-011 | — | `versions.tf` with stackitcloud/stackit = 0.88.0 | `infra/cloud/stackit/terraform/modules/dns/versions.tf` | AC-004: test_contract.py assertion | n/a | n/a |
+| FR-004b | SDD-C-005, SDD-C-011 | — | `DNS_PRIMARY_NAME_SERVER` in module.contract.yaml + dns_primary_name_server() helper + apply.sh state write | `blueprint/modules/dns/module.contract.yaml`, `scripts/lib/infra/dns.sh`, `scripts/bin/infra/dns_apply.sh` | AC-011: test_contract.py assertion | module.contract.yaml | n/a |
 | FR-005 | SDD-C-005, SDD-C-010 | — | `dns_smoke.sh` non-empty checks for zone_id + zone_fqdn | `scripts/bin/infra/dns_smoke.sh` | AC-005, AC-006: test_contract.py assertions | n/a | n/a |
 | FR-006 | SDD-C-005, SDD-C-012 | — | `test_pyramid_contract.json` entry | `scripts/lib/quality/test_pyramid_contract.json` | AC-008: pre-commit PASS | n/a | n/a |
 | FR-007 | SDD-C-005, SDD-C-012 | — | `test_contract.py` with ≥ 10 assertions | `tests/infra/modules/dns/test_contract.py` | AC-009: pytest PASS | n/a | n/a |
@@ -26,14 +27,15 @@
 | AC-008 | SDD-C-012 | — | test_contract.py in test_pyramid_contract.json unit scope | scripts/lib/quality/test_pyramid_contract.json | pre-commit PASS | — | n/a |
 | AC-009 | SDD-C-012 | — | test_contract.py passes with ≥ 10 assertions | test_contract.py | pytest PASS | — | n/a |
 | AC-010 | SDD-C-012 | — | runtime state contains zone_id, zone_name, zone_fqdn | dns_apply.sh + mock fixture | test_contract.py assertion | — | n/a |
+| AC-011 | SDD-C-012 | — | module.contract.yaml includes DNS_PRIMARY_NAME_SERVER + dns_apply.sh writes primary_name_server | blueprint/modules/dns/module.contract.yaml + dns_apply.sh | test_contract.py assertion | module.contract.yaml | n/a |
 
 ## Graph Linkage
 - Graph file: `graph.json`
 - Every `FR-###`, `NFR-*-###`, and `AC-###` listed in this file MUST have a corresponding node in `graph.json`.
 - Node IDs referenced:
-  - FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-007
+  - FR-001, FR-002, FR-003, FR-004, FR-004b, FR-005, FR-006, FR-007
   - NFR-SEC-001, NFR-OBS-001, NFR-REL-001, NFR-OPS-001, NFR-A11Y-001
-  - AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009, AC-010
+  - AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009, AC-010, AC-011
 
 ## Validation Summary
 - Required bundles executed: pending
