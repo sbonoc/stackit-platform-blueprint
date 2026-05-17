@@ -31,6 +31,7 @@ spec:
       - DNS_ZONE_ID
       - DNS_ZONE_NAME
       - DNS_ZONE_FQDN
+      - DNS_PRIMARY_NAME_SERVER
 
   make_targets:
     plan: infra-dns-plan

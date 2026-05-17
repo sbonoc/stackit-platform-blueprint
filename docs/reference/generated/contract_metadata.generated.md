@@ -317,6 +317,7 @@
 - `DNS_ZONE_ID`
 - `DNS_ZONE_NAME`
 - `DNS_ZONE_FQDN`
+- `DNS_PRIMARY_NAME_SERVER`
 
 ## Module: `identity-aware-proxy`
 

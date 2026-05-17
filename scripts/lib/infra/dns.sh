@@ -22,3 +22,11 @@ dns_zone_id() {
 dns_zone_name() {
   printf '%s-%s' "$DNS_ZONE_NAME" "${STACKIT_REGION:-local}"
 }
+
+dns_primary_name_server() {
+  if is_stackit_profile; then
+    stackit_foundation_output_map_value_or_default "dns_primary_name_servers" "$DNS_ZONE_FQDN" "ns.dns.stackit.cloud."
+    return 0
+  fi
+  printf 'ns.dns.local.'
+}
