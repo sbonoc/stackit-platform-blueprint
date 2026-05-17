@@ -38,9 +38,8 @@ state_file="$(write_state_file "dns_plan" \
   "tooling_mode=$(tooling_execution_mode)" \
   "provision_driver=$provision_driver" \
   "provision_path=$provision_path" \
-  "zone_id=$(dns_zone_id)" \
-  "zone_name=$DNS_ZONE_NAME" \
-  "zone_fqdn=$DNS_ZONE_FQDN" \
+  "zone_fqdns=$DNS_ZONE_FQDNS" \
+  "zone_count=$(dns_zone_count)" \
   "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")")"
 
 log_info "dns plan state written to $state_file"

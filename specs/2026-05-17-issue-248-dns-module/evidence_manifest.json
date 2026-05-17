@@ -2,19 +2,19 @@
   "manifest_version": 1,
   "work_item": "2026-05-17-issue-248-dns-module",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "2026-05-17T08:11:00Z",
+  "generated_at_utc": "2026-05-17T08:41:00Z",
   "files": [
     {
       "path": "specs/2026-05-17-issue-248-dns-module/spec.md",
       "role": "specification",
       "status": "approved",
-      "sha256": "249151ac45e4bab0a1bddbfc37484c9bda762502173f7368aa04c4071181a62b"
+      "sha256": "cf8cd0fdeeb3431f0140ee9971fa7230ad5b4c4f3bcb121ca0449c80a331f3a7"
     },
     {
       "path": "specs/2026-05-17-issue-248-dns-module/architecture.md",
       "role": "architecture",
       "status": "approved",
-      "sha256": "75287b636481cb724c92be9a4936200cc24ba2939a3508c6d5be59962e023a24"
+      "sha256": "e5ecaf8d90ebc8a04f64f8e981d0f26f717fdaca5269e45520efda6e056dadc8"
     },
     {
       "path": "specs/2026-05-17-issue-248-dns-module/plan.md",

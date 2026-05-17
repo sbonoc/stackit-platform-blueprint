@@ -5,18 +5,18 @@
 - Purpose: Provision managed DNS zones and publish canonical domain contract.
 - Enable flag: `DNS_ENABLED` (default: `false`)
 - Required inputs:
-  - `DNS_ZONE_NAME`
-  - `DNS_ZONE_FQDN`
+  - `DNS_ZONE_FQDNS`
+  - `DNS_NAMING_PREFIX`
 - Make targets:
   - `infra-dns-plan`
   - `infra-dns-apply`
   - `infra-dns-smoke`
   - `infra-dns-destroy`
 - Outputs:
-  - `DNS_ZONE_ID`
-  - `DNS_ZONE_NAME`
-  - `DNS_ZONE_FQDN`
-  - `DNS_PRIMARY_NAME_SERVER`
+  - `DNS_ZONE_IDS`
+  - `DNS_ZONE_COUNT`
+  - `DNS_ZONE_FQDNS`
+  - `DNS_PRIMARY_NAME_SERVERS`
 <!-- END GENERATED MODULE CONTRACT SUMMARY -->
 
 ## Stack Execution Model

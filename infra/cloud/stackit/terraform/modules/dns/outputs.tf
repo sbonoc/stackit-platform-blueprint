@@ -1,14 +1,14 @@
-output "zone_id" {
-  description = "The ID of the provisioned DNS zone."
-  value       = stackit_dns_zone.this.zone_id
+output "zone_ids" {
+  description = "Map of FQDN to provisioned DNS zone ID."
+  value       = { for fqdn, zone in stackit_dns_zone.this : fqdn => zone.zone_id }
 }
 
-output "dns_name" {
-  description = "The DNS name of the provisioned zone (without trailing dot)."
-  value       = stackit_dns_zone.this.dns_name
+output "dns_names" {
+  description = "List of DNS names (without trailing dot) for provisioned zones."
+  value       = [for zone in stackit_dns_zone.this : zone.dns_name]
 }
 
-output "primary_name_server" {
-  description = "The primary name server FQDN assigned to the DNS zone by STACKIT."
-  value       = stackit_dns_zone.this.primary_name_server
+output "primary_name_servers" {
+  description = "Map of FQDN to primary name server FQDN assigned by STACKIT."
+  value       = { for fqdn, zone in stackit_dns_zone.this : fqdn => zone.primary_name_server }
 }

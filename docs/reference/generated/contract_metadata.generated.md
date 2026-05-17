@@ -304,8 +304,8 @@
 - Enable flag: `DNS_ENABLED`
 
 ### Required Environment Variables
-- `DNS_ZONE_NAME`
-- `DNS_ZONE_FQDN`
+- `DNS_ZONE_FQDNS`
+- `DNS_NAMING_PREFIX`
 
 ### Make Targets
 - `infra-dns-plan`
@@ -314,10 +314,10 @@
 - `infra-dns-destroy`
 
 ### Produced Outputs
-- `DNS_ZONE_ID`
-- `DNS_ZONE_NAME`
-- `DNS_ZONE_FQDN`
-- `DNS_PRIMARY_NAME_SERVER`
+- `DNS_ZONE_IDS`
+- `DNS_ZONE_COUNT`
+- `DNS_ZONE_FQDNS`
+- `DNS_PRIMARY_NAME_SERVERS`
 
 ## Module: `identity-aware-proxy`
 

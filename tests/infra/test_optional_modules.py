@@ -497,8 +497,8 @@ class OptionalModulesTests(unittest.TestCase):
         env = module_flags_env(dns="true")
         env.update(
             {
-                "DNS_ZONE_NAME": "marketplace-dev",
-                "DNS_ZONE_FQDN": "marketplace.dev.",
+                "DNS_ZONE_FQDNS": "marketplace-web-dev.runs.onstackit.local. marketplace-auth-dev.runs.onstackit.local.",
+                "DNS_NAMING_PREFIX": "marketplace-web",
             }
         )
         bootstrap = run_render_and_infra_bootstrap(env)
@@ -516,8 +516,8 @@ class OptionalModulesTests(unittest.TestCase):
         runtime_file = REPO_ROOT / "artifacts" / "infra" / "dns_runtime.env"
         self.assertTrue(runtime_file.exists())
         runtime_content = runtime_file.read_text(encoding="utf-8")
-        self.assertIn("zone_name=marketplace-dev", runtime_content)
-        self.assertIn("zone_fqdn=marketplace.dev.", runtime_content)
+        self.assertIn("zone_count=2", runtime_content)
+        self.assertIn("marketplace-web-dev.runs.onstackit.local.", runtime_content)
 
         destroy = run(["make", "infra-dns-destroy"], env)
         self.assertEqual(destroy.returncode, 0, msg=destroy.stdout + destroy.stderr)
