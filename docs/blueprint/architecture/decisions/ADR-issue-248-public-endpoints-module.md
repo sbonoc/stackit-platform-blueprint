@@ -1,6 +1,7 @@
 # ADR — issue-248: public-endpoints module TLS + external-dns
 
-- **Status:** proposed
+- **Status:** approved
+- **ADR technical decision sign-off:** approved
 - **Date:** 2026-05-17
 - **Work item:** 2026-05-17-issue-248-public-endpoints-module
 - **Deciders:** bonos

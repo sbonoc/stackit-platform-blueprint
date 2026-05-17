@@ -1,7 +1,11 @@
 {
   "manifest_version": 1,
-  "work_item": "<YYYY-MM-DD>-<work-item-slug>",
+  "work_item": "2026-05-17-issue-248-public-endpoints-module",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "",
+  "generated_at_utc": "2026-05-17T00:00:00Z",
+  "traceability_keeper_run_at_utc": "2026-05-17T00:00:00Z",
+  "traceability_keeper_status": "gaps_found",
+  "gap_count": 19,
+  "gaps_blocking_publish": true,
   "files": []
 }
