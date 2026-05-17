@@ -95,7 +95,7 @@
 - AC-006 MUST: `public_endpoints_smoke.sh` validates that the rendered gateway manifest contains an HTTPS listener (port 443) and exits non-zero if absent.
 - AC-007 MUST: `public_endpoints_smoke.sh` validates that `external-dns.alpha.kubernetes.io/hostname` annotation is present in the rendered gateway manifest and exits non-zero if absent.
 - AC-008 MUST: `public_endpoints_smoke.sh` validates that both the Issuer and Certificate manifest files exist on disk and exits non-zero if the Issuer file is absent or the Certificate file is absent.
-- AC-009 MUST: runtime state written by `public_endpoints_apply.sh` includes `cluster_issuer_name` and `tls_secret_name` keys with non-empty values.
+- AC-009 MUST: runtime state written by `public_endpoints_apply.sh` includes `cluster_issuer_name`, `cluster_issuer_type`, and `tls_secret_name` keys with non-empty values.
 - AC-010 MUST: `infra/gitops/argocd/overlays/*/appproject-edge.yaml` for all four environments includes `cert-manager.io/Issuer` and `cert-manager.io/Certificate` in `namespaceResourceWhitelist`.
 - AC-011 MUST: `tests/infra/modules/public-endpoints/test_contract.py` is registered in `scripts/lib/quality/test_pyramid_contract.json` under the `unit` scope.
 - AC-012 MUST: `tests/infra/modules/public-endpoints/test_contract.py` contains ≥10 assertions passing against the real file tree.
@@ -106,12 +106,14 @@
 - AC-017 MUST: the rendered gateway listener policy manifest includes `Strict-Transport-Security` response header configuration for the HTTPS listener with `max-age` ≥ 31536000 and `includeSubDomains`.
 - AC-018 MUST: the rendered `NetworkPolicy` manifests for `PUBLIC_ENDPOINTS_NAMESPACE` include a default-deny ingress policy and an explicit-allow ingress policy for Envoy proxy pods on ports 80 and 443.
 - AC-019 MUST: `public_endpoints_apply.sh` emits a warning log when `BLUEPRINT_PROFILE=stackit-prod` and the KMS module is not enabled.
+- AC-020 MUST: in `public_endpoints_destroy.sh`, the delete operation for the `Certificate` resource appears before the delete operation for the `Issuer` resource, and the `Issuer` delete appears before the gateway baseline removal — verified by static analysis of the script content.
 
 ## Informative Notes (Non-Normative)
 - Context: cert-manager is already installed as a core runtime component (`core_runtime_bootstrap.sh`, v1.20.1). The Gateway API feature gate (`ExperimentalGatewayAPISupport`) is the only missing configuration — without it, cert-manager silently ignores `gatewayHTTPRoute` solver configuration and no HTTP01 challenge is issued.
 - Context: The STACKIT SKE DNS extension is already wired in `foundation/main.tf` (lines 8–17). When `DNS_ENABLED=true` and DNS zone FQDNs are provided, the SKE cluster's built-in external-dns controller manages A-records. The public-endpoints module only needs to annotate the Gateway manifest — no standalone external-dns Helm chart required.
 - Context: `sbonoc/agentic-graphrag` uses namespace-scoped `Issuer` with `gatewayHTTPRoute` HTTP01 and production Let's Encrypt across all environments. This pattern is adopted here.
 - Context: The Issuer and Gateway cert for the shared Gateway live in the `network` namespace alongside the Gateway. Consumer apps create their own Issuers + Certificates in their own namespaces, referencing the same ACME server.
+- Context: When `DNS_ENABLED=false`, the `external-dns.alpha.kubernetes.io/hostname` annotation is present on the rendered Gateway manifest but ignored by the SKE DNS extension — no DNS records are created and no error is emitted. This is intentional; the annotation is a no-op in this configuration and does not affect Gateway functionality.
 - Tradeoffs: HTTP01 with `gatewayHTTPRoute` requires the Envoy Gateway controller CRDs to be established before cert-manager can place the challenge HTTPRoute. The existing `public_endpoints_wait_for_gateway_api_crds` call in `deploy` already handles this ordering.
 
 ## Explicit Exclusions

@@ -14,7 +14,7 @@
 | FR-008 | SDD-C-012 | N/A | test contract | `test_contract.py` | AC-011, AC-012 | test_pyramid_contract.json | CI quality gate |
 | NFR-SEC-001 | SDD-C-009 | N/A | ACME secret isolation | `public_endpoints_apply.sh` (no email in state) | structural: no email in state keys | README security note | runtime state review |
 | NFR-OBS-001 | SDD-C-010 | N/A | smoke validation | `public_endpoints_smoke.sh` | `test_ac006_*`, `test_ac007_*`, `test_ac008_*` | README smoke section | smoke exit code |
-| NFR-REL-001 | SDD-C-011 | N/A | destroy ordering | `public_endpoints_destroy.sh` | structural: delete cert before gateway | README destroy warning | destroy state file |
+| NFR-REL-001 | SDD-C-011 | N/A | destroy ordering | `public_endpoints_destroy.sh` | `test_ac020_*` | README destroy warning | destroy state file |
 | NFR-OPS-001 | SDD-C-010 | N/A | runtime state keys | `public_endpoints_apply.sh` | `test_ac009_*` | README runtime state | `artifacts/infra/public_endpoints_runtime.env` |
 | NFR-A11Y-001 | SDD-C-019 | N/A | N/A — no UI | N/A | N/A | spec.md NFR-A11Y-001 | N/A |
 | AC-001 | SDD-C-005 | N/A | D-1 HTTPS listener | `gateway/public-endpoints.yaml.tmpl` | `test_ac001_*` | README Stack Execution Model | smoke: HTTPS listener check |
@@ -44,11 +44,12 @@
 | AC-017 | SDD-C-009 | N/A | HSTS policy manifest | gateway policy manifest | `test_ac017_*` | README security section | gateway policy manifest on disk |
 | AC-018 | SDD-C-009 | N/A | NetworkPolicy default-deny + allow 80/443 | NetworkPolicy manifests | `test_ac018_*` | README network isolation section | NetworkPolicy manifests on disk |
 | AC-019 | SDD-C-009 | N/A | KMS warning on stackit-prod without KMS | `public_endpoints_apply.sh` | `test_ac019_*` | README KMS dependency section | apply log warning |
+| AC-020 | SDD-C-011 | N/A | destroy ordering: Certificate → Issuer → gateway | `public_endpoints_destroy.sh` | `test_ac020_*` | README destroy warning | static analysis of destroy script |
 
 ## Graph Linkage
 - Graph file: `graph.json`
 - Every `FR-###`, `NFR-*-###`, and `AC-###` listed in this file MUST have a corresponding node in `graph.json`.
-- Node IDs referenced: FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-007, FR-008, NFR-SEC-001, NFR-OBS-001, NFR-REL-001, NFR-OPS-001, NFR-A11Y-001, AC-001 through AC-012.
+- Node IDs referenced: FR-001 through FR-008; NFR-SEC-001 through NFR-SEC-008; NFR-OBS-001, NFR-OBS-002; NFR-REL-001; NFR-OPS-001; NFR-A11Y-001; AC-001 through AC-020.
 
 ## Validation Summary
 - Required bundles executed: pending implementation

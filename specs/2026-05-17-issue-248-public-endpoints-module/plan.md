@@ -26,14 +26,14 @@
 ## Delivery Slices
 
 ### Slice 1 — cert-manager feature gate + test contract scaffold (red → green)
-Register `test_contract.py` in `test_pyramid_contract.json` first (prevents pre-commit hook failure), then write failing assertions for AC-005, AC-011, AC-012. Enable cert-manager Gateway API feature gate (AC-005). All assertions green.
+Register `test_contract.py` in `test_pyramid_contract.json` first (prevents pre-commit hook failure), then write failing assertions for AC-005, AC-011, AC-012, AC-020. Enable cert-manager Gateway API feature gate (AC-005). All assertions green. Note: AC-020 assertion scaffolded here (static analysis of destroy script) but turns green only after slice 2 implements the destroy ordering.
 
 ### Slice 2 — HTTPS listener + external-dns annotation + Issuer + Certificate + security policies (red → green)
 Write failing assertions for AC-001, AC-002, AC-003, AC-004, AC-013, AC-015, AC-017, AC-018, AC-019. Implement:
 - Gateway template: add HTTPS listener + external-dns annotation (AC-001, AC-004).
 - `public_endpoints.sh`: add manifest rendering helpers for Issuer, Certificate (with `renewBefore`, AC-015, NFR-OBS-002), gateway TLS policy (HSTS + min TLS 1.2, AC-017, AC-013, NFR-SEC-006, NFR-SEC-002), and NetworkPolicy manifests (AC-018, NFR-SEC-007); add profile-aware `PUBLIC_ENDPOINTS_ACME_SERVER` default (NFR-SEC-004).
 - `public_endpoints_apply.sh`: apply Issuer + Certificate + gateway TLS policy + NetworkPolicy manifests; extend runtime state with `cluster_issuer_name`, `cluster_issuer_type`, `tls_secret_name` (AC-009); emit KMS warning for `stackit-prod` without KMS module (AC-019, NFR-SEC-008).
-- `public_endpoints_destroy.sh`: delete Certificate + Issuer before gateway baseline (NFR-REL-001).
+- `public_endpoints_destroy.sh`: delete Certificate before Issuer before gateway baseline (NFR-REL-001, AC-020).
 Run pytest — confirm all assertions green.
 
 ### Slice 3 — AppProject edge + contract YAML + smoke validations + profile-aware ACME (red → green)
@@ -42,7 +42,7 @@ Write failing assertions for AC-006, AC-007, AC-008, AC-010, AC-014. Implement:
 - `module.contract.yaml`: add new optional env vars (FR-006, AC-016); document profile-aware ACME server default (NFR-SEC-004).
 - `public_endpoints_smoke.sh`: add HTTPS listener check, external-dns annotation check, Issuer + Certificate manifest checks (AC-006, AC-007, AC-008).
 - Verify `public_endpoints_init_env` profile-aware ACME server default (AC-014, NFR-SEC-004).
-Run pytest — confirm all 15 AC assertions green.
+Run pytest — confirm all 20 AC assertions green.
 
 ### Slice 4 — Documentation + hardening review + publish
 - Update `docs/platform/modules/public-endpoints/README.md` and bootstrap template mirror for TLS + external-dns design, including:
