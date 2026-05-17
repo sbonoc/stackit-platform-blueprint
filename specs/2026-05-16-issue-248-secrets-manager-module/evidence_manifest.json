@@ -32,13 +32,13 @@
       "path": "specs/2026-05-16-issue-248-secrets-manager-module/graph.json",
       "role": "traceability-graph",
       "status": "complete",
-      "sha256": "1be25d901428ae3aa84d0fd9579355ee324f866b9bb09c5317ffc4bf38cad172"
+      "sha256": "75510d575435b376db0f71645684c69eef7c86262b6160d2c5241ae9e16ecc84"
     },
     {
       "path": "specs/2026-05-16-issue-248-secrets-manager-module/traceability.md",
       "role": "traceability-matrix",
       "status": "complete",
-      "sha256": "1e0cdef5023b28b03750170bc13b1fc4386f360fe98402e222ae626ba3a1acb0"
+      "sha256": "cbb2f19ecb800658585334dcd43b17dbd496c610e04fd24b286121c732fbdb5b"
     },
     {
       "path": "docs/blueprint/architecture/decisions/ADR-issue-248-secrets-manager-module.md",

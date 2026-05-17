@@ -51,8 +51,8 @@
 - Required bundles executed: `uv run pytest tests/infra/modules/secrets-manager/test_contract.py tests/infra/test_optional_modules.py::OptionalModulesTests::test_secrets_manager_module_flow -v`; `make quality-hooks-fast`
 - Result summary: 28 passed, 0 failed. quality-hooks-fast: shellcheck PASS, infra-validate PASS, infra-contract-test-fast PASS, quality-sdd-check-all PASS, quality-spec-pr-ready PASS (post pr_context.md fill).
 - Documentation validation:
-  - `make docs-build`: pending (no doc changes required; blueprint module docs update deferred to document-sync step)
-  - `make docs-smoke`: pending
+  - `make docs-build`: PASS — docs-build completed successfully (document-sync step)
+  - `make docs-smoke`: PASS — docs-smoke completed successfully (document-sync step)
 
 ## Evidence Manifest
 - Manifest file: `evidence_manifest.json`

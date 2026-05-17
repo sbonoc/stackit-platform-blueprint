@@ -198,6 +198,7 @@
     { "from": "NFR-OBS-001", "to": "FR-010", "relation": "constrains" },
     { "from": "NFR-OBS-001", "to": "AC-011", "relation": "constrains" },
     { "from": "NFR-OPS-001", "to": "FR-008", "relation": "constrains" },
-    { "from": "NFR-OPS-001", "to": "FR-009", "relation": "constrains" }
+    { "from": "NFR-OPS-001", "to": "FR-009", "relation": "constrains" },
+    { "from": "NFR-A11Y-001", "to": "FR-001", "relation": "not_applicable" }
   ]
 }
