@@ -40,20 +40,28 @@ flowchart TD
         I --> J[apply namespace + gateway\n+ Issuer + Certificate]
     end
 
-    subgraph runtime["STACKIT cluster"]
+    subgraph local_runtime["docker-desktop k8s"]
+        G1[Envoy Gateway controller\nenvoy-gateway-system]
+        G2[cert-manager\ncert-manager ns\nselfSigned Issuer]
+        G3[TLS Secret\nnetwork/public-endpoints-gateway-tls]
+        G2 -->|issues self-signed cert| G3
+        G3 --> G1
+    end
+
+    subgraph stackit_runtime["STACKIT cluster"]
         K[Envoy Gateway controller\nenvoy-gateway-system]
-        L[cert-manager\ncert-manager ns]
-        M[SKE DNS extension\nwatches annotation]
+        L[cert-manager\ncert-manager ns\nACME HTTP01 Issuer]
+        M[SKE DNS extension\nwatches annotation\nDNS_ENABLED=true]
+        K -->|provisions LB| N[STACKIT Load Balancer IP]
+        L -->|HTTP01 gatewayHTTPRoute| K
+        L -->|issues cert| O[TLS Secret\nnetwork/public-endpoints-gateway-tls]
+        M -->|A-record| P[STACKIT DNS zone]
+        O --> K
     end
 
     F --> deploy
-    G --> runtime
-    J --> runtime
-    K -->|provisions LB| N[STACKIT Load Balancer IP]
-    L -->|HTTP01 gatewayHTTPRoute| K
-    L -->|issues cert| O[TLS Secret\nnetwork/public-endpoints-gateway-tls]
-    M -->|A-record| P[STACKIT DNS zone]
-    O --> K
+    G --> local_runtime
+    J --> stackit_runtime
 ```
 
 - **Domain layer**: cert-manager `Issuer` + `Certificate` CRDs; Gateway API `GatewayClass` + `Gateway` CRDs.
