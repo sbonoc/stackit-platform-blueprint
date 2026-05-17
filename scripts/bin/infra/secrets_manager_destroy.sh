@@ -18,6 +18,7 @@ destroy_path="$OPTIONAL_MODULE_EXECUTION_PATH"
 case "$destroy_driver" in
 foundation_reconcile_apply)
   optional_module_destroy_foundation_contract "secrets-manager"
+  secrets_manager_delete_runtime_secret
   ;;
 noop)
   optional_module_log_execution_note
@@ -26,7 +27,6 @@ noop)
   optional_module_unexpected_driver "secrets-manager" "destroy"
   ;;
 esac
-
 remove_state_files_by_prefix "secrets_manager_"
 state_file="$(write_state_file "secrets_manager_destroy" \
   "profile=$BLUEPRINT_PROFILE" \

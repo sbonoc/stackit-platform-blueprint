@@ -27,6 +27,8 @@ spec:
     produced:
       - SECRETS_MANAGER_INSTANCE_NAME
       - SECRETS_MANAGER_ENDPOINT
+      - SECRETS_MANAGER_NAMESPACE
+      - SECRETS_MANAGER_AUTH_METHOD_DETAILS
 
   make_targets:
     plan: infra-secrets-manager-plan

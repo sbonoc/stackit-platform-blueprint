@@ -1,0 +1,204 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-05-16-issue-248-secrets-manager-module",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "Implement standalone TF module main.tf with stackit_secretsmanager_instance and stackit_secretsmanager_user"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "Implement variables.tf with six required variables"
+    },
+    {
+      "id": "FR-003",
+      "type": "requirement",
+      "summary": "Implement outputs.tf with instance_id, username, password (sensitive)"
+    },
+    {
+      "id": "FR-004",
+      "type": "requirement",
+      "summary": "Add SECRETS_MANAGER_NAMESPACE and SECRETS_MANAGER_AUTH_METHOD_DETAILS to module.contract.yaml"
+    },
+    {
+      "id": "FR-005",
+      "type": "requirement",
+      "summary": "Implement secrets_manager_namespace() returning SECRETS_MANAGER_INSTANCE_NAME"
+    },
+    {
+      "id": "FR-006",
+      "type": "requirement",
+      "summary": "Implement secrets_manager_auth_method_details() returning username (non-sensitive)"
+    },
+    {
+      "id": "FR-007",
+      "type": "requirement",
+      "summary": "Implement secrets_manager_reconcile_runtime_secret() and secrets_manager_delete_runtime_secret() — reconcile writes K8s Secret, delete removes it"
+    },
+    {
+      "id": "FR-008",
+      "type": "requirement",
+      "summary": "Update secrets_manager_apply.sh to write namespace + auth_method_details and call reconcile_runtime_secret"
+    },
+    {
+      "id": "FR-009",
+      "type": "requirement",
+      "summary": "Update secrets_manager_plan.sh to write namespace to plan state"
+    },
+    {
+      "id": "FR-010",
+      "type": "requirement",
+      "summary": "Update secrets_manager_smoke.sh to validate namespace and auth_method_details keys are non-empty"
+    },
+    {
+      "id": "FR-011",
+      "type": "requirement",
+      "summary": "Implement test_contract.py with >= 10 assertions"
+    },
+    {
+      "id": "FR-012",
+      "type": "requirement",
+      "summary": "Update secrets_manager_destroy.sh to call secrets_manager_delete_runtime_secret()"
+    },
+    {
+      "id": "FR-013",
+      "type": "requirement",
+      "summary": "Add test_contract.py to test_pyramid_contract.json before creating the test file"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "Password MUST NOT appear in state file, CI logs, or non-sensitive artifacts"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "namespace and auth_method_details in runtime state; smoke validates both keys non-empty; prefixed output"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "lifecycle { create_before_destroy = true } on instance resource"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "namespace and auth_method_details in runtime state for operator use"
+    },
+    {
+      "id": "NFR-A11Y-001",
+      "type": "requirement",
+      "summary": "N/A — no UI or frontend changes"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "main.tf declares stackit_secretsmanager_instance.this with required attrs and lifecycle block"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "main.tf declares stackit_secretsmanager_user.this with required attributes"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "variables.tf declares all six required variables"
+    },
+    {
+      "id": "AC-004",
+      "type": "acceptance",
+      "summary": "outputs.tf declares instance_id, username, password (sensitive)"
+    },
+    {
+      "id": "AC-004b",
+      "type": "acceptance",
+      "summary": "versions.tf exists and declares stackitcloud/stackit required provider with pinned version constraint"
+    },
+    {
+      "id": "AC-005",
+      "type": "acceptance",
+      "summary": "module.contract.yaml includes SECRETS_MANAGER_NAMESPACE and SECRETS_MANAGER_AUTH_METHOD_DETAILS"
+    },
+    {
+      "id": "AC-006",
+      "type": "acceptance",
+      "summary": "secrets_manager_namespace() returns SECRETS_MANAGER_INSTANCE_NAME"
+    },
+    {
+      "id": "AC-007",
+      "type": "acceptance",
+      "summary": "secrets_manager_auth_method_details() returns username from runtime state"
+    },
+    {
+      "id": "AC-008",
+      "type": "acceptance",
+      "summary": "secrets_manager_reconcile_runtime_secret() and secrets_manager_delete_runtime_secret() both exist and operate on blueprint-secrets-manager-auth"
+    },
+    {
+      "id": "AC-009",
+      "type": "acceptance",
+      "summary": "secrets_manager_apply.sh writes namespace + auth_method_details and calls reconcile_runtime_secret"
+    },
+    {
+      "id": "AC-010",
+      "type": "acceptance",
+      "summary": "secrets_manager_plan.sh writes namespace to plan state"
+    },
+    {
+      "id": "AC-011",
+      "type": "acceptance",
+      "summary": "secrets_manager_smoke.sh exits non-zero if namespace or auth_method_details absent or empty"
+    },
+    {
+      "id": "AC-012",
+      "type": "acceptance",
+      "summary": "Runtime state file MUST NOT contain the password value"
+    },
+    {
+      "id": "AC-013",
+      "type": "acceptance",
+      "summary": "test_contract.py passes with >= 10 assertions"
+    },
+    {
+      "id": "AC-014",
+      "type": "acceptance",
+      "summary": "secrets_manager_destroy.sh calls secrets_manager_delete_runtime_secret()"
+    },
+    {
+      "id": "AC-015",
+      "type": "acceptance",
+      "summary": "test_contract.py has entry in test_pyramid_contract.json under unit scope"
+    }
+  ],
+  "edges": [
+    { "from": "FR-001", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-001", "to": "AC-002", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-003", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-004", "relation": "validated_by" },
+    { "from": "FR-001", "to": "AC-004b", "relation": "validated_by" },
+    { "from": "FR-004", "to": "AC-005", "relation": "validated_by" },
+    { "from": "FR-005", "to": "AC-006", "relation": "validated_by" },
+    { "from": "FR-006", "to": "AC-007", "relation": "validated_by" },
+    { "from": "FR-007", "to": "AC-008", "relation": "validated_by" },
+    { "from": "FR-008", "to": "AC-009", "relation": "validated_by" },
+    { "from": "FR-009", "to": "AC-010", "relation": "validated_by" },
+    { "from": "FR-010", "to": "AC-011", "relation": "validated_by" },
+    { "from": "FR-011", "to": "AC-013", "relation": "validated_by" },
+    { "from": "FR-012", "to": "AC-014", "relation": "validated_by" },
+    { "from": "FR-013", "to": "AC-015", "relation": "validated_by" },
+    { "from": "NFR-SEC-001", "to": "FR-012", "relation": "constrains" },
+    { "from": "NFR-SEC-001", "to": "AC-012", "relation": "constrains" },
+    { "from": "NFR-SEC-001", "to": "FR-007", "relation": "constrains" },
+    { "from": "NFR-SEC-001", "to": "FR-008", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "FR-001", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "AC-001", "relation": "constrains" },
+    { "from": "NFR-OBS-001", "to": "FR-010", "relation": "constrains" },
+    { "from": "NFR-OBS-001", "to": "AC-011", "relation": "constrains" },
+    { "from": "NFR-OPS-001", "to": "FR-008", "relation": "constrains" },
+    { "from": "NFR-OPS-001", "to": "FR-009", "relation": "constrains" },
+    { "from": "NFR-A11Y-001", "to": "FR-001", "relation": "not_applicable" }
+  ]
+}

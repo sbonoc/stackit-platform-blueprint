@@ -1,0 +1,62 @@
+{
+  "manifest_version": 1,
+  "work_item": "2026-05-16-issue-248-secrets-manager-module",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-05-17T00:00:00Z",
+  "files": [
+    {
+      "path": "specs/2026-05-16-issue-248-secrets-manager-module/spec.md",
+      "role": "specification",
+      "status": "approved",
+      "sha256": "433e7d4fcf7d3efe86929a0369d1e18ee3a3e8dd374bef38fcadba451458dd17"
+    },
+    {
+      "path": "specs/2026-05-16-issue-248-secrets-manager-module/architecture.md",
+      "role": "architecture",
+      "status": "approved",
+      "sha256": "f9127e2f427ef09be1803f3d96e268a67d5fb4103e5a266f2f6ea5ab862b9454"
+    },
+    {
+      "path": "specs/2026-05-16-issue-248-secrets-manager-module/plan.md",
+      "role": "implementation-plan",
+      "status": "approved",
+      "sha256": "630a45c6373f02fc3992f4aeb06897b09c3bae58bd12b8b285630d2c3e7258ce"
+    },
+    {
+      "path": "specs/2026-05-16-issue-248-secrets-manager-module/tasks.md",
+      "role": "task-list",
+      "status": "complete",
+      "sha256": "1c00fa24120022325ae71fdd13ea9176fa2634eb2f836121f86601381822b8d1"
+    },
+    {
+      "path": "specs/2026-05-16-issue-248-secrets-manager-module/graph.json",
+      "role": "traceability-graph",
+      "status": "complete",
+      "sha256": "75510d575435b376db0f71645684c69eef7c86262b6160d2c5241ae9e16ecc84"
+    },
+    {
+      "path": "specs/2026-05-16-issue-248-secrets-manager-module/traceability.md",
+      "role": "traceability-matrix",
+      "status": "complete",
+      "sha256": "cbb2f19ecb800658585334dcd43b17dbd496c610e04fd24b286121c732fbdb5b"
+    },
+    {
+      "path": "docs/blueprint/architecture/decisions/ADR-issue-248-secrets-manager-module.md",
+      "role": "adr",
+      "status": "approved",
+      "sha256": "6ba04a7c4c50b224b399717a98acf2fcf34f2f48a12430d23018bd4e8f158fbf"
+    },
+    {
+      "path": "specs/2026-05-16-issue-248-secrets-manager-module/pr_context.md",
+      "role": "pr-context",
+      "status": "complete",
+      "sha256": "1d718654da57eba1924e86063e30a5e1723198ee940c0def556a854cef94d46e"
+    },
+    {
+      "path": "specs/2026-05-16-issue-248-secrets-manager-module/hardening_review.md",
+      "role": "hardening-review",
+      "status": "complete",
+      "sha256": "d5f314b49328b1a2e38e6229b92ace2e15c16809dd9fae1e79c338b520ed0208"
+    }
+  ]
+}

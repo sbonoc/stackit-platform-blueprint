@@ -27,6 +27,7 @@ provision_path="$OPTIONAL_MODULE_EXECUTION_PATH"
 case "$provision_driver" in
 foundation_contract)
   optional_module_apply_foundation_contract "secrets-manager"
+  secrets_manager_reconcile_runtime_secret
   ;;
 noop)
   optional_module_log_execution_note
@@ -44,6 +45,8 @@ state_file="$(write_state_file "secrets_manager_runtime" \
   "provision_path=$provision_path" \
   "instance_name=$SECRETS_MANAGER_INSTANCE_NAME" \
   "endpoint=$(secrets_manager_endpoint)" \
+  "namespace=$(secrets_manager_namespace)" \
+  "auth_method_details=$(secrets_manager_auth_method_details)" \
   "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")")"
 
 log_info "secrets-manager runtime state written to $state_file"

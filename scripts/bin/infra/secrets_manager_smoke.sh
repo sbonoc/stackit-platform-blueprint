@@ -22,6 +22,12 @@ runtime_state="$(state_file_path secrets_manager_runtime)"
 if ! grep -q '^endpoint=https://secrets\.' "$runtime_state"; then
   log_fatal "secrets-manager runtime endpoint contract is invalid"
 fi
+if ! grep -q '^namespace=.\+' "$runtime_state"; then
+  log_fatal "secrets-manager runtime namespace is absent or empty"
+fi
+if ! grep -q '^auth_method_details=.\+' "$runtime_state"; then
+  log_fatal "secrets-manager runtime auth_method_details is absent or empty"
+fi
 
 state_file="$(write_state_file "secrets_manager_smoke" \
   "status=passed" \
