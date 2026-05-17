@@ -89,6 +89,37 @@ if ! grep -Eq '^[[:space:]]+kind: Gateway$' "$edge_appproject_path"; then
   log_fatal "edge AppProject is missing Gateway permissions"
 fi
 
+# Validate HTTPS listener (AC-006, NFR-OBS-001)
+if ! grep -Eq 'port: 443' "$gateway_manifest_path"; then
+  log_fatal "public-endpoints gateway manifest is missing HTTPS listener on port 443"
+fi
+
+# Validate external-dns annotation (AC-007, NFR-OBS-001)
+if ! grep -q 'external-dns.alpha.kubernetes.io/hostname' "$gateway_manifest_path"; then
+  log_fatal "public-endpoints gateway manifest is missing external-dns.alpha.kubernetes.io/hostname annotation"
+fi
+
+# Validate Issuer manifest on disk (AC-008, NFR-OBS-001)
+issuer_manifest_file="$(public_endpoints_issuer_manifest_file)"
+if [[ ! -f "$issuer_manifest_file" ]]; then
+  log_fatal "public-endpoints Issuer manifest is missing: $issuer_manifest_file"
+fi
+
+# Validate Certificate manifest on disk (AC-008, NFR-OBS-001)
+certificate_manifest_file="$(public_endpoints_certificate_manifest_file)"
+if [[ ! -f "$certificate_manifest_file" ]]; then
+  log_fatal "public-endpoints Certificate manifest is missing: $certificate_manifest_file"
+fi
+
+# Validate cluster_issuer_name in runtime state (NFR-OBS-001)
+if ! grep -q '^cluster_issuer_name=' "$runtime_state"; then
+  log_fatal "public-endpoints runtime state is missing cluster_issuer_name key"
+fi
+cluster_issuer_name="$(grep '^cluster_issuer_name=' "$runtime_state" | head -n1 | cut -d= -f2-)"
+if [[ -z "$cluster_issuer_name" ]]; then
+  log_fatal "public-endpoints runtime cluster_issuer_name is empty"
+fi
+
 log_metric \
   "public_endpoints_gateway_contract_check_total" \
   "1" \

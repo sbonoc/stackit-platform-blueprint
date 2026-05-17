@@ -59,7 +59,7 @@ Owner: bonos
 ### Slice 3 — AppProject edge + contract YAML + smoke validations + profile-aware ACME (red → green)
 Dependencies: Slice 2 complete
 Owner: bonos
-- [ ] T-010 Write failing assertions in `test_contract.py` for AC-006, AC-007, AC-008, AC-009, AC-010, AC-014, AC-016:
+- [x] T-010 Write failing assertions in `test_contract.py` for AC-006, AC-007, AC-008, AC-009, AC-010, AC-014, AC-016:
       - AC-006: `public_endpoints_smoke.sh` validates HTTPS listener presence in rendered gateway manifest and exits non-zero if absent
       - AC-007: `public_endpoints_smoke.sh` validates `external-dns.alpha.kubernetes.io/hostname` annotation and exits non-zero if absent
       - AC-008: `public_endpoints_smoke.sh` validates Issuer and Certificate manifest files exist on disk and exits non-zero if the Issuer file is absent or the Certificate file is absent
@@ -68,17 +68,17 @@ Owner: bonos
       - AC-014: `public_endpoints_init_env` sets staging ACME server for `stackit-dev`/`stackit-stage` and production ACME server for `stackit-prod`
       - AC-016: `module.contract.yaml` declares all four new optional TLS env vars
       Run pytest — confirm assertions fail
-- [ ] T-011 Update `infra/gitops/argocd/overlays/*/appproject-edge.yaml` for dev, stage, prod, local:
+- [x] T-011 Update `infra/gitops/argocd/overlays/*/appproject-edge.yaml` for dev, stage, prod, local:
       - Add `cert-manager.io/Issuer` and `cert-manager.io/Certificate` to `namespaceResourceWhitelist` for the `network` namespace destination (FR-007, AC-010)
-- [ ] T-012 Update `blueprint/modules/public-endpoints/module.contract.yaml`:
+- [x] T-012 Update `blueprint/modules/public-endpoints/module.contract.yaml`:
       - Declare `PUBLIC_ENDPOINTS_CLUSTER_ISSUER_NAME`, `PUBLIC_ENDPOINTS_CLUSTER_ISSUER_EMAIL`, `PUBLIC_ENDPOINTS_ACME_SERVER`, `PUBLIC_ENDPOINTS_GATEWAY_TLS_SECRET_NAME` as optional env vars (FR-006, AC-016)
-- [ ] T-013 Update `scripts/bin/infra/public_endpoints_smoke.sh`:
+- [x] T-013 Update `scripts/bin/infra/public_endpoints_smoke.sh`:
       - Validate HTTPS listener (port 443) is present in rendered gateway manifest; exit non-zero if absent (AC-006)
       - Validate `external-dns.alpha.kubernetes.io/hostname` annotation is present; exit non-zero if absent (AC-007)
       - Validate Issuer manifest file exists on disk; exit non-zero if absent (AC-008)
       - Validate Certificate manifest file exists on disk; exit non-zero if absent (AC-008)
       - Validate `cluster_issuer_name` key is non-empty in runtime state (NFR-OBS-001)
-- [ ] T-014 Update `docs/platform/modules/public-endpoints/README.md` with all required TLS sections (GAP-018, NFR-SEC-001, NFR-SEC-003, NFR-SEC-005, NFR-REL-001, NFR-SEC-008):
+- [x] T-014 Update `docs/platform/modules/public-endpoints/README.md` with all required TLS sections (GAP-018, NFR-SEC-001, NFR-SEC-003, NFR-SEC-005, NFR-REL-001, NFR-SEC-008):
       - TLS Stack Execution Model (how the HTTPS listener, Issuer, Certificate, and TLS Secret fit together)
       - TLS Secret RBAC constraint (NFR-SEC-003 — Secret accessible only by Envoy Gateway controller SA)
       - Profile-aware ACME server table: staging for stackit-dev/stackit-stage, production for stackit-prod (NFR-SEC-004)
@@ -88,21 +88,21 @@ Owner: bonos
       - KMS dependency section: KMS must be enabled for stackit-stage and stackit-prod to protect TLS Secret at rest (NFR-SEC-008)
       - Certificate renewBefore field and expiry monitoring deferral note (NFR-OBS-002)
       - Destroy warning: Certificate deleted before Issuer before gateway baseline; TLS session impact (NFR-REL-001)
-- [ ] T-015 Run `PYTHONPATH="$(pwd)" uv run pytest tests/infra/modules/public-endpoints/test_contract.py -v` — all ≥20 assertions green (confirms AC-012 threshold met)
+- [x] T-015 Run `PYTHONPATH="$(pwd)" uv run pytest tests/infra/modules/public-endpoints/test_contract.py -v` — all ≥20 assertions green (confirms AC-012 threshold met)
 
 ## Test Automation
-- [ ] T-101 `tests/infra/modules/public-endpoints/test_contract.py` written (T-001, T-004, T-010) and passing (T-014) — ≥20 assertions covering AC-001 through AC-020
+- [x] T-101 `tests/infra/modules/public-endpoints/test_contract.py` written (T-001, T-004, T-010) and passing (T-014) — ≥20 assertions covering AC-001 through AC-020
 - [ ] T-102 N/A — no API contract or Pact test
 - [ ] T-103 N/A — no filter or payload-transform logic
 - [ ] T-104 N/A — no reproducible pre-PR smoke/curl finding; new capability, not bug fix
 - [ ] T-105 `tests/infra/test_optional_modules.py::OptionalModulesTests::test_public_endpoints_module_flow` — existing integration test; confirm still passes after gateway template and script changes
 
 ## Accessibility Testing (Normative — mark N/A with rationale for non-UI specs)
-- [ ] T-A01 NFR-A11Y-001 declared in spec.md as "N/A — no UI or frontend changes"
-- [ ] T-A02 N/A — no UI changes
-- [ ] T-A03 N/A — no UI changes
-- [ ] T-A04 N/A — no UI changes
-- [ ] T-A05 N/A — no UI changes
+- [x] T-A01 NFR-A11Y-001 declared in spec.md as "N/A — no UI or frontend changes"
+- [x] T-A02 N/A — no UI changes
+- [x] T-A03 N/A — no UI changes
+- [x] T-A04 N/A — no UI changes
+- [x] T-A05 N/A — no UI changes
 
 ## Validation and Release Readiness
 - [ ] T-201 Run required Make validation bundles

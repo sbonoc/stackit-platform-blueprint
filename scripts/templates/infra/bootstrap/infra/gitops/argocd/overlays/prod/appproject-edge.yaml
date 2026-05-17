@@ -53,3 +53,9 @@ spec:
       kind: RoleBinding
     - group: gateway.networking.k8s.io
       kind: Gateway
+    # cert-manager.io/Issuer — namespace-scoped ACME/selfSigned issuer for Gateway TLS
+    - group: cert-manager.io
+      kind: Issuer
+    # cert-manager.io/Certificate — TLS certificate provisioned by cert-manager for Gateway HTTPS listener
+    - group: cert-manager.io
+      kind: Certificate
