@@ -1,11 +1,12 @@
 # Implementation Plan
 
 ## Implementation Start Gate
-- Implementation tasks MUST remain unchecked until `SPEC_READY=true`.
-- Q-1 (nameservers attribute) and Q-2 (DNSSEC) MUST be resolved before SPEC_READY=true.
+- `SPEC_READY: true` — gate cleared (all sign-offs received 2026-05-17).
+- Q-1 resolved: `primary_name_server` (single Computed FQDN) added to outputs.tf, module.contract.yaml, dns_apply.sh, dns_smoke.sh.
+- Q-2 resolved: no DNSSEC attribute in v0.88.0; documented in module README.
 
 ## Constitution Gates (Pre-Implementation)
-- Simplicity gate: Minimal scope — 4 TF files, smoke strengthening, test file. No new shell functions or Make targets.
+- Simplicity gate: Minimal scope — 4 TF files, smoke strengthening, test file. One new shell function (`dns_primary_name_server()` in dns.sh, required by FR-004b). No new Make targets.
 - Anti-abstraction gate: Direct `stackit_dns_zone` resource; no wrapper. Mirror the foundation pattern exactly.
 - Integration-first testing gate: `test_pyramid_contract.json` entry added before test file creation (T-000). TF module structural tests before TF files created.
 - Positive-path filter/transform test gate: N/A — no filter or payload-transform logic.
@@ -20,7 +21,7 @@
 - T-001: Write failing test assertions for TF module structure (AC-001 through AC-004, AC-007):
   - AC-001: `main.tf` declares `stackit_dns_zone.this` with `project_id`, `name`, `dns_name = trimsuffix(...)`.
   - AC-002: `variables.tf` declares five required variables.
-  - AC-003: `outputs.tf` declares `zone_id` and `dns_name`.
+  - AC-003: `outputs.tf` declares `zone_id`, `dns_name`, and `primary_name_server`.
   - AC-004: `versions.tf` declares `stackitcloud/stackit = 0.88.0`.
   - AC-007: `terraform validate` passes (tested via subprocess or static grep).
   Run pytest — confirm assertions fail (TF files are stubs).
@@ -101,5 +102,5 @@
 - Runbook updates: Module README documents the destroy warning (risk of live DNS record disruption).
 
 ## Risks and Mitigations
-- Risk 1 (provider schema) → mitigation: Q-1/Q-2 must be answered before implementation. If nameservers attribute exists, add it as an additional output in T-004. If DNSSEC attribute exists, add it as a variable and resource attribute in T-002/T-003.
+- Risk 1 (provider schema) → resolved: Q-1/Q-2 answered before SPEC_READY. primary_name_server implemented in T-004/T-007b/T-008. DNSSEC documented as platform-managed in module README.
 - Risk 2 (DNS zone deletion) → mitigation: Document in module README that destroying a live DNS zone disrupts resolution for all records in the zone. Add a destroy warning to the smoke script output.

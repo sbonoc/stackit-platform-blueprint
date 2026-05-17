@@ -57,7 +57,7 @@ To introduce a new tag, append a row here in the same commit that uses it.
 
 ### P2 — Platform modules
 
-- [ ] Issue #248 remaining modules — STACKIT-managed service candidates (kms ✅, dns, public-endpoints, observability, workflows, identity-aware-proxy). secrets-manager in progress: PR #305 (`codex/2026-05-16-issue-248-secrets-manager-module`, SPEC_READY). Gate on #295 removed — architecture decision recorded in `AGENTS.decisions.md`: OM is consumer/product-owned and not a blueprint module candidate.
+- [ ] Issue #248 remaining modules — STACKIT-managed service candidates (kms ✅, secrets-manager ✅ PR #305, dns SPEC_READY PR #306, public-endpoints, observability, workflows, identity-aware-proxy). Gate on #295 removed — architecture decision recorded in `AGENTS.decisions.md`: OM is consumer/product-owned and not a blueprint module candidate.
 - [ ] Issue #171 — managed-cache module: STACKIT Managed Redis as a first-class optional module (Helm/ArgoCD-managed, provider-backed via STACKIT Terraform).
 - [ ] Issue #172 — platform-email module: Helm/ArgoCD-managed Postal for transactional email as an optional module.
 
