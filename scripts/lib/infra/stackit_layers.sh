@@ -222,10 +222,8 @@ stackit_layer_var_args() {
   fi
 
   if is_module_enabled dns; then
-    require_env_vars DNS_ZONE_NAME DNS_ZONE_FQDN
-    # The runtime contract keeps DNS_ZONE_NAME as the consumer-facing alias,
-    # while foundation provisioning keys off the canonical FQDN list.
-    stackit_emit_tf_string_list_arg_from_csv "dns_zone_fqdns" "$DNS_ZONE_FQDN"
+    require_env_vars DNS_ZONE_FQDNS DNS_NAMING_PREFIX
+    stackit_emit_tf_string_list_arg_from_csv "dns_zone_fqdns" "${DNS_ZONE_FQDNS// /,}"
   fi
 
   if is_module_enabled secrets-manager; then

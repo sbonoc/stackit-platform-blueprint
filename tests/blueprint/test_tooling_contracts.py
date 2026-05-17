@@ -1805,8 +1805,8 @@ stackit_layer_var_args foundation
                 "OPENSEARCH_INSTANCE_NAME": "bp-opensearch-stackit",
                 "OPENSEARCH_VERSION": "2.17",
                 "OPENSEARCH_PLAN_NAME": "stackit-opensearch-single",
-                "DNS_ZONE_NAME": "marketplace-stackit",
-                "DNS_ZONE_FQDN": "marketplace-stackit.example.",
+                "DNS_NAMING_PREFIX": "marketplace-stackit",
+                "DNS_ZONE_FQDNS": "marketplace-stackit.example.",
                 "SECRETS_MANAGER_INSTANCE_NAME": "bp-secrets-stackit",
             },
         )
@@ -1887,7 +1887,7 @@ printf 'postgres_db=%s\\n' "$(postgres_database)"
 printf 'object_storage_bucket=%s\\n' "$(object_storage_bucket_name)"
 printf 'object_storage_access=%s\\n' "$(object_storage_access_key)"
 printf 'object_storage_secret=%s\\n' "$(object_storage_secret_key)"
-printf 'dns_zone_id=%s\\n' "$(dns_zone_id)"
+printf 'dns_zone_ids=%s\\n' "$(dns_zone_ids)"
 printf 'rabbitmq_uri=%s\\n' "$(rabbitmq_uri)"
 printf 'rabbitmq_host=%s\\n' "$(rabbitmq_host)"
 printf 'rabbitmq_port=%s\\n' "$(rabbitmq_port)"
@@ -1916,8 +1916,8 @@ printf 'dsn=%s\\n' "$(postgres_dsn)"
                 "OBJECT_STORAGE_BUCKET_NAME": "placeholder-assets",
                 "OBJECT_STORAGE_ACCESS_KEY": "placeholder-access",
                 "OBJECT_STORAGE_SECRET_KEY": "placeholder-secret",
-                "DNS_ZONE_NAME": "placeholder-zone",
-                "DNS_ZONE_FQDN": "marketplace-stackit.example.",
+                "DNS_NAMING_PREFIX": "placeholder-zone",
+                "DNS_ZONE_FQDNS": "marketplace-stackit.example.",
                 "OPENSEARCH_INSTANCE_NAME": "placeholder-opensearch",
                 "OPENSEARCH_VERSION": "2.17",
                 "OPENSEARCH_PLAN_NAME": "stackit-opensearch-single",
@@ -1934,7 +1934,7 @@ printf 'dsn=%s\\n' "$(postgres_dsn)"
         self.assertIn("object_storage_bucket=managed-assets", result.stdout)
         self.assertIn("object_storage_access=managed-access", result.stdout)
         self.assertIn("object_storage_secret=managed-secret", result.stdout)
-        self.assertIn("dns_zone_id=zone-12345", result.stdout)
+        self.assertIn("dns_zone_ids=zone-12345", result.stdout)
         self.assertIn(
             "rabbitmq_uri=amqps://managed-user:managed-password@managed-rabbitmq.eu01.onstackit.cloud:5671",
             result.stdout,

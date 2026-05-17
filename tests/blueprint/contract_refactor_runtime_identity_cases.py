@@ -51,7 +51,7 @@ class RuntimeIdentityRefactorCases(RefactorContractBase):
         self.assertIn('"-var=postgres_instance_name=$POSTGRES_INSTANCE_NAME"', stackit_layers)
         self.assertIn('"-var=postgres_version=$POSTGRES_VERSION"', stackit_layers)
         self.assertIn('"-var=object_storage_bucket_name=$OBJECT_STORAGE_BUCKET_NAME"', stackit_layers)
-        self.assertIn('stackit_emit_tf_string_list_arg_from_csv "dns_zone_fqdns" "$DNS_ZONE_FQDN"', stackit_layers)
+        self.assertIn('stackit_emit_tf_string_list_arg_from_csv "dns_zone_fqdns" "${DNS_ZONE_FQDNS// /,}"', stackit_layers)
         self.assertIn('"-var=secrets_manager_instance_name=$SECRETS_MANAGER_INSTANCE_NAME"', stackit_layers)
 
     def test_stackit_foundation_apply_retries_known_postgres_provider_race(self) -> None:

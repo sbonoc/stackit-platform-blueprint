@@ -29,8 +29,8 @@ CORE_SENSITIVE_ENV_NAMES = {
 # enabled: required module env vars should be pre-seeded with safe defaults or
 # placeholders, not left empty.
 MODULE_REQUIRED_ENV_DEFAULTS = {
-    "DNS_ZONE_NAME": "marketplace-dev",
-    "DNS_ZONE_FQDN": "marketplace.local.",
+    "DNS_NAMING_PREFIX": "marketplace-dev",
+    "DNS_ZONE_FQDNS": "marketplace-dev.runs.onstackit.local.",
     "IAP_UPSTREAM_URL": "http://catalog.apps.svc.cluster.local:8080",
     "IAP_COOKIE_SECRET": "0123456789abcdef0123456789abcdef",
     "KEYCLOAK_ISSUER_URL": "https://auth.example.invalid/realms/iap",
