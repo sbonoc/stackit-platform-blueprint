@@ -82,7 +82,7 @@
 | GAP-016 | FR-006, AC-016 | `blueprint/modules/public-endpoints/module.contract.yaml` `optional_env` list is missing `PUBLIC_ENDPOINTS_CLUSTER_ISSUER_NAME`, `PUBLIC_ENDPOINTS_CLUSTER_ISSUER_EMAIL`, `PUBLIC_ENDPOINTS_ACME_SERVER`, `PUBLIC_ENDPOINTS_GATEWAY_TLS_SECRET_NAME`. | Test Green / Publish |
 | GAP-017 | NFR-SEC-002, AC-013 | No minimum TLS version configured in gateway template or gateway TLS policy manifest. | Test Green / Publish |
 | GAP-018 | NFR-SEC-003, NFR-SEC-005, NFR-REL-001, NFR-SEC-006, NFR-SEC-007, NFR-SEC-008, NFR-OBS-002 | README `docs/platform/modules/public-endpoints/README.md` is missing all TLS sections: TLS Stack Execution Model, TLS Secret RBAC constraint, profile-aware ACME server table, HTTP plain-text security trade-off, HSTS policy, network isolation, KMS dependency, Certificate renewBefore, destroy warning. | Publish |
-| GAP-019 | evidence_manifest.json | `evidence_manifest.json` retains scaffold placeholder (`<YYYY-MM-DD>-<work-item-slug>`); `work_item` and `files` are unpopulated. | Publish |
+| GAP-019 | evidence_manifest.json | `evidence_manifest.json` `files` list is empty — no implementation artifact paths registered yet. `work_item` is correctly populated; `files[]` will be populated during implementation publish step. | Publish |
 
 ### Orphan Tests
 - None — test file does not exist yet (GAP-001).

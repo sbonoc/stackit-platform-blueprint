@@ -1,55 +1,97 @@
 # Tasks
 
 ## Gate Checks (Required Before Implementation)
-- [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`
-- [ ] G-002 Confirm open questions and unresolved alternatives are `0`
-- [ ] G-003 Confirm required sign-offs are approved
-- [ ] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
-- [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
+- [x] G-001 Confirm `SPEC_READY=true` in `spec.md`
+- [x] G-002 Confirm open questions and unresolved alternatives are `0`
+- [x] G-003 Confirm required sign-offs are approved (Product, Architecture, Security, Operations)
+- [x] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
+- [x] G-005 Confirm `Implementation Stack Profile` section is fully populated
 
 ## Implementation
 
-### Slice 1 — cert-manager feature gate + test contract scaffold
+### Slice 1 — cert-manager feature gate + test contract scaffold (red → green)
+Dependencies: none
+Owner: bonos
 - [ ] T-000 Register `tests/infra/modules/public-endpoints/test_contract.py` in `scripts/lib/quality/test_pyramid_contract.json` under `unit` scope (AC-011) — MUST be done before T-001 to avoid pre-commit hook failure
-- [ ] T-001 Write failing assertions in `test_contract.py` for AC-005, AC-011, AC-012:
-      - AC-005: `cert-manager.values.yaml` and its template mirror contain `ExperimentalGatewayAPISupport` under `featureGates`
-      - AC-011: `test_contract.py` registered in `test_pyramid_contract.json`
-      - AC-012: ≥10 assertions present
-      Run pytest — confirm AC-005, AC-011 fail (gate not yet enabled)
+- [ ] T-001 Write failing assertions in `test_contract.py` for AC-005, AC-011, AC-012, AC-020:
+      - AC-005: `cert-manager.values.yaml` and its bootstrap template mirror both contain `ExperimentalGatewayAPISupport` under `featureGates`
+      - AC-011: `test_contract.py` is registered in `test_pyramid_contract.json` under `unit` scope
+      - AC-012: ≥10 assertions are present in `test_contract.py`
+      - AC-020 (scaffold): in `public_endpoints_destroy.sh`, the Certificate delete appears before the Issuer delete, and the Issuer delete appears before gateway baseline removal — verified by static analysis of script content
+      Run pytest — confirm AC-005, AC-020 fail (gate not yet enabled, destroy not yet updated)
 - [ ] T-002 Enable cert-manager Gateway API feature gate in `infra/local/helm/core/cert-manager.values.yaml` and `scripts/templates/infra/bootstrap/infra/local/helm/core/cert-manager.values.yaml` (FR-005, AC-005)
-- [ ] T-003 Run pytest on slice 1 assertions — confirm AC-005 green
+- [ ] T-003 Run pytest on slice 1 assertions — confirm AC-005 green; AC-020 still fails (expected — destroy updated in slice 2)
 
-### Slice 2 — HTTPS listener + external-dns annotation + Issuer + Certificate
-- [ ] T-004 Write failing assertions in `test_contract.py` for AC-001, AC-002, AC-003, AC-004:
-      - AC-001: rendered gateway manifest contains HTTPS listener (port 443) with `tls.mode: Terminate`
-      - AC-002: rendered Issuer manifest contains `kind: Issuer` and `spec.acme` or `spec.selfSigned`
+### Slice 2 — HTTPS listener + external-dns + Issuer + Certificate + security policies (red → green)
+Dependencies: Slice 1 complete
+Owner: bonos
+- [ ] T-004 Write failing assertions in `test_contract.py` for AC-001, AC-002, AC-003, AC-004, AC-013, AC-015, AC-017, AC-018, AC-019:
+      - AC-001: rendered gateway manifest contains `kind: GatewayClass`, `kind: Gateway`, HTTP listener port 80, HTTPS listener port 443 with `tls.mode: Terminate`
+      - AC-002: rendered Issuer manifest contains `kind: Issuer` and EXACTLY ONE OF: `spec.acme` (STACKIT profile) or `spec.selfSigned` (local profile)
       - AC-003: rendered Certificate manifest contains `kind: Certificate`, `dnsNames`, `issuerRef.name`
-      - AC-004: rendered gateway manifest contains `external-dns.alpha.kubernetes.io/hostname` annotation
-      Run pytest — confirm assertions fail (template not yet updated)
-- [ ] T-005 Update `scripts/templates/infra/bootstrap/infra/gateway/public-endpoints.yaml.tmpl`: add HTTPS listener (port 443, `tls.mode: Terminate`, `certificateRefs`) and `external-dns.alpha.kubernetes.io/hostname` annotation (FR-001, FR-004, AC-001, AC-004)
+      - AC-004: rendered gateway manifest contains annotation `external-dns.alpha.kubernetes.io/hostname`
+      - AC-013: rendered gateway manifest HTTPS listener contains minimum TLS version configuration excluding TLS 1.0 and TLS 1.1
+      - AC-015: rendered Certificate manifest contains a `renewBefore` field
+      - AC-017: rendered gateway listener policy manifest includes `Strict-Transport-Security` with `max-age` ≥ 31536000 and `includeSubDomains`
+      - AC-018: rendered NetworkPolicy manifests include default-deny ingress policy and explicit-allow ingress on ports 80 and 443 for Envoy proxy pods
+      - AC-019: `public_endpoints_apply.sh` source contains KMS warning logic for `stackit-stage` or `stackit-prod` profiles
+      Run pytest — confirm all fail (templates and scripts not yet updated)
+- [ ] T-005 Update `scripts/templates/infra/bootstrap/infra/gateway/public-endpoints.yaml.tmpl`:
+      - Add HTTPS listener (port 443, `tls.mode: Terminate`, `certificateRefs` pointing to `PUBLIC_ENDPOINTS_GATEWAY_TLS_SECRET_NAME`) (FR-001, AC-001)
+      - Add minimum TLS version configuration (TLS 1.2 minimum, TLS 1.0/1.1 prohibited) to HTTPS listener (NFR-SEC-002, AC-013)
+      - Add `external-dns.alpha.kubernetes.io/hostname` annotation (FR-004, AC-004)
 - [ ] T-006 Add to `scripts/lib/infra/public_endpoints.sh`:
-      - New env var defaults: `PUBLIC_ENDPOINTS_CLUSTER_ISSUER_NAME`, `PUBLIC_ENDPOINTS_CLUSTER_ISSUER_EMAIL`, `PUBLIC_ENDPOINTS_ACME_SERVER`, `PUBLIC_ENDPOINTS_GATEWAY_TLS_SECRET_NAME`
-      - `public_endpoints_render_issuer_manifest()` — renders namespace-scoped `Issuer` (ACME/HTTP01 for STACKIT, selfSigned for local) to `artifacts/infra/rendered/public-endpoints.issuer.yaml` (FR-002, AC-002)
-      - `public_endpoints_render_certificate_manifest()` — renders `Certificate` to `artifacts/infra/rendered/public-endpoints.certificate.yaml` (FR-003, AC-003)
+      - New env var defaults: `PUBLIC_ENDPOINTS_CLUSTER_ISSUER_NAME`, `PUBLIC_ENDPOINTS_CLUSTER_ISSUER_EMAIL`, `PUBLIC_ENDPOINTS_GATEWAY_TLS_SECRET_NAME`
+      - Profile-aware `PUBLIC_ENDPOINTS_ACME_SERVER` default in `public_endpoints_init_env`: staging endpoint for `stackit-dev`/`stackit-stage`, production endpoint for `stackit-prod`, not applicable for local (NFR-SEC-004, AC-014)
+      - `public_endpoints_render_issuer_manifest()` — renders namespace-scoped `Issuer` (ACME/HTTP01 `gatewayHTTPRoute` for STACKIT, `selfSigned` for local) to `artifacts/infra/rendered/public-endpoints.issuer.yaml` (FR-002, AC-002)
+      - `public_endpoints_render_certificate_manifest()` — renders `Certificate` with `dnsNames`, `issuerRef`, `renewBefore` field (FR-003, NFR-OBS-002, AC-003, AC-015)
+      - `public_endpoints_render_gateway_tls_policy_manifest()` — renders gateway listener policy manifest with `Strict-Transport-Security: max-age=31536000; includeSubDomains` (NFR-SEC-006, AC-017)
+      - `public_endpoints_render_network_policy_manifests()` — renders NetworkPolicy resources: (a) default-deny ingress, (b) explicit allow ports 80/443 for Envoy proxy pods, (c) explicit allow from `cert-manager` namespace for ACME challenge traffic (NFR-SEC-007, AC-018)
       - `public_endpoints_issuer_manifest_file()` and `public_endpoints_certificate_manifest_file()` path helpers
-- [ ] T-007 Update `scripts/bin/infra/public_endpoints_apply.sh`: apply Issuer + Certificate manifests in both `helm` and `argocd_application_chart` paths; extend `write_state_file` with `cluster_issuer_name`, `cluster_issuer_type`, `tls_secret_name` keys (NFR-OPS-001, AC-009)
-- [ ] T-008 Update `scripts/bin/infra/public_endpoints_destroy.sh`: delete Certificate + Issuer resources before gateway baseline removal (NFR-REL-001)
-- [ ] T-009 Run pytest — confirm AC-001, AC-002, AC-003, AC-004 green
+- [ ] T-007 Update `scripts/bin/infra/public_endpoints_apply.sh`:
+      - Apply Issuer + Certificate + gateway TLS policy + NetworkPolicy manifests in both `helm` and `argocd_application_chart` paths
+      - Extend `write_state_file` with `cluster_issuer_name`, `cluster_issuer_type` (`acme` for STACKIT, `selfsigned` for local), and `tls_secret_name` keys (NFR-OPS-001, AC-009)
+      - Emit warning log when `BLUEPRINT_PROFILE` is `stackit-stage` or `stackit-prod` and KMS module is not enabled (NFR-SEC-008, AC-019)
+- [ ] T-008 Update `scripts/bin/infra/public_endpoints_destroy.sh`:
+      - Delete Certificate resource before Issuer resource before gateway baseline removal (NFR-REL-001, AC-020)
+- [ ] T-009 Run pytest — confirm AC-001, AC-002, AC-003, AC-004, AC-013, AC-015, AC-017, AC-018, AC-019, AC-020 green
 
-### Slice 3 — AppProject edge + contract YAML + smoke validations
-- [ ] T-010 Write failing assertions in `test_contract.py` for AC-006, AC-007, AC-008, AC-010:
-      - AC-006: smoke script validates HTTPS listener presence
-      - AC-007: smoke script validates external-dns annotation presence
-      - AC-008: smoke script validates Issuer + Certificate manifest files exist
-      - AC-010: all four appproject-edge.yaml files include cert-manager Issuer + Certificate in namespaceResourceWhitelist
+### Slice 3 — AppProject edge + contract YAML + smoke validations + profile-aware ACME (red → green)
+Dependencies: Slice 2 complete
+Owner: bonos
+- [ ] T-010 Write failing assertions in `test_contract.py` for AC-006, AC-007, AC-008, AC-009, AC-010, AC-014, AC-016:
+      - AC-006: `public_endpoints_smoke.sh` validates HTTPS listener presence in rendered gateway manifest and exits non-zero if absent
+      - AC-007: `public_endpoints_smoke.sh` validates `external-dns.alpha.kubernetes.io/hostname` annotation and exits non-zero if absent
+      - AC-008: `public_endpoints_smoke.sh` validates Issuer and Certificate manifest files exist on disk and exits non-zero if the Issuer file is absent or the Certificate file is absent
+      - AC-009: runtime state written by `public_endpoints_apply.sh` includes `cluster_issuer_name`, `cluster_issuer_type`, and `tls_secret_name` keys with non-empty values
+      - AC-010: all four `appproject-edge.yaml` files include `cert-manager.io/Issuer` and `cert-manager.io/Certificate` in `namespaceResourceWhitelist`
+      - AC-014: `public_endpoints_init_env` sets staging ACME server for `stackit-dev`/`stackit-stage` and production ACME server for `stackit-prod`
+      - AC-016: `module.contract.yaml` declares all four new optional TLS env vars
       Run pytest — confirm assertions fail
-- [ ] T-011 Update `infra/gitops/argocd/overlays/*/appproject-edge.yaml` for dev, stage, prod, local: add `cert-manager.io/Issuer` and `cert-manager.io/Certificate` to `namespaceResourceWhitelist` for the `network` namespace destination (FR-007, AC-010)
-- [ ] T-012 Update `blueprint/modules/public-endpoints/module.contract.yaml`: add `PUBLIC_ENDPOINTS_CLUSTER_ISSUER_NAME`, `PUBLIC_ENDPOINTS_CLUSTER_ISSUER_EMAIL`, `PUBLIC_ENDPOINTS_ACME_SERVER`, `PUBLIC_ENDPOINTS_GATEWAY_TLS_SECRET_NAME` as optional env vars (FR-006, AC-011 parity)
-- [ ] T-013 Update `public_endpoints_smoke.sh`: add validation for (a) HTTPS listener in gateway manifest, (b) external-dns annotation, (c) Issuer manifest on disk, (d) Certificate manifest on disk (NFR-OBS-001, AC-006, AC-007, AC-008)
-- [ ] T-014 Run `PYTHONPATH="$(pwd)" uv run pytest tests/infra/modules/public-endpoints/test_contract.py -v` — all ≥10 assertions green (AC-012)
+- [ ] T-011 Update `infra/gitops/argocd/overlays/*/appproject-edge.yaml` for dev, stage, prod, local:
+      - Add `cert-manager.io/Issuer` and `cert-manager.io/Certificate` to `namespaceResourceWhitelist` for the `network` namespace destination (FR-007, AC-010)
+- [ ] T-012 Update `blueprint/modules/public-endpoints/module.contract.yaml`:
+      - Declare `PUBLIC_ENDPOINTS_CLUSTER_ISSUER_NAME`, `PUBLIC_ENDPOINTS_CLUSTER_ISSUER_EMAIL`, `PUBLIC_ENDPOINTS_ACME_SERVER`, `PUBLIC_ENDPOINTS_GATEWAY_TLS_SECRET_NAME` as optional env vars (FR-006, AC-016)
+- [ ] T-013 Update `scripts/bin/infra/public_endpoints_smoke.sh`:
+      - Validate HTTPS listener (port 443) is present in rendered gateway manifest; exit non-zero if absent (AC-006)
+      - Validate `external-dns.alpha.kubernetes.io/hostname` annotation is present; exit non-zero if absent (AC-007)
+      - Validate Issuer manifest file exists on disk; exit non-zero if absent (AC-008)
+      - Validate Certificate manifest file exists on disk; exit non-zero if absent (AC-008)
+      - Validate `cluster_issuer_name` key is non-empty in runtime state (NFR-OBS-001)
+- [ ] T-014 Update `docs/platform/modules/public-endpoints/README.md` with all required TLS sections (GAP-018, NFR-SEC-001, NFR-SEC-003, NFR-SEC-005, NFR-REL-001, NFR-SEC-008):
+      - TLS Stack Execution Model (how the HTTPS listener, Issuer, Certificate, and TLS Secret fit together)
+      - TLS Secret RBAC constraint (NFR-SEC-003 — Secret accessible only by Envoy Gateway controller SA)
+      - Profile-aware ACME server table: staging for stackit-dev/stackit-stage, production for stackit-prod (NFR-SEC-004)
+      - HTTP plain-text security trade-off (NFR-SEC-005 — port 80 remains open; consumer HTTPRoute authors must restrict to HTTPS listener)
+      - HSTS policy note: HSTS pinning risk on prod, safe to ignore on dev/stage due to staging CA (NFR-SEC-006)
+      - Network isolation section: default-deny + allow 80/443 for Envoy pods + cert-manager ACME challenge (NFR-SEC-007)
+      - KMS dependency section: KMS must be enabled for stackit-stage and stackit-prod to protect TLS Secret at rest (NFR-SEC-008)
+      - Certificate renewBefore field and expiry monitoring deferral note (NFR-OBS-002)
+      - Destroy warning: Certificate deleted before Issuer before gateway baseline; TLS session impact (NFR-REL-001)
+- [ ] T-015 Run `PYTHONPATH="$(pwd)" uv run pytest tests/infra/modules/public-endpoints/test_contract.py -v` — all ≥20 assertions green (confirms AC-012 threshold met)
 
 ## Test Automation
-- [ ] T-101 `tests/infra/modules/public-endpoints/test_contract.py` written (T-001, T-004, T-010) and passing (T-014) — ≥10 assertions
+- [ ] T-101 `tests/infra/modules/public-endpoints/test_contract.py` written (T-001, T-004, T-010) and passing (T-014) — ≥20 assertions covering AC-001 through AC-020
 - [ ] T-102 N/A — no API contract or Pact test
 - [ ] T-103 N/A — no filter or payload-transform logic
 - [ ] T-104 N/A — no reproducible pre-PR smoke/curl finding; new capability, not bug fix
@@ -75,8 +117,20 @@
 - [ ] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
 
 ## App Onboarding Minimum Targets (Normative)
-- [ ] A-001 `apps-bootstrap` and `apps-smoke` are implemented and verified for the affected app scope
-- [ ] A-002 Backend app lanes (`backend-test-unit`, `backend-test-integration`, `backend-test-contracts`, `backend-test-e2e`) are available
-- [ ] A-003 Frontend app lanes (`touchpoints-test-unit`, `touchpoints-test-integration`, `touchpoints-test-contracts`, `touchpoints-test-e2e`) are available
-- [ ] A-004 Aggregate gates (`test-unit-all`, `test-integration-all`, `test-contracts-all`, `test-e2e-all-local`) are available
-- [ ] A-005 Port-forward operational wrappers (`infra-port-forward-start`, `infra-port-forward-stop`, `infra-port-forward-cleanup`) are available
+- [ ] A-001 `apps-bootstrap` — N/A; infra/tooling-only change
+- [ ] A-002 `apps-smoke` — N/A; infra/tooling-only change
+- [ ] A-003 `backend-test-unit` — N/A; infra/tooling-only change
+- [ ] A-004 `backend-test-integration` — N/A; infra/tooling-only change
+- [ ] A-005 `backend-test-contracts` — N/A; infra/tooling-only change
+- [ ] A-006 `backend-test-e2e` — N/A; infra/tooling-only change
+- [ ] A-007 `touchpoints-test-unit` — N/A; infra/tooling-only change
+- [ ] A-008 `touchpoints-test-integration` — N/A; infra/tooling-only change
+- [ ] A-009 `touchpoints-test-contracts` — N/A; infra/tooling-only change
+- [ ] A-010 `touchpoints-test-e2e` — N/A; infra/tooling-only change
+- [ ] A-011 `test-unit-all` — N/A; infra/tooling-only change
+- [ ] A-012 `test-integration-all` — N/A; infra/tooling-only change
+- [ ] A-013 `test-contracts-all` — N/A; infra/tooling-only change
+- [ ] A-014 `test-e2e-all-local` — N/A; infra/tooling-only change
+- [ ] A-015 `infra-port-forward-start` — N/A; infra/tooling-only change
+- [ ] A-016 `infra-port-forward-stop` — N/A; infra/tooling-only change
+- [ ] A-017 `infra-port-forward-cleanup` — N/A; infra/tooling-only change
