@@ -177,6 +177,9 @@ class IssuerCertificateRenderingTests(unittest.TestCase):
 
     def test_init_env_requires_issuer_email_for_non_local_profiles(self) -> None:
         content = self._lib()
+        # init_env uses the direct $BLUEPRINT_PROFILE glob check (consistent with ACME server
+        # selection in the same function) rather than is_local_profile() to avoid a
+        # profile.sh source dependency in callers that don't load profile.sh.
         self.assertIn(
             "require_env_vars PUBLIC_ENDPOINTS_CLUSTER_ISSUER_EMAIL",
             content,

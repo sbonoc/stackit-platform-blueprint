@@ -30,7 +30,7 @@ public_endpoints_init_env() {
     set_default_env PUBLIC_ENDPOINTS_ACME_SERVER "https://acme-staging-v02.api.letsencrypt.org/directory"
   fi
   require_env_vars PUBLIC_ENDPOINTS_BASE_DOMAIN
-  if ! is_local_profile; then
+  if [[ "$BLUEPRINT_PROFILE" != local-* ]]; then
     require_env_vars PUBLIC_ENDPOINTS_CLUSTER_ISSUER_EMAIL
   fi
 }
