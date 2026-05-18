@@ -30,6 +30,9 @@ public_endpoints_init_env() {
     set_default_env PUBLIC_ENDPOINTS_ACME_SERVER "https://acme-staging-v02.api.letsencrypt.org/directory"
   fi
   require_env_vars PUBLIC_ENDPOINTS_BASE_DOMAIN
+  if ! is_local_profile; then
+    require_env_vars PUBLIC_ENDPOINTS_CLUSTER_ISSUER_EMAIL
+  fi
 }
 
 public_endpoints_gateway_manifest_content() {
@@ -92,10 +95,6 @@ public_endpoints_issuer_manifest_file() {
 
 public_endpoints_certificate_manifest_file() {
   printf '%s/artifacts/infra/rendered/public-endpoints.certificate.yaml' "$ROOT_DIR"
-}
-
-public_endpoints_tls_policy_manifest_file() {
-  printf '%s/artifacts/infra/rendered/public-endpoints.tls-policy.yaml' "$ROOT_DIR"
 }
 
 public_endpoints_network_policy_manifest_file() {
@@ -171,32 +170,6 @@ spec:
 EOF
   log_metric "public_endpoints_certificate_manifest_render_total" "1" "target=$target_path domain=$PUBLIC_ENDPOINTS_BASE_DOMAIN" >&2
   log_info "rendered public-endpoints Certificate manifest: $target_path" >&2
-  printf '%s\n' "$target_path"
-}
-
-public_endpoints_render_gateway_tls_policy_manifest() {
-  local target_path
-  target_path="$(public_endpoints_tls_policy_manifest_file)"
-  ensure_dir "$(dirname "$target_path")"
-  cat >"$target_path" <<EOF
-apiVersion: gateway.envoyproxy.io/v1alpha1
-kind: BackendTrafficPolicy
-metadata:
-  name: ${PUBLIC_ENDPOINTS_GATEWAY_NAME}-hsts-policy
-  namespace: ${PUBLIC_ENDPOINTS_NAMESPACE}
-spec:
-  targetRef:
-    group: gateway.networking.k8s.io
-    kind: Gateway
-    name: ${PUBLIC_ENDPOINTS_GATEWAY_NAME}
-    sectionName: https
-  responseHeaderModifiers:
-    add:
-      - name: Strict-Transport-Security
-        value: "max-age=31536000; includeSubDomains"
-EOF
-  log_metric "public_endpoints_tls_policy_manifest_render_total" "1" "target=$target_path" >&2
-  log_info "rendered public-endpoints gateway TLS policy manifest: $target_path" >&2
   printf '%s\n' "$target_path"
 }
 

@@ -13,6 +13,7 @@ _DESTROY_SCRIPT = REPO_ROOT / "scripts" / "bin" / "infra" / "public_endpoints_de
 _SMOKE_SCRIPT = REPO_ROOT / "scripts" / "bin" / "infra" / "public_endpoints_smoke.sh"
 _CONTRACT_FILE = REPO_ROOT / "blueprint" / "modules" / "public-endpoints" / "module.contract.yaml"
 _PYRAMID_CONTRACT = REPO_ROOT / "scripts" / "lib" / "quality" / "test_pyramid_contract.json"
+_README = REPO_ROOT / "docs" / "platform" / "modules" / "public-endpoints" / "README.md"
 _APPPROJECT_EDGE_ENVS = ("dev", "stage", "prod", "local")
 
 
@@ -75,21 +76,22 @@ class GatewayTemplateTests(unittest.TestCase):
 
     def test_ac013_template_has_tls_min_version(self) -> None:
         content = self._template()
-        # TLS min version is set via ClientTrafficPolicy in the gateway template
+        # TLS min version is set via ClientTrafficPolicy in the gateway template.
+        # Envoy Gateway TLSVersion enum uses bare version strings ("1.2", "1.3"), not "TLSv1.x".
         self.assertIn(
-            "TLSv1.2",
+            '"1.2"',
             content,
-            msg="gateway manifest must configure TLS minimum version 1.2 (AC-013, NFR-SEC-002)",
+            msg='gateway manifest must configure TLS minimum version "1.2" (AC-013, NFR-SEC-002)',
         )
         self.assertNotIn(
-            "TLSv1.0",
+            '"1.0"',
             content,
-            msg="gateway manifest must NOT permit TLS 1.0 (AC-013, NFR-SEC-002)",
+            msg='gateway manifest must NOT permit TLS "1.0" (AC-013, NFR-SEC-002)',
         )
         self.assertNotIn(
-            "TLSv1.1",
+            '"1.1"',
             content,
-            msg="gateway manifest must NOT permit TLS 1.1 (AC-013, NFR-SEC-002)",
+            msg='gateway manifest must NOT permit TLS "1.1" (AC-013, NFR-SEC-002)',
         )
 
 
@@ -148,22 +150,37 @@ class IssuerCertificateRenderingTests(unittest.TestCase):
             msg="public_endpoints.sh Certificate manifest must include renewBefore field (AC-015, NFR-OBS-002)",
         )
 
-    def test_ac017_lib_renders_hsts_policy(self) -> None:
-        content = self._lib()
+    def test_ac017_readme_documents_hsts_guidance(self) -> None:
+        # BackendTrafficPolicy.responseHeaderModifiers is not a valid EG 1.x field.
+        # HSTS is documented as consumer HTTPRoute responsibility in the module README.
+        content = _README.read_text(encoding="utf-8")
         self.assertIn(
             "Strict-Transport-Security",
             content,
-            msg="public_endpoints.sh must render HSTS Strict-Transport-Security header in gateway policy manifest (AC-017, NFR-SEC-006)",
+            msg="README must document Strict-Transport-Security HSTS guidance (AC-017, NFR-SEC-006)",
         )
         self.assertIn(
             "max-age=31536000",
             content,
-            msg="HSTS max-age must be at least 31536000 (1 year) (AC-017, NFR-SEC-006)",
+            msg="README must document HSTS max-age=31536000 (1 year) (AC-017, NFR-SEC-006)",
         )
         self.assertIn(
             "includeSubDomains",
             content,
-            msg="HSTS must include includeSubDomains (AC-017, NFR-SEC-006)",
+            msg="README must document HSTS includeSubDomains (AC-017, NFR-SEC-006)",
+        )
+        self.assertIn(
+            "HTTPRoute",
+            content,
+            msg="README must document HSTS as consumer HTTPRoute responsibility (AC-017, NFR-SEC-006)",
+        )
+
+    def test_init_env_requires_issuer_email_for_non_local_profiles(self) -> None:
+        content = self._lib()
+        self.assertIn(
+            "require_env_vars PUBLIC_ENDPOINTS_CLUSTER_ISSUER_EMAIL",
+            content,
+            msg="public_endpoints_init_env must require PUBLIC_ENDPOINTS_CLUSTER_ISSUER_EMAIL for non-local profiles to prevent silent ACME registration failure (NFR-SEC-001)",
         )
 
     def test_ac018_lib_renders_network_policy(self) -> None:
@@ -251,35 +268,39 @@ class QualityGateTests(unittest.TestCase):
 class DestroyOrderingTests(unittest.TestCase):
     def test_ac020_destroy_deletes_certificate_before_issuer(self) -> None:
         content = _DESTROY_SCRIPT.read_text(encoding="utf-8")
-        self.assertIn(
-            "Certificate",
-            content,
-            msg="public_endpoints_destroy.sh must contain Certificate deletion (AC-020, NFR-REL-001)",
+        # Use regex to match actual kubectl delete commands, not comment text which also
+        # contains "Certificate" and "Issuer" (e.g. "# Certificate MUST be deleted before Issuer").
+        cert_match = re.search(r"\bdelete certificate\b", content, re.IGNORECASE)
+        issuer_match = re.search(r"\bdelete issuer\b", content, re.IGNORECASE)
+        self.assertIsNotNone(
+            cert_match,
+            msg="public_endpoints_destroy.sh must contain 'delete certificate' command (AC-020, NFR-REL-001)",
         )
-        self.assertIn(
-            "Issuer",
-            content,
-            msg="public_endpoints_destroy.sh must contain Issuer deletion (AC-020, NFR-REL-001)",
+        self.assertIsNotNone(
+            issuer_match,
+            msg="public_endpoints_destroy.sh must contain 'delete issuer' command (AC-020, NFR-REL-001)",
         )
-        cert_pos = content.index("Certificate")
-        issuer_pos = content.index("Issuer")
         self.assertLess(
-            cert_pos,
-            issuer_pos,
-            msg="Certificate deletion must appear before Issuer deletion in destroy script (AC-020, NFR-REL-001)",
+            cert_match.start(),  # type: ignore[union-attr]
+            issuer_match.start(),  # type: ignore[union-attr]
+            msg="Certificate deletion command must appear before Issuer deletion command in destroy script (AC-020, NFR-REL-001)",
         )
 
     def test_ac020_destroy_deletes_issuer_before_gateway_baseline(self) -> None:
         content = _DESTROY_SCRIPT.read_text(encoding="utf-8")
-        issuer_pos = content.index("Issuer")
+        issuer_match = re.search(r"\bdelete issuer\b", content, re.IGNORECASE)
+        self.assertIsNotNone(
+            issuer_match,
+            msg="public_endpoints_destroy.sh must contain 'delete issuer' command (AC-020, NFR-REL-001)",
+        )
         # Gateway baseline removal is identified by delete_helm_gateway_baseline or run_manifest_delete of gateway
         gateway_pos = content.find("delete_helm_gateway_baseline")
         if gateway_pos == -1:
             gateway_pos = content.find("gateway_manifest_path")
         self.assertGreater(
             gateway_pos,
-            issuer_pos,
-            msg="Issuer deletion must appear before gateway baseline removal in destroy script (AC-020, NFR-REL-001)",
+            issuer_match.start(),  # type: ignore[union-attr]
+            msg="Issuer deletion command must appear before gateway baseline removal in destroy script (AC-020, NFR-REL-001)",
         )
 
 

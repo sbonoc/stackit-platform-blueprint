@@ -27,8 +27,11 @@ if tooling_is_execution_enabled; then
   run_kubectl_with_active_access delete issuer "$PUBLIC_ENDPOINTS_CLUSTER_ISSUER_NAME" \
     -n "$PUBLIC_ENDPOINTS_NAMESPACE" --ignore-not-found --wait=false || true
   public_endpoints_wait_for_resource_absence "Issuer" "$PUBLIC_ENDPOINTS_CLUSTER_ISSUER_NAME" 30 "$PUBLIC_ENDPOINTS_NAMESPACE" || true
+  run_kubectl_with_active_access delete networkpolicy \
+    default-deny-ingress allow-public-https allow-certmanager-acme \
+    -n "$PUBLIC_ENDPOINTS_NAMESPACE" --ignore-not-found || true
 else
-  log_info "dry-run Certificate and Issuer delete skipped (set DRY_RUN=false to execute)"
+  log_info "dry-run Certificate, Issuer, and NetworkPolicy delete skipped (set DRY_RUN=false to execute)"
 fi
 
 case "$destroy_driver" in

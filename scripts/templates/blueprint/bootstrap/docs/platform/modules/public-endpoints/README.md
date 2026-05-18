@@ -47,13 +47,12 @@
 
 ## TLS Stack Execution Model
 
-The HTTPS listener requires a TLS certificate issued by cert-manager. The blueprint renders four additional manifests alongside the `GatewayClass`/`Gateway` baseline:
+The HTTPS listener requires a TLS certificate issued by cert-manager. The blueprint renders four additional resources alongside the `GatewayClass`/`Gateway` baseline:
 
 1. **Issuer** (`public-endpoints.issuer.yaml`) — a namespace-scoped cert-manager `Issuer`. For `stackit-*` profiles this is an ACME issuer using HTTP01 challenges routed through the shared `Gateway`. For `local-*` profiles this is a `selfSigned` issuer.
 2. **Certificate** (`public-endpoints.certificate.yaml`) — a cert-manager `Certificate` resource that references the `Issuer` and produces the TLS secret consumed by the `Gateway` HTTPS listener.
 3. **ClientTrafficPolicy** (embedded in `public-endpoints.yaml.tmpl`) — enforces TLS 1.2 minimum and prohibits TLS 1.0/1.1 on the HTTPS listener.
-4. **BackendTrafficPolicy** (`public-endpoints.tls-policy.yaml`) — adds `Strict-Transport-Security: max-age=31536000; includeSubDomains` to all HTTPS responses.
-5. **NetworkPolicy** manifests (`public-endpoints.networkpolicy.yaml`) — default-deny ingress for the `network` namespace with explicit allow for Envoy proxy pods on ports 80/443 and for cert-manager ACME HTTP01 challenge traffic.
+4. **NetworkPolicy** manifests (`public-endpoints.networkpolicy.yaml`) — default-deny ingress for the `network` namespace with explicit allow for Envoy proxy pods on ports 80/443 and for cert-manager ACME HTTP01 challenge traffic.
 
 The `Gateway` HTTPS listener references the TLS secret by name. cert-manager provisions and renews the secret automatically. The `renewBefore: 720h` field ensures renewal begins 30 days before expiry.
 
@@ -77,7 +76,20 @@ Port 80 remains open on the shared `Gateway` to support ACME HTTP01 challenges a
 
 ## HSTS Policy (NFR-SEC-006)
 
-`Strict-Transport-Security: max-age=31536000; includeSubDomains` is applied to all HTTPS responses via a `BackendTrafficPolicy`. For `stackit-prod`, be aware that once a browser pins this HSTS header, the domain cannot serve plain-text HTTP for at least one year without breaking browser access. For `stackit-dev` and `stackit-stage`, the staging ACME CA is not browser-trusted, so HSTS pinning does not propagate to user browsers.
+Envoy Gateway 1.x does not support gateway-level `Strict-Transport-Security` injection via `BackendTrafficPolicy` or `ClientTrafficPolicy`. Gateway-wide HSTS via `EnvoyPatchPolicy` is parked for a follow-up work item (see `AGENTS.backlog.md`).
+
+Consumer `HTTPRoute` authors should add HSTS using a `ResponseHeaderModifier` filter on their HTTPS routes:
+
+```yaml
+filters:
+  - type: ResponseHeaderModifier
+    responseHeaderModifier:
+      add:
+        - name: Strict-Transport-Security
+          value: "max-age=31536000; includeSubDomains"
+```
+
+For `stackit-prod`, once a browser pins the HSTS header the domain cannot serve plain-text HTTP for at least one year without breaking browser access. For `stackit-dev` and `stackit-stage`, the staging ACME CA is not browser-trusted, so HSTS pinning does not propagate to user browsers.
 
 ## Network Isolation (NFR-SEC-007)
 
@@ -101,6 +113,7 @@ The destroy script deletes resources in this order to avoid orphaned finalizers:
 
 1. `Certificate` — removed first so cert-manager stops managing the TLS secret.
 2. `Issuer` — removed after the Certificate is gone.
-3. Gateway baseline (GatewayClass/Gateway) — removed last.
+3. `NetworkPolicy` resources — removed to prevent blocking ingress if the namespace is reused.
+4. Gateway baseline (GatewayClass/Gateway) — removed last.
 
 During destroy, existing TLS sessions terminate as Envoy Gateway removes the listener. Plan a maintenance window before destroying in production environments.

@@ -37,7 +37,6 @@ namespace_manifest_path="$(public_endpoints_render_namespace_manifest)"
 gateway_manifest_path="$(public_endpoints_render_gateway_manifest)"
 issuer_manifest_path=""
 certificate_manifest_path=""
-tls_policy_manifest_path=""
 network_policy_manifest_path=""
 provision_status="applied"
 case "$provision_driver" in
@@ -47,7 +46,6 @@ argocd_application_chart)
   provision_status="deferred_to_deploy"
   issuer_manifest_path="$(public_endpoints_render_issuer_manifest)"
   certificate_manifest_path="$(public_endpoints_render_certificate_manifest)"
-  tls_policy_manifest_path="$(public_endpoints_render_gateway_tls_policy_manifest)"
   network_policy_manifest_path="$(public_endpoints_render_network_policy_manifests)"
   log_info "deferring public-endpoints ArgoCD manifest apply to deploy phase path=$provision_path"
   ;;
@@ -66,11 +64,9 @@ helm)
   run_manifest_apply "$gateway_manifest_path"
   issuer_manifest_path="$(public_endpoints_render_issuer_manifest)"
   certificate_manifest_path="$(public_endpoints_render_certificate_manifest)"
-  tls_policy_manifest_path="$(public_endpoints_render_gateway_tls_policy_manifest)"
   network_policy_manifest_path="$(public_endpoints_render_network_policy_manifests)"
   run_manifest_apply "$issuer_manifest_path"
   run_manifest_apply "$certificate_manifest_path"
-  run_manifest_apply "$tls_policy_manifest_path"
   run_manifest_apply "$network_policy_manifest_path"
   provision_status="applied"
   ;;
