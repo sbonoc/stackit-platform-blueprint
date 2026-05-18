@@ -5,7 +5,7 @@ metadata:
   version: 1.0.0
 spec:
   module_id: public-endpoints
-  purpose: "Provision Gateway API public edge baseline for marketplace UI and API surfaces."
+  purpose: "Provision Gateway API public edge baseline for consumer application UI, API, and auth surfaces."
   enabled_by_default: false
   enable_flag: PUBLIC_ENDPOINTS_ENABLED
 
@@ -33,6 +33,10 @@ spec:
       - PUBLIC_ENDPOINTS_HELM_RELEASE
       - PUBLIC_ENDPOINTS_HELM_CHART
       - PUBLIC_ENDPOINTS_HELM_CHART_VERSION
+      - PUBLIC_ENDPOINTS_CLUSTER_ISSUER_NAME
+      - PUBLIC_ENDPOINTS_CLUSTER_ISSUER_EMAIL
+      - PUBLIC_ENDPOINTS_ACME_SERVER
+      - PUBLIC_ENDPOINTS_GATEWAY_TLS_SECRET_NAME
 
   outputs:
     produced:

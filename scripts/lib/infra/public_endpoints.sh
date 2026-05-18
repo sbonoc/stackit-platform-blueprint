@@ -16,11 +16,23 @@ public_endpoints_seed_env_defaults() {
   set_default_env PUBLIC_ENDPOINTS_HELM_RELEASE "blueprint-public-endpoints"
   set_default_env PUBLIC_ENDPOINTS_HELM_CHART "oci://docker.io/envoyproxy/gateway-helm"
   set_default_env PUBLIC_ENDPOINTS_HELM_CHART_VERSION "$PUBLIC_ENDPOINTS_HELM_CHART_VERSION_PIN"
+  set_default_env PUBLIC_ENDPOINTS_CLUSTER_ISSUER_NAME "letsencrypt-public-endpoints"
+  set_default_env PUBLIC_ENDPOINTS_CLUSTER_ISSUER_EMAIL ""
+  set_default_env PUBLIC_ENDPOINTS_GATEWAY_TLS_SECRET_NAME "public-endpoints-gateway-tls"
 }
 
 public_endpoints_init_env() {
   public_endpoints_seed_env_defaults
+  # Set profile-aware ACME server default
+  if [[ "$BLUEPRINT_PROFILE" == "stackit-prod" ]]; then
+    set_default_env PUBLIC_ENDPOINTS_ACME_SERVER "https://acme-v02.api.letsencrypt.org/directory"
+  elif [[ "$BLUEPRINT_PROFILE" == stackit-* ]]; then
+    set_default_env PUBLIC_ENDPOINTS_ACME_SERVER "https://acme-staging-v02.api.letsencrypt.org/directory"
+  fi
   require_env_vars PUBLIC_ENDPOINTS_BASE_DOMAIN
+  if [[ "$BLUEPRINT_PROFILE" != local-* ]]; then
+    require_env_vars PUBLIC_ENDPOINTS_CLUSTER_ISSUER_EMAIL
+  fi
 }
 
 public_endpoints_gateway_manifest_content() {
@@ -29,7 +41,9 @@ public_endpoints_gateway_manifest_content() {
     "infra/gateway/public-endpoints.yaml.tmpl" \
     "PUBLIC_ENDPOINTS_NAMESPACE=$PUBLIC_ENDPOINTS_NAMESPACE" \
     "PUBLIC_ENDPOINTS_GATEWAY_NAME=$PUBLIC_ENDPOINTS_GATEWAY_NAME" \
-    "PUBLIC_ENDPOINTS_GATEWAY_CLASS_NAME=$PUBLIC_ENDPOINTS_GATEWAY_CLASS_NAME"
+    "PUBLIC_ENDPOINTS_GATEWAY_CLASS_NAME=$PUBLIC_ENDPOINTS_GATEWAY_CLASS_NAME" \
+    "PUBLIC_ENDPOINTS_BASE_DOMAIN=$PUBLIC_ENDPOINTS_BASE_DOMAIN" \
+    "PUBLIC_ENDPOINTS_GATEWAY_TLS_SECRET_NAME=$PUBLIC_ENDPOINTS_GATEWAY_TLS_SECRET_NAME"
 }
 
 public_endpoints_namespace_manifest_file() {
@@ -73,6 +87,151 @@ public_endpoints_render_values_file() {
   render_optional_module_values_file \
     "public-endpoints" \
     "infra/local/helm/public-endpoints/values.yaml"
+}
+
+public_endpoints_issuer_manifest_file() {
+  printf '%s/artifacts/infra/rendered/public-endpoints.issuer.yaml' "$ROOT_DIR"
+}
+
+public_endpoints_certificate_manifest_file() {
+  printf '%s/artifacts/infra/rendered/public-endpoints.certificate.yaml' "$ROOT_DIR"
+}
+
+public_endpoints_network_policy_manifest_file() {
+  printf '%s/artifacts/infra/rendered/public-endpoints.networkpolicy.yaml' "$ROOT_DIR"
+}
+
+public_endpoints_issuer_type() {
+  if is_local_profile; then
+    printf 'selfsigned'
+  else
+    printf 'acme'
+  fi
+}
+
+public_endpoints_render_issuer_manifest() {
+  local target_path
+  target_path="$(public_endpoints_issuer_manifest_file)"
+  ensure_dir "$(dirname "$target_path")"
+  if is_local_profile; then
+    cat >"$target_path" <<EOF
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: ${PUBLIC_ENDPOINTS_CLUSTER_ISSUER_NAME}
+  namespace: ${PUBLIC_ENDPOINTS_NAMESPACE}
+spec:
+  selfSigned: {}
+EOF
+  else
+    cat >"$target_path" <<EOF
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: ${PUBLIC_ENDPOINTS_CLUSTER_ISSUER_NAME}
+  namespace: ${PUBLIC_ENDPOINTS_NAMESPACE}
+spec:
+  acme:
+    server: ${PUBLIC_ENDPOINTS_ACME_SERVER}
+    email: ${PUBLIC_ENDPOINTS_CLUSTER_ISSUER_EMAIL}
+    privateKeySecretRef:
+      name: ${PUBLIC_ENDPOINTS_CLUSTER_ISSUER_NAME}-acme-key
+    solvers:
+      - http01:
+          gatewayHTTPRoute:
+            parentRefs:
+              - name: ${PUBLIC_ENDPOINTS_GATEWAY_NAME}
+                namespace: ${PUBLIC_ENDPOINTS_NAMESPACE}
+EOF
+  fi
+  log_metric "public_endpoints_issuer_manifest_render_total" "1" "target=$target_path type=$(public_endpoints_issuer_type)" >&2
+  log_info "rendered public-endpoints Issuer manifest: $target_path" >&2
+  printf '%s\n' "$target_path"
+}
+
+public_endpoints_render_certificate_manifest() {
+  local target_path
+  target_path="$(public_endpoints_certificate_manifest_file)"
+  ensure_dir "$(dirname "$target_path")"
+  cat >"$target_path" <<EOF
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: ${PUBLIC_ENDPOINTS_GATEWAY_NAME}-tls
+  namespace: ${PUBLIC_ENDPOINTS_NAMESPACE}
+spec:
+  secretName: ${PUBLIC_ENDPOINTS_GATEWAY_TLS_SECRET_NAME}
+  issuerRef:
+    name: ${PUBLIC_ENDPOINTS_CLUSTER_ISSUER_NAME}
+    kind: Issuer
+  dnsNames:
+    - ${PUBLIC_ENDPOINTS_BASE_DOMAIN}
+  renewBefore: 720h
+EOF
+  log_metric "public_endpoints_certificate_manifest_render_total" "1" "target=$target_path domain=$PUBLIC_ENDPOINTS_BASE_DOMAIN" >&2
+  log_info "rendered public-endpoints Certificate manifest: $target_path" >&2
+  printf '%s\n' "$target_path"
+}
+
+public_endpoints_render_network_policy_manifests() {
+  local target_path
+  target_path="$(public_endpoints_network_policy_manifest_file)"
+  ensure_dir "$(dirname "$target_path")"
+  cat >"$target_path" <<EOF
+# Default-deny all ingress to the network namespace — explicit allows follow.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: ${PUBLIC_ENDPOINTS_NAMESPACE}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+# Allow public traffic on port 80 and 443 to Envoy proxy pods.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-public-https
+  namespace: ${PUBLIC_ENDPOINTS_NAMESPACE}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: proxy
+  policyTypes:
+    - Ingress
+  ingress:
+    - ports:
+        - protocol: TCP
+          port: 80
+        - protocol: TCP
+          port: 443
+---
+# Allow cert-manager namespace to reach Envoy pods for ACME HTTP01 challenge.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-certmanager-acme
+  namespace: ${PUBLIC_ENDPOINTS_NAMESPACE}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: proxy
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: cert-manager
+      ports:
+        - protocol: TCP
+          port: 80
+EOF
+  log_metric "public_endpoints_network_policy_manifest_render_total" "1" "target=$target_path namespace=$PUBLIC_ENDPOINTS_NAMESPACE" >&2
+  log_info "rendered public-endpoints NetworkPolicy manifests: $target_path" >&2
+  printf '%s\n' "$target_path"
 }
 
 public_endpoints_gateway_api_crd_names() {

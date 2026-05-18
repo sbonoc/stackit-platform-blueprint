@@ -35,6 +35,11 @@ argocd_application_chart)
   public_endpoints_wait_for_gateway_api_crds
   gateway_api_wait_status="ready"
   run_manifest_apply "$gateway_manifest_path"
+  # Apply TLS companion manifests rendered during apply phase.
+  # cert-manager CRDs are available after the ArgoCD application chart deploys cert-manager.
+  run_manifest_apply "$(public_endpoints_issuer_manifest_file)"
+  run_manifest_apply "$(public_endpoints_certificate_manifest_file)"
+  run_manifest_apply "$(public_endpoints_network_policy_manifest_file)"
   deploy_status="applied_via_argocd_manifest"
   ;;
 helm)

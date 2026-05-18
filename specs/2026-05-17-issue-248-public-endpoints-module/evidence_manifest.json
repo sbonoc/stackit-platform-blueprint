@@ -1,0 +1,27 @@
+{
+  "manifest_version": 1,
+  "work_item": "2026-05-17-issue-248-public-endpoints-module",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-05-17T00:00:00Z",
+  "traceability_keeper_run_at_utc": "2026-05-18T00:00:00Z",
+  "traceability_keeper_status": "clean",
+  "gap_count": 0,
+  "gaps_blocking_publish": false,
+  "files": [
+    {"path": "scripts/lib/infra/public_endpoints.sh", "sha256": "2b755c819e38b16b611338de08b5113ce735e2fb8d2348a7e601e1d46d23201a", "bytes": 14078},
+    {"path": "scripts/bin/infra/public_endpoints_apply.sh", "sha256": "0192b22f1f53215b592843661065e8061bc6617395bd91cf66196a53ece18ee4", "bytes": 4758},
+    {"path": "scripts/bin/infra/public_endpoints_destroy.sh", "sha256": "af7fe906ba8ca12d6946738817e47ffa6c83df048438747fa13645522c5fe5ec", "bytes": 3303},
+    {"path": "scripts/bin/infra/public_endpoints_smoke.sh", "sha256": "d4f8ac31b370c8a57cb91470e5a66a323951e4834f79f244a8ceb3fd97cb7d9a", "bytes": 7218},
+    {"path": "scripts/templates/infra/bootstrap/infra/gateway/public-endpoints.yaml.tmpl", "sha256": "8f6fd52e454921f21910fb9553357287b35c0099a97da35ab6ed334c26f73022", "bytes": 1630},
+    {"path": "infra/local/helm/core/cert-manager.values.yaml", "sha256": "4c4652ecfb6c10d1749aef5e8b3a892b40be90d73bfecb2e23f60268c3018f72", "bytes": 234},
+    {"path": "scripts/templates/infra/bootstrap/infra/local/helm/core/cert-manager.values.yaml", "sha256": "4c4652ecfb6c10d1749aef5e8b3a892b40be90d73bfecb2e23f60268c3018f72", "bytes": 234},
+    {"path": "blueprint/modules/public-endpoints/module.contract.yaml", "sha256": "c4d8312a648cea1e9439cf475a9e8e669261cfb05b526d5fc9021d053f7cebe7", "bytes": 1909},
+    {"path": "infra/gitops/argocd/overlays/dev/appproject-edge.yaml", "sha256": "6f5f8157290e5f5c49c9bec063d56d3c848f012ee4011079da56ea0749d3087c", "bytes": 1857},
+    {"path": "infra/gitops/argocd/overlays/stage/appproject-edge.yaml", "sha256": "27d050bc08fcb181274c236734861782d584d17d12efeba7fb54695c5c4ef3e4", "bytes": 1861},
+    {"path": "infra/gitops/argocd/overlays/prod/appproject-edge.yaml", "sha256": "95d3adb35e766f1ef0603da8c14fbd2ec0ed9d4bc26bb6aecbf4cd45fc042c9f", "bytes": 1859},
+    {"path": "infra/gitops/argocd/overlays/local/appproject-edge.yaml", "sha256": "05b6e34478fe995e68459707ecf3e644c75918538c7c993a09a3a2ad761ad6f8", "bytes": 1861},
+    {"path": "tests/infra/modules/public-endpoints/test_contract.py", "sha256": "30671feeaec5d540fef29e2d53f7d99c2d09a3da92640aa7bf09dcd732cde577", "bytes": 15931},
+    {"path": "docs/platform/modules/public-endpoints/README.md", "sha256": "30cc39992c9a1f093c5daa8c01d01b9f3bc1970cd2781dcfed3327bc5bbabdee", "bytes": 8402},
+    {"path": "docs/blueprint/architecture/decisions/ADR-issue-248-public-endpoints-module.md", "sha256": "5cb0090a6e670b57cce366435b01cb5a59fb0da4af8884acb674d41bc317d3f3", "bytes": 12211}
+  ]
+}

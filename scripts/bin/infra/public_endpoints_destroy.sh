@@ -18,6 +18,22 @@ destroy_driver="$OPTIONAL_MODULE_EXECUTION_DRIVER"
 destroy_path="$OPTIONAL_MODULE_EXECUTION_PATH"
 gateway_manifest_path="$(public_endpoints_render_gateway_manifest)"
 destroy_path_components=()
+
+# NFR-REL-001: Certificate MUST be deleted before Issuer, Issuer before gateway baseline.
+if tooling_is_execution_enabled; then
+  run_kubectl_with_active_access delete certificate "${PUBLIC_ENDPOINTS_GATEWAY_NAME}-tls" \
+    -n "$PUBLIC_ENDPOINTS_NAMESPACE" --ignore-not-found --wait=false || true
+  public_endpoints_wait_for_resource_absence "Certificate" "${PUBLIC_ENDPOINTS_GATEWAY_NAME}-tls" 30 "$PUBLIC_ENDPOINTS_NAMESPACE" || true
+  run_kubectl_with_active_access delete issuer "$PUBLIC_ENDPOINTS_CLUSTER_ISSUER_NAME" \
+    -n "$PUBLIC_ENDPOINTS_NAMESPACE" --ignore-not-found --wait=false || true
+  public_endpoints_wait_for_resource_absence "Issuer" "$PUBLIC_ENDPOINTS_CLUSTER_ISSUER_NAME" 30 "$PUBLIC_ENDPOINTS_NAMESPACE" || true
+  run_kubectl_with_active_access delete networkpolicy \
+    default-deny-ingress allow-public-https allow-certmanager-acme \
+    -n "$PUBLIC_ENDPOINTS_NAMESPACE" --ignore-not-found || true
+else
+  log_info "dry-run Certificate, Issuer, and NetworkPolicy delete skipped (set DRY_RUN=false to execute)"
+fi
+
 case "$destroy_driver" in
 argocd_application_chart)
   if tooling_is_execution_enabled; then
