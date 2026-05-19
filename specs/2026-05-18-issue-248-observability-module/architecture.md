@@ -45,9 +45,8 @@ flowchart TD
     B -->|Prometheus remote-write\nBasicAuth from Secret| C[STACKIT Observability\nmetrics_push_url]
     B -->|Loki push\nBasicAuth from Secret| D[STACKIT Observability\nlogs_push_url]
     B -->|OTLP/gRPC\nBasicAuth from Secret| E[STACKIT Observability\ntraces_push_url]
-    F[foundation TF\nstackit_observability_instance] -->|instance_id, credential| G[blueprint-observability-auth\nK8s Secret]
-    G -->|extraEnvFrom| B
-    H[foundation TF outputs\nmetrics/logs/traces_push_url] -->|env vars via ConfigMap| B
+    F[foundation TF\nstackit_observability_instance] -->|instance_id, credential, push_urls| G[blueprint-observability-auth\nK8s Secret]
+    G -->|extraEnvFrom\nusername, password, METRICS/LOGS/TRACES_PUSH_URL| B
 ```
 
 ### Local Lane (existing, unchanged)
@@ -73,9 +72,9 @@ sequenceDiagram
 
     CLI->>TF: stackit_foundation_apply (observability_enabled=true)
     TF-->>Shell: instance_id, credential, push_urls
-    Shell->>K8s: kubectl apply blueprint-observability-auth Secret
+    Shell->>K8s: kubectl apply blueprint-observability-auth Secret (username, password, METRICS/LOGS/TRACES_PUSH_URL)
     Shell->>Shell: write observability_runtime.env (all keys)
-    Argo->>K8s: kubectl apply observability.yaml (ConfigMap + Application)
+    Argo->>K8s: kubectl apply observability.yaml (metadata ConfigMap + Application)
     K8s->>ArgoCD: ArgoCD watches Application
     ArgoCD->>K8s: helm upgrade-install otel-collector with STACKIT values
 ```
@@ -83,11 +82,11 @@ sequenceDiagram
 ## Non-Functional Architecture Notes
 - Security: STACKIT credential password delivered only via K8s Secret to otel-collector pod env vars (`extraEnvFrom`). Push URLs are non-sensitive and may appear in state file. `blueprint-observability-auth` Secret is removed on destroy.
 - Observability: The otel-collector deployment itself MUST expose a health check endpoint (port 13133, `/`) for K8s readiness probes so ArgoCD health detection can confirm the deployment is healthy.
-- Reliability and rollback: ArgoCD `syncPolicy.automated.selfHeal=true` continuously reconciles the collector. On destroy, ArgoCD Application is deleted first (via manifest delete), then foundation TF destroys the STACKIT instance and credential. The Secret is removed in the same destroy step.
+- Reliability and rollback: ArgoCD `syncPolicy.automated.selfHeal=true` continuously reconciles the collector. On destroy, `observability_delete_runtime_secret()` removes `blueprint-observability-auth` first, then `optional_module_destroy_foundation_contract` destroys the STACKIT instance and credential via foundation TF.
 - Monitoring/alerting: Module smoke (`infra-observability-smoke`) validates `otel_endpoint` format and the presence of all required state keys. Full end-to-end signal delivery to STACKIT (that data actually arrives) is out of scope for the smoke check — that requires STACKIT console verification.
 
 ## Risks and Tradeoffs
 - Risk 1 (Q-1 — resolved 2026-05-19): `stackit_observability_instance` in provider v0.88.0 exposes `metrics_push_url`, `logs_push_url`, `otlp_grpc_traces_url` as computed attributes (confirmed from provider source). No URL construction fallback needed. Decision recorded in PR #308 comment.
 - Risk 2 (otel-collector values complexity): Configuring BasicAuth exporters in the OpenTelemetry Collector Helm chart requires careful `extraEnvFrom` + env-var substitution wiring. Mitigation: follow agentic-graphrag Langfuse pattern; validated locally before STACKIT.
 - Tradeoff 1: In-cluster otel-collector on STACKIT adds a Kubernetes workload (CPU/memory). This is acceptable given the collector is lightweight and the abstraction benefit (identical consumer contract on both lanes) outweighs the resource cost.
-- Tradeoff 2: Push URL env vars for the collector config must be injected at deploy time (they come from the runtime state written by the apply step). The ArgoCD Application manifest uses static Helm values that reference env vars injected from the Secret + a ConfigMap. This means the apply step must write the push URLs to a ConfigMap before deploy. (See FR-007 — this detail is resolved in the implementation slice.)
+- Tradeoff 2: Push URL env vars are bundled into `blueprint-observability-auth` Secret alongside the credential (username/password) by `observability_reconcile_runtime_secret()` after foundation TF outputs are available. The ArgoCD Application uses static inline Helm values; push URLs and credentials reach the collector exclusively via `extraEnvFrom` from the single Secret. No separate ConfigMap is needed.
