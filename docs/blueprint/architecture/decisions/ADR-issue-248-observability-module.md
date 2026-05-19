@@ -1,6 +1,7 @@
 # ADR — Observability Module: In-Cluster OTEL Collector on STACKIT Lane
 
-- **Status:** proposed
+- **Status:** approved
+- **ADR technical decision sign-off:** approved
 - **Work item:** issue-248-observability-module
 - **Date:** 2026-05-18
 - **Author:** sbonoc
