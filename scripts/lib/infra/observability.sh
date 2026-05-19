@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+source "$ROOT_DIR/scripts/lib/infra/stackit_foundation_outputs.sh"
+source "$ROOT_DIR/scripts/lib/infra/fallback_runtime.sh"
+
 observability_init_env() {
   set_default_env OBSERVABILITY_NAMESPACE "observability"
   set_default_env OTEL_COLLECTOR_SERVICE_DNS "otel-collector.observability.svc.cluster.local"
@@ -33,4 +36,36 @@ observability_stackit_grafana_url() {
     return 0
   fi
   printf 'https://grafana.%s.stackit.example.invalid' "$(profile_environment)"
+}
+
+observability_metrics_push_url() {
+  stackit_foundation_output_value_or_default "observability_metrics_push_url" ""
+}
+
+observability_logs_push_url() {
+  stackit_foundation_output_value_or_default "observability_logs_push_url" ""
+}
+
+observability_traces_push_url() {
+  stackit_foundation_output_value_or_default "observability_traces_push_url" ""
+}
+
+observability_api_key() {
+  printf '%s' ""
+}
+
+observability_secret_name() {
+  printf 'blueprint-observability-auth'
+}
+
+observability_reconcile_runtime_secret() {
+  apply_optional_module_secret_from_literals \
+    "${OBSERVABILITY_NAMESPACE:-observability}" \
+    "$(observability_secret_name)" \
+    "username=${OBSERVABILITY_USERNAME:-}" \
+    "password=$(stackit_foundation_output_value_or_default "observability_credential_password" "")"
+}
+
+observability_delete_runtime_secret() {
+  delete_optional_module_secret "${OBSERVABILITY_NAMESPACE:-observability}" "$(observability_secret_name)"
 }

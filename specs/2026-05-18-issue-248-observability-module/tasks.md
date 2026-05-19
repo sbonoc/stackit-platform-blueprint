@@ -1,22 +1,22 @@
 # Tasks
 
 ## Gate Checks (Required Before Implementation)
-- [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`
-- [ ] G-002 Confirm open questions and unresolved alternatives are `0` (Q-1 must be resolved)
-- [ ] G-003 Confirm required sign-offs are approved (Product, Architecture, Security, Operations)
-- [ ] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
-- [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
+- [x] G-001 Confirm `SPEC_READY=true` in `spec.md`
+- [x] G-002 Confirm open questions and unresolved alternatives are `0` (Q-1 must be resolved)
+- [x] G-003 Confirm required sign-offs are approved (Product, Architecture, Security, Operations)
+- [x] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
+- [x] G-005 Confirm `Implementation Stack Profile` section is fully populated
 
 ## Implementation — Slice 1 (red: failing tests)
-- [ ] T-001 Add `tests/infra/modules/observability/test_contract.py` to `scripts/lib/quality/test_pyramid_contract.json` under `unit` scope
-- [ ] T-002 Write `tests/infra/modules/observability/test_contract.py` with ≥ 15 failing assertions
+- [x] T-001 Add `tests/infra/modules/observability/test_contract.py` to `scripts/lib/quality/test_pyramid_contract.json` under `unit` scope
+- [x] T-002 Write `tests/infra/modules/observability/test_contract.py` with ≥ 15 failing assertions
 
 ## Implementation — Slice 2 (green: foundation TF + shell helpers)
-- [ ] T-003 Verify Q-1: confirm exact `stackit_observability_instance` push URL attribute names in provider v0.88.0 via `terraform providers schema -json`
-- [ ] T-004 Extend `infra/cloud/stackit/terraform/foundation/outputs.tf` with `observability_metrics_push_url`, `observability_logs_push_url`, `observability_traces_push_url`
-- [ ] T-005 Sync bootstrap template copy `scripts/templates/infra/bootstrap/infra/cloud/stackit/terraform/foundation/outputs.tf` with same additions
-- [ ] T-006 Add `observability_metrics_push_url()`, `observability_logs_push_url()`, `observability_traces_push_url()`, `observability_api_key()` to `scripts/lib/infra/observability.sh`
-- [ ] T-007 Add `observability_reconcile_runtime_secret()` and `observability_delete_runtime_secret()` to `scripts/lib/infra/observability.sh`
+- [x] T-003 Verify Q-1: confirm exact `stackit_observability_instance` push URL attribute names in provider v0.88.0 via `terraform providers schema -json`
+- [x] T-004 Extend `infra/cloud/stackit/terraform/foundation/outputs.tf` with `observability_metrics_push_url`, `observability_logs_push_url`, `observability_traces_push_url`
+- [x] T-005 Sync bootstrap template copy `scripts/templates/infra/bootstrap/infra/cloud/stackit/terraform/foundation/outputs.tf` with same additions
+- [x] T-006 Add `observability_metrics_push_url()`, `observability_logs_push_url()`, `observability_traces_push_url()`, `observability_api_key()` to `scripts/lib/infra/observability.sh`
+- [x] T-007 Add `observability_reconcile_runtime_secret()` and `observability_delete_runtime_secret()` to `scripts/lib/infra/observability.sh`
 
 ## Implementation — Slice 3 (green: STACKIT otel-collector + ArgoCD)
 - [ ] T-008 Create `infra/cloud/stackit/helm/observability/otel-collector.values.yaml` with OTLP receiver, batch processor, `prometheusremotewrite` + `loki` + `otlp/stackit` exporters, and `extraEnvFrom` referencing `blueprint-observability-auth` Secret
