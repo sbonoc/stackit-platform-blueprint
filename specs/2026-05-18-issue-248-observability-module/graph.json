@@ -60,6 +60,8 @@
     { "from": "FR-004", "to": "FR-005", "relation": "enables" },
     { "from": "FR-004", "to": "FR-006", "relation": "enables" },
     { "from": "FR-007", "to": "FR-008", "relation": "enables" },
-    { "from": "FR-005", "to": "FR-009", "relation": "enables" }
+    { "from": "FR-005", "to": "FR-009", "relation": "enables" },
+    { "from": "FR-011", "to": "FR-012", "relation": "enables" },
+    { "from": "NFR-A11Y-001", "to": "AC-011", "relation": "constrains" }
   ]
 }

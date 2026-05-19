@@ -21,6 +21,7 @@
 | NFR-OBS-001 | SDD-C-010 | n/a | OTEL endpoint same DNS on both lanes | `observability.sh` `observability_init_env()`; both apply branches | `test_contract.py` — otel_endpoint format check | README — OTEL contract | `observability_runtime.env` otel_endpoint value |
 | NFR-REL-001 | SDD-C-007 | n/a | ArgoCD selfHeal | `infra/gitops/argocd/optional/{dev,stage,prod}/observability.yaml` | `test_contract.py` — selfHeal: true in YAML | architecture.md | ArgoCD Application health |
 | NFR-OPS-001 | SDD-C-010 | n/a | state file non-sensitive push URLs | `scripts/bin/infra/observability_apply.sh` | `test_contract.py` — state key names | README | `observability_runtime.env` |
+| NFR-A11Y-001 | n/a | n/a | N/A — no UI or frontend changes | n/a | T-A01 marked N/A in tasks.md | n/a | n/a |
 | AC-001 | SDD-C-012 | n/a | state file structure | `observability_apply.sh` | `test_contract.py` | README | `observability_runtime.env` |
 | AC-002 | SDD-C-012 | n/a | otel_endpoint value | `observability.sh` | `test_contract.py` | README | `observability_runtime.env` |
 | AC-003 | SDD-C-012 | n/a | smoke pass | `observability_smoke.sh` | smoke exit 0 | README | `observability_smoke.env` status=passed |
@@ -52,4 +53,4 @@
 - Hardening review export: `hardening_review.md`
 
 ## Open Risks and Follow-Ups
-- Q-1 (TF attribute names): resolved at Slice 2; outcome recorded in ADR.
+- Q-1 (TF attribute names): resolved 2026-05-19 — `metrics_push_url`, `logs_push_url`, `otlp_grpc_traces_url` confirmed in provider v0.88.0. Recorded in ADR and PR #308 comment.

@@ -5,11 +5,11 @@
      SPEC_READY=true: implementation gate — all sign-offs required; unlocks coding. -->
 - SPEC_READY: false
 - SPEC_PRODUCT_READY: false
-- Open questions count: 1
+- Open questions count: 0
 - Unresolved alternatives count: 0
 - Unresolved TODO markers count: 0
 - Pending assumptions count: 0
-- Open clarification markers count: 1
+- Open clarification markers count: 0
 - Product sign-off: pending
 - Architecture sign-off: pending
 - Security sign-off: pending
@@ -45,7 +45,7 @@
 
 ### Functional Requirements (Normative)
 
-- FR-001 MUST extend `infra/cloud/stackit/terraform/foundation/outputs.tf` and its bootstrap template copy `scripts/templates/infra/bootstrap/infra/cloud/stackit/terraform/foundation/outputs.tf` to expose the following STACKIT Observability instance push-URL outputs: `observability_metrics_push_url`, `observability_logs_push_url`, `observability_traces_push_url` (exact TF resource attribute names subject to Q-1 verification). Each output MUST be conditional on `var.observability_enabled` and MUST be non-sensitive (push URLs contain no credential material).
+- FR-001 MUST extend `infra/cloud/stackit/terraform/foundation/outputs.tf` and its bootstrap template copy `scripts/templates/infra/bootstrap/infra/cloud/stackit/terraform/foundation/outputs.tf` to expose the following STACKIT Observability instance push-URL outputs: `observability_metrics_push_url` (from `stackit_observability_instance.foundation[0].metrics_push_url`), `observability_logs_push_url` (from `stackit_observability_instance.foundation[0].logs_push_url`), `observability_traces_push_url` (from `stackit_observability_instance.foundation[0].otlp_grpc_traces_url`). Each output MUST be conditional on `var.observability_enabled` and MUST be non-sensitive (push URLs contain no credential material).
 - FR-002 MUST add three helper functions to `scripts/lib/infra/observability.sh`: `observability_metrics_push_url()`, `observability_logs_push_url()`, `observability_traces_push_url()`. On the STACKIT lane each MUST source from the corresponding foundation output via `stackit_foundation_output_value_or_default`; on the local lane each MUST return the respective OTEL-collector-local push path (`http://otel-collector.observability.svc.cluster.local:8889/api/v1/write` for metrics, `http://otel-collector.observability.svc.cluster.local:3500/loki/api/v1/push` for logs, `http://otel-collector.observability.svc.cluster.local:4317` for traces).
 - FR-003 MUST add `observability_api_key()` helper to `scripts/lib/infra/observability.sh` returning the STACKIT credential password from `stackit_foundation_output_value_or_default "observability_credential_password" ""` on STACKIT lane, and empty string on local lane (in-cluster collector requires no auth).
 - FR-004 MUST add `observability_reconcile_runtime_secret()` and `observability_delete_runtime_secret()` to `scripts/lib/infra/observability.sh`. `reconcile_runtime_secret()` MUST write a K8s Secret named `blueprint-observability-auth` in `$OBSERVABILITY_NAMESPACE` containing keys `username` (from `stackit_foundation_output_value_or_default "observability_credential_username"`) and `password` (from `stackit_foundation_output_value_or_default "observability_credential_password"`). `delete_runtime_secret()` MUST remove this Secret on destroy.
@@ -69,13 +69,7 @@
 
 ## Open Questions
 
-> **[NEEDS CLARIFICATION]** Q-1: What are the exact attribute names on `stackit_observability_instance` in STACKIT Terraform provider v0.88.0 for the push URL endpoints (metrics, logs, traces)?
->
-> **Options:**
-> - **A)** `metrics_push_url`, `logs_push_url`, `traces_push_url` — most likely based on STACKIT provider naming conventions; verify by running `terraform -chdir=infra/cloud/stackit/terraform/foundation providers schema -json | python3 -c "import sys,json; s=json.load(sys.stdin); print(json.dumps(list(s['provider_schemas']['registry.terraform.io/stackitcloud/stackit']['resource_schemas']['stackit_observability_instance']['block']['attributes'].keys()), indent=2))"` (agent recommendation)
-> - **B)** Attributes are not exposed by provider v0.88.0 — push URLs must be constructed from instance ID using the documented STACKIT Observability URL pattern `https://{instance_id}.{signal}.{region}.onstackit.cloud/...`
->
-> **Agent recommendation:** Option A — verify attribute names first; fall back to Option B URL construction only if attributes are absent. If Option B is required, add a `observability_compute_push_url()` helper that constructs from instance_id + region + signal type, and mark the TF attribute gap as a backlog item for when the provider exposes them.
+All questions resolved. See PR #308 comment for Q-1 resolution record.
 
 ## Normative Option Decision
 
@@ -90,8 +84,8 @@
 
 - Option A: Source push URLs from foundation TF outputs (`stackit_observability_instance.foundation[0].metrics_push_url` etc.) — preferred if attributes exist.
 - Option B: Compute push URLs by convention from instance ID and region (URL pattern construction) — fallback if TF attributes are absent in v0.88.0.
-- Selected option: OPTION_A (pending Q-1 verification; fall back to OPTION_B if needed)
-- Rationale: TF-sourced URLs are authoritative and immune to URL pattern drift. Convention-computed URLs are acceptable as a fallback given STACKIT's stable URL scheme.
+- Selected option: OPTION_A
+- Rationale: TF-sourced URLs are authoritative and immune to URL pattern drift. Q-1 verified against provider v0.88.0 source: `metrics_push_url`, `logs_push_url`, and `otlp_grpc_traces_url` all exist as computed attributes on `stackit_observability_instance`. No fallback needed. Decision recorded in PR #308 comment 2026-05-19.
 
 ## Contract Changes (Normative)
 - Config/Env contract: `blueprint/modules/observability/module.contract.yaml` — add `OBSERVABILITY_LOGS_ENDPOINT`, `OBSERVABILITY_METRICS_ENDPOINT`, `OBSERVABILITY_TRACES_ENDPOINT`, `OBSERVABILITY_API_KEY` to `outputs.produced`; add `OBSERVABILITY_USERNAME` to `optional_env`

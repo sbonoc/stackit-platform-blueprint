@@ -39,4 +39,6 @@ The reference architecture in `sbonoc/agentic-graphrag` uses an OTEL Collector a
 
 ## Open Questions
 
-- **Q-1 (resolved at Slice 2):** Exact TF attribute names for push URLs on `stackit_observability_instance` in provider v0.88.0. Agent recommendation: `metrics_push_url`, `logs_push_url`, `traces_push_url`. Fallback: compute from instance_id + region using STACKIT Observability URL pattern.
+All questions resolved.
+
+- **Q-1 (resolved 2026-05-19, PR #308):** Verified against provider v0.88.0 source. Confirmed attributes: `metrics_push_url` (Prometheus remote write), `logs_push_url` (Loki push), `otlp_grpc_traces_url` (OTLP gRPC traces — selected over `otlp_http_traces_url` and `jaeger_traces_url` to keep the full pipeline OTLP gRPC end-to-end with no protocol transcoding). No URL construction fallback required.
