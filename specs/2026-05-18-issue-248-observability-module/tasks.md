@@ -19,10 +19,10 @@
 - [x] T-007 Add `observability_reconcile_runtime_secret()` and `observability_delete_runtime_secret()` to `scripts/lib/infra/observability.sh`
 
 ## Implementation — Slice 3 (green: STACKIT otel-collector + ArgoCD)
-- [ ] T-008 Create `infra/cloud/stackit/helm/observability/otel-collector.values.yaml` with OTLP receiver, batch processor, `prometheusremotewrite` + `loki` + `otlp/stackit` exporters, and `extraEnvFrom` referencing `blueprint-observability-auth` Secret
-- [ ] T-009 Update `infra/gitops/argocd/optional/dev/observability.yaml` to add ArgoCD `Application` resource for otel-collector
-- [ ] T-010 Update `infra/gitops/argocd/optional/stage/observability.yaml` to add ArgoCD `Application` resource for otel-collector
-- [ ] T-011 Update `infra/gitops/argocd/optional/prod/observability.yaml` to add ArgoCD `Application` resource for otel-collector
+- [x] T-008 Create `infra/cloud/stackit/helm/observability/otel-collector.values.yaml` with OTLP receiver, batch processor, `prometheusremotewrite` + `loki` + `otlp/stackit` exporters, and `extraEnvFrom` referencing `blueprint-observability-auth` Secret
+- [x] T-009 Update `infra/gitops/argocd/optional/dev/observability.yaml` to add ArgoCD `Application` resource for otel-collector
+- [x] T-010 Update `infra/gitops/argocd/optional/stage/observability.yaml` to add ArgoCD `Application` resource for otel-collector
+- [x] T-011 Update `infra/gitops/argocd/optional/prod/observability.yaml` to add ArgoCD `Application` resource for otel-collector
 
 ## Implementation — Slice 4 (green: shell scripts + contract)
 - [ ] T-012 Update `scripts/bin/infra/observability_apply.sh`: add `observability_reconcile_runtime_secret` call in `foundation_contract` case and add four new state keys (`logs_endpoint`, `metrics_endpoint`, `traces_endpoint`, `api_key`) to `write_state_file`

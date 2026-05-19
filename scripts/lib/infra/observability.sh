@@ -63,7 +63,10 @@ observability_reconcile_runtime_secret() {
     "${OBSERVABILITY_NAMESPACE:-observability}" \
     "$(observability_secret_name)" \
     "username=${OBSERVABILITY_USERNAME:-}" \
-    "password=$(stackit_foundation_output_value_or_default "observability_credential_password" "")"
+    "password=$(stackit_foundation_output_value_or_default "observability_credential_password" "")" \
+    "METRICS_PUSH_URL=$(observability_metrics_push_url)" \
+    "LOGS_PUSH_URL=$(observability_logs_push_url)" \
+    "TRACES_PUSH_URL=$(observability_traces_push_url)"
 }
 
 observability_delete_runtime_secret() {
