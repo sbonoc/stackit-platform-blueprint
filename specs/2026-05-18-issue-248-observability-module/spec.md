@@ -37,6 +37,15 @@
 - Runtime identity baseline: eso-plus-argocd-plus-keycloak
 - Local-first exception rationale: STACKIT Observability has no local-lane managed equivalent; the local lane deploys an in-cluster OTEL collector + Grafana stack via Helm on Docker Desktop, which is the established pattern for this module.
 
+## Module Enablement
+
+- **Feature toggle:** `OBSERVABILITY_ENABLED` (type: boolean, default: `false`)
+- **Declared in:** `blueprint/modules/observability/module.contract.yaml` — `enable_flag: OBSERVABILITY_ENABLED`; also listed under `optional_env`
+- **Runtime guard:** `scripts/bin/infra/observability_apply.sh` exits immediately when `OBSERVABILITY_ENABLED=false`; no Terraform, no secret reconciliation, no state file writes
+- **GitOps convention:** manifests live under `infra/gitops/argocd/optional/${ENV}/observability.yaml` — the `optional/` path is the platform-wide signal that the module is opt-in and not applied to every cluster by default
+- **TF guard:** foundation TF outputs (`observability_metrics_push_url`, `observability_logs_push_url`, `observability_traces_push_url`) are conditional on `var.observability_enabled`; they emit empty strings when the module is disabled
+- **To enable:** set `OBSERVABILITY_ENABLED=true` in the environment profile before running `make infra-observability-apply`
+
 ## Objective
 - Business outcome: Blueprint consumers can provision a STACKIT Observability instance on the STACKIT lane and use an identical `OTEL_EXPORTER_OTLP_ENDPOINT` contract on both local and STACKIT lanes — eliminating the dangling OTEL endpoint bug where the STACKIT lane wrote a cluster-internal collector DNS that was never deployed. All signals (traces, metrics, logs) flow through an in-cluster OTEL collector on both lanes; the collector is configured per-lane to fan out to either local backends (Grafana stack) or STACKIT Observability push URLs.
 - Success metric: `make infra-observability-apply && make infra-observability-deploy` succeeds on the STACKIT lane, writes all required state keys including `logs_endpoint`, `metrics_endpoint`, `traces_endpoint`, `api_key`, and the smoke check exits 0. `test_contract.py` passes with ≥ 15 assertions. `OTEL_EXPORTER_OTLP_ENDPOINT` resolves to `http://otel-collector.observability.svc.cluster.local:4317` on both lanes.
