@@ -19,12 +19,12 @@
 3. Run `uv run python3 -m pytest tests/infra/modules/observability/test_contract.py` — expect failures (red).
 
 ### Slice 2 — Green: foundation TF outputs + shell helpers
-1. Verify Q-1: run `terraform -chdir=infra/cloud/stackit/terraform/foundation providers schema -json` and confirm attribute names on `stackit_observability_instance`. Determine Option A or B for URL sourcing.
-2. Extend `infra/cloud/stackit/terraform/foundation/outputs.tf` with `observability_metrics_push_url`, `observability_logs_push_url`, `observability_traces_push_url` outputs (TF attributes or computed from instance_id per Q-1 resolution).
-3. Sync bootstrap template copy `scripts/templates/infra/bootstrap/infra/cloud/stackit/terraform/foundation/outputs.tf` with the same additions.
-4. Add `observability_metrics_push_url()`, `observability_logs_push_url()`, `observability_traces_push_url()`, `observability_api_key()`, `observability_reconcile_runtime_secret()`, `observability_delete_runtime_secret()` to `scripts/lib/infra/observability.sh`.
-5. Run `uv run python3 -m pytest tests/infra/modules/observability/test_contract.py` — expect partial green (foundation + helper assertions pass; ArgoCD manifest assertions still red).
-6. Run `make test-unit-all` — all existing tests must remain green.
+Q-1 resolved (Step 02, 2026-05-19): `metrics_push_url`, `logs_push_url`, `otlp_grpc_traces_url` confirmed as computed attributes on `stackit_observability_instance` in provider v0.88.0. No URL-construction fallback required.
+1. Extend `infra/cloud/stackit/terraform/foundation/outputs.tf` with `observability_metrics_push_url`, `observability_logs_push_url`, `observability_traces_push_url` outputs sourced from `stackit_observability_instance.foundation[0].metrics_push_url`, `.logs_push_url`, `.otlp_grpc_traces_url` respectively, conditional on `var.observability_enabled`.
+2. Sync bootstrap template copy `scripts/templates/infra/bootstrap/infra/cloud/stackit/terraform/foundation/outputs.tf` with the same additions.
+3. Add `observability_metrics_push_url()`, `observability_logs_push_url()`, `observability_traces_push_url()`, `observability_api_key()`, `observability_reconcile_runtime_secret()`, `observability_delete_runtime_secret()` to `scripts/lib/infra/observability.sh`. Use `apply_optional_module_secret_from_literals` / `delete_optional_module_secret` from `fallback_runtime.sh` for Secret lifecycle (same pattern as kms, object-storage, identity-aware-proxy modules).
+4. Run `uv run python3 -m pytest tests/infra/modules/observability/test_contract.py` — expect partial green (foundation + helper assertions pass; ArgoCD manifest assertions still red).
+5. Run `make test-unit-all` — all existing tests must remain green.
 
 ### Slice 3 — Green: STACKIT otel-collector values file + ArgoCD manifests
 1. Create `infra/cloud/stackit/helm/observability/otel-collector.values.yaml` with OTLP receiver, batch processor, and three exporters (`prometheusremotewrite`, `loki`, `otlp/stackit`) using env var substitution for credentials and push URLs. Include `extraEnvFrom` referencing `blueprint-observability-auth` Secret.
@@ -103,6 +103,6 @@
 - Runbook updates: `docs/platform/modules/observability/README.md` updated with troubleshooting section for push URL misconfiguration and credential Secret verification.
 
 ## Risks and Mitigations
-- Risk 1 (Q-1 TF attribute names) → Mitigation: Verify first in Slice 2 before writing any outputs.tf additions; fall back to URL construction if attributes absent. Document Q-1 resolution in ADR.
+- Risk 1 (Q-1 TF attribute names) → Resolved (2026-05-19, PR #308): `metrics_push_url`, `logs_push_url`, `otlp_grpc_traces_url` confirmed in provider v0.88.0. No fallback needed.
 - Risk 2 (env var substitution in otel-collector values) → Mitigation: Use standard OTC `${ENV_VAR}` substitution syntax supported by the chart's `config` block; test locally with the existing local lane first.
 - Risk 3 (ArgoCD AppProject reference) → Mitigation: Use the same AppProject referenced in the `public-endpoints` ArgoCD Application manifest as the pattern.
