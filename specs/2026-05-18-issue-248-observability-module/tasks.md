@@ -36,26 +36,26 @@
 - [x] T-018 Run `make quality-hooks-run` — passes; blueprint-template-smoke failure is pre-existing (declare -A shell compat issue in prune_codex_skills.sh, confirmed present on stash before changes)
 
 ## Test Automation
-- [ ] T-101 Confirm `test_contract.py` has ≥ 15 passing assertions after Slice 4
-- [ ] T-102 Confirm all existing module tests still pass (`make test-unit-all`)
-- [ ] T-103 N/A — no filter/payload-transform logic
-- [ ] T-104 Translate Q-1 resolution finding into a deterministic test assertion (foundation outputs.tf content check)
-- [ ] T-105 N/A — no boundary/integration tests required; state file contract is fully covered at unit level
+- [x] T-101 Confirm `test_contract.py` has ≥ 15 passing assertions after Slice 4
+- [x] T-102 Confirm all existing module tests still pass (`make test-unit-all`)
+- [x] T-103 N/A — no filter/payload-transform logic
+- [x] T-104 Translate Q-1 resolution finding into a deterministic test assertion (foundation outputs.tf content check)
+- [x] T-105 N/A — no boundary/integration tests required; state file contract is fully covered at unit level
 
 ## Accessibility Testing
-- [ ] T-A01 NFR-A11Y-001: N/A — no UI or frontend changes in this work item
+- [x] T-A01 NFR-A11Y-001: N/A — no UI or frontend changes in this work item
 
 ## Validation and Release Readiness
-- [ ] T-201 Run `make test-unit-all` (all tests green including new `test_contract.py`)
-- [ ] T-202 Run `make infra-validate` (contract + make target consistency)
-- [ ] T-203 Run `make quality-hooks-run` (full pre-push gate)
-- [ ] T-204 Run `make docs-build && make docs-smoke`
-- [ ] T-205 Run `make quality-hardening-review`
+- [x] T-201 Run `make test-unit-all` (all tests green including new `test_contract.py`)
+- [x] T-202 Run `make infra-validate` (contract + make target consistency)
+- [x] T-203 Run `make quality-hooks-run` (full pre-push gate)
+- [x] T-204 Run `make docs-build && make docs-smoke`
+- [x] T-205 Run `make quality-hardening-review`
 
 ## Publish
-- [ ] P-001 Update `hardening_review.md` with repository-wide findings and proposals-only section
-- [ ] P-002 Update `pr_context.md` with requirement/contract coverage (FR-001–FR-013, AC-001–AC-011), key reviewer files, validation evidence, risk/rollback notes
-- [ ] P-003 Ensure PR description follows repository template and references `pr_context.md`
+- [x] P-001 Update `hardening_review.md` with repository-wide findings and proposals-only section
+- [x] P-002 Update `pr_context.md` with requirement/contract coverage (FR-001–FR-013, AC-001–AC-011), key reviewer files, validation evidence, risk/rollback notes
+- [x] P-003 Ensure PR description follows repository template and references `pr_context.md`
 
 ## App Onboarding Minimum Targets (Normative)
 - [x] A-001 `apps-bootstrap` and `apps-smoke` — N/A; tooling/infrastructure-only change, no app delivery workflow impact
