@@ -29,6 +29,7 @@ provision_path="$OPTIONAL_MODULE_EXECUTION_PATH"
 case "$provision_driver" in
 foundation_contract)
   optional_module_apply_foundation_contract "observability"
+  observability_reconcile_runtime_secret
   ;;
 crossplane_plus_helm)
   run_kustomize_apply "$provision_path"
@@ -64,6 +65,10 @@ state_file="$(
     "otel_logs_enabled=$OTEL_LOGS_ENABLED" \
     "faro_enabled=$FARO_ENABLED" \
     "faro_collect_path=$FARO_COLLECT_PATH" \
+    "logs_endpoint=$(observability_logs_push_url)" \
+    "metrics_endpoint=$(observability_metrics_push_url)" \
+    "traces_endpoint=$(observability_traces_push_url)" \
+    "api_key=$(observability_api_key)" \
     "stackit_observability_instance_id=$(observability_stackit_instance_id)" \
     "stackit_observability_grafana_url=$(observability_stackit_grafana_url)" \
     "health_status=Provisioned" \

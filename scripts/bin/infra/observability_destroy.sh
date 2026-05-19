@@ -17,6 +17,7 @@ destroy_driver="$OPTIONAL_MODULE_EXECUTION_DRIVER"
 destroy_path="$OPTIONAL_MODULE_EXECUTION_PATH"
 case "$destroy_driver" in
 foundation_reconcile_apply)
+  observability_delete_runtime_secret
   optional_module_destroy_foundation_contract "observability"
   ;;
 argocd_manifest_plus_helm)

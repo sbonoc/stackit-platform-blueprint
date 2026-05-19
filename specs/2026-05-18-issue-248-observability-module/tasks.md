@@ -25,10 +25,10 @@
 - [x] T-011 Update `infra/gitops/argocd/optional/prod/observability.yaml` to add ArgoCD `Application` resource for otel-collector
 
 ## Implementation — Slice 4 (green: shell scripts + contract)
-- [ ] T-012 Update `scripts/bin/infra/observability_apply.sh`: add `observability_reconcile_runtime_secret` call in `foundation_contract` case and add four new state keys (`logs_endpoint`, `metrics_endpoint`, `traces_endpoint`, `api_key`) to `write_state_file`
-- [ ] T-013 Update `scripts/bin/infra/observability_destroy.sh`: add `observability_delete_runtime_secret` call in `foundation_reconcile_apply` case
-- [ ] T-014 Update `scripts/bin/infra/observability_smoke.sh`: add non-empty checks for `logs_endpoint`, `metrics_endpoint`, `traces_endpoint` on STACKIT profile
-- [ ] T-015 Update `blueprint/modules/observability/module.contract.yaml`: add `OBSERVABILITY_LOGS_ENDPOINT`, `OBSERVABILITY_METRICS_ENDPOINT`, `OBSERVABILITY_TRACES_ENDPOINT`, `OBSERVABILITY_API_KEY` to `outputs.produced`; add `OBSERVABILITY_USERNAME` to `optional_env`
+- [x] T-012 Update `scripts/bin/infra/observability_apply.sh`: add `observability_reconcile_runtime_secret` call in `foundation_contract` case and add four new state keys (`logs_endpoint`, `metrics_endpoint`, `traces_endpoint`, `api_key`) to `write_state_file`
+- [x] T-013 Update `scripts/bin/infra/observability_destroy.sh`: add `observability_delete_runtime_secret` call in `foundation_reconcile_apply` case
+- [x] T-014 Update `scripts/bin/infra/observability_smoke.sh`: add non-empty checks for `logs_endpoint`, `metrics_endpoint`, `traces_endpoint` on STACKIT profile
+- [x] T-015 Update `blueprint/modules/observability/module.contract.yaml`: add `OBSERVABILITY_LOGS_ENDPOINT`, `OBSERVABILITY_METRICS_ENDPOINT`, `OBSERVABILITY_TRACES_ENDPOINT`, `OBSERVABILITY_API_KEY` to `outputs.produced`; add `OBSERVABILITY_USERNAME` to `optional_env`
 
 ## Implementation — Slice 5 (docs + validation)
 - [ ] T-016 Update `docs/platform/modules/observability/README.md` with dual-lane architecture, new outputs, K8s Secret lifecycle, otel-collector values path, consumer usage example
