@@ -148,6 +148,9 @@ module_flag_name() {
   identity-aware-proxy)
     echo "IDENTITY_AWARE_PROXY_ENABLED"
     ;;
+  local-workflows)
+    echo "WORKFLOWS_LOCAL_ENABLED"
+    ;;
   *)
     return 1
     ;;
