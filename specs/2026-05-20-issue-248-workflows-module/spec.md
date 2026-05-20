@@ -78,7 +78,7 @@
 
 ### Non-Functional Requirements (Normative)
 
-- NFR-SEC-001 MUST ensure `STACKIT_WORKFLOWS_DAGS_REPO_TOKEN` and `STACKIT_WORKFLOWS_OIDC_CLIENT_SECRET` NEVER appear in any state file (`artifacts/infra/workflows_*.env`), CI log, or non-sensitive artifact. These credentials MUST be consumed only at runtime by the shell scripts and MUST NOT be persisted to disk beyond the scope of the API call.
+- NFR-SEC-001 MUST ensure `STACKIT_WORKFLOWS_DAGS_REPO_TOKEN` and `STACKIT_WORKFLOWS_OIDC_CLIENT_SECRET` NEVER appear as keys in any `.env` state file (`artifacts/infra/workflows_*.env`) or CI log. Note: `STACKIT_WORKFLOWS_DAGS_REPO_TOKEN` is embedded in `artifacts/infra/workflows_request_payload.json` (the plan-step JSON artifact) as part of the API payload; treat that file as a sensitive artifact and exclude it from version control. These credentials MUST NOT appear in any `.env` state file.
 - NFR-OPS-001 MUST ensure all `stackit_workflows_*.sh` scripts fail fast with `log_fatal` when invoked outside a `stackit-*` profile. No local lane is provided or required for this module.
 - NFR-A11Y-001: N/A — no UI or frontend changes in this work item.
 

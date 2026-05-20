@@ -533,7 +533,7 @@ class MakeTargetContractTests(unittest.TestCase):
 
 
 class DagParseSmokeContractTests(unittest.TestCase):
-    """FR-010 — DAG location guard in dag_parse_smoke script."""
+    """FR-010, FR-013 — DAG location guard in dag_parse_smoke script."""
 
     def test_dag_parse_smoke_guards_against_dag_files_under_apps(self) -> None:
         content = _DAG_PARSE_SMOKE_SCRIPT.read_text(encoding="utf-8")
@@ -554,6 +554,46 @@ class DagParseSmokeContractTests(unittest.TestCase):
             msg=(
                 "stackit_workflows_dag_parse_smoke.sh must write status=passed to state "
                 "(FR-010)"
+            ),
+        )
+
+    def test_dag_parse_smoke_writes_violations_key(self) -> None:
+        content = _DAG_PARSE_SMOKE_SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(
+            "violations=",
+            content,
+            msg=(
+                "stackit_workflows_dag_parse_smoke.sh must write violations key to state "
+                "(FR-013)"
+            ),
+        )
+
+
+_DESTROY_SCRIPT = REPO_ROOT / "scripts" / "bin" / "infra" / "stackit_workflows_destroy.sh"
+
+
+class DestroyContractTests(unittest.TestCase):
+    """FR-009, FR-013, AC-005 — destroy script state key coverage."""
+
+    def test_destroy_script_writes_api_http_status(self) -> None:
+        content = _DESTROY_SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(
+            "api_http_status=",
+            content,
+            msg=(
+                "stackit_workflows_destroy.sh must write api_http_status to state "
+                "(FR-009, FR-013)"
+            ),
+        )
+
+    def test_destroy_script_writes_instance_id(self) -> None:
+        content = _DESTROY_SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(
+            "instance_id=",
+            content,
+            msg=(
+                "stackit_workflows_destroy.sh must write instance_id to state "
+                "(FR-009, AC-005)"
             ),
         )
 

@@ -6,8 +6,8 @@
   "files": [
     {
       "path": "specs/2026-05-20-issue-248-workflows-module/spec.md",
-      "sha256": "b377e4ac48ef17b5978ffb8d04f25ecdb5cf7ad26ad1ad4ab599e49cec7d45b4",
-      "bytes": 14511
+      "sha256": "dabcfe2f80ff93e29ddf7b32d3244bb008de8e1484643c00ac03f65c8dc2acd3",
+      "bytes": 14662
     },
     {
       "path": "specs/2026-05-20-issue-248-workflows-module/architecture.md",
