@@ -23,7 +23,7 @@
 - [x] axe-core WCAG 2.1 AA scan evidence: N/A — no UI or frontend changes
 
 ## Proposals Only (Not Implemented)
-- Proposal 1: spanmetrics connector in otel-collector values — add a `spanmetrics` connector so span-derived metrics (request rates, error rates, latency percentiles) are auto-derived from traces and forwarded to the Prometheus remote-write endpoint. Out of scope for initial implementation; surfaces when a consumer requests auto-derived span metrics. Follow-up: file backlog item under issue-248.
+- Proposal 1: spanmetrics connector — implemented in this PR: `connectors.spanmetrics` added to `otel-collector.values.yaml` and all three ArgoCD Application inline values; traces pipeline fans out to `spanmetrics` connector; metrics pipeline receives from `spanmetrics`; histogram buckets and HTTP dimensions configured. Test assertion added to `OtelCollectorValuesTests`.
 - Proposal 2: Faro browser telemetry endpoint on STACKIT lane — expose a Faro/GrafanaAgent receiver in the STACKIT otel-collector for browser RUM telemetry. Deferred — no active consumer need; requires evaluating OTC Faro receiver maturity and STACKIT Observability push protocol support.
 - Proposal 3: `OBSERVABILITY_RETENTION_DAYS` shell contract — surface TF-level retention vars as a shell-layer contract variable. Low effort; deferred to avoid scope creep in this PR.
 - Proposal 4: `blueprint-template-smoke` declare -A fix — pre-existing `declare -A` (associative arrays) failure on macOS `/bin/sh` in `prune_codex_skills.sh`. Pre-existing defect confirmed on `main` before this branch; out of scope for this PR; repo-wide cleanup item.

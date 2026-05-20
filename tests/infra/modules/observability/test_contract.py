@@ -337,6 +337,13 @@ class OtelCollectorValuesTests(unittest.TestCase):
             msg="otel-collector.values.yaml must declare extraEnvFrom for blueprint-observability-auth Secret injection (FR-007, NFR-SEC-001)",
         )
 
+    def test_values_has_spanmetrics_connector(self) -> None:
+        self.assertIn(
+            "spanmetrics",
+            self._values(),
+            msg="otel-collector.values.yaml must declare spanmetrics connector for auto-derived span metrics from traces",
+        )
+
 
 class ContractYamlTests(unittest.TestCase):
     """FR-010, AC-010 — module.contract.yaml outputs.produced includes new output keys."""
