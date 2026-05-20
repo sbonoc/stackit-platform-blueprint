@@ -1,9 +1,35 @@
-apiVersion: v1
-kind: ConfigMap
+apiVersion: argoproj.io/v1alpha1
+kind: Application
 metadata:
-  name: blueprint-workflows-deployment
+  name: platform-workflows-local
   namespace: argocd
-data:
-  module: "workflows"
-  environment: "local"
-  deploymentDriver: "argocd"
+  labels:
+    app.kubernetes.io/part-of: platform-blueprint
+    app.kubernetes.io/component: optional-module
+    app.kubernetes.io/name: local-workflows
+    app.kubernetes.io/environment: local
+spec:
+  project: platform-local
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: data
+  sources:
+    - repoURL: https://airflow.apache.org
+      chart: airflow
+      targetRevision: 1.20.0
+      helm:
+        releaseName: blueprint-airflow
+        valueFiles:
+          - $values/infra/local/helm/workflows/airflow.values.yaml
+    - repoURL: https://github.com/example-org/example-repo.git
+      targetRevision: HEAD
+      ref: values
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true

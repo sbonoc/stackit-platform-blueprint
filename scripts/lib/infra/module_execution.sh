@@ -263,7 +263,7 @@ resolve_optional_module_execution() {
     optional_module_execution_set "fallback_runtime" "argocd_optional_manifest" "$(argocd_optional_manifest "neo4j")"
     ;;
   local-workflows:plan | local-workflows:apply | local-workflows:deploy | local-workflows:destroy)
-    optional_module_execution_set "fallback_runtime" "argocd_optional_manifest" "$(argocd_optional_manifest "local/workflows")"
+    optional_module_execution_set "fallback_runtime" "argocd_optional_manifest" "$(argocd_optional_manifest "workflows")"
     ;;
   *)
     log_fatal "unsupported optional module execution mapping: module=$module action=$action"
