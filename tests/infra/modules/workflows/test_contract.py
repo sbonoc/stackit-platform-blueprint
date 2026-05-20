@@ -200,6 +200,39 @@ class SecurityContractTests(unittest.TestCase):
             ),
         )
 
+    def test_apply_script_does_not_persist_dags_repo_token_to_state(self) -> None:
+        content = _APPLY_SCRIPT.read_text(encoding="utf-8")
+        self.assertNotIn(
+            "STACKIT_WORKFLOWS_DAGS_REPO_TOKEN",
+            content,
+            msg=(
+                "stackit_workflows_apply.sh must not reference STACKIT_WORKFLOWS_DAGS_REPO_TOKEN — "
+                "token is only consumed by the library-level payload builder (NFR-SEC-001)"
+            ),
+        )
+
+    def test_apply_script_does_not_persist_oidc_client_secret_to_state(self) -> None:
+        content = _APPLY_SCRIPT.read_text(encoding="utf-8")
+        self.assertNotIn(
+            "STACKIT_WORKFLOWS_OIDC_CLIENT_SECRET",
+            content,
+            msg=(
+                "stackit_workflows_apply.sh must not reference STACKIT_WORKFLOWS_OIDC_CLIENT_SECRET — "
+                "secret is only consumed by stackit_workflows_keycloak_reconcile.sh (NFR-SEC-001)"
+            ),
+        )
+
+    def test_dag_deploy_does_not_persist_dags_repo_token_as_state_key(self) -> None:
+        content = _DAG_DEPLOY_SCRIPT.read_text(encoding="utf-8")
+        self.assertNotIn(
+            "dags_repo_token=",
+            content,
+            msg=(
+                "stackit_workflows_dag_deploy.sh must not write dags_repo_token as a state key — "
+                "token is used in a transient JSON payload only (NFR-SEC-001)"
+            ),
+        )
+
 
 class KeycloakReconcileStateContractTests(unittest.TestCase):
     """FR-006, AC-006 — workflows_keycloak_reconcile.env state file structure."""
@@ -304,6 +337,25 @@ class ShellLibContractTests(unittest.TestCase):
             msg=(
                 "workflows_default_display_name() must truncate to 16 characters via "
                 "${sanitized:0:16} (AC-010)"
+            ),
+        )
+
+    def test_workflows_init_env_rejects_non_git_dags_url(self) -> None:
+        content = self._lib()
+        self.assertIn(
+            ".git$",
+            content,
+            msg=(
+                "workflows_init_env() must reject STACKIT_WORKFLOWS_DAGS_REPO_URL values "
+                "that do not end with .git (FR-002, AC-010)"
+            ),
+        )
+        self.assertIn(
+            "must end with .git",
+            content,
+            msg=(
+                "workflows_init_env() log_fatal message must state URL must end with .git "
+                "(FR-002)"
             ),
         )
 

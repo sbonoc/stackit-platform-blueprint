@@ -11,8 +11,8 @@
     },
     {
       "path": "specs/2026-05-20-issue-248-workflows-module/architecture.md",
-      "sha256": "20932d8ef1a21f8d218a23f6a225d840e0002886532502b87e0acbeaa409d9f2",
-      "bytes": 10237
+      "sha256": "955e936cfe1b19d0649765a7e814d46dc845bc3882a7eb8a041104c18771b20e",
+      "bytes": 10368
     },
     {
       "path": "specs/2026-05-20-issue-248-workflows-module/plan.md",
@@ -26,8 +26,8 @@
     },
     {
       "path": "specs/2026-05-20-issue-248-workflows-module/traceability.md",
-      "sha256": "f1b7d7ad116a20d8e3e411214c46de6edcfa886758abff3fbbfbef3f4759af68",
-      "bytes": 8357
+      "sha256": "12d27eee67d81912eddbdafdb80ef716c3dace63256d16efdd1b9121ef2ee52e",
+      "bytes": 8741
     },
     {
       "path": "specs/2026-05-20-issue-248-workflows-module/graph.json",

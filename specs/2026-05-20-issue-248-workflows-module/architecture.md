@@ -74,7 +74,7 @@ sequenceDiagram
     Shell->>API: DELETE /instances/{id} (200/202/204/404 accepted)
     API-->>Shell: response
     Shell->>Shell: remove workflows_instance.env, workflows_plan.env, workflows_dag_deploy.env
-    Shell->>Shell: write workflows_destroy.env (status=destroyed)
+    Shell->>Shell: write workflows_destroy.env (api_mode, api_http_status, instance_id, timestamp_utc)
 ```
 
 ### Reconcile Flow (single-instance guard)
@@ -89,7 +89,7 @@ flowchart LR
 ```
 
 ## Non-Functional Architecture Notes
-- Security: `STACKIT_WORKFLOWS_DAGS_REPO_TOKEN` and `STACKIT_WORKFLOWS_OIDC_CLIENT_SECRET` MUST NOT appear in any state file. They are consumed at runtime only by the shell scripts and passed as JSON payload fields — never written to `artifacts/`. `workflows_api_request()` receives the Bearer token from `STACKIT_SERVICE_ACCOUNT_TOKEN` (standard STACKIT auth env var) and does not log response bodies that may contain credentials.
+- Security: `STACKIT_WORKFLOWS_DAGS_REPO_TOKEN` and `STACKIT_WORKFLOWS_OIDC_CLIENT_SECRET` MUST NOT appear as keys in any `.env` state file. The DAG repository token is embedded in `artifacts/infra/workflows_request_payload.json` (a transient JSON artifact); it is passed to the API at apply time and is never written to any `.env` state file. `workflows_api_request()` receives the Bearer token from `STACKIT_SERVICE_ACCOUNT_TOKEN` (standard STACKIT auth env var) and does not log response bodies that may contain credentials.
 - Observability: `stackit_workflows_smoke.sh` validates `health_status=Active` in the state file. When `tooling_is_execution_enabled`, it also fetches live status from the API. Full smoke state is written to `artifacts/infra/workflows_smoke.env`.
 - Reliability and rollback: HTTP 409 on the create endpoint is handled idempotently — the apply script GETs the existing instance list, finds by display name, and continues. No duplicate instances are created. Destroy accepts 404 (already deleted) as success.
 - Monitoring/alerting: Module smoke (`infra-stackit-workflows-smoke`) validates `health_status=Active` in the state file and live API status (when execution-enabled). Full end-to-end DAG execution validation is out of scope for smoke — that requires manual verification in the Airflow UI.
