@@ -55,7 +55,7 @@ Consumer App (OTEL SDK)
       → otlp/stackit      → STACKIT Observability (otlp_grpc_traces_url)
 ```
 
-Credentials are injected from `blueprint-observability-auth` K8s Secret via `extraEnvFrom`. Push URLs are injected from the same Secret (set by the apply step using foundation TF outputs).
+Credentials are injected from `blueprint-observability-auth` K8s Secret via a projected volume mount at `/etc/otel/secrets` (read-only). The OTC config reads each key via the file config provider (`${file:/etc/otel/secrets/<key>}`). Push URLs are stored in the same Secret (set by the apply step using foundation TF outputs).
 
 **STACKIT Helm values file:** `infra/cloud/stackit/helm/observability/otel-collector.values.yaml`
 
@@ -118,6 +118,6 @@ Full signal-delivery verification (data actually arriving in STACKIT Observabili
 
 **Push URL missing in state file:** Ensure `OBSERVABILITY_ENABLED=true` and foundation TF outputs include the three push URL attributes. Run `make infra-observability-apply` again.
 
-**`blueprint-observability-auth` Secret missing:** Run `make infra-observability-apply` — the apply step reconciles the Secret. Verify the pod has `extraEnvFrom` referencing the Secret.
+**`blueprint-observability-auth` Secret missing:** Run `make infra-observability-apply` — the apply step reconciles the Secret. Verify the pod has an `extraVolumeMounts` entry for the `obs-auth` volume at `/etc/otel/secrets`.
 
 **OTEL Collector not healthy in ArgoCD:** Check that `make infra-observability-deploy` completed after `make infra-observability-apply`. ArgoCD `selfHeal: true` will reconcile automatically; check the ArgoCD UI for sync errors.

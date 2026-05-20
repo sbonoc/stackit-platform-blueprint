@@ -352,11 +352,29 @@ class OtelCollectorValuesTests(unittest.TestCase):
             msg="otel-collector.values.yaml must declare otlp/stackit exporter (FR-007, AC-006)",
         )
 
-    def test_values_has_extra_env_from(self) -> None:
-        self.assertIn(
+    def test_values_uses_projected_volume_mount(self) -> None:
+        values = self._values()
+        self.assertNotIn(
             "extraEnvFrom",
+            values,
+            msg="otel-collector.values.yaml must NOT use extraEnvFrom — credentials injected via projected volume mount (NFR-SEC-001)",
+        )
+        self.assertIn(
+            "extraVolumes",
+            values,
+            msg="otel-collector.values.yaml must declare extraVolumes for blueprint-observability-auth Secret mount (FR-007, NFR-SEC-001)",
+        )
+        self.assertIn(
+            "/etc/otel/secrets",
+            values,
+            msg="otel-collector.values.yaml must mount Secret at /etc/otel/secrets (FR-007, NFR-SEC-001)",
+        )
+
+    def test_values_uses_file_provider_for_credentials(self) -> None:
+        self.assertIn(
+            "${file:/etc/otel/secrets/",
             self._values(),
-            msg="otel-collector.values.yaml must declare extraEnvFrom for blueprint-observability-auth Secret injection (FR-007, NFR-SEC-001)",
+            msg="otel-collector.values.yaml must reference credentials via OTC file config provider, not env vars (NFR-SEC-001)",
         )
 
     def test_values_has_spanmetrics_connector(self) -> None:

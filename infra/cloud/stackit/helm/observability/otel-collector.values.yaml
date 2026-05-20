@@ -17,24 +17,24 @@ config:
       endpoint: 0.0.0.0:13133
     basicauth/stackit:
       client_auth:
-        username: ${env:username}
-        password: ${env:password}
+        username: ${file:/etc/otel/secrets/username}
+        password: ${file:/etc/otel/secrets/password}
 
   exporters:
     prometheusremotewrite:
-      endpoint: ${env:METRICS_PUSH_URL}
+      endpoint: ${file:/etc/otel/secrets/METRICS_PUSH_URL}
       auth:
         authenticator: basicauth/stackit
       tls:
         insecure: false
     loki:
-      endpoint: ${env:LOGS_PUSH_URL}
+      endpoint: ${file:/etc/otel/secrets/LOGS_PUSH_URL}
       auth:
         authenticator: basicauth/stackit
       tls:
         insecure: false
     otlp/stackit:
-      endpoint: ${env:TRACES_PUSH_URL}
+      endpoint: ${file:/etc/otel/secrets/TRACES_PUSH_URL}
       auth:
         authenticator: basicauth/stackit
       tls:
@@ -68,9 +68,14 @@ config:
         processors: [batch]
         exporters: [loki]
 
-extraEnvFrom:
-  - secretRef:
-      name: blueprint-observability-auth
+extraVolumes:
+  - name: obs-auth
+    secret:
+      secretName: blueprint-observability-auth
+extraVolumeMounts:
+  - name: obs-auth
+    mountPath: /etc/otel/secrets
+    readOnly: true
 
 ports:
   otlp:
