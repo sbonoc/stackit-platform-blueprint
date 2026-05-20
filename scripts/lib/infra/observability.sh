@@ -59,10 +59,12 @@ observability_secret_name() {
 }
 
 observability_reconcile_runtime_secret() {
+  local _username
+  _username="$(stackit_foundation_output_value_or_default "observability_credential_username" "${OBSERVABILITY_USERNAME:-}")"
   apply_optional_module_secret_from_literals \
     "${OBSERVABILITY_NAMESPACE:-observability}" \
     "$(observability_secret_name)" \
-    "username=$(stackit_foundation_output_value_or_default "observability_credential_username" "${OBSERVABILITY_USERNAME:-}")" \
+    "username=${_username}" \
     "password=$(stackit_foundation_output_value_or_default "observability_credential_password" "")" \
     "METRICS_PUSH_URL=$(observability_metrics_push_url)" \
     "LOGS_PUSH_URL=$(observability_logs_push_url)" \

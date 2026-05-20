@@ -43,7 +43,7 @@
 - **Declared in:** `blueprint/modules/observability/module.contract.yaml` — `enable_flag: OBSERVABILITY_ENABLED`; also listed under `optional_env`
 - **Runtime guard:** `scripts/bin/infra/observability_apply.sh` exits immediately when `OBSERVABILITY_ENABLED=false`; no Terraform, no secret reconciliation, no state file writes
 - **GitOps convention:** manifests live under `infra/gitops/argocd/optional/${ENV}/observability.yaml` — the `optional/` path is the platform-wide signal that the module is opt-in and not applied to every cluster by default
-- **TF guard:** foundation TF outputs (`observability_metrics_push_url`, `observability_logs_push_url`, `observability_traces_push_url`) are conditional on `var.observability_enabled`; they emit empty strings when the module is disabled
+- **TF guard:** foundation TF outputs (`observability_metrics_push_url`, `observability_logs_push_url`, `observability_traces_push_url`) are conditional on `var.observability_enabled`; they emit `null` when the module is disabled
 - **To enable:** set `OBSERVABILITY_ENABLED=true` in the environment profile before running `make infra-observability-apply`
 
 ## Objective
@@ -132,6 +132,5 @@ All questions resolved. See PR #308 comment for Q-1 resolution record.
 ## Explicit Exclusions
 - Grafana k8s-monitoring Helm chart deployment on STACKIT lane — STACKIT Observability provides managed Grafana; no in-cluster Grafana is deployed on stackit-* profiles.
 - Faro browser telemetry endpoint — deferred; no active consumer need for frontend RUM on STACKIT lane at this time.
-- spanmetrics connector configuration — out of scope for initial implementation; surfaces from backlog when a consumer requires auto-derived span metrics.
 - Loki/Prometheus/Tempo standalone installation on STACKIT lane — STACKIT Observability provides managed equivalents; no self-hosted backends needed.
 - OBSERVABILITY_RETENTION_DAYS shell contract implementation — retention is configured at the Terraform level via `observability_logs_retention_days` / `metrics_retention_days` / `traces_retention_days` foundation variables, not at the shell wrapper level.

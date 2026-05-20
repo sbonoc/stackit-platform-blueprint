@@ -19,7 +19,7 @@
 - [x] T-007 Add `observability_reconcile_runtime_secret()` and `observability_delete_runtime_secret()` to `scripts/lib/infra/observability.sh`
 
 ## Implementation — Slice 3 (green: STACKIT otel-collector + ArgoCD)
-- [x] T-008 Create `infra/cloud/stackit/helm/observability/otel-collector.values.yaml` with OTLP receiver, batch processor, `prometheusremotewrite` + `loki` + `otlp/stackit` exporters, and `extraEnvFrom` referencing `blueprint-observability-auth` Secret
+- [x] T-008 Create `infra/cloud/stackit/helm/observability/otel-collector.values.yaml` with OTLP receiver, batch processor, `prometheusremotewrite` + `loki` + `otlp/stackit` exporters, spanmetrics connector, and `extraVolumes`/`extraVolumeMounts` mounting `blueprint-observability-auth` Secret at `/etc/otel/secrets`; credentials referenced via `${file:/etc/otel/secrets/<key>}`
 - [x] T-009 Update `infra/gitops/argocd/optional/dev/observability.yaml` to add ArgoCD `Application` resource for otel-collector
 - [x] T-010 Update `infra/gitops/argocd/optional/stage/observability.yaml` to add ArgoCD `Application` resource for otel-collector
 - [x] T-011 Update `infra/gitops/argocd/optional/prod/observability.yaml` to add ArgoCD `Application` resource for otel-collector

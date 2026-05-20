@@ -3,7 +3,7 @@
 ## Summary
 - Work item: issue-248-observability-module (observability, 9th of 11 modules from issue #248)
 - Objective: Fix the dangling OTEL endpoint defect on the STACKIT lane — deploy an in-cluster OTEL Collector via ArgoCD so consumers use the same `OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector.observability.svc.cluster.local:4317` on both local and STACKIT lanes. Extend foundation TF outputs with push URLs; reconcile `blueprint-observability-auth` K8s Secret; configure collector to fan out signals to STACKIT Observability managed backends.
-- Scope boundaries: Shell layer (`observability.sh`, `observability_apply.sh`, `observability_destroy.sh`, `observability_smoke.sh`); foundation TF output extension + bootstrap template sync; STACKIT otel-collector Helm values; ArgoCD Application manifests for dev/stage/prod; module contract; unit tests; README. Out of scope: Grafana k8s-monitoring on STACKIT, Faro, spanmetrics connector, retention policy shell contract, standalone Loki/Prometheus/Tempo.
+- Scope boundaries: Shell layer (`observability.sh`, `observability_apply.sh`, `observability_destroy.sh`, `observability_smoke.sh`); foundation TF output extension + bootstrap template sync; STACKIT otel-collector Helm values (with spanmetrics connector); ArgoCD Application manifests for dev/stage/prod; module contract; unit tests; README. Out of scope: Grafana k8s-monitoring on STACKIT, Faro, retention policy shell contract, standalone Loki/Prometheus/Tempo.
 
 ## Requirement Coverage
 - Requirement IDs covered: FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-007, FR-008, FR-009, FR-010, FR-011, FR-012, FR-013, NFR-SEC-001, NFR-OBS-001, NFR-REL-001, NFR-OPS-001, NFR-A11Y-001
@@ -13,7 +13,7 @@
 ## Key Reviewer Files
 - Primary files to review first:
   - `scripts/lib/infra/observability.sh` — new helper functions: push URL accessors, `observability_reconcile_runtime_secret`, `observability_delete_runtime_secret`, `observability_api_key`, `observability_secret_name`
-  - `infra/cloud/stackit/helm/observability/otel-collector.values.yaml` — STACKIT otel-collector Helm values: receivers, batch processor, BasicAuth extension, three exporters (prometheusremotewrite, loki, otlp/stackit), `extraEnvFrom: blueprint-observability-auth`
+  - `infra/cloud/stackit/helm/observability/otel-collector.values.yaml` — STACKIT otel-collector Helm values: receivers, batch processor, BasicAuth extension, three exporters (prometheusremotewrite, loki, otlp/stackit), spanmetrics connector, `extraVolumes`/`extraVolumeMounts` mounting `blueprint-observability-auth` at `/etc/otel/secrets`; credentials and push URLs via `${file:/etc/otel/secrets/<key>}`
   - `infra/gitops/argocd/optional/dev/observability.yaml` — ArgoCD Application added (same pattern applied to stage and prod)
   - `infra/cloud/stackit/terraform/foundation/outputs.tf` — three new push-URL outputs (and bootstrap template copy)
   - `tests/infra/modules/observability/test_contract.py` — 42 assertions across 8 test classes
@@ -28,11 +28,11 @@
 - Artifact references: `artifacts/infra/observability_runtime.env` (state file), `artifacts/docs/docs_build.env`, `artifacts/docs/docs_smoke.env`, `specs/2026-05-18-issue-248-observability-module/evidence_manifest.json`
 
 ## Risk and Rollback
-- Main risks: (1) `stackit_observability_instance` TF attribute names — verified against provider v0.88.0 source (`metrics_push_url`, `logs_push_url`, `otlp_grpc_traces_url` confirmed); no fallback needed. (2) ArgoCD Application inline values may drift from local otel-collector values over time — mitigated by `selfHeal: true` and the single authoritative values file at `infra/cloud/stackit/helm/observability/otel-collector.values.yaml`. (3) `blueprint-observability-auth` Secret must be deleted before foundation TF destroy; if destroy fails mid-way, Secret may remain — operator must run `kubectl delete secret blueprint-observability-auth -n observability` manually before retrying.
+- Main risks: (1) `stackit_observability_instance` TF attribute names — verified against provider v0.88.0 source (`metrics_push_url`, `logs_push_url`, `otlp_grpc_traces_url` confirmed); no fallback needed. (2) ArgoCD Application inline values may drift from the baseline values file over time — ArgoCD Applications inline their own `values:` blocks per-environment; `infra/cloud/stackit/helm/observability/otel-collector.values.yaml` serves as the template/baseline; `selfHeal: true` reconciles live cluster state but does not prevent values drift between the file and the inline blocks. (3) `blueprint-observability-auth` Secret must be deleted before foundation TF destroy; if destroy fails mid-way, Secret may remain — operator must run `kubectl delete secret blueprint-observability-auth -n observability` manually before retrying.
 - Rollback strategy: Set `OBSERVABILITY_ENABLED=false` in profile; ArgoCD will not apply the Application on re-sync; run `make infra-observability-destroy` to remove the STACKIT instance, credential, and K8s Secret. No data loss — STACKIT Observability data retention is managed at the STACKIT Observability console level independently of this module.
 
 ## Deferred Proposals
-- Proposal A (not implemented): spanmetrics connector in otel-collector values — auto-derive span metrics from traces; deferred until a consumer requests it.
+- Proposal A (implemented): spanmetrics connector — `connectors.spanmetrics` added to `otel-collector.values.yaml` and all three ArgoCD Application inline values; traces pipeline fans out to `spanmetrics`; metrics pipeline receives from `spanmetrics`.
 - Proposal B (not implemented): Faro browser telemetry endpoint on STACKIT lane — no active consumer need; requires evaluating OTC Faro receiver maturity and STACKIT Observability push protocol support.
 - Proposal C (not implemented): `OBSERVABILITY_RETENTION_DAYS` shell contract — surface TF-level retention vars as a shell-layer contract variable; low effort, deferred to avoid scope creep.
 - Proposal D (not implemented): `blueprint-template-smoke` declare -A fix — pre-existing defect on macOS `/bin/sh`; out of scope for this PR; repo-wide cleanup item.

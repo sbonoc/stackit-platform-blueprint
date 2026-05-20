@@ -14,11 +14,11 @@
 ## Problem Statement
 - What needs to change and why: The STACKIT lane for the observability module has a dangling-endpoint bug — `observability_apply.sh` writes `OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector.observability.svc.cluster.local:4317` to the runtime state file, but the otel-collector is never deployed on the STACKIT lane (only local lane deploys it via Helm). Consumer applications on STACKIT would push traces/metrics/logs to a non-existent in-cluster endpoint. Additionally, the foundation TF only exposes `observability_grafana_url` and instance/credential IDs — push URLs for logs, metrics, and traces are not surfaced to the shell layer or state file.
 - Scope boundaries: Shell layer updates to `observability.sh`, `observability_apply.sh`, `observability_smoke.sh`, `observability_destroy.sh`; foundation TF output extension; new STACKIT otel-collector Helm values file; ArgoCD manifest updates for STACKIT environments (dev, stage, prod); module.contract.yaml update; unit tests; module README.
-- Out of scope: Grafana k8s-monitoring on STACKIT lane (managed by STACKIT Observability), Faro browser telemetry endpoint, spanmetrics connector, retention policy shell contract, standalone Loki/Prometheus/Tempo on STACKIT.
+- Out of scope: Grafana k8s-monitoring on STACKIT lane (managed by STACKIT Observability), Faro browser telemetry endpoint, retention policy shell contract, standalone Loki/Prometheus/Tempo on STACKIT.
 
 ## Bounded Contexts and Responsibilities
 - Context A — Provisioning (foundation TF + shell layer): Terraform provisions `stackit_observability_instance` + `stackit_observability_credential` on STACKIT. Shell helpers source push URLs and credentials from foundation outputs, write state file, and reconcile the `blueprint-observability-auth` K8s Secret.
-- Context B — Deployment (ArgoCD + Helm): ArgoCD deploys the otel-collector Helm release on the STACKIT lane. The collector reads credentials from the K8s Secret (via `extraEnvFrom`) and push URLs from env vars. The deploy script applies the ArgoCD Application manifest; ArgoCD syncs the Helm release into the cluster.
+- Context B — Deployment (ArgoCD + Helm): ArgoCD deploys the otel-collector Helm release on the STACKIT lane. The collector reads credentials and push URLs from files in `/etc/otel/secrets` (projected volume mount of `blueprint-observability-auth` K8s Secret) via the OTC file config provider. The deploy script applies the ArgoCD Application manifest; ArgoCD syncs the Helm release into the cluster.
 
 ## High-Level Component Design
 - Domain layer: Observability module contract — defines inputs (instance name, retention), outputs (OTEL endpoint, push URLs, API key), and module identity.
@@ -46,7 +46,7 @@ flowchart TD
     B -->|Loki push\nBasicAuth from Secret| D[STACKIT Observability\nlogs_push_url]
     B -->|OTLP/gRPC\nBasicAuth from Secret| E[STACKIT Observability\ntraces_push_url]
     F[foundation TF\nstackit_observability_instance] -->|instance_id, credential, push_urls| G[blueprint-observability-auth\nK8s Secret]
-    G -->|extraEnvFrom\nusername, password, METRICS/LOGS/TRACES_PUSH_URL| B
+    G -->|projected volume /etc/otel/secrets\nusername, password, METRICS/LOGS/TRACES_PUSH_URL| B
 ```
 
 ### Local Lane (existing, unchanged)

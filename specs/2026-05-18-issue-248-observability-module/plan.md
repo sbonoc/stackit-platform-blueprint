@@ -27,7 +27,7 @@ Q-1 resolved (Step 02, 2026-05-19): `metrics_push_url`, `logs_push_url`, `otlp_g
 5. Run `make test-unit-all` — all existing tests must remain green.
 
 ### Slice 3 — Green: STACKIT otel-collector values file + ArgoCD manifests
-1. Create `infra/cloud/stackit/helm/observability/otel-collector.values.yaml` with OTLP receiver, batch processor, and three exporters (`prometheusremotewrite`, `loki`, `otlp/stackit`) using env var substitution for credentials and push URLs. Include `extraEnvFrom` referencing `blueprint-observability-auth` Secret.
+1. Create `infra/cloud/stackit/helm/observability/otel-collector.values.yaml` with OTLP receiver, batch processor, three exporters (`prometheusremotewrite`, `loki`, `otlp/stackit`), and spanmetrics connector. Use `extraVolumes`/`extraVolumeMounts` to mount `blueprint-observability-auth` Secret at `/etc/otel/secrets` (read-only); reference credentials and push URLs via the OTC file config provider (`${file:/etc/otel/secrets/<key>}`).
 2. Update `infra/gitops/argocd/optional/{dev,stage,prod}/observability.yaml` to add an ArgoCD `Application` resource deploying the `open-telemetry/opentelemetry-collector` chart from `open-telemetry` Helm registry, using the STACKIT values file path, targeting the `observability` namespace.
 3. Run `uv run python3 -m pytest tests/infra/modules/observability/test_contract.py` — expect all ArgoCD manifest assertions green.
 
