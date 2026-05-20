@@ -1,11 +1,11 @@
 # Tasks
 
 ## Gate Checks (Required Before Implementation)
-- [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`
-- [ ] G-002 Confirm open questions and unresolved alternatives are `0` (Q-1 must be resolved or explicitly deferred)
-- [ ] G-003 Confirm required sign-offs are approved (Product, Architecture, Security, Operations)
-- [ ] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
-- [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
+- [x] G-001 Confirm `SPEC_READY=true` in `spec.md`
+- [x] G-002 Confirm open questions and unresolved alternatives are `0` (Q-1 must be resolved or explicitly deferred)
+- [x] G-003 Confirm required sign-offs are approved (Product, Architecture, Security, Operations)
+- [x] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
+- [x] G-005 Confirm `Implementation Stack Profile` section is fully populated
 
 ## Implementation — Slice 1 (red: failing tests)
 - [ ] T-001 Add `tests/infra/modules/workflows/test_contract.py` to `scripts/lib/quality/test_pyramid_contract.json` under `unit` scope (commit before creating the file)
