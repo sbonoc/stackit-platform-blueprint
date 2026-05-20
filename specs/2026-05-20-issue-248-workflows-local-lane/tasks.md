@@ -1,24 +1,24 @@
 # Tasks
 
 ## Gate Checks (Required Before Implementation)
-- [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`
-- [ ] G-002 Confirm open questions count = 0 and unresolved alternatives = 0
-- [ ] G-003 Confirm all four sign-offs are approved (Product, Architecture, Security, Operations)
-- [ ] G-004 Confirm `Applicable Guardrail Controls` section includes SDD-C-005 through SDD-C-015
-- [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
-- [ ] G-006 Resolve Q-1 (Airflow chart version pin)
-- [ ] G-007 Resolve Q-2 (DAG env var naming: `WORKFLOWS_LOCAL_DAGS_*` vs reuse `STACKIT_WORKFLOWS_DAGS_*`)
-- [ ] G-008 Resolve Q-3 (OIDC wiring: `webserverConfig.py` vs OAuth2-proxy sidecar)
-- [ ] G-009 Resolve Q-4 (OIDC env vars: new `WORKFLOWS_LOCAL_OIDC_*` vs Keycloak realm defaults)
+- [x] G-001 Confirm `SPEC_READY=true` in `spec.md` — confirmed 2026-05-20
+- [x] G-002 Confirm open questions count = 0 and unresolved alternatives = 0 — confirmed 2026-05-20
+- [x] G-003 Confirm all four sign-offs are approved (Product, Architecture, Security, Operations) — confirmed 2026-05-20
+- [x] G-004 Confirm `Applicable Guardrail Controls` section includes SDD-C-005 through SDD-C-015 — confirmed 2026-05-20
+- [x] G-005 Confirm `Implementation Stack Profile` section is fully populated — confirmed 2026-05-20
+- [x] G-006 Q-1 resolved — chart `1.20.0` (Airflow 3.1.8); PR #316 comment 2026-05-20
+- [x] G-007 Q-2 resolved — new `WORKFLOWS_LOCAL_DAGS_*` vars (Option A); PR #316 comment 2026-05-20
+- [x] G-008 Q-3 resolved — `webserverConfig.py` override (Option A); PR #316 comment 2026-05-20
+- [x] G-009 Q-4 resolved — dedicated `WORKFLOWS_LOCAL_OIDC_*` vars (Option A); PR #316 comment 2026-05-20
 
 ## Implementation — Slice 1: Contract skeleton + test pyramid
 - [ ] T-001 Create `tests/infra/modules/workflows/test_local_contract.py` with ≥ 10 static-analysis assertions
 - [ ] T-002 Register `test_local_contract.py` in `scripts/lib/quality/test_pyramid_contract.json` under `unit` scope
 - [ ] T-003 Confirm `make infra-contract-test-fast` shows expected failures (files not yet created)
 
-## Implementation — Slice 2: Library + env contract
-- [ ] T-010 Create `scripts/lib/infra/workflows_local.sh` with `workflows_local_init_env()` and helper functions
-- [ ] T-011 Add `WORKFLOWS_LOCAL_AIRFLOW_HELM_CHART_VERSION_PIN` to `scripts/lib/infra/versions.sh`
+## Implementation — Slice 2: Version pin + library (owner: sbonoc)
+- [ ] T-010 Add `WORKFLOWS_LOCAL_AIRFLOW_HELM_CHART_VERSION_PIN="1.20.0"` to `scripts/lib/infra/versions.sh` (MUST precede lib creation)
+- [ ] T-011 Create `scripts/lib/infra/workflows_local.sh` with `workflows_local_init_env()` and helper functions
 - [ ] T-012 Confirm `test_local_contract.py` lib assertions turn green
 
 ## Implementation — Slice 3: Module execution dispatch + make targets

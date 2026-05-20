@@ -13,45 +13,53 @@
 
 ## Delivery Slices (Red → Green TDD Order)
 
-### Slice 1 — Contract skeleton + test pyramid (red)
-1. Create `tests/infra/modules/workflows/test_local_contract.py` with ≥ 10 failing/stub assertions (files do not exist yet → `assertPathExists` will fail).
+### Slice 1 — Contract skeleton + test pyramid (red) · owner: sbonoc
+_Inputs:_ none · _Outputs:_ `test_local_contract.py` (failing), pyramid registration · _Depends on:_ nothing
+1. Create `tests/infra/modules/workflows/test_local_contract.py` with ≥ 10 failing/stub assertions (files do not exist yet → path-existence assertions will fail immediately).
 2. Register `test_local_contract.py` in `scripts/lib/quality/test_pyramid_contract.json` under `unit` scope.
-3. Run `make infra-contract-test-fast` — confirm test failures match expected missing files.
+3. Run `make infra-contract-test-fast` — confirm expected failures; no green yet.
 
-### Slice 2 — Library + env contract (green for FR-002)
-4. Create `scripts/lib/infra/workflows_local.sh` with `workflows_local_init_env()`, `workflows_local_public_url()`, and chart version accessor.
-5. Add `WORKFLOWS_LOCAL_AIRFLOW_HELM_CHART_VERSION_PIN` to `scripts/lib/infra/versions.sh`.
-6. Run `make infra-contract-test-fast` — `test_local_contract.py` assertions for lib functions turn green.
+### Slice 2 — Version pin + library (green for FR-002) · owner: sbonoc
+_Inputs:_ Slice 1 complete · _Outputs:_ `workflows_local.sh`, `versions.sh` entry · _Depends on:_ Slice 1
+4. Add `WORKFLOWS_LOCAL_AIRFLOW_HELM_CHART_VERSION_PIN="1.20.0"` to `scripts/lib/infra/versions.sh` — MUST precede lib creation because `workflows_local_init_env()` will source this value.
+5. Create `scripts/lib/infra/workflows_local.sh` with `workflows_local_init_env()`, `workflows_local_public_url()`, and chart version accessor (sources `versions.sh`).
+6. Run `make infra-contract-test-fast` — lib-function assertions turn green.
 
-### Slice 3 — Module execution dispatch + make targets (green for FR-010, FR-011)
+### Slice 3 — Module execution dispatch + make targets (green for FR-010, FR-011) · owner: sbonoc
+_Inputs:_ Slice 2 complete · _Outputs:_ `module_execution.sh` dispatch case, `render_makefile.sh` section · _Depends on:_ Slice 2
 7. Add `local-workflows:plan | local-workflows:apply | local-workflows:deploy | local-workflows:destroy` case to `scripts/lib/infra/module_execution.sh`.
-8. Add `local-workflows` section to `scripts/bin/blueprint/render_makefile.sh` with all five make targets.
-9. Run `make quality-makefile-render` and verify targets appear in rendered Makefile.
+8. Add `local-workflows` section to `scripts/bin/blueprint/render_makefile.sh` with all five make targets mapped to `local_workflows_*.sh` scripts.
+9. Run `make quality-makefile-render` — verify `infra-local-workflows-*` targets appear in rendered Makefile.
 
-### Slice 4 — Shell scripts (green for FR-003 through FR-007)
+### Slice 4 — Shell scripts (green for FR-003 through FR-007) · owner: sbonoc
+_Inputs:_ Slices 2 + 3 complete (lib + dispatch available) · _Outputs:_ five `local_workflows_*.sh` scripts · _Depends on:_ Slices 2, 3
 10. Create `scripts/bin/infra/local_workflows_plan.sh`.
 11. Create `scripts/bin/infra/local_workflows_apply.sh`.
 12. Create `scripts/bin/infra/local_workflows_deploy.sh`.
 13. Create `scripts/bin/infra/local_workflows_smoke.sh`.
 14. Create `scripts/bin/infra/local_workflows_destroy.sh`.
-15. Run `make infra-contract-test-fast` — remaining contract assertions turn green.
+15. Run `make infra-contract-test-fast` — script-existence and key-pattern assertions turn green.
 
-### Slice 5 — Helm values + ArgoCD manifests (green for FR-008, FR-009, FR-010)
-16. Create `infra/local/helm/workflows/airflow.values.yaml` with `LocalExecutor`, git-sync sidecar, resource limits.
-17. Replace ConfigMap stub `infra/gitops/argocd/optional/local/workflows.yaml` with ArgoCD Application manifest.
-18. Add `https://airflow.apache.org` to `infra/gitops/argocd/overlays/local/appproject.yaml` sourceRepos.
-19. Run `make infra-contract-test-fast` — AC-006 and AC-007 assertions green.
+### Slice 5 — Helm values + ArgoCD manifests (green for FR-008, FR-009, AC-006, AC-007) · owner: sbonoc
+_Inputs:_ Slice 3 complete (dispatch registered) · _Outputs:_ `airflow.values.yaml`, ArgoCD Application, `appproject.yaml` update · _Depends on:_ Slice 3 (parallel-capable with Slice 4)
+16. Create `infra/local/helm/workflows/airflow.values.yaml` — `executor: LocalExecutor`, `dags.gitSync.enabled: true`, resource limits ≤ 1 CPU / ≤ 1Gi per component, `webserver.webserverConfig` OIDC block referencing `WORKFLOWS_LOCAL_OIDC_*` vars.
+17. Replace ConfigMap stub with ArgoCD `Application` manifest at `infra/gitops/argocd/optional/local/workflows.yaml` — chart `apache-airflow/airflow`, version `1.20.0`, values file reference.
+18. Add `https://airflow.apache.org` to `sourceRepos` in `infra/gitops/argocd/overlays/local/appproject.yaml`.
+19. Run `make infra-contract-test-fast` — AC-006 and AC-007 assertions turn green.
 
-### Slice 6 — Contract YAML + docs (green for FR-013, FR-014)
+### Slice 6 — Contract YAML + docs (green for FR-013, FR-014, AC-008, AC-009) · owner: sbonoc
+_Inputs:_ Slices 4 + 5 complete · _Outputs:_ `module.contract.yaml`, README Local Lane section · _Depends on:_ Slices 4, 5
 20. Create `blueprint/modules/local-workflows/module.contract.yaml`.
 21. Update `docs/platform/modules/workflows/README.md` with Local Lane section.
-22. Run `make docs-build && make docs-smoke` and `make infra-validate`.
+22. Run `make docs-build && make docs-smoke` — exit 0.
+23. Run `make infra-validate` — exit 0.
 
-### Slice 7 — Full validation bundle (all green)
-23. Run `make test-unit-all` — confirm all assertions pass, test count ≥ 10 in `test_local_contract.py`.
-24. Run `make quality-hooks-fast` — all pre-commit checks pass.
-25. Run `make quality-sdd-check` — no violations.
-26. Run `make quality-hardening-review` — no blocking findings.
+### Slice 7 — Full validation bundle (all green) · owner: sbonoc
+_Inputs:_ Slices 1–6 complete · _Outputs:_ green CI-equivalent bundle · _Depends on:_ all prior slices
+24. Run `make test-unit-all` — all assertions pass; `test_local_contract.py` count ≥ 10.
+25. Run `make quality-hooks-fast` — all pre-commit checks pass.
+26. Run `make quality-sdd-check` — no violations.
+27. Run `make quality-hardening-review` — no blocking findings.
 
 ## Change Strategy
 - Migration/rollout sequence: Additive only. No existing STACKIT workflows scripts, make targets, or contract YAML are modified.
@@ -112,4 +120,4 @@
 ## Risks and Mitigations
 - Risk 1: Docker Desktop Kubernetes memory pressure → mitigation: conservative resource requests/limits in `airflow.values.yaml` (≤ 1 CPU, ≤ 1Gi per component).
 - Risk 2: Airflow chart version breaking changes → mitigation: pin version in `versions.sh`; upgrade via standard version-bump PR process.
-- Risk 3: Open questions (Q-1 through Q-4) block SPEC_READY → mitigation: surfaced in Draft PR; implementation is blocked on sign-off per `SPEC_READY=false` gate.
+- Risk 3: Airflow 3.1 chart API changes (git-sync sidecar key names differ between chart versions) → mitigation: chart pinned at `1.20.0`; verify `dags.gitSync.*` key names against that chart's `values.yaml` before writing `airflow.values.yaml`.
