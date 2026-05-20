@@ -131,7 +131,7 @@ _Caption: New scripts source `workflows_local.sh` for env setup and `module_exec
 |---|---|---|
 | Chart | `apache-airflow/airflow` | Official Apache Airflow Helm chart |
 | Repo | `https://airflow.apache.org` | Official chart repo; must be added to `appproject.yaml` |
-| Version | [NEEDS CLARIFICATION — Q-1] | Pin in `versions.sh` as `WORKFLOWS_LOCAL_AIRFLOW_HELM_CHART_VERSION_PIN` |
+| Version | `1.20.0` (Airflow 3.1.8) | Pinned in `versions.sh` as `WORKFLOWS_LOCAL_AIRFLOW_HELM_CHART_VERSION_PIN`; matches STACKIT Managed Airflow 3.1 |
 | Executor | `LocalExecutor` | No Redis dependency; appropriate for Docker Desktop Kubernetes |
 | DAG sync | `dags.gitSync` sidecar | Parity with STACKIT lane DAG loading behavior |
 | Namespace | `data` | Consistent with neo4j local lane |

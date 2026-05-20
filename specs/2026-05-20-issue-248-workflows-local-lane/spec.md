@@ -5,11 +5,11 @@
      SPEC_READY=true: implementation gate — all sign-offs required; unlocks coding. -->
 - SPEC_READY: false
 - SPEC_PRODUCT_READY: false
-- Open questions count: 4
-- Unresolved alternatives count: 1
+- Open questions count: 0
+- Unresolved alternatives count: 0
 - Unresolved TODO markers count: 0
 - Pending assumptions count: 0
-- Open clarification markers count: 4
+- Open clarification markers count: 0
 - Product sign-off: pending
 - Architecture sign-off: pending
 - Security sign-off: pending
@@ -49,13 +49,7 @@
 
 - FR-002 `workflows_local_init_env()` in `scripts/lib/infra/workflows_local.sh` MUST validate that `WORKFLOWS_LOCAL_DAGS_REPO_URL` ends with `.git`, set defaults for `WORKFLOWS_LOCAL_NAMESPACE` (`data`), `WORKFLOWS_LOCAL_HELM_RELEASE` (`blueprint-workflows-local`), `WORKFLOWS_LOCAL_HELM_CHART` (`apache-airflow/airflow`), and call `require_env_vars` for all required inputs.
 
-  > **[NEEDS CLARIFICATION]** Q-2: DAG env var namespace — reuse `STACKIT_WORKFLOWS_DAGS_*` variables (same repo, same credentials) or define new `WORKFLOWS_LOCAL_DAGS_*` variables?
-  >
-  > **Options:**
-  > - **A)** New `WORKFLOWS_LOCAL_DAGS_REPO_URL / _BRANCH / _TOKEN` — clear separation; local and STACKIT lanes can point to different repos. (agent recommendation)
-  > - **B)** Reuse `STACKIT_WORKFLOWS_DAGS_REPO_URL / _BRANCH / _TOKEN` — fewer env vars; forces both lanes to use the same repo.
-  >
-  > **Agent recommendation:** Option A — separate vars prevent accidental cross-lane credential sharing and allow independent repo configuration during local development.
+  DAG env var namespace: new `WORKFLOWS_LOCAL_DAGS_REPO_URL / _BRANCH / _TOKEN` (Option A) — separate vars prevent accidental cross-lane credential sharing and allow independent repo and branch configuration during local development. Decision by PR #316 comment 2026-05-20.
 
 - FR-003 `scripts/bin/infra/local_workflows_plan.sh` MUST call `resolve_optional_module_execution "local-workflows" "plan"` (driver: `argocd_optional_manifest`), verify the manifest exists via `optional_module_require_manifest_present`, and write a plan state file via `write_state_file "workflows_local_plan"` containing `provision_driver`, `provision_path`, `public_url`, and `chart_version` keys.
 
@@ -69,13 +63,7 @@
 
 - FR-008 `infra/local/helm/workflows/airflow.values.yaml` MUST configure Apache Airflow with: `executor: LocalExecutor`, git-sync sidecar enabled (`dags.gitSync.enabled: true`) with `repo`, `branch`, and `credentialsSecret` fields, resource requests/limits appropriate for Docker Desktop Kubernetes (≤ 1 CPU, ≤ 1Gi memory per component).
 
-  > **[NEEDS CLARIFICATION]** Q-1: Airflow Helm chart version pin — which version of `apache-airflow/airflow` chart MUST be pinned in `versions.sh`?
-  >
-  > **Options:**
-  > - **A)** Pin to `1.15.0` (latest stable as of 2026-05-20). (agent recommendation)
-  > - **B)** Pin to a later version confirmed by the team.
-  >
-  > **Agent recommendation:** Option A — pin to `1.15.0` in `versions.sh` as `WORKFLOWS_LOCAL_AIRFLOW_HELM_CHART_VERSION_PIN`; update via the standard version-bump process.
+  Chart version `1.20.0` MUST be pinned in `versions.sh` as `WORKFLOWS_LOCAL_AIRFLOW_HELM_CHART_VERSION_PIN` (app version: Airflow 3.1.8 — the latest chart release supporting the 3.1 line, matching the Airflow version available in STACKIT Managed Workflows). Decision by PR #316 comment 2026-05-20.
 
 - FR-009 `infra/gitops/argocd/optional/local/workflows.yaml` MUST be replaced with an ArgoCD `Application` manifest (not a `ConfigMap` stub) that sources the `apache-airflow/airflow` chart from `https://airflow.apache.org` with the pinned chart version and references `infra/local/helm/workflows/airflow.values.yaml`.
 
@@ -85,25 +73,13 @@
 
 - FR-012 `scripts/lib/quality/test_pyramid_contract.json` MUST register `tests/infra/modules/workflows/test_local_contract.py` under the `unit` scope. The test file MUST contain ≥ 10 static-analysis assertions (source-reading only; no subprocess execution).
 
-  > **[NEEDS CLARIFICATION]** Q-3: Airflow OIDC wiring approach — configure Airflow OIDC in `airflow.values.yaml` via `webserverConfig.py` override (Airflow-native), or use an OAuth2-proxy sidecar consistent with the IAP module?
-  >
-  > **Options:**
-  > - **A)** `webserverConfig.py` override in Helm values — Airflow-native; fewer moving parts; no extra pod. (agent recommendation)
-  > - **B)** OAuth2-proxy sidecar — consistent with IAP module pattern; more overhead.
-  >
-  > **Agent recommendation:** Option A — Airflow already ships Flask-AppBuilder OIDC support; injecting a `webserverConfig.py` via Helm values is the standard approach and avoids an extra IAP dependency.
+  Airflow OIDC wiring: `webserverConfig.py` override in Helm values (Option A) — Airflow-native Flask-AppBuilder OIDC; no extra pod or IAP module dependency. `airflow.values.yaml` MUST include a `webserver.webserverConfig` block referencing `WORKFLOWS_LOCAL_OIDC_ISSUER_URL`, `WORKFLOWS_LOCAL_OIDC_CLIENT_ID`, and `WORKFLOWS_LOCAL_OIDC_CLIENT_SECRET`. Decision by PR #316 comment 2026-05-20.
 
 - FR-013 `blueprint/modules/local-workflows/module.contract.yaml` MUST define the `local-workflows` module contract with `enable_flag: WORKFLOWS_LOCAL_ENABLED`, `make_targets`, `inputs.required_env`, and `outputs.produced`.
 
 - FR-014 `docs/platform/modules/workflows/README.md` MUST be updated with a Local Lane section documenting `WORKFLOWS_LOCAL_ENABLED`, required env vars, make targets, DAG git-sync configuration, and Keycloak OIDC wiring.
 
-  > **[NEEDS CLARIFICATION]** Q-4: Local Keycloak OIDC env var scope — MUST the local lane define a dedicated `WORKFLOWS_LOCAL_OIDC_*` env var set, or is it acceptable to reuse the realm-level Keycloak defaults already set by `keycloak_seed_env_defaults()` for other local modules?
-  >
-  > **Options:**
-  > - **A)** New `WORKFLOWS_LOCAL_OIDC_CLIENT_ID / _CLIENT_SECRET` env vars — explicit, auditable, matches STACKIT lane pattern. (agent recommendation)
-  > - **B)** Reuse Keycloak realm defaults from `keycloak_seed_env_defaults()` — fewer vars; less config ceremony.
-  >
-  > **Agent recommendation:** Option A — Airflow needs its own Keycloak client (`airflow-local`) with specific redirect URIs; reusing generic realm defaults would require runtime mutation of an existing client.
+  OIDC env var scope: new `WORKFLOWS_LOCAL_OIDC_CLIENT_ID / _CLIENT_SECRET / _ISSUER_URL` env vars (Option A) — Airflow requires its own Keycloak confidential client (`airflow-local`) with specific redirect URIs (`http://localhost:8080/*`); reusing realm defaults would mutate a shared client. `require_env_vars` in `workflows_local_init_env()` MUST include all three. Decision by PR #316 comment 2026-05-20.
 
 ### Non-Functional Requirements (Normative)
 

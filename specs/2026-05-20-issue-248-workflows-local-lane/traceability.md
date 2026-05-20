@@ -52,9 +52,9 @@
 - Hardening review export: `hardening_review.md`
 
 ## Open Risks and Follow-Ups
-- Q-1 (Airflow chart version pin): pending resolution via PR comment — `[NEEDS CLARIFICATION]` in spec.md FR-008.
-- Q-2 (DAG env var naming): pending resolution via PR comment — `[NEEDS CLARIFICATION]` in spec.md FR-002.
-- Q-3 (OIDC wiring approach): pending resolution via PR comment — `[NEEDS CLARIFICATION]` in spec.md FR-012.
-- Q-4 (OIDC env var reuse): pending resolution via PR comment — `[NEEDS CLARIFICATION]` in spec.md FR-014.
+- Q-1 (Airflow chart version pin): resolved — chart `1.20.0` (Airflow 3.1.8); PR #316 comment 2026-05-20.
+- Q-2 (DAG env var naming): resolved — new `WORKFLOWS_LOCAL_DAGS_REPO_URL/_BRANCH/_TOKEN` (Option A); PR #316 comment 2026-05-20.
+- Q-3 (OIDC wiring approach): resolved — `webserverConfig.py` override in Helm values (Option A); PR #316 comment 2026-05-20.
+- Q-4 (OIDC env var reuse): resolved — dedicated `WORKFLOWS_LOCAL_OIDC_CLIENT_ID/_CLIENT_SECRET/_ISSUER_URL` (Option A); PR #316 comment 2026-05-20.
 - Parked: Python version coexistence strategy — separate backlog item; out of scope.
 - Parked: Provider-backed STACKIT lane migration — separate backlog item; out of scope.
