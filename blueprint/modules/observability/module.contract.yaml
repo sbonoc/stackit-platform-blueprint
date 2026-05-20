@@ -14,6 +14,7 @@ spec:
     helm:
       - infra/local/helm/observability/grafana.values.yaml
       - infra/local/helm/observability/otel-collector.values.yaml
+      - infra/cloud/stackit/helm/observability/otel-collector.values.yaml
     gitops: infra/gitops/argocd/optional/${ENV}/observability.yaml
     scripts:
       - scripts/bin/infra/observability_*.sh
@@ -36,6 +37,7 @@ spec:
     required_env: []
     optional_env:
       - OBSERVABILITY_ENABLED
+      - OBSERVABILITY_USERNAME
       - STACKIT_OBSERVABILITY_INSTANCE_ID
       - STACKIT_OBSERVABILITY_GRAFANA_URL
       - OTEL_EXPORTER_OTLP_ENDPOINT
@@ -65,6 +67,10 @@ spec:
       - FARO_COLLECT_PATH
       - STACKIT_OBSERVABILITY_INSTANCE_ID
       - STACKIT_OBSERVABILITY_GRAFANA_URL
+      - OBSERVABILITY_LOGS_ENDPOINT
+      - OBSERVABILITY_METRICS_ENDPOINT
+      - OBSERVABILITY_TRACES_ENDPOINT
+      - OBSERVABILITY_API_KEY
 
   make_targets:
     plan: infra-observability-plan
@@ -77,6 +83,7 @@ spec:
     - "OTEL collector endpoint contract is present"
     - "Observability runtime and deploy artifacts are healthy"
     - "App manifest contains observability runtime contract when enabled"
+    - "STACKIT lane: logs_endpoint, metrics_endpoint, traces_endpoint are non-empty"
 
   cleanup_contract:
     destroy_target: infra-observability-destroy

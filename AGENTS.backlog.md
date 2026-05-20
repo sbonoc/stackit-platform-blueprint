@@ -34,6 +34,8 @@ To introduce a new tag, append a row here in the same commit that uses it.
       trigger: on-scope: quality
       rationale: OPTION_A (exact heading match) selected in spec as the starting point; Option B adds false-positive risk before consumer feedback on Option A is gathered.
 
+- [ ] proposal(issue-248-observability-module): Harden observability credential delivery via Secrets Store CSI Driver — https://github.com/sbonoc/stackit-platform-blueprint/issues/312
+
 ### P2 — Consumer upgrade flow
 
 - [ ] Issue #167 — dry-run mode (`BLUEPRINT_UPGRADE_DRY_RUN=true`): simulate all file mutations and output a unified diff without touching the working tree; same warnings and conflicts as a real apply.
@@ -57,7 +59,7 @@ To introduce a new tag, append a row here in the same commit that uses it.
 
 ### P2 — Platform modules
 
-- [ ] Issue #248 remaining modules — STACKIT-managed service candidates (kms ✅, secrets-manager ✅ PR #305, dns SPEC_READY PR #306, public-endpoints, observability, workflows, identity-aware-proxy). Gate on #295 removed — architecture decision recorded in `AGENTS.decisions.md`: OM is consumer/product-owned and not a blueprint module candidate.
+- [ ] Issue #248 remaining modules — STACKIT-managed service candidates (kms ✅, secrets-manager ✅ PR #305, dns SPEC_READY PR #306, public-endpoints ✅ PR #307, observability ✅ PR #308, workflows, identity-aware-proxy). Gate on #295 removed — architecture decision recorded in `AGENTS.decisions.md`: OM is consumer/product-owned and not a blueprint module candidate.
 - [ ] Issue #171 — managed-cache module: STACKIT Managed Redis as a first-class optional module (Helm/ArgoCD-managed, provider-backed via STACKIT Terraform).
 - [ ] Issue #172 — platform-email module: Helm/ArgoCD-managed Postal for transactional email as an optional module.
 
@@ -98,6 +100,18 @@ Surface automatically when the named scope is next touched. Do not promote to ac
 - [ ] (parked) proposal(issue-277-argocd-health-na): per-resource-type ignoreResourceUpdates tuning for noisy types (ConfigMap, Endpoints)
       trigger: on-scope: infra
       rationale: no current CPU pressure evidence on local Docker Desktop; surfaces when future ArgoCD or infra work is scoped
+
+### on-scope: observability
+
+- [ ] (parked) proposal(issue-248-observability-module): Faro browser telemetry endpoint on STACKIT lane — expose a Faro/GrafanaAgent receiver in the STACKIT otel-collector for browser RUM telemetry
+      trigger: on-scope: observability
+      rationale: no active consumer need; requires evaluating OTC Faro receiver maturity and STACKIT Observability push protocol support
+- [ ] (parked) proposal(issue-248-observability-module): `OBSERVABILITY_RETENTION_DAYS` shell contract — surface TF-level retention vars (`observability_logs_retention_days`, `metrics_retention_days`, `traces_retention_days`) as a shell-layer contract variable
+      trigger: on-scope: observability
+      rationale: low effort; deferred to avoid scope creep; retention already configurable at TF level
+- [ ] (parked) proposal(issue-248-observability-module): Evaluate a provider-backed Logs/LogMe module or baseline observability extension using STACKIT Terraform resources
+      trigger: on-scope: observability
+      rationale: no active consumer need for a dedicated Logs service module; surfaces when a consumer requests LogMe or a second observability extension
 
 ### on-scope: blueprint
 
@@ -147,6 +161,9 @@ Surface automatically when the named scope is next touched. Do not promote to ac
 - [ ] (parked) proposal(issue-275-sdd-bypass-track): SPEC_READY_EXCEPTION: chore + AGENTS.decisions.md machine-verifiable validation (Option B)
       trigger: on-scope: quality
       rationale: checker needs branch/PR context to look up AGENTS.decisions.md entry — makes quality-sdd-check non-deterministic in local runs; convention + code review sufficient
+- [ ] (parked) proposal(issue-248-observability-module): `blueprint-template-smoke` declare -A fix — `prune_codex_skills.sh` uses bash associative arrays (`declare -A`) incompatible with macOS `/bin/sh`; pre-existing defect on main before PR #308
+      trigger: on-scope: quality
+      rationale: pre-existing defect confirmed on main before this branch; repo-wide cleanup item; no consumer impact until blueprint-template-smoke is a blocking gate
 
 ### on-scope: a11y
 
@@ -205,7 +222,6 @@ Ideas without a delivery commitment. Promote to active only when a concrete trig
 - [ ] Add optional Neo4j Keycloak realm/client reconciliation (gated by `KEYCLOAK_OPTIONAL_MODULE_RECONCILIATION_ENABLED`).
 - [ ] Continue migrating `workflows` to provider-backed STACKIT execution when official resources become available.
 - [ ] Evaluate provider-backed relational/NoSQL data-service modules (`mariadb`, `mongodbflex`, `sqlserverflex`).
-- [ ] Evaluate a provider-backed Logs/LogMe module or baseline observability extension using STACKIT Terraform resources.
 - [ ] Evaluate a provider-backed File Storage module using STACKIT SFS Terraform resources.
 - [ ] Evaluate whether STACKIT Application Load Balancer, CDN, and Public IP resources should become first-class edge modules.
 - [ ] Evaluate whether STACKIT network and security primitives (`network`, `network_area`, `routing_table`, `security_group`) should become first-class foundation capabilities.

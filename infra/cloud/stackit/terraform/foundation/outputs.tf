@@ -236,6 +236,21 @@ output "observability_credential_password" {
   value       = var.observability_enabled ? stackit_observability_credential.foundation[0].password : null
 }
 
+output "observability_metrics_push_url" {
+  description = "Provisioned Observability Prometheus remote-write push URL."
+  value       = var.observability_enabled ? stackit_observability_instance.foundation[0].metrics_push_url : null
+}
+
+output "observability_logs_push_url" {
+  description = "Provisioned Observability Loki push URL."
+  value       = var.observability_enabled ? stackit_observability_instance.foundation[0].logs_push_url : null
+}
+
+output "observability_traces_push_url" {
+  description = "Provisioned Observability OTLP gRPC traces push URL."
+  value       = var.observability_enabled ? stackit_observability_instance.foundation[0].otlp_grpc_traces_url : null
+}
+
 output "kms_key_ring_name" {
   description = "Provisioned KMS keyring display name."
   value       = var.kms_enabled ? var.kms_key_ring_name : null

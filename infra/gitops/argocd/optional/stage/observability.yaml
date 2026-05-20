@@ -7,3 +7,137 @@ data:
   module: "observability"
   environment: "stage"
   deploymentDriver: "argocd"
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: platform-observability-stage
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: platform-blueprint
+    app.kubernetes.io/component: optional-module
+    app.kubernetes.io/name: observability
+    app.kubernetes.io/environment: stage
+spec:
+  project: platform-stage
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: observability
+  source:
+    repoURL: https://open-telemetry.github.io/opentelemetry-helm-charts
+    chart: opentelemetry-collector
+    targetRevision: 0.147.1
+    helm:
+      releaseName: blueprint-otel-collector
+      values: |
+        mode: deployment
+        config:
+          receivers:
+            otlp:
+              protocols:
+                grpc:
+                  endpoint: 0.0.0.0:4317
+                http:
+                  endpoint: 0.0.0.0:4318
+          processors:
+            batch: {}
+          extensions:
+            health_check:
+              endpoint: 0.0.0.0:13133
+            basicauth/stackit:
+              client_auth:
+                username: ${file:/etc/otel/secrets/username}
+                password: ${file:/etc/otel/secrets/password}
+          exporters:
+            prometheusremotewrite:
+              endpoint: ${file:/etc/otel/secrets/METRICS_PUSH_URL}
+              auth:
+                authenticator: basicauth/stackit
+              tls:
+                insecure: false
+            loki:
+              endpoint: ${file:/etc/otel/secrets/LOGS_PUSH_URL}
+              auth:
+                authenticator: basicauth/stackit
+              tls:
+                insecure: false
+            otlp/stackit:
+              endpoint: ${file:/etc/otel/secrets/TRACES_PUSH_URL}
+              auth:
+                authenticator: basicauth/stackit
+              tls:
+                insecure: false
+          connectors:
+            spanmetrics:
+              histogram:
+                explicit:
+                  buckets: [100us, 1ms, 2ms, 6ms, 10ms, 100ms, 250ms]
+              dimensions:
+                - name: http.method
+                  default: GET
+                - name: http.status_code
+          service:
+            extensions:
+              - health_check
+              - basicauth/stackit
+            pipelines:
+              traces:
+                receivers: [otlp]
+                processors: [batch]
+                exporters: [otlp/stackit, spanmetrics]
+              metrics:
+                receivers: [otlp, spanmetrics]
+                processors: [batch]
+                exporters: [prometheusremotewrite]
+              logs:
+                receivers: [otlp]
+                processors: [batch]
+                exporters: [loki]
+        extraVolumes:
+          - name: obs-auth
+            secret:
+              secretName: blueprint-observability-auth
+        extraVolumeMounts:
+          - name: obs-auth
+            mountPath: /etc/otel/secrets
+            readOnly: true
+        ports:
+          otlp:
+            enabled: true
+            containerPort: 4317
+            servicePort: 4317
+            protocol: TCP
+          otlp-http:
+            enabled: true
+            containerPort: 4318
+            servicePort: 4318
+            protocol: TCP
+          jaeger-compact:
+            enabled: false
+          jaeger-thrift:
+            enabled: false
+          jaeger-grpc:
+            enabled: false
+          zipkin:
+            enabled: false
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 13133
+          initialDelaySeconds: 10
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 13133
+          initialDelaySeconds: 10
+          periodSeconds: 15
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
