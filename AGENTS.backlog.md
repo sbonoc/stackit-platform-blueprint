@@ -115,9 +115,9 @@ Surface automatically when the named scope is next touched. Do not promote to ac
 
 ### on-scope: workflows
 
-- [ ] (parked) proposal(issue-248-workflows-module): Local lane Airflow support — deploy Apache Airflow on the local cluster (Docker Desktop) via a Helm chart (apache-airflow) with a local DAG git-sync sidecar, local Keycloak OIDC wiring, and a new `WORKFLOWS_LOCAL_ENABLED` toggle distinct from `WORKFLOWS_ENABLED`
+- [ ] (parked) proposal(issue-248-workflows-module): Local lane Airflow support — deploy Apache Airflow on the local Docker Desktop Kubernetes cluster using the crossplane-plus-helm pattern (consistent with observability, neo4j, langfuse local lanes); `infra/local/helm/workflows/airflow.values.yaml` for chart config; `WORKFLOWS_LOCAL_ENABLED` toggle distinct from `WORKFLOWS_ENABLED` (STACKIT); local Keycloak OIDC wiring via the existing `eso-plus-argocd-plus-keycloak` runtime identity baseline; DAGs mounted via a git-sync sidecar or local hostPath volume; `stackit_workflows_local_apply.sh` / `stackit_workflows_local_smoke.sh` following the established local lane script pattern
       trigger: on-scope: workflows
-      rationale: STACKIT Workflows is cloud-only; local lane adds meaningful DX value for DAG authors who want a local Airflow environment without a STACKIT account; surfaces when a consumer requests local DAG development support
+      rationale: STACKIT Workflows is cloud-only; local lane adds meaningful DX value for DAG authors who want a local Airflow environment without a STACKIT account; approach deliberately mirrors crossplane/helm local lane pattern used by other optional modules; surfaces when a consumer requests local DAG development support
 - [ ] (parked) proposal(issue-248-workflows-module): Provider-backed migration — replace REST API contract with `stackit_workflows_instance` Terraform provider resource when an official resource is released in a future provider version
       trigger: on-scope: workflows
       rationale: no TF provider resource exists as of v0.96.0; tracked in STACKIT platform expansion section; migration path documented in ADR-issue-248-workflows-module.md
