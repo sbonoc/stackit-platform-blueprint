@@ -31,30 +31,196 @@
   - `STACKIT_WORKFLOWS_HEALTH_STATUS`
 <!-- END GENERATED MODULE CONTRACT SUMMARY -->
 
+## Overview
+
+The Workflows module provisions a STACKIT-managed Apache Airflow instance and connects it to your DAG Git repository and Keycloak OIDC identity provider.
+
+**STACKIT-lane only (SDD-C-014 exception).** There is no Terraform provider resource for STACKIT Workflows; all lifecycle operations call the REST API at `https://workflows.api.stackit.cloud/v1alpha` directly. The `api_contract` provision driver is used throughout. Local profiles (`local-*`) are not supported — all make targets `log_fatal` immediately on a non-STACKIT profile.
+
+Optional module Make targets are materialized by `make blueprint-render-makefile` (or `make blueprint-bootstrap`) when `WORKFLOWS_ENABLED=true`. Scaffolding paths are materialized by `make infra-bootstrap` only when `WORKFLOWS_ENABLED=true`.
+
 ## Stack Execution Model
-- Supported only on `stackit-*` profiles.
-- Optional module Make targets are materialized by `make blueprint-render-makefile` (or `make blueprint-bootstrap`) when `WORKFLOWS_ENABLED=true`.
-- Scaffolding paths are materialized by `make infra-bootstrap` only when `WORKFLOWS_ENABLED=true`.
-- Provisioning/reconciliation uses STACKIT Workflows API contract:
-  - `POST /projects/{projectId}/regions/{region}/instances`
-  - plus wrapper reconciliation in `scripts/bin/infra/stackit_workflows_*.sh`
-- API payload/state artifacts are generated under:
-  - `artifacts/infra/workflows_*.env`
 
-## Reconciliation Rules
-- If one active instance exists, reconcile it.
-- If none exists, create a new one.
-- If more than one exists and no explicit instance is set, fail fast.
+| Action | STACKIT (`stackit-*`) |
+|---|---|
+| `infra-stackit-workflows-plan` | Validates env vars; generates `workflows_payload.json`; writes `provision_driver`, `provision_path`, `payload_file`, `display_name` to plan state |
+| `infra-stackit-workflows-apply` | `POST /instances` (HTTP 201) or idempotent `GET` on HTTP 409; writes `instance_id`, `instance_fqdn`, `web_url`, `health_status` to instance state |
+| `infra-stackit-workflows-reconcile` | Cardinality guard (fail if > 1 instance without explicit ID); delegates to `keycloak_reconcile` if instance exists |
+| `infra-stackit-workflows-dag-deploy` | `PATCH /instances/{id}` to set `dagsRepository` URL; writes `status=synced` and `dags_repo_url` to dag deploy state |
+| `infra-stackit-workflows-dag-parse-smoke` | Validates DAG files are absent from `apps/` (guarded path); writes smoke result |
+| `infra-stackit-workflows-smoke` | Checks instance `Active` health status and live API reachability; writes `status=passed` |
+| `infra-stackit-workflows-destroy` | `DELETE /instances/{id}`; writes HTTP status and instance ID to destroy state; removes state artifacts |
 
-## Keycloak Contract
-- Confidential client
-- Standard flow enabled
-- Direct access grants enabled
-- Realm roles: `Admin`, `User`, `Viewer`, `Op`
-- Roles mapper claim must be `roles` in ID token, access token, and userinfo.
+## Provisioning Lifecycle
 
-## Smoke Expectations
-- Instance is `Active`
-- OIDC login works
-- DAG parsing has no import errors
-- Expected DAGs are visible
+Full lifecycle (first-time setup):
+
+```
+make infra-stackit-workflows-plan          # validate env + write plan state
+make infra-stackit-workflows-apply         # provision instance via REST API
+make infra-stackit-workflows-reconcile     # upsert Keycloak OIDC client + converge
+make infra-stackit-workflows-dag-deploy    # link DAG repository to instance
+make infra-stackit-workflows-smoke         # verify instance is Active + API live
+```
+
+Day-2 reconciliation:
+
+```
+make infra-stackit-workflows-reconcile     # cardinality guard + keycloak converge
+```
+
+DAG validation before deploy:
+
+```
+make infra-stackit-workflows-dag-parse-smoke   # validate DAG file locations
+```
+
+## API Contract Approach
+
+Provisioning uses the STACKIT Workflows REST API (`v1alpha`). No Terraform resource exists for this service in provider versions through v0.96.0; the `api_contract` provision driver is the canonical approach until a provider resource becomes available.
+
+Endpoint base: `https://workflows.api.stackit.cloud/v1alpha/projects/{projectId}/regions/{region}`
+
+Key operations:
+
+| Operation | Method | Path |
+|---|---|---|
+| Create instance | `POST` | `/instances` |
+| Get instance | `GET` | `/instances/{instanceId}` |
+| Update DAG repo | `PATCH` | `/instances/{instanceId}` |
+| Delete instance | `DELETE` | `/instances/{instanceId}` |
+
+The apply script handles HTTP 409 (instance already exists) as an idempotency signal: it re-fetches the existing instance and writes the same state keys as a successful create. Re-running `infra-stackit-workflows-apply` when the instance already exists is safe.
+
+## Keycloak OIDC Contract
+
+`make infra-stackit-workflows-reconcile` (which internally calls the Keycloak reconcile script) upserts a confidential OIDC client in Keycloak so that the Airflow web UI can authenticate users via the platform identity provider.
+
+Client configuration applied:
+
+| Field | Value |
+|---|---|
+| Client type | Confidential (client_secret) |
+| Standard flow | Enabled |
+| Direct access grants | Enabled |
+| Redirect URIs | `{STACKIT_WORKFLOWS_WEB_URL}/oauth-authorized/keycloak`, `{STACKIT_WORKFLOWS_WEB_URL}/*` |
+| Web origins | `{STACKIT_WORKFLOWS_WEB_URL}` |
+| Realm roles | `Admin`, `User`, `Viewer`, `Op` |
+| Roles claim mapper | `roles` — included in ID token, access token, and userinfo |
+
+State written to `artifacts/infra/workflows_keycloak_reconcile.env`:
+
+| Key | Description |
+|---|---|
+| `status` | `reconciled` |
+| `realm` | Keycloak realm name |
+| `client_id` | OIDC client ID registered in Keycloak |
+| `redirect_uris` | Space-separated list of allowed redirect URIs |
+| `web_origins` | Space-separated list of allowed web origins |
+| `admin_username` | Keycloak admin username used for reconciliation |
+| `timestamp_utc` | ISO-8601 timestamp of last reconciliation |
+
+The `OIDC_CLIENT_SECRET` is never written to any state file.
+
+## DAG Repository Requirements
+
+The DAG repository is a standard Git repository. Requirements:
+
+- URL must end with `.git` (enforced by `workflows_init_env()` with `log_fatal`)
+- The branch specified by `STACKIT_WORKFLOWS_DAGS_REPO_BRANCH` must exist
+- DAG Python files must NOT be placed under an `apps/` directory — `infra-stackit-workflows-dag-parse-smoke` will fail fast if any `*.py` files are found there
+- The deploy token (`STACKIT_WORKFLOWS_DAGS_REPO_TOKEN`) is passed directly to the API and is never written to state files
+
+## State File Outputs
+
+All artifacts are written to `artifacts/infra/` with the following naming convention and key contracts:
+
+### `workflows_plan.env`
+
+| Key | Description |
+|---|---|
+| `provision_driver` | Always `api_contract` |
+| `provision_path` | `/projects/{projectId}/regions/{region}/instances` |
+| `payload_file` | Path to the generated `workflows_payload.json` |
+| `display_name` | Instance display name (≤ 16 chars, `a-z0-9-`) |
+
+### `workflows_instance.env`
+
+| Key | Description |
+|---|---|
+| `instance_id` | STACKIT Workflows instance UUID |
+| `instance_fqdn` | Fully qualified domain name of the Airflow instance |
+| `web_url` | Full HTTPS URL of the Airflow web UI |
+| `health_status` | Instance health as reported by the API (`Active`, etc.) |
+
+### `workflows_keycloak_reconcile.env`
+
+See [Keycloak OIDC Contract](#keycloak-oidc-contract) above.
+
+### `workflows_dag_deploy.env`
+
+| Key | Description |
+|---|---|
+| `status` | `synced` |
+| `dags_repo_url` | Git repository URL that was registered with the instance |
+
+### `workflows_smoke.env`
+
+| Key | Description |
+|---|---|
+| `status` | `passed` |
+
+## Security
+
+- `STACKIT_WORKFLOWS_DAGS_REPO_TOKEN` — passed to the STACKIT API at deploy time; never written to any state file or logged.
+- `STACKIT_WORKFLOWS_OIDC_CLIENT_SECRET` — used for Keycloak client reconciliation; never written to any state file or logged.
+- `OIDC_CLIENT_SECRET` — Keycloak admin credential; never written to any state file.
+- All state files (`artifacts/infra/workflows_*.env`) are validated by `test_contract.py` to confirm the absence of token and secret keys.
+
+## Consumer Usage
+
+Enable the module in your consumer `.env`:
+
+```bash
+WORKFLOWS_ENABLED=true
+STACKIT_WORKFLOWS_DAGS_REPO_URL=https://github.com/your-org/your-dags-repo.git
+STACKIT_WORKFLOWS_DAGS_REPO_BRANCH=main
+STACKIT_WORKFLOWS_DAGS_REPO_USERNAME=git-user
+STACKIT_WORKFLOWS_DAGS_REPO_TOKEN=<token>          # never commit this value
+STACKIT_WORKFLOWS_OIDC_DISCOVERY_URL=https://keycloak.your-domain.com/realms/your-realm/.well-known/openid-configuration
+STACKIT_WORKFLOWS_OIDC_CLIENT_ID=airflow
+STACKIT_WORKFLOWS_OIDC_CLIENT_SECRET=<secret>      # never commit this value
+STACKIT_OBSERVABILITY_INSTANCE_ID=<uuid>           # from the Observability module output
+```
+
+Then run the full provisioning lifecycle:
+
+```bash
+make infra-stackit-workflows-plan
+make infra-stackit-workflows-apply
+make infra-stackit-workflows-reconcile
+make infra-stackit-workflows-dag-deploy
+make infra-stackit-workflows-smoke
+```
+
+Read outputs from the state files:
+
+```bash
+source artifacts/infra/workflows_instance.env
+echo "Airflow UI: $web_url"
+echo "Instance ID: $instance_id"
+```
+
+## Troubleshooting
+
+**`log_fatal: WORKFLOWS_ENABLED guard`** — The module detected a non-STACKIT profile. Set `STACKIT_PROFILE=stackit-<env>` or check your `.env` for the active profile.
+
+**`log_fatal: STACKIT_WORKFLOWS_DAGS_REPO_URL must end with .git`** — The DAG repository URL is missing the `.git` suffix. Update `STACKIT_WORKFLOWS_DAGS_REPO_URL`.
+
+**Apply exits with HTTP 409** — An instance with the same name already exists. This is handled automatically (idempotent); the script re-fetches the existing instance. If the state is stale, run `make infra-stackit-workflows-reconcile`.
+
+**More than one active instance** — `make infra-stackit-workflows-reconcile` fails fast if > 1 instance exists without an explicit `STACKIT_WORKFLOWS_INSTANCE_ID` set. Set the env var to the target instance ID and re-run.
+
+**DAG parse smoke fails** — Check that no DAG Python files are placed under an `apps/` subdirectory in the DAG repository. Move them to the repository root or a non-`apps/` subdirectory.
+
+**Smoke reports `health_status` not `Active`** — The instance may still be starting up. Wait 2–3 minutes and re-run `make infra-stackit-workflows-smoke`. If the status does not change, check the STACKIT console for provisioning errors.
