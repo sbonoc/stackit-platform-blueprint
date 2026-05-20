@@ -19,6 +19,7 @@ _KEYCLOAK_RECONCILE_SCRIPT = (
 _ARGOCD_DEV = (
     REPO_ROOT / "infra" / "gitops" / "argocd" / "optional" / "dev" / "workflows.yaml"
 )
+_DESTROY_SCRIPT = REPO_ROOT / "scripts" / "bin" / "infra" / "stackit_workflows_destroy.sh"
 _RENDER_MAKEFILE = REPO_ROOT / "scripts" / "bin" / "blueprint" / "render_makefile.sh"
 _PYRAMID_CONTRACT = REPO_ROOT / "scripts" / "lib" / "quality" / "test_pyramid_contract.json"
 
@@ -569,9 +570,6 @@ class DagParseSmokeContractTests(unittest.TestCase):
         )
 
 
-_DESTROY_SCRIPT = REPO_ROOT / "scripts" / "bin" / "infra" / "stackit_workflows_destroy.sh"
-
-
 class DestroyContractTests(unittest.TestCase):
     """FR-009, FR-013, AC-005 — destroy script state key coverage."""
 
@@ -594,6 +592,17 @@ class DestroyContractTests(unittest.TestCase):
             msg=(
                 "stackit_workflows_destroy.sh must write instance_id to state "
                 "(FR-009, AC-005)"
+            ),
+        )
+
+    def test_destroy_script_removes_state_files(self) -> None:
+        content = _DESTROY_SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(
+            "remove_state_files_by_prefix",
+            content,
+            msg=(
+                "stackit_workflows_destroy.sh must call remove_state_files_by_prefix "
+                "to clean up state files (AC-005)"
             ),
         )
 
