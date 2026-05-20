@@ -19,7 +19,7 @@ The reference architecture in `sbonoc/agentic-graphrag` uses an OTEL Collector a
 **Option A (selected): Deploy an in-cluster OTEL Collector on the STACKIT lane via ArgoCD.**
 
 - On the STACKIT lane, the `infra-observability-deploy` step applies an ArgoCD `Application` resource that deploys the `open-telemetry/opentelemetry-collector` Helm chart into the `observability` namespace.
-- The collector is configured with OTLP gRPC+HTTP receivers (identical to local lane) and three backend exporters: `prometheusremotewrite` (STACKIT metrics push URL), `loki` (STACKIT logs push URL), `otlp/stackit` (STACKIT traces push URL). Credentials are injected via `extraEnvFrom` referencing a `blueprint-observability-auth` K8s Secret.
+- The collector is configured with OTLP gRPC+HTTP receivers (identical to local lane) and three backend exporters: `prometheusremotewrite` (STACKIT metrics push URL), `loki` (STACKIT logs push URL), `otlp/stackit` (STACKIT traces push URL). Credentials are injected via a read-only Secret volume mount (`blueprint-observability-auth`) and consumed through the OTEL file config provider.
 - `OTEL_EXPORTER_OTLP_ENDPOINT` remains `http://otel-collector.observability.svc.cluster.local:4317` on both lanes — consumers require no lane-specific configuration.
 - The four new outputs (`OBSERVABILITY_LOGS_ENDPOINT`, `OBSERVABILITY_METRICS_ENDPOINT`, `OBSERVABILITY_TRACES_ENDPOINT`) are written to the runtime state file as the STACKIT push URLs (non-sensitive), used to configure the collector. `OBSERVABILITY_API_KEY` state key is deliberately empty — the credential is delivered only via the K8s Secret.
 
