@@ -7,7 +7,7 @@
 | FR-001 | SDD-C-005, SDD-C-013 | n/a | `WORKFLOWS_ENABLED` feature toggle; profile guard in `workflows_init_env()` | `scripts/lib/infra/workflows.sh`; all `stackit_workflows_*.sh` scripts | `test_contract.py` — `log_fatal` guard present in `workflows.sh` | `docs/platform/modules/workflows/README.md` | `WORKFLOWS_ENABLED=false` → make targets exit 0 |
 | FR-002 | SDD-C-005 | n/a | `workflows_init_env()` env var validation + `.git` URL constraint | `scripts/lib/infra/workflows.sh` | `test_contract.py` — `workflows_init_env` function definition and `log_fatal` guard for non-`.git` URL | README | `make infra-stackit-workflows-plan` fails fast on missing env |
 | FR-003 | SDD-C-005, SDD-C-012 | n/a | `workflows_payload_json()` JSON construction | `scripts/lib/infra/workflows.sh` | `test_contract.py` — `displayName`, `version`, `dagsRepository`, `identityProvider`, `observabilityId` present in function body | README | API `POST /instances` payload fields |
-| FR-004 | SDD-C-005, SDD-C-012 | n/a | `stackit_workflows_plan.sh` plan state file | `scripts/bin/infra/stackit_workflows_plan.sh` | `test_contract.py` — `provision_driver=api_contract`, `payload_file`, `display_name` keys in plan state | README | `artifacts/infra/workflows_plan.env` |
+| FR-004 | SDD-C-005, SDD-C-012 | n/a | `stackit_workflows_plan.sh` plan state file | `scripts/bin/infra/stackit_workflows_plan.sh` | `test_contract.py` — `provision_driver=api_contract`, `provision_path`, `payload_file`, `display_name` keys in plan state | README | `artifacts/infra/workflows_plan.env` |
 | FR-005 | SDD-C-005, SDD-C-012 | n/a | `stackit_workflows_apply.sh` apply + HTTP 409 idempotency | `scripts/bin/infra/stackit_workflows_apply.sh` | `test_contract.py` — `instance_id`, `instance_fqdn`, `web_url`, `health_status` keys in instance state | README | `artifacts/infra/workflows_instance.env` |
 | FR-006 | SDD-C-009 | n/a | `stackit_workflows_keycloak_reconcile.sh` OIDC client upsert + roles | `scripts/bin/infra/stackit_workflows_keycloak_reconcile.sh` | `test_contract.py` — `realm`, `client_id`, `redirect_uris` keys in reconcile state | README — Keycloak OIDC contract | `artifacts/infra/workflows_keycloak_reconcile.env` |
 | FR-007 | SDD-C-005, SDD-C-012 | n/a | `stackit_workflows_dag_deploy.sh` PATCH dags-repository | `scripts/bin/infra/stackit_workflows_dag_deploy.sh` | `test_contract.py` — `status=synced`, `dags_repo_url` keys in dag deploy state | README | `artifacts/infra/workflows_dag_deploy.env` |
@@ -17,10 +17,10 @@
 | FR-011 | SDD-C-010 | n/a | `stackit_workflows_smoke.sh` health + live API check | `scripts/bin/infra/stackit_workflows_smoke.sh` | `test_contract.py` — smoke script file exists check | README | `artifacts/infra/workflows_smoke.env` status=passed |
 | FR-012 | SDD-C-008 | n/a | test pyramid registration | `scripts/lib/quality/test_pyramid_contract.json` | pre-commit pyramid gate | n/a | `make quality-hooks-fast` |
 | FR-013 | SDD-C-008 | n/a | `test_contract.py` ≥ 15 assertions | `tests/infra/modules/workflows/test_contract.py` | pytest output ≥ 15 passed | n/a | `make test-unit-all` |
-| FR-014 | SDD-C-011 | n/a | module README | `docs/platform/modules/workflows/README.md` | `make docs-build && make docs-smoke` | README itself | `make docs-smoke` |
+| FR-014 | SDD-C-011 | n/a | module README | `docs/platform/modules/workflows/README.md` (pending — stub exists; full content is an implementation task) | `make docs-build && make docs-smoke` (pending) | README itself (pending) | `make docs-smoke` (pending) |
 | NFR-SEC-001 | SDD-C-009 | n/a | `STACKIT_WORKFLOWS_DAGS_REPO_TOKEN` and `OIDC_CLIENT_SECRET` absent from all state files | `stackit_workflows_apply.sh`; `stackit_workflows_dag_deploy.sh` | `test_contract.py` — token key absent from `workflows_*.env` state file structures | README — security note | state files contain no token/secret keys |
 | NFR-OPS-001 | SDD-C-014 | n/a | STACKIT-only; `log_fatal` on non-STACKIT profile | `scripts/lib/infra/workflows.sh` `workflows_init_env()` | `test_contract.py` — `log_fatal` guard in `workflows.sh` | README — SDD-C-014 exception note | all make targets fail fast on local profile |
-| NFR-A11Y-001 | n/a | n/a | N/A — no UI or frontend changes | n/a | T-A01 marked N/A in tasks.md | n/a | n/a |
+| NFR-A11Y-001 | n/a | n/a | N/A — no UI or frontend changes | n/a | n/a — no UI or frontend changes | n/a | n/a |
 | AC-001 | SDD-C-012 | n/a | plan state file structure | `stackit_workflows_plan.sh` | `test_contract.py` | README | `artifacts/infra/workflows_plan.env` |
 | AC-002 | SDD-C-012 | n/a | instance state key structure | `stackit_workflows_apply.sh` | `test_contract.py` | README | `artifacts/infra/workflows_instance.env` |
 | AC-003 | SDD-C-009 | n/a | token absent from state files | all `stackit_workflows_*.sh` | `test_contract.py` | README | state file inspection |
@@ -39,7 +39,7 @@
 
 ## Validation Summary
 - Required bundles executed: `make test-unit-all`, `make infra-validate`, `make quality-hooks-run`, `make docs-build && make docs-smoke`, `make quality-hardening-review`, `make quality-spec-pr-ready`
-- Result summary: pending — implementation not yet started (SPEC_READY: false)
+- Result summary: pending — SPEC_READY: true, sign-offs granted 2026-05-20; implementation tasks (FR-012, FR-013, FR-014) not yet started; validation bundles will be executed in the implementation PR
 - Documentation validation:
   - `make docs-build` — pending
   - `make docs-smoke` — pending

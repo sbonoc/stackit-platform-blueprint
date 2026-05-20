@@ -3,20 +3,20 @@
 ## Spec Readiness Gate (Blocking)
 <!-- SPEC_PRODUCT_READY=true: intake gate — Product sign-off only; unlocks agent ADR drafting.
      SPEC_READY=true: implementation gate — all sign-offs required; unlocks coding. -->
-- SPEC_READY: false
-- SPEC_PRODUCT_READY: false
-- Open questions count: 1
+- SPEC_READY: true
+- SPEC_PRODUCT_READY: true
+- Open questions count: 0
 - Unresolved alternatives count: 0
 - Unresolved TODO markers count: 0
 - Pending assumptions count: 0
 - Open clarification markers count: 0
-- Product sign-off: pending
-- Architecture sign-off: pending
-- Security sign-off: pending
-- Operations sign-off: pending
+- Product sign-off: approved
+- Architecture sign-off: approved
+- Security sign-off: approved
+- Operations sign-off: approved
 - Missing input blocker token: none
 - ADR path: docs/blueprint/architecture/decisions/ADR-issue-248-workflows-module.md
-- ADR status: proposed
+- ADR status: approved
 - SPEC_READY_EXCEPTION: none
 - authorized-by: none
 
@@ -53,13 +53,9 @@
 
 ## Open Questions
 
-> **[Q-1]** STACKIT Terraform provider is pinned at v0.88.0 in `infra/cloud/stackit/terraform/foundation/versions.tf`. The latest available version is v0.96.0 (8 minor versions). Should the provider version be updated as part of this work item?
+> **[Q-1 — resolved 2026-05-20, PR #314]** STACKIT Terraform provider upgrade v0.88.0 → v0.96.0.
 >
-> **Options:**
-> - **A)** Defer — file a separate work item for the provider upgrade; keep v0.88.0 for this PR. Keeps scope minimal; workflows module does not use any TF resources so the version difference has no functional impact on this work item.
-> - **B)** Include — upgrade to v0.96.0 in this PR. Takes advantage of any fixes/improvements in foundation resources (observability, kms, etc.) but broadens the blast radius and risk surface.
->
-> **Agent recommendation:** Option A — defer. Provider upgrade is a cross-cutting concern affecting all foundation TF resources; it should be a dedicated work item with its own validation cycle. No functional benefit for this PR since workflows uses REST API, not TF.
+> **Decision: Option A (defer).** Provider upgrade is a cross-cutting concern affecting all foundation TF resources; dedicated work item required. No functional impact for this PR since workflows uses the REST API contract, not TF. Recorded in `AGENTS.backlog.md` (STACKIT platform expansion) and `ADR-issue-248-workflows-module.md`.
 
 ## Normative Requirements
 
@@ -118,7 +114,7 @@
 - Clarifications: The `observabilityId` field in the API payload links the Workflows instance to the STACKIT Observability instance for metrics/logs emission. The Keycloak OIDC client reconciliation is a pre-condition to the API create call — the `identityProvider.discoveryEndpoint` and `clientId` must match the Keycloak configuration before the instance is provisioned.
 
 ## Sign-off Tracking (Normative)
-- Product sign-off: pending
-- Architecture sign-off: pending
-- Security sign-off: pending
-- Operations sign-off: pending
+- Product sign-off: approved
+- Architecture sign-off: approved
+- Security sign-off: approved
+- Operations sign-off: approved

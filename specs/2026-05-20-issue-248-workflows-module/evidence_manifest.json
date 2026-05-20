@@ -1,7 +1,48 @@
 {
   "manifest_version": 1,
-  "work_item": "<YYYY-MM-DD>-<work-item-slug>",
+  "work_item": "2026-05-20-issue-248-workflows-module",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "",
-  "files": []
+  "generated_at_utc": "2026-05-20T00:00:00Z",
+  "files": [
+    {
+      "path": "specs/2026-05-20-issue-248-workflows-module/spec.md",
+      "sha256": "b377e4ac48ef17b5978ffb8d04f25ecdb5cf7ad26ad1ad4ab599e49cec7d45b4",
+      "bytes": 14511
+    },
+    {
+      "path": "specs/2026-05-20-issue-248-workflows-module/architecture.md",
+      "sha256": "20932d8ef1a21f8d218a23f6a225d840e0002886532502b87e0acbeaa409d9f2",
+      "bytes": 10237
+    },
+    {
+      "path": "specs/2026-05-20-issue-248-workflows-module/plan.md",
+      "sha256": "d2ab5d2f6c88d351f0bfae009c70e72d87dd6c894273ac50769c589e3169e5e6",
+      "bytes": 9433
+    },
+    {
+      "path": "specs/2026-05-20-issue-248-workflows-module/tasks.md",
+      "sha256": "e644bca359c776b22ecd22cf9a891889ebc0224bb509efb34bb415fd011fc879",
+      "bytes": 4060
+    },
+    {
+      "path": "specs/2026-05-20-issue-248-workflows-module/traceability.md",
+      "sha256": "71a0898409ec4d7d7e2f5c3a4b5fc122af0dd6ef54e32e821eb8a4f930f3ae3d",
+      "bytes": 7753
+    },
+    {
+      "path": "specs/2026-05-20-issue-248-workflows-module/graph.json",
+      "sha256": "362fbaff356295da70e6cc6d510de1347afe82bf032b6bef2d88e53f7b6ddf73",
+      "bytes": 5639
+    },
+    {
+      "path": "docs/blueprint/architecture/decisions/ADR-issue-248-workflows-module.md",
+      "sha256": "b8b71eeda4f34852337d1c4fc64fe54ddfa9b9be98abdbcf25b446ecc90515d8",
+      "bytes": 4781
+    },
+    {
+      "path": "specs/2026-05-20-issue-248-workflows-module/context_pack.md",
+      "sha256": "8b9f44ad2eea17e8573ed980ffc74c782a654d0495f23fdbc3f818b929100e36",
+      "bytes": 971
+    }
+  ]
 }

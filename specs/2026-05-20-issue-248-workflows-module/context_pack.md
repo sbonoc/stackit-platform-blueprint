@@ -3,9 +3,9 @@
 ## Context Snapshot
 - Work item: 2026-05-20-issue-248-workflows-module
 - Track: blueprint
-- SPEC_READY: false
+- SPEC_READY: true
 - ADR path: docs/blueprint/architecture/decisions/ADR-issue-248-workflows-module.md
-- ADR status: proposed
+- ADR status: approved
 
 ## Guardrail Controls
 - Applicable control IDs: SDD-C-005, SDD-C-006, SDD-C-007, SDD-C-008, SDD-C-009, SDD-C-010, SDD-C-011, SDD-C-012, SDD-C-013, SDD-C-014, SDD-C-015

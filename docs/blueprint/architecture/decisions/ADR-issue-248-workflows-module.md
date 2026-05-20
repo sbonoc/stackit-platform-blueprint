@@ -1,7 +1,7 @@
 # ADR — Workflows Module: REST API Contract Pattern (no Terraform provider resource)
 
-- **Status:** proposed
-- **ADR technical decision sign-off:** pending
+- **Status:** approved
+- **ADR technical decision sign-off:** approved
 - **Work item:** issue-248-workflows-module
 - **Date:** 2026-05-20
 - **Author:** sbonoc
