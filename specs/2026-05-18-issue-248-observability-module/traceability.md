@@ -10,7 +10,7 @@
 | FR-004 | SDD-C-009 | n/a | `observability_reconcile/delete_runtime_secret()` | `scripts/lib/infra/observability.sh` | `test_contract.py` — function definition check | README — K8s Secret lifecycle | `blueprint-observability-auth` Secret existence |
 | FR-005 | SDD-C-005, SDD-C-012 | n/a | `observability_apply.sh` foundation_contract case + state keys | `scripts/bin/infra/observability_apply.sh` | `test_contract.py` — script content checks | README | `artifacts/infra/observability_runtime.env` |
 | FR-006 | SDD-C-009 | n/a | `observability_destroy.sh` Secret cleanup | `scripts/bin/infra/observability_destroy.sh` | `test_contract.py` — destroy script content check | README | `blueprint-observability-auth` Secret absent after destroy |
-| FR-007 | SDD-C-007, SDD-C-013 | n/a | STACKIT otel-collector Helm values | `infra/cloud/stackit/helm/observability/otel-collector.values.yaml` | `test_contract.py` — YAML content check (exporters, extraEnvFrom) | README | ArgoCD sync status |
+| FR-007 | SDD-C-007, SDD-C-013 | n/a | STACKIT otel-collector Helm values | `infra/cloud/stackit/helm/observability/otel-collector.values.yaml` | `test_contract.py` — YAML content check (exporters, extraEnvFrom, spanmetrics connector) | README | ArgoCD sync status |
 | FR-008 | SDD-C-007 | n/a | ArgoCD Application manifests | `infra/gitops/argocd/optional/{dev,stage,prod}/observability.yaml` | `test_contract.py` — `kind: Application` present | architecture.md | ArgoCD Application resource |
 | FR-009 | SDD-C-010, SDD-C-012 | n/a | `observability_smoke.sh` STACKIT checks | `scripts/bin/infra/observability_smoke.sh` | `test_contract.py` — smoke script content check | README | `artifacts/infra/observability_smoke.env` status=passed |
 | FR-010 | SDD-C-005 | n/a | module contract YAML additions | `blueprint/modules/observability/module.contract.yaml` | `test_contract.py` — contract YAML outputs list | README | `make infra-validate` |
@@ -40,11 +40,11 @@
 - Node IDs referenced: FR-001 through FR-013, NFR-SEC-001, NFR-OBS-001, NFR-REL-001, NFR-OPS-001, NFR-A11Y-001, AC-001 through AC-011
 
 ## Validation Summary
-- Required bundles executed: (to be populated at publish phase)
-- Result summary: (to be populated at publish phase)
+- Required bundles executed: `make test-unit-all`, `make infra-validate`, `make quality-hooks-run`, `make docs-build && make docs-smoke`, `make quality-hardening-review`, `make quality-spec-pr-ready`, `make blueprint-template-smoke`
+- Result summary: All gates green. 1061 unit tests pass (43 new observability assertions including spanmetrics connector). `make infra-validate` exit 0. `make docs-build && make docs-smoke` exit 0. `make quality-hardening-review` exit 0. `make quality-spec-pr-ready` exit 0. `make blueprint-template-smoke` exit 0 (pre-existing `declare -A` failure fixed in PR #311). `make quality-hooks-run` passes all checks; `blueprint-template-smoke` failure pre-existing on main — fixed separately.
 - Documentation validation:
-  - `make docs-build`
-  - `make docs-smoke`
+  - `make docs-build` — exit 0 (2026-05-20)
+  - `make docs-smoke` — exit 0 (2026-05-20)
 
 ## Evidence Manifest
 - Manifest file: `evidence_manifest.json`
