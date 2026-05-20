@@ -113,6 +113,18 @@ Surface automatically when the named scope is next touched. Do not promote to ac
       trigger: on-scope: observability
       rationale: no active consumer need for a dedicated Logs service module; surfaces when a consumer requests LogMe or a second observability extension
 
+### on-scope: workflows
+
+- [ ] (parked) proposal(issue-248-workflows-module): Local lane Airflow support — deploy Apache Airflow on the local Docker Desktop Kubernetes cluster using the crossplane-plus-helm pattern (consistent with observability, neo4j, langfuse local lanes); `infra/local/helm/workflows/airflow.values.yaml` for chart config; `WORKFLOWS_LOCAL_ENABLED` toggle distinct from `WORKFLOWS_ENABLED` (STACKIT); local Keycloak OIDC wiring via the existing `eso-plus-argocd-plus-keycloak` runtime identity baseline; DAGs mounted via a git-sync sidecar or local hostPath volume; `stackit_workflows_local_apply.sh` / `stackit_workflows_local_smoke.sh` following the established local lane script pattern
+      trigger: on-scope: workflows
+      rationale: STACKIT Workflows is cloud-only; local lane adds meaningful DX value for DAG authors who want a local Airflow environment without a STACKIT account; approach deliberately mirrors crossplane/helm local lane pattern used by other optional modules; surfaces when a consumer requests local DAG development support
+- [ ] (parked) proposal(issue-248-workflows-module): Provider-backed migration — replace REST API contract with `stackit_workflows_instance` Terraform provider resource when an official resource is released in a future provider version
+      trigger: on-scope: workflows
+      rationale: no TF provider resource exists as of v0.96.0; tracked in STACKIT platform expansion section; migration path documented in ADR-issue-248-workflows-module.md
+- [ ] (parked) proposal(issue-248-workflows-module): Python version split strategy — define how blueprint tooling Python version coexists with the Airflow runtime-constrained Python (e.g., separate venv per role, uv workspace isolation)
+      trigger: on-scope: workflows
+      rationale: deferred from Long Horizon until Airflow integration is live and Python constraint is observed in practice
+
 ### on-scope: blueprint
 
 - [ ] proposal(issue-248-dns-module): domain contract JSON pattern — single SSOT JSON file (per-environment hostnames, acme emails, dns_zones list) driving TF tfvars + ArgoCD Helm values via a renderer script with --check mode; cross-cutting refactor affecting all optional modules.
@@ -205,7 +217,6 @@ Ideas without a delivery commitment. Promote to active only when a concrete trig
 - [ ] Backport the new runtime-credentials ESO source-to-target contract (including mandatory Keycloak/IAP runtime targets) and drift-safe platform extension surface to existing generated-consumer repositories.
 - [ ] Add a CI-grade execute-mode full e2e lane (ephemeral cluster + `test-e2e-all-local-execute`) so merge gating covers real apply paths, not only dry-run orchestration.
 - [ ] Tune and baseline `E2E_*_BUDGET_SECONDS` from collected CI metrics (p95 per lane) and fail budgets only once the baseline is stable.
-- [ ] Define the Python version split strategy before STACKIT Workflows (Airflow) integration: establish how the blueprint tooling Python version will coexist with the Airflow runtime-constrained Python.
 - [ ] Extend the consumer seed resync workflow with optional merge-assist coverage for selected init-managed identity files without weakening customization boundaries.
 - [ ] Add pluggable async message-contract provider support beyond Pact while preserving the canonical producer/consumer lane contract and upgrade safety guarantees.
 
