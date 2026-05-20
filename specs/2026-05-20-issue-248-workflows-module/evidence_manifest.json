@@ -26,8 +26,8 @@
     },
     {
       "path": "specs/2026-05-20-issue-248-workflows-module/traceability.md",
-      "sha256": "71a0898409ec4d7d7e2f5c3a4b5fc122af0dd6ef54e32e821eb8a4f930f3ae3d",
-      "bytes": 7753
+      "sha256": "f1b7d7ad116a20d8e3e411214c46de6edcfa886758abff3fbbfbef3f4759af68",
+      "bytes": 8357
     },
     {
       "path": "specs/2026-05-20-issue-248-workflows-module/graph.json",

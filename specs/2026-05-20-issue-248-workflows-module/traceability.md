@@ -11,13 +11,13 @@
 | FR-005 | SDD-C-005, SDD-C-012 | n/a | `stackit_workflows_apply.sh` apply + HTTP 409 idempotency | `scripts/bin/infra/stackit_workflows_apply.sh` | `test_contract.py` — `instance_id`, `instance_fqdn`, `web_url`, `health_status` keys in instance state | README | `artifacts/infra/workflows_instance.env` |
 | FR-006 | SDD-C-009 | n/a | `stackit_workflows_keycloak_reconcile.sh` OIDC client upsert + roles | `scripts/bin/infra/stackit_workflows_keycloak_reconcile.sh` | `test_contract.py` — `realm`, `client_id`, `redirect_uris` keys in reconcile state | README — Keycloak OIDC contract | `artifacts/infra/workflows_keycloak_reconcile.env` |
 | FR-007 | SDD-C-005, SDD-C-012 | n/a | `stackit_workflows_dag_deploy.sh` PATCH dags-repository | `scripts/bin/infra/stackit_workflows_dag_deploy.sh` | `test_contract.py` — `status=synced`, `dags_repo_url` keys in dag deploy state | README | `artifacts/infra/workflows_dag_deploy.env` |
-| FR-008 | SDD-C-010 | n/a | `stackit_workflows_reconcile.sh` cardinality guard + keycloak converge | `scripts/bin/infra/stackit_workflows_reconcile.sh` | `test_contract.py` — script file exists check | README | `make infra-stackit-workflows-reconcile` exit 0 |
-| FR-009 | SDD-C-005 | n/a | `stackit_workflows_destroy.sh` DELETE + state file cleanup | `scripts/bin/infra/stackit_workflows_destroy.sh` | `test_contract.py` — `status=destroyed` key in destroy state | README | `artifacts/infra/workflows_instance.env` absent after destroy |
+| FR-008 | SDD-C-010 | n/a | `stackit_workflows_reconcile.sh` cardinality guard + keycloak converge | `scripts/bin/infra/stackit_workflows_reconcile.sh` | `test_contract.py` — `test_render_makefile_registers_workflows_apply_target` confirms module Makefile integration; reconcile script existence verified by implementation path | README | `make infra-stackit-workflows-reconcile` exit 0 |
+| FR-009 | SDD-C-005 | n/a | `stackit_workflows_destroy.sh` DELETE + state file cleanup | `scripts/bin/infra/stackit_workflows_destroy.sh` | `test_contract.py` — no destroy state mock (destroy script writes `api_mode`, `api_http_status`, `instance_id`, `timestamp_utc`; no `status=destroyed`); security coverage via `SecurityContractTests` (token/secret absent) | README | destroy script exists at implementation path; state files removed after run |
 | FR-010 | SDD-C-010 | n/a | `stackit_workflows_dag_parse_smoke.sh` DAG location guard | `scripts/bin/infra/stackit_workflows_dag_parse_smoke.sh` | `test_contract.py` — `apps/` guard present in parse smoke script | README | `artifacts/infra/workflows_dag_parse_smoke.env` |
-| FR-011 | SDD-C-010 | n/a | `stackit_workflows_smoke.sh` health + live API check | `scripts/bin/infra/stackit_workflows_smoke.sh` | `test_contract.py` — smoke script file exists check | README | `artifacts/infra/workflows_smoke.env` status=passed |
+| FR-011 | SDD-C-010 | n/a | `stackit_workflows_smoke.sh` health + live API check | `scripts/bin/infra/stackit_workflows_smoke.sh` | `test_contract.py` — `test_smoke_state_has_status_passed` (mock state contains `status=passed`); `SmokeStateContractTests` covers FR-011 contract | README | `artifacts/infra/workflows_smoke.env` status=passed |
 | FR-012 | SDD-C-008 | n/a | test pyramid registration | `scripts/lib/quality/test_pyramid_contract.json` | pre-commit pyramid gate | n/a | `make quality-hooks-fast` |
 | FR-013 | SDD-C-008 | n/a | `test_contract.py` ≥ 15 assertions | `tests/infra/modules/workflows/test_contract.py` | pytest output ≥ 15 passed | n/a | `make test-unit-all` |
-| FR-014 | SDD-C-011 | n/a | module README | `docs/platform/modules/workflows/README.md` (pending — stub exists; full content is an implementation task) | `make docs-build && make docs-smoke` (pending) | README itself (pending) | `make docs-smoke` (pending) |
+| FR-014 | SDD-C-011 | n/a | module README | `docs/platform/modules/workflows/README.md` | `make docs-build && make docs-smoke` — exit 0 | README itself | `make docs-smoke` — exit 0 |
 | NFR-SEC-001 | SDD-C-009 | n/a | `STACKIT_WORKFLOWS_DAGS_REPO_TOKEN` and `OIDC_CLIENT_SECRET` absent from all state files | `stackit_workflows_apply.sh`; `stackit_workflows_dag_deploy.sh` | `test_contract.py` — token key absent from `workflows_*.env` state file structures | README — security note | state files contain no token/secret keys |
 | NFR-OPS-001 | SDD-C-014 | n/a | STACKIT-only; `log_fatal` on non-STACKIT profile | `scripts/lib/infra/workflows.sh` `workflows_init_env()` | `test_contract.py` — `log_fatal` guard in `workflows.sh` | README — SDD-C-014 exception note | all make targets fail fast on local profile |
 | NFR-A11Y-001 | n/a | n/a | N/A — no UI or frontend changes | n/a | n/a — no UI or frontend changes | n/a | n/a |
@@ -39,10 +39,10 @@
 
 ## Validation Summary
 - Required bundles executed: `make test-unit-all`, `make infra-validate`, `make quality-hooks-run`, `make docs-build && make docs-smoke`, `make quality-hardening-review`, `make quality-spec-pr-ready`
-- Result summary: pending — SPEC_READY: true, sign-offs granted 2026-05-20; implementation tasks (FR-012, FR-013, FR-014) not yet started; validation bundles will be executed in the implementation PR
+- Result summary: all green — `make test-unit-all` 1061 passed (41 subtests); `make infra-validate` exit 0; `make quality-hooks-fast` all 11 checks passed; `make quality-hardening-review` exit 0; `make quality-spec-pr-ready` no violations; `make docs-build && make docs-smoke` exit 0; `make quality-hooks-run` all hooks green (pre-existing `blueprint-template-smoke` bash 3.2 failure excluded — confirmed pre-existing on base, unrelated to this work item)
 - Documentation validation:
-  - `make docs-build` — pending
-  - `make docs-smoke` — pending
+  - `make docs-build` — exit 0 (2026-05-20)
+  - `make docs-smoke` — exit 0 (2026-05-20)
 
 ## Evidence Manifest
 - Manifest file: `evidence_manifest.json`
