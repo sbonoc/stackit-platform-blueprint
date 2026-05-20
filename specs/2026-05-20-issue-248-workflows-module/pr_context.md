@@ -28,4 +28,4 @@
 - Rollback strategy: Set `WORKFLOWS_ENABLED=false` in the consumer's `.env` and revert the three commits on this branch (pyramid entry, test file, README). No state files are written unless `make infra-stackit-workflows-apply` was run. If the instance was provisioned, run `make infra-stackit-workflows-destroy` before reverting.
 
 ## Deferred Proposals
-- Local Airflow toggle (not implemented): Optional local lane using Docker Desktop Kubernetes, crossplane, and Helm to deploy an Apache Airflow chart with a git-sync sidecar for DAGs; controlled by a `WORKFLOWS_LOCAL_ENABLED` feature gate. Parked in `AGENTS.backlog.md` under `### on-scope: workflows`. Deferred to keep blast radius minimal and avoid unvalidated local toolchain assumptions.
+- Local Airflow lane (Docker Desktop K8s, crossplane + Helm, git-sync sidecar, `WORKFLOWS_LOCAL_ENABLED` flag): Parked — trigger: on-scope: workflows — deferred to keep blast radius minimal; no local toolchain validation done; blueprint consumer opt-in model requires a separate validated local lane work item.
