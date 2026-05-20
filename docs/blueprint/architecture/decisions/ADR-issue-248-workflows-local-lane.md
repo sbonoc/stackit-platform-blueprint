@@ -1,7 +1,7 @@
 # ADR — Workflows Local Lane: ArgoCD + Helm Pattern (apache-airflow chart)
 
-- **Status:** proposed
-- **ADR technical decision sign-off:** pending
+- **Status:** approved
+- **ADR technical decision sign-off:** approved
 - **Work item:** issue-248-workflows-local-lane
 - **Date:** 2026-05-20
 - **Author:** sbonoc
@@ -61,4 +61,6 @@ Three key decisions must be made:
 - `scripts/bin/blueprint/render_makefile.sh` gains a `local-workflows` section with five make targets.
 - `WORKFLOWS_LOCAL_ENABLED` is the new feature toggle (distinct from `WORKFLOWS_ENABLED` for STACKIT).
 - The SDD-C-014 exception recorded in `specs/2026-05-20-issue-248-workflows-module/spec.md` is resolved by this work item.
-- Four open questions (Q-1 through Q-4 in spec.md) require resolution before `SPEC_READY=true`.
+- Chart version pinned: `1.20.0` (Airflow 3.1.8), matching STACKIT Managed Airflow 3.1 line.
+- DAG env vars: new `WORKFLOWS_LOCAL_DAGS_REPO_URL/_BRANCH/_TOKEN` (separate from STACKIT lane vars).
+- OIDC: `webserverConfig.py` override in Helm values with dedicated `WORKFLOWS_LOCAL_OIDC_*` env vars.

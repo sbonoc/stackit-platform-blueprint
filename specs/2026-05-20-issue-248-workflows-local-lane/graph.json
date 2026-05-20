@@ -34,7 +34,7 @@
   "edges": [
     { "from": "FR-001", "to": "AC-010", "relation": "validated_by" },
     { "from": "FR-001", "to": "NFR-OPS-001", "relation": "implements" },
-    { "from": "FR-002", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-010", "relation": "validated_by" },
     { "from": "FR-003", "to": "AC-001", "relation": "validated_by" },
     { "from": "FR-004", "to": "AC-002", "relation": "validated_by" },
     { "from": "FR-005", "to": "AC-003", "relation": "validated_by" },
@@ -49,7 +49,7 @@
     { "from": "FR-014", "to": "AC-009", "relation": "validated_by" },
     { "from": "NFR-SEC-001", "to": "AC-005", "relation": "constrains" },
     { "from": "NFR-OPS-001", "to": "FR-001", "relation": "constrains" },
-    { "from": "NFR-REL-001", "to": "FR-007", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "FR-005", "relation": "constrains" },
     { "from": "NFR-A11Y-001", "to": "FR-014", "relation": "constrains" }
   ]
 }

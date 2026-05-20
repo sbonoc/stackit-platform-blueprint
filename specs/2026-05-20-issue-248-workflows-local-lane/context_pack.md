@@ -1,14 +1,14 @@
 # Work Item Context Pack
 
 ## Context Snapshot
-- Work item:
+- Work item: 2026-05-20-issue-248-workflows-local-lane
 - Track: blueprint
-- SPEC_READY:
-- ADR path:
-- ADR status:
+- SPEC_READY: true
+- ADR path: docs/blueprint/architecture/decisions/ADR-issue-248-workflows-local-lane.md
+- ADR status: approved
 
 ## Guardrail Controls
-- Applicable control IDs:
+- Applicable control IDs: SDD-C-005, SDD-C-006, SDD-C-007, SDD-C-008, SDD-C-009, SDD-C-010, SDD-C-011, SDD-C-012, SDD-C-013, SDD-C-014, SDD-C-015
 
 ## Required Commands
 - `make quality-sdd-check`
