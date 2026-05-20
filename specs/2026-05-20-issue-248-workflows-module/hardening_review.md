@@ -1,7 +1,7 @@
 # Hardening Review
 
 ## Repository-Wide Findings Fixed
-- Pre-existing uncommitted drift in `blueprint/contract.yaml` and `scripts/templates/blueprint/bootstrap/blueprint/contract.yaml` had `postgres` and `public-endpoints` set to `enabled_by_default: true` (expected: `false`). Reverted via `git checkout --` before committing workflows artifacts; verified by `make test-unit-all` passing 1061 tests.
+- Finding 1: Pre-existing uncommitted drift in `blueprint/contract.yaml` and `scripts/templates/blueprint/bootstrap/blueprint/contract.yaml` — `postgres` and `public-endpoints` had `enabled_by_default: true` (expected: `false`). Reverted via `git checkout --` before committing workflows artifacts; verified by `make test-unit-all` passing 1061 tests.
 
 ## Observability and Diagnostics Changes
 - Metrics/logging/tracing updates: No new metrics, logging, or tracing changes — workflows module shell scripts follow the established `log_info` / `log_fatal` pattern from `scripts/lib/infra/common.sh`. No new log sinks.
@@ -21,4 +21,4 @@
 - [x] axe-core WCAG 2.1 AA scan evidence: N/A — no UI or frontend changes (NFR-A11Y-001)
 
 ## Proposals Only (Not Implemented)
-- Local Airflow via Docker Desktop Kubernetes (crossplane + Helm + git-sync sidecar): Provides local-lane parity for DAG development without requiring STACKIT credentials. Gated behind a `WORKFLOWS_LOCAL_ENABLED` feature flag following the same pattern as other optional modules. Deferred to a dedicated work item; parked in `AGENTS.backlog.md` under `### on-scope: workflows`.
+- Proposal 1: Local Airflow via Docker Desktop Kubernetes (crossplane + Helm + git-sync sidecar) — provides local-lane parity for DAG development without requiring STACKIT credentials; gated behind a `WORKFLOWS_LOCAL_ENABLED` feature flag following the same pattern as other optional modules. Deferred to a dedicated work item; parked in `AGENTS.backlog.md` under `### on-scope: workflows`.
