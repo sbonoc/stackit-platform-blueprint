@@ -34,7 +34,7 @@ The reference architecture in `sbonoc/agentic-graphrag` uses an OTEL Collector a
 - The `blueprint-observability-auth` K8s Secret is created by `observability_apply.sh` on the STACKIT lane and destroyed by `observability_destroy.sh`.
 - The `infra/gitops/argocd/optional/{dev,stage,prod}/observability.yaml` files are extended with an ArgoCD `Application` resource alongside the existing metadata `ConfigMap`.
 - `infra/cloud/stackit/helm/observability/otel-collector.values.yaml` is created for the STACKIT-lane collector configuration.
-- Foundation TF `outputs.tf` is extended with `observability_metrics_push_url`, `observability_logs_push_url`, `observability_traces_push_url` (exact attribute names verified against provider v0.88.0 at Slice 2; fallback to URL construction from instance_id + region if attributes are absent).
+- Foundation TF `outputs.tf` is extended with `observability_metrics_push_url`, `observability_logs_push_url`, `observability_traces_push_url` (exact attribute names verified against provider v0.88.0 at Slice 2; no URL construction fallback required — see Q-1 resolution below).
 - Local lane is unchanged — existing crossplane+Helm deployment continues as-is.
 - No consumer-facing contract change: `OTEL_EXPORTER_OTLP_ENDPOINT` is still the only env var consumers need.
 

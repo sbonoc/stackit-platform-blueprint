@@ -97,7 +97,7 @@ No lane-specific branching required. The OTEL Collector fans out signals to the 
 
 - Created: `make infra-observability-apply` (STACKIT lane only)
 - Deleted: `make infra-observability-destroy` (before foundation TF destroy)
-- The credential password is never written to the runtime state file or TF state in plaintext — it lives only in the K8s Secret.
+- The credential password is not written to `observability_runtime.env` or any git-tracked artifact. In Terraform state it is stored as a sensitive value and excluded from `terraform output` and plan output; it is delivered to the collector exclusively via K8s Secret.
 
 ## Security
 

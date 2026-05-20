@@ -188,6 +188,13 @@ class ObservabilityShellLibTests(unittest.TestCase):
             msg="observability_reconcile_runtime_secret() must operate on blueprint-observability-auth secret (FR-004, NFR-SEC-001)",
         )
 
+    def test_reconcile_username_sourced_from_tf_output(self) -> None:
+        self.assertIn(
+            "observability_credential_username",
+            self._lib(),
+            msg="observability_reconcile_runtime_secret() must source username from TF foundation output observability_credential_username, not bare OBSERVABILITY_USERNAME env var (FR-004, Claude review finding)",
+        )
+
 
 class ApplyScriptTests(unittest.TestCase):
     """FR-005, AC-001 — apply script writes new state keys and reconciles secret."""
@@ -232,7 +239,7 @@ class ApplyScriptTests(unittest.TestCase):
 
 
 class DestroyScriptTests(unittest.TestCase):
-    """FR-006, AC-008 — destroy script deletes runtime secret."""
+    """FR-006, AC-008 — destroy script deletes runtime secret and ArgoCD Application."""
 
     def test_destroy_calls_delete_runtime_secret(self) -> None:
         content = _DESTROY_SCRIPT.read_text(encoding="utf-8")
@@ -240,6 +247,14 @@ class DestroyScriptTests(unittest.TestCase):
             "observability_delete_runtime_secret",
             content,
             msg="observability_destroy.sh must call observability_delete_runtime_secret() in foundation_reconcile_apply case (FR-006, AC-008)",
+        )
+
+    def test_destroy_deletes_argocd_manifest(self) -> None:
+        content = _DESTROY_SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(
+            "run_manifest_delete",
+            content,
+            msg="observability_destroy.sh must call run_manifest_delete to remove the ArgoCD Application before Secret deletion (FR-006, Codex P1 finding)",
         )
 
 
@@ -268,6 +283,13 @@ class SmokeScriptTests(unittest.TestCase):
             "traces_endpoint",
             self._smoke(),
             msg="observability_smoke.sh must check traces_endpoint on STACKIT lane (FR-009, AC-003)",
+        )
+
+    def test_smoke_validates_api_key_presence(self) -> None:
+        self.assertIn(
+            "api_key=",
+            self._smoke(),
+            msg="observability_smoke.sh must check api_key key presence on STACKIT lane (FR-009, Claude review finding)",
         )
 
 
