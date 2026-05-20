@@ -170,6 +170,7 @@
 | `identity-aware-proxy` | `false` | `IDENTITY_AWARE_PROXY_ENABLED` | `blueprint/modules/identity-aware-proxy/module.contract.yaml` |
 | `kms` | `false` | `KMS_ENABLED` | `blueprint/modules/kms/module.contract.yaml` |
 | `langfuse` | `false` | `LANGFUSE_ENABLED` | `blueprint/modules/langfuse/module.contract.yaml` |
+| `local-workflows` | `false` | `WORKFLOWS_LOCAL_ENABLED` | `blueprint/modules/local-workflows/module.contract.yaml` |
 | `neo4j` | `false` | `NEO4J_ENABLED` | `blueprint/modules/neo4j/module.contract.yaml` |
 | `object-storage` | `false` | `OBJECT_STORAGE_ENABLED` | `blueprint/modules/object-storage/module.contract.yaml` |
 | `observability` | `false` | `OBSERVABILITY_ENABLED` | `blueprint/modules/observability/module.contract.yaml` |
@@ -394,6 +395,29 @@
 ### Produced Outputs
 - `LANGFUSE_PUBLIC_URL`
 - `LANGFUSE_HEALTH_STATUS`
+
+## Module: `local-workflows`
+
+- Purpose: Deploy Apache Airflow on local Docker Desktop Kubernetes for DAG development without STACKIT cloud access.
+- Enabled by default: `false`
+- Enable flag: `WORKFLOWS_LOCAL_ENABLED`
+
+### Required Environment Variables
+- `WORKFLOWS_LOCAL_DAGS_REPO_URL`
+- `WORKFLOWS_LOCAL_DAGS_REPO_TOKEN`
+- `WORKFLOWS_LOCAL_OIDC_ISSUER_URL`
+- `WORKFLOWS_LOCAL_OIDC_CLIENT_ID`
+- `WORKFLOWS_LOCAL_OIDC_CLIENT_SECRET`
+
+### Make Targets
+- `infra-local-workflows-plan`
+- `infra-local-workflows-apply`
+- `infra-local-workflows-deploy`
+- `infra-local-workflows-smoke`
+- `infra-local-workflows-destroy`
+
+### Produced Outputs
+- `WORKFLOWS_LOCAL_PUBLIC_URL`
 
 ## Module: `neo4j`
 

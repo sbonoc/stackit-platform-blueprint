@@ -1,0 +1,75 @@
+apiVersion: blueprint.module.contract/v1alpha1
+kind: OptionalModuleContract
+metadata:
+  name: local-workflows
+  version: 1.0.0
+spec:
+  module_id: local-workflows
+  purpose: "Deploy Apache Airflow on local Docker Desktop Kubernetes for DAG development without STACKIT cloud access."
+  enabled_by_default: false
+  enable_flag: WORKFLOWS_LOCAL_ENABLED
+
+  paths:
+    helm: infra/local/helm/workflows/airflow.values.yaml
+    gitops: infra/gitops/argocd/optional/${ENV}/workflows.yaml
+    docs: docs/platform/modules/local-workflows/README.md
+    tests: tests/infra/modules/workflows
+
+  dependencies:
+    required_core_capabilities:
+      - argocd_available
+      - persistent_storage_available
+      - keycloak_available
+
+  inputs:
+    required_env:
+      - WORKFLOWS_LOCAL_DAGS_REPO_URL
+      - WORKFLOWS_LOCAL_DAGS_REPO_TOKEN
+      - WORKFLOWS_LOCAL_OIDC_ISSUER_URL
+      - WORKFLOWS_LOCAL_OIDC_CLIENT_ID
+      - WORKFLOWS_LOCAL_OIDC_CLIENT_SECRET
+    optional_env:
+      - WORKFLOWS_LOCAL_DAGS_REPO_BRANCH
+      - WORKFLOWS_LOCAL_DAGS_REPO_SUBPATH
+      - WORKFLOWS_LOCAL_AIRFLOW_HOST
+      - WORKFLOWS_LOCAL_AIRFLOW_PORT
+      - WORKFLOWS_LOCAL_NAMESPACE
+      - WORKFLOWS_LOCAL_HELM_RELEASE
+      - WORKFLOWS_LOCAL_HELM_CHART_VERSION
+    defaults:
+      WORKFLOWS_LOCAL_DAGS_REPO_BRANCH: main
+      WORKFLOWS_LOCAL_DAGS_REPO_SUBPATH: /dags
+      WORKFLOWS_LOCAL_AIRFLOW_HOST: localhost
+      WORKFLOWS_LOCAL_AIRFLOW_PORT: "8080"
+      WORKFLOWS_LOCAL_NAMESPACE: data
+      WORKFLOWS_LOCAL_HELM_RELEASE: blueprint-airflow
+      WORKFLOWS_LOCAL_HELM_CHART_VERSION: "1.20.0"
+
+  outputs:
+    produced:
+      - WORKFLOWS_LOCAL_PUBLIC_URL
+
+  make_targets:
+    plan: infra-local-workflows-plan
+    apply: infra-local-workflows-apply
+    deploy: infra-local-workflows-deploy
+    smoke: infra-local-workflows-smoke
+    destroy: infra-local-workflows-destroy
+
+  smoke_checks:
+    - "Airflow webserver /health returns healthy"
+    - "DAG git-sync sidecar active"
+
+  failure_modes:
+    - code: AIRFLOW_HEALTH_TIMEOUT
+      symptom: "/health endpoint returns no response within 10s"
+      likely_root_cause: "pod not ready or port-forward not active"
+    - code: AIRFLOW_GITSYNC_AUTH
+      symptom: "git-sync sidecar fails to clone DAG repo"
+      likely_root_cause: "WORKFLOWS_LOCAL_DAGS_REPO_TOKEN missing or invalid"
+    - code: AIRFLOW_OIDC_MISCONFIGURED
+      symptom: "login redirect fails or returns 401"
+      likely_root_cause: "Keycloak client_id or client_secret mismatch"
+
+  cleanup_contract:
+    destroy_target: infra-local-workflows-destroy
