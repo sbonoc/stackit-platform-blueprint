@@ -1,0 +1,58 @@
+{
+  "manifest_version": 1,
+  "work_item": "specs/2026-05-21-issue-248-identity-aware-proxy",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-05-21T12:38:00Z",
+  "files": [
+    {
+      "path": "specs/2026-05-21-issue-248-identity-aware-proxy/architecture.md",
+      "sha256": "9171243a73c37750e265d7532012d3010c02b6e8afed6e1efd6c3bfb01e5f88a",
+      "bytes": 5285
+    },
+    {
+      "path": "specs/2026-05-21-issue-248-identity-aware-proxy/context_pack.md",
+      "sha256": "0e925d880cac2059c5aa89ee306c480932dc980a15719ccb7f6b0ab45464fb67",
+      "bytes": 939
+    },
+    {
+      "path": "specs/2026-05-21-issue-248-identity-aware-proxy/evidence_manifest.json",
+      "sha256": "ecb0eea40122794ca8f062212e022ba451f6d0a543b88db3d7c15e65a071e7f7",
+      "bytes": 161
+    },
+    {
+      "path": "specs/2026-05-21-issue-248-identity-aware-proxy/graph.json",
+      "sha256": "be2bf761be0400e60459196742316ab06fa2ca94e151b8f2792b5e5ae085f018",
+      "bytes": 3251
+    },
+    {
+      "path": "specs/2026-05-21-issue-248-identity-aware-proxy/hardening_review.md",
+      "sha256": "180c270281b26a89bd05143aa36c52a8f29682f3a175ec99f369f8490532b0f7",
+      "bytes": 1164
+    },
+    {
+      "path": "specs/2026-05-21-issue-248-identity-aware-proxy/plan.md",
+      "sha256": "43e055f23ee5a688a9b0198ede94949fc73ac46840563a3df2dabf209975fc19",
+      "bytes": 3771
+    },
+    {
+      "path": "specs/2026-05-21-issue-248-identity-aware-proxy/pr_context.md",
+      "sha256": "26b7a261f5f07f472d3d30b255eb9d1b35c3633cb84be062b9e5f461c488d33c",
+      "bytes": 465
+    },
+    {
+      "path": "specs/2026-05-21-issue-248-identity-aware-proxy/spec.md",
+      "sha256": "bbeaa121c6d8e31e24044825ea9f3de732114fc6a0858946c01ad2b2474d218b",
+      "bytes": 10253
+    },
+    {
+      "path": "specs/2026-05-21-issue-248-identity-aware-proxy/tasks.md",
+      "sha256": "9d244537b9d7046769e34f1c05610ba8678787db5a6a9a79abd046a47893e72f",
+      "bytes": 3352
+    },
+    {
+      "path": "specs/2026-05-21-issue-248-identity-aware-proxy/traceability.md",
+      "sha256": "b191a723faf9fa556122caa7f92e108403e5f81d8475ce7717530afb7b0fd465",
+      "bytes": 4458
+    }
+  ]
+}
