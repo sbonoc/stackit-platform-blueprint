@@ -21,8 +21,6 @@ spec:
         - refactor/
         - test/
         - ci/
-        - codex/
-        - copilot/
     template_bootstrap:
       model: github-template
       template_version: 1.0.0
@@ -1343,7 +1341,7 @@ spec:
     branch_contract:
       dedicated_branch_required_by_default: true
       explicit_opt_out_flag: --no-create-branch
-      default_prefix: codex/
+      default_prefix: feature/
       branch_name_pattern: "<prefix><YYYY-MM-DD>-<work-item-slug>"
       enforce_non_default_branch: true
     artifacts:
@@ -1831,7 +1829,7 @@ spec:
           - infra-langfuse-smoke
           - infra-langfuse-destroy
       postgres:
-        enabled_by_default: false
+        enabled_by_default: true
         enable_flag: POSTGRES_ENABLED
         scaffolding_mode: conditional
         paths_required_when_enabled:
@@ -1946,7 +1944,7 @@ spec:
           - infra-dns-smoke
           - infra-dns-destroy
       public-endpoints:
-        enabled_by_default: false
+        enabled_by_default: true
         enable_flag: PUBLIC_ENDPOINTS_ENABLED
         scaffolding_mode: conditional
         paths_required_when_enabled:

@@ -101,7 +101,7 @@ In keep-going mode, a single root cause (e.g. a syntax error in a shared helper)
 1. Read `AGENTS.md` before starting work.
 2. During `Discover`, `High-Level Architecture`, `Specify`, and `Plan`, do not use assumptions as substitutes for missing requirements; resolve ambiguity explicitly or mark the work item blocked.
 3. Spec-Driven Development is mandatory by default for assistant-executed work; bypass only when the user explicitly says not to follow SDD for the requested task.
-4. Start each new SDD work item with `make spec-scaffold ...`, which creates a dedicated non-default branch by default (`codex/<YYYY-MM-DD>-<slug>` unless overridden).
+4. Start each new SDD work item with `make spec-scaffold ...`, which creates a dedicated non-default branch by default (`<prefix>/<YYYY-MM-DD>-<slug>`). Choose the prefix that matches the change type: `feature/` for new capabilities, `fix/` for bug fixes, `docs/` for docs-only, `chore/` for maintenance. Pass `--branch <prefix>/YYYY-MM-DD-<slug>` to override the default (`feature/`).
 5. Execute the Spec-Driven Development lifecycle in this order: `Discover -> High-Level Architecture -> Specify -> Plan -> Implement -> Verify -> Document -> Operate -> Publish`.
 6. Implement with strict boundary contracts and deterministic behavior.
 7. Update/add automated tests for every behavior change.

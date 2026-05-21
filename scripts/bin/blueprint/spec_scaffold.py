@@ -110,8 +110,6 @@ def _branch_exists(repo_root: Path, branch: str) -> bool:
 def _resolve_branch_prefix(*, allowed_prefixes: list[str], preferred_prefix: str) -> str:
     if preferred_prefix and preferred_prefix in allowed_prefixes:
         return preferred_prefix
-    if "codex/" in allowed_prefixes:
-        return "codex/"
     if allowed_prefixes:
         return allowed_prefixes[0]
     raise ValueError("repository.branch_naming.purpose_prefixes must define at least one prefix")

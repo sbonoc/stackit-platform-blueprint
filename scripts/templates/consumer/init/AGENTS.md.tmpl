@@ -35,7 +35,7 @@ New cross-cutting concerns MUST be recorded in `north_star.md` and the appropria
 1. Read `AGENTS.md` before starting work.
 2. During `Discover`, `High-Level Architecture`, `Specify`, and `Plan`, do not use assumptions as substitutes for missing requirements; resolve ambiguity explicitly or mark the work item blocked.
 3. Spec-Driven Development is mandatory by default for assistant-executed work; bypass only when the user explicitly says not to follow SDD for the requested task.
-4. Start each new SDD work item with `make spec-scaffold ...`, which creates a dedicated non-default branch by default (`codex/<YYYY-MM-DD>-<slug>` unless overridden).
+4. Start each new SDD work item with `make spec-scaffold ...`, which creates a dedicated non-default branch by default (`<prefix>/<YYYY-MM-DD>-<slug>`). Choose the prefix that matches the change type: `feature/` for new capabilities, `fix/` for bug fixes, `docs/` for docs-only, `chore/` for maintenance. Pass `--branch <prefix>/YYYY-MM-DD-<slug>` to override the default (`feature/`).
 5. Execute the Spec-Driven Development lifecycle in order: `Discover -> High-Level Architecture -> Specify -> Plan -> Implement -> Verify -> Document -> Operate -> Publish`.
 6. Change code, tests, docs, and contract-adjacent files together.
 7. Keep platform-owned work in `make/platform.mk`, `make/platform/*.mk`, `scripts/bin/platform/**`, `scripts/lib/platform/**`, `apps/**`, and `docs/platform/**`.
