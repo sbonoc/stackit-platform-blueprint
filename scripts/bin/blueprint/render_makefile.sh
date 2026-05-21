@@ -378,7 +378,7 @@ infra-local-workflows-smoke: ## Local Airflow smoke checks
 infra-local-workflows-destroy: ## Destroy local Airflow resources
 	@scripts/bin/infra/local_workflows_destroy.sh
 
-infra-local-workflows-dags-venv: ## Create .venv-dags (Python 3.12) for DAG development
+infra-local-workflows-dags-venv: ## Create .venv-dags (Python 3.12, no deps) — then run: uv pip install --python .venv-dags/bin/python apache-airflow==3.1.8
 	@scripts/bin/infra/local_workflows_dags_venv.sh
 OUT
     ;;

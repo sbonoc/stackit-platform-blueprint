@@ -23,7 +23,15 @@ start_port_forward "local-workflows-smoke" \
   "$WORKFLOWS_LOCAL_NAMESPACE" \
   "svc/${WORKFLOWS_LOCAL_HELM_RELEASE}-webserver" \
   "$WORKFLOWS_LOCAL_AIRFLOW_PORT" \
-  "$WORKFLOWS_LOCAL_AIRFLOW_PORT"
+  "8080"
+
+_pf_existing_exit="$(trap -p EXIT | sed "s/^trap -- '//;s/' EXIT$//")"
+if [[ -n "$_pf_existing_exit" ]]; then
+  # shellcheck disable=SC2064
+  trap "$_pf_existing_exit; stop_port_forward \"local-workflows-smoke\" 2>/dev/null || true" EXIT
+else
+  trap 'stop_port_forward "local-workflows-smoke" 2>/dev/null || true' EXIT
+fi
 
 if ! wait_for_local_port "local-workflows-smoke" "$WORKFLOWS_LOCAL_AIRFLOW_PORT"; then
   stop_port_forward "local-workflows-smoke"

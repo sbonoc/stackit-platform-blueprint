@@ -124,6 +124,9 @@ Surface automatically when the named scope is next touched. Do not promote to ac
       trigger: on-scope: workflows
       rationale: no TF provider resource exists as of v0.96.0; tracked in STACKIT platform expansion section; migration path documented in ADR-issue-248-workflows-module.md
 - [x] (done) proposal(issue-248-workflows-module): Python version split strategy — implemented in PR #317. README "DAG Development Setup" section documents 3.12 vs ≥3.13 split; infra-local-workflows-dags-venv creates .venv-dags pinned to Python 3.12; /dags/ repository structure convention documented with coding agent guidance.
+- [ ] (parked) proposal(issue-248-workflows-local-lane): Track Airflow version in dags-venv guidance — `local_workflows_dags_venv.sh` and README both hard-code `apache-airflow==3.1.8`; derive from `WORKFLOWS_LOCAL_HELM_CHART_VERSION` or a companion var so the install hint stays in sync when the chart is upgraded.
+      trigger: on-scope: workflows
+      rationale: acceptable for current cut (chart v1.20.0 → Airflow 3.1.8); flagged in PR #317 review by @claude; surfaces when chart is next upgraded
 
 ### on-scope: blueprint
 
