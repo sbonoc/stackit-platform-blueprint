@@ -35,7 +35,12 @@
 
 ## Validation Summary
 - Required bundles: quality-hooks-fast, quality-docs-check-changed, skip-path plan, skip-path smoke
-- Result summary: pending — to be populated in T-306
+- Result summary:
+  - `make quality-hooks-fast` — PASS (commit b407d5a; all sub-checks pass including shellcheck, quality-sdd-check-all, quality-docs-check-changed, infra-validate, infra-contract-test-fast)
+  - `make quality-docs-check-changed` — PASS (bootstrap template in sync; confirmed as sub-check of quality-hooks-fast)
+  - `IDENTITY_AWARE_PROXY_ENABLED=false identity_aware_proxy_plan.sh` — exit 0; logs "skipping identity-aware-proxy plan" (AC-008)
+  - `IDENTITY_AWARE_PROXY_ENABLED=false identity_aware_proxy_smoke.sh` — exit 0; logs "skipping identity-aware-proxy smoke" (AC-009)
+  - `make quality-hardening-review` — PASS
 
 ## Evidence Manifest
 - Manifest file: `evidence_manifest.json`

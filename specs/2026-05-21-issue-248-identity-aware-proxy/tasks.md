@@ -18,15 +18,15 @@
 - [x] T-201 Mirror all Slice 1 additions to `scripts/templates/blueprint/bootstrap/docs/platform/modules/identity-aware-proxy/README.md`
 
 ## Accessibility Testing (Non-UI spec)
-- [ ] T-A01 Confirm NFR-A11Y-001 is declared as "N/A — no UI surfaces" in `spec.md` ✓
+- [x] T-A01 Confirm NFR-A11Y-001 is declared as "N/A — no UI surfaces" in `spec.md` ✓
 
 ## Validation and Release Readiness
-- [ ] T-301 Run `make quality-hooks-fast` — exits 0 (docs lint + shellcheck + bootstrap drift check + SDD check)
-- [ ] T-302 Run `make quality-docs-check-changed` — exits 0 (bootstrap template in sync with live README)
-- [ ] T-303 Verify `make infra-identity-aware-proxy-plan` with `IDENTITY_AWARE_PROXY_ENABLED=false` exits 0 (skip path)
-- [ ] T-304 Verify `make infra-identity-aware-proxy-smoke` with `IDENTITY_AWARE_PROXY_ENABLED=false` exits 0 (skip path)
-- [ ] T-305 Run `make quality-hardening-review`
-- [ ] T-306 Attach evidence to `traceability.md`
+- [x] T-301 Run `make quality-hooks-fast` — exits 0 (docs lint + shellcheck + bootstrap drift check + SDD check)
+- [x] T-302 Run `make quality-docs-check-changed` — exits 0 (bootstrap template in sync with live README)
+- [x] T-303 Verify `IDENTITY_AWARE_PROXY_ENABLED=false bash scripts/bin/infra/identity_aware_proxy_plan.sh` exits 0 (skip path confirmed)
+- [x] T-304 Verify `IDENTITY_AWARE_PROXY_ENABLED=false bash scripts/bin/infra/identity_aware_proxy_smoke.sh` exits 0 (skip path confirmed)
+- [x] T-305 Run `make quality-hardening-review` — exits 0
+- [x] T-306 Attach evidence to `traceability.md`
 
 ## Publish
 - [ ] P-001 Update `hardening_review.md` with repository-wide findings and proposals-only section
