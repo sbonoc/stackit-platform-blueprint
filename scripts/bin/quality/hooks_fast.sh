@@ -103,8 +103,8 @@ else
 fi
 
 _current_branch="$(git branch --show-current 2>/dev/null || true)"
-if [[ "$_current_branch" =~ ^codex/[0-9]{4}-[0-9]{2}-[0-9]{2}- ]]; then
-  _spec_slug="${_current_branch#codex/}"
+if [[ "$_current_branch" =~ ^[a-z][a-z0-9-]*/[0-9]{4}-[0-9]{2}-[0-9]{2}- ]]; then
+  _spec_slug="${_current_branch#*/}"
   _spec_dir="$ROOT_DIR/specs/$_spec_slug"
   if [[ -d "$_spec_dir" ]]; then
     if [[ "${QUALITY_HOOKS_FORCE_FULL:-}" == "true" ]] || quality_spec_is_ready "$_spec_dir"; then

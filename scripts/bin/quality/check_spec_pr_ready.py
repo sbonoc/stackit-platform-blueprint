@@ -4,7 +4,7 @@
 Checks plan.md, tasks.md, hardening_review.md, and pr_context.md for
 unfilled scaffold placeholders. Resolves the active spec directory from
 SPEC_SLUG env var or the current git branch name (pattern:
-codex/YYYY-MM-DD-<slug>).
+<prefix>/YYYY-MM-DD-<slug> where prefix is any registered purpose prefix).
 
 Usage:
     make quality-spec-pr-ready
@@ -23,7 +23,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[3]
 PREFIX = "[quality-spec-pr-ready]"
 
-_SDD_BRANCH_PATTERN = re.compile(r"^codex/(\d{4}-\d{2}-\d{2}-.+)$")
+_SDD_BRANCH_PATTERN = re.compile(r"^[a-z][a-z0-9-]*/(\d{4}-\d{2}-\d{2}-.+)$")
 
 # Must stay in sync with _BYPASS_ALLOWED_VALUES in check_sdd_assets.py.
 _BYPASS_ALLOWED_VALUES: frozenset[str] = frozenset(
@@ -218,7 +218,7 @@ def _resolve_spec_dir(repo_root: Path) -> Path:
     if not match:
         print(
             f"{PREFIX} cannot resolve spec directory: branch '{branch}' does not match "
-            f"pattern codex/YYYY-MM-DD-<slug>; set SPEC_SLUG env var to override",
+            f"pattern <prefix>/YYYY-MM-DD-<slug>; set SPEC_SLUG env var to override",
             file=sys.stderr,
         )
         sys.exit(1)
