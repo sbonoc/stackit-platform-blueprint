@@ -7,7 +7,7 @@ images:
 dags:
   gitSync:
     enabled: true
-    repo: ""
+    repo: ""  # REQUIRED: set to your DAG repository URL (must end with .git) before deploying
     branch: "main"
     subPath: "/dags"
     credentialsSecret: "airflow-git-credentials"
@@ -28,9 +28,11 @@ webserver:
     requests:
       cpu: 200m
       memory: 512Mi
+  extraEnvFrom: |
+    - secretRef:
+        name: airflow-oidc-credentials
   webserverConfig: |
     import os
-    from airflow.www.security import AirflowSecurityManager
     from flask_appbuilder.security.manager import AUTH_OAUTH
 
     AUTH_TYPE = AUTH_OAUTH

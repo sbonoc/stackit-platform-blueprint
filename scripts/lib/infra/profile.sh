@@ -171,6 +171,8 @@ is_module_enabled() {
 }
 
 enabled_modules_csv() {
+  # Includes only STACKIT-lane modules (those with a cloud equivalent).
+  # Local-only modules (e.g. local-workflows) are intentionally excluded.
   local modules=(
     observability
     workflows

@@ -83,7 +83,7 @@
 
 ### Non-Functional Requirements (Normative)
 
-- NFR-SEC-001 `WORKFLOWS_LOCAL_DAGS_REPO_TOKEN` and `WORKFLOWS_LOCAL_OIDC_CLIENT_SECRET` MUST NOT appear as keys in any `.env` state file (`artifacts/infra/workflows_local_*.env`) or CI log.
+- NFR-SEC-001 `WORKFLOWS_LOCAL_DAGS_REPO_TOKEN` and `WORKFLOWS_LOCAL_OIDC_CLIENT_SECRET` MUST NOT appear as keys in any `.env` state file (`artifacts/infra/local_workflows_*.env`) or CI log.
 
 - NFR-OPS-001 `WORKFLOWS_LOCAL_ENABLED=false` MUST cause every `infra-local-workflows-*` make target to exit 0 without error, logging a skip message.
 
@@ -113,15 +113,15 @@
 
 ## Normative Acceptance Criteria
 
-- AC-001 Plan state file `artifacts/infra/workflows_local_plan.env` MUST contain keys `provision_driver=argocd_optional_manifest`, `provision_path`, `public_url`, and `chart_version`.
+- AC-001 Plan state file `artifacts/infra/local_workflows_plan.env` MUST contain keys `provision_driver=argocd_optional_manifest`, `provision_path`, `public_url`, and `chart_version`.
 
-- AC-002 Apply state file `artifacts/infra/workflows_local_apply.env` MUST contain keys `provision_status=deferred_to_deploy`, `provision_driver`, and `provision_path`.
+- AC-002 Apply state file `artifacts/infra/local_workflows_apply.env` MUST contain keys `provision_status=deferred_to_deploy`, `provision_driver`, and `provision_path`.
 
-- AC-003 Deploy state file `artifacts/infra/workflows_local_deploy.env` MUST contain key `provision_status=deployed`.
+- AC-003 Deploy state file `artifacts/infra/local_workflows_deploy.env` MUST contain key `provision_status=deployed`.
 
-- AC-004 Smoke state file `artifacts/infra/workflows_local_smoke.env` MUST contain key `status=passed`.
+- AC-004 Smoke state file `artifacts/infra/local_workflows_smoke.env` MUST contain key `status=passed`.
 
-- AC-005 `WORKFLOWS_LOCAL_DAGS_REPO_TOKEN` MUST be absent from all `artifacts/infra/workflows_local_*.env` state files.
+- AC-005 `WORKFLOWS_LOCAL_DAGS_REPO_TOKEN` MUST be absent from all `artifacts/infra/local_workflows_*.env` state files.
 
 - AC-006 `infra/local/helm/workflows/airflow.values.yaml` MUST contain `dags.gitSync.enabled: true` (or equivalent git-sync sidecar configuration under the chart's DAGs section).
 

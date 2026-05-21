@@ -67,6 +67,21 @@ export WORKFLOWS_LOCAL_OIDC_ISSUER_URL=http://localhost:8081/realms/platform
 export WORKFLOWS_LOCAL_OIDC_CLIENT_ID=airflow-local
 export WORKFLOWS_LOCAL_OIDC_CLIENT_SECRET=<secret>
 
+# Step 1: set repo URL in Helm values (one-time per environment)
+# Edit infra/local/helm/workflows/airflow.values.yaml and set dags.gitSync.repo
+
+# Step 2: create Kubernetes secrets (one-time per cluster)
+kubectl create secret generic airflow-git-credentials \
+  --namespace data \
+  --from-literal=username=git \
+  --from-literal=password="$WORKFLOWS_LOCAL_DAGS_REPO_TOKEN"
+
+kubectl create secret generic airflow-oidc-credentials \
+  --namespace data \
+  --from-literal=WORKFLOWS_LOCAL_OIDC_ISSUER_URL="$WORKFLOWS_LOCAL_OIDC_ISSUER_URL" \
+  --from-literal=WORKFLOWS_LOCAL_OIDC_CLIENT_ID="$WORKFLOWS_LOCAL_OIDC_CLIENT_ID" \
+  --from-literal=WORKFLOWS_LOCAL_OIDC_CLIENT_SECRET="$WORKFLOWS_LOCAL_OIDC_CLIENT_SECRET"
+
 make infra-local-workflows-plan
 make infra-local-workflows-apply
 make infra-local-workflows-deploy
@@ -79,7 +94,17 @@ make infra-local-workflows-smoke
 
 ## DAG Git-Sync Setup
 
-The local lane mounts DAGs via the git-sync sidecar. The sidecar syncs from `WORKFLOWS_LOCAL_DAGS_REPO_URL` using a Kubernetes secret named `airflow-git-credentials`. Create the secret before deploying:
+The local lane mounts DAGs via the git-sync sidecar. Before deploying, you must do two things:
+
+**1. Set the repo URL in `infra/local/helm/workflows/airflow.values.yaml`:**
+
+```yaml
+dags:
+  gitSync:
+    repo: "https://github.com/your-org/your-dags-repo.git"  # set this
+```
+
+**2. Create the `airflow-git-credentials` Kubernetes secret:**
 
 ```bash
 kubectl create secret generic airflow-git-credentials \
@@ -88,9 +113,21 @@ kubectl create secret generic airflow-git-credentials \
   --from-literal=password="$WORKFLOWS_LOCAL_DAGS_REPO_TOKEN"
 ```
 
+The `WORKFLOWS_LOCAL_DAGS_REPO_URL` env var is used only for plan-phase validation. The git-sync sidecar reads its repo URL directly from the Helm values file.
+
 ## Keycloak OIDC Wiring
 
-The `webserverConfig.py` override in `airflow.values.yaml` configures Flask-AppBuilder OIDC via `AUTH_OAUTH`. The client reads `WORKFLOWS_LOCAL_OIDC_CLIENT_ID`, `WORKFLOWS_LOCAL_OIDC_CLIENT_SECRET`, and `WORKFLOWS_LOCAL_OIDC_ISSUER_URL` from the pod environment. Wire these as Kubernetes secrets via External Secrets Operator using the existing `eso-plus-argocd-plus-keycloak` runtime identity baseline.
+The `webserverConfig.py` override in `airflow.values.yaml` configures Flask-AppBuilder OIDC via `AUTH_OAUTH`. The OIDC env vars (`WORKFLOWS_LOCAL_OIDC_CLIENT_ID`, `WORKFLOWS_LOCAL_OIDC_CLIENT_SECRET`, `WORKFLOWS_LOCAL_OIDC_ISSUER_URL`) are injected into the webserver pod from a Kubernetes secret named `airflow-oidc-credentials` via `webserver.extraEnvFrom`.
+
+Create the secret before deploying:
+
+```bash
+kubectl create secret generic airflow-oidc-credentials \
+  --namespace data \
+  --from-literal=WORKFLOWS_LOCAL_OIDC_ISSUER_URL="$WORKFLOWS_LOCAL_OIDC_ISSUER_URL" \
+  --from-literal=WORKFLOWS_LOCAL_OIDC_CLIENT_ID="$WORKFLOWS_LOCAL_OIDC_CLIENT_ID" \
+  --from-literal=WORKFLOWS_LOCAL_OIDC_CLIENT_SECRET="$WORKFLOWS_LOCAL_OIDC_CLIENT_SECRET"
+```
 
 ## Teardown
 

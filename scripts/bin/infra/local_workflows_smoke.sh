@@ -25,6 +25,9 @@ health_response="$(curl -sf --max-time 10 "$health_url" || true)"
 if [[ -z "$health_response" ]]; then
   log_fatal "local-workflows /health check failed: no response from $health_url"
 fi
+if ! echo "$health_response" | grep -q '"healthy"'; then
+  log_fatal "local-workflows /health check failed: status not healthy — response: $health_response"
+fi
 
 state_file="$(write_state_file "local_workflows_smoke" \
   "profile=$BLUEPRINT_PROFILE" \
