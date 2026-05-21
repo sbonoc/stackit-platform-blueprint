@@ -1,7 +1,7 @@
 # ADR — Workflows Local Improvements: Port-forward Library Reuse + Python Version Split
 
-- **Status:** proposed
-- **ADR technical decision sign-off:** pending
+- **Status:** approved
+- **ADR technical decision sign-off:** approved
 - **Work item:** issue-248-workflows-local-improvements
 - **Date:** 2026-05-21
 - **Author:** sbonoc

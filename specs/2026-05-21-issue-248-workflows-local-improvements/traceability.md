@@ -9,6 +9,7 @@
 | FR-003 | SDD-C-008 | — | port_forward.sh library: stop_port_forward on exit | `scripts/bin/infra/local_workflows_smoke.sh` | AC-003: pgrep returns 0 after smoke | — | — |
 | FR-004 | SDD-C-013 | — | README "DAG Development Setup" section (Python Version + Repository Structure subsections) | `docs/platform/modules/local-workflows/README.md` | AC-005: Python version subsection present; AC-010: repo structure subsection present | AC-005, AC-006, AC-010 | — |
 | FR-005 | SDD-C-005, SDD-C-011 | — | infra-local-workflows-dags-venv make target | `scripts/bin/blueprint/render_makefile.sh` | AC-007: .venv-dags at Python 3.12 created | — | — |
+| NFR-A11Y-001 | — | — | N/A — no UI surfaces | — | — | — | — |
 | NFR-SEC-001 | — | — | N/A — no auth/secrets surfaces | — | — | — | — |
 | NFR-OBS-001 | — | — | N/A — no new observability surfaces | — | — | — | — |
 | NFR-REL-001 | — | — | N/A — port_forward.sh handles idempotency | — | — | — | — |
@@ -31,7 +32,7 @@
 - Every `FR-###`, `NFR-*-###`, and `AC-###` listed in this file MUST have a corresponding node in `graph.json`.
 - Node IDs referenced:
   - FR-001, FR-002, FR-003, FR-004, FR-005
-  - NFR-SEC-001, NFR-OBS-001, NFR-REL-001, NFR-OPS-001, NFR-OPS-002, NFR-OPS-003
+  - NFR-A11Y-001, NFR-SEC-001, NFR-OBS-001, NFR-REL-001, NFR-OPS-001, NFR-OPS-002, NFR-OPS-003
   - AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009, AC-010
 
 ## Validation Summary
