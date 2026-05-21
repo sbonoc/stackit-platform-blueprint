@@ -1,7 +1,7 @@
 # ADR: Issue #248 — Identity-Aware Proxy Module (Retroactive SDD Compliance)
 
-- **Status**: proposed
-- **ADR technical decision sign-off**: pending
+- **Status**: approved
+- **ADR technical decision sign-off**: approved
 - **Date**: 2026-05-21
 - **Issue**: #248
 - **Work item**: `specs/2026-05-21-issue-248-identity-aware-proxy/`
