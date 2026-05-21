@@ -144,4 +144,4 @@ make infra-identity-aware-proxy-destroy
 The destroy script removes:
 - The `oauth2-proxy/oauth2-proxy` Helm release (local lane) or ArgoCD Application (STACKIT lane).
 - The Kubernetes credential Secret (`${IAP_HELM_RELEASE}-config` on the local lane; `security/iap-runtime-credentials` is managed by ESO and is not removed by this script on the STACKIT lane).
-- All `identity_aware_proxy_*` state files in `.state/`.
+- All `identity_aware_proxy_*` state files in `artifacts/infra/`.
