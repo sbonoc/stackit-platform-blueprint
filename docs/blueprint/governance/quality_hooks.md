@@ -127,7 +127,7 @@ bootstrap template) so the same drift guard applies after blueprint upgrade.
 
 ## Phase-Gating (Spec-Readiness Check)
 
-`quality-spec-pr-ready` is skipped on `codex/*` branches unless the current
+`quality-spec-pr-ready` is skipped on SDD branches (`<prefix>/YYYY-MM-DD-*`) unless the current
 spec's `spec.md` contains `- SPEC_READY: true`. This prevents false-positive
 failures during SDD Steps 1–6 when publish artifacts are intentionally scaffold.
 
