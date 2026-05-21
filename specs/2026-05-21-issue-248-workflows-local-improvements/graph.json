@@ -1,0 +1,136 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-05-21-issue-248-workflows-local-improvements",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "Smoke script sources port_forward.sh and calls start_port_forward before health-check"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "Smoke script calls wait_for_local_port after start_port_forward, before curl"
+    },
+    {
+      "id": "FR-003",
+      "type": "requirement",
+      "summary": "Smoke script calls stop_port_forward on both success and failure exit paths"
+    },
+    {
+      "id": "FR-004",
+      "type": "requirement",
+      "summary": "README gains DAG Development Setup section: Python version split + repository structure convention with coding agent guidance"
+    },
+    {
+      "id": "FR-005",
+      "type": "requirement",
+      "summary": "infra-local-workflows-dags-venv make target creates .venv-dags pinned to Python 3.12"
+    },
+    {
+      "id": "NFR-A11Y-001",
+      "type": "requirement",
+      "summary": "N/A — no UI surfaces in this work item"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "N/A — no secrets or auth surfaces introduced"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "N/A — no new observability surfaces; existing logging sufficient"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "N/A — smoke is idempotent; port_forward.sh handles stale PID pruning"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "Port-forward PID must not appear in any state file"
+    },
+    {
+      "id": "NFR-OPS-002",
+      "type": "requirement",
+      "summary": "Smoke state file contract unchanged: status=passed only keys"
+    },
+    {
+      "id": "NFR-OPS-003",
+      "type": "requirement",
+      "summary": "WORKFLOWS_LOCAL_ENABLED=false: smoke exits 0 without port-forward"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "Smoke succeeds without manual port-forward when WORKFLOWS_LOCAL_ENABLED=true"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "Smoke exits 0 immediately with WORKFLOWS_LOCAL_ENABLED=false; no port-forward started"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "No port-forward process remains after successful or failed smoke run"
+    },
+    {
+      "id": "AC-004",
+      "type": "acceptance",
+      "summary": "Smoke state file on success has status=passed and no PID field"
+    },
+    {
+      "id": "AC-005",
+      "type": "acceptance",
+      "summary": "README contains DAG Development Setup section with Python Version subsection (3.12, Airflow 3.1.8, uv venv command)"
+    },
+    {
+      "id": "AC-006",
+      "type": "acceptance",
+      "summary": "Bootstrap template mirrors the full DAG Development Setup section"
+    },
+    {
+      "id": "AC-007",
+      "type": "acceptance",
+      "summary": "make infra-local-workflows-dags-venv creates .venv-dags at Python 3.12"
+    },
+    {
+      "id": "AC-008",
+      "type": "acceptance",
+      "summary": "make infra-local-workflows-dags-venv with WORKFLOWS_LOCAL_ENABLED=false exits 0 with skip"
+    },
+    {
+      "id": "AC-009",
+      "type": "acceptance",
+      "summary": "make quality-hooks-fast exits 0 after all changes"
+    },
+    {
+      "id": "AC-010",
+      "type": "acceptance",
+      "summary": "README Repository Structure subsection: /dags/ convention, layout example, subpath sync note, coding agent guidance"
+    }
+  ],
+  "edges": [
+    { "from": "FR-001", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-003", "relation": "validated_by" },
+    { "from": "FR-004", "to": "AC-005", "relation": "validated_by" },
+    { "from": "FR-004", "to": "AC-006", "relation": "validated_by" },
+    { "from": "FR-004", "to": "AC-010", "relation": "validated_by" },
+    { "from": "FR-005", "to": "AC-007", "relation": "validated_by" },
+    { "from": "FR-005", "to": "AC-008", "relation": "validated_by" },
+    { "from": "NFR-OPS-001", "to": "AC-004", "relation": "constrains" },
+    { "from": "NFR-OPS-002", "to": "AC-004", "relation": "constrains" },
+    { "from": "NFR-OPS-003", "to": "AC-002", "relation": "constrains" },
+    { "from": "NFR-OPS-003", "to": "AC-008", "relation": "constrains" },
+    { "from": "FR-001", "to": "NFR-OPS-001", "relation": "constrained_by" },
+    { "from": "FR-001", "to": "NFR-OPS-002", "relation": "constrained_by" },
+    { "from": "FR-001", "to": "NFR-OPS-003", "relation": "constrained_by" },
+    { "from": "FR-004", "to": "AC-009", "relation": "validated_by" },
+    { "from": "FR-005", "to": "AC-009", "relation": "validated_by" }
+  ]
+}

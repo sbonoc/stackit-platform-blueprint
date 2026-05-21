@@ -1,0 +1,58 @@
+{
+  "manifest_version": 1,
+  "work_item": "specs/2026-05-21-issue-248-workflows-local-improvements",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-05-21T10:42:46Z",
+  "files": [
+    {
+      "path": "specs/2026-05-21-issue-248-workflows-local-improvements/architecture.md",
+      "sha256": "5f74c3b9c9e40f1ff0ab9755a47b0460bd7c0467480fab4b1f43a6d485d3133f",
+      "bytes": 4632
+    },
+    {
+      "path": "specs/2026-05-21-issue-248-workflows-local-improvements/context_pack.md",
+      "sha256": "5cfbc71c2776fac014bd4642aed4d022af806b00805b90b7a762b98298615150",
+      "bytes": 779
+    },
+    {
+      "path": "specs/2026-05-21-issue-248-workflows-local-improvements/evidence_manifest.json",
+      "sha256": "ecb0eea40122794ca8f062212e022ba451f6d0a543b88db3d7c15e65a071e7f7",
+      "bytes": 161
+    },
+    {
+      "path": "specs/2026-05-21-issue-248-workflows-local-improvements/graph.json",
+      "sha256": "b111c2e9de87c4b84e70c9f1c0ac89b2b7baddd0edb5e2bf5835119c25468a15",
+      "bytes": 4930
+    },
+    {
+      "path": "specs/2026-05-21-issue-248-workflows-local-improvements/hardening_review.md",
+      "sha256": "02dd1b3fb9f0b2a9e8a1deba210e1e63ebd9dff5d454abd933e366b2dfa78b13",
+      "bytes": 2060
+    },
+    {
+      "path": "specs/2026-05-21-issue-248-workflows-local-improvements/plan.md",
+      "sha256": "f81a5fe0246ea6cd563e6f3ed8aa60582ca543ec5bdeda84d78f8b0b43a17c26",
+      "bytes": 5424
+    },
+    {
+      "path": "specs/2026-05-21-issue-248-workflows-local-improvements/pr_context.md",
+      "sha256": "3aa4e3c2e7d0f382f2d283a8170cac0187c996cbdb1bfa5a204a09b691e723f8",
+      "bytes": 2496
+    },
+    {
+      "path": "specs/2026-05-21-issue-248-workflows-local-improvements/spec.md",
+      "sha256": "237fd2bb2a52776881b481a98bf28189e65b30184ff914d0a05879e8b8f1f6f8",
+      "bytes": 10880
+    },
+    {
+      "path": "specs/2026-05-21-issue-248-workflows-local-improvements/tasks.md",
+      "sha256": "514b791720b6f5330e5a26584932208465fec269edc84c3588d5fa62bb44c593",
+      "bytes": 3903
+    },
+    {
+      "path": "specs/2026-05-21-issue-248-workflows-local-improvements/traceability.md",
+      "sha256": "4a3122d79a11e3754ea553918b99966fc2f872936799bdeb1b8ddac755db8f7e",
+      "bytes": 4196
+    }
+  ]
+}

@@ -59,7 +59,7 @@ To introduce a new tag, append a row here in the same commit that uses it.
 
 ### P2 — Platform modules
 
-- [ ] Issue #248 remaining modules — STACKIT-managed service candidates (kms ✅, secrets-manager ✅ PR #305, dns ✅ PR #306, public-endpoints ✅ PR #307, observability ✅ PR #308, workflows ✅ PR #314, identity-aware-proxy). Gate on #295 removed — architecture decision recorded in `AGENTS.decisions.md`: OM is consumer/product-owned and not a blueprint module candidate.
+- [ ] Issue #248 remaining modules — STACKIT-managed service candidates (kms ✅, secrets-manager ✅ PR #305, dns ✅ PR #306, public-endpoints ✅ PR #307, observability ✅ PR #308, workflows ✅ PR #314 + local lane ✅ PR #316, identity-aware-proxy). Gate on #295 removed — architecture decision recorded in `AGENTS.decisions.md`: OM is consumer/product-owned and not a blueprint module candidate.
 - [ ] Issue #171 — managed-cache module: STACKIT Managed Redis as a first-class optional module (Helm/ArgoCD-managed, provider-backed via STACKIT Terraform).
 - [ ] Issue #172 — platform-email module: Helm/ArgoCD-managed Postal for transactional email as an optional module.
 
@@ -116,18 +116,17 @@ Surface automatically when the named scope is next touched. Do not promote to ac
 ### on-scope: workflows
 
 - [x] (done) proposal(issue-248-workflows-local-lane): Local lane Airflow support — implemented in PR #316 (merged). apache-airflow/airflow chart v1.20.0 (Airflow 3.1.8); ArgoCD + Helm; git-sync sidecar; LocalExecutor; WORKFLOWS_LOCAL_ENABLED toggle; webserverConfig.py OIDC; WORKFLOWS_LOCAL_DAGS_* and WORKFLOWS_LOCAL_OIDC_* env vars.
-- [ ] (parked) proposal(issue-248-workflows-local-lane): Automate port-forward within local-workflows smoke script — embed transient `kubectl port-forward` (background process, trap-based cleanup) in `local_workflows_smoke.sh` so `make infra-local-workflows-smoke` is fully self-contained without a pre-existing port-forward session.
-      trigger: on-scope: workflows
-      rationale: low urgency; README documents the manual step; requires signal handling out of scope for PR #316
+- [x] (done) proposal(issue-248-workflows-local-lane): Automate port-forward within local-workflows smoke script — implemented in PR #317. Smoke script sources port_forward.sh and calls start_port_forward/wait_for_local_port/stop_port_forward; make infra-local-workflows-smoke is fully self-contained.
 - [ ] (parked) proposal(issue-248-workflows-local-lane): Automate `airflow-git-credentials` Kubernetes secret creation — add `infra-local-workflows-init-secrets` make target (following `langfuse_keycloak_reconcile.sh` pattern) that creates the secret from env vars before deploy.
       trigger: on-scope: workflows
       rationale: one-time manual operation per cluster; deferred until an init-secrets reconcile pattern is needed across multiple modules
 - [ ] (parked) proposal(issue-248-workflows-module): Provider-backed migration — replace REST API contract with `stackit_workflows_instance` Terraform provider resource when an official resource is released in a future provider version
       trigger: on-scope: workflows
       rationale: no TF provider resource exists as of v0.96.0; tracked in STACKIT platform expansion section; migration path documented in ADR-issue-248-workflows-module.md
-- [ ] (parked) proposal(issue-248-workflows-module): Python version split strategy — define how blueprint tooling Python version coexists with the Airflow runtime-constrained Python (e.g., separate venv per role, uv workspace isolation)
+- [x] (done) proposal(issue-248-workflows-module): Python version split strategy — implemented in PR #317. README "DAG Development Setup" section documents 3.12 vs ≥3.13 split; infra-local-workflows-dags-venv creates .venv-dags pinned to Python 3.12; /dags/ repository structure convention documented with coding agent guidance.
+- [ ] (parked) proposal(issue-248-workflows-local-lane): Track Airflow version in dags-venv guidance — `local_workflows_dags_venv.sh` and README both hard-code `apache-airflow==3.1.8`; derive from `WORKFLOWS_LOCAL_HELM_CHART_VERSION` or a companion var so the install hint stays in sync when the chart is upgraded.
       trigger: on-scope: workflows
-      rationale: deferred from Long Horizon until Airflow integration is live and Python constraint is observed in practice
+      rationale: acceptable for current cut (chart v1.20.0 → Airflow 3.1.8); flagged in PR #317 review by @claude; surfaces when chart is next upgraded
 
 ### on-scope: blueprint
 
