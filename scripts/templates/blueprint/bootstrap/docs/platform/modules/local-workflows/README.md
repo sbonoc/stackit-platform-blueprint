@@ -96,13 +96,17 @@ make infra-local-workflows-smoke
 
 The local lane mounts DAGs via the git-sync sidecar. Before deploying, you must do two things:
 
-**1. Set the repo URL in `infra/local/helm/workflows/airflow.values.yaml`:**
+**1. Set the repo URL (and optionally branch/subpath) in `infra/local/helm/workflows/airflow.values.yaml`:**
 
 ```yaml
 dags:
   gitSync:
     repo: "https://github.com/your-org/your-dags-repo.git"  # set this
+    branch: "main"      # update if WORKFLOWS_LOCAL_DAGS_REPO_BRANCH differs
+    subPath: "/dags"    # update if WORKFLOWS_LOCAL_DAGS_REPO_SUBPATH differs
 ```
+
+The git-sync sidecar reads `branch` and `subPath` directly from the Helm values file. `WORKFLOWS_LOCAL_DAGS_REPO_BRANCH` and `WORKFLOWS_LOCAL_DAGS_REPO_SUBPATH` are used only for plan-phase validation; if you override their defaults, update the values file to match.
 
 **2. Create the `airflow-git-credentials` Kubernetes secret:**
 

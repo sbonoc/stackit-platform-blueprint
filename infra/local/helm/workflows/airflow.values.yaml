@@ -8,8 +8,8 @@ dags:
   gitSync:
     enabled: true
     repo: ""  # REQUIRED: set to your DAG repository URL (must end with .git) before deploying
-    branch: "main"
-    subPath: "/dags"
+    branch: "main"  # NOTE: if WORKFLOWS_LOCAL_DAGS_REPO_BRANCH differs from "main", update this value
+    subPath: "/dags"  # NOTE: if WORKFLOWS_LOCAL_DAGS_REPO_SUBPATH differs from "/dags", update this value
     credentialsSecret: "airflow-git-credentials"
     period: "60s"
     resources:
