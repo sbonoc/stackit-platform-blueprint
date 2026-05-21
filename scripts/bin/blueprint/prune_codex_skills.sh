@@ -52,7 +52,15 @@ done
 # Uses a temp file instead of declare -A so the script is bash 3 compatible.
 # ---------------------------------------------------------------------------
 _known_skills_file="$(mktemp)"
-trap 'rm -f "$_known_skills_file"' EXIT
+# Chain temp-file cleanup after the existing EXIT trap (set by start_script_metric_trap)
+# so script_duration_seconds is emitted first with the correct exit code.
+_existing_exit_cmd="$(trap -p EXIT | sed "s/^trap -- '//;s/' EXIT$//")"
+if [[ -n "$_existing_exit_cmd" ]]; then
+  # shellcheck disable=SC2064
+  trap "$_existing_exit_cmd; rm -f \"$_known_skills_file\"" EXIT
+else
+  trap 'rm -f "$_known_skills_file"' EXIT
+fi
 
 _index_skills_in_dir() {
   local base_dir="$1"
@@ -85,7 +93,7 @@ fi
 
 while IFS= read -r installed_dir; do
   installed_name="$(basename "$installed_dir")"
-  if ! grep -qx "$installed_name" "$_known_skills_file"; then
+  if ! grep -Fxq "$installed_name" "$_known_skills_file"; then
     log_info "prune-codex-skills: removing stale skill: $installed_name"
     run_cmd rm -rf "$installed_dir"
     pruned=$((pruned + 1))
