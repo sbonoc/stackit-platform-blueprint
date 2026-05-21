@@ -116,18 +116,16 @@ Surface automatically when the named scope is next touched. Do not promote to ac
 ### on-scope: workflows
 
 - [x] (done) proposal(issue-248-workflows-local-lane): Local lane Airflow support — implemented in PR #316 (merged). apache-airflow/airflow chart v1.20.0 (Airflow 3.1.8); ArgoCD + Helm; git-sync sidecar; LocalExecutor; WORKFLOWS_LOCAL_ENABLED toggle; webserverConfig.py OIDC; WORKFLOWS_LOCAL_DAGS_* and WORKFLOWS_LOCAL_OIDC_* env vars.
-- [ ] (parked) proposal(issue-248-workflows-local-lane): Automate port-forward within local-workflows smoke script — embed transient `kubectl port-forward` (background process, trap-based cleanup) in `local_workflows_smoke.sh` so `make infra-local-workflows-smoke` is fully self-contained without a pre-existing port-forward session.
-      trigger: on-scope: workflows
-      rationale: low urgency; README documents the manual step; requires signal handling out of scope for PR #316
+- [ ] (in-progress) proposal(issue-248-workflows-local-lane): Automate port-forward within local-workflows smoke script — embed transient `kubectl port-forward` (background process, trap-based cleanup) in `local_workflows_smoke.sh` so `make infra-local-workflows-smoke` is fully self-contained without a pre-existing port-forward session.
+      PR: #317 (2026-05-21-issue-248-workflows-local-improvements)
 - [ ] (parked) proposal(issue-248-workflows-local-lane): Automate `airflow-git-credentials` Kubernetes secret creation — add `infra-local-workflows-init-secrets` make target (following `langfuse_keycloak_reconcile.sh` pattern) that creates the secret from env vars before deploy.
       trigger: on-scope: workflows
       rationale: one-time manual operation per cluster; deferred until an init-secrets reconcile pattern is needed across multiple modules
 - [ ] (parked) proposal(issue-248-workflows-module): Provider-backed migration — replace REST API contract with `stackit_workflows_instance` Terraform provider resource when an official resource is released in a future provider version
       trigger: on-scope: workflows
       rationale: no TF provider resource exists as of v0.96.0; tracked in STACKIT platform expansion section; migration path documented in ADR-issue-248-workflows-module.md
-- [ ] (parked) proposal(issue-248-workflows-module): Python version split strategy — define how blueprint tooling Python version coexists with the Airflow runtime-constrained Python (e.g., separate venv per role, uv workspace isolation)
-      trigger: on-scope: workflows
-      rationale: deferred from Long Horizon until Airflow integration is live and Python constraint is observed in practice
+- [ ] (in-progress) proposal(issue-248-workflows-module): Python version split strategy — define how blueprint tooling Python version coexists with the Airflow runtime-constrained Python (e.g., separate venv per role, uv workspace isolation)
+      PR: #317 (2026-05-21-issue-248-workflows-local-improvements)
 
 ### on-scope: blueprint
 

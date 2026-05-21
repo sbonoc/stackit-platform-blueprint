@@ -24,9 +24,9 @@
    - Call `stop_port_forward` on exit (success and failure paths).
    - Verify: `make infra-local-workflows-smoke` passes without manual port-forward; `pgrep -f "port-forward.*blueprint-airflow-webserver"` returns empty after run.
 
-2. **Slice 2 — Python version documentation + DAG venv make target**
-   - Add "DAG Development Python Version" section to `docs/platform/modules/local-workflows/README.md`.
-   - Mirror the section to `scripts/templates/blueprint/bootstrap/docs/platform/modules/local-workflows/README.md`.
+2. **Slice 2 — DAG development guidance + make target**
+   - Add "DAG Development Setup" section to `docs/platform/modules/local-workflows/README.md` with two subsections: (a) Python Version — 3.12 vs ≥3.13 split, `uv venv --python 3.12 .venv-dags`; (b) Repository Structure — `/dags/` convention, layout example, subpath sync note, coding agent guidance.
+   - Mirror the full section to `scripts/templates/blueprint/bootstrap/docs/platform/modules/local-workflows/README.md`.
    - Add `infra-local-workflows-dags-venv` target to `scripts/bin/blueprint/render_makefile.sh`.
    - Verify: `make infra-local-workflows-dags-venv` creates `.venv-dags` at Python 3.12; `make quality-hooks-fast` exits 0.
 
@@ -64,7 +64,7 @@
 - Notes: This work item adds no new app-level targets. `infra-local-workflows-dags-venv` is a developer convenience target, not an onboarding requirement. All required minimum targets above are pre-existing.
 
 ## Documentation Plan (Document Phase)
-- Blueprint docs updates: `docs/platform/modules/local-workflows/README.md` — "DAG Development Python Version" section.
+- Blueprint docs updates: `docs/platform/modules/local-workflows/README.md` — "DAG Development Setup" section (Python Version + Repository Structure subsections).
 - Consumer docs updates: Bootstrap template mirrored at `scripts/templates/blueprint/bootstrap/docs/platform/modules/local-workflows/README.md`.
 - Mermaid diagrams updated: none.
 - Docs validation commands:
