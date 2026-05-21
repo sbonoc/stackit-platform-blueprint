@@ -1,21 +1,21 @@
 # Tasks
 
 ## Gate Checks (Required Before Implementation)
-- [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`
-- [ ] G-002 Confirm open questions and unresolved alternatives are `0`
-- [ ] G-003 Confirm required sign-offs are approved (architecture)
-- [ ] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
-- [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
+- [x] G-001 Confirm `SPEC_READY=true` in `spec.md`
+- [x] G-002 Confirm open questions and unresolved alternatives are `0`
+- [x] G-003 Confirm required sign-offs are approved (architecture)
+- [x] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
+- [x] G-005 Confirm `Implementation Stack Profile` section is fully populated
 
 ## Implementation — Slice 1: Live README hardening
-- [ ] T-101 Add **Environment Variables** table to `docs/platform/modules/identity-aware-proxy/README.md` (5 required + 7 optional vars with defaults and descriptions)
-- [ ] T-102 Add **Make Targets** table documenting all 5 lifecycle targets with one-line descriptions and state file key summary
-- [ ] T-103 Add **Provisioning Lifecycle** section with Keycloak client prerequisite, env var exports, and plan→apply→deploy→smoke command sequence
-- [ ] T-104 Add **Security** section documenting `IAP_COOKIE_SECRET` byte-length constraint, credential non-persistence in state files, and K8s Secret lifecycle per lane
-- [ ] T-105 Add **Teardown** section with `make infra-identity-aware-proxy-destroy` and enumeration of removed resources
+- [x] T-101 Add **Environment Variables** table to `docs/platform/modules/identity-aware-proxy/README.md` (5 required + 7 optional vars with defaults and descriptions)
+- [x] T-102 Add **Make Targets** table documenting all 5 lifecycle targets with one-line descriptions and state file key summary
+- [x] T-103 Add **Provisioning Lifecycle** section with Keycloak client prerequisite, env var exports, and plan→apply→deploy→smoke command sequence
+- [x] T-104 Add **Security** section documenting `IAP_COOKIE_SECRET` byte-length constraint, credential non-persistence in state files, and K8s Secret lifecycle per lane
+- [x] T-105 Add **Teardown** section with `make infra-identity-aware-proxy-destroy` and enumeration of removed resources
 
 ## Implementation — Slice 2: Bootstrap template mirror
-- [ ] T-201 Mirror all Slice 1 additions to `scripts/templates/blueprint/bootstrap/docs/platform/modules/identity-aware-proxy/README.md`
+- [x] T-201 Mirror all Slice 1 additions to `scripts/templates/blueprint/bootstrap/docs/platform/modules/identity-aware-proxy/README.md`
 
 ## Accessibility Testing (Non-UI spec)
 - [ ] T-A01 Confirm NFR-A11Y-001 is declared as "N/A — no UI surfaces" in `spec.md` ✓
