@@ -1,0 +1,36 @@
+{
+  "manifest_version": 1,
+  "work_item": "2026-05-20-issue-248-workflows-local-lane",
+  "generated_by": "blueprint-sdd-step07-pr-packager",
+  "generated_at_utc": "2026-05-20T21:30:00Z",
+  "files": [
+    {
+      "path": "specs/2026-05-20-issue-248-workflows-local-lane/spec.md",
+      "sha256": "752b96c4bbbaa0edcd44ba00d5ff311b27d3074016ea739ac32ca2273975d752"
+    },
+    {
+      "path": "specs/2026-05-20-issue-248-workflows-local-lane/architecture.md",
+      "sha256": "a04636d4c683ec070433ed8072ed0e3c0761b5f673a6fb24e9ceab20e3a83089"
+    },
+    {
+      "path": "specs/2026-05-20-issue-248-workflows-local-lane/plan.md",
+      "sha256": "478d92ca658081ba657417f8e081cdabd639694c6e5e63ac8d822c72de1bbd2a"
+    },
+    {
+      "path": "specs/2026-05-20-issue-248-workflows-local-lane/hardening_review.md",
+      "sha256": "5976c65f36885cdeb2ceb466f826de179e1642351738fac2ae570ebee7681ade"
+    },
+    {
+      "path": "specs/2026-05-20-issue-248-workflows-local-lane/pr_context.md",
+      "sha256": "777208181f0932d5156534d803fa491e48e3a5cae3275ba3342020ff4b1b1b0c"
+    },
+    {
+      "path": "specs/2026-05-20-issue-248-workflows-local-lane/traceability.md",
+      "sha256": "6572b9011af3b80de92d388ba7ff89c0507ac40ceba3c1d8883f41bae6370a11"
+    },
+    {
+      "path": "specs/2026-05-20-issue-248-workflows-local-lane/tasks.md",
+      "sha256": "1edcedc416ba76119ed2497dc6086d1182a132754d8191b1f2b89716c70036e4"
+    }
+  ]
+}

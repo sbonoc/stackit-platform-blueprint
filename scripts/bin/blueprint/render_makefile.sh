@@ -109,6 +109,12 @@ OUT
   infra-identity-aware-proxy-plan infra-identity-aware-proxy-apply infra-identity-aware-proxy-deploy infra-identity-aware-proxy-smoke infra-identity-aware-proxy-destroy
 OUT
     ;;
+  local-workflows)
+    cat <<'OUT'
+ \
+  infra-local-workflows-plan infra-local-workflows-apply infra-local-workflows-deploy infra-local-workflows-smoke infra-local-workflows-destroy
+OUT
+    ;;
   *)
     log_fatal "unsupported makefile module phony suffix: $module"
     ;;
@@ -354,6 +360,25 @@ infra-identity-aware-proxy-destroy: ## Destroy Identity-Aware Proxy resources
 	@scripts/bin/infra/identity_aware_proxy_destroy.sh
 OUT
     ;;
+  local-workflows)
+    cat <<'OUT'
+
+infra-local-workflows-plan: ## Plan local Airflow (workflows) resources
+	@scripts/bin/infra/local_workflows_plan.sh
+
+infra-local-workflows-apply: ## Apply local Airflow (workflows) resources
+	@scripts/bin/infra/local_workflows_apply.sh
+
+infra-local-workflows-deploy: ## Deploy local Airflow via ArgoCD
+	@scripts/bin/infra/local_workflows_deploy.sh
+
+infra-local-workflows-smoke: ## Local Airflow smoke checks
+	@scripts/bin/infra/local_workflows_smoke.sh
+
+infra-local-workflows-destroy: ## Destroy local Airflow resources
+	@scripts/bin/infra/local_workflows_destroy.sh
+OUT
+    ;;
   *)
     log_fatal "unsupported makefile module target block: $module"
     ;;
@@ -363,7 +388,7 @@ OUT
 render_makefile() {
   local phony_observability phony_workflows phony_langfuse phony_postgres phony_neo4j
   local phony_object_storage phony_rabbitmq phony_opensearch phony_dns phony_public_endpoints phony_secrets_manager phony_kms
-  local phony_identity_aware_proxy
+  local phony_identity_aware_proxy phony_local_workflows
   phony_observability="$(makefile_module_phony_suffix observability)"
   phony_workflows="$(makefile_module_phony_suffix workflows)"
   phony_langfuse="$(makefile_module_phony_suffix langfuse)"
@@ -377,10 +402,11 @@ render_makefile() {
   phony_secrets_manager="$(makefile_module_phony_suffix secrets-manager)"
   phony_kms="$(makefile_module_phony_suffix kms)"
   phony_identity_aware_proxy="$(makefile_module_phony_suffix identity-aware-proxy)"
+  phony_local_workflows="$(makefile_module_phony_suffix local-workflows)"
 
   local targets_observability targets_workflows targets_langfuse targets_postgres targets_neo4j
   local targets_object_storage targets_rabbitmq targets_opensearch targets_dns targets_public_endpoints targets_secrets_manager
-  local targets_kms targets_identity_aware_proxy
+  local targets_kms targets_identity_aware_proxy targets_local_workflows
   targets_observability="$(makefile_module_target_block observability)"
   targets_workflows="$(makefile_module_target_block workflows)"
   targets_langfuse="$(makefile_module_target_block langfuse)"
@@ -394,6 +420,7 @@ render_makefile() {
   targets_secrets_manager="$(makefile_module_target_block secrets-manager)"
   targets_kms="$(makefile_module_target_block kms)"
   targets_identity_aware_proxy="$(makefile_module_target_block identity-aware-proxy)"
+  targets_local_workflows="$(makefile_module_target_block local-workflows)"
 
   local output_path="$ROOT_DIR/make/blueprint.generated.mk"
   ensure_dir "$(dirname "$output_path")"
@@ -416,6 +443,7 @@ render_makefile() {
     "PHONY_SECRETS_MANAGER=$phony_secrets_manager" \
     "PHONY_KMS=$phony_kms" \
     "PHONY_IDENTITY_AWARE_PROXY=$phony_identity_aware_proxy" \
+    "PHONY_LOCAL_WORKFLOWS=$phony_local_workflows" \
     "INFRA_ENV_GUARDED_OBSERVABILITY=$phony_observability" \
     "INFRA_ENV_GUARDED_WORKFLOWS=$phony_workflows" \
     "INFRA_ENV_GUARDED_LANGFUSE=$phony_langfuse" \
@@ -429,6 +457,7 @@ render_makefile() {
     "INFRA_ENV_GUARDED_SECRETS_MANAGER=$phony_secrets_manager" \
     "INFRA_ENV_GUARDED_KMS=$phony_kms" \
     "INFRA_ENV_GUARDED_IDENTITY_AWARE_PROXY=$phony_identity_aware_proxy" \
+    "INFRA_ENV_GUARDED_LOCAL_WORKFLOWS=$phony_local_workflows" \
     "TARGETS_OBSERVABILITY=$targets_observability" \
     "TARGETS_WORKFLOWS=$targets_workflows" \
     "TARGETS_LANGFUSE=$targets_langfuse" \
@@ -442,6 +471,7 @@ render_makefile() {
     "TARGETS_SECRETS_MANAGER=$targets_secrets_manager" \
     "TARGETS_KMS=$targets_kms" \
     "TARGETS_IDENTITY_AWARE_PROXY=$targets_identity_aware_proxy" \
+    "TARGETS_LOCAL_WORKFLOWS=$targets_local_workflows" \
     >"$rendered_tmp"
 
   # Normalize generated output to end with exactly one newline and no trailing blank lines.

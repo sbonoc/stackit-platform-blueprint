@@ -211,6 +211,10 @@ echo "Airflow UI: $web_url"
 echo "Instance ID: $instance_id"
 ```
 
+## Local Lane
+
+For local Docker Desktop Kubernetes deployment of Airflow without STACKIT cloud access, see the [Local Workflows module](../local-workflows/README.md) (`local-workflows`).
+
 ## Troubleshooting
 
 **`log_fatal: WORKFLOWS_ENABLED guard`** — The module detected a non-STACKIT profile. Set `BLUEPRINT_PROFILE=stackit-<env>` or check your `.env` for the active profile.

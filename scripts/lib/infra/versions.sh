@@ -27,6 +27,7 @@ IAP_HELM_CHART_VERSION_PIN="10.4.0"
 KMS_VAULT_HELM_CHART_VERSION_PIN="0.28.1"
 KEYCLOAK_HELM_CHART_VERSION_PIN="7.1.9"
 KEYCLOAK_IMAGE_TAG_PIN="26.5.5"
+WORKFLOWS_LOCAL_AIRFLOW_HELM_CHART_VERSION_PIN="1.20.0"
 
 # Local fallback images are pinned explicitly because upstream chart defaults
 # may drift to retired registry tags. Where STACKIT exposes a managed service

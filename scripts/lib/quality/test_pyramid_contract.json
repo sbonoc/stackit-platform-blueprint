@@ -110,7 +110,8 @@
                 "tests/blueprint/test_workaround_manifest_check.py",
                 "tests/infra/test_argocd_values_health_fix.py",
                 "tests/infra/modules/observability/test_contract.py",
-                "tests/infra/modules/workflows/test_contract.py"
+                "tests/infra/modules/workflows/test_contract.py",
+                "tests/infra/modules/workflows/test_local_contract.py"
             ]
         },
         {
