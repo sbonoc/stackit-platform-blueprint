@@ -8,14 +8,14 @@
 | FR-002 | SDD-C-008 | — | port_forward.sh library: wait_for_local_port call | `scripts/bin/infra/local_workflows_smoke.sh` | AC-001: smoke passes without manual port-forward | — | — |
 | FR-003 | SDD-C-008 | — | port_forward.sh library: stop_port_forward on exit | `scripts/bin/infra/local_workflows_smoke.sh` | AC-003: pgrep returns 0 after smoke | — | — |
 | FR-004 | SDD-C-013 | — | README "DAG Development Setup" section (Python Version + Repository Structure subsections) | `docs/platform/modules/local-workflows/README.md` | AC-005: Python version subsection present; AC-010: repo structure subsection present | AC-005, AC-006, AC-010 | — |
-| FR-005 | SDD-C-005, SDD-C-011 | — | infra-local-workflows-dags-venv make target | `scripts/bin/blueprint/render_makefile.sh` | AC-007: .venv-dags at Python 3.12 created | — | — |
+| FR-005 | SDD-C-005, SDD-C-011 | — | infra-local-workflows-dags-venv make target | `scripts/bin/blueprint/render_makefile.sh`, `scripts/bin/infra/local_workflows_dags_venv.sh` | AC-007: .venv-dags at Python 3.12 created | — | — |
 | NFR-A11Y-001 | — | — | N/A — no UI surfaces | — | — | — | — |
 | NFR-SEC-001 | — | — | N/A — no auth/secrets surfaces | — | — | — | — |
 | NFR-OBS-001 | — | — | N/A — no new observability surfaces | — | — | — | — |
 | NFR-REL-001 | — | — | N/A — port_forward.sh handles idempotency | — | — | — | — |
 | NFR-OPS-001 | SDD-C-010 | — | no PID in state file | `scripts/bin/infra/local_workflows_smoke.sh` | AC-004: state file has no PID field | — | — |
 | NFR-OPS-002 | SDD-C-010 | — | state file contract unchanged | `scripts/bin/infra/local_workflows_smoke.sh` | AC-004: status=passed in state file | — | — |
-| NFR-OPS-003 | SDD-C-011 | — | WORKFLOWS_LOCAL_ENABLED=false guard | `scripts/bin/infra/local_workflows_smoke.sh`, `render_makefile.sh` | AC-002, AC-008: skip exit 0 | — | — |
+| NFR-OPS-003 | SDD-C-011 | — | WORKFLOWS_LOCAL_ENABLED=false guard | `scripts/bin/infra/local_workflows_smoke.sh`, `scripts/bin/infra/local_workflows_dags_venv.sh` | AC-002, AC-008: skip exit 0 verified by running scripts directly with WORKFLOWS_LOCAL_ENABLED=false | — | — |
 | AC-001 | SDD-C-008 | — | — | — | manual smoke with running stack | — | — |
 | AC-002 | SDD-C-011 | — | — | — | `make infra-local-workflows-smoke` with env false | — | — |
 | AC-003 | SDD-C-008 | — | — | — | pgrep check post-smoke | — | — |
@@ -49,4 +49,4 @@
 - Hardening review export: `hardening_review.md`
 
 ## Open Risks and Follow-Ups
-- Follow-up 1: If Python 3.12 is not available via `uv` on developer machine, `make infra-local-workflows-dags-venv` will fail with a `uv` error. The README section should document `uv python install 3.12` as a prerequisite step.
+- Follow-up 1: RESOLVED — README "DAG Development Setup / Python Version" subsection documents `uv python install 3.12` as the prerequisite step if Python 3.12 is not yet available to uv.
