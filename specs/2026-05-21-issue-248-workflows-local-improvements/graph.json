@@ -20,7 +20,7 @@
     {
       "id": "FR-004",
       "type": "requirement",
-      "summary": "README gains DAG Development Python Version section documenting 3.12 vs 3.13 split"
+      "summary": "README gains DAG Development Setup section: Python version split + repository structure convention with coding agent guidance"
     },
     {
       "id": "FR-005",
@@ -80,12 +80,12 @@
     {
       "id": "AC-005",
       "type": "acceptance",
-      "summary": "README contains DAG Development Python Version section with Python 3.12 content"
+      "summary": "README contains DAG Development Setup section with Python Version subsection (3.12, Airflow 3.1.8, uv venv command)"
     },
     {
       "id": "AC-006",
       "type": "acceptance",
-      "summary": "Bootstrap template mirrors the DAG Development Python Version section"
+      "summary": "Bootstrap template mirrors the full DAG Development Setup section"
     },
     {
       "id": "AC-007",
@@ -101,6 +101,11 @@
       "id": "AC-009",
       "type": "acceptance",
       "summary": "make quality-hooks-fast exits 0 after all changes"
+    },
+    {
+      "id": "AC-010",
+      "type": "acceptance",
+      "summary": "README Repository Structure subsection: /dags/ convention, layout example, subpath sync note, coding agent guidance"
     }
   ],
   "edges": [
@@ -110,6 +115,7 @@
     { "from": "FR-003", "to": "AC-003", "relation": "validated_by" },
     { "from": "FR-004", "to": "AC-005", "relation": "validated_by" },
     { "from": "FR-004", "to": "AC-006", "relation": "validated_by" },
+    { "from": "FR-004", "to": "AC-010", "relation": "validated_by" },
     { "from": "FR-005", "to": "AC-007", "relation": "validated_by" },
     { "from": "FR-005", "to": "AC-008", "relation": "validated_by" },
     { "from": "NFR-OPS-001", "to": "AC-004", "relation": "constrains" },

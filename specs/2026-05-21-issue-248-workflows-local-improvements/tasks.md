@@ -14,10 +14,11 @@
 - [ ] T-104 Add `stop_port_forward "local-workflows-smoke"` on success path (after state file write)
 - [ ] T-105 Add `stop_port_forward "local-workflows-smoke"` on failure path (ERR trap or explicit call before log_fatal exits)
 
-## Implementation — Slice 2: Python version guidance + make target
-- [ ] T-201 Add "DAG Development Python Version" section to `docs/platform/modules/local-workflows/README.md`
-- [ ] T-202 Mirror the section to `scripts/templates/blueprint/bootstrap/docs/platform/modules/local-workflows/README.md`
-- [ ] T-203 Add `infra-local-workflows-dags-venv` target to `scripts/bin/blueprint/render_makefile.sh` (guarded by `WORKFLOWS_LOCAL_ENABLED`)
+## Implementation — Slice 2: DAG development guidance + make target
+- [ ] T-201 Add "DAG Development Setup" section with "Python Version" subsection to `docs/platform/modules/local-workflows/README.md` (3.12 vs ≥3.13 split, `uv venv --python 3.12 .venv-dags`, `uv python install 3.12` prerequisite)
+- [ ] T-202 Add "Repository Structure" subsection to same section: `/dags/` convention, minimal layout example, subpath sync note, coding agent guidance
+- [ ] T-203 Mirror the full "DAG Development Setup" section to `scripts/templates/blueprint/bootstrap/docs/platform/modules/local-workflows/README.md`
+- [ ] T-204 Add `infra-local-workflows-dags-venv` target to `scripts/bin/blueprint/render_makefile.sh` (guarded by `WORKFLOWS_LOCAL_ENABLED`)
 
 ## Accessibility Testing (Non-UI spec)
 - [ ] T-A01 Confirm NFR-A11Y-001 is declared as "N/A — no UI surfaces" in `spec.md` ✓

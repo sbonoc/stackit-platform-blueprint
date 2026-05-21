@@ -47,7 +47,9 @@
 - FR-001 The smoke script MUST source `scripts/lib/infra/port_forward.sh` and call `start_port_forward "local-workflows-smoke" "$WORKFLOWS_LOCAL_NAMESPACE" "svc/${WORKFLOWS_LOCAL_HELM_RELEASE}-webserver" "$WORKFLOWS_LOCAL_AIRFLOW_PORT" "$WORKFLOWS_LOCAL_AIRFLOW_PORT"` before issuing the health-check HTTP request.
 - FR-002 The smoke script MUST call `wait_for_local_port "local-workflows-smoke" "$WORKFLOWS_LOCAL_AIRFLOW_PORT"` immediately after `start_port_forward`, before the health-check `curl`, to guarantee the local port is accepting connections.
 - FR-003 The smoke script MUST call `stop_port_forward "local-workflows-smoke"` on both the success and failure exit paths so no `kubectl port-forward` process spawned by the smoke remains running after the script exits.
-- FR-004 `docs/platform/modules/local-workflows/README.md` MUST include a "DAG Development Python Version" section explaining the version split (blueprint tooling ≥3.13 on host; Airflow 3.1.8 container ships Python 3.12), and MUST provide the `uv venv --python 3.12 .venv-dags` command for DAG authors.
+- FR-004 `docs/platform/modules/local-workflows/README.md` MUST include a "DAG Development Setup" section containing two subsections:
+  (a) **Python Version** — documents the version split (blueprint tooling ≥3.13 on host; Airflow 3.1.8 container ships Python 3.12), explains that DAG code must target Python 3.12, provides the `uv venv --python 3.12 .venv-dags` command, and notes that `uv python install 3.12` is a prerequisite if Python 3.12 is not yet available to `uv`.
+  (b) **Repository Structure** — states that by default DAG Python files MUST be placed under a `/dags/` directory at the root of the DAG repository (matching `subPath: "/dags"` in `airflow.values.yaml` and the default `WORKFLOWS_LOCAL_DAGS_REPO_SUBPATH`); includes a minimal repository layout example; states that if the consumer overrides `WORKFLOWS_LOCAL_DAGS_REPO_SUBPATH`, they MUST update `subPath` in `airflow.values.yaml` to match; and explicitly addresses coding agents: when writing DAGs for this setup, place `.py` files under `dags/` at the repository root unless instructed otherwise via the configured subpath.
 - FR-005 A Makefile target `infra-local-workflows-dags-venv` MUST be added via `scripts/bin/blueprint/render_makefile.sh`, calling `uv venv --python 3.12 .venv-dags` in the project root, guarded by `WORKFLOWS_LOCAL_ENABLED=true`.
 
 ### Non-Functional Requirements (Normative)
@@ -71,7 +73,7 @@
 - OpenAPI / Pact contract path: none
 - Event contract: none
 - Make/CLI contract: New target `infra-local-workflows-dags-venv` (rendered by `render_makefile.sh`); existing `infra-local-workflows-smoke` behavior extended (self-contained port-forward).
-- Docs contract: `docs/platform/modules/local-workflows/README.md` gains "DAG Development Python Version" section; bootstrap template mirrored at `scripts/templates/blueprint/bootstrap/docs/platform/modules/local-workflows/README.md`.
+- Docs contract: `docs/platform/modules/local-workflows/README.md` gains "DAG Development Setup" section (two subsections: Python Version, Repository Structure); bootstrap template mirrored at `scripts/templates/blueprint/bootstrap/docs/platform/modules/local-workflows/README.md`.
 
 ## Blueprint Upstream Defect Escalation (Normative)
 - Upstream issue URL: none
@@ -84,8 +86,9 @@
 - AC-002 Running `make infra-local-workflows-smoke` with `WORKFLOWS_LOCAL_ENABLED=false` exits 0 immediately and emits a skip log line; no port-forward process is started.
 - AC-003 After a successful or failed smoke run, no `kubectl port-forward` process for the Airflow webserver (spawned by the smoke script) remains running. Verifiable by: `pgrep -f "port-forward.*blueprint-airflow-webserver" | wc -l` returns 0.
 - AC-004 The smoke state file written on success contains `status=passed` and does not contain a `port_forward_pid` or any PID field.
-- AC-005 `docs/platform/modules/local-workflows/README.md` contains a "DAG Development Python Version" section referencing Python 3.12, Airflow 3.1.8, and the `uv venv --python 3.12 .venv-dags` command.
-- AC-006 The bootstrap template at `scripts/templates/blueprint/bootstrap/docs/platform/modules/local-workflows/README.md` is an exact mirror of the "DAG Development Python Version" section added in AC-005.
+- AC-005 `docs/platform/modules/local-workflows/README.md` contains a "DAG Development Setup" section with a "Python Version" subsection referencing Python 3.12, Airflow 3.1.8, and the `uv venv --python 3.12 .venv-dags` command.
+- AC-006 The bootstrap template at `scripts/templates/blueprint/bootstrap/docs/platform/modules/local-workflows/README.md` is an exact mirror of the "DAG Development Setup" section added in AC-005 and AC-010.
+- AC-010 The "DAG Development Setup" section contains a "Repository Structure" subsection that: (a) states DAG `.py` files belong under `/dags/` at the DAG repository root by default; (b) includes a minimal layout example (`dags/my_dag.py`); (c) states that `WORKFLOWS_LOCAL_DAGS_REPO_SUBPATH` and `subPath` in `airflow.values.yaml` must be kept in sync if changed; (d) addresses coding agents explicitly: place DAG files under `dags/` at the repository root unless the configured subpath differs.
 - AC-007 Running `make infra-local-workflows-dags-venv` with `WORKFLOWS_LOCAL_ENABLED=true` and Python 3.12 available (via `uv`) creates a `.venv-dags` directory pinned to Python 3.12 (verifiable by `.venv-dags/bin/python --version`).
 - AC-008 Running `make infra-local-workflows-dags-venv` with `WORKFLOWS_LOCAL_ENABLED=false` exits 0 with a skip log message; no venv is created.
 - AC-009 `make quality-hooks-fast` exits 0 after all changes (doc drift check, infra contract tests, and SDD check all pass).
