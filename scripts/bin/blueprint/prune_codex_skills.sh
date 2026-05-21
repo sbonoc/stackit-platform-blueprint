@@ -49,23 +49,32 @@ done
 # ---------------------------------------------------------------------------
 # Derive the canonical set of blueprint skill names from the repo sources,
 # mirroring the resolution order used by install_codex_skill.sh.
+# Uses a temp file instead of declare -A so the script is bash 3 compatible.
 # ---------------------------------------------------------------------------
-declare -A known_skills
+_known_skills_file="$(mktemp)"
+# Chain temp-file cleanup after the existing EXIT trap (set by start_script_metric_trap)
+# so script_duration_seconds is emitted first with the correct exit code.
+_existing_exit_cmd="$(trap -p EXIT | sed "s/^trap -- '//;s/' EXIT$//")"
+if [[ -n "$_existing_exit_cmd" ]]; then
+  # shellcheck disable=SC2064
+  trap "$_existing_exit_cmd; rm -f \"$_known_skills_file\"" EXIT
+else
+  trap 'rm -f "$_known_skills_file"' EXIT
+fi
 
 _index_skills_in_dir() {
   local base_dir="$1"
   [[ -d "$base_dir" ]] || return 0
-  while IFS= read -r skill_dir; do
-    local name
-    name="$(basename "$skill_dir")"
-    known_skills["$name"]=1
-  done < <(find "$base_dir" -maxdepth 1 -mindepth 1 -type d -name "blueprint-*" | LC_ALL=C sort)
+  find "$base_dir" -maxdepth 1 -mindepth 1 -type d -name "blueprint-*" \
+    | LC_ALL=C sort \
+    | while IFS= read -r skill_dir; do basename "$skill_dir"; done \
+    >> "$_known_skills_file"
 }
 
 _index_skills_in_dir "$ROOT_DIR/.agents/skills"
 _index_skills_in_dir "$ROOT_DIR/scripts/templates/consumer/init/.agents/skills"
 
-if [[ "${#known_skills[@]}" -eq 0 ]]; then
+if [[ ! -s "$_known_skills_file" ]]; then
   log_info "prune-codex-skills: no blueprint skills found in repo sources — nothing to prune against"
   log_metric "blueprint_codex_skill_prune_total" "1" "status=skip"
   exit 0
@@ -84,7 +93,7 @@ fi
 
 while IFS= read -r installed_dir; do
   installed_name="$(basename "$installed_dir")"
-  if [[ -z "${known_skills[$installed_name]+_}" ]]; then
+  if ! grep -Fxq "$installed_name" "$_known_skills_file"; then
     log_info "prune-codex-skills: removing stale skill: $installed_name"
     run_cmd rm -rf "$installed_dir"
     pruned=$((pruned + 1))
