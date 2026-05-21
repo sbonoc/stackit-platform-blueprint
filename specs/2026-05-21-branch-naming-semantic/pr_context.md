@@ -14,12 +14,17 @@ Refactoring of the branch naming convention. `codex/` was hardwired as the defau
 | REQ-005 — upgrade skill uses `chore/` | `blueprint-consumer-upgrade/SKILL.md` command sequence updated | `quality-hooks-fast` pass |
 
 ## Key Reviewer Files
-- `blueprint/contract.yaml` — `purpose_prefixes` and `default_prefix` change
-- `scripts/bin/blueprint/spec_scaffold.py` — `_resolve_branch_prefix()` — 2 lines removed
-- `AGENTS.md` step 4 — updated default branch example
-- `.agents/skills/blueprint-sdd-step01-intake/SKILL.md` — AUTO-SCAFFOLD block updated
-- `.agents/skills/blueprint-consumer-upgrade/SKILL.md` — `upgrade/` → `chore/` in command sequence
-- `tests/blueprint/test_spec_scaffold.py` — expected branch name updated from `codex/` to `feature/`
+- Primary files to review first:
+  - `blueprint/contract.yaml` — `purpose_prefixes` and `default_prefix` change
+  - `scripts/bin/blueprint/spec_scaffold.py` — `_resolve_branch_prefix()` — hardcoded `codex/` fallback removed
+  - `scripts/bin/quality/hooks_fast.sh` — publish-gate branch pattern widened
+  - `scripts/bin/quality/check_spec_pr_ready.py` — `_SDD_BRANCH_PATTERN` widened
+- Supporting files:
+  - `AGENTS.md` step 4 — updated default branch example and `SPEC_BRANCH=` syntax
+  - `.agents/skills/blueprint-sdd-step01-intake/SKILL.md` — AUTO-SCAFFOLD block updated
+  - `.agents/skills/blueprint-consumer-upgrade/SKILL.md` — `upgrade/` → `chore/` in command sequence
+  - `tests/blueprint/test_spec_scaffold.py` — expected branch name updated from `codex/` to `feature/`
+  - `tests/blueprint/test_spec_pr_ready.py` — branch pattern test extended for all semantic prefixes
 
 ## Validation Evidence
 - `python3 -m pytest tests/blueprint/test_spec_scaffold.py -x -q` — 3 passed

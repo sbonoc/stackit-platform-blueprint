@@ -8,7 +8,7 @@ description: Upgrade existing generated-consumer repositories from https://githu
 ## Workflow
 
 1. Verify the repo is a generated-consumer repo and the working tree is clean.
-2. Create a dedicated branch (`codex/...`) for the upgrade.
+2. Create a dedicated branch (`chore/blueprint-upgrade-<tag>`) for the upgrade.
 3. Resolve the latest stable tag from `https://github.com/sbonoc/stackit-platform-blueprint` unless the user pins a specific ref.
 4. Run consumer-seed resync in inspect mode, then safe-apply mode.
 5. Run upgrade preflight and review manual actions before apply mode.
@@ -25,7 +25,7 @@ Use these commands from the consumer repo root.
 
 ```bash
 # 0) branch + clean working tree
-git checkout -b codex/upgrade-blueprint-<tag-or-date>
+git checkout -b chore/blueprint-upgrade-<tag>
 git status --short
 
 # 1) resolve latest stable tag from fixed source

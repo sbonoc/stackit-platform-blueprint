@@ -43,7 +43,7 @@ Opinionated GitHub template for teams that want deterministic platform delivery 
 - SDD is default-required for assistant-executed work unless the user explicitly opts out for that task.
 - Start each new SDD work item from `specs/**` using:
   - `make spec-scaffold SPEC_SLUG=<work-item-slug>`
-  - default behavior creates and checks out a dedicated branch (`codex/<YYYY-MM-DD>-<slug>`)
+  - default behavior creates and checks out a dedicated branch (`<prefix>/<YYYY-MM-DD>-<slug>`, e.g. `feature/`)
   - explicit opt-out requires `SPEC_NO_BRANCH=true`
 - Keep `SPEC_READY=false` until requirements and sign-offs are explicit.
 - Run canonical validation before handoff/review:
