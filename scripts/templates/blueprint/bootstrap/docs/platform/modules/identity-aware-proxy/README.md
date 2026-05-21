@@ -115,6 +115,19 @@ make infra-identity-aware-proxy-smoke
 
 Each target exits 0 on success. The smoke target confirms the OIDC issuer/client contract and protected browser route reachability through the shared Gateway.
 
+### STACKIT lane — update ArgoCD manifests before syncing
+
+On `stackit-*` profiles the deploy step applies the ArgoCD Application manifests in `infra/gitops/argocd/optional/${ENV}/identity-aware-proxy.yaml`. These manifests ship with scaffold placeholder values and **must be updated** before ArgoCD reconciles the chart:
+
+| Field | Location in manifest | Replace with |
+|---|---|---|
+| `oidcIssuerURL` | `spec.source.helm.values` | Your Keycloak realm issuer URL (value of `KEYCLOAK_ISSUER_URL`) |
+| `redirect-url` (extraArgs) | `spec.source.helm.values` | `https://${IAP_PUBLIC_HOST}/oauth2/callback` |
+| `upstreams` | `spec.source.helm.values` | Your upstream service URL (value of `IAP_UPSTREAM_URL`) |
+| `hostnames` | `spec.source.helm.values` | Your public host (value of `IAP_PUBLIC_HOST`) |
+
+The `config.existingSecret` field is pre-set to `iap-runtime-credentials` and matches the ESO-issued Secret name — do not change it.
+
 ## Security
 
 - **`IAP_COOKIE_SECRET` byte-length constraint.** The value MUST be exactly 16, 24, or 32 bytes, matching the AES-GCM key sizes supported by oauth2-proxy's session cookie encryption. `identity_aware_proxy_validate_cookie_secret()` enforces this at plan time; any other length produces a hard failure before any resources are created.
