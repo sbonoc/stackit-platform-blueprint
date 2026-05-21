@@ -16,6 +16,7 @@
   - `infra-local-workflows-deploy`
   - `infra-local-workflows-smoke`
   - `infra-local-workflows-destroy`
+  - `infra-local-workflows-dags-venv`
 - Outputs:
   - `WORKFLOWS_LOCAL_PUBLIC_URL`
 <!-- END GENERATED MODULE CONTRACT SUMMARY -->
@@ -56,6 +57,7 @@ See also: [Workflows Module (STACKIT lane)](../workflows/README.md) for the prod
 | `infra-local-workflows-deploy` | Apply ArgoCD Application manifest; write deploy state with `provision_status=deployed` |
 | `infra-local-workflows-smoke` | Check Airflow `/health` endpoint; write smoke state with `status=passed` |
 | `infra-local-workflows-destroy` | Delete ArgoCD Application; remove all `local_workflows_*` state files |
+| `infra-local-workflows-dags-venv` | Create `.venv-dags` (Python 3.12) for DAG development; skipped if `WORKFLOWS_LOCAL_ENABLED=false` |
 
 ## Provisioning Lifecycle
 
@@ -85,10 +87,6 @@ kubectl create secret generic airflow-oidc-credentials \
 make infra-local-workflows-plan
 make infra-local-workflows-apply
 make infra-local-workflows-deploy
-
-# Port-forward to access Airflow UI
-kubectl port-forward -n data svc/blueprint-airflow-webserver 8080:8080 &
-
 make infra-local-workflows-smoke
 ```
 
@@ -140,6 +138,41 @@ make infra-local-workflows-destroy
 ```
 
 This deletes the ArgoCD Application and removes all `local_workflows_*` state artifacts. The Helm release is pruned automatically by ArgoCD's automated sync policy.
+
+## DAG Development Setup
+
+### Python Version
+
+Blueprint tooling requires Python ≥ 3.13 on the host (see `pyproject.toml`). Apache Airflow 3.1.8 ships Python 3.12 inside the container. DAG code developed locally must target Python 3.12 — the Airflow runtime version — not the blueprint tooling version.
+
+Create a dedicated virtual environment for DAG development:
+
+```bash
+# Install Python 3.12 via uv if not already available
+uv python install 3.12
+
+# Create the DAG development venv:
+make infra-local-workflows-dags-venv
+```
+
+Configure your IDE to use `.venv-dags` as the Python interpreter for DAG files. The `.venv-dags/` directory is gitignored.
+
+### Repository Structure
+
+Store DAG files in a `/dags/` directory at the root of your DAG repository. The git-sync sidecar mounts the subpath configured in `infra/local/helm/workflows/airflow.values.yaml` (`dags.gitSync.subPath`, default: `/dags`). Keep `WORKFLOWS_LOCAL_DAGS_REPO_SUBPATH` and `dags.gitSync.subPath` in sync — if you override either, update both.
+
+Typical layout:
+
+```
+your-dags-repo/
+├── dags/
+│   ├── my_dag.py
+│   └── utils/
+├── .venv-dags/       # Python 3.12 DAG dev venv (gitignored)
+└── pyproject.toml    # or requirements.txt
+```
+
+**For coding agents:** target the `.venv-dags` venv when generating or editing DAG files. Run `uv pip install --python .venv-dags/bin/python apache-airflow==3.1.8` inside `.venv-dags` for accurate import resolution.
 
 ## Security
 

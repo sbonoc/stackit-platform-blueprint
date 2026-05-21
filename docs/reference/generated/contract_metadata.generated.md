@@ -415,6 +415,7 @@
 - `infra-local-workflows-deploy`
 - `infra-local-workflows-smoke`
 - `infra-local-workflows-destroy`
+- `infra-local-workflows-dags-venv`
 
 ### Produced Outputs
 - `WORKFLOWS_LOCAL_PUBLIC_URL`

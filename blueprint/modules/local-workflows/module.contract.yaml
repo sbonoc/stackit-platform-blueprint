@@ -55,6 +55,7 @@ spec:
     deploy: infra-local-workflows-deploy
     smoke: infra-local-workflows-smoke
     destroy: infra-local-workflows-destroy
+    dags-venv: infra-local-workflows-dags-venv
 
   smoke_checks:
     - "Airflow webserver /health returns healthy"

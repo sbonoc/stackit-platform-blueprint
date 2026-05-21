@@ -112,7 +112,7 @@ OUT
   local-workflows)
     cat <<'OUT'
  \
-  infra-local-workflows-plan infra-local-workflows-apply infra-local-workflows-deploy infra-local-workflows-smoke infra-local-workflows-destroy
+  infra-local-workflows-plan infra-local-workflows-apply infra-local-workflows-deploy infra-local-workflows-smoke infra-local-workflows-destroy infra-local-workflows-dags-venv
 OUT
     ;;
   *)
@@ -377,6 +377,9 @@ infra-local-workflows-smoke: ## Local Airflow smoke checks
 
 infra-local-workflows-destroy: ## Destroy local Airflow resources
 	@scripts/bin/infra/local_workflows_destroy.sh
+
+infra-local-workflows-dags-venv: ## Create .venv-dags (Python 3.12) for DAG development
+	@scripts/bin/infra/local_workflows_dags_venv.sh
 OUT
     ;;
   *)
@@ -528,6 +531,9 @@ optional_target_count() {
   fi
   if is_module_enabled identity-aware-proxy; then
     count=$((count + 5))
+  fi
+  if is_module_enabled local-workflows; then
+    count=$((count + 6))
   fi
   echo "$count"
 }

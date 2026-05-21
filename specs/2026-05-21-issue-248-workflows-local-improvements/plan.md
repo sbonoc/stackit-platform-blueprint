@@ -5,14 +5,9 @@
 - If required inputs are missing, add `BLOCKED_MISSING_INPUTS` in `spec.md` and keep the gate closed.
 
 ## Constitution Gates (Pre-Implementation)
-- Simplicity gate:
-  - Two discrete changes: (1) smoke port-forward automation, (2) Python version guidance + make target. No shared abstraction layer needed.
-- Anti-abstraction gate:
-  - Reuse `port_forward.sh` library directly; no wrapper added.
-  - New make target uses `uv venv --python 3.12` directly; no helper function.
-- Integration-first testing gate:
-  - No new automated test framework tests. Validation is via make quality gates and manual smoke with a running stack.
-  - Finding-to-test translation gate: no reproducible pre-PR smoke finding to translate; this work item IS the fix for a manual-step requirement.
+- Simplicity gate: Two discrete changes: (1) smoke port-forward automation, (2) Python version guidance + make target. No shared abstraction layer needed.
+- Anti-abstraction gate: Reuse `port_forward.sh` library directly; no wrapper added. New make target uses `uv venv --python 3.12` directly; no helper function.
+- Integration-first testing gate: No new automated test framework tests. Validation is via make quality gates and manual smoke with a running stack. No reproducible pre-PR smoke finding to translate; this work item IS the fix for a manual-step requirement.
 - Positive-path filter/transform test gate: N/A — no filter or payload-transform logic.
 - Finding-to-test translation gate: N/A — no pre-PR smoke finding to translate into a failing automated test; the port-forward requirement itself is the fix.
 

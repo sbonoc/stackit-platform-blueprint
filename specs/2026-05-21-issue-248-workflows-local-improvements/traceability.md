@@ -36,11 +36,11 @@
   - AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009, AC-010
 
 ## Validation Summary
-- Required bundles executed: pending
-- Result summary: pending
+- Required bundles executed: quality-hooks-fast, quality-hardening-review, skip-path smoke, skip-path dags-venv
+- Result summary: All automated gates pass. AC-002 (WORKFLOWS_LOCAL_ENABLED=false smoke skip) and AC-008 (WORKFLOWS_LOCAL_ENABLED=false dags-venv skip) verified. AC-001, AC-003, AC-004, AC-007 require a running local-workflows stack; deferred to post-merge smoke.
 - Documentation validation:
-  - `make docs-build`: pending
-  - `make docs-smoke`: pending
+  - `make docs-build`: deferred (requires running docs server)
+  - `make docs-smoke`: deferred (requires running docs server)
 
 ## Evidence Manifest
 - Manifest file: `evidence_manifest.json`
