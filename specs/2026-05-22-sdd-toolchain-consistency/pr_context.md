@@ -22,10 +22,11 @@
   - `.spec-kit/templates/consumer/plan.md` and `pr_context.md` — same placeholder fixes as blueprint
 
 ## Validation Evidence
-- Required commands executed:
+- Required commands executed: make quality-sdd-check-all (passed); python3 -m pytest tests/blueprint/ -x -q (1062 passed)
   - `make quality-sdd-check SPEC_DIR=specs/2026-04-15-sdd-golden-example` — passed
-  - `python3 -m pytest tests/blueprint/ -x -q` — 1061 passed
-- Result summary: all existing tests pass; golden example check clean.
+  - `make quality-sdd-check-all` — passed (includes consumer-init SDD asset sync check)
+  - `python3 -m pytest tests/blueprint/ -x -q` — 1062 passed (1 new: `test_consumer_init_sdd_asset_sync`)
+- Result summary: all existing tests pass; golden example check clean; consumer-init sync verified in sync.
 - Artifact references: none
 
 ## Risk and Rollback

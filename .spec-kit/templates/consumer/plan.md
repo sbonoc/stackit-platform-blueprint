@@ -53,7 +53,7 @@
   - `infra-port-forward-stop`
   - `infra-port-forward-cleanup`
 - App onboarding impact: no-impact
-- Notes:
+- Notes: update to 'impacted' if this work item adds or changes any make targets listed above
 
 ## Documentation Plan (Document Phase)
 - Platform docs updates:

@@ -1,6 +1,6 @@
 ---
 name: blueprint-sdd-step02-resolve-questions
-description: Execute SDD Step 3 — scaffold if not already done, read PR comments from reviewers (PO, Architect, etc.), replace [NEEDS CLARIFICATION] blocks in artifacts with resolved decisions, update the Open Questions table in the PR description, commit, and post a confirmation comment. Repeats until open question count reaches zero and SPEC_PRODUCT_READY is recorded. Can be invoked by any project stakeholder.
+description: Execute SDD Step 3 — scaffold if not already done, read PR comments from reviewers (PO, Architect, etc.), replace [NEEDS CLARIFICATION: ...] blocks in artifacts with resolved decisions, update the Open Questions table in the PR description, commit, and post a confirmation comment. Repeats until open question count reaches zero and SPEC_PRODUCT_READY is recorded. Can be invoked by any project stakeholder.
 ---
 
 # Blueprint SDD Step 02 — Open Question Resolution Loop
@@ -63,7 +63,7 @@ Reviewers interact exclusively via GitHub PR comments — no local tooling requi
    gh pr view <number> --comments
    gh api repos/<owner>/<repo>/pulls/<number>/comments   # inline comments
 
-2. For each comment that answers a [NEEDS CLARIFICATION] question:
+2. For each comment that answers a [NEEDS CLARIFICATION: ...] question:
    a. Identify the corresponding block in the relevant artifact.
    b. Replace the entire block with the chosen option text + rationale paragraph.
       Example:
@@ -83,7 +83,7 @@ Reviewers interact exclusively via GitHub PR comments — no local tooling requi
    a. Set `SPEC_PRODUCT_READY: true` in spec.md frontmatter.
    b. Set `Product sign-off: approved` in the Sign-offs section of spec.md.
 
-4. make quality-sdd-check      # confirm [NEEDS CLARIFICATION] count drops
+4. make quality-sdd-check      # confirm [NEEDS CLARIFICATION: ...] count drops
 
 5. Update the Open Questions table in the PR description:
    - Remove resolved rows.
