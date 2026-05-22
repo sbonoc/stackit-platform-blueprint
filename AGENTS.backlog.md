@@ -33,6 +33,9 @@ To introduce a new tag, append a row here in the same commit that uses it.
 - [ ] (parked) proposal(issue-293-294-agents-north-star-cross-reference): Option B — body-heuristic duplication detection
       trigger: on-scope: quality
       rationale: OPTION_A (exact heading match) selected in spec as the starting point; Option B adds false-positive risk before consumer feedback on Option A is gathered.
+- [ ] (parked) normative-keyword-allowlist-enforcement: `contract.yaml normative_language.allowed_keywords` declares MUST / MUST NOT / SHALL / EXACTLY ONE OF as the only permitted terms, but `check_sdd_assets.py` only rejects forbidden ambiguous terms — it does not validate that only the allowed keywords are used. A spec using WILL or REQUIRED passes today.
+      trigger: on-scope: quality
+      rationale: low-priority hardening; forbidden-terms check catches most violations; allowlist check risks false positives on legacy specs
 
 - [ ] proposal(issue-248-observability-module): Harden observability credential delivery via Secrets Store CSI Driver — https://github.com/sbonoc/stackit-platform-blueprint/issues/312
 

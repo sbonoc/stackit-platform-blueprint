@@ -18,7 +18,7 @@ reviewer feedback into the work-item artifacts without requiring reviewers
 to have a local development environment or Claude Code.
 
 The skill can be invoked multiple times — once per resolution round — until
-all `[NEEDS CLARIFICATION]` markers are resolved and `SPEC_PRODUCT_READY: true`
+all `[NEEDS CLARIFICATION: ...]` markers are resolved and `SPEC_PRODUCT_READY: true`
 is recorded in `spec.md`.
 
 ## Actor
@@ -30,7 +30,7 @@ Reviewers interact exclusively via GitHub PR comments — no local tooling requi
 
 `AGENTS.md` is the canonical policy source for this skill. Sections that apply in this phase:
 
-- `§ Clarification Marker Policy` — only fully resolved `[NEEDS CLARIFICATION]` blocks may be removed; partial resolution leaves the block intact.
+- `§ Clarification Marker Policy` — only fully resolved `[NEEDS CLARIFICATION: ...]` blocks may be removed; partial resolution leaves the block intact.
 - `§ Sign-off Policy` — the exact deterministic phrase is required; plain-language approval is not sufficient; self-approval is prohibited.
 - `§ SDD Readiness Gate (Mandatory Before Implementation)` — `SPEC_PRODUCT_READY` is a prerequisite for the full sign-off gate in the next step.
 
@@ -40,7 +40,7 @@ Reviewers interact exclusively via GitHub PR comments — no local tooling requi
 
 1. If the spec directory is missing when the skill starts, run the scaffold first.
 2. Read ALL PR comments and inline review comments before beginning any edits.
-3. Replace each resolved `[NEEDS CLARIFICATION]` block with the decision text
+3. Replace each resolved `[NEEDS CLARIFICATION: ...]` block with the decision text
    and its rationale. Do not leave partial blocks.
 4. Record `SPEC_PRODUCT_READY: approved` and `Product sign-off: approved` in
    `spec.md` when the deterministic sign-off phrase is present in a PR comment.
@@ -68,7 +68,7 @@ Reviewers interact exclusively via GitHub PR comments — no local tooling requi
    b. Replace the entire block with the chosen option text + rationale paragraph.
       Example:
         Before:
-          > **[NEEDS CLARIFICATION]** Which caching strategy to use?
+          > **[NEEDS CLARIFICATION: Which caching strategy to use?]**
           > **Options:**
           > - **A)** In-process cache — low latency (agent recommendation)
           > - **B)** Redis — shared across replicas

@@ -24,4 +24,4 @@
 - Rollback strategy:
 
 ## Deferred Proposals
-- Proposal 1 (not implemented):
+- Proposal 1 (not implemented): <describe the deferred proposal and reason for deferral>

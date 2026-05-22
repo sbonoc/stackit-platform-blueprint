@@ -23,6 +23,32 @@ it; otherwise it runs the scaffold automatically.
 Any project stakeholder: **CPO / PO / CTO / Architect / Software Engineer**.
 No local development environment is required beyond `make` and `gh` CLI access.
 
+## Bypass Track
+
+For refactors, bug fixes, chores, and upgrades the full 10-artifact SDD cycle
+MUST NOT be enforced. The bypass track reduces required artifacts to only
+`spec.md` + `pr_context.md`.
+
+**When to use:** Change type is `bug-fix`, `upgrade`, `refactor`, `chore`,
+or `authorized-deviation` — typically when implementation already exists or
+scope is narrowly bounded without new user-visible behaviour.
+
+**How to activate:** Add both fields to the `Spec Readiness Gate` section of
+`spec.md` before running this skill:
+
+```
+- SPEC_READY_EXCEPTION: refactor  # or: bug-fix | upgrade | chore | authorized-deviation
+- authorized-by: <github-handle>
+```
+
+When active, `quality-sdd-check` requires only `spec.md` and `pr_context.md`;
+`plan.md`, `tasks.md`, `architecture.md`, `traceability.md`, `graph.json`,
+`evidence_manifest.json`, `context_pack.md`, and `hardening_review.md` are
+all optional. Sign-off fields in the Readiness Gate still apply.
+
+See `§ Lightweight SDD Bypass Track` in `AGENTS.md` for the full tiered
+traceability table and metric audit trail.
+
 ## Governance Context
 
 `AGENTS.md` is the canonical policy source for this skill. Sections that apply in this phase:
@@ -30,7 +56,7 @@ No local development environment is required beyond `make` and `gh` CLI access.
 - `§ Mandatory Workflow` — SDD-enabled execution is the default; opt-out requires explicit user instruction.
 - `§ SDD Artifact Contract` — spec, architecture, plan, tasks, traceability, and graph artifacts must all be created.
 - `§ Normative Language Policy (Spec Artifacts)` — MUST / MUST NOT / SHALL / EXACTLY ONE OF are the only accepted normative terms.
-- `§ Clarification Marker Policy` — `[NEEDS CLARIFICATION]` is the only accepted form for unresolved inputs.
+- `§ Clarification Marker Policy` — `[NEEDS CLARIFICATION: ...]` is the only accepted form for unresolved inputs.
 - `§ Guardrail Control Statements (Mandatory)` — applicable SDD-C-### controls must be declared in `spec.md`.
 - `§ Cross-Cutting Guardrails (Must Be Captured in Discover + Specify)` — API and event contracts (OpenAPI, Pact) that define new or changed service interfaces must be drafted in Specify and recorded in `spec.md` under Contract Impacts before implementation begins.
 
@@ -40,7 +66,7 @@ No local development environment is required beyond `make` and `gh` CLI access.
 
 1. Every artifact section that can be filled with current knowledge MUST be
    filled. Stubs and placeholder text are not acceptable in the Draft PR.
-2. Missing inputs are recorded as `[NEEDS CLARIFICATION]` structured blocks —
+2. Missing inputs are recorded as `[NEEDS CLARIFICATION: ...]` structured blocks —
    never as empty sections or invented assumptions.
 3. `SPEC_READY: false` and `SPEC_PRODUCT_READY: false` are the correct initial
    values; do not set either to `true` in this phase.
@@ -100,7 +126,7 @@ No local development environment is required beyond `make` and `gh` CLI access.
 6. Handle open questions
    Use the structured block wherever an input cannot be resolved:
 
-   > **[NEEDS CLARIFICATION]** Concise statement of what needs to be decided.
+   > **[NEEDS CLARIFICATION: Concise statement of what needs to be decided.]**
    >
    > **Options:**
    > - **A)** Description — tradeoffs (agent recommendation)
@@ -195,7 +221,7 @@ Return:
 3. REQ-###, NFR-###, AC-### extracted (count per type).
 4. SDD-C-### control IDs declared.
 5. ADR path and diagram type(s) chosen with rationale.
-6. `[NEEDS CLARIFICATION]` open questions list (count + brief description each).
+6. `[NEEDS CLARIFICATION: ...]` open questions list (count + brief description each).
 7. `make quality-sdd-check` result.
 8. Surfaced Backlog Proposals (from AGENTS.backlog.md scan):
 
