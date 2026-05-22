@@ -24,8 +24,8 @@
   - If no deterministic automation path exists, publish artifacts MUST record the exception rationale, owner, and follow-up trigger.
 
 ## Delivery Slices
-1. Slice 1:
-2. Slice 2:
+1. Slice 1: <describe first delivery unit in TDD red→green order>
+2. Slice 2: <describe second delivery unit>
 
 ## Change Strategy
 - Migration/rollout sequence:
@@ -57,8 +57,8 @@
   - `infra-port-forward-start`
   - `infra-port-forward-stop`
   - `infra-port-forward-cleanup`
-- App onboarding impact: no-impact | impacted (select one)
-- Notes:
+- App onboarding impact: no-impact
+- Notes: update to 'impacted' if this work item adds or changes any make targets listed above
 
 ## Documentation Plan (Document Phase)
 - Blueprint docs updates:
@@ -90,4 +90,4 @@
 - Runbook updates:
 
 ## Risks and Mitigations
-- Risk 1 -> mitigation:
+- Risk 1 -> mitigation: <describe risk and mitigation strategy>

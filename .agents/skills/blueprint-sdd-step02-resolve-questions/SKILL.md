@@ -1,6 +1,6 @@
 ---
 name: blueprint-sdd-step02-resolve-questions
-description: Execute SDD Step 3 — scaffold if not already done, read PR comments from reviewers (PO, Architect, etc.), replace [NEEDS CLARIFICATION] blocks in artifacts with resolved decisions, update the Open Questions table in the PR description, commit, and post a confirmation comment. Repeats until open question count reaches zero and SPEC_PRODUCT_READY is recorded. Can be invoked by any project stakeholder.
+description: Execute SDD Step 3 — scaffold if not already done, read PR comments from reviewers (PO, Architect, etc.), replace [NEEDS CLARIFICATION: ...] blocks in artifacts with resolved decisions, update the Open Questions table in the PR description, commit, and post a confirmation comment. Repeats until open question count reaches zero and SPEC_PRODUCT_READY is recorded. Can be invoked by any project stakeholder.
 ---
 
 # Blueprint SDD Step 02 — Open Question Resolution Loop
@@ -18,7 +18,7 @@ reviewer feedback into the work-item artifacts without requiring reviewers
 to have a local development environment or Claude Code.
 
 The skill can be invoked multiple times — once per resolution round — until
-all `[NEEDS CLARIFICATION]` markers are resolved and `SPEC_PRODUCT_READY: true`
+all `[NEEDS CLARIFICATION: ...]` markers are resolved and `SPEC_PRODUCT_READY: true`
 is recorded in `spec.md`.
 
 ## Actor
@@ -30,7 +30,7 @@ Reviewers interact exclusively via GitHub PR comments — no local tooling requi
 
 `AGENTS.md` is the canonical policy source for this skill. Sections that apply in this phase:
 
-- `§ Clarification Marker Policy` — only fully resolved `[NEEDS CLARIFICATION]` blocks may be removed; partial resolution leaves the block intact.
+- `§ Clarification Marker Policy` — only fully resolved `[NEEDS CLARIFICATION: ...]` blocks may be removed; partial resolution leaves the block intact.
 - `§ Sign-off Policy` — the exact deterministic phrase is required; plain-language approval is not sufficient; self-approval is prohibited.
 - `§ SDD Readiness Gate (Mandatory Before Implementation)` — `SPEC_PRODUCT_READY` is a prerequisite for the full sign-off gate in the next step.
 
@@ -40,7 +40,7 @@ Reviewers interact exclusively via GitHub PR comments — no local tooling requi
 
 1. If the spec directory is missing when the skill starts, run the scaffold first.
 2. Read ALL PR comments and inline review comments before beginning any edits.
-3. Replace each resolved `[NEEDS CLARIFICATION]` block with the decision text
+3. Replace each resolved `[NEEDS CLARIFICATION: ...]` block with the decision text
    and its rationale. Do not leave partial blocks.
 4. Record `SPEC_PRODUCT_READY: approved` and `Product sign-off: approved` in
    `spec.md` when the deterministic sign-off phrase is present in a PR comment.
@@ -63,12 +63,12 @@ Reviewers interact exclusively via GitHub PR comments — no local tooling requi
    gh pr view <number> --comments
    gh api repos/<owner>/<repo>/pulls/<number>/comments   # inline comments
 
-2. For each comment that answers a [NEEDS CLARIFICATION] question:
+2. For each comment that answers a [NEEDS CLARIFICATION: ...] question:
    a. Identify the corresponding block in the relevant artifact.
    b. Replace the entire block with the chosen option text + rationale paragraph.
       Example:
         Before:
-          > **[NEEDS CLARIFICATION]** Which caching strategy to use?
+          > **[NEEDS CLARIFICATION: Which caching strategy to use?]**
           > **Options:**
           > - **A)** In-process cache — low latency (agent recommendation)
           > - **B)** Redis — shared across replicas
@@ -83,7 +83,7 @@ Reviewers interact exclusively via GitHub PR comments — no local tooling requi
    a. Set `SPEC_PRODUCT_READY: true` in spec.md frontmatter.
    b. Set `Product sign-off: approved` in the Sign-offs section of spec.md.
 
-4. make quality-sdd-check      # confirm [NEEDS CLARIFICATION] count drops
+4. make quality-sdd-check      # confirm [NEEDS CLARIFICATION: ...] count drops
 
 5. Update the Open Questions table in the PR description:
    - Remove resolved rows.

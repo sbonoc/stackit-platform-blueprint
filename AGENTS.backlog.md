@@ -33,6 +33,15 @@ To introduce a new tag, append a row here in the same commit that uses it.
 - [ ] (parked) proposal(issue-293-294-agents-north-star-cross-reference): Option B — body-heuristic duplication detection
       trigger: on-scope: quality
       rationale: OPTION_A (exact heading match) selected in spec as the starting point; Option B adds false-positive risk before consumer feedback on Option A is gathered.
+- [ ] (parked) normative-keyword-allowlist-enforcement: `contract.yaml normative_language.allowed_keywords` declares MUST / MUST NOT / SHALL / EXACTLY ONE OF as the only permitted terms, but `check_sdd_assets.py` only rejects forbidden ambiguous terms — it does not validate that only the allowed keywords are used. A spec using WILL or REQUIRED passes today.
+      trigger: on-scope: quality
+      rationale: low-priority hardening; forbidden-terms check catches most violations; allowlist check risks false positives on legacy specs
+- [ ] (parked) scaffold-token-gate: `check_spec_pr_ready.py` rejects empty `\d+. Slice N:` lines but does not reject unfilled `<describe ...>` scaffold tokens left in slices, risks, or deferred-proposals placeholders. A contributor can leave scaffold text untouched and pass the PR-ready gate.
+      trigger: on-scope: quality
+      rationale: Step01 Guardrail #1 ("stubs and placeholder text are not acceptable") provides the agent/human-facing control; adding `<describe` rejection requires check-script changes and test updates. Validate tradeoff after observing real-world scaffold misuse.
+- [ ] (parked) app-onboarding-impact-gate: `_check_plan` in `check_spec_pr_ready.py` only rejects the literal `no-impact | impacted (select one)` text. It does not enforce that `no-impact` is changed to `impacted` when the work item adds or changes make targets. Templates now seed `no-impact` with a `Notes:` guidance line; a harder gate would heuristically inspect make targets touched.
+      trigger: on-scope: quality
+      rationale: heuristic detection of "app-delivery changes" is ambiguous; guidance text in the template Notes field provides a softer control. Validate tradeoff after observing real-world misuse.
 
 - [ ] proposal(issue-248-observability-module): Harden observability credential delivery via Secrets Store CSI Driver — https://github.com/sbonoc/stackit-platform-blueprint/issues/312
 

@@ -166,7 +166,7 @@
     },
     {
       "id": "SDD-C-019",
-      "normative_control": "Specs MUST use explicit `[NEEDS CLARIFICATION]` markers for unresolved inputs and MUST clear them (`Open clarification markers count = 0`) before `SPEC_READY=true`.",
+      "normative_control": "Specs MUST use explicit `[NEEDS CLARIFICATION: ...]` markers for unresolved inputs and MUST clear them (`Open clarification markers count = 0`) before `SPEC_READY=true`.",
       "phases": ["Discover", "High-Level Architecture", "Specify", "Plan"],
       "validation_command": "make quality-sdd-check",
       "evidence_artifacts": ["specs/<work-item>/spec.md"],

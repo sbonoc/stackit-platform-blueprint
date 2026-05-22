@@ -55,6 +55,11 @@ review, PR comments, or direct conversation.
 5. If the ADR recommended option is technically unsound, the Architect overrides
    it and documents the override rationale. Never silently accept a wrong recommendation.
 6. Run `make quality-sdd-check` before committing — it must pass.
+7. If `SPEC_READY_EXCEPTION` is set in `spec.md`, the bypass track is active —
+   `quality-sdd-check` requires only `spec.md` and `pr_context.md`. Sign-offs
+   still apply in full. Do not require the agent to produce optional artifacts
+   (`plan.md`, `tasks.md`, etc.) when the bypass is active. See
+   `§ Lightweight SDD Bypass Track` in `AGENTS.md`.
 
 ## Sign-off Phrases (Deterministic)
 

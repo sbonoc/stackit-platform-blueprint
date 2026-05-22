@@ -12,7 +12,7 @@
 - Populate tasks.md with all task rows (all unchecked).
 - Generate graph.json nodes and edges for every REQ/NFR/AC.
 - Populate traceability.md for every requirement.
-- Record all unresolved inputs as [NEEDS CLARIFICATION] structured blocks — not empty sections.
+- Record all unresolved inputs as [NEEDS CLARIFICATION: ...] structured blocks — not empty sections.
 - Run make quality-sdd-check — fix all violations before committing.
 - Commit all artifacts; push to dedicated branch.
 - Open Draft PR with Open Questions table (if open questions exist).
