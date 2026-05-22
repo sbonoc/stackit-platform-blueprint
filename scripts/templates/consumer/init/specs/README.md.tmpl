@@ -25,7 +25,7 @@ specs/<YYYY-MM-DD>-<work-item-slug>/
 1. SDD is default-required unless the user explicitly opts out for the current task.
 2. Scaffold the work item with dedicated branch creation:
    - `make spec-scaffold SPEC_SLUG=<work-item-slug> [SPEC_TRACK=blueprint|consumer]`
-   - default branch shape: `codex/<YYYY-MM-DD>-<work-item-slug>`
+   - default branch shape: `<prefix>/<YYYY-MM-DD>-<work-item-slug>` (e.g. `feature/`)
    - explicit opt-out: `SPEC_NO_BRANCH=true`
 3. Pick the template pack:
    - Blueprint maintainer work: `.spec-kit/templates/blueprint/*`

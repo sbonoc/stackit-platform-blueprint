@@ -800,19 +800,23 @@ class BranchResolutionTests(unittest.TestCase):
                     os.environ["SPEC_SLUG"] = old_slug
 
     def test_sdd_branch_pattern_resolves_spec_dir(self) -> None:
-        """Verify the SDD branch regex matches correctly."""
-        import re
+        """Verify the SDD branch regex matches semantic-prefix and legacy codex/ branches."""
         pattern = _checker._SDD_BRANCH_PATTERN
+        # legacy codex/ prefix still accepted
         m = pattern.match("codex/2026-04-22-quality-spec-pr-ready-publish-gate")
         self.assertIsNotNone(m)
         self.assertEqual(m.group(1), "2026-04-22-quality-spec-pr-ready-publish-gate")
+        # new semantic prefixes
+        for prefix in ("feature", "fix", "chore", "docs", "refactor"):
+            m = pattern.match(f"{prefix}/2026-05-21-some-slug")
+            self.assertIsNotNone(m, msg=f"prefix '{prefix}/' should match")
+            self.assertEqual(m.group(1), "2026-05-21-some-slug")
 
     def test_non_sdd_branch_does_not_match_pattern(self) -> None:
-        import re
         pattern = _checker._SDD_BRANCH_PATTERN
         self.assertIsNone(pattern.match("main"))
-        self.assertIsNone(pattern.match("feature/something"))
-        self.assertIsNone(pattern.match("codex/not-date-prefixed"))
+        self.assertIsNone(pattern.match("feature/something"))       # no date component
+        self.assertIsNone(pattern.match("codex/not-date-prefixed"))  # no date component
 
 
 class ArchitectureCheckTests(unittest.TestCase):

@@ -175,7 +175,7 @@ make spec-scaffold SPEC_SLUG=<work-item-slug>
 **What happens:**
 
 - Creates `specs/YYYY-MM-DD-<slug>/` with all required stub artifacts.
-- Checks out a dedicated branch `codex/YYYY-MM-DD-<slug>` automatically.
+- Checks out a dedicated branch `<prefix>/YYYY-MM-DD-<slug>` (e.g. `feature/`) automatically.
   Skip with `SPEC_NO_BRANCH=true` only when explicitly asked.
 
 **Artifacts created (stubs, populated in Step 1):**
@@ -297,7 +297,7 @@ open the Draft PR. This is the single PR for the entire work item.
 ```bash
 git add specs/YYYY-MM-DD-<slug>/ docs/.../ADR-<slug>.md
 git commit -m "feat(<slug>): SDD intake — spec, architecture, plan ready for PO review"
-git push -u origin codex/YYYY-MM-DD-<slug>
+git push -u origin <prefix>/YYYY-MM-DD-<slug>
 gh pr create --draft --title "feat(<slug>): ..." --body "..."
 ```
 

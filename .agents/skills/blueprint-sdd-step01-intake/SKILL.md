@@ -61,7 +61,12 @@ No local development environment is required beyond `make` and `gh` CLI access.
    Check whether the spec directory exists:
      ls specs/*-<slug>/ 2>/dev/null
    If the directory does not exist, run:
-     make spec-scaffold SPEC_SLUG=<slug>
+     make spec-scaffold SPEC_SLUG=<slug> SPEC_BRANCH=<prefix>/YYYY-MM-DD-<slug>
+   where <prefix> is the semantic type that best describes the change:
+     feature/   new capabilities or modules
+     fix/       bug fixes or correctness repairs
+     docs/      documentation-only changes
+     chore/     maintenance, cleanup, retroactive compliance
    If the directory already exists, skip this step — the user ran it manually.
 
 1. Confirm source requirements document(s) and scope boundaries.
@@ -120,7 +125,7 @@ BACKLOG SCAN (surface parked proposals before opening the Draft PR)
 
    git add specs/YYYY-MM-DD-<slug>/ docs/.../ADR-<slug>.md
    git commit -m "feat(<slug>): SDD intake — spec, architecture, plan ready for PO review"
-   git push -u origin codex/YYYY-MM-DD-<slug>
+   git push -u origin <prefix>/YYYY-MM-DD-<slug>
 
 10. Open Draft PR:
    gh pr create --draft \

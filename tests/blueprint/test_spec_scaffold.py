@@ -65,14 +65,14 @@ class SpecScaffoldBranchingTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
             self.assertEqual(
                 self._current_branch(repo_root),
-                "codex/2026-04-17-runtime-identity-contract",
+                "feature/2026-04-17-runtime-identity-contract",
             )
             self.assertTrue(
                 (repo_root / "specs/2026-04-17-runtime-identity-contract/spec.md").is_file(),
                 msg=result.stdout + result.stderr,
             )
             self.assertIn(
-                "active SDD branch: codex/2026-04-17-runtime-identity-contract",
+                "active SDD branch: feature/2026-04-17-runtime-identity-contract",
                 result.stdout,
             )
 
