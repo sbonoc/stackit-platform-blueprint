@@ -24,7 +24,7 @@ class RuntimeIdentityRefactorCases(RefactorContractBase):
         self.assertIn('variable "object_storage_bucket_name"', foundation_vars)
         self.assertIn('variable "secrets_manager_instance_name"', foundation_vars)
         self.assertIn('variable "postgres_version"', foundation_vars)
-        self.assertIn('default     = "16"', foundation_vars)
+        self.assertIn('default     = "17"', foundation_vars)
         self.assertIn('postgres_instance_name', foundation_locals)
         self.assertIn('postgres_instance_name_override = try(trimspace(var.postgres_instance_name), "")', foundation_locals)
         self.assertIn('postgres_acl_effective', foundation_locals)
