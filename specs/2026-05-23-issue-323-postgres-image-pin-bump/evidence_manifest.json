@@ -2,7 +2,7 @@
   "manifest_version": 1,
   "work_item": "specs/2026-05-23-issue-323-postgres-image-pin-bump",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "2026-05-23T06:30:25Z",
+  "generated_at_utc": "2026-05-23T06:58:40Z",
   "files": [
     {
       "path": "specs/2026-05-23-issue-323-postgres-image-pin-bump/architecture.md",
@@ -16,8 +16,8 @@
     },
     {
       "path": "specs/2026-05-23-issue-323-postgres-image-pin-bump/evidence_manifest.json",
-      "sha256": "ecb0eea40122794ca8f062212e022ba451f6d0a543b88db3d7c15e65a071e7f7",
-      "bytes": 161
+      "sha256": "196f1b4f5fcf6be409ae3b942d6aa388e6d93ae0b42c34be82b161670f06ecac",
+      "bytes": 2192
     },
     {
       "path": "specs/2026-05-23-issue-323-postgres-image-pin-bump/graph.json",
@@ -36,13 +36,13 @@
     },
     {
       "path": "specs/2026-05-23-issue-323-postgres-image-pin-bump/pr_context.md",
-      "sha256": "03500183d20597fe7f7480723bb8ba35c2496e4425b833a48bc6ce29bf5d690c",
-      "bytes": 2740
+      "sha256": "a3d23b9a1c61fd6b4fcc472df2a3393e3522055d298a02baf15f3724a683021f",
+      "bytes": 2924
     },
     {
       "path": "specs/2026-05-23-issue-323-postgres-image-pin-bump/spec.md",
-      "sha256": "2b33d01e445722eaed6cb318d8082360937a556e6d63800cc5e0e13ccf9e0461",
-      "bytes": 2564
+      "sha256": "409f8db0b255d70bafb84c161aa280a9eb14529136070eaa3241a2786f7d7817",
+      "bytes": 2676
     },
     {
       "path": "specs/2026-05-23-issue-323-postgres-image-pin-bump/tasks.md",

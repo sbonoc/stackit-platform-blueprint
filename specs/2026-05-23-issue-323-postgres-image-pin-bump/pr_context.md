@@ -3,7 +3,7 @@
 ## Summary
 - Work item: 2026-05-23-issue-323-postgres-image-pin-bump
 - Objective: Restore local provisioning broken by `bitnamilegacy/postgresql:16.x` tag retirement on Docker Hub; align blueprint PostgreSQL version default with STACKIT's latest supported major version (17).
-- Scope boundaries: `versions.baseline.sh`, `versions.sh`, `infra/local/helm/postgres/values.yaml`, `scripts/lib/infra/postgres.sh`, `infra/cloud/stackit/terraform/modules/postgres/variables.tf`, postgres module README (live + bootstrap mirror). No runtime logic, API surface, or check scripts changed.
+- Scope boundaries: `versions.baseline.sh`, `versions.sh`, `infra/local/helm/postgres/values.yaml`, `scripts/lib/infra/postgres.sh`, `infra/cloud/stackit/terraform/modules/postgres/variables.tf`, `infra/cloud/stackit/terraform/foundation/variables.tf`, postgres module README (live + bootstrap mirror). No runtime logic, API surface, or check scripts changed.
 
 ## Requirement Coverage
 - Requirement IDs covered: REQ-001, REQ-002, REQ-003, REQ-004
@@ -14,7 +14,8 @@
 - Primary files to review first:
   - `scripts/lib/infra/versions.baseline.sh` — local image tag bump
   - `scripts/lib/infra/postgres.sh` — POSTGRES_VERSION default 16 → 17
-  - `infra/cloud/stackit/terraform/modules/postgres/variables.tf` — Terraform default 16 → 17
+  - `infra/cloud/stackit/terraform/modules/postgres/variables.tf` — standalone module Terraform default 16 → 17
+  - `infra/cloud/stackit/terraform/foundation/variables.tf` — foundation layer Terraform default 16 → 17
 - Supporting files:
   - `scripts/lib/infra/versions.sh` — local image tag bump + bump policy comment
   - `infra/local/helm/postgres/values.yaml` — Helm chart image tag

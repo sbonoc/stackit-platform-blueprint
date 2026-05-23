@@ -44,9 +44,9 @@
 ### Functional Requirements (Normative)
 - REQ-001 `POSTGRES_LOCAL_IMAGE_TAG` in `versions.baseline.sh` and `versions.sh` MUST be bumped to `17.6.0-debian-12-r4`.
 - REQ-002 `infra/local/helm/postgres/values.yaml` image tag MUST match `POSTGRES_LOCAL_IMAGE_TAG`.
-- REQ-003 `POSTGRES_VERSION` default in `postgres.sh` and `infra/cloud/stackit/terraform/modules/postgres/variables.tf` MUST be bumped to `17`.
+- REQ-003 `POSTGRES_VERSION` default in `postgres.sh`, `infra/cloud/stackit/terraform/modules/postgres/variables.tf`, and `infra/cloud/stackit/terraform/foundation/variables.tf` MUST be bumped to `17`.
 - REQ-004 Documentation MUST reflect the new version default and document the bump policy for future tag retirements.
 
 ### Acceptance Criteria
 - AC-001 `make infra-audit-version` MUST pass with the new `17.6.0-debian-12-r4` pin resolving via `docker manifest inspect`.
-- AC-002 `grep -r "16" scripts/lib/infra/postgres.sh infra/cloud/stackit/terraform/modules/postgres/variables.tf` MUST return no version-default matches.
+- AC-002 `grep -r "16" scripts/lib/infra/postgres.sh infra/cloud/stackit/terraform/modules/postgres/variables.tf infra/cloud/stackit/terraform/foundation/variables.tf` MUST return no version-default matches.
