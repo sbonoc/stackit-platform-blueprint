@@ -2,7 +2,7 @@
   "manifest_version": 1,
   "work_item": "specs/2026-05-23-issue-323-postgres-image-pin-bump",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "2026-05-23T07:02:00Z",
+  "generated_at_utc": "2026-05-23T18:55:41Z",
   "files": [
     {
       "path": "specs/2026-05-23-issue-323-postgres-image-pin-bump/architecture.md",
@@ -16,7 +16,7 @@
     },
     {
       "path": "specs/2026-05-23-issue-323-postgres-image-pin-bump/evidence_manifest.json",
-      "sha256": "d6fbf104edff3ba3dca668e746310de0ac097e77c649fca63018185fe8b8cfa1",
+      "sha256": "9ca0dd6b91470ab33b0bbfffa117205770218082497432d48ecbb91336a695fe",
       "bytes": 2193
     },
     {
