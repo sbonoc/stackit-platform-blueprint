@@ -35,7 +35,7 @@ variable "postgres_user_roles" {
 variable "postgres_version" {
   description = "PostgreSQL Flex major version."
   type        = string
-  default     = "16"
+  default     = "17"
 }
 
 variable "postgres_replicas" {
