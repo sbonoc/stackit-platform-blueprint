@@ -1,0 +1,58 @@
+{
+  "manifest_version": 1,
+  "work_item": "specs/2026-05-26-issue-321-required-files-prepush-hook",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-05-26T08:31:46Z",
+  "files": [
+    {
+      "path": "specs/2026-05-26-issue-321-required-files-prepush-hook/architecture.md",
+      "sha256": "e1af1d87b3ef8756e4942ba5bcca4352554bbb5263bafbd04e6e3e534c69b6f8",
+      "bytes": 775
+    },
+    {
+      "path": "specs/2026-05-26-issue-321-required-files-prepush-hook/context_pack.md",
+      "sha256": "0a7a5055b9323ebad67ba01ceb8a39d2a29fdfe43d8791fa0e32c5d1eaf0a86c",
+      "bytes": 577
+    },
+    {
+      "path": "specs/2026-05-26-issue-321-required-files-prepush-hook/evidence_manifest.json",
+      "sha256": "41051f997e065cb85d6b1225be761103e37bbc6b413cd670e39ceec8344c014d",
+      "bytes": 2236
+    },
+    {
+      "path": "specs/2026-05-26-issue-321-required-files-prepush-hook/graph.json",
+      "sha256": "021c17a3a3068a4103ea50241b0d56d3c097a836606f05e6e91ff3d07aea5b71",
+      "bytes": 1150
+    },
+    {
+      "path": "specs/2026-05-26-issue-321-required-files-prepush-hook/hardening_review.md",
+      "sha256": "180c270281b26a89bd05143aa36c52a8f29682f3a175ec99f369f8490532b0f7",
+      "bytes": 1164
+    },
+    {
+      "path": "specs/2026-05-26-issue-321-required-files-prepush-hook/plan.md",
+      "sha256": "e899d6433cd5001de8ac68340dbe13e0f024dacab6a98f06910c34080b943742",
+      "bytes": 3793
+    },
+    {
+      "path": "specs/2026-05-26-issue-321-required-files-prepush-hook/pr_context.md",
+      "sha256": "fa69233b791a02bdb642634b58d5577835f252732e80fa9dab86e8e8a2467351",
+      "bytes": 2705
+    },
+    {
+      "path": "specs/2026-05-26-issue-321-required-files-prepush-hook/spec.md",
+      "sha256": "4d796bd2c06797447a669e669aded178a9e9c0fb6bc390d0192f80aed289aec0",
+      "bytes": 3090
+    },
+    {
+      "path": "specs/2026-05-26-issue-321-required-files-prepush-hook/tasks.md",
+      "sha256": "a9bc874d88135a750273e7b726f32bf8f37822c50fe0c23fa660a68252345411",
+      "bytes": 3440
+    },
+    {
+      "path": "specs/2026-05-26-issue-321-required-files-prepush-hook/traceability.md",
+      "sha256": "81b72ce828152417d2e7c1cc93e089c234343438ebbad982e41a2b68d0e0695e",
+      "bytes": 1109
+    }
+  ]
+}

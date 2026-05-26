@@ -52,6 +52,7 @@ This file is auto-generated. Do not edit it manually.
 | `quality-workaround-manifest-check` | Fail when workaround manifest action_path entries reference missing files |
 | `quality-infra-shell-source-graph-check` | Fail when infra helper source-edge contract drifts into caller-side implicit sourcing |
 | `quality-validate-bootstrap-template-drift` | Fail when blueprint-tracked root-level managed files drift from bootstrap template counterparts |
+| `quality-validate-contract-required-files` | Fail when any path listed in blueprint/contract.yaml required_files is absent from the working tree |
 | `quality-sdd-sync-control-catalog` | Render SDD control catalog markdown from machine-readable source |
 | `quality-sdd-check-control-catalog-sync` | Fail when SDD control catalog markdown is out of sync with machine-readable source |
 | `quality-sdd-sync-consumer-init-assets` | Sync consumer-init SDD assets from canonical .spec-kit and specs sources |

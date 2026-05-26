@@ -38,6 +38,13 @@ repos:
         entry: make quality-validate-bootstrap-template-drift
         pass_filenames: false
         files: ^(\.dockerignore|\.gitignore|\.editorconfig|\.pre-commit-config\.yaml|Makefile|scripts/templates/blueprint/bootstrap/)
+      - id: quality-validate-contract-required-files
+        name: quality contract required-files existence check (pre-push)
+        language: system
+        entry: make quality-validate-contract-required-files
+        pass_filenames: false
+        stages: [pre-push]
+        always_run: true
       - id: quality-validate-branch
         name: quality validate branch naming (pre-push)
         language: system
