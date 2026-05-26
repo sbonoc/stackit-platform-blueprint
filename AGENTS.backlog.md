@@ -112,7 +112,7 @@ Surface automatically when the named scope is next touched. Do not promote to ac
 
 ### on-scope: observability
 
-- [x] (done) proposal(issue-248-observability-module): Faro browser telemetry endpoint — incorporated into 2026-05-26-issue-248-observability-enhancements. Faro receiver added to both local and STACKIT lanes (port 12347, CORS `*`); `FARO_ENDPOINT` added to module contract outputs.
+- [x] (done) proposal(issue-248-observability-module): Faro browser telemetry endpoint — incorporated into 2026-05-26-issue-248-observability-enhancements (PR #327). Faro receiver added to both local and STACKIT lanes (port 12347, CORS `*`); `FARO_ENDPOINT` added to module contract outputs. Also covers: dashboard provisioning (kubectl convention dir + ConfigMap + Grafana sidecar); OTEL pipeline improvements (memory_limiter, filter/drop-healthcheck-spans, spanmetrics on local lane).
       trigger: on-scope: observability
 - [ ] (parked) proposal(issue-248-observability-module): `OBSERVABILITY_RETENTION_DAYS` shell contract — surface TF-level retention vars (`observability_logs_retention_days`, `metrics_retention_days`, `traces_retention_days`) as a shell-layer contract variable
       trigger: on-scope: observability

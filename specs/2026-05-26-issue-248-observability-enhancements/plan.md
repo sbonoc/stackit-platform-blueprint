@@ -6,13 +6,25 @@
 
 ## Delivery Slices (TDD red→green order)
 
-1. Slice 1: Faro receiver — shell lib + contract + state + smoke (FR-001, FR-002, FR-006, FR-007, FR-008). Write failing tests for `observability_faro_endpoint` and `FARO_ENDPOINT` contract output; add helper and init_env export; update apply/smoke; run tests green.
+1. Slice 1: Faro receiver — shell lib + contract + state + smoke (FR-001, FR-002, FR-006, FR-007, FR-008).
+   - Owner: bonos
+   - Depends on: none (can start immediately after SPEC_READY)
+   - Validation: write failing tests for `observability_faro_endpoint` and `FARO_ENDPOINT` contract output; add helper and init_env export; update apply/smoke; run tests green.
 
-2. Slice 2: OTEL pipeline improvements — values files + ArgoCD inline values (FR-003, FR-004, FR-005, FR-009, FR-010, FR-011). Write failing tests for Faro port, memory_limiter, filter, and spanmetrics in values files; update all five config sources (local values, STACKIT values, dev/stage/prod ArgoCD manifests); run tests green.
+2. Slice 2: OTEL pipeline improvements — values files + ArgoCD inline values (FR-003, FR-004, FR-005, FR-009, FR-010, FR-011).
+   - Owner: bonos
+   - Depends on: none (independent of Slice 1; values file changes do not require shell lib changes to land first)
+   - Validation: write failing tests for Faro port, memory_limiter, filter, and spanmetrics in values files; update all five config sources (local values, STACKIT values, dev/stage/prod ArgoCD manifests); run tests green.
 
-3. Slice 3: Dashboard provisioning — scripts + make targets + seed dashboards + bootstrap mirror (FR-012, FR-013, FR-014, FR-015, FR-016, FR-017). Write failing tests for script presence, make target declaration, seed dashboard existence, and OBSERVABILITY_DASHBOARDS_NAME in contract; implement all; run tests green.
+3. Slice 3: Dashboard provisioning — scripts + make targets + seed dashboards + bootstrap mirror (FR-012, FR-013, FR-014, FR-015, FR-016, FR-017).
+   - Owner: bonos
+   - Depends on: Slice 1 (OBSERVABILITY_DASHBOARDS_NAME contract change must land before make target references it)
+   - Validation: write failing tests for script presence, make target declaration, seed dashboard existence, and OBSERVABILITY_DASHBOARDS_NAME in contract; implement all; run tests green.
 
-4. Slice 4: Documentation + quality gates — update README, run make quality-hooks-fast, validate bootstrap template drift (FR-019, SDD-C-011). Ensure no regressions; all AC pass.
+4. Slice 4: Documentation + quality gates — update README, run make quality-hooks-fast, validate bootstrap template drift (FR-019, SDD-C-011).
+   - Owner: bonos
+   - Depends on: Slices 1, 2, 3 (README documents all three capabilities; quality gates require all changes present)
+   - Validation: no regressions in quality-hooks-fast; quality-validate-bootstrap-template-drift passes; pytest ≥12 new assertions pass.
 
 ## App Onboarding Contract (Normative)
 - App onboarding impact: impacted
