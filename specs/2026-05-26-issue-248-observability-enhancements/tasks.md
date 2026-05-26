@@ -17,15 +17,15 @@
 
 ## Slice 2 — OTEL pipeline improvements (values files + ArgoCD manifests)
 
-- [ ] T-201 Add Faro receiver + port to `infra/local/helm/observability/otel-collector.values.yaml` (FR-003)
-- [ ] T-202 Add Faro receiver + port to `infra/cloud/stackit/helm/observability/otel-collector.values.yaml` (FR-004)
-- [ ] T-203 Update `infra/gitops/argocd/optional/dev/observability.yaml` — Faro receiver, port, memory_limiter, filter, faro in pipelines (FR-005, FR-009, FR-010)
-- [ ] T-204 Update `infra/gitops/argocd/optional/stage/observability.yaml` — same changes (FR-005, FR-009, FR-010)
-- [ ] T-205 Update `infra/gitops/argocd/optional/prod/observability.yaml` — same changes (FR-005, FR-009, FR-010)
-- [ ] T-206 Add `memory_limiter` processor to local and STACKIT values files (FR-009)
-- [ ] T-207 Add `filter/drop-healthcheck-spans` processor to local and STACKIT values files (FR-010)
-- [ ] T-208 Add `spanmetrics` connector to local values file (FR-011)
-- [ ] T-209 Add ≥5 Slice 2 test assertions (Faro port in local, STACKIT, dev/stage/prod ArgoCD; memory_limiter in local and STACKIT; filter in local and STACKIT; spanmetrics in local) (FR-018)
+- [x] T-201 Add Faro receiver + port to `infra/local/helm/observability/otel-collector.values.yaml` (FR-003)
+- [x] T-202 Add Faro receiver + port to `infra/cloud/stackit/helm/observability/otel-collector.values.yaml` (FR-004)
+- [x] T-203 Update `infra/gitops/argocd/optional/dev/observability.yaml` — Faro receiver, port, memory_limiter, filter, faro in pipelines (FR-005, FR-009, FR-010)
+- [x] T-204 Update `infra/gitops/argocd/optional/stage/observability.yaml` — same changes (FR-005, FR-009, FR-010)
+- [x] T-205 Update `infra/gitops/argocd/optional/prod/observability.yaml` — same changes (FR-005, FR-009, FR-010)
+- [x] T-206 Add `memory_limiter` processor to local and STACKIT values files (FR-009)
+- [x] T-207 Add `filter/drop-healthcheck-spans` processor to local and STACKIT values files (FR-010)
+- [x] T-208 Add `spanmetrics` connector to local values file (FR-011)
+- [x] T-209 Add ≥5 Slice 2 test assertions (Faro port in local, STACKIT, dev/stage/prod ArgoCD; memory_limiter in local and STACKIT; filter in local and STACKIT; spanmetrics in local) (FR-018)
 
 ## Slice 3 — Dashboard provisioning
 
