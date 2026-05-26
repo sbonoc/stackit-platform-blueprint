@@ -112,9 +112,8 @@ Surface automatically when the named scope is next touched. Do not promote to ac
 
 ### on-scope: observability
 
-- [ ] (parked) proposal(issue-248-observability-module): Faro browser telemetry endpoint on STACKIT lane — expose a Faro/GrafanaAgent receiver in the STACKIT otel-collector for browser RUM telemetry
+- [x] (done) proposal(issue-248-observability-module): Faro browser telemetry endpoint — incorporated into 2026-05-26-issue-248-observability-enhancements. Faro receiver added to both local and STACKIT lanes (port 12347, CORS `*`); `FARO_ENDPOINT` added to module contract outputs.
       trigger: on-scope: observability
-      rationale: no active consumer need; requires evaluating OTC Faro receiver maturity and STACKIT Observability push protocol support
 - [ ] (parked) proposal(issue-248-observability-module): `OBSERVABILITY_RETENTION_DAYS` shell contract — surface TF-level retention vars (`observability_logs_retention_days`, `metrics_retention_days`, `traces_retention_days`) as a shell-layer contract variable
       trigger: on-scope: observability
       rationale: low effort; deferred to avoid scope creep; retention already configurable at TF level
