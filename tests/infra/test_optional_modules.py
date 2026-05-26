@@ -348,7 +348,7 @@ class OptionalModulesTests(unittest.TestCase):
         )
         self.assertIn('fullnameOverride: "blueprint-postgres"', rendered_values)
         self.assertIn('repository: "bitnamilegacy/postgresql"', rendered_values)
-        self.assertIn('tag: "16.4.0-debian-12-r14"', rendered_values)
+        self.assertIn('tag: "17.6.0-debian-12-r4"', rendered_values)
         self.assertIn('database: "appdb"', rendered_values)
 
         destroy = run(["make", "infra-postgres-destroy"], env)

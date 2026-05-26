@@ -6,7 +6,7 @@ source "$ROOT_DIR/scripts/lib/infra/versions.sh"
 source "$ROOT_DIR/scripts/lib/infra/fallback_runtime.sh"
 
 postgres_init_env() {
-  set_default_env POSTGRES_VERSION "16"
+  set_default_env POSTGRES_VERSION "17"
   set_default_env POSTGRES_PORT "5432"
   set_default_env POSTGRES_CONNECT_TIMEOUT_SECONDS "30"
   set_default_env POSTGRES_EXTRA_ALLOWED_CIDRS ""

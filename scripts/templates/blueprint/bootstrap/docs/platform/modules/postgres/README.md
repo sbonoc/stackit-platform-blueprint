@@ -28,11 +28,11 @@
 - Scaffolding paths are materialized by `make infra-bootstrap` only when `POSTGRES_ENABLED=true`.
 - `stackit-*` profiles: managed by Terraform `foundation` layer (`infra/cloud/stackit/terraform/foundation`) with `POSTGRES_ENABLED` contract flag.
   - Canonical inputs `POSTGRES_INSTANCE_NAME`, `POSTGRES_DB_NAME`, `POSTGRES_USER`, and `POSTGRES_EXTRA_ALLOWED_CIDRS` are passed through to the foundation layer.
-  - `POSTGRES_VERSION` defaults to `16` across local and STACKIT paths, and can be overridden explicitly when provider support changes.
+  - `POSTGRES_VERSION` defaults to `17` across local and STACKIT paths, and can be overridden explicitly when provider support changes.
   - Runtime artifacts resolve provider-generated host/port/password outputs after apply; dry-run mode keeps deterministic placeholders.
 - `local-*` profiles: Helm chart (`bitnami/postgresql`) using `infra/local/helm/postgres/values.yaml`.
-- Local chart/image pins stay on the latest stable Bitnami chart carrying the PostgreSQL `16` line so the in-cluster fallback stays aligned with the current STACKIT managed-service major version.
-  - The pinned fallback image uses `docker.io/bitnamilegacy/postgresql`; despite the registry namespace, the pinned tag stays on the latest stable supported PostgreSQL `16` image line while remaining multi-arch for both amd64 CI nodes and arm64 Docker Desktop clusters.
+- Local chart/image pins stay on the latest stable Bitnami chart carrying the PostgreSQL `17` line so the in-cluster fallback stays aligned with the current STACKIT managed-service major version.
+  - The pinned fallback image uses `docker.io/bitnamilegacy/postgresql`; despite the registry namespace, the pinned tag stays on the latest stable supported PostgreSQL `17` image line while remaining multi-arch for both amd64 CI nodes and arm64 Docker Desktop clusters. When `bitnamilegacy` retires old major-version tags, bump `POSTGRES_LOCAL_IMAGE_TAG` in `versions.baseline.sh`, `versions.sh`, and `infra/local/helm/postgres/values.yaml` to the latest `17.x.x-debian-12-rN` tag that passes `make infra-audit-version`.
   - `fullnameOverride` is pinned to the Helm release name so the local service host matches the published runtime contract exactly.
 
 ## ACL Policy
@@ -66,7 +66,7 @@ Key variables:
 | `postgres_instance_name` | Instance name | required |
 | `postgres_db_name` | Database name | `app` |
 | `postgres_username` | Runtime username | `app` |
-| `postgres_version` | PostgreSQL major version | `16` |
+| `postgres_version` | PostgreSQL major version | `17` |
 | `postgres_replicas` | Replica count | `1` |
 | `postgres_acl` | CIDR allowlist (non-empty or `ske_enabled=true`) | `[]` |
 
