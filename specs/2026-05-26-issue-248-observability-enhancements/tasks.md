@@ -39,11 +39,11 @@
 
 ## Slice 4 — Documentation + quality gates
 
-- [ ] T-401 Update `docs/platform/modules/observability/README.md` with Faro endpoint, dashboard provisioning, OTEL improvements, updated state table and make targets (FR-019)
-- [ ] T-402 Verify `make quality-hooks-fast` passes with no regressions (AC-013)
-- [ ] T-403 Verify `make quality-validate-bootstrap-template-drift` passes (FR-016 check)
-- [ ] T-404 Run `python3 scripts/bin/quality/render_core_targets_doc.py` to regenerate `docs/reference/generated/core_targets.generated.md` (FR-015 side-effect)
-- [ ] T-405 Confirm `python3 -m pytest tests/infra/modules/observability/ -x -q` passes with ≥12 new assertions (AC-012)
+- [x] T-401 Update `docs/platform/modules/observability/README.md` with Faro endpoint, dashboard provisioning, OTEL improvements, updated state table and make targets (FR-019)
+- [x] T-402 Verify `make quality-hooks-fast` passes with no regressions (AC-013) — only quality-spec-pr-ready fails (expected: publish phase not yet done)
+- [x] T-403 Verify `make quality-validate-bootstrap-template-drift` passes (FR-016 check)
+- [x] T-404 Run `python3 scripts/bin/quality/render_core_targets_doc.py` to regenerate `docs/reference/generated/core_targets.generated.md` (FR-015 side-effect)
+- [x] T-405 Confirm `python3 -m pytest tests/infra/modules/observability/ -x -q` passes with ≥12 new assertions (AC-012) — 77 total, 21 new
 
 ## App Onboarding Minimum Targets (Normative)
 - [x] A-001 `apps-bootstrap` and `apps-smoke` — N/A; tooling/infrastructure-only change, no app delivery workflow impact
