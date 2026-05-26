@@ -81,7 +81,7 @@ flowchart LR
 
     D --> S
     T --> S
-    S -->|kubectl create --dry-run | apply| CM
+    S -->|"kubectl create --dry-run | apply"| CM
     CM -->|label selector| GS
     GS --> GU
 ```
