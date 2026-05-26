@@ -29,13 +29,13 @@
 
 ## Slice 3 — Dashboard provisioning
 
-- [ ] T-301 Create `infra/observability/dashboards/golden-signals.json` seed dashboard (FR-012)
-- [ ] T-302 Create `scripts/bin/infra/observability_dashboards_apply.sh` (FR-013)
-- [ ] T-303 Create `scripts/bin/infra/observability_dashboards_destroy.sh` (FR-014)
-- [ ] T-304 Add `infra-observability-dashboards-apply` and `infra-observability-dashboards-destroy` make targets to `scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl` and PHONY list (FR-015)
-- [ ] T-305 Regenerate `make/blueprint.generated.mk` from template (`make blueprint-render-makefile`) (FR-015)
-- [ ] T-306 Mirror seed dashboard to `scripts/templates/blueprint/bootstrap/infra/observability/dashboards/` (FR-016)
-- [ ] T-307 Add ≥3 Slice 3 test assertions (dashboard apply target in Makefile template, seed dashboard file exists, OBSERVABILITY_DASHBOARDS_NAME in contract) (FR-018)
+- [x] T-301 Create `infra/observability/dashboards/golden-signals.json` seed dashboard (FR-012)
+- [x] T-302 Create `scripts/bin/infra/observability_dashboards_apply.sh` (FR-013)
+- [x] T-303 Create `scripts/bin/infra/observability_dashboards_destroy.sh` (FR-014)
+- [x] T-304 Add `infra-observability-dashboards-apply` and `infra-observability-dashboards-destroy` make targets to `scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl` and PHONY list (FR-015)
+- [x] T-305 Regenerate `make/blueprint.generated.mk` from template (`make blueprint-render-makefile`) (FR-015)
+- [x] T-306 Mirror seed dashboard to `scripts/templates/blueprint/bootstrap/infra/observability/dashboards/` (FR-016)
+- [x] T-307 Add ≥3 Slice 3 test assertions (dashboard apply target in Makefile template, seed dashboard file exists, OBSERVABILITY_DASHBOARDS_NAME in contract) (FR-018)
 
 ## Slice 4 — Documentation + quality gates
 

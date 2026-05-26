@@ -21,7 +21,8 @@ SHELL := /bin/bash
   touchpoints-test-unit touchpoints-test-integration touchpoints-test-contracts touchpoints-test-e2e \
   test-unit-all test-integration-all test-contracts-all test-e2e-all-local test-e2e-all-local-full test-e2e-all-local-execute \
   auth-reconcile-eso-runtime-secrets auth-reconcile-argocd-repo-credentials auth-reconcile-runtime-identity \
-  docs-install docs-run docs-build docs-smoke
+  docs-install docs-run docs-build docs-smoke \
+  infra-observability-dashboards-apply infra-observability-dashboards-destroy
 
 help: ## Show targets
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z0-9_.-]+:.*## / {printf "%-50s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -521,6 +522,12 @@ infra-status-json: ## Emit runtime status snapshot as JSON
 	@scripts/bin/infra/status_json.sh
 
 
+
+infra-observability-dashboards-apply: ## Apply Grafana dashboard ConfigMap from infra/observability/dashboards/
+	@scripts/bin/infra/observability_dashboards_apply.sh
+
+infra-observability-dashboards-destroy: ## Delete Grafana dashboard ConfigMap
+	@scripts/bin/infra/observability_dashboards_destroy.sh
 
 infra-audit-version: ## Audit infra dependencies/charts/images versions
 	@scripts/bin/infra/audit_version.sh
