@@ -1809,6 +1809,33 @@ class QualityContractsTests(unittest.TestCase):
             "(issue #286: target is invoked by the commit-stage pre-commit hook)",
         )
 
+    def test_precommit_has_required_files_hook(self) -> None:
+        content = _read(".pre-commit-config.yaml")
+        self.assertIn(
+            "id: quality-validate-contract-required-files",
+            content,
+            ".pre-commit-config.yaml must include always-run pre-push required-files hook "
+            "(issue #321: stale required_files entries reach CI undetected without this hook)",
+        )
+
+    def test_precommit_template_has_required_files_hook(self) -> None:
+        content = _read("scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml")
+        self.assertIn(
+            "id: quality-validate-contract-required-files",
+            content,
+            "bootstrap .pre-commit-config.yaml template must mirror the required-files hook "
+            "(issue #321: consumer repos need the same pre-push guard as the blueprint repo)",
+        )
+
+    def test_make_template_has_quality_validate_contract_required_files_target(self) -> None:
+        content = _read("scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl")
+        self.assertIn(
+            "quality-validate-contract-required-files:",
+            content,
+            "blueprint.generated.mk.tmpl must declare quality-validate-contract-required-files target "
+            "(issue #321: target is invoked by the always-run pre-push hook)",
+        )
+
 
 _BLUEPRINT_AUTHOR_MARKERS = (
     "blueprint/modules/",

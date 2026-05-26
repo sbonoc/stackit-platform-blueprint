@@ -2615,6 +2615,15 @@ def parse_args() -> argparse.Namespace:
             "root-level managed files before the change is committed."
         ),
     )
+    parser.add_argument(
+        "--required-files-only",
+        action="store_true",
+        help=(
+            "Run only required_files existence validation against the contract. "
+            "Fast (file-stat only) — intended for always-run pre-push hooks to catch "
+            "stale required_files entries before they reach CI."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -2655,6 +2664,21 @@ def main() -> int:
             print(f"[infra-validate] failed with {len(errors)} issue(s)", file=sys.stderr)
             return 1
         print("[infra-validate] bootstrap template sync validation passed")
+        return 0
+
+    if args.required_files_only:
+        # Fast path: validates only required_files existence against the contract.
+        # Intended for always-run pre-push hooks to catch stale required_files entries
+        # before they reach CI. Only stat-checks file existence — no shellcheck, no
+        # makefile rendering, no other contract validation.
+        required_files = _required_files_for_repo_mode(contract)
+        errors = _validate_required_files(repo_root, required_files)
+        if errors:
+            for error in errors:
+                print(f"[infra-validate] error: {error}", file=sys.stderr)
+            print(f"[infra-validate] failed with {len(errors)} issue(s)", file=sys.stderr)
+            return 1
+        print("[infra-validate] contract required-files validation passed")
         return 0
 
     # Full validation path: runs all contract checks.

@@ -1,0 +1,23 @@
+{
+  "manifest_version": 1,
+  "work_item": "specs/2026-05-26-issue-321-required-files-prepush-hook",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-05-26T09:43:27Z",
+  "files": [
+    {
+      "path": "specs/2026-05-26-issue-321-required-files-prepush-hook/evidence_manifest.json",
+      "sha256": "a57f17044f3df899a9b6977060a34ae465753f40333774e7d2f897e8619df167",
+      "bytes": 2237
+    },
+    {
+      "path": "specs/2026-05-26-issue-321-required-files-prepush-hook/pr_context.md",
+      "sha256": "fa69233b791a02bdb642634b58d5577835f252732e80fa9dab86e8e8a2467351",
+      "bytes": 2705
+    },
+    {
+      "path": "specs/2026-05-26-issue-321-required-files-prepush-hook/spec.md",
+      "sha256": "4d796bd2c06797447a669e669aded178a9e9c0fb6bc390d0192f80aed289aec0",
+      "bytes": 3090
+    }
+  ]
+}
