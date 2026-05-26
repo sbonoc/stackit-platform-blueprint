@@ -23,6 +23,10 @@ if ! grep -q '^otel_endpoint=http' "$(state_file_path observability_runtime)"; t
   log_fatal "observability runtime OTEL endpoint is invalid"
 fi
 
+if ! grep -q '^faro_endpoint=http' "$(state_file_path observability_runtime)"; then
+  log_fatal "observability runtime faro_endpoint is missing or invalid"
+fi
+
 if is_stackit_profile; then
   if ! grep -q '^logs_endpoint=http' "$(state_file_path observability_runtime)"; then
     log_fatal "observability runtime logs_endpoint is missing or invalid on STACKIT lane"

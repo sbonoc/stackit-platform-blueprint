@@ -7,13 +7,13 @@
 
 ## Slice 1 — Faro receiver shell lib + contract + state + smoke
 
-- [ ] T-101 Add `observability_faro_endpoint()` to `scripts/lib/infra/observability.sh` (FR-001)
-- [ ] T-102 Export `FARO_ENDPOINT` from `observability_init_env()` via `set_default_env` (FR-002)
-- [ ] T-103 Add `FARO_ENDPOINT` to `blueprint/modules/observability/module.contract.yaml` outputs.produced (FR-006)
-- [ ] T-104 Add `FARO_CORS_ALLOWED_ORIGINS` and `OBSERVABILITY_DASHBOARDS_NAME` to contract optional_env (FR-006, FR-017)
-- [ ] T-105 Write `faro_endpoint` state key in `observability_apply.sh` on both lanes (FR-007)
-- [ ] T-106 Add `faro_endpoint` smoke validation in `observability_smoke.sh` (FR-008)
-- [ ] T-107 Add ≥4 Slice 1 test assertions (faro_endpoint function, FARO_ENDPOINT in contract, faro_endpoint state key in mock, smoke validation present) (FR-018)
+- [x] T-101 Add `observability_faro_endpoint()` to `scripts/lib/infra/observability.sh` (FR-001)
+- [x] T-102 Export `FARO_ENDPOINT` from `observability_init_env()` via `set_default_env` (FR-002)
+- [x] T-103 Add `FARO_ENDPOINT` to `blueprint/modules/observability/module.contract.yaml` outputs.produced (FR-006)
+- [x] T-104 Add `FARO_CORS_ALLOWED_ORIGINS` and `OBSERVABILITY_DASHBOARDS_NAME` to contract optional_env (FR-006, FR-017)
+- [x] T-105 Write `faro_endpoint` state key in `observability_apply.sh` on both lanes (FR-007)
+- [x] T-106 Add `faro_endpoint` smoke validation in `observability_smoke.sh` (FR-008)
+- [x] T-107 Add ≥4 Slice 1 test assertions (faro_endpoint function, FARO_ENDPOINT in contract, faro_endpoint state key in mock, smoke validation present) (FR-018)
 
 ## Slice 2 — OTEL pipeline improvements (values files + ArgoCD manifests)
 
