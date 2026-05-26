@@ -27,6 +27,7 @@
 | NFR-OPS-001 | SDD-C-010 | n/a | `memory_limiter` ordering (before batch) | OTEL values config | `test_contract.py` — memory_limiter before batch | README § OTEL pipeline | OOM protection |
 | NFR-OPS-002 | SDD-C-010 | n/a | ConfigMap label `grafana_dashboard: "1"` | `observability_dashboards_apply.sh` | `test_contract.py` (script content check) | README § Dashboard provisioning | Grafana auto-discovery |
 | NFR-OPS-003 | SDD-C-010 | n/a | Declarative `--dry-run | apply` idempotency | `observability_dashboards_apply.sh` | `test_contract.py` (script content check) | README § Dashboard provisioning | idempotent re-runs |
+| NFR-A11Y-001 | n/a | n/a | N/A — no UI or frontend changes in this work item | n/a | n/a | n/a | n/a |
 | AC-001 | FR-001 | n/a | `observability_faro_endpoint()` returns correct URL | `scripts/lib/infra/observability.sh` | `test_contract.py` — faro_endpoint function | README § Faro endpoint | — |
 | AC-002 | FR-006 | n/a | `FARO_ENDPOINT` in contract outputs | `blueprint/modules/observability/module.contract.yaml` | `test_contract.py` — FARO_ENDPOINT in contract | README § Contract Summary | — |
 | AC-003 | FR-003 | n/a | Port 12347 in local values faro entry | `infra/local/helm/observability/otel-collector.values.yaml` | `test_contract.py` | README § Local lane | collector pod port |

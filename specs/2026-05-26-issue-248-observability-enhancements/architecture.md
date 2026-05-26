@@ -1,5 +1,10 @@
 # Architecture
 
+## Context
+- Work item: 2026-05-26-issue-248-observability-enhancements
+- Owner: bonos
+- Date: 2026-05-26
+
 ## Bounded-Context Decisions
 
 ### Component: OTEL Collector (both lanes)
@@ -90,7 +95,7 @@ _Caption: JSON files in the convention directory are packed into a labeled Confi
 
 ## ADR Reference
 
-`docs/blueprint/architecture/decisions/ADR-issue-248-observability-enhancements.md` (proposed)
+`docs/blueprint/architecture/decisions/ADR-issue-248-observability-enhancements.md` (approved)
 
 Key decisions documented there:
 1. Dashboard provisioning via kubectl + convention directory (over Helm-embedded or Python script approach).

@@ -5,6 +5,12 @@
 - Track: blueprint
 - Parent issue: #248 (STACKIT-managed service modules — observability enhancements)
 - Prerequisite PR: #308 (observability module baseline — merged 2026-05-20)
+- SPEC_READY: true
+- ADR path: docs/blueprint/architecture/decisions/ADR-issue-248-observability-enhancements.md
+- ADR status: approved
+
+## Guardrail Controls
+- Applicable control IDs: SDD-C-002, SDD-C-003, SDD-C-004, SDD-C-005, SDD-C-006, SDD-C-007, SDD-C-008, SDD-C-009, SDD-C-010, SDD-C-011, SDD-C-012, SDD-C-013, SDD-C-014, SDD-C-015, SDD-C-016, SDD-C-017, SDD-C-019, SDD-C-020, SDD-C-021
 
 ## Problem Being Solved
 

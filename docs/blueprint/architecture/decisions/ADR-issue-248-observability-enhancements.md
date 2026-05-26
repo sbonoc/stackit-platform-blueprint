@@ -1,6 +1,7 @@
 # ADR: Observability Module Enhancements — Faro Receiver, Dashboard Provisioning, OTEL Pipeline Improvements
 
-- **Status:** proposed
+- **Status:** approved
+- **ADR technical decision sign-off:** approved
 - **Work item:** 2026-05-26-issue-248-observability-enhancements
 - **Date:** 2026-05-26
 - **Author:** bonos
