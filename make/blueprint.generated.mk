@@ -222,7 +222,7 @@ quality-infra-shell-source-graph-check: ## Fail when infra helper source-edge co
 quality-validate-bootstrap-template-drift: ## Fail when blueprint-tracked root-level managed files drift from bootstrap template counterparts
 	@uv run python3 scripts/bin/blueprint/validate_contract.py --bootstrap-drift-only
 
-quality-validate-contract-required-files: ## Fail when any path listed in blueprint/contract.yaml required_files is absent from the working tree
+quality-validate-contract-required-files: ## Fail when any mode-aware required_files path from blueprint/contract.yaml is absent from the working tree
 	@uv run python3 scripts/bin/blueprint/validate_contract.py --required-files-only
 
 quality-sdd-sync-control-catalog: ## Render SDD control catalog markdown from machine-readable source
