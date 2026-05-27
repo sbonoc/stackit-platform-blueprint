@@ -2,6 +2,7 @@
 set -euo pipefail
 
 source "$ROOT_DIR/scripts/lib/infra/stackit_foundation_outputs.sh"
+source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 
 managed_cache_seed_env_defaults() {
   set_default_env MANAGED_CACHE_NAMESPACE "managed-cache"
@@ -20,21 +21,45 @@ managed_cache_local_service_host() {
 }
 
 managed_cache_host() {
-  echo "not implemented"
+  if is_stackit_profile; then
+    stackit_foundation_output_value_or_default "managed_cache_host" "provider-generated"
+    return 0
+  fi
+  managed_cache_local_service_host
 }
 
 managed_cache_port() {
-  echo "not implemented"
+  if is_stackit_profile; then
+    stackit_foundation_output_value_or_default "managed_cache_port" "$MANAGED_CACHE_PORT"
+    return 0
+  fi
+  printf '%s' "$MANAGED_CACHE_PORT"
 }
 
 managed_cache_username() {
-  echo "not implemented"
+  if is_stackit_profile; then
+    stackit_foundation_output_value_or_default "managed_cache_username" "provider-generated"
+    return 0
+  fi
+  printf ''
 }
 
 managed_cache_password() {
-  echo "not implemented"
+  if is_stackit_profile; then
+    stackit_foundation_output_value_or_default "managed_cache_password" "provider-generated"
+    return 0
+  fi
+  printf '%s' "$MANAGED_CACHE_PASSWORD"
 }
 
 managed_cache_uri() {
-  echo "not implemented"
+  if is_stackit_profile; then
+    stackit_foundation_output_value_or_default "managed_cache_uri" "redis://not-yet-provisioned"
+    return 0
+  fi
+  local host port password
+  host="$(managed_cache_local_service_host)"
+  port="$MANAGED_CACHE_PORT"
+  password="$MANAGED_CACHE_PASSWORD"
+  printf 'redis://:%s@%s:%s/0' "$password" "$host" "$port"
 }
