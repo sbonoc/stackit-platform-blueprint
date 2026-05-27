@@ -112,12 +112,18 @@ Surface automatically when the named scope is next touched. Do not promote to ac
 
 ### on-scope: observability
 
-- [ ] (parked) proposal(issue-248-observability-module): Faro browser telemetry endpoint on STACKIT lane — expose a Faro/GrafanaAgent receiver in the STACKIT otel-collector for browser RUM telemetry
+- [x] (done) proposal(issue-248-observability-module): Faro browser telemetry endpoint — incorporated into 2026-05-26-issue-248-observability-enhancements (PR #327). Faro receiver added to both local and STACKIT lanes (port 12347); CORS `allowed_origins` wired via OTC env substitution `${env:FARO_CORS_ALLOWED_ORIGINS}` with `extraEnvs` default `*` — consumers override via ArgoCD Application `extraEnvs`; `FARO_ENDPOINT` added to module contract outputs. Also covers: dashboard provisioning (kubectl convention dir + ConfigMap + Grafana sidecar); OTEL pipeline improvements (memory_limiter, filter/drop-healthcheck-spans, spanmetrics on local lane).
       trigger: on-scope: observability
-      rationale: no active consumer need; requires evaluating OTC Faro receiver maturity and STACKIT Observability push protocol support
-- [ ] (parked) proposal(issue-248-observability-module): `OBSERVABILITY_RETENTION_DAYS` shell contract — surface TF-level retention vars (`observability_logs_retention_days`, `metrics_retention_days`, `traces_retention_days`) as a shell-layer contract variable
+- [x] (rejected) proposal(issue-248-observability-module): `OBSERVABILITY_RETENTION_DAYS` shell contract — rejected. Retention is enforced at the TF layer (STACKIT object storage lifecycle, Loki compactor). The OTEL Collector and shell scripts have no mechanism to act on a retention days value; adding it to the shell contract would create a dangling env var that consumers export but nothing consumes. Correct ownership: TF module inputs.
       trigger: on-scope: observability
-      rationale: low effort; deferred to avoid scope creep; retention already configurable at TF level
+- [x] (rejected) proposal(issue-248-observability-module): Langfuse integration — rejected. Consumer-specific LLM observability tooling; not appropriate for the generic blueprint module. Consumers may integrate Langfuse in their own app layers.
+      trigger: on-scope: observability
+- [ ] (parked) proposal(issue-248-observability-module): OTel semconv forwards-compatibility for healthcheck filter — add `url.path` as third filter condition in `filter/drop-healthcheck-spans` to cover OTel HTTP semconv v1.20+ SDKs (which emit `url.path` instead of `http.target`)
+      trigger: on-scope: observability
+      rationale: coverage gap, not a regression; SDKs on older semconv still filtered correctly; low priority for blueprint scope, surfaces when a consumer reports unfiltered healthcheck spans with new SDK
+- [ ] (parked) proposal(issue-248-observability-module): Replace `grafana/k8s-monitoring` with separate charts — disruptive refactor (Grafana + Prometheus + Loki + Tempo as individual Helm releases); low value vs. maintenance cost given k8s-monitoring covers the same stack as a single chart.
+      trigger: on-scope: observability
+      rationale: k8s-monitoring covers the full local observability stack; splitting would add per-chart upgrade and config burden; deferred until a consumer reports a concrete capability gap blocked by the bundled chart
 - [ ] (parked) proposal(issue-248-observability-module): Evaluate a provider-backed Logs/LogMe module or baseline observability extension using STACKIT Terraform resources
       trigger: on-scope: observability
       rationale: no active consumer need for a dedicated Logs service module; surfaces when a consumer requests LogMe or a second observability extension
@@ -140,7 +146,7 @@ Surface automatically when the named scope is next touched. Do not promote to ac
 ### on-scope: blueprint
 
 - [ ] proposal(issue-248-dns-module): domain contract JSON pattern — single SSOT JSON file (per-environment hostnames, acme emails, dns_zones list) driving TF tfvars + ArgoCD Helm values via a renderer script with --check mode; cross-cutting refactor affecting all optional modules.
-      rationale: pattern observed in sbonoc/agentic-graphrag; requires refactor of all optional module env var surfaces; deferred until blueprint multi-module configuration surface is next in scope
+      rationale: pattern observed in an existing consumer deployment; requires refactor of all optional module env var surfaces; deferred until blueprint multi-module configuration surface is next in scope
 - [ ] proposal(issue-248-public-endpoints-module): ReferenceGrant per-namespace enforcement — replace `allowedRoutes.namespaces.from: All` with explicit `ReferenceGrant` resources requiring platform sign-off per consumer namespace to attach HTTPRoutes to the shared Gateway.
       rationale: architectural change to the consumer onboarding model; current self-service HTTPRoute attachment is intentional for developer velocity; surfaces when a consumer requires namespace-level isolation at the Gateway routing layer
 - [ ] proposal(issue-241-make-override-warnings): extend `?=` override-point pattern to other blueprint-managed targets.

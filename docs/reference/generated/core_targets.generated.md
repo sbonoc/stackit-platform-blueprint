@@ -135,6 +135,8 @@ This file is auto-generated. Do not edit it manually.
 | `infra-context` | Print active Kubernetes context and profile routing metadata |
 | `infra-status` | Print compact runtime status from artifacts and current profile |
 | `infra-status-json` | Emit runtime status snapshot as JSON |
+| `infra-observability-dashboards-apply` | Apply Grafana dashboard ConfigMap from infra/observability/dashboards/ |
+| `infra-observability-dashboards-destroy` | Delete Grafana dashboard ConfigMap |
 | `infra-audit-version` | Audit infra dependencies/charts/images versions |
 | `infra-audit-version-cached` | Audit infra dependencies/charts/images versions with local success cache |
 | `docs-install` | Install docs site dependencies |

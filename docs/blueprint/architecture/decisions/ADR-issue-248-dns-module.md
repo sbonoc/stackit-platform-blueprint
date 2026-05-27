@@ -18,7 +18,7 @@ STACKIT DNS has no local-lane equivalent. The local driver is `noop` by design, 
 
 Two open questions were resolved by direct inspection of the stackitcloud/terraform-provider-stackit source at v0.88.0: `stackit_dns_zone` exposes `primary_name_server` as a single computed FQDN per zone (no plural nameservers attribute); no DNSSEC attribute exists in v0.88.0. Both resolutions are recorded in spec.md Q-1 and Q-2.
 
-The scope was subsequently expanded to multi-zone support (for_each over a list of FQDNs) after reviewing the consumer reference implementation (sbonoc/agentic-graphrag), which provisions multiple DNS zones per consumer environment. Decisions D-1 and D-3 were updated accordingly.
+The scope was subsequently expanded to multi-zone support (for_each over a list of FQDNs) after reviewing an existing consumer reference implementation that provisions multiple DNS zones per consumer environment. Decisions D-1 and D-3 were updated accordingly.
 
 ## Decisions
 

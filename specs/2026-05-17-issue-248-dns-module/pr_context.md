@@ -2,7 +2,7 @@
 
 ## Summary
 
-Implements the STACKIT DNS optional module as a production-capable, multi-zone standalone Terraform module (FR-001 through FR-007). Scope was expanded mid-work from single-zone to multi-zone `for_each` after reviewing the `sbonoc/agentic-graphrag` consumer reference implementation, which provisions multiple DNS zones per environment (e.g., `marketplace-web-dev.runs.onstackit.cloud.` and `marketplace-auth-dev.runs.onstackit.cloud.`). The main deliverables are: (1) `stackit_dns_zone.this` using `for_each = toset(var.dns_zone_fqdns)` with SHA1 collision-resistant display names; (2) multi-zone shell contract layer (`dns_zone_ids()`, `dns_zone_count()`, `dns_primary_name_servers()`); (3) runtime state and smoke validation for all four contract keys; (4) 26-assertion test contract; and (5) full module documentation. External DNS record management (K8s-native dynamic record lifecycle) and domain contract JSON pattern are explicitly out of scope and parked in AGENTS.backlog.md. Part of #248 — umbrella issue stays open until all remaining stub modules ship.
+Implements the STACKIT DNS optional module as a production-capable, multi-zone standalone Terraform module (FR-001 through FR-007). Scope was expanded mid-work from single-zone to multi-zone `for_each` after reviewing an existing consumer reference implementation that provisions multiple DNS zones per environment (e.g., `marketplace-web-dev.runs.onstackit.cloud.` and `marketplace-auth-dev.runs.onstackit.cloud.`). The main deliverables are: (1) `stackit_dns_zone.this` using `for_each = toset(var.dns_zone_fqdns)` with SHA1 collision-resistant display names; (2) multi-zone shell contract layer (`dns_zone_ids()`, `dns_zone_count()`, `dns_primary_name_servers()`); (3) runtime state and smoke validation for all four contract keys; (4) 26-assertion test contract; and (5) full module documentation. External DNS record management (K8s-native dynamic record lifecycle) and domain contract JSON pattern are explicitly out of scope and parked in AGENTS.backlog.md. Part of #248 — umbrella issue stays open until all remaining stub modules ship.
 
 ## Requirement Coverage
 
@@ -79,10 +79,10 @@ Implements the STACKIT DNS optional module as a production-capable, multi-zone s
 1. **DNSSEC `dnssec_enabled` variable** — STACKIT provider v0.88.0 exposes no `dnssec_enabled` attribute on `stackit_dns_zone`. DNSSEC is STACKIT platform-managed.
    Parked — trigger: `on-scope: infra` — surfaces when STACKIT Terraform provider is next upgraded and the attribute becomes available.
 
-2. **External-DNS K8s controller module** (from `sbonoc/agentic-graphrag` adoption Q-C) — K8s-native dynamic DNS record management via external-dns controller; analogous to ESO for secrets. Zone-only TF module is the correct separation; dynamic record lifecycle belongs in the cluster operator layer.
+2. **External-DNS K8s controller module** — K8s-native dynamic DNS record management via external-dns controller; analogous to ESO for secrets. Zone-only TF module is the correct separation; dynamic record lifecycle belongs in the cluster operator layer.
    Parked — trigger: `on-scope: infra` — backlog entry: `proposal(issue-248-dns-module): external-DNS module`.
 
-3. **Domain contract JSON pattern** (from `sbonoc/agentic-graphrag` adoption Q-A) — per-environment SSOT JSON driving TF tfvars + ArgoCD Helm values via a renderer with `--check` mode. Cross-cutting refactor of all optional modules; requires blueprint multi-module configuration surface to be in scope.
+3. **Domain contract JSON pattern** — per-environment SSOT JSON driving TF tfvars + ArgoCD Helm values via a renderer with `--check` mode. Cross-cutting refactor of all optional modules; requires blueprint multi-module configuration surface to be in scope.
    Parked — trigger: `on-scope: blueprint` — backlog entry: `proposal(issue-248-dns-module): domain contract JSON pattern`.
 
 ## Follow-Up

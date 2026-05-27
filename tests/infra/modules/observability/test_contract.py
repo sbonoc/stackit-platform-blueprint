@@ -37,6 +37,12 @@ _OTC_VALUES = (
     REPO_ROOT / "infra" / "cloud" / "stackit" / "helm" / "observability" / "otel-collector.values.yaml"
 )
 _PYRAMID_CONTRACT = REPO_ROOT / "scripts" / "lib" / "quality" / "test_pyramid_contract.json"
+_LOCAL_OTC_VALUES = REPO_ROOT / "infra" / "local" / "helm" / "observability" / "otel-collector.values.yaml"
+_DASHBOARDS_APPLY_SCRIPT = REPO_ROOT / "scripts" / "bin" / "infra" / "observability_dashboards_apply.sh"
+_DASHBOARDS_DESTROY_SCRIPT = REPO_ROOT / "scripts" / "bin" / "infra" / "observability_dashboards_destroy.sh"
+_SEED_DASHBOARD = REPO_ROOT / "infra" / "observability" / "dashboards" / "golden-signals.json"
+_BOOTSTRAP_SEED_DASHBOARD = REPO_ROOT / "scripts" / "templates" / "blueprint" / "bootstrap" / "infra" / "observability" / "dashboards" / "golden-signals.json"
+_MAKEFILE_TEMPLATE = REPO_ROOT / "scripts" / "templates" / "blueprint" / "bootstrap" / "make" / "blueprint.generated.mk.tmpl"
 
 _MOCK_RUNTIME_STATE_STACKIT = "\n".join(
     [
@@ -51,6 +57,7 @@ _MOCK_RUNTIME_STATE_STACKIT = "\n".join(
         "otel_logs_enabled=true",
         "faro_enabled=true",
         "faro_collect_path=/collect",
+        "faro_endpoint=http://otel-collector.observability.svc.cluster.local:12347/collect",
         "logs_endpoint=https://logs.eu01.logs.onstackit.cloud/loki/api/v1/push",
         "metrics_endpoint=https://metrics.eu01.metrics.onstackit.cloud/api/v1/push",
         "traces_endpoint=https://traces.eu01.traces.onstackit.cloud",
@@ -75,6 +82,7 @@ _MOCK_RUNTIME_STATE_LOCAL = "\n".join(
         "otel_logs_enabled=true",
         "faro_enabled=true",
         "faro_collect_path=/collect",
+        "faro_endpoint=http://otel-collector.observability.svc.cluster.local:12347/collect",
         "logs_endpoint=",
         "metrics_endpoint=",
         "traces_endpoint=",
@@ -237,6 +245,13 @@ class ApplyScriptTests(unittest.TestCase):
             msg="observability_apply.sh must write api_key key to state file (FR-005, AC-001)",
         )
 
+    def test_apply_writes_faro_endpoint_to_state(self) -> None:
+        self.assertIn(
+            "faro_endpoint",
+            self._apply(),
+            msg="observability_apply.sh must write faro_endpoint key to state file (FR-007)",
+        )
+
 
 class DestroyScriptTests(unittest.TestCase):
     """FR-006, AC-008 — destroy script deletes runtime secret and ArgoCD Application."""
@@ -290,6 +305,13 @@ class SmokeScriptTests(unittest.TestCase):
             "api_key=",
             self._smoke(),
             msg="observability_smoke.sh must check api_key key presence on STACKIT lane (FR-009, Claude review finding)",
+        )
+
+    def test_smoke_validates_faro_endpoint(self) -> None:
+        self.assertIn(
+            "faro_endpoint",
+            self._smoke(),
+            msg="observability_smoke.sh must check faro_endpoint is non-empty and starts with http (FR-008)",
         )
 
 
@@ -426,6 +448,27 @@ class ContractYamlTests(unittest.TestCase):
             msg="module.contract.yaml optional_env must include OBSERVABILITY_USERNAME (FR-010)",
         )
 
+    def test_contract_includes_faro_endpoint_output(self) -> None:
+        self.assertIn(
+            "FARO_ENDPOINT",
+            self._contract(),
+            msg="module.contract.yaml outputs.produced must include FARO_ENDPOINT (FR-006, AC-002)",
+        )
+
+    def test_contract_includes_faro_cors_optional_env(self) -> None:
+        self.assertIn(
+            "FARO_CORS_ALLOWED_ORIGINS",
+            self._contract(),
+            msg="module.contract.yaml optional_env must include FARO_CORS_ALLOWED_ORIGINS (FR-006)",
+        )
+
+    def test_contract_includes_observability_dashboards_name_optional_env(self) -> None:
+        self.assertIn(
+            "OBSERVABILITY_DASHBOARDS_NAME",
+            self._contract(),
+            msg="module.contract.yaml optional_env must include OBSERVABILITY_DASHBOARDS_NAME (FR-017, AC-010)",
+        )
+
 
 class RuntimeStateContractTests(unittest.TestCase):
     """AC-001, AC-002, AC-009, NFR-OPS-001 — state file structure and OTEL endpoint contract."""
@@ -480,6 +523,256 @@ class RuntimeStateContractTests(unittest.TestCase):
             "password=",
             _MOCK_RUNTIME_STATE_STACKIT,
             msg="observability_runtime state MUST NOT contain credential password (NFR-SEC-001)",
+        )
+
+    def test_runtime_state_has_faro_endpoint_key(self) -> None:
+        import re
+        match = re.search(r"^faro_endpoint=(.+)$", _MOCK_RUNTIME_STATE_LOCAL, re.MULTILINE)
+        self.assertIsNotNone(match, msg="observability_runtime state must contain faro_endpoint key (FR-007)")
+        self.assertIn(
+            "12347",
+            match.group(1),
+            msg="faro_endpoint must reference port 12347 (FR-001, AC-001)",
+        )
+
+
+class FaroEndpointShellLibTests(unittest.TestCase):
+    """FR-001, FR-002 — observability_faro_endpoint() helper and FARO_ENDPOINT export."""
+
+    def _lib(self) -> str:
+        return _SHELL_LIB.read_text(encoding="utf-8")
+
+    def test_faro_endpoint_function_exists(self) -> None:
+        self.assertIn(
+            "observability_faro_endpoint()",
+            self._lib(),
+            msg="observability.sh must declare observability_faro_endpoint() (FR-001)",
+        )
+
+    def test_faro_endpoint_uses_otel_collector_service_dns(self) -> None:
+        self.assertIn(
+            "OTEL_COLLECTOR_SERVICE_DNS",
+            self._lib(),
+            msg="observability_faro_endpoint() must reference OTEL_COLLECTOR_SERVICE_DNS (FR-001)",
+        )
+
+    def test_faro_endpoint_uses_faro_collect_path(self) -> None:
+        self.assertIn(
+            "FARO_COLLECT_PATH",
+            self._lib(),
+            msg="observability_faro_endpoint() must reference FARO_COLLECT_PATH (FR-001)",
+        )
+
+    def test_init_env_exports_faro_endpoint(self) -> None:
+        lib = self._lib()
+        self.assertIn(
+            "FARO_ENDPOINT",
+            lib,
+            msg="observability_init_env() must export FARO_ENDPOINT via set_default_env (FR-002)",
+        )
+
+
+class FaroReceiverValuesTests(unittest.TestCase):
+    """FR-003, FR-004, FR-005, FR-009, FR-010, FR-011 — OTEL values files and ArgoCD manifests."""
+
+    def _local_values(self) -> str:
+        return _LOCAL_OTC_VALUES.read_text(encoding="utf-8")
+
+    def _stackit_values(self) -> str:
+        return _OTC_VALUES.read_text(encoding="utf-8")
+
+    def test_local_values_has_faro_receiver_port(self) -> None:
+        self.assertIn(
+            "12347",
+            self._local_values(),
+            msg="local otel-collector.values.yaml must declare Faro port 12347 (FR-003, AC-003)",
+        )
+
+    def test_stackit_values_has_faro_receiver_port(self) -> None:
+        self.assertIn(
+            "12347",
+            self._stackit_values(),
+            msg="STACKIT otel-collector.values.yaml must declare Faro port 12347 (FR-004, AC-004)",
+        )
+
+    def test_argocd_dev_has_faro_port(self) -> None:
+        self.assertIn(
+            "12347",
+            _ARGOCD_DEV.read_text(encoding="utf-8"),
+            msg="dev/observability.yaml must declare Faro port 12347 (FR-005, AC-005)",
+        )
+
+    def test_argocd_stage_has_faro_port(self) -> None:
+        self.assertIn(
+            "12347",
+            _ARGOCD_STAGE.read_text(encoding="utf-8"),
+            msg="stage/observability.yaml must declare Faro port 12347 (FR-005, AC-005)",
+        )
+
+    def test_argocd_prod_has_faro_port(self) -> None:
+        self.assertIn(
+            "12347",
+            _ARGOCD_PROD.read_text(encoding="utf-8"),
+            msg="prod/observability.yaml must declare Faro port 12347 (FR-005, AC-005)",
+        )
+
+    def test_local_values_has_memory_limiter(self) -> None:
+        self.assertIn(
+            "memory_limiter",
+            self._local_values(),
+            msg="local otel-collector.values.yaml must declare memory_limiter processor (FR-009, AC-006)",
+        )
+
+    def test_stackit_values_has_memory_limiter(self) -> None:
+        self.assertIn(
+            "memory_limiter",
+            self._stackit_values(),
+            msg="STACKIT otel-collector.values.yaml must declare memory_limiter processor (FR-009, AC-006)",
+        )
+
+    def test_local_values_has_filter_drop_healthcheck(self) -> None:
+        self.assertIn(
+            "drop-healthcheck-spans",
+            self._local_values(),
+            msg="local otel-collector.values.yaml must declare filter/drop-healthcheck-spans (FR-010, AC-007)",
+        )
+
+    def test_stackit_values_has_filter_drop_healthcheck(self) -> None:
+        self.assertIn(
+            "drop-healthcheck-spans",
+            self._stackit_values(),
+            msg="STACKIT otel-collector.values.yaml must declare filter/drop-healthcheck-spans (FR-010, AC-007)",
+        )
+
+    def test_local_values_has_spanmetrics(self) -> None:
+        self.assertIn(
+            "spanmetrics",
+            self._local_values(),
+            msg="local otel-collector.values.yaml must declare spanmetrics connector (FR-011, AC-008)",
+        )
+
+    def test_memory_limiter_before_batch_local(self) -> None:
+        content = self._local_values()
+        ml_pos = content.find("memory_limiter")
+        batch_pos = content.find("batch")
+        self.assertGreater(
+            batch_pos,
+            ml_pos,
+            msg="memory_limiter must appear before batch in local values (NFR-OPS-001, AC-006)",
+        )
+
+    def test_memory_limiter_before_batch_stackit(self) -> None:
+        content = self._stackit_values()
+        ml_pos = content.find("memory_limiter")
+        batch_pos = content.find("batch")
+        self.assertGreater(
+            batch_pos,
+            ml_pos,
+            msg="memory_limiter must appear before batch in STACKIT values (NFR-OPS-001, AC-006)",
+        )
+
+    def test_local_values_cors_uses_env_substitution(self) -> None:
+        self.assertIn(
+            "${env:FARO_CORS_ALLOWED_ORIGINS}",
+            self._local_values(),
+            msg="local values must use OTC env substitution for FARO_CORS_ALLOWED_ORIGINS (NFR-SEC-001, FR-003)",
+        )
+
+    def test_stackit_values_cors_uses_env_substitution(self) -> None:
+        self.assertIn(
+            "${env:FARO_CORS_ALLOWED_ORIGINS}",
+            self._stackit_values(),
+            msg="STACKIT values must use OTC env substitution for FARO_CORS_ALLOWED_ORIGINS (NFR-SEC-001, FR-004)",
+        )
+
+    def test_local_values_has_faro_cors_extra_env(self) -> None:
+        self.assertIn(
+            "FARO_CORS_ALLOWED_ORIGINS",
+            self._local_values(),
+            msg="local values must declare FARO_CORS_ALLOWED_ORIGINS extraEnv with default * (FR-003)",
+        )
+
+    def test_argocd_dev_has_faro_cors_extra_env(self) -> None:
+        self.assertIn(
+            "FARO_CORS_ALLOWED_ORIGINS",
+            _ARGOCD_DEV.read_text(encoding="utf-8"),
+            msg="dev/observability.yaml must declare FARO_CORS_ALLOWED_ORIGINS extraEnv (FR-005)",
+        )
+
+    def test_argocd_stage_has_faro_cors_extra_env(self) -> None:
+        self.assertIn(
+            "FARO_CORS_ALLOWED_ORIGINS",
+            _ARGOCD_STAGE.read_text(encoding="utf-8"),
+            msg="stage/observability.yaml must declare FARO_CORS_ALLOWED_ORIGINS extraEnv (FR-005)",
+        )
+
+    def test_argocd_prod_has_faro_cors_extra_env(self) -> None:
+        self.assertIn(
+            "FARO_CORS_ALLOWED_ORIGINS",
+            _ARGOCD_PROD.read_text(encoding="utf-8"),
+            msg="prod/observability.yaml must declare FARO_CORS_ALLOWED_ORIGINS extraEnv (FR-005)",
+        )
+
+
+class DashboardProvisioningTests(unittest.TestCase):
+    """FR-012 through FR-017 — dashboard provisioning scripts, make targets, seed dashboard."""
+
+    def test_seed_dashboard_exists(self) -> None:
+        self.assertTrue(
+            _SEED_DASHBOARD.exists(),
+            msg="infra/observability/dashboards/golden-signals.json must exist (FR-012, AC-009)",
+        )
+
+    def test_seed_dashboard_is_valid_json(self) -> None:
+        import json
+        self.assertTrue(_SEED_DASHBOARD.exists(), msg="seed dashboard file must exist first")
+        data = json.loads(_SEED_DASHBOARD.read_text(encoding="utf-8"))
+        self.assertIn(
+            "panels",
+            data,
+            msg="golden-signals.json must be a valid Grafana dashboard JSON with panels key (FR-012, AC-009)",
+        )
+
+    def test_dashboard_apply_script_exists(self) -> None:
+        self.assertTrue(
+            _DASHBOARDS_APPLY_SCRIPT.exists(),
+            msg="observability_dashboards_apply.sh must exist (FR-013)",
+        )
+
+    def test_dashboard_apply_script_uses_grafana_dashboard_label(self) -> None:
+        content = _DASHBOARDS_APPLY_SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(
+            "grafana_dashboard",
+            content,
+            msg="observability_dashboards_apply.sh must apply ConfigMap with label grafana_dashboard=1 (FR-013, NFR-OPS-002)",
+        )
+
+    def test_dashboard_apply_script_uses_dry_run_client(self) -> None:
+        content = _DASHBOARDS_APPLY_SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(
+            "dry-run=client",
+            content,
+            msg="observability_dashboards_apply.sh must use --dry-run=client | kubectl apply for idempotency (FR-013, NFR-OPS-003)",
+        )
+
+    def test_dashboard_destroy_script_exists(self) -> None:
+        self.assertTrue(
+            _DASHBOARDS_DESTROY_SCRIPT.exists(),
+            msg="observability_dashboards_destroy.sh must exist (FR-014)",
+        )
+
+    def test_dashboard_apply_target_in_makefile_template(self) -> None:
+        content = _MAKEFILE_TEMPLATE.read_text(encoding="utf-8")
+        self.assertIn(
+            "infra-observability-dashboards-apply",
+            content,
+            msg="blueprint.generated.mk.tmpl must declare infra-observability-dashboards-apply target (FR-015)",
+        )
+
+    def test_bootstrap_seed_dashboard_exists(self) -> None:
+        self.assertTrue(
+            _BOOTSTRAP_SEED_DASHBOARD.exists(),
+            msg="bootstrap template must mirror golden-signals.json seed dashboard (FR-016)",
         )
 
 

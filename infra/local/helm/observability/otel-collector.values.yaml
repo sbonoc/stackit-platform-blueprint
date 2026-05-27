@@ -5,21 +5,78 @@ config:
       protocols:
         grpc: {}
         http: {}
+    faro:
+      endpoint: 0.0.0.0:12347
+      cors:
+        allowed_origins:
+          - "${env:FARO_CORS_ALLOWED_ORIGINS}"
+
   processors:
+    memory_limiter:
+      check_interval: 1s
+      limit_percentage: 80
+      spike_limit_percentage: 25
     batch: {}
+    filter/drop-healthcheck-spans:
+      error_mode: ignore
+      traces:
+        span:
+          - attributes["http.route"] == "/healthz"
+          - attributes["http.target"] == "/healthz"
+
+  connectors:
+    spanmetrics:
+      histogram:
+        explicit:
+          buckets: [100us, 1ms, 2ms, 6ms, 10ms, 100ms, 250ms]
+      dimensions:
+        - name: http.method
+          default: GET
+        - name: http.status_code
+
   exporters:
     debug: {}
+
   service:
     pipelines:
       traces:
-        receivers: [otlp]
-        processors: [batch]
-        exporters: [debug]
+        receivers: [otlp, faro]
+        processors: [memory_limiter, filter/drop-healthcheck-spans, batch]
+        exporters: [debug, spanmetrics]
       metrics:
-        receivers: [otlp]
-        processors: [batch]
+        receivers: [otlp, spanmetrics]
+        processors: [memory_limiter, batch]
         exporters: [debug]
       logs:
-        receivers: [otlp]
-        processors: [batch]
+        receivers: [otlp, faro]
+        processors: [memory_limiter, batch]
         exporters: [debug]
+
+extraEnvs:
+  - name: FARO_CORS_ALLOWED_ORIGINS
+    value: "*"
+
+ports:
+  otlp:
+    enabled: true
+    containerPort: 4317
+    servicePort: 4317
+    protocol: TCP
+  otlp-http:
+    enabled: true
+    containerPort: 4318
+    servicePort: 4318
+    protocol: TCP
+  faro:
+    enabled: true
+    containerPort: 12347
+    servicePort: 12347
+    protocol: TCP
+  jaeger-compact:
+    enabled: false
+  jaeger-thrift:
+    enabled: false
+  jaeger-grpc:
+    enabled: false
+  zipkin:
+    enabled: false

@@ -65,6 +65,7 @@ state_file="$(
     "otel_logs_enabled=$OTEL_LOGS_ENABLED" \
     "faro_enabled=$FARO_ENABLED" \
     "faro_collect_path=$FARO_COLLECT_PATH" \
+    "faro_endpoint=$(observability_faro_endpoint)" \
     "logs_endpoint=$(observability_logs_push_url)" \
     "metrics_endpoint=$(observability_metrics_push_url)" \
     "traces_endpoint=$(observability_traces_push_url)" \

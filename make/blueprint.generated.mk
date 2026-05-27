@@ -21,7 +21,8 @@ SHELL := /bin/bash
   touchpoints-test-unit touchpoints-test-integration touchpoints-test-contracts touchpoints-test-e2e \
   test-unit-all test-integration-all test-contracts-all test-e2e-all-local test-e2e-all-local-full test-e2e-all-local-execute \
   auth-reconcile-eso-runtime-secrets auth-reconcile-argocd-repo-credentials auth-reconcile-runtime-identity \
-  docs-install docs-run docs-build docs-smoke
+  docs-install docs-run docs-build docs-smoke \
+  infra-observability-dashboards-apply infra-observability-dashboards-destroy
 
 help: ## Show targets
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z0-9_.-]+:.*## / {printf "%-50s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -411,7 +412,8 @@ INFRA_ENV_GUARDED_TARGETS := \
 	infra-stackit-foundation-fetch-kubeconfig infra-stackit-foundation-refresh-kubeconfig infra-stackit-foundation-seed-runtime-secret \
 	infra-stackit-ci-github-setup infra-stackit-destroy-all infra-runtime-inventory infra-local-runtime-inventory infra-stackit-runtime-prerequisites infra-stackit-runtime-inventory infra-stackit-runtime-deploy \
 	infra-stackit-smoke-foundation infra-stackit-smoke-runtime infra-stackit-provision-deploy infra-argocd-topology-render infra-argocd-topology-validate \
-	infra-doctor infra-context infra-status infra-status-json infra-audit-version infra-audit-version-cached
+	infra-doctor infra-context infra-status infra-status-json infra-audit-version infra-audit-version-cached \
+	infra-observability-dashboards-apply infra-observability-dashboards-destroy
 
 $(INFRA_ENV_GUARDED_TARGETS): blueprint-check-placeholders
 
@@ -521,6 +523,12 @@ infra-status-json: ## Emit runtime status snapshot as JSON
 	@scripts/bin/infra/status_json.sh
 
 
+
+infra-observability-dashboards-apply: ## Apply Grafana dashboard ConfigMap from infra/observability/dashboards/
+	@scripts/bin/infra/observability_dashboards_apply.sh
+
+infra-observability-dashboards-destroy: ## Delete Grafana dashboard ConfigMap
+	@scripts/bin/infra/observability_dashboards_destroy.sh
 
 infra-audit-version: ## Audit infra dependencies/charts/images versions
 	@scripts/bin/infra/audit_version.sh

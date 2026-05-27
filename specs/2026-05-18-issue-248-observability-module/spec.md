@@ -87,7 +87,7 @@ All questions resolved. See PR #308 comment for Q-1 resolution record.
 - Option A: Deploy an in-cluster OTEL Collector on the STACKIT lane (ArgoCD Application) that receives OTLP from consumers and fans out to STACKIT Observability push URLs — identical `OTEL_EXPORTER_OTLP_ENDPOINT` contract on both lanes (selected).
 - Option B: Expose STACKIT push URLs directly as `OBSERVABILITY_LOGS_ENDPOINT` etc.; consumers and agents push directly to STACKIT without an in-cluster collector — different endpoint contract per lane.
 - Selected option: OPTION_A
-- Rationale: Option A eliminates the dangling-endpoint bug (STACKIT lane currently writes the collector DNS but never deploys the collector), gives consumers an identical OTEL contract on both lanes (no lane-specific branching), follows the established agentic-graphrag architecture pattern, and is forward-compatible with spanmetrics connector and other collector features. Option B would break the single-collector abstraction and force lane-specific logic into every consumer.
+- Rationale: Option A eliminates the dangling-endpoint bug (STACKIT lane currently writes the collector DNS but never deploys the collector), gives consumers an identical OTEL contract on both lanes (no lane-specific branching), follows the established consumer architecture pattern, and is forward-compatible with spanmetrics connector and other collector features. Option B would break the single-collector abstraction and force lane-specific logic into every consumer.
 
 ### Option Decision 2: STACKIT endpoint URL sourcing (contingent on Q-1)
 

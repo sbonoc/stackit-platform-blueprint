@@ -39,7 +39,22 @@ spec:
                   endpoint: 0.0.0.0:4317
                 http:
                   endpoint: 0.0.0.0:4318
+            faro:
+              endpoint: 0.0.0.0:12347
+              cors:
+                allowed_origins:
+                  - "${env:FARO_CORS_ALLOWED_ORIGINS}"
           processors:
+            memory_limiter:
+              check_interval: 1s
+              limit_percentage: 80
+              spike_limit_percentage: 25
+            filter/drop-healthcheck-spans:
+              error_mode: ignore
+              traces:
+                span:
+                  - attributes["http.route"] == "/healthz"
+                  - attributes["http.target"] == "/healthz"
             batch: {}
           extensions:
             health_check:
@@ -82,16 +97,16 @@ spec:
               - basicauth/stackit
             pipelines:
               traces:
-                receivers: [otlp]
-                processors: [batch]
+                receivers: [otlp, faro]
+                processors: [memory_limiter, filter/drop-healthcheck-spans, batch]
                 exporters: [otlp/stackit, spanmetrics]
               metrics:
                 receivers: [otlp, spanmetrics]
-                processors: [batch]
+                processors: [memory_limiter, batch]
                 exporters: [prometheusremotewrite]
               logs:
-                receivers: [otlp]
-                processors: [batch]
+                receivers: [otlp, faro]
+                processors: [memory_limiter, batch]
                 exporters: [loki]
         extraVolumes:
           - name: obs-auth
@@ -101,6 +116,11 @@ spec:
           - name: obs-auth
             mountPath: /etc/otel/secrets
             readOnly: true
+        extraEnvs:
+          - name: FARO_CORS_ALLOWED_ORIGINS
+            # Override with your production domain(s) — e.g. "https://app.example.com"
+            # Leaving "*" accepts RUM telemetry from any browser origin.
+            value: "*"
         ports:
           otlp:
             enabled: true
@@ -111,6 +131,11 @@ spec:
             enabled: true
             containerPort: 4318
             servicePort: 4318
+            protocol: TCP
+          faro:
+            enabled: true
+            containerPort: 12347
+            servicePort: 12347
             protocol: TCP
           jaeger-compact:
             enabled: false

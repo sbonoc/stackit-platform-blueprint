@@ -4,6 +4,10 @@ set -euo pipefail
 source "$ROOT_DIR/scripts/lib/infra/stackit_foundation_outputs.sh"
 source "$ROOT_DIR/scripts/lib/infra/fallback_runtime.sh"
 
+observability_faro_endpoint() {
+  printf 'http://%s:12347%s' "${OTEL_COLLECTOR_SERVICE_DNS:-otel-collector.observability.svc.cluster.local}" "${FARO_COLLECT_PATH:-/collect}"
+}
+
 observability_init_env() {
   set_default_env OBSERVABILITY_NAMESPACE "observability"
   set_default_env OTEL_COLLECTOR_SERVICE_DNS "otel-collector.observability.svc.cluster.local"
@@ -15,6 +19,7 @@ observability_init_env() {
   set_default_env OTEL_LOGS_ENABLED "true"
   set_default_env FARO_COLLECT_PATH "/collect"
   set_default_env FARO_ENABLED "true"
+  set_default_env FARO_ENDPOINT "$(observability_faro_endpoint)"
   set_default_env OBSERVABILITY_RETENTION_DAYS "30"
 
   if [[ -z "${OTEL_EXPORTER_OTLP_ENDPOINT:-}" ]]; then
