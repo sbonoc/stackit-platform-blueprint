@@ -252,6 +252,7 @@ bootstrap_stackit_terraform_scaffolding() {
     "infra/cloud/stackit/terraform/foundation/locals.tf"
     "infra/cloud/stackit/terraform/foundation/main.tf"
     "infra/cloud/stackit/terraform/foundation/outputs.tf"
+    "infra/cloud/stackit/terraform/foundation/observability_vault.tf"
   )
   local rel
   for rel in "${stackit_tf_files[@]}"; do

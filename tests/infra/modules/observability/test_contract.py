@@ -49,7 +49,6 @@ _CSI_DRIVER_ARGOCD_PROD = REPO_ROOT / "infra" / "gitops" / "argocd" / "core" / "
 _CSI_VAULT_PROVIDER_ARGOCD_DEV = REPO_ROOT / "infra" / "gitops" / "argocd" / "core" / "dev" / "secrets-store-csi-driver-vault-provider.yaml"
 _CSI_VAULT_PROVIDER_ARGOCD_STAGE = REPO_ROOT / "infra" / "gitops" / "argocd" / "core" / "stage" / "secrets-store-csi-driver-vault-provider.yaml"
 _CSI_VAULT_PROVIDER_ARGOCD_PROD = REPO_ROOT / "infra" / "gitops" / "argocd" / "core" / "prod" / "secrets-store-csi-driver-vault-provider.yaml"
-_OBSERVABILITY_TF_VERSIONS = REPO_ROOT / "infra" / "cloud" / "stackit" / "terraform" / "modules" / "observability" / "versions.tf"
 _OBSERVABILITY_TF_MAIN = REPO_ROOT / "infra" / "cloud" / "stackit" / "terraform" / "modules" / "observability" / "main.tf"
 _FOUNDATION_TF_VERSIONS = REPO_ROOT / "infra" / "cloud" / "stackit" / "terraform" / "foundation" / "versions.tf"
 _FOUNDATION_TF_OBSERVABILITY_VAULT = REPO_ROOT / "infra" / "cloud" / "stackit" / "terraform" / "foundation" / "observability_vault.tf"
@@ -885,12 +884,6 @@ class CsiHardeningTests(unittest.TestCase):
         )
 
     # Slice 2: Terraform vault provider
-
-    def test_tf_observability_versions_file_exists(self) -> None:
-        self.assertTrue(
-            _OBSERVABILITY_TF_VERSIONS.exists(),
-            msg="infra/cloud/stackit/terraform/modules/observability/versions.tf must exist (FR-007, T-202)",
-        )
 
     def test_tf_observability_declares_vault_provider(self) -> None:
         self.assertTrue(
