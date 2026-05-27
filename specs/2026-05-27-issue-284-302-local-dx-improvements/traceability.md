@@ -18,8 +18,11 @@
 | FR-012 | SDD-C-010 | `log_info` on patch execution | `scripts/bin/infra/deploy.sh:patch_argocd_local_target_revision` | `test_deploy_logs_effective_revision` | spec.md NFR-OBS-001 | log output |
 | FR-013 | SDD-C-008 | Idempotent `kubectl patch --type=merge` | `scripts/bin/infra/deploy.sh:patch_argocd_local_target_revision` | `test_deploy_references_argocd_local_target_revision` (idempotency via merge patch) | spec.md NFR-REL-001 | — |
 | NFR-OPS-001 | SDD-C-010 | `log_info` patch message in deploy.sh | `scripts/bin/infra/deploy.sh` | `test_deploy_logs_effective_revision` | spec.md NFR-OPS-001 | log output |
+| NFR-OBS-001 | SDD-C-010 | N/A — no production observability impact; deploy.sh log covers diagnostic requirement (see FR-012) | — | — | spec.md NFR-OBS-001 | — |
+| NFR-REL-001 | SDD-C-008 | Idempotency and no-op safety (covered by FR-013 and FR-002) | `scripts/bin/infra/deploy.sh`, `scripts/lib/shell/bootstrap.sh` | `test_deploy_skips_patch_on_main`, `test_bootstrap_calls_load_env_file_defaults` | spec.md NFR-REL-001 | — |
 | NFR-SEC-001 | SDD-C-009 | `load_env_file_defaults` existing export preservation | `scripts/lib/shell/bootstrap.sh` | `test_env_local_does_not_override_existing_var` | spec.md NFR-SEC-001, ADR §Consequences | — |
 | NFR-SEC-002 | SDD-C-009 | `.gitignore` entries | `.gitignore`, `scripts/templates/blueprint/bootstrap/.gitignore` | `test_gitignore_contains_env_local`, `test_bootstrap_template_gitignore_contains_env_local` | spec.md NFR-SEC-002 | — |
+| NFR-A11Y-001 | — | N/A — no UI surfaces introduced or modified | — | — | spec.md NFR-A11Y-001 | — |
 | AC-001 | SDD-C-012 | patch sets targetRevision from var | `deploy.sh` | T-201, T-203 | — | — |
 | AC-002 | SDD-C-012 | patch falls back to git branch | `deploy.sh` | T-201, T-205 | — | — |
 | AC-003 | SDD-C-012 | skip on main | `deploy.sh` | T-202 | — | — |

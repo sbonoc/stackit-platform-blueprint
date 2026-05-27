@@ -62,14 +62,14 @@ To introduce a new tag, append a row here in the same commit that uses it.
 ### P2 — Blueprint tooling and SDD
 
 - [x] Issue #247 — step-05-implement: add deterministic slice-done gate for HTTP+UI-rendering scope (Guardrails #13, #14, #15 + promoted smoke step + AGENTS.md canonical normative home FR-007–FR-010). Closed by PR #303.
-- [ ] Issue #284 — support `ARGOCD_LOCAL_TARGET_REVISION` env var to track a non-default branch in local ArgoCD.
+- [ ] Issues #284 + #302 — local DX improvements: `ARGOCD_LOCAL_TARGET_REVISION` env var for non-main branch ArgoCD tracking; `.env.local` auto-load in `bootstrap.sh`. **PR #331 in spec-complete, implementation pending.**
 - [x] Issue #296 — workaround manifest `action_path` CI validation gate. Closed by PR #304.
 - [ ] (no issue) Ownership checker robustness: support normalized equivalence for semantically-identical prune-glob expressions in ownership-matrix documentation checks.
 
 ### P2 — Platform modules
 
 - [x] Issue #248 remaining modules — STACKIT-managed service candidates (kms ✅, secrets-manager ✅ PR #305, dns ✅ PR #306, public-endpoints ✅ PR #307, observability ✅ PR #308, workflows ✅ PR #314 + local lane ✅ PR #316, identity-aware-proxy ✅ PR #318). Gate on #295 removed — architecture decision recorded in `AGENTS.decisions.md`: OM is consumer/product-owned and not a blueprint module candidate. Issue #248 fully closed.
-- [ ] Issue #171 — managed-cache module: STACKIT Managed Redis as a first-class optional module (Helm/ArgoCD-managed, provider-backed via STACKIT Terraform). **PR #330 open, ready for review (2026-05-27).**
+- [x] Issue #171 — managed-cache module: STACKIT Managed Redis as a first-class optional module (Helm/ArgoCD-managed, provider-backed via STACKIT Terraform). Closed by PR #330.
 - [ ] Issue #172 — platform-email module: Helm/ArgoCD-managed Postal for transactional email as an optional module.
 
 ---
