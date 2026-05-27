@@ -315,6 +315,36 @@ variable "rabbitmq_enabled" {
   default     = false
 }
 
+variable "managed_cache_enabled" {
+  description = "Enable managed Redis cache provisioning contract."
+  type        = bool
+  default     = false
+}
+
+variable "managed_cache_instance_name" {
+  description = "Managed Redis cache instance name."
+  type        = string
+  default     = "marketplace-managed-cache"
+}
+
+variable "managed_cache_version" {
+  description = "Managed Redis cache service version."
+  type        = string
+  default     = "7"
+}
+
+variable "managed_cache_plan_name" {
+  description = "Managed Redis cache plan name."
+  type        = string
+  default     = "stackit-redis-1.4.10-replica"
+}
+
+variable "managed_cache_sgw_acl" {
+  description = "Comma-separated CIDR ranges for Redis ACL via SGW."
+  type        = string
+  default     = ""
+}
+
 variable "rabbitmq_instance_name" {
   description = "Managed RabbitMQ instance name."
   type        = string
