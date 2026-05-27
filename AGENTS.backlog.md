@@ -43,7 +43,7 @@ To introduce a new tag, append a row here in the same commit that uses it.
       trigger: on-scope: quality
       rationale: heuristic detection of "app-delivery changes" is ambiguous; guidance text in the template Notes field provides a softer control. Validate tradeoff after observing real-world misuse.
 
-- [ ] Issue #312 — Observability CSI hardening: replace `blueprint-observability-auth` K8s Secret with Secrets Store CSI Driver delivery from STACKIT Secrets Manager. SDD intake complete; branch `feature/2026-05-27-issue-312-observability-csi-hardening` open. 1 open question (Q-1: Secrets Manager vs KMS backend — agent recommendation: Secrets Manager). — https://github.com/sbonoc/stackit-platform-blueprint/issues/312
+- [x] (done) Issue #312 — Observability CSI hardening: replace `blueprint-observability-auth` K8s Secret with Secrets Store CSI Driver delivery from STACKIT Secrets Manager. Closed by PR #329. — https://github.com/sbonoc/stackit-platform-blueprint/issues/312
 
 ### P2 — Consumer upgrade flow
 
@@ -131,6 +131,16 @@ Surface automatically when the named scope is next touched. Do not promote to ac
 - [ ] (parked) proposal(issue-248-observability-module): Evaluate a provider-backed Logs/LogMe module or baseline observability extension using STACKIT Terraform resources
       trigger: on-scope: observability
       rationale: no active consumer need for a dedicated Logs service module; surfaces when a consumer requests LogMe or a second observability extension
+- [ ] (parked) proposal(issue-312-observability-csi-hardening): Automated credential rotation trigger — emit an event-driven rotation when STACKIT Secrets Manager expiry fires, rather than relying on the CSI driver poll interval (default 2 min).
+      trigger: on-scope: observability
+      rationale: CSI driver already polls SM on a configurable interval; event-driven rotation is a separate feature with no current consumer request; surfaces when observability security hardening is in scope
+- [ ] (parked) proposal(issue-312-observability-csi-hardening): Local lane CSI driver support — eliminate K8s Secret on the local lane once Docker Desktop ships native Secrets Store CSI Driver support.
+      trigger: triage: next-session
+      stale-after: 2
+      rationale: conditional on external platform capability; Docker Desktop does not support Secrets Store CSI Driver natively as of 2026-05-27; no actionable scope until that changes
+- [ ] (parked) proposal(issue-312-observability-csi-hardening): KMS envelope encryption of Secrets Manager credentials — wrap stored secrets with a STACKIT KMS key before writing to SM.
+      trigger: on-scope: observability
+      rationale: KMS module is a separate optional module; sensible hardening but out of scope for observability CSI work; surfaces when KMS hardening is in scope
 
 ### on-scope: workflows
 

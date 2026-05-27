@@ -20,8 +20,8 @@
 - High-risk files: `scripts/lib/infra/observability.sh` (deprecation guard must not break local path); `tests/infra/modules/observability/test_contract.py` (5 assertions removed/rewritten).
 
 ## Validation Evidence
-- Required commands executed: `python3 -m pytest tests/infra/modules/observability/ -x -q`; `make quality-hooks-fast`; `make quality-sdd-check`
-- Result summary: 107/107 unit assertions PASS; quality-hooks-fast PASS (shellcheck, sdd-check-all, infra-validate, infra-contract-test-fast all pass); quality-sdd-check PASS. STACKIT smoke (`make infra-observability-smoke`) is manual — requires a live STACKIT cluster with CSI driver running; documented as AC-003 manual acceptance criterion.
+- Required commands executed: `python3 -m pytest tests/infra/modules/observability/ -x -q`; `make quality-hooks-fast`; `make quality-sdd-check`; `make quality-hardening-review`
+- Result summary: 108/108 unit assertions PASS (108 after traceability gap fix adding NFR-SEC-003 namespace test); quality-hooks-fast PASS — all 11 checks pass (shellcheck, sdd-check-all, infra-validate, infra-contract-test-fast, quality-docs-check-changed, quality-spec-pr-ready); quality-hardening-review PASS; quality-sdd-check PASS. STACKIT smoke (`make infra-observability-smoke`) is manual — requires a live STACKIT cluster with CSI driver running; documented as AC-003 manual acceptance criterion.
 - Artifact references: `traceability.md`, `hardening_review.md`
 
 ## Risk and Rollback
@@ -29,6 +29,6 @@
 - Rollback strategy: revert `extraVolumes` block in STACKIT OTC values to `secret` type; re-run `make infra-observability-apply` to recreate `blueprint-observability-auth`.
 
 ## Deferred Proposals
-- Proposal A (not implemented): Automated credential rotation trigger — rotate on expiry event from Secrets Manager; deferred; trigger: on-scope: observability security hardening.
-- Proposal B (not implemented): Local lane CSI driver support — local lane retains K8s Secret; deferred; trigger: when Docker Desktop supports Secrets Store CSI Driver natively.
-- Proposal C (not implemented): KMS envelope encryption for Secrets Manager stored credentials — out of scope; KMS module is a separate optional module.
+- Proposal A (automated rotation trigger): Parked — trigger: on-scope: observability — event-driven rotation when SM expiry fires; CSI poll interval covers the common case; no current consumer request. Backlog: `AGENTS.backlog.md` § on-scope: observability.
+- Proposal B (local lane CSI): Parked — trigger: triage: next-session (stale-after: 2) — conditional on Docker Desktop native Secrets Store CSI Driver support; no actionable scope until that capability ships. Backlog: `AGENTS.backlog.md` § on-scope: observability.
+- Proposal C (KMS envelope encryption): Parked — trigger: on-scope: observability — KMS module is a separate optional module; revisit when KMS hardening is in scope. Backlog: `AGENTS.backlog.md` § on-scope: observability.
