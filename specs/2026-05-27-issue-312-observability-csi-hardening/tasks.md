@@ -8,53 +8,53 @@
 - [x] G-005 Confirm `Implementation Stack Profile` section is fully populated
 
 ## Implementation — Slice 1: CSI Driver bootstrap ArgoCD Applications
-- [ ] T-101 Create `infra/gitops/argocd/core/secrets-store-csi-driver.yaml` — ArgoCD Application (pinned chart version)
-- [ ] T-102 Create `infra/gitops/argocd/core/secrets-store-csi-driver-vault-provider.yaml` — ArgoCD Application for Vault provider
-- [ ] T-103 Document CSI driver as STACKIT bootstrap prerequisite in `docs/platform/prerequisites.md`
-- [ ] T-104 Write unit assertions: manifests exist, chart versions pinned, sync-wave annotation present
+- [x] T-101 Create `infra/gitops/argocd/core/{dev,stage,prod}/secrets-store-csi-driver.yaml` — ArgoCD Application (chart v1.4.6 pinned, sync-wave: -1)
+- [x] T-102 Create `infra/gitops/argocd/core/{dev,stage,prod}/secrets-store-csi-driver-vault-provider.yaml` — ArgoCD Application for Vault provider (chart v0.5.0 pinned)
+- [x] T-103 Document CSI driver as STACKIT bootstrap prerequisite in `docs/platform/prerequisites.md`
+- [x] T-104 Write unit assertions: manifests exist, chart versions pinned, sync-wave annotation present, kustomization references
 
 ## Implementation — Slice 2: Terraform credential write to Secrets Manager
-- [ ] T-201 Write failing assertions: `test_observability_tf_writes_vault_kv_secret`, `test_observability_tf_declares_vault_provider`
-- [ ] T-202 Add Vault Terraform provider to `infra/cloud/stackit/terraform/modules/observability/versions.tf`
-- [ ] T-203 Add `vault_kv_secret_v2` resources writing five credential keys to `observability/otel-credentials`
-- [ ] T-204 Add Vault provider variables to `variables.tf`
-- [ ] T-205 Turn T-201 assertions green
+- [x] T-201 Write failing assertions: `test_observability_tf_writes_vault_kv_secret`, `test_observability_tf_declares_vault_provider`
+- [x] T-202 Add Vault Terraform provider to `infra/cloud/stackit/terraform/modules/observability/versions.tf`
+- [x] T-203 Add `vault_kv_secret_v2` resources writing five credential keys to `observability/otel-credentials`
+- [x] T-204 Add Vault provider variables to `variables.tf`
+- [x] T-205 Turn T-201 assertions green
 
 ## Implementation — Slice 3: SecretProviderClass + CSI volume in STACKIT OTC values
-- [ ] T-301 Write failing assertions: `test_stackit_values_uses_csi_volume`, `test_stackit_values_no_secret_volume`, `test_secret_provider_class_referenced`
-- [ ] T-302 Replace `extraVolumes.secret` with `extraVolumes.csi` in all four files carrying the inline override: `infra/cloud/stackit/helm/observability/otel-collector.values.yaml`, `infra/gitops/argocd/optional/dev/observability.yaml`, `infra/gitops/argocd/optional/stage/observability.yaml`, `infra/gitops/argocd/optional/prod/observability.yaml`
-- [ ] T-303 Add `SecretProviderClass` manifest (namespace-scoped to `observability`) as an inline additional resource or standalone manifest within each per-env ArgoCD observability Application source
-- [ ] T-304 Verify no STACKIT bootstrap template exists for per-env observability ArgoCD manifests — no mirror needed; confirm local-lane template unchanged
-- [ ] T-305 Turn T-301 assertions green
+- [x] T-301 Write failing assertions: `test_stackit_values_uses_csi_volume`, `test_stackit_values_no_secret_volume`, `test_secret_provider_class_referenced`
+- [x] T-302 Replace `extraVolumes.secret` with `extraVolumes.csi` in all four files carrying the inline override: `infra/cloud/stackit/helm/observability/otel-collector.values.yaml`, `infra/gitops/argocd/optional/dev/observability.yaml`, `infra/gitops/argocd/optional/stage/observability.yaml`, `infra/gitops/argocd/optional/prod/observability.yaml`
+- [x] T-303 Add `SecretProviderClass` manifest (namespace-scoped to `observability`) as an inline additional resource within each per-env ArgoCD observability Application source
+- [x] T-304 Verify no STACKIT bootstrap template exists for per-env observability ArgoCD manifests — confirmed; no mirror needed; local-lane template unchanged
+- [x] T-305 Turn T-301 assertions green
 
 ## Implementation — Slice 4: Shell layer — remove K8s Secret calls from STACKIT path
-- [ ] T-401 Rewrite failing assertions for STACKIT path: reconcile/delete MUST NOT be called; deprecation log MUST exist in function body
-- [ ] T-402 Update `scripts/bin/infra/observability_apply.sh` — remove reconcile call in STACKIT case
-- [ ] T-403 Update `scripts/bin/infra/observability_destroy.sh` — remove delete call in STACKIT case
-- [ ] T-404 Add deprecation guard in `observability.sh` — emit `log_warn` when reconcile/delete called on STACKIT profile
-- [ ] T-405 Turn T-401 assertions green
+- [x] T-401 Rewrite failing assertions for STACKIT path: reconcile/delete MUST NOT be called; deprecation log MUST exist in function body
+- [x] T-402 Update `scripts/bin/infra/observability_apply.sh` — remove reconcile call in STACKIT case
+- [x] T-403 Update `scripts/bin/infra/observability_destroy.sh` — remove delete call in STACKIT case
+- [x] T-404 Add deprecation guard in `observability.sh` — emit `log_warn` when reconcile called on STACKIT profile
+- [x] T-405 Turn T-401 assertions green
 
 ## Implementation — Slice 5: Contract, docs, publish artifacts
-- [ ] T-501 Update `blueprint/modules/observability/module.contract.yaml` — add CSI prerequisites
-- [ ] T-502 Update `docs/platform/modules/observability/README.md` — CSI prerequisite, rotation procedure
-- [ ] T-503 Mirror README to `scripts/templates/blueprint/bootstrap/docs/platform/modules/observability/README.md`
-- [ ] T-504 Populate `hardening_review.md`, `traceability.md`, `evidence_manifest.json`, `pr_context.md`
-- [ ] T-505 Run `make quality-hooks-fast` — exits 0
-- [ ] T-506 Run `make quality-docs-check-changed` — exits 0
+- [x] T-501 Update `blueprint/modules/observability/module.contract.yaml` — add CSI prerequisites
+- [x] T-502 Update `docs/platform/modules/observability/README.md` — CSI prerequisite, rotation procedure
+- [x] T-503 Mirror README to `scripts/templates/blueprint/bootstrap/docs/platform/modules/observability/README.md`
+- [x] T-504 Populate `hardening_review.md`, `traceability.md`, `evidence_manifest.json`, `pr_context.md`
+- [x] T-505 Run `make quality-hooks-fast` — exits 0
+- [x] T-506 Run `make quality-docs-check-changed` — exits 0
 
 ## Accessibility Testing
 - [x] T-A01 NFR-A11Y-001: N/A — no UI surfaces introduced or modified
 
 ## Validation and Release Readiness
-- [ ] T-601 Run `make quality-sdd-check` — exits 0
-- [ ] T-602 Run `python3 -m pytest tests/infra/modules/observability/ -x -q` — all assertions pass
-- [ ] T-603 Confirm no `secretName: blueprint-observability-auth` remains in `infra/cloud/stackit/` paths
-- [ ] T-604 Confirm `blueprint-observability-auth` K8s Secret lifecycle is intact in local-lane scripts
+- [x] T-601 Run `make quality-sdd-check` — exits 0
+- [x] T-602 Run `python3 -m pytest tests/infra/modules/observability/ -x -q` — all 107 assertions pass
+- [x] T-603 Confirm no `secretName: blueprint-observability-auth` remains in `infra/cloud/stackit/` paths
+- [x] T-604 Confirm `blueprint-observability-auth` K8s Secret lifecycle is intact in local-lane scripts
 
 ## Publish
-- [ ] P-001 Update `hardening_review.md`
-- [ ] P-002 Update `pr_context.md`
-- [ ] P-003 PR description references `pr_context.md` and Open Questions table
+- [x] P-001 Update `hardening_review.md`
+- [x] P-002 Update `pr_context.md`
+- [x] P-003 PR description references `pr_context.md` and Open Questions table
 
 ## App Onboarding Minimum Targets (Normative)
 - [x] A-001 `apps-bootstrap` and `apps-smoke` — no-impact; targets unchanged by this work item

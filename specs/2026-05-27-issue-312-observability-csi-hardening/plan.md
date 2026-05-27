@@ -5,23 +5,11 @@
 - If required inputs are missing, add `BLOCKED_MISSING_INPUTS` in `spec.md` and keep the gate closed.
 
 ## Constitution Gates (Pre-Implementation)
-- Simplicity gate:
-  - Keep initial implementation scope minimal and explicit.
-  - Avoid speculative future-proof abstractions.
-- Anti-abstraction gate:
-  - Prefer direct framework primitives over wrapper layers unless justified.
-  - Keep model representations singular unless boundary separation is required.
-- Integration-first testing gate:
-  - Define contract and boundary tests before implementation details.
-  - Ensure realistic environment coverage for integration points.
-- Positive-path filter/transform test gate:
-  - For any filter or payload-transform logic, at least one unit test MUST assert that a matching fixture value returns a record.
-  - Positive-path assertions MUST verify relevant output fields remain intact after filtering/transform.
-  - Empty-result-only assertions MUST NOT satisfy this gate.
-- Finding-to-test translation gate:
-  - Any reproducible pre-PR finding from smoke/`curl`/deterministic manual checks MUST be translated into a failing automated test first.
-  - The implementation fix MUST turn that test green in the same work item.
-  - If no deterministic automation path exists, publish artifacts MUST record the exception rationale, owner, and follow-up trigger.
+- Simplicity gate: Replace K8s Secret delivery with CSI volume; no new abstractions beyond what the CSI driver pattern requires. Vault TF provider writes credentials additively; no changes to existing TF resources.
+- Anti-abstraction gate: Use Vault TF provider directly — no wrapper helpers. CSI volume type change is a direct YAML substitution. Shell functions retained as-is; only call-sites changed.
+- Integration-first testing gate: All assertions written as failing tests before any implementation code. File existence, content, and shell behaviour assertions cover every slice boundary.
+- Positive-path filter/transform test gate: N/A — no filter or payload-transform logic in this work item. Credential file path (`/etc/otel/secrets`) is unchanged; OTC file provider references are unchanged.
+- Finding-to-test translation gate: All slice assertions are deterministic static checks (file content, presence/absence of strings). No pre-PR smoke failures that require a live cluster to reproduce; STACKIT smoke is documented as a manual acceptance criterion in pr_context.md.
 
 ## Delivery Slices
 

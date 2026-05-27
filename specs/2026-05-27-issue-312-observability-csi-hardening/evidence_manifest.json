@@ -4,15 +4,15 @@
   "generated_by": "spec-evidence-manifest",
   "generated_at_utc": "2026-05-27T00:00:00Z",
   "files": [
-    { "path": "specs/2026-05-27-issue-312-observability-csi-hardening/spec.md", "role": "spec", "sha256": "cca9c7324e86b620838d363f4254f64f83bea4c7826b07d056dd024f7bf8c535" },
+    { "path": "specs/2026-05-27-issue-312-observability-csi-hardening/spec.md", "role": "spec", "sha256": "8f538ce587c5f8fa245b67995cabb3eb58661dcfd2d0a4b83886ca1587fadcc5" },
     { "path": "specs/2026-05-27-issue-312-observability-csi-hardening/architecture.md", "role": "architecture", "sha256": "cbe8984328e0dd92fc1c11abf2d962aa06973133552a802ca1e27a7b03e6fdcd" },
-    { "path": "specs/2026-05-27-issue-312-observability-csi-hardening/plan.md", "role": "plan", "sha256": "05896b4fd2cd9190d4f5d5272e7025765c089ea24803d492e56e398aebadd450" },
-    { "path": "specs/2026-05-27-issue-312-observability-csi-hardening/tasks.md", "role": "tasks", "sha256": "35b3705e36bc1f18924d89a6bdc5ae06c7a9932fe74ac35b74c7ab43dcc19076" },
+    { "path": "specs/2026-05-27-issue-312-observability-csi-hardening/plan.md", "role": "plan", "sha256": "c538ea2f770adc68f68c164115511b9f8e518fc60aea254aa5e189caedb76c5c" },
+    { "path": "specs/2026-05-27-issue-312-observability-csi-hardening/tasks.md", "role": "tasks", "sha256": "5b86612dc53f70149b88239198de4fab62079d49246a631dfa5798603d76a2ce" },
     { "path": "specs/2026-05-27-issue-312-observability-csi-hardening/traceability.md", "role": "traceability", "sha256": "ac58198a1da6988ecad0047980a6ac3dd5de6193ea310fe4c22cf8403bda7c0c" },
     { "path": "specs/2026-05-27-issue-312-observability-csi-hardening/graph.json", "role": "graph", "sha256": "f25d502cda67cfc953603a819bc3750cd1b1ad31e56b28405c3da9856eb42a13" },
-    { "path": "specs/2026-05-27-issue-312-observability-csi-hardening/context_pack.md", "role": "context", "sha256": "384fe8ef8e1ae59f24833067f24bf0d3cbf8d09ecc388c1471a20bbaaca95b2c" },
-    { "path": "specs/2026-05-27-issue-312-observability-csi-hardening/pr_context.md", "role": "pr_context", "sha256": "472b849f193e7990ed210f682dcfeddb47cb64d47bc9e4d8b0dc73bfc0994071" },
+    { "path": "specs/2026-05-27-issue-312-observability-csi-hardening/context_pack.md", "role": "context", "sha256": "e21fef1249f1a67003597b873b3fa5348329a060ef3c0f10f3642b384a09b131" },
+    { "path": "specs/2026-05-27-issue-312-observability-csi-hardening/pr_context.md", "role": "pr_context", "sha256": "7ab707e43ab623683864821381000ebe5f0f2b5d2d467967cd57091383bbdcf6" },
     { "path": "specs/2026-05-27-issue-312-observability-csi-hardening/hardening_review.md", "role": "hardening", "sha256": "415a06019da968c20f0f98c1f98ac5c7df9a40e70bd5e1a4b0faa0717dfc29e6" },
-    { "path": "docs/blueprint/architecture/decisions/ADR-issue-312-observability-csi-hardening.md", "role": "adr", "sha256": "d6746daab1ec56899698bbfed2793c066d58e9f1b286660ae5c6d0b0c98fd9e9" }
+    { "path": "docs/blueprint/architecture/decisions/ADR-issue-312-observability-csi-hardening.md", "role": "adr", "sha256": "8094f341f2cba0023d003bae80396bc44e770a579743f1555634220a3caaf75a" }
   ]
 }

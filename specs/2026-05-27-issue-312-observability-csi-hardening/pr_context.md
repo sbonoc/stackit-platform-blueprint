@@ -11,12 +11,17 @@
 - Contract surfaces changed: `blueprint/modules/observability/module.contract.yaml` (new CSI prerequisite); `make infra-observability-apply` no longer creates `blueprint-observability-auth` on STACKIT profiles; `make infra-observability-destroy` no longer deletes it.
 
 ## Key Reviewer Files
-- Primary files to review first: `infra/cloud/stackit/helm/observability/otel-collector.values.yaml` (CSI volume); `infra/cloud/stackit/terraform/modules/observability/main.tf` (Vault kv_secret writes); new `infra/gitops/argocd/core/secrets-store-csi-driver*.yaml`; `scripts/bin/infra/observability_apply.sh` (reconcile removal).
+- Primary files to review first:
+  - `infra/cloud/stackit/helm/observability/otel-collector.values.yaml` — CSI volume replaces K8s Secret volume
+  - `infra/gitops/argocd/optional/{dev,stage,prod}/observability.yaml` — CSI volume + SecretProviderClass inline document
+  - `infra/gitops/argocd/core/{dev,stage,prod}/secrets-store-csi-driver*.yaml` — new CSI driver ArgoCD Applications
+  - `infra/cloud/stackit/terraform/modules/observability/main.tf` — Vault kv_secret_v2 credential write
+  - `scripts/bin/infra/observability_apply.sh` — reconcile call removed from STACKIT path
 - High-risk files: `scripts/lib/infra/observability.sh` (deprecation guard must not break local path); `tests/infra/modules/observability/test_contract.py` (5 assertions removed/rewritten).
 
 ## Validation Evidence
-- Required commands executed: pending (to be filled at implementation time)
-- Result summary: pending
+- Required commands executed: `python3 -m pytest tests/infra/modules/observability/ -x -q`; `make quality-hooks-fast`; `make quality-sdd-check`
+- Result summary: 107/107 unit assertions PASS; quality-hooks-fast PASS (shellcheck, sdd-check-all, infra-validate, infra-contract-test-fast all pass); quality-sdd-check PASS. STACKIT smoke (`make infra-observability-smoke`) is manual — requires a live STACKIT cluster with CSI driver running; documented as AC-003 manual acceptance criterion.
 - Artifact references: `traceability.md`, `hardening_review.md`
 
 ## Risk and Rollback
