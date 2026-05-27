@@ -1,6 +1,7 @@
 # ADR — Local Developer Experience Improvements (Issues #284 and #302)
 
-- **Status:** proposed
+- **Status:** approved
+- **ADR technical decision sign-off:** approved
 - **Work item:** issue-284-302-local-dx-improvements
 - **Date:** 2026-05-27
 - **Author:** sbonoc
