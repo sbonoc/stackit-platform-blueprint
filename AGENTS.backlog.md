@@ -19,6 +19,7 @@ To introduce a new tag, append a row here in the same commit that uses it.
 | `gitops` | GitOps manifests, ArgoCD sync, kustomization wiring |
 | `skills` | Agent skill runbooks, SDD lifecycle tooling |
 | `a11y` | Accessibility conformance, WCAG gates, ACR scaffold, axe tooling |
+| `local-dx` | Local developer experience: `.env.local` auto-load, ArgoCD branch tracking, cluster context overrides |
 
 ---
 
@@ -62,7 +63,13 @@ To introduce a new tag, append a row here in the same commit that uses it.
 ### P2 — Blueprint tooling and SDD
 
 - [x] Issue #247 — step-05-implement: add deterministic slice-done gate for HTTP+UI-rendering scope (Guardrails #13, #14, #15 + promoted smoke step + AGENTS.md canonical normative home FR-007–FR-010). Closed by PR #303.
-- [ ] Issues #284 + #302 — local DX improvements: `ARGOCD_LOCAL_TARGET_REVISION` env var for non-main branch ArgoCD tracking; `.env.local` auto-load in `bootstrap.sh`. **PR #331 in spec-complete, implementation pending.**
+- [x] Issues #284 + #302 — local DX improvements: `ARGOCD_LOCAL_TARGET_REVISION` env var for non-main branch ArgoCD tracking; `.env.local` auto-load in `bootstrap.sh`. Closed by PR #331.
+- [ ] (parked) proposal(issue-284-302-local-dx-improvements): encrypt `.env.local` at rest (e.g., `age`/`sops`)
+      trigger: on-scope: local-dx
+      rationale: adds tooling dependency for a local convenience file; local developer responsibility; no active credential-at-rest risk given gitignore enforcement
+- [ ] (parked) proposal(issue-284-302-local-dx-improvements): extend `ARGOCD_LOCAL_TARGET_REVISION` to patch multiple ArgoCD Applications
+      trigger: on-scope: gitops
+      rationale: only `platform-local-core` is relevant for this pattern; multi-app patching requires a list-based contract that is out of scope here
 - [x] Issue #296 — workaround manifest `action_path` CI validation gate. Closed by PR #304.
 - [ ] (no issue) Ownership checker robustness: support normalized equivalence for semantically-identical prune-glob expressions in ownership-matrix documentation checks.
 

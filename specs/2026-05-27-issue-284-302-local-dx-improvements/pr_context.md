@@ -20,14 +20,14 @@
 ## Validation Evidence
 - `python3 -m pytest tests/blueprint/test_tooling_contracts.py::LocalDxImprovementsTests -v` → 8 passed (2026-05-27)
 - `python3 -m pytest tests/ -x -q` → all 538 tests passed (2026-05-27)
-- `make quality-hooks-fast` → 10/11 checks pass; `quality-spec-pr-ready` resolves after Slice 3 tasks are marked `[x]` (tasks.md P-001 through P-003 marked at publish time)
+- `make quality-hooks-fast` → all 11/11 checks pass (2026-05-27)
 - `make quality-docs-check-changed` → pass; platform seed mirrors synchronized (2026-05-27)
 - Docs updated: `docs/platform/consumer/quickstart.md`, `docs/platform/consumer/first_30_minutes.md`; synced to bootstrap template mirrors via `python3 scripts/lib/docs/sync_platform_seed_docs.py`
 
 ## Deferred Proposals
 
-- Proposal A (encrypt `.env.local`): Out of scope — adds tooling dependency for a local convenience file; local developer responsibility. Trigger: on-scope: local-dx-hardening.
-- Proposal B (multi-Application patching for `ARGOCD_LOCAL_TARGET_REVISION`): Out of scope — only `platform-local-core` is relevant; multi-app requires list-based contract. Trigger: on-scope: argocd-local.
+- Proposal A (encrypt `.env.local` at rest via `age`/`sops`): Parked — trigger: on-scope: local-dx — adds tooling dependency for a local convenience file; gitignore enforcement mitigates commit risk; encryption is local developer responsibility.
+- Proposal B (extend `ARGOCD_LOCAL_TARGET_REVISION` to patch multiple ArgoCD Applications): Parked — trigger: on-scope: gitops — only `platform-local-core` is in scope; multi-app patching requires a list-based contract.
 
 ## Risk and Rollback
 - Main risks: `deploy.sh` patch inadvertently running on STACKIT profile (mitigated by `is_local_profile` guard and test T-203). `.env.local` overriding CI env vars (mitigated by shell-env-wins behavior in `load_env_file_defaults` and NFR-SEC-001 assertion).
