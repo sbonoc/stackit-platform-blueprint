@@ -2318,5 +2318,91 @@ class PostgresContractKeyParityTests(unittest.TestCase):
         )
 
 
+class LocalDxImprovementsTests(unittest.TestCase):
+    """Issue #284 + #302 — local DX improvements: .env.local auto-load and ARGOCD_LOCAL_TARGET_REVISION patch."""
+
+    # --- Slice 1: .env.local auto-load (#302) ---
+
+    def test_bootstrap_calls_load_env_file_defaults(self) -> None:
+        script = (REPO_ROOT / "scripts/lib/shell/bootstrap.sh").read_text(encoding="utf-8")
+        self.assertIn(
+            'load_env_file_defaults "$ROOT_DIR/.env.local"',
+            script,
+            msg="bootstrap.sh must call load_env_file_defaults with .env.local (FR-001)",
+        )
+
+    def test_gitignore_contains_env_local(self) -> None:
+        gitignore = (REPO_ROOT / ".gitignore").read_text(encoding="utf-8")
+        self.assertIn(
+            ".env.local",
+            gitignore,
+            msg="root .gitignore must contain .env.local (FR-004, NFR-SEC-002)",
+        )
+
+    def test_bootstrap_template_gitignore_contains_env_local(self) -> None:
+        gitignore = (REPO_ROOT / "scripts/templates/blueprint/bootstrap/.gitignore").read_text(encoding="utf-8")
+        self.assertIn(
+            ".env.local",
+            gitignore,
+            msg="bootstrap template .gitignore must contain .env.local (FR-005, NFR-SEC-002)",
+        )
+
+    # --- Slice 2: ARGOCD_LOCAL_TARGET_REVISION patch (#284) ---
+
+    def test_deploy_references_argocd_local_target_revision(self) -> None:
+        script = (REPO_ROOT / "scripts/bin/infra/deploy.sh").read_text(encoding="utf-8")
+        self.assertIn(
+            "ARGOCD_LOCAL_TARGET_REVISION",
+            script,
+            msg="deploy.sh must reference ARGOCD_LOCAL_TARGET_REVISION (FR-006, FR-007)",
+        )
+
+    def test_deploy_skips_patch_on_main(self) -> None:
+        script = (REPO_ROOT / "scripts/bin/infra/deploy.sh").read_text(encoding="utf-8")
+        self.assertIn(
+            '"main"',
+            script,
+            msg="deploy.sh must contain skip guard when revision equals main (FR-008)",
+        )
+
+    def test_deploy_patch_inside_local_profile_guard(self) -> None:
+        script = (REPO_ROOT / "scripts/bin/infra/deploy.sh").read_text(encoding="utf-8")
+        local_block_match = re.search(
+            r"is_local_profile.*?(?=\bfi\b)",
+            script,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(local_block_match, msg="deploy.sh must have an is_local_profile block")
+        local_block = local_block_match.group(0)  # type: ignore[union-attr]
+        self.assertIn(
+            "patch_argocd_local_target_revision",
+            local_block,
+            msg="patch_argocd_local_target_revision must be called inside the is_local_profile block (FR-011)",
+        )
+
+    def test_deploy_logs_effective_revision(self) -> None:
+        script = (REPO_ROOT / "scripts/bin/infra/deploy.sh").read_text(encoding="utf-8")
+        self.assertIn(
+            "targetRevision",
+            script,
+            msg="deploy.sh must log the effective targetRevision when patching (FR-012, NFR-OPS-001)",
+        )
+
+    def test_deploy_skips_patch_on_empty_branch(self) -> None:
+        script = (REPO_ROOT / "scripts/bin/infra/deploy.sh").read_text(encoding="utf-8")
+        patch_fn_match = re.search(
+            r"patch_argocd_local_target_revision\(\).*?(?=^\})",
+            script,
+            re.MULTILINE | re.DOTALL,
+        )
+        self.assertIsNotNone(patch_fn_match, msg="patch_argocd_local_target_revision() function not found in deploy.sh")
+        fn_body = patch_fn_match.group(0)  # type: ignore[union-attr]
+        self.assertTrue(
+            re.search(r'\[\[.*-z.*revision.*\]\]|\[\[.*revision.*==.*""\]\]', fn_body) is not None
+            or "-z" in fn_body,
+            msg="patch_argocd_local_target_revision must guard against empty revision string (FR-009)",
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
