@@ -51,6 +51,8 @@ _CSI_VAULT_PROVIDER_ARGOCD_STAGE = REPO_ROOT / "infra" / "gitops" / "argocd" / "
 _CSI_VAULT_PROVIDER_ARGOCD_PROD = REPO_ROOT / "infra" / "gitops" / "argocd" / "core" / "prod" / "secrets-store-csi-driver-vault-provider.yaml"
 _OBSERVABILITY_TF_VERSIONS = REPO_ROOT / "infra" / "cloud" / "stackit" / "terraform" / "modules" / "observability" / "versions.tf"
 _OBSERVABILITY_TF_MAIN = REPO_ROOT / "infra" / "cloud" / "stackit" / "terraform" / "modules" / "observability" / "main.tf"
+_FOUNDATION_TF_VERSIONS = REPO_ROOT / "infra" / "cloud" / "stackit" / "terraform" / "foundation" / "versions.tf"
+_FOUNDATION_TF_OBSERVABILITY_VAULT = REPO_ROOT / "infra" / "cloud" / "stackit" / "terraform" / "foundation" / "observability_vault.tf"
 _KUSTOMIZATION_DEV = REPO_ROOT / "infra" / "gitops" / "argocd" / "overlays" / "dev" / "kustomization.yaml"
 _KUSTOMIZATION_STAGE = REPO_ROOT / "infra" / "gitops" / "argocd" / "overlays" / "stage" / "kustomization.yaml"
 _KUSTOMIZATION_PROD = REPO_ROOT / "infra" / "gitops" / "argocd" / "overlays" / "prod" / "kustomization.yaml"
@@ -891,19 +893,25 @@ class CsiHardeningTests(unittest.TestCase):
         )
 
     def test_tf_observability_declares_vault_provider(self) -> None:
-        if not _OBSERVABILITY_TF_VERSIONS.exists():
-            self.fail("versions.tf must exist before checking vault provider declaration (FR-007, T-202)")
+        self.assertTrue(
+            _FOUNDATION_TF_VERSIONS.exists(),
+            msg="foundation/versions.tf must exist (FR-007, T-202)",
+        )
         self.assertIn(
             "hashicorp/vault",
-            _OBSERVABILITY_TF_VERSIONS.read_text(encoding="utf-8"),
-            msg="versions.tf must declare hashicorp/vault Terraform provider (FR-007, T-202)",
+            _FOUNDATION_TF_VERSIONS.read_text(encoding="utf-8"),
+            msg="foundation/versions.tf must declare hashicorp/vault Terraform provider (FR-007, T-202, Codex review finding)",
         )
 
     def test_tf_observability_writes_vault_kv_secret(self) -> None:
+        self.assertTrue(
+            _FOUNDATION_TF_OBSERVABILITY_VAULT.exists(),
+            msg="foundation/observability_vault.tf must exist (FR-007, T-203, Codex review finding)",
+        )
         self.assertIn(
             "vault_kv_secret_v2",
-            _OBSERVABILITY_TF_MAIN.read_text(encoding="utf-8"),
-            msg="main.tf must declare vault_kv_secret_v2 resources writing credentials to Secrets Manager (FR-007, T-203)",
+            _FOUNDATION_TF_OBSERVABILITY_VAULT.read_text(encoding="utf-8"),
+            msg="foundation/observability_vault.tf must declare vault_kv_secret_v2 resource writing credentials to Secrets Manager (FR-007, T-203)",
         )
 
     # Slice 3: CSI volume in STACKIT OTC values and ArgoCD manifests

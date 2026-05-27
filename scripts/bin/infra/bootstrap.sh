@@ -177,6 +177,9 @@ bootstrap_infra_directories() {
   ensure_dir "$ROOT_DIR/infra/gitops/argocd/optional/dev"
   ensure_dir "$ROOT_DIR/infra/gitops/argocd/optional/stage"
   ensure_dir "$ROOT_DIR/infra/gitops/argocd/optional/prod"
+  ensure_dir "$ROOT_DIR/infra/gitops/argocd/core/dev"
+  ensure_dir "$ROOT_DIR/infra/gitops/argocd/core/stage"
+  ensure_dir "$ROOT_DIR/infra/gitops/argocd/core/prod"
 }
 
 bootstrap_infra_static_templates() {
@@ -227,6 +230,11 @@ bootstrap_infra_static_templates() {
   ensure_infra_template_file "infra/gitops/argocd/overlays/local/appproject.yaml"
   ensure_infra_template_file "infra/gitops/argocd/overlays/local/application-platform-local.yaml"
   ensure_infra_template_file "infra/gitops/argocd/overlays/local/keycloak.yaml"
+  local _csi_env
+  for _csi_env in dev stage prod; do
+    ensure_infra_template_file "infra/gitops/argocd/core/$_csi_env/secrets-store-csi-driver.yaml"
+    ensure_infra_template_file "infra/gitops/argocd/core/$_csi_env/secrets-store-csi-driver-vault-provider.yaml"
+  done
 }
 
 bootstrap_stackit_terraform_scaffolding() {

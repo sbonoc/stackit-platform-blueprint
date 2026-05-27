@@ -176,7 +176,15 @@ metadata:
 spec:
   provider: vault
   parameters:
-    vaultAddress: ""
+    # Vault address: https://secrets.<region>.onstackit.cloud/<sm-instance-name>
+    # Read secrets_manager_vault_address from foundation TF outputs after first apply.
+    vaultAddress: "https://secrets.eu01.onstackit.cloud/CHANGE_ME_SM_INSTANCE_NAME_STAGE"
+    # Vault auth: set roleName + vaultKubernetesMountPath for Kubernetes JWT auth (recommended),
+    # or create K8s Secret 'vault-sm-auth' in namespace 'observability' with key 'token' = SM user
+    # password and add nodePublishSecretRef: {name: vault-sm-auth, key: token} for token auth.
+    # See docs/platform/prerequisites.md for setup instructions.
+    roleName: "CHANGE_ME_VAULT_ROLE_NAME"
+    vaultKubernetesMountPath: "kubernetes"
     objects: |
       - objectName: "username"
         secretPath: "secret/data/observability/otel-credentials"
