@@ -43,7 +43,7 @@ To introduce a new tag, append a row here in the same commit that uses it.
       trigger: on-scope: quality
       rationale: heuristic detection of "app-delivery changes" is ambiguous; guidance text in the template Notes field provides a softer control. Validate tradeoff after observing real-world misuse.
 
-- [ ] proposal(issue-248-observability-module): Harden observability credential delivery via Secrets Store CSI Driver — https://github.com/sbonoc/stackit-platform-blueprint/issues/312
+- [ ] Issue #312 — Observability CSI hardening: replace `blueprint-observability-auth` K8s Secret with Secrets Store CSI Driver delivery from STACKIT Secrets Manager. SDD intake complete; branch `feature/2026-05-27-issue-312-observability-csi-hardening` open. 1 open question (Q-1: Secrets Manager vs KMS backend — agent recommendation: Secrets Manager). — https://github.com/sbonoc/stackit-platform-blueprint/issues/312
 
 ### P2 — Consumer upgrade flow
 
