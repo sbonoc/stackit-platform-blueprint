@@ -180,6 +180,18 @@ module_action_scripts() {
   identity-aware-proxy:destroy)
     echo "$ROOT_DIR/scripts/bin/infra/identity_aware_proxy_destroy.sh"
     ;;
+  managed-cache:plan)
+    echo "$ROOT_DIR/scripts/bin/infra/managed_cache_plan.sh"
+    ;;
+  managed-cache:apply)
+    echo "$ROOT_DIR/scripts/bin/infra/managed_cache_apply.sh"
+    ;;
+  managed-cache:smoke)
+    echo "$ROOT_DIR/scripts/bin/infra/managed_cache_smoke.sh"
+    ;;
+  managed-cache:destroy)
+    echo "$ROOT_DIR/scripts/bin/infra/managed_cache_destroy.sh"
+    ;;
   *)
     ;;
   esac
@@ -200,6 +212,7 @@ public-endpoints
 secrets-manager
 kms
 identity-aware-proxy
+managed-cache
 OUT
 }
 

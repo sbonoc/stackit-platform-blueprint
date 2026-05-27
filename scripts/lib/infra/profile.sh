@@ -190,6 +190,7 @@ enabled_modules_csv() {
     secrets-manager
     kms
     identity-aware-proxy
+    managed-cache
   )
   local out=""
   local module

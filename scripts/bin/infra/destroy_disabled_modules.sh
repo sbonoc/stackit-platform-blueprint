@@ -42,6 +42,7 @@ all_modules=(
   secrets-manager
   kms
   identity-aware-proxy
+  managed-cache
 )
 
 disabled_modules_csv() {
