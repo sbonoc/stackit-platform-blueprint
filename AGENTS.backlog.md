@@ -106,6 +106,10 @@ Surface automatically when the named scope is next touched. Do not promote to ac
       rationale: `state_file_exists` has no unit test; smoke absent-state path is currently untested at module level
 - [ ] proposal(issue-281-282-opensearch-bitnami-chart-fixes): Bitnami chart 2.x upgrade — targets OpenSearch 3.x, incompatible with 2.17/2.19 image line.
       rationale: requires STACKIT managed-service plan validation before migration; no current blocker
+- [ ] (parked) proposal(issue-312-observability-csi-hardening): Extend Secrets Store CSI Driver hardening to Bitnami-chart modules (RabbitMQ, PostgreSQL, OpenSearch) — use CSI `secretObjects` sync to deliver STACKIT-managed credentials from Secrets Manager into K8s Secrets consumed by Bitnami `existingSecret` references. Tradeoff: audit trail is gained but etcd exposure is not eliminated (K8s Secret object is still created by the CSI sync). A separate ADR decision is required on whether audit trail alone satisfies the threat model for these modules, or whether Bitnami file-mount support is required first.
+      trigger: on-scope: infra
+      trigger: after: issue-312-observability-csi-hardening
+      rationale: Bitnami charts consume credentials via K8s Secret env refs (existingSecret), not file mounts — CSI secretObjects sync still writes to etcd. Deferred until policy decision on partial hardening or Bitnami chart file-mount support.
 - [ ] (parked) proposal(issue-277-argocd-health-na): per-resource-type ignoreResourceUpdates tuning for noisy types (ConfigMap, Endpoints)
       trigger: on-scope: infra
       rationale: no current CPU pressure evidence on local Docker Desktop; surfaces when future ArgoCD or infra work is scoped
