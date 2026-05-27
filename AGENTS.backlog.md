@@ -69,7 +69,7 @@ To introduce a new tag, append a row here in the same commit that uses it.
 ### P2 — Platform modules
 
 - [x] Issue #248 remaining modules — STACKIT-managed service candidates (kms ✅, secrets-manager ✅ PR #305, dns ✅ PR #306, public-endpoints ✅ PR #307, observability ✅ PR #308, workflows ✅ PR #314 + local lane ✅ PR #316, identity-aware-proxy ✅ PR #318). Gate on #295 removed — architecture decision recorded in `AGENTS.decisions.md`: OM is consumer/product-owned and not a blueprint module candidate. Issue #248 fully closed.
-- [ ] Issue #171 — managed-cache module: STACKIT Managed Redis as a first-class optional module (Helm/ArgoCD-managed, provider-backed via STACKIT Terraform). **In-flight — PR #330 (Draft), SPEC_READY=true, 6 slices, implementation unlocked 2026-05-27.**
+- [ ] Issue #171 — managed-cache module: STACKIT Managed Redis as a first-class optional module (Helm/ArgoCD-managed, provider-backed via STACKIT Terraform). **PR #330 open, ready for review (2026-05-27).**
 - [ ] Issue #172 — platform-email module: Helm/ArgoCD-managed Postal for transactional email as an optional module.
 
 ---
@@ -113,6 +113,16 @@ Surface automatically when the named scope is next touched. Do not promote to ac
 - [ ] (parked) proposal(issue-277-argocd-health-na): per-resource-type ignoreResourceUpdates tuning for noisy types (ConfigMap, Endpoints)
       trigger: on-scope: infra
       rationale: no current CPU pressure evidence on local Docker Desktop; surfaces when future ArgoCD or infra work is scoped
+- [ ] (parked) proposal(issue-171-managed-cache): bitnami/redis local lane migration — migrate bitnami/redis Helm chart to the replacement chart when issue #324 (bitnami chart migration) is in scope.
+      trigger: after: issue-324
+      rationale: same bitnami deprecation risk as postgres/rabbitmq/opensearch local lane; no actionable scope until issue #324 determines the migration target chart and version
+- [ ] (parked) proposal(issue-171-managed-cache): Redis Cluster/HA mode — replace single-instance `stackit_redis_instance` with a multi-replica or cluster configuration.
+      trigger: triage: next-session
+      stale-after: 2
+      rationale: single-instance default is sufficient for current consumer use cases (session store, rate-limiting, idempotency cache); HA requires separate capacity planning and consumer awareness
+- [ ] (parked) proposal(issue-171-managed-cache): KMS envelope encryption of Redis password — wrap `MANAGED_CACHE_PASSWORD` (as stored in STACKIT Secrets Manager) with a STACKIT KMS key before writing to SM.
+      trigger: after: issue-312
+      rationale: KMS module is a separate optional module; same deferral pattern as issue-312-observability-csi-hardening KMS envelope entry; surfaces when KMS hardening is in scope for managed-service modules
 
 ### on-scope: observability
 

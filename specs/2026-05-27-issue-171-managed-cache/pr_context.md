@@ -35,6 +35,6 @@
 - Rollback strategy: `make infra-managed-cache-destroy` (STACKIT: destroys TF resources; local: `helm uninstall blueprint-managed-cache -n managed-cache`). No data migration required — consumer data loss on destroy is expected and documented in README.
 
 ## Deferred Proposals
-- Proposal A (bitnami/redis local migration): Parked — trigger: on-scope: managed-cache local lane migration — follow issue #324 bitnami migration scope. No current consumer request.
-- Proposal B (Redis Cluster/HA): Out of scope — requires separate capacity planning. Single-instance only.
-- Proposal C (KMS envelope encryption): Parked — KMS module concern; same deferral as issue #312 Proposal C. Trigger: when KMS module is in scope.
+- Proposal A (bitnami/redis local lane migration): Parked — trigger: `after: issue-324` — surfaces when bitnami chart migration scope (#324) is next in-flight. Filed in AGENTS.backlog.md under `### on-scope: infra`.
+- Proposal B (Redis Cluster/HA): Parked — trigger: `triage: next-session` (stale-after: 2) — no capacity planning decision; single-instance sufficient for current use cases. Filed in AGENTS.backlog.md under `### on-scope: infra`.
+- Proposal C (KMS envelope encryption of Redis password): Parked — trigger: `after: issue-312` — KMS module concern; mirrors issue-312-observability-csi-hardening KMS envelope entry. Filed in AGENTS.backlog.md under `### on-scope: infra`.
