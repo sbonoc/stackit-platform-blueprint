@@ -8,11 +8,11 @@
     { "path": "specs/2026-05-27-issue-312-observability-csi-hardening/architecture.md", "role": "architecture", "sha256": "cbe8984328e0dd92fc1c11abf2d962aa06973133552a802ca1e27a7b03e6fdcd" },
     { "path": "specs/2026-05-27-issue-312-observability-csi-hardening/plan.md", "role": "plan", "sha256": "c538ea2f770adc68f68c164115511b9f8e518fc60aea254aa5e189caedb76c5c" },
     { "path": "specs/2026-05-27-issue-312-observability-csi-hardening/tasks.md", "role": "tasks", "sha256": "5b86612dc53f70149b88239198de4fab62079d49246a631dfa5798603d76a2ce" },
-    { "path": "specs/2026-05-27-issue-312-observability-csi-hardening/traceability.md", "role": "traceability", "sha256": "ac58198a1da6988ecad0047980a6ac3dd5de6193ea310fe4c22cf8403bda7c0c" },
+    { "path": "specs/2026-05-27-issue-312-observability-csi-hardening/traceability.md", "role": "traceability", "sha256": "0fe85bd904a2ee74d654adc93b54596e8eff61efda4dc70d8386e4691ee91a0a" },
     { "path": "specs/2026-05-27-issue-312-observability-csi-hardening/graph.json", "role": "graph", "sha256": "f25d502cda67cfc953603a819bc3750cd1b1ad31e56b28405c3da9856eb42a13" },
     { "path": "specs/2026-05-27-issue-312-observability-csi-hardening/context_pack.md", "role": "context", "sha256": "e21fef1249f1a67003597b873b3fa5348329a060ef3c0f10f3642b384a09b131" },
-    { "path": "specs/2026-05-27-issue-312-observability-csi-hardening/pr_context.md", "role": "pr_context", "sha256": "7ab707e43ab623683864821381000ebe5f0f2b5d2d467967cd57091383bbdcf6" },
-    { "path": "specs/2026-05-27-issue-312-observability-csi-hardening/hardening_review.md", "role": "hardening", "sha256": "415a06019da968c20f0f98c1f98ac5c7df9a40e70bd5e1a4b0faa0717dfc29e6" },
-    { "path": "docs/blueprint/architecture/decisions/ADR-issue-312-observability-csi-hardening.md", "role": "adr", "sha256": "8094f341f2cba0023d003bae80396bc44e770a579743f1555634220a3caaf75a" }
+    { "path": "specs/2026-05-27-issue-312-observability-csi-hardening/pr_context.md", "role": "pr_context", "sha256": "c6b0d0a605646c2c1869d9f1de52369566e249997b60edf1101fd903bd917671" },
+    { "path": "specs/2026-05-27-issue-312-observability-csi-hardening/hardening_review.md", "role": "hardening", "sha256": "4c9a8c192bbac600e3fba2e948f6eb77e2478dd4faabcceef7e74728b21ad45d" },
+    { "path": "docs/blueprint/architecture/decisions/ADR-issue-312-observability-csi-hardening.md", "role": "adr", "sha256": "917984695563ca913049e99068594f266db5958c9485d80989f9a7bb3c17fd0f" }
   ]
 }

@@ -45,9 +45,24 @@ STACKIT KMS manages encryption keys; it does not serve arbitrary secret values o
 
 **Rationale:** Zero consumer impact. Changing the mount path would require updating every STACKIT ArgoCD manifest and consumer documentation. The CSI volume type is transparent to the OTC process reading the mounted files.
 
+## Decision 5: Vault credential write executes in foundation TF workspace
+
+**Decision:** The `vault_kv_secret_v2` resource (which writes observability credentials to STACKIT Secrets Manager) is declared in `infra/cloud/stackit/terraform/foundation/observability_vault.tf` and runs in the foundation TF workspace — not in a standalone `modules/observability/` Terraform module.
+
+**Rationale:** All STACKIT-lane `make infra-observability-apply` calls route through `resolve_optional_module_execution → stackit_foundation_apply.sh`, which runs the foundation workspace. A standalone `modules/observability/` TF module would never be executed by the existing apply scripts and has no caller. Placing the resource in foundation ensures it executes on every foundation apply when both `secrets_manager_enabled` and `observability_enabled` are true, and can reference `stackit_secretsmanager_user.foundation[0].password` directly without a separate variable injection step.
+
+## Decision 6: vaultAddress injected via per-environment overlay files (not ArgoCD ApplicationSet)
+
+**Decision:** The Vault-compatible API endpoint (`vaultAddress`) is set directly in per-environment files (`core/{env}/secrets-store-csi-driver-vault-provider.yaml` Helm values and `optional/{env}/observability.yaml` SecretProviderClass) as operator-maintained placeholders. Not via ArgoCD ApplicationSet parameters or automated injection.
+
+**Rationale:** The STACKIT SM instance name is environment-specific and only known after foundation TF apply. Rather than adding a dynamic injection mechanism (which would require either a Kustomize generator plugin or ArgoCD ApplicationSet with external parameters), per-env files serve as the "overlay" layer — operators replace `CHANGE_ME_SM_INSTANCE_NAME_{ENV}` with the value from the `secrets_manager_vault_address` TF output. This follows the existing per-env file pattern already used for keycloak and other environment-specific configuration. The `secrets_manager_vault_address` TF output makes retrieval deterministic (see `docs/platform/prerequisites.md`).
+
 ## Consequences
 
 - `blueprint-observability-auth` K8s Secret is no longer created on STACKIT lanes — breaking change for any consumer that queries this Secret directly.
 - STACKIT Secrets Manager (`SECRETS_MANAGER_ENABLED=true`) becomes an implicit prerequisite when `OBSERVABILITY_ENABLED=true` on STACKIT profiles.
+- `vaultAddress` must be populated in per-env files before first STACKIT deploy — one-time operator step per environment (see `docs/platform/prerequisites.md` § Post-Provision Configuration).
+- Vault authentication (`roleName` / `vaultKubernetesMountPath` for Kubernetes JWT auth, or `nodePublishSecretRef` for token auth) must also be configured before first deploy. Kubernetes JWT auth is recommended (no K8s Secret for auth token).
 - Credential rotation is asynchronous (CSI driver polls Secrets Manager on a configurable interval, default 2 minutes). Immediate rotation requires a pod restart.
+- The `hashicorp/vault` Terraform provider (v4.4.0) is now required in the foundation workspace — existing deployments must run `terraform init` after upgrading to this branch.
 - Rollback: revert `extraVolumes` block to `secret` type and re-run `make infra-observability-apply` to recreate the K8s Secret.

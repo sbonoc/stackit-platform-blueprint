@@ -13,15 +13,17 @@
 ## Key Reviewer Files
 - Primary files to review first:
   - `infra/cloud/stackit/helm/observability/otel-collector.values.yaml` — CSI volume replaces K8s Secret volume
-  - `infra/gitops/argocd/optional/{dev,stage,prod}/observability.yaml` — CSI volume + SecretProviderClass inline document
+  - `infra/gitops/argocd/optional/{dev,stage,prod}/observability.yaml` — CSI volume + SecretProviderClass inline document (vaultAddress placeholder + auth params)
   - `infra/gitops/argocd/core/{dev,stage,prod}/secrets-store-csi-driver*.yaml` — new CSI driver ArgoCD Applications
-  - `infra/cloud/stackit/terraform/modules/observability/main.tf` — Vault kv_secret_v2 credential write
+  - `infra/cloud/stackit/terraform/foundation/observability_vault.tf` — Vault kv_secret_v2 credential write in foundation workspace (moved from modules/observability/ per Codex review)
+  - `infra/cloud/stackit/terraform/foundation/versions.tf` — vault provider added
   - `scripts/bin/infra/observability_apply.sh` — reconcile call removed from STACKIT path
-- High-risk files: `scripts/lib/infra/observability.sh` (deprecation guard must not break local path); `tests/infra/modules/observability/test_contract.py` (5 assertions removed/rewritten).
+- High-risk files: `scripts/lib/infra/observability.sh` (deprecation guard uses `is_stackit_profile` + `log_fatal`; must not break local path); `tests/infra/modules/observability/test_contract.py` (5 assertions removed/rewritten; 8 new assertions added in post-review commits).
 
 ## Validation Evidence
 - Required commands executed: `python3 -m pytest tests/infra/modules/observability/ -x -q`; `make quality-hooks-fast`; `make quality-sdd-check`; `make quality-hardening-review`
-- Result summary: 108/108 unit assertions PASS (108 after traceability gap fix adding NFR-SEC-003 namespace test); quality-hooks-fast PASS — all 11 checks pass (shellcheck, sdd-check-all, infra-validate, infra-contract-test-fast, quality-docs-check-changed, quality-spec-pr-ready); quality-hardening-review PASS; quality-sdd-check PASS. STACKIT smoke (`make infra-observability-smoke`) is manual — requires a live STACKIT cluster with CSI driver running; documented as AC-003 manual acceptance criterion.
+- Result summary: 111/111 unit assertions PASS (111 after post-review commits fd150b7 + 6263fea adding 3 CSI volume driver assertions and updating 5 existing assertions); quality-hooks-fast PASS — all 11 checks pass after all review fixes; quality-hardening-review PASS; quality-sdd-check PASS. STACKIT smoke (`make infra-observability-smoke`) is manual — requires a live STACKIT cluster with CSI driver running; documented as AC-003 manual acceptance criterion.
+- Post-review commits: fd150b7 (5 review findings: BLUEPRINT_STACK guard, delete_all_versions, syncSecret, required_version, positive CSI assertions); 6263fea (5 review findings: vaultAddress placeholders, Vault auth params, vault_kv_secret_v2 moved to foundation TF, bootstrap templates, prerequisites doc)
 - Artifact references: `traceability.md`, `hardening_review.md`
 
 ## Risk and Rollback
