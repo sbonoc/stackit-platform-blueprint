@@ -3,9 +3,9 @@
 ## Context Snapshot
 - Work item: 2026-05-27-issue-312-observability-csi-hardening
 - Track: blueprint
-- SPEC_READY: false (0 open questions — all resolved; awaiting full sign-off to unlock implementation)
+- SPEC_READY: true (all sign-offs recorded; implementation unlocked)
 - ADR path: docs/blueprint/architecture/decisions/ADR-issue-312-observability-csi-hardening.md
-- ADR status: proposed
+- ADR status: approved
 
 ## Problem Being Solved
 The observability module delivers STACKIT credentials to the OTC pod via a K8s Secret (`blueprint-observability-auth`) stored in etcd. This exposes credentials to anyone with cluster-admin access and provides no credential-read audit trail. This work item replaces the K8s Secret with direct delivery via the Secrets Store CSI Driver backed by STACKIT Secrets Manager.

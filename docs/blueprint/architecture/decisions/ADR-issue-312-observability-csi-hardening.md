@@ -1,7 +1,8 @@
 # ADR — issue-312-observability-csi-hardening: Observability Credential Delivery via Secrets Store CSI Driver
 
-**Status:** proposed
+**Status:** approved
 **Date:** 2026-05-27
+**ADR technical decision sign-off:** approved — @sbonoc (PR #329, 2026-05-27)
 
 ## Context
 
