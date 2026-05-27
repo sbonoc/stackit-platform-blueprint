@@ -148,6 +148,9 @@ module_flag_name() {
   identity-aware-proxy)
     echo "IDENTITY_AWARE_PROXY_ENABLED"
     ;;
+  managed-cache)
+    echo "MANAGED_CACHE_ENABLED"
+    ;;
   local-workflows)
     echo "WORKFLOWS_LOCAL_ENABLED"
     ;;
@@ -187,6 +190,7 @@ enabled_modules_csv() {
     secrets-manager
     kms
     identity-aware-proxy
+    managed-cache
   )
   local out=""
   local module

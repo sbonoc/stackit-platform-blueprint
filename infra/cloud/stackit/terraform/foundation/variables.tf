@@ -315,6 +315,41 @@ variable "rabbitmq_enabled" {
   default     = false
 }
 
+variable "managed_cache_enabled" {
+  description = "Enable managed Redis cache provisioning contract."
+  type        = bool
+  default     = false
+}
+
+variable "managed_cache_instance_name" {
+  description = "Managed Redis cache instance name."
+  type        = string
+  default     = "marketplace-managed-cache"
+}
+
+variable "managed_cache_version" {
+  description = "Managed Redis cache service version."
+  type        = string
+  default     = "7"
+}
+
+variable "managed_cache_plan_name" {
+  description = "Managed Redis cache plan name."
+  type        = string
+  default     = "stackit-redis-1.4.10-replica"
+}
+
+variable "managed_cache_sgw_acl" {
+  description = "Optional ACL CIDR allowlist for managed cache Redis access via SKE egress gateway."
+  type        = list(string)
+  default     = []
+
+  validation {
+    condition     = !var.managed_cache_enabled || length(var.managed_cache_sgw_acl) > 0 || var.ske_enabled
+    error_message = "When managed_cache_enabled=true, managed_cache_sgw_acl must be non-empty or ske_enabled=true for auto-derivation from SKE egress ranges."
+  }
+}
+
 variable "rabbitmq_instance_name" {
   description = "Managed RabbitMQ instance name."
   type        = string

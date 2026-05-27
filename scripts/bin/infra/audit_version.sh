@@ -218,6 +218,7 @@ tracked_vars=(
   POSTGRES_HELM_CHART_VERSION_PIN
   OBJECT_STORAGE_HELM_CHART_VERSION_PIN
   RABBITMQ_HELM_CHART_VERSION_PIN
+  MANAGED_CACHE_REDIS_HELM_CHART_VERSION_PIN
   NEO4J_HELM_CHART_VERSION_PIN
   PUBLIC_ENDPOINTS_HELM_CHART_VERSION_PIN
   IAP_HELM_CHART_VERSION_PIN
@@ -232,6 +233,7 @@ done
 audit_helm_chart_pin "POSTGRES_HELM_CHART_VERSION_PIN" "bitnami/postgresql"
 audit_helm_chart_pin "OBJECT_STORAGE_HELM_CHART_VERSION_PIN" "bitnami/minio"
 audit_helm_chart_pin "RABBITMQ_HELM_CHART_VERSION_PIN" "bitnami/rabbitmq"
+audit_helm_chart_pin "MANAGED_CACHE_REDIS_HELM_CHART_VERSION_PIN" "bitnami/redis"
 audit_helm_chart_pin "NEO4J_HELM_CHART_VERSION_PIN" "neo4j/neo4j"
 audit_helm_chart_pin "PUBLIC_ENDPOINTS_HELM_CHART_VERSION_PIN" "oci://docker.io/envoyproxy/gateway-helm"
 audit_helm_chart_pin "IAP_HELM_CHART_VERSION_PIN" "oauth2-proxy/oauth2-proxy"

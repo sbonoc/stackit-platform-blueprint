@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+set -euo pipefail
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/../../lib/shell/bootstrap.sh"
+source "$ROOT_DIR/scripts/lib/infra/state.sh"
+
+start_script_metric_trap "infra_managed_cache_smoke"
+
+# Generated wrapper skeleton from blueprint/modules/*/module.contract.yaml.
+# Copy into scripts/bin/infra/ and replace placeholders with module-specific implementation.
+
+if ! is_module_enabled managed-cache; then
+  log_info "MANAGED_CACHE_ENABLED=false; skipping managed-cache smoke"
+  exit 0
+fi
+
+set_state_namespace infra
+
+readonly MODULE_WRAPPER_STUB_EXIT_CODE=64
+
+# Explicit stub: template consumers must replace this block with module-specific logic.
+log_metric "optional_module_wrapper_stub_invocation" "1" "module=managed-cache action=smoke target=infra-managed-cache-smoke"
+state_file="$(
+  write_state_file "managed_cache_smoke" \
+    "status=not_implemented" \
+    "module=managed-cache" \
+    "action=smoke" \
+    "target=infra-managed-cache-smoke" \
+    "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+)"
+log_error "module wrapper not implemented: module=managed-cache action=smoke target=infra-managed-cache-smoke"
+log_error "copy this skeleton into scripts/bin/infra/managed_cache_smoke.sh and replace the stub implementation"
+log_info "managed-cache smoke stub state written to $state_file"
+exit "$MODULE_WRAPPER_STUB_EXIT_CODE"

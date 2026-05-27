@@ -96,6 +96,7 @@
         "tests/infra/modules/postgres/test_contract.py",
         "tests/infra/modules/rabbitmq/test_rabbitmq_module.py",
         "tests/infra/modules/rabbitmq/test_contract.py",
+        "tests/infra/modules/managed-cache/test_managed_cache_module.py",
         "tests/infra/modules/kms/test_kms_module.py",
         "tests/infra/modules/kms/test_contract.py",
         "tests/infra/modules/secrets-manager/test_contract.py",

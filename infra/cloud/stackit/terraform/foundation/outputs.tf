@@ -150,6 +150,38 @@ output "rabbitmq_management_url" {
   value       = var.rabbitmq_enabled ? stackit_rabbitmq_credential.foundation[0].management : null
 }
 
+output "managed_cache_instance_id" {
+  description = "Provisioned Redis cache instance identifier."
+  value       = var.managed_cache_enabled ? stackit_redis_instance.managed_cache[0].instance_id : null
+}
+
+output "managed_cache_host" {
+  description = "Provisioned Redis cache host."
+  value       = var.managed_cache_enabled ? stackit_redis_credential.managed_cache[0].host : null
+}
+
+output "managed_cache_port" {
+  description = "Provisioned Redis cache port."
+  value       = var.managed_cache_enabled ? stackit_redis_credential.managed_cache[0].port : null
+}
+
+output "managed_cache_username" {
+  description = "Provisioned Redis cache runtime username."
+  value       = var.managed_cache_enabled ? stackit_redis_credential.managed_cache[0].username : null
+}
+
+output "managed_cache_password" {
+  description = "Provisioned Redis cache runtime password."
+  sensitive   = true
+  value       = var.managed_cache_enabled ? stackit_redis_credential.managed_cache[0].password : null
+}
+
+output "managed_cache_uri" {
+  description = "Provisioned Redis cache runtime URI."
+  sensitive   = true
+  value       = var.managed_cache_enabled ? stackit_redis_credential.managed_cache[0].uri : null
+}
+
 output "opensearch_instance_id" {
   description = "Provisioned OpenSearch instance identifier."
   value       = var.opensearch_enabled ? stackit_opensearch_instance.foundation[0].instance_id : null

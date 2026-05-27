@@ -171,6 +171,7 @@
 | `kms` | `false` | `KMS_ENABLED` | `blueprint/modules/kms/module.contract.yaml` |
 | `langfuse` | `false` | `LANGFUSE_ENABLED` | `blueprint/modules/langfuse/module.contract.yaml` |
 | `local-workflows` | `false` | `WORKFLOWS_LOCAL_ENABLED` | `blueprint/modules/local-workflows/module.contract.yaml` |
+| `managed-cache` | `false` | `MANAGED_CACHE_ENABLED` | `blueprint/modules/managed-cache/module.contract.yaml` |
 | `neo4j` | `false` | `NEO4J_ENABLED` | `blueprint/modules/neo4j/module.contract.yaml` |
 | `object-storage` | `false` | `OBJECT_STORAGE_ENABLED` | `blueprint/modules/object-storage/module.contract.yaml` |
 | `observability` | `false` | `OBSERVABILITY_ENABLED` | `blueprint/modules/observability/module.contract.yaml` |
@@ -419,6 +420,28 @@
 
 ### Produced Outputs
 - `WORKFLOWS_LOCAL_PUBLIC_URL`
+
+## Module: `managed-cache`
+
+- Purpose: Provision a managed Redis cache — STACKIT Managed Redis on cloud lanes, bitnami/redis via Helm on the local lane.
+- Enabled by default: `false`
+- Enable flag: `MANAGED_CACHE_ENABLED`
+
+### Required Environment Variables
+- `MANAGED_CACHE_INSTANCE_NAME`
+
+### Make Targets
+- `infra-managed-cache-plan`
+- `infra-managed-cache-apply`
+- `infra-managed-cache-smoke`
+- `infra-managed-cache-destroy`
+
+### Produced Outputs
+- `MANAGED_CACHE_HOST`
+- `MANAGED_CACHE_PORT`
+- `MANAGED_CACHE_USERNAME`
+- `MANAGED_CACHE_PASSWORD`
+- `MANAGED_CACHE_URI`
 
 ## Module: `neo4j`
 

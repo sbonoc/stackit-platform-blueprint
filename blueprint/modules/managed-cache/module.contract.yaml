@@ -1,0 +1,53 @@
+apiVersion: blueprint.module.contract/v1alpha1
+kind: OptionalModuleContract
+metadata:
+  name: managed-cache
+  version: 1.0.0
+spec:
+  module_id: managed-cache
+  purpose: "Provision a managed Redis cache — STACKIT Managed Redis on cloud lanes, bitnami/redis via Helm on the local lane."
+  enabled_by_default: false
+  enable_flag: MANAGED_CACHE_ENABLED
+
+  paths:
+    terraform: infra/cloud/stackit/terraform/modules/managed-cache
+    helm: infra/local/helm/managed-cache/values.yaml
+    docs: docs/platform/modules/managed-cache/README.md
+    tests: tests/infra/modules/managed-cache
+
+  dependencies:
+    required_core_capabilities:
+      - stackit_project_access
+      - cache_service_available
+
+  inputs:
+    required_env:
+      - MANAGED_CACHE_INSTANCE_NAME
+    optional_env:
+      - MANAGED_CACHE_PASSWORD
+      - MANAGED_CACHE_PORT
+      - MANAGED_CACHE_NAMESPACE
+      - MANAGED_CACHE_HELM_RELEASE
+      - MANAGED_CACHE_HELM_CHART
+      - MANAGED_CACHE_HELM_CHART_VERSION
+
+  outputs:
+    produced:
+      - MANAGED_CACHE_HOST
+      - MANAGED_CACHE_PORT
+      - MANAGED_CACHE_USERNAME
+      - MANAGED_CACHE_PASSWORD
+      - MANAGED_CACHE_URI
+
+  make_targets:
+    plan: infra-managed-cache-plan
+    apply: infra-managed-cache-apply
+    smoke: infra-managed-cache-smoke
+    destroy: infra-managed-cache-destroy
+
+  smoke_checks:
+    - "Cache URI is present and redis://-formatted"
+    - "Runtime state contract is materialized"
+
+  cleanup_contract:
+    destroy_target: infra-managed-cache-destroy

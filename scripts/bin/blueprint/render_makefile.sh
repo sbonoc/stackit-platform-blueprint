@@ -73,6 +73,12 @@ OUT
   infra-rabbitmq-plan infra-rabbitmq-apply infra-rabbitmq-smoke infra-rabbitmq-destroy
 OUT
     ;;
+  managed-cache)
+    cat <<'OUT'
+ \
+  infra-managed-cache-plan infra-managed-cache-apply infra-managed-cache-smoke infra-managed-cache-destroy
+OUT
+    ;;
   opensearch)
     cat <<'OUT'
  \
@@ -258,6 +264,22 @@ infra-rabbitmq-destroy: ## Destroy RabbitMQ resources
 	@scripts/bin/infra/rabbitmq_destroy.sh
 OUT
     ;;
+  managed-cache)
+    cat <<'OUT'
+
+infra-managed-cache-plan: ## Plan managed cache (Redis) resources
+	@scripts/bin/infra/managed_cache_plan.sh
+
+infra-managed-cache-apply: ## Apply managed cache (Redis) resources
+	@scripts/bin/infra/managed_cache_apply.sh
+
+infra-managed-cache-smoke: ## Managed cache smoke checks
+	@scripts/bin/infra/managed_cache_smoke.sh
+
+infra-managed-cache-destroy: ## Destroy managed cache resources
+	@scripts/bin/infra/managed_cache_destroy.sh
+OUT
+    ;;
   opensearch)
     cat <<'OUT'
 
@@ -390,7 +412,7 @@ OUT
 
 render_makefile() {
   local phony_observability phony_workflows phony_langfuse phony_postgres phony_neo4j
-  local phony_object_storage phony_rabbitmq phony_opensearch phony_dns phony_public_endpoints phony_secrets_manager phony_kms
+  local phony_object_storage phony_rabbitmq phony_managed_cache phony_opensearch phony_dns phony_public_endpoints phony_secrets_manager phony_kms
   local phony_identity_aware_proxy phony_local_workflows
   phony_observability="$(makefile_module_phony_suffix observability)"
   phony_workflows="$(makefile_module_phony_suffix workflows)"
@@ -399,6 +421,7 @@ render_makefile() {
   phony_neo4j="$(makefile_module_phony_suffix neo4j)"
   phony_object_storage="$(makefile_module_phony_suffix object-storage)"
   phony_rabbitmq="$(makefile_module_phony_suffix rabbitmq)"
+  phony_managed_cache="$(makefile_module_phony_suffix managed-cache)"
   phony_opensearch="$(makefile_module_phony_suffix opensearch)"
   phony_dns="$(makefile_module_phony_suffix dns)"
   phony_public_endpoints="$(makefile_module_phony_suffix public-endpoints)"
@@ -408,7 +431,7 @@ render_makefile() {
   phony_local_workflows="$(makefile_module_phony_suffix local-workflows)"
 
   local targets_observability targets_workflows targets_langfuse targets_postgres targets_neo4j
-  local targets_object_storage targets_rabbitmq targets_opensearch targets_dns targets_public_endpoints targets_secrets_manager
+  local targets_object_storage targets_rabbitmq targets_managed_cache targets_opensearch targets_dns targets_public_endpoints targets_secrets_manager
   local targets_kms targets_identity_aware_proxy targets_local_workflows
   targets_observability="$(makefile_module_target_block observability)"
   targets_workflows="$(makefile_module_target_block workflows)"
@@ -417,6 +440,7 @@ render_makefile() {
   targets_neo4j="$(makefile_module_target_block neo4j)"
   targets_object_storage="$(makefile_module_target_block object-storage)"
   targets_rabbitmq="$(makefile_module_target_block rabbitmq)"
+  targets_managed_cache="$(makefile_module_target_block managed-cache)"
   targets_opensearch="$(makefile_module_target_block opensearch)"
   targets_dns="$(makefile_module_target_block dns)"
   targets_public_endpoints="$(makefile_module_target_block public-endpoints)"
@@ -440,6 +464,7 @@ render_makefile() {
     "PHONY_NEO4J=$phony_neo4j" \
     "PHONY_OBJECT_STORAGE=$phony_object_storage" \
     "PHONY_RABBITMQ=$phony_rabbitmq" \
+    "PHONY_MANAGED_CACHE=$phony_managed_cache" \
     "PHONY_OPENSEARCH=$phony_opensearch" \
     "PHONY_DNS=$phony_dns" \
     "PHONY_PUBLIC_ENDPOINTS=$phony_public_endpoints" \
@@ -454,6 +479,7 @@ render_makefile() {
     "INFRA_ENV_GUARDED_NEO4J=$phony_neo4j" \
     "INFRA_ENV_GUARDED_OBJECT_STORAGE=$phony_object_storage" \
     "INFRA_ENV_GUARDED_RABBITMQ=$phony_rabbitmq" \
+    "INFRA_ENV_GUARDED_MANAGED_CACHE=$phony_managed_cache" \
     "INFRA_ENV_GUARDED_OPENSEARCH=$phony_opensearch" \
     "INFRA_ENV_GUARDED_DNS=$phony_dns" \
     "INFRA_ENV_GUARDED_PUBLIC_ENDPOINTS=$phony_public_endpoints" \
@@ -468,6 +494,7 @@ render_makefile() {
     "TARGETS_NEO4J=$targets_neo4j" \
     "TARGETS_OBJECT_STORAGE=$targets_object_storage" \
     "TARGETS_RABBITMQ=$targets_rabbitmq" \
+    "TARGETS_MANAGED_CACHE=$targets_managed_cache" \
     "TARGETS_OPENSEARCH=$targets_opensearch" \
     "TARGETS_DNS=$targets_dns" \
     "TARGETS_PUBLIC_ENDPOINTS=$targets_public_endpoints" \
@@ -512,6 +539,9 @@ optional_target_count() {
     count=$((count + 4))
   fi
   if is_module_enabled rabbitmq; then
+    count=$((count + 4))
+  fi
+  if is_module_enabled managed-cache; then
     count=$((count + 4))
   fi
   if is_module_enabled opensearch; then

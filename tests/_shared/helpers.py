@@ -53,6 +53,8 @@ def module_flags_env(
     secrets_manager: str = "false",
     kms: str = "false",
     identity_aware_proxy: str = "false",
+    managed_cache: str = "false",
+    local_workflows: str = "false",
     hydrate_module_required_env: str | bool = "true",
 ) -> dict[str, str]:
     env = {
@@ -70,6 +72,8 @@ def module_flags_env(
         "SECRETS_MANAGER_ENABLED": secrets_manager,
         "KMS_ENABLED": kms,
         "IDENTITY_AWARE_PROXY_ENABLED": identity_aware_proxy,
+        "MANAGED_CACHE_ENABLED": managed_cache,
+        "WORKFLOWS_LOCAL_ENABLED": local_workflows,
     }
 
     if _is_enabled(hydrate_module_required_env):

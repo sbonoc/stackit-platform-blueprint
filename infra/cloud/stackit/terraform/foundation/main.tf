@@ -167,6 +167,30 @@ resource "stackit_rabbitmq_credential" "foundation" {
   instance_id = stackit_rabbitmq_instance.foundation[0].instance_id
 }
 
+resource "stackit_redis_instance" "managed_cache" {
+  count = var.managed_cache_enabled ? 1 : 0
+
+  project_id = var.stackit_project_id
+  name       = var.managed_cache_instance_name
+  version    = var.managed_cache_version
+  plan_name  = var.managed_cache_plan_name
+
+  parameters = {
+    sgw_acl = join(",", local.managed_cache_sgw_acl_effective)
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "stackit_redis_credential" "managed_cache" {
+  count = var.managed_cache_enabled ? 1 : 0
+
+  project_id  = var.stackit_project_id
+  instance_id = stackit_redis_instance.managed_cache[0].instance_id
+}
+
 resource "stackit_opensearch_instance" "foundation" {
   count = var.opensearch_enabled ? 1 : 0
 

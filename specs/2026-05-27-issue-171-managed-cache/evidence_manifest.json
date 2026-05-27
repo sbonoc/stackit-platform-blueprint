@@ -1,0 +1,18 @@
+{
+  "manifest_version": 1,
+  "work_item": "2026-05-27-issue-171-managed-cache",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-05-27T18:30:00Z",
+  "files": [
+    { "path": "specs/2026-05-27-issue-171-managed-cache/spec.md", "role": "spec", "sha256": "c662438953400182eee9a000674b43e1d60e1d804aa6f0516a1c6990336e5d54" },
+    { "path": "specs/2026-05-27-issue-171-managed-cache/architecture.md", "role": "architecture", "sha256": "3664b0755d3b420e2cf3097fc927d60ff37a26738817465ab05da1811eded862" },
+    { "path": "specs/2026-05-27-issue-171-managed-cache/plan.md", "role": "plan", "sha256": "ca995ab96b702f749117b3b8de72f785c55d667bd986563d99a82a03b941d5d4" },
+    { "path": "specs/2026-05-27-issue-171-managed-cache/tasks.md", "role": "tasks", "sha256": "a3c58987c99f7fb9e0d4b3514ecb8af59f002ff79ade84460797ba842a93acd8" },
+    { "path": "specs/2026-05-27-issue-171-managed-cache/traceability.md", "role": "traceability", "sha256": "9bb18d6e4e173bc398341e381a6668b6e1844c76077f739fe303f3cd1f2d8fa2" },
+    { "path": "specs/2026-05-27-issue-171-managed-cache/graph.json", "role": "graph", "sha256": "0c9b3046f951f6b714cd1b5428ff0b26782375767c57032565dcc76e2eaf4349" },
+    { "path": "specs/2026-05-27-issue-171-managed-cache/context_pack.md", "role": "context", "sha256": "b48ed7039c74cda4ce7f5591496e2bfd9272567b5d012ecf3a2ec3eec39ad1d6" },
+    { "path": "specs/2026-05-27-issue-171-managed-cache/pr_context.md", "role": "pr_context", "sha256": "8a07c444c12c8b65a5cdb6efa6df8b6d7b1a352690f389487b67ea3eed3727fb" },
+    { "path": "specs/2026-05-27-issue-171-managed-cache/hardening_review.md", "role": "hardening", "sha256": "3ad9b69347ecec5d6a9b7fc03335280bc9f8271529cb6d27292e248c9d565cb5" },
+    { "path": "docs/blueprint/architecture/decisions/ADR-issue-171-managed-cache.md", "role": "adr", "sha256": "94e2f944625e7669faa5a438c8be7f9aa906ec7898f8ddfcc6611eb80374d6c7" }
+  ]
+}
