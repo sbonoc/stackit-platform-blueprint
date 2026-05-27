@@ -35,7 +35,7 @@ bitnami/redis is the established local-lane pattern. The bitnami deprecation con
 
 **Rationale:** Resource names verified against the Terraform Registry (`stackitcloud/stackit` v0.88.x). The naming follows the same convention as `stackit_rabbitmq_instance` / `stackit_rabbitmq_credential`. Unlike the initial assumption, STACKIT Redis credentials DO include a `username` attribute — the provider wraps Redis with a credential pair. This does not affect the consumer contract: `managed_cache_uri()` on the STACKIT lane reads the provider-generated `uri` foundation output directly (which embeds the username), while the local lane constructs a password-only URI for bitnami/redis.
 
-Network ACL is set via `parameters.sgw_acl` (a comma-separated CIDR string) — same mechanism as `stackit_rabbitmq_instance`. This is how NFR-SEC-002 is satisfied.
+Network ACL is set via `parameters.sgw_acl` — same mechanism as the postgres module. `managed_cache_sgw_acl` is a `list(string)` foundation variable (default `[]`). A `managed_cache_sgw_acl_effective` local in `foundation/locals.tf` merges the user-provided list with `stackit_ske_cluster.foundation[0].egress_address_ranges` (when `ske_enabled=true`), then `join(",", ...)` converts it to the comma-separated string the STACKIT provider expects. A validation block rejects `managed_cache_enabled=true` with an empty ACL when `ske_enabled=false`. This is how NFR-SEC-002 is satisfied.
 
 ## Decision 4: Credential delivery — shell lib abstraction + ESO ExternalSecret
 
@@ -51,9 +51,9 @@ Network ACL is set via `parameters.sgw_acl` (a comma-separated CIDR string) — 
 
 ## Decision 6: Network ACL — SKE egress CIDR alignment
 
-**Decision:** The `stackit_redis_instance` TF resource MUST declare a network ACL aligned with SKE egress CIDR ranges. Open-world access (`0.0.0.0/0`) MUST NOT be the sole ACL entry.
+**Decision:** The `stackit_redis_instance` TF resource declares a network ACL aligned with SKE egress CIDR ranges, using the same `managed_cache_sgw_acl_effective` auto-alignment local as the postgres module. Open-world access (`0.0.0.0/0`) MUST NOT be the sole ACL entry.
 
-**Rationale:** NFR-SEC-002. Same ACL policy as postgres (see blueprint postgres TF module). The STACKIT Managed Redis instance should only accept connections from the SKE cluster nodes, not from arbitrary internet addresses.
+**Rationale:** NFR-SEC-002. The `managed_cache_sgw_acl_effective` local in `foundation/locals.tf` merges operator-supplied CIDRs with the SKE cluster's `egress_address_ranges` when `ske_enabled=true`. A validation block enforces that an enabled module always has a non-trivial ACL. The STACKIT Managed Redis instance only accepts connections from the SKE cluster nodes.
 
 ## Consequences
 

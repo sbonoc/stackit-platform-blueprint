@@ -41,10 +41,13 @@ The flag defaults to `false` — existing consumers are completely unaffected wh
 | Variable | Required | Default | Description |
 |---|---|---|---|
 | `MANAGED_CACHE_ENABLED` | Yes | `false` | Enable managed cache provisioning |
-| `MANAGED_CACHE_NAMESPACE` | No | `managed-cache` | Kubernetes namespace for local lane |
-| `MANAGED_CACHE_HELM_RELEASE` | No | `blueprint-managed-cache` | Helm release name for local lane |
-| `MANAGED_CACHE_PORT` | No | `6379` | Redis port for local lane |
-| `MANAGED_CACHE_PASSWORD` | No | `managed-cache-password` | Redis password for local lane |
+| `MANAGED_CACHE_INSTANCE_NAME` | Yes | `marketplace-managed-cache` | STACKIT Redis instance name (STACKIT lane) |
+| `MANAGED_CACHE_PASSWORD` | No | `managed-cache-password` | Redis password (local lane) |
+| `MANAGED_CACHE_PORT` | No | `6379` | Redis port (local lane) |
+| `MANAGED_CACHE_NAMESPACE` | No | `managed-cache` | Kubernetes namespace (local lane) |
+| `MANAGED_CACHE_HELM_RELEASE` | No | `blueprint-managed-cache` | Helm release name (local lane) |
+| `MANAGED_CACHE_HELM_CHART` | No | `bitnami/redis` | Helm chart (local lane) |
+| `MANAGED_CACHE_HELM_CHART_VERSION` | No | `25.5.3` | Helm chart version pin (local lane) |
 
 ## Outputs
 
@@ -52,6 +55,8 @@ After `make infra-managed-cache-apply` the runtime state is written to `artifact
 
 | Key | Description |
 |---|---|
+| `profile` | Blueprint profile used during apply |
+| `stack` | Active stack name |
 | `host` | Redis host |
 | `port` | Redis port |
 | `uri` | Redis URI (`redis://:<password>@<host>:<port>/0`) |
@@ -62,7 +67,7 @@ After `make infra-managed-cache-apply` the runtime state is written to `artifact
 
 Both lanes produce URIs matching `redis://:.+@.+:[0-9]+/0`:
 
-- **Local lane**: `redis://:<password>@blueprint-managed-cache-master.managed-cache.svc.cluster.local:6379/0`
+- **Local lane**: `redis://:<password>@blueprint-managed-cache.managed-cache.svc.cluster.local:6379/0`
 - **STACKIT lane**: read directly from `stackit_redis_credential.uri` foundation output
 
 ## Username
@@ -71,7 +76,7 @@ STACKIT lane provides a `username` credential attribute. The local lane (bitnami
 
 ## Network ACL (STACKIT lane)
 
-The `stackit_redis_instance.parameters.sgw_acl` field is set to the SKE egress CIDR ranges to restrict Redis access to the cluster. No open-world `0.0.0.0/0` sole entry is permitted.
+`managed_cache_sgw_acl` (a `list(string)` TF variable) is automatically merged with the SKE cluster's egress address ranges at apply time — the same auto-alignment pattern used by the postgres module. The merged list is passed to `stackit_redis_instance.parameters.sgw_acl`. No open-world `0.0.0.0/0` sole entry is permitted. Supply explicit CIDR ranges via `managed_cache_sgw_acl` when `ske_enabled=false`.
 
 ## Smoke
 
