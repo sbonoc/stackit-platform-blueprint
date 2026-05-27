@@ -943,6 +943,27 @@ class CsiHardeningTests(unittest.TestCase):
             msg="prod/observability.yaml must NOT reference blueprint-observability-auth as a K8s Secret volume (FR-004, NFR-SEC-001, T-302)",
         )
 
+    def test_argocd_dev_uses_csi_volume_driver(self) -> None:
+        self.assertIn(
+            "secrets-store.csi.k8s.io",
+            _ARGOCD_DEV.read_text(encoding="utf-8"),
+            msg="dev/observability.yaml must declare CSI volume driver secrets-store.csi.k8s.io (FR-004, T-302, Claude review finding)",
+        )
+
+    def test_argocd_stage_uses_csi_volume_driver(self) -> None:
+        self.assertIn(
+            "secrets-store.csi.k8s.io",
+            _ARGOCD_STAGE.read_text(encoding="utf-8"),
+            msg="stage/observability.yaml must declare CSI volume driver secrets-store.csi.k8s.io (FR-004, T-302, Claude review finding)",
+        )
+
+    def test_argocd_prod_uses_csi_volume_driver(self) -> None:
+        self.assertIn(
+            "secrets-store.csi.k8s.io",
+            _ARGOCD_PROD.read_text(encoding="utf-8"),
+            msg="prod/observability.yaml must declare CSI volume driver secrets-store.csi.k8s.io (FR-004, T-302, Claude review finding)",
+        )
+
     def test_secret_provider_class_referenced_in_dev(self) -> None:
         self.assertIn(
             "SecretProviderClass",
@@ -987,10 +1008,16 @@ class CsiHardeningTests(unittest.TestCase):
             match,
             msg="observability_reconcile_runtime_secret() function must be declared in observability.sh (FR-005)",
         )
+        body = match.group(1)
         self.assertIn(
-            "log_warn",
-            match.group(1),
-            msg="observability_reconcile_runtime_secret() must emit log_warn deprecation guard when called on STACKIT profile (FR-005, T-404)",
+            "is_stackit_profile",
+            body,
+            msg="observability_reconcile_runtime_secret() must guard against STACKIT profile using is_stackit_profile (FR-005, T-404)",
+        )
+        self.assertIn(
+            "log_fatal",
+            body,
+            msg="observability_reconcile_runtime_secret() must call log_fatal (not log_warn) to hard-stop on STACKIT profile (FR-005, T-404)",
         )
 
     # Slice 5: Contract prerequisite

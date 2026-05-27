@@ -1,7 +1,3 @@
-terraform {
-  required_version = ">= 1.13.0"
-}
-
 locals {
   module_contract = "blueprint-optional-module-observability"
 }
@@ -14,8 +10,6 @@ provider "vault" {
 resource "vault_kv_secret_v2" "observability_credentials" {
   mount               = "secret"
   name                = "observability/otel-credentials"
-  delete_all_versions = true
-
   data_json = jsonencode({
     username         = var.observability_credential_username
     password         = var.observability_credential_password
