@@ -27,7 +27,7 @@ variable "managed_cache_plan_name" {
 }
 
 variable "managed_cache_sgw_acl" {
-  description = "Comma-separated CIDR ranges allowed to access the Redis instance via SKE egress gateway."
-  type        = string
-  default     = ""
+  description = "List of CIDR ranges allowed to access the Redis instance via SKE egress gateway."
+  type        = list(string)
+  default     = []
 }

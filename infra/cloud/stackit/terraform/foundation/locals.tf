@@ -29,6 +29,14 @@ locals {
     ))
     : []
   )
+  managed_cache_sgw_acl_effective = (
+    var.managed_cache_enabled
+    ? distinct(concat(
+      var.ske_enabled ? stackit_ske_cluster.foundation[0].egress_address_ranges : [],
+      var.managed_cache_sgw_acl,
+    ))
+    : []
+  )
   keycloak_postgres_instance_name = "${local.naming_prefix}-keycloak-postgres"
   keycloak_postgres_acl_effective = distinct(concat(
     var.ske_enabled ? stackit_ske_cluster.foundation[0].egress_address_ranges : [],
@@ -67,6 +75,7 @@ locals {
     neo4j                = var.neo4j_enabled
     object-storage       = var.object_storage_enabled
     rabbitmq             = var.rabbitmq_enabled
+    managed-cache        = var.managed_cache_enabled
     opensearch           = var.opensearch_enabled
     dns                  = var.dns_enabled
     public-endpoints     = var.public_endpoints_enabled
@@ -122,6 +131,14 @@ locals {
       stackit_resource_types = [
         "stackit_rabbitmq_instance",
         "stackit_rabbitmq_credential",
+      ]
+      fallback_strategy = "none"
+    }
+    managed-cache = {
+      stackit_provider_supported = true
+      stackit_resource_types = [
+        "stackit_redis_instance",
+        "stackit_redis_credential",
       ]
       fallback_strategy = "none"
     }

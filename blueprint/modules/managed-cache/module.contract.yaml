@@ -21,8 +21,11 @@ spec:
       - cache_service_available
 
   inputs:
-    required_env: []
+    required_env:
+      - MANAGED_CACHE_INSTANCE_NAME
     optional_env:
+      - MANAGED_CACHE_PASSWORD
+      - MANAGED_CACHE_PORT
       - MANAGED_CACHE_NAMESPACE
       - MANAGED_CACHE_HELM_RELEASE
       - MANAGED_CACHE_HELM_CHART

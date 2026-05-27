@@ -34,9 +34,9 @@ _MOCK_RUNTIME_ENV_LOCAL = "\n".join(
     [
         "profile=local-full",
         "stack=local",
-        "host=blueprint-managed-cache-master.managed-cache.svc.cluster.local",
+        "host=blueprint-managed-cache.managed-cache.svc.cluster.local",
         "port=6379",
-        "uri=redis://:managed-cache-password@blueprint-managed-cache-master.managed-cache.svc.cluster.local:6379/0",
+        "uri=redis://:managed-cache-password@blueprint-managed-cache.managed-cache.svc.cluster.local:6379/0",
         "timestamp_utc=2026-05-27T00:00:00Z",
     ]
 )
@@ -70,6 +70,14 @@ class ManagedCacheContractTests(unittest.TestCase):
                 content,
                 msg=f"module.contract.yaml outputs.produced must include {output}",
             )
+
+    def test_blueprint_contract_registers_managed_cache(self) -> None:
+        content = _BLUEPRINT_CONTRACT.read_text(encoding="utf-8")
+        self.assertIn(
+            "managed-cache",
+            content,
+            msg="blueprint/contract.yaml must register managed-cache under optional_modules",
+        )
 
 
 class ManagedCacheShellLibTests(unittest.TestCase):
@@ -256,10 +264,11 @@ class ManagedCacheShellLibImplementationTests(unittest.TestCase):
         )
 
     def test_runtime_state_does_not_contain_password(self) -> None:
+        apply_src = _APPLY_SH.read_text(encoding="utf-8")
         self.assertNotIn(
             "password=",
-            _MOCK_RUNTIME_ENV_LOCAL,
-            msg="managed_cache runtime state must not contain password key",
+            apply_src,
+            msg="managed_cache_apply.sh must not pass password= to write_state_file (NFR-SEC-001)",
         )
 
     def test_apply_script_calls_init_env(self) -> None:

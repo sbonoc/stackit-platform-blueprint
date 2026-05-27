@@ -428,6 +428,7 @@
 - Enable flag: `MANAGED_CACHE_ENABLED`
 
 ### Required Environment Variables
+- `MANAGED_CACHE_INSTANCE_NAME`
 
 ### Make Targets
 - `infra-managed-cache-plan`

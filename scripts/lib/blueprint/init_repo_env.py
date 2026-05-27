@@ -57,6 +57,7 @@ MODULE_REQUIRED_ENV_DEFAULTS = {
     "POSTGRES_USER": "platform",
     "POSTGRES_PASSWORD": "platform-password",
     "PUBLIC_ENDPOINTS_BASE_DOMAIN": "apps.local",
+    "MANAGED_CACHE_INSTANCE_NAME": "marketplace-managed-cache",
     "RABBITMQ_INSTANCE_NAME": "marketplace-rabbitmq",
     "SECRETS_MANAGER_INSTANCE_NAME": "marketplace-secrets",
     "STACKIT_PROJECT_ID": "project-001",

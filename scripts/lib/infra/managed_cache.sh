@@ -5,19 +5,22 @@ source "$ROOT_DIR/scripts/lib/infra/stackit_foundation_outputs.sh"
 source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 
 managed_cache_seed_env_defaults() {
+  set_default_env MANAGED_CACHE_INSTANCE_NAME "marketplace-managed-cache"
+  set_default_env MANAGED_CACHE_PASSWORD "managed-cache-password"
+  set_default_env MANAGED_CACHE_PORT "6379"
   set_default_env MANAGED_CACHE_NAMESPACE "managed-cache"
   set_default_env MANAGED_CACHE_HELM_RELEASE "blueprint-managed-cache"
   set_default_env MANAGED_CACHE_HELM_CHART "bitnami/redis"
-  set_default_env MANAGED_CACHE_PORT "6379"
-  set_default_env MANAGED_CACHE_PASSWORD "managed-cache-password"
+  set_default_env MANAGED_CACHE_HELM_CHART_VERSION "$MANAGED_CACHE_REDIS_HELM_CHART_VERSION_PIN"
 }
 
 managed_cache_init_env() {
   managed_cache_seed_env_defaults
+  require_env_vars MANAGED_CACHE_INSTANCE_NAME
 }
 
 managed_cache_local_service_host() {
-  printf '%s-master.%s.svc.cluster.local' "$MANAGED_CACHE_HELM_RELEASE" "$MANAGED_CACHE_NAMESPACE"
+  printf '%s.%s.svc.cluster.local' "$MANAGED_CACHE_HELM_RELEASE" "$MANAGED_CACHE_NAMESPACE"
 }
 
 managed_cache_host() {

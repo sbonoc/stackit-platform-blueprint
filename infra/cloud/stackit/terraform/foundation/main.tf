@@ -176,7 +176,11 @@ resource "stackit_redis_instance" "managed_cache" {
   plan_name  = var.managed_cache_plan_name
 
   parameters = {
-    sgw_acl = var.managed_cache_sgw_acl
+    sgw_acl = join(",", local.managed_cache_sgw_acl_effective)
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
 

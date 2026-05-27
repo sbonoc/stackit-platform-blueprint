@@ -5,6 +5,7 @@
 - Purpose: Provision a managed Redis cache — STACKIT Managed Redis on cloud lanes, bitnami/redis via Helm on the local lane.
 - Enable flag: `MANAGED_CACHE_ENABLED` (default: `false`)
 - Required inputs:
+  - `MANAGED_CACHE_INSTANCE_NAME`
 - Make targets:
   - `infra-managed-cache-plan`
   - `infra-managed-cache-apply`

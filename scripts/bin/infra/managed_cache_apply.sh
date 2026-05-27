@@ -22,6 +22,8 @@ managed_cache_init_env
 resolve_optional_module_execution "managed-cache" "apply"
 
 write_state_file "managed_cache_runtime" \
+  "profile=$BLUEPRINT_PROFILE" \
+  "stack=$(active_stack)" \
   "host=$(managed_cache_host)" \
   "port=$(managed_cache_port)" \
   "uri=$(managed_cache_uri)"

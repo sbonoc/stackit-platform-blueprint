@@ -340,9 +340,14 @@ variable "managed_cache_plan_name" {
 }
 
 variable "managed_cache_sgw_acl" {
-  description = "Comma-separated CIDR ranges for Redis ACL via SGW."
-  type        = string
-  default     = ""
+  description = "Optional ACL CIDR allowlist for managed cache Redis access via SKE egress gateway."
+  type        = list(string)
+  default     = []
+
+  validation {
+    condition     = !var.managed_cache_enabled || length(var.managed_cache_sgw_acl) > 0 || var.ske_enabled
+    error_message = "When managed_cache_enabled=true, managed_cache_sgw_acl must be non-empty or ske_enabled=true for auto-derivation from SKE egress ranges."
+  }
 }
 
 variable "rabbitmq_instance_name" {
