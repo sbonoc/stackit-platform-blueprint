@@ -2,7 +2,7 @@
   "manifest_version": 1,
   "work_item": "specs/2026-05-26-issue-248-observability-enhancements",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "2026-05-27T08:11:03Z",
+  "generated_at_utc": "2026-05-27T08:19:21Z",
   "files": [
     {
       "path": "specs/2026-05-26-issue-248-observability-enhancements/architecture.md",
@@ -16,7 +16,7 @@
     },
     {
       "path": "specs/2026-05-26-issue-248-observability-enhancements/evidence_manifest.json",
-      "sha256": "9b09409648b54aed1762e260c1e9fef1504207acb10298610c309ae856bf313f",
+      "sha256": "3f7c52dd37dcaf01d090b0723c16d23f1d8f0f21d4a78207dcb540752b225661",
       "bytes": 2229
     },
     {
@@ -26,8 +26,8 @@
     },
     {
       "path": "specs/2026-05-26-issue-248-observability-enhancements/hardening_review.md",
-      "sha256": "d7da13b62e25af54435b0595bd5b3a47d58fc016a4a748eb256f963e80f0b9ca",
-      "bytes": 4329
+      "sha256": "50ddadb2fc7f5e16830cfb30fd7ec5bc3207c55f7b382744df39ca00bede503f",
+      "bytes": 4557
     },
     {
       "path": "specs/2026-05-26-issue-248-observability-enhancements/plan.md",
@@ -41,8 +41,8 @@
     },
     {
       "path": "specs/2026-05-26-issue-248-observability-enhancements/spec.md",
-      "sha256": "14bb0e79b863450fb7d47630c29c97c9c2274c5d34dc75025f43300de8167ef1",
-      "bytes": 16712
+      "sha256": "70084c7015dc1bf9078f6028999c77f594335a41db3b4273182831fc40984c89",
+      "bytes": 16852
     },
     {
       "path": "specs/2026-05-26-issue-248-observability-enhancements/tasks.md",

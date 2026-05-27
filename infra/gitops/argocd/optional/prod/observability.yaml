@@ -118,6 +118,8 @@ spec:
             readOnly: true
         extraEnvs:
           - name: FARO_CORS_ALLOWED_ORIGINS
+            # Override with your production domain(s) — e.g. "https://app.example.com"
+            # Leaving "*" accepts RUM telemetry from any browser origin.
             value: "*"
         ports:
           otlp:

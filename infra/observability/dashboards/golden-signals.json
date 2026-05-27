@@ -42,12 +42,12 @@
     },
     {
       "id": 4,
-      "title": "Saturation — Active Spans",
+      "title": "Saturation — Call Rate Trend",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
       "targets": [
         {
-          "expr": "sum(traces_spanmetrics_calls_total{span_kind=~\"SPAN_KIND_SERVER|SPAN_KIND_CONSUMER\"}) by (service_name)",
+          "expr": "sum(rate(traces_spanmetrics_calls_total{span_kind=~\"SPAN_KIND_SERVER|SPAN_KIND_CONSUMER\"}[5m])) by (service_name)",
           "legendFormat": "{{service_name}}"
         }
       ]

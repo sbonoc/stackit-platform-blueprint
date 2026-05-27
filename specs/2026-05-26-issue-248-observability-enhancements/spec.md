@@ -105,10 +105,10 @@ All questions resolved before intake. No open questions.
 
 ### Option Decision 2: Faro CORS origin policy
 
-- Option A: Default `allowed_origins: ["*"]` — maximum compatibility for browser SDKs; Faro has no backend write access so CORS is not a security boundary here (selected).
-- Option B: Configurable `allowed_origins: ["${FARO_CORS_ALLOWED_ORIGINS}"]` substitution — more flexible but requires env var injection into the OTEL collector Helm values, which the current file-provider pattern does not support natively.
-- Selected option: OPTION_A with `FARO_CORS_ALLOWED_ORIGINS` documented as an override point for the ArgoCD values block.
-- Rationale: Faro telemetry is not a security boundary (no backend credentials exposed). Blanket CORS `*` is the agentic-graphrag production pattern and avoids requiring consumers to enumerate their frontend origins at blueprint adoption time.
+- Option A: Hardcode `allowed_origins: ["*"]` — maximum compatibility; Faro is not a security boundary.
+- Option B: Runtime-configurable `allowed_origins: ["${env:FARO_CORS_ALLOWED_ORIGINS}"]` via OTC env substitution (pod env var) + `extraEnvs` default `*`; consumers override via ArgoCD Application `extraEnvs` without a Helm redeploy (selected).
+- Selected option: OPTION_B
+- Rationale: OTC env substitution (`${env:VAR}`) is separate from the file config provider and operates on pod-level env vars — it is fully supported for non-sensitive config like CORS origin strings. Using env substitution makes `FARO_CORS_ALLOWED_ORIGINS` a live override point without requiring consumers to fork or patch the values file. The `extraEnvs` default of `*` preserves the maximum-compatibility baseline while enabling per-deployment restriction. Single-origin string supported; multi-origin requires a single wildcard pattern.
 
 ## Contract Changes (Normative)
 - Config/Env contract: `blueprint/modules/observability/module.contract.yaml` — add `FARO_ENDPOINT` to `outputs.produced`; add `FARO_CORS_ALLOWED_ORIGINS` and `OBSERVABILITY_DASHBOARDS_NAME` to `optional_env`.

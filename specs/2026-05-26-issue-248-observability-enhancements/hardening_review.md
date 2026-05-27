@@ -37,7 +37,8 @@
 - Color contrast — N/A.
 
 ## Proposals Only (Not Implemented)
-- Proposal 1: Faro per-origin CORS — env var injection into OTC Helm values is not supported by the file config provider pattern; consumers can override via inline ArgoCD values; park on-scope: observability.
-- Proposal 2: `OBSERVABILITY_RETENTION_DAYS` shell contract — retention is a TF-level concern already configurable at TF level; park on-scope: observability.
-- Proposal 3: Langfuse integration — consumer-specific, not appropriate for the generic blueprint module; reject.
-- Proposal 4: Replace `grafana/k8s-monitoring` with separate charts — disruptive refactor, low value given k8s-monitoring covers the same stack; park on-scope: observability.
+- Proposal 1: Faro per-origin CORS — implemented in this PR via OTC `${env:FARO_CORS_ALLOWED_ORIGINS}` substitution with `extraEnvs` default `*`; consumers override via ArgoCD Application `extraEnvs`.
+- Proposal 2: `OBSERVABILITY_RETENTION_DAYS` shell contract — rejected. Retention is a TF-level concern; no OTEL/shell mechanism to act on it. A dangling contract var would mislead consumers.
+- Proposal 3: Langfuse integration — rejected. Consumer-specific LLM observability; not appropriate for the generic blueprint module.
+- Proposal 4: Replace `grafana/k8s-monitoring` with separate charts — parked. Disruptive refactor, low value vs. maintenance cost; trigger: on-scope: observability.
+- Proposal 5: OTel semconv forwards-compatibility for healthcheck filter — parked. Add `url.path` as a third filter condition for OTel semconv v1.20+ SDKs; trigger: on-scope: observability.
