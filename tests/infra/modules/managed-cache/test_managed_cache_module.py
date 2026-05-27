@@ -19,6 +19,8 @@ _TF_FOUNDATION_OUTPUTS = REPO_ROOT / "infra" / "cloud" / "stackit" / "terraform"
 _TF_FOUNDATION_MAIN = REPO_ROOT / "infra" / "cloud" / "stackit" / "terraform" / "foundation" / "main.tf"
 _LOCAL_HELM_VALUES = REPO_ROOT / "infra" / "local" / "helm" / "managed-cache" / "values.yaml"
 _GENERATED_MK = REPO_ROOT / "make" / "blueprint.generated.mk"
+_MK_TEMPLATE = REPO_ROOT / "scripts" / "templates" / "blueprint" / "bootstrap" / "make" / "blueprint.generated.mk.tmpl"
+_RENDER_MAKEFILE = REPO_ROOT / "scripts" / "bin" / "blueprint" / "render_makefile.sh"
 
 _CONTRACT_OUTPUTS = (
     "MANAGED_CACHE_HOST",
@@ -119,35 +121,35 @@ class ManagedCacheShellLibTests(unittest.TestCase):
 
 class ManagedCacheMakeTargetTests(unittest.TestCase):
     def test_make_target_plan_exists(self) -> None:
-        content = _GENERATED_MK.read_text(encoding="utf-8")
+        content = _RENDER_MAKEFILE.read_text(encoding="utf-8")
         self.assertIn(
             "infra-managed-cache-plan",
             content,
-            msg="make/blueprint.generated.mk must contain infra-managed-cache-plan",
+            msg="render_makefile.sh must define infra-managed-cache-plan target",
         )
 
     def test_make_target_apply_exists(self) -> None:
-        content = _GENERATED_MK.read_text(encoding="utf-8")
+        content = _RENDER_MAKEFILE.read_text(encoding="utf-8")
         self.assertIn(
             "infra-managed-cache-apply",
             content,
-            msg="make/blueprint.generated.mk must contain infra-managed-cache-apply",
+            msg="render_makefile.sh must define infra-managed-cache-apply target",
         )
 
     def test_make_target_smoke_exists(self) -> None:
-        content = _GENERATED_MK.read_text(encoding="utf-8")
+        content = _RENDER_MAKEFILE.read_text(encoding="utf-8")
         self.assertIn(
             "infra-managed-cache-smoke",
             content,
-            msg="make/blueprint.generated.mk must contain infra-managed-cache-smoke",
+            msg="render_makefile.sh must define infra-managed-cache-smoke target",
         )
 
     def test_make_target_destroy_exists(self) -> None:
-        content = _GENERATED_MK.read_text(encoding="utf-8")
+        content = _RENDER_MAKEFILE.read_text(encoding="utf-8")
         self.assertIn(
             "infra-managed-cache-destroy",
             content,
-            msg="make/blueprint.generated.mk must contain infra-managed-cache-destroy",
+            msg="render_makefile.sh must define infra-managed-cache-destroy target",
         )
 
     def test_apply_bin_script_exists(self) -> None:

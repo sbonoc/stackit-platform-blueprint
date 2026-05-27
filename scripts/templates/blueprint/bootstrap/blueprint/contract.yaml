@@ -1908,6 +1908,25 @@ spec:
           - infra-rabbitmq-apply
           - infra-rabbitmq-smoke
           - infra-rabbitmq-destroy
+      managed-cache:
+        enabled_by_default: false
+        enable_flag: MANAGED_CACHE_ENABLED
+        scaffolding_mode: conditional
+        paths_required_when_enabled:
+          - terraform_path
+          - helm_path
+          - tests_path
+        contract_path: blueprint/modules/managed-cache/module.contract.yaml
+        terraform_path: infra/cloud/stackit/terraform/modules/managed-cache
+        helm_path: infra/local/helm/managed-cache/values.yaml
+        docs_path: docs/platform/modules/managed-cache/README.md
+        tests_path: tests/infra/modules/managed-cache
+        make_targets_mode: conditional
+        make_targets:
+          - infra-managed-cache-plan
+          - infra-managed-cache-apply
+          - infra-managed-cache-smoke
+          - infra-managed-cache-destroy
       opensearch:
         enabled_by_default: false
         enable_flag: OPENSEARCH_ENABLED
