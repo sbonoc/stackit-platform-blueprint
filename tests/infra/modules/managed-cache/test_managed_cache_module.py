@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import re
-import tempfile
 import unittest
 from pathlib import Path
 
 from tests._shared.helpers import REPO_ROOT
 
+_PROFILE_SH = REPO_ROOT / "scripts" / "lib" / "infra" / "profile.sh"
+_MODULE_EXECUTION_SH = REPO_ROOT / "scripts" / "lib" / "infra" / "module_execution.sh"
 _CONTRACT_FILE = REPO_ROOT / "blueprint" / "modules" / "managed-cache" / "module.contract.yaml"
 _BLUEPRINT_CONTRACT = REPO_ROOT / "blueprint" / "contract.yaml"
 _MANAGED_CACHE_LIB = REPO_ROOT / "scripts" / "lib" / "infra" / "managed_cache.sh"
@@ -30,16 +30,6 @@ _CONTRACT_OUTPUTS = (
     "MANAGED_CACHE_URI",
 )
 
-_MOCK_RUNTIME_ENV_LOCAL = "\n".join(
-    [
-        "profile=local-full",
-        "stack=local",
-        "host=blueprint-managed-cache.managed-cache.svc.cluster.local",
-        "port=6379",
-        "uri=redis://:managed-cache-password@blueprint-managed-cache.managed-cache.svc.cluster.local:6379/0",
-        "timestamp_utc=2026-05-27T00:00:00Z",
-    ]
-)
 
 
 # ---------------------------------------------------------------------------
@@ -277,4 +267,59 @@ class ManagedCacheShellLibImplementationTests(unittest.TestCase):
             "managed_cache_init_env",
             content,
             msg="managed_cache_apply.sh must call managed_cache_init_env",
+        )
+
+
+# ---------------------------------------------------------------------------
+# Slice 6: Module registration — profile.sh + module_execution.sh
+# ---------------------------------------------------------------------------
+
+
+class ManagedCacheModuleRegistrationTests(unittest.TestCase):
+    def test_managed_cache_registered_in_profile_sh(self) -> None:
+        content = _PROFILE_SH.read_text(encoding="utf-8")
+        self.assertIn(
+            "managed-cache",
+            content,
+            msg="profile.sh module_flag_name() must register managed-cache → MANAGED_CACHE_ENABLED",
+        )
+
+    def test_managed_cache_registered_in_module_execution_sh(self) -> None:
+        content = _MODULE_EXECUTION_SH.read_text(encoding="utf-8")
+        self.assertIn(
+            "managed-cache:",
+            content,
+            msg="module_execution.sh must register managed-cache execution mapping",
+        )
+
+    def test_managed_cache_reconcile_function_exists(self) -> None:
+        content = _MANAGED_CACHE_LIB.read_text(encoding="utf-8")
+        self.assertIn(
+            "managed_cache_reconcile_runtime_secret()",
+            content,
+            msg="managed_cache.sh must define managed_cache_reconcile_runtime_secret()",
+        )
+
+    def test_managed_cache_delete_secret_function_exists(self) -> None:
+        content = _MANAGED_CACHE_LIB.read_text(encoding="utf-8")
+        self.assertIn(
+            "managed_cache_delete_runtime_secret()",
+            content,
+            msg="managed_cache.sh must define managed_cache_delete_runtime_secret()",
+        )
+
+    def test_managed_cache_render_values_file_function_exists(self) -> None:
+        content = _MANAGED_CACHE_LIB.read_text(encoding="utf-8")
+        self.assertIn(
+            "managed_cache_render_values_file()",
+            content,
+            msg="managed_cache.sh must define managed_cache_render_values_file()",
+        )
+
+    def test_managed_cache_sources_versions_sh(self) -> None:
+        content = _MANAGED_CACHE_LIB.read_text(encoding="utf-8")
+        self.assertIn(
+            "versions.sh",
+            content,
+            msg="managed_cache.sh must source versions.sh so MANAGED_CACHE_REDIS_HELM_CHART_VERSION_PIN is bound",
         )

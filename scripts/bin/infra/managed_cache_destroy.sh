@@ -18,7 +18,31 @@ if ! is_module_enabled managed-cache; then
 fi
 
 managed_cache_init_env
-
 resolve_optional_module_execution "managed-cache" "destroy"
+destroy_driver="$OPTIONAL_MODULE_EXECUTION_DRIVER"
+destroy_path="$OPTIONAL_MODULE_EXECUTION_PATH"
+case "$destroy_driver" in
+foundation_reconcile_apply)
+  optional_module_destroy_foundation_contract "managed-cache"
+  ;;
+helm)
+  destroy_path="$MANAGED_CACHE_HELM_RELEASE@$MANAGED_CACHE_NAMESPACE"
+  run_helm_uninstall "$MANAGED_CACHE_HELM_RELEASE" "$MANAGED_CACHE_NAMESPACE"
+  managed_cache_delete_runtime_secret
+  ;;
+*)
+  optional_module_unexpected_driver "managed-cache" "destroy"
+  ;;
+esac
 
 remove_state_files_by_prefix "managed_cache_"
+state_file="$(write_state_file "managed_cache_destroy" \
+  "profile=$BLUEPRINT_PROFILE" \
+  "stack=$(active_stack)" \
+  "tooling_mode=$(tooling_execution_mode)" \
+  "destroy_driver=$destroy_driver" \
+  "destroy_path=$destroy_path" \
+  "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")")"
+
+log_info "managed-cache artifacts destroyed"
+log_info "managed-cache destroy state written to $state_file"

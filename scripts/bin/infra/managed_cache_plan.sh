@@ -18,5 +18,36 @@ if ! is_module_enabled managed-cache; then
 fi
 
 managed_cache_init_env
-
 resolve_optional_module_execution "managed-cache" "plan"
+provision_driver="$OPTIONAL_MODULE_EXECUTION_DRIVER"
+provision_path="$OPTIONAL_MODULE_EXECUTION_PATH"
+case "$provision_driver" in
+foundation_contract)
+  optional_module_warn_missing_foundation_diff "managed-cache"
+  ;;
+helm)
+  provision_path="$(managed_cache_render_values_file)"
+  run_helm_template \
+    "$MANAGED_CACHE_HELM_RELEASE" \
+    "$MANAGED_CACHE_NAMESPACE" \
+    "$MANAGED_CACHE_HELM_CHART" \
+    "$MANAGED_CACHE_HELM_CHART_VERSION" \
+    "$provision_path"
+  ;;
+*)
+  optional_module_unexpected_driver "managed-cache" "plan"
+  ;;
+esac
+
+state_file="$(write_state_file "managed_cache_plan" \
+  "profile=$BLUEPRINT_PROFILE" \
+  "stack=$(active_stack)" \
+  "tooling_mode=$(tooling_execution_mode)" \
+  "provision_driver=$provision_driver" \
+  "provision_path=$provision_path" \
+  "instance_name=$MANAGED_CACHE_INSTANCE_NAME" \
+  "host=$(managed_cache_host)" \
+  "port=$(managed_cache_port)" \
+  "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")")"
+
+log_info "managed-cache plan state written to $state_file"

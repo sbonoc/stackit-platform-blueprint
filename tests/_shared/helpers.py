@@ -73,7 +73,7 @@ def module_flags_env(
         "KMS_ENABLED": kms,
         "IDENTITY_AWARE_PROXY_ENABLED": identity_aware_proxy,
         "MANAGED_CACHE_ENABLED": managed_cache,
-        "LOCAL_WORKFLOWS_ENABLED": local_workflows,
+        "WORKFLOWS_LOCAL_ENABLED": local_workflows,
     }
 
     if _is_enabled(hydrate_module_required_env):

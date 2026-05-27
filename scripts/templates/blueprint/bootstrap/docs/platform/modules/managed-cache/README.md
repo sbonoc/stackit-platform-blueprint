@@ -59,9 +59,9 @@ After `make infra-managed-cache-apply` the runtime state is written to `artifact
 | `stack` | Active stack name |
 | `host` | Redis host |
 | `port` | Redis port |
-| `uri` | Redis URI (`redis://:<password>@<host>:<port>/0`) |
+| `uri` | Redis URI (`redis://:<password>@<host>:<port>/0`) — embeds password |
 
-**Security**: `password` is never written to the state file (NFR-SEC-001). Retrieve it at runtime via `managed_cache_password()`.
+**Security**: The `password` key is not written to the state file (NFR-SEC-001). The `uri` field embeds the password as part of the Redis connection string — treat `managed_cache_runtime.env` as a sensitive artifact. Retrieve the password independently at runtime via `managed_cache_password()`.
 
 ## URI Format
 

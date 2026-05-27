@@ -14,9 +14,9 @@
 ### Network ACL (NFR-SEC-002)
 - `stackit_redis_instance` declares `parameters = { sgw_acl = var.managed_cache_sgw_acl }`. The `managed_cache_sgw_acl` variable is required in the foundation workspace (no default) — operators must supply SKE egress CIDR ranges. Default open-world access (`0.0.0.0/0`) as the sole ACL entry is not permitted by convention and not set as a default. Confirmed at Slice 3 implementation (2026-05-27).
 
-### ESO credential delivery to consumers
-- Consumer workloads receive credentials via ESO ExternalSecret referencing a K8s Secret created by `managed_cache_reconcile_runtime_secret()` in the apply script. The K8s Secret contains `host`, `port`, `uri`, and `password`. This is the correct ESO-compatible pattern — etcd stores the K8s Secret, which is acceptable under the existing blueprint threat model (same pattern as rabbitmq, opensearch).
-- `MANAGED_CACHE_URI` is the canonical consumer credential; consumers should prefer URI over individual components.
+### K8s Secret reconciliation (local lane)
+- `managed_cache_reconcile_runtime_secret()` is called by the apply script (helm driver only) before Helm install. It creates or updates the `blueprint-managed-cache-auth` Secret in the `managed-cache` namespace with `redis-password=$MANAGED_CACHE_PASSWORD`. This follows the same pattern as rabbitmq and postgres local lane secret reconciliation.
+- ESO ExternalSecret delivery to consumer namespaces is tracked under issue #172 — out of scope for this module.
 
 ## Observability and Diagnostics Changes
 - No additional in-repo instrumentation required (NFR-OPS-001 scope only).

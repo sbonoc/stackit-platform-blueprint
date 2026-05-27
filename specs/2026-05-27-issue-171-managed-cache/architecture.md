@@ -77,9 +77,10 @@ _Caption: Provisioning flow for both lanes. Foundation-contract path (STACKIT) p
 
 ```mermaid
 flowchart TD
-    A[managed_cache_apply.sh] --> B[K8s Secret\nblueprint-managed-cache-auth\nin managed-cache namespace]
-    B --> C[ESO ExternalSecret\nin consumer namespace]
-    C --> D[Consumer Pod\nenv: MANAGED_CACHE_URI\nenv: MANAGED_CACHE_PASSWORD]
+    A[managed_cache_apply.sh\nhelm driver] --> B[managed_cache_reconcile_runtime_secret\ncreates blueprint-managed-cache-auth\nin managed-cache namespace]
+    B --> C[bitnami/redis Helm install\nrefs existingSecret]
+    D[future: issue 172] --> E[ESO ExternalSecret\nin consumer namespace]
+    E --> F[Consumer Pod\nenv: MANAGED_CACHE_URI\nenv: MANAGED_CACHE_PASSWORD]
 ```
 
-_Caption: Credential delivery from the apply script through ESO to consumer workloads. The K8s Secret is created by `managed_cache_reconcile_runtime_secret()`; ESO ExternalSecret is consumer-defined using the standard blueprint ExternalSecret pattern._
+_Caption: Local lane — `managed_cache_reconcile_runtime_secret()` creates the K8s Secret before Helm install so the bitnami/redis chart can reference it via `auth.existingSecret`. ESO ExternalSecret delivery to consumer namespaces is tracked under issue #172._

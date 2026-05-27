@@ -2,6 +2,8 @@
 set -euo pipefail
 
 source "$ROOT_DIR/scripts/lib/infra/stackit_foundation_outputs.sh"
+source "$ROOT_DIR/scripts/lib/infra/versions.sh"
+source "$ROOT_DIR/scripts/lib/infra/fallback_runtime.sh"
 source "$ROOT_DIR/scripts/lib/infra/profile.sh"
 
 managed_cache_seed_env_defaults() {
@@ -17,6 +19,27 @@ managed_cache_seed_env_defaults() {
 managed_cache_init_env() {
   managed_cache_seed_env_defaults
   require_env_vars MANAGED_CACHE_INSTANCE_NAME
+}
+
+managed_cache_password_secret_name() {
+  printf '%s-auth' "$MANAGED_CACHE_HELM_RELEASE"
+}
+
+managed_cache_reconcile_runtime_secret() {
+  apply_optional_module_secret_from_literals \
+    "$MANAGED_CACHE_NAMESPACE" \
+    "$(managed_cache_password_secret_name)" \
+    "redis-password=$MANAGED_CACHE_PASSWORD"
+}
+
+managed_cache_delete_runtime_secret() {
+  delete_optional_module_secret "$MANAGED_CACHE_NAMESPACE" "$(managed_cache_password_secret_name)"
+}
+
+managed_cache_render_values_file() {
+  render_optional_module_values_file \
+    "managed-cache" \
+    "infra/local/helm/managed-cache/values.yaml"
 }
 
 managed_cache_local_service_host() {
