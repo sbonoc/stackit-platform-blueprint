@@ -5,11 +5,11 @@
      SPEC_READY=true: implementation gate — all sign-offs required; unlocks coding. -->
 - SPEC_READY: false
 - SPEC_PRODUCT_READY: false
-- Open questions count: 1
-- Unresolved alternatives count: 1
+- Open questions count: 0
+- Unresolved alternatives count: 0
 - Unresolved TODO markers count: 0
 - Pending assumptions count: 0
-- Open clarification markers count: 1
+- Open clarification markers count: 0
 - Product sign-off: pending
 - Architecture sign-off: pending
 - Security sign-off: pending
@@ -68,15 +68,7 @@
 
 ## Normative Option Decision
 
-> **[NEEDS CLARIFICATION: Which STACKIT backend is the Secrets Store CSI Driver required to use to retrieve observability credentials?]**
->
-> **Options:**
-> - **A) STACKIT Secrets Manager + Vault provider** — STACKIT Secrets Manager exposes a Vault-compatible API; the CSI driver's Vault provider connects to it directly. Secrets Manager is already a blueprint module (`secrets-manager`). Credentials are written to Secrets Manager by Terraform after the observability instance is provisioned. No new STACKIT service is introduced. (agent recommendation)
-> - **B) STACKIT KMS** — STACKIT KMS manages encryption keys (encrypt/decrypt/sign operations); it does not expose a Vault secret-read API that the CSI driver Vault provider can consume. Using KMS as the CSI driver backend would require a custom provider plugin or a KMS-specific CSI driver that does not currently exist in the STACKIT ecosystem. This option is architecturally inconsistent with the CSI driver's provider model.
->
-> **Agent recommendation:** Option A. The issue names "STACKIT KMS" likely as shorthand for the broader secret management layer; KMS is a key management service, not a secret store. STACKIT Secrets Manager (Vault-compatible API) is the correct backend for the Vault provider of the Secrets Store CSI Driver.
-
-- Selected option: [NEEDS CLARIFICATION: pending stakeholder decision — see open question above]
+- Selected option: **Option A — STACKIT Secrets Manager + Vault provider**. STACKIT Secrets Manager exposes a Vault-compatible API; the CSI driver's Vault provider connects to it directly. Credentials are written to Secrets Manager by Terraform after the observability instance is provisioned using the Vault Terraform provider. No new STACKIT service is introduced — Secrets Manager is already a blueprint module. Decision confirmed by @sbonoc (PR #329 comment, 2026-05-27).
 
 ## Contract Changes (Normative)
 - Config/Env contract: No new env vars introduced. `OBSERVABILITY_ENABLED` toggle unchanged. New implicit prerequisite: `SECRETS_MANAGER_ENABLED=true` on STACKIT profiles when `OBSERVABILITY_ENABLED=true`.

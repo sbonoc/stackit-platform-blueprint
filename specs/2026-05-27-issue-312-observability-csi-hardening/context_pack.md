@@ -3,7 +3,7 @@
 ## Context Snapshot
 - Work item: 2026-05-27-issue-312-observability-csi-hardening
 - Track: blueprint
-- SPEC_READY: false (1 open question — CSI backend choice pending stakeholder decision)
+- SPEC_READY: false (0 open questions — all resolved; awaiting full sign-off to unlock implementation)
 - ADR path: docs/blueprint/architecture/decisions/ADR-issue-312-observability-csi-hardening.md
 - ADR status: proposed
 
