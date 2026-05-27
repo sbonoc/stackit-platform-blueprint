@@ -3,20 +3,20 @@
 ## Spec Readiness Gate (Blocking)
 <!-- SPEC_PRODUCT_READY=true: intake gate — Product sign-off only; unlocks agent ADR drafting.
      SPEC_READY=true: implementation gate — all sign-offs required; unlocks coding. -->
-- SPEC_READY: false
-- SPEC_PRODUCT_READY: false
+- SPEC_READY: true
+- SPEC_PRODUCT_READY: true
 - Open questions count: 0
 - Unresolved alternatives count: 0
 - Unresolved TODO markers count: 0
 - Pending assumptions count: 0
 - Open clarification markers count: 0
-- Product sign-off: pending
-- Architecture sign-off: pending
-- Security sign-off: pending
-- Operations sign-off: pending
+- Product sign-off: approved
+- Architecture sign-off: approved
+- Security sign-off: approved
+- Operations sign-off: approved
 - Missing input blocker token: none
 - ADR path: docs/blueprint/architecture/decisions/ADR-issue-171-managed-cache.md
-- ADR status: proposed
+- ADR status: approved
 - SPEC_READY_EXCEPTION: none
 - authorized-by: none
 
@@ -64,13 +64,13 @@
 
 - FR-005 MUST create `scripts/bin/infra/managed_cache_plan.sh`, `managed_cache_apply.sh`, `managed_cache_smoke.sh`, and `managed_cache_destroy.sh` following the rabbitmq bin script pattern. The apply script MUST write `managed_cache_runtime.env` via `write_state_file` with keys: `profile`, `stack`, `host`, `port`, `uri`. The apply script MUST NOT write `password` to the state file (SDD-C-009).
 
-- FR-006 MUST create `blueprint/modules/managed-cache/module.contract.yaml` following the `OptionalModuleContract` schema. MUST declare `MANAGED_CACHE_ENABLED` as `enable_flag`, outputs `MANAGED_CACHE_HOST`, `MANAGED_CACHE_PORT`, `MANAGED_CACHE_PASSWORD`, `MANAGED_CACHE_URI`, make targets `infra-managed-cache-plan/apply/smoke/destroy`, and path entries for terraform, helm, docs, and tests.
+- FR-006 MUST create `blueprint/modules/managed-cache/module.contract.yaml` following the `OptionalModuleContract` schema. MUST declare `MANAGED_CACHE_ENABLED` as `enable_flag`, outputs `MANAGED_CACHE_HOST`, `MANAGED_CACHE_PORT`, `MANAGED_CACHE_USERNAME`, `MANAGED_CACHE_PASSWORD`, `MANAGED_CACHE_URI`, make targets `infra-managed-cache-plan/apply/smoke/destroy`, and path entries for terraform, helm, docs, and tests.
 
 - FR-007 MUST register the module in `blueprint/contract.yaml` under `optional_modules`.
 
 - FR-008 MUST add `infra-managed-cache-plan`, `infra-managed-cache-apply`, `infra-managed-cache-smoke`, and `infra-managed-cache-destroy` make targets to `make/blueprint.generated.mk` and its template `scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl`. All four MUST appear in `.PHONY`.
 
-- FR-009 MUST create `tests/infra/modules/managed-cache/test_managed_cache_module.py` with ≥ 10 assertions covering: module contract file exists; `MANAGED_CACHE_ENABLED` flag declared; all four outputs declared; `managed_cache_host/port/password/uri` functions present in shell lib; `infra-managed-cache-apply` target in Makefile template; TF module `main.tf` exists; runtime state MUST NOT contain password.
+- FR-009 MUST create `tests/infra/modules/managed-cache/test_managed_cache_module.py` with ≥ 10 assertions covering: module contract file exists; `MANAGED_CACHE_ENABLED` flag declared; all five outputs declared (HOST, PORT, USERNAME, PASSWORD, URI); `managed_cache_host/port/username/password/uri` functions present in shell lib; `infra-managed-cache-apply` target in Makefile template; TF module `main.tf` exists; runtime state MUST NOT contain password.
 
 - FR-010 MUST create `docs/platform/modules/managed-cache/README.md` documenting: activation (`MANAGED_CACHE_ENABLED=true`), required inputs, produced outputs, `MANAGED_CACHE_URI` format, make target usage, rollback procedure, and the relationship to `platform-email` (issue #172).
 

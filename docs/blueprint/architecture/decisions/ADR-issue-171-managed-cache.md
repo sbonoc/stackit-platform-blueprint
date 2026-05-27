@@ -1,8 +1,8 @@
 # ADR — issue-171-managed-cache: Managed Cache Optional Module (STACKIT Redis + bitnami/redis)
 
-**Status:** proposed
+**Status:** approved
 **Date:** 2026-05-27
-**ADR technical decision sign-off:** pending
+**ADR technical decision sign-off:** approved — @sbonoc (PR #330, 2026-05-27)
 
 ## Context
 
@@ -61,4 +61,3 @@ Network ACL is set via `parameters.sgw_acl` (a comma-separated CIDR string) — 
 - `MANAGED_CACHE_ENABLED=false` (the default) means zero impact on existing consumers — no new TF resources, no new K8s objects, no new make targets invoked automatically.
 - `platform-email` module (issue #172) can depend on `MANAGED_CACHE_URI` as its Redis backing store once this module is merged.
 - bitnami/redis local lane is subject to the same migration scope as bitnami/postgresql when issue #324 lands.
-- Q-1 resolution is required before any `terraform apply` on a STACKIT profile — implementation is deliberately blocked at plan time.
