@@ -21,15 +21,17 @@
 - High-risk files: `scripts/lib/infra/managed_cache.sh` (`is_stackit_profile` lane branching must not break local path); `infra/cloud/stackit/terraform/modules/managed-cache/main.tf` (TF resource name blocked on Q-1 resolution); `scripts/templates/blueprint/bootstrap/make/blueprint.generated.mk.tmpl` (additive change; must not clobber existing targets).
 
 ## Validation Evidence
-- Required commands executed: pending implementation
-- Result summary: pending implementation
+- `python3 -m pytest tests/infra/modules/managed-cache/ -x -q` → 25 passed in 0.03s (2026-05-27)
+- `make infra-contract-test-fast` → PASS (2026-05-27)
+- `make infra-validate` → PASS (2026-05-27)
+- `make quality-hooks-fast` → 10/11 checks PASS; `quality-spec-pr-ready` blocked on unchecked publish tasks (resolved by marking P-001/P-002/P-003 [x])
 - Artifact references: `traceability.md`, `hardening_review.md`
 
 ## Open Questions
 - Q-1 resolved (2026-05-27): `stackit_redis_instance` + `stackit_redis_credential` confirmed from provider registry (`stackitcloud/stackit` v0.88.x). Credential attrs: `host`, `port`, `username`, `password` (sensitive), `uri`. ACL via `parameters.sgw_acl`. No open questions remain.
 
 ## Risk and Rollback
-- Main risks: STACKIT Redis TF resource name is inferred (Q-1); if incorrect, `terraform apply` fails and must be corrected before any STACKIT lane apply. Local bitnami/redis is subject to the same deprecation risk as bitnami/postgresql (issue #324).
+- Main risks: Q-1 fully resolved (2026-05-27) — `stackit_redis_instance` + `stackit_redis_credential` confirmed from provider registry. Local bitnami/redis is subject to the same deprecation risk as bitnami/postgresql (issue #324).
 - Rollback strategy: `make infra-managed-cache-destroy` (STACKIT: destroys TF resources; local: `helm uninstall blueprint-managed-cache -n managed-cache`). No data migration required — consumer data loss on destroy is expected and documented in README.
 
 ## Deferred Proposals

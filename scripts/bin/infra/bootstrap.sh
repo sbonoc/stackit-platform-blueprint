@@ -12,6 +12,7 @@ source "$ROOT_DIR/scripts/lib/blueprint/bootstrap_templates.sh"
 source "$ROOT_DIR/scripts/lib/infra/postgres.sh"
 source "$ROOT_DIR/scripts/lib/infra/object_storage.sh"
 source "$ROOT_DIR/scripts/lib/infra/rabbitmq.sh"
+source "$ROOT_DIR/scripts/lib/infra/managed_cache.sh"
 source "$ROOT_DIR/scripts/lib/infra/opensearch.sh"
 source "$ROOT_DIR/scripts/lib/infra/public_endpoints.sh"
 source "$ROOT_DIR/scripts/lib/infra/identity_aware_proxy.sh"
@@ -361,6 +362,9 @@ bootstrap_module_scaffold() {
         "RABBITMQ_IMAGE_REPOSITORY=$RABBITMQ_IMAGE_REPOSITORY" \
         "RABBITMQ_IMAGE_TAG=$RABBITMQ_IMAGE_TAG"
       ;;
+    managed-cache)
+      ensure_infra_template_file "infra/local/helm/managed-cache/values.yaml"
+      ;;
     public-endpoints)
       public_endpoints_seed_env_defaults
       ensure_file_from_rendered_template \
@@ -466,6 +470,11 @@ bootstrap_optional_module_scaffolding() {
   if is_module_enabled rabbitmq; then
     bootstrap_module_scaffold rabbitmq true false
     scaffolded_modules+=("rabbitmq")
+  fi
+
+  if is_module_enabled managed-cache; then
+    bootstrap_module_scaffold managed-cache true false
+    scaffolded_modules+=("managed-cache")
   fi
 
   if is_module_enabled opensearch; then
@@ -665,6 +674,7 @@ report_disabled_module_scaffolding_preserved() {
     neo4j
     object-storage
     rabbitmq
+    managed-cache
     opensearch
     dns
     public-endpoints

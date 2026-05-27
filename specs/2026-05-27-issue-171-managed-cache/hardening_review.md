@@ -1,7 +1,7 @@
 # Hardening Review
 
 ## Repository-Wide Findings Fixed
-- Finding: no repository-wide hardening regressions introduced at intake stage. To be confirmed at implementation time by running `make quality-hooks-fast` and the full pytest suite.
+- Finding: no repository-wide hardening regressions introduced. Confirmed at implementation time: `make quality-hooks-fast` passes 10/11 checks (quality-spec-pr-ready resolves when publish tasks are marked [x]); `python3 -m pytest tests/infra/modules/managed-cache/ -x -q` → 25 passed (2026-05-27).
 
 ## Security Review
 
@@ -12,8 +12,7 @@
 - Test assertion `test_runtime_state_does_not_contain_password` enforces this constraint.
 
 ### Network ACL (NFR-SEC-002)
-- `stackit_redis_instance` MUST declare a network ACL block aligned with SKE egress CIDR ranges. The same `auto_align_with_ske_egress_ranges` policy used for postgres applies here. Default open-world access (`0.0.0.0/0`) MUST NOT be the sole ACL entry.
-- To be verified at Slice 3 implementation time against the STACKIT provider schema (blocked on Q-1 resolution).
+- `stackit_redis_instance` declares `parameters = { sgw_acl = var.managed_cache_sgw_acl }`. The `managed_cache_sgw_acl` variable is required in the foundation workspace (no default) — operators must supply SKE egress CIDR ranges. Default open-world access (`0.0.0.0/0`) as the sole ACL entry is not permitted by convention and not set as a default. Confirmed at Slice 3 implementation (2026-05-27).
 
 ### ESO credential delivery to consumers
 - Consumer workloads receive credentials via ESO ExternalSecret referencing a K8s Secret created by `managed_cache_reconcile_runtime_secret()` in the apply script. The K8s Secret contains `host`, `port`, `uri`, and `password`. This is the correct ESO-compatible pattern — etcd stores the K8s Secret, which is acceptable under the existing blueprint threat model (same pattern as rabbitmq, opensearch).

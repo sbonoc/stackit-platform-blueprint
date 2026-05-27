@@ -1,0 +1,11 @@
+fullnameOverride: "blueprint-managed-cache"
+image:
+  registry: "docker.io"
+  repository: "bitnami/redis"
+architecture: standalone
+auth:
+  enabled: true
+  existingSecret: "blueprint-managed-cache-auth"
+  existingSecretPasswordKey: redis-password
+service:
+  type: ClusterIP

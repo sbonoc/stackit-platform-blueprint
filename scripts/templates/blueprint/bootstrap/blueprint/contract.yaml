@@ -619,6 +619,9 @@ spec:
         - infra/cloud/stackit/terraform/modules/rabbitmq
         - infra/local/helm/rabbitmq/values.yaml
         - tests/infra/modules/rabbitmq
+        - infra/cloud/stackit/terraform/modules/managed-cache
+        - infra/local/helm/managed-cache/values.yaml
+        - tests/infra/modules/managed-cache
         - infra/cloud/stackit/terraform/modules/opensearch
         - infra/local/helm/opensearch/values.yaml
         - tests/infra/modules/opensearch
@@ -1144,6 +1147,7 @@ spec:
         - docs/platform/modules/neo4j/README.md
         - docs/platform/modules/object-storage/README.md
         - docs/platform/modules/rabbitmq/README.md
+        - docs/platform/modules/managed-cache/README.md
         - docs/platform/modules/opensearch/README.md
         - docs/platform/modules/dns/README.md
         - docs/platform/modules/public-endpoints/README.md

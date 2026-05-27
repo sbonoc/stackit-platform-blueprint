@@ -2,17 +2,17 @@
   "manifest_version": 1,
   "work_item": "2026-05-27-issue-171-managed-cache",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "2026-05-27T00:00:00Z",
+  "generated_at_utc": "2026-05-27T17:45:00Z",
   "files": [
     { "path": "specs/2026-05-27-issue-171-managed-cache/spec.md", "role": "spec", "sha256": "c662438953400182eee9a000674b43e1d60e1d804aa6f0516a1c6990336e5d54" },
     { "path": "specs/2026-05-27-issue-171-managed-cache/architecture.md", "role": "architecture", "sha256": "3664b0755d3b420e2cf3097fc927d60ff37a26738817465ab05da1811eded862" },
-    { "path": "specs/2026-05-27-issue-171-managed-cache/plan.md", "role": "plan", "sha256": "2e086c7eff19559927efd5411a5a844b8f4053d5232d0914ee2e5632352c58cd" },
-    { "path": "specs/2026-05-27-issue-171-managed-cache/tasks.md", "role": "tasks", "sha256": "dbc71747ed53819a1ce550ba5bfb49682882cea10cd678beb17de1e99b879ddf" },
-    { "path": "specs/2026-05-27-issue-171-managed-cache/traceability.md", "role": "traceability", "sha256": "ffe2b77009edd3450916136432149d0a001cdf8a5e4c449f5ce6cd227c49f8cc" },
+    { "path": "specs/2026-05-27-issue-171-managed-cache/plan.md", "role": "plan", "sha256": "ca995ab96b702f749117b3b8de72f785c55d667bd986563d99a82a03b941d5d4" },
+    { "path": "specs/2026-05-27-issue-171-managed-cache/tasks.md", "role": "tasks", "sha256": "a3c58987c99f7fb9e0d4b3514ecb8af59f002ff79ade84460797ba842a93acd8" },
+    { "path": "specs/2026-05-27-issue-171-managed-cache/traceability.md", "role": "traceability", "sha256": "6fc2c90d5f04d3fc1779ebafc961172bbc0e1964bb59946ab988d0c7c164eca5" },
     { "path": "specs/2026-05-27-issue-171-managed-cache/graph.json", "role": "graph", "sha256": "0c9b3046f951f6b714cd1b5428ff0b26782375767c57032565dcc76e2eaf4349" },
     { "path": "specs/2026-05-27-issue-171-managed-cache/context_pack.md", "role": "context", "sha256": "b48ed7039c74cda4ce7f5591496e2bfd9272567b5d012ecf3a2ec3eec39ad1d6" },
-    { "path": "specs/2026-05-27-issue-171-managed-cache/pr_context.md", "role": "pr_context", "sha256": "970dcee663dd56df8979fd5d4de84e5c33139d76d6da1e9efb74ff29d1eb110f" },
-    { "path": "specs/2026-05-27-issue-171-managed-cache/hardening_review.md", "role": "hardening", "sha256": "25360fc1b73c361799557507db652e6d490517b39d6ad8524aa039d428b5e6ba" },
+    { "path": "specs/2026-05-27-issue-171-managed-cache/pr_context.md", "role": "pr_context", "sha256": "7c3cc798617f5f0ed3bc49fe20cb104aa2dee4295dd56674477e6d91f9bea9e0" },
+    { "path": "specs/2026-05-27-issue-171-managed-cache/hardening_review.md", "role": "hardening", "sha256": "3ad9b69347ecec5d6a9b7fc03335280bc9f8271529cb6d27292e248c9d565cb5" },
     { "path": "docs/blueprint/architecture/decisions/ADR-issue-171-managed-cache.md", "role": "adr", "sha256": "0db7372daa995c25dce3ef7f564baed4c3731ccd1369d3239651a4c5ae10e763" }
   ]
 }
