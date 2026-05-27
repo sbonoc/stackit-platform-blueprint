@@ -2,7 +2,7 @@
   "manifest_version": 1,
   "work_item": "specs/2026-05-26-issue-248-observability-enhancements",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "2026-05-27T07:24:40Z",
+  "generated_at_utc": "2026-05-27T08:11:03Z",
   "files": [
     {
       "path": "specs/2026-05-26-issue-248-observability-enhancements/architecture.md",
@@ -16,8 +16,8 @@
     },
     {
       "path": "specs/2026-05-26-issue-248-observability-enhancements/evidence_manifest.json",
-      "sha256": "b8f6a2e4de983d90091e69a3964d4022d7d352dd930bf29308219b223c515713",
-      "bytes": 2228
+      "sha256": "9b09409648b54aed1762e260c1e9fef1504207acb10298610c309ae856bf313f",
+      "bytes": 2229
     },
     {
       "path": "specs/2026-05-26-issue-248-observability-enhancements/graph.json",
@@ -36,8 +36,8 @@
     },
     {
       "path": "specs/2026-05-26-issue-248-observability-enhancements/pr_context.md",
-      "sha256": "92e6085fa15eb08765ac5a7b867bff36730b267f1aaa5e1ec3e0417401d7a004",
-      "bytes": 4442
+      "sha256": "86e74f19ac7a5a7f92283f0484b33916be8b9e6dda2edf9574fbf33b056e25c8",
+      "bytes": 4597
     },
     {
       "path": "specs/2026-05-26-issue-248-observability-enhancements/spec.md",
@@ -51,8 +51,8 @@
     },
     {
       "path": "specs/2026-05-26-issue-248-observability-enhancements/traceability.md",
-      "sha256": "42fada26c33aaaad38c6688d82c95d811a1b01a0de0a276014caed7e06c04d99",
-      "bytes": 8002
+      "sha256": "7b5175074ba5ad1f12d745012afd23814259d0cb0fd355ce7e61c7194cf1c497",
+      "bytes": 8567
     }
   ]
 }

@@ -36,4 +36,4 @@
 - Proposal A (implemented, PR #327): Faro per-origin CORS — `FARO_CORS_ALLOWED_ORIGINS` now wired via OTC `${env:...}` substitution with `extraEnvs` default `*`; consumers override in ArgoCD Application `extraEnvs`. Single-origin strings supported; multi-origin not possible via single env var.
 - Proposal B (rejected): `OBSERVABILITY_RETENTION_DAYS` shell contract — retention is a TF-level concern; OTEL Collector has no mechanism to act on it; a dangling contract var would mislead consumers.
 - Proposal C (rejected): Langfuse integration — consumer-specific LLM observability; not appropriate for the generic blueprint module.
-- Proposal D (parked): Replacing `grafana/k8s-monitoring` with separate charts — low value vs. maintenance cost; deferred indefinitely.
+- Proposal D: Replacing `grafana/k8s-monitoring` with separate charts — Parked — trigger: on-scope: observability — disruptive refactor, low value vs. maintenance cost given k8s-monitoring covers the full local stack as a single chart.

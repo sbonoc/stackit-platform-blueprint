@@ -118,6 +118,9 @@ Surface automatically when the named scope is next touched. Do not promote to ac
       trigger: on-scope: observability
 - [x] (rejected) proposal(issue-248-observability-module): Langfuse integration — rejected. Consumer-specific LLM observability tooling; not appropriate for the generic blueprint module. Consumers may integrate Langfuse in their own app layers.
       trigger: on-scope: observability
+- [ ] (parked) proposal(issue-248-observability-module): Replace `grafana/k8s-monitoring` with separate charts — disruptive refactor (Grafana + Prometheus + Loki + Tempo as individual Helm releases); low value vs. maintenance cost given k8s-monitoring covers the same stack as a single chart.
+      trigger: on-scope: observability
+      rationale: k8s-monitoring covers the full local observability stack; splitting would add per-chart upgrade and config burden; deferred until a consumer reports a concrete capability gap blocked by the bundled chart
 - [ ] (parked) proposal(issue-248-observability-module): Evaluate a provider-backed Logs/LogMe module or baseline observability extension using STACKIT Terraform resources
       trigger: on-scope: observability
       rationale: no active consumer need for a dedicated Logs service module; surfaces when a consumer requests LogMe or a second observability extension
