@@ -964,6 +964,20 @@ class CsiHardeningTests(unittest.TestCase):
             msg="prod/observability.yaml must reference SecretProviderClass for CSI volume (FR-003, T-303)",
         )
 
+    def test_secret_provider_class_namespace_is_observability(self) -> None:
+        for path, env in [(_ARGOCD_DEV, "dev"), (_ARGOCD_STAGE, "stage"), (_ARGOCD_PROD, "prod")]:
+            content = path.read_text(encoding="utf-8")
+            spc_block = re.search(r'kind: SecretProviderClass.*?(?=\n---|\Z)', content, re.DOTALL)
+            self.assertIsNotNone(
+                spc_block,
+                msg=f"{env}/observability.yaml must contain a SecretProviderClass document (NFR-SEC-003)",
+            )
+            self.assertIn(
+                "namespace: observability",
+                spc_block.group(0),
+                msg=f"{env}/observability.yaml SecretProviderClass must be scoped to namespace: observability (NFR-SEC-003)",
+            )
+
     # Slice 4: Shell deprecation guard
 
     def test_reconcile_runtime_secret_deprecation_guard(self) -> None:

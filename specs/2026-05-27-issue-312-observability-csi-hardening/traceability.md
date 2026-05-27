@@ -15,7 +15,7 @@
 | FR-009 | SDD-C-007 | N/A | Updated/removed test assertions for K8s Secret lifecycle | `tests/infra/modules/observability/test_contract.py` | All 83+ assertions pass after update | — | — |
 | FR-010 | SDD-C-007 | N/A | New CSI volume assertions | `tests/infra/modules/observability/test_contract.py` | `test_stackit_values_uses_csi_volume`, `test_stackit_values_no_secret_volume`, `test_secret_provider_class_referenced` | — | — |
 | NFR-SEC-001 | SDD-C-009 | N/A | CSI volume replaces K8s Secret; no etcd write | STACKIT OTC values + TF module | `test_stackit_values_no_secret_volume`; AC-001 | `docs/platform/modules/observability/README.md` Security section | `kubectl get secret blueprint-observability-auth -n observability` → NotFound |
-| NFR-SEC-002 | SDD-C-009 | N/A | Credentials not written to state files | `observability_apply.sh`, `observability_destroy.sh` | `test_apply_does_not_write_password_to_state` (existing) | — | — |
+| NFR-SEC-002 | SDD-C-009 | N/A | Credentials not written to state files | `observability_apply.sh`, `observability_destroy.sh` | `test_runtime_state_does_not_contain_password` (existing) | — | — |
 | NFR-SEC-003 | SDD-C-009 | N/A | `SecretProviderClass` scoped to `observability` namespace | `SecretProviderClass` manifest | `test_secret_provider_class_namespace_is_observability` | — | — |
 | NFR-OBS-001 | SDD-C-010 | N/A | STACKIT Secrets Manager access logs | STACKIT Secrets Manager (external) | AC-003 (smoke) | `docs/platform/modules/observability/README.md` | Secrets Manager audit logs |
 | NFR-REL-001 | SDD-C-011 | N/A | CSI mount failure = pod stays in ContainerCreating | Kubernetes default behaviour | AC-003 | `docs/platform/modules/observability/README.md` | Pod events |
@@ -25,16 +25,16 @@
 | AC-002 | SDD-C-007 | N/A | OTC pod starts; tmpfs mount populated | CSI driver + SecretProviderClass + TF | `test_stackit_values_uses_csi_volume` | — | OTC pod Running; smoke passes |
 | AC-003 | SDD-C-007 | N/A | Smoke passes on STACKIT profile | All slices | `make infra-observability-smoke` | — | Smoke state `status=passed` |
 | AC-004 | SDD-C-007 | N/A | All unit assertions pass | `test_contract.py` updated | pytest exit 0 | — | — |
-| AC-005 | SDD-C-007 | N/A | Local lane unchanged | `observability_apply.sh` local branch | `test_local_apply_still_calls_reconcile` | — | Local smoke passes |
+| AC-005 | SDD-C-007 | N/A | Local lane unchanged | `observability_apply.sh` local branch | `test_reconcile_runtime_secret_function_exists`, `test_reconcile_targets_blueprint_observability_auth` (existing) | — | Local smoke passes |
 
 ## Graph Linkage
 - Graph file: `graph.json`
 - Node IDs referenced: FR-001 through FR-010, NFR-SEC-001 through NFR-SEC-003, NFR-OBS-001, NFR-REL-001, NFR-OPS-001, NFR-A11Y-001, AC-001 through AC-005
 
 ## Validation Summary
-- Required bundles executed: pending
-- Result summary: pending
-- Documentation validation: `make quality-docs-check-changed`
+- Required bundles executed: `make quality-hooks-fast` (all 11 checks pass, includes `infra-validate`); `make blueprint-test-unit` (1064 passed, 38 subtests passed); `make infra-observability-smoke` deferred — STACKIT live cluster only (AC-003, manual acceptance criterion, documented in `pr_context.md`)
+- Result summary: All automated gates green. STACKIT smoke (AC-003) is post-merge manual validation; no automated equivalent exists for a live STACKIT cluster.
+- Documentation validation: `make quality-docs-check-changed` — PASS (included in `quality-hooks-fast`)
 
 ## Evidence Manifest
 - Manifest file: `evidence_manifest.json`
