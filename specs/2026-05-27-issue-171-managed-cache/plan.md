@@ -7,8 +7,12 @@
 ## Delivery Approach
 Red → green TDD order. Each slice writes failing tests first, then implements the minimum code to pass them. Quality gate (`make infra-contract-test-fast`) runs after every slice.
 
-## Prerequisite: Resolve Q-1 before Slice 3
-Slices 1, 2, 4, 5, 6 are independent of Q-1. Slice 3 (TF module) MUST NOT be started until the STACKIT Redis TF resource name is confirmed (verify via `terraform providers schema -json` or provider changelog for version `= 0.88.0`).
+## Dependency Order and Parallelism
+- Q-1 resolved (2026-05-27): `stackit_redis_instance` + `stackit_redis_credential` confirmed. All slices unblocked.
+- Slice 1 MUST complete before any other slice starts (establishes contract and shell lib skeleton).
+- Slices 2, 3, and 4 are independent of each other and MAY be executed in parallel (specialized-subagents-isolated-worktrees execution model).
+- Slice 5 MUST start after Slice 1. It benefits from Slice 3 being complete first (STACKIT lane branching), but STACKIT lane tests can be deferred to Slice 5 gate if Slice 3 is still in-flight.
+- Slice 6 MUST start after Slice 5.
 
 ## Slices
 
@@ -20,16 +24,17 @@ Slices 1, 2, 4, 5, 6 are independent of Q-1. Slice 3 (TF module) MUST NOT be sta
 Red assertions:
 - `test_module_contract_file_exists`
 - `test_managed_cache_enabled_flag_declared`
-- `test_contract_outputs_declared` (MANAGED_CACHE_HOST, MANAGED_CACHE_PORT, MANAGED_CACHE_PASSWORD, MANAGED_CACHE_URI)
+- `test_contract_outputs_declared` (MANAGED_CACHE_HOST, MANAGED_CACHE_PORT, MANAGED_CACHE_USERNAME, MANAGED_CACHE_PASSWORD, MANAGED_CACHE_URI)
 - `test_managed_cache_host_function_exists`
 - `test_managed_cache_port_function_exists`
+- `test_managed_cache_username_function_exists`
 - `test_managed_cache_password_function_exists`
 - `test_managed_cache_uri_function_exists`
 
 Implementation:
 - Create `blueprint/modules/managed-cache/module.contract.yaml`
 - Add entry under `optional_modules` in `blueprint/contract.yaml`
-- Create `scripts/lib/infra/managed_cache.sh` with all functions stubbed
+- Create `scripts/lib/infra/managed_cache.sh` with all functions stubbed (including `managed_cache_username()`)
 
 Gate: `make infra-contract-test-fast`
 

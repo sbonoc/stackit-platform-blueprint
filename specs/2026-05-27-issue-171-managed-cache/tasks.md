@@ -1,16 +1,16 @@
 # Tasks
 
 ## Gate Checks (Required Before Implementation)
-- [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`
-- [ ] G-002 Confirm open questions and unresolved alternatives are `0`
+- [x] G-001 Confirm `SPEC_READY=true` in `spec.md` — confirmed 2026-05-27 (all four sign-offs recorded, PR #330)
+- [x] G-002 Confirm open questions and unresolved alternatives are `0` — confirmed 2026-05-27 (Q-1 resolved, 0 open questions)
 - [ ] G-003 Confirm Q-1 (STACKIT Redis TF resource name) is resolved before starting Slice 3
   - Resolved (2026-05-27): `stackit_redis_instance` + `stackit_redis_credential` confirmed from provider registry; credential attrs: `host`, `port`, `username`, `password`, `uri`; ACL via `parameters.sgw_acl`
 
 ## Slice 1 — Module contract + shell lib skeleton
-- [ ] T-101 Write failing test assertions (contract file, enable flag, outputs, shell functions)
-- [ ] T-102 Create `blueprint/modules/managed-cache/module.contract.yaml`
+- [ ] T-101 Write failing test assertions (contract file, enable flag, 5 outputs incl. USERNAME, 5 shell functions incl. managed_cache_username)
+- [ ] T-102 Create `blueprint/modules/managed-cache/module.contract.yaml` (outputs: HOST, PORT, USERNAME, PASSWORD, URI)
 - [ ] T-103 Register module in `blueprint/contract.yaml` under `optional_modules`
-- [ ] T-104 Create `scripts/lib/infra/managed_cache.sh` with stubbed functions
+- [ ] T-104 Create `scripts/lib/infra/managed_cache.sh` with all functions stubbed (host, port, username, password, uri)
 - [ ] T-105 Gate: `make infra-contract-test-fast` green
 
 ## Slice 2 — Make targets
@@ -20,7 +20,7 @@
 - [ ] T-204 Gate: `make infra-contract-test-fast` green
 
 ## Slice 3 — TF module
-- [ ] T-301 Resolve Q-1: verify STACKIT Redis TF resource name from provider schema
+- [ ] T-301 ~~Resolve Q-1~~ — pre-resolved at spec stage (2026-05-27): `stackit_redis_instance` + `stackit_redis_credential`; no implementation action required
 - [ ] T-302 Write failing test assertions (TF files, resource declarations, foundation wiring)
 - [ ] T-303 Create TF module files (`main.tf`, `variables.tf`, `outputs.tf`, `versions.tf`)
 - [ ] T-304 Add `managed_cache_enabled` variable to foundation `variables.tf`
