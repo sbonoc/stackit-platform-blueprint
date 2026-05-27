@@ -1,12 +1,13 @@
 # Hardening Review
 
 ## Repository-Wide Findings Fixed
-- No repository-wide hardening findings identified at intake. This section will be updated before publish phase with any findings discovered during implementation.
+- Finding: no repository-wide hardening regressions introduced; all 77 pre-existing unit assertions continue to pass and all quality-hooks-fast checks pass with no new failures.
 
 ## Security Review
 
 ### Faro receiver (NFR-SEC-001)
-- Faro receiver accepts telemetry-only payloads. It has no read access to STACKIT backends, no write path to secrets, and no authentication surface. CORS `allowed_origins: ["*"]` is appropriate for a telemetry ingress.
+- Faro receiver accepts telemetry-only payloads. It has no read access to STACKIT backends, no write path to secrets, and no authentication surface. CORS `allowed_origins: ["${env:FARO_CORS_ALLOWED_ORIGINS}"]` defaults to `*` via `extraEnvs`; consumers override by setting `FARO_CORS_ALLOWED_ORIGINS` in their ArgoCD Application inline values — no Helm redeploy required.
+- The OTC env substitution (`${env:VAR}`) uses a pod environment variable, not the file config provider. This is intentional: origin strings are non-sensitive and do not require Secret-based injection.
 - The Faro receiver port (12347) is in-cluster only; no NodePort or LoadBalancer Service is declared. Browser apps reach it via in-cluster DNS (`otel-collector.observability.svc.cluster.local:12347`), meaning only workloads running inside the cluster can push Faro telemetry. External browser access requires an explicit Ingress or Gateway route, which is out of scope.
 
 ### Dashboard provisioning (FR-013, NFR-OPS-002, NFR-OPS-003)
@@ -36,7 +37,7 @@
 - Color contrast — N/A.
 
 ## Proposals Only (Not Implemented)
-- **Faro per-origin CORS** — configuring CORS via env var injection into OTC Helm values is not supported by the file config provider pattern; deferred. Consumers can override inline ArgoCD values.
-- **`OBSERVABILITY_RETENTION_DAYS` shell contract** — retention is a TF-level concern; deferred to backlog.
-- **Langfuse integration** — consumer-specific; not appropriate for the generic blueprint module.
-- **Separate charts for local observability** — replacing `grafana/k8s-monitoring` with individual Grafana/Loki/Prometheus/Tempo charts; deferred indefinitely.
+- Proposal 1: Faro per-origin CORS — env var injection into OTC Helm values is not supported by the file config provider pattern; consumers can override via inline ArgoCD values; park on-scope: observability.
+- Proposal 2: `OBSERVABILITY_RETENTION_DAYS` shell contract — retention is a TF-level concern already configurable at TF level; park on-scope: observability.
+- Proposal 3: Langfuse integration — consumer-specific, not appropriate for the generic blueprint module; reject.
+- Proposal 4: Replace `grafana/k8s-monitoring` with separate charts — disruptive refactor, low value given k8s-monitoring covers the same stack; park on-scope: observability.

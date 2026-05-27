@@ -9,7 +9,7 @@ config:
       endpoint: 0.0.0.0:12347
       cors:
         allowed_origins:
-          - "*"
+          - "${env:FARO_CORS_ALLOWED_ORIGINS}"
 
   processors:
     memory_limiter:
@@ -51,6 +51,10 @@ config:
         receivers: [otlp, faro]
         processors: [memory_limiter, batch]
         exporters: [debug]
+
+extraEnvs:
+  - name: FARO_CORS_ALLOWED_ORIGINS
+    value: "*"
 
 ports:
   otlp:

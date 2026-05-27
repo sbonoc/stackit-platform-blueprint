@@ -30,9 +30,9 @@ Option A is consistent with `observability_dashboards_apply.sh` / `destroy.sh` n
 
 ## Decision 2: Faro CORS origin policy
 
-**Decision:** Default `allowed_origins: ["*"]`.
+**Decision:** Default `allowed_origins: ["${env:FARO_CORS_ALLOWED_ORIGINS}"]` with `extraEnvs` default `*`; consumers override via `FARO_CORS_ALLOWED_ORIGINS` in their ArgoCD Application `extraEnvs`.
 
-**Rationale:** Faro is a telemetry-only receiver. It does not proxy requests to STACKIT backends or carry credentials. The CORS `allowed_origins` field controls which browser origins the receiver accepts — it is not a security boundary for the observability backends. Setting `*` maximises compatibility with browser SDKs deployed on any domain, which is the expected consumer pattern. Consumers requiring stricter CORS (e.g., single-tenant production environments) can override the inline values in their ArgoCD Application manifests.
+**Rationale:** Faro is a telemetry-only receiver. It does not proxy requests to STACKIT backends or carry credentials. The CORS `allowed_origins` field controls which browser origins the receiver accepts — it is not a security boundary for the observability backends. Using OTC `${env:...}` substitution (pod env var, not the file config provider) wires the contract env var to the runtime config without requiring Helm value re-templating. The `extraEnvs` default of `*` maximises compatibility with browser SDKs deployed on any domain. Consumers requiring stricter CORS override the single env var in their ArgoCD Application inline values. Note: the OTC env substitution supports a single string value — multi-origin consumers must set a single wildcard pattern or use a proxy.
 
 ## Decision 3: Faro port selection
 

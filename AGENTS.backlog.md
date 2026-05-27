@@ -112,11 +112,12 @@ Surface automatically when the named scope is next touched. Do not promote to ac
 
 ### on-scope: observability
 
-- [x] (done) proposal(issue-248-observability-module): Faro browser telemetry endpoint — incorporated into 2026-05-26-issue-248-observability-enhancements (PR #327). Faro receiver added to both local and STACKIT lanes (port 12347, CORS `*`); `FARO_ENDPOINT` added to module contract outputs. Also covers: dashboard provisioning (kubectl convention dir + ConfigMap + Grafana sidecar); OTEL pipeline improvements (memory_limiter, filter/drop-healthcheck-spans, spanmetrics on local lane).
+- [x] (done) proposal(issue-248-observability-module): Faro browser telemetry endpoint — incorporated into 2026-05-26-issue-248-observability-enhancements (PR #327). Faro receiver added to both local and STACKIT lanes (port 12347); CORS `allowed_origins` wired via OTC env substitution `${env:FARO_CORS_ALLOWED_ORIGINS}` with `extraEnvs` default `*` — consumers override via ArgoCD Application `extraEnvs`; `FARO_ENDPOINT` added to module contract outputs. Also covers: dashboard provisioning (kubectl convention dir + ConfigMap + Grafana sidecar); OTEL pipeline improvements (memory_limiter, filter/drop-healthcheck-spans, spanmetrics on local lane).
       trigger: on-scope: observability
-- [ ] (parked) proposal(issue-248-observability-module): `OBSERVABILITY_RETENTION_DAYS` shell contract — surface TF-level retention vars (`observability_logs_retention_days`, `metrics_retention_days`, `traces_retention_days`) as a shell-layer contract variable
+- [x] (rejected) proposal(issue-248-observability-module): `OBSERVABILITY_RETENTION_DAYS` shell contract — rejected. Retention is enforced at the TF layer (STACKIT object storage lifecycle, Loki compactor). The OTEL Collector and shell scripts have no mechanism to act on a retention days value; adding it to the shell contract would create a dangling env var that consumers export but nothing consumes. Correct ownership: TF module inputs.
       trigger: on-scope: observability
-      rationale: low effort; deferred to avoid scope creep; retention already configurable at TF level
+- [x] (rejected) proposal(issue-248-observability-module): Langfuse integration — rejected. Consumer-specific LLM observability tooling; not appropriate for the generic blueprint module. Consumers may integrate Langfuse in their own app layers.
+      trigger: on-scope: observability
 - [ ] (parked) proposal(issue-248-observability-module): Evaluate a provider-backed Logs/LogMe module or baseline observability extension using STACKIT Terraform resources
       trigger: on-scope: observability
       rationale: no active consumer need for a dedicated Logs service module; surfaces when a consumer requests LogMe or a second observability extension

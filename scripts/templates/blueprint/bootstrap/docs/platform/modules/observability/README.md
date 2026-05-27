@@ -96,8 +96,9 @@ The OTEL Collector pipeline has been enhanced with the following processors and 
 
 All environments now expose a [Grafana Faro](https://grafana.com/oss/faro/) receiver at port 12347 for browser RUM telemetry. The receiver accepts Faro-protocol payloads and feeds them into the traces and logs pipelines.
 
-- Receiver config: `faro: { endpoint: 0.0.0.0:12347, cors: { allowed_origins: ["*"] } }`
-- CORS allowed origins default is `"*"` (override via `FARO_CORS_ALLOWED_ORIGINS`)
+- Receiver config: `faro: { endpoint: 0.0.0.0:12347, cors: { allowed_origins: ["${env:FARO_CORS_ALLOWED_ORIGINS}"] } }`
+- CORS allowed origins default is `"*"` set via `extraEnvs: [{ name: FARO_CORS_ALLOWED_ORIGINS, value: "*" }]`
+- To restrict origins: override `FARO_CORS_ALLOWED_ORIGINS` in your ArgoCD Application `extraEnvs` (single origin string; multi-origin not supported by OTC env substitution)
 - Port 12347 is declared in the Helm `ports` section: `faro: { enabled: true, containerPort: 12347, servicePort: 12347 }`
 
 ### memory_limiter Processor (OOM Protection)

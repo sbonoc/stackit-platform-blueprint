@@ -2,12 +2,12 @@
   "manifest_version": 1,
   "work_item": "specs/2026-05-26-issue-321-required-files-prepush-hook",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "2026-05-26T09:43:27Z",
+  "generated_at_utc": "2026-05-26T14:38:44Z",
   "files": [
     {
       "path": "specs/2026-05-26-issue-321-required-files-prepush-hook/evidence_manifest.json",
-      "sha256": "a57f17044f3df899a9b6977060a34ae465753f40333774e7d2f897e8619df167",
-      "bytes": 2237
+      "sha256": "f1949a9d8de491a318f9e7e0c2989a391596403ab87b1b22e70d51998de05c55",
+      "bytes": 819
     },
     {
       "path": "specs/2026-05-26-issue-321-required-files-prepush-hook/pr_context.md",

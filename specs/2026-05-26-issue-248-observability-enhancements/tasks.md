@@ -15,6 +15,13 @@
 - [x] T-106 Add `faro_endpoint` smoke validation in `observability_smoke.sh` (FR-008)
 - [x] T-107 Add ≥4 Slice 1 test assertions (faro_endpoint function, FARO_ENDPOINT in contract, faro_endpoint state key in mock, smoke validation present) (FR-018)
 
+## Slice 1b — FARO_CORS_ALLOWED_ORIGINS env injection (Proposal #1 accepted post-review)
+
+- [x] T-108 Wire `FARO_CORS_ALLOWED_ORIGINS` via OTC env substitution: `allowed_origins: ["${env:FARO_CORS_ALLOWED_ORIGINS}"]` + `extraEnvs` default `*` in local values, STACKIT values, dev/stage/prod ArgoCD manifests (NFR-SEC-001)
+- [x] T-109 Add 6 test assertions: env substitution in local/STACKIT values, extraEnv in local values, extraEnv in dev/stage/prod ArgoCD manifests (FR-018)
+- [x] T-110 Update spec.md FR-003, FR-004, FR-005, NFR-SEC-001 to reflect env injection pattern (FR-018)
+- [x] T-111 Update ADR Decision 2, README Faro CORS section, hardening_review.md security notes (FR-019)
+
 ## Slice 2 — OTEL pipeline improvements (values files + ArgoCD manifests)
 
 - [x] T-201 Add Faro receiver + port to `infra/local/helm/observability/otel-collector.values.yaml` (FR-003)
@@ -54,7 +61,10 @@
 
 ## Publish Phase
 
-- [ ] T-501 Populate `pr_context.md` with validation evidence and reviewed file list
-- [ ] T-502 Populate `evidence_manifest.json` (make spec-evidence-manifest SPEC_DIR=...)
-- [ ] T-503 Populate `hardening_review.md` with security and operational review
-- [ ] T-504 Mark PR ready for review (remove Draft status)
+- [x] T-501 Populate `pr_context.md` with validation evidence and reviewed file list
+- [x] T-502 Populate `evidence_manifest.json` (make spec-evidence-manifest SPEC_WORK_ITEM=2026-05-26-issue-248-observability-enhancements)
+- [x] T-503 Populate `hardening_review.md` with security and operational review
+- [x] T-504 Mark PR ready for review (remove Draft status)
+- [x] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
+- [x] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
+- [x] P-003 Ensure PR description follows repository template headings and references `pr_context.md`

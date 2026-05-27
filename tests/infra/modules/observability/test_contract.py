@@ -671,6 +671,48 @@ class FaroReceiverValuesTests(unittest.TestCase):
             msg="memory_limiter must appear before batch in STACKIT values (NFR-OPS-001, AC-006)",
         )
 
+    def test_local_values_cors_uses_env_substitution(self) -> None:
+        self.assertIn(
+            "${env:FARO_CORS_ALLOWED_ORIGINS}",
+            self._local_values(),
+            msg="local values must use OTC env substitution for FARO_CORS_ALLOWED_ORIGINS (NFR-SEC-001, FR-003)",
+        )
+
+    def test_stackit_values_cors_uses_env_substitution(self) -> None:
+        self.assertIn(
+            "${env:FARO_CORS_ALLOWED_ORIGINS}",
+            self._stackit_values(),
+            msg="STACKIT values must use OTC env substitution for FARO_CORS_ALLOWED_ORIGINS (NFR-SEC-001, FR-004)",
+        )
+
+    def test_local_values_has_faro_cors_extra_env(self) -> None:
+        self.assertIn(
+            "FARO_CORS_ALLOWED_ORIGINS",
+            self._local_values(),
+            msg="local values must declare FARO_CORS_ALLOWED_ORIGINS extraEnv with default * (FR-003)",
+        )
+
+    def test_argocd_dev_has_faro_cors_extra_env(self) -> None:
+        self.assertIn(
+            "FARO_CORS_ALLOWED_ORIGINS",
+            _ARGOCD_DEV.read_text(encoding="utf-8"),
+            msg="dev/observability.yaml must declare FARO_CORS_ALLOWED_ORIGINS extraEnv (FR-005)",
+        )
+
+    def test_argocd_stage_has_faro_cors_extra_env(self) -> None:
+        self.assertIn(
+            "FARO_CORS_ALLOWED_ORIGINS",
+            _ARGOCD_STAGE.read_text(encoding="utf-8"),
+            msg="stage/observability.yaml must declare FARO_CORS_ALLOWED_ORIGINS extraEnv (FR-005)",
+        )
+
+    def test_argocd_prod_has_faro_cors_extra_env(self) -> None:
+        self.assertIn(
+            "FARO_CORS_ALLOWED_ORIGINS",
+            _ARGOCD_PROD.read_text(encoding="utf-8"),
+            msg="prod/observability.yaml must declare FARO_CORS_ALLOWED_ORIGINS extraEnv (FR-005)",
+        )
+
 
 class DashboardProvisioningTests(unittest.TestCase):
     """FR-012 through FR-017 — dashboard provisioning scripts, make targets, seed dashboard."""

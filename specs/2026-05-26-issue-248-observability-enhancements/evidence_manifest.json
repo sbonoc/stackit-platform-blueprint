@@ -1,7 +1,58 @@
 {
   "manifest_version": 1,
-  "work_item": "2026-05-26-issue-248-observability-enhancements",
+  "work_item": "specs/2026-05-26-issue-248-observability-enhancements",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "",
-  "files": []
+  "generated_at_utc": "2026-05-27T07:24:40Z",
+  "files": [
+    {
+      "path": "specs/2026-05-26-issue-248-observability-enhancements/architecture.md",
+      "sha256": "287b4f51b5efe11b671159b203255aa2e77f3592ef241378e1b600ee52a637bd",
+      "bytes": 4949
+    },
+    {
+      "path": "specs/2026-05-26-issue-248-observability-enhancements/context_pack.md",
+      "sha256": "821556bce185e45d05199e31afeb57b47ddd235480964b973bb01102bac9c21a",
+      "bytes": 2639
+    },
+    {
+      "path": "specs/2026-05-26-issue-248-observability-enhancements/evidence_manifest.json",
+      "sha256": "b8f6a2e4de983d90091e69a3964d4022d7d352dd930bf29308219b223c515713",
+      "bytes": 2228
+    },
+    {
+      "path": "specs/2026-05-26-issue-248-observability-enhancements/graph.json",
+      "sha256": "b6b18e214f6d7b1ec6266c1d42a445e1861855520c8a6d3de9367c0f85ee5a40",
+      "bytes": 8844
+    },
+    {
+      "path": "specs/2026-05-26-issue-248-observability-enhancements/hardening_review.md",
+      "sha256": "d7da13b62e25af54435b0595bd5b3a47d58fc016a4a748eb256f963e80f0b9ca",
+      "bytes": 4329
+    },
+    {
+      "path": "specs/2026-05-26-issue-248-observability-enhancements/plan.md",
+      "sha256": "2a4014bcd882ca64ffccea13a593c03af265ae2be48d320272317fdde03bd335",
+      "bytes": 3846
+    },
+    {
+      "path": "specs/2026-05-26-issue-248-observability-enhancements/pr_context.md",
+      "sha256": "92e6085fa15eb08765ac5a7b867bff36730b267f1aaa5e1ec3e0417401d7a004",
+      "bytes": 4442
+    },
+    {
+      "path": "specs/2026-05-26-issue-248-observability-enhancements/spec.md",
+      "sha256": "14bb0e79b863450fb7d47630c29c97c9c2274c5d34dc75025f43300de8167ef1",
+      "bytes": 16712
+    },
+    {
+      "path": "specs/2026-05-26-issue-248-observability-enhancements/tasks.md",
+      "sha256": "b724d2b1911de4043d5c7c15f293e7a4548eeacb7ff44216e717d44e18e2f536",
+      "bytes": 6199
+    },
+    {
+      "path": "specs/2026-05-26-issue-248-observability-enhancements/traceability.md",
+      "sha256": "42fada26c33aaaad38c6688d82c95d811a1b01a0de0a276014caed7e06c04d99",
+      "bytes": 8002
+    }
+  ]
 }

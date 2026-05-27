@@ -24,8 +24,8 @@
   - `tests/infra/modules/observability/test_contract.py` — ≥12 new assertions
 
 ## Validation Evidence
-- Required commands executed: (to be filled at publish phase)
-- Result summary: (to be filled at publish phase)
+- Required commands executed: pytest tests/infra/modules/observability/ (83 passed, 27 new); make quality-sdd-check (pass); make quality-docs-check-changed (pass); make quality-hardening-review (pass); make quality-validate-bootstrap-template-drift (pass)
+- Result summary: all validation commands pass; 27 new test assertions added covering all 13 ACs and key FRs/NFRs (includes 6 new assertions for CORS env injection); no regressions in the 56 pre-existing assertions.
 - Artifact references: `specs/2026-05-26-issue-248-observability-enhancements/evidence_manifest.json`
 
 ## Risk and Rollback
@@ -33,6 +33,7 @@
 - Rollback strategy: revert the commit; all changes are additive and the existing collector behaviour is unchanged. ArgoCD selfHeal will reconcile the Application back to the pre-change state within one sync cycle.
 
 ## Deferred Proposals
-- Proposal A (not implemented): `OBSERVABILITY_RETENTION_DAYS` shell contract — retention remains a TF-level concern; deferred to backlog.
-- Proposal B (not implemented): Langfuse integration — consumer-specific; not appropriate for the generic blueprint module.
-- Proposal C (not implemented): Replacing `grafana/k8s-monitoring` with separate charts — low value vs. maintenance cost; deferred indefinitely.
+- Proposal A (implemented, PR #327): Faro per-origin CORS — `FARO_CORS_ALLOWED_ORIGINS` now wired via OTC `${env:...}` substitution with `extraEnvs` default `*`; consumers override in ArgoCD Application `extraEnvs`. Single-origin strings supported; multi-origin not possible via single env var.
+- Proposal B (rejected): `OBSERVABILITY_RETENTION_DAYS` shell contract — retention is a TF-level concern; OTEL Collector has no mechanism to act on it; a dangling contract var would mislead consumers.
+- Proposal C (rejected): Langfuse integration — consumer-specific LLM observability; not appropriate for the generic blueprint module.
+- Proposal D (parked): Replacing `grafana/k8s-monitoring` with separate charts — low value vs. maintenance cost; deferred indefinitely.
