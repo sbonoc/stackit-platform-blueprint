@@ -43,6 +43,17 @@ _DASHBOARDS_DESTROY_SCRIPT = REPO_ROOT / "scripts" / "bin" / "infra" / "observab
 _SEED_DASHBOARD = REPO_ROOT / "infra" / "observability" / "dashboards" / "golden-signals.json"
 _BOOTSTRAP_SEED_DASHBOARD = REPO_ROOT / "scripts" / "templates" / "blueprint" / "bootstrap" / "infra" / "observability" / "dashboards" / "golden-signals.json"
 _MAKEFILE_TEMPLATE = REPO_ROOT / "scripts" / "templates" / "blueprint" / "bootstrap" / "make" / "blueprint.generated.mk.tmpl"
+_CSI_DRIVER_ARGOCD_DEV = REPO_ROOT / "infra" / "gitops" / "argocd" / "core" / "dev" / "secrets-store-csi-driver.yaml"
+_CSI_DRIVER_ARGOCD_STAGE = REPO_ROOT / "infra" / "gitops" / "argocd" / "core" / "stage" / "secrets-store-csi-driver.yaml"
+_CSI_DRIVER_ARGOCD_PROD = REPO_ROOT / "infra" / "gitops" / "argocd" / "core" / "prod" / "secrets-store-csi-driver.yaml"
+_CSI_VAULT_PROVIDER_ARGOCD_DEV = REPO_ROOT / "infra" / "gitops" / "argocd" / "core" / "dev" / "secrets-store-csi-driver-vault-provider.yaml"
+_CSI_VAULT_PROVIDER_ARGOCD_STAGE = REPO_ROOT / "infra" / "gitops" / "argocd" / "core" / "stage" / "secrets-store-csi-driver-vault-provider.yaml"
+_CSI_VAULT_PROVIDER_ARGOCD_PROD = REPO_ROOT / "infra" / "gitops" / "argocd" / "core" / "prod" / "secrets-store-csi-driver-vault-provider.yaml"
+_OBSERVABILITY_TF_VERSIONS = REPO_ROOT / "infra" / "cloud" / "stackit" / "terraform" / "modules" / "observability" / "versions.tf"
+_OBSERVABILITY_TF_MAIN = REPO_ROOT / "infra" / "cloud" / "stackit" / "terraform" / "modules" / "observability" / "main.tf"
+_KUSTOMIZATION_DEV = REPO_ROOT / "infra" / "gitops" / "argocd" / "overlays" / "dev" / "kustomization.yaml"
+_KUSTOMIZATION_STAGE = REPO_ROOT / "infra" / "gitops" / "argocd" / "overlays" / "stage" / "kustomization.yaml"
+_KUSTOMIZATION_PROD = REPO_ROOT / "infra" / "gitops" / "argocd" / "overlays" / "prod" / "kustomization.yaml"
 
 _MOCK_RUNTIME_STATE_STACKIT = "\n".join(
     [
@@ -210,11 +221,17 @@ class ApplyScriptTests(unittest.TestCase):
     def _apply(self) -> str:
         return _APPLY_SCRIPT.read_text(encoding="utf-8")
 
-    def test_apply_calls_reconcile_runtime_secret(self) -> None:
-        self.assertIn(
+    def test_apply_stackit_path_does_not_call_reconcile_runtime_secret(self) -> None:
+        content = self._apply()
+        match = re.search(r'foundation_contract\)(.*?);;', content, re.DOTALL)
+        self.assertIsNotNone(
+            match,
+            msg="observability_apply.sh must have a foundation_contract) case block (FR-005)",
+        )
+        self.assertNotIn(
             "observability_reconcile_runtime_secret",
-            self._apply(),
-            msg="observability_apply.sh must call observability_reconcile_runtime_secret() in foundation_contract case (FR-005)",
+            match.group(1),
+            msg="STACKIT path (foundation_contract) must NOT call observability_reconcile_runtime_secret — credentials delivered via CSI driver (FR-005, NFR-SEC-001)",
         )
 
     def test_apply_writes_logs_endpoint_to_state(self) -> None:
@@ -256,12 +273,17 @@ class ApplyScriptTests(unittest.TestCase):
 class DestroyScriptTests(unittest.TestCase):
     """FR-006, AC-008 — destroy script deletes runtime secret and ArgoCD Application."""
 
-    def test_destroy_calls_delete_runtime_secret(self) -> None:
+    def test_destroy_stackit_path_does_not_call_delete_runtime_secret(self) -> None:
         content = _DESTROY_SCRIPT.read_text(encoding="utf-8")
-        self.assertIn(
+        match = re.search(r'foundation_reconcile_apply\)(.*?);;', content, re.DOTALL)
+        self.assertIsNotNone(
+            match,
+            msg="observability_destroy.sh must have a foundation_reconcile_apply) case block (FR-006)",
+        )
+        self.assertNotIn(
             "observability_delete_runtime_secret",
-            content,
-            msg="observability_destroy.sh must call observability_delete_runtime_secret() in foundation_reconcile_apply case (FR-006, AC-008)",
+            match.group(1),
+            msg="STACKIT path (foundation_reconcile_apply) must NOT call observability_delete_runtime_secret — CSI driver manages credential lifecycle (FR-006, NFR-SEC-001)",
         )
 
     def test_destroy_deletes_argocd_manifest(self) -> None:
@@ -773,6 +795,197 @@ class DashboardProvisioningTests(unittest.TestCase):
         self.assertTrue(
             _BOOTSTRAP_SEED_DASHBOARD.exists(),
             msg="bootstrap template must mirror golden-signals.json seed dashboard (FR-016)",
+        )
+
+
+class CsiHardeningTests(unittest.TestCase):
+    """FR-001–FR-010, NFR-SEC-001 — CSI Driver bootstrap, Vault TF provider, SecretProviderClass, shell cleanup."""
+
+    # Slice 1: CSI Driver ArgoCD Applications
+
+    def test_csi_driver_argocd_dev_exists(self) -> None:
+        self.assertTrue(
+            _CSI_DRIVER_ARGOCD_DEV.exists(),
+            msg="infra/gitops/argocd/core/dev/secrets-store-csi-driver.yaml must exist (FR-001, T-101)",
+        )
+
+    def test_csi_driver_argocd_stage_exists(self) -> None:
+        self.assertTrue(
+            _CSI_DRIVER_ARGOCD_STAGE.exists(),
+            msg="infra/gitops/argocd/core/stage/secrets-store-csi-driver.yaml must exist (FR-001, T-101)",
+        )
+
+    def test_csi_driver_argocd_prod_exists(self) -> None:
+        self.assertTrue(
+            _CSI_DRIVER_ARGOCD_PROD.exists(),
+            msg="infra/gitops/argocd/core/prod/secrets-store-csi-driver.yaml must exist (FR-001, T-101)",
+        )
+
+    def test_csi_vault_provider_argocd_dev_exists(self) -> None:
+        self.assertTrue(
+            _CSI_VAULT_PROVIDER_ARGOCD_DEV.exists(),
+            msg="infra/gitops/argocd/core/dev/secrets-store-csi-driver-vault-provider.yaml must exist (FR-002, T-102)",
+        )
+
+    def test_csi_vault_provider_argocd_stage_exists(self) -> None:
+        self.assertTrue(
+            _CSI_VAULT_PROVIDER_ARGOCD_STAGE.exists(),
+            msg="infra/gitops/argocd/core/stage/secrets-store-csi-driver-vault-provider.yaml must exist (FR-002, T-102)",
+        )
+
+    def test_csi_vault_provider_argocd_prod_exists(self) -> None:
+        self.assertTrue(
+            _CSI_VAULT_PROVIDER_ARGOCD_PROD.exists(),
+            msg="infra/gitops/argocd/core/prod/secrets-store-csi-driver-vault-provider.yaml must exist (FR-002, T-102)",
+        )
+
+    def test_csi_driver_chart_version_pinned(self) -> None:
+        if not _CSI_DRIVER_ARGOCD_DEV.exists():
+            self.fail("CSI driver ArgoCD Application (dev) must exist (FR-001, T-101)")
+        content = _CSI_DRIVER_ARGOCD_DEV.read_text(encoding="utf-8")
+        match = re.search(r'targetRevision:\s*(\S+)', content)
+        self.assertIsNotNone(
+            match,
+            msg="CSI driver Application must declare targetRevision (pinned chart version) (FR-001, T-104)",
+        )
+        version = match.group(1)
+        self.assertNotIn("*", version, msg="targetRevision must be a pinned version, not a wildcard (FR-001, T-104)")
+        self.assertNotRegex(version, r'^>=', msg="targetRevision must be a pinned version, not a range constraint (FR-001, T-104)")
+
+    def test_csi_driver_sync_wave_annotation_present(self) -> None:
+        if not _CSI_DRIVER_ARGOCD_DEV.exists():
+            self.fail("CSI driver ArgoCD Application (dev) must exist (FR-001, T-101)")
+        self.assertIn(
+            "sync-wave",
+            _CSI_DRIVER_ARGOCD_DEV.read_text(encoding="utf-8"),
+            msg="CSI driver Application must declare argocd.argoproj.io/sync-wave annotation — must precede observability wave (FR-001, T-104)",
+        )
+
+    def test_kustomization_dev_references_csi_driver(self) -> None:
+        self.assertIn(
+            "secrets-store-csi-driver",
+            _KUSTOMIZATION_DEV.read_text(encoding="utf-8"),
+            msg="overlays/dev/kustomization.yaml must reference secrets-store-csi-driver Application (FR-001, T-101)",
+        )
+
+    def test_kustomization_stage_references_csi_driver(self) -> None:
+        self.assertIn(
+            "secrets-store-csi-driver",
+            _KUSTOMIZATION_STAGE.read_text(encoding="utf-8"),
+            msg="overlays/stage/kustomization.yaml must reference secrets-store-csi-driver Application (FR-001, T-101)",
+        )
+
+    def test_kustomization_prod_references_csi_driver(self) -> None:
+        self.assertIn(
+            "secrets-store-csi-driver",
+            _KUSTOMIZATION_PROD.read_text(encoding="utf-8"),
+            msg="overlays/prod/kustomization.yaml must reference secrets-store-csi-driver Application (FR-001, T-101)",
+        )
+
+    # Slice 2: Terraform vault provider
+
+    def test_tf_observability_versions_file_exists(self) -> None:
+        self.assertTrue(
+            _OBSERVABILITY_TF_VERSIONS.exists(),
+            msg="infra/cloud/stackit/terraform/modules/observability/versions.tf must exist (FR-007, T-202)",
+        )
+
+    def test_tf_observability_declares_vault_provider(self) -> None:
+        if not _OBSERVABILITY_TF_VERSIONS.exists():
+            self.fail("versions.tf must exist before checking vault provider declaration (FR-007, T-202)")
+        self.assertIn(
+            "hashicorp/vault",
+            _OBSERVABILITY_TF_VERSIONS.read_text(encoding="utf-8"),
+            msg="versions.tf must declare hashicorp/vault Terraform provider (FR-007, T-202)",
+        )
+
+    def test_tf_observability_writes_vault_kv_secret(self) -> None:
+        self.assertIn(
+            "vault_kv_secret_v2",
+            _OBSERVABILITY_TF_MAIN.read_text(encoding="utf-8"),
+            msg="main.tf must declare vault_kv_secret_v2 resources writing credentials to Secrets Manager (FR-007, T-203)",
+        )
+
+    # Slice 3: CSI volume in STACKIT OTC values and ArgoCD manifests
+
+    def test_stackit_values_uses_csi_volume(self) -> None:
+        self.assertIn(
+            "secrets-store.csi.k8s.io",
+            _OTC_VALUES.read_text(encoding="utf-8"),
+            msg="STACKIT otel-collector.values.yaml must declare CSI volume driver secrets-store.csi.k8s.io (FR-004, T-302)",
+        )
+
+    def test_stackit_values_no_secret_volume(self) -> None:
+        self.assertNotIn(
+            "secretName: blueprint-observability-auth",
+            _OTC_VALUES.read_text(encoding="utf-8"),
+            msg="STACKIT otel-collector.values.yaml must NOT reference blueprint-observability-auth as a K8s Secret volume (FR-004, NFR-SEC-001, T-302)",
+        )
+
+    def test_argocd_dev_no_secret_volume(self) -> None:
+        self.assertNotIn(
+            "secretName: blueprint-observability-auth",
+            _ARGOCD_DEV.read_text(encoding="utf-8"),
+            msg="dev/observability.yaml must NOT reference blueprint-observability-auth as a K8s Secret volume (FR-004, NFR-SEC-001, T-302)",
+        )
+
+    def test_argocd_stage_no_secret_volume(self) -> None:
+        self.assertNotIn(
+            "secretName: blueprint-observability-auth",
+            _ARGOCD_STAGE.read_text(encoding="utf-8"),
+            msg="stage/observability.yaml must NOT reference blueprint-observability-auth as a K8s Secret volume (FR-004, NFR-SEC-001, T-302)",
+        )
+
+    def test_argocd_prod_no_secret_volume(self) -> None:
+        self.assertNotIn(
+            "secretName: blueprint-observability-auth",
+            _ARGOCD_PROD.read_text(encoding="utf-8"),
+            msg="prod/observability.yaml must NOT reference blueprint-observability-auth as a K8s Secret volume (FR-004, NFR-SEC-001, T-302)",
+        )
+
+    def test_secret_provider_class_referenced_in_dev(self) -> None:
+        self.assertIn(
+            "SecretProviderClass",
+            _ARGOCD_DEV.read_text(encoding="utf-8"),
+            msg="dev/observability.yaml must reference SecretProviderClass for CSI volume (FR-003, T-303)",
+        )
+
+    def test_secret_provider_class_referenced_in_stage(self) -> None:
+        self.assertIn(
+            "SecretProviderClass",
+            _ARGOCD_STAGE.read_text(encoding="utf-8"),
+            msg="stage/observability.yaml must reference SecretProviderClass for CSI volume (FR-003, T-303)",
+        )
+
+    def test_secret_provider_class_referenced_in_prod(self) -> None:
+        self.assertIn(
+            "SecretProviderClass",
+            _ARGOCD_PROD.read_text(encoding="utf-8"),
+            msg="prod/observability.yaml must reference SecretProviderClass for CSI volume (FR-003, T-303)",
+        )
+
+    # Slice 4: Shell deprecation guard
+
+    def test_reconcile_runtime_secret_deprecation_guard(self) -> None:
+        lib = _SHELL_LIB.read_text(encoding="utf-8")
+        match = re.search(r'observability_reconcile_runtime_secret\(\)\s*\{(.*?)\n\}', lib, re.DOTALL)
+        self.assertIsNotNone(
+            match,
+            msg="observability_reconcile_runtime_secret() function must be declared in observability.sh (FR-005)",
+        )
+        self.assertIn(
+            "log_warn",
+            match.group(1),
+            msg="observability_reconcile_runtime_secret() must emit log_warn deprecation guard when called on STACKIT profile (FR-005, T-404)",
+        )
+
+    # Slice 5: Contract prerequisite
+
+    def test_contract_declares_csi_driver_prerequisite(self) -> None:
+        self.assertIn(
+            "secrets_store_csi_driver",
+            _CONTRACT_FILE.read_text(encoding="utf-8"),
+            msg="module.contract.yaml must declare secrets_store_csi_driver as a required_core_capabilities prerequisite on STACKIT profiles (FR-008, T-501)",
         )
 
 
