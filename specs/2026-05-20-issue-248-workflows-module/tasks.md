@@ -29,7 +29,7 @@
 - [x] T-101 Confirm `test_contract.py` is registered in `test_pyramid_contract.json` under `unit` scope before creation (pre-commit pyramid gate must not block)
 - [x] T-102 Confirm `test_contract.py` has ≥ 15 passing assertions after Slice 2
 - [x] T-103 N/A — no filter/payload-transform logic
-- [x] T-104 N/A — no reproducible pre-PR smoke/curl findings; existing implementation has been validated in agentic-graphrag
+- [x] T-104 N/A — no reproducible pre-PR smoke/curl findings; existing implementation has been validated in an existing consumer deployment
 - [x] T-105 N/A — no boundary/integration tests required; state file contract is fully covered at unit level
 
 ## Accessibility Testing

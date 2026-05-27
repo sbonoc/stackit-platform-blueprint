@@ -28,7 +28,7 @@ Additionally, there are zero automated tests for the workflows module (`tests/in
 **Option B (rejected): Block implementation until a Terraform provider resource is available.**
 
 - Blocks the entire module with no timeline guarantee — no provider resource exists as of v0.96.0.
-- The agentic-graphrag production reference already uses the REST API approach successfully.
+- The REST API approach is already validated in production by existing consumers.
 - Waiting provides no value; the REST API is stable enough for a bridge implementation.
 
 **Option C (rejected): Deploy a self-managed Airflow Helm chart as a local lane substitute.**

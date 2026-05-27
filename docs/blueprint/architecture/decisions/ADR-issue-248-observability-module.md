@@ -12,7 +12,7 @@ The blueprint observability module already deploys an in-cluster OpenTelemetry C
 
 Additionally, the issue #248 integration contract specifies four new outputs (`OBSERVABILITY_LOGS_ENDPOINT`, `OBSERVABILITY_METRICS_ENDPOINT`, `OBSERVABILITY_TRACES_ENDPOINT`, `OBSERVABILITY_API_KEY`) that are not yet populated by any script.
 
-The reference architecture in `sbonoc/agentic-graphrag` uses an OTEL Collector as the central signal aggregation hub on all environments, with consumers pointing to a stable in-cluster DNS endpoint. Signals fan out from the collector to the appropriate backends per environment.
+The reference architecture used by existing consumers uses an OTEL Collector as the central signal aggregation hub on all environments, with consumers pointing to a stable in-cluster DNS endpoint. Signals fan out from the collector to the appropriate backends per environment.
 
 ## Decision
 

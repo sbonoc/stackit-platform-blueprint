@@ -38,7 +38,7 @@
 - Local-first exception rationale: STACKIT Observability has no local-lane managed equivalent; local lane deploys in-cluster OTEL Collector + Grafana k8s-monitoring stack on Docker Desktop (established pattern for this module).
 
 ## Objective
-- Business outcome: Extend the blueprint observability module with three additive capabilities derived from the `sbonoc/agentic-graphrag` reference implementation — Faro browser RUM telemetry receiver (both lanes), Grafana dashboard provisioning make targets (convention directory + ConfigMap + seed dashboards), and OTEL pipeline improvements (memory_limiter, healthcheck span filter, spanmetrics on local lane). Consumers gain a single `FARO_ENDPOINT` contract on both lanes, a drop-in dashboard provisioning pattern, and an OOM-safe collector pipeline.
+- Business outcome: Extend the blueprint observability module with three additive capabilities derived from an existing consumer reference implementation — Faro browser RUM telemetry receiver (both lanes), Grafana dashboard provisioning make targets (convention directory + ConfigMap + seed dashboards), and OTEL pipeline improvements (memory_limiter, healthcheck span filter, spanmetrics on local lane). Consumers gain a single `FARO_ENDPOINT` contract on both lanes, a drop-in dashboard provisioning pattern, and an OOM-safe collector pipeline.
 - Success metric: `FARO_ENDPOINT` resolves to `http://otel-collector.observability.svc.cluster.local:12347/collect` on both lanes; `make infra-observability-dashboards-apply` creates a labeled ConfigMap Grafana auto-discovers; `make infra-observability-smoke` validates `faro_endpoint`; `python3 -m pytest tests/infra/modules/observability/ -x -q` passes with ≥ 12 new assertions.
 
 ## Normative Requirements
@@ -99,7 +99,7 @@ All questions resolved before intake. No open questions.
 
 - Option A: Convention directory `infra/observability/dashboards/` + make target using `kubectl create configmap --dry-run=client | kubectl apply` — declarative, idempotent, no extra tooling required (selected).
 - Option B: Bake dashboards into Grafana Helm chart values via `dashboardProviders` and `dashboards` keys — static, requires full Grafana re-deploy to update dashboards; cannot be driven by consumers adding JSON files.
-- Option C: Python script (as in agentic-graphrag's `render_grafana_dashboards_configmap.py`) — more testable but adds a Python dependency to an operation that is straightforward with kubectl.
+- Option C: Python renderer script — more testable but adds a Python dependency to an operation that is straightforward with kubectl.
 - Selected option: OPTION_A
 - Rationale: Bash + kubectl matches the existing apply/destroy script pattern across all blueprint optional modules. Declarative `--dry-run=client | apply` is idempotent and safe on retry. A separate convention directory lets consumers add/replace dashboards without touching Helm values.
 
@@ -128,7 +128,7 @@ All questions resolved before intake. No open questions.
 (See Acceptance Criteria section above — AC-001 through AC-013.)
 
 ## Informative Notes (Non-Normative)
-- Context: The Faro receiver, memory_limiter, healthcheck span filter, and local-lane spanmetrics connector are all present in the sbonoc/agentic-graphrag consumer's ArgoCD OTEL collector values. This work item extracts those patterns into the generic blueprint module so every consumer benefits by default.
+- Context: The Faro receiver, memory_limiter, healthcheck span filter, and local-lane spanmetrics connector were observed in an existing consumer deployment. This work item extracts those patterns into the generic blueprint module so every consumer benefits by default.
 - Dashboard provisioning pattern: The `grafana_dashboard: "1"` label is the standard k8s-monitoring (Grafana) sidecar label selector. Any ConfigMap carrying this label in the observability namespace is auto-discovered and mounted into Grafana's dashboard provisioner. Consumers can extend by adding their own JSON files to `infra/observability/dashboards/` before running the apply target.
 - Tradeoffs: Adding `memory_limiter` adds a small CPU overhead per telemetry pipeline pass. The tradeoff is justified — OOM kills are a known production failure mode for OTEL collectors under burst load.
 

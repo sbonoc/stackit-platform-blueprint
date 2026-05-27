@@ -61,4 +61,4 @@
 - Follow-up: Q-2 — if provider gains a `dnssec_enabled` attribute, add it as a configurable variable.
 - Follow-up: external-DNS module — dynamic DNS record management via K8s controller (parked proposal in AGENTS.backlog.md, scope `infra`).
 - Follow-up: domain contract JSON pattern — cross-cutting refactor of all optional modules to use a single SSOT JSON file per environment (parked proposal in AGENTS.backlog.md, scope `blueprint`).
-- Follow-up: DNS naming uses `runs.onstackit.local.` suffix in local test fixtures; real consumer FQDNs follow `{prefix}-{env}.runs.onstackit.cloud.` pattern as observed in sbonoc/agentic-graphrag.
+- Follow-up: DNS naming uses `runs.onstackit.local.` suffix in local test fixtures; real consumer FQDNs follow `{prefix}-{env}.runs.onstackit.cloud.` pattern per the STACKIT DNS module contract.

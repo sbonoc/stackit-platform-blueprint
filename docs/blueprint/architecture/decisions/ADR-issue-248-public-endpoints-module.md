@@ -13,7 +13,7 @@ The public-endpoints module provides the shared Kubernetes Gateway API edge (Env
 1. **HTTPS with cert-manager** — TLS termination at the shared Gateway using automatically provisioned certificates.
 2. **Automatic DNS record management** — The STACKIT SKE DNS extension creates A-records for the base domain from a standard annotation on the Gateway resource.
 
-Both capabilities were validated against the `sbonoc/agentic-graphrag` consumer reference implementation, which uses the same Envoy Gateway + cert-manager + Let's Encrypt ACME + STACKIT DNS extension stack.
+Both capabilities were validated against an existing consumer reference implementation using the same Envoy Gateway + cert-manager + Let's Encrypt ACME + STACKIT DNS extension stack.
 
 ## Decisions
 
@@ -25,7 +25,7 @@ Both capabilities were validated against the `sbonoc/agentic-graphrag` consumer 
 - **D-1-A (rejected): TLS passthrough** — Route TLS to backends; backends terminate. Incompatible with the IAP SecurityPolicy pattern that requires the Gateway to inspect decrypted traffic.
 - **D-1-B (rejected): TLS at HTTPRoute level only** — No shared Gateway HTTPS listener; consumers attach per-route certs. Breaks the shared edge contract and forces every consumer to manage their own listener.
 
-**Rationale:** Terminate at the shared Gateway so the IAP module can apply SecurityPolicy to decrypted requests. Consistent with the agentic-graphrag pattern and the Gateway API design recommendation for shared infrastructure.
+**Rationale:** Terminate at the shared Gateway so the IAP module can apply SecurityPolicy to decrypted requests. Consistent with the established consumer pattern and the Gateway API design recommendation for shared infrastructure.
 
 ---
 
@@ -36,7 +36,7 @@ Both capabilities were validated against the `sbonoc/agentic-graphrag` consumer 
 **Alternatives considered:**
 - **D-2-A (rejected): `ClusterIssuer`** — Cluster-wide ACME account shared across all namespaces. Requires cluster-admin permissions for consumers; breaks namespace-scoped policy model; blast radius extends to all namespaces if the ACME account is misconfigured.
 
-**Rationale:** Namespace scope matches the agentic-graphrag pattern (all consumer Issuers are namespace-scoped) and the blueprint's least-privilege policy model. The `network` namespace is the natural home — it already contains the shared Gateway.
+**Rationale:** Namespace scope matches the established consumer pattern (all consumer Issuers are namespace-scoped) and the blueprint's least-privilege policy model. The `network` namespace is the natural home — it already contains the shared Gateway.
 
 ---
 

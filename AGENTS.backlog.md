@@ -146,7 +146,7 @@ Surface automatically when the named scope is next touched. Do not promote to ac
 ### on-scope: blueprint
 
 - [ ] proposal(issue-248-dns-module): domain contract JSON pattern — single SSOT JSON file (per-environment hostnames, acme emails, dns_zones list) driving TF tfvars + ArgoCD Helm values via a renderer script with --check mode; cross-cutting refactor affecting all optional modules.
-      rationale: pattern observed in sbonoc/agentic-graphrag; requires refactor of all optional module env var surfaces; deferred until blueprint multi-module configuration surface is next in scope
+      rationale: pattern observed in an existing consumer deployment; requires refactor of all optional module env var surfaces; deferred until blueprint multi-module configuration surface is next in scope
 - [ ] proposal(issue-248-public-endpoints-module): ReferenceGrant per-namespace enforcement — replace `allowedRoutes.namespaces.from: All` with explicit `ReferenceGrant` resources requiring platform sign-off per consumer namespace to attach HTTPRoutes to the shared Gateway.
       rationale: architectural change to the consumer onboarding model; current self-service HTTPRoute attachment is intentional for developer velocity; surfaces when a consumer requires namespace-level isolation at the Gateway routing layer
 - [ ] proposal(issue-241-make-override-warnings): extend `?=` override-point pattern to other blueprint-managed targets.

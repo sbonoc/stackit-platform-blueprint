@@ -8,7 +8,7 @@
 
 ## Context
 
-The blueprint observability module (PR #308) ships an in-cluster OTEL Collector on both local and STACKIT lanes configured with OTLP gRPC/HTTP receivers and push exporters (STACKIT lane). Three capabilities present in the `sbonoc/agentic-graphrag` consumer reference implementation are missing from the generic blueprint module:
+The blueprint observability module (PR #308) ships an in-cluster OTEL Collector on both local and STACKIT lanes configured with OTLP gRPC/HTTP receivers and push exporters (STACKIT lane). Three capabilities present in an existing consumer reference implementation are missing from the generic blueprint module:
 
 1. **Faro receiver** — browser frontend apps cannot push RUM/Web Vitals telemetry to the collector.
 2. **Dashboard provisioning** — there is no convention or tooling for consumers to load custom Grafana dashboards.
@@ -24,7 +24,7 @@ The blueprint observability module (PR #308) ships an in-cluster OTEL Collector 
 |---|---|---|
 | A — kubectl convention dir (selected) | Matches existing script pattern; idempotent; no extra tooling; consumers add dashboards by dropping JSON files | Requires kubectl context; no JSON linting at apply time |
 | B — Helm `dashboardProviders` values key | No extra script needed | Requires Grafana Helm redeploy to update; JSON embedded in YAML (noisy diffs); can't be driven by file convention |
-| C — Python renderer (agentic-graphrag pattern) | Testable; strict JSON validation | Adds Python dependency to an infra-level operation; overkill for kubectl apply pattern |
+| C — Python renderer | Testable; strict JSON validation | Adds Python dependency to an infra-level operation; overkill for kubectl apply pattern |
 
 Option A is consistent with `observability_dashboards_apply.sh` / `destroy.sh` naming, uses the declarative `--dry-run | apply` pattern (safe on retry), and lets consumers manage dashboards as plain JSON files without Helm knowledge. The Grafana k8s-monitoring sidecar discovers ConfigMaps with `grafana_dashboard: "1"` in any namespace — the label is the standard provisioning contract.
 
@@ -38,7 +38,7 @@ Option A is consistent with `observability_dashboards_apply.sh` / `destroy.sh` n
 
 **Decision:** Port 12347 (OpenTelemetry Collector contrib default for the Faro receiver).
 
-**Rationale:** Port 12347 is the upstream OTC default, matching the agentic-graphrag production deployment. Using the upstream default avoids custom port mapping documentation and is forward-compatible with OTC upgrades.
+**Rationale:** Port 12347 is the upstream OTC contrib default for the Faro receiver. Using the upstream default avoids custom port mapping documentation and is forward-compatible with OTC upgrades.
 
 ## Decision 4: Local-lane spanmetrics export target
 

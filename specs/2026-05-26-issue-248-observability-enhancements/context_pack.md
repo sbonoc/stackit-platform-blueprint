@@ -14,7 +14,7 @@
 
 ## Problem Being Solved
 
-The blueprint observability module (PR #308) deploys an in-cluster OTEL Collector that accepts OTLP gRPC/HTTP from backend apps. Three capabilities observed in `sbonoc/agentic-graphrag` are not yet present in the generic module:
+The blueprint observability module (PR #308) deploys an in-cluster OTEL Collector that accepts OTLP gRPC/HTTP from backend apps. Three capabilities observed in an existing consumer deployment are not yet present in the generic module:
 
 1. **Faro receiver missing** — frontend apps using the Grafana Faro browser SDK cannot push RUM or Web Vitals telemetry to the collector. There is no published `FARO_ENDPOINT` for consumers to configure their SDKs.
 
@@ -24,7 +24,7 @@ The blueprint observability module (PR #308) deploys an in-cluster OTEL Collecto
 
 ## Reference Implementation
 
-`sbonoc/agentic-graphrag` demonstrates all three patterns in production:
+An existing consumer deployment demonstrates all three patterns in production:
 - Faro receiver at `infra/gitops/argocd/values/base/otel-collector.yaml` (port 12347, `cors.allowed_origins: ["*"]`)
 - Dashboard ConfigMap generation from `infra/observability/dashboards/*.json` via `render_grafana_dashboards_configmap.py`
 - `memory_limiter`, `filter/drop-healthcheck-spans`, and `spanmetrics` in both local and cloud OTEL configs
