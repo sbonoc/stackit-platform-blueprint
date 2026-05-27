@@ -189,6 +189,9 @@ Surface automatically when the named scope is next touched. Do not promote to ac
       rationale: surfaces when blueprint maintainers next improve seed workload content (health probes, security contexts, resource limits) or a consumer reports silently missing a seed update
 - [ ] proposal(issue-217): extract `_assert_descriptor_kustomization_agreement` as shared module helper for future smoke scenario reuse.
       rationale: no additional callers today; surfaces when the next blueprint smoke scenario is developed
+- [ ] proposal(issue-312-observability-csi-hardening): sync foundation TF bootstrap template outputs — `dns_primary_name_servers` and `rabbitmq_management_url` exist in live `foundation/outputs.tf` but are absent from `scripts/templates/infra/bootstrap/infra/cloud/stackit/terraform/foundation/outputs.tf`; drift predates this PR and is also absent in `origin/main`; a newly bootstrapped consumer will not receive these two outputs.
+      trigger: on-scope: blueprint (next bootstrap template sync pass)
+      rationale: pre-existing drift not introduced by PR #329; flagged during PR #329 review by @claude (comment #4555712040); non-blocking since no active consumer depends on the template for these outputs today
 
 ### on-scope: quality
 
