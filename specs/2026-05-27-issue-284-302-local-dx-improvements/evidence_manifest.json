@@ -1,0 +1,48 @@
+{
+  "manifest_version": 1,
+  "work_item": "2026-05-27-issue-284-302-local-dx-improvements",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-05-27T00:00:00Z",
+  "files": [
+    {
+      "path": "docs/blueprint/architecture/decisions/ADR-issue-284-302-local-dx-improvements.md",
+      "sha256": "30a7508608ad8291d6b7fac8aca0bfa304855cc417897b05b13549430a5f4788"
+    },
+    {
+      "path": "specs/2026-05-27-issue-284-302-local-dx-improvements/architecture.md",
+      "sha256": "e22ed6e0b538a81714467861dd0d859f49c90706e47092f6701018b6458a4baa"
+    },
+    {
+      "path": "specs/2026-05-27-issue-284-302-local-dx-improvements/context_pack.md",
+      "sha256": "f0492dd8d411db80c93bf85181995bde69b76c41029e59b0781ff48654ca43f0"
+    },
+    {
+      "path": "specs/2026-05-27-issue-284-302-local-dx-improvements/graph.json",
+      "sha256": "ef202028c470cd09af90f607fdbd2c8cabd6d67b6208c49180615a8bd0cb94ba"
+    },
+    {
+      "path": "specs/2026-05-27-issue-284-302-local-dx-improvements/hardening_review.md",
+      "sha256": "4ba98a4c94effb4957337beae74c2568391033f51820aa2d46a7e33ffab9cf6c"
+    },
+    {
+      "path": "specs/2026-05-27-issue-284-302-local-dx-improvements/plan.md",
+      "sha256": "cbed909bccb867b008edb77fd237f26e900a37e3c589e0fad17b3af6f5969e25"
+    },
+    {
+      "path": "specs/2026-05-27-issue-284-302-local-dx-improvements/pr_context.md",
+      "sha256": "1bb6d4f642b664c1226b8309f7f8669818d8fbae56b4b776097eb0d1713604a7"
+    },
+    {
+      "path": "specs/2026-05-27-issue-284-302-local-dx-improvements/spec.md",
+      "sha256": "f03525c6fac5e3806902d7849cae8479f97ebb50f08ceb2fd22ac373d90ba383"
+    },
+    {
+      "path": "specs/2026-05-27-issue-284-302-local-dx-improvements/tasks.md",
+      "sha256": "3f4dda16d3a8ee8715237b1fdfa4dad5dba18a4ca3483732bdd4057824154b15"
+    },
+    {
+      "path": "specs/2026-05-27-issue-284-302-local-dx-improvements/traceability.md",
+      "sha256": "f2a6b6dd7b11ae53f04aae7136904eaab2a56efc1f0356c04c4d742918816d0d"
+    }
+  ]
+}
