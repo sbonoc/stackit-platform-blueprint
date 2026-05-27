@@ -238,6 +238,15 @@ For local profiles, it also supports an optional post-deploy hook contract:
 `artifacts/infra/infra_status_snapshot.json`.
 For local live execution, the blueprint prefers the `docker-desktop` Kubernetes context when it exists.
 Set `LOCAL_KUBE_CONTEXT` before running `infra-provision-deploy` if you want to override that default.
+
+To persist local overrides across shell sessions, create `.env.local` in the repository root (gitignored, auto-loaded by every `make` target via `bootstrap.sh`):
+```bash
+# .env.local — persistent local developer overrides (gitignored)
+LOCAL_KUBE_CONTEXT=kind-kind             # override preferred Kubernetes context
+ARGOCD_LOCAL_TARGET_REVISION=my-branch   # override ArgoCD targetRevision (local profile only)
+```
+`ARGOCD_LOCAL_TARGET_REVISION` is patched into the ArgoCD Application `platform-local-core` after each `make infra-deploy` in the local profile so ArgoCD tracks your feature branch instead of `main`. When unset, it defaults to `$(git branch --show-current)`. Shell environment variables always take precedence over `.env.local` values. See `scripts/templates/blueprint/bootstrap/.env.local.example` for the full reference.
+
 For consumer-maintained scripts that need direct cluster/Helm access, use shared wrappers instead of raw `kubectl`/`helm` calls:
 ```bash
 source "$ROOT_DIR/scripts/lib/shell/bootstrap.sh"

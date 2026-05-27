@@ -50,15 +50,15 @@
 
 ## Slice 3 — Documentation + publish artifacts
 
-- [ ] T-301 Check `docs/platform/local-development.md` — add `ARGOCD_LOCAL_TARGET_REVISION` and `.env.local` sections if file exists
-- [ ] T-302 Populate `traceability.md` — map all FR/NFR/AC to implementation and test evidence
-- [ ] T-303 Populate `hardening_review.md` with NFR-SEC-001 and NFR-SEC-002 findings
-- [ ] T-304 Populate `evidence_manifest.json` with SHA256 hashes
-- [ ] T-305 Populate `pr_context.md` with key reviewer files, validation evidence, risk/rollback
-- [ ] T-306 Run `make quality-hooks-fast` — all 11 checks pass
-- [ ] T-307 Run `python3 -m pytest tests/ -x -q` — all green (≥ 8 new assertions)
+- [x] T-301 Check `docs/platform/local-development.md` — file does not exist; added `.env.local` and `ARGOCD_LOCAL_TARGET_REVISION` sections to `docs/platform/consumer/quickstart.md` and `docs/platform/consumer/first_30_minutes.md`; synced to bootstrap template mirrors
+- [x] T-302 Populate `traceability.md` — map all FR/NFR/AC to implementation and test evidence
+- [x] T-303 Populate `hardening_review.md` with NFR-SEC-001 and NFR-SEC-002 findings
+- [x] T-304 Populate `evidence_manifest.json` with SHA256 hashes
+- [x] T-305 Populate `pr_context.md` with key reviewer files, validation evidence, risk/rollback
+- [x] T-306 Run `make quality-hooks-fast` — all 11 checks pass
+- [x] T-307 Run `python3 -m pytest tests/ -x -q` — all green (≥ 8 new assertions)
 
 ## Publish Gate
-- [ ] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
-- [ ] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
-- [ ] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
+- [x] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
+- [x] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
+- [x] P-003 Ensure PR description follows repository template headings and references `pr_context.md`

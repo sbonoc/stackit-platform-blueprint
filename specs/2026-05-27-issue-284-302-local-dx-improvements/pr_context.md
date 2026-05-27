@@ -18,8 +18,11 @@
 - High-risk files: `deploy.sh` (local profile branch only; STACKIT guard critical)
 
 ## Validation Evidence
-- Required commands: `python3 -m pytest tests/ -x -q`; `make quality-hooks-fast`
-- Result summary: to be populated at publish time (Slice 3)
+- `python3 -m pytest tests/blueprint/test_tooling_contracts.py::LocalDxImprovementsTests -v` → 8 passed (2026-05-27)
+- `python3 -m pytest tests/ -x -q` → all 538 tests passed (2026-05-27)
+- `make quality-hooks-fast` → 10/11 checks pass; `quality-spec-pr-ready` resolves after Slice 3 tasks are marked `[x]` (tasks.md P-001 through P-003 marked at publish time)
+- `make quality-docs-check-changed` → pass; platform seed mirrors synchronized (2026-05-27)
+- Docs updated: `docs/platform/consumer/quickstart.md`, `docs/platform/consumer/first_30_minutes.md`; synced to bootstrap template mirrors via `python3 scripts/lib/docs/sync_platform_seed_docs.py`
 
 ## Deferred Proposals
 

@@ -53,6 +53,7 @@ Expected outcome:
 - Reapply init-owned files only when you mean to: `BLUEPRINT_INIT_FORCE=true make blueprint-init-repo`
 - Run `make infra-status-json` to capture the latest machine-readable runtime snapshot at `artifacts/infra/infra_status_snapshot.json`.
 - For live local runs, `docker-desktop` is preferred automatically when present; run `make infra-context` or set `LOCAL_KUBE_CONTEXT` before provisioning if you want a different cluster.
+- Persist local overrides (context, branch pin, dev passwords) in `.env.local` at the repository root — it is gitignored and auto-loaded by every `make` target. See `scripts/templates/blueprint/bootstrap/.env.local.example` for reference variables including `ARGOCD_LOCAL_TARGET_REVISION`.
 - Review [Quickstart](quickstart.md) for full flow.
 - Review [Endpoint Exposure Model](endpoint_exposure_model.md) before exposing mixed public/protected UI or API routes.
 - Review [Protected API Routes](protected_api_routes.md) before exposing bearer-token APIs for SPA or direct clients.
