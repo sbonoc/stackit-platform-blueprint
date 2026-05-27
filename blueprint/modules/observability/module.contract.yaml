@@ -32,6 +32,7 @@ spec:
       stackit:
         - terraform_available
         - stackit_observability_managed_service
+        - secrets_store_csi_driver
 
   inputs:
     required_env: []

@@ -85,8 +85,11 @@ config:
 
 extraVolumes:
   - name: obs-auth
-    secret:
-      secretName: blueprint-observability-auth
+    csi:
+      driver: secrets-store.csi.k8s.io
+      readOnly: true
+      volumeAttributes:
+        secretProviderClass: blueprint-observability-csi
 extraVolumeMounts:
   - name: obs-auth
     mountPath: /etc/otel/secrets

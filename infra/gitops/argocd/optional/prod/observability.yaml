@@ -110,8 +110,11 @@ spec:
                 exporters: [loki]
         extraVolumes:
           - name: obs-auth
-            secret:
-              secretName: blueprint-observability-auth
+            csi:
+              driver: secrets-store.csi.k8s.io
+              readOnly: true
+              volumeAttributes:
+                secretProviderClass: blueprint-observability-csi
         extraVolumeMounts:
           - name: obs-auth
             mountPath: /etc/otel/secrets
@@ -166,3 +169,37 @@ spec:
       - ServerSideApply=true
       - PrunePropagationPolicy=foreground
       - PruneLast=true
+---
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: blueprint-observability-csi
+  namespace: observability
+spec:
+  provider: vault
+  parameters:
+    # Vault address: https://secrets.<region>.onstackit.cloud/<sm-instance-name>
+    # Read secrets_manager_vault_address from foundation TF outputs after first apply.
+    vaultAddress: "https://secrets.eu01.onstackit.cloud/CHANGE_ME_SM_INSTANCE_NAME_PROD"
+    # Vault auth: set roleName + vaultKubernetesMountPath for Kubernetes JWT auth (recommended),
+    # or create K8s Secret 'vault-sm-auth' in namespace 'observability' with key 'token' = SM user
+    # password and add nodePublishSecretRef: {name: vault-sm-auth, key: token} for token auth.
+    # See docs/platform/prerequisites.md for setup instructions.
+    roleName: "CHANGE_ME_VAULT_ROLE_NAME"
+    vaultKubernetesMountPath: "kubernetes"
+    objects: |
+      - objectName: "username"
+        secretPath: "secret/data/observability/otel-credentials"
+        secretKey: "username"
+      - objectName: "password"
+        secretPath: "secret/data/observability/otel-credentials"
+        secretKey: "password"
+      - objectName: "METRICS_PUSH_URL"
+        secretPath: "secret/data/observability/otel-credentials"
+        secretKey: "METRICS_PUSH_URL"
+      - objectName: "LOGS_PUSH_URL"
+        secretPath: "secret/data/observability/otel-credentials"
+        secretKey: "LOGS_PUSH_URL"
+      - objectName: "TRACES_PUSH_URL"
+        secretPath: "secret/data/observability/otel-credentials"
+        secretKey: "TRACES_PUSH_URL"

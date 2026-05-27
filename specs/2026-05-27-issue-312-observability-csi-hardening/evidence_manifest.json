@@ -1,0 +1,18 @@
+{
+  "manifest_version": 1,
+  "work_item": "2026-05-27-issue-312-observability-csi-hardening",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-05-27T00:00:00Z",
+  "files": [
+    { "path": "specs/2026-05-27-issue-312-observability-csi-hardening/spec.md", "role": "spec", "sha256": "8f538ce587c5f8fa245b67995cabb3eb58661dcfd2d0a4b83886ca1587fadcc5" },
+    { "path": "specs/2026-05-27-issue-312-observability-csi-hardening/architecture.md", "role": "architecture", "sha256": "cbe8984328e0dd92fc1c11abf2d962aa06973133552a802ca1e27a7b03e6fdcd" },
+    { "path": "specs/2026-05-27-issue-312-observability-csi-hardening/plan.md", "role": "plan", "sha256": "c538ea2f770adc68f68c164115511b9f8e518fc60aea254aa5e189caedb76c5c" },
+    { "path": "specs/2026-05-27-issue-312-observability-csi-hardening/tasks.md", "role": "tasks", "sha256": "5b86612dc53f70149b88239198de4fab62079d49246a631dfa5798603d76a2ce" },
+    { "path": "specs/2026-05-27-issue-312-observability-csi-hardening/traceability.md", "role": "traceability", "sha256": "e4ce8064eb0e8fba68b73666edaf17af573c6ca7fa0bad06ee0d558e0c167aa0" },
+    { "path": "specs/2026-05-27-issue-312-observability-csi-hardening/graph.json", "role": "graph", "sha256": "f25d502cda67cfc953603a819bc3750cd1b1ad31e56b28405c3da9856eb42a13" },
+    { "path": "specs/2026-05-27-issue-312-observability-csi-hardening/context_pack.md", "role": "context", "sha256": "e21fef1249f1a67003597b873b3fa5348329a060ef3c0f10f3642b384a09b131" },
+    { "path": "specs/2026-05-27-issue-312-observability-csi-hardening/pr_context.md", "role": "pr_context", "sha256": "c6b0d0a605646c2c1869d9f1de52369566e249997b60edf1101fd903bd917671" },
+    { "path": "specs/2026-05-27-issue-312-observability-csi-hardening/hardening_review.md", "role": "hardening", "sha256": "4c9a8c192bbac600e3fba2e948f6eb77e2478dd4faabcceef7e74728b21ad45d" },
+    { "path": "docs/blueprint/architecture/decisions/ADR-issue-312-observability-csi-hardening.md", "role": "adr", "sha256": "917984695563ca913049e99068594f266db5958c9485d80989f9a7bb3c17fd0f" }
+  ]
+}

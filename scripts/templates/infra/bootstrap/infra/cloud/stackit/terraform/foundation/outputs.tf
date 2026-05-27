@@ -29,6 +29,11 @@ output "dns_zone_ids" {
   value       = { for zone, resource in stackit_dns_zone.foundation : zone => resource.zone_id }
 }
 
+output "dns_primary_name_servers" {
+  description = "Map of FQDN to primary name server FQDN for provisioned DNS zones."
+  value       = { for zone, resource in stackit_dns_zone.foundation : zone => resource.primary_name_server }
+}
+
 output "postgres_instance_id" {
   description = "Provisioned PostgreSQL Flex instance identifier."
   value       = var.postgres_enabled ? stackit_postgresflex_instance.foundation[0].instance_id : null
@@ -140,6 +145,11 @@ output "rabbitmq_uri" {
   value       = var.rabbitmq_enabled ? stackit_rabbitmq_credential.foundation[0].uri : null
 }
 
+output "rabbitmq_management_url" {
+  description = "Provisioned RabbitMQ management dashboard URL."
+  value       = var.rabbitmq_enabled ? stackit_rabbitmq_credential.foundation[0].management : null
+}
+
 output "opensearch_instance_id" {
   description = "Provisioned OpenSearch instance identifier."
   value       = var.opensearch_enabled ? stackit_opensearch_instance.foundation[0].instance_id : null
@@ -239,6 +249,11 @@ output "observability_logs_push_url" {
 output "observability_traces_push_url" {
   description = "Provisioned Observability OTLP gRPC traces push URL."
   value       = var.observability_enabled ? stackit_observability_instance.foundation[0].otlp_grpc_traces_url : null
+}
+
+output "secrets_manager_vault_address" {
+  description = "STACKIT Secrets Manager Vault-compatible API endpoint URL."
+  value       = var.secrets_manager_enabled ? local._sm_vault_address : null
 }
 
 output "kms_key_ring_name" {

@@ -5,3 +5,5 @@ resources:
   - appproject-edge.yaml
   - applicationset-platform-environments.yaml
   - ../../core/dev/keycloak.yaml
+  - ../../core/dev/secrets-store-csi-driver.yaml
+  - ../../core/dev/secrets-store-csi-driver-vault-provider.yaml

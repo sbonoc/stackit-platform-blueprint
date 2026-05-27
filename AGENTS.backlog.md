@@ -43,7 +43,7 @@ To introduce a new tag, append a row here in the same commit that uses it.
       trigger: on-scope: quality
       rationale: heuristic detection of "app-delivery changes" is ambiguous; guidance text in the template Notes field provides a softer control. Validate tradeoff after observing real-world misuse.
 
-- [ ] proposal(issue-248-observability-module): Harden observability credential delivery via Secrets Store CSI Driver — https://github.com/sbonoc/stackit-platform-blueprint/issues/312
+- [x] (done) Issue #312 — Observability CSI hardening: replace `blueprint-observability-auth` K8s Secret with Secrets Store CSI Driver delivery from STACKIT Secrets Manager. Closed by PR #329. — https://github.com/sbonoc/stackit-platform-blueprint/issues/312
 
 ### P2 — Consumer upgrade flow
 
@@ -106,6 +106,10 @@ Surface automatically when the named scope is next touched. Do not promote to ac
       rationale: `state_file_exists` has no unit test; smoke absent-state path is currently untested at module level
 - [ ] proposal(issue-281-282-opensearch-bitnami-chart-fixes): Bitnami chart 2.x upgrade — targets OpenSearch 3.x, incompatible with 2.17/2.19 image line.
       rationale: requires STACKIT managed-service plan validation before migration; no current blocker
+- [ ] (parked) proposal(issue-312-observability-csi-hardening): Extend Secrets Store CSI Driver hardening to Bitnami-chart modules (RabbitMQ, PostgreSQL, OpenSearch) — use CSI `secretObjects` sync to deliver STACKIT-managed credentials from Secrets Manager into K8s Secrets consumed by Bitnami `existingSecret` references. Tradeoff: audit trail is gained but etcd exposure is not eliminated (K8s Secret object is still created by the CSI sync). A separate ADR decision is required on whether audit trail alone satisfies the threat model for these modules, or whether Bitnami file-mount support is required first.
+      trigger: on-scope: infra
+      trigger: after: issue-312-observability-csi-hardening
+      rationale: Bitnami charts consume credentials via K8s Secret env refs (existingSecret), not file mounts — CSI secretObjects sync still writes to etcd. Deferred until policy decision on partial hardening or Bitnami chart file-mount support.
 - [ ] (parked) proposal(issue-277-argocd-health-na): per-resource-type ignoreResourceUpdates tuning for noisy types (ConfigMap, Endpoints)
       trigger: on-scope: infra
       rationale: no current CPU pressure evidence on local Docker Desktop; surfaces when future ArgoCD or infra work is scoped
@@ -127,6 +131,16 @@ Surface automatically when the named scope is next touched. Do not promote to ac
 - [ ] (parked) proposal(issue-248-observability-module): Evaluate a provider-backed Logs/LogMe module or baseline observability extension using STACKIT Terraform resources
       trigger: on-scope: observability
       rationale: no active consumer need for a dedicated Logs service module; surfaces when a consumer requests LogMe or a second observability extension
+- [ ] (parked) proposal(issue-312-observability-csi-hardening): Automated credential rotation trigger — emit an event-driven rotation when STACKIT Secrets Manager expiry fires, rather than relying on the CSI driver poll interval (default 2 min).
+      trigger: on-scope: observability
+      rationale: CSI driver already polls SM on a configurable interval; event-driven rotation is a separate feature with no current consumer request; surfaces when observability security hardening is in scope
+- [ ] (parked) proposal(issue-312-observability-csi-hardening): Local lane CSI driver support — eliminate K8s Secret on the local lane once Docker Desktop ships native Secrets Store CSI Driver support.
+      trigger: triage: next-session
+      stale-after: 2
+      rationale: conditional on external platform capability; Docker Desktop does not support Secrets Store CSI Driver natively as of 2026-05-27; no actionable scope until that changes
+- [ ] (parked) proposal(issue-312-observability-csi-hardening): KMS envelope encryption of Secrets Manager credentials — wrap stored secrets with a STACKIT KMS key before writing to SM.
+      trigger: on-scope: observability
+      rationale: KMS module is a separate optional module; sensible hardening but out of scope for observability CSI work; surfaces when KMS hardening is in scope
 
 ### on-scope: workflows
 
@@ -175,7 +189,6 @@ Surface automatically when the named scope is next touched. Do not promote to ac
       rationale: surfaces when blueprint maintainers next improve seed workload content (health probes, security contexts, resource limits) or a consumer reports silently missing a seed update
 - [ ] proposal(issue-217): extract `_assert_descriptor_kustomization_agreement` as shared module helper for future smoke scenario reuse.
       rationale: no additional callers today; surfaces when the next blueprint smoke scenario is developed
-
 ### on-scope: quality
 
 - [ ] proposal(issue-286-288-ci-template-draft-guard-drift-hook): add root dotfiles to `_QG_INFRA_GATE_PATHS` for `infra-validate` drift coverage beyond the commit hook.

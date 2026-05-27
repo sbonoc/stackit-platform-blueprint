@@ -29,7 +29,6 @@ provision_path="$OPTIONAL_MODULE_EXECUTION_PATH"
 case "$provision_driver" in
 foundation_contract)
   optional_module_apply_foundation_contract "observability"
-  observability_reconcile_runtime_secret
   ;;
 crossplane_plus_helm)
   run_kustomize_apply "$provision_path"

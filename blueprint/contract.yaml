@@ -1123,6 +1123,7 @@ spec:
       required_seed_files:
         - docs/platform/consumer/first_30_minutes.md
         - docs/platform/README.md
+        - docs/platform/prerequisites.md
         - docs/platform/architecture/README.md
         - docs/platform/architecture/north_star.md
         - docs/platform/architecture/tech_stack.md

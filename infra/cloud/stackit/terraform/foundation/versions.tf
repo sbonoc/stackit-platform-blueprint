@@ -6,6 +6,10 @@ terraform {
       source  = "stackitcloud/stackit"
       version = "= 0.88.0"
     }
+    vault = {
+      source  = "hashicorp/vault"
+      version = "= 4.4.0"
+    }
   }
 
   backend "s3" {}

@@ -251,6 +251,11 @@ output "observability_traces_push_url" {
   value       = var.observability_enabled ? stackit_observability_instance.foundation[0].otlp_grpc_traces_url : null
 }
 
+output "secrets_manager_vault_address" {
+  description = "STACKIT Secrets Manager Vault-compatible API endpoint URL."
+  value       = var.secrets_manager_enabled ? local._sm_vault_address : null
+}
+
 output "kms_key_ring_name" {
   description = "Provisioned KMS keyring display name."
   value       = var.kms_enabled ? var.kms_key_ring_name : null

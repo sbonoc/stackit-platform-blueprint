@@ -64,6 +64,12 @@ observability_secret_name() {
 }
 
 observability_reconcile_runtime_secret() {
+  # Credentials on STACKIT profiles are delivered via Secrets Store CSI Driver (issue-312).
+  # This function is for local-lane paths only (crossplane_plus_helm driver).
+  if is_stackit_profile; then
+    log_fatal "observability_reconcile_runtime_secret: not supported on STACKIT profiles — credentials are delivered via CSI driver (issue-312)"
+    return 1
+  fi
   local _username
   _username="$(stackit_foundation_output_value_or_default "observability_credential_username" "${OBSERVABILITY_USERNAME:-}")"
   apply_optional_module_secret_from_literals \
