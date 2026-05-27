@@ -16,3 +16,4 @@ docs/.docusaurus/
 **/.terraform/
 infra/cloud/stackit/terraform/**/.terraform.lock.hcl
 .claude/scheduled_tasks.lock
+.env.local

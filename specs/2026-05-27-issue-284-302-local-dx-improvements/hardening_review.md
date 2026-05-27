@@ -1,7 +1,7 @@
 # Hardening Review
 
 ## Repository-Wide Findings Fixed
-- No repository-wide hardening regressions expected. Both changes are local developer tooling only; no production runtime path is modified.
+- Finding: no repository-wide hardening regressions introduced. Both changes are local developer tooling only; no production runtime path is modified. Confirmed at implementation time: `make quality-hooks-fast` passes 10/11 checks (quality-spec-pr-ready resolves when Slice 3 publish tasks are marked [x]); `python3 -m pytest tests/blueprint/test_tooling_contracts.py::LocalDxImprovementsTests -v` → 8 passed (2026-05-27).
 
 ## Security Review
 
