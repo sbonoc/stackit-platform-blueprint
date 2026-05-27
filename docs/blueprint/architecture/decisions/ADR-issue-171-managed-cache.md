@@ -29,13 +29,13 @@ bitnami/redis is the established local-lane pattern. The bitnami deprecation con
 
 **Rationale:** All optional managed-service modules in the blueprint follow this pattern (rabbitmq, postgres, opensearch). Direct module invocation would require a separate TF workspace with its own state, which creates credential management complexity. Foundation-contract execution means a single apply call produces all outputs via the already-authenticated foundation workspace.
 
-## Decision 3: STACKIT Redis resource — stackit_redis_instance + stackit_redis_credential (Option A, pending verification)
+## Decision 3: STACKIT Redis resource — stackit_redis_instance + stackit_redis_credential (Option A, verified)
 
-**Decision:** Use `stackit_redis_instance` and `stackit_redis_credential` TF resources from the STACKIT Terraform provider. Credential attributes: `host`, `port`, `password`, `uri`.
+**Decision:** Use `stackit_redis_instance` and `stackit_redis_credential` TF resources from the STACKIT Terraform provider. Credential attributes: `host`, `port`, `username`, `password` (sensitive), `uri`.
 
-**Rationale:** The STACKIT provider follows a consistent naming pattern across managed services. The expected resource names follow the same convention as `stackit_rabbitmq_instance` / `stackit_rabbitmq_credential` and `stackit_postgresql_instance` / `stackit_postgresql_credential`. Redis has no `username` field — auth is password-only.
+**Rationale:** Resource names verified against the Terraform Registry (`stackitcloud/stackit` v0.88.x). The naming follows the same convention as `stackit_rabbitmq_instance` / `stackit_rabbitmq_credential`. Unlike the initial assumption, STACKIT Redis credentials DO include a `username` attribute — the provider wraps Redis with a credential pair. This does not affect the consumer contract: `managed_cache_uri()` on the STACKIT lane reads the provider-generated `uri` foundation output directly (which embeds the username), while the local lane constructs a password-only URI for bitnami/redis.
 
-**Open question (Q-1 — blocking Slice 3):** The resource names must be verified against the live provider schema (`terraform providers schema -json` for provider version `= 0.88.0`) before writing TF code. Incorrect resource names block `terraform apply`. Slice 3 implementation is gated on this resolution.
+Network ACL is set via `parameters.sgw_acl` (a comma-separated CIDR string) — same mechanism as `stackit_rabbitmq_instance`. This is how NFR-SEC-002 is satisfied.
 
 ## Decision 4: Credential delivery — shell lib abstraction + ESO ExternalSecret
 

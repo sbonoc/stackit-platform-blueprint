@@ -49,7 +49,7 @@ Implementation:
 
 Gate: `make infra-contract-test-fast`
 
-### Slice 3: TF module (blocked on Q-1)
+### Slice 3: TF module
 **Goal:** TF module files exist, declare the correct STACKIT Redis resources, and are wired into the foundation workspace. Tests go red first.
 
 Red assertions:

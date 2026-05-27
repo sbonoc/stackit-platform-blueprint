@@ -5,11 +5,11 @@
      SPEC_READY=true: implementation gate — all sign-offs required; unlocks coding. -->
 - SPEC_READY: false
 - SPEC_PRODUCT_READY: false
-- Open questions count: 1
+- Open questions count: 0
 - Unresolved alternatives count: 0
 - Unresolved TODO markers count: 0
 - Pending assumptions count: 0
-- Open clarification markers count: 1
+- Open clarification markers count: 0
 - Product sign-off: pending
 - Architecture sign-off: pending
 - Security sign-off: pending
@@ -45,17 +45,9 @@
 
 ### Functional Requirements (Normative)
 
-- FR-001 MUST create `infra/cloud/stackit/terraform/modules/managed-cache/` containing `main.tf`, `variables.tf`, `outputs.tf`, and `versions.tf`. The module MUST provision a `stackit_redis_instance` and a `stackit_redis_credential` resource, conditioned on `var.managed_cache_enabled`. The module MUST follow the foundation-contract execution model: it is invoked by the foundation TF workspace via `resolve_optional_module_execution`, not called directly.
+- FR-001 MUST create `infra/cloud/stackit/terraform/modules/managed-cache/` containing `main.tf`, `variables.tf`, `outputs.tf`, and `versions.tf`. The module MUST provision a `stackit_redis_instance` and a `stackit_redis_credential` resource, conditioned on `var.managed_cache_enabled`. The module MUST follow the foundation-contract execution model: it is invoked by the foundation TF workspace via `resolve_optional_module_execution`, not called directly. Network ACL MUST be set via `parameters.sgw_acl` (CIDR string) aligned with SKE egress ranges — same pattern as `stackit_rabbitmq_instance`.
 
-> **[NEEDS CLARIFICATION: Q-1 — Exact STACKIT Terraform resource and credential attribute names for Redis.]**
->
-> **Context:** The STACKIT Terraform provider follows a consistent pattern for managed services. Based on provider conventions, the expected resources are `stackit_redis_instance` and `stackit_redis_credential`. Credential attributes are expected to follow the RabbitMQ pattern (`host`, `port`, `password`, `uri`). Redis has no `username` field (auth is password-only).
->
-> **Options:**
-> - **A)** `stackit_redis_instance` + `stackit_redis_credential` with attrs `host`, `port`, `password`, `uri` — consistent with provider naming conventions (agent recommendation).
-> - **B)** Different resource name (e.g. `stackit_mariadb_*` pattern with separate user resource) — if STACKIT Redis uses a different credential model.
->
-> **Agent recommendation:** Option A. Verify resource names against provider docs (`terraform providers schema -json`) before writing TF code. Placeholder resource names MUST be confirmed before `SPEC_READY=true`.
+  > **Q-1 resolved (2026-05-27):** Resource names verified against provider registry (`stackitcloud/stackit` v0.88.x): `stackit_redis_instance` (attrs: `project_id`, `name`, `plan_name`, `version`, `parameters.sgw_acl`) and `stackit_redis_credential` (computed attrs: `host`, `port`, `username`, `password` (sensitive), `uri`). Note: unlike the initial assumption, STACKIT Redis credentials DO include a `username` attribute — the provider wraps Redis with a credential pair. Option A selected.
 
 - FR-002 MUST wire `managed_cache_enabled` as a boolean variable in `infra/cloud/stackit/terraform/foundation/variables.tf` (default `false`). MUST add `managed_cache_*` outputs (`managed_cache_host`, `managed_cache_port`, `managed_cache_password`, `managed_cache_uri`) to `infra/cloud/stackit/terraform/foundation/outputs.tf`. MUST call the managed-cache module from the foundation TF workspace when `var.managed_cache_enabled` is true.
 
@@ -66,8 +58,9 @@
   - `managed_cache_init_env()` — calls `managed_cache_seed_env_defaults` then `require_env_vars MANAGED_CACHE_INSTANCE_NAME`.
   - `managed_cache_host()` — returns foundation output `managed_cache_host` on STACKIT; returns `${MANAGED_CACHE_HELM_RELEASE}.${MANAGED_CACHE_NAMESPACE}.svc.cluster.local` on local lane.
   - `managed_cache_port()` — returns foundation output `managed_cache_port` on STACKIT; returns `$MANAGED_CACHE_PORT` on local lane.
+  - `managed_cache_username()` — returns foundation output `managed_cache_username` on STACKIT; returns empty string on local lane (bitnami/redis uses password-only auth with the default user).
   - `managed_cache_password()` — returns foundation output `managed_cache_password` on STACKIT; returns `$MANAGED_CACHE_PASSWORD` on local lane.
-  - `managed_cache_uri()` — returns `redis://:$(managed_cache_password)@$(managed_cache_host):$(managed_cache_port)/0` on both lanes.
+  - `managed_cache_uri()` — on STACKIT: reads foundation output `managed_cache_uri` directly (provider-generated, includes username). On local lane: constructs `redis://:<password>@<host>:<port>/0` (password-only; no username for bitnami/redis default user).
 
 - FR-005 MUST create `scripts/bin/infra/managed_cache_plan.sh`, `managed_cache_apply.sh`, `managed_cache_smoke.sh`, and `managed_cache_destroy.sh` following the rabbitmq bin script pattern. The apply script MUST write `managed_cache_runtime.env` via `write_state_file` with keys: `profile`, `stack`, `host`, `port`, `uri`. The apply script MUST NOT write `password` to the state file (SDD-C-009).
 
@@ -102,7 +95,7 @@
 - Rationale: bitnami/redis is the established local-lane pattern for managed services in this blueprint. Consistency with existing modules reduces cognitive overhead for platform engineers and consumers. The bitnami deprecation concern (see issue #324 for postgres) is noted as a deferred proposal.
 
 ## Contract Changes (Normative)
-- Config/Env contract: New optional env vars — `MANAGED_CACHE_ENABLED`, `MANAGED_CACHE_INSTANCE_NAME`, `MANAGED_CACHE_PASSWORD`, `MANAGED_CACHE_PORT` (default `6379`), `MANAGED_CACHE_NAMESPACE` (default `managed-cache`), `MANAGED_CACHE_HELM_RELEASE`, `MANAGED_CACHE_HELM_CHART`, `MANAGED_CACHE_HELM_CHART_VERSION`. New outputs — `MANAGED_CACHE_HOST`, `MANAGED_CACHE_PORT`, `MANAGED_CACHE_PASSWORD`, `MANAGED_CACHE_URI`.
+- Config/Env contract: New optional env vars — `MANAGED_CACHE_ENABLED`, `MANAGED_CACHE_INSTANCE_NAME`, `MANAGED_CACHE_PASSWORD`, `MANAGED_CACHE_PORT` (default `6379`), `MANAGED_CACHE_NAMESPACE` (default `managed-cache`), `MANAGED_CACHE_HELM_RELEASE`, `MANAGED_CACHE_HELM_CHART`, `MANAGED_CACHE_HELM_CHART_VERSION`. New outputs — `MANAGED_CACHE_HOST`, `MANAGED_CACHE_PORT`, `MANAGED_CACHE_USERNAME`, `MANAGED_CACHE_PASSWORD`, `MANAGED_CACHE_URI`.
 - API contract: none
 - OpenAPI / Pact contract path: none
 - Event contract: none
@@ -127,7 +120,7 @@
 - Context: This module is the prerequisite for issue #172 (platform-email / Postal), which requires a Redis backing store. Four independent consumer use cases drive the demand: server-side session store (Keycloak JWT overflow), rate-limiting counter store, inbox idempotency cache, and Postal's internal dependency.
 - Tradeoffs: bitnami/redis is used for local lane consistency. The bitnami deprecation concern (tracked in issue #324 for postgres) applies equally here — if a local-lane bitnami migration is eventually done for postgres (#324), this module follows the same migration scope. Noted as a deferred proposal.
 - Clarifications:
-  - Q-1 above covers the only open question: verifying STACKIT TF resource names for Redis before implementation.
+  - Q-1 resolved: `stackit_redis_instance` + `stackit_redis_credential` confirmed from provider registry. Credential includes `username`, `password`, `host`, `port`, `uri`. Network ACL via `parameters.sgw_acl`. See FR-001 for detail.
 
 ## Explicit Exclusions
 - Redis Cluster / Sentinel HA mode: single-instance provisioning only; HA requires separate capacity planning.

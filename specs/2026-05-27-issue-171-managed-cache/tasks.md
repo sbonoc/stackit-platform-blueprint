@@ -4,6 +4,7 @@
 - [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`
 - [ ] G-002 Confirm open questions and unresolved alternatives are `0`
 - [ ] G-003 Confirm Q-1 (STACKIT Redis TF resource name) is resolved before starting Slice 3
+  - Resolved (2026-05-27): `stackit_redis_instance` + `stackit_redis_credential` confirmed from provider registry; credential attrs: `host`, `port`, `username`, `password`, `uri`; ACL via `parameters.sgw_acl`
 
 ## Slice 1 — Module contract + shell lib skeleton
 - [ ] T-101 Write failing test assertions (contract file, enable flag, outputs, shell functions)
@@ -18,7 +19,7 @@
 - [ ] T-203 Create stub `scripts/bin/infra/managed_cache_{plan,apply,smoke,destroy}.sh`
 - [ ] T-204 Gate: `make infra-contract-test-fast` green
 
-## Slice 3 — TF module (blocked on Q-1)
+## Slice 3 — TF module
 - [ ] T-301 Resolve Q-1: verify STACKIT Redis TF resource name from provider schema
 - [ ] T-302 Write failing test assertions (TF files, resource declarations, foundation wiring)
 - [ ] T-303 Create TF module files (`main.tf`, `variables.tf`, `outputs.tf`, `versions.tf`)

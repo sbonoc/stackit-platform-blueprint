@@ -25,8 +25,8 @@
 - Result summary: pending implementation
 - Artifact references: `traceability.md`, `hardening_review.md`
 
-## Open Questions (Blocking)
-- Q-1: Verify exact STACKIT Terraform resource name for Redis. Agent recommendation: `stackit_redis_instance` + `stackit_redis_credential` with attrs `host`, `port`, `password`, `uri`. Gate 3 (Slice 3) is blocked until confirmed. Resolvers: verify via `terraform providers schema -json` for STACKIT provider `= 0.88.0`.
+## Open Questions
+- Q-1 resolved (2026-05-27): `stackit_redis_instance` + `stackit_redis_credential` confirmed from provider registry (`stackitcloud/stackit` v0.88.x). Credential attrs: `host`, `port`, `username`, `password` (sensitive), `uri`. ACL via `parameters.sgw_acl`. No open questions remain.
 
 ## Risk and Rollback
 - Main risks: STACKIT Redis TF resource name is inferred (Q-1); if incorrect, `terraform apply` fails and must be corrected before any STACKIT lane apply. Local bitnami/redis is subject to the same deprecation risk as bitnami/postgresql (issue #324).
