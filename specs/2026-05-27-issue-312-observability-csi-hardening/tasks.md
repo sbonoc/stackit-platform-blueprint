@@ -1,11 +1,11 @@
 # Tasks
 
 ## Gate Checks (Required Before Implementation)
-- [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`
-- [ ] G-002 Confirm open questions and unresolved alternatives are `0`
-- [ ] G-003 Confirm required sign-offs are approved
-- [ ] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
-- [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
+- [x] G-001 Confirm `SPEC_READY=true` in `spec.md`
+- [x] G-002 Confirm open questions and unresolved alternatives are `0`
+- [x] G-003 Confirm required sign-offs are approved
+- [x] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
+- [x] G-005 Confirm `Implementation Stack Profile` section is fully populated
 
 ## Implementation — Slice 1: CSI Driver bootstrap ArgoCD Applications
 - [ ] T-101 Create `infra/gitops/argocd/core/secrets-store-csi-driver.yaml` — ArgoCD Application (pinned chart version)
@@ -22,9 +22,9 @@
 
 ## Implementation — Slice 3: SecretProviderClass + CSI volume in STACKIT OTC values
 - [ ] T-301 Write failing assertions: `test_stackit_values_uses_csi_volume`, `test_stackit_values_no_secret_volume`, `test_secret_provider_class_referenced`
-- [ ] T-302 Update `infra/cloud/stackit/helm/observability/otel-collector.values.yaml` — replace `extraVolumes.secret` with `extraVolumes.csi`
-- [ ] T-303 Add `SecretProviderClass` manifest to STACKIT ArgoCD observability Applications (dev/stage/prod)
-- [ ] T-304 Mirror changes to `scripts/templates/blueprint/bootstrap/` counterparts
+- [ ] T-302 Replace `extraVolumes.secret` with `extraVolumes.csi` in all four files carrying the inline override: `infra/cloud/stackit/helm/observability/otel-collector.values.yaml`, `infra/gitops/argocd/optional/dev/observability.yaml`, `infra/gitops/argocd/optional/stage/observability.yaml`, `infra/gitops/argocd/optional/prod/observability.yaml`
+- [ ] T-303 Add `SecretProviderClass` manifest (namespace-scoped to `observability`) as an inline additional resource or standalone manifest within each per-env ArgoCD observability Application source
+- [ ] T-304 Verify no STACKIT bootstrap template exists for per-env observability ArgoCD manifests — no mirror needed; confirm local-lane template unchanged
 - [ ] T-305 Turn T-301 assertions green
 
 ## Implementation — Slice 4: Shell layer — remove K8s Secret calls from STACKIT path

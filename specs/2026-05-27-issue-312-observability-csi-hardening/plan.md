@@ -40,9 +40,13 @@
 
 ### Slice 3: SecretProviderClass + CSI volume in STACKIT OTC values (red → green TDD)
 1. Write failing assertions: `test_stackit_values_uses_csi_volume`, `test_stackit_values_no_secret_volume`, `test_secret_provider_class_referenced`.
-2. Update `infra/cloud/stackit/helm/observability/otel-collector.values.yaml` — replace `extraVolumes.secret` with `extraVolumes.csi` block.
-3. Add `SecretProviderClass` manifest to each STACKIT ArgoCD observability Application.
-4. Mirror changes to bootstrap template.
+2. Replace `extraVolumes.secret` with `extraVolumes.csi` block in ALL four files that carry the inline override:
+   - `infra/cloud/stackit/helm/observability/otel-collector.values.yaml`
+   - `infra/gitops/argocd/optional/dev/observability.yaml`
+   - `infra/gitops/argocd/optional/stage/observability.yaml`
+   - `infra/gitops/argocd/optional/prod/observability.yaml`
+3. Add `SecretProviderClass` manifest as an inline additional resource within each per-env ArgoCD observability Application (`dev/observability.yaml`, `stage/observability.yaml`, `prod/observability.yaml`) or as a standalone manifest in the same ArgoCD Application source directory, namespace-scoped to `observability`.
+4. Bootstrap template note: no STACKIT-specific ArgoCD optional bootstrap template exists for the per-env observability manifests — no mirror required. Local-lane template (`scripts/templates/infra/bootstrap/infra/local/helm/observability/otel-collector.values.yaml`) is unchanged (local lane out of scope).
 5. Turn assertions green.
 
 ### Slice 4: Shell layer — remove K8s Secret lifecycle from STACKIT path (red → green TDD)
