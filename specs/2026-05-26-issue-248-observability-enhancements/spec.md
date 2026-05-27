@@ -133,7 +133,7 @@ All questions resolved before intake. No open questions.
 - Tradeoffs: Adding `memory_limiter` adds a small CPU overhead per telemetry pipeline pass. The tradeoff is justified — OOM kills are a known production failure mode for OTEL collectors under burst load.
 
 ## Explicit Exclusions
-- Faro CORS per-origin configuration via env var injection into OTC Helm values — the file config provider pattern used for credentials does not extend to receiver config; CORS must be a static value in the Helm chart values.
+- Faro CORS per-origin configuration via file config provider (Helm values static list) — see Option Decision 2: OPTION_B selected; env substitution via OTC `${env:FARO_CORS_ALLOWED_ORIGINS}` is the implemented mechanism.
 - `OBSERVABILITY_RETENTION_DAYS` shell contract — still deferred; retention is a TF-level concern (see backlog).
 - Langfuse integration — consumer-specific, not generic.
 - Replacing `grafana/k8s-monitoring` all-in-one chart with separate Grafana/Loki/Prometheus/Tempo charts — disruptive refactor, low value given k8s-monitoring covers the same stack with less consumer maintenance burden.
