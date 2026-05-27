@@ -110,8 +110,11 @@ spec:
                 exporters: [loki]
         extraVolumes:
           - name: obs-auth
-            secret:
-              secretName: blueprint-observability-auth
+            csi:
+              driver: secrets-store.csi.k8s.io
+              readOnly: true
+              volumeAttributes:
+                secretProviderClass: blueprint-observability-csi
         extraVolumeMounts:
           - name: obs-auth
             mountPath: /etc/otel/secrets
@@ -166,3 +169,29 @@ spec:
       - ServerSideApply=true
       - PrunePropagationPolicy=foreground
       - PruneLast=true
+---
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: blueprint-observability-csi
+  namespace: observability
+spec:
+  provider: vault
+  parameters:
+    vaultAddress: ""
+    objects: |
+      - objectName: "username"
+        secretPath: "secret/data/observability/otel-credentials"
+        secretKey: "username"
+      - objectName: "password"
+        secretPath: "secret/data/observability/otel-credentials"
+        secretKey: "password"
+      - objectName: "METRICS_PUSH_URL"
+        secretPath: "secret/data/observability/otel-credentials"
+        secretKey: "METRICS_PUSH_URL"
+      - objectName: "LOGS_PUSH_URL"
+        secretPath: "secret/data/observability/otel-credentials"
+        secretKey: "LOGS_PUSH_URL"
+      - objectName: "TRACES_PUSH_URL"
+        secretPath: "secret/data/observability/otel-credentials"
+        secretKey: "TRACES_PUSH_URL"

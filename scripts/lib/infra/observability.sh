@@ -64,6 +64,11 @@ observability_secret_name() {
 }
 
 observability_reconcile_runtime_secret() {
+  # DEPRECATED on STACKIT profiles — credentials are delivered via Secrets Store CSI Driver.
+  # This function remains for local-lane paths only (crossplane_plus_helm driver).
+  if [[ "${BLUEPRINT_STACK:-}" == "stackit" ]]; then
+    log_warn "observability_reconcile_runtime_secret: deprecated on STACKIT profiles — use CSI driver for credential delivery (issue-312)"
+  fi
   local _username
   _username="$(stackit_foundation_output_value_or_default "observability_credential_username" "${OBSERVABILITY_USERNAME:-}")"
   apply_optional_module_secret_from_literals \
