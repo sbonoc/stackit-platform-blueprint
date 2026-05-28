@@ -50,12 +50,15 @@
   - AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009, AC-010, AC-011
 
 ## Validation Summary
-- Required bundles executed: pending Implementation phase (Step 5 — `/blueprint-sdd-step05-implement`).
-- Expected bundles at sign-off: `make quality-sdd-check`, `make docs-build`, `make docs-smoke`, `make quality-hardening-review`.
-- Result summary: intake-phase artifacts populated; all seven Open Decisions Q-1 through Q-7 RESOLVED on 2026-05-28 via Product comments on PR #345 (Q-1/Q-2/Q-3/Q-4/Q-6/Q-7 → Option A; Q-5 → Option A' Managed RabbitMQ with Strimzi Kafka fallback after STACKIT Managed Kafka unavailability was confirmed).
-- Documentation validation:
-  - `make docs-build`
-  - `make docs-smoke`
+- Required bundles executed at Step 05 (Slice 8, 2026-05-29) and Step 06 (2026-05-29) — all PASS:
+  - `make quality-sdd-check` — pass (Slice 8)
+  - `make docs-build` — pass (Slice 8, after MDX `{...}` escape repair in two ADRs)
+  - `make docs-smoke` — pass (Slice 8)
+  - `make quality-hardening-review` — pass (Slice 8)
+  - `make quality-docs-check-changed` — pass (Step 06)
+  - `python3 scripts/lib/docs/sync_blueprint_template_docs.py` — zero-diff re-run confirmed AC-009 (created=0 updated=0 removed=0 skipped=17) (Step 06)
+  - `make blueprint-test-unit` — 1074 passed, 42 subtests passed (Slice 8)
+- Result summary: intake-phase artifacts populated; all seven Open Decisions Q-1 through Q-7 RESOLVED on 2026-05-28 via Product comments on PR #345 (Q-1/Q-2/Q-3/Q-4/Q-6/Q-7 → Option A; Q-5 → Option A' Managed RabbitMQ with Strimzi Kafka fallback after STACKIT Managed Kafka unavailability was confirmed). Implementation completed across 8 slices (commits 715014a → afa3be9). Step 06 added evidence manifest population + traceability validation summary.
 
 ## Evidence Manifest
 - Manifest file: `evidence_manifest.json`

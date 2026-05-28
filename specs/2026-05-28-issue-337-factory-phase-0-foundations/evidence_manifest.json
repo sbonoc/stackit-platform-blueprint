@@ -1,7 +1,177 @@
 {
   "manifest_version": 1,
-  "work_item": "<YYYY-MM-DD>-<work-item-slug>",
+  "work_item": "2026-05-28-issue-337-factory-phase-0-foundations",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "",
-  "files": []
+  "generated_at_utc": "2026-05-29T00:00:00Z",
+  "files": [
+    {
+      "path": "docs/blueprint/architecture/decisions/ADR-issue-337-factory-phase-0-foundations.md",
+      "sha256": "9a903ebcdb05ffde0542d01f251d5cbffaec14a39232810ed882a4cdf546b441",
+      "role": "meta-adr",
+      "description": "Meta-ADR — Status: approved at Step 03 (commit 715014a) under all four canonical sign-offs; links to ten content ADRs + three autonomous-factory documents. Serves as the sign-off envelope for the ten content ADRs (FR-001..FR-010)."
+    },
+    {
+      "path": "docs/blueprint/architecture/decisions/ADR-issue-337-llm-model-router-policy.md",
+      "sha256": "1e01deea23a6ab2517ddaf535be6de0b54b6f367c9fe5133308dffacb18c5881",
+      "role": "content-adr",
+      "description": "FR-001 — LLM model router policy (three-tier router). Status: approved from inception under meta-ADR envelope."
+    },
+    {
+      "path": "docs/blueprint/architecture/decisions/ADR-issue-337-persona-skill-contract.md",
+      "sha256": "1aa3a49172124c5f89c2b883166a13b376756a13ebc904d2b169a24c777fa364",
+      "role": "content-adr",
+      "description": "FR-002 — Persona-skill contract. Status: approved from inception under meta-ADR envelope."
+    },
+    {
+      "path": "docs/blueprint/architecture/decisions/ADR-issue-337-trigger-authorization-model.md",
+      "sha256": "9208707ebdcf15da7a142257d223933b56ca121c5f984057508750b15e07faf1",
+      "role": "content-adr",
+      "description": "FR-003 — Trigger authorization model. Status: approved from inception under meta-ADR envelope."
+    },
+    {
+      "path": "docs/blueprint/architecture/decisions/ADR-issue-337-sovereignty-zdr-posture.md",
+      "sha256": "e4007d39ee0bc2e263a1672ddd30340a5fe524e475ba17f987d194e385b3ee3e",
+      "role": "content-adr",
+      "description": "FR-004 — Sovereignty + ZDR posture; cites #339 NFR-SEC-001 verbatim per NFR-SEC-001 (prohibits factory-side egress allowlist content). Status: approved from inception."
+    },
+    {
+      "path": "docs/blueprint/architecture/decisions/ADR-issue-337-separation-of-duties-at-factory-velocity.md",
+      "sha256": "001c2ea2eba15cdbd017e15078ebdff5ba1c85628e61b6f5fb8f6283de910f4d",
+      "role": "content-adr",
+      "description": "FR-005 — Separation of duties at factory velocity; cites #339 NFR-SEC-001 verbatim per NFR-SEC-002 (factory-bot exact-string equality on GitHub login; no substring/regex/display-name heuristics). Status: approved from inception."
+    },
+    {
+      "path": "docs/blueprint/architecture/decisions/ADR-issue-337-reject-rerun-cap.md",
+      "sha256": "6a284ec6cdfb55ebd515a188a3c78edeae64426d4f2d3ce64dcf106de4a8daa2",
+      "role": "content-adr",
+      "description": "FR-006 — Reject-rerun cap (cap=2; factory-escalated label semantics). Status: approved from inception."
+    },
+    {
+      "path": "docs/blueprint/architecture/decisions/ADR-issue-337-per-ticket-wall-clock-cost-ceiling.md",
+      "sha256": "e586587f61c39cec1ed4ece3f927b2844d6da119df2ce5423563e8b0634612d8",
+      "role": "content-adr",
+      "description": "FR-007 — Per-ticket wall-clock + cost ceiling (90 min / $15 USD per work item, per child for decomposed parents — Q-1 Option A). Status: approved from inception."
+    },
+    {
+      "path": "docs/blueprint/architecture/decisions/ADR-issue-337-reviewer-model-heterogeneity.md",
+      "sha256": "fc43dc9399ada16c5ffda1afc4be36b4a3b33683fdca0747b4acf6c4b02093e8",
+      "role": "content-adr",
+      "description": "FR-008 — Reviewer model heterogeneity (rotation rule; LiteLLM enforcement via #339 C7 read). Status: approved from inception. MDX braces escaped at Slice 8 for docs-build compatibility."
+    },
+    {
+      "path": "docs/blueprint/architecture/decisions/ADR-issue-337-triage-size-threshold.md",
+      "sha256": "3ffe3bae8b3e43b65a4d9875df8e896c66c407cfb933a79078a1964b4651dbea",
+      "role": "content-adr",
+      "description": "FR-009 — Triage size threshold (4-class table: small / medium / large-decomposable / escalate — Q-2 Option A). Status: approved from inception."
+    },
+    {
+      "path": "docs/blueprint/architecture/decisions/ADR-issue-337-light-decomposition-policy.md",
+      "sha256": "7ac849a9a4ef19e9d2103b509ec1c6e542c1a59c8c2df667110fe548f974ec0d",
+      "role": "content-adr",
+      "description": "FR-010 — Light decomposition policy (boundary types; fan-out <=5; refusal->escalate; parent ## Integration Acceptance Criteria per #339 C4). Status: approved from inception. MDX braces escaped at Slice 8 for docs-build compatibility."
+    },
+    {
+      "path": "docs/blueprint/autonomous-factory/instrumentation-plan.md",
+      "sha256": "041a7991915155777187ea1310cd74f804c378766ce376be621a083c05c0ef3d",
+      "role": "primary-deliverable",
+      "description": "FR-012 + FR-013 — Instrumentation plan: primary + guardrail metrics, per-`owner_team` shape, source-of-truth field per metric, durable-bus emission rule (STACKIT Managed RabbitMQ with Strimzi-Kafka fallback per Q-5), 13-month retention parity with #334 LogMe WORM (Q-4)."
+    },
+    {
+      "path": "docs/blueprint/autonomous-factory/pre-factory-baselines.md",
+      "sha256": "d72a190d630cebd04f026c5decbb4a0579d196440c1c87e781e0dfdbc208f252",
+      "role": "primary-deliverable",
+      "description": "FR-014 — Pre-factory baselines: measurement window 2026-04-17->2026-05-28 (commit df7595c), n=100 merged PRs (Q-6 Option A), four baselines (lead time, reviewer wall-time, formal rejection rate transparently NOT MEASURABLE, defect rate proxy), per-`owner_team` breakdown row, calibration trigger declared."
+    },
+    {
+      "path": "docs/blueprint/autonomous-factory/triage-decomposition-data-feed.md",
+      "sha256": "22d7bf86183c4ccf47f255814447d3b2b1756669318f6ae249f3ff5b6fc9ec78",
+      "role": "primary-deliverable",
+      "description": "FR-015 — Triage + decomposition data feed: 100-row machine-readable Markdown table with `### Sample Size` subsection per Q-7 Option A; retrospective-hypothetical caveat present; consumed by #338 as directional evidence."
+    },
+    {
+      "path": ".github/CODEOWNERS",
+      "sha256": "1f2da5977811a89bec6119c8f13a3fd154ce6701251d69641061c4c66b355714",
+      "role": "primary-deliverable",
+      "description": "FR-011 — Two-layer routing per CODEOWNERS last-match-wins semantics: gate-1 sign-off teams (@sbonoc/factory-{product,architecture,security,operations}) + gate-2 bounded-context teams (@sbonoc/factory-context-{factory,infra,docs,governance}); Q-3 Option A. Zero `@your-org/...` placeholders; AGENTS.md ownership preserved by tail-block re-anchor."
+    },
+    {
+      "path": "blueprint/contract.yaml",
+      "sha256": "1ec23bd36190d8f598bddc3650d03d0a6e302f5755d04c1a2862221e69fcdece",
+      "role": "contract-change",
+      "description": "template_sync_allowlist extended with instrumentation-plan.md, pre-factory-baselines.md, triage-decomposition-data-feed.md (autonomous-factory directory) — drives bootstrap-template mirror sync for the three new documents."
+    },
+    {
+      "path": "scripts/templates/blueprint/bootstrap/blueprint/contract.yaml",
+      "sha256": "1ec23bd36190d8f598bddc3650d03d0a6e302f5755d04c1a2862221e69fcdece",
+      "role": "bootstrap-template-mirror",
+      "description": "Bootstrap mirror of blueprint/contract.yaml — kept in lockstep by `make quality-docs-sync-blueprint-template`."
+    },
+    {
+      "path": "scripts/templates/blueprint/bootstrap/docs/blueprint/autonomous-factory/instrumentation-plan.md",
+      "sha256": "041a7991915155777187ea1310cd74f804c378766ce376be621a083c05c0ef3d",
+      "role": "bootstrap-template-mirror",
+      "description": "Bootstrap mirror of instrumentation-plan.md — created by sync_blueprint_template_docs.py after allowlist extension; SHA matches source (AC-006 + AC-009)."
+    },
+    {
+      "path": "scripts/templates/blueprint/bootstrap/docs/blueprint/autonomous-factory/pre-factory-baselines.md",
+      "sha256": "d72a190d630cebd04f026c5decbb4a0579d196440c1c87e781e0dfdbc208f252",
+      "role": "bootstrap-template-mirror",
+      "description": "Bootstrap mirror of pre-factory-baselines.md — created by sync_blueprint_template_docs.py after allowlist extension; SHA matches source (AC-006 + AC-009)."
+    },
+    {
+      "path": "scripts/templates/blueprint/bootstrap/docs/blueprint/autonomous-factory/triage-decomposition-data-feed.md",
+      "sha256": "22d7bf86183c4ccf47f255814447d3b2b1756669318f6ae249f3ff5b6fc9ec78",
+      "role": "bootstrap-template-mirror",
+      "description": "Bootstrap mirror of triage-decomposition-data-feed.md — created by sync_blueprint_template_docs.py after allowlist extension; SHA matches source (AC-006 + AC-009)."
+    },
+    {
+      "path": "scripts/templates/blueprint/bootstrap/docs/blueprint/autonomous-factory/design-contracts.md",
+      "sha256": "23c3ddd959174b469d601543acf4bb4da43482a646de396d726e2c184278a0eb",
+      "role": "bootstrap-template-mirror",
+      "description": "Bootstrap mirror of #339 design-contracts.md — re-synced after Slice 5 reciprocal edits (C6 Q-3, C7 Q-4 + Q-5, C8 Category (a) extension); SHA matches source."
+    },
+    {
+      "path": ".agents/personas/consumer/.gitkeep",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "primary-deliverable",
+      "description": "FR-018 — Consumer extension namespace; empty .gitkeep marker; no persona content authored at Phase 0."
+    }
+  ],
+  "validation_runs": [
+    {
+      "command": "make quality-sdd-check",
+      "result": "pass",
+      "summary": "validated SDD assets, readiness gates, and language policy on 2026-05-29 (Slice 8)"
+    },
+    {
+      "command": "make docs-build",
+      "result": "pass",
+      "summary": "static site generated successfully on 2026-05-29; initial fail on unescaped MDX `{...}` in two ADRs (light-decomposition-policy line 69, reviewer-model-heterogeneity lines 64 + 76) repaired by wrapping in inline-code backticks"
+    },
+    {
+      "command": "make docs-smoke",
+      "result": "pass",
+      "summary": "no anchor regressions on 2026-05-29"
+    },
+    {
+      "command": "make quality-hardening-review",
+      "result": "pass",
+      "summary": "hardening gate completed 2026-05-29 (Slice 8)"
+    },
+    {
+      "command": "make quality-docs-check-changed",
+      "result": "pass",
+      "summary": "blueprint-template + contract-metadata both clean; test-pyramid OK (unit 97.64%, integration 1.77%, e2e 0.59%) — 2026-05-29 (Step 06)"
+    },
+    {
+      "command": "python3 scripts/lib/docs/sync_blueprint_template_docs.py",
+      "result": "pass",
+      "summary": "zero-diff re-run confirmed AC-009 (created=0 updated=0 removed=0 skipped=17) — 2026-05-29 (Step 06)"
+    },
+    {
+      "command": "make blueprint-test-unit",
+      "result": "pass",
+      "summary": "1074 tests passed, 42 subtests passed — 2026-05-29 (Slice 8); pre-existing CODEOWNERS test assertion updated to align with FR-011 two-layer routing; postgres + public-endpoints `enabled_by_default: false` repair preserved"
+    }
+  ]
 }

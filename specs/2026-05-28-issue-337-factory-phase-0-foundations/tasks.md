@@ -9,10 +9,10 @@
 
 ## Implementation
 - [x] T-001 Resolve Open Decisions Q-1 through Q-7 in `spec.md § Informative Notes` per the Draft PR review cycle; record the selected option + rationale for each; set `Open clarification markers count: 0` (complete — Step 02 cycle, commits `27b89e1` + `ab57634`)
-- [x] T-002 Author `docs/blueprint/architecture/decisions/ADR-issue-337-llm-model-router-policy.md` per FR-001 with `Status: approved` from inception (meta-ADR sign-off envelope per traceability Follow-up 8) — implemented as `ADR-issue-337-three-tier-router.md` (Slice 2)
-- [x] T-003 Author `docs/blueprint/architecture/decisions/ADR-issue-337-persona-skill-contract.md` per FR-002 with `Status: approved` from inception — implemented as `ADR-issue-337-persona-skill-mapping.md` (Slice 2)
+- [x] T-002 Author `docs/blueprint/architecture/decisions/ADR-issue-337-llm-model-router-policy.md` per FR-001 with `Status: approved` from inception (meta-ADR sign-off envelope per traceability Follow-up 8) (Slice 2)
+- [x] T-003 Author `docs/blueprint/architecture/decisions/ADR-issue-337-persona-skill-contract.md` per FR-002 with `Status: approved` from inception (Slice 2)
 - [x] T-004 Author `docs/blueprint/architecture/decisions/ADR-issue-337-trigger-authorization-model.md` per FR-003 with `Status: approved` from inception (Slice 2)
-- [x] T-005 Author `docs/blueprint/architecture/decisions/ADR-issue-337-sovereignty-zdr-posture.md` per FR-004 with `Status: approved` from inception; cite #339 NFR-SEC-001 verbatim per NFR-SEC-001 (of this work item, which prohibits factory-side egress allowlist content) — implemented as `ADR-issue-337-sovereignty-zdr.md` (Slice 2)
+- [x] T-005 Author `docs/blueprint/architecture/decisions/ADR-issue-337-sovereignty-zdr-posture.md` per FR-004 with `Status: approved` from inception; cite #339 NFR-SEC-001 verbatim per NFR-SEC-001 (of this work item, which prohibits factory-side egress allowlist content) (Slice 2)
 - [x] T-006 Author `docs/blueprint/architecture/decisions/ADR-issue-337-separation-of-duties-at-factory-velocity.md` per FR-005 with `Status: approved` from inception; cite #339 NFR-SEC-001 verbatim per this work item's NFR-SEC-002 (Slice 2)
 - [x] T-007 Author `docs/blueprint/architecture/decisions/ADR-issue-337-reject-rerun-cap.md` per FR-006 with `Status: approved` from inception (Slice 2)
 - [x] T-008 Author `docs/blueprint/architecture/decisions/ADR-issue-337-per-ticket-wall-clock-cost-ceiling.md` per FR-007 with `Status: approved` from inception; concrete ceiling values from Q-1 (Slice 2)
@@ -47,7 +47,7 @@
 
 ## Validation and Release Readiness
 - [x] T-201 Run required Make validation bundles (`make quality-sdd-check`, `make docs-build`, `make docs-smoke`) — all pass 2026-05-29 (Slice 8); docs-build initially failed on unescaped MDX braces in two ADRs (`{Opus, Sonnet, Haiku}`, `{bounded-context, ...}`); fixed by wrapping in inline-code backticks, then re-runs green
-- [ ] T-202 Attach evidence to traceability document (`make quality-sdd-check`, `make docs-build`, `make docs-smoke`, `make quality-hardening-review` summaries in `evidence_manifest.json`) — deferred to Step 06/07 (document-sync + pr-packager) per the standard SDD step sequence
+- [x] T-202 Attach evidence to traceability document (`make quality-sdd-check`, `make docs-build`, `make docs-smoke`, `make quality-hardening-review` summaries in `evidence_manifest.json`) — completed at Step 06 (2026-05-29): evidence_manifest.json populated with 23 deliverable file SHA-256 entries + 7 validation_runs summaries; traceability.md § Validation Summary updated with executed bundle results
 - [x] T-203 Confirm no stale TODOs/dead code/drift — verify zero deferred-decision placeholders outside `### Open Decisions` subsections in any new ADR or autonomous-factory document; verify no orphan ticket numbers in `Referenced by:` lines on the updated #339 design-contracts.md (Slice 8 — design-contracts.md C6/C7 Open Decisions now narrow to operational team provisioning only; all `Q-#` markers resolved in spec.md; no deferred-decision placeholder tokens remain in any FR-001..FR-010 ADR or in the three autonomous-factory docs)
 - [x] T-204 Run documentation validation (`make docs-build` and `make docs-smoke`) — both pass 2026-05-29 (Slice 8)
 - [x] T-205 Run hardening review validation bundle (`make quality-hardening-review`) — passes 2026-05-29 (Slice 8)
