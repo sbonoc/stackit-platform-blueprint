@@ -90,7 +90,7 @@ flowchart TD
     A6 -- "rerun counter" --> T336
     A7 -- "pause + label" --> T336
     A5 -- "SoD enforcement" --> T336
-    A4 -- "no factory-side egress" --> T334["#334 Confidential K8s"]
+    A4 -- "no factory-side egress" --> T334["#334 factory runtime on SKE"]
     A2 -- "persona/skill contract" --> T333["#333 Personas + Skills"]
     A8 -- "reviewer model selection" --> T335
     A9 -- "triage-size skill" --> T333
@@ -136,6 +136,6 @@ Caption: Phase 0 foundations meta-ADR fan-out — eleven ADRs + three autonomous
 - Reciprocally updated: `docs/blueprint/autonomous-factory/design-contracts.md` (C6/C7 `### Blueprint instance`, C7 `### Open Decisions`, C8 ten-ADR enumeration) and its bootstrap mirror
 - Epic: #332 — STACKIT Autonomous Software Factory (OpenHands + SDD)
 - Phase 0 sibling: #339 — design contracts and conventions
-- Phase 1 consumers: #333 (personas), #334 (Confidential K8s), #335 (OpenHands + LiteLLM), #336 (webhooks)
+- Phase 1 consumers: #333 (personas), #334 (factory runtime on SKE — Secrets Manager + ESO + egress NetworkPolicy + bot identity), #335 (OpenHands + LiteLLM), #336 (webhooks)
 - Phase 3 consumer: #338 (composition orchestration)
 - Sign-off policy: `AGENTS.md § Sign-off Phrases (Deterministic)`
