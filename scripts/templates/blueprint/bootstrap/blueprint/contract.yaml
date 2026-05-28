@@ -1110,8 +1110,10 @@ spec:
         - architecture/system_overview.md
         - architecture/execution_model.md
         - architecture/decisions/README.md
+        - architecture/decisions/ADR-issue-339-factory-design-contracts.md
         - architecture/north_star.md
         - architecture/tech_stack.md
+        - autonomous-factory/design-contracts.md
         - contracts/async_message_contracts.md
         - governance/ownership_matrix.md
         - governance/spec_driven_development.md
