@@ -1,0 +1,54 @@
+{
+  "manifest_version": 1,
+  "work_item": "2026-05-28-issue-339-factory-design-contracts",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-05-28T13:31:00Z",
+  "files": [
+    {
+      "path": "docs/blueprint/autonomous-factory/design-contracts.md",
+      "sha256": "85bbe7b54a67686cea72669b6f8c953bcc8120a57b4186cfaee0641285dab2f3",
+      "role": "primary-deliverable",
+      "description": "Factory design contracts C1-C8 — the normative governance document produced by this work item."
+    },
+    {
+      "path": "docs/blueprint/architecture/decisions/ADR-issue-339-factory-design-contracts.md",
+      "sha256": "0ac2243ea972e478e261413f863c5b62cfd3906c97b5a4e0c24b6fa9c2932b8f",
+      "role": "adr",
+      "description": "Summary ADR with flowchart TD dependency diagram; Status: approved."
+    },
+    {
+      "path": "scripts/templates/blueprint/bootstrap/docs/blueprint/autonomous-factory/design-contracts.md",
+      "sha256": "85bbe7b54a67686cea72669b6f8c953bcc8120a57b4186cfaee0641285dab2f3",
+      "role": "bootstrap-template-mirror",
+      "description": "Bootstrap template mirror of design-contracts.md — created by sync_blueprint_template_docs.py after allowlist extension."
+    },
+    {
+      "path": "blueprint/contract.yaml",
+      "sha256": "b57fcec4f4a8e1e4c3d9ae7b6d768420fe98b8040980dcaa601d21df3c4c2b22",
+      "role": "contract-change",
+      "description": "template_sync_allowlist extended with autonomous-factory/design-contracts.md (ADR excluded per convention — individual ADR files are not mirrored)."
+    }
+  ],
+  "validation_runs": [
+    {
+      "command": "make quality-sdd-check",
+      "result": "pass",
+      "summary": "validated SDD assets, readiness gates, and language policy"
+    },
+    {
+      "command": "make docs-build",
+      "result": "pass",
+      "summary": "static site generated successfully; no link regressions"
+    },
+    {
+      "command": "make docs-smoke",
+      "result": "pass",
+      "summary": "no anchor regressions"
+    },
+    {
+      "command": "make quality-hardening-review",
+      "result": "pass",
+      "summary": "quality-sdd-check validated; hardening gate completed"
+    }
+  ]
+}

@@ -1112,6 +1112,7 @@ spec:
         - architecture/decisions/README.md
         - architecture/north_star.md
         - architecture/tech_stack.md
+        - autonomous-factory/design-contracts.md
         - contracts/async_message_contracts.md
         - governance/ownership_matrix.md
         - governance/spec_driven_development.md
