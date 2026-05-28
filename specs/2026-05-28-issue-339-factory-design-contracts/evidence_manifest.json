@@ -18,15 +18,15 @@
     },
     {
       "path": "scripts/templates/blueprint/bootstrap/docs/blueprint/autonomous-factory/design-contracts.md",
-      "sha256": "85bbe7b54a67686cea72669b6f8c953bcc8120a57b4186cfaee0641285dab2f3",
+      "sha256": "23c3ddd959174b469d601543acf4bb4da43482a646de396d726e2c184278a0eb",
       "role": "bootstrap-template-mirror",
-      "description": "Bootstrap template mirror of design-contracts.md — created by sync_blueprint_template_docs.py after allowlist extension."
+      "description": "Bootstrap template mirror of design-contracts.md — created by sync_blueprint_template_docs.py after allowlist extension. SHA re-synced 2026-05-29 in PR #345 (matches source)."
     },
     {
       "path": "blueprint/contract.yaml",
-      "sha256": "b57fcec4f4a8e1e4c3d9ae7b6d768420fe98b8040980dcaa601d21df3c4c2b22",
+      "sha256": "1ec23bd36190d8f598bddc3650d03d0a6e302f5755d04c1a2862221e69fcdece",
       "role": "contract-change",
-      "description": "template_sync_allowlist extended with autonomous-factory/design-contracts.md (ADR excluded per convention — individual ADR files are not mirrored)."
+      "description": "template_sync_allowlist extended with autonomous-factory/design-contracts.md (ADR excluded per convention — individual ADR files are not mirrored). Re-extended 2026-05-29 in PR #345 to add instrumentation-plan.md, pre-factory-baselines.md, triage-decomposition-data-feed.md."
     }
   ],
   "validation_runs": [

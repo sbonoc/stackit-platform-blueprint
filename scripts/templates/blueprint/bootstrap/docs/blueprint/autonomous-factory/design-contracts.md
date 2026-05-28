@@ -211,7 +211,16 @@ The blueprint factory instance maps the four canonical roles to (Q-2 resolved 20
 | Security | `@sbonoc/factory-security` |
 | Operations | `@sbonoc/factory-operations` |
 
-Bounded-context teams are kept **separate** from the four sign-off teams (no role-tagging committee). The provisional bounded-context list is `{factory, infra, docs, governance}`; the concrete list is owned by #337.
+Bounded-context teams are kept **separate** from the four sign-off teams (no role-tagging committee). The concrete bounded-context enumeration for the blueprint instance is `{factory, infra, docs, governance}` (Q-3 resolved 2026-05-28 in PR #345 — `specs/2026-05-28-issue-337-factory-phase-0-foundations/spec.md`). The corresponding GitHub team slugs are:
+
+| Bounded context | Blueprint team slug |
+|---|---|
+| `factory` | `@sbonoc/factory-context-factory` |
+| `infra` | `@sbonoc/factory-context-infra` |
+| `docs` | `@sbonoc/factory-context-docs` |
+| `governance` | `@sbonoc/factory-context-governance` |
+
+These slugs are wired into `.github/CODEOWNERS` Gate 2 per FR-011 (PR #345).
 
 ### Consumer overlay
 
@@ -226,7 +235,7 @@ Consumer repos MUST declare their own four team slugs. The blueprint's slugs MUS
 
 ### Open Decisions
 
-- **Concrete blueprint-instance team provisioning** (create teams on GitHub, populate ≥2 members each, full bounded-context enumeration) — deferring ticket: **#337** (Phase 0 ADRs, CODEOWNERS, instrumentation); resolve-by deadline: **#337 close**. Placeholder: `<TBD: concrete team provisioning in #337>`.
+- **Concrete blueprint-instance team provisioning on GitHub** (create the eight teams — four sign-off + four bounded-context — and populate ≥2 members each) — deferring ticket: **#337**; resolve-by deadline: **#337 close**. The bounded-context enumeration is now pinned above; what remains is the GitHub-side team creation and membership population, which is an operational task tracked under #337's Operations sign-off scope.
 
 Referenced by: #336, #337
 
@@ -290,6 +299,10 @@ Synchronous writes to a dashboard MUST NOT replace the bus emission. The Grafana
 
 The blueprint factory metrics dashboard target is **STACKIT-managed Grafana** via the existing `OBSERVABILITY_ENABLED` module declared in `blueprint/contract.yaml` (Q-3 resolved 2026-05-28 in PR #340). The dashboard subscribes to the durable bus rather than receiving synchronous writes.
 
+**Retention and owner (Q-4 resolved 2026-05-28 in PR #345 — `specs/2026-05-28-issue-337-factory-phase-0-foundations/spec.md`).** Lifecycle event retention on the durable bus and on the Grafana dashboard MUST be **13 months** (one full year plus one month for year-over-year comparison). The dashboard and durable-bus subscription owner is `@sbonoc/factory-operations`. Operational details — dashboard URL, panel inventory, replay procedure, alert rules, owner-team breakdown, weekly review cadence — are codified in [`instrumentation-plan.md`](instrumentation-plan.md). The pre-factory baseline measurements that the live dashboard MUST be compared against are codified in [`pre-factory-baselines.md`](pre-factory-baselines.md).
+
+**Durable-bus platform (Q-5 resolved 2026-05-28 in PR #345 — `specs/2026-05-28-issue-337-factory-phase-0-foundations/spec.md`).** The blueprint factory instance MUST use **STACKIT Managed RabbitMQ** as the durable bus, with the SKE-hosted Strimzi-Kafka fallback codified in `instrumentation-plan.md` if a measurable trigger threshold from that plan is breached. The RabbitMQ deployment MUST use quorum queues for durability and single-active-consumer routing per consumer group; the platform pick satisfies the durable / replayable / async fire-and-forget / multi-subscriber semantics pinned in the Identical rule above.
+
 ### Consumer overlay
 
 Consumer repos MUST declare their own dashboard target. The blueprint's target MUST NOT be inherited (cross-tenant dashboard pollution is REJECTED).
@@ -302,8 +315,7 @@ Consumer repos MUST declare their own dashboard target. The blueprint's target M
 
 ### Open Decisions
 
-- **Concrete STACKIT-managed durable-bus platform pick** (e.g., STACKIT-managed Kafka or equivalent SKE-hosted fallback) — deferring ticket: **#337** (instrumentation plan; availability spike required as a Phase 0 prerequisite); resolve-by deadline: **#337 Phase 0 close**. Placeholder: `<TBD: durable-bus platform pick in #337 Phase 0>`. This contract pins the durability / replay / async semantics; the platform pick is deferred per AC-014.
-- **Concrete blueprint-instance dashboard URLs and instrumentation wiring** — deferring ticket: **#337**; resolve-by deadline: **#337 close**. Placeholder: `<TBD: concrete dashboard URLs in #337>`.
+- (none — Q-4 retention/owner and Q-5 durable-bus platform pick RESOLVED in PR #345 on 2026-05-28; concrete dashboard URLs and panel inventories are tracked in [`instrumentation-plan.md`](instrumentation-plan.md) under `@sbonoc/factory-operations` ownership and do not require a C7 amendment.)
 
 Referenced by: #335, #336, #337
 
@@ -323,6 +335,20 @@ The inheritance mechanism is the **existing** blueprint `contract.yaml` mechanis
 | `docs/blueprint/autonomous-factory/` (directory; future runbooks land here) | `stable` | `extensible` |
 | `docs/blueprint/architecture/decisions/ADR-issue-339-factory-design-contracts.md` | `stable` | `sealed` |
 | `docs/blueprint/architecture/decisions/` (directory; future factory ADRs land here) | `stable` | `extensible` |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-factory-phase-0-foundations.md` (meta-ADR + sign-off envelope) | `stable` | `sealed` |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-three-tier-router.md` (FR-001) | `stable` | `sealed` |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-persona-skill-mapping.md` (FR-002) | `stable` | `sealed` |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-trigger-authorization-model.md` (FR-003) | `stable` | `sealed` for the trigger-authorization rules; `parameterized` for the per-instance authorized-actor list |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-sovereignty-zdr.md` (FR-004) | `stable` | `sealed` (also listed in FR-017(b) sealed list, item 4) |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-separation-of-duties-at-factory-velocity.md` (FR-005) | `stable` | `sealed` |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-reject-rerun-cap.md` (FR-006) | `stable` | `sealed` (also listed in FR-017(b) sealed list, item 5) |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-per-ticket-wall-clock-cost-ceiling.md` (FR-007) | `stable` | `parameterized` (per-instance ceiling values via consumer overlay; structure sealed) |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-reviewer-model-heterogeneity.md` (FR-008) | `stable` | `sealed` |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-triage-size-threshold.md` (FR-009) | `stable` | `sealed` for the four-class enumeration and the AND-conjoined three-dimension structure; `extensible` for the per-instance threshold values |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-light-decomposition-policy.md` (FR-010) | `stable` | `sealed` for the boundary-type enumeration, fan-out cap, refusal-criteria-routes-to-escalate semantics, and grounding/parent-tracking contracts; `extensible` for the per-instance bounded-context catalogue |
+| `docs/blueprint/autonomous-factory/instrumentation-plan.md` (FR-012/013/016) | `stable` | `extensible` (per-instance dashboard URLs, panel inventories, and durable-bus subscription details overlaid by consumer) |
+| `docs/blueprint/autonomous-factory/pre-factory-baselines.md` (FR-014) | `stable` | `extensible` (each consumer records its own pre-factory baseline measurements in the same shape) |
+| `docs/blueprint/autonomous-factory/triage-decomposition-data-feed.md` (FR-015) | `stable` | `extensible` (each consumer accumulates its own per-cycle triage/decomposition records in the same shape) |
 
 ### Category (b) — Terraform / Helm Module Wrappers
 

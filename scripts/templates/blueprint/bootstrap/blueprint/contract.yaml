@@ -1113,6 +1113,9 @@ spec:
         - architecture/north_star.md
         - architecture/tech_stack.md
         - autonomous-factory/design-contracts.md
+        - autonomous-factory/instrumentation-plan.md
+        - autonomous-factory/pre-factory-baselines.md
+        - autonomous-factory/triage-decomposition-data-feed.md
         - contracts/async_message_contracts.md
         - governance/ownership_matrix.md
         - governance/spec_driven_development.md
@@ -1835,7 +1838,7 @@ spec:
           - infra-langfuse-smoke
           - infra-langfuse-destroy
       postgres:
-        enabled_by_default: false
+        enabled_by_default: true
         enable_flag: POSTGRES_ENABLED
         scaffolding_mode: conditional
         paths_required_when_enabled:
@@ -1969,7 +1972,7 @@ spec:
           - infra-dns-smoke
           - infra-dns-destroy
       public-endpoints:
-        enabled_by_default: false
+        enabled_by_default: true
         enable_flag: PUBLIC_ENDPOINTS_ENABLED
         scaffolding_mode: conditional
         paths_required_when_enabled:
