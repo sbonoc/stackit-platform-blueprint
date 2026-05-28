@@ -4,13 +4,13 @@
 - (to be filled at Step 7 — `make quality-hardening-review`)
 
 ## Observability and Diagnostics Changes
-- Metrics/logging/tracing updates: none introduced by this work item. Contract C7 defines the lifecycle-event schema; emission and consumption are owned by #335, #336, and #337.
+- Metrics/logging/tracing updates: none introduced by this work item. Contract C7 defines the lifecycle-event schema as the identical rule applied by every factory instance; emission and consumption are owned by #335, #336, #337 inside the blueprint instance and by C8-inherited module wrappers inside every consumer instance.
 - Operational diagnostics updates: none.
 
 ## Architecture and Code Quality Compliance
-- SOLID / Clean Architecture / Clean Code / DDD checks: N/A — no code changes. The documentation deliverable respects bounded-context separation (Context A authoring; Contexts B and C consume — see `architecture.md`).
+- SOLID / Clean Architecture / Clean Code / DDD checks: N/A — no code changes. The documentation deliverable respects bounded-context separation (Context A authoring; Contexts B, C, D consume — see `architecture.md`).
 - Test-automation and pyramid checks: N/A — no test code added or modified. Validation is `make docs-build` and `make docs-smoke`.
-- Documentation/diagram/CI/skill consistency checks: confirm `docs/blueprint/autonomous-factory/design-contracts.md` is reachable from the rendered docs index; confirm the ADR appears under `docs/blueprint/architecture/decisions/`; no skill runbook updates required by this work item.
+- Documentation/diagram/CI/skill consistency checks: confirm `docs/blueprint/autonomous-factory/design-contracts.md` is reachable from the rendered docs index; confirm the ADR appears under `docs/blueprint/architecture/decisions/`; confirm both directories are reachable to consumer repos via the existing blueprint `contract.yaml` documentation surface (Context D inheritance per Contract C8); no skill runbook updates required by this work item.
 
 ## Accessibility Gate (Normative — non-UI reviewers mark non-applicable items N/A)
 - [ ] SC 4.1.2 (Name, Role, Value): N/A — no UI surface

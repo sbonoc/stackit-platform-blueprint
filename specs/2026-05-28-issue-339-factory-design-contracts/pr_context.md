@@ -2,22 +2,23 @@
 
 ## Summary
 - Work item: 2026-05-28-issue-339-factory-design-contracts
-- Objective: pin the seven cross-ticket interface conventions (C1–C7) that Phase 1 factory tickets (#333, #334, #335, #336) and Phase 0 sibling #337 all depend on, in one signed-off document plus one summary ADR, so Phase 1 ships with consistent interfaces.
-- Scope boundaries: produces `docs/blueprint/autonomous-factory/design-contracts.md` and `docs/blueprint/architecture/decisions/ADR-issue-339-factory-design-contracts.md`. Excludes implementation of any contract (owned by the dependent tickets).
+- Objective: pin the cross-ticket interface conventions (C1–C7) that Phase 1 factory tickets (#333, #334, #335, #336) and Phase 0 sibling #337 depend on, AND enumerate the consumer-shipped surface (C8) the blueprint publishes so each consumer repo can instantiate its own per-consumer factory. One signed-off document plus one summary ADR. C1–C4 are identical conventions; C5–C7 are parameterized (identical rule + blueprint instance + consumer overlay schema); C8 enumerates docs/ADRs, Terraform/Helm module wrappers, Make targets + skill runbooks, and GitHub App / Actions workflows (LiteLLM is external; consumers configure access).
+- Scope boundaries: produces `docs/blueprint/autonomous-factory/design-contracts.md` and `docs/blueprint/architecture/decisions/ADR-issue-339-factory-design-contracts.md`. Excludes implementation of any contract (owned by the dependent tickets) and concrete per-consumer values for C5/C6/C7 overlays (owned by each consumer repo's onboarding).
 
 ## Requirement Coverage
-- Requirement IDs covered: FR-001 through FR-012; NFR-SEC-001, NFR-OBS-001, NFR-REL-001, NFR-OPS-001; AC-001 through AC-007.
-- Acceptance criteria covered: AC-001 (sections populated, no stray TBD), AC-002 (Referenced by lines cover downstream set), AC-003 (four sign-offs recorded), AC-004 (open decisions name deferring ticket + deadline), AC-005 (ADR exists + linked), AC-006 (`make quality-sdd-check` passes), AC-007 (`make docs-build` + `make docs-smoke` pass).
-- Contract surfaces changed: Docs contract — new files under `docs/blueprint/autonomous-factory/` and `docs/blueprint/architecture/decisions/`. Event contract — Contract C7 introduces the lifecycle event schema definition (consumers ship emission separately).
+- Requirement IDs covered: FR-001 through FR-016; NFR-SEC-001, NFR-OBS-001, NFR-REL-001, NFR-OPS-001, NFR-OPS-002; AC-001 through AC-009.
+- Acceptance criteria covered: AC-001 (C1–C8 populated, no stray TBD), AC-002 (Referenced by lines cover downstream set), AC-003 (four sign-offs recorded), AC-004 (open decisions name deferring ticket + deadline), AC-005 (ADR exists + linked), AC-006 (`make quality-sdd-check` passes), AC-007 (`make docs-build` + `make docs-smoke` pass), AC-008 (C5/C6/C7 carry the three required subsections; consumer overlay is schema-only), AC-009 (C8 enumerates four surface categories, LiteLLM external, every surface item tier-tagged).
+- Contract surfaces changed: Docs contract — new files under `docs/blueprint/autonomous-factory/` and `docs/blueprint/architecture/decisions/`; both directories are part of the C8-enumerated consumer-shipped surface. Event contract — Contract C7 introduces the lifecycle event schema definition (consumers ship emission separately, replicated per consumer instance via C8-inherited module wrappers). Config/Env contract — `### Consumer overlay` schemas under C5/C6/C7 plus the LiteLLM access configuration shape under C8 define where consumer repos declare per-instance values in their own `contract.yaml`. Make/CLI contract — Contract C8 enumerates the consumer-inheritable Make targets and skill runbooks (enumeration only; implementations owned by #334/#335/#336).
 
 ## Key Reviewer Files
 - Primary files to review first:
-  - `docs/blueprint/autonomous-factory/design-contracts.md` (the deliverable — sections C1–C7)
+  - `docs/blueprint/autonomous-factory/design-contracts.md` (the deliverable — sections C1–C8)
   - `docs/blueprint/architecture/decisions/ADR-issue-339-factory-design-contracts.md` (the summary ADR)
   - `specs/2026-05-28-issue-339-factory-design-contracts/spec.md` (the governing spec)
 - High-risk files:
-  - `docs/blueprint/autonomous-factory/design-contracts.md` § Contract C5 (factory bot identity + SoD detection — security-relevant; exact-string equality rule per NFR-SEC-001)
-  - `docs/blueprint/autonomous-factory/design-contracts.md` § Contract C7 (event schema — pinning downstream emitter behavior per NFR-OBS-001)
+  - `docs/blueprint/autonomous-factory/design-contracts.md` § Contract C5 (factory bot identity + SoD detection — security-relevant; exact-string equality rule per NFR-SEC-001; `### Consumer overlay` schema is the per-tenant boundary)
+  - `docs/blueprint/autonomous-factory/design-contracts.md` § Contract C7 (event schema — pinning emitter behavior across every factory instance per NFR-OBS-001)
+  - `docs/blueprint/autonomous-factory/design-contracts.md` § Contract C8 (consumer-shipped surface — pins what the blueprint exposes to consumers; stability tiers determine breaking-change discipline; LiteLLM external configuration shape touches secret-handling via ESO)
 
 ## Validation Evidence
 - Required commands executed: (to be filled at Step 7) `make quality-sdd-check`, `make docs-build`, `make docs-smoke`, `make quality-hardening-review`.
@@ -26,9 +27,11 @@
 
 ## Risk and Rollback
 - Main risks:
-  - Open Decisions backlog (Q-1, Q-2, Q-3) creates a tail of follow-up edits during #334 and #337; mitigated by `### Open Decisions` subsections and per-section `Referenced by:` lines.
+  - Open Decisions backlog (Q-1, Q-2, Q-3 for blueprint-instance values; Q-4 for LiteLLM `contract.yaml` location) creates a tail of follow-up edits during #334 / #337 / deliverable authoring; mitigated by `### Open Decisions` subsections and per-section `Referenced by:` lines. Q-4 is enforced as a pre-SPEC_READY gate.
   - First SDD application on factory governance sets the bar that #333–#337 inherit; mitigated by choosing full SDD ceremony (not the chore bypass track).
-- Rollback strategy: revert the PR. No runtime side effects; no migrations to undo. Phase 1 tickets that begin work after this PR merges treat a rollback as "design contracts not yet decided" and pause dependent work.
+  - Per-tenant value bleed risk: a consumer repo might inadvertently inherit the blueprint's literal C5/C6/C7 values; mitigated by FR-016 (consumer overlay subsections specify schema only, never concrete values) and AC-008 enforcement.
+  - C8 surface stability: breaking changes to `stable`-tagged module wrappers, Make targets, skill runbooks, or App manifest cascade across all consumer repos; mitigated by FR-015 tier discipline.
+- Rollback strategy: revert the PR. No runtime side effects; no migrations to undo. Phase 1 tickets that begin work after this PR merges treat a rollback as "design contracts not yet decided" and pause dependent work. Consumer repos that have already inherited Contract C8 surface pause new factory-onboarding work until restored.
 
 ## Deferred Proposals
 - (none at intake — to be re-evaluated at Step 6 document-sync and Step 7 hardening review)

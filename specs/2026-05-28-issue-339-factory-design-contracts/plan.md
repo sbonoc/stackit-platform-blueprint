@@ -20,10 +20,10 @@
   - N/A — no deterministic smoke or `curl` execution path exists for this documentation-only work item. If `make docs-smoke` surfaces a finding, the fix is a documentation edit committed in the same PR.
 
 ## Delivery Slices
-1. Slice 1 — Author the deliverable. Create `docs/blueprint/autonomous-factory/design-contracts.md` with the seven contract sections C1–C7, each ending in a `Referenced by:` line. Open Decisions for C5/C6/C7 written under explicit `### Open Decisions` subsections naming the deferring ticket and resolve-by deadline.
-2. Slice 2 — Author the ADR. Create `docs/blueprint/architecture/decisions/ADR-issue-339-factory-design-contracts.md` with `Status: proposed`, linking the deliverable by relative path. On all four sign-offs received, flip `Status: approved` (Step 8 PR-packager work).
+1. Slice 1 — Author the deliverable. Create `docs/blueprint/autonomous-factory/design-contracts.md` with the eight contract sections C1–C8, each ending in a `Referenced by:` line. C1–C4 written as identical conventions for blueprint + consumer repos. C5/C6/C7 written with the three required subsections (`### Identical rule`, `### Blueprint instance`, `### Consumer overlay`). C8 written with the four named surface categories from FR-013 (a–d), tier-tagged per FR-015, and the LiteLLM external-service configuration shape per FR-014. Open Decisions written under explicit `### Open Decisions` subsections naming the deferring ticket and resolve-by deadline (Q-1 in C5 → #334; Q-2 in C6 → #337; Q-3 in C7 → #337; Q-4 in C8 → resolved before SPEC_READY).
+2. Slice 2 — Author the ADR. Create `docs/blueprint/architecture/decisions/ADR-issue-339-factory-design-contracts.md` with `Status: proposed`, linking the deliverable by relative path. ADR Mermaid diagram includes C8 and consumer-side edge to Context D. On all four sign-offs received, flip `Status: approved` (Step 8 PR-packager work).
 3. Slice 3 — Documentation validation. Run `make docs-build` and `make docs-smoke`. Fix any link/anchor regressions in the same slice.
-4. Slice 4 — Sign-off cycle. Sign-off comments from Product, Architecture, Security, Operations recorded in `spec.md` per `AGENTS.md § Sign-off Policy`. SPEC_READY flipped to `true` only when all four are recorded.
+4. Slice 4 — Sign-off cycle. Sign-off comments from Product, Architecture, Security, Operations recorded in `spec.md` per `AGENTS.md § Sign-off Policy`. SPEC_READY flipped to `true` only when all four are recorded AND Q-4 is resolved.
 
 ## Change Strategy
 - Migration/rollout sequence: none — additive only. New files only, no edits to existing documents.
@@ -63,8 +63,8 @@
 - Blueprint docs updates:
   - `docs/blueprint/autonomous-factory/design-contracts.md` (new — the deliverable)
   - `docs/blueprint/architecture/decisions/ADR-issue-339-factory-design-contracts.md` (new — the summary ADR)
-- Consumer docs updates: none — these conventions are internal to the blueprint maintainer track. Generated-consumer repos do not consume them.
-- Mermaid diagrams updated: ADR Mermaid diagram chosen: `flowchart TD` showing the seven contracts as nodes with dependency edges to consumer tickets (#333–#337). Caption: "Design-contract C1–C7 dependency edges to Phase 1 tickets — one node per contract, one outbound edge per `Referenced by:` entry."
+- Consumer docs updates: this document itself is a consumer-facing surface (Contract C8 enumerates `docs/blueprint/autonomous-factory/` and `docs/blueprint/architecture/decisions/` as part of the surface consumer repos inherit). No edits to existing consumer-facing docs are required by this work item; consumer repos discover the design contracts via the existing blueprint `contract.yaml` inheritance mechanism that already exposes `docs/blueprint/` content to consumers.
+- Mermaid diagrams updated: ADR Mermaid diagram chosen: `flowchart TD` showing the eight contracts as nodes with dependency edges to consumer tickets (#333–#338) and a consumer-side edge to Context D (per-consumer factory instances). Caption: "Design-contract C1–C8 dependency edges — one node per contract, one outbound edge per `Referenced by:` entry; consumer-side edge represents Context D inheritance via blueprint `contract.yaml`."
 - Docs validation commands:
   - `make docs-build`
   - `make docs-smoke`
@@ -77,9 +77,9 @@
 - Local smoke gate (HTTP route/filter changes):
   - N/A — no HTTP routes, query/filter logic, or new API endpoints in scope. Local smoke gate does not apply.
 - Publish checklist:
-  - include requirement/contract coverage (FR-001 through FR-012; NFR-SEC-001, NFR-OBS-001, NFR-REL-001, NFR-OPS-001)
+  - include requirement/contract coverage (FR-001 through FR-016; NFR-SEC-001, NFR-OBS-001, NFR-REL-001, NFR-OPS-001, NFR-OPS-002)
   - include key reviewer files (`docs/blueprint/autonomous-factory/design-contracts.md`, `docs/blueprint/architecture/decisions/ADR-issue-339-factory-design-contracts.md`)
-  - include validation evidence (`make quality-sdd-check`, `make docs-build`, `make docs-smoke` results) + rollback notes (single-PR revert; no runtime impact)
+  - include validation evidence (`make quality-sdd-check`, `make docs-build`, `make docs-smoke` results) + rollback notes (single-PR revert; no runtime impact; reverting invalidates consumer C8 inheritance until restored)
 
 ## Operational Readiness
 - Logging/metrics/traces: none added by this work item. Contract C7 defines the event schema for downstream consumers; this is a definition, not an emitter.

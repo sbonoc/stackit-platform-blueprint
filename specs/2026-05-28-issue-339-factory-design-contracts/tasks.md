@@ -8,10 +8,11 @@
 - [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
 
 ## Implementation
-- [ ] T-001 Create `docs/blueprint/autonomous-factory/` directory and author `design-contracts.md` with sections C1–C7, each ending in a `Referenced by:` line and any open decisions under `### Open Decisions`
-- [ ] T-002 Author `docs/blueprint/architecture/decisions/ADR-issue-339-factory-design-contracts.md` (Status: proposed) with the `flowchart TD` Mermaid diagram and relative link to the deliverable
-- [ ] T-003 Update blueprint docs/diagrams — confirm the new autonomous-factory subdirectory appears in the rendered docs navigation; no edits to existing docs required
-- [ ] T-004 Update consumer-facing docs/diagrams — N/A (internal-only governance; no generated-consumer impact)
+- [ ] T-001 Create `docs/blueprint/autonomous-factory/` directory and author `design-contracts.md` with sections C1–C8, each ending in a `Referenced by:` line and any open decisions under `### Open Decisions`. C1–C4 written as identical conventions (FR-004 through FR-007). C5/C6/C7 written with the three required subsections `### Identical rule`, `### Blueprint instance`, `### Consumer overlay` (FR-008/FR-009/FR-010). C8 written with the four named surface categories from FR-013(a–d), each surface item tier-tagged per FR-015, and LiteLLM external-service configuration shape per FR-014.
+- [ ] T-002 Author `docs/blueprint/architecture/decisions/ADR-issue-339-factory-design-contracts.md` (Status: proposed) with the `flowchart TD` Mermaid diagram including C8 node and Context D consumer-inheritance edge, and relative link to the deliverable.
+- [ ] T-003 Update blueprint docs/diagrams — confirm the new autonomous-factory subdirectory appears in the rendered docs navigation; no edits to existing docs required.
+- [ ] T-004 Update consumer-facing docs/diagrams — the design-contracts deliverable IS consumer-facing per Contract C8; verify it is reachable via the existing blueprint `contract.yaml` documentation surface that consumer repos already inherit; no per-consumer-repo edits in this work item.
+- [ ] T-005 Resolve Q-4 (LiteLLM access configuration field name and location in `contract.yaml`) by recording the chosen field path in Contract C8 `### Open Decisions` resolution and updating `spec.md` Open clarification marker count accordingly; required before SPEC_READY can flip to true.
 
 ## Test Automation
 - [ ] T-101 Add or update unit tests — N/A (documentation-only change; no code units)
