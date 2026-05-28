@@ -40,7 +40,7 @@
 | AC-009 | SDD-C-004, SDD-C-017 | N/A | spec.md § Acceptance Criteria | docs/blueprint/autonomous-factory/design-contracts.md § Contract C8 | reviewer checklist (four categories + LiteLLM external + tier tags) | docs/blueprint/autonomous-factory/design-contracts.md | none |
 | AC-010 | SDD-C-004 | N/A | spec.md § Acceptance Criteria | docs/blueprint/autonomous-factory/design-contracts.md § Contract C8 | reviewer checklist (every item carries extensibility tier; sealed list matches FR-017(b); default = extensible) | docs/blueprint/autonomous-factory/design-contracts.md | none |
 | AC-011 | SDD-C-004 | N/A | spec.md § Acceptance Criteria | docs/blueprint/autonomous-factory/design-contracts.md § Contract C8 | reviewer checklist (discovery convention documented + 3 worked examples) | docs/blueprint/autonomous-factory/design-contracts.md | none |
-| AC-012 | SDD-C-004, SDD-C-017 | N/A | spec.md § Acceptance Criteria | docs/blueprint/autonomous-factory/design-contracts.md § Contract C8 | reviewer checklist (semver posture + upstream-candidate convention documented; Referenced by: line cites new Phase 1 ticket) | docs/blueprint/autonomous-factory/design-contracts.md | none |
+| AC-012 | SDD-C-004, SDD-C-017 | N/A | spec.md § Acceptance Criteria | docs/blueprint/autonomous-factory/design-contracts.md § Contract C8 | reviewer checklist (semver posture + upstream-candidate convention documented; Referenced by: line cites #342) | docs/blueprint/autonomous-factory/design-contracts.md | none |
 
 ## Graph Linkage
 - Graph file: `graph.json`
@@ -68,4 +68,4 @@
 - Follow-up 2: resolve Q-2 (CODEOWNERS team slugs + bounded-context enumeration for the blueprint instance) during #337; update Contract C6 `### Blueprint instance` (under `### Open Decisions`) in the same PR. Does not affect consumer overlay schema.
 - Follow-up 3: resolve Q-3 (metrics dashboard platform for the blueprint instance) during #337; update Contract C7 `### Blueprint instance` (under `### Open Decisions`) in the same PR. Does not affect consumer overlay schema.
 - Follow-up 4: resolve Q-4 (LiteLLM access configuration field name and location in `contract.yaml`) during deliverable authoring (Step 5); update Contract C8 `### Open Decisions` resolution in this same work item before SPEC_READY flips to true. Not deferred to a downstream ticket.
-- Follow-up 5: resolve Q-5 (issue number for the new Phase 1 factory-upgrade-process ticket) by filing the new GitHub issue in the same session that closes this spec; substitute the assigned number into Contract C8's `Referenced by:` line and the FR-019 cross-reference before SPEC_READY flips to true. Not deferred to a downstream ticket.
+- Follow-up 5: Q-5 RESOLVED — Phase 1 factory upgrade-process ticket filed as #342. Substituted into Contract C8 `Referenced by:` lines for FR-019 and FR-020. Spec open-clarification count decremented (5→4). Sealed under this work item; downstream work is owned by #342 itself.

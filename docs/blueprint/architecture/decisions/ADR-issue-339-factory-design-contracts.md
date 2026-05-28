@@ -27,7 +27,7 @@ This ADR decides how to prevent that drift before Phase 1 implementation begins.
 - Allow contracts with deferred values (bot handle, team slugs, dashboard target) to ship without blocking, but force the deferral to be explicit and tied to a closing ticket.
 - Reuse the existing blueprint `contract.yaml` inheritance mechanism rather than introducing a parallel consumer-delivery channel.
 - Prioritize consumer freedom over centralized audit guarantees on the C8 surface: consumers may shadow blueprint artifacts (default tier `extensible`), reserving `sealed` only for an explicit compliance list (FR-017(b)). Forcing identical inheritance pushes consumers with legitimate domain-specific needs to fork the blueprint, which is a worse outcome than a structured shadow mechanism.
-- Provide a stable evolution contract via semver-style versioning (FR-019) so consumers can adopt at their own pace; the supported-major window is owned by a dedicated factory-upgrade-process ticket (Q-5).
+- Provide a stable evolution contract via semver-style versioning (FR-019) so consumers can adopt at their own pace; the supported-major window is owned by the dedicated factory-upgrade-process ticket #342 (Q-5 resolved).
 
 ## Options Considered
 
@@ -79,9 +79,9 @@ Caption: Design-contract C1–C8 dependency edges — one node per contract, one
 - Consumer repos that adopt the autonomous factory acquire a single inheritance contract via Contract C8, with C1–C4 applied identically and C5–C7 populated per-consumer via overlay schemas. No new inheritance machinery is introduced; consumers use the existing blueprint `contract.yaml` mechanism.
 - Three downstream tickets (#334, #337) inherit non-closure conditions tied to blueprint-instance Open Decisions (Q-1 bot handle, Q-2 CODEOWNERS slugs + bounded contexts, Q-3 dashboard platform). Each Open Decision names the deferring ticket and the resolve-by deadline. None of these defer to a consumer repo.
 - One additional Open Decision (Q-4 — LiteLLM access configuration field name and location in `contract.yaml`) is resolved during deliverable authoring in this same work item before SPEC_READY can flip to true; not deferred to a downstream ticket.
-- A second additional Open Decision (Q-5 — issue number for the new Phase 1 factory-upgrade-process ticket) is resolved by filing the new GitHub issue in the same session that closes this spec and substituting its assigned number into Contract C8 `Referenced by:` lines for FR-019 and FR-020; not deferred to a downstream ticket.
+- A second additional Open Decision (Q-5 — issue number for the new Phase 1 factory-upgrade-process ticket) is RESOLVED: Phase 1 factory upgrade-process ticket filed as #342; #342 substituted into Contract C8 `Referenced by:` lines for FR-019 and FR-020.
 - The C8 extensibility tier defaults to `extensible` (FR-017); consumers may shadow blueprint personas, skills, and SDD steps via the namespaced subdirectory convention (FR-018). Audit consistency across consumer instances is intentionally scoped to the FR-017(b) sealed list only (bot-identity exact-string rule, four canonical sign-off phrases, multi-author SoD rule, sovereignty/ZDR ADR, reject-rerun cap rule, C7 minimum lifecycle-event field set). Cross-consumer review-output uniformity is explicitly not a goal.
-- The factory contract version follows semver (FR-019); breaking changes batch into majors with migration notes. The supported-major window and migration tooling are owned by the new Phase 1 factory-upgrade-process ticket; the first consumer adopter must demonstrate a real upgrade roundtrip per the Epic #332 acceptance criteria amendment that ticket introduces.
+- The factory contract version follows semver (FR-019); breaking changes batch into majors with migration notes. The supported-major window and migration tooling are owned by #342 (Phase 1 factory upgrade process); the first consumer adopter must demonstrate a real upgrade roundtrip per the Epic #332 acceptance criteria amendment that #342 introduces.
 - Any future change to contract C1–C8 follows the same SDD/sign-off flow as the original document and updates `Referenced by:` lines in the same PR (per spec NFR-REL-001). C8 surface changes additionally honor the stability tier discipline declared per surface item (FR-015).
 - The autonomous-factory directory under `docs/blueprint/` is new with this work item; later factory-governance documents (Phase 1 ADR consolidations, runbooks) can land beside it without further structural decisions, and consumer repos receive them automatically via C8 inheritance.
 
@@ -91,7 +91,8 @@ Caption: Design-contract C1–C8 dependency edges — one node per contract, one
 - Governing spec: `specs/2026-05-28-issue-339-factory-design-contracts/spec.md`
 - Epic: #332 — STACKIT Autonomous Software Factory (OpenHands + SDD)
 - Phase 0 sibling: #337 — ADRs, CODEOWNERS, success metrics
-- Phase 1 consumers (blueprint repo implementers): #333 (personas), #334 (Confidential K8s), #335 (OpenHands + LiteLLM), #336 (webhooks)
+- Phase 1 consumers (blueprint repo implementers): #333 (personas), #334 (Confidential K8s), #335 (OpenHands + LiteLLM), #336 (webhooks), #342 (factory upgrade process)
+- Phase 0 prerequisite: #341 (Confidential Kubernetes module wrapper)
 - Phase 3 consumer: #338 (composition orchestration)
 - Consumer repos (Context D): every blueprint consumer that adopts the autonomous factory inherits C8 surface via the existing blueprint `contract.yaml` mechanism
 - Sign-off policy: `AGENTS.md § Sign-off Phrases (Deterministic)`
