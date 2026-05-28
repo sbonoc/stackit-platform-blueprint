@@ -236,7 +236,11 @@ Referenced by: #336, #337
 
 ### Identical rule
 
-Every factory instance MUST emit a lifecycle event for every persona phase transition. The minimum event field set is a named JSON schema with explicit types and nullability per field:
+Every factory instance MUST emit a lifecycle event for every persona phase transition. This emission requirement applies exclusively to **autonomous execution** — factory bot runs triggered by the GitHub webhook pipeline. Human-assisted local execution (a developer invoking the SDD skill runbooks manually via Claude Code or any other local CLI) is EXPLICITLY exempt: the durable-bus infrastructure is not present in local Docker Desktop environments (SDD-C-014), and local runs are directly observable by the developer without a metrics pipeline.
+
+Informative: if local emission is desired for cross-mode performance comparison, an opt-in convention (e.g., a `FACTORY_EMIT_EVENTS=true` environment flag) may be introduced as a follow-up without requiring a C7 amendment.
+
+The minimum event field set is a named JSON schema with explicit types and nullability per field:
 
 ```json
 {

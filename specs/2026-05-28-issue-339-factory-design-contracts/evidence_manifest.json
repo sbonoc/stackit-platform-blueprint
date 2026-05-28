@@ -6,7 +6,7 @@
   "files": [
     {
       "path": "docs/blueprint/autonomous-factory/design-contracts.md",
-      "sha256": "06691c4d5a9ab770f7a2c648c87ee00d554ef206f779ccfedb778b4f3af47228",
+      "sha256": "c23c2674f1f70270965a9dec7c9d55ca7f364d390a7b7c4da48334189aa4d523",
       "role": "primary-deliverable",
       "description": "Factory design contracts C1-C8 — the normative governance document produced by this work item."
     },
@@ -18,7 +18,7 @@
     },
     {
       "path": "scripts/templates/blueprint/bootstrap/docs/blueprint/autonomous-factory/design-contracts.md",
-      "sha256": "06691c4d5a9ab770f7a2c648c87ee00d554ef206f779ccfedb778b4f3af47228",
+      "sha256": "c23c2674f1f70270965a9dec7c9d55ca7f364d390a7b7c4da48334189aa4d523",
       "role": "bootstrap-template-mirror",
       "description": "Bootstrap template mirror of design-contracts.md — created by sync_blueprint_template_docs.py after allowlist extension."
     },
