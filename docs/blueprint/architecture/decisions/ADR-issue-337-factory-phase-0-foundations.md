@@ -1,10 +1,10 @@
 # ADR: Autonomous Software Factory — Phase 0 Foundations (Meta-ADR)
 
-**Status:** proposed
+**Status:** approved
 **Date:** 2026-05-28
 **Issue:** #337
 **Spec:** `specs/2026-05-28-issue-337-factory-phase-0-foundations/`
-**ADR technical decision sign-off:** pending
+**ADR technical decision sign-off:** approved
 
 ## Context
 
