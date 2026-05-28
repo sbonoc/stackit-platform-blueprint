@@ -1,5 +1,152 @@
-# Replace the examples below with the real maintainer team for this blueprint repository.
-# Example:
-# * @your-org/platform-blueprint-maintainers
-# /docs/blueprint/** @your-org/platform-blueprint-maintainers
-# /scripts/templates/** @your-org/platform-blueprint-maintainers
+# CODEOWNERS — Blueprint instance (autonomous-factory two-layer routing)
+#
+# Layer model per ADR-issue-337-factory-phase-0-foundations.md (FR-011) and
+# #339 Contract C6. Two routing layers:
+#
+#   Gate 1: Spec sign-off layer — maps the four canonical sign-off roles
+#           (Product / Architecture / Security / Operations) to GitHub team
+#           slugs. Each team is the corresponding `@sbonoc/factory-*` team
+#           per Q-3 on specs/2026-05-28-issue-337-factory-phase-0-foundations/
+#           spec.md, with at least 2 members each.
+#
+#   Gate 2: Bounded-context merge layer — per bounded context defined for
+#           the blueprint repo (`factory`, `infra`, `docs`, `governance`
+#           per Q-3), routing to the senior engineers responsible for that
+#           context.
+#
+# The two-layer routing SHAPE is the #339 Contract C6 identical rule and
+# applies to every consumer instance; only the per-instance team slugs
+# below are parameterized via the #339 C8 consumer overlay.
+#
+# Existing AGENTS.md ownership boundaries (blueprint vs consumer vs
+# platform code-ownership) are preserved — this file does NOT relax any
+# of them; it adds GitHub-level review routing on top.
+#
+# Last-match-wins per GitHub's CODEOWNERS semantics: more specific globs
+# below override the catch-all above. Order matters.
+
+
+# ====================================================================
+# Default catch-all
+# ====================================================================
+# Any file not matched by a more specific rule routes to the operations
+# team. This is intentionally a wide net so nothing merges without
+# explicit ownership routing.
+
+*                                              @sbonoc/factory-operations
+
+
+# ====================================================================
+# === Gate 1: Spec sign-off layer ===
+# ====================================================================
+# Maps the four canonical sign-off roles to teams. Surfaces in this gate
+# are the artifact types whose review is gated by the corresponding
+# canonical sign-off phrase per AGENTS.md § Sign-off Policy.
+
+# --- Product sign-off (SPEC_PRODUCT_READY: approved) ---
+# Specs, intake artifacts, spec readiness gate, business-outcome rationale.
+/specs/**/spec.md                              @sbonoc/factory-product
+/specs/**/pr_context.md                        @sbonoc/factory-product
+/specs/**/discovery.md                         @sbonoc/factory-product
+
+# --- Architecture sign-off (ARCHITECTURE_SIGNOFF: approved) ---
+# ADRs, design contracts, architecture artifacts.
+/docs/blueprint/architecture/**                @sbonoc/factory-architecture
+/docs/blueprint/autonomous-factory/design-contracts.md  @sbonoc/factory-architecture
+/specs/**/architecture.md                      @sbonoc/factory-architecture
+/specs/**/plan.md                              @sbonoc/factory-architecture
+/specs/**/tasks.md                             @sbonoc/factory-architecture
+
+# --- Security sign-off (SECURITY_SIGNOFF: approved) ---
+# Security-sensitive surfaces: CODEOWNERS itself, sign-off policy, ESO/
+# Secrets-Manager configs, NetworkPolicies, RBAC, IAM, factory bot
+# identity, secret references, image-pull authentication.
+/.github/CODEOWNERS                            @sbonoc/factory-security
+/AGENTS.md                                     @sbonoc/factory-security @sbonoc/factory-architecture
+/AGENTS.decisions.md                           @sbonoc/factory-security @sbonoc/factory-architecture
+/blueprint/contract.yaml                       @sbonoc/factory-security @sbonoc/factory-architecture
+/scripts/**/eso*.sh                            @sbonoc/factory-security
+/scripts/**/secrets*.sh                        @sbonoc/factory-security
+/scripts/**/networkpolicy*.sh                  @sbonoc/factory-security
+/scripts/**/rbac*.sh                           @sbonoc/factory-security
+/contracts/**                                  @sbonoc/factory-security @sbonoc/factory-architecture
+
+# --- Operations sign-off (OPERATIONS_SIGNOFF: approved) ---
+# CI/CD pipelines, observability config, runtime configs, factory runtime,
+# instrumentation plan, baselines, on-call surfaces.
+/.github/workflows/**                          @sbonoc/factory-operations
+/.github/actions/**                            @sbonoc/factory-operations
+/docs/blueprint/autonomous-factory/instrumentation-plan.md          @sbonoc/factory-operations
+/docs/blueprint/autonomous-factory/pre-factory-baselines.md         @sbonoc/factory-operations
+/docs/blueprint/autonomous-factory/triage-decomposition-data-feed.md @sbonoc/factory-operations
+/Makefile                                      @sbonoc/factory-operations
+/make/**                                       @sbonoc/factory-operations
+
+
+# ====================================================================
+# === Gate 2: Bounded-context merge layer ===
+# ====================================================================
+# Per bounded context: routes the merge-stage review to senior engineers
+# in the relevant bounded-context team. Each team has ≥ 2 members per
+# FR-011 (Operations verifies this at sign-off time).
+
+# --- Bounded context: factory ---
+# The autonomous-factory runtime, personas, skills, factory-specific
+# ADRs and docs. NOTE: design-contracts.md routes to factory-architecture
+# above (Gate 1) — it is co-owned by both gates because architectural
+# sign-off is required AND bounded-context expertise is required.
+/.agents/**                                    @sbonoc/factory-context-factory
+/docs/blueprint/autonomous-factory/**          @sbonoc/factory-context-factory
+/docs/blueprint/architecture/decisions/ADR-issue-33*  @sbonoc/factory-context-factory
+/specs/**-issue-33*-factory-**                 @sbonoc/factory-context-factory
+
+# --- Bounded context: infra ---
+# Module wrappers, Terraform modules, Crossplane, ArgoCD, Helm, K8s
+# manifests, infrastructure scripts.
+/infra/**                                      @sbonoc/factory-context-infra
+/scripts/templates/infra/**                    @sbonoc/factory-context-infra
+/scripts/lib/infra/**                          @sbonoc/factory-context-infra
+/scripts/bin/infra/**                          @sbonoc/factory-context-infra
+/tests/infra/**                                @sbonoc/factory-context-infra
+/apps/**                                       @sbonoc/factory-context-infra
+/dags/**                                       @sbonoc/factory-context-infra
+
+# --- Bounded context: docs ---
+# All docs OUTSIDE of architecture decisions and autonomous-factory
+# (those are factory-context). Includes blueprint-maintainer docs,
+# platform docs, READMEs.
+/docs/blueprint/**                             @sbonoc/factory-context-docs
+/docs/platform/**                              @sbonoc/factory-context-docs
+/README.md                                     @sbonoc/factory-context-docs
+
+# --- Bounded context: governance ---
+# SDD toolchain, AGENTS.md governance, lifecycle policies, sign-off
+# policy, branch-naming, contract.yaml shape, .github/ITs, PR template,
+# pre-commit hooks, anti-duplication contracts.
+/AGENTS.backlog.md                             @sbonoc/factory-context-governance
+/CLAUDE.md                                     @sbonoc/factory-context-governance
+/.github/ISSUE_TEMPLATE/**                     @sbonoc/factory-context-governance
+/.github/pull_request_template.md              @sbonoc/factory-context-governance
+/.pre-commit-config.yaml                       @sbonoc/factory-context-governance
+/scripts/lib/sdd/**                            @sbonoc/factory-context-governance
+/scripts/lib/quality/**                        @sbonoc/factory-context-governance
+/scripts/bin/sdd/**                            @sbonoc/factory-context-governance
+/scripts/bin/quality/**                        @sbonoc/factory-context-governance
+/tests/sdd/**                                  @sbonoc/factory-context-governance
+/tests/blueprint/**                            @sbonoc/factory-context-governance
+
+
+# ====================================================================
+# Re-anchored gate-1 rules
+# ====================================================================
+# GitHub CODEOWNERS uses last-match-wins. Re-anchor the high-stakes
+# gate-1 routings AFTER the bounded-context layer above so that
+# CODEOWNERS itself, AGENTS.md, contract.yaml, and the factory workflow
+# files preserve their gate-1 owners as the EFFECTIVE reviewers.
+
+/.github/CODEOWNERS                            @sbonoc/factory-security
+/AGENTS.md                                     @sbonoc/factory-security @sbonoc/factory-architecture
+/AGENTS.decisions.md                           @sbonoc/factory-security @sbonoc/factory-architecture
+/blueprint/contract.yaml                       @sbonoc/factory-security @sbonoc/factory-architecture
+/.github/workflows/**                          @sbonoc/factory-operations
+/.github/actions/**                            @sbonoc/factory-operations
