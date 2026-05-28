@@ -428,7 +428,7 @@ class DocsRefactorCases(RefactorContractBase):
         self.assertIn("uses: actions/setup-node@v6", shared_ci_action)
         self.assertNotIn("uses: actions/setup-python@v5", shared_ci_action)
         self.assertNotIn("uses: actions/setup-node@v4", shared_ci_action)
-        self.assertIn("platform-blueprint-maintainers", source_codeowners)
+        self.assertIn("@sbonoc/factory-operations", source_codeowners)
         self.assertIn("Describe the blueprint change.", source_pr_template)
         self.assertIn("Blueprint Bug Report", source_bug_template)
         self.assertIn("generated repository", consumer_codeowners_template)
