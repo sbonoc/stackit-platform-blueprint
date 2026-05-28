@@ -109,41 +109,13 @@
 - Context: this work item is the Phase 0 sibling of #339 and ships the load-bearing architectural decisions Phase 1 (#333–#336) depends on. The ten ADRs are the textual record of decisions the user has already pinned in the autonomous-factory initiative memory; this work item captures them as `Status: approved` artifacts so Phase 1 tickets can cite them rather than re-deriving them. The CODEOWNERS file is the compliance-critical artifact that must be in place before the factory opens its first Draft PR (otherwise gate-1 sign-off routing is undefined). The pre-factory baselines and triage+decomposition data feed are the only Phase 0 outputs that require historical evidence rather than forward decisions.
 - Tradeoffs: bundling ten ADRs into one PR concentrates review burden in a single sign-off cycle. Mitigation: each ADR is independently revertible (NFR-REL-001) and the artifact set follows the same proven cadence as #339 (eight contracts + one ADR in one PR cycle, signed off in 24h). The alternative (ten separate ADR cycles) would block Phase 1 by 2–3 weeks at current sign-off velocity.
 - Clarifications:
-  - **[NEEDS CLARIFICATION: Q-1 — Per-ticket wall-clock and cost ceiling concrete values for the blueprint instance (FR-007).]**
+  - Q-1 — Per-ticket wall-clock and cost ceiling concrete values for the blueprint instance (FR-007): wall-clock `90 minutes per work item / per child` (decomposed); cost `$15 USD per work item / per child` (Option A). Rationale: bounds the worst-case full-SDD cycle envelope (~40–60 min, ~$5–10 on Sonnet 4.6 default) with ~50% headroom to absorb Opus 4.7 escalations on step03/step04 without triggering false halts; child-scoped variant preserves the cost benefit of legitimate decomposition; consumers are permitted to override via the C8 consumer overlay per FR-007. Values are calibratable from the FR-014 baselines once the first 30 cycles accumulate. Decision by Product comment on PR #345 (2026-05-28).
 
-    **Options:**
-    - **A)** Wall-clock `90 minutes per work item / per child` (decomposed); cost `$15 USD per work item / per child` — chosen to bound a worst-case full-SDD cycle (10 step types × ~5 min average × 2 rerolls) plus a reviewer pass without surfacing cost surprises (Agent recommendation)
-    - **B)** Wall-clock `180 minutes`; cost `$30 USD` — looser; trades cost discipline for higher completion rate on first-try-imperfect items
-    - **C)** Defer numeric values to a follow-up PR after first 10 factory runs produce empirical data — defers a P0 acceptance criterion
+  - Q-2 — Triage-size threshold numeric values for `blueprint-ticket-triage-size` (FR-009): 4-class table — `small`: ≤1 bounded context AND ≤50k tokens AND ≤6 SDD step invocations; `medium`: ≤2 contexts AND ≤150k tokens AND ≤12 invocations; `large-decomposable`: ≤4 contexts AND ≤400k tokens AND ≤24 invocations; `escalate`: otherwise (Option A). Rationale: minimum classification scheme supporting both the Type-A light decomposition trigger required by #333 and the FR-015 retrospective classification of historical tickets; the `large-decomposable` class is load-bearing for the Type-A light decomposition policy (Phase 1 in-scope, not deferred to Phase 3) — collapsing the table removes that policy's trigger. Numeric values are calibratable from the FR-014 baselines once the first 30 cycles accumulate; consumers are permitted to override via the C8 consumer overlay. Decision by Product comment on PR #345 (2026-05-28).
 
-    **Agent recommendation:** Option A because the cap exists to catch runaway loops, not to right-size against unknown future usage; tighter caps surface design flaws earlier; consumers are permitted to override via the C8 consumer overlay per FR-007.
+  - Q-3 — Blueprint-instance CODEOWNERS team slugs (FR-011): gate-1 teams `@sbonoc/factory-product`, `@sbonoc/factory-architecture`, `@sbonoc/factory-security`, `@sbonoc/factory-operations`; gate-2 bounded contexts `factory`, `infra`, `docs`, `governance` — each mapped to a real GitHub team of ≥ 2 members (Option A). Rationale: realizes the SoD requirement in NFR-SEC-001 directly in CODEOWNERS form; the ≥ 2-member floor eliminates the single-approver bus-factor risk; the four gate-1 slugs map 1:1 to the four canonical sign-off phrases. Team provisioning is a hard prerequisite — the first factory `agent-ready` label MUST NOT be applied until all eight teams have ≥ 2 members; Operations sign-off on this PR attests to team provisioning being complete or names the owner + date for completion before any factory run. Decision by Product comment on PR #345 (2026-05-28).
 
-  - **[NEEDS CLARIFICATION: Q-2 — Triage-size threshold numeric values for `blueprint-ticket-triage-size` (FR-009).]**
-
-    **Options:**
-    - **A)** `small`: ≤1 bounded context AND ≤50k tokens AND ≤6 SDD step invocations; `medium`: ≤2 contexts AND ≤150k tokens AND ≤12 invocations; `large-decomposable`: ≤4 contexts AND ≤400k tokens AND ≤24 invocations; `escalate`: otherwise — drawn from the rough size of historical PRs in this repo (Agent recommendation)
-    - **B)** Two classes only (`autonomous` / `escalate`) with a single combined threshold — simpler but loses the decomposition signal that #338 needs
-    - **C)** Defer numeric values until Phase 1 produces first-10-run empirical evidence — defers a P0 acceptance criterion and blocks the FR-015 retrospective classification
-
-    **Agent recommendation:** Option A because FR-015 requires retrospective classification of 30 past tickets, which is impossible without concrete thresholds; the values can be tuned in a subsequent ADR amendment after Phase 1 evidence accumulates.
-
-  - **[NEEDS CLARIFICATION: Q-3 — Blueprint-instance CODEOWNERS team slugs (FR-011): the four gate-1 slugs and the gate-2 bounded-context enumeration with members.]**
-
-    **Options:**
-    - **A)** Gate-1: `@sbonoc/factory-product`, `@sbonoc/factory-architecture`, `@sbonoc/factory-security`, `@sbonoc/factory-operations` (resolved by #339 Q-2 — provisional). Gate-2 bounded contexts (provisional from #339): `factory`, `infra`, `docs`, `governance` — each mapped to a real GitHub team of ≥ 2 members. Operations sign-off attests to team provisioning. (Agent recommendation conditional on team provisioning being completed before sign-off)
-    - **B)** Single combined team `@sbonoc/blueprint-maintainers` for all roles — fails the multi-author SoD requirement; rejected.
-    - **C)** Defer team provisioning to a follow-up PR; ship CODEOWNERS with the four slug names from Option A but record under `### Open Decisions` that team membership must reach ≥ 2 members before the first factory `agent-ready` label is applied — defers an AC-002 acceptance criterion.
-
-    **Agent recommendation:** Option A if the user can provision the teams during this PR cycle; otherwise Option C with the deferred follow-up explicitly tracked.
-
-  - **[NEEDS CLARIFICATION: Q-4 — Instrumentation plan dashboard target, retention, and owner concrete values (FR-012(d)).]**
-
-    **Options:**
-    - **A)** Target `stackit-managed-grafana` (via existing OBSERVABILITY_ENABLED module, resolved by #339 Q-3 — provisional); retention `13 months` (matches the #334 LogMe WORM SOC 2 floor for cross-correlation); owner `@sbonoc/factory-operations` (from Q-3 gate-1 slugs) — Agent recommendation
-    - **B)** Target `stackit-managed-grafana`; retention `90 days`; owner `@sbonoc/factory-operations` — shorter retention reduces storage cost; loses SOC 2 cross-correlation window with LogMe forensic retention
-    - **C)** Self-hosted Grafana in the factory K8s cluster — fails SDD-C-013 managed-first; rejected
-
-    **Agent recommendation:** Option A because retention parity with #334 LogMe is the cheapest way to make incident forensics tractable (one query window covers both audit log and metrics); the storage cost differential at expected event volumes (≤ 1k events/day for a single factory) is negligible.
+  - Q-4 — Instrumentation plan dashboard target, retention, and owner concrete values (FR-012(d)): target `stackit-managed-grafana` via the existing OBSERVABILITY_ENABLED module; retention `13 months` (parity with the #334 LogMe WORM SOC 2 floor for incident-forensics cross-correlation); owner `@sbonoc/factory-operations` (Option A). Rationale: STACKIT-managed Grafana satisfies the EU sovereignty floor without bespoke compliance work and respects SDD-C-013 managed-first; retention parity makes one query window cover both audit log and metrics, which is the cheapest way to keep incident forensics tractable; `@sbonoc/factory-operations` is the natural on-call owner per the Q-3 gate-1 team assignment. Storage-cost differential at expected event volumes (≤ 1k events/day per factory instance) is negligible against the forensics benefit. Decision by Product comment on PR #345 (2026-05-28).
 
   - **[NEEDS CLARIFICATION: Q-5 — Concrete STACKIT-managed durable-bus platform pick (FR-013).]**
 
@@ -155,23 +127,9 @@
 
     **Agent recommendation:** Option A if a 1-day availability spike confirms the STACKIT Terraform provider exposes `stackit_kafka_instance` as `stable`; otherwise Option B. Skip Option C unless both A and B fail.
 
-  - **[NEEDS CLARIFICATION: Q-6 — Pre-factory baseline measurement window for FR-014 (last 90 days vs. all-time vs. since SDD enablement).]**
+  - Q-6 — Pre-factory baseline measurement window for FR-014: all merged PRs to `main` since SDD enablement (the commit that introduced the `SPEC_READY` gate on 2026-04-17 — exact commit SHA to be pinned by Operations at sign-off) through the day before this PR is signed off (Option A). Rationale: the factory is replacing the SDD-era human workflow specifically, so the baseline MUST measure the same workflow class; anchoring on SDD enablement is the only window that excludes pre-SDD methodology bias. Small-sample risk is acknowledged and is the right trade-off — recording a transparent count is preferred over inflating n by reaching into pre-SDD PRs that ran by different rules. The Q-7 `### Sample Size` disclosure pattern applies here too. Decision by Product comment on PR #345 (2026-05-28).
 
-    **Options:**
-    - **A)** All merged PRs to `main` since SDD was enabled (commit that introduced `SPEC_READY` gate, on 2026-04-17 — exact commit SHA to be pinned by Operations at sign-off) through the day before this PR is signed off — uses every PR governed by the same SDD process the factory will inherit; sample size is what it is (Agent recommendation)
-    - **B)** Last 90 days only — fixed window for repeatability; loses earlier SDD-era PRs and is likely to shrink the sample below statistical relevance
-    - **C)** All-time (every merged PR regardless of SDD) — mixes pre-SDD and post-SDD workflows; baseline does not represent the factory's actual comparand
-
-    **Agent recommendation:** Option A because the factory is replacing the SDD-era human workflow specifically; the baseline must measure the same workflow class.
-
-  - **[NEEDS CLARIFICATION: Q-7 — Sample size for the FR-015 triage+decomposition data feed if fewer than 30 ticket cycles exist within the Q-6 window.]**
-
-    **Options:**
-    - **A)** Use whatever count is available (≥ 1) and record a `### Sample Size` subsection with the actual count and a note acknowledging the limitation; #338 design treats it as directional, not statistical (Agent recommendation)
-    - **B)** Defer FR-015 entirely until 30 ticket cycles accumulate post-Phase-0 — defers AC-005 and removes evidence input from #338 design
-    - **C)** Synthesize 30 hypothetical ticket descriptions to reach the count — fabricated evidence; rejected
-
-    **Agent recommendation:** Option A because retrospective classification of even a small real sample is more useful evidence for #338 than no evidence; the limitation is recorded transparently.
+  - Q-7 — Sample size for the FR-015 triage+decomposition data feed if fewer than 30 ticket cycles exist within the Q-6 window: use whatever count is available (≥ 1) and record a `### Sample Size` subsection with the actual count and an explicit limitation note; #338 design treats it as directional evidence, not statistical (Option A). Rationale: retrospective classification of even a small real sample is more useful Phase 3 input than no evidence; the disclosure makes #338's design assumptions auditable; blocking on a 30-cycle threshold would convert Phase 3 "deferred until evidence exists" into "deferred indefinitely" if cycle volume is low; synthetic or proxy data is rejected because it actively introduces bias. Decision by Product comment on PR #345 (2026-05-28).
 
 ## Explicit Exclusions
 - Excluded item 1: implementation of any of the ten ADRs (e.g., wiring the LiteLLM router rules, implementing the reject-rerun counter, building the trigger authorization workflow, emitting lifecycle events to the durable bus) — all owned by Phase 1 tickets #333, #334, #335, #336.

@@ -52,7 +52,7 @@
 ## Validation Summary
 - Required bundles executed: pending Implementation phase (Step 5 — `/blueprint-sdd-step05-implement`).
 - Expected bundles at sign-off: `make quality-sdd-check`, `make docs-build`, `make docs-smoke`, `make quality-hardening-review`.
-- Result summary: intake-phase artifacts populated; Open Decisions Q-1 through Q-7 surfaced in spec.md § Informative Notes § Clarifications for Draft PR review cycle.
+- Result summary: intake-phase artifacts populated; Open Decisions Q-1, Q-2, Q-3, Q-4, Q-6, Q-7 RESOLVED (all Option A) on 2026-05-28 via Product comment on PR #345; Q-5 OPEN pending revised recommendation (Managed RabbitMQ) after confirming STACKIT has no Managed Kafka.
 - Documentation validation:
   - `make docs-build`
   - `make docs-smoke`
@@ -64,11 +64,11 @@
 - Hardening review export: `hardening_review.md`
 
 ## Open Risks and Follow-Ups
-- Follow-up 1: Q-1 OPEN — per-ticket wall-clock + cost ceiling concrete values (FR-007). Resolve in Draft PR comment cycle; Agent recommendation Option A (90 min / $15 per work item, per child).
-- Follow-up 2: Q-2 OPEN — triage-size threshold numeric values (FR-009). Resolve in Draft PR comment cycle; Agent recommendation Option A (4-class threshold table).
-- Follow-up 3: Q-3 OPEN — CODEOWNERS team slugs and bounded-context enumeration (FR-011). Resolve in Draft PR comment cycle; Agent recommendation Option A (`@sbonoc/factory-{product,architecture,security,operations}` + 4 bounded contexts), Option C if team provisioning slips.
-- Follow-up 4: Q-4 OPEN — instrumentation plan dashboard target/retention/owner (FR-012(d)). Resolve in Draft PR comment cycle; Agent recommendation Option A (`stackit-managed-grafana`, 13-month retention, `@sbonoc/factory-operations`).
-- Follow-up 5: Q-5 OPEN — STACKIT-managed durable-bus platform pick (FR-013). Resolve in Draft PR comment cycle; Agent recommendation Option A (`stackit_kafka_instance` after 1-day availability spike, fallback Option B SKE-hosted Strimzi).
-- Follow-up 6: Q-6 OPEN — pre-factory baseline measurement window (FR-014). Resolve in Draft PR comment cycle; Agent recommendation Option A (all merged PRs since SDD enablement ~2026-04-17).
-- Follow-up 7: Q-7 OPEN — sample size handling for triage+decomposition data feed if <30 cycles available (FR-015). Resolve in Draft PR comment cycle; Agent recommendation Option A (use what's available with `### Sample Size` subsection).
+- Follow-up 1: Q-1 RESOLVED 2026-05-28 — per-ticket wall-clock + cost ceiling (FR-007) set to Option A (90 min / $15 USD per work item, per child for decomposed parents). Resolution by Product comment on PR #345; folded into spec.md § Informative Notes § Clarifications.
+- Follow-up 2: Q-2 RESOLVED 2026-05-28 — triage-size thresholds (FR-009) set to Option A (4-class table: small/medium/large-decomposable/escalate with context+token+invocation bounds). Resolution by Product comment on PR #345; folded into spec.md § Informative Notes § Clarifications.
+- Follow-up 3: Q-3 RESOLVED 2026-05-28 — CODEOWNERS team slugs (FR-011) set to Option A (gate-1: `@sbonoc/factory-{product,architecture,security,operations}`; gate-2 bounded contexts: `factory`, `infra`, `docs`, `governance`; each team ≥ 2 members). Resolution by Product comment on PR #345; folded into spec.md § Informative Notes § Clarifications. Team-provisioning prerequisite recorded in spec text — Operations sign-off attests.
+- Follow-up 4: Q-4 RESOLVED 2026-05-28 — instrumentation plan target/retention/owner (FR-012(d)) set to Option A (`stackit-managed-grafana`, 13-month retention parity with #334 LogMe WORM, `@sbonoc/factory-operations` owner). Resolution by Product comment on PR #345; folded into spec.md § Informative Notes § Clarifications.
+- Follow-up 5: Q-5 OPEN — STACKIT-managed durable-bus platform pick (FR-013). Original recommendation withdrawn after confirming STACKIT has no Managed Kafka. Revised recommendation: Option A' STACKIT Managed RabbitMQ (managed-service posture preserved, AMQP fanout matches lifecycle-event use case, LogMe WORM is audit-of-record so no log-replay needed from the bus); fallback B' SKE-hosted Strimzi Kafka if a 1-day capacity spike reveals a blocking RabbitMQ limitation. Awaiting Product reply on PR #345.
+- Follow-up 6: Q-6 RESOLVED 2026-05-28 — pre-factory baseline window (FR-014) set to Option A (all merged PRs since SDD enablement on 2026-04-17 through the day before sign-off; exact commit SHA pinned by Operations at sign-off). Resolution by Product comment on PR #345; folded into spec.md § Informative Notes § Clarifications.
+- Follow-up 7: Q-7 RESOLVED 2026-05-28 — sample-size handling for FR-015 triage+decomposition data feed set to Option A (use whatever count ≥ 1 is available with `### Sample Size` subsection; #338 treats it as directional evidence). Resolution by Product comment on PR #345; folded into spec.md § Informative Notes § Clarifications.
 - Follow-up 8: ADR Status flip — per T-301, after all four canonical sign-offs recorded on PR, flip Status: proposed → Status: approved on meta-ADR + ten content ADRs.
