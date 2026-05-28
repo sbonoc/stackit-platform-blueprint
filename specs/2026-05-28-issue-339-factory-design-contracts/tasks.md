@@ -31,15 +31,15 @@
 
 ## Validation and Release Readiness
 - [x] T-201 Run required Make validation bundles (`make quality-sdd-check`, `make docs-build`, `make docs-smoke`)
-- [ ] T-202 Attach evidence to traceability document (`make quality-sdd-check` summary, `make docs-build` summary, `make docs-smoke` summary in `evidence_manifest.json`)
+- [x] T-202 Attach evidence to traceability document (`make quality-sdd-check` summary, `make docs-build` summary, `make docs-smoke` summary in `evidence_manifest.json`)
 - [x] T-203 Confirm no stale TODOs/dead code/drift — verify zero deferred-decision placeholders (per FR-003) outside `### Open Decisions` subsections in the deliverable; verify no orphan tickets in `Referenced by:` lines
 - [x] T-204 Run documentation validation (`make docs-build` and `make docs-smoke`)
-- [ ] T-205 Run hardening review validation bundle (`make quality-hardening-review`)
+- [x] T-205 Run hardening review validation bundle (`make quality-hardening-review`)
 
 ## Publish
-- [ ] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
-- [ ] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
-- [ ] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
+- [x] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
+- [x] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
+- [x] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
 
 ## App Onboarding Minimum Targets (Normative)
 - [x] A-001 `apps-bootstrap` and `apps-smoke` are implemented and verified for the affected app scope — N/A (no app scope affected by this documentation-only work item)

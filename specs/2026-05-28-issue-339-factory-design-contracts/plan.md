@@ -5,19 +5,17 @@
 - If required inputs are missing, add `BLOCKED_MISSING_INPUTS` in `spec.md` and keep the gate closed.
 
 ## Constitution Gates (Pre-Implementation)
-- Simplicity gate:
+- Simplicity gate: single deliverable (design-contracts.md) + single summary ADR; no abstractions introduced beyond the eight contract sections.
   - Single deliverable file + single summary ADR. No abstractions introduced beyond what the seven contract sections require.
   - Avoid speculative future-proof abstractions: the document records what is decided today, with explicit `### Open Decisions` subsections for what is deferred.
-- Anti-abstraction gate:
+- Anti-abstraction gate: no wrapper layers; plain Markdown rendered by the existing `docs/blueprint/` pipeline; no schemas, registries, or YAML/JSON sidecars beyond the C7 event-schema expressed inline.
   - No wrapper layers. The document is plain Markdown rendered by the existing `docs/blueprint/` pipeline.
   - No additional schemas, registries, or YAML/JSON sidecars beyond the Contract C7 event-schema definition expressed inline.
-- Integration-first testing gate:
+- Integration-first testing gate: `make docs-build` and `make docs-smoke` pass on both main (baseline) and the feature branch (post-implementation); no new link or anchor regressions.
   - Pre-Implementation: confirm `make docs-build` and `make docs-smoke` exit clean on `main` (baseline).
   - Implementation: rerun `make docs-build` and `make docs-smoke` after adding the deliverable and ADR; both MUST pass with no new link or anchor regressions.
-- Positive-path filter/transform test gate:
-  - N/A — no filter or payload-transform logic in scope. No code paths are added.
-- Finding-to-test translation gate:
-  - N/A — no deterministic smoke or `curl` execution path exists for this documentation-only work item. If `make docs-smoke` surfaces a finding, the fix is a documentation edit committed in the same PR.
+- Positive-path filter/transform test gate: N/A — no filter or payload-transform logic in scope; no code paths added.
+- Finding-to-test translation gate: N/A — no deterministic smoke or `curl` execution path; `make docs-smoke` is the documentation-only validation check.
 
 ## Delivery Slices
 1. Slice 1 — Author the deliverable. Create `docs/blueprint/autonomous-factory/design-contracts.md` with the eight contract sections C1–C8, each ending in a `Referenced by:` line. C1–C4 written as identical conventions for blueprint + consumer repos. C2 carries the FR-005 SDD-artifact front-matter required-key set (`id`, `artifact_kind`, `work_item_slug`, `owner_team`, `schema_version`) with one worked example per `artifact_kind` (satisfies AC-013). C5/C6/C7 written with the three required subsections (`### Identical rule`, `### Blueprint instance`, `### Consumer overlay`). C7 identical rule covers nine minimum lifecycle-event fields including `owner_team` and pins the durable-bus emission contract (durability, replayability, async fire-and-forget, consumer-position tracking), with concrete STACKIT-managed durable-bus platform pick deferred to #337 Phase 0 under `### Open Decisions` (satisfies AC-014); also carries the one-line cross-link to Epic #343 Central Brain ingest with the schema-change-via-#339 governance note. C8 written with: (a) the four named surface categories from FR-013 (a–d); (b) per-item stability tier tags from FR-015 (`stable`/`preview`/`internal`); (c) per-item extensibility tier tags from FR-017 (`sealed`/`parameterized`/`extensible`) with default `extensible` and the FR-017(b) sealed list pinned exactly (including the C7 durable-bus emission rule and the C2 SDD-artifact front-matter required-key set added by the #343 forward-compat batch); (d) the LiteLLM external-service configuration shape per FR-014, written at `spec.factory_contract.litellm` under a new top-level `spec.factory_contract:` block in `blueprint/contract.yaml` (Q-4 RESOLVED — Option A); (e) the consumer-extension discovery convention from FR-018 with one worked example per artifact kind; (f) the semver compatibility posture from FR-019; (g) the `upstream-candidate: true` front-matter convention from FR-020. Open Decisions written under explicit `### Open Decisions` subsections naming the deferring ticket: Q-1 in C5 → blueprint-instance value resolved as `stackit-factory-bot`; reserve+verify in #334. Q-2 in C6 → blueprint-instance topology resolved as four flat sign-off team slugs `@sbonoc/factory-{product,architecture,security,operations}` + separate per-bounded-context teams; concrete team provisioning and full bounded-context list in #337. Q-3 in C7 → blueprint-instance dashboard target resolved as STACKIT-managed Grafana via the existing observability module; concrete dashboard URLs in #337. C7 → concrete durable-bus platform pick deferred to #337 Phase 0 availability spike. Q-4 in C8 → RESOLVED in this PR (see point (d) above). Q-5 in C8 → RESOLVED: Phase 1 factory upgrade-process ticket filed as #342; #342 substituted into FR-019 + AC-012 `Referenced by:` lines. The deliverable's review-conventions preamble enumerates the literal deferred-decision placeholder token once so the blueprint-side spec.md/tasks.md/traceability.md never carry it (keeps the `unresolved_marker_tokens` validator green at SPEC_READY=true).
@@ -60,7 +58,7 @@
 - Notes: documentation-only change; no make targets added, modified, or removed.
 
 ## Documentation Plan (Document Phase)
-- Blueprint docs updates:
+- Blueprint docs updates: `docs/blueprint/autonomous-factory/design-contracts.md` (new) and `docs/blueprint/architecture/decisions/ADR-issue-339-factory-design-contracts.md` (new); bootstrap template mirror updated.
   - `docs/blueprint/autonomous-factory/design-contracts.md` (new — the deliverable)
   - `docs/blueprint/architecture/decisions/ADR-issue-339-factory-design-contracts.md` (new — the summary ADR)
 - Consumer docs updates: this document itself is a consumer-facing surface (Contract C8 enumerates `docs/blueprint/autonomous-factory/` and `docs/blueprint/architecture/decisions/` as part of the surface consumer repos inherit). No edits to existing consumer-facing docs are required by this work item; consumer repos discover the design contracts via the existing blueprint `contract.yaml` inheritance mechanism that already exposes `docs/blueprint/` content to consumers.

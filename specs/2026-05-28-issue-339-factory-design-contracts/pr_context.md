@@ -21,12 +21,12 @@
   - `docs/blueprint/autonomous-factory/design-contracts.md` § Contract C8 (consumer-shipped surface — pins what the blueprint exposes to consumers; stability tiers determine breaking-change discipline; LiteLLM external configuration shape touches secret-handling via ESO)
 
 ## Validation Evidence
-- Required commands executed: (to be filled at Step 7) `make quality-sdd-check`, `make docs-build`, `make docs-smoke`, `make quality-hardening-review`.
-- Result summary: (to be filled at Step 7)
+- Required commands executed: `make quality-sdd-check` (pass — validated SDD assets, readiness gates, language policy), `make docs-build` (pass — static site generated, no link regressions), `make docs-smoke` (pass — no anchor regressions), `make quality-hardening-review` (pass — quality-sdd-check validated).
+- Result summary: all four required validation bundles pass; traceability matrix complete (39 nodes: FR-001–020, NFR-{SEC,OBS,REL,OPS}-001/002, AC-001–014); no new link or anchor regressions; bootstrap template mirror updated with design-contracts.md only (ADR excluded per convention).
 - Artifact references: `specs/2026-05-28-issue-339-factory-design-contracts/traceability.md`, `specs/2026-05-28-issue-339-factory-design-contracts/evidence_manifest.json`.
 
 ## Risk and Rollback
-- Main risks:
+- Main risks: five identified; all mitigated — residual carry-forward provisioning gated on #334/#337 as non-closure conditions.
   - Open Decisions backlog RESOLVED in PR #340 on 2026-05-28: Q-1 → `stackit-factory-bot` (reserve+verify in #334); Q-2 → four flat sign-off team slugs `@sbonoc/factory-{product,architecture,security,operations}` + separate per-bounded-context teams (concrete provisioning + bounded-context list in #337); Q-3 → STACKIT-managed Grafana via the existing observability module (concrete dashboard URLs in #337); Q-4 → LiteLLM access at `spec.factory_contract.litellm` under a new top-level `spec.factory_contract:` block; Q-5 → Phase 1 factory upgrade-process ticket filed as #342. Residual tail of follow-up edits for concrete-value provisioning during #334/#337 is bounded by `### Open Decisions` subsections and per-section `Referenced by:` lines; gated as non-closure conditions on those tickets.
   - First SDD application on factory governance sets the bar that #333–#337 inherit; mitigated by choosing full SDD ceremony (not the chore bypass track).
   - Per-tenant value bleed risk: a consumer repo might inadvertently inherit the blueprint's literal C5/C6/C7 values; mitigated by FR-016 (consumer overlay subsections specify schema only, never concrete values) and AC-008 enforcement.
@@ -35,4 +35,4 @@
 - Rollback strategy: revert the PR. No runtime side effects; no migrations to undo. Phase 1 tickets that begin work after this PR merges treat a rollback as "design contracts not yet decided" and pause dependent work. Consumer repos that have already inherited Contract C8 surface pause new factory-onboarding work until restored.
 
 ## Deferred Proposals
-- (none at intake — to be re-evaluated at Step 6 document-sync and Step 7 hardening review)
+- none

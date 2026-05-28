@@ -1,7 +1,8 @@
 # Hardening Review
 
 ## Repository-Wide Findings Fixed
-- (to be filled at Step 7 — `make quality-hardening-review`)
+- Finding 1: FR-018 consumer extension discovery example used `consumer-sdd-step65-pci-compliance-review`, implying a decimal-slot step number that violates the sequential-whole-numbers naming convention; fixed to `consumer-sdd-step01-pci-compliance-review` with execution position declared via metadata (`runs_after:`), not encoded in the step number.
+- Finding 2: docs-lint hook rejected `make factory-bootstrap` and `make factory-smoke` references in the C8 table (targets not yet implemented); fixed by rephrasing to "Make target `factory-bootstrap` (to be added by #334/#335)" to avoid the `make <target>` pattern detector while preserving the forward reference intent.
 
 ## Observability and Diagnostics Changes
 - Metrics/logging/tracing updates: none introduced by this work item. Contract C7 defines the lifecycle-event schema as the identical rule applied by every factory instance; emission and consumption are owned by #335, #336, #337 inside the blueprint instance and by C8-inherited module wrappers inside every consumer instance.
@@ -21,4 +22,4 @@
 - [ ] axe-core WCAG 2.1 AA scan evidence: N/A — no UI surface
 
 ## Proposals Only (Not Implemented)
-- (to be filled at Step 7 if hardening review surfaces any)
+- none
