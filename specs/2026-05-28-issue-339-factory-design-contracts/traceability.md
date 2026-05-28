@@ -20,6 +20,10 @@
 | FR-014 | SDD-C-004, SDD-C-009 | N/A | architecture.md § Integration and Dependency Edges | docs/blueprint/autonomous-factory/design-contracts.md § Contract C8 (LiteLLM external configuration shape) | reviewer checklist (ESO key reference, model allowlist) | docs/blueprint/autonomous-factory/design-contracts.md § Contract C8 | none |
 | FR-015 | SDD-C-004, SDD-C-017 | N/A | architecture.md § Bounded Contexts — Context D | docs/blueprint/autonomous-factory/design-contracts.md § Contract C8 (stability tiers) | reviewer checklist (every surface item tier-tagged) | docs/blueprint/autonomous-factory/design-contracts.md § Contract C8 | none |
 | FR-016 | SDD-C-005, SDD-C-019 | N/A | spec.md § Explicit Exclusions (item 5) | docs/blueprint/autonomous-factory/design-contracts.md § Contract C5 / C6 / C7 (### Consumer overlay subsections) | reviewer checklist (zero concrete consumer values) | docs/blueprint/autonomous-factory/design-contracts.md | none |
+| FR-017 | SDD-C-004, SDD-C-017 | N/A | architecture.md § Bounded Contexts — Context D; § Risks and Tradeoffs — Risk 4 | docs/blueprint/autonomous-factory/design-contracts.md § Contract C8 (extensibility tier dimension + sealed list) | reviewer checklist (default tier = extensible; sealed list matches FR-017(b) exactly) | docs/blueprint/autonomous-factory/design-contracts.md § Contract C8 | none |
+| FR-018 | SDD-C-004 | N/A | architecture.md § Bounded Contexts — Context D | docs/blueprint/autonomous-factory/design-contracts.md § Contract C8 (consumer-extension discovery convention) | reviewer checklist (namespaced subdirs + sealed-shadow rejection rule) | docs/blueprint/autonomous-factory/design-contracts.md § Contract C8 | none |
+| FR-019 | SDD-C-004, SDD-C-017 | N/A | architecture.md § Non-Functional Architecture Notes — Compatibility posture | docs/blueprint/autonomous-factory/design-contracts.md § Contract C8 (semver posture) | reviewer checklist (semver posture documented; per-item version range) | docs/blueprint/autonomous-factory/design-contracts.md § Contract C8 | none |
+| FR-020 | SDD-C-004 | N/A | architecture.md § Bounded Contexts — Context D | docs/blueprint/autonomous-factory/design-contracts.md § Contract C8 (upstream-candidate front-matter) | reviewer checklist (front-matter convention documented; no obligation language) | docs/blueprint/autonomous-factory/design-contracts.md § Contract C8 | none |
 | NFR-SEC-001 | SDD-C-009 | N/A | architecture.md § Non-Functional Architecture Notes — Security | docs/blueprint/autonomous-factory/design-contracts.md § Contract C5 | reviewer checklist (exact-string equality, not regex) | docs/blueprint/autonomous-factory/design-contracts.md § Contract C5 | none |
 | NFR-OBS-001 | SDD-C-010 | N/A | architecture.md § Non-Functional Architecture Notes — Observability | docs/blueprint/autonomous-factory/design-contracts.md § Contract C7 | reviewer checklist (named schema with types + nullability) | docs/blueprint/autonomous-factory/design-contracts.md § Contract C7 | none |
 | NFR-REL-001 | SDD-C-016 | N/A | architecture.md § Risks and Tradeoffs — Risk 2 | docs/blueprint/autonomous-factory/design-contracts.md (Referenced by: lines per section) | reviewer checklist on downstream PRs | docs/blueprint/autonomous-factory/design-contracts.md | none |
@@ -34,14 +38,17 @@
 | AC-007 | SDD-C-011 | N/A | spec.md § Acceptance Criteria | docs/blueprint/ | make docs-build, make docs-smoke | docs/blueprint/ | none |
 | AC-008 | SDD-C-004, SDD-C-019 | N/A | spec.md § Acceptance Criteria | docs/blueprint/autonomous-factory/design-contracts.md § Contract C5 / C6 / C7 (three required subsections) | reviewer checklist (subsection presence + schema-only consumer overlay) | docs/blueprint/autonomous-factory/design-contracts.md | none |
 | AC-009 | SDD-C-004, SDD-C-017 | N/A | spec.md § Acceptance Criteria | docs/blueprint/autonomous-factory/design-contracts.md § Contract C8 | reviewer checklist (four categories + LiteLLM external + tier tags) | docs/blueprint/autonomous-factory/design-contracts.md | none |
+| AC-010 | SDD-C-004 | N/A | spec.md § Acceptance Criteria | docs/blueprint/autonomous-factory/design-contracts.md § Contract C8 | reviewer checklist (every item carries extensibility tier; sealed list matches FR-017(b); default = extensible) | docs/blueprint/autonomous-factory/design-contracts.md | none |
+| AC-011 | SDD-C-004 | N/A | spec.md § Acceptance Criteria | docs/blueprint/autonomous-factory/design-contracts.md § Contract C8 | reviewer checklist (discovery convention documented + 3 worked examples) | docs/blueprint/autonomous-factory/design-contracts.md | none |
+| AC-012 | SDD-C-004, SDD-C-017 | N/A | spec.md § Acceptance Criteria | docs/blueprint/autonomous-factory/design-contracts.md § Contract C8 | reviewer checklist (semver posture + upstream-candidate convention documented; Referenced by: line cites new Phase 1 ticket) | docs/blueprint/autonomous-factory/design-contracts.md | none |
 
 ## Graph Linkage
 - Graph file: `graph.json`
 - Every `FR-###`, `NFR-*-###`, and `AC-###` listed in this file MUST have a corresponding node in `graph.json`.
 - Node IDs referenced:
-  - FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-007, FR-008, FR-009, FR-010, FR-011, FR-012, FR-013, FR-014, FR-015, FR-016
+  - FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-007, FR-008, FR-009, FR-010, FR-011, FR-012, FR-013, FR-014, FR-015, FR-016, FR-017, FR-018, FR-019, FR-020
   - NFR-SEC-001, NFR-OBS-001, NFR-REL-001, NFR-OPS-001, NFR-OPS-002
-  - AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009
+  - AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009, AC-010, AC-011, AC-012
 
 ## Validation Summary
 - Required bundles executed: (to be filled after Step 7 — `make quality-sdd-check`, `make docs-build`, `make docs-smoke`, `make quality-hardening-review`)
@@ -61,3 +68,4 @@
 - Follow-up 2: resolve Q-2 (CODEOWNERS team slugs + bounded-context enumeration for the blueprint instance) during #337; update Contract C6 `### Blueprint instance` (under `### Open Decisions`) in the same PR. Does not affect consumer overlay schema.
 - Follow-up 3: resolve Q-3 (metrics dashboard platform for the blueprint instance) during #337; update Contract C7 `### Blueprint instance` (under `### Open Decisions`) in the same PR. Does not affect consumer overlay schema.
 - Follow-up 4: resolve Q-4 (LiteLLM access configuration field name and location in `contract.yaml`) during deliverable authoring (Step 5); update Contract C8 `### Open Decisions` resolution in this same work item before SPEC_READY flips to true. Not deferred to a downstream ticket.
+- Follow-up 5: resolve Q-5 (issue number for the new Phase 1 factory-upgrade-process ticket) by filing the new GitHub issue in the same session that closes this spec; substitute the assigned number into Contract C8's `Referenced by:` line and the FR-019 cross-reference before SPEC_READY flips to true. Not deferred to a downstream ticket.

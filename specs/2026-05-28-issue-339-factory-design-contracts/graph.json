@@ -18,6 +18,10 @@
     { "id": "FR-014", "type": "requirement", "summary": "Contract C8 declares LiteLLM external service with access configuration shape" },
     { "id": "FR-015", "type": "requirement", "summary": "C8 surface inheritable via existing contract.yaml with stability tier per item" },
     { "id": "FR-016", "type": "requirement", "summary": "Consumer overlay subsections specify schema not concrete consumer values" },
+    { "id": "FR-017", "type": "requirement", "summary": "C8 extensibility tier dimension with sealed/parameterized/extensible; default extensible; sealed list pinned" },
+    { "id": "FR-018", "type": "requirement", "summary": "C8 consumer-extension discovery via namespaced subdirectories with sealed-shadow rejection rule" },
+    { "id": "FR-019", "type": "requirement", "summary": "C8 semver compatibility posture for factory contract version with per-item version range" },
+    { "id": "FR-020", "type": "requirement", "summary": "C8 consumer extensions may carry upstream-candidate front-matter; no obligation on blueprint" },
     { "id": "NFR-SEC-001", "type": "requirement", "summary": "C5 SoD detection rule uses exact-string equality on GitHub login" },
     { "id": "NFR-OBS-001", "type": "requirement", "summary": "C7 event schema expressed as named schema with explicit types and nullability" },
     { "id": "NFR-REL-001", "type": "requirement", "summary": "Referenced by lines updated in same PR as downstream scope changes" },
@@ -31,7 +35,10 @@
     { "id": "AC-006", "type": "acceptance", "summary": "make quality-sdd-check passes for this work item" },
     { "id": "AC-007", "type": "acceptance", "summary": "make docs-build and make docs-smoke pass with new files added" },
     { "id": "AC-008", "type": "acceptance", "summary": "C5/C6/C7 contain the three required subsections and consumer overlay carries schema only" },
-    { "id": "AC-009", "type": "acceptance", "summary": "C8 enumerates four surface categories, LiteLLM external, every surface item tier-tagged" }
+    { "id": "AC-009", "type": "acceptance", "summary": "C8 enumerates four surface categories, LiteLLM external, every surface item tier-tagged" },
+    { "id": "AC-010", "type": "acceptance", "summary": "Every C8 surface item carries extensibility tier matching FR-017; sealed list matches FR-017(b) exactly" },
+    { "id": "AC-011", "type": "acceptance", "summary": "C8 documents discovery convention with one worked example per artifact kind" },
+    { "id": "AC-012", "type": "acceptance", "summary": "C8 documents semver posture and upstream-candidate convention; Referenced by cites new Phase 1 ticket" }
   ],
   "edges": [
     { "from": "FR-001", "to": "AC-001", "relation": "validated_by" },
@@ -57,6 +64,12 @@
     { "from": "NFR-OBS-001", "to": "FR-010", "relation": "constrains" },
     { "from": "NFR-REL-001", "to": "FR-002", "relation": "constrains" },
     { "from": "NFR-OPS-001", "to": "AC-007", "relation": "validated_by" },
-    { "from": "NFR-OPS-002", "to": "FR-013", "relation": "constrains" }
+    { "from": "NFR-OPS-002", "to": "FR-013", "relation": "constrains" },
+    { "from": "FR-017", "to": "AC-010", "relation": "validated_by" },
+    { "from": "FR-018", "to": "AC-011", "relation": "validated_by" },
+    { "from": "FR-019", "to": "AC-012", "relation": "validated_by" },
+    { "from": "FR-020", "to": "AC-012", "relation": "validated_by" },
+    { "from": "FR-017", "to": "FR-013", "relation": "constrains" },
+    { "from": "FR-018", "to": "FR-013", "relation": "constrains" }
   ]
 }
