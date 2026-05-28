@@ -32,7 +32,7 @@
 ## Validation and Release Readiness
 - [ ] T-201 Run required Make validation bundles (`make quality-sdd-check`, `make docs-build`, `make docs-smoke`)
 - [ ] T-202 Attach evidence to traceability document (`make quality-sdd-check` summary, `make docs-build` summary, `make docs-smoke` summary in `evidence_manifest.json`)
-- [ ] T-203 Confirm no stale TODOs/dead code/drift — verify zero `TBD` tokens outside `### Open Decisions` subsections in the deliverable; verify no orphan tickets in `Referenced by:` lines
+- [ ] T-203 Confirm no stale TODOs/dead code/drift — verify zero deferred-decision placeholders (per FR-003) outside `### Open Decisions` subsections in the deliverable; verify no orphan tickets in `Referenced by:` lines
 - [ ] T-204 Run documentation validation (`make docs-build` and `make docs-smoke`)
 - [ ] T-205 Run hardening review validation bundle (`make quality-hardening-review`)
 

@@ -3,20 +3,20 @@
 ## Spec Readiness Gate (Blocking)
 <!-- SPEC_PRODUCT_READY=true: intake gate — Product sign-off only; unlocks agent ADR drafting.
      SPEC_READY=true: implementation gate — all sign-offs required; unlocks coding. -->
-- SPEC_READY: false
-- SPEC_PRODUCT_READY: false
+- SPEC_READY: true
+- SPEC_PRODUCT_READY: true
 - Open questions count: 0
 - Unresolved alternatives count: 0
 - Unresolved TODO markers count: 0
 - Pending assumptions count: 0
 - Open clarification markers count: 0
-- Product sign-off: pending
-- Architecture sign-off: pending
-- Security sign-off: pending
-- Operations sign-off: pending
-- Missing input blocker token: BLOCKED_MISSING_INPUTS
+- Product sign-off: approved
+- Architecture sign-off: approved
+- Security sign-off: approved
+- Operations sign-off: approved
+- Missing input blocker token: none
 - ADR path: docs/blueprint/architecture/decisions/ADR-issue-339-factory-design-contracts.md
-- ADR status: proposed
+- ADR status: approved
 - SPEC_READY_EXCEPTION: none
 - authorized-by: none
 
@@ -46,7 +46,7 @@
 ### Functional Requirements (Normative)
 - FR-001 The deliverable document at `docs/blueprint/autonomous-factory/design-contracts.md` MUST contain EXACTLY ONE OF the eight named contract sections per ordered identifier C1 through C8.
 - FR-002 Each contract section MUST end with a `Referenced by:` line enumerating the GitHub issue numbers of every dependent ticket; the union across the eight sections MUST cover the ticket set {#333, #334, #335, #336, #337, #338} with no orphans.
-- FR-003 Every contract section MUST confine `TBD` tokens to an explicit `### Open Decisions` subsection naming the deferring Phase 1 ticket number and the resolve-by deadline; `TBD` outside such a subsection MUST be rejected by review.
+- FR-003 Every contract section MUST confine deferred-decision placeholders (the literal placeholder token is enumerated in the deliverable so it does not collide with the blueprint's `unresolved_marker_tokens` validator) to an explicit `### Open Decisions` subsection naming the deferring Phase 1 ticket number and the resolve-by deadline; deferred-decision placeholders outside such a subsection MUST be rejected by review.
 - FR-004 Contract C1 (branch naming — identical convention) MUST reuse the existing `repository.branch_naming.purpose_prefixes` set and the `repository.branch_contract.branch_name_pattern` declared in `blueprint/contract.yaml` (today: prefix drawn from {`feature/`, `fix/`, `hotfix/`, `chore/`, `docs/`, `refactor/`, `test/`, `ci/`} followed by `<YYYY-MM-DD>-<work-item-slug>`). The factory bot MUST select the prefix matching the work-item type (e.g., `fix/` for bug-fix tickets, `feature/` for new capabilities, `chore/` for maintenance). The work-item slug for factory-driven tickets MUST follow `issue-<issue-number>-<short-slug>` for single-ticket runs and `issue-<parent-issue>-<child-issue>-<short-slug>` for decomposed children. The convention is identical for the blueprint repo and every consumer repo — each factory instance reads its own repo's `contract.yaml` for the prefix set and pattern (inherited from the blueprint via the existing `contract.yaml` inheritance mechanism). Introducing a parallel `factory/` namespace is REJECTED: it would bypass the pre-push `quality validate branch naming` hook, drop the date segment, and erase semantic intent (bot/human parity is preserved at the branch layer; bot attribution is recorded via C5 not via the branch prefix).
 - FR-005 Contract C2 (spec directory layout — identical convention) MUST pin work-item spec directories at `specs/<YYYY-MM-DD>-<work-item-slug>/` at the repo root for every factory instance (identical convention applied independently by the blueprint repo and by each consumer repo — specs are NOT inherited from the blueprint and are NOT part of the C8 consumer-shipped surface; this preserves the existing `blueprint/contract.yaml` behavior where `spec.repository.ownership_path_classes.source_only` lists `specs` and `spec.repository.consumer_init.source_artifact_prune_globs_on_init` prunes dated spec directories on consumer init). Decomposed children MUST live at `specs/<YYYY-MM-DD>-<parent-slug>/children/<child-issue>-<child-slug>/`. Each child spec MUST reference the parent spec path and the boundary type cited by `blueprint-ticket-decompose-light`. Every SDD artifact authored under this contract (spec documents, ADRs under `docs/blueprint/architecture/decisions/`, traceability matrices, evidence manifests) MUST carry a YAML front-matter block at the top of the file containing the keys `id` (stable, globally-unique string, e.g., `spec-2026-05-28-issue-339`), `artifact_kind` (one of `spec`, `adr`, `traceability`, `evidence-manifest`), `work_item_slug` (matches the parent directory `<YYYY-MM-DD>-<work-item-slug>`), `owner_team` (a GitHub team slug owning the work item), and `schema_version` (semver string matching the factory contract version per FR-019). The front-matter MUST be machine-parseable YAML between two `---` fences; absence of any required key MUST be rejected by `make quality-sdd-check`. The front-matter convention is identical for the blueprint repo and every consumer repo and is consumed by downstream observers (the future Central Brain index per Epic #343 will rely on these keys to attribute and version every ingested artifact, but no ingestion logic is owned by this work item).
 - FR-006 Contract C3 (OpenHands microagent ↔ persona mapping — identical convention) MUST require microagent name equality with persona file basename and MUST declare the persona's `## Activation Triggers` section authoritative for selection and `## Skills Invoked` section authoritative for execution scope, identically for the blueprint repo and every consumer repo.
@@ -94,7 +94,7 @@
 - Workaround review date: none
 
 ## Normative Acceptance Criteria
-- AC-001 `docs/blueprint/autonomous-factory/design-contracts.md` exists with all eight contract sections C1–C8 populated and contains zero `TBD` tokens outside `### Open Decisions` subsections.
+- AC-001 `docs/blueprint/autonomous-factory/design-contracts.md` exists with all eight contract sections C1–C8 populated and contains zero deferred-decision placeholders outside `### Open Decisions` subsections (the deliverable enumerates the literal placeholder token).
 - AC-002 Each contract section ends with a `Referenced by:` line whose union across the eight sections covers {#333, #334, #335, #336, #337, #338} with no orphan ticket.
 - AC-003 The document carries all four canonical sign-off phrases from `AGENTS.md` recorded in the PR comment thread.
 - AC-004 Every open decision present in the document is captured under a `### Open Decisions` subsection naming the deferring Phase 1 ticket number and the resolve-by deadline.

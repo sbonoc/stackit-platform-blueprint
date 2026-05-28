@@ -1,10 +1,10 @@
 # ADR: Autonomous Software Factory — Centralized Design Contracts
 
-**Status:** proposed
+**Status:** approved
 **Date:** 2026-05-28
 **Issue:** #339
 **Spec:** `specs/2026-05-28-issue-339-factory-design-contracts/`
-**ADR technical decision sign-off:** pending
+**ADR technical decision sign-off:** approved
 
 ## Context
 
