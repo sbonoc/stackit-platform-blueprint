@@ -421,9 +421,11 @@ Consumer-authored extensions MUST live under namespaced subdirectories so the Op
 
 **Loader resolution.** When an `extensible` blueprint artifact has a same-basename file in the consumer namespace, the consumer-namespace file MUST take precedence. **Sealed-shadow rejection.** Shadow attempts against `sealed` artifacts MUST be rejected by the loader at startup; silent ignore is REJECTED.
 
+**Shadow baseline recording.** Every consumer shadow file — a file whose basename matches a blueprint-namespace artifact — MUST carry a `blueprint-baseline-sha:` field in its YAML front-matter. The value MUST be the SHA-256 of the blueprint source artifact at shadow creation time. The upgrade skill (#342) uses this field to generate a precise upstream delta: the exact changes made to the blueprint artifact between the consumer's recorded baseline and the current blueprint content, independently of any edits the consumer has made to their own shadow. Absence of `blueprint-baseline-sha:` from a shadow file MUST be treated as a compliance gap by the upgrade skill; the skill MUST surface it as requiring a manual baseline stamp before the upgrade can proceed. Net-new consumer additions (files with no same-basename blueprint artifact) MUST NOT carry `blueprint-baseline-sha:` — no upstream baseline exists.
+
 Worked examples — one per artifact kind:
 
-**Persona shadow (extensible — consumer overrides blueprint persona).** A consumer repo wants its `architect` persona to require an additional acceptance criterion. The consumer creates `.agents/personas/consumer/architect.md` with the same basename. The loader resolves `architect` → `.agents/personas/consumer/architect.md` (consumer wins). The blueprint's `.agents/personas/architect.md` is shadowed for that consumer instance only.
+**Persona shadow (extensible — consumer overrides blueprint persona).** A consumer repo wants its `architect` persona to require an additional acceptance criterion. The consumer creates `.agents/personas/consumer/architect.md` with the same basename. The loader resolves `architect` → `.agents/personas/consumer/architect.md` (consumer wins). The blueprint's `.agents/personas/architect.md` is shadowed for that consumer instance only. The shadow file MUST include `blueprint-baseline-sha:` in its front-matter, set to the SHA-256 of `.agents/personas/architect.md` at shadow creation time (required per Shadow baseline recording above).
 
 **Skill addition (extensible — net-new consumer-authored skill).** A consumer repo adds a domain-specific skill not present in the blueprint, e.g., `payments-pci-checklist`. The consumer creates `.agents/skills/consumer/payments-pci-checklist/SKILL.md`. The skill is loaded under its consumer namespace and surfaced as `/payments-pci-checklist`. No blueprint artifact is shadowed; the addition is purely additive.
 
@@ -452,6 +454,7 @@ artifact_kind: persona
 work_item_slug: consumer-domain-2026-05-28
 owner_team: "@consumer-org/architecture"
 schema_version: 1.0.0
+blueprint-baseline-sha: "<sha256-of-blueprint-personas-architect-md-at-shadow-creation-time>"
 upstream-candidate: true
 ---
 ```
