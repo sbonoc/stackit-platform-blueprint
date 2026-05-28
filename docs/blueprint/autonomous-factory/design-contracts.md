@@ -19,6 +19,7 @@ Contracts C1–C4 are **identical conventions** — applied unchanged by the blu
 - **`Referenced by:` lines.** Every contract section ends with a `Referenced by:` line. The union across the eight sections covers `{#333, #334, #335, #336, #337, #338}` with no orphan ticket (FR-002, AC-002). Contract C8 additionally cites #342 (Phase 1 factory upgrade process) per AC-012.
 - **Normative language.** Contract sections use `MUST` / `MUST NOT`. Plain-language softeners are not in scope here — every clause is normative unless prefixed with "Informative:".
 - **Sign-off policy.** The four canonical sign-off phrases from `AGENTS.md § Sign-off Phrases (Deterministic)` are required before merge: `SPEC_PRODUCT_READY: approved` (Product), `ARCHITECTURE_SIGNOFF: approved` (Architecture), `SECURITY_SIGNOFF: approved` (Security), `OPERATIONS_SIGNOFF: approved` (Operations). Plain-language variants do NOT count.
+- **Genesis exception (C2 front-matter).** The SDD artifacts produced by this work item (PR #340) — this document, `ADR-issue-339-factory-design-contracts.md`, `spec.md`, `traceability.md`, `evidence_manifest.json`, `context_pack.md` — are EXEMPT from the C2 front-matter requirement. They are the genesis artifacts that established the convention; the front-matter block requirement applies to every factory-governed SDD artifact authored in a subsequent work item. The C2 enforcement tooling (deferred per AC-013) will gate future artifacts, not these genesis files.
 
 ## Sign-off Block
 

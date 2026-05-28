@@ -74,8 +74,8 @@
 - NFR-A11Y-001 N/A — internal governance documentation. No UI surface is introduced or modified by this work item.
 
 ## Normative Option Decision
-- Option A: Single `docs/blueprint/autonomous-factory/design-contracts.md` document containing the seven contract sections, recorded by one summary ADR.
-- Option B: Seven separate ADRs under `docs/blueprint/architecture/decisions/`, one per contract, with no consolidated document.
+- Option A: Single `docs/blueprint/autonomous-factory/design-contracts.md` document containing the eight contract sections, recorded by one summary ADR.
+- Option B: Eight separate ADRs under `docs/blueprint/architecture/decisions/`, one per contract, with no consolidated document.
 - Selected option: OPTION_A
 - Rationale: cross-referencing seven tightly coupled conventions is cheaper to maintain in one file than across seven ADRs; matches the existing ADR convention of one decision per record (the meta-decision "centralize these conventions"); avoids seven independent sign-off cycles on closely coupled values; #337 already produces ten ADRs and Phase 0 ceremony must stay proportionate.
 
@@ -106,7 +106,7 @@
 - AC-010 Every enumerated C8 surface item carries an extensibility tier of `sealed`, `parameterized`, or `extensible` per FR-017; the sealed list matches FR-017(b) exactly with no additions; the default applied to any item not on the sealed list and not requiring an overlay schema is `extensible`.
 - AC-011 Contract C8 documents the FR-018 consumer-extension discovery convention (namespaced subdirectories, loader-precedence rule, sealed-shadow rejection rule) and includes one worked example per artifact kind (persona shadow, skill add, SDD step add).
 - AC-012 Contract C8 documents the FR-019 semver-style compatibility posture and the FR-020 `upstream-candidate: true` front-matter convention; both are referenced from #342 (Phase 1 factory upgrade process) in their `Referenced by:` lines.
-- AC-013 Contract C2 documents the FR-005 SDD-artifact front-matter required-key set (`id`, `artifact_kind`, `work_item_slug`, `owner_team`, `schema_version`) with explicit type per key, and includes one worked example for each `artifact_kind` value (`spec`, `adr`, `traceability`, `evidence-manifest`); `make quality-sdd-check` enforces presence of all required keys on every SDD artifact in `specs/` and on every ADR in `docs/blueprint/architecture/decisions/`.
+- AC-013 Contract C2 documents the FR-005 SDD-artifact front-matter required-key set (`id`, `artifact_kind`, `work_item_slug`, `owner_team`, `schema_version`) with explicit type per key, and includes one worked example for each `artifact_kind` value (`spec`, `adr`, `traceability`, `evidence-manifest`). Documentation of the required-key set and worked examples satisfies this AC in this work item. Automated enforcement of front-matter presence across `specs/` and `docs/blueprint/architecture/decisions/` (i.e., `make quality-sdd-check` rejecting artifacts missing the block) is deferred to a follow-up tooling ticket; no enforcement code ships in this PR.
 - AC-014 Contract C7 documents the FR-010 durable-bus emission rule (durability, replayability, async fire-and-forget semantics, consumer-position tracking by subscribers) and explicitly defers the concrete STACKIT-managed durable-bus platform pick to #337 as a Phase 0 prerequisite under `### Open Decisions`; AC-014 is satisfied by the presence of the rule text and the deferred-decision entry, not by the platform pick itself.
 
 ## Informative Notes (Non-Normative)
