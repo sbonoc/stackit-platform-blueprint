@@ -61,7 +61,7 @@ Skip rotation; pin step08 to Opus always.
 
 ### Option C — Random rotation among the three tiers (rejected)
 
-Pick a random model from {Opus, Sonnet, Haiku} for the reviewer.
+Pick a random model from `{Opus, Sonnet, Haiku}` for the reviewer.
 
 **Rejected:** Haiku reviews of Opus-implemented work would catastrophically under-perform — Haiku does not have the capability to find errors Opus didn't notice in the first place. Random rotation only makes sense among models of comparable capability; the Opus ↔ Sonnet pair is the only such pair we have.
 
@@ -73,7 +73,7 @@ Use the same model but prompt it differently for review ("read this critically",
 
 ## Consequences
 
-- Phase 1 ticket #335 implements the gateway-side rotation: at step08 persona invocation, look up the most recent `step05-implement` C7 event for the same work item, read its `model` field, select the *other* member of the {Opus, Sonnet} pair.
+- Phase 1 ticket #335 implements the gateway-side rotation: at step08 persona invocation, look up the most recent `step05-implement` C7 event for the same work item, read its `model` field, select the *other* member of the `{Opus, Sonnet}` pair.
 - Phase 1 ticket #333 authors the step08 reviewer persona — the persona file MUST NOT pin a specific model in its frontmatter; model selection is the gateway's job per this ADR.
 - C7 event stream pairs (`step05-implement` event + `step08-agent-pr-review` event for the same work item) MUST carry different `model` values; this is auditable from the event stream and any pair that violates it is a gateway-side bug.
 - Telemetry (#339 Contract C7) cleanly separates implementer spend from reviewer spend; the per-cycle cost envelope for the default case (Sonnet implementer + Opus reviewer on step08) is ~$6–11, within the FR-007 $15 ceiling.

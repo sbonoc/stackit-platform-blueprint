@@ -66,7 +66,7 @@ The factory bot MUST NOT tick any checkbox in `## Integration Acceptance Criteri
 
 ## Options Considered
 
-### Option A — Single-axis decomposition from {bounded-context, architectural-layer, user-visible-feature-behavior}, fan-out 5, refusal routes to escalate, human-tick integration ACs (chosen)
+### Option A — Single-axis decomposition from `{bounded-context, architectural-layer, user-visible-feature-behavior}`, fan-out 5, refusal routes to escalate, human-tick integration ACs (chosen)
 
 The decision above.
 
