@@ -21,7 +21,7 @@ readonly MODULE_WRAPPER_STUB_EXIT_CODE=64
 # Explicit stub: template consumers must replace this block with module-specific logic.
 log_metric "optional_module_wrapper_stub_invocation" "1" "module=managed-cache action=apply target=infra-managed-cache-apply"
 state_file="$(
-  write_state_file "managed_cache_apply" \
+  write_state_file "managed-cache_apply" \
     "status=not_implemented" \
     "module=managed-cache" \
     "action=apply" \
