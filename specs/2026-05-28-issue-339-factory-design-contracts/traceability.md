@@ -41,6 +41,8 @@
 | AC-010 | SDD-C-004 | N/A | spec.md § Acceptance Criteria | docs/blueprint/autonomous-factory/design-contracts.md § Contract C8 | reviewer checklist (every item carries extensibility tier; sealed list matches FR-017(b); default = extensible) | docs/blueprint/autonomous-factory/design-contracts.md | none |
 | AC-011 | SDD-C-004 | N/A | spec.md § Acceptance Criteria | docs/blueprint/autonomous-factory/design-contracts.md § Contract C8 | reviewer checklist (discovery convention documented + 3 worked examples) | docs/blueprint/autonomous-factory/design-contracts.md | none |
 | AC-012 | SDD-C-004, SDD-C-017 | N/A | spec.md § Acceptance Criteria | docs/blueprint/autonomous-factory/design-contracts.md § Contract C8 | reviewer checklist (semver posture + upstream-candidate convention documented; Referenced by: line cites #342) | docs/blueprint/autonomous-factory/design-contracts.md | none |
+| AC-013 | SDD-C-004, SDD-C-019 | N/A | spec.md § Acceptance Criteria | docs/blueprint/autonomous-factory/design-contracts.md § Contract C2 | reviewer checklist (front-matter required-key set + per-artifact-kind worked examples) + make quality-sdd-check front-matter presence check | docs/blueprint/autonomous-factory/design-contracts.md, specs/, docs/blueprint/architecture/decisions/ | none |
+| AC-014 | SDD-C-004, SDD-C-019 | N/A | spec.md § Acceptance Criteria | docs/blueprint/autonomous-factory/design-contracts.md § Contract C7 (### Identical rule + ### Open Decisions) | reviewer checklist (durable-bus rule text present + deferred-decision entry naming #337 Phase 0 spike) | docs/blueprint/autonomous-factory/design-contracts.md | none |
 
 ## Graph Linkage
 - Graph file: `graph.json`
@@ -48,7 +50,7 @@
 - Node IDs referenced:
   - FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-007, FR-008, FR-009, FR-010, FR-011, FR-012, FR-013, FR-014, FR-015, FR-016, FR-017, FR-018, FR-019, FR-020
   - NFR-SEC-001, NFR-OBS-001, NFR-REL-001, NFR-OPS-001, NFR-OPS-002
-  - AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009, AC-010, AC-011, AC-012
+  - AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009, AC-010, AC-011, AC-012, AC-013, AC-014
 
 ## Validation Summary
 - Required bundles executed: (to be filled after Step 7 — `make quality-sdd-check`, `make docs-build`, `make docs-smoke`, `make quality-hardening-review`)

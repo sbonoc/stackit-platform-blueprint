@@ -38,7 +38,9 @@
     { "id": "AC-009", "type": "acceptance", "summary": "C8 enumerates four surface categories, LiteLLM external, every surface item tier-tagged" },
     { "id": "AC-010", "type": "acceptance", "summary": "Every C8 surface item carries extensibility tier matching FR-017; sealed list matches FR-017(b) exactly" },
     { "id": "AC-011", "type": "acceptance", "summary": "C8 documents discovery convention with one worked example per artifact kind" },
-    { "id": "AC-012", "type": "acceptance", "summary": "C8 documents semver posture and upstream-candidate convention; Referenced by cites #342" }
+    { "id": "AC-012", "type": "acceptance", "summary": "C8 documents semver posture and upstream-candidate convention; Referenced by cites #342" },
+    { "id": "AC-013", "type": "acceptance", "summary": "C2 documents SDD-artifact front-matter required-key set with worked example per artifact_kind; make quality-sdd-check enforces presence" },
+    { "id": "AC-014", "type": "acceptance", "summary": "C7 documents durable-bus emission rule (durability, replayability, async fire-and-forget) and defers concrete platform pick to #337 Phase 0" }
   ],
   "edges": [
     { "from": "FR-001", "to": "AC-001", "relation": "validated_by" },
@@ -70,6 +72,8 @@
     { "from": "FR-019", "to": "AC-012", "relation": "validated_by" },
     { "from": "FR-020", "to": "AC-012", "relation": "validated_by" },
     { "from": "FR-017", "to": "FR-013", "relation": "constrains" },
-    { "from": "FR-018", "to": "FR-013", "relation": "constrains" }
+    { "from": "FR-018", "to": "FR-013", "relation": "constrains" },
+    { "from": "FR-005", "to": "AC-013", "relation": "validated_by" },
+    { "from": "FR-010", "to": "AC-014", "relation": "validated_by" }
   ]
 }
