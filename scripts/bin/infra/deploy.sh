@@ -28,6 +28,10 @@ if [[ "${1:-}" == "--help" ]]; then
 fi
 
 patch_argocd_local_target_revision() {
+  if ! tooling_is_execution_enabled; then
+    log_info "dry-run patch_argocd_local_target_revision (set DRY_RUN=false to execute)"
+    return 0
+  fi
   local revision="${ARGOCD_LOCAL_TARGET_REVISION:-$(git branch --show-current)}"
   if [[ -z "$revision" || "$revision" == "main" ]]; then
     return 0

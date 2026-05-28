@@ -2403,6 +2403,21 @@ class LocalDxImprovementsTests(unittest.TestCase):
             msg="patch_argocd_local_target_revision must guard against empty revision string (FR-009)",
         )
 
+    def test_deploy_dry_run_skips_patch(self) -> None:
+        script = (REPO_ROOT / "scripts/bin/infra/deploy.sh").read_text(encoding="utf-8")
+        patch_fn_match = re.search(
+            r"patch_argocd_local_target_revision\(\).*?(?=^\})",
+            script,
+            re.MULTILINE | re.DOTALL,
+        )
+        self.assertIsNotNone(patch_fn_match, msg="patch_argocd_local_target_revision() function not found in deploy.sh")
+        fn_body = patch_fn_match.group(0)  # type: ignore[union-attr]
+        self.assertIn(
+            "tooling_is_execution_enabled",
+            fn_body,
+            msg="patch_argocd_local_target_revision must guard against DRY_RUN=true via tooling_is_execution_enabled",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
