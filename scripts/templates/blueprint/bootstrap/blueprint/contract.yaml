@@ -1555,6 +1555,22 @@ spec:
       intake_status_field: SPEC_PRODUCT_READY
       intake_required_signoffs:
         - Product
+      # Separation-of-duties policy for the four canonical sign-off comments.
+      # Normative source: docs/blueprint/architecture/decisions/ADR-issue-337-separation-of-duties-at-factory-velocity.md
+      # Two satisfaction paths are blueprint-defined; consumers select mode via solo_operator below.
+      # Factory bot suppression (exact-string equality on GitHub login per #339 NFR-SEC-001) is immutable
+      # regardless of mode.
+      sod_policy:
+        # false => Path 1 (multi-author): >=2 distinct non-bot GitHub logins across the four
+        #         canonical sign-off comments. Blueprint default.
+        # true  => Path 2 (solo-operator): >=1 non-bot login + canonical attestation comment
+        #         containing the literal marker `SOLO_OPERATOR_ATTESTATION: confirmed` and the
+        #         five normative checklist items (all checked) defined in the FR-005 ADR.
+        #         Intended for single-maintainer repositories where the two-distinct-identity
+        #         floor is structurally unsatisfiable.
+        solo_operator: false
+        solo_operator_attestation_marker: "SOLO_OPERATOR_ATTESTATION: confirmed"
+        solo_operator_checklist_item_count: 5
       adr_status_intake_values:
         - draft
         - proposed

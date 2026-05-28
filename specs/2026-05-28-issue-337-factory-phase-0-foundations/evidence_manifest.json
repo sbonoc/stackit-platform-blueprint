@@ -36,9 +36,9 @@
     },
     {
       "path": "docs/blueprint/architecture/decisions/ADR-issue-337-separation-of-duties-at-factory-velocity.md",
-      "sha256": "001c2ea2eba15cdbd017e15078ebdff5ba1c85628e61b6f5fb8f6283de910f4d",
+      "sha256": "2b82fb2efee3445141dad9d001217b6830d299849b2c5541b2615946f6c35354",
       "role": "content-adr",
-      "description": "FR-005 — Separation of duties at factory velocity; cites #339 NFR-SEC-001 verbatim per NFR-SEC-002 (factory-bot exact-string equality on GitHub login; no substring/regex/display-name heuristics). Status: approved from inception."
+      "description": "FR-005 — Separation of duties at factory velocity; cites #339 NFR-SEC-001 verbatim per NFR-SEC-002 (factory-bot exact-string equality on GitHub login; no substring/regex/display-name heuristics). Status: approved from inception. Amended 2026-05-29 (Step 06 follow-up) with § Satisfaction paths — Path 1 multi-author (default) + Path 2 solo-operator (alternative, gated by `solo_operator: true` in contract.yaml + canonical attestation comment with five-item checklist); Option E (rejected) added; Consequences extended; `sealed` classification preserved (mode-selection from a fixed blueprint-defined path-set is not parameterization)."
     },
     {
       "path": "docs/blueprint/architecture/decisions/ADR-issue-337-reject-rerun-cap.md",
@@ -96,15 +96,15 @@
     },
     {
       "path": "blueprint/contract.yaml",
-      "sha256": "1ec23bd36190d8f598bddc3650d03d0a6e302f5755d04c1a2862221e69fcdece",
+      "sha256": "4db86a86492de197a0e3d9fdd57d68c5c28262097e4e2e686ffc1d3400d19b33",
       "role": "contract-change",
-      "description": "template_sync_allowlist extended with instrumentation-plan.md, pre-factory-baselines.md, triage-decomposition-data-feed.md (autonomous-factory directory) — drives bootstrap-template mirror sync for the three new documents."
+      "description": "template_sync_allowlist extended with instrumentation-plan.md, pre-factory-baselines.md, triage-decomposition-data-feed.md (autonomous-factory directory) — drives bootstrap-template mirror sync for the three new documents. Step 06 follow-up: added spec.spec_driven_development_contract.readiness_gate.sod_policy block (solo_operator: false default, attestation marker constant, checklist item count) to drive the FR-005 ADR's two satisfaction paths."
     },
     {
       "path": "scripts/templates/blueprint/bootstrap/blueprint/contract.yaml",
-      "sha256": "1ec23bd36190d8f598bddc3650d03d0a6e302f5755d04c1a2862221e69fcdece",
+      "sha256": "4db86a86492de197a0e3d9fdd57d68c5c28262097e4e2e686ffc1d3400d19b33",
       "role": "bootstrap-template-mirror",
-      "description": "Bootstrap mirror of blueprint/contract.yaml — kept in lockstep by `make quality-docs-sync-blueprint-template`."
+      "description": "Bootstrap mirror of blueprint/contract.yaml — kept in lockstep by `make quality-docs-sync-blueprint-template`. Mirrors the sod_policy block."
     },
     {
       "path": "scripts/templates/blueprint/bootstrap/docs/blueprint/autonomous-factory/instrumentation-plan.md",
@@ -172,6 +172,11 @@
       "command": "make blueprint-test-unit",
       "result": "pass",
       "summary": "1074 tests passed, 42 subtests passed — 2026-05-29 (Slice 8); pre-existing CODEOWNERS test assertion updated to align with FR-011 two-layer routing; postgres + public-endpoints `enabled_by_default: false` repair preserved"
+    },
+    {
+      "command": "Step 06 amendment validation bundle (quality-sdd-check + docs-build + docs-smoke + quality-docs-check-changed + blueprint-test-unit + sync_blueprint_template_docs.py)",
+      "result": "pass",
+      "summary": "all five gates + zero-diff re-run pass after FR-005 ADR amendment (§ Satisfaction paths added) + blueprint/contract.yaml sod_policy block added (source + bootstrap mirror) — 2026-05-29; 1074 tests passed; no schema fallout"
     }
   ]
 }
