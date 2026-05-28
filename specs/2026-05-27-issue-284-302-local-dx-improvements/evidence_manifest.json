@@ -1,0 +1,80 @@
+{
+  "manifest_version": 1,
+  "work_item": "2026-05-27-issue-284-302-local-dx-improvements",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-05-27T22:00:00Z",
+  "files": [
+    {
+      "path": "docs/blueprint/architecture/decisions/ADR-issue-284-302-local-dx-improvements.md",
+      "sha256": "bd00c7e66c680a9fa26f41c067c9c5d3b834dcae791266bff4cdd99dedc66858"
+    },
+    {
+      "path": "specs/2026-05-27-issue-284-302-local-dx-improvements/architecture.md",
+      "sha256": "e22ed6e0b538a81714467861dd0d859f49c90706e47092f6701018b6458a4baa"
+    },
+    {
+      "path": "specs/2026-05-27-issue-284-302-local-dx-improvements/context_pack.md",
+      "sha256": "94fe39190d409d001f88fab66ae4fe85c7c3c3993623f6431e7028f10457e15e"
+    },
+    {
+      "path": "specs/2026-05-27-issue-284-302-local-dx-improvements/graph.json",
+      "sha256": "dfa221cea4a78e24d7c464cef462bc634a9381ea481d69ee09bac8ef31334b59"
+    },
+    {
+      "path": "specs/2026-05-27-issue-284-302-local-dx-improvements/hardening_review.md",
+      "sha256": "d4e26146c9f6088a1415e4dc3e8debef4b8902ff035937cdc327cb9e51de0d5f"
+    },
+    {
+      "path": "specs/2026-05-27-issue-284-302-local-dx-improvements/plan.md",
+      "sha256": "d2d0f8acb08e0958cf8b8929fe37ee7650b66028dd7c09930f619e9a323b2a73"
+    },
+    {
+      "path": "specs/2026-05-27-issue-284-302-local-dx-improvements/pr_context.md",
+      "sha256": "95ec4e2d50cf280c055618e0ffafd6b62f4cc076515e26e968577624399aea0f"
+    },
+    {
+      "path": "specs/2026-05-27-issue-284-302-local-dx-improvements/spec.md",
+      "sha256": "d5f733943ec5a15a7d4b3ed58a66a4f983c0a43e4a6eaf9fb5007e6ef73ef605"
+    },
+    {
+      "path": "specs/2026-05-27-issue-284-302-local-dx-improvements/tasks.md",
+      "sha256": "f094313e2b5fd011a37f00ab44a8cf78bebf6a5bd8b1a43ed4a137df26e4c212"
+    },
+    {
+      "path": "specs/2026-05-27-issue-284-302-local-dx-improvements/traceability.md",
+      "sha256": "38f9d22999a19d8a0d0d60f01ccbf794c6699616fd954a71e5aa51c0e46be1c6"
+    },
+    {
+      "path": "scripts/lib/shell/bootstrap.sh",
+      "sha256": "5ba4142bf7a875987c999c7b334923b3f5b85ea28059d5a8ae777da03a230d67"
+    },
+    {
+      "path": "scripts/bin/infra/deploy.sh",
+      "sha256": "3be55410679e82800121ff5ea4a926f897922ded3e26a2cafbe0fcb361c5f197"
+    },
+    {
+      "path": ".gitignore",
+      "sha256": "397aaecc171c2a7669deff4bff0bd8b24556fa162216230bdc4663d1e152b3a5"
+    },
+    {
+      "path": "scripts/templates/blueprint/bootstrap/.gitignore",
+      "sha256": "397aaecc171c2a7669deff4bff0bd8b24556fa162216230bdc4663d1e152b3a5"
+    },
+    {
+      "path": "scripts/templates/blueprint/bootstrap/.env.local.example",
+      "sha256": "e5f68811b6229df09b92599a22bc57d71af560bd513ae706d3fed36583b6ba24"
+    },
+    {
+      "path": "tests/blueprint/test_tooling_contracts.py",
+      "sha256": "4d9e0154dc14ce7a2fdebe06a59404ef855f7b9d7e440ba63050fd2e78ee6993"
+    },
+    {
+      "path": "docs/platform/consumer/quickstart.md",
+      "sha256": "da6404b0aa4d9c9d408b0a0028dfcdf3714cdf8172dec6a6b9f9534047c03e7a"
+    },
+    {
+      "path": "docs/platform/consumer/first_30_minutes.md",
+      "sha256": "525f995e9fbb1bc38b50bd9c7f52039dcb1c1a901b5615fb62f7c1f9b7faa088"
+    }
+  ]
+}

@@ -78,6 +78,8 @@ load_env_file_defaults() {
   done
 }
 
+load_env_file_defaults "$ROOT_DIR/.env.local"
+
 require_env_vars() {
   local missing=0
   local var_name

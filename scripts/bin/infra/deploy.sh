@@ -27,6 +27,23 @@ if [[ "${1:-}" == "--help" ]]; then
   exit 0
 fi
 
+patch_argocd_local_target_revision() {
+  if ! tooling_is_execution_enabled; then
+    log_info "dry-run patch_argocd_local_target_revision (set DRY_RUN=false to execute)"
+    return 0
+  fi
+  local revision="${ARGOCD_LOCAL_TARGET_REVISION:-$(git branch --show-current)}"
+  if [[ -z "$revision" || "$revision" == "main" ]]; then
+    return 0
+  fi
+  if ! run_kubectl_with_active_access get application platform-local-core -n argocd >/dev/null 2>&1; then
+    return 0
+  fi
+  log_info "patching ArgoCD Application targetRevision=$revision"
+  run_kubectl_with_active_access patch application platform-local-core -n argocd \
+    --type=merge -p "{\"spec\":{\"source\":{\"targetRevision\":\"$revision\"}}}"
+}
+
 log_info "deploy start profile=$BLUEPRINT_PROFILE stack=$(active_stack) observability=$OBSERVABILITY_ENABLED_NORMALIZED"
 run_cmd "$ROOT_DIR/scripts/bin/infra/validate.sh"
 
@@ -72,6 +89,7 @@ elif is_local_profile; then
   log_info "selected local deployment path overlay=$overlay_path"
   run_kustomize_apply "$(argocd_base_dir)"
   run_kustomize_apply "$overlay_path"
+  patch_argocd_local_target_revision
 else
   log_fatal "unsupported BLUEPRINT_PROFILE=$BLUEPRINT_PROFILE"
 fi
