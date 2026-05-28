@@ -5,11 +5,11 @@
      SPEC_READY=true: implementation gate — all sign-offs required; unlocks coding. -->
 - SPEC_READY: false
 - SPEC_PRODUCT_READY: false
-- Open questions count: 7
+- Open questions count: 0
 - Unresolved alternatives count: 0
 - Unresolved TODO markers count: 0
 - Pending assumptions count: 0
-- Open clarification markers count: 7
+- Open clarification markers count: 0
 - Product sign-off: pending
 - Architecture sign-off: pending
 - Security sign-off: pending
@@ -117,15 +117,7 @@
 
   - Q-4 — Instrumentation plan dashboard target, retention, and owner concrete values (FR-012(d)): target `stackit-managed-grafana` via the existing OBSERVABILITY_ENABLED module; retention `13 months` (parity with the #334 LogMe WORM SOC 2 floor for incident-forensics cross-correlation); owner `@sbonoc/factory-operations` (Option A). Rationale: STACKIT-managed Grafana satisfies the EU sovereignty floor without bespoke compliance work and respects SDD-C-013 managed-first; retention parity makes one query window cover both audit log and metrics, which is the cheapest way to keep incident forensics tractable; `@sbonoc/factory-operations` is the natural on-call owner per the Q-3 gate-1 team assignment. Storage-cost differential at expected event volumes (≤ 1k events/day per factory instance) is negligible against the forensics benefit. Decision by Product comment on PR #345 (2026-05-28).
 
-  - **[NEEDS CLARIFICATION: Q-5 — Concrete STACKIT-managed durable-bus platform pick (FR-013).]**
-
-    **Options:**
-    - **A)** STACKIT-managed Kafka (`stackit_kafka_instance` Terraform resource) when the provider exposes the resource as `stable` (verify via availability spike) — first preference per the #339 FR-010 wording and the issue text
-    - **B)** SKE-hosted Strimzi (Kafka operator on the factory K8s cluster) if Option A is not provider-stable — preserves Kafka semantics without requiring the managed instance; adds K8s operational ownership to Operations
-    - **C)** STACKIT-managed RabbitMQ (durable queues with replay via dead-letter exchange) if Options A and B both fail availability — semantics shift from log-based replay to queue-based redelivery; affects subscriber implementation
-    - **D)** Defer pick to a follow-up PR with a 1-week availability spike — blocks AC-003 and #339 C7 `### Open Decisions` resolution
-
-    **Agent recommendation:** Option A if a 1-day availability spike confirms the STACKIT Terraform provider exposes `stackit_kafka_instance` as `stable`; otherwise Option B. Skip Option C unless both A and B fail.
+  - Q-5 — Concrete STACKIT-managed durable-bus platform pick (FR-013): **STACKIT Managed RabbitMQ** (Option A' from the revised option set, after confirming on 2026-05-28 that STACKIT does not yet offer Managed Kafka). The lifecycle-event bus uses AMQP topic/fanout exchanges for the "lifecycle event → multiple subscribers" fan-out pattern, durable + quorum queues to survive subscriber restart and broker failover, and routing-key + single-active-consumer queues for per-ticket ordering. Rationale: the factory bus is an event-broker problem (durable fan-out to N subscribers), not an event-log problem; LogMe WORM (#334) is the audit-of-record so the bus does not need log-structured storage; managed-service consistency with the Q-4 `stackit-managed-grafana` choice keeps operational surface area minimal; SDD-C-013 managed-first is respected. Documented fallback: SKE-hosted **Strimzi Kafka** (Option B') if a 1-day capacity spike reveals a blocking RabbitMQ limitation (max-message-size, max-queues, or routing-throughput trigger thresholds to be documented in the resulting ADR). Decision by Product comment on PR #345 (2026-05-28).
 
   - Q-6 — Pre-factory baseline measurement window for FR-014: all merged PRs to `main` since SDD enablement (the commit that introduced the `SPEC_READY` gate on 2026-04-17 — exact commit SHA to be pinned by Operations at sign-off) through the day before this PR is signed off (Option A). Rationale: the factory is replacing the SDD-era human workflow specifically, so the baseline MUST measure the same workflow class; anchoring on SDD enablement is the only window that excludes pre-SDD methodology bias. Small-sample risk is acknowledged and is the right trade-off — recording a transparent count is preferred over inflating n by reaching into pre-SDD PRs that ran by different rules. The Q-7 `### Sample Size` disclosure pattern applies here too. Decision by Product comment on PR #345 (2026-05-28).
 
