@@ -198,6 +198,8 @@ Every factory instance MUST resolve the four canonical sign-off roles (Product, 
 
 Each role's team slug MUST be referenced from the consumer repo's `.github/CODEOWNERS` for the paths that role owns.
 
+Informative: a GitHub team can hold any number of members. To provide backup coverage within a role — so sign-off is not blocked when the primary person is unavailable — add two or more people to the role's team. Any single member of the team satisfies the sign-off requirement; the ≥ 2 members constraint ensures a second person is always available without requiring a separate schema field or team slug per backup.
+
 ### Blueprint instance
 
 The blueprint factory instance maps the four canonical roles to (Q-2 resolved 2026-05-28 in PR #340):
