@@ -6,9 +6,9 @@
   "files": [
     {
       "path": "docs/blueprint/autonomous-factory/design-contracts.md",
-      "sha256": "85bbe7b54a67686cea72669b6f8c953bcc8120a57b4186cfaee0641285dab2f3",
+      "sha256": "23c3ddd959174b469d601543acf4bb4da43482a646de396d726e2c184278a0eb",
       "role": "primary-deliverable",
-      "description": "Factory design contracts C1-C8 — the normative governance document produced by this work item."
+      "description": "Factory design contracts C1-C8 — the normative governance document produced by this work item. SHA updated 2026-05-29 in PR #345 (reciprocal Q-3 / Q-4 / Q-5 / C8 Category (a) edits)."
     },
     {
       "path": "docs/blueprint/architecture/decisions/ADR-issue-339-factory-design-contracts.md",
