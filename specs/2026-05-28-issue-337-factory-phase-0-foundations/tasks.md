@@ -9,26 +9,26 @@
 
 ## Implementation
 - [x] T-001 Resolve Open Decisions Q-1 through Q-7 in `spec.md § Informative Notes` per the Draft PR review cycle; record the selected option + rationale for each; set `Open clarification markers count: 0` (complete — Step 02 cycle, commits `27b89e1` + `ab57634`)
-- [ ] T-002 Author `docs/blueprint/architecture/decisions/ADR-issue-337-llm-model-router-policy.md` per FR-001 with `Status: approved` from inception (meta-ADR sign-off envelope per traceability Follow-up 8)
-- [ ] T-003 Author `docs/blueprint/architecture/decisions/ADR-issue-337-persona-skill-contract.md` per FR-002 with `Status: approved` from inception
-- [ ] T-004 Author `docs/blueprint/architecture/decisions/ADR-issue-337-trigger-authorization-model.md` per FR-003 with `Status: approved` from inception
-- [ ] T-005 Author `docs/blueprint/architecture/decisions/ADR-issue-337-sovereignty-zdr-posture.md` per FR-004 with `Status: approved` from inception; cite #339 NFR-SEC-001 verbatim per NFR-SEC-001 (of this work item, which prohibits factory-side egress allowlist content)
-- [ ] T-006 Author `docs/blueprint/architecture/decisions/ADR-issue-337-separation-of-duties-at-factory-velocity.md` per FR-005 with `Status: approved` from inception; cite #339 NFR-SEC-001 verbatim per this work item's NFR-SEC-002
-- [ ] T-007 Author `docs/blueprint/architecture/decisions/ADR-issue-337-reject-rerun-cap.md` per FR-006 with `Status: approved` from inception
-- [ ] T-008 Author `docs/blueprint/architecture/decisions/ADR-issue-337-per-ticket-wall-clock-cost-ceiling.md` per FR-007 with `Status: approved` from inception; concrete ceiling values from Q-1
-- [ ] T-009 Author `docs/blueprint/architecture/decisions/ADR-issue-337-reviewer-model-heterogeneity.md` per FR-008 with `Status: approved` from inception
-- [ ] T-010 Author `docs/blueprint/architecture/decisions/ADR-issue-337-triage-size-threshold.md` per FR-009 with `Status: approved` from inception; concrete thresholds from Q-2
-- [ ] T-011 Author `docs/blueprint/architecture/decisions/ADR-issue-337-light-decomposition-policy.md` per FR-010 with `Status: approved` from inception
-- [ ] T-012 Author `docs/blueprint/autonomous-factory/instrumentation-plan.md` per FR-012 + FR-013; dashboard target from Q-4; durable-bus pick from Q-5; retention from Q-4; per-`owner_team` breakdown shape per FR-012(f); source-of-truth field per metric per NFR-OBS-001
-- [ ] T-013 Author `docs/blueprint/autonomous-factory/pre-factory-baselines.md` per FR-014; measurement window from Q-6; per-`owner_team` breakdown row
-- [ ] T-014 Author `docs/blueprint/autonomous-factory/triage-decomposition-data-feed.md` per FR-015; Markdown table; one row per ticket cycle; `### Sample Size` subsection per Q-7
-- [ ] T-015 Replace `.github/CODEOWNERS` placeholder content with two-layer routing per FR-011; gate-1 four roles from Q-3; gate-2 bounded contexts from Q-3; verify zero `@your-org/...` placeholders; if Q-3 Option C, record deferred provisioning in CODEOWNERS comment block
-- [ ] T-016 Update `docs/blueprint/autonomous-factory/design-contracts.md` per FR-016: populate C6 `### Blueprint instance` (Q-3 slugs + bounded-context enumeration), populate C7 `### Blueprint instance` (`stackit-managed-grafana` + Q-4 retention + Q-4 owner), resolve C7 `### Open Decisions` durable-bus pick to Q-5 value
-- [ ] T-017 Update `docs/blueprint/autonomous-factory/design-contracts.md` per FR-017: extend C8 to enumerate the ten content ADRs (stability `stable` + extensibility per each FR's classification) and the three autonomous-factory documents (stability `stable` + extensibility `extensible`)
-- [ ] T-018 Regenerate #339 spec's `evidence_manifest.json` SHA-256 entries for `docs/blueprint/autonomous-factory/design-contracts.md` and its bootstrap mirror
-- [ ] T-019 Extend `blueprint/contract.yaml` `template_sync_allowlist` to include the three new autonomous-factory documents from T-012/T-013/T-014
-- [ ] T-020 Run `python3 scripts/lib/docs/sync_blueprint_template_docs.py`; verify zero diff on re-run (AC-009)
-- [ ] T-021 Create `.agents/personas/consumer/.gitkeep` per FR-018; ensure `.agents/personas/` exists
+- [x] T-002 Author `docs/blueprint/architecture/decisions/ADR-issue-337-llm-model-router-policy.md` per FR-001 with `Status: approved` from inception (meta-ADR sign-off envelope per traceability Follow-up 8) — implemented as `ADR-issue-337-three-tier-router.md` (Slice 2)
+- [x] T-003 Author `docs/blueprint/architecture/decisions/ADR-issue-337-persona-skill-contract.md` per FR-002 with `Status: approved` from inception — implemented as `ADR-issue-337-persona-skill-mapping.md` (Slice 2)
+- [x] T-004 Author `docs/blueprint/architecture/decisions/ADR-issue-337-trigger-authorization-model.md` per FR-003 with `Status: approved` from inception (Slice 2)
+- [x] T-005 Author `docs/blueprint/architecture/decisions/ADR-issue-337-sovereignty-zdr-posture.md` per FR-004 with `Status: approved` from inception; cite #339 NFR-SEC-001 verbatim per NFR-SEC-001 (of this work item, which prohibits factory-side egress allowlist content) — implemented as `ADR-issue-337-sovereignty-zdr.md` (Slice 2)
+- [x] T-006 Author `docs/blueprint/architecture/decisions/ADR-issue-337-separation-of-duties-at-factory-velocity.md` per FR-005 with `Status: approved` from inception; cite #339 NFR-SEC-001 verbatim per this work item's NFR-SEC-002 (Slice 2)
+- [x] T-007 Author `docs/blueprint/architecture/decisions/ADR-issue-337-reject-rerun-cap.md` per FR-006 with `Status: approved` from inception (Slice 2)
+- [x] T-008 Author `docs/blueprint/architecture/decisions/ADR-issue-337-per-ticket-wall-clock-cost-ceiling.md` per FR-007 with `Status: approved` from inception; concrete ceiling values from Q-1 (Slice 2)
+- [x] T-009 Author `docs/blueprint/architecture/decisions/ADR-issue-337-reviewer-model-heterogeneity.md` per FR-008 with `Status: approved` from inception (Slice 2)
+- [x] T-010 Author `docs/blueprint/architecture/decisions/ADR-issue-337-triage-size-threshold.md` per FR-009 with `Status: approved` from inception; concrete thresholds from Q-2 (Slice 2)
+- [x] T-011 Author `docs/blueprint/architecture/decisions/ADR-issue-337-light-decomposition-policy.md` per FR-010 with `Status: approved` from inception (Slice 2)
+- [x] T-012 Author `docs/blueprint/autonomous-factory/instrumentation-plan.md` per FR-012 + FR-013; dashboard target from Q-4; durable-bus pick from Q-5; retention from Q-4; per-`owner_team` breakdown shape per FR-012(f); source-of-truth field per metric per NFR-OBS-001 (Slice 3)
+- [x] T-013 Author `docs/blueprint/autonomous-factory/pre-factory-baselines.md` per FR-014; measurement window from Q-6; per-`owner_team` breakdown row (Slice 3)
+- [x] T-014 Author `docs/blueprint/autonomous-factory/triage-decomposition-data-feed.md` per FR-015; Markdown table; one row per ticket cycle; `### Sample Size` subsection per Q-7 (Slice 3)
+- [x] T-015 Replace `.github/CODEOWNERS` placeholder content with two-layer routing per FR-011; gate-1 four roles from Q-3; gate-2 bounded contexts from Q-3; verify zero `@your-org/...` placeholders; if Q-3 Option C, record deferred provisioning in CODEOWNERS comment block (Slice 4)
+- [x] T-016 Update `docs/blueprint/autonomous-factory/design-contracts.md` per FR-016: populate C6 `### Blueprint instance` (Q-3 slugs + bounded-context enumeration), populate C7 `### Blueprint instance` (`stackit-managed-grafana` + Q-4 retention + Q-4 owner), resolve C7 `### Open Decisions` durable-bus pick to Q-5 value (Slice 5)
+- [x] T-017 Update `docs/blueprint/autonomous-factory/design-contracts.md` per FR-017: extend C8 to enumerate the ten content ADRs (stability `stable` + extensibility per each FR's classification) and the three autonomous-factory documents (stability `stable` + extensibility `extensible`) (Slice 5)
+- [x] T-018 Regenerate #339 spec's `evidence_manifest.json` SHA-256 entries for `docs/blueprint/autonomous-factory/design-contracts.md` and its bootstrap mirror (Slice 5 source, Slice 6 mirror)
+- [x] T-019 Extend `blueprint/contract.yaml` `template_sync_allowlist` to include the three new autonomous-factory documents from T-012/T-013/T-014 (Slice 6)
+- [x] T-020 Run `python3 scripts/lib/docs/sync_blueprint_template_docs.py`; verify zero diff on re-run (AC-009) (Slice 6 — initial sync created the 3 mirror files; re-run output `created=0 updated=0 removed=0 skipped=17`)
+- [x] T-021 Create `.agents/personas/consumer/.gitkeep` per FR-018; ensure `.agents/personas/` exists (Slice 7)
 - [x] T-022 Meta-ADR `docs/blueprint/architecture/decisions/ADR-issue-337-factory-phase-0-foundations.md` `Status: approved` + ADR technical decision sign-off: approved (Step 03 commit `715014a`); relative links to ten content ADRs and three autonomous-factory documents present (verification of link targets pending Slices 2–3 file creation in Step 05)
 
 ## Test Automation
@@ -46,11 +46,11 @@
 - [ ] T-A05 Verify all non-text content has a programmatic label — N/A (no UI surface)
 
 ## Validation and Release Readiness
-- [ ] T-201 Run required Make validation bundles (`make quality-sdd-check`, `make docs-build`, `make docs-smoke`)
-- [ ] T-202 Attach evidence to traceability document (`make quality-sdd-check`, `make docs-build`, `make docs-smoke`, `make quality-hardening-review` summaries in `evidence_manifest.json`)
-- [ ] T-203 Confirm no stale TODOs/dead code/drift — verify zero deferred-decision placeholders outside `### Open Decisions` subsections in any new ADR or autonomous-factory document; verify no orphan ticket numbers in `Referenced by:` lines on the updated #339 design-contracts.md
-- [ ] T-204 Run documentation validation (`make docs-build` and `make docs-smoke`)
-- [ ] T-205 Run hardening review validation bundle (`make quality-hardening-review`)
+- [x] T-201 Run required Make validation bundles (`make quality-sdd-check`, `make docs-build`, `make docs-smoke`) — all pass 2026-05-29 (Slice 8); docs-build initially failed on unescaped MDX braces in two ADRs (`{Opus, Sonnet, Haiku}`, `{bounded-context, ...}`); fixed by wrapping in inline-code backticks, then re-runs green
+- [ ] T-202 Attach evidence to traceability document (`make quality-sdd-check`, `make docs-build`, `make docs-smoke`, `make quality-hardening-review` summaries in `evidence_manifest.json`) — deferred to Step 06/07 (document-sync + pr-packager) per the standard SDD step sequence
+- [x] T-203 Confirm no stale TODOs/dead code/drift — verify zero deferred-decision placeholders outside `### Open Decisions` subsections in any new ADR or autonomous-factory document; verify no orphan ticket numbers in `Referenced by:` lines on the updated #339 design-contracts.md (Slice 8 — design-contracts.md C6/C7 Open Decisions now narrow to operational team provisioning only; all `Q-#` markers resolved in spec.md; no `<TBD: ...>` placeholders remain in any FR-001..FR-010 ADR or in the three autonomous-factory docs)
+- [x] T-204 Run documentation validation (`make docs-build` and `make docs-smoke`) — both pass 2026-05-29 (Slice 8)
+- [x] T-205 Run hardening review validation bundle (`make quality-hardening-review`) — passes 2026-05-29 (Slice 8)
 
 ## Publish
 - [ ] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
