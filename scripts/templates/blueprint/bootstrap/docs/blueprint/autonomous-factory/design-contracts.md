@@ -329,23 +329,25 @@ The inheritance mechanism is the **existing** blueprint `contract.yaml` mechanis
 
 ### Category (a) — Documentation and ADRs
 
+**Inheritance-mechanism note.** Rows marked `internal` below are blueprint-source-only normative references — the *rules* they encode are inherited via this C7/C8 contract surface and via the consumer-overlay parameter mechanism, but the *files themselves* are not mirrored to consumer repos (pruned at consumer init per `blueprint/contract.yaml` `source_artifact_prune_globs_on_init: docs/blueprint/architecture/decisions/ADR-*.md`, and absent from `template_sync_allowlist`). Per-instance parameterization callouts that previously sat on the ADR rows (FR-003 authorized-actor list, FR-007 ceiling values, FR-009 threshold values, FR-010 bounded-context catalogue) are inherited by consumers via the consumer-overlay surface, not via the ADR file. Rows marked `stable` are mirrored to consumers via `template_sync_allowlist` and ARE consumer-visible source-of-truth files.
+
 | Surface item | Stability tier | Extensibility tier |
 |---|---|---|
 | `docs/blueprint/autonomous-factory/design-contracts.md` (this file) | `stable` | `sealed` (sole source of truth for C1–C8) |
 | `docs/blueprint/autonomous-factory/` (directory; future runbooks land here) | `stable` | `extensible` |
-| `docs/blueprint/architecture/decisions/ADR-issue-339-factory-design-contracts.md` | `stable` | `sealed` |
+| `docs/blueprint/architecture/decisions/ADR-issue-339-factory-design-contracts.md` | `internal` | n/a (normative reference) |
 | `docs/blueprint/architecture/decisions/` (directory; future factory ADRs land here) | `stable` | `extensible` |
-| `docs/blueprint/architecture/decisions/ADR-issue-337-factory-phase-0-foundations.md` (meta-ADR + sign-off envelope) | `stable` | `sealed` |
-| `docs/blueprint/architecture/decisions/ADR-issue-337-llm-model-router-policy.md` (FR-001) | `stable` | `sealed` |
-| `docs/blueprint/architecture/decisions/ADR-issue-337-persona-skill-contract.md` (FR-002) | `stable` | `sealed` |
-| `docs/blueprint/architecture/decisions/ADR-issue-337-trigger-authorization-model.md` (FR-003) | `stable` | `sealed` for the trigger-authorization rules; `parameterized` for the per-instance authorized-actor list |
-| `docs/blueprint/architecture/decisions/ADR-issue-337-sovereignty-zdr-posture.md` (FR-004) | `stable` | `sealed` (also listed in FR-017(b) sealed list, item 4) |
-| `docs/blueprint/architecture/decisions/ADR-issue-337-separation-of-duties-at-factory-velocity.md` (FR-005) | `stable` | `sealed` |
-| `docs/blueprint/architecture/decisions/ADR-issue-337-reject-rerun-cap.md` (FR-006) | `stable` | `sealed` (also listed in FR-017(b) sealed list, item 5) |
-| `docs/blueprint/architecture/decisions/ADR-issue-337-per-ticket-wall-clock-cost-ceiling.md` (FR-007) | `stable` | `parameterized` (per-instance ceiling values via consumer overlay; structure sealed) |
-| `docs/blueprint/architecture/decisions/ADR-issue-337-reviewer-model-heterogeneity.md` (FR-008) | `stable` | `sealed` |
-| `docs/blueprint/architecture/decisions/ADR-issue-337-triage-size-threshold.md` (FR-009) | `stable` | `sealed` for the four-class enumeration and the AND-conjoined three-dimension structure; `extensible` for the per-instance threshold values |
-| `docs/blueprint/architecture/decisions/ADR-issue-337-light-decomposition-policy.md` (FR-010) | `stable` | `sealed` for the boundary-type enumeration, fan-out cap, refusal-criteria-routes-to-escalate semantics, and grounding/parent-tracking contracts; `extensible` for the per-instance bounded-context catalogue |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-factory-phase-0-foundations.md` (meta-ADR + sign-off envelope) | `internal` | n/a (normative reference) |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-llm-model-router-policy.md` (FR-001) | `internal` | n/a (normative reference) |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-persona-skill-contract.md` (FR-002) | `internal` | n/a (normative reference) |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-trigger-authorization-model.md` (FR-003) | `internal` | n/a (normative reference) |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-sovereignty-zdr-posture.md` (FR-004) | `internal` | n/a (normative reference; rule content also sealed under FR-017(b) item 4) |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-separation-of-duties-at-factory-velocity.md` (FR-005) | `internal` | n/a (normative reference) |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-reject-rerun-cap.md` (FR-006) | `internal` | n/a (normative reference; rule content also sealed under FR-017(b) item 5) |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-per-ticket-wall-clock-cost-ceiling.md` (FR-007) | `internal` | n/a (normative reference) |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-reviewer-model-heterogeneity.md` (FR-008) | `internal` | n/a (normative reference) |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-triage-size-threshold.md` (FR-009) | `internal` | n/a (normative reference) |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-light-decomposition-policy.md` (FR-010) | `internal` | n/a (normative reference) |
 | `docs/blueprint/autonomous-factory/instrumentation-plan.md` (FR-012/013/016) | `stable` | `extensible` (per-instance dashboard URLs, panel inventories, and durable-bus subscription details overlaid by consumer) |
 | `docs/blueprint/autonomous-factory/pre-factory-baselines.md` (FR-014) | `stable` | `extensible` (each consumer records its own pre-factory baseline measurements in the same shape) |
 | `docs/blueprint/autonomous-factory/triage-decomposition-data-feed.md` (FR-015) | `stable` | `extensible` (each consumer accumulates its own per-cycle triage/decomposition records in the same shape) |

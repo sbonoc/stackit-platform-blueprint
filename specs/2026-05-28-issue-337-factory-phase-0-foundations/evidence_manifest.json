@@ -78,9 +78,9 @@
     },
     {
       "path": "docs/blueprint/autonomous-factory/pre-factory-baselines.md",
-      "sha256": "1920ec325097586241641af13741cabdf99996977673ceedbfe9881acc56f5b6",
+      "sha256": "97932aa253cbf502fc2909c02f21f0bbcf482391459278765458f019d83e9971",
       "role": "primary-deliverable",
-      "description": "FR-014 — Pre-factory baselines: measurement window 2026-04-17->2026-05-28 (commit df7595c), n=100 merged PRs (Q-6 Option A), four baselines (lead time, reviewer wall-time, formal rejection rate transparently NOT MEASURABLE, defect rate proxy), per-`owner_team` breakdown row, calibration trigger declared. Reviewer-round update 2026-05-29: reworded the § Sample-Size Caveats line to make explicit that n=100 is the verified full population of merged PRs in the 41-day window (via `gh pr list --limit 300`), not an API pagination cap (Claude review observation #4)."
+      "description": "FR-014 — Pre-factory baselines: measurement window 2026-04-17->2026-05-28 (commit df7595c), n=100 merged PRs (Q-6 Option A), four baselines (lead time, reviewer wall-time, formal rejection rate transparently NOT MEASURABLE, defect rate proxy), per-`owner_team` breakdown row, calibration trigger declared. Reviewer-round update 2026-05-29: reworded the § Sample-Size Caveats line to make explicit that n=100 is the verified full population of merged PRs in the 41-day window (via `gh pr list --limit 300`), not an API pagination cap (Claude review observation #4). Fifth reviewer round 2026-05-29: corrected the forward-comparable-factory-metric line to use the C7 sealed enum value `outcome: rejected` (it previously used the schema-invalid `outcome: reject`), with an inline note pointing readers at the sealed enum definition in `design-contracts.md` § Contract C7 (codex P2 round-5 #1)."
     },
     {
       "path": "docs/blueprint/autonomous-factory/triage-decomposition-data-feed.md",
@@ -114,9 +114,9 @@
     },
     {
       "path": "scripts/templates/blueprint/bootstrap/docs/blueprint/autonomous-factory/pre-factory-baselines.md",
-      "sha256": "1920ec325097586241641af13741cabdf99996977673ceedbfe9881acc56f5b6",
+      "sha256": "97932aa253cbf502fc2909c02f21f0bbcf482391459278765458f019d83e9971",
       "role": "bootstrap-template-mirror",
-      "description": "Bootstrap mirror of pre-factory-baselines.md — created by sync_blueprint_template_docs.py after allowlist extension; SHA matches source (AC-006 + AC-009). Reviewer-round update 2026-05-29: re-synced after the source-side n=100 verified-population rewording."
+      "description": "Bootstrap mirror of pre-factory-baselines.md — created by sync_blueprint_template_docs.py after allowlist extension; SHA matches source (AC-006 + AC-009). Reviewer-round update 2026-05-29: re-synced after the source-side n=100 verified-population rewording. Fifth reviewer round 2026-05-29: re-synced after the source-side `outcome: reject` → `outcome: rejected` enum-spelling fix (codex P2 round-5 #1)."
     },
     {
       "path": "scripts/templates/blueprint/bootstrap/docs/blueprint/autonomous-factory/triage-decomposition-data-feed.md",
