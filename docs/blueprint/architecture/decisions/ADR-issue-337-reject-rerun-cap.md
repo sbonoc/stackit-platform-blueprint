@@ -30,7 +30,7 @@ The cap exists not to bound cost (the FR-007 ceiling already does that) but to *
 
 1. **Apply the `factory-escalated` label** to the issue (and to any open child issues for decomposed parents per FR-010).
 2. **Post a PR comment** naming the cap reached, the affected step type, and the rerun history (timestamps + which reviewer triggered each rerun).
-3. **Stop accepting further reruns on the affected step type** for the lifetime of that work item — additional `agent-rerun`-style triggers on that step MUST be ignored (no-op) and MUST emit a C7 lifecycle event with `outcome: rerun-cap-exceeded` so the audit trail is preserved.
+3. **Stop accepting further reruns on the affected step type** for the lifetime of that work item — additional `agent-rerun`-style triggers on that step MUST be ignored (no-op) and MUST emit a C7 lifecycle event with `outcome: rejected` (the rerun trigger is rejected) and `rejection_reason: rerun-cap-exceeded` as a non-required extension field (permitted by C7's `additionalProperties: true`) so the audit trail preserves both the schema-valid outcome and the specific cap-hit reason.
 
 **Implementer.** #336 (GitHub Actions webhooks) carries the counter state (keyed by issue number + step type), the cap check, and the escalation actions.
 
@@ -65,7 +65,7 @@ Let the cost ceiling alone bound rerun spend.
 ## Consequences
 
 - Phase 1 ticket #336 implements the per-(issue × step) counter, the cap check at rerun-trigger time, and the three-part escalation action (label + comment + step lockout).
-- C7 lifecycle event stream (#339 Contract C7) carries every rerun event and the `rerun-cap-exceeded` outcome event; counter state is reconstructible from the stream on cold start.
+- C7 lifecycle event stream (#339 Contract C7) carries every rerun event and the cap-hit event (with `outcome: rejected` + `rejection_reason: rerun-cap-exceeded`); counter state is reconstructible from the stream on cold start.
 - The `factory-escalated` label is the canonical "this ticket needs human re-scope" signal — reviewers MUST filter for it as a routine PR-queue triage step.
 - Consumer instances inherit the cap value, the per-(work-item × step) counter shape, and the escalation actions identically (sealed per #339 C8 FR-017(b)).
 - Interaction with FR-007 cost ceiling: rerun-cap-hit fires earlier than ceiling-hit on average and is the preferred signal; ceiling-hit remains the backstop for legitimate single-run cost overruns or non-rerun cost paths (e.g., pathologically long step01 intake).

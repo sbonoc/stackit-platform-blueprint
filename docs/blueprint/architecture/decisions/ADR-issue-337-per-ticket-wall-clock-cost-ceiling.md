@@ -34,7 +34,7 @@ The ceiling exists to make factory spend **observable and bounded** at the unit 
 
 **Ceiling-hit response.** When either ceiling is exceeded for a work item, the factory bot MUST:
 
-1. **Pause the work item** — halt in-flight persona invocations within the same 60s window required by `agent-stop` (per [`ADR-issue-337-trigger-authorization-model.md`](ADR-issue-337-trigger-authorization-model.md)); emit a C7 lifecycle event with `outcome: ceiling-paused`.
+1. **Pause the work item** — halt in-flight persona invocations within the same 60s window required by `agent-stop` (per [`ADR-issue-337-trigger-authorization-model.md`](ADR-issue-337-trigger-authorization-model.md)); emit a C7 lifecycle event with `outcome: human-handoff` (the pause requires human action to clear via `agent-resume` per the un-pause procedure below) and `pause_reason: ceiling-hit` as a non-required extension field (permitted by C7's `additionalProperties: true`) so the audit trail preserves both the schema-valid outcome and the specific pause reason.
 2. **Apply the `factory-paused-ceiling` label** to the issue.
 3. **Post a PR comment** naming **which ceiling was exceeded** (wall-clock or cost), the **measured value**, the **breakdown by SDD step** (so the human reviewer can see where spend went), and the **un-pause procedure** (apply `agent-resume` label after raising the ceiling via overlay update OR re-scoping the ticket).
 

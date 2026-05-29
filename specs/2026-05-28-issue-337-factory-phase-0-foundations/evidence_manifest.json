@@ -42,15 +42,15 @@
     },
     {
       "path": "docs/blueprint/architecture/decisions/ADR-issue-337-reject-rerun-cap.md",
-      "sha256": "6a284ec6cdfb55ebd515a188a3c78edeae64426d4f2d3ce64dcf106de4a8daa2",
+      "sha256": "3dd9e9e94bbb5bb73f7409a2f4f51b7f2ee9932a436f6271f767a9147b5ec179",
       "role": "content-adr",
-      "description": "FR-006 — Reject-rerun cap (cap=2; factory-escalated label semantics). Status: approved from inception."
+      "description": "FR-006 — Reject-rerun cap (cap=2; factory-escalated label semantics). Status: approved from inception. Fourth reviewer round 2026-05-29: the rerun-cap-hit C7 emission was rewritten to use the valid C7 enum value `outcome: rejected` (the rerun trigger is rejected) with `rejection_reason: rerun-cap-exceeded` as a non-required extension field per C7's `additionalProperties: true` allowance (codex P2 round-4 #1); the matching Consequences bullet was updated to reflect the new outcome+reason pair."
     },
     {
       "path": "docs/blueprint/architecture/decisions/ADR-issue-337-per-ticket-wall-clock-cost-ceiling.md",
-      "sha256": "e586587f61c39cec1ed4ece3f927b2844d6da119df2ce5423563e8b0634612d8",
+      "sha256": "f9a4324aa1cf5064fbc6a8add3239c085cb6cf4394136fba47288ec9cb4c4d86",
       "role": "content-adr",
-      "description": "FR-007 — Per-ticket wall-clock + cost ceiling (90 min / $15 USD per work item, per child for decomposed parents — Q-1 Option A). Status: approved from inception."
+      "description": "FR-007 — Per-ticket wall-clock + cost ceiling (90 min / $15 USD per work item, per child for decomposed parents — Q-1 Option A). Status: approved from inception. Fourth reviewer round 2026-05-29: the ceiling-hit C7 emission was rewritten to use the valid C7 enum value `outcome: human-handoff` (the pause requires human action to clear via `agent-resume`) with `pause_reason: ceiling-hit` as a non-required extension field per C7's `additionalProperties: true` allowance (codex P2 round-4 #2)."
     },
     {
       "path": "docs/blueprint/architecture/decisions/ADR-issue-337-reviewer-model-heterogeneity.md",
@@ -60,15 +60,15 @@
     },
     {
       "path": "docs/blueprint/architecture/decisions/ADR-issue-337-triage-size-threshold.md",
-      "sha256": "560b1c0c4dc85889c67780b485fefd335b9325adf14499d573c3b4740e33a3cf",
+      "sha256": "1bf38c5b2dfcf69eb13e3871356c1556d9fd09fddee0bac60e79eca92cce9e2e",
       "role": "content-adr",
-      "description": "FR-009 — Triage size threshold (4-class table: small / medium / large-decomposable / escalate — Q-2 Option A). Status: approved from inception. Third reviewer round 2026-05-29: the `escalate` routing rule's C7 emission was rewritten to use the valid C7 enum values `phase: intake` + `outcome: human-handoff` (replacing the schema-invalid `outcome: escalate-class-blocked`); the specific blocking reason is now described as an optional extension field per C7's `additionalProperties: true` allowance (codex P2 #4)."
+      "description": "FR-009 — Triage size threshold (4-class table: small / medium / large-decomposable / escalate — Q-2 Option A). Status: approved from inception. Third reviewer round 2026-05-29: the `escalate` routing rule's C7 emission was rewritten to use the valid C7 enum values `phase: intake` + `outcome: human-handoff` (replacing the schema-invalid `outcome: escalate-class-blocked`); the specific blocking reason is now described as an optional extension field per C7's `additionalProperties: true` allowance (codex P2 #4). Fourth reviewer round 2026-05-29: the Consequences C7 row was rewritten to stop storing triage classes in the `outcome` field — triage emissions now carry `outcome: success` (when the classification function runs to completion) with the triage class itself carried as a `triage_class` extension field per C7's `additionalProperties: true` allowance (codex P2 round-4 #4)."
     },
     {
       "path": "docs/blueprint/architecture/decisions/ADR-issue-337-light-decomposition-policy.md",
-      "sha256": "7ac849a9a4ef19e9d2103b509ec1c6e542c1a59c8c2df667110fe548f974ec0d",
+      "sha256": "177761a3150d84cd66dca6b050c4a9ca29f8a484e50960846725005506f1193e",
       "role": "content-adr",
-      "description": "FR-010 — Light decomposition policy (boundary types; fan-out <=5; refusal->escalate; parent ## Integration Acceptance Criteria per #339 C4). Status: approved from inception. MDX braces escaped at Slice 8 for docs-build compatibility."
+      "description": "FR-010 — Light decomposition policy (boundary types; fan-out <=5; refusal->escalate; parent ## Integration Acceptance Criteria per #339 C4). Status: approved from inception. MDX braces escaped at Slice 8 for docs-build compatibility. Fourth reviewer round 2026-05-29: the bot-tick-block C7 emission was rewritten to use the valid C7 enum value `outcome: rejected` (the bot's tick attempt is rejected) with `rejection_reason: integration-criteria-bot-tick-blocked` as a non-required extension field per C7's `additionalProperties: true` allowance (codex P2 round-4 #3)."
     },
     {
       "path": "docs/blueprint/autonomous-factory/instrumentation-plan.md",

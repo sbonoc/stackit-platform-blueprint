@@ -58,7 +58,7 @@ The parent issue MUST remain open until:
 1. **All children are merged** (their PRs closed via merge, not via close-without-merge), AND
 2. **Every `## Integration Acceptance Criteria` checkbox is ticked by a human bounded-context reviewer** (per FR-011 gate-2 routing — a human in the relevant bounded-context team, not a factory bot, ticks each box).
 
-The factory bot MUST NOT tick any checkbox in `## Integration Acceptance Criteria`. A C7 lifecycle event with `outcome: integration-criteria-bot-tick-blocked` MUST be emitted if a bot tick is attempted.
+The factory bot MUST NOT tick any checkbox in `## Integration Acceptance Criteria`. A C7 lifecycle event with `outcome: rejected` (the bot's tick attempt is rejected) and `rejection_reason: integration-criteria-bot-tick-blocked` as a non-required extension field (permitted by C7's `additionalProperties: true`) MUST be emitted if a bot tick is attempted.
 
 **Phase 1 / Phase 3 boundary.** Phase 1 does **NOT** automate composition verification. The factory does not attempt to verify that the children's contracts compose; it relies on the human-tick contract above. **Composition orchestration is Phase 3 (#338)** — Phase 3 consumes FR-015's accumulated decomposition evidence to design automated integration verification. Until Phase 3 ships, decomposed parents are merged by human integration review.
 
