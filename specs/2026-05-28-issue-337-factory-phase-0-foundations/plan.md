@@ -56,7 +56,7 @@
 - Notes: governance-documentation change; no make targets added, modified, or removed.
 
 ## Documentation Plan (Document Phase)
-- Blueprint docs updates:
+- Blueprint docs updates: ten new ADRs under `docs/blueprint/architecture/decisions/` (the meta-ADR plus FR-001…FR-010 content ADRs) + three new governance documents under `docs/blueprint/autonomous-factory/` (instrumentation plan, pre-factory baselines, triage+decomposition data feed) + reciprocal C6/C7/C8 edits to the existing `docs/blueprint/autonomous-factory/design-contracts.md` per FR-016/FR-017 — enumerated below.
   - `docs/blueprint/architecture/decisions/ADR-issue-337-factory-phase-0-foundations.md` (new — meta-ADR)
   - `docs/blueprint/architecture/decisions/ADR-issue-337-llm-model-router-policy.md` (new)
   - `docs/blueprint/architecture/decisions/ADR-issue-337-persona-skill-contract.md` (new)

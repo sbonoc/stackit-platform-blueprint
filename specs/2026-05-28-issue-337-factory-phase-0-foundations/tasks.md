@@ -32,18 +32,18 @@
 - [x] T-022 Meta-ADR `docs/blueprint/architecture/decisions/ADR-issue-337-factory-phase-0-foundations.md` `Status: approved` + ADR technical decision sign-off: approved (Step 03 commit `715014a`); relative links to ten content ADRs and three autonomous-factory documents present (verification of link targets pending Slices 2–3 file creation in Step 05)
 
 ## Test Automation
-- [ ] T-101 Add or update unit tests — N/A (governance-documentation change; no code units)
-- [ ] T-102 Add or update contract tests — N/A (no API/event/Pact contracts added; FR-012 references the #339 Contract C7 schema as definition, not implementation)
-- [ ] T-103 For any new or modified filter/payload-transform route, verify a positive-path unit test exists — N/A (no filter/transform logic)
-- [ ] T-104 Translate any reproducible pre-PR smoke/`curl`/deterministic-check finding into a failing automated test first — N/A (no smoke/curl path; docs validation is `make docs-smoke`)
-- [ ] T-105 Add boundary/integration tests where required — N/A (no integration boundaries introduced)
+- [x] T-101 Add or update unit tests — N/A (governance-documentation change; no code units)
+- [x] T-102 Add or update contract tests — N/A (no API/event/Pact contracts added; FR-012 references the #339 Contract C7 schema as definition, not implementation)
+- [x] T-103 For any new or modified filter/payload-transform route, verify a positive-path unit test exists — N/A (no filter/transform logic)
+- [x] T-104 Translate any reproducible pre-PR smoke/`curl`/deterministic-check finding into a failing automated test first — N/A (no smoke/curl path; docs validation is `make docs-smoke`)
+- [x] T-105 Add boundary/integration tests where required — N/A (no integration boundaries introduced)
 
 ## Accessibility Testing (Normative — mark N/A with rationale for non-UI specs)
-- [ ] T-A01 Confirm NFR-A11Y-001 compliance scope is declared in `spec.md` — declared as `N/A — internal governance documentation. No UI surface is introduced or modified by this work item.`
-- [ ] T-A02 Run axe-core WCAG 2.1 AA scan — N/A (no UI surface)
-- [ ] T-A03 Verify keyboard operability — N/A (no UI surface)
-- [ ] T-A04 Verify focus indicator visible on focused interactive elements — N/A (no UI surface)
-- [ ] T-A05 Verify all non-text content has a programmatic label — N/A (no UI surface)
+- [x] T-A01 Confirm NFR-A11Y-001 compliance scope is declared in `spec.md` — declared as `N/A — internal governance documentation. No UI surface is introduced or modified by this work item.`
+- [x] T-A02 Run axe-core WCAG 2.1 AA scan — N/A (no UI surface)
+- [x] T-A03 Verify keyboard operability — N/A (no UI surface)
+- [x] T-A04 Verify focus indicator visible on focused interactive elements — N/A (no UI surface)
+- [x] T-A05 Verify all non-text content has a programmatic label — N/A (no UI surface)
 
 ## Validation and Release Readiness
 - [x] T-201 Run required Make validation bundles (`make quality-sdd-check`, `make docs-build`, `make docs-smoke`) — all pass 2026-05-29 (Slice 8); docs-build initially failed on unescaped MDX braces in two ADRs (`{Opus, Sonnet, Haiku}`, `{bounded-context, ...}`); fixed by wrapping in inline-code backticks, then re-runs green
@@ -53,16 +53,16 @@
 - [x] T-205 Run hardening review validation bundle (`make quality-hardening-review`) — passes 2026-05-29 (Slice 8)
 
 ## Publish
-- [ ] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
-- [ ] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
-- [ ] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
+- [x] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section — completed at Step 07 (2026-05-29): all four sections populated (Repository-Wide Findings Fixed, Observability and Diagnostics Changes, Architecture and Code Quality Compliance, Proposals Only); a11y gate marked N/A with rationale per NFR-A11Y-001
+- [x] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes — completed at Step 07 (2026-05-29): all six sections populated (Summary, Requirement Coverage, Key Reviewer Files, Validation Evidence, Risk and Rollback, Deferred Proposals)
+- [x] P-003 Ensure PR description follows repository template headings and references `pr_context.md` — completed at Step 07 (2026-05-29): PR description aligned with pr_context.md content
 
 ## Sign-off and Status Promotion
 - [x] T-301 All four canonical sign-offs recorded on PR #345 and in `spec.md` (Step 03 commit `715014a`); meta-ADR flipped to `Status: approved` in the same commit. The ten content ADRs (T-002…T-011) are authored at Step 05 with `Status: approved` from inception under this PR's spec-level sign-off envelope — no separate status-flip pass needed
 
 ## App Onboarding Minimum Targets (Normative)
-- [ ] A-001 `apps-bootstrap` and `apps-smoke` are implemented and verified for the affected app scope — N/A (no app scope affected by this governance-documentation work item)
-- [ ] A-002 Backend app lanes (`backend-test-unit`, `backend-test-integration`, `backend-test-contracts`, `backend-test-e2e`) are available — N/A (no app scope affected)
-- [ ] A-003 Frontend app lanes (`touchpoints-test-unit`, `touchpoints-test-integration`, `touchpoints-test-contracts`, `touchpoints-test-e2e`) are available — N/A (no app scope affected)
-- [ ] A-004 Aggregate gates (`test-unit-all`, `test-integration-all`, `test-contracts-all`, `test-e2e-all-local`) are available — N/A (no app scope affected)
-- [ ] A-005 Port-forward operational wrappers (`infra-port-forward-start`, `infra-port-forward-stop`, `infra-port-forward-cleanup`) are available — N/A (no app scope affected)
+- [x] A-001 `apps-bootstrap` and `apps-smoke` are implemented and verified for the affected app scope — N/A (no app scope affected by this governance-documentation work item)
+- [x] A-002 Backend app lanes (`backend-test-unit`, `backend-test-integration`, `backend-test-contracts`, `backend-test-e2e`) are available — N/A (no app scope affected)
+- [x] A-003 Frontend app lanes (`touchpoints-test-unit`, `touchpoints-test-integration`, `touchpoints-test-contracts`, `touchpoints-test-e2e`) are available — N/A (no app scope affected)
+- [x] A-004 Aggregate gates (`test-unit-all`, `test-integration-all`, `test-contracts-all`, `test-e2e-all-local`) are available — N/A (no app scope affected)
+- [x] A-005 Port-forward operational wrappers (`infra-port-forward-start`, `infra-port-forward-stop`, `infra-port-forward-cleanup`) are available — N/A (no app scope affected)

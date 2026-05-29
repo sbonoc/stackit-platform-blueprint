@@ -247,6 +247,18 @@ Surface automatically when the named scope is next touched. Do not promote to ac
       trigger: after: consumer-app-descriptor-adoption
       rationale: descriptor ownership and kustomization-ref fallback supersede the path-prefix bridge; tracking prevents it from becoming permanent hidden behavior
 
+### after: github-teams-provisioned
+
+- [ ] (parked) proposal(issue-337-factory-phase-0-foundations): operational team provisioning on GitHub — create the eight teams named in `.github/CODEOWNERS` (gate-1: `@sbonoc/factory-product`, `@sbonoc/factory-architecture`, `@sbonoc/factory-security`, `@sbonoc/factory-operations`; gate-2: `factory`, `infra`, `docs`, `governance`) and populate each with ≥ 2 members; the first factory `agent-ready` label MUST NOT be applied until this is complete.
+      trigger: after: github-teams-provisioned
+      rationale: operational prerequisite, not a code change; Operations sign-off on PR #345 attests to provisioning intent; also tracked in `docs/blueprint/autonomous-factory/design-contracts.md` C6 `### Open Decisions` against #337 close
+
+### after: issue-336
+
+- [ ] (parked) proposal(issue-337-factory-phase-0-foundations): solo-operator profile enforcement layer — GitHub Actions check reads `spec.spec_driven_development_contract.readiness_gate.sod_policy.solo_operator` in `blueprint/contract.yaml`, scans the PR for the literal `SOLO_OPERATOR_ATTESTATION: confirmed` marker on a canonical sign-off comment, validates the five-item normative checklist from `ADR-issue-337-separation-of-duties-at-factory-velocity.md § Satisfaction paths`, and applies the SoD count adjustment (Path 2 satisfies the multi-author rule alternatively). Factory-bot suppression remains immutable across both paths.
+      trigger: after: issue-336
+      rationale: enforcement is in #336's scope (GitHub Actions webhook pipeline owns SoD evaluation); ADR + `sod_policy` toggle make the rule mechanically discoverable so #336 cannot ship without consuming it; ships the ADR amendment under PR #345 declaratively without expanding Phase 0 scope to runtime code
+
 ---
 
 ## Long Horizon

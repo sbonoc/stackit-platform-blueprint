@@ -1,27 +1,34 @@
 # PR Context
 
 ## Summary
-- Work item:
-- Objective:
-- Scope boundaries:
+- Work item: `2026-05-28-issue-337-factory-phase-0-foundations` (issue #337) — Phase 0 sibling of #339 (factory design contracts). Locks the ten load-bearing architectural decisions Phase 1 tickets (#333, #334, #335, #336) consume, populates the blueprint instance's two-layer CODEOWNERS, authors the durable success-metric instrumentation plan + pre-factory baselines + triage/decomposition retrospective data feed, and resolves the reciprocal #339 design-contracts.md C6/C7/C8 blueprint-instance values. Also amends FR-005 to define a two-path satisfaction model (multi-author default + solo-operator alternative) without weakening factory-bot suppression.
+- Objective: zero Phase 1 ticket should be blocked at implementation start by an unresolved Phase 0 decision (Option A from spec.md § Normative Option Decision: bundle ten ADRs + CODEOWNERS + 3 docs + reciprocal #339 edits + FR-005 amendment in one signed-off PR cycle).
+- Scope boundaries: zero runtime code. The PR ships ADRs, governance documents, CODEOWNERS, `template_sync_allowlist` extension + bootstrap mirror sync, `blueprint/contract.yaml` `sod_policy` block (FR-005 amendment), and `.agents/personas/consumer/.gitkeep` placeholder. Implementation of every decision is owned by Phase 1 (excluded items 1–8 in spec.md).
 
 ## Requirement Coverage
-- Requirement IDs covered:
-- Acceptance criteria covered:
-- Contract surfaces changed:
+- Requirement IDs covered: FR-001, FR-002, FR-003, FR-004, FR-005 (incl. solo-operator amendment), FR-006, FR-007, FR-008, FR-009, FR-010, FR-011, FR-012, FR-013, FR-014, FR-015, FR-016, FR-017, FR-018; NFR-SEC-001, NFR-SEC-002, NFR-OBS-001, NFR-REL-001, NFR-OPS-001, NFR-OPS-002, NFR-A11Y-001.
+- Acceptance criteria covered: AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009, AC-010, AC-011 (all eleven).
+- Contract surfaces changed: `blueprint/contract.yaml` (template_sync_allowlist extension + new `sod_policy` block under `spec.spec_driven_development_contract.readiness_gate`); `scripts/templates/blueprint/bootstrap/blueprint/contract.yaml` mirror; `docs/blueprint/autonomous-factory/design-contracts.md` (C6/C7 `### Blueprint instance`, C7 `### Open Decisions`, C8 enumeration); `.github/CODEOWNERS` (placeholder replaced with two-layer routing); `specs/2026-05-28-issue-339-factory-design-contracts/evidence_manifest.json` (SHA-256 regen); `tests/blueprint/contract_refactor_docs_cases.py` (count assertion aligned with new allowlist).
 
 ## Key Reviewer Files
 - Primary files to review first:
-- High-risk files:
+  - `docs/blueprint/architecture/decisions/ADR-issue-337-factory-phase-0-foundations.md` — meta-ADR; entry point for all ten content ADRs and the three autonomous-factory documents.
+  - `docs/blueprint/architecture/decisions/ADR-issue-337-separation-of-duties-at-factory-velocity.md` — FR-005 ADR with the two satisfaction paths (multi-author + solo-operator); carries the immutable factory-bot suppression invariant.
+  - `blueprint/contract.yaml` (+ bootstrap mirror) — new `sod_policy` block under `spec.spec_driven_development_contract.readiness_gate`; the `solo_operator_attestation_marker` and `solo_operator_checklist_item_count` must line up exactly with the ADR's Path 2 marker + 5-item normative checklist.
+  - `docs/blueprint/autonomous-factory/instrumentation-plan.md` — FR-012 + FR-013 + NFR-OBS-001 evidence; the durable-bus platform pick (RabbitMQ with Strimzi Kafka fallback) lives here.
+  - `docs/blueprint/autonomous-factory/design-contracts.md` — reciprocal #339 edits (C6/C7/C8); the only places blueprint-instance concrete values enter the design contract.
+  - `.github/CODEOWNERS` — two-layer routing; confirm zero `@your-org/...` placeholders and that gate-2 bounded contexts match the enumeration in design-contracts.md C6.
+- High-risk files: none — every artifact is independently revertible per NFR-REL-001. The highest-blast-radius change is `.github/CODEOWNERS`, which takes effect on subsequent PRs only and is fully reverted by reverting the single file.
 
 ## Validation Evidence
-- Required commands executed:
-- Result summary:
-- Artifact references:
+- Required commands executed: `make quality-sdd-check`; `make docs-build`; `make docs-smoke`; `make quality-hardening-review`; `make quality-docs-check-changed`; `make blueprint-test-unit`; `python3 scripts/lib/docs/sync_blueprint_template_docs.py`; `make quality-hooks-fast` (Step 07 final gate); `make quality-hardening-review` (Step 07 final gate).
+- Result summary: all bundles green on 2026-05-29 (Slice 8 + Step 06 initial + Step 06 FR-005 amendment round + Step 07 publish gate). Open Decisions Q-1 through Q-7 RESOLVED on 2026-05-28 via Product comments on PR #345 (Option A for six; Option A' Managed RabbitMQ for Q-5 after STACKIT Managed Kafka unavailability was confirmed). `make blueprint-test-unit` — 1074 passed, 42 subtests passed (no schema fallout from the new `sod_policy` block). `python3 scripts/lib/docs/sync_blueprint_template_docs.py` — `created=0 updated=0 removed=0 skipped=17` confirms AC-009 zero-diff re-run.
+- Artifact references: `specs/2026-05-28-issue-337-factory-phase-0-foundations/evidence_manifest.json` (23 deliverable-file SHA-256 entries + 8 validation_runs entries); `specs/2026-05-28-issue-337-factory-phase-0-foundations/traceability.md § Validation Summary` (full bundle list with pass results).
 
 ## Risk and Rollback
-- Main risks:
-- Rollback strategy:
+- Main risks: (1) larger-PR blast radius — ten ADRs + three documents + CODEOWNERS + reciprocal #339 edits + FR-005 amendment in one sign-off cycle; mitigated by per-artifact revertibility per NFR-REL-001. (2) operational team provisioning gap — the eight GitHub teams named in CODEOWNERS must be created with ≥ 2 members each before any factory `agent-ready` label is applied; mitigated by Operations sign-off attestation on this PR and parked-proposal tracking. (3) solo-operator enforcement code does not yet exist — the FR-005 amendment declares the rule and the contract.yaml toggle, but the GitHub Actions check that consumes the toggle is owned by Phase 1 #336; mitigated by parked-proposal tracking under `after: issue-336` so #336 cannot ship without consuming it.
+- Rollback strategy: single-ADR rollback uses `git revert` on the ADR file + the matching #339 design-contracts.md edit scoped to that ADR (NFR-REL-001). CODEOWNERS rollback uses `git revert` on `.github/CODEOWNERS` + the matching #339 Contract C6 `### Blueprint instance` block. Solo-operator amendment rollback uses `git revert` on the ADR's `§ Satisfaction paths` block + the `sod_policy` block in `blueprint/contract.yaml` (both source and bootstrap mirror) + the matching FR-005 traceability row update. Full PR revert via `git revert -m 1 <merge-sha>` is safe — no production state depends on this PR (zero runtime code).
 
 ## Deferred Proposals
-- Proposal 1 (not implemented): <describe the deferred proposal and reason for deferral>
+- Proposal 1 (parked — trigger: `after: github-teams-provisioned`): Operational team provisioning on GitHub — create the eight teams named in `.github/CODEOWNERS` (gate-1: `@sbonoc/factory-product`, `@sbonoc/factory-architecture`, `@sbonoc/factory-security`, `@sbonoc/factory-operations`; gate-2: `factory`, `infra`, `docs`, `governance`) and populate each with ≥ 2 members; surfaces in `AGENTS.backlog.md § Parked Proposals § after: github-teams-provisioned`; also tracked in `docs/blueprint/autonomous-factory/design-contracts.md` C6 `### Open Decisions` against #337 close. Rationale: operational prerequisite, not a code change; Operations sign-off on PR #345 attests to provisioning intent.
+- Proposal 2 (parked — trigger: `after: issue-336`): Solo-operator profile enforcement layer — GitHub Actions check reads `spec.spec_driven_development_contract.readiness_gate.sod_policy.solo_operator` in `blueprint/contract.yaml`, scans the PR for the literal `SOLO_OPERATOR_ATTESTATION: confirmed` marker on a canonical sign-off comment, validates the five-item normative checklist from `ADR-issue-337-separation-of-duties-at-factory-velocity.md § Satisfaction paths`, and applies the SoD count adjustment (Path 2 satisfies the multi-author rule alternatively). Surfaces in `AGENTS.backlog.md § Parked Proposals § after: issue-336`. Rationale: enforcement is in #336's scope (GitHub Actions webhook pipeline owns SoD evaluation); ADR + `sod_policy` toggle make the rule mechanically discoverable so #336 cannot ship without consuming it.
