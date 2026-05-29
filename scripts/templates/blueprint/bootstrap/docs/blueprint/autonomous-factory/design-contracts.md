@@ -354,7 +354,6 @@ The inheritance mechanism is the **existing** blueprint `contract.yaml` mechanis
 
 | Surface item | Stability tier | Extensibility tier | Owning ticket |
 |---|---|---|---|
-| `scripts/templates/infra/<consumer-confidential-k8s-wrapper>` | `preview` | `parameterized` (overlay schema in consumer `contract.yaml`) | #334 |
 | `scripts/templates/infra/<openhands-agent-server-wrapper>` | `preview` | `parameterized` | #335 |
 | `scripts/templates/infra/<eso-factory-binding-wrapper>` | `preview` | `parameterized` | #335 |
 | `scripts/templates/infra/<webhook-receiver-wrapper>` | `preview` | `parameterized` | #336 |

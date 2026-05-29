@@ -126,9 +126,9 @@
     },
     {
       "path": "scripts/templates/blueprint/bootstrap/docs/blueprint/autonomous-factory/design-contracts.md",
-      "sha256": "23c3ddd959174b469d601543acf4bb4da43482a646de396d726e2c184278a0eb",
+      "sha256": "b671a5b2545a3dcfabd2b0a46afb79b150dbacb8a0ed26ccf43d145f2c178a5b",
       "role": "bootstrap-template-mirror",
-      "description": "Bootstrap mirror of #339 design-contracts.md — re-synced after Slice 5 reciprocal edits (C6 Q-3, C7 Q-4 + Q-5, C8 Category (a) extension); SHA matches source."
+      "description": "Bootstrap mirror of #339 design-contracts.md — re-synced after Slice 5 reciprocal edits (C6 Q-3, C7 Q-4 + Q-5, C8 Category (a) extension), then re-synced again post-#340 merge to scrub the residual C8 Category (b) row referencing the closed #341 Confidential K8s wrapper; SHA matches source."
     },
     {
       "path": ".agents/personas/consumer/.gitkeep",

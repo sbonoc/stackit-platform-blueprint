@@ -91,8 +91,7 @@ Caption: Design-contract C1–C8 dependency edges — one node per contract, one
 - Governing spec: `specs/2026-05-28-issue-339-factory-design-contracts/spec.md`
 - Epic: #332 — STACKIT Autonomous Software Factory (OpenHands + SDD)
 - Phase 0 sibling: #337 — ADRs, CODEOWNERS, success metrics
-- Phase 1 consumers (blueprint repo implementers): #333 (personas), #334 (Confidential K8s), #335 (OpenHands + LiteLLM), #336 (webhooks), #342 (factory upgrade process)
-- Phase 0 prerequisite: #341 (Confidential Kubernetes module wrapper)
+- Phase 1 consumers (blueprint repo implementers): #333 (personas), #334 (SKE foundation + ESO + Secrets Manager + LogMe WORM + bot identity), #335 (OpenHands + LiteLLM), #336 (webhooks), #342 (factory upgrade process)
 - Phase 3 consumer: #338 (composition orchestration)
 - Consumer repos (Context D): every blueprint consumer that adopts the autonomous factory inherits C8 surface via the existing blueprint `contract.yaml` mechanism
 - Sign-off policy: `AGENTS.md § Sign-off Phrases (Deterministic)`

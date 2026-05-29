@@ -6,21 +6,21 @@
   "files": [
     {
       "path": "docs/blueprint/autonomous-factory/design-contracts.md",
-      "sha256": "23c3ddd959174b469d601543acf4bb4da43482a646de396d726e2c184278a0eb",
+      "sha256": "b671a5b2545a3dcfabd2b0a46afb79b150dbacb8a0ed26ccf43d145f2c178a5b",
       "role": "primary-deliverable",
-      "description": "Factory design contracts C1-C8 — the normative governance document produced by this work item. SHA updated 2026-05-29 in PR #345 (reciprocal Q-3 / Q-4 / Q-5 / C8 Category (a) edits)."
+      "description": "Factory design contracts C1-C8 — the normative governance document produced by this work item. SHA updated 2026-05-29 in PR #345 (reciprocal Q-3 / Q-4 / Q-5 / C8 Category (a) edits), then re-updated post-merge 2026-05-29 to scrub the residual C8 Category (b) row referencing the closed #341 Confidential K8s wrapper."
     },
     {
       "path": "docs/blueprint/architecture/decisions/ADR-issue-339-factory-design-contracts.md",
-      "sha256": "0ac2243ea972e478e261413f863c5b62cfd3906c97b5a4e0c24b6fa9c2932b8f",
+      "sha256": "25db7bdb6419db6524a055ea7742651845e3777dbe0f465cf03b2ffefd2ea444",
       "role": "adr",
-      "description": "Summary ADR with flowchart TD dependency diagram; Status: approved."
+      "description": "Summary ADR with flowchart TD dependency diagram; Status: approved. SHA updated 2026-05-29 post-merge to scrub the residual #341 Phase 0 prerequisite reference after #341 was closed as won't-do."
     },
     {
       "path": "scripts/templates/blueprint/bootstrap/docs/blueprint/autonomous-factory/design-contracts.md",
-      "sha256": "23c3ddd959174b469d601543acf4bb4da43482a646de396d726e2c184278a0eb",
+      "sha256": "b671a5b2545a3dcfabd2b0a46afb79b150dbacb8a0ed26ccf43d145f2c178a5b",
       "role": "bootstrap-template-mirror",
-      "description": "Bootstrap template mirror of design-contracts.md — created by sync_blueprint_template_docs.py after allowlist extension. SHA re-synced 2026-05-29 in PR #345 (matches source)."
+      "description": "Bootstrap template mirror of design-contracts.md — created by sync_blueprint_template_docs.py after allowlist extension. SHA re-synced 2026-05-29 in PR #345 (matches source), then re-synced again post-merge 2026-05-29 to mirror the source CVM cleanup."
     },
     {
       "path": "blueprint/contract.yaml",
