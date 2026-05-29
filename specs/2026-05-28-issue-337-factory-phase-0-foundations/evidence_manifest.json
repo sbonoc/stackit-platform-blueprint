@@ -36,9 +36,9 @@
     },
     {
       "path": "docs/blueprint/architecture/decisions/ADR-issue-337-separation-of-duties-at-factory-velocity.md",
-      "sha256": "2b82fb2efee3445141dad9d001217b6830d299849b2c5541b2615946f6c35354",
+      "sha256": "b83827336361e69df9a18577dddb7ee408d1f9b0fcdf0658a010ee750c094cfb",
       "role": "content-adr",
-      "description": "FR-005 — Separation of duties at factory velocity; cites #339 NFR-SEC-001 verbatim per NFR-SEC-002 (factory-bot exact-string equality on GitHub login; no substring/regex/display-name heuristics). Status: approved from inception. Amended 2026-05-29 (Step 06 follow-up) with § Satisfaction paths — Path 1 multi-author (default) + Path 2 solo-operator (alternative, gated by `solo_operator: true` in contract.yaml + canonical attestation comment with five-item checklist); Option E (rejected) added; Consequences extended; `sealed` classification preserved (mode-selection from a fixed blueprint-defined path-set is not parameterization)."
+      "description": "FR-005 — Separation of duties at factory velocity; cites #339 NFR-SEC-001 verbatim per NFR-SEC-002 (factory-bot exact-string equality on GitHub login; no substring/regex/display-name heuristics). Status: approved from inception. Amended 2026-05-29 (Step 06 follow-up) with § Satisfaction paths — Path 1 multi-author (default) + Path 2 solo-operator (alternative, gated by `solo_operator: true` in contract.yaml + canonical attestation comment with five-item checklist); Option E (rejected) added; Consequences extended; `sealed` classification preserved (mode-selection from a fixed blueprint-defined path-set is not parameterization). Reviewer-round update 2026-05-29: added a prominent For-#336-implementers callout at the head of § Satisfaction paths so implementers cannot miss the two-code-path requirement (Claude review observation #5)."
     },
     {
       "path": "docs/blueprint/architecture/decisions/ADR-issue-337-reject-rerun-cap.md",
@@ -72,15 +72,15 @@
     },
     {
       "path": "docs/blueprint/autonomous-factory/instrumentation-plan.md",
-      "sha256": "041a7991915155777187ea1310cd74f804c378766ce376be621a083c05c0ef3d",
+      "sha256": "712b73e19e5f846461826dd3f9afb612f3504574c7035ec1e36038639bef2c9f",
       "role": "primary-deliverable",
-      "description": "FR-012 + FR-013 — Instrumentation plan: primary + guardrail metrics, per-`owner_team` shape, source-of-truth field per metric, durable-bus emission rule (STACKIT Managed RabbitMQ with Strimzi-Kafka fallback per Q-5), 13-month retention parity with #334 LogMe WORM (Q-4)."
+      "description": "FR-012 + FR-013 — Instrumentation plan: primary + guardrail metrics, per-`owner_team` shape, source-of-truth field per metric, durable-bus emission rule (STACKIT Managed RabbitMQ with Strimzi-Kafka fallback per Q-5), 13-month retention parity with #334 LogMe WORM (Q-4). Reviewer-round update 2026-05-29: named #334 explicitly as the implementation owner of the sidecar emitter, and expanded the #334 reference line to include LogMe WORM at the 13-month SOC 2 retention floor (Claude review observations #2 and #3)."
     },
     {
       "path": "docs/blueprint/autonomous-factory/pre-factory-baselines.md",
-      "sha256": "d72a190d630cebd04f026c5decbb4a0579d196440c1c87e781e0dfdbc208f252",
+      "sha256": "1920ec325097586241641af13741cabdf99996977673ceedbfe9881acc56f5b6",
       "role": "primary-deliverable",
-      "description": "FR-014 — Pre-factory baselines: measurement window 2026-04-17->2026-05-28 (commit df7595c), n=100 merged PRs (Q-6 Option A), four baselines (lead time, reviewer wall-time, formal rejection rate transparently NOT MEASURABLE, defect rate proxy), per-`owner_team` breakdown row, calibration trigger declared."
+      "description": "FR-014 — Pre-factory baselines: measurement window 2026-04-17->2026-05-28 (commit df7595c), n=100 merged PRs (Q-6 Option A), four baselines (lead time, reviewer wall-time, formal rejection rate transparently NOT MEASURABLE, defect rate proxy), per-`owner_team` breakdown row, calibration trigger declared. Reviewer-round update 2026-05-29: reworded the § Sample-Size Caveats line to make explicit that n=100 is the verified full population of merged PRs in the 41-day window (via `gh pr list --limit 300`), not an API pagination cap (Claude review observation #4)."
     },
     {
       "path": "docs/blueprint/autonomous-factory/triage-decomposition-data-feed.md",
@@ -90,9 +90,9 @@
     },
     {
       "path": ".github/CODEOWNERS",
-      "sha256": "1f2da5977811a89bec6119c8f13a3fd154ce6701251d69641061c4c66b355714",
+      "sha256": "58de549b41df295cf03cd74ff14559e61feb49aebd87e0e5156017d3eb2e80d5",
       "role": "primary-deliverable",
-      "description": "FR-011 — Two-layer routing per CODEOWNERS last-match-wins semantics: gate-1 sign-off teams (@sbonoc/factory-{product,architecture,security,operations}) + gate-2 bounded-context teams (@sbonoc/factory-context-{factory,infra,docs,governance}); Q-3 Option A. Zero `@your-org/...` placeholders; AGENTS.md ownership preserved by tail-block re-anchor."
+      "description": "FR-011 — Two-layer routing per CODEOWNERS last-match-wins semantics: gate-1 sign-off teams (@sbonoc/factory-{product,architecture,security,operations}) + gate-2 bounded-context teams (@sbonoc/factory-context-{factory,infra,docs,governance}); Q-3 Option A. Zero `@your-org/...` placeholders; AGENTS.md ownership preserved by tail-block re-anchor. Reviewer-round update 2026-05-29: appended an additional tail-block re-anchor (broad-to-narrow ordering) for `/docs/blueprint/architecture/**`, `/.agents/**`, `/docs/blueprint/autonomous-factory/**`, the ADR-issue-33* glob, and the four new autonomous-factory deliverables — defeats the line-118 `/docs/blueprint/**` docs catch-all so the specialized owners actually win per last-match-wins (codex P1 + P2 inline comments)."
     },
     {
       "path": "blueprint/contract.yaml",
@@ -108,15 +108,15 @@
     },
     {
       "path": "scripts/templates/blueprint/bootstrap/docs/blueprint/autonomous-factory/instrumentation-plan.md",
-      "sha256": "041a7991915155777187ea1310cd74f804c378766ce376be621a083c05c0ef3d",
+      "sha256": "712b73e19e5f846461826dd3f9afb612f3504574c7035ec1e36038639bef2c9f",
       "role": "bootstrap-template-mirror",
-      "description": "Bootstrap mirror of instrumentation-plan.md — created by sync_blueprint_template_docs.py after allowlist extension; SHA matches source (AC-006 + AC-009)."
+      "description": "Bootstrap mirror of instrumentation-plan.md — created by sync_blueprint_template_docs.py after allowlist extension; SHA matches source (AC-006 + AC-009). Reviewer-round update 2026-05-29: re-synced after the source-side #334 implementation-owner naming + LogMe WORM reference expansion."
     },
     {
       "path": "scripts/templates/blueprint/bootstrap/docs/blueprint/autonomous-factory/pre-factory-baselines.md",
-      "sha256": "d72a190d630cebd04f026c5decbb4a0579d196440c1c87e781e0dfdbc208f252",
+      "sha256": "1920ec325097586241641af13741cabdf99996977673ceedbfe9881acc56f5b6",
       "role": "bootstrap-template-mirror",
-      "description": "Bootstrap mirror of pre-factory-baselines.md — created by sync_blueprint_template_docs.py after allowlist extension; SHA matches source (AC-006 + AC-009)."
+      "description": "Bootstrap mirror of pre-factory-baselines.md — created by sync_blueprint_template_docs.py after allowlist extension; SHA matches source (AC-006 + AC-009). Reviewer-round update 2026-05-29: re-synced after the source-side n=100 verified-population rewording."
     },
     {
       "path": "scripts/templates/blueprint/bootstrap/docs/blueprint/autonomous-factory/triage-decomposition-data-feed.md",

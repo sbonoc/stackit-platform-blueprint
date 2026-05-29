@@ -24,9 +24,9 @@
     },
     {
       "path": "blueprint/contract.yaml",
-      "sha256": "1ec23bd36190d8f598bddc3650d03d0a6e302f5755d04c1a2862221e69fcdece",
+      "sha256": "4db86a86492de197a0e3d9fdd57d68c5c28262097e4e2e686ffc1d3400d19b33",
       "role": "contract-change",
-      "description": "template_sync_allowlist extended with autonomous-factory/design-contracts.md (ADR excluded per convention — individual ADR files are not mirrored). Re-extended 2026-05-29 in PR #345 to add instrumentation-plan.md, pre-factory-baselines.md, triage-decomposition-data-feed.md."
+      "description": "template_sync_allowlist extended with autonomous-factory/design-contracts.md (ADR excluded per convention — individual ADR files are not mirrored). Re-extended 2026-05-29 in PR #345 to add instrumentation-plan.md, pre-factory-baselines.md, triage-decomposition-data-feed.md. SHA refreshed 2026-05-29 in PR #345 after the Step 06 follow-up that added the spec.spec_driven_development_contract.readiness_gate.sod_policy block."
     }
   ],
   "validation_runs": [

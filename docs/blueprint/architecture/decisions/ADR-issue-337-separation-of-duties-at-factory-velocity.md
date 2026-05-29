@@ -32,6 +32,8 @@ At factory velocity that property is no longer emergent. The factory bot operate
 
 ### Satisfaction paths
 
+> **For #336 implementers.** The SoD rule is classified `sealed` per #339 C8 FR-017(b), but `#336` MUST implement TWO enforcement code paths gated by `blueprint/contract.yaml § spec.spec_driven_development_contract.readiness_gate.sod_policy.solo_operator` (boolean; default `false`). Do not assume a single code path. Path 1 (multi-author, default) gates at ≥ 2 distinct non-bot logins. Path 2 (solo-operator, opt-in per-repo) gates at ≥ 1 non-bot login AND a canonical attestation comment matching every constraint below. Both paths apply the same factory-bot suppression (NFR-SEC-002 / #339 NFR-SEC-001 exact-string equality on `user.login` — substring/regex/display-name heuristics FORBIDDEN). The mode-selection is not parameterization in the FR-017 sense; consumers select from a fixed blueprint-defined path-set, they do not vary the rule text.
+
 The multi-author rule above is the blueprint default. Real consumer installations include solo-operator topologies (single-maintainer repositories, two-repo personal projects, early-stage initiatives) where a strict two-distinct-identity floor is unsatisfiable. To prevent solo operators from being forced to either fake reviewers or disable the factory entirely, the blueprint defines EXACTLY TWO satisfaction paths. Consumers select which path applies via `blueprint/contract.yaml § spec.spec_driven_development_contract.readiness_gate.sod_policy.solo_operator` (boolean; default `false`).
 
 **Path 1 — Multi-author (default; `solo_operator: false`).** As specified above: ≥ 2 distinct non-bot GitHub logins across the four canonical sign-off comments, with factory bot suppression by exact-`user.login` equality.

@@ -150,3 +150,33 @@
 /blueprint/contract.yaml                       @sbonoc/factory-security @sbonoc/factory-architecture
 /.github/workflows/**                          @sbonoc/factory-operations
 /.github/actions/**                            @sbonoc/factory-operations
+
+
+# ====================================================================
+# Re-anchored factory and architecture doc rules (defeat gate-2 docs catch-all)
+# ====================================================================
+# The broad `/docs/blueprint/**` rule above (Gate 2 docs section) would
+# otherwise become the LAST match for architecture decisions and the
+# autonomous-factory documents, sending high-stakes specs to the docs
+# bounded-context team. Re-anchor the correct owners here so they remain
+# the EFFECTIVE merge reviewers. Order matters within this block: broader
+# patterns first, narrower patterns last.
+
+# Gate-1 architecture for the architecture directory (broad)
+/docs/blueprint/architecture/**                                        @sbonoc/factory-architecture
+
+# Gate-2 factory bounded-context (narrower than architecture/** for ADRs;
+# co-located with autonomous-factory docs)
+/.agents/**                                                            @sbonoc/factory-context-factory
+/docs/blueprint/autonomous-factory/**                                  @sbonoc/factory-context-factory
+/docs/blueprint/architecture/decisions/ADR-issue-33*                   @sbonoc/factory-context-factory
+
+# Gate-1 architecture for design-contracts.md (narrower than autonomous-factory/**)
+/docs/blueprint/autonomous-factory/design-contracts.md                 @sbonoc/factory-architecture
+
+# Gate-1 operations for the three ops-owned factory documents
+# (narrower than autonomous-factory/**, preserves FR-012/FR-014/FR-015
+# operations sign-off authority)
+/docs/blueprint/autonomous-factory/instrumentation-plan.md             @sbonoc/factory-operations
+/docs/blueprint/autonomous-factory/pre-factory-baselines.md            @sbonoc/factory-operations
+/docs/blueprint/autonomous-factory/triage-decomposition-data-feed.md   @sbonoc/factory-operations

@@ -93,7 +93,7 @@ The single-row breakdown reflects that the blueprint repo is the sole factory op
 
 ## Sample-Size Caveats and Calibration Path
 
-- **Sample n = 100** is bounded by the GitHub Search API window cap (`is:pr is:merged merged:2026-04-17..2026-05-29 base:main` returns exactly 100 PRs across the 41-day window — this is the full population, not a sampled subset).
+- **Sample n = 100** is the full population of merged PRs in the measurement window — not an API pagination cap. Verified 2026-05-29 by `gh pr list --state merged --search "merged:2026-04-17..2026-05-29 base:main" --limit 300`, which returns exactly 100 results across the 41-day window; raising `--limit` above 100 yields no additional results, confirming n = 100 is the true population count.
 - The window is intentionally short (41 days) per Q-6 to preserve methodological purity (SDD-era only). Per Q-7's `### Sample Size` disclosure pattern, the small-n risk is documented and the comparable forward measurements (live factory) will accumulate at ~2.4 PRs/day, producing comparably-sized 30-day rolling windows for forward comparison.
 - Baselines (a) and (c) are directly measurable from GitHub Pulls API fields and are robust.
 - Baselines (b) and (d) carry structural caveats noted above; the forward measurement specifications in the instrumentation plan resolve the structural ambiguity (formal-state-based or label-driven), so live-factory comparison is well-defined even though the backward comparison is approximate.
