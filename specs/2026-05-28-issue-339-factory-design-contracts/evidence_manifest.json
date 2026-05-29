@@ -6,9 +6,9 @@
   "files": [
     {
       "path": "docs/blueprint/autonomous-factory/design-contracts.md",
-      "sha256": "b671a5b2545a3dcfabd2b0a46afb79b150dbacb8a0ed26ccf43d145f2c178a5b",
+      "sha256": "52acc1f86f8d486854cb4a53e0cab775ea7a654e785415b542fec695d2134e65",
       "role": "primary-deliverable",
-      "description": "Factory design contracts C1-C8 — the normative governance document produced by this work item. SHA updated 2026-05-29 in PR #345 (reciprocal Q-3 / Q-4 / Q-5 / C8 Category (a) edits), then re-updated post-merge 2026-05-29 to scrub the residual C8 Category (b) row referencing the closed #341 Confidential K8s wrapper."
+      "description": "Factory design contracts C1-C8 — the normative governance document produced by this work item. SHA updated 2026-05-29 in PR #345 (reciprocal Q-3 / Q-4 / Q-5 / C8 Category (a) edits), then re-updated post-merge 2026-05-29 to scrub the residual C8 Category (b) row referencing the closed #341 Confidential K8s wrapper. Second reviewer round 2026-05-29 in PR #345: corrected three C8 Category (a) ADR paths from the speculative working titles used at C8 authoring time to the actual committed #337 ADR filenames (FR-001 → llm-model-router-policy.md, FR-002 → persona-skill-contract.md, FR-004 → sovereignty-zdr-posture.md) so the consumer inheritance surface points at files that exist on disk (codex P2 #2)."
     },
     {
       "path": "docs/blueprint/architecture/decisions/ADR-issue-339-factory-design-contracts.md",
@@ -18,9 +18,9 @@
     },
     {
       "path": "scripts/templates/blueprint/bootstrap/docs/blueprint/autonomous-factory/design-contracts.md",
-      "sha256": "b671a5b2545a3dcfabd2b0a46afb79b150dbacb8a0ed26ccf43d145f2c178a5b",
+      "sha256": "52acc1f86f8d486854cb4a53e0cab775ea7a654e785415b542fec695d2134e65",
       "role": "bootstrap-template-mirror",
-      "description": "Bootstrap template mirror of design-contracts.md — created by sync_blueprint_template_docs.py after allowlist extension. SHA re-synced 2026-05-29 in PR #345 (matches source), then re-synced again post-merge 2026-05-29 to mirror the source CVM cleanup."
+      "description": "Bootstrap template mirror of design-contracts.md — created by sync_blueprint_template_docs.py after allowlist extension. SHA re-synced 2026-05-29 in PR #345 (matches source), then re-synced again post-merge 2026-05-29 to mirror the source CVM cleanup. Second reviewer round 2026-05-29: re-synced after source-side C8 ADR-path corrections (codex P2 #2)."
     },
     {
       "path": "blueprint/contract.yaml",

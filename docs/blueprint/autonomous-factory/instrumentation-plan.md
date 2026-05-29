@@ -19,17 +19,17 @@ The plan is the canonical owner of all telemetry decisions for the factory. Phas
 
 - **Measurement unit:** wall-clock minutes.
 - **Per-child / per-parent split:** measured per child issue independently for decomposed tickets (per [`ADR-issue-337-light-decomposition-policy.md`](../architecture/decisions/ADR-issue-337-light-decomposition-policy.md)); a parent-aggregate value (max child lead time) is also reported for decomposed parents so the integration-AC delay is visible.
-- **Source-of-truth field:** `(merge_event.timestamp - agent_ready_label_event.timestamp)` derived from `#339 Contract C7` lifecycle event stream (`label_applied` event with `label: agent-ready` and `pr_merged` event for the same work item).
+- **Source-of-truth field:** `(pr.merged_at - issue.labeled_event.created_at)` derived from **GitHub Issues / PR events** — the `labeled` event with `label.name == 'agent-ready'` on the work-item issue (GitHub Issues API) and `pr.merged_at` on the resulting PR (GitHub Pulls API), joined by work-item ID. `#339 Contract C7` is NOT the source for this metric: the C7 nine-field schema represents persona-phase emissions only (its `phase` enum is the seven SDD persona phases) and does not model GitHub-issue label-application or PR-merge events. Per the **Data Sources** rule below ("direct queries against GitHub events ... are permitted only when the same value cannot be derived from the C7 stream alone"), GitHub events are the correct source-of-truth here.
 - **Reporting cadence:** weekly P50 reported on the dashboard with rolling 7-day, 30-day, and 90-day windows.
 
 ## Guardrail Metrics
 
 | Metric | Threshold | Source-of-truth | Notes |
 |---|---|---|---|
-| First-review rejection rate | `< 25%` | C7 lifecycle event stream: count of `step08-agent-pr-review` events with `outcome: reject` divided by count of `step08-agent-pr-review` events overall, per work item | Reject = AI reviewer (step08) rejects the implementer's first attempt. Excludes reruns. |
+| First-review rejection rate | `< 25%` | C7 lifecycle event stream: count of events with `persona: step08-agent-pr-review` and `outcome: rejected` and `rerun_round: 0`, divided by count of all C7 events with `persona: step08-agent-pr-review` and `rerun_round: 0`, per work item | Reject = AI reviewer (step08) rejects the implementer's first attempt; the `rerun_round: 0` filter excludes reruns. The C7 `outcome` enum and the C7 `persona` field carry the required signal natively. |
 | Post-merge defect rate | `≤ pre-factory baseline (see pre-factory-baselines.md)` | GitHub Issues events: count of issues opened with label `defect-fix` within 30 days of a merged factory PR, divided by count of factory PRs merged in the same 30-day window | Defect-fix label MUST be applied per the AGENTS.md defect-classification policy. |
-| Reviewer wall-time per PR (spec gate) | `≤ pre-factory baseline` | C7 lifecycle event stream: `(first_sign_off_comment.timestamp - pr_opened.timestamp)` per PR | Sign-off comments = the four canonical phrases. |
-| Reviewer wall-time per PR (merge gate) | `≤ pre-factory baseline` | C7 lifecycle event stream: `(merge_event.timestamp - last_sign_off_comment.timestamp)` per PR | Captures the post-sign-off integration-review delay. |
+| Reviewer wall-time per PR (spec gate) | `≤ pre-factory baseline` | GitHub Pulls API + Issues comments: `(first_sign_off_comment.created_at - pr.created_at)` per PR. Sign-off comments are human-only per AGENTS.md and are NOT C7 events (C7 emission is exclusive to autonomous execution per `design-contracts.md` § C7 emission rule), so the source-of-truth MUST be GitHub events directly. | Sign-off comments = the four canonical phrases. |
+| Reviewer wall-time per PR (merge gate) | `≤ pre-factory baseline` | GitHub Pulls API + Issues comments: `(pr.merged_at - last_sign_off_comment.created_at)` per PR. Same rationale as the spec-gate row — human sign-off comments are not C7-emitted. | Captures the post-sign-off integration-review delay. |
 
 Any guardrail breach for two consecutive weekly reports MUST trigger an `@sbonoc/factory-operations` review of factory behavior in the affected dimension; the review outcome MUST be one of (a) tune ceiling values per [`ADR-issue-337-per-ticket-wall-clock-cost-ceiling.md`](../architecture/decisions/ADR-issue-337-per-ticket-wall-clock-cost-ceiling.md), (b) tune triage thresholds per [`ADR-issue-337-triage-size-threshold.md`](../architecture/decisions/ADR-issue-337-triage-size-threshold.md), (c) revert a specific ADR per NFR-REL-001, or (d) escalate to factory-architecture for design change.
 
@@ -94,7 +94,7 @@ Every metric above MUST be reported with an explicit per-`owner_team` breakdown 
 
 The breakdown shape MUST be in place from day one so consumer instances inherit it without re-instrumentation. Consumer instances populate their own `owner_team` values via the #339 C8 consumer overlay — adding additional rows to the breakdown is mechanical and requires no dashboard schema change.
 
-`owner_team` is derived from the C7 event stream's `actor_team` field (per Contract C7) at the time of the originating `agent-ready` label application, captured at event-emission time so retroactive team-membership changes do not rewrite history.
+`owner_team` is derived from the C7 event stream's `owner_team` field (one of the nine required fields in the C7 schema). It is snapshotted at C7 event-emission time on the first C7 event of the work item (`phase: intake`, the persona invocation triggered by the `agent-ready` label being applied) so retroactive team-membership changes do not rewrite history.
 
 ## Reporting Cadence
 

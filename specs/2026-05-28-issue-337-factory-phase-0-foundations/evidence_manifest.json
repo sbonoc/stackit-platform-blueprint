@@ -72,9 +72,9 @@
     },
     {
       "path": "docs/blueprint/autonomous-factory/instrumentation-plan.md",
-      "sha256": "712b73e19e5f846461826dd3f9afb612f3504574c7035ec1e36038639bef2c9f",
+      "sha256": "356556661120eee7321dd59b37178eb4d584ae6d555b6f662dcf5039da70efc9",
       "role": "primary-deliverable",
-      "description": "FR-012 + FR-013 — Instrumentation plan: primary + guardrail metrics, per-`owner_team` shape, source-of-truth field per metric, durable-bus emission rule (STACKIT Managed RabbitMQ with Strimzi-Kafka fallback per Q-5), 13-month retention parity with #334 LogMe WORM (Q-4). Reviewer-round update 2026-05-29: named #334 explicitly as the implementation owner of the sidecar emitter, and expanded the #334 reference line to include LogMe WORM at the 13-month SOC 2 retention floor (Claude review observations #2 and #3)."
+      "description": "FR-012 + FR-013 — Instrumentation plan: primary + guardrail metrics, per-`owner_team` shape, source-of-truth field per metric, durable-bus emission rule (STACKIT Managed RabbitMQ with Strimzi-Kafka fallback per Q-5), 13-month retention parity with #334 LogMe WORM (Q-4). Reviewer-round update 2026-05-29: named #334 explicitly as the implementation owner of the sidecar emitter, and expanded the #334 reference line to include LogMe WORM at the 13-month SOC 2 retention floor (Claude review observations #2 and #3). Second reviewer round 2026-05-29: re-anchored the primary-metric source-of-truth onto GitHub Issues / PR events (the `agent-ready` `labeled` event + `pr.merged_at`) because the C7 nine-field schema only represents persona-phase emissions and cannot model label/merge events (codex P2 #3); applied the same re-anchor to the two reviewer-wall-time guardrail rows (human sign-off comments are not C7-emitted per design-contracts.md § C7 emission rule); tightened the first-review-rejection-rate row wording to use C7's actual fields (`persona`, `outcome: rejected`, `rerun_round: 0`); corrected the per-`owner_team` derivation line to reference C7's `owner_team` field (not `actor_team`) snapshotted on the first `phase: intake` event."
     },
     {
       "path": "docs/blueprint/autonomous-factory/pre-factory-baselines.md",
@@ -108,9 +108,9 @@
     },
     {
       "path": "scripts/templates/blueprint/bootstrap/docs/blueprint/autonomous-factory/instrumentation-plan.md",
-      "sha256": "712b73e19e5f846461826dd3f9afb612f3504574c7035ec1e36038639bef2c9f",
+      "sha256": "356556661120eee7321dd59b37178eb4d584ae6d555b6f662dcf5039da70efc9",
       "role": "bootstrap-template-mirror",
-      "description": "Bootstrap mirror of instrumentation-plan.md — created by sync_blueprint_template_docs.py after allowlist extension; SHA matches source (AC-006 + AC-009). Reviewer-round update 2026-05-29: re-synced after the source-side #334 implementation-owner naming + LogMe WORM reference expansion."
+      "description": "Bootstrap mirror of instrumentation-plan.md — created by sync_blueprint_template_docs.py after allowlist extension; SHA matches source (AC-006 + AC-009). Reviewer-round update 2026-05-29: re-synced after the source-side #334 implementation-owner naming + LogMe WORM reference expansion. Second reviewer round 2026-05-29: re-synced after the primary-metric / guardrail / owner_team source-of-truth corrections (codex P2 #3)."
     },
     {
       "path": "scripts/templates/blueprint/bootstrap/docs/blueprint/autonomous-factory/pre-factory-baselines.md",
@@ -126,9 +126,9 @@
     },
     {
       "path": "scripts/templates/blueprint/bootstrap/docs/blueprint/autonomous-factory/design-contracts.md",
-      "sha256": "b671a5b2545a3dcfabd2b0a46afb79b150dbacb8a0ed26ccf43d145f2c178a5b",
+      "sha256": "52acc1f86f8d486854cb4a53e0cab775ea7a654e785415b542fec695d2134e65",
       "role": "bootstrap-template-mirror",
-      "description": "Bootstrap mirror of #339 design-contracts.md — re-synced after Slice 5 reciprocal edits (C6 Q-3, C7 Q-4 + Q-5, C8 Category (a) extension), then re-synced again post-#340 merge to scrub the residual C8 Category (b) row referencing the closed #341 Confidential K8s wrapper; SHA matches source."
+      "description": "Bootstrap mirror of #339 design-contracts.md — re-synced after Slice 5 reciprocal edits (C6 Q-3, C7 Q-4 + Q-5, C8 Category (a) extension), then re-synced again post-#340 merge to scrub the residual C8 Category (b) row referencing the closed #341 Confidential K8s wrapper; SHA matches source. Second reviewer round 2026-05-29: re-synced after the source-side C8 ADR-path corrections (codex P2 #2 — three #337 ADR paths corrected from speculative working titles to the actual committed filenames: FR-001 → llm-model-router-policy, FR-002 → persona-skill-contract, FR-004 → sovereignty-zdr-posture)."
     },
     {
       "path": ".agents/personas/consumer/.gitkeep",

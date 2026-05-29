@@ -336,10 +336,10 @@ The inheritance mechanism is the **existing** blueprint `contract.yaml` mechanis
 | `docs/blueprint/architecture/decisions/ADR-issue-339-factory-design-contracts.md` | `stable` | `sealed` |
 | `docs/blueprint/architecture/decisions/` (directory; future factory ADRs land here) | `stable` | `extensible` |
 | `docs/blueprint/architecture/decisions/ADR-issue-337-factory-phase-0-foundations.md` (meta-ADR + sign-off envelope) | `stable` | `sealed` |
-| `docs/blueprint/architecture/decisions/ADR-issue-337-three-tier-router.md` (FR-001) | `stable` | `sealed` |
-| `docs/blueprint/architecture/decisions/ADR-issue-337-persona-skill-mapping.md` (FR-002) | `stable` | `sealed` |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-llm-model-router-policy.md` (FR-001) | `stable` | `sealed` |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-persona-skill-contract.md` (FR-002) | `stable` | `sealed` |
 | `docs/blueprint/architecture/decisions/ADR-issue-337-trigger-authorization-model.md` (FR-003) | `stable` | `sealed` for the trigger-authorization rules; `parameterized` for the per-instance authorized-actor list |
-| `docs/blueprint/architecture/decisions/ADR-issue-337-sovereignty-zdr.md` (FR-004) | `stable` | `sealed` (also listed in FR-017(b) sealed list, item 4) |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-sovereignty-zdr-posture.md` (FR-004) | `stable` | `sealed` (also listed in FR-017(b) sealed list, item 4) |
 | `docs/blueprint/architecture/decisions/ADR-issue-337-separation-of-duties-at-factory-velocity.md` (FR-005) | `stable` | `sealed` |
 | `docs/blueprint/architecture/decisions/ADR-issue-337-reject-rerun-cap.md` (FR-006) | `stable` | `sealed` (also listed in FR-017(b) sealed list, item 5) |
 | `docs/blueprint/architecture/decisions/ADR-issue-337-per-ticket-wall-clock-cost-ceiling.md` (FR-007) | `stable` | `parameterized` (per-instance ceiling values via consumer overlay; structure sealed) |
