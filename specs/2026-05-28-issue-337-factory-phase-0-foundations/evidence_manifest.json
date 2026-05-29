@@ -6,9 +6,9 @@
   "files": [
     {
       "path": "docs/blueprint/architecture/decisions/ADR-issue-337-factory-phase-0-foundations.md",
-      "sha256": "9a903ebcdb05ffde0542d01f251d5cbffaec14a39232810ed882a4cdf546b441",
+      "sha256": "ee2b92f8893f85247c44cb5228e267c4a24b66841d9cb7b2257211e897f0e4d0",
       "role": "meta-adr",
-      "description": "Meta-ADR — Status: approved at Step 03 (commit 715014a) under all four canonical sign-offs; links to ten content ADRs + three autonomous-factory documents. Serves as the sign-off envelope for the ten content ADRs (FR-001..FR-010)."
+      "description": "Meta-ADR — Status: approved at Step 03 (commit 715014a) under all four canonical sign-offs; links to ten content ADRs + three autonomous-factory documents. Serves as the sign-off envelope for the ten content ADRs (FR-001..FR-010). Sixth reviewer round 2026-05-29: aligned the Consequences §:109 bullet with the round-5 #2 C8 reframing — replaced the obsolete claim that C8 enumerates the ten ADRs as `stable` consumer-shipped surface with the corrected `internal` normative-reference classification (consumers inherit the architectural baseline via the C7/C8 contract surface and the consumer-overlay parameter mechanism, not via mirroring of the ADR files themselves, which are pruned at consumer init); this also resolves the meta-ADR's internal contradiction between :109 (claimed `stable` mirroring) and :113 (correctly stated 'ADRs are not mirrored per existing convention') (codex P2 round-6 #2)."
     },
     {
       "path": "docs/blueprint/architecture/decisions/ADR-issue-337-llm-model-router-policy.md",
@@ -78,9 +78,9 @@
     },
     {
       "path": "docs/blueprint/autonomous-factory/pre-factory-baselines.md",
-      "sha256": "97932aa253cbf502fc2909c02f21f0bbcf482391459278765458f019d83e9971",
+      "sha256": "1815e72bb1c24402a71ff33841b4fe25a62bdd4834753bf57c3d4ebdacf1f212",
       "role": "primary-deliverable",
-      "description": "FR-014 — Pre-factory baselines: measurement window 2026-04-17->2026-05-28 (commit df7595c), n=100 merged PRs (Q-6 Option A), four baselines (lead time, reviewer wall-time, formal rejection rate transparently NOT MEASURABLE, defect rate proxy), per-`owner_team` breakdown row, calibration trigger declared. Reviewer-round update 2026-05-29: reworded the § Sample-Size Caveats line to make explicit that n=100 is the verified full population of merged PRs in the 41-day window (via `gh pr list --limit 300`), not an API pagination cap (Claude review observation #4). Fifth reviewer round 2026-05-29: corrected the forward-comparable-factory-metric line to use the C7 sealed enum value `outcome: rejected` (it previously used the schema-invalid `outcome: reject`), with an inline note pointing readers at the sealed enum definition in `design-contracts.md` § Contract C7 (codex P2 round-5 #1)."
+      "description": "FR-014 — Pre-factory baselines: measurement window 2026-04-17->2026-05-28 (commit df7595c), n=100 merged PRs (Q-6 Option A), four baselines (lead time, reviewer wall-time, formal rejection rate transparently NOT MEASURABLE, defect rate proxy), per-`owner_team` breakdown row, calibration trigger declared. Reviewer-round update 2026-05-29: reworded the § Sample-Size Caveats line to make explicit that n=100 is the verified full population of merged PRs in the 41-day window (via `gh pr list --limit 300`), not an API pagination cap (Claude review observation #4). Fifth reviewer round 2026-05-29: corrected the forward-comparable-factory-metric line to use the C7 sealed enum value `outcome: rejected` (it previously used the schema-invalid `outcome: reject`), with an inline note pointing readers at the sealed enum definition in `design-contracts.md` § Contract C7 (codex P2 round-5 #1). Sixth reviewer round 2026-05-29: fixed the SECOND occurrence of `outcome: reject` in the § Calibration Trigger (§:105) — round-5 #1 only corrected the §:57 instance; same C7 sealed-enum spelling correction (now `outcome: rejected`) with the same inline note pointing readers at the sealed enum definition `success | rejected | retried | human-handoff` in `design-contracts.md` § Contract C7 (codex P2 round-6 #1)."
     },
     {
       "path": "docs/blueprint/autonomous-factory/triage-decomposition-data-feed.md",
@@ -114,9 +114,9 @@
     },
     {
       "path": "scripts/templates/blueprint/bootstrap/docs/blueprint/autonomous-factory/pre-factory-baselines.md",
-      "sha256": "97932aa253cbf502fc2909c02f21f0bbcf482391459278765458f019d83e9971",
+      "sha256": "1815e72bb1c24402a71ff33841b4fe25a62bdd4834753bf57c3d4ebdacf1f212",
       "role": "bootstrap-template-mirror",
-      "description": "Bootstrap mirror of pre-factory-baselines.md — created by sync_blueprint_template_docs.py after allowlist extension; SHA matches source (AC-006 + AC-009). Reviewer-round update 2026-05-29: re-synced after the source-side n=100 verified-population rewording. Fifth reviewer round 2026-05-29: re-synced after the source-side `outcome: reject` → `outcome: rejected` enum-spelling fix (codex P2 round-5 #1)."
+      "description": "Bootstrap mirror of pre-factory-baselines.md — created by sync_blueprint_template_docs.py after allowlist extension; SHA matches source (AC-006 + AC-009). Reviewer-round update 2026-05-29: re-synced after the source-side n=100 verified-population rewording. Fifth reviewer round 2026-05-29: re-synced after the source-side `outcome: reject` → `outcome: rejected` enum-spelling fix (codex P2 round-5 #1). Sixth reviewer round 2026-05-29: re-synced after the source-side second `outcome: reject` → `outcome: rejected` enum-spelling fix in the § Calibration Trigger (codex P2 round-6 #1)."
     },
     {
       "path": "scripts/templates/blueprint/bootstrap/docs/blueprint/autonomous-factory/triage-decomposition-data-feed.md",
