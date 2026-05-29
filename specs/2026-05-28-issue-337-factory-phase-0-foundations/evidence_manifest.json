@@ -60,9 +60,9 @@
     },
     {
       "path": "docs/blueprint/architecture/decisions/ADR-issue-337-triage-size-threshold.md",
-      "sha256": "3ffe3bae8b3e43b65a4d9875df8e896c66c407cfb933a79078a1964b4651dbea",
+      "sha256": "560b1c0c4dc85889c67780b485fefd335b9325adf14499d573c3b4740e33a3cf",
       "role": "content-adr",
-      "description": "FR-009 — Triage size threshold (4-class table: small / medium / large-decomposable / escalate — Q-2 Option A). Status: approved from inception."
+      "description": "FR-009 — Triage size threshold (4-class table: small / medium / large-decomposable / escalate — Q-2 Option A). Status: approved from inception. Third reviewer round 2026-05-29: the `escalate` routing rule's C7 emission was rewritten to use the valid C7 enum values `phase: intake` + `outcome: human-handoff` (replacing the schema-invalid `outcome: escalate-class-blocked`); the specific blocking reason is now described as an optional extension field per C7's `additionalProperties: true` allowance (codex P2 #4)."
     },
     {
       "path": "docs/blueprint/architecture/decisions/ADR-issue-337-light-decomposition-policy.md",
@@ -72,9 +72,9 @@
     },
     {
       "path": "docs/blueprint/autonomous-factory/instrumentation-plan.md",
-      "sha256": "356556661120eee7321dd59b37178eb4d584ae6d555b6f662dcf5039da70efc9",
+      "sha256": "9b14a8aebb83cf2afff6596767d25aae66f1b11e6eaf232ce8e5f880d3f7b47d",
       "role": "primary-deliverable",
-      "description": "FR-012 + FR-013 — Instrumentation plan: primary + guardrail metrics, per-`owner_team` shape, source-of-truth field per metric, durable-bus emission rule (STACKIT Managed RabbitMQ with Strimzi-Kafka fallback per Q-5), 13-month retention parity with #334 LogMe WORM (Q-4). Reviewer-round update 2026-05-29: named #334 explicitly as the implementation owner of the sidecar emitter, and expanded the #334 reference line to include LogMe WORM at the 13-month SOC 2 retention floor (Claude review observations #2 and #3). Second reviewer round 2026-05-29: re-anchored the primary-metric source-of-truth onto GitHub Issues / PR events (the `agent-ready` `labeled` event + `pr.merged_at`) because the C7 nine-field schema only represents persona-phase emissions and cannot model label/merge events (codex P2 #3); applied the same re-anchor to the two reviewer-wall-time guardrail rows (human sign-off comments are not C7-emitted per design-contracts.md § C7 emission rule); tightened the first-review-rejection-rate row wording to use C7's actual fields (`persona`, `outcome: rejected`, `rerun_round: 0`); corrected the per-`owner_team` derivation line to reference C7's `owner_team` field (not `actor_team`) snapshotted on the first `phase: intake` event."
+      "description": "FR-012 + FR-013 — Instrumentation plan: primary + guardrail metrics, per-`owner_team` shape, source-of-truth field per metric, durable-bus emission rule (STACKIT Managed RabbitMQ stream queues with Strimzi-Kafka fallback per Q-5), 13-month retention parity with #334 LogMe WORM (Q-4). Reviewer-round update 2026-05-29: named #334 explicitly as the implementation owner of the sidecar emitter, and expanded the #334 reference line to include LogMe WORM at the 13-month SOC 2 retention floor (Claude review observations #2 and #3). Second reviewer round 2026-05-29: re-anchored the primary-metric source-of-truth onto GitHub Issues / PR events (the `agent-ready` `labeled` event + `pr.merged_at`) because the C7 nine-field schema only represents persona-phase emissions and cannot model label/merge events (codex P2 #3); applied the same re-anchor to the two reviewer-wall-time guardrail rows (human sign-off comments are not C7-emitted per design-contracts.md § C7 emission rule); tightened the first-review-rejection-rate row wording to use C7's actual fields (`persona`, `outcome: rejected`, `rerun_round: 0`); corrected the per-`owner_team` derivation line to reference C7's `owner_team` field (not `actor_team`) snapshotted on the first `phase: intake` event. Third reviewer round 2026-05-29: switched RabbitMQ queue type from `quorum` to `stream` (`x-queue-type: stream`) — log-structured offset-addressable storage that natively satisfies C7 Replayability for new-subscriber catch-up (codex P2 #5); rewrote the C7-to-RabbitMQ mapping table accordingly; reclassified LogMe as long-tail forensic audit beyond the bus retention window rather than as the in-bus replay path; corrected the Data Sources C7 row to remove the misleading 'every label application' claim — label applications are GitHub events, not C7 events (codex P2 #6)."
     },
     {
       "path": "docs/blueprint/autonomous-factory/pre-factory-baselines.md",
@@ -108,9 +108,9 @@
     },
     {
       "path": "scripts/templates/blueprint/bootstrap/docs/blueprint/autonomous-factory/instrumentation-plan.md",
-      "sha256": "356556661120eee7321dd59b37178eb4d584ae6d555b6f662dcf5039da70efc9",
+      "sha256": "9b14a8aebb83cf2afff6596767d25aae66f1b11e6eaf232ce8e5f880d3f7b47d",
       "role": "bootstrap-template-mirror",
-      "description": "Bootstrap mirror of instrumentation-plan.md — created by sync_blueprint_template_docs.py after allowlist extension; SHA matches source (AC-006 + AC-009). Reviewer-round update 2026-05-29: re-synced after the source-side #334 implementation-owner naming + LogMe WORM reference expansion. Second reviewer round 2026-05-29: re-synced after the primary-metric / guardrail / owner_team source-of-truth corrections (codex P2 #3)."
+      "description": "Bootstrap mirror of instrumentation-plan.md — created by sync_blueprint_template_docs.py after allowlist extension; SHA matches source (AC-006 + AC-009). Reviewer-round update 2026-05-29: re-synced after the source-side #334 implementation-owner naming + LogMe WORM reference expansion. Second reviewer round 2026-05-29: re-synced after the primary-metric / guardrail / owner_team source-of-truth corrections (codex P2 #3). Third reviewer round 2026-05-29: re-synced after the quorum→stream queue-type switch and Data Sources C7 row correction (codex P2 #5 + #6)."
     },
     {
       "path": "scripts/templates/blueprint/bootstrap/docs/blueprint/autonomous-factory/pre-factory-baselines.md",
@@ -126,9 +126,9 @@
     },
     {
       "path": "scripts/templates/blueprint/bootstrap/docs/blueprint/autonomous-factory/design-contracts.md",
-      "sha256": "52acc1f86f8d486854cb4a53e0cab775ea7a654e785415b542fec695d2134e65",
+      "sha256": "0de129cbbcd72d05ff20f141541cfee1858112a8b5f173c786208503ff3ad1b9",
       "role": "bootstrap-template-mirror",
-      "description": "Bootstrap mirror of #339 design-contracts.md — re-synced after Slice 5 reciprocal edits (C6 Q-3, C7 Q-4 + Q-5, C8 Category (a) extension), then re-synced again post-#340 merge to scrub the residual C8 Category (b) row referencing the closed #341 Confidential K8s wrapper; SHA matches source. Second reviewer round 2026-05-29: re-synced after the source-side C8 ADR-path corrections (codex P2 #2 — three #337 ADR paths corrected from speculative working titles to the actual committed filenames: FR-001 → llm-model-router-policy, FR-002 → persona-skill-contract, FR-004 → sovereignty-zdr-posture)."
+      "description": "Bootstrap mirror of #339 design-contracts.md — re-synced after Slice 5 reciprocal edits (C6 Q-3, C7 Q-4 + Q-5, C8 Category (a) extension), then re-synced again post-#340 merge to scrub the residual C8 Category (b) row referencing the closed #341 Confidential K8s wrapper; SHA matches source. Second reviewer round 2026-05-29: re-synced after the source-side C8 ADR-path corrections (codex P2 #2 — three #337 ADR paths corrected from speculative working titles to the actual committed filenames: FR-001 → llm-model-router-policy, FR-002 → persona-skill-contract, FR-004 → sovereignty-zdr-posture). Third reviewer round 2026-05-29: re-synced after the source-side C7 Q-5 queue-type switch from `quorum` to `stream` (codex P2 #5)."
     },
     {
       "path": ".agents/personas/consumer/.gitkeep",

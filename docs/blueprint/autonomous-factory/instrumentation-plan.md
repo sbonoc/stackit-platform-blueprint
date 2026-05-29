@@ -40,9 +40,9 @@ Any guardrail breach for two consecutive weekly reports MUST trigger an `@sbonoc
 | **GitHub Issues / PR events** | lifecycle stamps (label applications, PR opens/merges, issue closes); reviewer comment timestamps for wall-time computation; defect-fix label counts for defect rate | GitHub platform |
 | **GitHub Actions run logs** | CI evidence (which jobs ran, pass/fail status, duration); cross-correlation with C7 events when factory reruns are triggered by CI signal | GitHub platform |
 | **LiteLLM gateway usage logs** | model attribution (which model handled each persona invocation, prompt tokens, completion tokens, USD cost); enforced #339 NFR-SEC-001 exact-string bot-identity match | LiteLLM gateway (per [`ADR-issue-337-sovereignty-zdr-posture.md`](../architecture/decisions/ADR-issue-337-sovereignty-zdr-posture.md)) |
-| **#339 Contract C7 durable-bus lifecycle event stream** | canonical event spine — every persona invocation, every label application, every triage/decomposition decision, every rerun, every ceiling-hit emits a C7 event with the nine-field schema; this is the **system-of-record** for all factory metrics declared above | factory runtime (#335) |
+| **#339 Contract C7 durable-bus lifecycle event stream** | canonical persona-phase event spine — every persona invocation (one event per phase transition with `phase`, `persona`, `outcome`, `rerun_round`, `owner_team`), every triage/decomposition decision, every rerun, and every ceiling-hit emits a C7 event with the nine-field schema; this is the **system-of-record** for all factory-internal metrics that derive from persona-phase emissions | factory runtime (#335) |
 
-The **C7 event stream is the canonical event spine.** GitHub events and LiteLLM logs are subscribed-to inputs that the C7 stream cross-references; direct queries against GitHub events or LiteLLM logs for metric computation are permitted only when the same value cannot be derived from the C7 stream alone.
+The **C7 event stream is the canonical event spine for persona-phase emissions.** GitHub Issues / PR events (label applications, PR opens/merges, sign-off comments) are NOT C7 events — they are external lifecycle stamps that the C7 schema does not model (the `phase` enum is the seven SDD persona phases; there is no `event_type` or `label` field). For metrics whose source-of-truth is a GitHub event (the primary metric and both reviewer-wall-time guardrail rows), the GitHub Issues / PR events source is authoritative. For metrics whose source-of-truth is a persona-phase emission (the first-review rejection rate and per-`owner_team` derivation), C7 is authoritative.
 
 ## Dashboard Target, Retention, Owner
 
@@ -62,17 +62,17 @@ The Grafana dashboard MUST subscribe to the durable bus (see next section) rathe
 
 ### Why RabbitMQ
 
-The factory bus is an **event-broker problem** (durable fan-out from one publisher to N subscribers — the dashboard, the audit-log indexer, the cost meter, future Phase 3 composition orchestrator), not an **event-log problem** (where consumers replay from arbitrary offsets to rebuild state). LogMe WORM (#334) is the audit-of-record so the bus does not need log-structured storage; managed-service consistency with the stackit-managed-grafana choice keeps operational surface area minimal; SDD-C-013 managed-first is respected.
+The factory bus is a fan-out problem with replay (durable fan-out from one publisher to N subscribers — the dashboard, the audit-log indexer, the cost meter, future Phase 3 composition orchestrator — where any subscriber, including a newly attached one, must be able to replay historic ranges from a known offset per C7 § Replayability). RabbitMQ **stream queues** match this shape natively: they are log-structured (offset-addressable), persist events to disk before producer return, and let any consumer attach at an arbitrary offset within the configured retention window. LogMe WORM (#334) is the long-tail audit-of-record for compliance retention beyond the bus's 13-month window — not a substitute for in-bus replayability.
 
-### How the C7 emission-transport rule maps to RabbitMQ
+### How the C7 emission-transport rule maps to RabbitMQ stream queues
 
-| #339 Contract C7 rule | RabbitMQ realization |
+| #339 Contract C7 rule | RabbitMQ stream-queue realization |
 |---|---|
-| Durability (survives broker restart) | quorum queues (`x-queue-type: quorum`) with replicated WAL on the managed-cluster nodes |
-| Replayability (a new subscriber can catch up from a known offset) | bound durable queue per subscriber on a topic/fanout exchange — subscriber backlog is preserved between disconnects; full historical replay requires an audit-log sidecar (LogMe WORM, #334) and is NOT served by the bus |
+| Durability (survives broker restart) | stream queues (`x-queue-type: stream`) persist events to disk before publisher confirm; segment files are replicated across the managed-cluster nodes |
+| Replayability (a new subscriber can catch up from a known offset) | streams are log-structured and offset-addressable — any consumer (including one that has never previously connected) can attach with `x-stream-offset` set to a timestamp, first-message, last-message, or numeric offset and consume from that point forward within the configured 13-month retention window |
 | Async fire-and-forget from the factory runtime | publisher confirms with `mandatory=false` — the runtime emits and returns without blocking on subscriber acknowledgement |
-| Independent subscriber consumer-position tracking | one durable queue per subscriber bound to the exchange; per-queue consumer offsets managed by RabbitMQ; subscribers acknowledge independently |
-| Per-ticket ordering when required | single-active-consumer queues with routing keys keyed by work-item ID — ensures all events for a given ticket are processed in publish order by exactly one consumer at a time, while different tickets fan out across consumers in parallel |
+| Independent subscriber consumer-position tracking | per-consumer offset tracking is the subscriber's responsibility (per C7); streams expose explicit offset management so each subscriber can checkpoint and resume independently |
+| Per-ticket ordering when required | routing-key partitioning on the work-item ID across stream consumer groups — all events for a given ticket land on the same partition and are consumed in publish order, while different tickets fan out across consumers in parallel |
 
 ### Documented fallback (parameterized escape hatch)
 
