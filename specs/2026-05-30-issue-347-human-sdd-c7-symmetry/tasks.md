@@ -35,18 +35,12 @@
 - [ ] T-033 Add pre-commit hook entry in `.pre-commit-config.yaml` that schema-validates `artifacts/c7/<slug>.jsonl` on commit (uses the helper's schema-validation function).
 - [ ] T-034 Add `spec.spec_driven_development_contract.c7_emission` block to `blueprint/contract.yaml` declaring `BLUEPRINT_SDD_C7_EMIT` default + opt-out audit rule + JSONL sink path convention.
 
-### Slice 5 — #336 webhook handler ingest + integration test
-- [ ] T-040 Implement three new event-type handlers in #336 webhook handler: `pull_request.opened`, `pull_request.synchronize`, `pull_request.reopened`.
-- [ ] T-041 Implement GitHub contents API fetch logic to retrieve `artifacts/c7/<slug>.jsonl` at PR head SHA using the existing GitHub App installation token.
-- [ ] T-042 Implement schema validation + dedupe-by-event_id + republish-onto-bus flow with `emitter: local-cli` preserved.
-- [ ] T-043 Add `tests/webhook_handler/test_pr_event_c7_ingest.py` asserting `pull_request.opened` payload triggers fetch + validate + dedupe + republish; assert `pull_request.synchronize` on identical head SHA produces zero new bus emissions (dedupe absorbs the retry).
-
-### Slice 6 — Docs sync + FR-008 audit exemption + governance guide
-- [ ] T-050 Implement FR-008 `unknown`-model exemption: when both `phase: implement` and `phase: agent-pr-review` events carry `model: unknown`, mark the pair `inconclusive` (logged at info, NOT emitted as `rotation-violation`).
-- [ ] T-051 Add pytest assertion for the exemption in the FR-008 predicate's existing test suite.
-- [ ] T-052 Update `docs/blueprint/governance/sdd_execution_guide.md` with a new "## C7 Emission for Local SDD Sessions" section documenting `BLUEPRINT_SDD_C7_EMIT` env var, JSONL sink path, opt-out audit behavior, `rerun_round` semantics.
+### Slice 5 — Docs sync + governance guide
+- [ ] T-052 Update `docs/blueprint/governance/sdd_execution_guide.md` with a new "## C7 Emission for Local SDD Sessions" section documenting `BLUEPRINT_SDD_C7_EMIT` env var, JSONL sink path, opt-out audit behavior, `rerun_round` semantics. MUST note that subscriber-side ingest onto the durable bus is delivered by follow-up issue #350 (blocked by #336).
 - [ ] T-053 Re-sync bootstrap mirror `scripts/templates/blueprint/bootstrap/docs/blueprint/governance/sdd_execution_guide.md` via the docs-sync helper.
 - [ ] T-054 Add uniform addendum to consumer-side skill templates `scripts/templates/consumer/init/.agents/skills/blueprint-sdd-stepXX-*/SKILL.md.tmpl` (all seven).
+
+> Deferred to follow-up issue #350 (blocked by #336): T-040..T-043 (#336 webhook handler ingest + integration test) and T-050..T-051 (FR-008 `unknown`-model exemption). PR #348 ships the producer side only; the subscriber side ships when #336 runtime exists.
 
 ### Cross-cutting
 - [ ] T-060 Update blueprint docs/diagrams (already partially in T-001 + T-052; verify completeness)
@@ -57,7 +51,6 @@
 - [ ] T-102 Contract tests: `tests/sdd/test_c7_emit_contract.py` + `tests/sdd/test_c7_emit_jsonl_round_trip.py` (covered by T-023 + T-025)
 - [ ] T-103 Positive-path filter test: helper schema-validation function MUST return the parsed record (not just `True`/`False`) when an envelope is well-formed; unit test asserts the returned record preserves all eleven required fields + `execution_mode`. Evidence captured in `pr_context.md`.
 - [ ] T-104 Translate any reproducible pre-PR finding from manual `python3 scripts/bin/sdd/c7_emit.py emit ...` rehearsal into a failing pytest first; fix in same work item.
-- [ ] T-105 Integration test: `tests/webhook_handler/test_pr_event_c7_ingest.py` (covered by T-043)
 
 ## Accessibility Testing (Normative — mark N/A with rationale for non-UI specs)
 - [ ] T-A01 NFR-A11Y-001 declared in `spec.md` as "N/A — this work item adds no UI surface."
