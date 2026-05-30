@@ -249,7 +249,7 @@ make quality-sdd-check
 At the end of this step, emit a C7 lifecycle event:
 
 ```sh
-python3 scripts/bin/sdd/c7_emit.py emit \
+uv run python3 scripts/bin/sdd/c7_emit.py emit \
   --ticket "$TICKET_ID" \
   --phase "intake" \
   --skill "$SKILL_BASENAME" \

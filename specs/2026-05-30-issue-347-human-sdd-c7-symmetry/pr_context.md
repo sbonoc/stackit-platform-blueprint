@@ -27,10 +27,10 @@
 
 ## Validation Evidence
 - Required commands executed:
-  - `python3 -m pytest tests/sdd/ -v` → 43 passed, 0 failed (covers FR-001..FR-007, FR-013, NFR-REL-001, NFR-OPS-001, T-103)
-  - `python3 -m pytest tests/infra/test_sdd_asset_checker.py -q` → 17 passed (covers FR-015(a) skill structural-sections scanner)
+  - `uv run python3 -m pytest tests/sdd/ -v` → 43 passed, 0 failed (covers FR-001..FR-007, FR-013, NFR-REL-001, NFR-OPS-001, T-103)
+  - `uv run python3 -m pytest tests/infra/test_sdd_asset_checker.py -q` → 17 passed (covers FR-015(a) skill structural-sections scanner)
   - `make quality-sdd-check` → zero violations
-  - Manual AC-001 rehearsal: 7 sequential CLI invocations (`scripts/bin/sdd/c7_emit.py emit`) for ticket 999 across the seven SDD phases under `CLAUDE_CODE_MODEL=claude-opus-4-7` produced 7 JSONL lines in `artifacts/c7/rehearsal-999.jsonl`, all with `emitter=local-cli`, `execution_mode=human-assisted`, `model=claude-opus-4-7`, `rerun_round=0`, distinct `event_id`s — confirms one event per SDD step.
+  - Manual AC-001 rehearsal: 7 sequential CLI invocations (`uv run python3 scripts/bin/sdd/c7_emit.py emit`) for ticket 999 across the seven SDD phases under `CLAUDE_CODE_MODEL=claude-opus-4-7` produced 7 JSONL lines in `artifacts/c7/rehearsal-999.jsonl`, all with `emitter=local-cli`, `execution_mode=human-assisted`, `model=claude-opus-4-7`, `rerun_round=0`, distinct `event_id`s — confirms one event per SDD step.
   - Manual AC-004 / FR-007 rehearsal: 3 sequential opt-out invocations (`BLUEPRINT_SDD_C7_EMIT=0 BLUEPRINT_SDD_C7_OPT_OUT_REASON=ci-rehearsal`) for ticket 999 under slug `optout-999` produced exactly 1 `c7-emission-opted-out` event in `artifacts/c7/optout-999.jsonl` with `opt_out_reason=ci-rehearsal`; invocations 2 and 3 short-circuited and logged the FR-007 dedup branch to stderr.
 - Result summary: All in-scope FRs, NFRs, and ACs covered by automated tests or the documented manual rehearsal. No deterministic-check failures.
 - Artifact references:

@@ -500,7 +500,7 @@ HTTP-scope slices that add or modify response schema fields must also satisfy:
 - Run the docs sync script to propagate changes to bootstrap templates:
 
 ```bash
-python3 scripts/lib/docs/sync_blueprint_template_docs.py
+uv run python3 scripts/lib/docs/sync_blueprint_template_docs.py
 ```
 
 - Update skill runbooks in `.agents/skills/*/SKILL.md` when
@@ -668,7 +668,7 @@ omitted from the envelope when the env var is unset or empty.
 ### Manual invocation
 
 ```sh
-python3 scripts/bin/sdd/c7_emit.py emit \
+uv run python3 scripts/bin/sdd/c7_emit.py emit \
   --ticket "${TICKET_ID}" \
   --phase "intake" \
   --skill "blueprint-sdd-step01-intake" \

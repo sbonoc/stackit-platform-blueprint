@@ -51,7 +51,7 @@ DOCUMENT
    - docs/blueprint/architecture/decisions/ADR-<slug>.md (if any changes)
 3. Update Mermaid diagrams where the implementation changes flow or state.
 4. Sync docs to bootstrap template mirrors:
-   python3 scripts/lib/docs/sync_blueprint_template_docs.py
+   uv run python3 scripts/lib/docs/sync_blueprint_template_docs.py
 5. make quality-docs-check-changed     # must pass
 
 OPERATE
@@ -78,7 +78,7 @@ make quality-docs-sync-all
 make quality-docs-check-changed
 make docs-build
 make docs-smoke
-python3 scripts/lib/docs/sync_blueprint_template_docs.py
+uv run python3 scripts/lib/docs/sync_blueprint_template_docs.py
 ```
 
 ## Required Report Format
@@ -103,7 +103,7 @@ Return:
 At the end of this step, emit a C7 lifecycle event:
 
 ```sh
-python3 scripts/bin/sdd/c7_emit.py emit \
+uv run python3 scripts/bin/sdd/c7_emit.py emit \
   --ticket "$TICKET_ID" \
   --phase "document-sync" \
   --skill "$SKILL_BASENAME" \

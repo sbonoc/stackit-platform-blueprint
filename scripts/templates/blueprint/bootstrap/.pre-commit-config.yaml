@@ -85,7 +85,7 @@ repos:
       - id: quality-c7-jsonl-validate
         name: quality C7 JSONL schema validation
         language: system
-        entry: python3 scripts/bin/quality/validate_c7_jsonl.py
+        entry: uv run python3 scripts/bin/quality/validate_c7_jsonl.py
         files: ^artifacts/c7/.*\.jsonl$
         always_run: false
       - id: blueprint-test-unit
