@@ -630,6 +630,11 @@ The file is append-only and committed to the feature branch. It is hidden from P
 `.gitattributes` rule (`linguist-generated=true diff=none`). The `work-item-slug` is the value passed
 to the helper via `--slug`; it defaults to the `ticket_id` when omitted.
 
+> **Gitignore exception.** The top-level `.gitignore` excludes `artifacts/*` but permits
+> `artifacts/c7/*.jsonl` via `!artifacts/c7/` + `!artifacts/c7/*.jsonl` negation rules.
+> These negations must be present in `.gitignore` (and in the bootstrap template mirror) for
+> `git add artifacts/c7/<slug>.jsonl` to succeed.
+
 ### `rerun_round` semantics
 
 The helper computes `rerun_round` by counting prior committed events for the same `(ticket_id, phase)` pair

@@ -2,7 +2,7 @@
   "manifest_version": 1,
   "work_item": "2026-05-30-issue-347-human-sdd-c7-symmetry",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "2026-05-31T01:00:00Z",
+  "generated_at_utc": "2026-05-31T02:00:00Z",
   "files": [
     {
       "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/spec.md",
@@ -27,7 +27,7 @@
     {
       "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/traceability.md",
       "purpose": "22-row matrix mapping every in-scope requirement to design / impl / test / docs / ops evidence (deferred rows excised to #350)",
-      "sha256": "b7ce68ee8e8bc1bd633cfbfe09c12e0c86a7f294c2edb24f1c717705ddfbcab8"
+      "sha256": "c6b5b766a9efd1bb91ea2cbee2e58b550a7dd0f09789c35afd430d63725382a1"
     },
     {
       "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/graph.json",

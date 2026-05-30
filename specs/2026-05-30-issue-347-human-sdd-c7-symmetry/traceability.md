@@ -18,7 +18,7 @@
 | FR-014 | SDD-C-003, SDD-C-004 | N/A | architecture.md § Problem Statement § Scope boundaries (PRs opened after merge only) | none — explicit exclusion; no backfill code | reviewer checklist | spec.md § Explicit Exclusions | none |
 | FR-015 | SDD-C-003, SDD-C-004, SDD-C-021 | N/A | spec.md § FR-015 (incorporated from parked proposal issue-247-step05-slice-done-gate) | scripts/bin/quality/check_sdd_assets.py (SKILL.md structural integrity scanner — required sections + C7 addendum byte-equality) | make quality-sdd-check CI gate (AC-007) | none beyond the check itself | check_sdd_assets.py CI gate |
 | NFR-SEC-001 | SDD-C-009, SDD-C-019 | N/A | architecture.md § Non-Functional Architecture Notes — Security; ADR § Decision (skill-as-tool preserves the sealed-emitter anti-LLM-hallucination property) | scripts/lib/sdd/c7_emit.py is the SOLE writer; skill runbook addendum forbids LLM-side JSONL writes | code review (helper is the only `O_APPEND` writer to `artifacts/c7/`); reviewer checklist | ADR § Decision Drivers + § Decision | none |
-| NFR-REL-001 | SDD-C-010, SDD-C-012 | N/A | architecture.md § Non-Functional Architecture Notes — Reliability and rollback | scripts/lib/sdd/c7_emit.py (failure path: log + return success) | tests/sdd/test_c7_emit_unit.py (failure path coverage) | docs/blueprint/governance/sdd_execution_guide.md (helper-failure non-blocking) | helper stderr logs |
+| NFR-REL-001 | SDD-C-010, SDD-C-012 | N/A | architecture.md § Non-Functional Architecture Notes — Reliability and rollback | scripts/lib/sdd/c7_emit.py (failure path: log + return success) | tests/sdd/test_c7_emit_failure_path.py | docs/blueprint/governance/sdd_execution_guide.md (helper-failure non-blocking) | helper stderr logs |
 | NFR-OPS-001 | SDD-C-010, SDD-C-012 | N/A | architecture.md § Non-Functional Architecture Notes — Reliability and rollback (deterministic `event_id` for future dedupe) | scripts/lib/sdd/c7_emit.py (deterministic event_id derivation; append-only) | tests/sdd/test_c7_emit_jsonl_round_trip.py (rerun_round increments correctly across 10 sequential emissions) | design-contracts.md § Contract C7 § Emission idempotency | subscriber-side dedupe delivered by #350 |
 | NFR-A11Y-001 | N/A | N/A | N/A — no UI surface | N/A | N/A | spec.md § NFR-A11Y-001 ("N/A — this work item adds no UI surface") | N/A |
 | AC-001 | SDD-C-012 | N/A | spec.md § AC-001 (>= 7 events in full lifecycle) | manual rehearsal on a stub work item; pytest unit + round-trip suites | manual rehearsal log captured in pr_context.md | pr_context.md (validation evidence) | none |
@@ -37,16 +37,18 @@
   - AC-001, AC-002, AC-004, AC-006, AC-007
 
 ## Validation Summary
-- Required bundles executed: all green (Step 05 implementation + post-implementation audit fixes complete)
+- Required bundles executed: all green (Step 05 implementation + Step 06 doc-sync complete)
 - Result summary:
-  - `tests/sdd/` — 49 pytest tests: 16 unit + 7 contract + 9 opt-out + 5 round-trip + 4 validate + 2 failure-path + 6 schema (0 failures)
-  - `tests/infra/test_sdd_asset_checker.py::SkillC7AddendaTests` + `SkillStructuralSectionsTests` — 7 tests: all pass (checker unit tests for FR-015 parts a and b)
+  - `tests/sdd/` — 43 pytest tests: 16 unit + 7 contract + 9 opt-out + 5 round-trip + 4 validate + 2 failure-path (0 failures)
+  - `tests/blueprint/test_design_contracts_schema.py` — 6 tests (FR-001 schema surface; all pass)
+  - `tests/infra/test_sdd_asset_checker.py` — 17 tests: SkillC7AddendaTests + SkillStructuralSectionsTests (FR-015; all pass)
   - `make quality-sdd-check` — zero violations (C7 addendum uniformity, emitter enum widening, structural-section presence, spec asset gates)
   - `make docs-build` — success
   - `make docs-smoke` — success
 - Documentation validation:
   - `make docs-build` — success (2026-05-31)
   - `make docs-smoke` — success (2026-05-31)
+  - `make quality-docs-check-changed` — exit 0 (2026-05-31)
 - Post-implementation audit fixes (2026-05-31):
   - FR-007: opt-out de-dup (EXACTLY ONE c7-emission-opted-out event per slug) + `opt_out_reason` extension field from `BLUEPRINT_SDD_C7_OPT_OUT_REASON` env var
   - FR-013: `.gitattributes` literal aligned to spec (`linguist-generated=true` with explicit `=true`)
