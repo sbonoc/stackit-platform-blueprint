@@ -69,6 +69,7 @@ Let the cost ceiling alone bound rerun spend.
 - The `factory-escalated` label is the canonical "this ticket needs human re-scope" signal — reviewers MUST filter for it as a routine PR-queue triage step.
 - Consumer instances inherit the cap value, the per-(work-item × step) counter shape, and the escalation actions identically (sealed per #339 C8 FR-017(b)).
 - Interaction with FR-007 cost ceiling: rerun-cap-hit fires earlier than ceiling-hit on average and is the preferred signal; ceiling-hit remains the backstop for legitimate single-run cost overruns or non-rerun cost paths (e.g., pathologically long step01 intake).
+- **Check-order on every persona-invocation trigger.** #336 MUST evaluate FR-006 rerun-cap exhaustion BEFORE evaluating the FR-007 per-ticket ceiling, so the quality-signal escalation (`factory-escalated`) fires before the budget-signal pause (`factory-paused-ceiling`) when both conditions are simultaneously true on the same invocation. Mirrors the matching check-order rule in [`ADR-issue-337-per-ticket-wall-clock-cost-ceiling.md`](ADR-issue-337-per-ticket-wall-clock-cost-ceiling.md).
 
 ## References
 

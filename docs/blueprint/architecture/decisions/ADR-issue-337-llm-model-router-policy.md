@@ -39,7 +39,7 @@ Three-tier per-step routing scheme:
 
 **Fallback behaviour.** On gateway 5xx or model-unavailable: a single bounded retry on the same model, then fail the persona invocation upward. No silent fallback to a different model — silent fallbacks would mask FR-008 reviewer-heterogeneity rotation violations and conflate model-cost telemetry.
 
-**Implementer.** #335 (OpenHands + LiteLLM) carries the routing rules into the LiteLLM gateway configuration.
+**Implementers.** #335 (OpenHands + LiteLLM) carries the routing rules into the LiteLLM gateway configuration. #333 (orchestrator service) resolves the family/version names in the table above into concrete deployed gateway model IDs at persona-invocation time via the per-instance LiteLLM access configuration declared by #339 Contract C8 FR-014 (model allowlist), per the resolution rule in **Model identifier resolution** above.
 
 ## Options Considered
 
@@ -83,4 +83,4 @@ Route by individual persona file rather than by SDD step.
 - Meta-ADR: [`ADR-issue-337-factory-phase-0-foundations.md`](ADR-issue-337-factory-phase-0-foundations.md)
 - Related: [`ADR-issue-337-reviewer-model-heterogeneity.md`](ADR-issue-337-reviewer-model-heterogeneity.md), [`ADR-issue-337-per-ticket-wall-clock-cost-ceiling.md`](ADR-issue-337-per-ticket-wall-clock-cost-ceiling.md), [`ADR-issue-337-sovereignty-zdr-posture.md`](ADR-issue-337-sovereignty-zdr-posture.md)
 - Design contracts: `docs/blueprint/autonomous-factory/design-contracts.md` § Contract C3 (OpenHands ↔ persona mapping), § Contract C8 § External service — LiteLLM access configuration (FR-014)
-- Phase 1 implementer: #335 (OpenHands + LiteLLM)
+- Phase 1 implementers: #335 (OpenHands + LiteLLM — gateway routing rules); #333 (orchestrator service — family/version → deployment-ID resolution at invocation time)
