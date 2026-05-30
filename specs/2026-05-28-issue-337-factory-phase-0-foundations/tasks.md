@@ -24,12 +24,13 @@
 - [x] T-014 Author `docs/blueprint/autonomous-factory/triage-decomposition-data-feed.md` per FR-015; Markdown table; one row per ticket cycle; `### Sample Size` subsection per Q-7 (Slice 3)
 - [x] T-015 Replace `.github/CODEOWNERS` placeholder content with two-layer routing per FR-011; gate-1 four roles from Q-3; gate-2 bounded contexts from Q-3; verify zero `@your-org/...` placeholders; if Q-3 Option C, record deferred provisioning in CODEOWNERS comment block (Slice 4)
 - [x] T-016 Update `docs/blueprint/autonomous-factory/design-contracts.md` per FR-016: populate C6 `### Blueprint instance` (Q-3 slugs + bounded-context enumeration), populate C7 `### Blueprint instance` (`stackit-managed-grafana` + Q-4 retention + Q-4 owner), resolve C7 `### Open Decisions` durable-bus pick to Q-5 value (Slice 5)
-- [x] T-017 Update `docs/blueprint/autonomous-factory/design-contracts.md` per FR-017: extend C8 to enumerate the ten content ADRs (stability `stable` + extensibility per each FR's classification) and the three autonomous-factory documents (stability `stable` + extensibility `extensible`) (Slice 5)
+- [x] T-017 Update `docs/blueprint/autonomous-factory/design-contracts.md` per FR-017: extend C8 to enumerate the eleven content ADRs (FR-001 through FR-010 plus FR-019; stability `stable` + extensibility per each FR's classification) and the three autonomous-factory documents (stability `stable` + extensibility `extensible`) (Slice 5)
 - [x] T-018 Regenerate #339 spec's `evidence_manifest.json` SHA-256 entries for `docs/blueprint/autonomous-factory/design-contracts.md` and its bootstrap mirror (Slice 5 source, Slice 6 mirror)
 - [x] T-019 Extend `blueprint/contract.yaml` `template_sync_allowlist` to include the three new autonomous-factory documents from T-012/T-013/T-014 (Slice 6)
 - [x] T-020 Run `python3 scripts/lib/docs/sync_blueprint_template_docs.py`; verify zero diff on re-run (AC-009) (Slice 6 — initial sync created the 3 mirror files; re-run output `created=0 updated=0 removed=0 skipped=17`)
 - [x] T-021 Create `.agents/personas/consumer/.gitkeep` per FR-018; ensure `.agents/personas/` exists (Slice 7)
-- [x] T-022 Meta-ADR `docs/blueprint/architecture/decisions/ADR-issue-337-factory-phase-0-foundations.md` `Status: approved` + ADR technical decision sign-off: approved (Step 03 commit `715014a`); relative links to ten content ADRs and three autonomous-factory documents present (verification of link targets pending Slices 2–3 file creation in Step 05)
+- [x] T-022 Meta-ADR `docs/blueprint/architecture/decisions/ADR-issue-337-factory-phase-0-foundations.md` `Status: approved` + ADR technical decision sign-off: approved (Step 03 commit `715014a`); relative links to eleven content ADRs (FR-001 through FR-010 plus FR-019) and three autonomous-factory documents present (verification of link targets pending Slices 2–3 file creation in Step 05; FR-019 ADR added round 10 under the same sign-off envelope)
+- [x] T-023 Author `docs/blueprint/architecture/decisions/ADR-issue-337-c7-emission-mechanism.md` per FR-019 with `Status: approved` from inception (round-10 amendment under meta-ADR sign-off envelope per traceability Follow-up 9) — the sealed two-emitter rule (orchestrator #333 phase-boundary events + webhook handler #336 GitHub-observable events; LiteLLM/OpenHands/workspace pods/personas/skills are NON-emitters; idempotency `event_id = sha256(work_item_id|phase|rerun_round|emitter)`; local exemption via `LIFECYCLE_EVENT_TARGET=local`) (Slice 2)
 
 ## Test Automation
 - [x] T-101 Add or update unit tests — N/A (governance-documentation change; no code units)
@@ -58,7 +59,7 @@
 - [x] P-003 Ensure PR description follows repository template headings and references `pr_context.md` — completed at Step 07 (2026-05-29): PR description aligned with pr_context.md content
 
 ## Sign-off and Status Promotion
-- [x] T-301 All four canonical sign-offs recorded on PR #345 and in `spec.md` (Step 03 commit `715014a`); meta-ADR flipped to `Status: approved` in the same commit. The ten content ADRs (T-002…T-011) are authored at Step 05 with `Status: approved` from inception under this PR's spec-level sign-off envelope — no separate status-flip pass needed
+- [x] T-301 All four canonical sign-offs recorded on PR #345 and in `spec.md` (Step 03 commit `715014a`); meta-ADR flipped to `Status: approved` in the same commit. The eleven content ADRs (T-002…T-011 plus T-023 for FR-019) are authored with `Status: approved` from inception under this PR's spec-level sign-off envelope (T-023 added round 10 as an amendment under the same envelope) — no separate status-flip pass needed
 
 ## App Onboarding Minimum Targets (Normative)
 - [x] A-001 `apps-bootstrap` and `apps-smoke` are implemented and verified for the affected app scope — N/A (no app scope affected by this governance-documentation work item)
