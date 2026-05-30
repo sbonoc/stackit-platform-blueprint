@@ -184,7 +184,7 @@ Consumer repos MUST declare their own bot login. The blueprint's value MUST NOT 
 
 ### Open Decisions
 
-- **Reserve and verify the bot identity on GitHub** — deferring ticket: **#334** (Confidential K8s + bot provisioning); resolve-by deadline: **Phase 1 close (Epic #332 acceptance gate)**. Placeholder: `<TBD: reserve-and-verify in #334>`.
+- **Reserve and verify the bot identity on GitHub** — deferring ticket: **#334** (factory runtime on SKE — Secrets Manager + ESO + egress NetworkPolicy + bot identity); resolve-by deadline: **Phase 1 close (Epic #332 acceptance gate)**. Placeholder: `<TBD: reserve-and-verify in #334>`.
 
 Referenced by: #334, #335, #336, #337
 
@@ -211,7 +211,16 @@ The blueprint factory instance maps the four canonical roles to (Q-2 resolved 20
 | Security | `@sbonoc/factory-security` |
 | Operations | `@sbonoc/factory-operations` |
 
-Bounded-context teams are kept **separate** from the four sign-off teams (no role-tagging committee). The provisional bounded-context list is `{factory, infra, docs, governance}`; the concrete list is owned by #337.
+Bounded-context teams are kept **separate** from the four sign-off teams (no role-tagging committee). The concrete bounded-context enumeration for the blueprint instance is `{factory, infra, docs, governance}` (Q-3 resolved 2026-05-28 in PR #345 — `specs/2026-05-28-issue-337-factory-phase-0-foundations/spec.md`). The corresponding GitHub team slugs are:
+
+| Bounded context | Blueprint team slug |
+|---|---|
+| `factory` | `@sbonoc/factory-context-factory` |
+| `infra` | `@sbonoc/factory-context-infra` |
+| `docs` | `@sbonoc/factory-context-docs` |
+| `governance` | `@sbonoc/factory-context-governance` |
+
+These slugs are wired into `.github/CODEOWNERS` Gate 2 per FR-011 (PR #345).
 
 ### Consumer overlay
 
@@ -226,7 +235,7 @@ Consumer repos MUST declare their own four team slugs. The blueprint's slugs MUS
 
 ### Open Decisions
 
-- **Concrete blueprint-instance team provisioning** (create teams on GitHub, populate ≥2 members each, full bounded-context enumeration) — deferring ticket: **#337** (Phase 0 ADRs, CODEOWNERS, instrumentation); resolve-by deadline: **#337 close**. Placeholder: `<TBD: concrete team provisioning in #337>`.
+- **Concrete blueprint-instance team provisioning on GitHub** (create the eight teams — four sign-off + four bounded-context — and populate ≥2 members each) — deferring ticket: **#337**; resolve-by deadline: **#337 close**. The bounded-context enumeration is now pinned above; what remains is the GitHub-side team creation and membership population, which is an operational task tracked under #337's Operations sign-off scope.
 
 Referenced by: #336, #337
 
@@ -249,6 +258,7 @@ The minimum event field set is a named JSON schema with explicit types and nulla
   "type": "object",
   "additionalProperties": true,
   "required": [
+    "event_id",
     "ticket_id",
     "parent_ticket_id",
     "phase",
@@ -257,23 +267,28 @@ The minimum event field set is a named JSON schema with explicit types and nulla
     "timestamp",
     "outcome",
     "rerun_round",
-    "owner_team"
+    "owner_team",
+    "emitter"
   ],
   "properties": {
-    "ticket_id":        { "type": "string",  "description": "GitHub issue identifier (e.g., '339')." },
+    "event_id":         { "type": "string",  "description": "Deterministic dedupe key with **emitter-conditional derivation**: `sha256(ticket_id|phase|rerun_round|emitter)` for `emitter: orchestrator`; `sha256(ticket_id|phase|rerun_round|emitter|webhook_event_key)` for `emitter: webhook-handler` (the five-input variant; see § Contract C7 emission idempotency for the `webhook_event_key` sourcing rule). Populated by the emitter (orchestrator #333 or webhook handler #336) before publish; identical retries MUST produce the identical `event_id` so subscribers can dedupe at-least-once delivery." },
+    "ticket_id":        { "type": "string",  "description": "GitHub issue identifier (e.g., '339'). This is the canonical work-item identifier referenced as `ticket_id` throughout the C7 contract; FR-019 and ADR-issue-337-c7-emission-mechanism.md describe the same identifier — terminology is unified on `ticket_id` to match this schema field name (renaming is forbidden under FR-017(b))." },
     "parent_ticket_id": { "type": ["string", "null"], "description": "Parent issue identifier for decomposed children; null for top-level tickets." },
-    "phase":            { "type": "string",  "enum": ["intake", "resolve-questions", "spec-complete", "plan-slicer", "implement", "document-sync", "pr-packager"] },
-    "persona":          { "type": "string",  "description": "Persona file basename (matches Contract C3 microagent name)." },
-    "model":            { "type": "string",  "description": "LLM model identifier resolved via LiteLLM (e.g., 'claude-opus-4-7')." },
+    "phase":            { "type": "string",  "enum": ["intake", "resolve-questions", "spec-complete", "plan-slicer", "implement", "document-sync", "pr-packager", "agent-pr-review"] },
+    "persona":          { "type": "string",  "description": "For `emitter: orchestrator` events: the persona file basename (matches Contract C3 microagent name). For `emitter: webhook-handler` events (which have no persona invocation — rerun-cap, bot-tick block, rotation-violation, etc.): the sealed sentinel string `webhook-handler`. The field stays `type: string` and required in all eleven-field events; the sentinel value preserves the sealed minimum schema while reflecting that the deterministic webhook handler emitter is itself the actor of record." },
+    "model":            { "type": "string",  "description": "For `emitter: orchestrator` events: the LLM model identifier resolved via LiteLLM (e.g., `claude-opus-4-7`). For `emitter: webhook-handler` events (which have no LLM invocation): the sealed sentinel string `n/a`. The field stays `type: string` and required in all eleven-field events; the sentinel value preserves the sealed minimum schema. Webhook-handler rotation-violation events MAY additionally carry the violating model identifier as the non-required extension field `violating_model` (permitted by `additionalProperties: true`) for audit traceability — this is NOT part of the eleven-field minimum." },
     "timestamp":        { "type": "string",  "format": "date-time", "description": "RFC 3339 UTC timestamp at emission." },
     "outcome":          { "type": "string",  "enum": ["success", "rejected", "retried", "human-handoff"] },
     "rerun_round":      { "type": "integer", "minimum": 0, "description": "Zero on first attempt; incremented on each persona rerun." },
-    "owner_team":       { "type": "string",  "description": "GitHub team slug owning the work item (matches C2 front-matter `owner_team`)." }
+    "owner_team":       { "type": "string",  "description": "GitHub team slug owning the work item (matches C2 front-matter `owner_team`)." },
+    "emitter":          { "type": "string",  "enum": ["orchestrator", "webhook-handler"], "description": "Names the deterministic emitter surface that wrote the event. The two-emitter rule (FR-019) MUST be enforced by subscribers — any value outside this enum is REJECTED. Required for the `event_id` derivation to be globally unique across the two surfaces." }
   }
 }
 ```
 
-Consumers MUST NOT remove, rename, or change the type of any of the nine minimum fields. Addition of further fields is permitted (sealed under FR-017(b); see Contract C8).
+Consumers MUST NOT remove, rename, or change the type of any of the eleven minimum fields. Addition of further fields is permitted (sealed under FR-017(b); see Contract C8).
+
+The `phase` enum carries one entry per blueprint SDD step in `.agents/skills/blueprint-sdd-step0N-<name>/` — stripping the `step0N-` prefix from the skill basename yields the enum value (e.g., `blueprint-sdd-step08-agent-pr-review` → `agent-pr-review`). The `agent-pr-review` entry is REQUIRED for the FR-008 reviewer-heterogeneity audit invariant, which pairs the C7 event with `phase: implement` (emitted by step05) and the C7 event with `phase: agent-pr-review` (emitted by step08) on the same `ticket_id` and asserts the `model` field on the `implement` event differs from the `model` field on the `agent-pr-review` event; a schema that lacks `agent-pr-review` makes the audit unimplementable. The audit predicate MUST reference C7 `phase` enum values, not the originating skill basenames — emitters write the unprefixed enum value into the `phase` field, so a predicate written against `step05-implement` or `step08-agent-pr-review` would never match a schema-valid event. Consumers MUST NOT remove any of these enum values; additions to the enum are out of scope for consumer overlays and require a #339 sign-off cycle.
 
 **Emission transport (sealed).** Events MUST be emitted to a **durable, replayable bus** with the following semantics:
 
@@ -284,11 +299,31 @@ Consumers MUST NOT remove, rename, or change the type of any of the nine minimum
 
 Synchronous writes to a dashboard MUST NOT replace the bus emission. The Grafana dashboard target (Blueprint instance) MUST subscribe to the bus, not receive synchronous writes.
 
-**Cross-link to downstream observers.** The future Central Brain index (Epic #343) MUST subscribe to the same bus with its own consumer group. Any change to the nine-field minimum schema MUST go through #339 sign-off — out-of-band schema changes by downstream consumers are REJECTED.
+**Cross-link to downstream observers.** The future Central Brain index (Epic #343) MUST subscribe to the same bus with its own consumer group. Any change to the eleven-field minimum schema MUST go through #339 sign-off — out-of-band schema changes by downstream consumers are REJECTED.
+
+**Emission mechanism (sealed).** C7 events MUST be emitted by EXACTLY ONE OF two deterministic surfaces — there is no third surface, and personas, skills, OpenHands itself, workspace pods, and LiteLLM MUST NOT emit C7 events under any condition:
+
+1. **Orchestrator (#333)** — the persistent Python control-plane service that owns the factory work loop emits every phase-boundary event (one C7 event per skill execution, with the `phase` field carrying the enum value derived from the skill basename — e.g., `phase: intake` for `blueprint-sdd-step01-intake` … `phase: agent-pr-review` for `blueprint-sdd-step08-agent-pr-review`, per the phase-enum-naming convention above). The orchestrator wraps each persona invocation as a structured operation: it constructs the C7 envelope before calling the OpenHands session API, validates the persona's structured output against a skill-runbook output schema (a fenced ```yaml jsonschema``` block in each `SKILL.md` per FR-002 — schema authoring is owned by #333), records the outcome on the envelope, and writes the event to the durable bus. Phase-boundary outcomes (`success`, `rejected`, `retried`) flow through this surface.
+2. **Webhook handler (#336)** — the GitHub webhook ingestion service emits the events that originate from observable GitHub state and are not visible to the orchestrator: escalate-class blocks, agent-stop human-handoffs, rerun-cap breaches, integration-criteria-bot-tick blocks, ceiling-hit human-handoffs, and the rotation-violation rejection from the FR-008 audit invariant. The webhook handler observes the GitHub event, decides the outcome class, writes the C7 envelope, and emits to the durable bus.
+
+Trigger acceptance is NOT a C7 event. When an authorized actor applies the `factory-trigger-accepted` label, the webhook handler publishes a `trigger-accepted` work message onto a separate RabbitMQ work queue that the orchestrator subscribes to — this is the trigger-handoff transport, not a lifecycle event, and it has no entry in the C7 `phase` enum. The first C7 event for an accepted trigger is the orchestrator's `phase: intake` event emitted when the intake persona is invoked (see `ADR-issue-337-c7-emission-mechanism.md` § Webhook handler emission responsibilities for the canonical responsibility table).
+
+Emission MUST be idempotent. The `event_id` derivation is **emitter-conditional** because the two emitter surfaces have structurally different uniqueness guarantees on the `(ticket_id, phase, rerun_round)` tuple:
+
+- For `emitter: orchestrator` events: `event_id = sha256(ticket_id|phase|rerun_round|emitter)`. The orchestrator emits EXACTLY ONE C7 event per persona phase boundary per the FR-019 emission-mechanism rule, so the `(ticket_id, phase, rerun_round)` tuple is unique per orchestrator emission and the four-input hash collision-free.
+- For `emitter: webhook-handler` events: `event_id = sha256(ticket_id|phase|rerun_round|emitter|webhook_event_key)`. The webhook handler can legitimately emit multiple distinct C7 events on the same `(ticket_id, phase, rerun_round)` tuple (e.g., successive `integration-criteria-bot-tick-blocked` rejections from repeated bot-tick attempts on the same phase; a `rerun-cap-exceeded` rejection followed by a separately-triggered `rotation-violation` rejection on the same phase); the discriminator MUST therefore be included to prevent distinct events from collapsing to the same `event_id`. The discriminator `webhook_event_key` is sourced as follows: when the C7 emission is triggered by an inbound GitHub webhook payload, `webhook_event_key` MUST be the GitHub `X-GitHub-Delivery` UUID (which GitHub preserves across redeliveries, so subscriber-side dedupe still absorbs webhook-handler retries); when the emission is triggered by an internal audit invariant with no inbound GitHub webhook (e.g., the FR-008 rotation-violation pairing), `webhook_event_key` MUST be `sha256(rejection_reason|outcome|trigger_timestamp_rfc3339)` from the handler-internal trigger context. `webhook_event_key` is carried as a non-required extension field (permitted by C7's `additionalProperties: true`) — it is NOT part of the eleven-field minimum schema, because orchestrator events do not populate it; webhook-handler emissions MUST populate it on every emission.
+
+The four-or-five derivation inputs are all schema fields: `ticket_id` is the GitHub issue identifier declared above (the same identifier referenced as `work_item_id` in some earlier ADR prose — terminology is unified on `ticket_id` to match the schema field name); `emitter` is the two-value enum (`orchestrator` | `webhook-handler`) declared above; `phase` and `rerun_round` are the schema fields of the same name; `webhook_event_key` is the non-required extension field defined above (required only when `emitter: webhook-handler`). `event_id` itself is also a required schema field — emitters MUST populate it before publish, and subscribers MUST use it as the dedupe key. LLM personas MUST NOT carry C7 envelope fields in their structured output and MUST NOT have direct access to the durable bus — the emission contract is enforced at the orchestrator and webhook handler exclusively. This design ensures C7 cannot drift on LLM-side prompt regressions, persona renames, or skill reorganization: the schema and the emission surface are both controlled deterministically by the two named services.
+
+Local execution is exempt from C7 emission per the local-exemption clause above; the orchestrator and webhook handler are not present in local Docker Desktop environments.
 
 ### Blueprint instance
 
 The blueprint factory metrics dashboard target is **STACKIT-managed Grafana** via the existing `OBSERVABILITY_ENABLED` module declared in `blueprint/contract.yaml` (Q-3 resolved 2026-05-28 in PR #340). The dashboard subscribes to the durable bus rather than receiving synchronous writes.
+
+**Retention and owner (Q-4 resolved 2026-05-28 in PR #345 — `specs/2026-05-28-issue-337-factory-phase-0-foundations/spec.md`).** Lifecycle event retention on the durable bus and on the Grafana dashboard MUST be **13 months** (one full year plus one month for year-over-year comparison). The dashboard and durable-bus subscription owner is `@sbonoc/factory-operations`. Operational details — dashboard URL, panel inventory, replay procedure, alert rules, owner-team breakdown, weekly review cadence — are codified in [`instrumentation-plan.md`](instrumentation-plan.md). The pre-factory baseline measurements that the live dashboard MUST be compared against are codified in [`pre-factory-baselines.md`](pre-factory-baselines.md).
+
+**Durable-bus platform (Q-5 resolved 2026-05-28 in PR #345 — `specs/2026-05-28-issue-337-factory-phase-0-foundations/spec.md`).** The blueprint factory instance MUST use **STACKIT Managed RabbitMQ** as the durable bus, with the SKE-hosted Strimzi-Kafka fallback codified in `instrumentation-plan.md` if a measurable trigger threshold from that plan is breached. The RabbitMQ deployment MUST use **stream queues** (`x-queue-type: stream`) for the C7 lifecycle event topic — streams provide the log-structured offset-replay semantics required by the C7 Replayability rule (any subscriber, including a newly attached one, can replay historic ranges from a known offset within the bus retention window) AND the durability required by the Durability rule (events are persisted to disk before producer return, replicated across the managed-cluster nodes). Per-ticket ordering is achieved by routing-key partitioning on the work-item ID across stream consumer groups. The 13-month retention configured on the stream queue satisfies the dashboard / forensic-cross-correlation windows; LogMe WORM (#334) remains the audit-of-record for compliance retention beyond the bus window, not a substitute for in-bus replayability.
 
 ### Consumer overlay
 
@@ -302,8 +337,7 @@ Consumer repos MUST declare their own dashboard target. The blueprint's target M
 
 ### Open Decisions
 
-- **Concrete STACKIT-managed durable-bus platform pick** (e.g., STACKIT-managed Kafka or equivalent SKE-hosted fallback) — deferring ticket: **#337** (instrumentation plan; availability spike required as a Phase 0 prerequisite); resolve-by deadline: **#337 Phase 0 close**. Placeholder: `<TBD: durable-bus platform pick in #337 Phase 0>`. This contract pins the durability / replay / async semantics; the platform pick is deferred per AC-014.
-- **Concrete blueprint-instance dashboard URLs and instrumentation wiring** — deferring ticket: **#337**; resolve-by deadline: **#337 close**. Placeholder: `<TBD: concrete dashboard URLs in #337>`.
+- (none — Q-4 retention/owner and Q-5 durable-bus platform pick RESOLVED in PR #345 on 2026-05-28; concrete dashboard URLs and panel inventories are tracked in [`instrumentation-plan.md`](instrumentation-plan.md) under `@sbonoc/factory-operations` ownership and do not require a C7 amendment.)
 
 Referenced by: #335, #336, #337
 
@@ -317,20 +351,42 @@ The inheritance mechanism is the **existing** blueprint `contract.yaml` mechanis
 
 ### Category (a) — Documentation and ADRs
 
+**Inheritance-mechanism note.** Rows marked `internal` below are blueprint-source-only normative references — the *rules* they encode are inherited via this C7/C8 contract surface and via the consumer-overlay parameter mechanism, but the *files themselves* are not mirrored to consumer repos (pruned at consumer init per `blueprint/contract.yaml` `source_artifact_prune_globs_on_init: docs/blueprint/architecture/decisions/ADR-*.md`, and absent from `template_sync_allowlist`). Per-instance parameterization callouts that previously sat on the ADR rows (FR-003 authorized-actor list, FR-007 ceiling values, FR-009 threshold values, FR-010 bounded-context catalogue) are inherited by consumers via the consumer-overlay surface, not via the ADR file. Rows marked `stable` are mirrored to consumers via `template_sync_allowlist` and ARE consumer-visible source-of-truth files.
+
 | Surface item | Stability tier | Extensibility tier |
 |---|---|---|
 | `docs/blueprint/autonomous-factory/design-contracts.md` (this file) | `stable` | `sealed` (sole source of truth for C1–C8) |
 | `docs/blueprint/autonomous-factory/` (directory; future runbooks land here) | `stable` | `extensible` |
-| `docs/blueprint/architecture/decisions/ADR-issue-339-factory-design-contracts.md` | `stable` | `sealed` |
+| `docs/blueprint/architecture/decisions/ADR-issue-339-factory-design-contracts.md` | `internal` | n/a (normative reference) |
 | `docs/blueprint/architecture/decisions/` (directory; future factory ADRs land here) | `stable` | `extensible` |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-factory-phase-0-foundations.md` (meta-ADR + sign-off envelope) | `internal` | n/a (normative reference) |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-llm-model-router-policy.md` (FR-001) | `internal` | n/a (normative reference) |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-persona-skill-contract.md` (FR-002) | `internal` | n/a (normative reference) |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-trigger-authorization-model.md` (FR-003) | `internal` | n/a (normative reference) |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-sovereignty-zdr-posture.md` (FR-004) | `internal` | n/a (normative reference; rule content also sealed under FR-017(b) item 4) |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-separation-of-duties-at-factory-velocity.md` (FR-005) | `internal` | n/a (normative reference) |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-reject-rerun-cap.md` (FR-006) | `internal` | n/a (normative reference; rule content also sealed under FR-017(b) item 5) |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-per-ticket-wall-clock-cost-ceiling.md` (FR-007) | `internal` | n/a (normative reference) |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-reviewer-model-heterogeneity.md` (FR-008) | `internal` | n/a (normative reference) |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-triage-size-threshold.md` (FR-009) | `internal` | n/a (normative reference) |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-light-decomposition-policy.md` (FR-010) | `internal` | n/a (normative reference) |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-c7-emission-mechanism.md` (FR-019 of #337 spec) | `internal` | n/a (normative reference; rule content also sealed under FR-017(b) item 8) |
+| `docs/blueprint/autonomous-factory/instrumentation-plan.md` (FR-012/013/016) | `stable` | `extensible` (per-instance dashboard URLs, panel inventories, and durable-bus subscription details overlaid by consumer) |
+| `docs/blueprint/autonomous-factory/pre-factory-baselines.md` (FR-014) | `stable` | `extensible` (each consumer records its own pre-factory baseline measurements in the same shape) |
+| `docs/blueprint/autonomous-factory/triage-decomposition-data-feed.md` (FR-015) | `stable` | `extensible` (each consumer accumulates its own per-cycle triage/decomposition records in the same shape) |
 
 ### Category (b) — Terraform / Helm Module Wrappers
 
 | Surface item | Stability tier | Extensibility tier | Owning ticket |
 |---|---|---|---|
-| `scripts/templates/infra/<consumer-confidential-k8s-wrapper>` | `preview` | `parameterized` (overlay schema in consumer `contract.yaml`) | #334 |
+| `scripts/templates/infra/<ske-foundation-cluster-wrapper>` | `preview` | `parameterized` (per-consumer cluster name, region, node-pool sizing; consumer may point the wrapper at an existing SKE cluster) | #334 |
+| `scripts/templates/infra/<stackit-secrets-manager-wrapper>` | `preview` | `parameterized` (per-consumer project + instance naming) | #334 |
+| `scripts/templates/infra/<eso-cluster-secret-store-wrapper>` | `preview` | `parameterized` (per-consumer ClusterSecretStore name binding ESO to the consumer's STACKIT Secrets Manager instance) | #334 |
+| `scripts/templates/infra/<logme-worm-retention-wrapper>` | `preview` | `parameterized` (13-month SOC 2 retention floor pinned per FR-017(b); per-consumer storage class and retention extension via parameter) | #334 |
+| `scripts/templates/infra/<factory-egress-networkpolicy-wrapper>` | `preview` | `parameterized` (per-consumer LiteLLM gateway endpoint + optional additional permitted egress endpoints; default-deny posture is sealed) | #334 |
+| `scripts/templates/infra/<factory-bot-identity-wrapper>` | `preview` | `parameterized` (per-consumer factory-bot GitHub login + fine-grained PAT scope; exact-string-equality detection rule is sealed per FR-017(b) item 1) | #334 |
 | `scripts/templates/infra/<openhands-agent-server-wrapper>` | `preview` | `parameterized` | #335 |
-| `scripts/templates/infra/<eso-factory-binding-wrapper>` | `preview` | `parameterized` | #335 |
+| `scripts/templates/infra/<eso-factory-binding-wrapper>` | `preview` | `parameterized` (per-consumer ExternalSecret manifests that pull the LiteLLM credential out of the #334 ClusterSecretStore for the OpenHands runtime) | #335 |
 | `scripts/templates/infra/<webhook-receiver-wrapper>` | `preview` | `parameterized` | #336 |
 
 Every consumer-shipped module wrapper enumerated in this category MUST default to STACKIT-managed runtimes (SDD-C-013) and to local-first execution under the existing `docker-desktop-preferred` Kubernetes context policy (SDD-C-014) per NFR-OPS-002. The concrete per-wrapper realization is owned by #334/#335/#336.
@@ -374,7 +430,7 @@ spec:
       model_allowlist:
         - "claude-opus-4-7"
         - "claude-sonnet-4-6"
-        - "claude-haiku-4-5-20251001"
+        - "claude-haiku-4-5"
 ```
 
 Field shape:
@@ -405,9 +461,10 @@ The default tier for any C8 surface item MUST be `extensible` unless the item is
 3. **Contract C5 multi-author SoD identical rule** — at least two distinct human authors required; the factory bot does NOT count.
 4. **#337 sovereignty / ZDR (Zero-Data-Retention) ADR identical-rule content** — sovereignty/ZDR posture is sealed across consumer instances.
 5. **#337 reject-rerun cap identical-rule content** — the maximum-rerun count and the reject behaviour are sealed.
-6. **Contract C7 minimum lifecycle-event field set** — the nine fields (`ticket_id`, `parent_ticket_id`, `phase`, `persona`, `model`, `timestamp`, `outcome`, `rerun_round`, `owner_team`); consumers MUST NOT remove, rename, or change the type of any of these. Addition is permitted.
+6. **Contract C7 minimum lifecycle-event field set** — the eleven fields (`event_id`, `ticket_id`, `parent_ticket_id`, `phase`, `persona`, `model`, `timestamp`, `outcome`, `rerun_round`, `owner_team`, `emitter`); consumers MUST NOT remove, rename, or change the type of any of these. Addition is permitted. (`event_id` and `emitter` were added in round-13 so that the C7 idempotency rule — `event_id = sha256(ticket_id|phase|rerun_round|emitter)` — is derivable from declared schema fields alone; their addition is permitted under the same "Addition is permitted" clause that this item itself carries.)
 7. **Contract C7 emission-transport rule** — durable, replayable bus with async fire-and-forget semantics. Consumers MUST NOT replace this with synchronous dashboard writes.
-8. **Contract C2 SDD-artifact front-matter required-key set** — `id`, `artifact_kind`, `work_item_slug`, `owner_team`, `schema_version`; consumers MUST NOT remove or rename required keys. Addition is permitted.
+8. **Contract C7 emission-mechanism rule** (per #337 FR-019 ADR) — C7 events MUST be emitted exclusively by the orchestrator (#333) for phase-boundary events and by the webhook handler (#336) for GitHub-observable events. Personas, skills, OpenHands runtime, workspace pods, and LiteLLM MUST NOT emit C7 events. Consumers MUST NOT widen the emitter set or move emission into persona/skill output.
+9. **Contract C2 SDD-artifact front-matter required-key set** — `id`, `artifact_kind`, `work_item_slug`, `owner_team`, `schema_version`; consumers MUST NOT remove or rename required keys. Addition is permitted.
 
 ### Consumer-extension discovery convention (FR-018, AC-011)
 

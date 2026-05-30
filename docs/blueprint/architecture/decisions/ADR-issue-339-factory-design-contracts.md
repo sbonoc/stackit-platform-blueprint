@@ -8,9 +8,9 @@
 
 ## Context
 
-The autonomous software factory initiative (Epic #332) decomposes into a Phase 0 / Phase 1 / Phase 3 set of tickets. The four Phase 1 tickets (#333 personas, #334 Confidential Kubernetes, #335 OpenHands + LiteLLM, #336 GitHub Actions webhooks) and the Phase 0 sibling #337 (ADRs, CODEOWNERS, instrumentation) all share interface concerns that span more than one ticket: branch names, spec directory layout for decomposed work, persona-to-microagent mapping, integration acceptance criteria format, the factory bot identity used for multi-author SoD detection, the CODEOWNERS team slugs the four spec sign-off roles map to, and the metrics dashboard target plus minimum lifecycle-event schema.
+The autonomous software factory initiative (Epic #332) decomposes into a Phase 0 / Phase 1 / Phase 3 set of tickets. The four Phase 1 tickets (#333 personas, #334 factory runtime on SKE — Secrets Manager + ESO + egress NetworkPolicy + bot identity, #335 OpenHands + LiteLLM, #336 GitHub Actions webhooks) and the Phase 0 sibling #337 (ADRs, CODEOWNERS, instrumentation) all share interface concerns that span more than one ticket: branch names, spec directory layout for decomposed work, persona-to-microagent mapping, integration acceptance criteria format, the factory bot identity used for multi-author SoD detection, the CODEOWNERS team slugs the four spec sign-off roles map to, and the metrics dashboard target plus minimum lifecycle-event schema.
 
-The autonomous factory is not blueprint-only. The blueprint ships the factory as a capability for consumer repos to instantiate per-consumer (each consumer provisions its own Confidential K8s cluster, OpenHands deployment, GitHub App, bot identity, CODEOWNERS, dashboard). LiteLLM is an existing external service consumers configure access to rather than deploy. This means the cross-ticket conventions split into two classes: identical conventions (branch naming, spec dir layout, persona mapping, integration AC format — applied identically by the blueprint repo and every consumer repo) and parameterized contracts (bot identity, CODEOWNERS slugs, metrics dashboard — identical rule but per-instance values). It also introduces a fourth concern: enumerating the consumer-shipped surface (docs/ADRs, Terraform/Helm module wrappers, Make targets + skill runbooks, GitHub App / Actions workflows) that makes per-consumer instantiation possible via the existing blueprint `contract.yaml` inheritance mechanism.
+The autonomous factory is not blueprint-only. The blueprint ships the factory as a capability for consumer repos to instantiate per-consumer (each consumer provisions its own STACKIT Kubernetes (SKE) foundation cluster with Secrets Manager + ESO + egress NetworkPolicy + bot identity, OpenHands deployment, GitHub App, bot identity, CODEOWNERS, dashboard). LiteLLM is an existing external service consumers configure access to rather than deploy. This means the cross-ticket conventions split into two classes: identical conventions (branch naming, spec dir layout, persona mapping, integration AC format — applied identically by the blueprint repo and every consumer repo) and parameterized contracts (bot identity, CODEOWNERS slugs, metrics dashboard — identical rule but per-instance values). It also introduces a fourth concern: enumerating the consumer-shipped surface (docs/ADRs, Terraform/Helm module wrappers, Make targets + skill runbooks, GitHub App / Actions workflows) that makes per-consumer instantiation possible via the existing blueprint `contract.yaml` inheritance mechanism.
 
 If each Phase 1 ticket is left to invent its own values for these shared concepts, four failure modes are predictable: (1) #335 and #336 disagree on branch and spec paths; (2) #333 persona Definition-of-Done references a bot identity #334 has not provisioned; (3) #337 populates `.github/CODEOWNERS` with team names #336 does not know to add to its `agent-ready` label allowlist; (4) consumer repos either copy the blueprint's literal C5/C6/C7 values (wrong tenancy — every consumer would post as the blueprint's bot) or invent their own conventions (drift). These are integration-time defects, expensive to discover and expensive to unwind because they touch policy artifacts (CODEOWNERS, ADRs), identity (bot accounts), and per-consumer tenancy boundaries.
 
@@ -64,7 +64,7 @@ flowchart TD
     Doc["design-contracts.md (C1–C8)"]
     Doc -- "C1, C3, C5, C7, C8 (OpenHands wrapper + LiteLLM access)" --> T335["#335 OpenHands + LiteLLM"]
     Doc -- "C1, C2, C4, C5, C6, C7, C8 (App manifest + workflows)" --> T336["#336 Webhooks"]
-    Doc -- "C5, C8 (Confidential K8s wrapper)" --> T334["#334 Confidential K8s"]
+    Doc -- "C5, C8 (factory runtime on SKE wrapper)" --> T334["#334 factory runtime on SKE"]
     Doc -- "C2, C3, C4, C8 (skill runbooks)" --> T333["#333 Personas + Skills"]
     Doc -- "C5, C6, C7" --> T337["#337 Phase 0 ADRs + CODEOWNERS"]
     Doc -- "C2, C4" --> T338["#338 Phase 3 Composition"]
@@ -91,8 +91,7 @@ Caption: Design-contract C1–C8 dependency edges — one node per contract, one
 - Governing spec: `specs/2026-05-28-issue-339-factory-design-contracts/spec.md`
 - Epic: #332 — STACKIT Autonomous Software Factory (OpenHands + SDD)
 - Phase 0 sibling: #337 — ADRs, CODEOWNERS, success metrics
-- Phase 1 consumers (blueprint repo implementers): #333 (personas), #334 (Confidential K8s), #335 (OpenHands + LiteLLM), #336 (webhooks), #342 (factory upgrade process)
-- Phase 0 prerequisite: #341 (Confidential Kubernetes module wrapper)
+- Phase 1 consumers (blueprint repo implementers): #333 (personas), #334 (SKE foundation + ESO + Secrets Manager + LogMe WORM + bot identity), #335 (OpenHands + LiteLLM), #336 (webhooks), #342 (factory upgrade process)
 - Phase 3 consumer: #338 (composition orchestration)
 - Consumer repos (Context D): every blueprint consumer that adopts the autonomous factory inherits C8 surface via the existing blueprint `contract.yaml` mechanism
 - Sign-off policy: `AGENTS.md § Sign-off Phrases (Deterministic)`
