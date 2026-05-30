@@ -184,7 +184,7 @@ Consumer repos MUST declare their own bot login. The blueprint's value MUST NOT 
 
 ### Open Decisions
 
-- **Reserve and verify the bot identity on GitHub** — deferring ticket: **#334** (Confidential K8s + bot provisioning); resolve-by deadline: **Phase 1 close (Epic #332 acceptance gate)**. Placeholder: `<TBD: reserve-and-verify in #334>`.
+- **Reserve and verify the bot identity on GitHub** — deferring ticket: **#334** (factory runtime on SKE — Secrets Manager + ESO + egress NetworkPolicy + bot identity); resolve-by deadline: **Phase 1 close (Epic #332 acceptance gate)**. Placeholder: `<TBD: reserve-and-verify in #334>`.
 
 Referenced by: #334, #335, #336, #337
 
@@ -295,6 +295,15 @@ Synchronous writes to a dashboard MUST NOT replace the bus emission. The Grafana
 
 **Cross-link to downstream observers.** The future Central Brain index (Epic #343) MUST subscribe to the same bus with its own consumer group. Any change to the nine-field minimum schema MUST go through #339 sign-off — out-of-band schema changes by downstream consumers are REJECTED.
 
+**Emission mechanism (sealed).** C7 events MUST be emitted by EXACTLY ONE OF two deterministic surfaces — there is no third surface, and personas, skills, OpenHands itself, workspace pods, and LiteLLM MUST NOT emit C7 events under any condition:
+
+1. **Orchestrator (#333)** — the persistent Python control-plane service that owns the factory work loop emits every phase-boundary event (`step01-intake` … `step08-agent-pr-review`). The orchestrator wraps each persona invocation as a structured operation: it constructs the C7 envelope before calling the OpenHands session API, validates the persona's structured output against a skill-runbook output schema (a fenced ```yaml jsonschema``` block in each `SKILL.md` per FR-002 — schema authoring is owned by #333), records the outcome on the envelope, and writes the event to the durable bus. Phase-boundary outcomes (`success`, `rejected`, `retried`) flow through this surface.
+2. **Webhook handler (#336)** — the GitHub webhook ingestion service emits the events that originate from observable GitHub state and are not visible to the orchestrator: trigger-acceptance handoffs (the `factory-trigger-accepted` label handoff to the orchestrator queue), escalate-class blocks, agent-stop human-handoffs, rerun-cap breaches, integration-criteria-bot-tick blocks, ceiling-hit human-handoffs, and the rotation-violation rejection from the FR-008 audit invariant. The webhook handler observes the GitHub event, decides the outcome class, writes the C7 envelope, and emits to the durable bus.
+
+Emission MUST be idempotent: each event carries a deterministic `event_id` derived from `(work_item_id, phase, rerun_round, emitter)` so that retry of either surface does not double-count. LLM personas MUST NOT carry C7 envelope fields in their structured output and MUST NOT have direct access to the durable bus — the emission contract is enforced at the orchestrator and webhook handler exclusively. This design ensures C7 cannot drift on LLM-side prompt regressions, persona renames, or skill reorganization: the schema and the emission surface are both controlled deterministically by the two named services.
+
+Local execution is exempt from C7 emission per the local-exemption clause above; the orchestrator and webhook handler are not present in local Docker Desktop environments.
+
 ### Blueprint instance
 
 The blueprint factory metrics dashboard target is **STACKIT-managed Grafana** via the existing `OBSERVABILITY_ENABLED` module declared in `blueprint/contract.yaml` (Q-3 resolved 2026-05-28 in PR #340). The dashboard subscribes to the durable bus rather than receiving synchronous writes.
@@ -348,6 +357,7 @@ The inheritance mechanism is the **existing** blueprint `contract.yaml` mechanis
 | `docs/blueprint/architecture/decisions/ADR-issue-337-reviewer-model-heterogeneity.md` (FR-008) | `internal` | n/a (normative reference) |
 | `docs/blueprint/architecture/decisions/ADR-issue-337-triage-size-threshold.md` (FR-009) | `internal` | n/a (normative reference) |
 | `docs/blueprint/architecture/decisions/ADR-issue-337-light-decomposition-policy.md` (FR-010) | `internal` | n/a (normative reference) |
+| `docs/blueprint/architecture/decisions/ADR-issue-337-c7-emission-mechanism.md` (FR-019 of #337 spec) | `internal` | n/a (normative reference; rule content also sealed under FR-017(b) item 8) |
 | `docs/blueprint/autonomous-factory/instrumentation-plan.md` (FR-012/013/016) | `stable` | `extensible` (per-instance dashboard URLs, panel inventories, and durable-bus subscription details overlaid by consumer) |
 | `docs/blueprint/autonomous-factory/pre-factory-baselines.md` (FR-014) | `stable` | `extensible` (each consumer records its own pre-factory baseline measurements in the same shape) |
 | `docs/blueprint/autonomous-factory/triage-decomposition-data-feed.md` (FR-015) | `stable` | `extensible` (each consumer accumulates its own per-cycle triage/decomposition records in the same shape) |
@@ -434,7 +444,8 @@ The default tier for any C8 surface item MUST be `extensible` unless the item is
 5. **#337 reject-rerun cap identical-rule content** — the maximum-rerun count and the reject behaviour are sealed.
 6. **Contract C7 minimum lifecycle-event field set** — the nine fields (`ticket_id`, `parent_ticket_id`, `phase`, `persona`, `model`, `timestamp`, `outcome`, `rerun_round`, `owner_team`); consumers MUST NOT remove, rename, or change the type of any of these. Addition is permitted.
 7. **Contract C7 emission-transport rule** — durable, replayable bus with async fire-and-forget semantics. Consumers MUST NOT replace this with synchronous dashboard writes.
-8. **Contract C2 SDD-artifact front-matter required-key set** — `id`, `artifact_kind`, `work_item_slug`, `owner_team`, `schema_version`; consumers MUST NOT remove or rename required keys. Addition is permitted.
+8. **Contract C7 emission-mechanism rule** (per #337 FR-019 ADR) — C7 events MUST be emitted exclusively by the orchestrator (#333) for phase-boundary events and by the webhook handler (#336) for GitHub-observable events. Personas, skills, OpenHands runtime, workspace pods, and LiteLLM MUST NOT emit C7 events. Consumers MUST NOT widen the emitter set or move emission into persona/skill output.
+9. **Contract C2 SDD-artifact front-matter required-key set** — `id`, `artifact_kind`, `work_item_slug`, `owner_team`, `schema_version`; consumers MUST NOT remove or rename required keys. Addition is permitted.
 
 ### Consumer-extension discovery convention (FR-018, AC-011)
 
