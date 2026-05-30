@@ -16,8 +16,8 @@
     },
     {
       "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/plan.md",
-      "purpose": "Six delivery slices in red→green TDD order",
-      "sha256": "448ccff3c25ebdd0927305b8830d8c57062a442f587011eaeecb6bcca0f1a3d5"
+      "purpose": "Five delivery slices in red→green TDD order (subscriber-side ingest deferred to #350)",
+      "sha256": "b0d9d683d82898a0770d5cfd15433cd163c880d048a9016237fff2192c7c2946"
     },
     {
       "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/tasks.md",
