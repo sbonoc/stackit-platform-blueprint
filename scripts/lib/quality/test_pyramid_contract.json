@@ -114,7 +114,8 @@
         "tests/infra/modules/observability/test_contract.py",
         "tests/infra/modules/workflows/test_contract.py",
         "tests/infra/modules/workflows/test_local_contract.py",
-        "tests/blueprint/test_consumer_init_sdd_asset_sync.py"
+        "tests/blueprint/test_consumer_init_sdd_asset_sync.py",
+        "tests/blueprint/test_design_contracts_schema.py"
       ]
     },
     {
