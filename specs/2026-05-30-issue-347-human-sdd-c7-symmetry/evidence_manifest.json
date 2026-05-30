@@ -7,7 +7,7 @@
     {
       "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/spec.md",
       "purpose": "Normative spec — 14 FR + 7 NFR + 7 AC; 6 NEEDS CLARIFICATION markers",
-      "sha256": "26d6cbbccb27b45838620b3b45d854fb6632c800c2a217a099489380cf9dd42f"
+      "sha256": "c53136538389f65e48a45434b6bb89ff0446640c3fbb51b744c4e7684f02b499"
     },
     {
       "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/architecture.md",

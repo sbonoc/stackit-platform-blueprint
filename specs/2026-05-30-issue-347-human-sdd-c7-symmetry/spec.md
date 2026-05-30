@@ -5,11 +5,11 @@
      SPEC_READY=true: implementation gate — all sign-offs required; unlocks coding. -->
 - SPEC_READY: false
 - SPEC_PRODUCT_READY: false
-- Open questions count: 6
+- Open questions count: 0
 - Unresolved alternatives count: 0
 - Unresolved TODO markers count: 0
 - Pending assumptions count: 0
-- Open clarification markers count: 6
+- Open clarification markers count: 0
 - Product sign-off: pending
 - Architecture sign-off: pending
 - Security sign-off: pending
@@ -51,15 +51,7 @@
 - FR-005 For `emitter: local-cli` events the `persona` field MUST be the SDD step skill basename (e.g., `blueprint-sdd-step01-intake`). The `model` field MUST be the best-effort LLM model identifier exposed by the operator's coding assistant, OR the sealed sentinel string `unknown` when no model identifier is resolvable. The eleven-field minimum schema MUST remain typed `string` and required — no nullable types and no emitter-conditional required-set variants.
 - FR-006 Every C7 event from any emitter MUST carry the extension field `execution_mode` (string enum, two values): `autonomous` when `emitter ∈ {orchestrator, webhook-handler}`, `human-assisted` when `emitter: local-cli`. The field MUST be carried under `additionalProperties: true` and MUST NOT be added to the eleven-field required minimum.
 - FR-007 Emission MUST be opt-out-able via a sealed mechanism: the environment variable `BLUEPRINT_SDD_C7_EMIT=0` SHALL suppress JSONL writes for the current shell session. The opt-out SHALL be audited: the first SDD step executed under opt-out MUST emit EXACTLY ONE `c7-emission-opted-out` extension event with reason carried in `additionalProperties.opt_out_reason`; subsequent steps under the same opt-out scope MUST NOT re-emit.
-
-  > **[NEEDS CLARIFICATION: Q-1 — Opt-out mechanism surface — env var only, CLI flag only, or both?]**
-  >
-  > **Options:**
-  > - **A)** Env var only (`BLUEPRINT_SDD_C7_EMIT=0`) — single surface, no flag plumbing through 7 skills + shell scripts. (Agent recommendation.)
-  > - **B)** CLI flag only (`--no-c7` on every step skill) — discoverable via `--help`, but requires consistent flag plumbing in every skill runbook.
-  > - **C)** Both — maximum discoverability, but doubles the surface to test and document.
-  >
-  > **Agent recommendation:** Option A. Env var travels through subshell invocation without per-skill plumbing; the opt-out audit event captures the reason so discoverability is not lost.
+  Opt-out surface: env var only (Q-1 → Option A, owner comment 2026-05-30). Env var travels through subshell invocation without per-skill flag plumbing; the opt-out audit event ensures discoverability.
 
 - FR-008 The #336 webhook handler MUST ingest `artifacts/c7/<work-item-slug>.jsonl` from the PR head SHA on EXACTLY THREE GitHub PR events: `pull_request.opened`, `pull_request.synchronize`, `pull_request.reopened`. Ingest MUST validate each JSONL line against the (amended) C7 JSON Schema, dedupe by `event_id`, and republish onto the durable bus with `emitter: local-cli` preserved.
 - FR-009 Ingest MUST be idempotent: re-running ingest on the same JSONL contents MUST produce ZERO new bus emissions. Dedupe MUST be performed by the subscriber-side `event_id` check defined in Contract C7 § Emission idempotency.
@@ -113,53 +105,17 @@
   - Committed JSONL sink adds files to PR diffs. Mitigated by `.gitattributes` `diff=none` rule (FR-013).
   - Best-effort model ID with `unknown` sentinel (D-2) means the FR-008 reviewer-heterogeneity audit becomes inconclusive (not failing) when both implement and review steps lack model metadata. Documented exemption (NFR-OBS-002).
   - Skill-as-tool pattern requires every step skill runbook to call the helper. Mitigated by uniform addendum text (FR-012) and the runbook compatibility checker.
-- Clarifications:
-  - **[NEEDS CLARIFICATION: Q-2 — JSONL line signing — does each event carry an HMAC over its payload to prevent post-emit tampering?]**
-
-    **Options:**
-    - **A)** No signing in v1 — git itself is the integrity surface for committed files; tampering shows up in `git blame`. (Agent recommendation.)
-    - **B)** HMAC each line with a shared secret distributed via STACKIT Secrets Manager — strongest tamper-evidence, but adds key management overhead and a secret-distribution flow to every operator's machine.
-
-    **Agent recommendation:** Option A. Local-first runtime baseline (SDD-C-014) discourages mandatory secret distribution to operator workstations; the git history + #336 schema validation cover the realistic threat model.
-
-  - **[NEEDS CLARIFICATION: Q-3 — Self-bootstrapping — does this work item #347 emit C7 events for its own SDD steps?]**
-
-    **Options:**
-    - **A)** No — the helper does not exist for the steps that author it; emission becomes mandatory for the first new work item started after #347 merges. (Agent recommendation.)
-    - **B)** Yes — author the helper first as Slice 1, then retroactively emit events for steps 01–04 in a single backfill commit before Step 07 PR open.
-
-    **Agent recommendation:** Option A. Backfilled events are not "real" lifecycle events — they are reconstructions, which dilutes the audit surface's truth claim. Cleaner to skip self-bootstrap and audit honestly from work item #N+1.
-
-  - **[NEEDS CLARIFICATION: Q-4 — Coding-assistant model detection fallback chain — what env vars / heuristics does the helper consult?]**
-
-    **Options:**
-    - **A)** Read EXACTLY ONE OF `$CLAUDE_CODE_MODEL`, `$CODEX_MODEL`, `$CURSOR_MODEL` (in that priority order); fall through to `unknown`. (Agent recommendation.)
-    - **B)** Same as A, plus parse the most-recently-modified `~/.claude/projects/*/...jsonl` session log for the active model identifier.
-    - **C)** None — always emit `unknown` for human-assisted runs; document model-tracking as a follow-up.
-
-    **Agent recommendation:** Option A. Env vars are the operator-controlled, explicit surface; parsing assistant session logs is fragile and changes shape between releases.
-
-  - **[NEEDS CLARIFICATION: Q-5 — `rerun_round` semantics for human sessions — what counts as a rerun?]**
-
-    **Options:**
-    - **A)** Increment `rerun_round` by counting prior committed events for the same `(ticket_id, phase)` tuple in the local JSONL file; `rerun_round=0` on first emission for that step. (Agent recommendation.)
-    - **B)** Always emit `rerun_round=0` from local-cli; let #336 ingest assign the rerun count from bus-side history. Adds coupling.
-
-    **Agent recommendation:** Option A. Keeps the helper self-contained; matches the orchestrator's own rerun-counting semantics.
-
-  - **[NEEDS CLARIFICATION: Q-6 — Skill addendum scope — does the addendum apply only to the seven `blueprint-sdd-stepXX-*` skills, or also to `blueprint-sdd-traceability-keeper` (cross-cutting) and the two consumer-ops skills?]**
-
-    **Options:**
-    - **A)** Seven step skills only. Cross-cutting skills have no `phase` enum entry and would need a separate enum extension. (Agent recommendation.)
-    - **B)** Seven step skills + `traceability-keeper` with a new `phase: traceability` enum value. Increases #339 amendment scope.
-    - **C)** All skills including consumer-ops. Out of scope for blueprint-repo C7; consumer-ops events would need their own contract surface.
-
-    **Agent recommendation:** Option A. Stays inside the existing `phase` enum; consumer-ops emission is the cross-repo aggregation work explicitly out-of-scope per issue #347.
+- Clarifications (all resolved 2026-05-30 via owner PR comment):
+  - Q-2 JSONL line signing: No signing in v1 (Option A). Git history + `git blame` is the integrity surface for committed files; HMAC with an operator-held key is security theater. Park signing if/when the threat model requires keys outside operator reach.
+  - Q-3 Self-bootstrap: This work item #347 is exempt from C7 emission (Option A). The helper does not exist for the steps that author it; emission becomes obligatory for the first new work item started after #347 merges. Backfilled events would be reconstructions that dilute the audit surface's truth claim.
+  - Q-4 Model detection fallback chain: Env var priority chain `$CLAUDE_CODE_MODEL` → `$CODEX_MODEL` → `$CURSOR_MODEL` → `unknown` sentinel (Option A). Env vars are operator-controlled, stable across assistant releases, and trivially testable. Session-log parsing is fragile and a version-coupling smell.
+  - Q-5 `rerun_round` semantics: Count prior committed events for the same `(ticket_id, phase)` tuple in the local JSONL file; `rerun_round=0` on first emission (Option A). Self-contained; matches orchestrator semantics; keeping it at 0 always would make every rerun collide on the same `event_id` and get deduped away.
+  - Q-6 Skill addendum scope: Seven `blueprint-sdd-stepXX-*` step skills only (Option A). `blueprint-sdd-traceability-keeper` requires a separate "auxiliary phase" extension with its own audit-predicate semantics — tracked as a follow-up issue (see Explicit Exclusions). Consumer-ops skills are a different bounded context and contract surface.
 
 ## Explicit Exclusions
 - IDE-extension / VS Code / JetBrains integration — helper is CLI-only.
 - Automatic backfill of historical PRs — only post-merge PRs are audited (FR-014).
 - Cross-repo aggregation of consumer-repo C7 events — blueprint repo only; consumer-repo emission is a follow-up after `artifacts/c7/*.jsonl` is a stable contract.
-- `blueprint-sdd-traceability-keeper` skill emission — pending Q-6 resolution; default exclusion.
-- Consumer-ops skills (`blueprint-consumer-ops`, `blueprint-consumer-upgrade`) emission — outside the SDD lifecycle; different audit needs.
-- Self-bootstrap emission for this work item #347 — pending Q-3 resolution; default exclusion.
+- `blueprint-sdd-traceability-keeper` skill emission — excluded (Q-6 → Option A). Requires a separate "auxiliary phase" contract extension; tracked as a follow-up issue.
+- Consumer-ops skills (`blueprint-consumer-ops`, `blueprint-consumer-upgrade`) emission — outside the SDD lifecycle; different bounded context and contract surface.
+- Self-bootstrap emission for this work item #347 — excluded (Q-3 → Option A). Helper does not exist for the steps that author it; emission obligatory from the first new work item after #347 merges.
