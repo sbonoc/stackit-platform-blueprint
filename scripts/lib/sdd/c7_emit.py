@@ -53,6 +53,20 @@ def derive_event_id(ticket_id: str, phase: str, rerun_round: int, emitter: str) 
 
 
 # ---------------------------------------------------------------------------
+# Schema validation (T-103)
+# ---------------------------------------------------------------------------
+
+def validate_event(payload: dict) -> "LifecycleEvent":
+    """Validate a raw JSON-decoded C7 envelope and return the parsed record.
+
+    T-103: returns the parsed LifecycleEvent (not bool) so callers can
+    work with the typed record after validation. Raises on malformed
+    payloads (Pydantic ValidationError).
+    """
+    return LifecycleEvent(**payload)
+
+
+# ---------------------------------------------------------------------------
 # Application layer
 # ---------------------------------------------------------------------------
 
