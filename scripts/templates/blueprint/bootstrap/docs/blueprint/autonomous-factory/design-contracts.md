@@ -258,6 +258,7 @@ The minimum event field set is a named JSON schema with explicit types and nulla
   "type": "object",
   "additionalProperties": true,
   "required": [
+    "event_id",
     "ticket_id",
     "parent_ticket_id",
     "phase",
@@ -266,10 +267,12 @@ The minimum event field set is a named JSON schema with explicit types and nulla
     "timestamp",
     "outcome",
     "rerun_round",
-    "owner_team"
+    "owner_team",
+    "emitter"
   ],
   "properties": {
-    "ticket_id":        { "type": "string",  "description": "GitHub issue identifier (e.g., '339')." },
+    "event_id":         { "type": "string",  "description": "Deterministic dedupe key — `sha256(ticket_id|phase|rerun_round|emitter)`. Populated by the emitter (orchestrator #333 or webhook handler #336) before publish; identical retries MUST produce the identical `event_id` so subscribers can dedupe at-least-once delivery." },
+    "ticket_id":        { "type": "string",  "description": "GitHub issue identifier (e.g., '339'). This is the canonical work-item identifier referenced as `ticket_id` throughout the C7 contract; FR-019 and ADR-issue-337-c7-emission-mechanism.md describe the same identifier — terminology is unified on `ticket_id` to match this schema field name (renaming is forbidden under FR-017(b))." },
     "parent_ticket_id": { "type": ["string", "null"], "description": "Parent issue identifier for decomposed children; null for top-level tickets." },
     "phase":            { "type": "string",  "enum": ["intake", "resolve-questions", "spec-complete", "plan-slicer", "implement", "document-sync", "pr-packager", "agent-pr-review"] },
     "persona":          { "type": "string",  "description": "Persona file basename (matches Contract C3 microagent name)." },
@@ -277,14 +280,15 @@ The minimum event field set is a named JSON schema with explicit types and nulla
     "timestamp":        { "type": "string",  "format": "date-time", "description": "RFC 3339 UTC timestamp at emission." },
     "outcome":          { "type": "string",  "enum": ["success", "rejected", "retried", "human-handoff"] },
     "rerun_round":      { "type": "integer", "minimum": 0, "description": "Zero on first attempt; incremented on each persona rerun." },
-    "owner_team":       { "type": "string",  "description": "GitHub team slug owning the work item (matches C2 front-matter `owner_team`)." }
+    "owner_team":       { "type": "string",  "description": "GitHub team slug owning the work item (matches C2 front-matter `owner_team`)." },
+    "emitter":          { "type": "string",  "enum": ["orchestrator", "webhook-handler"], "description": "Names the deterministic emitter surface that wrote the event. The two-emitter rule (FR-019) MUST be enforced by subscribers — any value outside this enum is REJECTED. Required for the `event_id` derivation to be globally unique across the two surfaces." }
   }
 }
 ```
 
-Consumers MUST NOT remove, rename, or change the type of any of the nine minimum fields. Addition of further fields is permitted (sealed under FR-017(b); see Contract C8).
+Consumers MUST NOT remove, rename, or change the type of any of the eleven minimum fields. Addition of further fields is permitted (sealed under FR-017(b); see Contract C8).
 
-The `phase` enum carries one entry per blueprint SDD step in `.agents/skills/blueprint-sdd-step0N-<name>/` — stripping the `step0N-` prefix from the skill basename yields the enum value (e.g., `blueprint-sdd-step08-agent-pr-review` → `agent-pr-review`). The `agent-pr-review` entry is REQUIRED for the FR-008 reviewer-heterogeneity audit invariant, which pairs the `step05` `implement` C7 event with the `step08` `agent-pr-review` C7 event on the same `work_item_id` and asserts `step05.model` differs from `step08.model`; a schema that lacks `agent-pr-review` makes the audit unimplementable. Consumers MUST NOT remove any of these enum values; additions to the enum are out of scope for consumer overlays and require a #339 sign-off cycle.
+The `phase` enum carries one entry per blueprint SDD step in `.agents/skills/blueprint-sdd-step0N-<name>/` — stripping the `step0N-` prefix from the skill basename yields the enum value (e.g., `blueprint-sdd-step08-agent-pr-review` → `agent-pr-review`). The `agent-pr-review` entry is REQUIRED for the FR-008 reviewer-heterogeneity audit invariant, which pairs the `step05` `implement` C7 event with the `step08` `agent-pr-review` C7 event on the same `ticket_id` and asserts `step05.model` differs from `step08.model`; a schema that lacks `agent-pr-review` makes the audit unimplementable. Consumers MUST NOT remove any of these enum values; additions to the enum are out of scope for consumer overlays and require a #339 sign-off cycle.
 
 **Emission transport (sealed).** Events MUST be emitted to a **durable, replayable bus** with the following semantics:
 
@@ -295,14 +299,16 @@ The `phase` enum carries one entry per blueprint SDD step in `.agents/skills/blu
 
 Synchronous writes to a dashboard MUST NOT replace the bus emission. The Grafana dashboard target (Blueprint instance) MUST subscribe to the bus, not receive synchronous writes.
 
-**Cross-link to downstream observers.** The future Central Brain index (Epic #343) MUST subscribe to the same bus with its own consumer group. Any change to the nine-field minimum schema MUST go through #339 sign-off — out-of-band schema changes by downstream consumers are REJECTED.
+**Cross-link to downstream observers.** The future Central Brain index (Epic #343) MUST subscribe to the same bus with its own consumer group. Any change to the eleven-field minimum schema MUST go through #339 sign-off — out-of-band schema changes by downstream consumers are REJECTED.
 
 **Emission mechanism (sealed).** C7 events MUST be emitted by EXACTLY ONE OF two deterministic surfaces — there is no third surface, and personas, skills, OpenHands itself, workspace pods, and LiteLLM MUST NOT emit C7 events under any condition:
 
 1. **Orchestrator (#333)** — the persistent Python control-plane service that owns the factory work loop emits every phase-boundary event (`step01-intake` … `step08-agent-pr-review`). The orchestrator wraps each persona invocation as a structured operation: it constructs the C7 envelope before calling the OpenHands session API, validates the persona's structured output against a skill-runbook output schema (a fenced ```yaml jsonschema``` block in each `SKILL.md` per FR-002 — schema authoring is owned by #333), records the outcome on the envelope, and writes the event to the durable bus. Phase-boundary outcomes (`success`, `rejected`, `retried`) flow through this surface.
-2. **Webhook handler (#336)** — the GitHub webhook ingestion service emits the events that originate from observable GitHub state and are not visible to the orchestrator: trigger-acceptance handoffs (the `factory-trigger-accepted` label handoff to the orchestrator queue), escalate-class blocks, agent-stop human-handoffs, rerun-cap breaches, integration-criteria-bot-tick blocks, ceiling-hit human-handoffs, and the rotation-violation rejection from the FR-008 audit invariant. The webhook handler observes the GitHub event, decides the outcome class, writes the C7 envelope, and emits to the durable bus.
+2. **Webhook handler (#336)** — the GitHub webhook ingestion service emits the events that originate from observable GitHub state and are not visible to the orchestrator: escalate-class blocks, agent-stop human-handoffs, rerun-cap breaches, integration-criteria-bot-tick blocks, ceiling-hit human-handoffs, and the rotation-violation rejection from the FR-008 audit invariant. The webhook handler observes the GitHub event, decides the outcome class, writes the C7 envelope, and emits to the durable bus.
 
-Emission MUST be idempotent: each event carries a deterministic `event_id` derived from `(work_item_id, phase, rerun_round, emitter)` so that retry of either surface does not double-count. LLM personas MUST NOT carry C7 envelope fields in their structured output and MUST NOT have direct access to the durable bus — the emission contract is enforced at the orchestrator and webhook handler exclusively. This design ensures C7 cannot drift on LLM-side prompt regressions, persona renames, or skill reorganization: the schema and the emission surface are both controlled deterministically by the two named services.
+Trigger acceptance is NOT a C7 event. When an authorized actor applies the `factory-trigger-accepted` label, the webhook handler publishes a `trigger-accepted` work message onto a separate RabbitMQ work queue that the orchestrator subscribes to — this is the trigger-handoff transport, not a lifecycle event, and it has no entry in the C7 `phase` enum. The first C7 event for an accepted trigger is the orchestrator's `phase: intake` event emitted when the intake persona is invoked (see `ADR-issue-337-c7-emission-mechanism.md` § Webhook handler emission responsibilities for the canonical responsibility table).
+
+Emission MUST be idempotent: each event carries a deterministic `event_id` derived from `(ticket_id, phase, rerun_round, emitter)` so that retry of either surface does not double-count. The four derivation inputs are all required schema fields: `ticket_id` is the GitHub issue identifier declared above (the same identifier referenced as `work_item_id` in some earlier ADR prose — terminology is unified on `ticket_id` to match the schema field name); `emitter` is the two-value enum (`orchestrator` | `webhook-handler`) declared above; `phase` and `rerun_round` are the schema fields of the same name. `event_id` itself is also a required schema field — emitters MUST populate it before publish, and subscribers MUST use it as the dedupe key. LLM personas MUST NOT carry C7 envelope fields in their structured output and MUST NOT have direct access to the durable bus — the emission contract is enforced at the orchestrator and webhook handler exclusively. This design ensures C7 cannot drift on LLM-side prompt regressions, persona renames, or skill reorganization: the schema and the emission surface are both controlled deterministically by the two named services.
 
 Local execution is exempt from C7 emission per the local-exemption clause above; the orchestrator and webhook handler are not present in local Docker Desktop environments.
 
@@ -450,7 +456,7 @@ The default tier for any C8 surface item MUST be `extensible` unless the item is
 3. **Contract C5 multi-author SoD identical rule** — at least two distinct human authors required; the factory bot does NOT count.
 4. **#337 sovereignty / ZDR (Zero-Data-Retention) ADR identical-rule content** — sovereignty/ZDR posture is sealed across consumer instances.
 5. **#337 reject-rerun cap identical-rule content** — the maximum-rerun count and the reject behaviour are sealed.
-6. **Contract C7 minimum lifecycle-event field set** — the nine fields (`ticket_id`, `parent_ticket_id`, `phase`, `persona`, `model`, `timestamp`, `outcome`, `rerun_round`, `owner_team`); consumers MUST NOT remove, rename, or change the type of any of these. Addition is permitted.
+6. **Contract C7 minimum lifecycle-event field set** — the eleven fields (`event_id`, `ticket_id`, `parent_ticket_id`, `phase`, `persona`, `model`, `timestamp`, `outcome`, `rerun_round`, `owner_team`, `emitter`); consumers MUST NOT remove, rename, or change the type of any of these. Addition is permitted. (`event_id` and `emitter` were added in round-13 so that the C7 idempotency rule — `event_id = sha256(ticket_id|phase|rerun_round|emitter)` — is derivable from declared schema fields alone; their addition is permitted under the same "Addition is permitted" clause that this item itself carries.)
 7. **Contract C7 emission-transport rule** — durable, replayable bus with async fire-and-forget semantics. Consumers MUST NOT replace this with synchronous dashboard writes.
 8. **Contract C7 emission-mechanism rule** (per #337 FR-019 ADR) — C7 events MUST be emitted exclusively by the orchestrator (#333) for phase-boundary events and by the webhook handler (#336) for GitHub-observable events. Personas, skills, OpenHands runtime, workspace pods, and LiteLLM MUST NOT emit C7 events. Consumers MUST NOT widen the emitter set or move emission into persona/skill output.
 9. **Contract C2 SDD-artifact front-matter required-key set** — `id`, `artifact_kind`, `work_item_slug`, `owner_team`, `schema_version`; consumers MUST NOT remove or rename required keys. Addition is permitted.
