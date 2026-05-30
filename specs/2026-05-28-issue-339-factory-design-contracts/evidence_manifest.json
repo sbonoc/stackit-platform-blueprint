@@ -12,9 +12,9 @@
     },
     {
       "path": "docs/blueprint/architecture/decisions/ADR-issue-339-factory-design-contracts.md",
-      "sha256": "25db7bdb6419db6524a055ea7742651845e3777dbe0f465cf03b2ffefd2ea444",
+      "sha256": "cbbef1b261a9cb853dae9409f3803f314befe7f4d386e8d0d2b2605f6434ad6c",
       "role": "adr",
-      "description": "Summary ADR with flowchart TD dependency diagram; Status: approved. SHA updated 2026-05-29 post-merge to scrub the residual #341 Phase 0 prerequisite reference after #341 was closed as won't-do."
+      "description": "Summary ADR with flowchart TD dependency diagram; Status: approved. SHA updated 2026-05-29 post-merge to scrub the residual #341 Phase 0 prerequisite reference after #341 was closed as won't-do. SHA re-updated 2026-05-30 in PR #345 round-10 deep-review follow-up: replaced three stale Phase 1 ticket-name references for #334 (Context prose + Mermaid edge label + Mermaid node label) — \"Confidential Kubernetes\" / \"Confidential K8s\" → \"factory runtime on SKE — Secrets Manager + ESO + egress NetworkPolicy + bot identity\" / \"factory runtime on SKE\" — to match #334's current name. Name-tracking edit only; no contract re-litigation. The L42 Rejected option historical phrase \"#337 already produces ten ADRs\" is preserved as accurate record of #337's count at #339 sign-off time."
     },
     {
       "path": "scripts/templates/blueprint/bootstrap/docs/blueprint/autonomous-factory/design-contracts.md",
