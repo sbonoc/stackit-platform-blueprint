@@ -2,36 +2,49 @@
 
 ## Summary
 - Work item: 2026-05-30-issue-347-human-sdd-c7-symmetry
-- Objective: Extend Contract C7 (sealed-two-emitter rule, FR-019) to a sealed-three-emitter rule by adding `local-cli` for human-driven SDD sessions, with a deterministic CLI helper, committed JSONL sink at `artifacts/c7/<slug>.jsonl`, and #336 PR-event ingest at `pull_request.opened/synchronize/reopened`. Restores parity between human SDD throughput and autonomous factory throughput on the metrics dashboard, the FR-008 reviewer-heterogeneity audit, and the Central Brain index (Epic #343).
-- Scope boundaries: Blueprint repo only; seven SDD step skills (`blueprint-sdd-step01-intake` through `blueprint-sdd-step07-pr-packager`); no backfill of historical PRs.
+- Objective: Extend Contract C7 (sealed-two-emitter rule, FR-019) to a sealed-three-emitter rule by adding `local-cli` for human-driven SDD sessions, with a deterministic CLI helper and a committed JSONL sink at `artifacts/c7/<slug>.jsonl`. Producer-side only — subscriber-side ingest (PR-event handlers in `services/webhook_handler/`) is deferred to companion issue #350.
+- Scope boundaries: Blueprint repo only; seven SDD step skills (`blueprint-sdd-step01-intake` through `blueprint-sdd-step07-pr-packager`); no backfill of historical PRs; no consumer-repo emission in this iteration.
 
 ## Requirement Coverage
-- Requirement IDs covered: FR-001..FR-014, NFR-SEC-001, NFR-SEC-002, NFR-OBS-001, NFR-OBS-002, NFR-REL-001, NFR-OPS-001, NFR-A11Y-001
-- Acceptance criteria covered: AC-001..AC-007
-- Contract surfaces changed: Contract C7 (`emitter.enum`, `persona.description`, `model.description`, extension-field vocabulary, `event_id` derivation), GitHub webhook handler event vocabulary (3 new event types), pre-commit hook contract, `blueprint/contract.yaml` (`spec.spec_driven_development_contract.c7_emission` block).
+- Requirement IDs covered: FR-001..FR-007, FR-010..FR-015, NFR-SEC-001, NFR-REL-001, NFR-OPS-001, NFR-A11Y-001 (N/A — no UI surface).
+- Deferred to #350: FR-008, FR-009 (reviewer-heterogeneity audit & webhook ingest), NFR-SEC-002, NFR-OBS-001, NFR-OBS-002 (subscriber-side observability).
+- Acceptance criteria covered: AC-001, AC-002, AC-004, AC-006, AC-007.
+- Contract surfaces changed: Contract C7 (`emitter.enum` widened to `{orchestrator, webhook-handler, local-cli}`, `persona.description`, `model.description`, extension-field vocabulary, `event_id` derivation for `local-cli`), pre-commit hook contract, `blueprint/contract.yaml` (`spec.spec_driven_development_contract.c7_emission` block).
 
 ## Key Reviewer Files
 - Primary files to review first:
   - `docs/blueprint/autonomous-factory/design-contracts.md` (Contract C7 amendment)
   - `docs/blueprint/architecture/decisions/ADR-issue-347-human-sdd-c7-symmetry.md` (new ADR)
-  - `scripts/lib/sdd/c7_emit.py` (helper module)
-  - `scripts/bin/sdd/c7_emit.py` (CLI entrypoint)
-  - `.agents/skills/blueprint-sdd-step*/SKILL.md` (uniform addendum across seven skills)
-  - `services/webhook_handler/...` (three new PR-event handlers + fetch logic)
+  - `docs/blueprint/governance/sdd_execution_guide.md` (operator-facing C7 section, env vars, FR-007 dedup semantics)
+  - `scripts/lib/sdd/c7_emit.py` (helper library — `EmitC7EventUseCase`, `OptOutAuditUseCase`, `validate_event`)
+  - `scripts/bin/sdd/c7_emit.py` (CLI entrypoint with NFR-REL-001 non-blocking failure path)
+  - `.agents/skills/blueprint-sdd-step*/SKILL.md` (uniform C7 addendum across seven skills)
+  - `scripts/bin/quality/check_sdd_assets.py` (FR-015(a) skill structural-sections scanner)
+  - `.gitattributes` (FR-013 — `artifacts/c7/*.jsonl  linguist-generated=true  diff=none`)
 - High-risk files:
-  - Contract C7 schema (enum widening — breaks subscribers that hard-code the two-emitter union)
-  - `services/webhook_handler/...` (new fetch path against GitHub contents API)
+  - Contract C7 schema (enum widening — subscribers in #350 must accept the three-emitter union)
+  - `scripts/lib/sdd/c7_emit.py` `OptOutAuditUseCase` (FR-007 dedup is enforced by reading the sink file; tampering with the sink resets the scope — documented in `sdd_execution_guide.md`)
 
 ## Validation Evidence
-- Required commands executed: (pending — Step 5 implementation phase)
-- Result summary: (pending)
-- Artifact references: (pending — manual rehearsal screenshot for AC-005 captured on PR merge)
+- Required commands executed:
+  - `python3 -m pytest tests/sdd/ -v` → 43 passed, 0 failed (covers FR-001..FR-007, FR-013, NFR-REL-001, NFR-OPS-001, T-103)
+  - `python3 -m pytest tests/infra/test_sdd_asset_checker.py -q` → 17 passed (covers FR-015(a) skill structural-sections scanner)
+  - `make quality-sdd-check` → zero violations
+  - Manual AC-001 rehearsal: 7 sequential CLI invocations (`scripts/bin/sdd/c7_emit.py emit`) for ticket 999 across the seven SDD phases under `CLAUDE_CODE_MODEL=claude-opus-4-7` produced 7 JSONL lines in `artifacts/c7/rehearsal-999.jsonl`, all with `emitter=local-cli`, `execution_mode=human-assisted`, `model=claude-opus-4-7`, `rerun_round=0`, distinct `event_id`s — confirms one event per SDD step.
+  - Manual AC-004 / FR-007 rehearsal: 3 sequential opt-out invocations (`BLUEPRINT_SDD_C7_EMIT=0 BLUEPRINT_SDD_C7_OPT_OUT_REASON=ci-rehearsal`) for ticket 999 under slug `optout-999` produced exactly 1 `c7-emission-opted-out` event in `artifacts/c7/optout-999.jsonl` with `opt_out_reason=ci-rehearsal`; invocations 2 and 3 short-circuited and logged the FR-007 dedup branch to stderr.
+- Result summary: All in-scope FRs, NFRs, and ACs covered by automated tests or the documented manual rehearsal. No deterministic-check failures.
+- Artifact references:
+  - Rehearsal sinks captured under `/tmp/c7-rehearsal-7/artifacts/c7/rehearsal-999.jsonl` and `/tmp/c7-rehearsal-bool/artifacts/c7/optout-999.jsonl` (transient — not committed; documented here for reviewer reproducibility).
+  - Reproduce: see the env-var table and step-by-step block in `docs/blueprint/governance/sdd_execution_guide.md` (operator-facing C7 section).
 
 ## Risk and Rollback
-- Main risks: Self-bootstrap paradox (this work item itself cannot emit C7 via the helper it authors); best-effort model ID degrades FR-008 audit signal for operators whose coding assistant exposes no model env var; rebase/squash conflict in append-only JSONL absorbed by subscriber-side dedupe.
-- Rollback strategy: A single PR reverts the contract amendment, ADR, helper, skill addenda, and #336 handlers atomically; no migration is required because no historical JSONL state exists pre-merge.
+- Main risks:
+  - Self-bootstrap paradox: this work item itself cannot emit C7 via the helper it authors; one-time backfill noted in implementation log but not required for merge.
+  - Best-effort model ID: degrades the (deferred-to-#350) FR-008 reviewer-heterogeneity audit signal for operators whose coding assistant exposes no model env var (`unknown` sentinel resolved by `EnvVarModelResolver`).
+  - Sink-file dedup boundary: FR-007 opt-out scope is the JSONL file itself; if an operator clears the sink (`git rm artifacts/c7/<slug>.jsonl`) and re-runs an SDD step, a fresh audit event will fire. Documented as expected behavior in `sdd_execution_guide.md`.
+- Rollback strategy: A single PR reverts the contract amendment, ADR, helper, CLI, governance guide addendum, skill addenda, and asset-checker rule atomically. No migration required — no historical JSONL state exists pre-merge. Subscriber-side #350 can be merged or reverted independently because nothing in this PR depends on it.
 
 ## Deferred Proposals
 - Proposal 1 (not implemented): Consumer-repo C7 emission — defer until `artifacts/c7/*.jsonl` is a stable contract on the blueprint side. Re-evaluate after first 30 PRs ship locally.
-- Proposal 2 (not implemented): JSONL line signing / HMAC — pending Q-2 resolution; default no, on the assumption that committed-file + git-blame audit trail is sufficient anti-tamper.
+- Proposal 2 (resolved → not implemented): JSONL line signing / HMAC — Q-2 resolved with "no signing"; committed-file + git-blame audit trail is sufficient anti-tamper for the local-cli scope.
 - Proposal 3 (not implemented): IDE-extension / VS Code / JetBrains direct emission — helper remains CLI-only in this iteration.

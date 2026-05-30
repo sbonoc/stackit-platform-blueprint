@@ -2,7 +2,7 @@
   "manifest_version": 1,
   "work_item": "2026-05-30-issue-347-human-sdd-c7-symmetry",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "2026-05-31T00:00:00Z",
+  "generated_at_utc": "2026-05-31T01:00:00Z",
   "files": [
     {
       "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/spec.md",
@@ -37,7 +37,7 @@
     {
       "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/pr_context.md",
       "purpose": "Reviewer package — requirement coverage, key files, validation evidence, risk + rollback",
-      "sha256": "2d5a0b635fd9c46c4bd83e0bfe0eb9e361c5ea38a156e75e08e81845a7ea0f71"
+      "sha256": "d8c40902f45283eafd7677481a2e00fd9c18b7aa969c60097061df1fe6e1d6ce"
     },
     {
       "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/hardening_review.md",
