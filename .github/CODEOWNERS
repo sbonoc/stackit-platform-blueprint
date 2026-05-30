@@ -174,15 +174,21 @@
 /docs/blueprint/autonomous-factory/**                                  @sbonoc/factory-context-factory
 /docs/blueprint/architecture/decisions/ADR-issue-33*                   @sbonoc/factory-context-factory @sbonoc/factory-architecture
 
-# Gate-1 architecture for design-contracts.md (narrower than autonomous-factory/**)
-/docs/blueprint/autonomous-factory/design-contracts.md                 @sbonoc/factory-architecture
+# Gate-1 architecture for design-contracts.md (narrower than autonomous-factory/**).
+# Co-owned with the gate-2 factory bounded-context team — both teams must be
+# named on this final matching line so last-match-wins preserves the C6 / FR-011
+# two-layer routing for the central factory design contract (codex P2 round-12
+# — factory ownership on design contracts).
+/docs/blueprint/autonomous-factory/design-contracts.md                 @sbonoc/factory-architecture @sbonoc/factory-context-factory
 
 # Gate-1 operations for the three ops-owned factory documents
 # (narrower than autonomous-factory/**, preserves FR-012/FR-014/FR-015
-# operations sign-off authority)
-/docs/blueprint/autonomous-factory/instrumentation-plan.md             @sbonoc/factory-operations
-/docs/blueprint/autonomous-factory/pre-factory-baselines.md            @sbonoc/factory-operations
-/docs/blueprint/autonomous-factory/triage-decomposition-data-feed.md   @sbonoc/factory-operations
+# operations sign-off authority). Co-owned with the gate-2 factory
+# bounded-context team for the same C6 / FR-011 two-layer routing reason
+# as design-contracts.md above.
+/docs/blueprint/autonomous-factory/instrumentation-plan.md             @sbonoc/factory-operations @sbonoc/factory-context-factory
+/docs/blueprint/autonomous-factory/pre-factory-baselines.md            @sbonoc/factory-operations @sbonoc/factory-context-factory
+/docs/blueprint/autonomous-factory/triage-decomposition-data-feed.md   @sbonoc/factory-operations @sbonoc/factory-context-factory
 
 # ====================================================================
 # Re-anchored gate-1 spec routings for factory work items

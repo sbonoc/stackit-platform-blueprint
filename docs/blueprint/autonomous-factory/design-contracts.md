@@ -271,7 +271,7 @@ The minimum event field set is a named JSON schema with explicit types and nulla
   "properties": {
     "ticket_id":        { "type": "string",  "description": "GitHub issue identifier (e.g., '339')." },
     "parent_ticket_id": { "type": ["string", "null"], "description": "Parent issue identifier for decomposed children; null for top-level tickets." },
-    "phase":            { "type": "string",  "enum": ["intake", "resolve-questions", "spec-complete", "plan-slicer", "implement", "document-sync", "pr-packager"] },
+    "phase":            { "type": "string",  "enum": ["intake", "resolve-questions", "spec-complete", "plan-slicer", "implement", "document-sync", "pr-packager", "agent-pr-review"] },
     "persona":          { "type": "string",  "description": "Persona file basename (matches Contract C3 microagent name)." },
     "model":            { "type": "string",  "description": "LLM model identifier resolved via LiteLLM (e.g., 'claude-opus-4-7')." },
     "timestamp":        { "type": "string",  "format": "date-time", "description": "RFC 3339 UTC timestamp at emission." },
@@ -283,6 +283,8 @@ The minimum event field set is a named JSON schema with explicit types and nulla
 ```
 
 Consumers MUST NOT remove, rename, or change the type of any of the nine minimum fields. Addition of further fields is permitted (sealed under FR-017(b); see Contract C8).
+
+The `phase` enum carries one entry per blueprint SDD step in `.agents/skills/blueprint-sdd-step0N-<name>/` — stripping the `step0N-` prefix from the skill basename yields the enum value (e.g., `blueprint-sdd-step08-agent-pr-review` → `agent-pr-review`). The `agent-pr-review` entry is REQUIRED for the FR-008 reviewer-heterogeneity audit invariant, which pairs the `step05` `implement` C7 event with the `step08` `agent-pr-review` C7 event on the same `work_item_id` and asserts `step05.model` differs from `step08.model`; a schema that lacks `agent-pr-review` makes the audit unimplementable. Consumers MUST NOT remove any of these enum values; additions to the enum are out of scope for consumer overlays and require a #339 sign-off cycle.
 
 **Emission transport (sealed).** Events MUST be emitted to a **durable, replayable bus** with the following semantics:
 

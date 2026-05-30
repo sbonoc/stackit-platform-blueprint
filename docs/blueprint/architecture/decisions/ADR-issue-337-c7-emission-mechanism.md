@@ -35,9 +35,10 @@ The factory's correctness rests on the C7 event stream being a complete record o
 
 **Orchestrator emission responsibilities (the canonical list).**
 
-| Triggering condition | Orchestrator emits | Source ADR |
+Each phase boundary produces **EXACTLY ONE** atomic C7 event. The orchestrator constructs the event before invoking the persona, populating the identification fields (`phase`, `persona`, `model` resolved per FR-001 + FR-008 picker, `rerun_round` derived from prior C7 events, `owner_team` snapshotted from the issue at `phase: intake`, `work_item_id`, `parent_ticket_id`, `timestamp`). It then invokes the persona, awaits exit, and populates the outcome fields (`outcome` plus extension fields) before publishing the event to the durable bus. The idempotency key — `event_id = sha256(work_item_id|phase|rerun_round|emitter)` — carries no `phase-start` / `phase-end` discriminator: each phase boundary maps to one event, not two. The table below pins the **outcome-decision rules** that determine which `outcome` value (and which extension fields) are populated on that single event; the rows do NOT describe separate emissions.
+
+| Outcome-decision condition observed at persona exit | Outcome value + extension fields populated on the single C7 event | Source ADR |
 |---|---|---|
-| About to invoke a persona | `phase: <persona-phase>`, persona name, model resolved per FR-001 + FR-008 picker, `rerun_round` derived from prior C7 events, `owner_team` snapshotted from issue at `phase: intake` | C7 schema; FR-001; FR-008 |
 | Persona process exited cleanly AND output validates against the skill runbook's output schema | `outcome: success`, plus any extension fields derived from the persona's structured output (e.g., `triage_class` from the triage persona) | C7 schema; FR-009 (triage_class) |
 | Persona process exited cleanly BUT output failed schema validation | `outcome: rejected`, `rejection_reason: malformed-output` (non-required extension field per C7 `additionalProperties: true`) | C7 schema |
 | Persona process crashed or exceeded its skill runbook wall-clock cap | `outcome: rejected`, `rejection_reason: persona-crash` or `persona-timeout` | C7 schema |
