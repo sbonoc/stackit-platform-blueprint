@@ -1,7 +1,11 @@
 # Hardening Review
 
 ## Repository-Wide Findings Fixed
-- Finding 1: (pending — Step 5 implementation phase will surface any incidental drift)
+- Finding 1: `.gitignore` — `artifacts/` pattern blocked `artifacts/c7/*.jsonl` from being committed (FR-003). Fixed by changing `artifacts/` to `artifacts/*` and adding `!artifacts/c7/` + `!artifacts/c7/*.jsonl` negation rules in both `.gitignore` and the bootstrap template mirror.
+- Finding 2: `.gitattributes` literal — spec required `linguist-generated=true` but initial commit used bare `linguist-generated`; aligned to spec-mandated form (`linguist-generated=true  diff=none`).
+- Finding 3: CLI UX dedup message — `OptOutAuditUseCase.emit_audit_event` returned `None`; CLI logged "wrote audit event" on all opt-out invocations including dedup no-ops. Fixed: return type changed to `bool`; CLI branches on return value to distinguish "wrote" vs. "prior audit event already present (FR-007 dedup)".
+- Finding 4: NFR-REL-001 failure path — CLI entrypoint had no try/except; any helper exception would propagate and could fail the SDD step. Fixed: wrapped `cmd_emit` body in `except Exception` per NFR-REL-001; logs to stderr and returns 0.
+- Finding 5: All blueprint Python invocations now use `uv run python3` per AGENTS.md mandate. Fixed across all seven skill runbooks, seven consumer templates, pre-commit hook entry, governance guide, and pr_context.md validation evidence.
 
 ## Observability and Diagnostics Changes
 - Metrics/logging/tracing updates: Grafana dashboard gains `execution_mode` panel facet (NFR-OBS-001). Opt-out rate panel surfaces `c7-emission-opted-out` event count over rolling 30-day window with alert threshold > 5%.

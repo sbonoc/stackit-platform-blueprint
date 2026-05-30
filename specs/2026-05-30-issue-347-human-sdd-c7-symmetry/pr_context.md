@@ -26,7 +26,7 @@
   - `scripts/lib/sdd/c7_emit.py` `OptOutAuditUseCase` (FR-007 dedup is enforced by reading the sink file; tampering with the sink resets the scope — documented in `sdd_execution_guide.md`)
 
 ## Validation Evidence
-- Required commands executed:
+- Required commands executed: pytest (66 tests), make quality-sdd-check, docs-build/smoke, manual AC-001 + AC-004 rehearsals — all pass
   - `uv run python3 -m pytest tests/sdd/ -v` → 43 passed, 0 failed (covers FR-001..FR-007, FR-013, NFR-REL-001, NFR-OPS-001, T-103)
   - `uv run python3 -m pytest tests/infra/test_sdd_asset_checker.py -q` → 17 passed (covers FR-015(a) skill structural-sections scanner)
   - `make quality-sdd-check` → zero violations
@@ -38,13 +38,13 @@
   - Reproduce: see the env-var table and step-by-step block in `docs/blueprint/governance/sdd_execution_guide.md` (operator-facing C7 section).
 
 ## Risk and Rollback
-- Main risks:
+- Main risks: self-bootstrap paradox; unknown model sentinel; sink-file dedup scope boundary
   - Self-bootstrap paradox: this work item itself cannot emit C7 via the helper it authors; one-time backfill noted in implementation log but not required for merge.
   - Best-effort model ID: degrades the (deferred-to-#350) FR-008 reviewer-heterogeneity audit signal for operators whose coding assistant exposes no model env var (`unknown` sentinel resolved by `EnvVarModelResolver`).
   - Sink-file dedup boundary: FR-007 opt-out scope is the JSONL file itself; if an operator clears the sink (`git rm artifacts/c7/<slug>.jsonl`) and re-runs an SDD step, a fresh audit event will fire. Documented as expected behavior in `sdd_execution_guide.md`.
 - Rollback strategy: A single PR reverts the contract amendment, ADR, helper, CLI, governance guide addendum, skill addenda, and asset-checker rule atomically. No migration required — no historical JSONL state exists pre-merge. Subscriber-side #350 can be merged or reverted independently because nothing in this PR depends on it.
 
 ## Deferred Proposals
-- Proposal 1 (not implemented): Consumer-repo C7 emission — defer until `artifacts/c7/*.jsonl` is a stable contract on the blueprint side. Re-evaluate after first 30 PRs ship locally.
-- Proposal 2 (resolved → not implemented): JSONL line signing / HMAC — Q-2 resolved with "no signing"; committed-file + git-blame audit trail is sufficient anti-tamper for the local-cli scope.
-- Proposal 3 (not implemented): IDE-extension / VS Code / JetBrains direct emission — helper remains CLI-only in this iteration.
+- Proposal 1 (parked): Consumer-repo C7 emission — defer until `artifacts/c7/*.jsonl` is a stable contract on the blueprint side. Parked — trigger: triage: next-session — re-evaluate after first 30 PRs ship with local-cli post-merge. AGENTS.backlog.md entry added.
+- Proposal 2 (rejected): JSONL line signing / HMAC — rejected at PR #348 closure. Q-2 resolved as "no signing"; committed-file + git-blame audit trail is sufficient anti-tamper. Consciously discarded. AGENTS.backlog.md entry added.
+- Proposal 3 (parked): IDE-extension direct emission (VS Code / JetBrains) — helper remains CLI-only. Parked — trigger: on-scope: c7-emission — surfaces when any future work touches the C7 emission surface. AGENTS.backlog.md entry added.

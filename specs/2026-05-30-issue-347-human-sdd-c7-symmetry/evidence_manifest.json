@@ -2,7 +2,7 @@
   "manifest_version": 1,
   "work_item": "2026-05-30-issue-347-human-sdd-c7-symmetry",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "2026-05-31T03:00:00Z",
+  "generated_at_utc": "2026-05-31T04:00:00Z",
   "files": [
     {
       "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/spec.md",
@@ -17,12 +17,12 @@
     {
       "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/plan.md",
       "purpose": "Five delivery slices in red→green TDD order (subscriber-side ingest deferred to #350)",
-      "sha256": "b0d9d683d82898a0770d5cfd15433cd163c880d048a9016237fff2192c7c2946"
+      "sha256": "56dcc0ea4083e84ab5f68020f097241e925465ded29749ab2897b5346f3f2e20"
     },
     {
       "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/tasks.md",
       "purpose": "Tasks T-001..T-054 (Slice 5 webhook ingest deferred to #350) + gates + tests + validation + publish + app-onboarding",
-      "sha256": "5146beb19d8a070d33961ff4c0aa2b6ff5b0e0594c3aed43b3aa004059eca131"
+      "sha256": "203d26d838980276edbfb687b1b4057f5b6eb9c513d32a453daf78d01e363222"
     },
     {
       "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/traceability.md",
@@ -37,12 +37,12 @@
     {
       "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/pr_context.md",
       "purpose": "Reviewer package — requirement coverage, key files, validation evidence, risk + rollback",
-      "sha256": "bb1e5d8fc47e40bfec35b702fc8ee1174743669a8fd60046883f3c04b289c313"
+      "sha256": "5816251b7da1c7e5c4d9ee0fab3f0990f909e28dcc45cd4b60b7ba207113d97a"
     },
     {
       "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/hardening_review.md",
       "purpose": "Repository-wide hardening findings + A11Y N/A + proposals-only section",
-      "sha256": "ce55d6d742ab6bf8db72830c9db01f8b4442ba33f365f1319f5188af88f90293"
+      "sha256": "ebabf49c628fe743fc22361f26d9cf55f4d7bca01f43563c4c96faee55015c3f"
     },
     {
       "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/context_pack.md",

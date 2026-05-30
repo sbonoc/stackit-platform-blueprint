@@ -43,8 +43,8 @@
 > Deferred to follow-up issue #350 (blocked by #336): T-040..T-043 (#336 webhook handler ingest + integration test) and T-050..T-051 (FR-008 `unknown`-model exemption). PR #348 ships the producer side only; the subscriber side ships when #336 runtime exists.
 
 ### Cross-cutting
-- [x] T-060 Update blueprint docs/diagrams (already partially in T-001 + T-052; verify completeness)
-- [x] T-061 Update consumer-facing docs/diagrams when contracts/behavior change (T-002 + T-053 + T-054 cover this)
+- [x] T-060 Verify design-contracts.md + ADR + sdd_execution_guide.md C7 section completeness (covered by T-001, T-011, T-052)
+- [x] T-061 Verify consumer bootstrap mirrors + consumer skill templates reflect C7 addendum (covered by T-002, T-053, T-054)
 
 ## Test Automation
 - [x] T-101 Unit tests: `tests/sdd/test_c7_emit_unit.py` + `tests/sdd/test_c7_emit_opt_out.py` (covered by T-012 + T-024)
