@@ -1925,6 +1925,55 @@ def _validate_contract_assets(contract_raw: dict[str, Any], repo_root: Path) -> 
     return violations
 
 
+_REQUIRED_SKILL_SECTION_KEYWORDS: tuple[str, ...] = (
+    "Guardrails",
+    "Workflow",
+    "Required Report Format",
+)
+
+
+def _validate_skill_structural_sections(repo_root: Path) -> list[Violation]:
+    """Assert every blueprint-sdd-* SKILL.md contains the required structural sections (FR-015 part a).
+
+    Scope: blueprint-sdd-* skills only (7 step skills + traceability-keeper).
+    Consumer-ops/upgrade are out-of-scope per Q-6 Option A — different
+    bounded context with different runbook conventions.
+
+    Match: substring keyword in any '## ' heading title (consistent with
+    _find_section). Variants like '## SDD Guardrails' or '## Workflow
+    (8 steps)' satisfy the requirement.
+    """
+    violations: list[Violation] = []
+    skills_root = repo_root / ".agents" / "skills"
+    if not skills_root.is_dir():
+        return []
+
+    heading_pattern = re.compile(r"^##\s+(.+?)\s*$", re.MULTILINE)
+    for skill_dir in sorted(skills_root.iterdir()):
+        if not skill_dir.is_dir():
+            continue
+        if not skill_dir.name.startswith("blueprint-sdd-"):
+            continue
+        skill_md = skill_dir / "SKILL.md"
+        if not skill_md.is_file():
+            continue
+        content = skill_md.read_text(encoding="utf-8")
+        headings_lower = [h.lower() for h in heading_pattern.findall(content)]
+        for keyword in _REQUIRED_SKILL_SECTION_KEYWORDS:
+            needle = keyword.lower()
+            if not any(needle in heading for heading in headings_lower):
+                violations.append(
+                    Violation(
+                        path=str(skill_md),
+                        message=(
+                            f"SKILL.md missing required structural section keyword "
+                            f"'{keyword}' (FR-015a)"
+                        ),
+                    )
+                )
+    return violations
+
+
 def _validate_skill_c7_addenda(repo_root: Path) -> list[Violation]:
     """Assert all seven SDD step skills have a byte-identical '## C7 Emission' section (FR-012, FR-015)."""
     violations: list[Violation] = []
@@ -1981,6 +2030,7 @@ def main() -> int:
     control_catalog_violations, control_ids = _load_control_catalog(contract_raw=contract.raw, repo_root=REPO_ROOT)
     violations.extend(control_catalog_violations)
     violations.extend(_validate_work_item_specs(contract.raw, REPO_ROOT, control_ids))
+    violations.extend(_validate_skill_structural_sections(REPO_ROOT))
     violations.extend(_validate_skill_c7_addenda(REPO_ROOT))
 
     if violations:
