@@ -7,7 +7,7 @@
     {
       "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/spec.md",
       "purpose": "Normative spec (producer-side only; subscriber-side deferred to #350) — 13 FR + 4 NFR + 5 AC",
-      "sha256": "89c9c61427e375d550a841e3c504e82e2f02b67f21851206bcc2b5bd9265d6ec"
+      "sha256": "8554aa8d68ab54ad1532b5f29f26c25790404c202e3ac49a7ce2123ecd083646"
     },
     {
       "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/architecture.md",
@@ -27,7 +27,7 @@
     {
       "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/traceability.md",
       "purpose": "22-row matrix mapping every in-scope requirement to design / impl / test / docs / ops evidence (deferred rows excised to #350)",
-      "sha256": "d7e2536072cb8acb9d77f37b93d0eddb4ed9ec70c76a72d41a7b8a37bc4c2e03"
+      "sha256": "40050ee402787ed4273abc006266137724fc163ac36e3fb79a8dc886218d8e9e"
     },
     {
       "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/graph.json",
@@ -52,7 +52,7 @@
     {
       "path": "docs/blueprint/architecture/decisions/ADR-issue-347-human-sdd-c7-symmetry.md",
       "purpose": "ADR (Status: proposed) — records D-1..D-4; extends ADR-issue-337-c7-emission-mechanism.md",
-      "sha256": "316e30d7f44e428c272aa1b4ef67559e8a5546ecb15e40cd78e1e26c60de46fa"
+      "sha256": "770b0bd18f4d3f4bbd1d02feffffac55f9983d3c50867916d6cbfc3d82fa48d9"
     }
   ]
 }

@@ -51,7 +51,7 @@
 
 ## Open Risks and Follow-Ups
 - Follow-up 1: Subscriber-side ingest of the JSONL sink onto the durable bus — tracked as issue #350 (blocked by #336). Covers the three PR-event handlers, schema-validate + dedupe + republish flow, reviewer-heterogeneity audit `unknown`-model exemption (#337), Grafana `execution_mode` panel facet, and integration test.
-- Follow-up 2: Cross-repo aggregation of consumer-repo C7 events — eligible once `artifacts/c7/*.jsonl` is a stable contract in blueprint repo. Owner: TBD post-merge. Trigger: first consumer adopter requests metrics-dashboard symmetry.
+- Follow-up 2: Cross-repo aggregation of consumer-repo C7 events — eligible once `artifacts/c7/*.jsonl` is a stable contract in blueprint repo. Owner: post-merge triage. Trigger: first consumer adopter requests metrics-dashboard symmetry.
 - Follow-up 3: `blueprint-sdd-traceability-keeper` emission (resolved by Q-6 → Option A; excluded here). Requires a new `phase` enum entry — separate #339 amendment cycle, tracked as a separate follow-up issue.
 - Follow-up 4: Consumer-ops skills (`blueprint-consumer-ops`, `blueprint-consumer-upgrade`) emission — different audit surface; out-of-scope here.
 - Follow-up 5: Self-bootstrap emission for this work item #347 (Q-3 → Option A; default excluded). Helper does not exist for the steps that author it.

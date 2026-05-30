@@ -1,10 +1,11 @@
 # ADR: Human SDD C7 Emission Symmetry — Third Emitter `local-cli`
 
-**Status:** proposed
+**Status:** approved
 **Date:** 2026-05-30
 **Issue:** #347
-**Spec:** `specs/2026-05-30-issue-347-human-sdd-c7-symmetry/` (FR-001..FR-014, NFR-SEC-001, NFR-OBS-001..NFR-OBS-002)
+**Spec:** `specs/2026-05-30-issue-347-human-sdd-c7-symmetry/` (FR-001..FR-007, FR-010..FR-015, NFR-SEC-001, NFR-REL-001, NFR-OPS-001)
 **Extensibility classification (#339 C8 FR-017):** `sealed`.
+**ADR technical decision sign-off:** approved
 
 ## Context
 
@@ -38,7 +39,7 @@ The architectural challenge is to extend C7 emission to local sessions **without
 
 **The committed JSONL sink is the local-first emission surface.** The helper appends one canonical JSON object per line to `artifacts/c7/<work-item-slug>.jsonl` in the work-item working tree. The file is committed to the work-item branch and travels with the PR. A `.gitattributes` rule (`artifacts/c7/*.jsonl  linguist-generated=true  diff=none`) hides the file from GitHub's PR diff renderer to avoid review noise.
 
-**The webhook handler (#336) ingests at PR-event boundaries.** On EXACTLY THREE GitHub events — `pull_request.opened`, `pull_request.synchronize`, `pull_request.reopened` — #336 fetches the JSONL via the GitHub contents API at the PR head SHA, validates each line against the C7 JSON Schema, dedupes by `event_id`, and republishes onto the durable bus with `emitter: local-cli` preserved. PR can be opened as Draft or non-Draft — both trigger ingest.
+**The webhook handler (#336) ingests at PR-event boundaries** *(delivery of this surface deferred to follow-up issue #350, blocked by #336 runtime existing)*. On EXACTLY THREE GitHub events — `pull_request.opened`, `pull_request.synchronize`, `pull_request.reopened` — #336 fetches the JSONL via the GitHub contents API at the PR head SHA, validates each line against the C7 JSON Schema, dedupes by `event_id`, and republishes onto the durable bus with `emitter: local-cli` preserved. PR can be opened as Draft or non-Draft — both trigger ingest.
 
 **Sealed sentinel values preserve the eleven-field schema.** For `emitter: local-cli` events:
 
@@ -51,7 +52,7 @@ The architectural challenge is to extend C7 emission to local sessions **without
 
 **Default-on emission with sealed opt-out.** Emission is default-on. The sealed opt-out surface is the environment variable `BLUEPRINT_SDD_C7_EMIT=0`. The opt-out is itself audited: the first SDD step executed under opt-out for a given work-item slug MUST emit EXACTLY ONE `c7-emission-opted-out` extension event with reason carried in `additionalProperties.opt_out_reason`; subsequent steps under the same opt-out scope MUST NOT re-emit.
 
-**FR-008 audit `unknown`-model exemption.** The reviewer-model-heterogeneity predicate (defined in [`ADR-issue-337-reviewer-model-heterogeneity.md`](ADR-issue-337-reviewer-model-heterogeneity.md)) MUST run against `local-cli`-emitted events. When both the `phase: implement` event and the paired `phase: agent-pr-review` event carry `model: unknown`, the predicate MUST mark the pair as **inconclusive** (logged at info, not fail-loud) rather than emit a `rotation-violation` rejection. The exemption is documented as an explicit failure mode in the audit's runbook so SREs reading the metrics dashboard know to interpret `inconclusive` differently from `compliant`.
+**Reviewer-heterogeneity audit `unknown`-model exemption** *(delivery deferred to follow-up issue #350)*. The reviewer-model-heterogeneity predicate (defined in [`ADR-issue-337-reviewer-model-heterogeneity.md`](ADR-issue-337-reviewer-model-heterogeneity.md)) MUST run against `local-cli`-emitted events. When both the `phase: implement` event and the paired `phase: agent-pr-review` event carry `model: unknown`, the predicate MUST mark the pair as **inconclusive** (logged at info, not fail-loud) rather than emit a `rotation-violation` rejection. The exemption is documented as an explicit failure mode in the audit's runbook so SREs reading the metrics dashboard know to interpret `inconclusive` differently from `compliant`.
 
 **Helper failure does NOT block SDD execution.** Helper crashes (disk full, malformed input, sink path not writable) MUST log to stderr and return success to the calling skill. The SDD step's pass/fail signal is determined by its own work product (the artifact diff, the spec validation, the PR push), NOT by C7 emission success. This preserves the local-first developer experience: a transient helper failure cannot block a contributor from progressing through the SDD lifecycle.
 
@@ -94,7 +95,7 @@ The operator's LLM assistant appends the JSONL line at step boundary, instructed
 ## Consequences
 
 - #339 design-contracts.md amendment (one PR cycle with this ADR): widens FR-019 to three emitters; widens the JSON Schema `emitter.enum` to include `local-cli`; extends the `persona` and `model` field descriptions to enumerate the `local-cli` sentinel rules; documents `execution_mode` in the extension-field vocabulary; documents the four-input `event_id` derivation for `local-cli`. Bootstrap mirror re-synced.
-- #336 (webhook handler) scope grows by three new event-type handlers (`pull_request.opened`, `pull_request.synchronize`, `pull_request.reopened`) that fetch `artifacts/c7/*.jsonl` from the PR head SHA, validate against the schema, dedupe by `event_id`, and republish onto the durable bus. No new credential surface — the existing GitHub App installation token authenticates the contents API fetch.
+- #336 (webhook handler) scope grows by three new event-type handlers (`pull_request.opened`, `pull_request.synchronize`, `pull_request.reopened`) that fetch `artifacts/c7/*.jsonl` from the PR head SHA, validate against the schema, dedupe by `event_id`, and republish onto the durable bus. No new credential surface — the existing GitHub App installation token authenticates the contents API fetch. *(Delivered by follow-up issue #350, blocked by #336 runtime. The local JSONL sink format committed by PR #348 is forward-compatible; events written today will be ingested by #350 on first PR-event trigger after #336 merges.)*
 - Every `.agents/skills/blueprint-sdd-step*/SKILL.md` (seven skills) gains a uniform "## C7 Emission" section instructing the skill to invoke `scripts/bin/sdd/c7_emit.py emit --phase <enum> --skill <basename> [--outcome <enum>]` at step boundary. The section text is identical across all seven skills modulo the per-skill `phase` enum value.
 - A new helper module `scripts/lib/sdd/c7_emit.py` + CLI entrypoint `scripts/bin/sdd/c7_emit.py` are added with pytest unit + contract tests. A pre-commit hook schema-validates `artifacts/c7/<slug>.jsonl` on every commit so malformed events are rejected before push.
 - `.gitattributes` gains the rule `artifacts/c7/*.jsonl  linguist-generated=true  diff=none` so the JSONL sink does not pollute PR diff views.
@@ -134,11 +135,11 @@ sequenceDiagram
     Bus-->>Brain: subscribe + index
 ```
 
-Caption: The skill-as-tool pattern keeps the LLM out of the critical emission path. The committed JSONL sink doubles as a git-history audit trail; #336 is the single ingest + dedupe surface for the local-cli emitter.
+Caption: The skill-as-tool pattern keeps the LLM out of the critical emission path. The committed JSONL sink doubles as a git-history audit trail; #336 is the single ingest + dedupe surface for the local-cli emitter. The WH → Bus → Brain portion of this diagram (steps 11–14) is the target architecture delivered by follow-up issue #350 once the #336 webhook handler runtime exists.
 
 ## References
 
-- Spec: `specs/2026-05-30-issue-347-human-sdd-c7-symmetry/spec.md` § FR-001..FR-014, NFR-SEC-001..NFR-SEC-002, NFR-OBS-001..NFR-OBS-002, NFR-REL-001, NFR-OPS-001
+- Spec: `specs/2026-05-30-issue-347-human-sdd-c7-symmetry/spec.md` § FR-001..FR-007, FR-010..FR-015, NFR-SEC-001, NFR-REL-001, NFR-OPS-001 (subscriber-side requirements deferred to #350)
 - Design contracts: `docs/blueprint/autonomous-factory/design-contracts.md` § Contract C7 (eleven-field lifecycle event schema, emission-mechanism rule, emission-transport rule, idempotency rule)
 - Architectural baseline being extended: [`ADR-issue-337-c7-emission-mechanism.md`](ADR-issue-337-c7-emission-mechanism.md) (the sealed two-emitter rule that becomes the sealed three-emitter rule here), [`ADR-issue-337-reviewer-model-heterogeneity.md`](ADR-issue-337-reviewer-model-heterogeneity.md) (FR-008 audit predicate gains the `unknown`-model exemption documented here)
 - Parent epic: [#332](https://github.com/sbonoc/stackit-platform-blueprint/issues/332) (STACKIT Autonomous Software Factory)
