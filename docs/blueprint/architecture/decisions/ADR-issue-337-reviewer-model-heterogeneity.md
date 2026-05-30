@@ -33,6 +33,8 @@ This ADR pins the rotation rule so the heterogeneity is structural, not optional
 | `claude-opus-4-7` | `claude-sonnet-4-6` |
 | `claude-sonnet-4-6` | `claude-opus-4-7` |
 
+**Model identifier resolution.** The identifiers in the pairings table are family/version names — not deployment IDs. Per-instance gateway-ID resolution is delegated to [`ADR-issue-337-llm-model-router-policy.md`](ADR-issue-337-llm-model-router-policy.md) § Decision — Model identifier resolution. The orchestrator-side picker MUST resolve `step05.model` (read from the C7 stream) and the chosen reviewer model through the same indirection, so the rotation invariant holds at the family/version layer regardless of consumer-side alias naming.
+
 **Enforcement.** Rotation enforcement is split across two independent points:
 
 1. **Picker (factory orchestrator, #333).** When the orchestrator is about to invoke `blueprint-sdd-step08-agent-pr-review` for a given work item, it MUST query the #339 Contract C7 stream for the most recent `step05-implement` event on the same work item, read its `model` field, select the opposite member of the `{claude-opus-4-7, claude-sonnet-4-6}` pair, and pass that model as the `model` parameter on the LiteLLM request. The orchestrator MUST NOT pin the reviewer model in the persona frontmatter.
