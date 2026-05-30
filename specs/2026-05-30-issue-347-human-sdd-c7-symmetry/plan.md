@@ -1,0 +1,123 @@
+# Implementation Plan
+
+## Implementation Start Gate
+- Implementation tasks MUST remain unchecked until `SPEC_READY=true`.
+- If required inputs are missing, add `BLOCKED_MISSING_INPUTS` in `spec.md` and keep the gate closed.
+
+## Constitution Gates (Pre-Implementation)
+- Simplicity gate:
+  - Single deterministic helper module (`scripts/lib/sdd/c7_emit.py`) + thin CLI entrypoint; no plugin architecture, no abstract emitter base class.
+  - Uniform addendum text across seven skills (one string, seven Edit calls); no per-skill customization.
+- Anti-abstraction gate:
+  - Helper writes JSON Lines directly via `json.dumps`; no event-bus client library, no message-broker SDK.
+  - Pydantic v2 model is one class with eleven fields + the extension; no inheritance hierarchy for the two emitter variants.
+- Integration-first testing gate:
+  - Contract tests assert the helper output validates against the C7 JSON Schema (using `jsonschema` library) — written BEFORE the helper implementation.
+  - #336 ingest integration test fixture replays a Draft-PR-opened payload + asserts dedupe-by-event_id absorbs a repeat synchronize.
+- Positive-path filter/transform test gate:
+  - Helper schema validation is filter logic — unit test MUST assert that a well-formed envelope returns the parsed record AND that the parsed record preserves all eleven required fields. Empty-result assertions MUST NOT satisfy this gate.
+- Finding-to-test translation gate:
+  - Any reproducible pre-PR finding from manual `python3 scripts/bin/sdd/c7_emit.py emit ...` invocations MUST be translated into a failing pytest test first; the fix MUST turn that test green in the same work item.
+  - If no deterministic automation path exists for a finding, publish artifacts MUST record the exception rationale, owner, and follow-up trigger.
+
+## Delivery Slices
+
+1. **Slice 1 — Contract amendment + ADR (no runtime code).** Red: add a failing assertion in `tests/blueprint/test_design_contracts_schema.py` that the `emitter` enum contains `local-cli`. Green: amend `docs/blueprint/autonomous-factory/design-contracts.md` § Contract C7 to widen `emitter.enum`, extend `persona`/`model` descriptions with `local-cli` sentinel rules, document `execution_mode` in the extension-field vocabulary, and document the four-input `event_id` derivation for `local-cli`. Re-sync bootstrap mirror via `scripts/lib/docs/sync_blueprint_template_docs.py`. Add the one-line "Extended by" cross-link to `ADR-issue-337-c7-emission-mechanism.md` § Local execution exemption. ADR `ADR-issue-347-human-sdd-c7-symmetry.md` is already authored at Step 01.
+2. **Slice 2 — Helper module + CLI + unit tests.** Red: `tests/sdd/test_c7_emit_unit.py` asserts `EmitC7EventUseCase` produces an envelope passing JSON Schema validation; asserts `EnvVarModelResolver` returns priority-ordered model id; asserts `event_id` derivation matches `sha256(ticket_id|phase|rerun_round|emitter)` byte-for-byte. Green: implement `scripts/lib/sdd/c7_emit.py` + `scripts/bin/sdd/c7_emit.py`. Helper exposes CLI `emit --phase --skill [--outcome --ticket]`.
+3. **Slice 3 — JSONL sink + opt-out audit + rerun_round + contract tests.** Red: `tests/sdd/test_c7_emit_contract.py` asserts append-only writes, asserts opt-out path emits EXACTLY ONE `c7-emission-opted-out` extension event per work-item slug, asserts `rerun_round` increments based on prior file contents. Green: wire `JsonlSinkAdapter`, `OptOutAuditUseCase`, `JsonlReaderAdapter` into the use-case.
+4. **Slice 4 — Skill addendum + `.gitattributes` + pre-commit hook + `blueprint/contract.yaml`.** Red: extend `check_sdd_assets.py` with a uniform-addendum check that asserts the "## C7 Emission" section is byte-identical (modulo phase enum) across all seven step skills; add an `.pre-commit-config.yaml` schema-validation entry for `artifacts/c7/*.jsonl`. Green: add the addendum text via Edit to each of the seven `.agents/skills/blueprint-sdd-step*/SKILL.md`; add the `.gitattributes` rule; add the `c7_emission` block to `blueprint/contract.yaml`. Run the checker and the pre-commit hook to confirm green.
+5. **Slice 5 — #336 webhook handler ingest + integration test.** Red: `tests/webhook_handler/test_pr_event_c7_ingest.py` replays a `pull_request.opened` GitHub payload + asserts the handler fetches `artifacts/c7/<slug>.jsonl` via the contents API at PR head SHA, validates each line, dedupes by `event_id`, and republishes onto a test bus channel. Green: implement the three new event-type handlers + the contents-API fetch + the dedupe-and-republish flow.
+6. **Slice 6 — Docs sync + FR-008 audit `unknown`-exemption + governance guide update.** Red: add an assertion in the FR-008 predicate's pytest that pair-of-unknowns returns `inconclusive` not `rotation-violation`. Green: implement the exemption branch in the predicate; update `docs/blueprint/governance/sdd_execution_guide.md` + bootstrap mirror to document `BLUEPRINT_SDD_C7_EMIT` + the JSONL sink path. Re-sync any other bootstrap mirrors via the docs-sync helper.
+
+## Change Strategy
+- Migration/rollout sequence:
+  1. Merge this PR after sign-offs. The contract surface widens immediately; existing autonomous emissions continue unchanged.
+  2. First new work item authored after merge becomes the first emitter under `local-cli`. The operator runs `make spec-scaffold` + the SDD step skills; the helper appends to `artifacts/c7/<slug>.jsonl`; the PR opens; #336 ingests on `pull_request.opened`.
+  3. Grafana dashboard immediately shows `execution_mode: human-assisted` events alongside `autonomous` events.
+- Backward compatibility policy: The eleven-field sealed minimum schema is unchanged — no nullable types, no new required field. Existing subscribers continue parsing events without code change; new subscribers wanting the `execution_mode` facet read it from `additionalProperties`. The `emitter` enum widening is additive — subscribers rejecting unknown enum values MUST be updated to accept `local-cli` (validated in Slice 1 contract test).
+- Rollback plan: Single revert PR undoes contract amendment, ADR, helper module, CLI, skill addenda, `.gitattributes` rule, pre-commit hook entry, `contract.yaml` block, and #336 handler additions. No data migration is required because no historical JSONL state exists at rollback time. Helper files left on disk on operator workstations are inert without the skill addenda calling them.
+
+## Validation Strategy (Shift-Left)
+- Unit checks:
+  - `tests/sdd/test_c7_emit_unit.py` — envelope construction, env-var model resolver, `event_id` derivation parity with orchestrator.
+  - `tests/sdd/test_c7_emit_opt_out.py` — opt-out audit event emission semantics.
+  - `tests/blueprint/test_design_contracts_schema.py` — `emitter` enum widening assertion (Slice 1 red).
+- Contract checks:
+  - `tests/sdd/test_c7_emit_contract.py` — every emitted envelope MUST validate against the C7 JSON Schema; round-trip through `json.loads(line)` MUST preserve all eleven required fields and `execution_mode`.
+  - `scripts/bin/quality/check_sdd_assets.py` — uniform addendum text across seven step skills (Slice 4).
+- Integration checks:
+  - `tests/webhook_handler/test_pr_event_c7_ingest.py` — replay `pull_request.opened` + `pull_request.synchronize` payloads; assert dedupe by `event_id`; assert republished events on the test bus carry `emitter: local-cli` + `execution_mode: human-assisted`.
+  - `tests/sdd/test_c7_emit_jsonl_round_trip.py` — write 10 envelopes via the helper, read them back via `JsonlReaderAdapter`, assert `rerun_round` increments correctly.
+- E2E checks:
+  - Manual rehearsal: on a throwaway test branch, run a full SDD lifecycle (Steps 01–07) on a stub work item; confirm 7 events in `artifacts/c7/<stub-slug>.jsonl`; open Draft PR; confirm #336 ingest emits to the staging bus channel; confirm Grafana dashboard shows the events with `execution_mode: human-assisted`. Capture screenshot in `pr_context.md`.
+
+## App Onboarding Contract (Normative)
+- Required minimum make targets:
+  - `apps-bootstrap`
+  - `apps-smoke`
+  - `backend-test-unit`
+  - `backend-test-integration`
+  - `backend-test-contracts`
+  - `backend-test-e2e`
+  - `touchpoints-test-unit`
+  - `touchpoints-test-integration`
+  - `touchpoints-test-contracts`
+  - `touchpoints-test-e2e`
+  - `test-unit-all`
+  - `test-integration-all`
+  - `test-contracts-all`
+  - `test-e2e-all-local`
+  - `infra-port-forward-start`
+  - `infra-port-forward-stop`
+  - `infra-port-forward-cleanup`
+- App onboarding impact: no-impact
+- Notes: This work item changes SDD-lifecycle tooling (helper, skill addenda, contract surface, webhook handler). It does NOT add or change app-delivery make targets. Reaffirmed no-impact.
+
+## Documentation Plan (Document Phase)
+- Blueprint docs updates:
+  - `docs/blueprint/autonomous-factory/design-contracts.md` — Contract C7 amendments (FR-010 scope).
+  - `docs/blueprint/architecture/decisions/ADR-issue-347-human-sdd-c7-symmetry.md` — new ADR (advance Status: proposed → accepted on merge).
+  - `docs/blueprint/architecture/decisions/ADR-issue-337-c7-emission-mechanism.md` — one-line "Extended by" cross-link at § Local execution exemption.
+  - `docs/blueprint/governance/sdd_execution_guide.md` — document `BLUEPRINT_SDD_C7_EMIT`, JSONL sink path, opt-out audit behavior.
+- Consumer docs updates:
+  - Bootstrap mirror at `scripts/templates/blueprint/bootstrap/docs/blueprint/autonomous-factory/design-contracts.md` — re-sync.
+  - Bootstrap mirror at `scripts/templates/blueprint/bootstrap/docs/blueprint/governance/sdd_execution_guide.md` — re-sync.
+  - Consumer-side `scripts/templates/consumer/init/.agents/skills/blueprint-sdd-step01-intake/SKILL.md.tmpl` and the other six step skills' templates — uniform addendum.
+- Mermaid diagrams updated:
+  - ADR-issue-347 contains one `sequenceDiagram` showing the operator → LLM → skill → helper → JSONL sink → #336 → bus → Central Brain flow.
+- Docs validation commands:
+  - `make docs-build`
+  - `make docs-smoke`
+
+## Publish Preparation
+- PR context file:
+  - `pr_context.md`
+- Hardening review file:
+  - `hardening_review.md`
+- Local smoke gate (HTTP route/filter changes):
+  - This work item adds NO new HTTP routes, NO new query/filter handlers, and NO new public API endpoints. The webhook handler extension adds three new event-type dispatcher branches inside an existing webhook endpoint; this is worker-side processing, not a new HTTP route. Local-smoke gate is N/A.
+  - If the implementation slice unexpectedly introduces a new HTTP surface, this section MUST be reopened and the deterministic smoke wrappers (`make infra-provision`, `make infra-deploy`, `make infra-port-forward-start`) MUST be invoked with positive-path `curl` assertions per changed endpoint.
+- Publish checklist:
+  - include requirement/contract coverage for FR-001..FR-014 + NFR-SEC-001..NFR-OBS-002 + AC-001..AC-007
+  - include key reviewer files: design-contracts.md amendment, new ADR, helper module + CLI, skill addenda, #336 handler additions, `.gitattributes` rule, `contract.yaml` block
+  - include validation evidence (pytest unit + contract + integration; `make quality-sdd-check`; `make docs-build`; `make docs-smoke`; manual rehearsal screenshot)
+  - include rollback notes (single-PR revert; no data migration)
+
+## Operational Readiness
+- Logging/metrics/traces:
+  - Helper logs to stderr on failure; success path is silent (no log noise per SDD step).
+  - #336 ingest emits structured logs per ingested envelope (`event_id`, `phase`, `ticket_id`, `dedupe: hit | miss`).
+  - Grafana dashboard panel: `execution_mode` facet on the existing C7 event-count panel; new panel: `c7-emission-opted-out` count over rolling 30-day window with threshold alert at > 5% of new PR count.
+  - FR-008 audit predicate adds a structured log line per `inconclusive` pair so SREs can correlate with operator action.
+- Alerts/ownership:
+  - Opt-out rate > 5% alert routes to `@sbonoc/factory-operations`.
+  - Helper-failure pre-commit-hook rejections route to operator stderr (no central alert — local-first by design).
+- Runbook updates:
+  - `docs/blueprint/governance/sdd_execution_guide.md` § (new) "C7 emission for local SDD sessions" documents the JSONL sink path, the env var, the opt-out audit behavior, and the rerun_round semantics.
+
+## Risks and Mitigations
+- Risk 1 -> mitigation: Self-bootstrap paradox (this work item authors the helper but cannot use it for its own steps) -> mitigation: documented as explicit exclusion pending Q-3 resolution; emission obligatory from first work item post-merge.
+- Risk 2 -> mitigation: Best-effort model ID returns `unknown` sentinel for assistants that do not expose a model env var -> mitigation: NFR-OBS-002 `unknown`-model exemption on FR-008 audit; Grafana surfaces `inconclusive` count separately.
+- Risk 3 -> mitigation: Skill addendum text drift across the seven step skills -> mitigation: extend `check_sdd_assets.py` with a byte-identical-modulo-phase-enum check; CI gate fails on drift.
+- Risk 4 -> mitigation: Rebase / squash duplicates lines in `artifacts/c7/<slug>.jsonl` -> mitigation: subscriber-side dedupe at #336 absorbs duplicates by `event_id`; helper is idempotent on append.
+- Risk 5 -> mitigation: `.gitattributes` `diff=none` rule is per-clone configurable; some reviewers may still see the JSONL in their diff -> mitigation: cosmetic-only; documented in `pr_context.md` as a known edge case.

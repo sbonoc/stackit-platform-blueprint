@@ -1,0 +1,87 @@
+# Tasks
+
+## Gate Checks (Required Before Implementation)
+- [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`
+- [ ] G-002 Confirm open questions and unresolved alternatives are `0`
+- [ ] G-003 Confirm required sign-offs are approved (Product, Architecture, Security, Operations)
+- [ ] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
+- [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
+
+## Implementation
+
+### Slice 1 — Contract amendment + ADR
+- [ ] T-001 Amend `docs/blueprint/autonomous-factory/design-contracts.md` § Contract C7 § Emission mechanism: widen `emitter` JSON Schema enum to `{orchestrator, webhook-handler, local-cli}`; widen FR-019 two-emitter prose to three-emitter prose; extend `persona.description` with `local-cli` skill-basename sentinel rule; extend `model.description` with `local-cli` best-effort-or-`unknown` sentinel rule; document `execution_mode` extension field vocabulary; document four-input `event_id` derivation for `local-cli`.
+- [ ] T-002 Re-sync bootstrap mirror `scripts/templates/blueprint/bootstrap/docs/blueprint/autonomous-factory/design-contracts.md` via `python3 scripts/lib/docs/sync_blueprint_template_docs.py`.
+- [ ] T-003 Annotate `docs/blueprint/architecture/decisions/ADR-issue-337-c7-emission-mechanism.md` § Local execution exemption with one-line "Extended by [`ADR-issue-347-human-sdd-c7-symmetry.md`](ADR-issue-347-human-sdd-c7-symmetry.md)" pointer.
+- [ ] T-004 Advance `docs/blueprint/architecture/decisions/ADR-issue-347-human-sdd-c7-symmetry.md` Status from `proposed` to `accepted` on merge (last commit before PR ready-for-review).
+
+### Slice 2 — Helper module + CLI + unit tests
+- [ ] T-010 Create `scripts/lib/sdd/c7_emit.py` with Pydantic v2 `LifecycleEvent` model (eleven required fields + `execution_mode` extension), `EmitC7EventUseCase`, `EnvVarModelResolver` (priority chain: `$CLAUDE_CODE_MODEL` → `$CODEX_MODEL` → `$CURSOR_MODEL` → `unknown` sentinel), and `event_id` derivation function (`sha256(ticket_id|phase|rerun_round|emitter)`).
+- [ ] T-011 Create `scripts/bin/sdd/c7_emit.py` CLI entrypoint exposing `emit --phase <enum> --skill <basename> [--outcome <enum>] [--ticket <id>]`.
+- [ ] T-012 Add `tests/sdd/test_c7_emit_unit.py` asserting envelope construction, env-var model resolver priority, `event_id` derivation byte-for-byte parity with the orchestrator's hash format.
+
+### Slice 3 — JSONL sink + opt-out audit + contract tests
+- [ ] T-020 Implement `JsonlSinkAdapter` (`O_APPEND` semantics, creates `artifacts/c7/` on first write).
+- [ ] T-021 Implement `JsonlReaderAdapter` (reads prior committed events for `rerun_round` computation; tolerates missing file → returns 0).
+- [ ] T-022 Implement `OptOutAuditUseCase` (checks `BLUEPRINT_SDD_C7_EMIT=0`; on first invocation per work-item slug emits EXACTLY ONE `c7-emission-opted-out` extension event with `opt_out_reason` from `BLUEPRINT_SDD_C7_OPT_OUT_REASON` env var; subsequent invocations no-op).
+- [ ] T-023 Add `tests/sdd/test_c7_emit_contract.py` asserting every emitted envelope validates against the C7 JSON Schema (using `jsonschema` library); round-trip JSON parse preserves all eleven required fields + `execution_mode`.
+- [ ] T-024 Add `tests/sdd/test_c7_emit_opt_out.py` asserting opt-out path emits EXACTLY ONE `c7-emission-opted-out` extension event per work-item slug.
+- [ ] T-025 Add `tests/sdd/test_c7_emit_jsonl_round_trip.py` asserting `rerun_round` increments correctly across 10 sequential emissions for the same `(ticket_id, phase)` tuple.
+
+### Slice 4 — Skill addendum + `.gitattributes` + pre-commit + `contract.yaml`
+- [ ] T-030 Add uniform "## C7 Emission" section (identical text modulo per-skill `phase` enum value) to all seven `.agents/skills/blueprint-sdd-stepXX-*/SKILL.md` runbooks.
+- [ ] T-031 Extend `scripts/bin/quality/check_sdd_assets.py` with a uniform-addendum check asserting the "## C7 Emission" section is byte-identical (modulo phase enum) across all seven step skills.
+- [ ] T-032 Add `.gitattributes` rule `artifacts/c7/*.jsonl  linguist-generated=true  diff=none`.
+- [ ] T-033 Add pre-commit hook entry in `.pre-commit-config.yaml` that schema-validates `artifacts/c7/<slug>.jsonl` on commit (uses the helper's schema-validation function).
+- [ ] T-034 Add `spec.spec_driven_development_contract.c7_emission` block to `blueprint/contract.yaml` declaring `BLUEPRINT_SDD_C7_EMIT` default + opt-out audit rule + JSONL sink path convention.
+
+### Slice 5 — #336 webhook handler ingest + integration test
+- [ ] T-040 Implement three new event-type handlers in #336 webhook handler: `pull_request.opened`, `pull_request.synchronize`, `pull_request.reopened`.
+- [ ] T-041 Implement GitHub contents API fetch logic to retrieve `artifacts/c7/<slug>.jsonl` at PR head SHA using the existing GitHub App installation token.
+- [ ] T-042 Implement schema validation + dedupe-by-event_id + republish-onto-bus flow with `emitter: local-cli` preserved.
+- [ ] T-043 Add `tests/webhook_handler/test_pr_event_c7_ingest.py` asserting `pull_request.opened` payload triggers fetch + validate + dedupe + republish; assert `pull_request.synchronize` on identical head SHA produces zero new bus emissions (dedupe absorbs the retry).
+
+### Slice 6 — Docs sync + FR-008 audit exemption + governance guide
+- [ ] T-050 Implement FR-008 `unknown`-model exemption: when both `phase: implement` and `phase: agent-pr-review` events carry `model: unknown`, mark the pair `inconclusive` (logged at info, NOT emitted as `rotation-violation`).
+- [ ] T-051 Add pytest assertion for the exemption in the FR-008 predicate's existing test suite.
+- [ ] T-052 Update `docs/blueprint/governance/sdd_execution_guide.md` with a new "## C7 Emission for Local SDD Sessions" section documenting `BLUEPRINT_SDD_C7_EMIT` env var, JSONL sink path, opt-out audit behavior, `rerun_round` semantics.
+- [ ] T-053 Re-sync bootstrap mirror `scripts/templates/blueprint/bootstrap/docs/blueprint/governance/sdd_execution_guide.md` via the docs-sync helper.
+- [ ] T-054 Add uniform addendum to consumer-side skill templates `scripts/templates/consumer/init/.agents/skills/blueprint-sdd-stepXX-*/SKILL.md.tmpl` (all seven).
+
+### Cross-cutting
+- [ ] T-060 Update blueprint docs/diagrams (already partially in T-001 + T-052; verify completeness)
+- [ ] T-061 Update consumer-facing docs/diagrams when contracts/behavior change (T-002 + T-053 + T-054 cover this)
+
+## Test Automation
+- [ ] T-101 Unit tests: `tests/sdd/test_c7_emit_unit.py` + `tests/sdd/test_c7_emit_opt_out.py` (covered by T-012 + T-024)
+- [ ] T-102 Contract tests: `tests/sdd/test_c7_emit_contract.py` + `tests/sdd/test_c7_emit_jsonl_round_trip.py` (covered by T-023 + T-025)
+- [ ] T-103 Positive-path filter test: helper schema-validation function MUST return the parsed record (not just `True`/`False`) when an envelope is well-formed; unit test asserts the returned record preserves all eleven required fields + `execution_mode`. Evidence captured in `pr_context.md`.
+- [ ] T-104 Translate any reproducible pre-PR finding from manual `python3 scripts/bin/sdd/c7_emit.py emit ...` rehearsal into a failing pytest first; fix in same work item.
+- [ ] T-105 Integration test: `tests/webhook_handler/test_pr_event_c7_ingest.py` (covered by T-043)
+
+## Accessibility Testing (Normative — mark N/A with rationale for non-UI specs)
+- [ ] T-A01 NFR-A11Y-001 declared in `spec.md` as "N/A — this work item adds no UI surface."
+- [ ] T-A02 N/A — no UI surface; no axe-core scan required.
+- [ ] T-A03 N/A — no UI surface; no keyboard operability required.
+- [ ] T-A04 N/A — no UI surface; no focus indicator required.
+- [ ] T-A05 N/A — no UI surface; no programmatic label required.
+
+## Validation and Release Readiness
+- [ ] T-201 Run required Make validation bundles: `make quality-sdd-check`, `make quality-hooks-run`, `make docs-build`, `make docs-smoke`. All MUST be green.
+- [ ] T-202 Attach validation evidence to `traceability.md` (per-FR SHA references, pytest output summary, docs validation summary).
+- [ ] T-203 Confirm no stale TODOs / dead code / drift. Run `scripts/bin/quality/check_sdd_assets.py` to confirm zero drift on the uniform addendum.
+- [ ] T-204 Run documentation validation (`make docs-build` and `make docs-smoke`).
+- [ ] T-205 Run hardening review validation bundle (`make quality-hardening-review`).
+
+## Publish
+- [ ] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section.
+- [ ] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence (incl. manual rehearsal screenshot for AC-005), and rollback notes.
+- [ ] P-003 Ensure PR description follows repository template headings and references `pr_context.md`.
+
+## App Onboarding Minimum Targets (Normative)
+- [ ] A-001 `apps-bootstrap` — N/A: tooling-only work item; existing target unmodified
+- [ ] A-002 `apps-smoke` — N/A: tooling-only work item; existing target unmodified
+- [ ] A-003 Backend app lanes — `backend-test-unit`, `backend-test-integration`, `backend-test-contracts`, `backend-test-e2e` — N/A: no app code changes
+- [ ] A-004 Frontend app lanes — `touchpoints-test-unit`, `touchpoints-test-integration`, `touchpoints-test-contracts`, `touchpoints-test-e2e` — N/A: no frontend changes
+- [ ] A-005 Aggregate gates — `test-unit-all`, `test-integration-all`, `test-contracts-all`, `test-e2e-all-local` — N/A: no app code changes
+- [ ] A-006 Port-forward wrappers — `infra-port-forward-start`, `infra-port-forward-stop`, `infra-port-forward-cleanup` — N/A: no new port-forward targets

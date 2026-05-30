@@ -1,0 +1,58 @@
+{
+  "manifest_version": 1,
+  "work_item": "2026-05-30-issue-347-human-sdd-c7-symmetry",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-05-30T00:00:00Z",
+  "files": [
+    {
+      "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/spec.md",
+      "purpose": "Normative spec — 14 FR + 7 NFR + 7 AC; 6 NEEDS CLARIFICATION markers",
+      "sha256": "26d6cbbccb27b45838620b3b45d854fb6632c800c2a217a099489380cf9dd42f"
+    },
+    {
+      "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/architecture.md",
+      "purpose": "Bounded contexts, component design, integration edges, risks/tradeoffs",
+      "sha256": "28b79a7023a363ae3ce9bf31864cbe87b9c24fc571fb102948df8b5947ddbfb6"
+    },
+    {
+      "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/plan.md",
+      "purpose": "Six delivery slices in red→green TDD order",
+      "sha256": "448ccff3c25ebdd0927305b8830d8c57062a442f587011eaeecb6bcca0f1a3d5"
+    },
+    {
+      "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/tasks.md",
+      "purpose": "Tasks T-001..T-054 + gates + tests + validation + publish + app-onboarding",
+      "sha256": "9cbc191a2bca19c6e1a299ca66fefe59cf44846366e3ddb83486450819b55e78"
+    },
+    {
+      "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/traceability.md",
+      "purpose": "28-row matrix mapping every requirement to design / impl / test / docs / ops evidence",
+      "sha256": "aa0f680387631848981db2e20ebe573e6aa7711e167c57767ce45bbf9bae4f85"
+    },
+    {
+      "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/graph.json",
+      "purpose": "Requirement and acceptance graph (28 nodes + edges)",
+      "sha256": "a2ee9bd50d82384eb4670c9d77cc15c91fa0ffaca4aad9743428903928aca280"
+    },
+    {
+      "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/pr_context.md",
+      "purpose": "Reviewer package — requirement coverage, key files, validation evidence, risk + rollback",
+      "sha256": "2d5a0b635fd9c46c4bd83e0bfe0eb9e361c5ea38a156e75e08e81845a7ea0f71"
+    },
+    {
+      "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/hardening_review.md",
+      "purpose": "Repository-wide hardening findings + A11Y N/A + proposals-only section",
+      "sha256": "ce55d6d742ab6bf8db72830c9db01f8b4442ba33f365f1319f5188af88f90293"
+    },
+    {
+      "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/context_pack.md",
+      "purpose": "Quick-reference context snapshot, controls, commands, artifact index",
+      "sha256": "a7e2a0556c64598ec3b38a40f901b16c8eb89ee28d2fd20f40080f377c3885fd"
+    },
+    {
+      "path": "docs/blueprint/architecture/decisions/ADR-issue-347-human-sdd-c7-symmetry.md",
+      "purpose": "ADR (Status: proposed) — records D-1..D-4; extends ADR-issue-337-c7-emission-mechanism.md",
+      "sha256": "316e30d7f44e428c272aa1b4ef67559e8a5546ecb15e40cd78e1e26c60de46fa"
+    }
+  ]
+}
