@@ -366,8 +366,14 @@ The inheritance mechanism is the **existing** blueprint `contract.yaml` mechanis
 
 | Surface item | Stability tier | Extensibility tier | Owning ticket |
 |---|---|---|---|
+| `scripts/templates/infra/<ske-foundation-cluster-wrapper>` | `preview` | `parameterized` (per-consumer cluster name, region, node-pool sizing; consumer may point the wrapper at an existing SKE cluster) | #334 |
+| `scripts/templates/infra/<stackit-secrets-manager-wrapper>` | `preview` | `parameterized` (per-consumer project + instance naming) | #334 |
+| `scripts/templates/infra/<eso-cluster-secret-store-wrapper>` | `preview` | `parameterized` (per-consumer ClusterSecretStore name binding ESO to the consumer's STACKIT Secrets Manager instance) | #334 |
+| `scripts/templates/infra/<logme-worm-retention-wrapper>` | `preview` | `parameterized` (13-month SOC 2 retention floor pinned per FR-017(b); per-consumer storage class and retention extension via parameter) | #334 |
+| `scripts/templates/infra/<factory-egress-networkpolicy-wrapper>` | `preview` | `parameterized` (per-consumer LiteLLM gateway endpoint + optional additional permitted egress endpoints; default-deny posture is sealed) | #334 |
+| `scripts/templates/infra/<factory-bot-identity-wrapper>` | `preview` | `parameterized` (per-consumer factory-bot GitHub login + fine-grained PAT scope; exact-string-equality detection rule is sealed per FR-017(b) item 1) | #334 |
 | `scripts/templates/infra/<openhands-agent-server-wrapper>` | `preview` | `parameterized` | #335 |
-| `scripts/templates/infra/<eso-factory-binding-wrapper>` | `preview` | `parameterized` | #335 |
+| `scripts/templates/infra/<eso-factory-binding-wrapper>` | `preview` | `parameterized` (per-consumer ExternalSecret manifests that pull the LiteLLM credential out of the #334 ClusterSecretStore for the OpenHands runtime) | #335 |
 | `scripts/templates/infra/<webhook-receiver-wrapper>` | `preview` | `parameterized` | #336 |
 
 Every consumer-shipped module wrapper enumerated in this category MUST default to STACKIT-managed runtimes (SDD-C-013) and to local-first execution under the existing `docker-desktop-preferred` Kubernetes context policy (SDD-C-014) per NFR-OPS-002. The concrete per-wrapper realization is owned by #334/#335/#336.

@@ -166,10 +166,13 @@
 /docs/blueprint/architecture/**                                        @sbonoc/factory-architecture
 
 # Gate-2 factory bounded-context (narrower than architecture/** for ADRs;
-# co-located with autonomous-factory docs)
+# co-located with autonomous-factory docs). Factory ADRs CO-OWN architecture
+# (gate-1) and factory-context-factory (gate-2) — both teams must be named
+# on this final matching line so last-match-wins preserves architecture
+# sign-off authority for factory ADRs (codex P2 round-11 — ADR ownership).
 /.agents/**                                                            @sbonoc/factory-context-factory
 /docs/blueprint/autonomous-factory/**                                  @sbonoc/factory-context-factory
-/docs/blueprint/architecture/decisions/ADR-issue-33*                   @sbonoc/factory-context-factory
+/docs/blueprint/architecture/decisions/ADR-issue-33*                   @sbonoc/factory-context-factory @sbonoc/factory-architecture
 
 # Gate-1 architecture for design-contracts.md (narrower than autonomous-factory/**)
 /docs/blueprint/autonomous-factory/design-contracts.md                 @sbonoc/factory-architecture
@@ -180,3 +183,22 @@
 /docs/blueprint/autonomous-factory/instrumentation-plan.md             @sbonoc/factory-operations
 /docs/blueprint/autonomous-factory/pre-factory-baselines.md            @sbonoc/factory-operations
 /docs/blueprint/autonomous-factory/triage-decomposition-data-feed.md   @sbonoc/factory-operations
+
+# ====================================================================
+# Re-anchored gate-1 spec routings for factory work items
+# ====================================================================
+# The Gate 2 rule `/specs/**-issue-33*-factory-**` above is the LAST match
+# for factory work-item spec artifacts and would otherwise drop the
+# gate-1 sign-off owners (Product on spec.md/pr_context.md/discovery.md;
+# Architecture on architecture.md/plan.md/tasks.md). Re-anchor the gate-1
+# teams on per-artifact narrower patterns AFTER the gate-2 line so the
+# effective reviewer set includes BOTH the gate-1 sign-off owner AND the
+# factory bounded-context team (codex P2 round-11 — Gate 1 owners on
+# factory specs).
+
+/specs/**-issue-33*-factory-**/spec.md                                 @sbonoc/factory-product @sbonoc/factory-context-factory
+/specs/**-issue-33*-factory-**/pr_context.md                           @sbonoc/factory-product @sbonoc/factory-context-factory
+/specs/**-issue-33*-factory-**/discovery.md                            @sbonoc/factory-product @sbonoc/factory-context-factory
+/specs/**-issue-33*-factory-**/architecture.md                         @sbonoc/factory-architecture @sbonoc/factory-context-factory
+/specs/**-issue-33*-factory-**/plan.md                                 @sbonoc/factory-architecture @sbonoc/factory-context-factory
+/specs/**-issue-33*-factory-**/tasks.md                                @sbonoc/factory-architecture @sbonoc/factory-context-factory
