@@ -22,6 +22,7 @@
     { "id": "NFR-OBS-002", "type": "requirement", "summary": "FR-008 audit predicate runs against local-cli events with unknown-model exemption (inconclusive not failing)" },
     { "id": "NFR-REL-001", "type": "requirement", "summary": "Helper failure logs to stderr and returns success; never blocks SDD step execution" },
     { "id": "NFR-OPS-001", "type": "requirement", "summary": "Helper idempotent on rebase/squash; #336 subscriber-side dedupe absorbs duplicate lines" },
+    { "id": "FR-015", "type": "requirement", "summary": "SKILL.md structural integrity scanner in check_sdd_assets.py: required sections present + C7 addendum byte-identical across seven step skills" },
     { "id": "NFR-A11Y-001", "type": "requirement", "summary": "N/A — no UI surface introduced" },
     { "id": "AC-001", "type": "acceptance", "summary": "Full SDD lifecycle (Steps 01-07) produces >= 7 C7 events in artifacts/c7/<slug>.jsonl" },
     { "id": "AC-002", "type": "acceptance", "summary": "Every local-cli event validates against amended schema; carries emitter local-cli + execution_mode human-assisted" },
@@ -54,6 +55,7 @@
     { "from": "NFR-OBS-002", "to": "FR-008", "relation": "constrains" },
     { "from": "NFR-REL-001", "to": "FR-002", "relation": "constrains" },
     { "from": "NFR-OPS-001", "to": "FR-009", "relation": "constrains" },
+    { "from": "FR-015", "to": "AC-007", "relation": "validated_by" },
     { "from": "NFR-A11Y-001", "to": "AC-007", "relation": "constrains" }
   ]
 }

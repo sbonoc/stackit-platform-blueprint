@@ -234,9 +234,9 @@ Surface automatically when the named scope is next touched. Do not promote to ac
 
 ### on-scope: skills
 
-- [ ] (parked) proposal(issue-247-step05-slice-done-gate): automated SKILL.md content scanner — verify SKILL.md contains required guardrail patterns and the smoke gate step as automated regression protection
+- [x] (incorporated: issue-347-human-sdd-c7-symmetry) proposal(issue-247-step05-slice-done-gate): automated SKILL.md content scanner — verify SKILL.md contains required guardrail patterns and the smoke gate step as automated regression protection
       trigger: on-scope: skills
-      rationale: skill runbook is human-authored governance prose, not a machine-verifiable interface contract; automated scanner couples check to prose phrasing and requires updates on any reword; spec-to-code review gap is sufficient for now
+      rationale: incorporated as FR-015 in #347 — extended check_sdd_assets.py with structural-section presence check + C7 addendum byte-equality gate across all seven step skills
 
 ### after: consumer-app-descriptor-adoption
 

@@ -30,7 +30,7 @@
 
 ### Slice 4 — Skill addendum + `.gitattributes` + pre-commit + `contract.yaml`
 - [ ] T-030 Add uniform "## C7 Emission" section (identical text modulo per-skill `phase` enum value) to all seven `.agents/skills/blueprint-sdd-stepXX-*/SKILL.md` runbooks.
-- [ ] T-031 Extend `scripts/bin/quality/check_sdd_assets.py` with a uniform-addendum check asserting the "## C7 Emission" section is byte-identical (modulo phase enum) across all seven step skills.
+- [ ] T-031 Extend `scripts/bin/quality/check_sdd_assets.py` with a SKILL.md structural integrity scanner (FR-015): (a) assert every `.agents/skills/*/SKILL.md` contains `## Guardrails`, `## Workflow`, and `## Required Report Format`; (b) assert the "## C7 Emission" addendum is byte-identical (modulo per-skill `phase` enum value) across all seven `blueprint-sdd-step*/SKILL.md` files. Both checks run under the existing `make quality-sdd-check` target. Incorporates parked proposal `issue-247-step05-slice-done-gate`.
 - [ ] T-032 Add `.gitattributes` rule `artifacts/c7/*.jsonl  linguist-generated=true  diff=none`.
 - [ ] T-033 Add pre-commit hook entry in `.pre-commit-config.yaml` that schema-validates `artifacts/c7/<slug>.jsonl` on commit (uses the helper's schema-validation function).
 - [ ] T-034 Add `spec.spec_driven_development_contract.c7_emission` block to `blueprint/contract.yaml` declaring `BLUEPRINT_SDD_C7_EMIT` default + opt-out audit rule + JSONL sink path convention.
