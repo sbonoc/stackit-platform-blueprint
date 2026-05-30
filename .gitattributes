@@ -1,2 +1,2 @@
 # C7 local JSONL audit sinks — hide from PR diff view; committed for audit trail only
-artifacts/c7/*.jsonl linguist-generated diff=none
+artifacts/c7/*.jsonl  linguist-generated=true  diff=none
