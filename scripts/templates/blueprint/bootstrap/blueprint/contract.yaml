@@ -1631,6 +1631,17 @@ spec:
       check_script: scripts/bin/quality/check_sdd_assets.py
       accessibility:
         acr_staleness_days: 90
+    c7_emission:
+      # Local-cli C7 lifecycle event emission for human-assisted SDD sessions (issue #347)
+      # Sealed third emitter; see ADR-issue-347-human-sdd-c7-symmetry.md
+      enabled_by_default: true
+      opt_out_env_var: BLUEPRINT_SDD_C7_EMIT
+      opt_out_value: "0"
+      sink_path_pattern: "artifacts/c7/{work_item_slug}.jsonl"
+      helper_script: scripts/bin/sdd/c7_emit.py
+      emitter: local-cli
+      execution_mode: human-assisted
+      subscriber_side_ingest: deferred  # delivered by follow-up issue #350 (blocked by #336)
 
   versioning:
     latest_stable_required: true

@@ -142,3 +142,21 @@ make quality-sdd-check
 ## References
 
 - Resolution checklist: `references/resolution_checklist.md`
+
+
+## C7 Emission
+
+At the end of this step, emit a C7 lifecycle event:
+
+```sh
+python3 scripts/bin/sdd/c7_emit.py emit \
+  --ticket "$TICKET_ID" \
+  --phase "resolve-questions" \
+  --skill "$SKILL_BASENAME" \
+  --owner-team "$OWNER_TEAM" \
+  --slug "$WORK_ITEM_SLUG"
+```
+
+The event is appended to `artifacts/c7/$WORK_ITEM_SLUG.jsonl` and committed to the branch.
+Set `BLUEPRINT_SDD_C7_EMIT=0` to suppress; one `c7-emission-opted-out` audit event is written instead.
+**The LLM MUST NOT write events directly — invoke the helper only.**
