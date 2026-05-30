@@ -162,11 +162,17 @@ class JsonlReaderAdapter:
 # ---------------------------------------------------------------------------
 
 _OPT_OUT_ENV = "BLUEPRINT_SDD_C7_EMIT"
+_OPT_OUT_REASON_ENV = "BLUEPRINT_SDD_C7_OPT_OUT_REASON"
 _OPT_OUT_PHASE = "c7-emission-opted-out"
 
 
 class OptOutAuditUseCase:
-    """Emit exactly one opt-out audit event when BLUEPRINT_SDD_C7_EMIT=0."""
+    """Emit exactly one opt-out audit event per work-item slug when BLUEPRINT_SDD_C7_EMIT=0.
+
+    FR-007: subsequent SDD steps under the same opt-out scope (same work-item
+    sink file) MUST NOT re-emit. The reader checks for any prior
+    c7-emission-opted-out event in the JSONL sink and no-ops if one is found.
+    """
 
     def __init__(
         self,
@@ -191,13 +197,24 @@ class OptOutAuditUseCase:
     def is_opted_out() -> bool:
         return os.environ.get(_OPT_OUT_ENV, "1") == "0"
 
+    def _prior_opt_out_event_exists(self) -> bool:
+        for event in self._reader.read_events():
+            if (
+                event.get("phase") == _OPT_OUT_PHASE
+                and event.get("emitter") == _EMITTER
+            ):
+                return True
+        return False
+
     def emit_audit_event(self) -> None:
-        rerun_round = self._reader.compute_rerun_round(self._ticket_id, _OPT_OUT_PHASE)
+        # FR-007: EXACTLY ONE c7-emission-opted-out event per work-item slug.
+        if self._prior_opt_out_event_exists():
+            return
         model = self._model_resolver.resolve()
         event_id = derive_event_id(
-            self._ticket_id, _OPT_OUT_PHASE, rerun_round, _EMITTER
+            self._ticket_id, _OPT_OUT_PHASE, 0, _EMITTER
         )
-        event = LifecycleEvent(
+        kwargs: dict = dict(
             event_id=event_id,
             ticket_id=self._ticket_id,
             parent_ticket_id=None,
@@ -206,9 +223,13 @@ class OptOutAuditUseCase:
             model=model,
             timestamp=datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
             outcome="rejected",
-            rerun_round=rerun_round,
+            rerun_round=0,
             owner_team=self._owner_team,
             emitter=_EMITTER,
             execution_mode=_EXECUTION_MODE,
         )
+        reason = os.environ.get(_OPT_OUT_REASON_ENV, "").strip()
+        if reason:
+            kwargs["opt_out_reason"] = reason
+        event = LifecycleEvent(**kwargs)
         self._sink.append(event)
