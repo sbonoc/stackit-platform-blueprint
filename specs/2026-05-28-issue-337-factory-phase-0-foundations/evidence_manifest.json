@@ -54,9 +54,9 @@
     },
     {
       "path": "docs/blueprint/architecture/decisions/ADR-issue-337-reviewer-model-heterogeneity.md",
-      "sha256": "fc43dc9399ada16c5ffda1afc4be36b4a3b33683fdca0747b4acf6c4b02093e8",
+      "sha256": "9e1b0df8036d666cdac782308fa2564e5e2f9c859437442c442ca28483accc45",
       "role": "content-adr",
-      "description": "FR-008 — Reviewer model heterogeneity (rotation rule; LiteLLM enforcement via #339 C7 read). Status: approved from inception. MDX braces escaped at Slice 8 for docs-build compatibility."
+      "description": "FR-008 — Reviewer model heterogeneity (rotation rule). Status: approved from inception. MDX braces escaped at Slice 8 for docs-build compatibility. Eighth reviewer round 2026-05-30: enforcement-point split correction — empirical probe of the deployed LiteLLM gateway (https://garagedoor.api.dev.sit.sys.odj.cloud) confirmed the issued virtual key is scoped to `llm_api_routes` only (admin endpoints refuse with `Virtual key is not allowed to call this route. Only allowed to call routes: ['llm_api_routes']`), making the original 'LiteLLM gateway MUST enforce the rotation by reading the C7 stream' Enforcement clause infeasible against the deployed instance and architecturally awkward (LiteLLM is a stateless routing proxy, not a C7-event-aware orchestrator). Split enforcement across (a) orchestrator-side picker in #333 (queries C7 for step05.model, selects the pair opposite, passes the chosen model on the LiteLLM request) and (b) C7-ingestion audit invariant in #336 (pairs step08 with step05 on the same `work_item_id`, asserts model inequality, emits `outcome: rejected` + `rejection_reason: rotation-violation` on violation with `factory-escalated` label + PR comment). Updated Decision Drivers bullet 2, Decision Enforcement paragraph, Implementer paragraph, Consequences bullets 1–3 (was 1), and the Phase 1 implementers reference line accordingly. Rotation rule, pairings table, and Haiku exclusion are unchanged; only the enforcement location moves. `sealed` extensibility classification preserved — the rotation rule itself remains sealed; only the implementation locus is corrected."
     },
     {
       "path": "docs/blueprint/architecture/decisions/ADR-issue-337-triage-size-threshold.md",

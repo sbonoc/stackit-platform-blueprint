@@ -18,7 +18,7 @@ This ADR pins the rotation rule so the heterogeneity is structural, not optional
 ## Decision Drivers
 
 - AI reviewer value comes from being a *different* eye on the work; same-model review is theatre.
-- The rotation MUST be expressible from the lifecycle event stream alone (#339 Contract C7 carries the implementer's `model` field per emitted persona event), so the LiteLLM gateway can resolve reviewer-model selection without bespoke state.
+- The rotation MUST be expressible from the lifecycle event stream alone (#339 Contract C7 carries the implementer's `model` field per emitted persona event), so the factory orchestrator can resolve reviewer-model selection and the #336 C7-ingestion path can audit the resulting pair without bespoke state outside the event stream.
 - Symmetric rotation (Opus ↔ Sonnet) keeps the model space simple and the rule trivially auditable from C7 events; asymmetric rules (e.g., "always review with Opus") would pay Opus prices on every step08 invocation including reviews of Sonnet-default work, which is unjustifiable.
 - Haiku is intentionally **not** in the rotation: Haiku is reserved for the lightweight `step03-spec-complete` fill-in step per the router policy; the spec-step output is reviewed by human sign-offs (the canonical four phrases), not by step08 AI reviewers, so Haiku never needs to be paired with a step08 reviewer.
 
@@ -33,7 +33,14 @@ This ADR pins the rotation rule so the heterogeneity is structural, not optional
 | `claude-opus-4-7` | `claude-sonnet-4-6` |
 | `claude-sonnet-4-6` | `claude-opus-4-7` |
 
-**Enforcement.** The LiteLLM gateway MUST enforce the rotation by reading the implementer `model` field from the lifecycle event stream (#339 Contract C7) for the corresponding `step05-implement` event on the same work item, and selecting the reviewer model accordingly. No bespoke rotation state outside the gateway and the event stream.
+**Enforcement.** Rotation enforcement is split across two independent points:
+
+1. **Picker (factory orchestrator, #333).** When the orchestrator is about to invoke `blueprint-sdd-step08-agent-pr-review` for a given work item, it MUST query the #339 Contract C7 stream for the most recent `step05-implement` event on the same work item, read its `model` field, select the opposite member of the `{claude-opus-4-7, claude-sonnet-4-6}` pair, and pass that model as the `model` parameter on the LiteLLM request. The orchestrator MUST NOT pin the reviewer model in the persona frontmatter.
+2. **Audit invariant (C7 ingestion, #336).** The #336 webhook + C7 event-ingestion path MUST observe every emitted `step08-agent-pr-review` event, pair it with the matching `step05-implement` event for the same `work_item_id`, and assert `step05.model` is different from `step08.model`. Violations MUST: apply the `factory-escalated` label to the work item (cascading to children for decomposed parents per FR-010), post a PR comment naming the violating pair, and emit a C7 event with `outcome: rejected` + `rejection_reason: rotation-violation` (non-required extension field per C7's `additionalProperties: true`).
+
+LiteLLM is the routing target, not the enforcement point. The deployed LiteLLM team allowlist already rejects unknown or cross-family model strings (HTTP 401 `team_model_access_denied`); that rejection is a separate, complementary gate that catches orchestrator-side string errors but MUST NOT be relied on to satisfy the rotation invariant on its own.
+
+**Rationale for split.** Treating the rotation as enforced inside LiteLLM by having the gateway read the C7 stream was infeasible against the deployed gateway (virtual keys are scoped to `llm_api_routes` only — no callbacks, no admin) and conflated the routing layer with the orchestration layer. The picker / audit-invariant split keeps LiteLLM stateless while preserving the structural-heterogeneity guarantee through independent observation.
 
 **Default implementer case.** Per [`ADR-issue-337-llm-model-router-policy.md`](ADR-issue-337-llm-model-router-policy.md), `step05-implement` defaults to `claude-sonnet-4-6` (Sonnet is the default tier for all personas not explicitly routed elsewhere). The rotation therefore resolves the step08 reviewer to `claude-opus-4-7` in the default case.
 
@@ -41,7 +48,7 @@ This ADR pins the rotation rule so the heterogeneity is structural, not optional
 
 **Haiku-implementer case.** Not applicable — `step05-implement` is never routed to Haiku per the router policy (Haiku is reserved for `step03-spec-complete`), and step03 output is reviewed by human sign-offs rather than by step08 AI reviewers.
 
-**Implementer.** #335 (OpenHands + LiteLLM) carries the rotation logic into the gateway configuration; #333 (Personas + Skills) authors the step08 reviewer persona that the gateway selects the model for.
+**Implementer.** #333 (Personas + Skills) carries the orchestrator-side picker logic that selects the reviewer model AND authors the step08 reviewer persona; #336 (Webhook + C7 ingestion) carries the audit invariant that rejects rotation violations on the C7 stream; #335 (OpenHands + LiteLLM) provides the routing target only (no rotation state on the gateway).
 
 ## Options Considered
 
@@ -73,8 +80,9 @@ Use the same model but prompt it differently for review ("read this critically",
 
 ## Consequences
 
-- Phase 1 ticket #335 implements the gateway-side rotation: at step08 persona invocation, look up the most recent `step05-implement` C7 event for the same work item, read its `model` field, select the *other* member of the `{Opus, Sonnet}` pair.
-- Phase 1 ticket #333 authors the step08 reviewer persona — the persona file MUST NOT pin a specific model in its frontmatter; model selection is the gateway's job per this ADR.
+- Phase 1 ticket #333 carries the orchestrator-side picker: at step08 persona invocation, look up the most recent `step05-implement` C7 event for the same work item, read its `model` field, select the *other* member of the `{Opus, Sonnet}` pair, and pass that model on the LiteLLM request. The step08 reviewer persona file MUST NOT pin a specific model in its frontmatter; model selection is the orchestrator's job per this ADR.
+- Phase 1 ticket #336 carries the audit invariant on the C7 ingestion path: every observed `step08-agent-pr-review` event is paired with the matching `step05-implement` event for the same `work_item_id`; the pair MUST satisfy `step05.model` different from `step08.model`. Violations trigger the `factory-escalated` label, a PR comment naming the violating pair, and a C7 event with `outcome: rejected` + `rejection_reason: rotation-violation`. The audit is an independent observer of the picker, not the picker itself; both layers are required.
+- Phase 1 ticket #335 deploys the LiteLLM gateway and the team-model allowlist that constrains the picker to the sanctioned model identifiers; no rotation state lives on the gateway.
 - C7 event stream pairs (`step05-implement` event + `step08-agent-pr-review` event for the same work item) MUST carry different `model` values; this is auditable from the event stream and any pair that violates it is a gateway-side bug.
 - Telemetry (#339 Contract C7) cleanly separates implementer spend from reviewer spend; the per-cycle cost envelope for the default case (Sonnet implementer + Opus reviewer on step08) is ~$6–11, within the FR-007 $15 ceiling.
 - Consumer instances inherit this rule identically (sealed); the rotation always resolves over whichever model the consumer's implementer is routed to per their own router-policy overlay.
@@ -85,4 +93,4 @@ Use the same model but prompt it differently for review ("read this critically",
 - Meta-ADR: [`ADR-issue-337-factory-phase-0-foundations.md`](ADR-issue-337-factory-phase-0-foundations.md)
 - Related: [`ADR-issue-337-llm-model-router-policy.md`](ADR-issue-337-llm-model-router-policy.md), [`ADR-issue-337-per-ticket-wall-clock-cost-ceiling.md`](ADR-issue-337-per-ticket-wall-clock-cost-ceiling.md)
 - Design contracts: `docs/blueprint/autonomous-factory/design-contracts.md` § Contract C7 (lifecycle event schema — `model` field), § Contract C3 (OpenHands ↔ persona mapping)
-- Phase 1 implementers: #333 (Personas + Skills — step08 reviewer persona), #335 (OpenHands + LiteLLM — rotation enforcement)
+- Phase 1 implementers: #333 (Personas + Skills — step08 reviewer persona + orchestrator-side picker), #336 (Webhook + C7 ingestion — audit invariant), #335 (OpenHands + LiteLLM — routing target only)
