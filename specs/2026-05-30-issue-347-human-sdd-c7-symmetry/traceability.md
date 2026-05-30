@@ -37,11 +37,16 @@
   - AC-001, AC-002, AC-004, AC-006, AC-007
 
 ## Validation Summary
-- Required bundles executed: pending implementation (Steps 05–07 will populate)
-- Result summary: pending
+- Required bundles executed: all green (Step 05 implementation complete)
+- Result summary:
+  - `tests/sdd/` — 41 pytest tests: 16 unit + 7 contract + 8 opt-out + 5 round-trip + 5 schema assertions (0 failures)
+  - `tests/infra/test_sdd_asset_checker.py::SkillC7AddendaTests` — 3 tests: all pass (checker unit tests for FR-015)
+  - `make quality-sdd-check` — zero violations (C7 addendum uniformity, emitter enum widening, spec asset gates)
+  - `make docs-build` — success
+  - `make docs-smoke` — success
 - Documentation validation:
-  - `make docs-build`
-  - `make docs-smoke`
+  - `make docs-build` — success (2026-05-30)
+  - `make docs-smoke` — success (2026-05-30)
 
 ## Evidence Manifest
 - Manifest file: `evidence_manifest.json`
