@@ -126,9 +126,9 @@
     },
     {
       "path": "scripts/templates/blueprint/bootstrap/docs/blueprint/autonomous-factory/design-contracts.md",
-      "sha256": "0de129cbbcd72d05ff20f141541cfee1858112a8b5f173c786208503ff3ad1b9",
+      "sha256": "aad51fd1a84bc5de98573076827238a76e142d608152227ccb1ca51ae4fd5c46",
       "role": "bootstrap-template-mirror",
-      "description": "Bootstrap mirror of #339 design-contracts.md — re-synced after Slice 5 reciprocal edits (C6 Q-3, C7 Q-4 + Q-5, C8 Category (a) extension), then re-synced again post-#340 merge to scrub the residual C8 Category (b) row referencing the closed #341 Confidential K8s wrapper; SHA matches source. Second reviewer round 2026-05-29: re-synced after the source-side C8 ADR-path corrections (codex P2 #2 — three #337 ADR paths corrected from speculative working titles to the actual committed filenames: FR-001 → llm-model-router-policy, FR-002 → persona-skill-contract, FR-004 → sovereignty-zdr-posture). Third reviewer round 2026-05-29: re-synced after the source-side C7 Q-5 queue-type switch from `quorum` to `stream` (codex P2 #5)."
+      "description": "Bootstrap mirror of #339 design-contracts.md — re-synced after Slice 5 reciprocal edits (C6 Q-3, C7 Q-4 + Q-5, C8 Category (a) extension), then re-synced again post-#340 merge to scrub the residual C8 Category (b) row referencing the closed #341 Confidential K8s wrapper; SHA matches source. Second reviewer round 2026-05-29: re-synced after the source-side C8 ADR-path corrections (codex P2 #2 — three #337 ADR paths corrected from speculative working titles to the actual committed filenames: FR-001 → llm-model-router-policy, FR-002 → persona-skill-contract, FR-004 → sovereignty-zdr-posture). Third reviewer round 2026-05-29: re-synced after the source-side C7 Q-5 queue-type switch from `quorum` to `stream` (codex P2 #5). Ninth reviewer round 2026-05-30: re-synced after the source-side C8 FR-014 `model_allowlist` example Haiku identifier was corrected from the deployment-suffixed `claude-haiku-4-5-20251001` to the family/version name `claude-haiku-4-5` for consistency with the surrounding allowlist entries and with the family-name identifier convention pinned by the round-8 FR-001 ADR Model identifier resolution paragraph and FR-008 ADR Model identifier resolution cross-reference."
     },
     {
       "path": ".agents/personas/consumer/.gitkeep",
