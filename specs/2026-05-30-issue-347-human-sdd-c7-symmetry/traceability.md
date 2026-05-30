@@ -37,16 +37,22 @@
   - AC-001, AC-002, AC-004, AC-006, AC-007
 
 ## Validation Summary
-- Required bundles executed: all green (Step 05 implementation complete)
+- Required bundles executed: all green (Step 05 implementation + post-implementation audit fixes complete)
 - Result summary:
-  - `tests/sdd/` — 41 pytest tests: 16 unit + 7 contract + 8 opt-out + 5 round-trip + 5 schema assertions (0 failures)
-  - `tests/infra/test_sdd_asset_checker.py::SkillC7AddendaTests` — 3 tests: all pass (checker unit tests for FR-015)
-  - `make quality-sdd-check` — zero violations (C7 addendum uniformity, emitter enum widening, spec asset gates)
+  - `tests/sdd/` — 49 pytest tests: 16 unit + 7 contract + 9 opt-out + 5 round-trip + 4 validate + 2 failure-path + 6 schema (0 failures)
+  - `tests/infra/test_sdd_asset_checker.py::SkillC7AddendaTests` + `SkillStructuralSectionsTests` — 7 tests: all pass (checker unit tests for FR-015 parts a and b)
+  - `make quality-sdd-check` — zero violations (C7 addendum uniformity, emitter enum widening, structural-section presence, spec asset gates)
   - `make docs-build` — success
   - `make docs-smoke` — success
 - Documentation validation:
-  - `make docs-build` — success (2026-05-30)
-  - `make docs-smoke` — success (2026-05-30)
+  - `make docs-build` — success (2026-05-31)
+  - `make docs-smoke` — success (2026-05-31)
+- Post-implementation audit fixes (2026-05-31):
+  - FR-007: opt-out de-dup (EXACTLY ONE c7-emission-opted-out event per slug) + `opt_out_reason` extension field from `BLUEPRINT_SDD_C7_OPT_OUT_REASON` env var
+  - FR-013: `.gitattributes` literal aligned to spec (`linguist-generated=true` with explicit `=true`)
+  - FR-015(a): structural-section presence scanner (`## Guardrails`, `## Workflow`, `## Required Report Format`) for blueprint-sdd-* skills
+  - NFR-REL-001: CLI wrapped in try/except — helper failure logs stderr + returns success
+  - T-103: `validate_event(payload)` returns parsed `LifecycleEvent` (not bool)
 
 ## Evidence Manifest
 - Manifest file: `evidence_manifest.json`

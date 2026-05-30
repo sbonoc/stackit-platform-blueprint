@@ -2,7 +2,7 @@
   "manifest_version": 1,
   "work_item": "2026-05-30-issue-347-human-sdd-c7-symmetry",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "2026-05-30T00:00:00Z",
+  "generated_at_utc": "2026-05-31T00:00:00Z",
   "files": [
     {
       "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/spec.md",
@@ -22,12 +22,12 @@
     {
       "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/tasks.md",
       "purpose": "Tasks T-001..T-054 (Slice 5 webhook ingest deferred to #350) + gates + tests + validation + publish + app-onboarding",
-      "sha256": "4f55c5b6756414f5818b77f285abff2a547551185ed09460f26737f418ccb13c"
+      "sha256": "5146beb19d8a070d33961ff4c0aa2b6ff5b0e0594c3aed43b3aa004059eca131"
     },
     {
       "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/traceability.md",
       "purpose": "22-row matrix mapping every in-scope requirement to design / impl / test / docs / ops evidence (deferred rows excised to #350)",
-      "sha256": "40050ee402787ed4273abc006266137724fc163ac36e3fb79a8dc886218d8e9e"
+      "sha256": "b7ce68ee8e8bc1bd633cfbfe09c12e0c86a7f294c2edb24f1c717705ddfbcab8"
     },
     {
       "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/graph.json",
