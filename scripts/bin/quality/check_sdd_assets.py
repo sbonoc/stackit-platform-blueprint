@@ -20,6 +20,37 @@ from scripts.lib.blueprint.contract_schema import load_blueprint_contract  # noq
 
 APPROVED_SIGNOFF_VALUES = {"approved", "true", "yes", "done", "signed"}
 
+# Canonical "## C7 Emission" addendum (FR-012, FR-015).
+# {phase} is the only per-skill variable (e.g. "intake", "implement").
+C7_ADDENDUM_TEMPLATE: str = """\
+## C7 Emission
+
+At the end of this step, emit a C7 lifecycle event:
+
+```sh
+python3 scripts/bin/sdd/c7_emit.py emit \\
+  --ticket "${{TICKET_ID}}" \\
+  --phase "{phase}" \\
+  --skill "${{SKILL_BASENAME}}" \\
+  --owner-team "${{OWNER_TEAM}}" \\
+  --slug "${{WORK_ITEM_SLUG}}"
+```
+
+The event is appended to `artifacts/c7/${{WORK_ITEM_SLUG}}.jsonl` and committed to the branch.
+Set `BLUEPRINT_SDD_C7_EMIT=0` to suppress; one `c7-emission-opted-out` audit event is written instead.
+**The LLM MUST NOT write events directly — invoke the helper only.**
+"""
+
+_C7_STEP_SKILLS: tuple[tuple[str, str], ...] = (
+    ("blueprint-sdd-step01-intake", "intake"),
+    ("blueprint-sdd-step02-resolve-questions", "resolve-questions"),
+    ("blueprint-sdd-step03-spec-complete", "spec-complete"),
+    ("blueprint-sdd-step04-plan-slicer", "plan-slicer"),
+    ("blueprint-sdd-step05-implement", "implement"),
+    ("blueprint-sdd-step06-document-sync", "document-sync"),
+    ("blueprint-sdd-step07-pr-packager", "pr-packager"),
+)
+
 _BYPASS_ALLOWED_VALUES: frozenset[str] = frozenset(
     {"bug-fix", "upgrade", "refactor", "chore", "authorized-deviation"}
 )
@@ -1894,12 +1925,63 @@ def _validate_contract_assets(contract_raw: dict[str, Any], repo_root: Path) -> 
     return violations
 
 
+def _validate_skill_c7_addenda(repo_root: Path) -> list[Violation]:
+    """Assert all seven SDD step skills have a byte-identical '## C7 Emission' section (FR-012, FR-015)."""
+    violations: list[Violation] = []
+    skills_root = repo_root / ".agents" / "skills"
+    if not skills_root.is_dir():
+        return []
+
+    # Canonical normalized addendum (phase replaced with placeholder for comparison)
+    _PHASE_PLACEHOLDER = "__PHASE__"
+    canonical_normalized: str | None = None
+    canonical_skill: str | None = None
+
+    for skill_name, phase in _C7_STEP_SKILLS:
+        skill_md = skills_root / skill_name / "SKILL.md"
+        if not skill_md.is_file():
+            violations.append(Violation(path=str(skill_md), message=f"skill SKILL.md missing: {skill_name}"))
+            continue
+
+        content = skill_md.read_text(encoding="utf-8")
+        # Extract ## C7 Emission section (everything from the heading to the next ## or EOF)
+        match = re.search(r"(## C7 Emission\n.*?)(?=\n## |\Z)", content, re.DOTALL)
+        if not match:
+            violations.append(
+                Violation(
+                    path=str(skill_md),
+                    message=f"missing '## C7 Emission' section in SKILL.md of {skill_name}",
+                )
+            )
+            continue
+
+        section = match.group(1)
+        normalized = section.replace(f'"{phase}"', f'"{_PHASE_PLACEHOLDER}"')
+
+        if canonical_normalized is None:
+            canonical_normalized = normalized
+            canonical_skill = skill_name
+        elif normalized != canonical_normalized:
+            violations.append(
+                Violation(
+                    path=str(skill_md),
+                    message=(
+                        f"'## C7 Emission' section in {skill_name} differs from canonical "
+                        f"(reference: {canonical_skill}); addendum must be byte-identical modulo phase value"
+                    ),
+                )
+            )
+
+    return violations
+
+
 def main() -> int:
     contract = load_blueprint_contract(REPO_ROOT / "blueprint/contract.yaml")
     violations = _validate_contract_assets(contract.raw, REPO_ROOT)
     control_catalog_violations, control_ids = _load_control_catalog(contract_raw=contract.raw, repo_root=REPO_ROOT)
     violations.extend(control_catalog_violations)
     violations.extend(_validate_work_item_specs(contract.raw, REPO_ROOT, control_ids))
+    violations.extend(_validate_skill_c7_addenda(REPO_ROOT))
 
     if violations:
         for violation in violations:

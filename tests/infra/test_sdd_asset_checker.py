@@ -753,5 +753,76 @@ class SddAssetCheckerTests(unittest.TestCase):
             self.assertEqual(sha256_violations, [], msg=[v.message for v in sha256_violations])
 
 
+class SkillC7AddendaTests(unittest.TestCase):
+    """FR-012, FR-015: uniform '## C7 Emission' section across all seven step skills."""
+
+    def _write_skill(self, root: Path, skill_name: str, phase: str, include_addendum: bool) -> None:
+        checker = _load_checker_module()
+        skill_dir = root / ".agents" / "skills" / skill_name
+        skill_dir.mkdir(parents=True, exist_ok=True)
+        base = "## Required Report Format\n\nSome report format.\n"
+        if include_addendum:
+            addendum = checker.C7_ADDENDUM_TEMPLATE.format(phase=phase)
+            content = base + "\n" + addendum
+        else:
+            content = base
+        (skill_dir / "SKILL.md").write_text(content, encoding="utf-8")
+
+    def test_missing_c7_addendum_produces_violation(self) -> None:
+        checker = _load_checker_module()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            # Only write step01 without addendum; omit the rest (missing == violation too)
+            self._write_skill(root, "blueprint-sdd-step01-intake", "intake", include_addendum=False)
+            violations = checker._validate_skill_c7_addenda(root)
+            messages = [v.message for v in violations]
+            self.assertTrue(
+                any("C7 Emission" in m for m in messages),
+                msg=f"Expected C7 addendum violation; got: {messages}",
+            )
+
+    def test_all_seven_skills_with_addenda_pass(self) -> None:
+        checker = _load_checker_module()
+        skill_phases = [
+            ("blueprint-sdd-step01-intake", "intake"),
+            ("blueprint-sdd-step02-resolve-questions", "resolve-questions"),
+            ("blueprint-sdd-step03-spec-complete", "spec-complete"),
+            ("blueprint-sdd-step04-plan-slicer", "plan-slicer"),
+            ("blueprint-sdd-step05-implement", "implement"),
+            ("blueprint-sdd-step06-document-sync", "document-sync"),
+            ("blueprint-sdd-step07-pr-packager", "pr-packager"),
+        ]
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            for skill_name, phase in skill_phases:
+                self._write_skill(root, skill_name, phase, include_addendum=True)
+            violations = checker._validate_skill_c7_addenda(root)
+            self.assertEqual(
+                violations, [],
+                msg=[v.message for v in violations],
+            )
+
+    def test_non_uniform_addendum_produces_violation(self) -> None:
+        checker = _load_checker_module()
+        skill_phases = [
+            ("blueprint-sdd-step01-intake", "intake"),
+            ("blueprint-sdd-step02-resolve-questions", "resolve-questions"),
+        ]
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            for skill_name, phase in skill_phases:
+                self._write_skill(root, skill_name, phase, include_addendum=True)
+            # Corrupt one skill's addendum
+            skill_md = root / ".agents" / "skills" / "blueprint-sdd-step01-intake" / "SKILL.md"
+            original = skill_md.read_text(encoding="utf-8")
+            skill_md.write_text(original + "\nextra drift line\n", encoding="utf-8")
+            violations = checker._validate_skill_c7_addenda(root)
+            messages = [v.message for v in violations]
+            self.assertTrue(
+                any("C7 Emission" in m or "addendum" in m.lower() for m in messages),
+                msg=f"Expected drift violation; got: {messages}",
+            )
+
+
 if __name__ == "__main__":
     unittest.main()
