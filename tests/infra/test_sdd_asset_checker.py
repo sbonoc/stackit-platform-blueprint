@@ -824,5 +824,77 @@ class SkillC7AddendaTests(unittest.TestCase):
             )
 
 
+class SkillStructuralSectionsTests(unittest.TestCase):
+    """FR-015(a): every blueprint-sdd-* SKILL.md must contain the three structural sections.
+
+    Scope note: FR-015 spec literal is "every .agents/skills/*/SKILL.md". The
+    consumer-ops and consumer-upgrade skills are explicitly out-of-scope per
+    Q-6 Option A (different bounded context, different runbook conventions),
+    so the structural-integrity scanner is scoped to the blueprint-sdd-*
+    skill family. Keyword matching is substring-based (consistent with
+    _find_section) so heading variants like "## SDD Guardrails" or
+    "## Workflow (8 steps)" satisfy the requirement.
+    """
+
+    def _write_skill(self, root: Path, skill_name: str, headings: list[str]) -> None:
+        skill_dir = root / ".agents" / "skills" / skill_name
+        skill_dir.mkdir(parents=True, exist_ok=True)
+        body = "\n\n".join(f"{h}\n\nbody" for h in headings) + "\n"
+        (skill_dir / "SKILL.md").write_text(body, encoding="utf-8")
+
+    def test_skill_with_all_three_sections_passes(self) -> None:
+        checker = _load_checker_module()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            self._write_skill(
+                root,
+                "blueprint-sdd-step01-intake",
+                ["## Guardrails", "## Workflow", "## Required Report Format"],
+            )
+            violations = checker._validate_skill_structural_sections(root)
+            self.assertEqual(violations, [], msg=[v.message for v in violations])
+
+    def test_skill_missing_guardrails_produces_violation(self) -> None:
+        checker = _load_checker_module()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            self._write_skill(
+                root,
+                "blueprint-sdd-step01-intake",
+                ["## Workflow", "## Required Report Format"],
+            )
+            violations = checker._validate_skill_structural_sections(root)
+            messages = [v.message for v in violations]
+            self.assertTrue(
+                any("Guardrails" in m for m in messages),
+                msg=f"Expected Guardrails violation; got: {messages}",
+            )
+
+    def test_heading_variant_with_keyword_substring_passes(self) -> None:
+        """Variants like '## SDD Guardrails' or '## Workflow (8 steps)' must satisfy."""
+        checker = _load_checker_module()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            self._write_skill(
+                root,
+                "blueprint-sdd-traceability-keeper",
+                ["## SDD Guardrails", "## Workflow (cross-cutting)", "## Required Report Format"],
+            )
+            violations = checker._validate_skill_structural_sections(root)
+            self.assertEqual(violations, [], msg=[v.message for v in violations])
+
+    def test_consumer_skills_are_skipped(self) -> None:
+        """Out-of-scope per Q-6 Option A: consumer-ops/upgrade have different conventions."""
+        checker = _load_checker_module()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            # Write a consumer skill missing all three sections — must NOT produce violation
+            self._write_skill(
+                root, "blueprint-consumer-ops", ["## When to Use", "## References"],
+            )
+            violations = checker._validate_skill_structural_sections(root)
+            self.assertEqual(violations, [], msg=[v.message for v in violations])
+
+
 if __name__ == "__main__":
     unittest.main()
