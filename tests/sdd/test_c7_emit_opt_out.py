@@ -75,18 +75,41 @@ class OptOutAuditTests(unittest.TestCase):
         for field in required:
             self.assertIn(field, event, f"Opt-out audit event missing field: {field}")
 
-    def test_second_invocation_increments_rerun_round(self) -> None:
+    def test_second_invocation_does_not_emit_another_event(self) -> None:
+        """FR-007: EXACTLY ONE c7-emission-opted-out event per work-item slug.
+
+        Subsequent steps under the same opt-out scope MUST NOT re-emit.
+        """
         audit = self._make_audit()
         audit.emit_audit_event()
-        # Second call uses a fresh audit use case but same sink/reader
-        audit2 = self._make_audit()
+        # A subsequent SDD step under the same opt-out scope must NOT emit again.
+        audit2 = self._make_audit(phase="implement")
         audit2.emit_audit_event()
         lines = self.sink_path.read_text(encoding="utf-8").splitlines()
-        self.assertEqual(len(lines), 2)
-        first = json.loads(lines[0])
-        second = json.loads(lines[1])
-        self.assertEqual(first["rerun_round"], 0)
-        self.assertEqual(second["rerun_round"], 1)
+        self.assertEqual(
+            len(lines), 1,
+            "FR-007 violation: more than one opt-out audit event for the same slug",
+        )
+
+    def test_opt_out_reason_extension_field_populated_from_env(self) -> None:
+        """FR-007: reason carried in additionalProperties.opt_out_reason."""
+        with patch.dict(os.environ, {"BLUEPRINT_SDD_C7_OPT_OUT_REASON": "ci-rehearsal"}):
+            audit = self._make_audit()
+            audit.emit_audit_event()
+        event = json.loads(self.sink_path.read_text(encoding="utf-8").splitlines()[0])
+        self.assertEqual(event.get("opt_out_reason"), "ci-rehearsal")
+
+    def test_opt_out_reason_absent_when_env_unset(self) -> None:
+        env_clean = {
+            k: v for k, v in os.environ.items()
+            if k != "BLUEPRINT_SDD_C7_OPT_OUT_REASON"
+        }
+        with patch.dict(os.environ, env_clean, clear=True):
+            audit = self._make_audit()
+            audit.emit_audit_event()
+        event = json.loads(self.sink_path.read_text(encoding="utf-8").splitlines()[0])
+        # opt_out_reason may be missing or null when env var unset; either is acceptable
+        self.assertIn(event.get("opt_out_reason"), (None, ""))
 
 
 if __name__ == "__main__":
