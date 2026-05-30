@@ -107,40 +107,35 @@ class LifecycleEventSchemaTests(unittest.TestCase):
         for field in required:
             self.assertIn(field, data, f"Missing required field: {field}")
 
-    def test_event_passes_jsonschema_validation(self) -> None:
+    @staticmethod
+    def _load_c7_schema() -> dict:
         import json
-        import jsonschema
+        import re
         from tests._shared.helpers import REPO_ROOT
 
-        schema_src = (
+        src = (
             REPO_ROOT / "docs/blueprint/autonomous-factory/design-contracts.md"
         ).read_text(encoding="utf-8")
-        # Extract the JSON schema block
-        import re
-        match = re.search(r"```json\n(\{.*?\"FactoryLifecycleEventV1\".*?\})\n```",
-                          schema_src, re.DOTALL)
-        self.assertIsNotNone(match, "Could not find JSON schema in design-contracts.md")
-        schema = json.loads(match.group(1))
+        # Extract all ```json...``` blocks and pick the one with FactoryLifecycleEventV1
+        blocks = re.findall(r"```json\n(.*?)```", src, re.DOTALL)
+        for block in blocks:
+            if "FactoryLifecycleEventV1" in block:
+                return json.loads(block)
+        raise AssertionError("Could not find FactoryLifecycleEventV1 JSON schema in design-contracts.md")
 
+    def test_event_passes_jsonschema_validation(self) -> None:
+        import jsonschema
+        schema = self._load_c7_schema()
         event = self._make_event()
         data = event.model_dump(exclude_none=False)
         jsonschema.validate(data, schema)  # raises if invalid
 
     def test_execution_mode_extension_field_accepted(self) -> None:
+        import jsonschema
+        schema = self._load_c7_schema()
         event = self._make_event()
         data = event.model_dump()
         data["execution_mode"] = "human-assisted"
-        # schema has additionalProperties: true — should not raise
-        import json
-        import jsonschema
-        from tests._shared.helpers import REPO_ROOT
-        import re
-        schema_src = (
-            REPO_ROOT / "docs/blueprint/autonomous-factory/design-contracts.md"
-        ).read_text(encoding="utf-8")
-        match = re.search(r"```json\n(\{.*?\"FactoryLifecycleEventV1\".*?\})\n```",
-                          schema_src, re.DOTALL)
-        schema = json.loads(match.group(1))
         jsonschema.validate(data, schema)  # must not raise
 
     def test_emitter_local_cli_is_valid_enum_value(self) -> None:
