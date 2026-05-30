@@ -607,6 +607,57 @@ All must be green (or legitimately skipped) before merge.
 
 ---
 
+## C7 Emission for Local SDD Sessions
+
+Each SDD step skill invokes the local-cli C7 emitter at the end of execution (issue #347).
+The emitter appends one JSON Lines record to `artifacts/c7/<work-item-slug>.jsonl` and commits
+the file to the branch as the local audit trail. The durable-bus ingest path is delivered by
+follow-up issue #350 (blocked by #336 runtime).
+
+### Environment variable
+
+| Variable | Default | Effect |
+|---|---|---|
+| `BLUEPRINT_SDD_C7_EMIT` | `1` (enabled) | Set to `0` to suppress emission for the current skill invocation. One `c7-emission-opted-out` audit event is written to the JSONL sink instead. |
+
+### JSONL sink path
+
+```
+artifacts/c7/<work-item-slug>.jsonl
+```
+
+The file is append-only and committed to the feature branch. It is hidden from PR diff view by the
+`.gitattributes` rule (`linguist-generated diff=none`). The `work-item-slug` is the value passed
+to the helper via `--slug`; it defaults to the `ticket_id` when omitted.
+
+### `rerun_round` semantics
+
+The helper computes `rerun_round` by counting prior committed events for the same `(ticket_id, phase)` pair
+in the local JSONL sink before constructing the new envelope. A first-time skill execution produces `rerun_round: 0`;
+each subsequent rerun on the same phase increments it by one.
+
+### Opt-out audit behavior
+
+When `BLUEPRINT_SDD_C7_EMIT=0`:
+1. The helper writes exactly one `c7-emission-opted-out` event (phase = `c7-emission-opted-out`, outcome = `rejected`) to the JSONL sink.
+2. No normal lifecycle event is written.
+3. The opt-out event has its own `rerun_round` sequence independent of normal events.
+
+### Manual invocation
+
+```sh
+python3 scripts/bin/sdd/c7_emit.py emit \
+  --ticket "${TICKET_ID}" \
+  --phase "intake" \
+  --skill "blueprint-sdd-step01-intake" \
+  --owner-team "${OWNER_TEAM}" \
+  --slug "${WORK_ITEM_SLUG}"
+```
+
+Omit `--slug` to use `ticket_id` as the JSONL filename.
+
+---
+
 ## Related
 
 - [SDD Operating Model](spec_driven_development.md) — normative rules,
