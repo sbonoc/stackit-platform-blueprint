@@ -98,7 +98,7 @@
 /.agents/**                                    @sbonoc/factory-context-factory
 /docs/blueprint/autonomous-factory/**          @sbonoc/factory-context-factory
 /docs/blueprint/architecture/decisions/ADR-issue-33*  @sbonoc/factory-context-factory
-/specs/**-issue-33*-factory-**                 @sbonoc/factory-context-factory
+/specs/*-issue-33*-factory-*                 @sbonoc/factory-context-factory
 
 # --- Bounded context: infra ---
 # Module wrappers, Terraform modules, Crossplane, ArgoCD, Helm, K8s
@@ -193,7 +193,7 @@
 # ====================================================================
 # Re-anchored gate-1 spec routings for factory work items
 # ====================================================================
-# The Gate 2 rule `/specs/**-issue-33*-factory-**` above is the LAST match
+# The Gate 2 rule `/specs/*-issue-33*-factory-*` above is the LAST match
 # for factory work-item spec artifacts and would otherwise drop the
 # gate-1 sign-off owners (Product on spec.md/pr_context.md/discovery.md;
 # Architecture on architecture.md/plan.md/tasks.md). Re-anchor the gate-1
@@ -202,9 +202,9 @@
 # factory bounded-context team (codex P2 round-11 — Gate 1 owners on
 # factory specs).
 
-/specs/**-issue-33*-factory-**/spec.md                                 @sbonoc/factory-product @sbonoc/factory-context-factory
-/specs/**-issue-33*-factory-**/pr_context.md                           @sbonoc/factory-product @sbonoc/factory-context-factory
-/specs/**-issue-33*-factory-**/discovery.md                            @sbonoc/factory-product @sbonoc/factory-context-factory
-/specs/**-issue-33*-factory-**/architecture.md                         @sbonoc/factory-architecture @sbonoc/factory-context-factory
-/specs/**-issue-33*-factory-**/plan.md                                 @sbonoc/factory-architecture @sbonoc/factory-context-factory
-/specs/**-issue-33*-factory-**/tasks.md                                @sbonoc/factory-architecture @sbonoc/factory-context-factory
+/specs/*-issue-33*-factory-*/spec.md                                 @sbonoc/factory-product @sbonoc/factory-context-factory
+/specs/*-issue-33*-factory-*/pr_context.md                           @sbonoc/factory-product @sbonoc/factory-context-factory
+/specs/*-issue-33*-factory-*/discovery.md                            @sbonoc/factory-product @sbonoc/factory-context-factory
+/specs/*-issue-33*-factory-*/architecture.md                         @sbonoc/factory-architecture @sbonoc/factory-context-factory
+/specs/*-issue-33*-factory-*/plan.md                                 @sbonoc/factory-architecture @sbonoc/factory-context-factory
+/specs/*-issue-33*-factory-*/tasks.md                                @sbonoc/factory-architecture @sbonoc/factory-context-factory
