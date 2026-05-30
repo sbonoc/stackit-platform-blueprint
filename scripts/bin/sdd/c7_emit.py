@@ -39,39 +39,50 @@ def _default_slug(ticket_id: str) -> str:
 
 
 def cmd_emit(args: argparse.Namespace) -> int:
-    slug = args.slug or _default_slug(args.ticket)
-    sink_path = Path("artifacts") / "c7" / f"{slug}.jsonl"
-    sink = JsonlSinkAdapter(sink_path)
-    reader = JsonlReaderAdapter(sink_path)
-    model_resolver = EnvVarModelResolver()
+    # NFR-REL-001: helper failure (disk full, malformed input, sink path not
+    # writable, unexpected exception) MUST NOT block SDD step execution.
+    # Log to stderr and return success — the SDD step's pass/fail is owned
+    # by the step's own work product, not by C7 emission.
+    try:
+        slug = args.slug or _default_slug(args.ticket)
+        sink_path = Path("artifacts") / "c7" / f"{slug}.jsonl"
+        sink = JsonlSinkAdapter(sink_path)
+        reader = JsonlReaderAdapter(sink_path)
+        model_resolver = EnvVarModelResolver()
 
-    if OptOutAuditUseCase.is_opted_out():
-        audit = OptOutAuditUseCase(
+        if OptOutAuditUseCase.is_opted_out():
+            audit = OptOutAuditUseCase(
+                ticket_id=args.ticket,
+                phase=args.phase,
+                skill_basename=args.skill,
+                owner_team=args.owner_team,
+                sink=sink,
+                reader=reader,
+                model_resolver=model_resolver,
+            )
+            audit.emit_audit_event()
+            print(f"c7: opted out — wrote audit event to {sink_path}", file=sys.stderr)
+            return 0
+
+        rerun_round = reader.compute_rerun_round(args.ticket, args.phase)
+        use_case = EmitC7EventUseCase(
             ticket_id=args.ticket,
             phase=args.phase,
             skill_basename=args.skill,
             owner_team=args.owner_team,
-            sink=sink,
-            reader=reader,
+            outcome=args.outcome,
+            rerun_round=rerun_round,
             model_resolver=model_resolver,
         )
-        audit.emit_audit_event()
-        print(f"c7: opted out — wrote audit event to {sink_path}", file=sys.stderr)
+        event = use_case.build()
+        sink.append(event)
         return 0
-
-    rerun_round = reader.compute_rerun_round(args.ticket, args.phase)
-    use_case = EmitC7EventUseCase(
-        ticket_id=args.ticket,
-        phase=args.phase,
-        skill_basename=args.skill,
-        owner_team=args.owner_team,
-        outcome=args.outcome,
-        rerun_round=rerun_round,
-        model_resolver=model_resolver,
-    )
-    event = use_case.build()
-    sink.append(event)
-    return 0
+    except Exception as exc:  # noqa: BLE001 — NFR-REL-001 requires broad catch
+        print(
+            f"c7: emission failed (non-blocking, NFR-REL-001): {type(exc).__name__}: {exc}",
+            file=sys.stderr,
+        )
+        return 0
 
 
 def main(argv: list[str] | None = None) -> int:
