@@ -627,7 +627,7 @@ artifacts/c7/<work-item-slug>.jsonl
 ```
 
 The file is append-only and committed to the feature branch. It is hidden from PR diff view by the
-`.gitattributes` rule (`linguist-generated diff=none`). The `work-item-slug` is the value passed
+`.gitattributes` rule (`linguist-generated=true diff=none`). The `work-item-slug` is the value passed
 to the helper via `--slug`; it defaults to the `ticket_id` when omitted.
 
 ### `rerun_round` semantics
@@ -638,10 +638,27 @@ each subsequent rerun on the same phase increments it by one.
 
 ### Opt-out audit behavior
 
+| Variable | Default | Effect |
+|---|---|---|
+| `BLUEPRINT_SDD_C7_EMIT` | `1` (enabled) | Set to `0` to suppress lifecycle emission. |
+| `BLUEPRINT_SDD_C7_OPT_OUT_REASON` | unset | Free-text string written to the `opt_out_reason` extension field on the single audit event. |
+
 When `BLUEPRINT_SDD_C7_EMIT=0`:
-1. The helper writes exactly one `c7-emission-opted-out` event (phase = `c7-emission-opted-out`, outcome = `rejected`) to the JSONL sink.
-2. No normal lifecycle event is written.
-3. The opt-out event has its own `rerun_round` sequence independent of normal events.
+
+1. The first SDD step executed under opt-out for a given work-item slug writes
+   **exactly one** `c7-emission-opted-out` event (phase = `c7-emission-opted-out`,
+   outcome = `rejected`, `rerun_round = 0`) to the JSONL sink.
+2. Subsequent SDD steps under the same opt-out scope (same JSONL sink file)
+   **MUST NOT** re-emit. The helper checks for any prior `c7-emission-opted-out`
+   event in the sink and no-ops silently if one is found.
+3. No normal lifecycle events are written while opt-out is in effect.
+4. If the operator clears the sink (e.g. `git rm artifacts/c7/<slug>.jsonl` and
+   reruns), a fresh audit event will fire on the next opt-out invocation. This is
+   deliberate — the sink file is the per-slug scope boundary, and the operator's
+   cleanup is visible in git history.
+
+The `opt_out_reason` field is carried under `additionalProperties: true` and is
+omitted from the envelope when the env var is unset or empty.
 
 ### Manual invocation
 

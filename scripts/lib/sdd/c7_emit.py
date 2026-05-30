@@ -220,10 +220,11 @@ class OptOutAuditUseCase:
                 return True
         return False
 
-    def emit_audit_event(self) -> None:
+    def emit_audit_event(self) -> bool:
+        """Emit the per-slug opt-out audit event. Returns True if written, False if deduped."""
         # FR-007: EXACTLY ONE c7-emission-opted-out event per work-item slug.
         if self._prior_opt_out_event_exists():
-            return
+            return False
         model = self._model_resolver.resolve()
         event_id = derive_event_id(
             self._ticket_id, _OPT_OUT_PHASE, 0, _EMITTER
@@ -247,3 +248,4 @@ class OptOutAuditUseCase:
             kwargs["opt_out_reason"] = reason
         event = LifecycleEvent(**kwargs)
         self._sink.append(event)
+        return True

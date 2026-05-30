@@ -60,8 +60,14 @@ def cmd_emit(args: argparse.Namespace) -> int:
                 reader=reader,
                 model_resolver=model_resolver,
             )
-            audit.emit_audit_event()
-            print(f"c7: opted out — wrote audit event to {sink_path}", file=sys.stderr)
+            wrote = audit.emit_audit_event()
+            if wrote:
+                print(f"c7: opted out — wrote audit event to {sink_path}", file=sys.stderr)
+            else:
+                print(
+                    f"c7: opted out — prior audit event already present in {sink_path} (FR-007 dedup)",
+                    file=sys.stderr,
+                )
             return 0
 
         rerun_round = reader.compute_rerun_round(args.ticket, args.phase)
