@@ -40,7 +40,7 @@
 - Rollback plan: clean revert of this work item's commits restores the prior governance text, SKILL.md content, and validator behaviour. No data migration; the JSONL files already in place remain valid (no schema change).
 
 ## Validation Strategy (Shift-Left)
-- Unit checks: pytest cases in `tests/infra/test_sdd_asset_checker.py` and `tests/blueprint/test_quality_gating.py` (or the closest existing module — confirm path during slice 1) cover AC-001..AC-010.
+- Unit checks: pytest cases in `tests/infra/test_sdd_asset_checker.py` and `tests/blueprint/test_quality_gating.py` (or the closest existing module — confirm path during slice 1) cover AC-001..AC-011.
 - Contract checks: none (no new contracts).
 - Integration checks: end-to-end run of `make quality-sdd-check` against this work item's own `specs/` directory MUST pass after slice 5 lands.
 - E2E checks: N/A — no UI surface.
