@@ -14,7 +14,7 @@
 - Architecture sign-off: pending
 - Security sign-off: pending
 - Operations sign-off: pending
-- Missing input blocker token: BLOCKED_MISSING_INPUTS
+- Missing input blocker token: none
 - ADR path: docs/blueprint/architecture/decisions/ADR-issue-352-sdd-step03-step05-drift-loop.md
 - ADR status: proposed
 - SPEC_READY_EXCEPTION: none
@@ -39,7 +39,7 @@
 
 ## Objective
 - Business outcome: Close the structural loop between SDD step03 (spec authoring) and step05 (implementation) so spec-to-implementation drift in named values, types, defaults, and rendered UI is caught by automated gates rather than surfacing only at manual browser testing.
-- Success metric: After this work item ships, a new full-SDD feature work item MUST NOT reach a merged state in which (a) a spec-enumerated value is duplicated as inline literals across more than one source file, OR (b) a field declared with `EXACTLY ONE OF: a | b | c` carries a plain primitive type in implementation code, OR (c) a critical-path user-facing flow has zero automated rendered-output assertions. Each of (a)/(b)/(c) is independently detectable by an automated check (`make quality-sdd-check` or `make quality-hooks-run`).
+- Success metric: After this work item ships, a new full-SDD feature work item MUST NOT reach a merged state in which (a) a spec-enumerated value is duplicated as inline literals across more than one source file, OR (b) a field declared with `EXACTLY ONE OF: a | b | c` carries a plain primitive type in implementation code, OR (c) a critical-path user-facing flow has zero automated rendered-output assertions. (a) and (b) are enforced by the step05 SKILL.md implementation checklist (human gate); (c) is enforced by the same checklist plus the mandatory Vitest Browser Mode / Playwright coverage requirement (FR-008). The only new machine-automated check added by this work item is FR-002: `make quality-sdd-check` rejects any work item with `SPEC_READY: true` that lacks a `spec-complete` C7 event, which is the prerequisite gate that makes (a)/(b)/(c) auditable.
 
 ## Normative Requirements
 
@@ -93,7 +93,7 @@
 - OpenAPI / Pact contract path: none
 - Event contract: No new C7 phase value — FR-002 consumes the existing `spec-complete` phase already emitted by step03 (verified in `scripts/lib/sdd/c7_emit.py` `_PHASES` enum).
 - Make/CLI contract: `make quality-sdd-check` MUST emit the FR-002 enforcement result and the NFR-OBS-001 metric line. No new public Make targets are added.
-- Docs contract: AGENTS.md `§ Mandatory Workflow` MUST be updated to reflect FR-001. `.agents/skills/blueprint-sdd-step03-spec-complete/SKILL.md` and `.agents/skills/blueprint-sdd-step05-implement/SKILL.md` MUST be updated per FR-004..FR-010. The README of each affected skill MUST cross-reference this ADR.
+- Docs contract: AGENTS.md `§ Mandatory Workflow` MUST be updated to reflect FR-001. `.agents/skills/blueprint-sdd-step01-intake/SKILL.md` MUST be updated per FR-012 (Discover-phase canonical AC authoring guidance). `.agents/skills/blueprint-sdd-step03-spec-complete/SKILL.md` and `.agents/skills/blueprint-sdd-step05-implement/SKILL.md` MUST be updated per FR-004..FR-010. Both scaffold templates (`.spec-kit/templates/blueprint/spec.md` and `.spec-kit/templates/consumer/spec.md`) MUST have their `AC-001` placeholder replaced with the canonical form per FR-012. The README of each affected skill MUST cross-reference this ADR.
 
 ## Blueprint Upstream Defect Escalation (Normative)
 - Upstream issue URL: none
@@ -126,7 +126,7 @@
 - AC-011 [Shift-left AC authoring at step01 + scaffold templates for FR-012] — verified by T-206, which MUST assert that (a) `.agents/skills/blueprint-sdd-step01-intake/SKILL.md` contains the canonical AC form substring `verified by T-` AND `which MUST assert` in its Discover-phase authoring guidance, AND (b) both `.spec-kit/templates/blueprint/spec.md` and `.spec-kit/templates/consumer/spec.md` seed the `AC-001` placeholder in the canonical form (containing the substrings `verified by T-` and `which MUST assert`) rather than the legacy `AC-001 MUST be objectively testable.` placeholder.
 
 ## Informative Notes (Non-Normative)
-- Context: Six structural gaps identified in issue #352 collectively allow spec-to-implementation drift to survive automated gates and surface only at manual browser testing. The fix is a closed loop: mandatory step03 → assertion-specific ACs → spec-value regression tests → union types → SSOT constants → mandatory rendered-output coverage.
+- Context: Six structural gaps identified in issue #352 collectively allow spec-to-implementation drift to survive automated gates and surface only at manual browser testing. The fix is a closed loop: shift-left AC authoring at step01 + scaffold templates (FR-012) → step03 rejection gate for label-only ACs (FR-004) → machine-enforced step03 presence check (FR-002) → spec-value regression tests (FR-005) → union types (FR-006) → SSOT constants (FR-007) → mandatory rendered-output coverage (FR-008).
 - Tradeoffs: FR-001 raises the floor for non-feature tracks (bug-fix/refactor/chore now require step03), trading marginal authoring overhead against closing the manual-sign-off loophole. FR-009 reuses Vitest Browser Mode where possible to avoid forcing Playwright on every feature.
 - Clarifications: none open.
 
