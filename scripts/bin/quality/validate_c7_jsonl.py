@@ -11,6 +11,12 @@ _REQUIRED_FIELDS = frozenset({
     "model", "timestamp", "outcome", "rerun_round", "owner_team", "emitter",
 })
 _VALID_EMITTERS = frozenset({"orchestrator", "webhook-handler", "local-cli"})
+_VALID_PHASES = frozenset({
+    "intake", "resolve-questions", "spec-complete", "plan-slicer",
+    "implement", "document-sync", "pr-packager", "agent-pr-review",
+    "c7-emission-opted-out",
+})
+_VALID_OUTCOMES = frozenset({"success", "rejected", "retried", "human-handoff"})
 
 
 def validate_file(path: Path) -> list[str]:
@@ -37,6 +43,12 @@ def validate_file(path: Path) -> list[str]:
         rerun_round = event.get("rerun_round")
         if not isinstance(rerun_round, int) or rerun_round < 0:
             errors.append(f"{path}:{i}: rerun_round must be a non-negative integer, got {rerun_round!r}")
+        phase = event.get("phase", "")
+        if phase not in _VALID_PHASES:
+            errors.append(f"{path}:{i}: invalid phase value: {phase!r}")
+        outcome = event.get("outcome", "")
+        if outcome not in _VALID_OUTCOMES:
+            errors.append(f"{path}:{i}: invalid outcome value: {outcome!r}")
     return errors
 
 

@@ -121,7 +121,8 @@
         "tests/sdd/test_c7_emit_opt_out.py",
         "tests/sdd/test_c7_emit_jsonl_round_trip.py",
         "tests/sdd/test_c7_emit_failure_path.py",
-        "tests/sdd/test_c7_emit_validate.py"
+        "tests/sdd/test_c7_emit_validate.py",
+        "tests/sdd/test_c7_jsonl_validator.py"
       ]
     },
     {

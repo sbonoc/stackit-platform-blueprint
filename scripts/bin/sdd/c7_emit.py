@@ -39,6 +39,24 @@ def _default_slug(ticket_id: str) -> str:
 
 
 def cmd_emit(args: argparse.Namespace) -> int:
+    # Fail hard on empty required args: these are shell expansion errors
+    # (e.g. unset $TICKET_ID) not infrastructure failures — NFR-REL-001 does
+    # not apply here, and silently writing a blank-field event is worse than
+    # blocking (it corrupts the audit trail).
+    missing_args = [
+        name for name, val in [
+            ("--ticket", args.ticket),
+            ("--skill", args.skill),
+            ("--owner-team", args.owner_team),
+        ]
+        if not val
+    ]
+    if missing_args:
+        print(
+            f"c7: missing or empty required arguments: {', '.join(missing_args)}",
+            file=sys.stderr,
+        )
+        return 1
     # NFR-REL-001: helper failure (disk full, malformed input, sink path not
     # writable, unexpected exception) MUST NOT block SDD step execution.
     # Log to stderr and return success — the SDD step's pass/fail is owned
