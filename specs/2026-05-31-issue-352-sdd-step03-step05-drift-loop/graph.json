@@ -43,12 +43,15 @@
     { "from": "FR-006", "to": "AC-007", "relation": "validated_by" },
     { "from": "FR-007", "to": "AC-007", "relation": "validated_by" },
     { "from": "FR-008", "to": "AC-007", "relation": "validated_by" },
+    { "from": "FR-008", "to": "AC-009", "relation": "validated_by" },
     { "from": "FR-009", "to": "AC-009", "relation": "validated_by" },
     { "from": "FR-010", "to": "AC-008", "relation": "validated_by" },
     { "from": "FR-012", "to": "AC-011", "relation": "validated_by" },
     { "from": "FR-011", "to": "AC-001", "relation": "constrains" },
+    { "from": "NFR-SEC-001", "to": "FR-002", "relation": "constrains" },
     { "from": "NFR-OBS-001", "to": "AC-002", "relation": "constrains" },
     { "from": "NFR-OPS-001", "to": "AC-002", "relation": "constrains" },
-    { "from": "NFR-REL-001", "to": "AC-002", "relation": "constrains" }
+    { "from": "NFR-REL-001", "to": "AC-002", "relation": "constrains" },
+    { "from": "NFR-A11Y-001", "to": "FR-008", "relation": "constrains" }
   ]
 }

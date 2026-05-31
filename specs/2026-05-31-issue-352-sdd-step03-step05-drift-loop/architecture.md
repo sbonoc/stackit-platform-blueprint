@@ -57,4 +57,4 @@
 - Tradeoff — FR-009 (Vitest Browser Mode satisfies FR-008) keeps the cost low for single-component rendering changes; the Playwright escalation rule only triggers for true multi-route flows. Accepted to avoid pushing past the `e2e ≤ 10%` pyramid ratio (AGENTS.md § Testing and Quality Ratios) for small features.
 
 ## ADR Reference
-- Path: `docs/blueprint/architecture/decisions/ADR-issue-352-sdd-step03-step05-drift-loop.md` — Status: proposed
+- Path: `docs/blueprint/architecture/decisions/ADR-issue-352-sdd-step03-step05-drift-loop.md` — Status: approved

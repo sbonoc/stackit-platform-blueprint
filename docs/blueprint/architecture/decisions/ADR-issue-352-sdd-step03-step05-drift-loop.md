@@ -1,13 +1,11 @@
 # ADR: Close the SDD step03 + step05 Spec-to-Implementation Drift Loop
 
-**Status:** proposed
+**Status:** approved
 **Date:** 2026-05-31
 **Issue:** #352
 **Spec:** `specs/2026-05-31-issue-352-sdd-step03-step05-drift-loop/` (FR-001..FR-012, NFR-OBS-001, NFR-REL-001, NFR-OPS-001)
 **Extensibility classification (#339 C8 FR-017):** `sealed` (governance-control surface; consumer overrides MUST NOT relax the gate)
-**ADR technical decision sign-off:** pending
-
-> _Agent draft — Architect / CTO to confirm, adjust, or override at step03._
+**ADR technical decision sign-off:** approved
 
 ## Context
 

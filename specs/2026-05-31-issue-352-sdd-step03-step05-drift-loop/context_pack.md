@@ -1,14 +1,14 @@
 # Work Item Context Pack
 
 ## Context Snapshot
-- Work item:
+- Work item: 2026-05-31-issue-352-sdd-step03-step05-drift-loop
 - Track: blueprint
-- SPEC_READY:
-- ADR path:
-- ADR status:
+- SPEC_READY: true
+- ADR path: docs/blueprint/architecture/decisions/ADR-issue-352-sdd-step03-step05-drift-loop.md
+- ADR status: approved
 
 ## Guardrail Controls
-- Applicable control IDs:
+- Applicable control IDs: SDD-C-002, SDD-C-004, SDD-C-005, SDD-C-006, SDD-C-008, SDD-C-012, SDD-C-019, SDD-C-020, SDD-C-023
 
 ## Required Commands
 - `make quality-sdd-check`
