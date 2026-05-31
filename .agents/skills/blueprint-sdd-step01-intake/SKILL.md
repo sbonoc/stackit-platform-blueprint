@@ -103,6 +103,11 @@ traceability table and metric audit trail.
    - Declare applicable SDD-C-### control IDs in spec.md.
    - Populate Implementation Stack Profile (stack, test automation,
      managed-service, local-first fields).
+   - Author every AC in the canonical form from the first draft:
+     `AC-NNN [description] — verified by T-N, which MUST assert <exact condition>.`
+     The assertion description MUST name a concrete, objectively verifiable condition —
+     not a label verb (`covers`, `verifies`, `tests`) without a postcondition.
+     Correct authoring here prevents rejection at the step03 spec-complete gate.
 
 3. High-Level Architecture
    - Write bounded-context decisions and integration edges in architecture.md.

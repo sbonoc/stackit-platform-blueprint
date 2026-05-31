@@ -118,6 +118,27 @@ be recorded before this step runs.)
    git push
 ```
 
+## AC Authoring Rule (Normative — FR-004)
+
+Every AC in `spec.md` MUST name not only the test ID that covers it but also the
+specific assertion the test MUST verify, in the canonical form:
+
+```
+AC-NNN [description] — verified by T-N, which MUST assert <exact condition>.
+```
+
+**Rejection rule:** ACs whose body does not name an exact assertion condition — for example
+those using only label verbs like `covers`, `verifies`, or `tests` without a concrete
+postcondition, or those that still contain an unfilled `<describe ...>` scaffold placeholder —
+MUST be REJECTED at the spec-complete gate. Label-only ACs such as:
+
+```
+AC-001 [foo] — verified by T-1, which covers the happy path.
+```
+
+are insufficient. The Architect sign-off MUST NOT be recorded until every AC names
+a concrete, objectively verifiable assertion condition.
+
 ## ADR Review Decision Points
 
 When reviewing the agent's recommended option, apply exactly one of:
