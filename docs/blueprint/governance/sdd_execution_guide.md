@@ -397,6 +397,12 @@ and `SPEC_PRODUCT_READY: true` is recorded.
 
 **Skill:** `blueprint-sdd-step03-spec-complete`
 
+> **Mandatory gate** for `{none, bug-fix, refactor, chore, authorized-deviation}` tracks.
+> `make quality-sdd-check` enforces this gate after merge by verifying that
+> `artifacts/c7/<slug>.jsonl` contains a `phase=spec-complete` event.
+> Exempt tracks: `upgrade` (automated pipeline, no human sign-off model)
+> and `chore-with-no-specs` (no `specs/` subdirectory).
+
 The CTO / Architect reviews `architecture.md` and the ADR, then grants
 Architecture and Security sign-offs — via PR review, PR comments, or
 conversation. The Software Engineer grants the Operations sign-off.
@@ -405,6 +411,9 @@ fields are confirmed:
 
 - `SPEC_READY: false → true`
 - ADR status: `proposed → approved`
+- AC authoring rule: every AC MUST use the canonical form
+  `AC-NNN [description] — verified by T-N, which MUST assert <exact condition>.`
+  Label-only ACs without a postcondition are rejected.
 
 ```bash
 git add specs/YYYY-MM-DD-<slug>/spec.md docs/.../ADR-<slug>.md
