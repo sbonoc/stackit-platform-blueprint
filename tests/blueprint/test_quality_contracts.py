@@ -1845,6 +1845,62 @@ _BLUEPRINT_AUTHOR_MARKERS = (
 )
 
 
+class PytestConfigContractTests(unittest.TestCase):
+    """Ensure pytest is configured for importlib mode with the mandatory sys.path conftest.
+
+    importmode=importlib prevents pytest from injecting rootdir into sys.path the way legacy
+    prepend mode did.  Without the root conftest.py, any invocation of the pytest *script*
+    (as opposed to `python -m pytest`) with absolute paths — which is what contract_test_fast.sh
+    does in CI — raises ModuleNotFoundError for scripts.* and tests._shared.* imports.
+    """
+
+    def test_pytest_ini_uses_importlib_mode(self) -> None:
+        content = _read("pytest.ini")
+        self.assertIn(
+            "--import-mode=importlib",
+            content,
+            "pytest.ini must set --import-mode=importlib so that tests/infra/modules/ "
+            "subdirectories with hyphenated names do not cause test_contract.py collection "
+            "collisions (pre-existing bug fixed in issue #347)",
+        )
+
+    def test_root_conftest_injects_repo_root_into_sys_path(self) -> None:
+        content = _read("conftest.py")
+        self.assertIn(
+            "sys.path",
+            content,
+            "conftest.py must inject rootdir into sys.path so that 'from scripts.lib.*' and "
+            "'from tests._shared.*' imports work when pytest is invoked as a script with "
+            "absolute paths (as contract_test_fast.sh does in CI)",
+        )
+        self.assertIn(
+            "Path(__file__).parent",
+            content,
+            "conftest.py must derive the repo root from __file__ so it works regardless of cwd",
+        )
+
+    def test_infra_module_test_dirs_have_init_files(self) -> None:
+        modules_root = REPO_ROOT / "tests" / "infra" / "modules"
+        if not modules_root.is_dir():
+            return
+        missing: list[str] = []
+        for subdir in sorted(modules_root.iterdir()):
+            if not subdir.is_dir():
+                continue
+            if any(subdir.glob("test_*.py")):
+                init = subdir / "__init__.py"
+                if not init.exists():
+                    missing.append(str(subdir.relative_to(REPO_ROOT)))
+        self.assertFalse(
+            missing,
+            msg=(
+                "The following tests/infra/modules/ subdirectories contain test files but "
+                "are missing __init__.py, which causes test_contract.py module name "
+                "collisions under importlib mode:\n  " + "\n  ".join(missing)
+            ),
+        )
+
+
 class OwnershipContractTests(unittest.TestCase):
     """FR-005 — no required_files test in tests/infra/ may reference blueprint-author paths."""
 
