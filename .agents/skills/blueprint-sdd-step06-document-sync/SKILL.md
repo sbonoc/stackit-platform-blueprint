@@ -102,8 +102,9 @@ Return:
 
 At the end of this step, emit a C7 lifecycle event. Resolve variable values
 from session context: `TICKET_ID` — the GitHub issue number; `SKILL_BASENAME`
-— the `name:` value from this SKILL.md frontmatter; `OWNER_TEAM` — from
-AGENTS.md § Owner Team; `WORK_ITEM_SLUG` — the spec directory basename.
+— the `name:` value from this SKILL.md frontmatter; `OWNER_TEAM` — the GitHub
+team slug owning this repository (e.g. `platform-team`); `WORK_ITEM_SLUG` —
+the spec directory basename.
 
 ```sh
 uv run python3 scripts/bin/sdd/c7_emit.py emit \
@@ -114,7 +115,8 @@ uv run python3 scripts/bin/sdd/c7_emit.py emit \
   --slug "$WORK_ITEM_SLUG"
 ```
 
-Stage and commit the emitted JSONL before pushing:
+Stage and commit the emitted JSONL — this commit is part of the authorized
+skill workflow and must land immediately so the audit record is durable:
 
 ```sh
 git add "artifacts/c7/$WORK_ITEM_SLUG.jsonl"
