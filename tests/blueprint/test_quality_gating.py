@@ -257,6 +257,93 @@ class TestQualitySpecIsReady:
             assert result.returncode == 0, "Trailing spaces should still match"
 
 
+class TestStep05SkillGuardrails:
+    """AC-007: step05 SKILL.md must have four new guardrails covering FR-005..FR-008."""
+
+    SKILL_MD = REPO_ROOT / ".agents/skills/blueprint-sdd-step05-implement/SKILL.md"
+
+    def _content(self) -> str:
+        return self.SKILL_MD.read_text(encoding="utf-8")
+
+    def test_spec_value_regression_test_guardrail(self) -> None:
+        content = self._content()
+        assert "spec-value regression" in content or "spec-enumerated value" in content, (
+            "step05 SKILL.md must have a guardrail for spec-value regression tests (AC-007 / FR-005)"
+        )
+
+    def test_union_type_guardrail(self) -> None:
+        content = self._content()
+        assert "union" in content.lower() and "EXACTLY ONE OF" in content, (
+            "step05 SKILL.md must have a guardrail for union types on spec-enumerated fields (AC-007 / FR-006)"
+        )
+
+    def test_ssot_enum_constant_guardrail(self) -> None:
+        content = self._content()
+        assert "single source of truth" in content.lower() or "SSOT" in content or "as const" in content, (
+            "step05 SKILL.md must have a guardrail for SSOT enum constants (AC-007 / FR-007)"
+        )
+
+    def test_rendered_output_coverage_guardrail(self) -> None:
+        content = self._content()
+        assert "rendered" in content and "critical" in content, (
+            "step05 SKILL.md must have a guardrail for mandatory rendered-output coverage (AC-007 / FR-008)"
+        )
+
+
+class TestStep05SkillPerProfileTable:
+    """AC-008: step05 SKILL.md must contain a per-profile examples table with TS/Python/Kotlin/Go rows."""
+
+    SKILL_MD = REPO_ROOT / ".agents/skills/blueprint-sdd-step05-implement/SKILL.md"
+
+    def _content(self) -> str:
+        return self.SKILL_MD.read_text(encoding="utf-8")
+
+    def test_typescript_row_present(self) -> None:
+        assert "TypeScript" in self._content(), (
+            "step05 SKILL.md per-profile table must include a TypeScript row (AC-008 / FR-010)"
+        )
+
+    def test_python_row_present(self) -> None:
+        assert "Python" in self._content() or "FastAPI" in self._content(), (
+            "step05 SKILL.md per-profile table must include a Python row (AC-008 / FR-010)"
+        )
+
+    def test_kotlin_row_present(self) -> None:
+        assert "Kotlin" in self._content(), (
+            "step05 SKILL.md per-profile table must include a Kotlin row (AC-008 / FR-010)"
+        )
+
+    def test_go_row_present(self) -> None:
+        assert "Go" in self._content() and "Gin" in self._content(), (
+            "step05 SKILL.md per-profile table must include a Go row (AC-008 / FR-010)"
+        )
+
+
+class TestStep05SkillVitestEscalation:
+    """AC-009: step05 SKILL.md must declare Vitest Browser Mode satisfaction + Playwright escalation rule."""
+
+    SKILL_MD = REPO_ROOT / ".agents/skills/blueprint-sdd-step05-implement/SKILL.md"
+
+    def _content(self) -> str:
+        return self.SKILL_MD.read_text(encoding="utf-8")
+
+    def test_vitest_browser_mode_satisfies_fr008(self) -> None:
+        content = self._content()
+        assert "Vitest Browser Mode" in content and (
+            "satisfies" in content or "satisfy" in content
+        ), (
+            "step05 SKILL.md must state Vitest Browser Mode component test satisfies the rendered-output guardrail (AC-009 / FR-009)"
+        )
+
+    def test_playwright_escalation_rule_present(self) -> None:
+        content = self._content()
+        assert "Playwright" in content and (
+            "route boundaries" in content or "auth/session" in content
+        ), (
+            "step05 SKILL.md must state Playwright is required when critical path crosses route boundaries or auth/session (AC-009 / FR-009)"
+        )
+
+
 class TestStep03SkillAcAuthoringRule:
     """AC-006: step03 SKILL.md must require the canonical AC form and reject label-only ACs."""
 
