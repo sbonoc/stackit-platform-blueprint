@@ -500,7 +500,7 @@ HTTP-scope slices that add or modify response schema fields must also satisfy:
 - Run the docs sync script to propagate changes to bootstrap templates:
 
 ```bash
-python3 scripts/lib/docs/sync_blueprint_template_docs.py
+uv run python3 scripts/lib/docs/sync_blueprint_template_docs.py
 ```
 
 - Update skill runbooks in `.agents/skills/*/SKILL.md` when
@@ -604,6 +604,98 @@ All must be green (or legitimately skipped) before merge.
 | 7 Document / Operate | `docs/`, `SKILL.md`, bootstrap template sync | `step06-document-sync` | Software Engineer | Commit + push (same PR) | `quality-docs-check-changed` |
 | 8 Publish | `pr_context.md`, `hardening_review.md`, `tasks.md`, deferred-proposal outcomes (file/reject/park) in `AGENTS.backlog.md` | `step07-pr-packager` | Software Engineer | Final commit + push (same PR) | `quality-hooks-fast`, `quality-hardening-review` |
 | 9 PR ready | — | `step07-pr-packager` | Software Engineer | **Draft → Ready** (same PR) | CI: `blueprint-quality`, `generated-consumer-smoke`, `upgrade-e2e-validation` |
+
+---
+
+## C7 Emission for Local SDD Sessions
+
+Each SDD step skill invokes the local-cli C7 emitter at the end of execution (issue #347).
+The emitter appends one JSON Lines record to `artifacts/c7/<work-item-slug>.jsonl` and commits
+the file to the branch as the local audit trail. The durable-bus ingest path is delivered by
+follow-up issue #350 (blocked by #336 runtime).
+
+### Environment variable
+
+| Variable | Default | Effect |
+|---|---|---|
+| `BLUEPRINT_SDD_C7_EMIT` | `1` (enabled) | Set to `0` to suppress emission for the current skill invocation. One `c7-emission-opted-out` audit event is written to the JSONL sink instead. |
+
+### JSONL sink path
+
+```
+artifacts/c7/<work-item-slug>.jsonl
+```
+
+The file is append-only and committed to the feature branch. It is hidden from PR diff view by the
+`.gitattributes` rule (`linguist-generated=true diff=none`). The `work-item-slug` is the value passed
+to the helper via `--slug`; it defaults to the `ticket_id` when omitted.
+
+> **Gitignore exception.** The top-level `.gitignore` excludes `artifacts/*` but permits
+> `artifacts/c7/*.jsonl` via three negation rules. These must be present in `.gitignore`
+> (and in the bootstrap template mirror) for `git add artifacts/c7/<slug>.jsonl` to succeed:
+> ```
+> artifacts/*
+> !artifacts/c7/
+> artifacts/c7/*
+> !artifacts/c7/*.jsonl
+> ```
+> The `artifacts/c7/*` line is required to keep non-JSONL scratch files (debug output, temp
+> files) under `artifacts/c7/` ignored; without it, any file in that directory would be
+> untracked and committable.
+>
+> **One-time migration for existing consumer repos.** The blueprint's `init_repo.py` seeds
+> the correct rules for new consumers via `scripts/templates/consumer/init/.gitignore.tmpl`.
+> Existing consumer repos upgrading to this blueprint version must add these three lines manually
+> to their root `.gitignore` (after the `artifacts/*` rule):
+> ```
+> !artifacts/c7/
+> artifacts/c7/*
+> !artifacts/c7/*.jsonl
+> ```
+> Without this change, `git add artifacts/c7/<slug>.jsonl` will silently succeed but stage no file.
+
+### `rerun_round` semantics
+
+The helper computes `rerun_round` by counting prior committed events for the same `(ticket_id, phase)` pair
+in the local JSONL sink before constructing the new envelope. A first-time skill execution produces `rerun_round: 0`;
+each subsequent rerun on the same phase increments it by one.
+
+### Opt-out audit behavior
+
+| Variable | Default | Effect |
+|---|---|---|
+| `BLUEPRINT_SDD_C7_EMIT` | `1` (enabled) | Set to `0` to suppress lifecycle emission. |
+| `BLUEPRINT_SDD_C7_OPT_OUT_REASON` | unset | Free-text string written to the `opt_out_reason` extension field on the single audit event. |
+
+When `BLUEPRINT_SDD_C7_EMIT=0`:
+
+1. The first SDD step executed under opt-out for a given work-item slug writes
+   **exactly one** `c7-emission-opted-out` event (phase = `c7-emission-opted-out`,
+   outcome = `rejected`, `rerun_round = 0`) to the JSONL sink.
+2. Subsequent SDD steps under the same opt-out scope (same JSONL sink file)
+   **MUST NOT** re-emit. The helper checks for any prior `c7-emission-opted-out`
+   event in the sink and no-ops silently if one is found.
+3. No normal lifecycle events are written while opt-out is in effect.
+4. If the operator clears the sink (e.g. `git rm artifacts/c7/<slug>.jsonl` and
+   reruns), a fresh audit event will fire on the next opt-out invocation. This is
+   deliberate — the sink file is the per-slug scope boundary, and the operator's
+   cleanup is visible in git history.
+
+The `opt_out_reason` field is carried under `additionalProperties: true` and is
+omitted from the envelope when the env var is unset or empty.
+
+### Manual invocation
+
+```sh
+uv run python3 scripts/bin/sdd/c7_emit.py emit \
+  --ticket "${TICKET_ID}" \
+  --phase "intake" \
+  --skill "blueprint-sdd-step01-intake" \
+  --owner-team "${OWNER_TEAM}" \
+  --slug "${WORK_ITEM_SLUG}"
+```
+
+Omit `--slug` to use `ticket_id` as the JSONL filename.
 
 ---
 

@@ -20,6 +20,51 @@ from scripts.lib.blueprint.contract_schema import load_blueprint_contract  # noq
 
 APPROVED_SIGNOFF_VALUES = {"approved", "true", "yes", "done", "signed"}
 
+# Canonical "## C7 Emission" addendum (FR-012, FR-015).
+# {phase} is the only per-skill variable (e.g. "intake", "implement").
+C7_ADDENDUM_TEMPLATE: str = """\
+## C7 Emission
+
+At the end of this step, emit a C7 lifecycle event. Resolve variable values
+from session context: `TICKET_ID` — the GitHub issue number; `SKILL_BASENAME`
+— the `name:` value from this SKILL.md frontmatter; `OWNER_TEAM` — the GitHub
+team slug owning this repository (e.g. `platform-team`); `WORK_ITEM_SLUG` —
+the spec directory basename.
+
+```sh
+uv run python3 scripts/bin/sdd/c7_emit.py emit \\
+  --ticket "$TICKET_ID" \\
+  --phase "{phase}" \\
+  --skill "$SKILL_BASENAME" \\
+  --owner-team "$OWNER_TEAM" \\
+  --slug "$WORK_ITEM_SLUG"
+```
+
+Stage and commit the emitted JSONL — this commit is part of the authorized
+skill workflow and must land immediately so the audit record is durable:
+
+```sh
+git add "artifacts/c7/$WORK_ITEM_SLUG.jsonl"
+git diff --cached --quiet || {{
+  git commit -m "chore($WORK_ITEM_SLUG): emit C7 lifecycle event"
+  git push
+}}
+```
+
+Set `BLUEPRINT_SDD_C7_EMIT=0` to suppress; exactly one `c7-emission-opted-out` event is written per work-item slug (subsequent opted-out steps write nothing — the guard above skips the commit in that case).
+**The LLM MUST NOT write events directly — invoke the helper only.**
+"""
+
+_C7_STEP_SKILLS: tuple[tuple[str, str], ...] = (
+    ("blueprint-sdd-step01-intake", "intake"),
+    ("blueprint-sdd-step02-resolve-questions", "resolve-questions"),
+    ("blueprint-sdd-step03-spec-complete", "spec-complete"),
+    ("blueprint-sdd-step04-plan-slicer", "plan-slicer"),
+    ("blueprint-sdd-step05-implement", "implement"),
+    ("blueprint-sdd-step06-document-sync", "document-sync"),
+    ("blueprint-sdd-step07-pr-packager", "pr-packager"),
+)
+
 _BYPASS_ALLOWED_VALUES: frozenset[str] = frozenset(
     {"bug-fix", "upgrade", "refactor", "chore", "authorized-deviation"}
 )
@@ -1894,12 +1939,113 @@ def _validate_contract_assets(contract_raw: dict[str, Any], repo_root: Path) -> 
     return violations
 
 
+_REQUIRED_SKILL_SECTION_KEYWORDS: tuple[str, ...] = (
+    "Guardrails",
+    "Workflow",
+    "Required Report Format",
+)
+
+
+def _validate_skill_structural_sections(repo_root: Path) -> list[Violation]:
+    """Assert every blueprint-sdd-* SKILL.md contains the required structural sections (FR-015 part a).
+
+    Scope: blueprint-sdd-* skills only (7 step skills + traceability-keeper).
+    Consumer-ops/upgrade are out-of-scope per Q-6 Option A — different
+    bounded context with different runbook conventions.
+
+    Match: substring keyword in any '## ' heading title (consistent with
+    _find_section). Variants like '## SDD Guardrails' or '## Workflow
+    (8 steps)' satisfy the requirement.
+    """
+    violations: list[Violation] = []
+    skills_root = repo_root / ".agents" / "skills"
+    if not skills_root.is_dir():
+        return []
+
+    heading_pattern = re.compile(r"^##\s+(.+?)\s*$", re.MULTILINE)
+    for skill_dir in sorted(skills_root.iterdir()):
+        if not skill_dir.is_dir():
+            continue
+        if not skill_dir.name.startswith("blueprint-sdd-"):
+            continue
+        skill_md = skill_dir / "SKILL.md"
+        if not skill_md.is_file():
+            continue
+        content = skill_md.read_text(encoding="utf-8")
+        headings_lower = [h.lower() for h in heading_pattern.findall(content)]
+        for keyword in _REQUIRED_SKILL_SECTION_KEYWORDS:
+            needle = keyword.lower()
+            if not any(needle in heading for heading in headings_lower):
+                violations.append(
+                    Violation(
+                        path=str(skill_md),
+                        message=(
+                            f"SKILL.md missing required structural section keyword "
+                            f"'{keyword}' (FR-015a)"
+                        ),
+                    )
+                )
+    return violations
+
+
+def _validate_skill_c7_addenda(repo_root: Path) -> list[Violation]:
+    """Assert all seven SDD step skills have a byte-identical '## C7 Emission' section (FR-012, FR-015)."""
+    violations: list[Violation] = []
+    skills_root = repo_root / ".agents" / "skills"
+    if not skills_root.is_dir():
+        return []
+
+    # Canonical normalized addendum (phase replaced with placeholder for comparison)
+    _PHASE_PLACEHOLDER = "__PHASE__"
+    canonical_normalized: str | None = None
+    canonical_skill: str | None = None
+
+    for skill_name, phase in _C7_STEP_SKILLS:
+        skill_md = skills_root / skill_name / "SKILL.md"
+        if not skill_md.is_file():
+            violations.append(Violation(path=str(skill_md), message=f"skill SKILL.md missing: {skill_name}"))
+            continue
+
+        content = skill_md.read_text(encoding="utf-8")
+        # Extract ## C7 Emission section (everything from the heading to the next ## or EOF)
+        match = re.search(r"(## C7 Emission\n.*?)(?=\n## |\Z)", content, re.DOTALL)
+        if not match:
+            violations.append(
+                Violation(
+                    path=str(skill_md),
+                    message=f"missing '## C7 Emission' section in SKILL.md of {skill_name}",
+                )
+            )
+            continue
+
+        section = match.group(1)
+        normalized = section.replace(f'"{phase}"', f'"{_PHASE_PLACEHOLDER}"')
+
+        if canonical_normalized is None:
+            canonical_normalized = normalized
+            canonical_skill = skill_name
+        elif normalized != canonical_normalized:
+            violations.append(
+                Violation(
+                    path=str(skill_md),
+                    message=(
+                        f"'## C7 Emission' section in {skill_name} differs from canonical "
+                        f"(reference: {canonical_skill}); addendum must be byte-identical modulo phase value"
+                    ),
+                )
+            )
+
+    return violations
+
+
 def main() -> int:
     contract = load_blueprint_contract(REPO_ROOT / "blueprint/contract.yaml")
     violations = _validate_contract_assets(contract.raw, REPO_ROOT)
     control_catalog_violations, control_ids = _load_control_catalog(contract_raw=contract.raw, repo_root=REPO_ROOT)
     violations.extend(control_catalog_violations)
     violations.extend(_validate_work_item_specs(contract.raw, REPO_ROOT, control_ids))
+    violations.extend(_validate_skill_structural_sections(REPO_ROOT))
+    violations.extend(_validate_skill_c7_addenda(REPO_ROOT))
 
     if violations:
         for violation in violations:

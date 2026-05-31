@@ -18,6 +18,7 @@ To introduce a new tag, append a row here in the same commit that uses it.
 | `blueprint` | Blueprint upgrade, contract, template sync, init flow |
 | `gitops` | GitOps manifests, ArgoCD sync, kustomization wiring |
 | `skills` | Agent skill runbooks, SDD lifecycle tooling |
+| `c7-emission` | C7 lifecycle event emission surface: emitters, schema, JSONL sink, ingest, Grafana facets |
 | `a11y` | Accessibility conformance, WCAG gates, ACR scaffold, axe tooling |
 | `local-dx` | Local developer experience: `.env.local` auto-load, ArgoCD branch tracking, cluster context overrides |
 
@@ -234,9 +235,20 @@ Surface automatically when the named scope is next touched. Do not promote to ac
 
 ### on-scope: skills
 
-- [ ] (parked) proposal(issue-247-step05-slice-done-gate): automated SKILL.md content scanner — verify SKILL.md contains required guardrail patterns and the smoke gate step as automated regression protection
+- [x] (incorporated: issue-347-human-sdd-c7-symmetry) proposal(issue-247-step05-slice-done-gate): automated SKILL.md content scanner — verify SKILL.md contains required guardrail patterns and the smoke gate step as automated regression protection
       trigger: on-scope: skills
-      rationale: skill runbook is human-authored governance prose, not a machine-verifiable interface contract; automated scanner couples check to prose phrasing and requires updates on any reword; spec-to-code review gap is sufficient for now
+      rationale: incorporated as FR-015 in #347 — extended check_sdd_assets.py with structural-section presence check + C7 addendum byte-equality gate across all seven step skills
+
+### on-scope: c7-emission
+
+- [x] (rejected) proposal(issue-347-human-sdd-c7-symmetry): JSONL line signing / HMAC — rejected. Q-2 resolved as "no signing"; committed-file + git-blame audit trail is sufficient anti-tamper for the local-cli scope. Consciously discarded at PR #348 closure.
+- [ ] (parked) proposal(issue-347-human-sdd-c7-symmetry): consumer-repo C7 emission — emit lifecycle events from consumer repos once `artifacts/c7/*.jsonl` is a stable contract on the blueprint side
+      trigger: triage: next-session
+      stale-after: 2
+      rationale: defer until first consumer adopter requests metrics-dashboard symmetry; re-evaluate after first 30 PRs ship with local-cli emitter post-merge
+- [ ] (parked) proposal(issue-347-human-sdd-c7-symmetry): IDE-extension direct emission (VS Code / JetBrains) — extend helper beyond CLI-only to emit directly from editor extensions
+      trigger: on-scope: c7-emission
+      rationale: low urgency; validate local-cli CLI pattern first across real work items before adding IDE surface complexity
 
 ### after: consumer-app-descriptor-adoption
 

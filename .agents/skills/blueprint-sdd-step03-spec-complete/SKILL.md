@@ -148,3 +148,35 @@ make quality-sdd-check-all
 ## References
 
 - Spec completion checklist: `references/spec_complete_checklist.md`
+
+
+## C7 Emission
+
+At the end of this step, emit a C7 lifecycle event. Resolve variable values
+from session context: `TICKET_ID` — the GitHub issue number; `SKILL_BASENAME`
+— the `name:` value from this SKILL.md frontmatter; `OWNER_TEAM` — the GitHub
+team slug owning this repository (e.g. `platform-team`); `WORK_ITEM_SLUG` —
+the spec directory basename.
+
+```sh
+uv run python3 scripts/bin/sdd/c7_emit.py emit \
+  --ticket "$TICKET_ID" \
+  --phase "spec-complete" \
+  --skill "$SKILL_BASENAME" \
+  --owner-team "$OWNER_TEAM" \
+  --slug "$WORK_ITEM_SLUG"
+```
+
+Stage and commit the emitted JSONL — this commit is part of the authorized
+skill workflow and must land immediately so the audit record is durable:
+
+```sh
+git add "artifacts/c7/$WORK_ITEM_SLUG.jsonl"
+git diff --cached --quiet || {
+  git commit -m "chore($WORK_ITEM_SLUG): emit C7 lifecycle event"
+  git push
+}
+```
+
+Set `BLUEPRINT_SDD_C7_EMIT=0` to suppress; exactly one `c7-emission-opted-out` event is written per work-item slug (subsequent opted-out steps write nothing — the guard above skips the commit in that case).
+**The LLM MUST NOT write events directly — invoke the helper only.**

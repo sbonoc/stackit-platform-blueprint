@@ -18,6 +18,7 @@ This matrix clarifies which areas are blueprint-managed and which are platform-o
 | `tests/blueprint/**`, `tests/docs/**` | Blueprint source only | Controlled | Maintainer-only blueprint contract and docs test suites; pruned from generated repos during first init. See **Test Directory Taxonomy** below. |
 | `tests/infra/test_*.py` | Consumer tracked | Required seed | Consumer-runtime integration tests delivered via `spec.repository.required_files`. Must contain only consumer-runtime assertions. See **Test Directory Taxonomy** below. |
 | `specs/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-*`, `docs/blueprint/architecture/decisions/ADR-*.md` | Blueprint source only | Controlled | Maintainer-only SDD work-item history and blueprint ADR records; pruned from generated repos during first init. |
+| `artifacts/c7/*.jsonl` | Blueprint source only | Controlled | Blueprint-run C7 audit trail (human SDD sessions on the blueprint itself); pruned from generated consumer repos during first init so consumers do not inherit upstream emission history. |
 | `.github/actions/**` | Blueprint | Controlled | Shared local GitHub Actions support for source and generated-repo CI workflows. |
 | `make/platform.mk`, `make/platform/*.mk` | Platform | Editable | Consumer-facing project targets. |
 | `scripts/bin/platform/**`, `scripts/lib/platform/**` | Platform | Editable | Application/runtime-specific automation (for example `scripts/bin/platform/touchpoints/test_e2e.sh`). |

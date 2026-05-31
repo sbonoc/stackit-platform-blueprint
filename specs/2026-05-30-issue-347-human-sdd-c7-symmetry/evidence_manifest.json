@@ -1,0 +1,58 @@
+{
+  "manifest_version": 1,
+  "work_item": "2026-05-30-issue-347-human-sdd-c7-symmetry",
+  "generated_by": "spec-evidence-manifest",
+  "generated_at_utc": "2026-05-31T04:00:00Z",
+  "files": [
+    {
+      "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/spec.md",
+      "purpose": "Normative spec (producer-side only; subscriber-side deferred to #350) — 13 FR + 4 NFR + 5 AC",
+      "sha256": "8554aa8d68ab54ad1532b5f29f26c25790404c202e3ac49a7ce2123ecd083646"
+    },
+    {
+      "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/architecture.md",
+      "purpose": "Bounded contexts, component design, integration edges, risks/tradeoffs",
+      "sha256": "28b79a7023a363ae3ce9bf31864cbe87b9c24fc571fb102948df8b5947ddbfb6"
+    },
+    {
+      "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/plan.md",
+      "purpose": "Five delivery slices in red→green TDD order (subscriber-side ingest deferred to #350)",
+      "sha256": "56dcc0ea4083e84ab5f68020f097241e925465ded29749ab2897b5346f3f2e20"
+    },
+    {
+      "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/tasks.md",
+      "purpose": "Tasks T-001..T-054 (Slice 5 webhook ingest deferred to #350) + gates + tests + validation + publish + app-onboarding",
+      "sha256": "203d26d838980276edbfb687b1b4057f5b6eb9c513d32a453daf78d01e363222"
+    },
+    {
+      "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/traceability.md",
+      "purpose": "22-row matrix mapping every in-scope requirement to design / impl / test / docs / ops evidence (deferred rows excised to #350)",
+      "sha256": "c6b5b766a9efd1bb91ea2cbee2e58b550a7dd0f09789c35afd430d63725382a1"
+    },
+    {
+      "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/graph.json",
+      "purpose": "Requirement and acceptance graph (22 nodes + edges)",
+      "sha256": "e2a6fa0da0e7cc60d08f3dd5bc71903e30a4d3583ee0d8252b76a71069fcb08f"
+    },
+    {
+      "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/pr_context.md",
+      "purpose": "Reviewer package — requirement coverage, key files, validation evidence, risk + rollback",
+      "sha256": "5816251b7da1c7e5c4d9ee0fab3f0990f909e28dcc45cd4b60b7ba207113d97a"
+    },
+    {
+      "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/hardening_review.md",
+      "purpose": "Repository-wide hardening findings + A11Y N/A + proposals-only section",
+      "sha256": "ebabf49c628fe743fc22361f26d9cf55f4d7bca01f43563c4c96faee55015c3f"
+    },
+    {
+      "path": "specs/2026-05-30-issue-347-human-sdd-c7-symmetry/context_pack.md",
+      "purpose": "Quick-reference context snapshot, controls, commands, artifact index",
+      "sha256": "a7e2a0556c64598ec3b38a40f901b16c8eb89ee28d2fd20f40080f377c3885fd"
+    },
+    {
+      "path": "docs/blueprint/architecture/decisions/ADR-issue-347-human-sdd-c7-symmetry.md",
+      "purpose": "ADR (Status: proposed) — records D-1..D-4; extends ADR-issue-337-c7-emission-mechanism.md",
+      "sha256": "770b0bd18f4d3f4bbd1d02feffffac55f9983d3c50867916d6cbfc3d82fa48d9"
+    }
+  ]
+}

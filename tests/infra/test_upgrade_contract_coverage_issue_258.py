@@ -164,3 +164,55 @@ class ContractCoverageIssue258Tests(unittest.TestCase):
                 feature_gated=feature_gated,
             )
         self.assertNotIn("infra/local/helm/kms/values.yaml", uncovered)
+
+    def test_gitattributes_covered_by_required_files(self) -> None:
+        """audit_source_tree_coverage must not report .gitattributes as uncovered (issue #347)."""
+        contract = load_blueprint_contract(_CONTRACT_PATH)
+        _, _, _, init_managed, conditional = _contract_paths(contract)
+        managed_roots = _managed_roots(contract)
+        required_files = set(contract.repository.required_files)
+        source_only = set(contract.repository.source_only_paths)
+        consumer_seeded = set(contract.repository.consumer_seeded_paths)
+        feature_gated = frozenset(contract.repository.feature_gated_paths)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            source_repo = self._make_fake_source_tree(tmpdir, [".gitattributes"])
+            uncovered = audit_source_tree_coverage(
+                source_repo,
+                required_files | consumer_seeded,
+                source_only,
+                init_managed,
+                conditional,
+                managed_roots,
+                feature_gated=feature_gated,
+            )
+        self.assertNotIn(".gitattributes", uncovered)
+
+    def test_c7_jsonl_artifact_covered_by_prune_glob(self) -> None:
+        """C7 JSONL artifacts must be pruned/covered — not flagged as uncovered (issue #347)."""
+        contract = load_blueprint_contract(_CONTRACT_PATH)
+        _, _, _, init_managed, conditional = _contract_paths(contract)
+        managed_roots = _managed_roots(contract)
+        required_files = set(contract.repository.required_files)
+        source_only = set(contract.repository.source_only_paths)
+        consumer_seeded = set(contract.repository.consumer_seeded_paths)
+        feature_gated = frozenset(contract.repository.feature_gated_paths)
+        prune_globs = frozenset(contract.repository.consumer_init.source_artifact_prune_globs_on_init)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            source_repo = self._make_fake_source_tree(
+                tmpdir, ["artifacts/c7/2026-05-30-issue-347-human-sdd-c7-symmetry.jsonl"]
+            )
+            uncovered = audit_source_tree_coverage(
+                source_repo,
+                required_files | consumer_seeded,
+                source_only,
+                init_managed,
+                conditional,
+                managed_roots,
+                feature_gated=feature_gated,
+                prune_glob_patterns=prune_globs,
+            )
+        self.assertNotIn(
+            "artifacts/c7/2026-05-30-issue-347-human-sdd-c7-symmetry.jsonl", uncovered
+        )

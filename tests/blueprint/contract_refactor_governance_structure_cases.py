@@ -509,6 +509,7 @@ class GovernanceStructureCases(RefactorContractBase):
             {
                 "specs/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-*",
                 "docs/blueprint/architecture/decisions/ADR-*.md",
+                "artifacts/c7/*.jsonl",
             },
         )
 
