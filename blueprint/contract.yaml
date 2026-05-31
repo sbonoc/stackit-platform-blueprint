@@ -567,6 +567,7 @@ spec:
         - scripts/bin/sdd/c7_emit.py
         - scripts/lib/sdd/__init__.py
         - scripts/lib/sdd/c7_emit.py
+        - .gitignore
       init_managed:
         - blueprint/repo.init.env
         - blueprint/repo.init.secrets.example.env

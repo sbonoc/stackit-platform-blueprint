@@ -192,6 +192,8 @@ class GovernanceInitRepoCases(RefactorContractBase):
                 "scripts/bin/sdd/c7_emit.py.tmpl",
                 "scripts/lib/sdd/__init__.py.tmpl",
                 "scripts/lib/sdd/c7_emit.py.tmpl",
+                # Consumer-seeded .gitignore with artifacts/c7/ exception (issue #347).
+                ".gitignore.tmpl",
             ):
                 source_path = REPO_ROOT / "scripts/templates/consumer/init" / template_path
                 target_path = tmp_root / "scripts/templates/consumer/init" / template_path
@@ -510,6 +512,8 @@ class GovernanceInitRepoCases(RefactorContractBase):
                 "scripts/bin/sdd/c7_emit.py.tmpl",
                 "scripts/lib/sdd/__init__.py.tmpl",
                 "scripts/lib/sdd/c7_emit.py.tmpl",
+                # Consumer-seeded .gitignore with artifacts/c7/ exception (issue #347).
+                ".gitignore.tmpl",
             ):
                 source_path = REPO_ROOT / "scripts/templates/consumer/init" / template_path
                 target_path = tmp_root / "scripts/templates/consumer/init" / template_path
