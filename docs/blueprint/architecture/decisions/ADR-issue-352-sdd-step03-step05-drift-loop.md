@@ -3,7 +3,7 @@
 **Status:** proposed
 **Date:** 2026-05-31
 **Issue:** #352
-**Spec:** `specs/2026-05-31-issue-352-sdd-step03-step05-drift-loop/` (FR-001..FR-011, NFR-OBS-001, NFR-REL-001, NFR-OPS-001)
+**Spec:** `specs/2026-05-31-issue-352-sdd-step03-step05-drift-loop/` (FR-001..FR-012, NFR-OBS-001, NFR-REL-001, NFR-OPS-001)
 **Extensibility classification (#339 C8 FR-017):** `sealed` (governance-control surface; consumer overrides MUST NOT relax the gate)
 **ADR technical decision sign-off:** pending
 
@@ -60,6 +60,13 @@ AC-NNN [description] — verified by T-N, which MUST assert <exact condition>.
 ```
 
 Label-only ACs (`T-N verifies pre-population`, `T-N covers the happy path`) MUST be rejected at the spec-complete gate. The rejection is enforced by the human Architect at sign-off time — the spec text is the contract; no machine regex is added (rationale below).
+
+**Shift-left teaching layer (FR-012).** The same canonical form is taught at step01 (intake) rather than only enforced at step03 (rejection):
+
+- `.agents/skills/blueprint-sdd-step01-intake/SKILL.md` Discover-phase guidance MUST require the canonical AC form from the first draft.
+- Both scaffold templates (`.spec-kit/templates/blueprint/spec.md` and `.spec-kit/templates/consumer/spec.md`) MUST seed the `AC-001` placeholder in the canonical form so the example itself models the pattern (replacing the legacy `AC-001 MUST be objectively testable.` placeholder).
+
+Rationale: the cheapest fix for an under-specified AC is to write it correctly the first time. Step03 remains the rejection gate; step01 + scaffolds carry the teaching cost so the rejection gate fires less often.
 
 ### D-4 — Step05 SKILL.md gains four new normative guardrails (covering FR-005..FR-008)
 
@@ -141,20 +148,21 @@ Add a regex check in `check_sdd_assets.py` that rejects ACs lacking `which MUST 
 
 ```mermaid
 flowchart TD
-    Start([New SDD work item]) --> S01[/blueprint-sdd-step01-intake/]
+    Start([New SDD work item]) --> Scaffold[make spec-scaffold<br/>NEW: AC-001 placeholder seeded<br/>in canonical form FR-012]
+    Scaffold --> S01[/blueprint-sdd-step01-intake/<br/>NEW: teaches canonical AC form<br/>at first draft FR-012]
     S01 --> S02[/blueprint-sdd-step02-resolve-questions/]
-    S02 --> S03[/blueprint-sdd-step03-spec-complete/]
+    S02 --> S03[/blueprint-sdd-step03-spec-complete/<br/>NEW: rejects label-only ACs FR-004]
     S03 --> C7[scripts/lib/sdd/c7_emit.py<br/>writes phase spec-complete<br/>to artifacts/c7/slug.jsonl]
     C7 --> S04[/blueprint-sdd-step04-plan-slicer/]
     S04 --> Gate{make quality-sdd-check<br/>NEW: check spec-complete event<br/>in artifacts/c7/slug.jsonl}
-    Gate -- "JSONL has spec-complete event<br/>OR exempt track" --> S05[/blueprint-sdd-step05-implement/]
+    Gate -- "JSONL has spec-complete event<br/>OR exempt track" --> S05[/blueprint-sdd-step05-implement/<br/>NEW: FR-005..FR-010 guardrails]
     Gate -- "no spec-complete event<br/>AND not exempt" --> Fail([fail-fast with<br/>sdd_step03_missing_spec_complete metric])
     S05 --> S06[/blueprint-sdd-step06-document-sync/]
     S06 --> S07[/blueprint-sdd-step07-pr-packager/]
     S07 --> PR([Draft PR ready for review])
 ```
 
-Caption: The new gate sits between step04 and step05, reading the JSONL audit trail that step03 already writes. Exempt tracks (`upgrade`, chore-no-specs) short-circuit the check without writing to the JSONL.
+Caption: Three new touchpoints close the drift loop. (1) The scaffold templates and step01 SKILL.md teach the canonical AC form at first draft (FR-012); step03 rejects label-only ACs that slipped through (FR-004). (2) The new gate between step04 and step05 reads the JSONL audit trail step03 already writes; exempt tracks (`upgrade`, chore-no-specs) short-circuit it. (3) Step05 SKILL.md adds four guardrails (FR-005..FR-008) plus a per-profile examples table (FR-010) and the FR-009 Vitest-Browser-Mode-vs-Playwright escalation rule.
 
 ## References
 
