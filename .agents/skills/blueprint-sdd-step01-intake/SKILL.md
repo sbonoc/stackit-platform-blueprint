@@ -246,7 +246,10 @@ make quality-sdd-check
 
 ## C7 Emission
 
-At the end of this step, emit a C7 lifecycle event:
+At the end of this step, emit a C7 lifecycle event. Resolve variable values
+from session context: `TICKET_ID` — the GitHub issue number; `SKILL_BASENAME`
+— the `name:` value from this SKILL.md frontmatter; `OWNER_TEAM` — from
+AGENTS.md § Owner Team; `WORK_ITEM_SLUG` — the spec directory basename.
 
 ```sh
 uv run python3 scripts/bin/sdd/c7_emit.py emit \
@@ -257,6 +260,13 @@ uv run python3 scripts/bin/sdd/c7_emit.py emit \
   --slug "$WORK_ITEM_SLUG"
 ```
 
-The event is appended to `artifacts/c7/$WORK_ITEM_SLUG.jsonl` and committed to the branch.
+Stage and commit the emitted JSONL before pushing:
+
+```sh
+git add "artifacts/c7/$WORK_ITEM_SLUG.jsonl"
+git commit -m "chore($WORK_ITEM_SLUG): emit C7 lifecycle event"
+git push
+```
+
 Set `BLUEPRINT_SDD_C7_EMIT=0` to suppress; one `c7-emission-opted-out` audit event is written instead.
 **The LLM MUST NOT write events directly — invoke the helper only.**
