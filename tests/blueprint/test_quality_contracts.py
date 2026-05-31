@@ -1837,6 +1837,35 @@ class QualityContractsTests(unittest.TestCase):
             "(issue #321: target is invoked by the always-run pre-push hook)",
         )
 
+    def test_c7_jsonl_validator_seeded_to_consumers(self) -> None:
+        # The pre-commit C7 JSONL validation hook is seeded to generated consumers via
+        # .pre-commit-config.yaml and calls validate_c7_jsonl.py. If the validator is not
+        # in consumer_seeded, generated consumers staging artifacts/c7/*.jsonl will fail
+        # with a missing-script error when the hook fires (issue #347 finding P1).
+        import yaml as _yaml
+        contract = _yaml.safe_load(_read("blueprint/contract.yaml"))
+        seeded: list[str] = (
+            contract.get("spec", {})
+            .get("repository", {})
+            .get("ownership_path_classes", {})
+            .get("consumer_seeded", [])
+        )
+        self.assertIn(
+            "scripts/bin/quality/validate_c7_jsonl.py",
+            seeded,
+            "scripts/bin/quality/validate_c7_jsonl.py must be in consumer_seeded: the "
+            "pre-commit C7 JSONL hook is seeded to generated consumers and invokes this "
+            "validator; without it, every skill-required C7 commit fails in consumer repos",
+        )
+
+    def test_c7_jsonl_validator_template_exists_for_consumer_seed(self) -> None:
+        tmpl = REPO_ROOT / "scripts/templates/consumer/init/scripts/bin/quality/validate_c7_jsonl.py.tmpl"
+        self.assertTrue(
+            tmpl.is_file(),
+            f"consumer seed template missing: {tmpl.relative_to(REPO_ROOT)} — "
+            "every path in consumer_seeded must have a corresponding .tmpl file",
+        )
+
 
 _BLUEPRINT_AUTHOR_MARKERS = (
     "blueprint/modules/",
