@@ -199,6 +199,30 @@ class EmitC7EventUseCaseTests(unittest.TestCase):
         event = use_case.build()
         self.assertEqual(event.emitter, "local-cli")
 
+    def test_invalid_phase_raises_value_error(self) -> None:
+        with self.assertRaises(ValueError, msg="invalid phase should raise ValueError"):
+            EmitC7EventUseCase(
+                ticket_id="347",
+                phase="not-a-real-phase",
+                skill_basename="blueprint-sdd-step01-intake",
+                owner_team="platform-ops",
+                outcome="success",
+                rerun_round=0,
+                model_resolver=EnvVarModelResolver(),
+            )
+
+    def test_invalid_outcome_raises_value_error(self) -> None:
+        with self.assertRaises(ValueError, msg="invalid outcome should raise ValueError"):
+            EmitC7EventUseCase(
+                ticket_id="347",
+                phase="intake",
+                skill_basename="blueprint-sdd-step01-intake",
+                owner_team="platform-ops",
+                outcome="not-a-real-outcome",
+                rerun_round=0,
+                model_resolver=EnvVarModelResolver(),
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

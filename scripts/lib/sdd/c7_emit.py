@@ -98,6 +98,10 @@ class EmitC7EventUseCase:
         model_resolver: EnvVarModelResolver,
         parent_ticket_id: Optional[str] = None,
     ) -> None:
+        if phase not in _PHASES:
+            raise ValueError(f"invalid phase {phase!r}; must be one of {sorted(_PHASES)}")
+        if outcome not in _OUTCOMES:
+            raise ValueError(f"invalid outcome {outcome!r}; must be one of {sorted(_OUTCOMES)}")
         self._ticket_id = ticket_id
         self._phase = phase
         self._skill_basename = skill_basename

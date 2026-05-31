@@ -34,6 +34,9 @@ def validate_file(path: Path) -> list[str]:
         emitter = event.get("emitter", "")
         if emitter not in _VALID_EMITTERS:
             errors.append(f"{path}:{i}: invalid emitter value: {emitter!r}")
+        rerun_round = event.get("rerun_round")
+        if not isinstance(rerun_round, int) or rerun_round < 0:
+            errors.append(f"{path}:{i}: rerun_round must be a non-negative integer, got {rerun_round!r}")
     return errors
 
 
