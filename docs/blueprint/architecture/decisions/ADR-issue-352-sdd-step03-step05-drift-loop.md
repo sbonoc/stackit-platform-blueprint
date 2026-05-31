@@ -148,17 +148,27 @@ Add a regex check in `check_sdd_assets.py` that rejects ACs lacking `which MUST 
 
 ```mermaid
 flowchart TD
-    Start([New SDD work item]) --> Scaffold[make spec-scaffold<br/>NEW: AC-001 placeholder seeded<br/>in canonical form FR-012]
-    Scaffold --> S01[/blueprint-sdd-step01-intake/<br/>NEW: teaches canonical AC form<br/>at first draft FR-012]
-    S01 --> S02[/blueprint-sdd-step02-resolve-questions/]
-    S02 --> S03[/blueprint-sdd-step03-spec-complete/<br/>NEW: rejects label-only ACs FR-004]
-    S03 --> C7[scripts/lib/sdd/c7_emit.py<br/>writes phase spec-complete<br/>to artifacts/c7/slug.jsonl]
-    C7 --> S04[/blueprint-sdd-step04-plan-slicer/]
-    S04 --> Gate{make quality-sdd-check<br/>NEW: check spec-complete event<br/>in artifacts/c7/slug.jsonl}
-    Gate -- "JSONL has spec-complete event<br/>OR exempt track" --> S05[/blueprint-sdd-step05-implement/<br/>NEW: FR-005..FR-010 guardrails]
-    Gate -- "no spec-complete event<br/>AND not exempt" --> Fail([fail-fast with<br/>sdd_step03_missing_spec_complete metric])
-    S05 --> S06[/blueprint-sdd-step06-document-sync/]
-    S06 --> S07[/blueprint-sdd-step07-pr-packager/]
+    Start([New SDD work item]) --> Scaffold["make spec-scaffold
+NEW: AC-001 placeholder seeded
+in canonical form - FR-012"]
+    Scaffold --> S01["blueprint-sdd-step01-intake
+NEW: teaches canonical AC form
+at first draft - FR-012"]
+    S01 --> S02[blueprint-sdd-step02-resolve-questions]
+    S02 --> S03["blueprint-sdd-step03-spec-complete
+NEW: rejects label-only ACs - FR-004"]
+    S03 --> C7["scripts/lib/sdd/c7_emit.py
+writes phase spec-complete
+to artifacts/c7/slug.jsonl"]
+    C7 --> S04[blueprint-sdd-step04-plan-slicer]
+    S04 --> Gate{"make quality-sdd-check
+NEW: check spec-complete event
+in artifacts/c7/slug.jsonl"}
+    Gate -- "JSONL has spec-complete event OR exempt track" --> S05["blueprint-sdd-step05-implement
+NEW: FR-005..FR-010 guardrails"]
+    Gate -- "no spec-complete event AND not exempt" --> Fail([fail-fast: sdd_step03_missing_spec_complete metric])
+    S05 --> S06[blueprint-sdd-step06-document-sync]
+    S06 --> S07[blueprint-sdd-step07-pr-packager]
     S07 --> PR([Draft PR ready for review])
 ```
 
