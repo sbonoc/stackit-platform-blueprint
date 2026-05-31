@@ -1,34 +1,34 @@
 # Tasks
 
 ## Gate Checks (Required Before Implementation)
-- [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`
-- [ ] G-002 Confirm open questions and unresolved alternatives are `0`
-- [ ] G-003 Confirm required sign-offs are approved
-- [ ] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
-- [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
+- [x] G-001 Confirm `SPEC_READY=true` in `spec.md`
+- [x] G-002 Confirm open questions and unresolved alternatives are `0`
+- [x] G-003 Confirm required sign-offs are approved
+- [x] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
+- [x] G-005 Confirm `Implementation Stack Profile` section is fully populated
 
 ## Implementation
-- [ ] T-001 Slice 1 — AGENTS.md `§ Mandatory Workflow` adds mandatory-gate clause + exempt-track list (FR-001, AC-010)
-- [ ] T-002 Slice 2 — `.agents/skills/blueprint-sdd-step03-spec-complete/SKILL.md` AC authoring rule + rejection of label-only ACs (FR-004, AC-006)
-- [ ] T-002b Slice 2 — `.agents/skills/blueprint-sdd-step01-intake/SKILL.md` Discover-phase canonical AC authoring guidance + `.spec-kit/templates/blueprint/spec.md` and `.spec-kit/templates/consumer/spec.md` AC placeholder seeded in canonical form (FR-012, AC-011)
-- [ ] T-003 Slice 3 — `.agents/skills/blueprint-sdd-step05-implement/SKILL.md` four new guardrails + per-profile examples table (FR-005..FR-010, AC-007, AC-008, AC-009)
-- [ ] T-004 Slice 4 — `scripts/bin/quality/check_sdd_assets.py` `_check_step03_complete_event` function + wiring into implementation-ready validator path (FR-002, FR-003, NFR-OBS-001, AC-001..AC-005)
-- [ ] T-005 Slice 5 — FR-011 forward-only merge-date constant + `make sdd-policy-snapshot` regeneration if applicable
-- [ ] T-006 Cross-skill update — verify `CLAUDE.md` skill table caption text matches the new mandatory-gate framing
-- [ ] T-007 Generated SDD policy snapshot — regenerate `AGENTS.md § Generated SDD Policy Snapshot` if the snapshot generator surfaces new fields
+- [x] T-001 Slice 1 — AGENTS.md `§ Mandatory Workflow` adds mandatory-gate clause + exempt-track list (FR-001, AC-010)
+- [x] T-002 Slice 2 — `.agents/skills/blueprint-sdd-step03-spec-complete/SKILL.md` AC authoring rule + rejection of label-only ACs (FR-004, AC-006)
+- [x] T-002b Slice 2 — `.agents/skills/blueprint-sdd-step01-intake/SKILL.md` Discover-phase canonical AC authoring guidance + `.spec-kit/templates/blueprint/spec.md` and `.spec-kit/templates/consumer/spec.md` AC placeholder seeded in canonical form (FR-012, AC-011)
+- [x] T-003 Slice 3 — `.agents/skills/blueprint-sdd-step05-implement/SKILL.md` four new guardrails + per-profile examples table (FR-005..FR-010, AC-007, AC-008, AC-009)
+- [x] T-004 Slice 4 — `scripts/bin/quality/check_sdd_assets.py` `_check_step03_complete_event` function + wiring into implementation-ready validator path (FR-002, FR-003, NFR-OBS-001, AC-001..AC-005)
+- [x] T-005 Slice 5 — FR-011 forward-only merge-date constant (`_SPEC_COMPLETE_GATE_SINCE = "2026-06-01"`) in check_sdd_assets.py; no `sdd-policy-snapshot` make target exists
+- [x] T-006 Cross-skill update — verified `CLAUDE.md` skill table caption text; no changes needed
+- [x] T-007 Generated SDD policy snapshot — no snapshot make target; AGENTS.md snapshot unchanged (gate is implementation detail not surfaced in snapshot)
 
 ## Test Automation
-- [ ] T-101 Slice 4 pytest cases — AC-001 happy path (spec-complete event present → exit 0)
-- [ ] T-102 Slice 4 pytest cases — AC-002 missing event (exit non-zero, metric emitted, slug in stderr)
-- [ ] T-103 Slice 4 pytest cases — AC-003 upgrade exemption (SPEC_READY_EXCEPTION=upgrade → exit 0)
-- [ ] T-104 Slice 4 pytest cases — AC-004 chore-no-specs exemption (no specs/ subdir → exit 0)
-- [ ] T-105 Slice 4 pytest cases — AC-005 c7-emission-opted-out event does NOT satisfy gate (exit non-zero for non-exempt work item)
-- [ ] T-201 Slice 2 pytest case — AC-006 step03 SKILL.md AC authoring rule + rejection text present
-- [ ] T-202 Slice 3 pytest case — AC-007 step05 SKILL.md four numbered guardrails present
-- [ ] T-203 Slice 3 pytest case — AC-008 per-profile examples table contains TS/Python/Kotlin/Go rows
-- [ ] T-204 Slice 3 pytest case — AC-009 FR-009 Vitest Browser Mode satisfaction + Playwright escalation rule present
-- [ ] T-205 Slice 1 pytest case — AC-010 AGENTS.md mandatory-gate phrase + exempt-track tokens present
-- [ ] T-206 Slice 2 pytest case — AC-011 step01 SKILL.md canonical-form guidance present AND both scaffold templates seed AC-001 placeholder in canonical form (FR-012)
+- [x] T-101 Slice 4 pytest cases — AC-001 happy path (spec-complete event present → exit 0)
+- [x] T-102 Slice 4 pytest cases — AC-002 missing event (exit non-zero, metric emitted, slug in stderr)
+- [x] T-103 Slice 4 pytest cases — AC-003 upgrade exemption (SPEC_READY_EXCEPTION=upgrade → exit 0)
+- [x] T-104 Slice 4 pytest cases — AC-004 chore-no-specs exemption (no specs/ subdir → exit 0)
+- [x] T-105 Slice 4 pytest cases — AC-005 c7-emission-opted-out event does NOT satisfy gate (exit non-zero for non-exempt work item)
+- [x] T-201 Slice 2 pytest case — AC-006 step03 SKILL.md AC authoring rule + rejection text present
+- [x] T-202 Slice 3 pytest case — AC-007 step05 SKILL.md four numbered guardrails present
+- [x] T-203 Slice 3 pytest case — AC-008 per-profile examples table contains TS/Python/Kotlin/Go rows
+- [x] T-204 Slice 3 pytest case — AC-009 FR-009 Vitest Browser Mode satisfaction + Playwright escalation rule present
+- [x] T-205 Slice 1 pytest case — AC-010 AGENTS.md mandatory-gate phrase + exempt-track tokens present
+- [x] T-206 Slice 2 pytest case — AC-011 step01 SKILL.md canonical-form guidance present AND both scaffold templates seed AC-001 placeholder in canonical form (FR-012)
 
 ## Accessibility Testing (Normative — mark N/A with rationale for non-UI specs)
 - [ ] T-A01 N/A — governance change with no UI surface (per NFR-A11Y-001)
