@@ -255,3 +255,40 @@ class TestQualitySpecIsReady:
             script = PREAMBLE + f'quality_spec_is_ready "{spec_dir}"'
             result = bash(script)
             assert result.returncode == 0, "Trailing spaces should still match"
+
+
+class TestAgentsMandatoryGateStep03:
+    """AC-010: AGENTS.md Mandatory Workflow classifies step03 as a mandatory gate
+    and lists the exempt tracks upgrade and chore-with-no-specs."""
+
+    AGENTS_MD = REPO_ROOT / "AGENTS.md"
+
+    def _content(self) -> str:
+        return self.AGENTS_MD.read_text(encoding="utf-8")
+
+    def test_mandatory_gate_phrase_present(self) -> None:
+        assert "mandatory gate" in self._content(), (
+            "AGENTS.md must contain the literal phrase 'mandatory gate' (AC-010 / FR-001)"
+        )
+
+    def test_step03_skill_named_as_mandatory_gate(self) -> None:
+        content = self._content()
+        assert "blueprint-sdd-step03-spec-complete" in content, (
+            "AGENTS.md must name blueprint-sdd-step03-spec-complete in the mandatory-gate context (AC-010)"
+        )
+        idx_gate = content.find("mandatory gate")
+        idx_skill = content.find("blueprint-sdd-step03-spec-complete")
+        assert abs(idx_gate - idx_skill) < 500, (
+            "mandatory gate phrase and blueprint-sdd-step03-spec-complete must appear in close proximity (AC-010)"
+        )
+
+    def test_exempt_track_upgrade_present(self) -> None:
+        assert "upgrade" in self._content(), (
+            "AGENTS.md must list the 'upgrade' exempt track (AC-010 / FR-003)"
+        )
+
+    def test_exempt_track_chore_no_specs_present(self) -> None:
+        content = self._content()
+        assert "chore-with-no-specs" in content or "chore-no-specs" in content, (
+            "AGENTS.md must list the chore-with-no-specs exempt track (AC-010 / FR-003)"
+        )
