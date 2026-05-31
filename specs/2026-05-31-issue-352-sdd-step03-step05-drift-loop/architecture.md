@@ -13,13 +13,14 @@
 
 ## Problem Statement
 - What needs to change and why: Six structural gaps between step03 (spec authoring) and step05 (implementation) let spec-to-implementation drift survive every automated gate. The fix is a single closed loop covering all six gaps in one work item; removing any one leaves a bypass or blind spot per the issue body.
-- Scope boundaries: AGENTS.md `§ Mandatory Workflow`, `.agents/skills/blueprint-sdd-step03-spec-complete/SKILL.md`, `.agents/skills/blueprint-sdd-step05-implement/SKILL.md`, `scripts/bin/quality/check_sdd_assets.py`, and accompanying pytest fixtures + tests. ADR addition.
+- Scope boundaries: AGENTS.md `§ Mandatory Workflow`, `.agents/skills/blueprint-sdd-step01-intake/SKILL.md`, `.agents/skills/blueprint-sdd-step03-spec-complete/SKILL.md`, `.agents/skills/blueprint-sdd-step05-implement/SKILL.md`, `.spec-kit/templates/blueprint/spec.md`, `.spec-kit/templates/consumer/spec.md`, `scripts/bin/quality/check_sdd_assets.py`, and accompanying pytest fixtures + tests. ADR addition.
 - Out of scope: `blueprint/contract.yaml` (no contract field changes); generated-consumer files (skill runbook propagation only); retroactive remediation of existing work items.
 
 ## Bounded Contexts and Responsibilities
 - **SDD Governance (AGENTS.md)** — owns the policy text declaring step03 as a mandatory gate and listing exempt tracks. Source of truth for the rule.
 - **SDD Validation (`scripts/bin/quality/check_sdd_assets.py`)** — owns the FR-002 machine enforcement: reads `artifacts/c7/<slug>.jsonl`, asserts a `spec-complete` event exists, honours FR-003 exemptions. Source of truth for enforcement behaviour.
-- **Step03 Skill Runbook** — owns the AC-authoring requirement (FR-004) and surfaces the rejection rule for label-only ACs at spec-complete time.
+- **Step01 Skill Runbook + Scaffold Templates** — owns the shift-left AC authoring guidance (FR-012). The skill runbook teaches the canonical form at first draft; the scaffold templates (`.spec-kit/templates/{blueprint,consumer}/spec.md`) seed `AC-001` in canonical form so the example itself models the pattern.
+- **Step03 Skill Runbook** — owns the AC-authoring requirement (FR-004) and surfaces the rejection rule for label-only ACs at spec-complete time. Acts as the rejection gate for ACs that bypassed the step01 shift-left.
 - **Step05 Skill Runbook** — owns guardrails FR-005..FR-010 and the per-profile examples table.
 - **C7 Emission Library (`scripts/lib/sdd/c7_emit.py`)** — UNCHANGED by this work item. The `spec-complete` phase already exists in the `_PHASES` enum (verified during intake). FR-002 reads the existing event; no new emission path is added.
 

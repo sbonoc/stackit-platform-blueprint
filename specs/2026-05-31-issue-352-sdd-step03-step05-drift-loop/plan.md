@@ -22,8 +22,8 @@
 1. **Slice 1 — AGENTS.md governance amendment (FR-001 text-only)**
    Add the mandatory-gate clause and exempt-track list to `§ Mandatory Workflow`. Cross-reference the new check in `§ SDD Readiness Gate (Mandatory Before Implementation)`. No code path changes — text contract only. Red: add a test in `tests/blueprint/test_quality_gating.py` (or equivalent) asserting AGENTS.md contains the literal phrase `mandatory gate` paired with `blueprint-sdd-step03-spec-complete` and the exempt tokens `upgrade`, `chore-with-no-specs` (AC-010). Green: amend AGENTS.md. Commit + push.
 
-2. **Slice 2 — Step03 SKILL.md AC authoring rule (FR-004)**
-   Add the AC authoring section to `.agents/skills/blueprint-sdd-step03-spec-complete/SKILL.md` requiring the canonical `which MUST assert ...` form and the spec-complete checklist item that rejects label-only ACs. Red: pytest case asserting both the canonical phrase and the rejection rule appear in the SKILL.md (AC-006). Green: edit SKILL.md. Commit + push.
+2. **Slice 2 — Step03 SKILL.md AC authoring rule (FR-004) + step01 shift-left + scaffold templates (FR-012)**
+   Add the AC authoring section to `.agents/skills/blueprint-sdd-step03-spec-complete/SKILL.md` requiring the canonical `which MUST assert ...` form and the spec-complete checklist item that rejects label-only ACs. Mirror the same canonical-form guidance into `.agents/skills/blueprint-sdd-step01-intake/SKILL.md` Discover-phase authoring guidance (FR-012). Replace the legacy `AC-001 MUST be objectively testable.` placeholder in both `.spec-kit/templates/blueprint/spec.md` and `.spec-kit/templates/consumer/spec.md` with a canonical-form seeded example so the scaffold itself teaches the pattern. Red: pytest cases asserting (a) both the canonical phrase and the rejection rule appear in step03 SKILL.md (AC-006), AND (b) the canonical-form substrings appear in step01 SKILL.md + both scaffold templates (AC-011). Green: edit all four files. Commit + push.
 
 3. **Slice 3 — Step05 SKILL.md four guardrails + per-profile table (FR-005..FR-010)**
    Add four numbered guardrails (spec-value regression, union types, SSOT enums, mandatory rendered-output) and the per-profile examples table to `.agents/skills/blueprint-sdd-step05-implement/SKILL.md`. Weave FR-009 Vitest Browser Mode satisfaction + Playwright escalation rule into the FR-008 guardrail body. Red: pytest cases asserting the four guardrails exist and the per-profile table contains TS/Python/Kotlin/Go rows (AC-007, AC-008, AC-009). Green: edit SKILL.md. Commit + push.
@@ -68,7 +68,7 @@
 - Notes: governance + SDD-check changes; no make-target additions affect app delivery workflows.
 
 ## Documentation Plan (Document Phase)
-- Blueprint docs updates: AGENTS.md `§ Mandatory Workflow`; `.agents/skills/blueprint-sdd-step03-spec-complete/SKILL.md`; `.agents/skills/blueprint-sdd-step05-implement/SKILL.md`; `CLAUDE.md` if the skill table caption requires reflection (Slice 1 verifies).
+- Blueprint docs updates: AGENTS.md `§ Mandatory Workflow`; `.agents/skills/blueprint-sdd-step01-intake/SKILL.md`; `.agents/skills/blueprint-sdd-step03-spec-complete/SKILL.md`; `.agents/skills/blueprint-sdd-step05-implement/SKILL.md`; `.spec-kit/templates/blueprint/spec.md`; `.spec-kit/templates/consumer/spec.md`; `CLAUDE.md` if the skill table caption requires reflection (Slice 1 verifies).
 - Consumer docs updates: none (skill propagation is implicit; no consumer-facing template change).
 - Mermaid diagrams updated: ADR diagram only (the SDD lifecycle flow).
 - Docs validation commands:

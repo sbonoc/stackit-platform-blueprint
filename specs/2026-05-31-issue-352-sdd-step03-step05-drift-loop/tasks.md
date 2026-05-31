@@ -10,6 +10,7 @@
 ## Implementation
 - [ ] T-001 Slice 1 — AGENTS.md `§ Mandatory Workflow` adds mandatory-gate clause + exempt-track list (FR-001, AC-010)
 - [ ] T-002 Slice 2 — `.agents/skills/blueprint-sdd-step03-spec-complete/SKILL.md` AC authoring rule + rejection of label-only ACs (FR-004, AC-006)
+- [ ] T-002b Slice 2 — `.agents/skills/blueprint-sdd-step01-intake/SKILL.md` Discover-phase canonical AC authoring guidance + `.spec-kit/templates/blueprint/spec.md` and `.spec-kit/templates/consumer/spec.md` AC placeholder seeded in canonical form (FR-012, AC-011)
 - [ ] T-003 Slice 3 — `.agents/skills/blueprint-sdd-step05-implement/SKILL.md` four new guardrails + per-profile examples table (FR-005..FR-010, AC-007, AC-008, AC-009)
 - [ ] T-004 Slice 4 — `scripts/bin/quality/check_sdd_assets.py` `_check_step03_complete_event` function + wiring into implementation-ready validator path (FR-002, FR-003, NFR-OBS-001, AC-001..AC-005)
 - [ ] T-005 Slice 5 — FR-011 forward-only merge-date constant + `make sdd-policy-snapshot` regeneration if applicable
@@ -27,6 +28,7 @@
 - [ ] T-203 Slice 3 pytest case — AC-008 per-profile examples table contains TS/Python/Kotlin/Go rows
 - [ ] T-204 Slice 3 pytest case — AC-009 FR-009 Vitest Browser Mode satisfaction + Playwright escalation rule present
 - [ ] T-205 Slice 1 pytest case — AC-010 AGENTS.md mandatory-gate phrase + exempt-track tokens present
+- [ ] T-206 Slice 2 pytest case — AC-011 step01 SKILL.md canonical-form guidance present AND both scaffold templates seed AC-001 placeholder in canonical form (FR-012)
 
 ## Accessibility Testing (Normative — mark N/A with rationale for non-UI specs)
 - [ ] T-A01 N/A — governance change with no UI surface (per NFR-A11Y-001)

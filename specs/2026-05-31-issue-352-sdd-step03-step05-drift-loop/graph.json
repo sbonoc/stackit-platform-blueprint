@@ -13,6 +13,7 @@
     { "id": "FR-009", "type": "requirement", "summary": "Vitest Browser Mode satisfies FR-008 by default; Playwright on escalation" },
     { "id": "FR-010", "type": "requirement", "summary": "Stack-agnostic application with per-profile examples table" },
     { "id": "FR-011", "type": "requirement", "summary": "Forward-only application; grandfather existing work items" },
+    { "id": "FR-012", "type": "requirement", "summary": "Shift-left AC authoring at step01 + scaffold templates seed canonical form" },
     { "id": "NFR-SEC-001", "type": "requirement", "summary": "N/A — governance change, no runtime auth/secret impact" },
     { "id": "NFR-OBS-001", "type": "requirement", "summary": "Deterministic METRIC line on FR-002 violation" },
     { "id": "NFR-REL-001", "type": "requirement", "summary": "Malformed JSONL surfaces clear error; rollback by revert" },
@@ -27,7 +28,8 @@
     { "id": "AC-007", "type": "acceptance", "summary": "step05 SKILL.md four new guardrails present" },
     { "id": "AC-008", "type": "acceptance", "summary": "Per-profile examples table contains TS/Python/Kotlin/Go rows" },
     { "id": "AC-009", "type": "acceptance", "summary": "Vitest Browser Mode + Playwright escalation rule present" },
-    { "id": "AC-010", "type": "acceptance", "summary": "AGENTS.md mandatory-gate phrase + exempt tokens present" }
+    { "id": "AC-010", "type": "acceptance", "summary": "AGENTS.md mandatory-gate phrase + exempt tokens present" },
+    { "id": "AC-011", "type": "acceptance", "summary": "step01 SKILL.md canonical AC guidance + scaffold templates seed canonical form" }
   ],
   "edges": [
     { "from": "FR-001", "to": "AC-010", "relation": "validated_by" },
@@ -43,6 +45,7 @@
     { "from": "FR-008", "to": "AC-007", "relation": "validated_by" },
     { "from": "FR-009", "to": "AC-009", "relation": "validated_by" },
     { "from": "FR-010", "to": "AC-008", "relation": "validated_by" },
+    { "from": "FR-012", "to": "AC-011", "relation": "validated_by" },
     { "from": "FR-011", "to": "AC-001", "relation": "constrains" },
     { "from": "NFR-OBS-001", "to": "AC-002", "relation": "constrains" },
     { "from": "NFR-OPS-001", "to": "AC-002", "relation": "constrains" },

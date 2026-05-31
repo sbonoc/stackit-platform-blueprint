@@ -67,6 +67,8 @@
 
 - FR-011 — Forward-only application. The new gates MUST apply only to work items whose spec-scaffold timestamp is on or after the merge date of this work item. Existing in-flight or merged work items MUST NOT be retroactively blocked.
 
+- FR-012 — Shift-left AC authoring at step01 + scaffold templates. `.agents/skills/blueprint-sdd-step01-intake/SKILL.md` Discover-phase guidance MUST require ACs to be authored in the canonical form `AC-NNN [description] — verified by T-N, which MUST assert <exact condition>.` from the first draft. Both scaffold templates (`.spec-kit/templates/blueprint/spec.md` and `.spec-kit/templates/consumer/spec.md`) MUST seed the AC placeholders in the canonical form so the example itself teaches the pattern. The intent is to author ACs correctly at step01 rather than recover them at the step03 rejection gate.
+
 ### Non-Functional Requirements (Normative)
 
 - NFR-SEC-001 — N/A — governance change with no runtime authn/authz/secret-handling impact. Rationale: changes are scoped to AGENTS.md text, SKILL.md runbooks, and `scripts/bin/quality/check_sdd_assets.py` validation logic; no new secrets, capabilities, or external interfaces are introduced.
@@ -120,6 +122,8 @@
 - AC-009 [FR-009 Vitest Browser Mode escalation rule] — verified by T-204, which MUST assert that the implement SKILL.md text declares (a) Vitest Browser Mode component test satisfies FR-008 when assertions enumerate all rendered spec-enumerated values, AND (b) Playwright cross-page E2E is required when the critical path crosses route boundaries OR depends on auth/session state OR spans more than one mounted root.
 
 - AC-010 [AGENTS.md mandatory-gate text for FR-001] — verified by T-205, which MUST assert that AGENTS.md `§ Mandatory Workflow` contains the literal phrase `mandatory gate` referring to `blueprint-sdd-step03-spec-complete` AND lists the exempt tracks `upgrade` and `chore-with-no-specs`.
+
+- AC-011 [Shift-left AC authoring at step01 + scaffold templates for FR-012] — verified by T-206, which MUST assert that (a) `.agents/skills/blueprint-sdd-step01-intake/SKILL.md` contains the canonical AC form substring `verified by T-` AND `which MUST assert` in its Discover-phase authoring guidance, AND (b) both `.spec-kit/templates/blueprint/spec.md` and `.spec-kit/templates/consumer/spec.md` seed the `AC-001` placeholder in the canonical form (containing the substrings `verified by T-` and `which MUST assert`) rather than the legacy `AC-001 MUST be objectively testable.` placeholder.
 
 ## Informative Notes (Non-Normative)
 - Context: Six structural gaps identified in issue #352 collectively allow spec-to-implementation drift to survive automated gates and surface only at manual browser testing. The fix is a closed loop: mandatory step03 → assertion-specific ACs → spec-value regression tests → union types → SSOT constants → mandatory rendered-output coverage.

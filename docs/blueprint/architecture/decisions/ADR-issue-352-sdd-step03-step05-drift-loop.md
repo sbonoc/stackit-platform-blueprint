@@ -129,7 +129,8 @@ Add a regex check in `check_sdd_assets.py` that rejects ACs lacking `which MUST 
 
 - AGENTS.md `§ Mandatory Workflow` gains a new normative clause (≈5 lines) classifying step03 as a mandatory gate, listing the exempt tracks, and pointing to FR-002 enforcement.
 - `scripts/bin/quality/check_sdd_assets.py` gains one new check function and a small set of pytest cases. No new external dependencies.
-- `.agents/skills/blueprint-sdd-step03-spec-complete/SKILL.md` gains an AC authoring section and a corresponding spec-complete gate checklist item.
+- `.agents/skills/blueprint-sdd-step01-intake/SKILL.md` gains shift-left guidance (FR-012) requiring ACs to be authored in the canonical `verified by T-N, which MUST assert <exact condition>` form from the first draft. Both scaffold templates (`.spec-kit/templates/blueprint/spec.md`, `.spec-kit/templates/consumer/spec.md`) replace the legacy `AC-001 MUST be objectively testable.` placeholder with a canonical-form example so the scaffold itself teaches the pattern.
+- `.agents/skills/blueprint-sdd-step03-spec-complete/SKILL.md` gains an AC authoring section and a corresponding spec-complete gate checklist item. Step03 remains the rejection gate; step01 + scaffold templates are the shift-left teaching layer.
 - `.agents/skills/blueprint-sdd-step05-implement/SKILL.md` gains four new numbered guardrails (FR-005..FR-008), a per-profile examples table (FR-010), and the FR-009 escalation rule woven into the FR-008 guardrail body.
 - The `Per-profile union-type and SSOT-constant idioms` table is the canonical reference for stack-native idioms; future stack additions update the table in the same commit that introduces the new profile.
 - Generated consumer repos inherit the new SKILL.md text via standard skill-runbook propagation; their own `make quality-sdd-check` inherits FR-002 enforcement when they next pull a blueprint upgrade.
@@ -157,7 +158,7 @@ Caption: The new gate sits between step04 and step05, reading the JSONL audit tr
 
 ## References
 
-- Spec: `specs/2026-05-31-issue-352-sdd-step03-step05-drift-loop/spec.md` § FR-001..FR-011, NFR-OBS-001, NFR-REL-001, NFR-OPS-001
+- Spec: `specs/2026-05-31-issue-352-sdd-step03-step05-drift-loop/spec.md` § FR-001..FR-012, NFR-OBS-001, NFR-REL-001, NFR-OPS-001
 - Issue: [#352](https://github.com/sbonoc/stackit-platform-blueprint/issues/352) (six-gap closed-loop framing)
 - Related governance: AGENTS.md `§ Mandatory Workflow`, `§ SDD Readiness Gate (Mandatory Before Implementation)`, `§ Sign-off Policy`, `§ Lightweight SDD Bypass Track`, `§ Cross-Cutting Guardrails (Must Be Captured in Discover + Specify)`
 - Audit-trail dependency: [ADR-issue-347-human-sdd-c7-symmetry.md](ADR-issue-347-human-sdd-c7-symmetry.md) (defines the JSONL sink format consumed by FR-002)
