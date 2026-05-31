@@ -29,6 +29,7 @@ def _good_event(**overrides) -> dict:
         "rerun_round": 0,
         "owner_team": "platform-ops",
         "emitter": "local-cli",
+        "execution_mode": "human-assisted",
     }
     base.update(overrides)
     return base
@@ -95,6 +96,29 @@ class ValidateFileRequiredFieldsTests(unittest.TestCase):
                 p = self._write_jsonl(self._tmp, _good_event(outcome=outcome))
                 errors = [e for e in validate_file(p) if "outcome" in e]
                 self.assertEqual(errors, [], f"outcome {outcome!r} should be valid")
+
+    def test_local_cli_missing_execution_mode_is_reported(self) -> None:
+        event = _good_event()
+        del event["execution_mode"]
+        p = self._write_jsonl(self._tmp, event)
+        errors = validate_file(p)
+        self.assertTrue(any("execution_mode" in e for e in errors), errors)
+
+    def test_local_cli_wrong_execution_mode_is_reported(self) -> None:
+        p = self._write_jsonl(self._tmp, _good_event(execution_mode="automated"))
+        errors = validate_file(p)
+        self.assertTrue(any("execution_mode" in e for e in errors), errors)
+
+    def test_local_cli_correct_execution_mode_passes(self) -> None:
+        p = self._write_jsonl(self._tmp, _good_event(execution_mode="human-assisted"))
+        self.assertEqual(validate_file(p), [])
+
+    def test_non_local_cli_emitter_does_not_require_execution_mode(self) -> None:
+        event = _good_event(emitter="orchestrator")
+        del event["execution_mode"]
+        p = self._write_jsonl(self._tmp, event)
+        errors = [e for e in validate_file(p) if "execution_mode" in e]
+        self.assertEqual(errors, [])
 
 
 if __name__ == "__main__":

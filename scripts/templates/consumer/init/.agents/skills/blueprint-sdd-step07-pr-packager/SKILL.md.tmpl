@@ -235,9 +235,11 @@ skill workflow and must land immediately so the audit record is durable:
 
 ```sh
 git add "artifacts/c7/$WORK_ITEM_SLUG.jsonl"
-git commit -m "chore($WORK_ITEM_SLUG): emit C7 lifecycle event"
-git push
+git diff --cached --quiet || {
+  git commit -m "chore($WORK_ITEM_SLUG): emit C7 lifecycle event"
+  git push
+}
 ```
 
-Set `BLUEPRINT_SDD_C7_EMIT=0` to suppress; one `c7-emission-opted-out` audit event is written instead.
+Set `BLUEPRINT_SDD_C7_EMIT=0` to suppress; exactly one `c7-emission-opted-out` event is written per work-item slug (subsequent opted-out steps write nothing — the guard above skips the commit in that case).
 **The LLM MUST NOT write events directly — invoke the helper only.**
