@@ -634,6 +634,16 @@ to the helper via `--slug`; it defaults to the `ticket_id` when omitted.
 > `artifacts/c7/*.jsonl` via `!artifacts/c7/` + `!artifacts/c7/*.jsonl` negation rules.
 > These negations must be present in `.gitignore` (and in the bootstrap template mirror) for
 > `git add artifacts/c7/<slug>.jsonl` to succeed.
+>
+> **One-time migration for existing consumer repos.** The blueprint's `init_repo.py` seeds
+> the correct negation rules for new consumers via `scripts/templates/consumer/init/.gitignore.tmpl`.
+> Existing consumer repos upgrading to this blueprint version must add these two lines manually
+> to their root `.gitignore` (after the `artifacts/*` rule):
+> ```
+> !artifacts/c7/
+> !artifacts/c7/*.jsonl
+> ```
+> Without this change, `git add artifacts/c7/<slug>.jsonl` will silently succeed but stage no file.
 
 ### `rerun_round` semantics
 
