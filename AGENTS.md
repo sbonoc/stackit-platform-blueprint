@@ -111,6 +111,7 @@ In keep-going mode, a single root cause (e.g. a syntax error in a shared helper)
 11. Update `AGENTS.backlog.md` when status/priorities change.
 12. Do not run `git commit`/`git push` unless explicitly requested in the current conversation.
 13. Before any SDD work item touching a domain covered in `docs/blueprint/architecture/north_star.md`, MUST read the relevant `north_star.md` section and the canonical ADR(s) cited in the Pointers table (or the ADR index `docs/blueprint/architecture/decisions/` if no Pointers table is present). MUST NOT duplicate architecture content from `north_star.md` in `AGENTS.md`.
+14. **`blueprint-sdd-step03-spec-complete` is a mandatory gate** for every work item whose `SPEC_READY_EXCEPTION` is one of `{none, bug-fix, refactor, chore, authorized-deviation}`. Skipping it for these tracks is a governance violation. Two tracks are exempt: (a) `SPEC_READY_EXCEPTION: upgrade` — the blueprint-upgrade pipeline is automated and has no human sign-off model; (b) work items with no `specs/` subdirectory (`chore-with-no-specs` passive-pass). The machine-enforced check for this gate is in `make quality-sdd-check` — see `§ SDD Readiness Gate (Mandatory Before Implementation)`.
 
 ## Spec-Driven Development (SDD) Lifecycle
 - Canonical phase order:
