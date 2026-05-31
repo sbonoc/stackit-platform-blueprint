@@ -257,6 +257,87 @@ class TestQualitySpecIsReady:
             assert result.returncode == 0, "Trailing spaces should still match"
 
 
+class TestStep03SkillAcAuthoringRule:
+    """AC-006: step03 SKILL.md must require the canonical AC form and reject label-only ACs."""
+
+    SKILL_MD = REPO_ROOT / ".agents/skills/blueprint-sdd-step03-spec-complete/SKILL.md"
+
+    def _content(self) -> str:
+        return self.SKILL_MD.read_text(encoding="utf-8")
+
+    def test_canonical_verified_by_phrase_present(self) -> None:
+        assert "verified by T-" in self._content(), (
+            "step03 SKILL.md must contain 'verified by T-' in AC authoring guidance (AC-006)"
+        )
+
+    def test_which_must_assert_phrase_present(self) -> None:
+        assert "which MUST assert" in self._content(), (
+            "step03 SKILL.md must contain 'which MUST assert' in AC authoring guidance (AC-006)"
+        )
+
+    def test_rejection_rule_for_label_only_acs_present(self) -> None:
+        content = self._content()
+        assert "label-only" in content or "REJECTED" in content or "reject" in content.lower(), (
+            "step03 SKILL.md must contain an explicit rejection rule for label-only ACs (AC-006)"
+        )
+
+
+class TestStep01SkillAcAuthoringGuidance:
+    """AC-011 (step01 part): step01 SKILL.md Discover-phase guidance must require canonical AC form."""
+
+    SKILL_MD = REPO_ROOT / ".agents/skills/blueprint-sdd-step01-intake/SKILL.md"
+
+    def _content(self) -> str:
+        return self.SKILL_MD.read_text(encoding="utf-8")
+
+    def test_canonical_verified_by_phrase_present(self) -> None:
+        assert "verified by T-" in self._content(), (
+            "step01 SKILL.md must contain 'verified by T-' in Discover-phase AC authoring guidance (AC-011 / FR-012)"
+        )
+
+    def test_which_must_assert_phrase_present(self) -> None:
+        assert "which MUST assert" in self._content(), (
+            "step01 SKILL.md must contain 'which MUST assert' in Discover-phase AC authoring guidance (AC-011 / FR-012)"
+        )
+
+
+class TestScaffoldTemplatesAcPlaceholder:
+    """AC-011 (scaffold part): both spec scaffold templates must seed AC-001 in canonical form."""
+
+    BLUEPRINT_TEMPLATE = REPO_ROOT / ".spec-kit/templates/blueprint/spec.md"
+    CONSUMER_TEMPLATE = REPO_ROOT / ".spec-kit/templates/consumer/spec.md"
+
+    def test_blueprint_template_ac_canonical_form(self) -> None:
+        content = self.BLUEPRINT_TEMPLATE.read_text(encoding="utf-8")
+        assert "verified by T-" in content, (
+            "blueprint spec template AC placeholder must contain 'verified by T-' (AC-011 / FR-012)"
+        )
+        assert "which MUST assert" in content, (
+            "blueprint spec template AC placeholder must contain 'which MUST assert' (AC-011 / FR-012)"
+        )
+
+    def test_blueprint_template_legacy_placeholder_removed(self) -> None:
+        content = self.BLUEPRINT_TEMPLATE.read_text(encoding="utf-8")
+        assert "AC-001 MUST be objectively testable." not in content, (
+            "blueprint spec template must not contain the legacy 'AC-001 MUST be objectively testable.' placeholder (FR-012)"
+        )
+
+    def test_consumer_template_ac_canonical_form(self) -> None:
+        content = self.CONSUMER_TEMPLATE.read_text(encoding="utf-8")
+        assert "verified by T-" in content, (
+            "consumer spec template AC placeholder must contain 'verified by T-' (AC-011 / FR-012)"
+        )
+        assert "which MUST assert" in content, (
+            "consumer spec template AC placeholder must contain 'which MUST assert' (AC-011 / FR-012)"
+        )
+
+    def test_consumer_template_legacy_placeholder_removed(self) -> None:
+        content = self.CONSUMER_TEMPLATE.read_text(encoding="utf-8")
+        assert "AC-001 MUST be objectively testable." not in content, (
+            "consumer spec template must not contain the legacy 'AC-001 MUST be objectively testable.' placeholder (FR-012)"
+        )
+
+
 class TestAgentsMandatoryGateStep03:
     """AC-010: AGENTS.md Mandatory Workflow classifies step03 as a mandatory gate
     and lists the exempt tracks upgrade and chore-with-no-specs."""
