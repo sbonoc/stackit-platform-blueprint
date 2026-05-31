@@ -121,6 +121,7 @@ class GovernanceInitRepoCases(RefactorContractBase):
             (tmp_root / "scripts/templates/consumer/init/apps").mkdir(parents=True, exist_ok=True)
             (tmp_root / "scripts/templates/consumer/init/infra/gitops/platform/base/apps").mkdir(parents=True, exist_ok=True)
             (tmp_root / "scripts/templates/consumer/init/scripts/bin/sdd").mkdir(parents=True, exist_ok=True)
+            (tmp_root / "scripts/templates/consumer/init/scripts/bin/quality").mkdir(parents=True, exist_ok=True)
             (tmp_root / "scripts/templates/consumer/init/scripts/lib/sdd").mkdir(parents=True, exist_ok=True)
             (tmp_root / "blueprint/modules").mkdir(parents=True, exist_ok=True)
             (tmp_root / "dags").mkdir(parents=True, exist_ok=True)
@@ -190,6 +191,9 @@ class GovernanceInitRepoCases(RefactorContractBase):
                 "infra/gitops/platform/base/apps/touchpoints-web-service.yaml.tmpl",
                 # Consumer-seeded SDD C7 emission helper (issue #347).
                 "scripts/bin/sdd/c7_emit.py.tmpl",
+                # Consumer-seeded C7 JSONL validator (issue #347): the pre-commit hook is seeded
+                # to consumers and invokes this script; it must be present for the hook to work.
+                "scripts/bin/quality/validate_c7_jsonl.py.tmpl",
                 "scripts/lib/sdd/__init__.py.tmpl",
                 "scripts/lib/sdd/c7_emit.py.tmpl",
                 # Consumer-seeded .gitignore with artifacts/c7/ exception (issue #347).
@@ -466,6 +470,7 @@ class GovernanceInitRepoCases(RefactorContractBase):
             (tmp_root / "scripts/templates/consumer/init/apps").mkdir(parents=True, exist_ok=True)
             (tmp_root / "scripts/templates/consumer/init/infra/gitops/platform/base/apps").mkdir(parents=True, exist_ok=True)
             (tmp_root / "scripts/templates/consumer/init/scripts/bin/sdd").mkdir(parents=True, exist_ok=True)
+            (tmp_root / "scripts/templates/consumer/init/scripts/bin/quality").mkdir(parents=True, exist_ok=True)
             (tmp_root / "scripts/templates/consumer/init/scripts/lib/sdd").mkdir(parents=True, exist_ok=True)
             contract_original = _read("blueprint/contract.yaml")
             docs_original = _read("docs/docusaurus.config.js")
@@ -510,6 +515,9 @@ class GovernanceInitRepoCases(RefactorContractBase):
                 "infra/gitops/platform/base/apps/touchpoints-web-service.yaml.tmpl",
                 # Consumer-seeded SDD C7 emission helper (issue #347).
                 "scripts/bin/sdd/c7_emit.py.tmpl",
+                # Consumer-seeded C7 JSONL validator (issue #347): the pre-commit hook is seeded
+                # to consumers and invokes this script; it must be present for the hook to work.
+                "scripts/bin/quality/validate_c7_jsonl.py.tmpl",
                 "scripts/lib/sdd/__init__.py.tmpl",
                 "scripts/lib/sdd/c7_emit.py.tmpl",
                 # Consumer-seeded .gitignore with artifacts/c7/ exception (issue #347).
