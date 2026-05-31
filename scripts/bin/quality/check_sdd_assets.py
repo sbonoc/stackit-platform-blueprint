@@ -65,6 +65,9 @@ _C7_STEP_SKILLS: tuple[tuple[str, str], ...] = (
     ("blueprint-sdd-step07-pr-packager", "pr-packager"),
 )
 
+# FR-011: gate only applies to work items whose slug date prefix >= this value.
+_SPEC_COMPLETE_GATE_SINCE: str = "2026-06-01"
+
 _BYPASS_ALLOWED_VALUES: frozenset[str] = frozenset(
     {"bug-fix", "upgrade", "refactor", "chore", "authorized-deviation"}
 )
@@ -433,6 +436,54 @@ def _find_section(sections: list[MarkdownSection], keyword: str) -> MarkdownSect
         if lowered in section.title.lower():
             return section
     return None
+
+
+def _check_step03_complete_event(
+    work_item_dir: Path,
+    bypass_exception_type: str,
+    repo_root: Path,
+) -> list[Violation]:
+    """FR-002: verify artifacts/c7/<slug>.jsonl contains a phase=spec-complete event.
+
+    Exempt: upgrade bypass track (FR-003a). Forward-only: only applies to work
+    items whose slug date prefix >= _SPEC_COMPLETE_GATE_SINCE (FR-011).
+    c7-emission-opted-out events do NOT satisfy the gate (AC-005).
+    """
+    slug = work_item_dir.name
+    # FR-011: forward-only — skip pre-existing work items
+    date_prefix = slug[:10]
+    if date_prefix < _SPEC_COMPLETE_GATE_SINCE:
+        return []
+    # FR-003(a): upgrade pipeline is automated; no human sign-off model
+    if bypass_exception_type == "upgrade":
+        return []
+
+    c7_path = repo_root / "artifacts" / "c7" / f"{slug}.jsonl"
+    violation_msg = (
+        f"spec-complete C7 event missing for {slug}: "
+        "run /blueprint-sdd-step03-spec-complete before implementation"
+    )
+
+    if c7_path.is_file():
+        try:
+            for raw_line in c7_path.read_text(encoding="utf-8").splitlines():
+                raw_line = raw_line.strip()
+                if not raw_line:
+                    continue
+                try:
+                    event = json.loads(raw_line)
+                except json.JSONDecodeError:
+                    continue
+                if event.get("phase") == "spec-complete":
+                    return []
+        except OSError:
+            pass
+
+    print(
+        f"[METRIC] name=sdd_step03_missing_spec_complete value=1 work_item={slug}",
+        file=sys.stderr,
+    )
+    return [Violation(path=str(c7_path.relative_to(repo_root)), message=violation_msg)]
 
 
 def _validate_work_item_specs(
@@ -1515,6 +1566,10 @@ def _validate_work_item_specs(
                             message=f"required field '{_field}' is empty or missing (scaffold placeholder not filled in)",
                         )
                     )
+
+        violations.extend(
+            _check_step03_complete_event(work_item_dir, _bypass_exception_type, repo_root)
+        )
 
     return violations
 
