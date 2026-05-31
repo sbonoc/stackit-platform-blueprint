@@ -32,7 +32,7 @@
   - `make quality-sdd-check` → zero violations
   - Manual AC-001 rehearsal: 7 sequential CLI invocations (`uv run python3 scripts/bin/sdd/c7_emit.py emit`) for ticket 999 across the seven SDD phases under `CLAUDE_CODE_MODEL=claude-opus-4-7` produced 7 JSONL lines in `artifacts/c7/rehearsal-999.jsonl`, all with `emitter=local-cli`, `execution_mode=human-assisted`, `model=claude-opus-4-7`, `rerun_round=0`, distinct `event_id`s — confirms one event per SDD step.
   - Manual AC-004 / FR-007 rehearsal: 3 sequential opt-out invocations (`BLUEPRINT_SDD_C7_EMIT=0 BLUEPRINT_SDD_C7_OPT_OUT_REASON=ci-rehearsal`) for ticket 999 under slug `optout-999` produced exactly 1 `c7-emission-opted-out` event in `artifacts/c7/optout-999.jsonl` with `opt_out_reason=ci-rehearsal`; invocations 2 and 3 short-circuited and logged the FR-007 dedup branch to stderr.
-- Result summary: All in-scope FRs, NFRs, and ACs covered by automated tests or the documented manual rehearsal. No deterministic-check failures.
+- Result summary: All in-scope FRs, NFRs, and ACs covered by automated tests or the documented manual rehearsal. No deterministic-check failures. Post-push Codex findings added `.gitattributes` to `required_files` and `artifacts/c7/*.jsonl` to `source_artifact_prune_globs_on_init` — both verified by new tests in `test_upgrade_contract_coverage_issue_258.py`.
 - Artifact references:
   - Rehearsal sinks captured under `/tmp/c7-rehearsal-7/artifacts/c7/rehearsal-999.jsonl` and `/tmp/c7-rehearsal-bool/artifacts/c7/optout-999.jsonl` (transient — not committed; documented here for reviewer reproducibility).
   - Reproduce: see the env-var table and step-by-step block in `docs/blueprint/governance/sdd_execution_guide.md` (operator-facing C7 section).

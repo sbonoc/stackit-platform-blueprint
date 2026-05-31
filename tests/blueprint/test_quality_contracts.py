@@ -841,6 +841,7 @@ class QualityContractsTests(unittest.TestCase):
                     "| `specs/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-*`, "
                     "`docs/blueprint/architecture/decisions/ADR-*.md` | "
                     "Blueprint source only | Controlled | test |\n"
+                    "| `artifacts/c7/*.jsonl` | Blueprint source only | Controlled | test |\n"
                 ),
                 encoding="utf-8",
             )

@@ -51,6 +51,7 @@ spec:
       - .github/workflows/ci.yml
       - .github/workflows/claude.yml
       - .github/workflows/claude-code-review.yml
+      - .gitattributes
       - .gitignore
       - .dockerignore
       - .editorconfig
@@ -660,6 +661,7 @@ spec:
       source_artifact_prune_globs_on_init:
         - specs/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-*
         - docs/blueprint/architecture/decisions/ADR-*.md
+        - artifacts/c7/*.jsonl
 
   governance:
     canonical_policy_source: AGENTS.md
