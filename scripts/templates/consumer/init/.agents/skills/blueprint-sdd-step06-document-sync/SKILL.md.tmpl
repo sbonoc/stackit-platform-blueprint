@@ -98,7 +98,7 @@ At the end of this step, emit a C7 lifecycle event:
 ```sh
 uv run python3 scripts/bin/sdd/c7_emit.py emit \
   --ticket "$TICKET_ID" \
-  --phase "{phase}" \
+  --phase "document-sync" \
   --skill "$SKILL_BASENAME" \
   --owner-team "$OWNER_TEAM" \
   --slug "$WORK_ITEM_SLUG"
