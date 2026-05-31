@@ -564,6 +564,9 @@ spec:
         - infra/gitops/platform/base/apps/touchpoints-web-deployment.yaml
         - infra/gitops/platform/base/apps/touchpoints-web-service.yaml
         - apps/descriptor.yaml
+        - scripts/bin/sdd/c7_emit.py
+        - scripts/lib/sdd/__init__.py
+        - scripts/lib/sdd/c7_emit.py
       init_managed:
         - blueprint/repo.init.env
         - blueprint/repo.init.secrets.example.env
