@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Literal, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 # ---------------------------------------------------------------------------
 # Domain types
@@ -20,6 +20,7 @@ _PHASES = frozenset({
     "implement", "document-sync", "pr-packager", "agent-pr-review",
 })
 _OUTCOMES = frozenset({"success", "rejected", "retried", "human-handoff"})
+_OPT_OUT_PHASE = "c7-emission-opted-out"
 
 
 class LifecycleEvent(BaseModel):
@@ -41,6 +42,21 @@ class LifecycleEvent(BaseModel):
     execution_mode: Optional[str] = Field(default=None, exclude=False)
 
     model_config = {"extra": "allow"}
+
+    @field_validator("phase")
+    @classmethod
+    def _validate_phase(cls, v: str) -> str:
+        allowed = _PHASES | {_OPT_OUT_PHASE}
+        if v not in allowed:
+            raise ValueError(f"invalid phase {v!r}; must be one of {sorted(allowed)}")
+        return v
+
+    @field_validator("outcome")
+    @classmethod
+    def _validate_outcome(cls, v: str) -> str:
+        if v not in _OUTCOMES:
+            raise ValueError(f"invalid outcome {v!r}; must be one of {sorted(_OUTCOMES)}")
+        return v
 
 
 # ---------------------------------------------------------------------------
@@ -181,7 +197,6 @@ class JsonlReaderAdapter:
 
 _OPT_OUT_ENV = "BLUEPRINT_SDD_C7_EMIT"
 _OPT_OUT_REASON_ENV = "BLUEPRINT_SDD_C7_OPT_OUT_REASON"
-_OPT_OUT_PHASE = "c7-emission-opted-out"
 
 
 class OptOutAuditUseCase:

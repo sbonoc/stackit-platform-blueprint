@@ -57,6 +57,24 @@ class ValidateEventTests(unittest.TestCase):
         with self.assertRaises(Exception):
             validate_event(bad)
 
+    def test_validate_raises_on_invalid_phase(self) -> None:
+        payload = self._build_payload()
+        payload["phase"] = "not-a-phase"
+        with self.assertRaises(Exception):
+            validate_event(payload)
+
+    def test_validate_raises_on_invalid_outcome(self) -> None:
+        payload = self._build_payload()
+        payload["outcome"] = "not-an-outcome"
+        with self.assertRaises(Exception):
+            validate_event(payload)
+
+    def test_validate_accepts_opt_out_phase(self) -> None:
+        payload = self._build_payload()
+        payload["phase"] = "c7-emission-opted-out"
+        result = validate_event(payload)
+        self.assertEqual(result.phase, "c7-emission-opted-out")
+
 
 if __name__ == "__main__":
     unittest.main()
