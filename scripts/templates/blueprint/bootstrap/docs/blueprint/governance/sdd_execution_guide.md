@@ -631,16 +631,25 @@ The file is append-only and committed to the feature branch. It is hidden from P
 to the helper via `--slug`; it defaults to the `ticket_id` when omitted.
 
 > **Gitignore exception.** The top-level `.gitignore` excludes `artifacts/*` but permits
-> `artifacts/c7/*.jsonl` via `!artifacts/c7/` + `!artifacts/c7/*.jsonl` negation rules.
-> These negations must be present in `.gitignore` (and in the bootstrap template mirror) for
-> `git add artifacts/c7/<slug>.jsonl` to succeed.
+> `artifacts/c7/*.jsonl` via three negation rules. These must be present in `.gitignore`
+> (and in the bootstrap template mirror) for `git add artifacts/c7/<slug>.jsonl` to succeed:
+> ```
+> artifacts/*
+> !artifacts/c7/
+> artifacts/c7/*
+> !artifacts/c7/*.jsonl
+> ```
+> The `artifacts/c7/*` line is required to keep non-JSONL scratch files (debug output, temp
+> files) under `artifacts/c7/` ignored; without it, any file in that directory would be
+> untracked and committable.
 >
 > **One-time migration for existing consumer repos.** The blueprint's `init_repo.py` seeds
-> the correct negation rules for new consumers via `scripts/templates/consumer/init/.gitignore.tmpl`.
-> Existing consumer repos upgrading to this blueprint version must add these two lines manually
+> the correct rules for new consumers via `scripts/templates/consumer/init/.gitignore.tmpl`.
+> Existing consumer repos upgrading to this blueprint version must add these three lines manually
 > to their root `.gitignore` (after the `artifacts/*` rule):
 > ```
 > !artifacts/c7/
+> artifacts/c7/*
 > !artifacts/c7/*.jsonl
 > ```
 > Without this change, `git add artifacts/c7/<slug>.jsonl` will silently succeed but stage no file.
