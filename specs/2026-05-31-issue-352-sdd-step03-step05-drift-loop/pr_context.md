@@ -66,7 +66,11 @@ uv run python3 scripts/lib/docs/sync_blueprint_template_docs.py
 uv run python3 scripts/lib/spec_kit/sync_consumer_init_sdd_assets.py
   → updated: spec.md.tmpl (1 updated, 14 skipped)
 
-Pre-push hook suite: all 16 checks passed (blueprint-test-unit: 1108 passed)
+make quality-hooks-fast
+  → all 11 checks passed (quality-spec-pr-ready, infra-contract-test-fast, quality-sdd-check-all, ...)
+
+make quality-spec-pr-ready
+  → exit 0 (no violations)
 ```
 
 ## Risk and Rollback
