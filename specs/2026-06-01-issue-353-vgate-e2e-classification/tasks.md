@@ -19,12 +19,15 @@
 - [ ] T-005 Wire `_check_vgate_classification` into `_validate_work_item_specs`; emit `sdd_vgate_manual_e2e_violation` metric to stderr on violation
 
 ### Slice 3 — GREEN: template seeding
-- [ ] T-006 Update `.spec-kit/templates/blueprint/spec.md` Implementation Stack Profile to seed `has-user-facing-flow`, `E2E gate classification`, and `E2E automation target` fields
-- [ ] T-007 Update `.spec-kit/templates/consumer/spec.md` Implementation Stack Profile to seed the same three fields
+- [ ] T-006 Update `.spec-kit/templates/blueprint/spec.md` Implementation Stack Profile to seed `has-user-facing-flow`, `E2E gate classification`, `E2E automation target`, and `E2E automation escalation` fields with inline HTML-comment definitions (form/wizard/multi-step) and the paired-justification note when `frontend-stack-profile != none`
+- [ ] T-007 Update `.spec-kit/templates/consumer/spec.md` Implementation Stack Profile to seed the same four fields with the same inline definition comments
 - [ ] T-008 Run `uv run python3 scripts/bin/sdd/sync_consumer_init_sdd_assets.py` to mirror consumer template into init tmpl
 
 ### Slice 4 — GREEN: AGENTS.md rule
-- [ ] T-009 Add mandatory Playwright E2E artifact rule to AGENTS.md testing and quality section, keyed on `has-user-facing-flow: true` (FR-007)
+- [ ] T-009 Add mandatory Playwright E2E artifact rule to AGENTS.md testing and quality section, keyed on `has-user-facing-flow: true`, including all three MUST clauses verbatim (full user journey, rendered DOM/screen state, wired to automated quality gate / CI) and the user-facing-flow definition (form, wizard, multi-step interaction) (FR-007)
+- [ ] T-009b Update `docs/blueprint/governance/spec_driven_development.md` to document the V-gate classification fields, trigger conditions, and step07-triage escalation responsibility
+- [ ] T-009c Update `scripts/templates/blueprint/bootstrap/docs/blueprint/governance/spec_driven_development.md` to mirror the governance update (bootstrap-rendered copy)
+- [ ] T-009d Update `.agents/skills/blueprint-sdd-step05-implement/SKILL.md` to reference the V-gate enforcement so authors see the rule at implementation time
 
 ### Slice 5 — VERIFY
 - [ ] T-010 Run `uv run python3 -m pytest tests/infra/test_sdd_asset_checker.py tests/blueprint/test_quality_gating.py -v`; confirm all T-101..T-112 pass
@@ -41,9 +44,9 @@
 - [ ] T-107 AC-007 — non-playwright profiles are exempt regardless of `has-user-facing-flow`
 - [ ] T-108 AC-008 — `has-user-facing-flow: false` is exempt regardless of `E2E gate classification`
 - [ ] T-109 AC-009 — metric `sdd_vgate_manual_e2e_violation` appears in stderr on violation
-- [ ] T-110 AC-010 — blueprint spec template seeds all three new fields
-- [ ] T-111 AC-011 — consumer spec template seeds all three new fields
-- [ ] T-112 AC-012 — `AGENTS.md` contains `has-user-facing-flow` in testing section
+- [ ] T-110 AC-010 — blueprint spec template seeds all four new fields with inline definition comments
+- [ ] T-111 AC-011 — consumer spec template seeds all four new fields with inline definition comments
+- [ ] T-112 AC-012 — `AGENTS.md` contains `has-user-facing-flow`, the full-user-journey clause, the rendered-state clause, and the automated-quality-gate/CI clause in the testing section
 
 ## Accessibility Testing
 - [ ] T-A01 NFR-A11Y-001: N/A — no UI introduced by this work item

@@ -29,7 +29,7 @@ Three design questions must be resolved before implementation begins.
 
 **Trade-off:** Substring match is slightly more permissive. A profile named `playwright_custom_v2` would trigger the check; this is correct — if you name playwright in your profile, the rule applies.
 
-**Status:** decided — pending user confirmation.
+**Status:** proposed.
 
 ## Decision D-3 — Date validation depth: format-only vs future-date check
 
@@ -39,7 +39,7 @@ Three design questions must be resolved before implementation begins.
 
 **Trade-off:** Past dates silently pass the format check. This is accepted; the deferred-proposals list records `automation-target future-date enforcement` as a follow-up for a future work item.
 
-**Status:** decided — pending user confirmation.
+**Status:** proposed.
 
 ## Decision D-4 — Forward-only guard (`_VGATE_GATE_SINCE`)
 
@@ -49,7 +49,7 @@ Three design questions must be resolved before implementation begins.
 
 **Trade-off:** Existing specs with permanently-manual E2E gates are not corrected. Considered acceptable; the check prevents future accumulation.
 
-**Status:** decided.
+**Status:** proposed.
 
 ## Consequences
 

@@ -64,8 +64,12 @@
 - Notes: Tooling-only change to `check_sdd_assets.py` and spec templates. No new make targets added; no app delivery workflow targets affected. All listed targets are pre-existing and unaffected by this work item.
 
 ## Documentation Plan (Document Phase)
-- Blueprint docs updates: AGENTS.md — add mandatory Playwright E2E artifact rule (FR-007).
-- Consumer docs updates: none beyond template seeding.
+- Blueprint docs updates:
+  - `AGENTS.md` — add mandatory Playwright E2E artifact rule with all three MUSTs verbatim (FR-007).
+  - `docs/blueprint/governance/spec_driven_development.md` — add the V-gate classification section describing the four spec fields (`has-user-facing-flow`, `E2E gate classification`, `E2E automation target`, `E2E automation escalation`), the rule's trigger conditions (post-gate slug + `has-user-facing-flow: true` + profile contains `playwright`), and the step07-triage escalation responsibility.
+  - `scripts/templates/blueprint/bootstrap/docs/blueprint/governance/spec_driven_development.md` — mirror the above (bootstrap-rendered copy for new consumer scaffolds).
+  - `.agents/skills/blueprint-sdd-step05-implement/SKILL.md` — reference the V-gate enforcement in the implementation step so authors see the rule at code-writing time, not only at quality-gate time.
+- Consumer docs updates: none beyond template seeding (the consumer template comment carries the field definition).
 - Mermaid diagrams updated: `architecture.md` contains the V-gate decision tree diagram.
 - Docs validation commands:
   - `make docs-build`
