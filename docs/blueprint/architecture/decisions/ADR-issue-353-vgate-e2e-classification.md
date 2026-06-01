@@ -9,7 +9,7 @@
 
 The blueprint `vitest_playwright_pact` test automation profile names Playwright as the E2E tool, but no governance rule prevents a consumer team from classifying the E2E gate for a user-facing flow as permanently `manual`. Because `make quality-sdd-check` has no corresponding check, this classification passes silently — browser-rendering defects accumulate undetected until a human manually tests the exact flow or a user reports the failure.
 
-Three design questions must be resolved before implementation begins.
+Four design questions must be resolved before implementation begins.
 
 ## Decision D-1 — Explicit flag vs heuristic detection for user-facing flows
 
@@ -19,7 +19,7 @@ Three design questions must be resolved before implementation begins.
 
 **Trade-off:** False negatives (author forgets to set `has-user-facing-flow: true`) are bounded by code review and template seeding. Heuristics trade predictability for coverage, which is the wrong trade here.
 
-**Status:** decided — pending user confirmation before implementation begins.
+**Status:** proposed.
 
 ## Decision D-2 — Profile scope: contains "playwright" vs exact string match
 
@@ -31,13 +31,13 @@ Three design questions must be resolved before implementation begins.
 
 **Status:** proposed.
 
-## Decision D-3 — Date validation depth: format-only vs future-date check
+## Decision D-3 — Two classification values vs three (`manual-with-target` rejected)
 
-**Decided:** `E2E automation target` is validated for presence and ISO 8601 format (`\d{4}-\d{2}-\d{2}`) only. Past dates are not rejected by the machine gate (Option A from Q-3).
+**Decided:** `E2E gate classification` accepts only two values: `automated` (passes) and `manual` (violation when `has-user-facing-flow: true` + playwright profile). The `manual-with-target` value considered during spec drafting is rejected.
 
-**Rationale:** A check that rejects past dates would cause spurious gate failures for work items that were created before a target date expired but haven't been resolved yet. The appropriate escalation for a missed automation target is a governance/step07-triage action (surfaced in the deferred proposals section), not a hard machine failure that blocks all local development on the branch. The machine gate's job is to enforce that an intention was stated — step07 triage enforces that the intention was kept.
+**Rationale:** `manual-with-target` partially contradicts the objective. It allows a team to declare a future date, pass every machine check, and ship the work item with zero Playwright coverage — which is exactly the accumulation of browser-rendering defects the issue was opened to prevent. The loophole is not closed by requiring a date; it is replaced with a documented deferral. Teams that cannot automate a user-facing flow in the current work item should set `has-user-facing-flow: false` with a justification comment — the honest declaration that the flow is not yet in a testable end-to-end state.
 
-**Trade-off:** Past dates silently pass the format check. This is accepted; the deferred-proposals list records `automation-target future-date enforcement` as a follow-up for a future work item.
+**Trade-off:** There is no machine-sanctioned deferred-automation path for post-gate work items. Teams must choose: automate now, or declare the flow not yet ready. This is intentional — the rule's value is precisely that it does not offer a comfortable middle option.
 
 **Status:** proposed.
 
@@ -54,7 +54,7 @@ Three design questions must be resolved before implementation begins.
 ## Consequences
 
 - `check_sdd_assets.py` gains a new `_check_vgate_classification` function and `_VGATE_GATE_SINCE` constant.
-- Both spec templates gain three new Implementation Stack Profile fields; all future scaffolds will seed them.
-- `AGENTS.md` gains a mandatory Playwright E2E artifact rule scoped to `has-user-facing-flow: true`.
-- Consumer teams starting new work items with a user-facing flow must consciously choose a V-gate classification and, if deferring automation, commit to an `E2E automation target` date.
+- Both spec templates gain two new Implementation Stack Profile fields (`has-user-facing-flow`, `E2E gate classification`); all future scaffolds will seed them.
+- `AGENTS.md` gains a mandatory Playwright E2E artifact rule scoped to `has-user-facing-flow: true`, with three explicit MUST clauses (full user journey, rendered DOM/screen state, wired to automated CI gate).
+- Consumer teams starting new work items with a user-facing flow must set `E2E gate classification: automated` and deliver a Playwright test within the same work item. There is no machine-sanctioned deferred path.
 - No retroactive changes to any existing spec, consumer repo, or CI workflow.

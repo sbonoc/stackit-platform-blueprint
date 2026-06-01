@@ -43,7 +43,7 @@
 - Risk R-2 (largest failure mode): An author silently sets `has-user-facing-flow: false` on a work item that does have a user-facing flow, bypassing the entire V-gate enforcement. This is the highest-impact failure mode because the gate has no other trigger. Mitigations: (a) template seeding includes a definition comment naming "form, wizard, multi-step interaction" so author intent is explicit; (b) the template comment pairs `false` with a paired-justification requirement when `frontend-stack-profile != none`; (c) code review and the AGENTS.md mandatory-Playwright rule both surface the obligation; (d) a deferred-proposal frontend-stack-mismatch heuristic warning (see spec.md) provides a longer-term machine-side safety net.
 - Risk R-3: Consumer init template mirror drifts from the consumer spec template after the field addition. Mitigation: the implementation plan explicitly runs `sync_consumer_init_sdd_assets.py`; existing sync test coverage will catch drift.
 - Tradeoff T-1: Explicit `has-user-facing-flow` flag requires conscious author action vs. heuristic detection which is automatic. Chosen: explicit flag — deterministic, testable, consistent with `SPEC_READY_EXCEPTION` pattern. See ADR D-1.
-- Tradeoff T-2: Past-date `E2E automation target` values pass the format check silently. Chosen: format-only validation in the machine gate; past-date escalation handled by step07 triage. See ADR D-3.
+- Tradeoff T-2: Binary classification (`automated` | `manual`) vs. a three-value design that included `manual-with-target`. Chosen: binary — the three-value design was rejected because `manual-with-target` reproduces the loophole (teams declare a far-future date and ship with zero coverage). See Q-3 rationale in spec.md and ADR D-3.
 
 ## Lineage and Pattern Reuse
 - This work item is a direct successor to issue #352 (PR #355), which introduced the machine-enforcement pattern in `check_sdd_assets.py`: `_check_step03_complete_event`, `_SPEC_COMPLETE_GATE_SINCE`, and the `sdd_step03_missing_spec_complete` stderr metric.
@@ -61,14 +61,10 @@ flowchart TD
     C -- no --> Z
     C -- yes --> D{test automation profile contains playwright?}
     D -- no --> Z
-    D -- yes --> E{E2E gate classification value?}
-    E -- automated --> Z
-    E -- manual --> V1[violation: manual not permitted for user-facing flow]
-    E -- manual-with-target --> F{E2E automation target present and matches YYYY-MM-DD?}
-    F -- yes --> Z
-    F -- no --> V2[violation: automation target missing or malformed]
-    V1 --> M[emit sdd_vgate_manual_e2e_violation to stderr]
-    V2 --> M
+    D -- yes --> E{E2E gate classification: automated?}
+    E -- yes --> Z
+    E -- no --> V[violation: classification must be automated for user-facing flow]
+    V --> M[emit sdd_vgate_manual_e2e_violation to stderr]
 ```
 
-Caption: Decision tree executed by `_check_vgate_classification` for each work item in the catalog. The forward-only guard and the profile/flag conditions provide three independent exemption exits before the classification rule is evaluated.
+Caption: Decision tree executed by `_check_vgate_classification` for each work item in the catalog. The forward-only guard and the profile/flag conditions provide three independent exemption exits before the classification rule is evaluated. There is no deferred-automation path — only `automated` passes.

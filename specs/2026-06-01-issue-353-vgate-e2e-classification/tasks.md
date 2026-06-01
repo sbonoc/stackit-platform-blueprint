@@ -19,8 +19,8 @@
 - [ ] T-005 Wire `_check_vgate_classification` into `_validate_work_item_specs`; emit `sdd_vgate_manual_e2e_violation` metric to stderr on violation
 
 ### Slice 3 — GREEN: template seeding
-- [ ] T-006 Update `.spec-kit/templates/blueprint/spec.md` Implementation Stack Profile to seed `has-user-facing-flow`, `E2E gate classification`, `E2E automation target`, and `E2E automation escalation` fields with inline HTML-comment definitions (form/wizard/multi-step) and the paired-justification note when `frontend-stack-profile != none`
-- [ ] T-007 Update `.spec-kit/templates/consumer/spec.md` Implementation Stack Profile to seed the same four fields with the same inline definition comments
+- [ ] T-006 Update `.spec-kit/templates/blueprint/spec.md` Implementation Stack Profile to seed `has-user-facing-flow` and `E2E gate classification` fields with inline HTML-comment definitions (form/wizard/multi-step; allowed values: `automated` | `manual`)
+- [ ] T-007 Update `.spec-kit/templates/consumer/spec.md` Implementation Stack Profile to seed the same two fields with the same inline definition comments
 - [ ] T-008 Run `uv run python3 scripts/bin/sdd/sync_consumer_init_sdd_assets.py` to mirror consumer template into init tmpl
 
 ### Slice 4 — GREEN: AGENTS.md rule
@@ -37,15 +37,12 @@
 ## Test Automation (AC coverage)
 - [ ] T-101 AC-001 — V-gate check rejects `manual` when `has-user-facing-flow: true` + playwright profile
 - [ ] T-102 AC-002 — V-gate check passes for `automated` when `has-user-facing-flow: true` + playwright profile
-- [ ] T-103 AC-003 — V-gate check passes for `manual-with-target` + valid `E2E automation target`
-- [ ] T-104 AC-004 — V-gate check rejects `manual-with-target` with absent/`none` `E2E automation target`
-- [ ] T-105 AC-005 — V-gate check rejects `manual-with-target` with malformed `E2E automation target`
 - [ ] T-106 AC-006 — pre-gate slugs (date < `_VGATE_GATE_SINCE`) are exempt
 - [ ] T-107 AC-007 — non-playwright profiles are exempt regardless of `has-user-facing-flow`
 - [ ] T-108 AC-008 — `has-user-facing-flow: false` is exempt regardless of `E2E gate classification`
 - [ ] T-109 AC-009 — metric `sdd_vgate_manual_e2e_violation` appears in stderr on violation
-- [ ] T-110 AC-010 — blueprint spec template seeds all four new fields with inline definition comments
-- [ ] T-111 AC-011 — consumer spec template seeds all four new fields with inline definition comments
+- [ ] T-110 AC-010 — blueprint spec template seeds both new fields with inline definition comments
+- [ ] T-111 AC-011 — consumer spec template seeds both new fields with inline definition comments
 - [ ] T-112 AC-012 — `AGENTS.md` contains `has-user-facing-flow`, the full-user-journey clause, the rendered-state clause, and the automated-quality-gate/CI clause in the testing section
 
 ## Accessibility Testing
