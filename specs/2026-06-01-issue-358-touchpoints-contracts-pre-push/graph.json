@@ -38,6 +38,11 @@
       "summary": "N/A — hook output is terminal-only; no log/metric/trace infrastructure required"
     },
     {
+      "id": "NFR-A11Y-001",
+      "type": "requirement",
+      "summary": "N/A — no user interface; template file modification only"
+    },
+    {
       "id": "NFR-REL-001",
       "type": "requirement",
       "summary": "Each hook exits 0 when relevant test directory absent or no matching files staged"

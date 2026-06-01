@@ -1,10 +1,10 @@
 # ADR — Pre-push Shift-left Hook Triad (issue #358)
 
-- Status: proposed
+- Status: approved
 - Date: 2026-06-01
 - Deciders: platform-team
 - Spec: specs/2026-06-01-issue-358-touchpoints-contracts-pre-push/spec.md
-- ADR technical decision sign-off: pending
+- ADR technical decision sign-off: approved
 
 ## Context
 

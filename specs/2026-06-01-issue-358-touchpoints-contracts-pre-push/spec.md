@@ -3,20 +3,20 @@
 ## Spec Readiness Gate (Blocking)
 <!-- SPEC_PRODUCT_READY=true: intake gate — Product sign-off only; unlocks agent ADR drafting.
      SPEC_READY=true: implementation gate — all sign-offs required; unlocks coding. -->
-- SPEC_READY: false
-- SPEC_PRODUCT_READY: false
+- SPEC_READY: true
+- SPEC_PRODUCT_READY: true
 - Open questions count: 0
 - Unresolved alternatives count: 0
 - Unresolved TODO markers count: 0
 - Pending assumptions count: 0
 - Open clarification markers count: 0
-- Product sign-off: pending
-- Architecture sign-off: pending
-- Security sign-off: pending
-- Operations sign-off: pending
+- Product sign-off: approved
+- Architecture sign-off: approved
+- Security sign-off: approved
+- Operations sign-off: approved
 - Missing input blocker token: none
 - ADR path: docs/blueprint/architecture/decisions/ADR-issue-358-touchpoints-contracts-pre-push.md
-- ADR status: proposed
+- ADR status: approved
 - SPEC_READY_EXCEPTION: none
 - authorized-by: none
 
@@ -53,10 +53,10 @@
 - FR-005 Consumers that upgrade their `.pre-commit-config.yaml` from the updated template MUST automatically gain all three pre-push gates without any manual configuration step beyond the standard blueprint upgrade flow.
 
 ### Non-Functional Requirements (Normative)
-- NFR-SEC-001 N/A — the hook invokes only `make touchpoints-test-contracts`, a local make target with no secret-handling or credential-exposure surface; no new authn/authz path is introduced.
+- NFR-SEC-001 N/A — all three hooks invoke only local make targets (`touchpoints-test-unit`, `touchpoints-test-contracts`, `backend-test-unit`) with no secret-handling or credential-exposure surface; no new authn/authz path is introduced.
 - NFR-OBS-001 N/A — pre-commit hook output is terminal-only; no log, metric, or trace infrastructure is required or modified by this change.
-- NFR-REL-001 The hook MUST exit 0 when the `tests/contracts/` directory is absent or when no matching files are staged, preserving push-path availability for consumers that do not yet have Pact contract tests.
-- NFR-OPS-001 Blueprint upgrade documentation MUST include a backport note for consumers running an earlier template version that have Pact contract tests, describing the new hook ID, its `files` trigger pattern, and the make target it invokes.
+- NFR-REL-001 Each hook MUST exit 0 when its relevant test directory is absent or when no matching files are staged, preserving push-path availability for consumers that do not yet have the relevant test suite.
+- NFR-OPS-001 Blueprint upgrade documentation MUST include a backport note for consumers running an earlier template version, describing all three new hook IDs, their `files` trigger patterns, and the make targets they invoke.
 - NFR-A11Y-001 N/A — no user interface; this is a template file modification only.
 
 ## Normative Option Decision

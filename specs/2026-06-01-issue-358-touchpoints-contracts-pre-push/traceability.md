@@ -9,8 +9,9 @@
 | FR-003 | SDD-C-005, SDD-C-008 | | `backend-test-unit-pre-push` stanza in template | same file | T-103 | ADR-issue-358 | |
 | FR-004 | SDD-C-005 | | `always_run: false` + file-glob on all three hooks | same file | T-104 | | |
 | FR-005 | SDD-C-011 | | Blueprint upgrade flow; template as seeded source | upgrade process | T-105 | upgrade release notes / backport note | |
-| NFR-SEC-001 | SDD-C-009 | | N/A — no secret/credential surface | none | | | |
+| NFR-SEC-001 | SDD-C-009 | | N/A — all three hooks invoke local make targets only; no credential surface | none | | | |
 | NFR-OBS-001 | SDD-C-010 | | N/A — terminal output only | none | | | |
+| NFR-A11Y-001 | | | N/A — no user interface; template file modification only | none | | | |
 | NFR-REL-001 | SDD-C-012 | | `always_run: false`; absent-directory guard if needed | `make/platform.mk` (consumer) | T-106 (if finding) | | |
 | NFR-OPS-001 | SDD-C-010, SDD-C-011 | | Upgrade documentation | `docs/blueprint/consumer/upgrade_summary.md` or equivalent | | upgrade notes | |
 | AC-001 | SDD-C-012 | | touchpoints-unit hook presence + all field values | `scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml` | T-101 | | |
@@ -30,6 +31,7 @@
   - FR-005
   - NFR-SEC-001
   - NFR-OBS-001
+  - NFR-A11Y-001
   - NFR-REL-001
   - NFR-OPS-001
   - AC-001
@@ -52,5 +54,5 @@
 - Hardening review export: `hardening_review.md`
 
 ## Open Risks and Follow-Ups
-- Follow-up 1: Verify whether `touchpoints-test-unit-pre-push` is absent from the current template (grep confirmed absent at intake); if it should be present, open a separate work item.
-- Follow-up 2: If `make touchpoints-test-contracts` does not exit 0 cleanly when contracts directory is absent, add a guard in the make target and translate to a failing test per SDD-C-024.
+- Follow-up 1: Verify that all three make targets (`touchpoints-test-unit`, `touchpoints-test-contracts`, `backend-test-unit`) exit 0 when their respective test directory is absent; if any does not, add an absent-directory guard and translate to a failing test per SDD-C-024 (T-106).
+- Follow-up 2: Document `backend-test-contracts-pre-push` and `touchpoints-test-integration-pre-push` as Deferred Proposals if consumers report integration or contract regressions on the backend lane.
