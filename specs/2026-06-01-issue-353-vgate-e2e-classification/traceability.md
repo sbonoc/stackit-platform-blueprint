@@ -48,6 +48,7 @@
   - CI transient error (quay.io EOF): `is_transient_registry_error` in `audit_version.sh` extended with EOF and connection-timed-out patterns; 21 unit tests added in `test_audit_version_transient_errors.py`
   - Codex review (dead code in transient-error tests): removed `_call_is_transient` (referenced undefined `_q`, latent NameError, never called), `_is_transient`, `_FUNC_EXTRACT`, and unused `subprocess` import
   - Codex review (N/A E2E gate classification test): added `test_na_e2e_classification_for_user_facing_with_playwright_is_violation` covering the named third value (N/A) from FR-001
+  - Codex P3 (section-scoped parsing): `_check_vgate_classification` now scopes `_parse_bullet_kv` to the "Implementation Stack Profile" section via `_split_markdown_sections` + `_find_section`; bullets in FR/AC/Requirements prose can no longer overwrite the declared profile values; 2 regression tests added
 - Documentation validation:
   - `make docs-build` — blocked by pre-existing pnpm version mismatch (pnpm@11.4.0 active vs @10.32.1 required); pre-existing environment issue, not introduced by this work item
   - `make docs-smoke` — blocked by same pnpm issue
