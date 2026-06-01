@@ -46,6 +46,8 @@
   - Codex P1 (inline HTML comment on inferred values): `_parse_bullet_kv` strips `<!-- ... -->` before returning values; 2 regression tests added (`test_inline_html_comment_on_true_value_is_stripped`, `test_inline_html_comment_on_true_value_passes_when_automated`)
   - Codex P2 (unrecognized has-user-facing-flow values): `_check_vgate_classification` now distinguishes recognized falsy (`_VGATE_FLOW_FALSE_VALUES`) from unrecognized values (typos, placeholders); unrecognized values produce a gate violation; 3 regression tests added
   - CI transient error (quay.io EOF): `is_transient_registry_error` in `audit_version.sh` extended with EOF and connection-timed-out patterns; 21 unit tests added in `test_audit_version_transient_errors.py`
+  - Codex review (dead code in transient-error tests): removed `_call_is_transient` (referenced undefined `_q`, latent NameError, never called), `_is_transient`, `_FUNC_EXTRACT`, and unused `subprocess` import
+  - Codex review (N/A E2E gate classification test): added `test_na_e2e_classification_for_user_facing_with_playwright_is_violation` covering the named third value (N/A) from FR-001
 - Documentation validation:
   - `make docs-build` — blocked by pre-existing pnpm version mismatch (pnpm@11.4.0 active vs @10.32.1 required); pre-existing environment issue, not introduced by this work item
   - `make docs-smoke` — blocked by same pnpm issue
