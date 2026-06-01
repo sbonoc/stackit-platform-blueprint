@@ -103,6 +103,26 @@ traceability table and metric audit trail.
    - Declare applicable SDD-C-### control IDs in spec.md.
    - Populate Implementation Stack Profile (stack, test automation,
      managed-service, local-first fields).
+   - **V-gate inference (shift-left):** Before writing `has-user-facing-flow`,
+     scan the issue title, description, and labels for UI/flow signals. Set the
+     field based on what is found, not on a passive default.
+
+     Signal list — set `has-user-facing-flow: true` if ANY of these are present:
+     - Keywords in title or description: `form`, `wizard`, `modal`, `dialog`,
+       `page`, `screen`, `UI`, `frontend`, `browser`, `user journey`, `onboarding`,
+       `dashboard`, `button`, `input`, `component`, `flow`, `checkout`, `login`,
+       `signup`, `profile`, `settings`, `view`, `layout`, `render`, `display`
+     - Issue labels: `frontend`, `ui`, `ux`, `web`, `accessibility`
+     - Any mention of a frontend framework: React, Vue, Angular, Svelte, Next,
+       Nuxt, Remix, Astro, Playwright, Vitest browser mode
+     - `frontend-stack-profile` resolved to anything other than `none` — in this
+       case `has-user-facing-flow: true` is mandatory; a non-`none` frontend stack
+       with `has-user-facing-flow: false` is always a contradiction.
+
+     After setting the field, add an inline HTML comment on the same line:
+     `<!-- inferred from intake: <signal found> — confirm before SPEC_READY -->`
+     This marks the value as agent-inferred so the author validates rather than
+     silently accepting a default.
    - Author every AC in the canonical form from the first draft:
      `AC-NNN [description] — verified by T-N, which MUST assert <exact condition>.`
      The assertion description MUST name a concrete, objectively verifiable condition —
@@ -127,6 +147,9 @@ traceability table and metric audit trail.
    - Confirm all SDD-C-### control IDs are declared in the Applicable
      Guardrail Controls section of spec.md.
    - Confirm Implementation Stack Profile is fully populated.
+   - **V-gate cross-check:** If `frontend-stack-profile` is not `none`,
+     confirm `has-user-facing-flow: true` is set. Flag a `[NEEDS CLARIFICATION]`
+     block if the author has overridden it to `false` without a justification comment.
 
 5. Plan
    - Write sequenced delivery slices in plan.md (red→green TDD order).
@@ -233,16 +256,20 @@ Return:
 3. REQ-###, NFR-###, AC-### extracted (count per type).
 4. SDD-C-### control IDs declared.
 5. ADR path and diagram type(s) chosen with rationale.
-6. `[NEEDS CLARIFICATION: ...]` open questions list (count + brief description each).
-7. `make quality-sdd-check` result.
-8. Surfaced Backlog Proposals (from AGENTS.backlog.md scan):
+6. **V-gate inference result:** `has-user-facing-flow: <true|false>` — signal
+   that drove the inference (or "no UI/flow signals found — defaulted to false").
+   Flag explicitly if the value was overridden by a frontend-stack-profile
+   cross-check. This line is mandatory in every intake report.
+7. `[NEEDS CLARIFICATION: ...]` open questions list (count + brief description each).
+8. `make quality-sdd-check` result.
+9. Surfaced Backlog Proposals (from AGENTS.backlog.md scan):
 
    | Proposal | Trigger | Recommended action |
    |---|---|---|
    | <title> | on-scope: quality | incorporate / promote to issue / reject |
 
    If none match, state: "No parked proposals match this work item's scope."
-9. Draft PR URL.
+10. Draft PR URL.
 
 ## Useful Commands
 
