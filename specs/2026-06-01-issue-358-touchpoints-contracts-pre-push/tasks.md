@@ -11,15 +11,15 @@
 - [x] T-001 Add `touchpoints-test-unit-pre-push` hook stanza to `scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml` (FR-001)
 - [x] T-002 Add `touchpoints-test-contracts-pre-push` hook stanza to the same template (FR-002)
 - [x] T-003 Add `backend-test-unit-pre-push` hook stanza to the same template (FR-003)
-- [ ] T-004 Verify all three make targets exit 0 when the relevant test directory is absent; add absent-directory guards if needed (NFR-REL-001, Risk 1)
-- [ ] T-005 Add backport note to blueprint upgrade documentation describing all three hooks, their `files` triggers, and the make targets (NFR-OPS-001)
+- [x] T-004 Verify all three make targets exit 0 when the relevant test directory is absent; add absent-directory guards if needed (NFR-REL-001, Risk 1)
+- [x] T-005 Add backport note to blueprint upgrade documentation describing all three hooks, their `files` triggers, and the make targets (NFR-OPS-001)
 
 ## Test Automation
 - [x] T-101 Write `tests/blueprint/test_pre_push_hooks.py` asserting `touchpoints-test-unit-pre-push` is present in the template YAML with correct `entry`, `language`, `pass_filenames`, `always_run`, `stages`, `files` values — written RED before Slice 2 (AC-001)
 - [x] T-102 Assert `touchpoints-test-contracts-pre-push` is present in the template with correct field values including broader `files` pattern covering api-client source — written RED before Slice 3 (AC-002)
 - [x] T-103 Assert `backend-test-unit-pre-push` is present in the template with correct field values — written RED before Slice 4 (AC-003)
 - [x] T-104 Assert all three hook definitions set `always_run: false` and `stages: [pre-push]` only — confirming no commit-stage blocking (AC-004)
-- [ ] T-105 Assert `make quality-validate-bootstrap-template-drift` exits 0 after all three hooks are added — capture exit code as evidence in traceability (AC-005)
+- [x] T-105 Assert `make quality-validate-bootstrap-template-drift` exits 0 after all three hooks are added — capture exit code as evidence in traceability (AC-005)
 - [ ] T-106 Translate any reproducible pre-PR finding from T-004 (absent-directory exit-code checks) into failing automated tests first, then fix; document any deterministic exception in publish artifacts (SDD-C-024)
 
 ## Accessibility Testing (Normative — mark N/A with rationale for non-UI specs)
