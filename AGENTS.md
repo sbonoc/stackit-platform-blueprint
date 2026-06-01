@@ -435,6 +435,16 @@ A task is done only when all applicable items pass:
   before the slice is declared done. A slice MUST NOT be declared done if any rendering
   branch that was added or modified is absent from the Vitest Browser Mode component
   test suite.
+- Mandatory Playwright E2E artifacts for user-facing flows: when a work item sets
+  `has-user-facing-flow: true` in its `spec.md` Implementation Stack Profile, the
+  implementation MUST deliver Playwright E2E tests that satisfy all three of the following:
+  1. MUST cover the full user journey end-to-end (not only isolated component interactions).
+  2. MUST assert on rendered DOM/screen state at each critical step (field labels, option
+     values, visible content) — not only on API payloads or response codes.
+  3. MUST be wired to the automated quality gate / CI so the gate fails if the tests fail.
+  A work item MUST NOT be declared done if any of these three requirements is unmet.
+  User-facing flow means any feature exposing a form, wizard, multi-step interaction, or
+  interactive UI surface to the end user.
 
 ## Contract Testing Standards
 - Consumer-Driven Contract Testing (Pact) is the standard for verifying API integration

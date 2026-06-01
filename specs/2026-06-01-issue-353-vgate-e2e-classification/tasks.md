@@ -24,11 +24,11 @@
 - [x] T-008 Run `uv run python3 scripts/bin/sdd/sync_consumer_init_sdd_assets.py` to mirror consumer template into init tmpl
 
 ### Slice 4 — GREEN: AGENTS.md rule
-- [ ] T-009 Add mandatory Playwright E2E artifact rule to AGENTS.md testing and quality section, keyed on `has-user-facing-flow: true`, including all three MUST clauses verbatim (full user journey, rendered DOM/screen state, wired to automated quality gate / CI) and the user-facing-flow definition (form, wizard, multi-step interaction) (FR-007)
-- [ ] T-009b Update `docs/blueprint/governance/spec_driven_development.md` to document the V-gate classification fields, trigger conditions, and step07-triage escalation responsibility
-- [ ] T-009c Update `scripts/templates/blueprint/bootstrap/docs/blueprint/governance/spec_driven_development.md` to mirror the governance update (bootstrap-rendered copy)
-- [ ] T-009d Update `.agents/skills/blueprint-sdd-step05-implement/SKILL.md` to reference the V-gate enforcement so authors see the rule at implementation time
-- [ ] T-009e Update `.agents/skills/blueprint-sdd-step01-intake/SKILL.md` to add V-gate inference step in Discover (signal list, frontend-stack cross-check) and V-gate cross-check in Specify; add mandatory V-gate inference result line to Required Report Format
+- [x] T-009 Add mandatory Playwright E2E artifact rule to AGENTS.md testing and quality section, keyed on `has-user-facing-flow: true`, including all three MUST clauses verbatim (full user journey, rendered DOM/screen state, wired to automated quality gate / CI) and the user-facing-flow definition (form, wizard, multi-step interaction) (FR-007)
+- [x] T-009b Update `docs/blueprint/governance/spec_driven_development.md` to document the V-gate classification fields, trigger conditions, and step07-triage escalation responsibility
+- [x] T-009c Update `scripts/templates/blueprint/bootstrap/docs/blueprint/governance/spec_driven_development.md` to mirror the governance update (bootstrap-rendered copy)
+- [x] T-009d Update `.agents/skills/blueprint-sdd-step05-implement/SKILL.md` to reference the V-gate enforcement so authors see the rule at implementation time
+- [x] T-009e Update `.agents/skills/blueprint-sdd-step01-intake/SKILL.md` to add V-gate inference step in Discover (signal list, frontend-stack cross-check) and V-gate cross-check in Specify; add mandatory V-gate inference result line to Required Report Format
 
 ### Slice 5 — VERIFY
 - [ ] T-010 Run `uv run python3 -m pytest tests/infra/test_sdd_asset_checker.py tests/blueprint/test_quality_gating.py -v`; confirm all T-101..T-114 pass
