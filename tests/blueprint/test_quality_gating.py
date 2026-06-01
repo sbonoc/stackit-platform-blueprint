@@ -506,3 +506,116 @@ class TestProposalsShiftLeft:
         assert "newly-discovered" in content or "newly discovered" in content, (
             "step07 SKILL.md must reference newly-discovered proposals bucket (AC-013 / FR-014)"
         )
+
+
+class TestVgateTemplateFields:
+    """FR-006 / AC-010..AC-013: spec templates, AGENTS.md, and SKILL.md contain V-gate fields."""
+
+    BLUEPRINT_TEMPLATE = REPO_ROOT / ".spec-kit/templates/blueprint/spec.md"
+    CONSUMER_TEMPLATE = REPO_ROOT / ".spec-kit/templates/consumer/spec.md"
+    AGENTS_MD = REPO_ROOT / "AGENTS.md"
+    STEP01_SKILL = REPO_ROOT / ".agents/skills/blueprint-sdd-step01-intake/SKILL.md"
+
+    def test_blueprint_template_seeds_has_user_facing_flow(self) -> None:
+        """T-110 / AC-010: blueprint template seeds has-user-facing-flow field."""
+        content = self.BLUEPRINT_TEMPLATE.read_text(encoding="utf-8")
+        normalised = content.lower().replace(" ", "-")
+        assert "has-user-facing-flow" in normalised, (
+            "blueprint spec template must seed 'Has user-facing flow' field (AC-010 / FR-006)"
+        )
+
+    def test_blueprint_template_seeds_e2e_gate_classification(self) -> None:
+        """T-110 / AC-010: blueprint template seeds E2E gate classification field."""
+        content = self.BLUEPRINT_TEMPLATE.read_text(encoding="utf-8")
+        assert "E2E gate classification" in content, (
+            "blueprint spec template must seed 'E2E gate classification' field (AC-010 / FR-006)"
+        )
+
+    def test_blueprint_template_has_signal_list_comment(self) -> None:
+        """T-110 / AC-010: blueprint template signal-list comment includes form and wizard."""
+        content = self.BLUEPRINT_TEMPLATE.read_text(encoding="utf-8")
+        assert "form" in content and "wizard" in content, (
+            "blueprint spec template must contain signal-list comment with 'form' and 'wizard' (AC-010 / FR-006)"
+        )
+
+    def test_consumer_template_seeds_has_user_facing_flow(self) -> None:
+        """T-111 / AC-011: consumer template seeds has-user-facing-flow field."""
+        content = self.CONSUMER_TEMPLATE.read_text(encoding="utf-8")
+        normalised = content.lower().replace(" ", "-")
+        assert "has-user-facing-flow" in normalised, (
+            "consumer spec template must seed 'Has user-facing flow' field (AC-011 / FR-006)"
+        )
+
+    def test_consumer_template_seeds_e2e_gate_classification(self) -> None:
+        """T-111 / AC-011: consumer template seeds E2E gate classification field."""
+        content = self.CONSUMER_TEMPLATE.read_text(encoding="utf-8")
+        assert "E2E gate classification" in content, (
+            "consumer spec template must seed 'E2E gate classification' field (AC-011 / FR-006)"
+        )
+
+    def test_consumer_template_has_signal_list_comment(self) -> None:
+        """T-111 / AC-011: consumer template signal-list comment includes form and wizard."""
+        content = self.CONSUMER_TEMPLATE.read_text(encoding="utf-8")
+        assert "form" in content and "wizard" in content, (
+            "consumer spec template must contain signal-list comment with 'form' and 'wizard' (AC-011 / FR-006)"
+        )
+
+    def test_agents_md_has_user_facing_flow_rule(self) -> None:
+        """T-112 / AC-012: AGENTS.md contains has-user-facing-flow."""
+        content = self.AGENTS_MD.read_text(encoding="utf-8")
+        assert "has-user-facing-flow" in content, (
+            "AGENTS.md must contain 'has-user-facing-flow' mandatory Playwright rule (AC-012 / FR-007)"
+        )
+
+    def test_agents_md_full_user_journey_clause(self) -> None:
+        """T-112 / AC-012: AGENTS.md contains full user journey clause."""
+        content = self.AGENTS_MD.read_text(encoding="utf-8")
+        assert "full user journey" in content, (
+            "AGENTS.md must contain 'full user journey' clause (AC-012 / FR-007)"
+        )
+
+    def test_agents_md_rendered_clause(self) -> None:
+        """T-112 / AC-012: AGENTS.md contains rendered DOM/screen state clause."""
+        content = self.AGENTS_MD.read_text(encoding="utf-8")
+        assert "rendered" in content, (
+            "AGENTS.md must contain 'rendered' clause (AC-012 / FR-007)"
+        )
+
+    def test_agents_md_automated_gate_clause(self) -> None:
+        """T-112 / AC-012: AGENTS.md contains automated quality gate or CI clause."""
+        content = self.AGENTS_MD.read_text(encoding="utf-8")
+        assert "automated quality gate" in content or (
+            "automated" in content and "CI" in content
+        ), (
+            "AGENTS.md must contain 'automated quality gate' or automated+CI clause (AC-012 / FR-007)"
+        )
+
+    def test_step01_skill_has_inference_step(self) -> None:
+        """T-113 / AC-013: step01 SKILL.md contains has-user-facing-flow in Discover phase."""
+        content = self.STEP01_SKILL.read_text(encoding="utf-8")
+        assert "has-user-facing-flow" in content, (
+            "step01 SKILL.md must contain 'has-user-facing-flow' in Discover phase (AC-013 / FR-009)"
+        )
+
+    def test_step01_skill_has_signal_keywords(self) -> None:
+        """T-113 / AC-013: step01 SKILL.md has at least three UI/flow signal keywords."""
+        content = self.STEP01_SKILL.read_text(encoding="utf-8")
+        signal_keywords = ["form", "wizard", "modal", "dialog", "dashboard", "button"]
+        found = [kw for kw in signal_keywords if kw in content]
+        assert len(found) >= 3, (
+            f"step01 SKILL.md must contain at least 3 signal keywords; found only: {found} (AC-013 / FR-009)"
+        )
+
+    def test_step01_skill_has_frontend_stack_cross_check(self) -> None:
+        """T-113 / AC-013: step01 SKILL.md contains frontend-stack cross-check in Specify phase."""
+        content = self.STEP01_SKILL.read_text(encoding="utf-8")
+        assert "frontend-stack" in content or "frontend stack" in content.lower(), (
+            "step01 SKILL.md must contain frontend-stack cross-check (AC-013 / FR-009)"
+        )
+
+    def test_step01_skill_has_vgate_inference_result(self) -> None:
+        """T-113 / AC-013: step01 SKILL.md contains V-gate inference result in Required Report Format."""
+        content = self.STEP01_SKILL.read_text(encoding="utf-8")
+        assert "V-gate inference result" in content, (
+            "step01 SKILL.md must contain 'V-gate inference result' in Required Report Format (AC-013 / FR-009)"
+        )

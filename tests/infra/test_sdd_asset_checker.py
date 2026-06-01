@@ -1357,5 +1357,103 @@ class TestAcFormatScanner(unittest.TestCase):
             self.assertEqual(ac_violations, [], msg=f"pre-gate slug should be exempt: {ac_violations}")
 
 
+class TestVgateClassification(unittest.TestCase):
+    """FR-002 / AC-001..AC-009 / AC-014: _check_vgate_classification enforces E2E gate."""
+
+    POST_GATE = "2026-06-02-vgate-test-fixture"
+    PRE_GATE = "2026-05-31-pre-gate-fixture"
+    _PLAYWRIGHT = "pytest_vitest_playwright_pact"
+    _NON_PLAYWRIGHT = "pytest_vitest_pact"
+
+    def _spec(self, profile: str, has_flow: str, classification: str) -> str:
+        return (
+            "# Specification\n"
+            "## Implementation Stack Profile (Normative)\n"
+            f"- Test automation profile: {profile}\n"
+            f"- Has user-facing flow: {has_flow}\n"
+            f"- E2E gate classification: {classification}\n"
+        )
+
+    def test_rejects_manual_for_user_facing_with_playwright(self) -> None:
+        """T-101 / AC-001: manual + has-user-facing-flow=true + playwright → violation."""
+        checker = _load_checker_module()
+        violations = checker._check_vgate_classification(
+            self._spec(self._PLAYWRIGHT, "true", "manual"), self.POST_GATE
+        )
+        self.assertGreater(len(violations), 0, "Expected at least one violation")
+        self.assertTrue(any("manual" in v.message for v in violations))
+
+    def test_passes_for_automated_classification(self) -> None:
+        """T-102 / AC-002: automated + has-user-facing-flow=true + playwright → no violation."""
+        checker = _load_checker_module()
+        violations = checker._check_vgate_classification(
+            self._spec(self._PLAYWRIGHT, "true", "automated"), self.POST_GATE
+        )
+        self.assertEqual(violations, [], msg=[v.message for v in violations])
+
+    def test_pre_gate_slug_is_exempt(self) -> None:
+        """T-106 / AC-006: slug date < _VGATE_GATE_SINCE → exempt."""
+        checker = _load_checker_module()
+        violations = checker._check_vgate_classification(
+            self._spec(self._PLAYWRIGHT, "true", "manual"), self.PRE_GATE
+        )
+        self.assertEqual(violations, [], msg="Pre-gate slugs must be exempt")
+
+    def test_non_playwright_profile_is_exempt(self) -> None:
+        """T-107 / AC-007: non-playwright profile → exempt regardless of classification."""
+        checker = _load_checker_module()
+        violations = checker._check_vgate_classification(
+            self._spec(self._NON_PLAYWRIGHT, "true", "manual"), self.POST_GATE
+        )
+        self.assertEqual(violations, [], msg="Non-playwright profiles must be exempt")
+
+    def test_has_user_facing_flow_false_is_exempt(self) -> None:
+        """T-108 / AC-008: has-user-facing-flow=false → exempt regardless of classification."""
+        checker = _load_checker_module()
+        violations = checker._check_vgate_classification(
+            self._spec(self._PLAYWRIGHT, "false", "manual"), self.POST_GATE
+        )
+        self.assertEqual(violations, [], msg="has-user-facing-flow: false must be exempt")
+
+    def test_metric_emitted_to_stderr_on_violation(self) -> None:
+        """T-109 / AC-009: sdd_vgate_manual_e2e_violation appears in stderr on violation."""
+        checker = _load_checker_module()
+        stderr_buf = io.StringIO()
+        with contextlib.redirect_stderr(stderr_buf):
+            violations = checker._check_vgate_classification(
+                self._spec(self._PLAYWRIGHT, "true", "manual"), self.POST_GATE
+            )
+        self.assertGreater(len(violations), 0, "Expected violation to trigger metric")
+        self.assertIn(
+            "sdd_vgate_manual_e2e_violation",
+            stderr_buf.getvalue(),
+            msg=f"expected metric on stderr; got: {stderr_buf.getvalue()!r}",
+        )
+
+    def test_absent_has_user_facing_flow_produces_violation(self) -> None:
+        """T-114 / AC-014 (part 1): absent has-user-facing-flow on post-gate + playwright → violation."""
+        checker = _load_checker_module()
+        spec = (
+            "# Specification\n"
+            "## Implementation Stack Profile (Normative)\n"
+            f"- Test automation profile: {self._PLAYWRIGHT}\n"
+            "- E2E gate classification: automated\n"
+        )
+        violations = checker._check_vgate_classification(spec, self.POST_GATE)
+        self.assertGreater(len(violations), 0, "Expected violation for absent has-user-facing-flow")
+
+    def test_absent_e2e_gate_classification_produces_violation(self) -> None:
+        """T-114 / AC-014 (part 2): absent E2E gate classification on post-gate + playwright + user-facing=true → violation."""
+        checker = _load_checker_module()
+        spec = (
+            "# Specification\n"
+            "## Implementation Stack Profile (Normative)\n"
+            f"- Test automation profile: {self._PLAYWRIGHT}\n"
+            "- Has user-facing flow: true\n"
+        )
+        violations = checker._check_vgate_classification(spec, self.POST_GATE)
+        self.assertGreater(len(violations), 0, "Expected violation for absent E2E gate classification")
+
+
 if __name__ == "__main__":
     unittest.main()
