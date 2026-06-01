@@ -173,6 +173,44 @@ dependencies. These are mandatory defaults — deviate only with documented rati
     and the slice-done report MUST explicitly record "Pact provider verification:
     deferred to provider repo <name>". A slice that extends an API contract without a
     Pact consumer interaction MUST NOT be declared done.
+16. Spec-value regression tests (FR-005): for every FR or AC naming exact enumerated
+    values, field defaults, required option sets, or specific behavioural postconditions,
+    at least one test MUST exist that would fail if any named spec-enumerated value were
+    absent, wrong, or reordered. A slice MUST NOT be declared done if any spec-named
+    constant is untested. Coverage MUST include enumerated option sets, field defaults,
+    behavioural postconditions, and required/forbidden fields.
+17. Union types for spec-enumerated fields (FR-006): any field whose allowed values are
+    named in `spec.md` as `EXACTLY ONE OF: ...` MUST use a stack-native union/enum type
+    in implementation code. Using a plain primitive type (`string`, `str`, `String`) for
+    such a field is a checklist failure. See the Per-profile examples table below.
+18. Single source of truth for enum constants (FR-007): spec-enumerated value sets MUST
+    be defined as a named constant in one canonical location per stack (TypeScript `as const`
+    array/object, Python module-level `Literal` or tuple, Kotlin companion-object set,
+    Go `const` block for scalars or package-level `var` slice for enumerated sets). All template option arrays, composable/store defaults, validation
+    logic, and test fixtures MUST import the constant — inline literal repetition MUST NOT
+    appear in more than one source file. Inline literal repetition is a checklist failure.
+19. Mandatory automated rendered-output coverage for critical user journeys (FR-008): every
+    feature that introduces or modifies a user-facing flow (form, wizard, multi-step
+    interaction) MUST have at least one automated test that (a) exercises the critical path
+    in a real browser against the running application or component, AND (b) asserts what
+    the user sees at each step (field labels, option values, rendered state) — not only what
+    the API receives. A Vitest Browser Mode component test satisfies this guardrail when its
+    assertions enumerate every rendered spec-enumerated value reachable through the critical
+    path. When the critical path crosses route boundaries OR depends on auth/session state
+    OR spans more than one mounted root component, an additional Playwright cross-page E2E
+    test MUST be added. The test MUST be part of the automated quality gate.
+
+## Per-profile union-type and SSOT-constant idioms
+
+Apply the idioms below for Guardrails 17 and 18. When a new `Implementation Stack Profile`
+is introduced, this table MUST be updated in the same commit.
+
+| Profile | Union/enum type idiom | SSOT constant idiom |
+|---|---|---|
+| TypeScript (`vue_router_pinia_onyx`) | `'a' \| 'b' \| 'c'` literal union or `z.enum(['a','b','c'])` | `export const MY_VALUES = ['a', 'b', 'c'] as const` in a domain module; type derived via `typeof MY_VALUES[number]` |
+| Python (`python_plus_fastapi_pydantic_v2`) | `Literal["a", "b", "c"]` field annotation | module-level `MY_VALUES: tuple[str, ...] = ("a", "b", "c")` or `class MyEnum(str, Enum)` |
+| Kotlin (Ktor) | `enum class MyType { A, B, C }` or `sealed class` | `companion object { val ALL = setOf(A, B, C) }` |
+| Go (Gin) | typed `const` block with `type MyType string` alias | package-level `var AllowedValues = []MyType{A, B, C}` |
 
 ## Workflow
 

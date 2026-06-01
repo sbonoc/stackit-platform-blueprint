@@ -255,3 +255,254 @@ class TestQualitySpecIsReady:
             script = PREAMBLE + f'quality_spec_is_ready "{spec_dir}"'
             result = bash(script)
             assert result.returncode == 0, "Trailing spaces should still match"
+
+
+class TestStep05SkillGuardrails:
+    """AC-007: step05 SKILL.md must have four new guardrails covering FR-005..FR-008."""
+
+    SKILL_MD = REPO_ROOT / ".agents/skills/blueprint-sdd-step05-implement/SKILL.md"
+
+    def _content(self) -> str:
+        return self.SKILL_MD.read_text(encoding="utf-8")
+
+    def test_spec_value_regression_test_guardrail(self) -> None:
+        content = self._content()
+        assert "spec-value regression" in content or "spec-enumerated value" in content, (
+            "step05 SKILL.md must have a guardrail for spec-value regression tests (AC-007 / FR-005)"
+        )
+
+    def test_union_type_guardrail(self) -> None:
+        content = self._content()
+        assert "union" in content.lower() and "EXACTLY ONE OF" in content, (
+            "step05 SKILL.md must have a guardrail for union types on spec-enumerated fields (AC-007 / FR-006)"
+        )
+
+    def test_ssot_enum_constant_guardrail(self) -> None:
+        content = self._content()
+        assert "single source of truth" in content.lower() or "SSOT" in content or "as const" in content, (
+            "step05 SKILL.md must have a guardrail for SSOT enum constants (AC-007 / FR-007)"
+        )
+
+    def test_rendered_output_coverage_guardrail(self) -> None:
+        content = self._content()
+        assert "rendered" in content and "critical" in content, (
+            "step05 SKILL.md must have a guardrail for mandatory rendered-output coverage (AC-007 / FR-008)"
+        )
+
+
+class TestStep05SkillPerProfileTable:
+    """AC-008: step05 SKILL.md must contain a per-profile examples table with TS/Python/Kotlin/Go rows."""
+
+    SKILL_MD = REPO_ROOT / ".agents/skills/blueprint-sdd-step05-implement/SKILL.md"
+
+    def _content(self) -> str:
+        return self.SKILL_MD.read_text(encoding="utf-8")
+
+    def test_typescript_row_present(self) -> None:
+        assert "TypeScript" in self._content(), (
+            "step05 SKILL.md per-profile table must include a TypeScript row (AC-008 / FR-010)"
+        )
+
+    def test_python_row_present(self) -> None:
+        assert "Python" in self._content() or "FastAPI" in self._content(), (
+            "step05 SKILL.md per-profile table must include a Python row (AC-008 / FR-010)"
+        )
+
+    def test_kotlin_row_present(self) -> None:
+        assert "Kotlin" in self._content(), (
+            "step05 SKILL.md per-profile table must include a Kotlin row (AC-008 / FR-010)"
+        )
+
+    def test_go_row_present(self) -> None:
+        assert "Go" in self._content() and "Gin" in self._content(), (
+            "step05 SKILL.md per-profile table must include a Go row (AC-008 / FR-010)"
+        )
+
+
+class TestStep05SkillVitestEscalation:
+    """AC-009: step05 SKILL.md must declare Vitest Browser Mode satisfaction + Playwright escalation rule."""
+
+    SKILL_MD = REPO_ROOT / ".agents/skills/blueprint-sdd-step05-implement/SKILL.md"
+
+    def _content(self) -> str:
+        return self.SKILL_MD.read_text(encoding="utf-8")
+
+    def test_vitest_browser_mode_satisfies_fr008(self) -> None:
+        content = self._content()
+        assert "Vitest Browser Mode" in content and (
+            "satisfies" in content or "satisfy" in content
+        ), (
+            "step05 SKILL.md must state Vitest Browser Mode component test satisfies the rendered-output guardrail (AC-009 / FR-009)"
+        )
+
+    def test_playwright_escalation_rule_present(self) -> None:
+        content = self._content()
+        assert "Playwright" in content and (
+            "route boundaries" in content or "auth/session" in content
+        ), (
+            "step05 SKILL.md must state Playwright is required when critical path crosses route boundaries or auth/session (AC-009 / FR-009)"
+        )
+
+
+class TestStep03SkillAcAuthoringRule:
+    """AC-006: step03 SKILL.md must require the canonical AC form and reject label-only ACs."""
+
+    SKILL_MD = REPO_ROOT / ".agents/skills/blueprint-sdd-step03-spec-complete/SKILL.md"
+
+    def _content(self) -> str:
+        return self.SKILL_MD.read_text(encoding="utf-8")
+
+    def test_canonical_verified_by_phrase_present(self) -> None:
+        assert "verified by T-" in self._content(), (
+            "step03 SKILL.md must contain 'verified by T-' in AC authoring guidance (AC-006)"
+        )
+
+    def test_which_must_assert_phrase_present(self) -> None:
+        assert "which MUST assert" in self._content(), (
+            "step03 SKILL.md must contain 'which MUST assert' in AC authoring guidance (AC-006)"
+        )
+
+    def test_rejection_rule_for_label_only_acs_present(self) -> None:
+        content = self._content()
+        assert "label-only" in content or "REJECTED" in content or "reject" in content.lower(), (
+            "step03 SKILL.md must contain an explicit rejection rule for label-only ACs (AC-006)"
+        )
+
+
+class TestStep01SkillAcAuthoringGuidance:
+    """AC-011 (step01 part): step01 SKILL.md Discover-phase guidance must require canonical AC form."""
+
+    SKILL_MD = REPO_ROOT / ".agents/skills/blueprint-sdd-step01-intake/SKILL.md"
+
+    def _content(self) -> str:
+        return self.SKILL_MD.read_text(encoding="utf-8")
+
+    def test_canonical_verified_by_phrase_present(self) -> None:
+        assert "verified by T-" in self._content(), (
+            "step01 SKILL.md must contain 'verified by T-' in Discover-phase AC authoring guidance (AC-011 / FR-012)"
+        )
+
+    def test_which_must_assert_phrase_present(self) -> None:
+        assert "which MUST assert" in self._content(), (
+            "step01 SKILL.md must contain 'which MUST assert' in Discover-phase AC authoring guidance (AC-011 / FR-012)"
+        )
+
+
+class TestScaffoldTemplatesAcPlaceholder:
+    """AC-011 (scaffold part): both spec scaffold templates must seed AC-001 in canonical form."""
+
+    BLUEPRINT_TEMPLATE = REPO_ROOT / ".spec-kit/templates/blueprint/spec.md"
+    CONSUMER_TEMPLATE = REPO_ROOT / ".spec-kit/templates/consumer/spec.md"
+
+    def test_blueprint_template_ac_canonical_form(self) -> None:
+        content = self.BLUEPRINT_TEMPLATE.read_text(encoding="utf-8")
+        assert "verified by T-" in content, (
+            "blueprint spec template AC placeholder must contain 'verified by T-' (AC-011 / FR-012)"
+        )
+        assert "which MUST assert" in content, (
+            "blueprint spec template AC placeholder must contain 'which MUST assert' (AC-011 / FR-012)"
+        )
+
+    def test_blueprint_template_legacy_placeholder_removed(self) -> None:
+        content = self.BLUEPRINT_TEMPLATE.read_text(encoding="utf-8")
+        assert "AC-001 MUST be objectively testable." not in content, (
+            "blueprint spec template must not contain the legacy 'AC-001 MUST be objectively testable.' placeholder (FR-012)"
+        )
+
+    def test_consumer_template_ac_canonical_form(self) -> None:
+        content = self.CONSUMER_TEMPLATE.read_text(encoding="utf-8")
+        assert "verified by T-" in content, (
+            "consumer spec template AC placeholder must contain 'verified by T-' (AC-011 / FR-012)"
+        )
+        assert "which MUST assert" in content, (
+            "consumer spec template AC placeholder must contain 'which MUST assert' (AC-011 / FR-012)"
+        )
+
+    def test_consumer_template_legacy_placeholder_removed(self) -> None:
+        content = self.CONSUMER_TEMPLATE.read_text(encoding="utf-8")
+        assert "AC-001 MUST be objectively testable." not in content, (
+            "consumer spec template must not contain the legacy 'AC-001 MUST be objectively testable.' placeholder (FR-012)"
+        )
+
+
+class TestAgentsMandatoryGateStep03:
+    """AC-010: AGENTS.md Mandatory Workflow classifies step03 as a mandatory gate
+    and lists the exempt tracks upgrade and chore-with-no-specs."""
+
+    AGENTS_MD = REPO_ROOT / "AGENTS.md"
+
+    def _content(self) -> str:
+        return self.AGENTS_MD.read_text(encoding="utf-8")
+
+    def test_mandatory_gate_phrase_present(self) -> None:
+        assert "mandatory gate" in self._content(), (
+            "AGENTS.md must contain the literal phrase 'mandatory gate' (AC-010 / FR-001)"
+        )
+
+    def test_step03_skill_named_as_mandatory_gate(self) -> None:
+        content = self._content()
+        assert "blueprint-sdd-step03-spec-complete" in content, (
+            "AGENTS.md must name blueprint-sdd-step03-spec-complete in the mandatory-gate context (AC-010)"
+        )
+        idx_gate = content.find("mandatory gate")
+        idx_skill = content.find("blueprint-sdd-step03-spec-complete")
+        assert abs(idx_gate - idx_skill) < 500, (
+            "mandatory gate phrase and blueprint-sdd-step03-spec-complete must appear in close proximity (AC-010)"
+        )
+
+    def test_exempt_track_upgrade_present(self) -> None:
+        assert "upgrade" in self._content(), (
+            "AGENTS.md must list the 'upgrade' exempt track (AC-010 / FR-003)"
+        )
+
+    def test_exempt_track_chore_no_specs_present(self) -> None:
+        content = self._content()
+        assert "chore-with-no-specs" in content or "chore-no-specs" in content, (
+            "AGENTS.md must list the chore-with-no-specs exempt track (AC-010 / FR-003)"
+        )
+
+
+class TestProposalsShiftLeft:
+    """AC-013 / FR-014: proposals shift-left to step01 + scaffold + step07 two-bucket triage."""
+
+    STEP01_SKILL = REPO_ROOT / ".agents/skills/blueprint-sdd-step01-intake/SKILL.md"
+    STEP07_SKILL = REPO_ROOT / ".agents/skills/blueprint-sdd-step07-pr-packager/SKILL.md"
+    BLUEPRINT_SPEC_TMPL = REPO_ROOT / ".spec-kit/templates/blueprint/spec.md"
+    CONSUMER_SPEC_TMPL = REPO_ROOT / ".spec-kit/templates/consumer/spec.md"
+
+    def _step01(self) -> str:
+        return self.STEP01_SKILL.read_text(encoding="utf-8")
+
+    def _step07(self) -> str:
+        return self.STEP07_SKILL.read_text(encoding="utf-8")
+
+    def test_step01_contains_scope_exclusions_guidance(self) -> None:
+        """AC-013(a): step01 SKILL.md requires documenting scope exclusions / deferred proposals."""
+        content = self._step01()
+        assert "Potential Deferred Proposals" in content, (
+            "step01 SKILL.md must require a 'Potential Deferred Proposals' section (AC-013 / FR-014)"
+        )
+
+    def test_blueprint_scaffold_seeds_deferred_proposals_section(self) -> None:
+        """AC-013(b): blueprint spec.md template seeds ## Potential Deferred Proposals."""
+        content = self.BLUEPRINT_SPEC_TMPL.read_text(encoding="utf-8")
+        assert "Potential Deferred Proposals" in content, (
+            "blueprint spec.md template must seed '## Potential Deferred Proposals' (AC-013 / FR-014)"
+        )
+
+    def test_consumer_scaffold_seeds_deferred_proposals_section(self) -> None:
+        """AC-013(b): consumer spec.md template seeds ## Potential Deferred Proposals."""
+        content = self.CONSUMER_SPEC_TMPL.read_text(encoding="utf-8")
+        assert "Potential Deferred Proposals" in content, (
+            "consumer spec.md template must seed '## Potential Deferred Proposals' (AC-013 / FR-014)"
+        )
+
+    def test_step07_triage_distinguishes_two_buckets(self) -> None:
+        """AC-013(c): step07 SKILL.md triage guidance names both pre-planned and newly-discovered."""
+        content = self._step07()
+        assert "pre-planned" in content or "pre-plan" in content, (
+            "step07 SKILL.md must reference pre-planned exclusions bucket (AC-013 / FR-014)"
+        )
+        assert "newly-discovered" in content or "newly discovered" in content, (
+            "step07 SKILL.md must reference newly-discovered proposals bucket (AC-013 / FR-014)"
+        )

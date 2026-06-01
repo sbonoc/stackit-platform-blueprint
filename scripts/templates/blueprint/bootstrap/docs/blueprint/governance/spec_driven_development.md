@@ -90,6 +90,21 @@ Optional for complex work:
 - `contracts/`
 - `quickstart.md`
 
+## Acceptance Criteria Authoring Rule
+
+Every AC in `spec.md` MUST follow the canonical form from the first draft:
+
+```
+AC-NNN [<describe what is verified>] — verified by T-N, which MUST assert <exact condition that must hold>.
+```
+
+The assertion description MUST name a concrete, objectively verifiable condition. Label-only entries
+that use a verb without a postcondition (`covers`, `verifies`, `tests`) are rejected by the
+`blueprint-sdd-step03-spec-complete` gate. In addition, `make quality-sdd-check` runs a machine
+check (`_check_ac_format` in `check_sdd_assets.py`) that flags any `^- AC-\d+` line in `spec.md`
+(outside fenced code blocks) that does not contain `MUST assert` — for work items with slug date
+≥ 2026-06-01. Scaffold templates seed ACs in this form; do not replace them with label-only stubs.
+
 ## Control and Stack Requirements in `spec.md`
 
 Each work-item `spec.md` must define:
@@ -113,7 +128,11 @@ Each work-item `spec.md` must define:
 - Shift-left test automation and test-pyramid adherence
 - Positive-path filter/payload-transform coverage (matching fixture/request value returns record and output fields are preserved; empty-result-only assertions are insufficient)
 - API response field-coverage gate (HTTP-scope slices adding/modifying response schema fields): backend integration test using FastAPI `TestClient` MUST assert ALL declared response contract fields are non-null/non-empty against a real-data fixture; asserting only a 200 response or non-empty body is insufficient
+- Spec-value regression tests: when a spec enumerates allowed values (status codes, enum variants, config keys), at least one unit test MUST assert against the literal spec values — not a superset or pattern match
+- Union types for spec-enumerated fields: spec-enumerated fields MUST be typed as union/literal types, not bare `str`/`string`/`any`, in every language the implementation uses (TypeScript `'a' | 'b'`, Python `Literal["a","b"]`, Kotlin `enum class`, Go typed `const` block)
+- Single source of truth for enum constants: enum values MUST be defined in exactly one place (e.g. `as const` array, module-level tuple, companion object) and imported everywhere else — no inline string literals duplicating spec values
 - Vue SFC rendering-branch coverage: for any Vue SFC change, Vitest Browser Mode component tests MUST cover every rendering branch touched — including fallback, degraded, and error paths — before the slice is done
+- Critical user journey rendered-output coverage: Vitest Browser Mode satisfies the rendered-output gate by default; Playwright is required only when the critical path crosses route boundaries, auth/session state, or multiple mounted roots
 - Pact consumer + same-repo provider timing: for HTTP-scope slices modifying API contracts, a Pact consumer interaction MUST be written in the same slice; same-repo provider verification MUST run in the same slice; cross-repo deferral MUST be explicitly recorded in the slice-done report
 - Local smoke gate for HTTP route/filter scope: `make test-smoke-all-local` is a mandatory numbered main workflow step (Step 3) — not optional — and a PR MUST NOT be opened until it passes; `pr_context.md` evidence required
 - Reproducible-finding translation gate (pre-PR smoke/deterministic-check failures become failing automated tests first, then green with the fix in the same work item; deterministic exceptions are documented)
@@ -208,7 +227,7 @@ Each skill covers one or more execution steps from the
 |---|---|---|
 | `blueprint-sdd-step01-intake` | 0 (auto-scaffold) + 1–2 (Discover → Plan, Draft PR) | Any stakeholder |
 | `blueprint-sdd-step02-resolve-questions` | 0 (auto-scaffold, safety) + 3 (open question resolution loop) | Any stakeholder |
-| `blueprint-sdd-step03-spec-complete` | 4 (Architecture/Security/Ops sign-offs, SPEC_READY) | Software Engineer · CTO / Architect |
+| `blueprint-sdd-step03-spec-complete` | 4 (Architecture/Security/Ops sign-offs, SPEC_READY) — **mandatory gate** enforced by `make quality-sdd-check` for `{none, bug-fix, refactor, chore, authorized-deviation}` tracks; exempt for `upgrade` and `chore-with-no-specs` | Software Engineer · CTO / Architect |
 | `blueprint-sdd-step04-plan-slicer` | 5 (plan refinement, optional) | Software Engineer |
 | `blueprint-sdd-step05-implement` | 6 (TDD implementation slices) | Software Engineer |
 | `blueprint-sdd-step06-document-sync` | 7 (Document + Operate) | Software Engineer |

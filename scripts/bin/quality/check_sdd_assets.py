@@ -65,6 +65,10 @@ _C7_STEP_SKILLS: tuple[tuple[str, str], ...] = (
     ("blueprint-sdd-step07-pr-packager", "pr-packager"),
 )
 
+# FR-011: gate only applies to work items whose slug date prefix >= this value (the merge date
+# of the commit that introduced the gate; items predating it are grandfathered).
+_SPEC_COMPLETE_GATE_SINCE: str = "2026-06-01"
+
 _BYPASS_ALLOWED_VALUES: frozenset[str] = frozenset(
     {"bug-fix", "upgrade", "refactor", "chore", "authorized-deviation"}
 )
@@ -124,6 +128,9 @@ def _template_doc_path(template_root: Path, doc_name: str) -> Path | None:
     if tmpl.is_file():
         return tmpl
     return None
+
+
+_AC_LINE_RE: re.Pattern[str] = re.compile(r"^-\s+AC-\d+\b")
 
 
 def _split_table_cells(line: str) -> list[str]:
@@ -435,6 +442,93 @@ def _find_section(sections: list[MarkdownSection], keyword: str) -> MarkdownSect
     return None
 
 
+def _check_step03_complete_event(
+    work_item_dir: Path,
+    bypass_exception_type: str,
+    repo_root: Path,
+) -> list[Violation]:
+    """FR-002: verify artifacts/c7/<slug>.jsonl contains a phase=spec-complete event.
+
+    Exempt: upgrade bypass track (FR-003a). Forward-only: only applies to work
+    items whose slug date prefix >= _SPEC_COMPLETE_GATE_SINCE (FR-011).
+    c7-emission-opted-out events do NOT satisfy the gate (AC-005).
+    """
+    slug = work_item_dir.name
+    # FR-011: forward-only — skip pre-existing work items and any slug whose first
+    # ten characters are not a valid YYYY-MM-DD date (e.g. test fixture names).
+    date_prefix = slug[:10]
+    if not re.match(r"^\d{4}-\d{2}-\d{2}$", date_prefix) or date_prefix < _SPEC_COMPLETE_GATE_SINCE:
+        return []
+    # FR-003(a): upgrade pipeline is automated; no human sign-off model
+    if bypass_exception_type == "upgrade":
+        return []
+
+    c7_path = repo_root / "artifacts" / "c7" / f"{slug}.jsonl"
+    violation_msg = (
+        f"spec-complete C7 event missing for {slug}: "
+        "run /blueprint-sdd-step03-spec-complete before implementation"
+    )
+
+    if c7_path.is_file():
+        try:
+            for raw_line in c7_path.read_text(encoding="utf-8").splitlines():
+                raw_line = raw_line.strip()
+                if not raw_line:
+                    continue
+                try:
+                    event = json.loads(raw_line)
+                except json.JSONDecodeError:
+                    continue
+                if event.get("phase") == "spec-complete":
+                    return []
+        except OSError:
+            pass
+
+    print(
+        f"[METRIC] name=sdd_step03_missing_spec_complete value=1 work_item={slug}",
+        file=sys.stderr,
+    )
+    return [Violation(path=str(c7_path.relative_to(repo_root)), message=violation_msg)]
+
+
+def _check_ac_format(work_item_dir: Path, repo_root: Path) -> list[Violation]:
+    """FR-013: reject label-only ACs in spec.md for SPEC_READY=true, post-gate work items.
+
+    Any line matching ^- AC-\\d+ outside a fenced code block MUST contain 'MUST assert'.
+    Forward-only: slug date prefix must match YYYY-MM-DD and be >= _SPEC_COMPLETE_GATE_SINCE.
+    """
+    slug = work_item_dir.name
+    date_prefix = slug[:10]
+    if not re.match(r"^\d{4}-\d{2}-\d{2}$", date_prefix) or date_prefix < _SPEC_COMPLETE_GATE_SINCE:
+        return []
+
+    spec_path = work_item_dir / "spec.md"
+    if not spec_path.is_file():
+        return []
+
+    violations: list[Violation] = []
+    in_code_block = False
+    try:
+        for lineno, line in enumerate(spec_path.read_text(encoding="utf-8").splitlines(), start=1):
+            stripped = line.strip()
+            if stripped.startswith("```"):
+                in_code_block = not in_code_block
+                continue
+            if in_code_block:
+                continue
+            if _AC_LINE_RE.match(stripped) and "MUST assert" not in line:
+                violations.append(Violation(
+                    path=str(spec_path.relative_to(repo_root)),
+                    message=(
+                        f"line {lineno}: AC is label-only — add "
+                        f"'— verified by T-N, which MUST assert <condition>': {stripped[:120]}"
+                    ),
+                ))
+    except OSError:
+        pass
+    return violations
+
+
 def _validate_work_item_specs(
     contract_raw: dict[str, Any],
     repo_root: Path,
@@ -634,6 +728,10 @@ def _validate_work_item_specs(
             continue
 
         if bypass_active:
+            # Bypass-track items (bug-fix, refactor, chore, authorized-deviation, upgrade) with
+            # a valid authorized-by are explicitly authorized to skip the full SDD lifecycle,
+            # including step03. They do not emit spec-complete C7 events and must not be subject
+            # to the FR-002 gate. This is intentional: the bypass track IS the exemption.
             _tasks_path_pre = work_item_dir / "tasks.md"
             if _tasks_path_pre.is_file():
                 _tasks_pre_content = _tasks_path_pre.read_text(encoding="utf-8", errors="surrogateescape")
@@ -1515,6 +1613,11 @@ def _validate_work_item_specs(
                             message=f"required field '{_field}' is empty or missing (scaffold placeholder not filled in)",
                         )
                     )
+
+        violations.extend(
+            _check_step03_complete_event(work_item_dir, _bypass_exception_type, repo_root)
+        )
+        violations.extend(_check_ac_format(work_item_dir, repo_root))
 
     return violations
 

@@ -75,8 +75,8 @@
 - Workaround review date: none
 
 ## Normative Acceptance Criteria
-- AC-001 MUST be objectively testable.
-- AC-002 MUST be objectively testable.
+- AC-001 [<describe what is verified>] — verified by T-101, which MUST assert <exact condition that must hold>.
+- AC-002 [<describe what is verified>] — verified by T-102, which MUST assert <exact condition that must hold>.
 
 ## Informative Notes (Non-Normative)
 - Context:
@@ -86,3 +86,6 @@
 
 ## Explicit Exclusions
 - Excluded item 1:
+
+## Potential Deferred Proposals
+- none

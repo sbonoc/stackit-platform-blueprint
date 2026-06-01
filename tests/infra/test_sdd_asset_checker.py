@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import contextlib
 import importlib.util
+import io
 import json
 from pathlib import Path
 import sys
@@ -894,6 +896,465 @@ class SkillStructuralSectionsTests(unittest.TestCase):
             )
             violations = checker._validate_skill_structural_sections(root)
             self.assertEqual(violations, [], msg=[v.message for v in violations])
+
+
+class TestStep03CompleteEventGate(unittest.TestCase):
+    """FR-002/FR-003/FR-011: spec-complete C7 event required when SPEC_READY=true."""
+
+    SLUG = "2026-06-01-fixture"
+
+    def _make_spec_ready_work_item(self, repo_root: Path) -> Path:
+        """Create a SPEC_READY=true work item at specs/2026-06-01-fixture."""
+        slug = self.SLUG
+        specs_root = repo_root / "specs"
+        specs_root.mkdir(parents=True, exist_ok=True)
+        (specs_root / "README.md").write_text("# Specs\n", encoding="utf-8")
+        work_item = specs_root / slug
+        work_item.mkdir(parents=True, exist_ok=True)
+
+        adr_rel = f"docs/blueprint/architecture/decisions/ADR-{slug}.md"
+        adr_path = repo_root / adr_rel
+        adr_path.parent.mkdir(parents=True, exist_ok=True)
+        adr_path.write_text("# ADR\n", encoding="utf-8")
+
+        (work_item / "architecture.md").write_text("# Architecture\n", encoding="utf-8")
+        (work_item / "plan.md").write_text(
+            "\n".join([
+                "# Plan",
+                "## App Onboarding Contract (Normative)",
+                "- Required minimum make targets:",
+                "  - `apps-bootstrap`",
+                "  - `apps-smoke`",
+                "  - `backend-test-unit`",
+                "  - `backend-test-integration`",
+                "  - `backend-test-contracts`",
+                "  - `backend-test-e2e`",
+                "  - `touchpoints-test-unit`",
+                "  - `touchpoints-test-integration`",
+                "  - `touchpoints-test-contracts`",
+                "  - `touchpoints-test-e2e`",
+                "  - `test-unit-all`",
+                "  - `test-integration-all`",
+                "  - `test-contracts-all`",
+                "  - `test-e2e-all-local`",
+                "  - `infra-port-forward-start`",
+                "  - `infra-port-forward-stop`",
+                "  - `infra-port-forward-cleanup`",
+                "## Risk and Rollback (Normative)",
+                "- Risk: runtime drift.",
+                "- Rollback: revert changes.",
+            ]) + "\n",
+            encoding="utf-8",
+        )
+        (work_item / "tasks.md").write_text(
+            "\n".join([
+                "# Tasks",
+                "## Gate Checks",
+                "- [ ] G-001 Confirm `SPEC_READY=true`",
+                "## Implementation",
+                "- [ ] T-001 Implement behavior",
+                "## App Onboarding Minimum Targets (Normative)",
+                "- [ ] A-001 `apps-bootstrap` and `apps-smoke` are available",
+                "- [ ] A-002 `backend-test-unit`, `backend-test-integration`, `backend-test-contracts`, `backend-test-e2e` are available",
+                "- [ ] A-003 `touchpoints-test-unit`, `touchpoints-test-integration`, `touchpoints-test-contracts`, `touchpoints-test-e2e` are available",
+                "- [ ] A-004 `test-unit-all`, `test-integration-all`, `test-contracts-all`, `test-e2e-all-local` are available",
+                "- [ ] A-005 `infra-port-forward-start`, `infra-port-forward-stop`, `infra-port-forward-cleanup` are available",
+            ]),
+            encoding="utf-8",
+        )
+        (work_item / "traceability.md").write_text(
+            "\n".join([
+                "# Traceability",
+                "| Requirement | Control IDs | Implementation | Tests | Documentation Evidence | Operational Evidence |",
+                "|---|---|---|---|---|---|",
+                "| FR-001 | SDD-C-001 | scripts/example.py | tests/example_test.py | docs/example.md | artifacts/example.json |",
+                "| NFR-SEC-001 | SDD-C-001 | scripts/example.py | tests/example_test.py | docs/example.md | artifacts/example.json |",
+                "| NFR-OBS-001 | SDD-C-001 | scripts/example.py | tests/example_test.py | docs/example.md | artifacts/example.json |",
+                "| NFR-REL-001 | SDD-C-001 | scripts/example.py | tests/example_test.py | docs/example.md | artifacts/example.json |",
+                "| NFR-OPS-001 | SDD-C-001 | scripts/example.py | tests/example_test.py | docs/example.md | artifacts/example.json |",
+                "| AC-001 | SDD-C-001 | scripts/example.py | tests/example_test.py | docs/example.md | artifacts/example.json |",
+            ]) + "\n",
+            encoding="utf-8",
+        )
+        (work_item / "graph.json").write_text(
+            json.dumps({
+                "graph_version": 1,
+                "work_item": f"specs/{slug}",
+                "nodes": [
+                    {"id": "FR-001", "type": "requirement"},
+                    {"id": "NFR-SEC-001", "type": "requirement"},
+                    {"id": "NFR-OBS-001", "type": "requirement"},
+                    {"id": "NFR-REL-001", "type": "requirement"},
+                    {"id": "NFR-OPS-001", "type": "requirement"},
+                    {"id": "AC-001", "type": "acceptance"},
+                ],
+                "edges": [
+                    {"from": "FR-001", "to": "AC-001", "relation": "validated_by"},
+                    {"from": "NFR-SEC-001", "to": "AC-001", "relation": "constrains"},
+                    {"from": "NFR-OBS-001", "to": "AC-001", "relation": "constrains"},
+                    {"from": "NFR-REL-001", "to": "AC-001", "relation": "constrains"},
+                    {"from": "NFR-OPS-001", "to": "AC-001", "relation": "constrains"},
+                ],
+            }, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        (work_item / "evidence_manifest.json").write_text(
+            json.dumps({
+                "manifest_version": 1,
+                "work_item": f"specs/{slug}",
+                "generated_by": "spec-evidence-manifest",
+                "generated_at_utc": "",
+                "files": [],
+            }, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        (work_item / "context_pack.md").write_text(
+            "\n".join([
+                "# Work Item Context Pack",
+                "",
+                "## Context Snapshot",
+                f"- Work item: specs/{slug}",
+                "",
+                "## Required Commands",
+                "- `make quality-sdd-check`",
+            ]) + "\n",
+            encoding="utf-8",
+        )
+        (work_item / "pr_context.md").write_text(
+            "\n".join([
+                "# PR Context",
+                "",
+                "## Summary",
+                "- Scope: fixture",
+                "",
+                "## Requirement Coverage",
+                "- FR-001 / AC-001",
+                "",
+                "## Key Reviewer Files",
+                f"- specs/{slug}/spec.md",
+                "",
+                "## Validation Evidence",
+                "- make quality-sdd-check",
+                "",
+                "## Risk and Rollback",
+                "- Risk: fixture",
+                "- Rollback: fixture",
+                "",
+                "## Deferred Proposals",
+                "- none",
+            ]) + "\n",
+            encoding="utf-8",
+        )
+        (work_item / "hardening_review.md").write_text(
+            "\n".join([
+                "# Hardening Review",
+                "",
+                "## Repository-Wide Findings Fixed",
+                "- none",
+                "",
+                "## Observability and Diagnostics Changes",
+                "- none",
+                "",
+                "## Architecture and Code Quality Compliance",
+                "- no boundary violations detected",
+                "",
+                "## Proposals Only (Not Implemented)",
+                "- none",
+            ]) + "\n",
+            encoding="utf-8",
+        )
+        spec_lines = [
+            "# Specification",
+            "",
+            "## Spec Readiness Gate (Blocking)",
+            "- SPEC_READY: true",
+            "- Open questions count: 0",
+            "- Unresolved alternatives count: 0",
+            "- Unresolved TODO markers count: 0",
+            "- Pending assumptions count: 0",
+            "- Open clarification markers count: 0",
+            "- Product sign-off: approved",
+            "- Architecture sign-off: approved",
+            "- Security sign-off: approved",
+            "- Operations sign-off: approved",
+            "- Missing input blocker token: none",
+            f"- ADR path: {adr_rel}",
+            "- ADR status: approved",
+            "",
+            "## Applicable Guardrail Controls (Normative)",
+            "- Applicable control IDs: SDD-C-001",
+            "",
+            "## Implementation Stack Profile (Normative)",
+            "- Backend stack profile: python_plus_fastapi_pydantic_v2",
+            "- Frontend stack profile: vue_router_pinia_onyx",
+            "- Test automation profile: pytest_vitest_playwright_pact",
+            "- Agent execution model: single-agent",
+            "- Managed service preference: stackit-managed-first",
+            "- Managed service exception rationale: none",
+            "- Runtime profile: local-first-docker-desktop-kubernetes",
+            "- Local Kubernetes context policy: docker-desktop-preferred",
+            "- Local provisioning stack: crossplane-plus-helm",
+            "- Runtime identity baseline: eso-plus-argocd-plus-keycloak",
+            "- Local-first exception rationale: none",
+            "",
+            "## Blueprint Upstream Defect Escalation (Normative)",
+            "- Upstream issue URL: none",
+            "- Temporary workaround path: none",
+            "- Replacement trigger: none",
+            "- Workaround review date: none",
+            "",
+            "## Normative Requirements",
+            "### Functional Requirements (Normative)",
+            "- FR-001 MUST define one deterministic behavior.",
+            "### Non-Functional Requirements (Normative)",
+            "- NFR-SEC-001 MUST define enforceable security behavior.",
+            "- NFR-OBS-001 MUST define logs, metrics, and traces expectations.",
+            "- NFR-REL-001 MUST define resilience and rollback behavior.",
+            "- NFR-OPS-001 MUST define operability and diagnostics behavior.",
+            "## Normative Acceptance Criteria",
+            "- AC-001 [gate fixture] — verified by T-001, which MUST assert the checker exits 0.",
+            "",
+            "## Potential Deferred Proposals",
+            "- none",
+            "",
+            "## Informative Notes (Non-Normative)",
+            "- Context: gate fixture.",
+        ]
+        (work_item / "spec.md").write_text("\n".join(spec_lines) + "\n", encoding="utf-8")
+        return work_item
+
+    def _write_c7_event(self, repo_root: Path, phase: str) -> None:
+        c7_dir = repo_root / "artifacts" / "c7"
+        c7_dir.mkdir(parents=True, exist_ok=True)
+        event = {
+            "event_id": "abc123",
+            "ticket_id": "1",
+            "phase": phase,
+            "persona": "human-engineer",
+            "model": "unknown",
+            "timestamp": "2026-06-01T10:00:00Z",
+            "outcome": "success",
+            "rerun_round": 0,
+            "owner_team": "platform-team",
+            "emitter": "local-cli",
+            "execution_mode": "human-assisted",
+        }
+        (c7_dir / f"{self.SLUG}.jsonl").write_text(json.dumps(event) + "\n", encoding="utf-8")
+
+    def test_spec_ready_with_spec_complete_event_passes(self) -> None:
+        """AC-001: happy path — SPEC_READY=true + spec-complete event → no gate violation."""
+        checker = _load_checker_module()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _write_valid_control_catalog(repo_root / ".spec-kit/control-catalog.md")
+            self._make_spec_ready_work_item(repo_root)
+            self._write_c7_event(repo_root, "spec-complete")
+
+            contract_raw = _contract_raw()
+            _, catalog_ids = checker._load_control_catalog(contract_raw=contract_raw, repo_root=repo_root)
+            violations = checker._validate_work_item_specs(contract_raw, repo_root, catalog_ids)
+            gate_violations = [v for v in violations if "spec-complete" in v.message]
+            self.assertEqual(gate_violations, [], msg=[v.message for v in violations])
+
+    def test_spec_ready_without_spec_complete_event_produces_violation(self) -> None:
+        """AC-002: SPEC_READY=true + no spec-complete event in JSONL → violation + metric on stderr."""
+        checker = _load_checker_module()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _write_valid_control_catalog(repo_root / ".spec-kit/control-catalog.md")
+            self._make_spec_ready_work_item(repo_root)
+
+            contract_raw = _contract_raw()
+            _, catalog_ids = checker._load_control_catalog(contract_raw=contract_raw, repo_root=repo_root)
+            stderr_buf = io.StringIO()
+            with contextlib.redirect_stderr(stderr_buf):
+                violations = checker._validate_work_item_specs(contract_raw, repo_root, catalog_ids)
+            messages = [v.message for v in violations]
+            self.assertTrue(
+                any("spec-complete" in m for m in messages),
+                msg=f"expected spec-complete gate violation; got: {messages}",
+            )
+            stderr_output = stderr_buf.getvalue()
+            self.assertIn(
+                "sdd_step03_missing_spec_complete",
+                stderr_output,
+                msg=f"expected NFR-OBS-001 metric on stderr; got: {stderr_output!r}",
+            )
+
+    def test_upgrade_bypass_exempt_from_spec_complete_gate(self) -> None:
+        """AC-003: SPEC_READY_EXCEPTION=upgrade (post-gate slug, SPEC_READY=true) → no gate violation.
+
+        Uses a slug >= _SPEC_COMPLETE_GATE_SINCE so the forward-only guard does NOT skip the
+        check. With authorized-by set, bypass_active=True and the gate is correctly skipped.
+        No spec-complete C7 event is written — proving the upgrade track is exempt.
+        """
+        checker = _load_checker_module()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _write_valid_control_catalog(repo_root / ".spec-kit/control-catalog.md")
+            self._make_spec_ready_work_item(repo_root)
+            spec_path = repo_root / f"specs/{self.SLUG}/spec.md"
+            content = spec_path.read_text(encoding="utf-8")
+            content = content.replace(
+                "- ADR status: approved",
+                "- ADR status: approved\n- SPEC_READY_EXCEPTION: upgrade\n- authorized-by: fixture-user",
+            )
+            spec_path.write_text(content, encoding="utf-8")
+
+            contract_raw = _contract_raw()
+            _, catalog_ids = checker._load_control_catalog(contract_raw=contract_raw, repo_root=repo_root)
+            violations = checker._validate_work_item_specs(contract_raw, repo_root, catalog_ids)
+            gate_violations = [v for v in violations if "spec-complete" in v.message]
+            self.assertEqual(gate_violations, [], msg=[v.message for v in violations])
+
+    def test_no_specs_dir_produces_no_gate_violation(self) -> None:
+        """AC-004: no specs/ dir (chore-with-no-specs) → no violations."""
+        checker = _load_checker_module()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _write_valid_control_catalog(repo_root / ".spec-kit/control-catalog.md")
+
+            contract_raw = _contract_raw()
+            _, catalog_ids = checker._load_control_catalog(contract_raw=contract_raw, repo_root=repo_root)
+            violations = checker._validate_work_item_specs(contract_raw, repo_root, catalog_ids)
+            self.assertEqual(violations, [], msg=[v.message for v in violations])
+
+    def test_opted_out_event_does_not_satisfy_gate(self) -> None:
+        """AC-005: c7-emission-opted-out event does NOT satisfy the spec-complete gate."""
+        checker = _load_checker_module()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _write_valid_control_catalog(repo_root / ".spec-kit/control-catalog.md")
+            self._make_spec_ready_work_item(repo_root)
+            self._write_c7_event(repo_root, "c7-emission-opted-out")
+
+            contract_raw = _contract_raw()
+            _, catalog_ids = checker._load_control_catalog(contract_raw=contract_raw, repo_root=repo_root)
+            violations = checker._validate_work_item_specs(contract_raw, repo_root, catalog_ids)
+            messages = [v.message for v in violations]
+            self.assertTrue(
+                any("spec-complete" in m for m in messages),
+                msg=f"expected spec-complete gate violation; got: {messages}",
+            )
+
+
+class TestAcFormatScanner(unittest.TestCase):
+    """FR-013 / AC-012: _check_ac_format rejects label-only ACs in SPEC_READY=true work items."""
+
+    SLUG = "2026-06-01-ac-format-fixture"
+
+    def _make_spec_with_acs(self, repo_root: Path, ac_lines: list[str]) -> None:
+        """Create a minimal SPEC_READY=true work item whose AC section is replaced by ac_lines."""
+        tmp = TestStep03CompleteEventGate()
+        tmp.SLUG = self.SLUG  # type: ignore[attr-defined]
+        work_item = tmp._make_spec_ready_work_item(repo_root)
+        # Re-write spec.md with the caller-supplied AC lines
+        spec_path = work_item / "spec.md"
+        original = spec_path.read_text(encoding="utf-8")
+        # Replace the canonical AC-001 line with the supplied lines
+        new_spec = original.replace(
+            "- AC-001 [gate fixture] — verified by T-001, which MUST assert the checker exits 0.",
+            "\n".join(ac_lines),
+        )
+        spec_path.write_text(new_spec, encoding="utf-8")
+        # Provide a C7 spec-complete event so the step03 gate doesn't block
+        c7_dir = repo_root / "artifacts" / "c7"
+        c7_dir.mkdir(parents=True, exist_ok=True)
+        event = {
+            "event_id": "ac-format-fixture",
+            "ticket_id": "1",
+            "phase": "spec-complete",
+            "persona": "human-engineer",
+            "model": "unknown",
+            "timestamp": "2026-06-01T10:00:00Z",
+            "outcome": "success",
+            "rerun_round": 0,
+            "owner_team": "platform-team",
+            "emitter": "local-cli",
+            "execution_mode": "human-assisted",
+        }
+        (c7_dir / f"{self.SLUG}.jsonl").write_text(json.dumps(event) + "\n", encoding="utf-8")
+
+    def test_canonical_acs_pass(self) -> None:
+        """AC-012(a): valid ACs with MUST assert produce no violation."""
+        checker = _load_checker_module()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _write_valid_control_catalog(repo_root / ".spec-kit/control-catalog.md")
+            self._make_spec_with_acs(repo_root, [
+                "- AC-001 [happy path] — verified by T-101, which MUST assert exit code is 0.",
+                "- AC-002 [error path] — verified by T-102, which MUST assert stderr contains slug.",
+            ])
+            contract_raw = _contract_raw()
+            _, catalog_ids = checker._load_control_catalog(contract_raw=contract_raw, repo_root=repo_root)
+            violations = checker._validate_work_item_specs(contract_raw, repo_root, catalog_ids)
+            ac_violations = [v for v in violations if "label-only" in v.message]
+            self.assertEqual(ac_violations, [], msg=f"unexpected AC violations: {ac_violations}")
+
+    def test_label_only_ac_produces_violation(self) -> None:
+        """AC-012(b): label-only AC (no MUST assert) produces a violation naming the line."""
+        checker = _load_checker_module()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _write_valid_control_catalog(repo_root / ".spec-kit/control-catalog.md")
+            self._make_spec_with_acs(repo_root, [
+                "- AC-001 covers the authentication flow.",
+            ])
+            contract_raw = _contract_raw()
+            _, catalog_ids = checker._load_control_catalog(contract_raw=contract_raw, repo_root=repo_root)
+            violations = checker._validate_work_item_specs(contract_raw, repo_root, catalog_ids)
+            ac_violations = [v for v in violations if "label-only" in v.message]
+            self.assertTrue(
+                len(ac_violations) >= 1,
+                msg=f"expected label-only violation; got: {[v.message for v in violations]}",
+            )
+            self.assertTrue(
+                any("AC-001" in v.message for v in ac_violations),
+                msg=f"violation should name AC-001: {[v.message for v in ac_violations]}",
+            )
+
+    def test_ac_in_code_block_is_skipped(self) -> None:
+        """AC-012(c): label-only AC inside fenced code block produces no violation."""
+        checker = _load_checker_module()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _write_valid_control_catalog(repo_root / ".spec-kit/control-catalog.md")
+            self._make_spec_with_acs(repo_root, [
+                "```",
+                "- AC-001 covers authentication (example in code block)",
+                "```",
+                "- AC-001 [real AC] — verified by T-001, which MUST assert result is non-empty.",
+            ])
+            contract_raw = _contract_raw()
+            _, catalog_ids = checker._load_control_catalog(contract_raw=contract_raw, repo_root=repo_root)
+            violations = checker._validate_work_item_specs(contract_raw, repo_root, catalog_ids)
+            ac_violations = [v for v in violations if "label-only" in v.message]
+            self.assertEqual(ac_violations, [], msg=f"code-block AC should not trigger: {ac_violations}")
+
+    def test_pre_gate_slug_is_exempt(self) -> None:
+        """AC-012(d): slug date < 2026-06-01 is exempt from AC format check."""
+        checker = _load_checker_module()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _write_valid_control_catalog(repo_root / ".spec-kit/control-catalog.md")
+            # Build work item under the pre-gate slug directly
+            pre_slug = "2026-05-31-pre-gate-fixture"
+            tmp = TestStep03CompleteEventGate()
+            tmp.SLUG = pre_slug  # type: ignore[attr-defined]
+            work_item = tmp._make_spec_ready_work_item(repo_root)
+            spec_path = work_item / "spec.md"
+            original = spec_path.read_text(encoding="utf-8")
+            spec_path.write_text(original.replace(
+                "- AC-001 [gate fixture] — verified by T-001, which MUST assert the checker exits 0.",
+                "- AC-001 covers the authentication flow.",  # label-only, but pre-gate
+            ), encoding="utf-8")
+            # Pre-gate slug < _SPEC_COMPLETE_GATE_SINCE: both the step03 gate and the AC format gate
+            # are skipped by the forward-only guard — no spec-complete C7 event required.
+            contract_raw = _contract_raw()
+            _, catalog_ids = checker._load_control_catalog(contract_raw=contract_raw, repo_root=repo_root)
+            violations = checker._validate_work_item_specs(contract_raw, repo_root, catalog_ids)
+            ac_violations = [v for v in violations if "label-only" in v.message]
+            self.assertEqual(ac_violations, [], msg=f"pre-gate slug should be exempt: {ac_violations}")
 
 
 if __name__ == "__main__":
