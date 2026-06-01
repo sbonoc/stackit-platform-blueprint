@@ -72,11 +72,12 @@ _SPEC_COMPLETE_GATE_SINCE: str = "2026-06-01"
 # FR-004 (issue-353): V-gate classification check applies only to work items whose slug date
 # prefix is >= this value (merge date of the PR that introduced the V-gate check).
 _VGATE_GATE_SINCE: str = "2026-06-01"
-# Recognized falsy values for has-user-facing-flow.  Anything outside this set that
-# is also not truthy is an invalid/unrecognized value (e.g. typo "ture", placeholder
-# "N/A", "pending") and must produce a gate violation rather than silently exempting
-# the work item (Codex P2 — issue-353 post-review gap).
-_VGATE_FLOW_FALSE_VALUES: frozenset[str] = frozenset({"false", "0", "no", "off"})
+# The has-user-facing-flow field is a strict true/false enum (FR-001).  Only these two
+# canonical string values are accepted; boolean aliases (yes/no/1/0/on/off) and any other
+# value are non-canonical and produce a gate violation rather than silently passing or
+# exempting the work item (Codex P4 — issue-353 post-review gap).
+_VGATE_FLOW_TRUE: str = "true"
+_VGATE_FLOW_FALSE: str = "false"
 
 _BYPASS_ALLOWED_VALUES: frozenset[str] = frozenset(
     {"bug-fix", "upgrade", "refactor", "chore", "authorized-deviation"}
@@ -577,23 +578,24 @@ def _check_vgate_classification(spec_text: str, slug: str) -> list[Violation]:
             ),
         )]
 
-    if not _is_truthy(has_flow_raw):
-        # Recognized falsy values (false, 0, no, off) → spec is exempt.
-        # Anything else is an unrecognized value (typo, placeholder, N/A) that
-        # must produce a violation rather than silently exempting the work item.
-        if has_flow_raw.strip().lower() not in _VGATE_FLOW_FALSE_VALUES:
-            print(
-                f"[METRIC] name=sdd_vgate_manual_e2e_violation value=1 work_item={slug}",
-                file=sys.stderr,
-            )
-            return [Violation(
-                path=spec_rel,
-                message=(
-                    f"V-gate violation — has-user-facing-flow has unrecognized value "
-                    f"'{has_flow_raw}'. Expected: 'true' or 'false'."
-                ),
-            )]
+    _has_flow_normalized = has_flow_raw.strip().lower()
+    if _has_flow_normalized == _VGATE_FLOW_FALSE:
         return []
+    if _has_flow_normalized != _VGATE_FLOW_TRUE:
+        # Non-canonical value (e.g. yes/no/1/0/on/off, typo, placeholder, N/A).
+        # The field is a strict true/false enum; aliases produce a violation rather
+        # than silently passing (truthy alias + automated) or exempting the spec.
+        print(
+            f"[METRIC] name=sdd_vgate_manual_e2e_violation value=1 work_item={slug}",
+            file=sys.stderr,
+        )
+        return [Violation(
+            path=spec_rel,
+            message=(
+                f"V-gate violation — has-user-facing-flow has non-canonical value "
+                f"'{has_flow_raw}'. Expected: 'true' or 'false' (strict enum)."
+            ),
+        )]
 
     e2e_class_raw = kv.get("e2e gate classification")
     if e2e_class_raw is None:

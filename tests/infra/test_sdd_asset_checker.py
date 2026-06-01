@@ -1519,8 +1519,8 @@ class TestVgateClassification(unittest.TestCase):
         violations = checker._check_vgate_classification(spec, self.POST_GATE)
         self.assertGreater(len(violations), 0, "Typo value 'ture' must produce a V-gate violation, not silently exempt")
         self.assertTrue(
-            any("unrecognized value" in v.message for v in violations),
-            "Violation message must mention 'unrecognized value'",
+            any("non-canonical value" in v.message for v in violations),
+            "Violation message must mention 'non-canonical value'",
         )
 
     def test_placeholder_value_for_has_user_facing_flow_produces_violation(self) -> None:
@@ -1536,8 +1536,8 @@ class TestVgateClassification(unittest.TestCase):
         violations = checker._check_vgate_classification(spec, self.POST_GATE)
         self.assertGreater(len(violations), 0, "Placeholder 'N/A' must produce a V-gate violation, not silently exempt")
         self.assertTrue(
-            any("unrecognized value" in v.message for v in violations),
-            "Violation message must mention 'unrecognized value'",
+            any("non-canonical value" in v.message for v in violations),
+            "Violation message must mention 'non-canonical value'",
         )
 
     def test_recognized_false_value_is_exempt(self) -> None:
@@ -1610,6 +1610,68 @@ class TestVgateClassification(unittest.TestCase):
             len(violations), 0,
             "'Has user-facing flow: false' outside the profile section must not create a false exemption",
         )
+
+    def test_non_canonical_truthy_alias_yes_produces_violation(self) -> None:
+        """Codex P4: 'yes' is a boolean synonym but non-canonical for this strict true/false field.
+        A spec with 'yes' + automated must produce a non-canonical value violation, not pass."""
+        checker = _load_checker_module()
+        spec = (
+            "# Specification\n"
+            "## Implementation Stack Profile (Normative)\n"
+            f"- Test automation profile: {self._PLAYWRIGHT}\n"
+            "- Has user-facing flow: yes\n"
+            "- E2E gate classification: automated\n"
+        )
+        violations = checker._check_vgate_classification(spec, self.POST_GATE)
+        self.assertGreater(len(violations), 0, "'yes' is non-canonical and must produce a violation")
+        self.assertTrue(
+            any("non-canonical value" in v.message for v in violations),
+            "Violation message must mention 'non-canonical value'",
+        )
+
+    def test_non_canonical_truthy_alias_1_produces_violation(self) -> None:
+        """Codex P4: '1' is a boolean synonym but non-canonical for this strict true/false field."""
+        checker = _load_checker_module()
+        spec = (
+            "# Specification\n"
+            "## Implementation Stack Profile (Normative)\n"
+            f"- Test automation profile: {self._PLAYWRIGHT}\n"
+            "- Has user-facing flow: 1\n"
+            "- E2E gate classification: automated\n"
+        )
+        violations = checker._check_vgate_classification(spec, self.POST_GATE)
+        self.assertGreater(len(violations), 0, "'1' is non-canonical and must produce a violation")
+
+    def test_non_canonical_falsy_alias_no_produces_violation(self) -> None:
+        """Codex P4: 'no' is a boolean synonym but non-canonical for this strict true/false field.
+        Previously exempted via _VGATE_FLOW_FALSE_VALUES; now correctly a violation."""
+        checker = _load_checker_module()
+        spec = (
+            "# Specification\n"
+            "## Implementation Stack Profile (Normative)\n"
+            f"- Test automation profile: {self._PLAYWRIGHT}\n"
+            "- Has user-facing flow: no\n"
+            "- E2E gate classification: automated\n"
+        )
+        violations = checker._check_vgate_classification(spec, self.POST_GATE)
+        self.assertGreater(len(violations), 0, "'no' is non-canonical and must produce a violation")
+        self.assertTrue(
+            any("non-canonical value" in v.message for v in violations),
+            "Violation message must mention 'non-canonical value'",
+        )
+
+    def test_non_canonical_falsy_alias_off_produces_violation(self) -> None:
+        """Codex P4: 'off' is a boolean synonym but non-canonical for this strict true/false field."""
+        checker = _load_checker_module()
+        spec = (
+            "# Specification\n"
+            "## Implementation Stack Profile (Normative)\n"
+            f"- Test automation profile: {self._PLAYWRIGHT}\n"
+            "- Has user-facing flow: off\n"
+            "- E2E gate classification: automated\n"
+        )
+        violations = checker._check_vgate_classification(spec, self.POST_GATE)
+        self.assertGreater(len(violations), 0, "'off' is non-canonical and must produce a violation")
 
 
 if __name__ == "__main__":
