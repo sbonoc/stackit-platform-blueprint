@@ -43,6 +43,7 @@
     {"from": "NFR-REL-001", "to": "AC-002", "relation": "constrains"},
     {"from": "NFR-OPS-001", "to": "AC-001", "relation": "constrains"},
     {"from": "NFR-OPS-001", "to": "AC-002", "relation": "constrains"},
+    {"from": "NFR-OPS-001", "to": "AC-014", "relation": "constrains"},
     {"from": "FR-004", "to": "FR-002", "relation": "guards"},
     {"from": "FR-009", "to": "AC-013", "relation": "validated_by"},
     {"from": "FR-009", "to": "FR-002", "relation": "guards"}

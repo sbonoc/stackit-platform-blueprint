@@ -12,7 +12,7 @@
 - Agent execution model: single-agent
 
 ## Problem Statement
-- What needs to change and why: `check_sdd_assets.py` has no check for E2E gate classification on user-facing flows. A consumer team can set `test automation profile: pytest_vitest_playwright_pact`, include a user-facing form or wizard in scope, and still classify the E2E gate as permanently `manual` — passing every quality check. This work item introduces a new spec-field triple (`has-user-facing-flow`, `E2E gate classification`, `E2E automation target`) and a corresponding `_check_vgate_classification` function wired into `_validate_work_item_specs`, enforcing that user-facing flow work items carry a time-bounded or automated E2E gate.
+- What needs to change and why: `check_sdd_assets.py` has no check for E2E gate classification on user-facing flows. A consumer team can set `test automation profile: pytest_vitest_playwright_pact`, include a user-facing form or wizard in scope, and still classify the E2E gate as permanently `manual` — passing every quality check. This work item introduces two new Implementation Stack Profile fields (`has-user-facing-flow` and `E2E gate classification`) and a corresponding `_check_vgate_classification` function wired into `_validate_work_item_specs`, enforcing that user-facing flow work items with a playwright-capable profile carry an `automated` E2E gate classification.
 - Scope boundaries: Blueprint tooling only — `check_sdd_assets.py`, spec templates, AGENTS.md. No consumer runtime code changes.
 - Out of scope: Playwright test content or existence validation; retroactive enforcement on pre-gate specs; consumer repo audits.
 
@@ -24,7 +24,7 @@
 
 ## High-Level Component Design
 - Shift-left layer (step01 intake): `blueprint-sdd-step01-intake/SKILL.md` inference step — reads issue text, runs signal scan, writes `has-user-facing-flow` with annotation comment, cross-checks `frontend-stack-profile`. No code; agent-executed at intake time.
-- Domain layer: Rule logic in `_check_vgate_classification(spec_text: str, slug: str) -> list[str]` — pure function, no I/O, returns violation strings.
+- Domain layer: Rule logic in `_check_vgate_classification(spec_text: str, slug: str) -> list[Violation]` — pure function, no I/O, returns Violation dataclass instances.
 - Application layer: `_validate_work_item_specs` calls `_check_vgate_classification` per work item and collects violations. Metric emitted to stderr after all violations collected.
 - Infrastructure adapters: Spec text read from filesystem (existing pattern in `check_sdd_assets.py`). No new I/O paths introduced.
 - Presentation/API/workflow boundaries: `make quality-sdd-check` → `check_sdd_assets.py` (existing entry point, no changes to invocation interface).
@@ -59,17 +59,23 @@
 flowchart TD
     A[_check_vgate_classification called per work item] --> B{slug date >= _VGATE_GATE_SINCE?}
     B -- no --> Z[return empty — pre-gate slug, skip]
-    B -- yes --> C{has-user-facing-flow: true?}
-    C -- no --> Z
-    C -- yes --> D{test automation profile contains playwright?}
+    B -- yes --> D{test automation profile contains playwright?}
     D -- no --> Z
-    D -- yes --> E{E2E gate classification: automated?}
-    E -- yes --> Z
-    E -- no --> V[violation: classification must be automated for user-facing flow]
-    V --> M[emit sdd_vgate_manual_e2e_violation to stderr]
+    D -- yes --> C{has-user-facing-flow field present?}
+    C -- absent --> VA[violation: field absent on post-gate + playwright spec]
+    VA --> M[emit sdd_vgate_manual_e2e_violation to stderr]
+    C -- present --> CT{has-user-facing-flow: true?}
+    CT -- no/false --> Z
+    CT -- yes --> E{E2E gate classification field present?}
+    E -- absent --> VB[violation: classification absent for user-facing + playwright spec]
+    VB --> M
+    E -- present --> EC{E2E gate classification: automated?}
+    EC -- yes --> Z
+    EC -- no --> VC[violation: classification must be automated]
+    VC --> M
 ```
 
-Caption: Decision tree executed by `_check_vgate_classification` for each work item in the catalog. The forward-only guard and the profile/flag conditions provide three independent exemption exits before the classification rule is evaluated. There is no deferred-automation path — only `automated` passes.
+Caption: Decision tree executed by `_check_vgate_classification` for each work item in the catalog. The playwright profile check runs first (before the flow flag), providing an early exemption for non-playwright profiles. Absent fields on post-gate + playwright specs are violations, not silent defaults. There is no deferred-automation path — only `automated` passes.
 
 ```mermaid
 flowchart LR
