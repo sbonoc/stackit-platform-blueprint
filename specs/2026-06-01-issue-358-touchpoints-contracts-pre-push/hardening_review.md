@@ -1,24 +1,25 @@
 # Hardening Review
 
 ## Repository-Wide Findings Fixed
-- Finding 1:
+- Finding 1: N/A — template-modification-only change. No repository-wide code quality findings introduced or fixed; three YAML stanzas added to one template file and one pytest test file.
 
 ## Observability and Diagnostics Changes
-- Metrics/logging/tracing updates:
-- Operational diagnostics updates:
+- Metrics/logging/tracing updates: N/A — pre-commit hook output is terminal-only; no log/metric/trace infrastructure modified.
+- Operational diagnostics updates: N/A — no operational runbook changes required.
 
 ## Architecture and Code Quality Compliance
-- SOLID / Clean Architecture / Clean Code / DDD checks:
-- Test-automation and pyramid checks:
-- Documentation/diagram/CI/skill consistency checks:
+- SOLID / Clean Architecture / Clean Code / DDD checks: N/A — template file modification only; no application-layer code introduced.
+- Test-automation and pyramid checks: `tests/blueprint/test_pre_push_hooks.py` added to unit scope in `test_pyramid_contract.json`; 31 assertions, all passing; full blueprint suite 1158 passed.
+- Documentation/diagram/CI/skill consistency checks: ADR-issue-358 authored and approved; backport note added to `docs/platform/consumer/consumer_quality_gates.md`; drift check passes.
 
 ## Accessibility Gate (Normative — non-UI reviewers mark non-applicable items N/A)
-- [ ] SC 4.1.2 (Name, Role, Value): all interactive elements have programmatic names and roles exposed to assistive technology
-- [ ] SC 2.1.1 (Keyboard): all functionality is operable by keyboard without timing requirements
-- [ ] SC 2.4.7 (Focus Visible): keyboard focus indicator is visible on all focusable elements
-- [ ] SC 1.4.1 (Use of Color): no information is conveyed by color alone; non-color visual cue also present
-- [ ] SC 3.3.1 (Error Identification): error fields are identified in text and errors are described to the user
-- [ ] axe-core WCAG 2.1 AA scan evidence: `artifacts/a11y/axe-report.json` attached; zero critical/serious violations
+- N/A SC 4.1.2 (Name, Role, Value): NFR-A11Y-001 — no user interface; template file modification only.
+- N/A SC 2.1.1 (Keyboard): NFR-A11Y-001 — no user interface; template file modification only.
+- N/A SC 2.4.7 (Focus Visible): NFR-A11Y-001 — no user interface; template file modification only.
+- N/A SC 1.4.1 (Use of Color): NFR-A11Y-001 — no user interface; template file modification only.
+- N/A SC 3.3.1 (Error Identification): NFR-A11Y-001 — no user interface; template file modification only.
+- N/A axe-core WCAG 2.1 AA scan evidence: NFR-A11Y-001 — no user interface; no axe scan required.
 
 ## Proposals Only (Not Implemented)
-- Proposal 1:
+- Proposal 1: Add `backend-test-contracts-pre-push` hook — no active consumer postmortem evidence; deferred per spec Potential Deferred Proposals section.
+- Proposal 2: Add `touchpoints-test-integration-pre-push` hook — no current postmortem evidence; deferred per spec Potential Deferred Proposals section.

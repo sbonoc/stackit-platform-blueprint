@@ -20,27 +20,27 @@
 - [x] T-103 Assert `backend-test-unit-pre-push` is present in the template with correct field values — written RED before Slice 4 (AC-003)
 - [x] T-104 Assert all three hook definitions set `always_run: false` and `stages: [pre-push]` only — confirming no commit-stage blocking (AC-004)
 - [x] T-105 Assert `make quality-validate-bootstrap-template-drift` exits 0 after all three hooks are added — capture exit code as evidence in traceability (AC-005)
-- [ ] T-106 Translate any reproducible pre-PR finding from T-004 (absent-directory exit-code checks) into failing automated tests first, then fix; document any deterministic exception in publish artifacts (SDD-C-024)
+- [x] T-106 Translate any reproducible pre-PR finding from T-004 (absent-directory exit-code checks) into failing automated tests first, then fix; document any deterministic exception in publish artifacts (SDD-C-024) — N/A: all three targets exit 0 when directory absent; no finding to translate.
 
 ## Accessibility Testing (Normative — mark N/A with rationale for non-UI specs)
-- [ ] T-A01 N/A — NFR-A11Y-001 is declared N/A in spec.md (template modification only, no UI)
+- [x] T-A01 N/A — NFR-A11Y-001 is declared N/A in spec.md (template modification only, no UI)
 
 ## Validation and Release Readiness
-- [ ] T-201 Run `make quality-sdd-check` — confirm all SDD gates pass; capture result in traceability
-- [ ] T-202 Run `make quality-validate-bootstrap-template-drift` — capture pass/fail as T-103 evidence in traceability
-- [ ] T-203 Confirm no stale scaffold tokens, dead code, or drift in modified files
-- [ ] T-204 Run documentation validation (`make docs-build` and `make docs-smoke`)
-- [ ] T-205 Run hardening review validation bundle (`make quality-hardening-review`)
+- [x] T-201 Run `make quality-sdd-check` — confirm all SDD gates pass; capture result in traceability
+- [x] T-202 Run `make quality-validate-bootstrap-template-drift` — capture pass/fail as T-105 evidence in traceability (exit 0)
+- [x] T-203 Confirm no stale scaffold tokens, dead code, or drift in modified files
+- [x] T-204 Run documentation validation (`make docs-build` and `make docs-smoke`) — both exit 0
+- [x] T-205 Run hardening review validation bundle (`make quality-hardening-review`) — exit 0
 
 ## Publish
-- [ ] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
-- [ ] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
-- [ ] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
+- [x] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
+- [x] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
+- [x] P-003 Ensure PR description follows repository template headings and references `pr_context.md` — PR #359 updated with Summary, Requirement Coverage, Validation Evidence, Rollback sections
 
 ## App Onboarding Minimum Targets (Normative)
 - App onboarding impact: no-impact — this work item adds a pre-push hook that invokes `touchpoints-test-contracts`, already in the minimum targets list; no new make target is introduced.
-- [ ] A-001 `apps-bootstrap` and `apps-smoke` are implemented and verified for the affected app scope
-- [ ] A-002 Backend app lanes (`backend-test-unit`, `backend-test-integration`, `backend-test-contracts`, `backend-test-e2e`) are available
-- [ ] A-003 Frontend app lanes (`touchpoints-test-unit`, `touchpoints-test-integration`, `touchpoints-test-contracts`, `touchpoints-test-e2e`) are available
-- [ ] A-004 Aggregate gates (`test-unit-all`, `test-integration-all`, `test-contracts-all`, `test-e2e-all-local`) are available
-- [ ] A-005 Port-forward operational wrappers (`infra-port-forward-start`, `infra-port-forward-stop`, `infra-port-forward-cleanup`) are available
+- [x] A-001 `apps-bootstrap` and `apps-smoke` are implemented and verified for the affected app scope — no-impact: template-only change; all make targets pre-existing in platform.mk
+- [x] A-002 Backend app lanes (`backend-test-unit`, `backend-test-integration`, `backend-test-contracts`, `backend-test-e2e`) are available — pre-existing targets; no-impact
+- [x] A-003 Frontend app lanes (`touchpoints-test-unit`, `touchpoints-test-integration`, `touchpoints-test-contracts`, `touchpoints-test-e2e`) are available — pre-existing targets; no-impact
+- [x] A-004 Aggregate gates (`test-unit-all`, `test-integration-all`, `test-contracts-all`, `test-e2e-all-local`) are available — pre-existing targets; no-impact
+- [x] A-005 Port-forward operational wrappers (`infra-port-forward-start`, `infra-port-forward-stop`, `infra-port-forward-cleanup`) are available — pre-existing targets; no-impact
