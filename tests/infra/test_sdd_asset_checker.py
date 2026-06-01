@@ -1357,5 +1357,322 @@ class TestAcFormatScanner(unittest.TestCase):
             self.assertEqual(ac_violations, [], msg=f"pre-gate slug should be exempt: {ac_violations}")
 
 
+class TestVgateClassification(unittest.TestCase):
+    """FR-002 / AC-001..AC-009 / AC-014: _check_vgate_classification enforces E2E gate."""
+
+    POST_GATE = "2026-06-02-vgate-test-fixture"
+    PRE_GATE = "2026-05-31-pre-gate-fixture"
+    _PLAYWRIGHT = "pytest_vitest_playwright_pact"
+    _NON_PLAYWRIGHT = "pytest_vitest_pact"
+
+    def _spec(self, profile: str, has_flow: str, classification: str) -> str:
+        return (
+            "# Specification\n"
+            "## Implementation Stack Profile (Normative)\n"
+            f"- Test automation profile: {profile}\n"
+            f"- Has user-facing flow: {has_flow}\n"
+            f"- E2E gate classification: {classification}\n"
+        )
+
+    def test_rejects_manual_for_user_facing_with_playwright(self) -> None:
+        """T-101 / AC-001: manual + has-user-facing-flow=true + playwright → violation."""
+        checker = _load_checker_module()
+        violations = checker._check_vgate_classification(
+            self._spec(self._PLAYWRIGHT, "true", "manual"), self.POST_GATE
+        )
+        self.assertGreater(len(violations), 0, "Expected at least one violation")
+        self.assertTrue(any("manual" in v.message for v in violations))
+
+    def test_passes_for_automated_classification(self) -> None:
+        """T-102 / AC-002: automated + has-user-facing-flow=true + playwright → no violation."""
+        checker = _load_checker_module()
+        violations = checker._check_vgate_classification(
+            self._spec(self._PLAYWRIGHT, "true", "automated"), self.POST_GATE
+        )
+        self.assertEqual(violations, [], msg=[v.message for v in violations])
+
+    def test_pre_gate_slug_is_exempt(self) -> None:
+        """T-106 / AC-006: slug date < _VGATE_GATE_SINCE → exempt."""
+        checker = _load_checker_module()
+        violations = checker._check_vgate_classification(
+            self._spec(self._PLAYWRIGHT, "true", "manual"), self.PRE_GATE
+        )
+        self.assertEqual(violations, [], msg="Pre-gate slugs must be exempt")
+
+    def test_non_playwright_profile_is_exempt(self) -> None:
+        """T-107 / AC-007: non-playwright profile → exempt regardless of classification."""
+        checker = _load_checker_module()
+        violations = checker._check_vgate_classification(
+            self._spec(self._NON_PLAYWRIGHT, "true", "manual"), self.POST_GATE
+        )
+        self.assertEqual(violations, [], msg="Non-playwright profiles must be exempt")
+
+    def test_has_user_facing_flow_false_is_exempt(self) -> None:
+        """T-108 / AC-008: has-user-facing-flow=false → exempt regardless of classification."""
+        checker = _load_checker_module()
+        violations = checker._check_vgate_classification(
+            self._spec(self._PLAYWRIGHT, "false", "manual"), self.POST_GATE
+        )
+        self.assertEqual(violations, [], msg="has-user-facing-flow: false must be exempt")
+
+    def test_metric_emitted_to_stderr_on_violation(self) -> None:
+        """T-109 / AC-009: sdd_vgate_manual_e2e_violation appears in stderr on violation."""
+        checker = _load_checker_module()
+        stderr_buf = io.StringIO()
+        with contextlib.redirect_stderr(stderr_buf):
+            violations = checker._check_vgate_classification(
+                self._spec(self._PLAYWRIGHT, "true", "manual"), self.POST_GATE
+            )
+        self.assertGreater(len(violations), 0, "Expected violation to trigger metric")
+        self.assertIn(
+            "sdd_vgate_manual_e2e_violation",
+            stderr_buf.getvalue(),
+            msg=f"expected metric on stderr; got: {stderr_buf.getvalue()!r}",
+        )
+
+    def test_absent_has_user_facing_flow_produces_violation(self) -> None:
+        """T-114 / AC-014 (part 1): absent has-user-facing-flow on post-gate + playwright → violation."""
+        checker = _load_checker_module()
+        spec = (
+            "# Specification\n"
+            "## Implementation Stack Profile (Normative)\n"
+            f"- Test automation profile: {self._PLAYWRIGHT}\n"
+            "- E2E gate classification: automated\n"
+        )
+        violations = checker._check_vgate_classification(spec, self.POST_GATE)
+        self.assertGreater(len(violations), 0, "Expected violation for absent has-user-facing-flow")
+
+    def test_absent_e2e_gate_classification_produces_violation(self) -> None:
+        """T-114 / AC-014 (part 2): absent E2E gate classification on post-gate + playwright + user-facing=true → violation."""
+        checker = _load_checker_module()
+        spec = (
+            "# Specification\n"
+            "## Implementation Stack Profile (Normative)\n"
+            f"- Test automation profile: {self._PLAYWRIGHT}\n"
+            "- Has user-facing flow: true\n"
+        )
+        violations = checker._check_vgate_classification(spec, self.POST_GATE)
+        self.assertGreater(len(violations), 0, "Expected violation for absent E2E gate classification")
+
+    def test_hyphen_form_has_user_facing_flow_is_recognized(self) -> None:
+        """Gap-1 fix: prose form 'has-user-facing-flow' (hyphens) must be treated identically to 'Has user-facing flow' (spaces)."""
+        checker = _load_checker_module()
+        spec_hyphen_pass = (
+            "# Specification\n"
+            "## Implementation Stack Profile (Normative)\n"
+            f"- Test automation profile: {self._PLAYWRIGHT}\n"
+            "- has-user-facing-flow: true\n"
+            "- e2e-gate-classification: automated\n"
+        )
+        violations = checker._check_vgate_classification(spec_hyphen_pass, self.POST_GATE)
+        self.assertEqual(violations, [], "Hyphen-form fields with valid values should produce no violations")
+
+    def test_hyphen_form_violation_still_detected(self) -> None:
+        """Gap-1 fix: hyphen-form 'has-user-facing-flow: true' + manual classification is still a violation."""
+        checker = _load_checker_module()
+        spec_hyphen_fail = (
+            "# Specification\n"
+            "## Implementation Stack Profile (Normative)\n"
+            f"- Test automation profile: {self._PLAYWRIGHT}\n"
+            "- has-user-facing-flow: true\n"
+            "- e2e-gate-classification: manual\n"
+        )
+        violations = checker._check_vgate_classification(spec_hyphen_fail, self.POST_GATE)
+        self.assertGreater(len(violations), 0, "Hyphen-form fields with manual classification should produce a violation")
+
+    def test_inline_html_comment_on_true_value_is_stripped(self) -> None:
+        """Codex P1: step01 appends '<!-- inferred ... -->' on the same line; gate must still fire."""
+        checker = _load_checker_module()
+        spec_inline_comment = (
+            "# Specification\n"
+            "## Implementation Stack Profile (Normative)\n"
+            f"- Test automation profile: {self._PLAYWRIGHT}\n"
+            "- Has user-facing flow: true <!-- inferred from intake: form — confirm before SPEC_READY -->\n"
+            "- E2E gate classification: manual\n"
+        )
+        violations = checker._check_vgate_classification(spec_inline_comment, self.POST_GATE)
+        self.assertGreater(len(violations), 0, "Inline HTML comment on 'true' must not mask a manual classification violation")
+
+    def test_inline_html_comment_on_true_value_passes_when_automated(self) -> None:
+        """Inline HTML comment on has-user-facing-flow: true must not suppress a valid automated classification."""
+        checker = _load_checker_module()
+        spec_inline_comment_pass = (
+            "# Specification\n"
+            "## Implementation Stack Profile (Normative)\n"
+            f"- Test automation profile: {self._PLAYWRIGHT}\n"
+            "- Has user-facing flow: true <!-- inferred from intake: wizard — confirm before SPEC_READY -->\n"
+            "- E2E gate classification: automated\n"
+        )
+        violations = checker._check_vgate_classification(spec_inline_comment_pass, self.POST_GATE)
+        self.assertEqual(violations, [], "Inline HTML comment on 'true' + automated classification should produce no violations")
+
+    def test_typo_value_for_has_user_facing_flow_produces_violation(self) -> None:
+        """Codex P2: a typo like 'ture' is not truthy and not a recognized falsy — must be a violation."""
+        checker = _load_checker_module()
+        spec = (
+            "# Specification\n"
+            "## Implementation Stack Profile (Normative)\n"
+            f"- Test automation profile: {self._PLAYWRIGHT}\n"
+            "- Has user-facing flow: ture\n"
+            "- E2E gate classification: automated\n"
+        )
+        violations = checker._check_vgate_classification(spec, self.POST_GATE)
+        self.assertGreater(len(violations), 0, "Typo value 'ture' must produce a V-gate violation, not silently exempt")
+        self.assertTrue(
+            any("non-canonical value" in v.message for v in violations),
+            "Violation message must mention 'non-canonical value'",
+        )
+
+    def test_placeholder_value_for_has_user_facing_flow_produces_violation(self) -> None:
+        """Codex P2: a placeholder like 'N/A' is not truthy and not a recognized falsy — must be a violation."""
+        checker = _load_checker_module()
+        spec = (
+            "# Specification\n"
+            "## Implementation Stack Profile (Normative)\n"
+            f"- Test automation profile: {self._PLAYWRIGHT}\n"
+            "- Has user-facing flow: N/A\n"
+            "- E2E gate classification: automated\n"
+        )
+        violations = checker._check_vgate_classification(spec, self.POST_GATE)
+        self.assertGreater(len(violations), 0, "Placeholder 'N/A' must produce a V-gate violation, not silently exempt")
+        self.assertTrue(
+            any("non-canonical value" in v.message for v in violations),
+            "Violation message must mention 'non-canonical value'",
+        )
+
+    def test_recognized_false_value_is_exempt(self) -> None:
+        """Codex P2 control: canonical 'false' is still exempt (regression guard)."""
+        checker = _load_checker_module()
+        spec = (
+            "# Specification\n"
+            "## Implementation Stack Profile (Normative)\n"
+            f"- Test automation profile: {self._PLAYWRIGHT}\n"
+            "- Has user-facing flow: false\n"
+            "- E2E gate classification: automated\n"
+        )
+        violations = checker._check_vgate_classification(spec, self.POST_GATE)
+        self.assertEqual(violations, [], "Recognized falsy 'false' must still be exempt (no regression)")
+
+    def test_na_e2e_classification_for_user_facing_with_playwright_is_violation(self) -> None:
+        """N/A is a valid field value (non-user-facing default) but not 'automated' — must be a violation."""
+        checker = _load_checker_module()
+        spec = (
+            "# Specification\n"
+            "## Implementation Stack Profile (Normative)\n"
+            f"- Test automation profile: {self._PLAYWRIGHT}\n"
+            "- Has user-facing flow: true\n"
+            "- E2E gate classification: N/A\n"
+        )
+        violations = checker._check_vgate_classification(spec, self.POST_GATE)
+        self.assertGreater(
+            len(violations), 0,
+            "has-user-facing-flow: true + playwright + E2E gate classification: N/A must be a violation",
+        )
+
+    def test_out_of_section_e2e_classification_does_not_overwrite_profile(self) -> None:
+        """Codex P3: a bullet outside the Implementation Stack Profile section must not overwrite the
+        declared value. A compliant profile (automated) with an explanatory bullet later in prose
+        (e.g. '- E2E gate classification: manual MUST be rejected') must still produce no violation."""
+        checker = _load_checker_module()
+        spec = (
+            "# Specification\n"
+            "## Implementation Stack Profile (Normative)\n"
+            f"- Test automation profile: {self._PLAYWRIGHT}\n"
+            "- Has user-facing flow: true\n"
+            "- E2E gate classification: automated\n"
+            "\n"
+            "## Acceptance Criteria\n"
+            "- AC-001 — verified by T-101, which MUST assert that E2E gate classification: manual is rejected\n"
+            "- E2E gate classification: manual MUST be rejected when has-user-facing-flow is true\n"
+        )
+        violations = checker._check_vgate_classification(spec, self.POST_GATE)
+        self.assertEqual(
+            violations, [],
+            "Bullet outside the Implementation Stack Profile must not overwrite the declared 'automated' value",
+        )
+
+    def test_out_of_section_has_user_facing_flow_does_not_create_false_exemption(self) -> None:
+        """Codex P3: 'Has user-facing flow: false' outside the Implementation Stack Profile section must
+        not exempt a spec that correctly declares 'true' in the profile section."""
+        checker = _load_checker_module()
+        spec = (
+            "# Specification\n"
+            "## Implementation Stack Profile (Normative)\n"
+            f"- Test automation profile: {self._PLAYWRIGHT}\n"
+            "- Has user-facing flow: true\n"
+            "- E2E gate classification: manual\n"
+            "\n"
+            "## Requirements\n"
+            "- Has user-facing flow: false cases are exempt from the gate\n"
+        )
+        violations = checker._check_vgate_classification(spec, self.POST_GATE)
+        self.assertGreater(
+            len(violations), 0,
+            "'Has user-facing flow: false' outside the profile section must not create a false exemption",
+        )
+
+    def test_non_canonical_truthy_alias_yes_produces_violation(self) -> None:
+        """Codex P4: 'yes' is a boolean synonym but non-canonical for this strict true/false field.
+        A spec with 'yes' + automated must produce a non-canonical value violation, not pass."""
+        checker = _load_checker_module()
+        spec = (
+            "# Specification\n"
+            "## Implementation Stack Profile (Normative)\n"
+            f"- Test automation profile: {self._PLAYWRIGHT}\n"
+            "- Has user-facing flow: yes\n"
+            "- E2E gate classification: automated\n"
+        )
+        violations = checker._check_vgate_classification(spec, self.POST_GATE)
+        self.assertGreater(len(violations), 0, "'yes' is non-canonical and must produce a violation")
+        self.assertTrue(
+            any("non-canonical value" in v.message for v in violations),
+            "Violation message must mention 'non-canonical value'",
+        )
+
+    def test_non_canonical_truthy_alias_1_produces_violation(self) -> None:
+        """Codex P4: '1' is a boolean synonym but non-canonical for this strict true/false field."""
+        checker = _load_checker_module()
+        spec = (
+            "# Specification\n"
+            "## Implementation Stack Profile (Normative)\n"
+            f"- Test automation profile: {self._PLAYWRIGHT}\n"
+            "- Has user-facing flow: 1\n"
+            "- E2E gate classification: automated\n"
+        )
+        violations = checker._check_vgate_classification(spec, self.POST_GATE)
+        self.assertGreater(len(violations), 0, "'1' is non-canonical and must produce a violation")
+
+    def test_non_canonical_falsy_alias_no_produces_violation(self) -> None:
+        """Codex P4: 'no' is a boolean synonym but non-canonical for this strict true/false field.
+        Previously exempted via _VGATE_FLOW_FALSE_VALUES; now correctly a violation."""
+        checker = _load_checker_module()
+        spec = (
+            "# Specification\n"
+            "## Implementation Stack Profile (Normative)\n"
+            f"- Test automation profile: {self._PLAYWRIGHT}\n"
+            "- Has user-facing flow: no\n"
+            "- E2E gate classification: automated\n"
+        )
+        violations = checker._check_vgate_classification(spec, self.POST_GATE)
+        self.assertGreater(len(violations), 0, "'no' is non-canonical and must produce a violation")
+        self.assertTrue(
+            any("non-canonical value" in v.message for v in violations),
+            "Violation message must mention 'non-canonical value'",
+        )
+
+    def test_non_canonical_falsy_alias_off_produces_violation(self) -> None:
+        """Codex P4: 'off' is a boolean synonym but non-canonical for this strict true/false field."""
+        checker = _load_checker_module()
+        spec = (
+            "# Specification\n"
+            "## Implementation Stack Profile (Normative)\n"
+            f"- Test automation profile: {self._PLAYWRIGHT}\n"
+            "- Has user-facing flow: off\n"
+            "- E2E gate classification: automated\n"
+        )
+        violations = checker._check_vgate_classification(spec, self.POST_GATE)
+        self.assertGreater(len(violations), 0, "'off' is non-canonical and must produce a violation")
+
+
 if __name__ == "__main__":
     unittest.main()

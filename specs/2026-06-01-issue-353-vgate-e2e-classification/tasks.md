@@ -1,0 +1,74 @@
+# Tasks
+
+## Gate Checks (Required Before Implementation)
+- [x] G-001 Confirm `SPEC_READY=true` in `spec.md`
+- [x] G-002 Confirm open questions and unresolved alternatives are `0`
+- [x] G-003 Confirm required sign-offs are approved
+- [x] G-004 Confirm `Applicable Guardrail Controls` section includes applicable `SDD-C-###` IDs
+- [x] G-005 Confirm `Implementation Stack Profile` section is fully populated
+
+## Implementation
+
+### Slice 1 — RED: write failing tests
+- [x] T-001 Write `TestVgateClassification` test class in `tests/infra/test_sdd_asset_checker.py` covering T-101..T-109 and T-114 (all failing)
+- [x] T-002 Write `TestVgateTemplateFields` test class in `tests/blueprint/test_quality_gating.py` covering T-110..T-113 (all failing)
+
+### Slice 2 — GREEN: core check implementation
+- [x] T-003 Add `_VGATE_GATE_SINCE` constant to `check_sdd_assets.py`
+- [x] T-004 Implement `_check_vgate_classification(spec_text, slug)` pure function in `check_sdd_assets.py`
+- [x] T-005 Wire `_check_vgate_classification` into `_validate_work_item_specs`; emit `sdd_vgate_manual_e2e_violation` metric to stderr on violation
+
+### Slice 3 — GREEN: template seeding
+- [x] T-006 Update `.spec-kit/templates/blueprint/spec.md` Implementation Stack Profile to seed `has-user-facing-flow` and `E2E gate classification` fields with inline HTML-comment definitions (form/wizard/multi-step; allowed values: `automated` | `manual`)
+- [x] T-007 Update `.spec-kit/templates/consumer/spec.md` Implementation Stack Profile to seed the same two fields with the same inline definition comments
+- [x] T-008 Run `uv run python3 scripts/bin/sdd/sync_consumer_init_sdd_assets.py` to mirror consumer template into init tmpl
+
+### Slice 4 — GREEN: AGENTS.md rule
+- [x] T-009 Add mandatory Playwright E2E artifact rule to AGENTS.md testing and quality section, keyed on `has-user-facing-flow: true`, including all three MUST clauses verbatim (full user journey, rendered DOM/screen state, wired to automated quality gate / CI) and the user-facing-flow definition (form, wizard, multi-step interaction) (FR-007)
+- [x] T-009b Update `docs/blueprint/governance/spec_driven_development.md` to document the V-gate classification fields, trigger conditions, and step07-triage escalation responsibility
+- [x] T-009c Update `scripts/templates/blueprint/bootstrap/docs/blueprint/governance/spec_driven_development.md` to mirror the governance update (bootstrap-rendered copy)
+- [x] T-009d Update `.agents/skills/blueprint-sdd-step05-implement/SKILL.md` to reference the V-gate enforcement so authors see the rule at implementation time
+- [x] T-009e Update `.agents/skills/blueprint-sdd-step01-intake/SKILL.md` to add V-gate inference step in Discover (signal list, frontend-stack cross-check) and V-gate cross-check in Specify; add mandatory V-gate inference result line to Required Report Format
+
+### Slice 5 — VERIFY
+- [x] T-010 Run `uv run python3 -m pytest tests/infra/test_sdd_asset_checker.py tests/blueprint/test_quality_gating.py -v`; confirm all T-101..T-114 pass
+- [x] T-011 Run `make quality-sdd-check`; confirm zero new violations on full catalog
+- [x] T-012 Capture test output and `quality-sdd-check` result as evidence in `traceability.md`
+
+## Test Automation (AC coverage)
+- [x] T-101 AC-001 — V-gate check rejects `manual` when `has-user-facing-flow: true` + playwright profile
+- [x] T-102 AC-002 — V-gate check passes for `automated` when `has-user-facing-flow: true` + playwright profile
+- [x] T-106 AC-006 — pre-gate slugs (date < `_VGATE_GATE_SINCE`) are exempt
+- [x] T-107 AC-007 — non-playwright profiles are exempt regardless of `has-user-facing-flow`
+- [x] T-108 AC-008 — `has-user-facing-flow: false` is exempt regardless of `E2E gate classification`
+- [x] T-109 AC-009 — metric `sdd_vgate_manual_e2e_violation` appears in stderr on violation
+- [x] T-110 AC-010 — blueprint spec template seeds both new fields with inline definition comments
+- [x] T-111 AC-011 — consumer spec template seeds both new fields with inline definition comments
+- [x] T-112 AC-012 — `AGENTS.md` contains `has-user-facing-flow`, the full-user-journey clause, the rendered-state clause, and the automated-quality-gate/CI clause in the testing section
+- [x] T-113 AC-013 — `.agents/skills/blueprint-sdd-step01-intake/SKILL.md` contains `has-user-facing-flow` in Discover phase, at least three signal keywords, `frontend-stack` cross-check in Specify phase, and `V-gate inference result` in Required Report Format
+- [x] T-114 AC-014 — `_check_vgate_classification` returns at least one violation for a post-gate spec with playwright profile where `has-user-facing-flow` field is absent; same for absent `E2E gate classification`
+
+## Accessibility Testing
+- [x] T-A01 NFR-A11Y-001: N/A — no UI introduced by this work item
+
+## Validation and Release Readiness
+- [x] T-201 Run `uv run python3 -m pytest tests/` and confirm full suite passes
+- [x] T-202 Attach evidence to `traceability.md`
+- [x] T-203 Confirm no stale TODOs / dead code / drift in `check_sdd_assets.py`
+- [x] T-204 Run `make docs-build` and `make docs-smoke` — blocked by pre-existing pnpm version mismatch (pnpm@11.4.0 active vs @10.32.1 required); independent of this work item; documented in traceability.md
+- [x] T-205 Run `make quality-hardening-review`
+
+## Publish
+- [x] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
+- [x] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
+- [x] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
+
+## App Onboarding Minimum Targets (Normative)
+<!-- App onboarding impact: no-impact per plan.md. Literal make-target tokens preserved
+     below so the SDD asset checker recognizes the section; no new make-target wiring is
+     produced by this work item. -->
+- [x] A-001 `apps-bootstrap` and `apps-smoke` are implemented and verified for the affected app scope (no-impact)
+- [x] A-002 Backend app lanes (`backend-test-unit`, `backend-test-integration`, `backend-test-contracts`, `backend-test-e2e`) are available (no-impact)
+- [x] A-003 Frontend app lanes (`touchpoints-test-unit`, `touchpoints-test-integration`, `touchpoints-test-contracts`, `touchpoints-test-e2e`) are available (no-impact)
+- [x] A-004 Aggregate gates (`test-unit-all`, `test-integration-all`, `test-contracts-all`, `test-e2e-all-local`) are available (no-impact)
+- [x] A-005 Port-forward operational wrappers (`infra-port-forward-start`, `infra-port-forward-stop`, `infra-port-forward-cleanup`) are available (no-impact)

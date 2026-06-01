@@ -52,6 +52,20 @@ is_transient_registry_error() {
   [[ "$lowered" == *"tls handshake timeout"* ]] && return 0
   [[ "$lowered" == *"too many requests"* ]] && return 0
   [[ "$lowered" == *"429"* ]] && return 0
+  # Docker emits "EOF" or "unexpected EOF" when the registry closes the TCP/TLS
+  # connection without sending an HTTP response (silent drop, short outage, or
+  # rate-limiting at the load-balancer layer that does not return 429).
+  # Observed: quay.io image manifest inspect returns EOF after ~30–40 s during
+  # partial outages, causing the check to be classified as "missing" (failure)
+  # instead of "unavailable" (warning).  Must be checked AFTER 5xx patterns so
+  # that a genuine "502 Bad Gateway" body containing "eof" is still caught by
+  # the more-specific 5xx match above.
+  # Use *"eof"* (no space/colon prefix) to cover all variants: bare "EOF", the
+  # Go http-client form "Get \"URL\": EOF", and "unexpected EOF" — the narrower
+  # *" eof"* pattern misses a bare response of exactly "EOF".
+  [[ "$lowered" == *"eof"* ]] && return 0
+  # TCP-level connection timeout (distinct from "connection reset by peer").
+  [[ "$lowered" == *"connection timed out"* ]] && return 0
   return 1
 }
 

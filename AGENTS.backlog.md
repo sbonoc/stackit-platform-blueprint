@@ -47,6 +47,8 @@ To introduce a new tag, append a row here in the same commit that uses it.
 
 - [x] (done) Issue #312 — Observability CSI hardening: replace `blueprint-observability-auth` K8s Secret with Secrets Store CSI Driver delivery from STACKIT Secrets Manager. Closed by PR #329. — https://github.com/sbonoc/stackit-platform-blueprint/issues/312
 
+- [x] (done) P1 (Quality tooling): Issue #353 — V-gate E2E classification enforcement: `_check_vgate_classification` in `check_sdd_assets.py`; two new spec fields (`has-user-facing-flow`, `E2E gate classification`); step01 shift-left inference; AGENTS.md Playwright three-MUSTs rule. Closed by PR #357. — https://github.com/sbonoc/stackit-platform-blueprint/pull/357
+
 ### P2 — Consumer upgrade flow
 
 - [ ] Issue #167 — dry-run mode (`BLUEPRINT_UPGRADE_DRY_RUN=true`): simulate all file mutations and output a unified diff without touching the working tree; same warnings and conflicts as a real apply.
@@ -225,6 +227,15 @@ Surface automatically when the named scope is next touched. Do not promote to ac
 - [ ] (parked) proposal(issue-248-observability-module): `blueprint-template-smoke` declare -A fix — `prune_codex_skills.sh` uses bash associative arrays (`declare -A`) incompatible with macOS `/bin/sh`; pre-existing defect on main before PR #308
       trigger: on-scope: quality
       rationale: pre-existing defect confirmed on main before this branch; repo-wide cleanup item; no consumer impact until blueprint-template-smoke is a blocking gate
+- [ ] (parked) proposal(issue-353-vgate-e2e-classification): Playwright test existence check — machine-verify at least one playwright test file exists on disk when has-user-facing-flow: true
+      trigger: on-scope: quality
+      rationale: naming convention per repo is not standardized; false-positive risk for repos creating tests in a separate work item; classification-field enforcement is the primary gate
+- [ ] (parked) proposal(issue-353-vgate-e2e-classification): Cross-repo V-gate classification audit report — list all specs with their V-gate classification status across consumer repos
+      trigger: on-scope: quality
+      rationale: requires aggregation infrastructure; belongs in a dedicated observability work item
+- [ ] (parked) proposal(issue-353-vgate-e2e-classification): Frontend-stack-mismatch heuristic warning — non-blocking stderr warning when frontend-stack-profile is non-none and has-user-facing-flow: false
+      trigger: on-scope: quality
+      rationale: warning UX surface needs separate design pass; primary risk addressed by step01 inference and template signal-list comment
 
 ### on-scope: a11y
 

@@ -199,6 +199,14 @@ dependencies. These are mandatory defaults — deviate only with documented rati
     path. When the critical path crosses route boundaries OR depends on auth/session state
     OR spans more than one mounted root component, an additional Playwright cross-page E2E
     test MUST be added. The test MUST be part of the automated quality gate.
+20. V-gate classification enforcement: when `spec.md` sets `has-user-facing-flow: true`,
+    `E2E gate classification` MUST be `automated` in the same spec. The `make quality-sdd-check`
+    gate enforces this; a failing check blocks the PR. Do NOT lower `has-user-facing-flow` to
+    `false` to avoid the gate if the work item genuinely introduces or modifies a user-facing flow —
+    that misclassifies the spec and defeats the purpose of the gate. Write the automated Playwright
+    tests as Guardrail 19 requires. `has-user-facing-flow: false` is correct only when the work
+    item's scope truly does not introduce or modify any user-facing flow (for example, a pure
+    backend or infrastructure change).
 
 ## Per-profile union-type and SSOT-constant idioms
 
