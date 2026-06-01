@@ -69,6 +69,10 @@ _C7_STEP_SKILLS: tuple[tuple[str, str], ...] = (
 # of the commit that introduced the gate; items predating it are grandfathered).
 _SPEC_COMPLETE_GATE_SINCE: str = "2026-06-01"
 
+# FR-004 (issue-353): V-gate classification check applies only to work items whose slug date
+# prefix is >= this value (merge date of the PR that introduced the V-gate check).
+_VGATE_GATE_SINCE: str = "2026-06-01"
+
 _BYPASS_ALLOWED_VALUES: frozenset[str] = frozenset(
     {"bug-fix", "upgrade", "refactor", "chore", "authorized-deviation"}
 )
@@ -527,6 +531,71 @@ def _check_ac_format(work_item_dir: Path, repo_root: Path) -> list[Violation]:
     except OSError:
         pass
     return violations
+
+
+def _check_vgate_classification(spec_text: str, slug: str) -> list[Violation]:
+    """FR-002 (issue-353): reject non-automated E2E classification for user-facing playwright specs.
+
+    Forward-only: skips work items whose slug date prefix < _VGATE_GATE_SINCE (FR-004).
+    Absent fields on post-gate + playwright specs are treated as violations (NFR-OPS-001, AC-014).
+    Emits sdd_vgate_manual_e2e_violation metric to stderr on any violation (FR-008, AC-009).
+    """
+    date_prefix = slug[:10]
+    if not re.match(r"^\d{4}-\d{2}-\d{2}$", date_prefix) or date_prefix < _VGATE_GATE_SINCE:
+        return []
+
+    kv = _parse_bullet_kv(spec_text)
+    profile = kv.get("test automation profile", "")
+    if "playwright" not in profile.lower():
+        return []
+
+    spec_rel = f"specs/{slug}/spec.md"
+
+    has_flow_raw = kv.get("has user-facing flow")
+    if has_flow_raw is None:
+        print(
+            f"[METRIC] name=sdd_vgate_manual_e2e_violation value=1 work_item={slug}",
+            file=sys.stderr,
+        )
+        return [Violation(
+            path=spec_rel,
+            message=(
+                "V-gate violation — has-user-facing-flow field is absent for a post-gate spec "
+                "with playwright profile. Expected: 'true' or 'false'."
+            ),
+        )]
+
+    if not _is_truthy(has_flow_raw):
+        return []
+
+    e2e_class_raw = kv.get("e2e gate classification")
+    if e2e_class_raw is None:
+        print(
+            f"[METRIC] name=sdd_vgate_manual_e2e_violation value=1 work_item={slug}",
+            file=sys.stderr,
+        )
+        return [Violation(
+            path=spec_rel,
+            message=(
+                "V-gate violation — has-user-facing-flow=true + profile contains 'playwright', "
+                "but 'E2E gate classification' field is absent. Expected: 'automated'."
+            ),
+        )]
+
+    if e2e_class_raw.strip().lower() == "automated":
+        return []
+
+    print(
+        f"[METRIC] name=sdd_vgate_manual_e2e_violation value=1 work_item={slug}",
+        file=sys.stderr,
+    )
+    return [Violation(
+        path=spec_rel,
+        message=(
+            f"V-gate violation — has-user-facing-flow=true + profile contains 'playwright', "
+            f"but 'E2E gate classification: {e2e_class_raw}'. Expected: 'automated'."
+        ),
+    )]
 
 
 def _validate_work_item_specs(
@@ -1618,6 +1687,16 @@ def _validate_work_item_specs(
             _check_step03_complete_event(work_item_dir, _bypass_exception_type, repo_root)
         )
         violations.extend(_check_ac_format(work_item_dir, repo_root))
+
+        _spec_path_vgate = work_item_dir / "spec.md"
+        if _spec_path_vgate.is_file():
+            try:
+                _spec_text_vgate = _spec_path_vgate.read_text(
+                    encoding="utf-8", errors="surrogateescape"
+                )
+                violations.extend(_check_vgate_classification(_spec_text_vgate, work_item_dir.name))
+            except OSError:
+                pass
 
     return violations
 

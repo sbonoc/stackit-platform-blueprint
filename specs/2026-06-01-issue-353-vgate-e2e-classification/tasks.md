@@ -14,9 +14,9 @@
 - [ ] T-002 Write `TestVgateTemplateFields` test class in `tests/blueprint/test_quality_gating.py` covering T-110..T-113 (all failing)
 
 ### Slice 2 — GREEN: core check implementation
-- [ ] T-003 Add `_VGATE_GATE_SINCE` constant to `check_sdd_assets.py`
-- [ ] T-004 Implement `_check_vgate_classification(spec_text, slug)` pure function in `check_sdd_assets.py`
-- [ ] T-005 Wire `_check_vgate_classification` into `_validate_work_item_specs`; emit `sdd_vgate_manual_e2e_violation` metric to stderr on violation
+- [x] T-003 Add `_VGATE_GATE_SINCE` constant to `check_sdd_assets.py`
+- [x] T-004 Implement `_check_vgate_classification(spec_text, slug)` pure function in `check_sdd_assets.py`
+- [x] T-005 Wire `_check_vgate_classification` into `_validate_work_item_specs`; emit `sdd_vgate_manual_e2e_violation` metric to stderr on violation
 
 ### Slice 3 — GREEN: template seeding
 - [ ] T-006 Update `.spec-kit/templates/blueprint/spec.md` Implementation Stack Profile to seed `has-user-facing-flow` and `E2E gate classification` fields with inline HTML-comment definitions (form/wizard/multi-step; allowed values: `automated` | `manual`)
