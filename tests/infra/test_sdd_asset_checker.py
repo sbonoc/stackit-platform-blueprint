@@ -1245,7 +1245,6 @@ class TestAcFormatScanner(unittest.TestCase):
 
     def _make_spec_with_acs(self, repo_root: Path, ac_lines: list[str]) -> None:
         """Create a minimal SPEC_READY=true work item whose AC section is replaced by ac_lines."""
-        gate_slug = TestStep03CompleteEventGate.SLUG
         tmp = TestStep03CompleteEventGate()
         tmp.SLUG = self.SLUG  # type: ignore[attr-defined]
         work_item = tmp._make_spec_ready_work_item(repo_root)
@@ -1261,7 +1260,6 @@ class TestAcFormatScanner(unittest.TestCase):
         # Provide a C7 spec-complete event so the step03 gate doesn't block
         c7_dir = repo_root / "artifacts" / "c7"
         c7_dir.mkdir(parents=True, exist_ok=True)
-        import json as _json
         event = {
             "event_id": "ac-format-fixture",
             "ticket_id": "1",
@@ -1275,7 +1273,7 @@ class TestAcFormatScanner(unittest.TestCase):
             "emitter": "local-cli",
             "execution_mode": "human-assisted",
         }
-        (c7_dir / f"{self.SLUG}.jsonl").write_text(_json.dumps(event) + "\n", encoding="utf-8")
+        (c7_dir / f"{self.SLUG}.jsonl").write_text(json.dumps(event) + "\n", encoding="utf-8")
 
     def test_canonical_acs_pass(self) -> None:
         """AC-012(a): valid ACs with MUST assert produce no violation."""
@@ -1350,8 +1348,8 @@ class TestAcFormatScanner(unittest.TestCase):
                 "- AC-001 [gate fixture] — verified by T-001, which MUST assert the checker exits 0.",
                 "- AC-001 covers the authentication flow.",  # label-only, but pre-gate
             ), encoding="utf-8")
-            # Provide spec-complete event for the pre-gate slug (not gated, but needed to pass step03 check)
-            # Since pre-gate slug < gate date, step03 gate also doesn't fire — no event needed
+            # Pre-gate slug < _SPEC_COMPLETE_GATE_SINCE: both the step03 gate and the AC format gate
+            # are skipped by the forward-only guard — no spec-complete C7 event required.
             contract_raw = _contract_raw()
             _, catalog_ids = checker._load_control_catalog(contract_raw=contract_raw, repo_root=repo_root)
             violations = checker._validate_work_item_specs(contract_raw, repo_root, catalog_ids)

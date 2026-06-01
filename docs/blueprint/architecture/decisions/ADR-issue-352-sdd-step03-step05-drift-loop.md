@@ -36,7 +36,7 @@ The architectural challenge is to add machine enforcement for change 1 (mandator
 
 ### D-1 — Step03 promoted to a mandatory gate via the C7 audit trail
 
-AGENTS.md `§ Mandatory Workflow` adds a normative clause classifying `blueprint-sdd-step03-spec-complete` as a mandatory gate for every work item whose `SPEC_READY_EXCEPTION` is one of `{none, bug-fix, refactor, chore, authorized-deviation}`. `make quality-sdd-check` MUST reject any work item with `SPEC_READY: true` when `artifacts/c7/<slug>.jsonl` does NOT contain a `spec-complete` event whose `ticket_id` matches the work item.
+AGENTS.md `§ Mandatory Workflow` adds a normative clause classifying `blueprint-sdd-step03-spec-complete` as a mandatory gate for every work item following the full SDD lifecycle (`SPEC_READY_EXCEPTION` absent or `none`, no active bypass exception). `make quality-sdd-check` MUST reject any work item with `SPEC_READY: true` when `artifacts/c7/<slug>.jsonl` does NOT contain a `spec-complete` event. Items on the authorized bypass track (`SPEC_READY_EXCEPTION` set to a bypass value **and** valid `authorized-by`) are explicitly exempt — they bypass the full lifecycle by design and do not emit spec-complete events.
 
 **Two exempt tracks** are documented in AGENTS.md and honoured by the check:
 

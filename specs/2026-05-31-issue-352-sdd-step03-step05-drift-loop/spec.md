@@ -45,9 +45,9 @@
 
 ### Functional Requirements (Normative)
 
-- FR-001 — Step03 promoted to mandatory gate. AGENTS.md `§ Mandatory Workflow` MUST classify `blueprint-sdd-step03-spec-complete` as a mandatory gate (not an "accelerator") for every work item whose `SPEC_READY_EXCEPTION` is one of `{none, bug-fix, refactor, chore, authorized-deviation}`. Skipping step03 for these tracks MUST be a documented governance violation.
+- FR-001 — Step03 promoted to mandatory gate. AGENTS.md `§ Mandatory Workflow` MUST classify `blueprint-sdd-step03-spec-complete` as a mandatory gate (not an "accelerator") for every work item following the full SDD lifecycle (i.e., `SPEC_READY_EXCEPTION` absent or `none`, no active bypass exception). Skipping step03 for those items MUST be a documented governance violation. Items on the authorized bypass track (`SPEC_READY_EXCEPTION` set to a bypass value **and** valid `authorized-by`) are explicitly exempt from this machine gate — they bypass the full lifecycle by design.
 
-- FR-002 — Machine-enforced step03 detection via C7 audit trail. `make quality-sdd-check` MUST reject a work item that is staged for implementation (i.e., `SPEC_READY: true`) when `artifacts/c7/<work-item-slug>.jsonl` does NOT contain at least one event with `phase: "spec-complete"` for the work item's ticket id. The check MUST produce a deterministic error message naming the work-item slug and the missing phase.
+- FR-002 — Machine-enforced step03 detection via C7 audit trail. `make quality-sdd-check` MUST reject a work item that is staged for implementation (i.e., `SPEC_READY: true`, no active bypass exception) when `artifacts/c7/<work-item-slug>.jsonl` does NOT contain at least one event with `phase: "spec-complete"`. The check MUST produce a deterministic error message naming the work-item slug and the missing phase.
 
 - FR-003 — Exempt tracks. `make quality-sdd-check` MUST NOT enforce the FR-002 check when EXACTLY ONE OF the following holds: (a) `SPEC_READY_EXCEPTION: upgrade` (pipeline-driven, no human sign-off model); (b) no `specs/` directory exists for the work item (chore-with-no-specs passive-pass case). The `c7-emission-opted-out` event written by the opt-out audit (see ADR-issue-347) MUST NOT satisfy FR-002 — only a true `spec-complete` event counts.
 
@@ -77,7 +77,7 @@
 
 - NFR-SEC-001 — N/A — governance change with no runtime authn/authz/secret-handling impact. Rationale: changes are scoped to AGENTS.md text, SKILL.md runbooks, and `scripts/bin/quality/check_sdd_assets.py` validation logic; no new secrets, capabilities, or external interfaces are introduced.
 
-- NFR-OBS-001 — The FR-002 check failure path MUST emit a deterministic METRIC line on stdout in the format `[METRIC] name=sdd_step03_missing_spec_complete value=1 work_item=<slug>` so that CI job logs provide an audit trail consistent with the existing `sdd_exception_gate_total` metric (AGENTS.md § Audit metric).
+- NFR-OBS-001 — The FR-002 check failure path MUST emit a deterministic METRIC line on stderr in the format `[METRIC] name=sdd_step03_missing_spec_complete value=1 work_item=<slug>` so that CI job logs provide an audit trail consistent with the existing `sdd_exception_gate_total` metric (AGENTS.md § Audit metric).
 
 - NFR-REL-001 — A C7 helper failure (sink unwritable, disk full, malformed input) MUST NOT block FR-002 evaluation. When the JSONL file does not exist or is unparseable, the gate MUST report a deterministic error pointing to the JSONL path rather than crashing. Rollback is by reverting this work item's commits — no migration artefact is written that would persist outside the spec directory.
 
