@@ -97,6 +97,14 @@ repos:
         pass_filenames: false
         stages: [pre-push]
         always_run: true
+      - id: touchpoints-test-unit-pre-push
+        name: touchpoints unit tests (pre-push)
+        language: system
+        entry: make touchpoints-test-unit
+        pass_filenames: false
+        stages: [pre-push]
+        files: ^apps/touchpoints/.*\.(ts|vue|tsx)$
+        always_run: false
       - id: quality-consumer-pre-push
         name: consumer pre-push quality gate
         language: system
