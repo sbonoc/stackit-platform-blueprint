@@ -31,9 +31,9 @@
 - [x] T-009e Update `.agents/skills/blueprint-sdd-step01-intake/SKILL.md` to add V-gate inference step in Discover (signal list, frontend-stack cross-check) and V-gate cross-check in Specify; add mandatory V-gate inference result line to Required Report Format
 
 ### Slice 5 — VERIFY
-- [ ] T-010 Run `uv run python3 -m pytest tests/infra/test_sdd_asset_checker.py tests/blueprint/test_quality_gating.py -v`; confirm all T-101..T-114 pass
-- [ ] T-011 Run `make quality-sdd-check`; confirm zero new violations on full catalog
-- [ ] T-012 Capture test output and `quality-sdd-check` result as evidence in `traceability.md`
+- [x] T-010 Run `uv run python3 -m pytest tests/infra/test_sdd_asset_checker.py tests/blueprint/test_quality_gating.py -v`; confirm all T-101..T-114 pass
+- [x] T-011 Run `make quality-sdd-check`; confirm zero new violations on full catalog
+- [x] T-012 Capture test output and `quality-sdd-check` result as evidence in `traceability.md`
 
 ## Test Automation (AC coverage)
 - [ ] T-101 AC-001 — V-gate check rejects `manual` when `has-user-facing-flow: true` + playwright profile
