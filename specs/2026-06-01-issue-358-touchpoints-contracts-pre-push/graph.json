@@ -1,0 +1,93 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-06-01-issue-358-touchpoints-contracts-pre-push",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "Add touchpoints-test-contracts-pre-push hook to template with all required fields"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "Hook must be a no-op when no matching files are staged (always_run: false)"
+    },
+    {
+      "id": "FR-003",
+      "type": "requirement",
+      "summary": "Consumers gain pre-push contract gate automatically after blueprint template upgrade"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "N/A — hook invokes local make target only; no secret or credential surface introduced"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "N/A — hook output is terminal-only; no log/metric/trace infrastructure required"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "Hook exits 0 when contracts directory absent or no matching files staged"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "Blueprint upgrade documentation includes backport note for consumers with Pact contract tests"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "Hook present in template with all required field values verified by unit test"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "Hook does not run on commit-stage; always_run: false and stages: [pre-push] confirmed"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "make quality-validate-bootstrap-template-drift exits 0 after hook addition"
+    }
+  ],
+  "edges": [
+    {
+      "from": "FR-001",
+      "to": "AC-001",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-002",
+      "to": "AC-002",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-003",
+      "to": "AC-003",
+      "relation": "validated_by"
+    },
+    {
+      "from": "NFR-REL-001",
+      "to": "AC-002",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-OPS-001",
+      "to": "AC-003",
+      "relation": "constrains"
+    },
+    {
+      "from": "FR-001",
+      "to": "FR-002",
+      "relation": "enables"
+    },
+    {
+      "from": "FR-001",
+      "to": "FR-003",
+      "relation": "enables"
+    }
+  ]
+}

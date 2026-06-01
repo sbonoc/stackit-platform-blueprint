@@ -1,0 +1,42 @@
+# Tasks
+
+## Gate Checks (Required Before Implementation)
+- [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`
+- [ ] G-002 Confirm open questions and unresolved alternatives are `0`
+- [ ] G-003 Confirm required sign-offs are approved
+- [ ] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
+- [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
+
+## Implementation
+- [ ] T-001 Add `touchpoints-test-contracts-pre-push` hook stanza to `scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml` (FR-001)
+- [ ] T-002 Verify `make touchpoints-test-contracts` exits 0 when `tests/contracts/` directory is absent in a consumer repo; if not, add an absent-directory guard to the make target (NFR-REL-001, Risk 1)
+- [ ] T-003 Add backport note to blueprint upgrade documentation describing the new hook, its `files` trigger, and the make target (NFR-OPS-001)
+
+## Test Automation
+- [ ] T-101 Write `tests/blueprint/test_touchpoints_contracts_hook.py` asserting hook `touchpoints-test-contracts-pre-push` is present in the template YAML with all required field values (`entry`, `language`, `pass_filenames`, `always_run`, `stages`, `files`) — must be written RED before Slice 2 template edit (AC-001)
+- [ ] T-102 Assert in the same test file that the hook sets `always_run: false` and `stages: [pre-push]` only — confirming commit-time flows are not blocked (AC-002)
+- [ ] T-103 Assert `make quality-validate-bootstrap-template-drift` exits 0 after template modification — capture exit code as evidence in traceability (AC-003)
+- [ ] T-104 Translate any reproducible pre-PR finding from T-002 (absent-directory exit-code check) into a failing automated test first, then fix; document any deterministic exception in publish artifacts
+
+## Accessibility Testing (Normative — mark N/A with rationale for non-UI specs)
+- [ ] T-A01 N/A — NFR-A11Y-001 is declared N/A in spec.md (template modification only, no UI)
+
+## Validation and Release Readiness
+- [ ] T-201 Run `make quality-sdd-check` — confirm all SDD gates pass; capture result in traceability
+- [ ] T-202 Run `make quality-validate-bootstrap-template-drift` — capture pass/fail as T-103 evidence in traceability
+- [ ] T-203 Confirm no stale scaffold tokens, dead code, or drift in modified files
+- [ ] T-204 Run documentation validation (`make docs-build` and `make docs-smoke`)
+- [ ] T-205 Run hardening review validation bundle (`make quality-hardening-review`)
+
+## Publish
+- [ ] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
+- [ ] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
+- [ ] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
+
+## App Onboarding Minimum Targets (Normative)
+- App onboarding impact: no-impact — this work item adds a pre-push hook that invokes `touchpoints-test-contracts`, already in the minimum targets list; no new make target is introduced.
+- [ ] A-001 `apps-bootstrap` and `apps-smoke` are implemented and verified for the affected app scope
+- [ ] A-002 Backend app lanes (`backend-test-unit`, `backend-test-integration`, `backend-test-contracts`, `backend-test-e2e`) are available
+- [ ] A-003 Frontend app lanes (`touchpoints-test-unit`, `touchpoints-test-integration`, `touchpoints-test-contracts`, `touchpoints-test-e2e`) are available
+- [ ] A-004 Aggregate gates (`test-unit-all`, `test-integration-all`, `test-contracts-all`, `test-e2e-all-local`) are available
+- [ ] A-005 Port-forward operational wrappers (`infra-port-forward-start`, `infra-port-forward-stop`, `infra-port-forward-cleanup`) are available
