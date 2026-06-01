@@ -5,17 +5,17 @@
 - If required inputs are missing, add `BLOCKED_MISSING_INPUTS` in `spec.md` and keep the gate closed.
 
 ## Constitution Gates (Pre-Implementation)
-- Simplicity gate:
+- Simplicity gate: pure function, no I/O or shared state, single responsibility
   - `_check_vgate_classification` is a pure function; no I/O, no state. Single responsibility.
   - Do not introduce abstraction layers beyond what is needed to wire the check into the existing validator pipeline.
-- Anti-abstraction gate:
+- Anti-abstraction gate: reuse `_check_ac_format` pattern (regex line scan), no new helpers or base classes
   - Use the same field-parsing pattern already established in `_check_ac_format` (regex line scan). No new base classes or helpers.
-- Integration-first testing gate:
+- Integration-first testing gate: write all T-101..T-114 in RED state before implementation
   - Write all test cases (T-101..T-114) in RED state before any implementation code is written.
   - Tests use in-memory spec.md text fixtures; no filesystem mocks beyond what the existing test suite uses.
-- Positive-path filter/transform test gate:
+- Positive-path filter/transform test gate: N/A — classification validator, not a filter or transform
   - Not applicable — this check is a classification validator, not a filter or payload-transform function.
-- Finding-to-test translation gate:
+- Finding-to-test translation gate: any pre-PR quality-sdd-check failure must become a test case in T-101..T-112
   - Any pre-PR failure found via `make quality-sdd-check` on real specs MUST be translated into a test case; add to T-101..T-112 range.
 
 ## Delivery Slices
@@ -64,7 +64,7 @@
 - Notes: Tooling-only change to `check_sdd_assets.py` and spec templates. No new make targets added; no app delivery workflow targets affected. All listed targets are pre-existing and unaffected by this work item.
 
 ## Documentation Plan (Document Phase)
-- Blueprint docs updates:
+- Blueprint docs updates: AGENTS.md, governance doc, bootstrap mirror, step01 and step05 SKILL.md (completed)
   - `AGENTS.md` — add mandatory Playwright E2E artifact rule with all three MUSTs verbatim (FR-007).
   - `docs/blueprint/governance/spec_driven_development.md` — add the V-gate classification section describing the two spec fields (`has-user-facing-flow`, `E2E gate classification`), the binary rule (`automated` passes; `manual` is a violation when `has-user-facing-flow: true` + playwright profile), and the step01 shift-left inference mechanism.
   - `scripts/templates/blueprint/bootstrap/docs/blueprint/governance/spec_driven_development.md` — mirror the above (bootstrap-rendered copy for new consumer scaffolds).

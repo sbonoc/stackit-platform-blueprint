@@ -39,12 +39,13 @@ Contract surfaces changed:
 
 ## Key Reviewer Files
 
-- `scripts/bin/quality/check_sdd_assets.py` — core change: `_VGATE_GATE_SINCE`, `_check_vgate_classification`, and wiring in `_validate_work_item_specs`. Review the decision-tree logic and both absent-field violation branches (lines 536–599).
-- `tests/infra/test_sdd_asset_checker.py::TestVgateClassification` — 10 unit tests covering every decision branch including hyphen-form normalization (Gap 1 regression).
+- Primary files to review first:
+  - `scripts/bin/quality/check_sdd_assets.py` — core change: `_VGATE_GATE_SINCE`, `_check_vgate_classification` (HTML-comment stripping, both field-form lookups), and wiring in `_validate_work_item_specs`. Review the decision-tree logic and both absent-field violation branches (lines 536–599).
+  - `tests/infra/test_sdd_asset_checker.py::TestVgateClassification` — 12 unit tests covering every decision branch including hyphen-form normalization and inline HTML comment stripping.
+  - `.agents/skills/blueprint-sdd-step01-intake/SKILL.md` — V-gate inference step in Discover (FR-009); signal list; frontend-stack cross-check in Specify; `V-gate inference result` in Required Report Format.
 - `tests/blueprint/test_quality_gating.py::TestVgateTemplateFields` — 14 tests covering template seeding, AGENTS.md rule, step01 SKILL.md.
 - `.spec-kit/templates/blueprint/spec.md` and `.spec-kit/templates/consumer/spec.md` — two new fields added to Implementation Stack Profile with signal-list and gate-violation inline comments.
 - `AGENTS.md` lines 438–447 — mandatory Playwright E2E artifact rule (three MUST clauses).
-- `.agents/skills/blueprint-sdd-step01-intake/SKILL.md` — V-gate inference step in Discover (FR-009); signal list; frontend-stack cross-check in Specify; `V-gate inference result` in Required Report Format.
 
 ## Validation Evidence
 
@@ -68,7 +69,7 @@ Full test suite (2026-06-01): 1902 passed; 12 pre-existing environment-dependent
 
 ## Risk and Rollback
 
-- Main risks:
+- Main risks: R-1 wrong gate-since date (low, guarded by T-106); R-2 author bypasses via false override (residual, mitigated by step01 inference + template signal list); R-3 hyphen-form bypass (resolved in Gap-1 commit)
   - R-1 (Low): `_VGATE_GATE_SINCE` set incorrectly could retroactively flag existing specs. Mitigation: constant is "2026-06-01" (the merge date); AC-006/T-106 covers the guard regression.
   - R-2 (Residual): Author silently sets `has-user-facing-flow: false` for a UI-bearing work item, bypassing all enforcement. Mitigations: step01 intake inference (FR-009) pre-sets `true` from issue signals; signal-list template comment (FR-006); AGENTS.md three-MUSTs rule (FR-007); frontend-stack cross-check (FR-009). Residual risk is low; deferred frontend-stack-mismatch warning is the longer-term machine-side safety net.
   - R-3 (Resolved): Hyphen-form field names bypass the gate — fixed in Gap 1 audit commit `7ed22fb5`.

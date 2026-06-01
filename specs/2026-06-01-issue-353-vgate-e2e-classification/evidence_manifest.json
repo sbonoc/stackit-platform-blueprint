@@ -1,7 +1,58 @@
 {
   "manifest_version": 1,
-  "work_item": "<YYYY-MM-DD>-<work-item-slug>",
+  "work_item": "specs/2026-06-01-issue-353-vgate-e2e-classification",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "",
-  "files": []
+  "generated_at_utc": "2026-06-01T17:45:47Z",
+  "files": [
+    {
+      "path": "specs/2026-06-01-issue-353-vgate-e2e-classification/architecture.md",
+      "sha256": "60e0a0896bddb7f283ceaf7ef8a6f59b10a0beefa3b9d49a7d45420d1aebcae8",
+      "bytes": 9740
+    },
+    {
+      "path": "specs/2026-06-01-issue-353-vgate-e2e-classification/context_pack.md",
+      "sha256": "693a85af51603383011abdee8ace8b2e9b50615abaf0c74dc44be1ae377a8e94",
+      "bytes": 881
+    },
+    {
+      "path": "specs/2026-06-01-issue-353-vgate-e2e-classification/evidence_manifest.json",
+      "sha256": "5ce58f603a3296a700453f22f1d0a9d25639151f795be77081d290b08b1d61de",
+      "bytes": 2206
+    },
+    {
+      "path": "specs/2026-06-01-issue-353-vgate-e2e-classification/graph.json",
+      "sha256": "35f1e0607eca6c8d5dfa7acd88f1db25a78242289cfba6d556a385dee3e99245",
+      "bytes": 4311
+    },
+    {
+      "path": "specs/2026-06-01-issue-353-vgate-e2e-classification/hardening_review.md",
+      "sha256": "d212fd55bd85a038a377ccdcc484cd8dbe7965e94a7cea03530a956e911f04f4",
+      "bytes": 6239
+    },
+    {
+      "path": "specs/2026-06-01-issue-353-vgate-e2e-classification/plan.md",
+      "sha256": "817b46a80a4b8ebc16f9b3e42075982137a1e1a0a979eccf4d3e2c7560bcb678",
+      "bytes": 8784
+    },
+    {
+      "path": "specs/2026-06-01-issue-353-vgate-e2e-classification/pr_context.md",
+      "sha256": "ff06f49b429cb2c80b448206ab489c1f40298b1b01b5893e25e77afee9beb0fc",
+      "bytes": 8117
+    },
+    {
+      "path": "specs/2026-06-01-issue-353-vgate-e2e-classification/spec.md",
+      "sha256": "9a42414804cf717cd55f17a220425bdcd52157a40d95d97b2c3f795310258fba",
+      "bytes": 21184
+    },
+    {
+      "path": "specs/2026-06-01-issue-353-vgate-e2e-classification/tasks.md",
+      "sha256": "3a2830bc0732c0a5c95e3a654cf5c4b9d374e5cd95c47ea1985a41904e6e8b43",
+      "bytes": 6663
+    },
+    {
+      "path": "specs/2026-06-01-issue-353-vgate-e2e-classification/traceability.md",
+      "sha256": "efddd355d8f1d076fd6cb2803406563094e8b6316ac85ecb6bb1815deef1b2df",
+      "bytes": 7705
+    }
+  ]
 }

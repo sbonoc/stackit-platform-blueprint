@@ -5,7 +5,7 @@
 | Requirement ID | Control IDs | WCAG SC | Design Element | Implementation Path(s) | Test Evidence | Documentation Evidence | Operational Evidence |
 |---|---|---|---|---|---|---|---|
 | FR-001 | SDD-C-006 | — | Two new Implementation Stack Profile fields in spec.md (`has-user-facing-flow`, `E2E gate classification`) | `.spec-kit/templates/blueprint/spec.md`, `.spec-kit/templates/consumer/spec.md` | T-110, T-111 | FR-001 text in spec.md | — |
-| FR-002 | SDD-C-016, SDD-C-024 | — | `_check_vgate_classification` function | `scripts/bin/quality/check_sdd_assets.py` | T-101, T-102 | architecture.md flowchart | `make quality-sdd-check` output |
+| FR-002 | SDD-C-016, SDD-C-024 | — | `_check_vgate_classification` function; `_parse_bullet_kv` HTML-comment stripping (Codex P1 gap fix — ensures step01-inferred inline-comment values are correctly parsed) | `scripts/bin/quality/check_sdd_assets.py` | T-101, T-102, T-inline-1 (HTML comment + manual), T-inline-2 (HTML comment + automated) | architecture.md flowchart | `make quality-sdd-check` output |
 | FR-004 | SDD-C-005 | — | `_VGATE_GATE_SINCE` forward-only guard | `scripts/bin/quality/check_sdd_assets.py` | T-106 | FR-004 text in spec.md | — |
 | FR-005 | SDD-C-008 | — | Wired into `_validate_work_item_specs` | `scripts/bin/quality/check_sdd_assets.py` | T-101..T-109 | architecture.md § Application layer | `make quality-sdd-check` |
 | FR-006 | SDD-C-006 | — | Template field seeding (2 fields + definition comments) | `.spec-kit/templates/blueprint/spec.md`, `.spec-kit/templates/consumer/spec.md`, consumer init tmpl | T-110, T-111 | — | — |
@@ -14,7 +14,7 @@
 | FR-009 | SDD-C-011, SDD-C-017 | — | Step01 intake V-gate inference (signal list, frontend-stack cross-check, mandatory report line) | `.agents/skills/blueprint-sdd-step01-intake/SKILL.md` | T-113 | FR-009 text in spec.md | intake report output |
 | NFR-OBS-001 | SDD-C-010 | — | Violation messages include slug + field + value | `scripts/bin/quality/check_sdd_assets.py` | T-109 | NFR-OBS-001 text | stderr |
 | NFR-REL-001 | SDD-C-012 | — | Pure function, no side effects | `scripts/bin/quality/check_sdd_assets.py` | T-101..T-108 | NFR-REL-001 text | — |
-| NFR-OPS-001 | SDD-C-012 | — | Exception-safe field parsing | `scripts/bin/quality/check_sdd_assets.py` | T-101..T-109 | NFR-OPS-001 text | — |
+| NFR-OPS-001 | SDD-C-012 | — | Exception-safe field parsing; absent fields produce violations; `_parse_bullet_kv` strips inline HTML comments so step01-inferred values with `<!-- ... -->` are never silently dropped | `scripts/bin/quality/check_sdd_assets.py` | T-101..T-109, T-114, T-inline-1, T-inline-2 | NFR-OPS-001 text | — |
 | AC-001 | SDD-C-024 | — | `_check_vgate_classification` rejects manual for user-facing+playwright | `scripts/bin/quality/check_sdd_assets.py` | T-101 | AC-001 in spec.md | — |
 | AC-002 | SDD-C-024 | — | `_check_vgate_classification` passes for automated | `scripts/bin/quality/check_sdd_assets.py` | T-102 | AC-002 in spec.md | — |
 | AC-006 | SDD-C-024 | — | Pre-gate slugs exempt via forward-only guard | `scripts/bin/quality/check_sdd_assets.py` | T-106 | AC-006 in spec.md | — |
@@ -37,10 +37,14 @@
 
 ## Validation Summary
 - Required bundles executed: 2026-06-01
-- Result summary: **PASS** — 104/104 targeted tests pass (T-101..T-109, T-110..T-114); 1902 additional suite tests pass; 12 pre-existing infra/e2e environment-dependent failures unrelated to this work item (DNS_ZONE_FQDNS, pnpm mismatch, ESO cluster access, live e2e infra)
-- Targeted test run: `uv run python3 -m pytest tests/infra/test_sdd_asset_checker.py tests/blueprint/test_quality_gating.py -v` → 104 passed in 1.98s
-- Full suite: `uv run python3 -m pytest tests/ -q` → 1902 passed, 12 failed (pre-existing), 10 errors (e2e env), 57 subtests passed
+- Result summary: **PASS** — 108/108 targeted tests pass (T-101..T-114, 2 Gap-1 hyphen-form regression tests, 2 Codex-P1 HTML-comment regression tests); `make quality-sdd-check` zero new violations; 21 transient-error pattern tests in `test_audit_version_transient_errors.py` (CI fix, independent of V-gate spec); pre-existing environment-dependent failures unrelated to this work item
+- Targeted test run: `uv run python3 -m pytest tests/infra/test_sdd_asset_checker.py tests/blueprint/test_quality_gating.py -v` → 108 passed in 1.50s
 - `make quality-sdd-check` → zero new violations on full catalog
+- `make quality-spec-pr-ready` → clean pass (plan.md gates, hardening_review.md proposals, pr_context.md structure all corrected)
+- Post-review gap fixes:
+  - Gap 1 (hyphen-form field names): `_check_vgate_classification` accepts both `has user-facing flow` and `has-user-facing-flow`; 2 regression tests added
+  - Codex P1 (inline HTML comment on inferred values): `_parse_bullet_kv` strips `<!-- ... -->` before returning values; 2 regression tests added (`test_inline_html_comment_on_true_value_is_stripped`, `test_inline_html_comment_on_true_value_passes_when_automated`)
+  - CI transient error (quay.io EOF): `is_transient_registry_error` in `audit_version.sh` extended with EOF and connection-timed-out patterns; 21 unit tests added in `test_audit_version_transient_errors.py`
 - Documentation validation:
   - `make docs-build` — blocked by pre-existing pnpm version mismatch (pnpm@11.4.0 active vs @10.32.1 required); pre-existing environment issue, not introduced by this work item
   - `make docs-smoke` — blocked by same pnpm issue
