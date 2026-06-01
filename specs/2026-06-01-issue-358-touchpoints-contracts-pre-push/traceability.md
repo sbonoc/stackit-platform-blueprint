@@ -7,17 +7,17 @@
 | FR-001 | SDD-C-005, SDD-C-008 | | `touchpoints-test-unit-pre-push` stanza in template | `scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml` | T-101 | ADR-issue-358 | |
 | FR-002 | SDD-C-005, SDD-C-008 | | `touchpoints-test-contracts-pre-push` stanza in template | same file | T-102 | ADR-issue-358 | |
 | FR-003 | SDD-C-005, SDD-C-008 | | `backend-test-unit-pre-push` stanza in template | same file | T-103 | ADR-issue-358 | |
-| FR-004 | SDD-C-005 | | `always_run: false` + file-glob on all three hooks | same file | T-104 | | |
+| FR-004 | SDD-C-005 | | `always_run: false` + file-glob on all three hooks | same file | T-104 | ADR-issue-358 D-2; `consumer_quality_gates.md` backport note | |
 | FR-005 | SDD-C-011 | | Blueprint upgrade flow; template as seeded source | upgrade process | T-105 | upgrade release notes / backport note | |
 | NFR-SEC-001 | SDD-C-009 | | N/A — all three hooks invoke local make targets only; no credential surface | none | | | |
 | NFR-OBS-001 | SDD-C-010 | | N/A — terminal output only | none | | | |
 | NFR-A11Y-001 | | | N/A — no user interface; template file modification only | none | | | |
 | NFR-REL-001 | SDD-C-012 | | `always_run: false`; absent-directory guard if needed | `make/platform.mk` (consumer) | T-106 (if finding) | | |
-| NFR-OPS-001 | SDD-C-010, SDD-C-011 | | Upgrade documentation | `docs/blueprint/consumer/upgrade_summary.md` or equivalent | | upgrade notes | |
-| AC-001 | SDD-C-012 | | touchpoints-unit hook presence + all field values | `scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml` | T-101 | | |
-| AC-002 | SDD-C-012 | | touchpoints-contracts hook presence + all field values | same file | T-102 | | |
-| AC-003 | SDD-C-012 | | backend-unit hook presence + all field values | same file | T-103 | | |
-| AC-004 | SDD-C-012 | | `always_run: false`; `stages: [pre-push]` only on all hooks | same file | T-104 | | |
+| NFR-OPS-001 | SDD-C-010, SDD-C-011 | | Upgrade documentation | `docs/platform/consumer/consumer_quality_gates.md` | | backport note added | |
+| AC-001 | SDD-C-012 | | touchpoints-unit hook presence + all field values | `scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml` | T-101 | ADR-issue-358 | |
+| AC-002 | SDD-C-012 | | touchpoints-contracts hook presence + all field values | same file | T-102 | ADR-issue-358 | |
+| AC-003 | SDD-C-012 | | backend-unit hook presence + all field values | same file | T-103 | ADR-issue-358 | |
+| AC-004 | SDD-C-012 | | `always_run: false`; `stages: [pre-push]` only on all hooks | same file | T-104 | ADR-issue-358 D-2 | |
 | AC-005 | SDD-C-012 | | Drift check exit 0 | `make quality-validate-bootstrap-template-drift` | T-105 | | |
 
 ## Graph Linkage
@@ -41,8 +41,8 @@
   - AC-005
 
 ## Validation Summary
-- Required bundles executed: (to be completed during implementation)
-- Result summary: (to be completed during implementation)
+- Required bundles executed: `make quality-validate-bootstrap-template-drift` (T-105, exit 0), `make quality-sdd-check` (exit 0), `make blueprint-test-unit` (1158 passed), `make quality-hooks-run` (in progress — see post-implementation run)
+- Result summary: All test assertions pass (31/31). Drift check clean. SDD check clean. All three make targets exit 0 when test directory absent (T-004, no guards needed, T-106 contingency not triggered).
 - Documentation validation:
   - `make docs-build`
   - `make docs-smoke`
