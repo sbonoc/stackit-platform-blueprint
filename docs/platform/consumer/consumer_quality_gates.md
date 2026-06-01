@@ -113,3 +113,9 @@ Each hook sets `always_run: false` so it is skipped when no matching files are
 staged for the push. Consumers without a `tests/backend/` directory or without
 a Vitest / Pact setup see no behavioral change — the relevant make targets exit
 0 when the test directory is absent.
+
+> **Deduplication note:** If your `quality-consumer-pre-push` override in `make/platform.mk`
+> already calls `make touchpoints-test-unit`, `make backend-test-unit`, or any of the other
+> four targets directly, those lanes will run twice on pushes that touch matching files — once
+> from the file-scoped hook and once from the always-run consumer hook. Remove the duplicate
+> calls from your `quality-consumer-pre-push` override after upgrading to avoid the redundancy.

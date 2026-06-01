@@ -5,6 +5,7 @@ correct field values (T-101, T-102, T-103, T-104, T-108, T-109, AC-001–AC-007)
 """
 from __future__ import annotations
 
+import functools
 from pathlib import Path
 
 import yaml
@@ -23,6 +24,7 @@ _HOOK_IDS = frozenset(
 )
 
 
+@functools.lru_cache(maxsize=None)
 def _load_hooks() -> dict[str, dict]:
     """Return template hooks indexed by id, limited to the five we own."""
     config = yaml.safe_load(TEMPLATE.read_text(encoding="utf-8"))
