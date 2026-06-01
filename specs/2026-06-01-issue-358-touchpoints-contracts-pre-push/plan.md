@@ -19,26 +19,26 @@
 
 ## Delivery Slices
 
-1. Slice 1 — Red: Write `tests/blueprint/test_touchpoints_contracts_hook.py` asserting:
-   - The hook `touchpoints-test-contracts-pre-push` is present in the parsed YAML of `scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml`.
-   - The hook has `entry: make touchpoints-test-contracts`, `language: system`, `pass_filenames: false`, `always_run: false`, `stages: [pre-push]`, and `files: ^(apps/touchpoints/.*\.(ts|vue|tsx)|apps/packages/api-client/src/.*\.ts)$`.
-   - The hook is NOT in any `stages: [commit]` hook list (AC-002).
-   - This test MUST fail before the template is modified.
+1. Slice 1 — Red: Write `tests/blueprint/test_pre_push_hooks.py` asserting all three hooks are absent from the parsed YAML of `scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml`. This test MUST fail (hooks do not yet exist). Assert for each hook: correct `id`, `entry`, `language`, `pass_filenames`, `always_run`, `stages`, and `files` fields.
 
-2. Slice 2 — Green: Add the `touchpoints-test-contracts-pre-push` hook stanza to `scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml` immediately after the existing `quality-consumer-pre-push` hook. Run `uv run python3 -m pytest tests/blueprint/test_touchpoints_contracts_hook.py` — all assertions MUST pass.
+2. Slice 2 — Green (touchpoints-unit): Add `touchpoints-test-unit-pre-push` hook stanza to the template. Run the test file — T-101 assertion MUST pass; T-102 and T-103 still fail.
 
-3. Slice 3 — Verify: Run `make quality-validate-bootstrap-template-drift` to confirm no drift between the modified template and any blueprint-managed derived file. Run `make quality-sdd-check` to confirm all SDD gates pass. Capture exit codes in traceability evidence.
+3. Slice 3 — Green (touchpoints-contracts): Add `touchpoints-test-contracts-pre-push` hook stanza to the template immediately after the unit hook. Run test file — T-101 and T-102 MUST pass; T-103 still fails.
 
-4. Slice 4 — Document: Add a backport note entry to the blueprint upgrade documentation (`docs/blueprint/consumer/upgrade_summary.md` or equivalent) describing the new hook, its `files` trigger pattern, and the action required for consumers with Pact contract tests on earlier template versions.
+4. Slice 4 — Green (backend-unit): Add `backend-test-unit-pre-push` hook stanza. Run test file — T-101, T-102, T-103 MUST all pass. Run T-104 (no-commit-stage assertion) and T-105 (drift check) — both MUST pass.
+
+5. Slice 5 — Verify: Run `make quality-validate-bootstrap-template-drift` (exit 0). Run `make quality-sdd-check` (exit 0). Capture exit codes as T-105 evidence in traceability.
+
+6. Slice 6 — Document: Add a backport note to the blueprint upgrade documentation describing all three new hooks with their `files` trigger patterns and the make targets they invoke.
 
 ## Change Strategy
-- Migration/rollout sequence: single template file edit; consumers pick it up on their next `make blueprint-upgrade` or manual `.pre-commit-config.yaml` sync from the updated template.
-- Backward compatibility policy: `always_run: false` guarantees no behavioural impact on consumers without matching files or without a `tests/contracts/` directory.
-- Rollback plan: revert the hook stanza from the template and cut a patch blueprint release; consumers re-sync their `.pre-commit-config.yaml` from the reverted template.
+- Migration/rollout sequence: three hook stanzas added to the template in a single commit; consumers pick them up on their next blueprint upgrade or manual template sync.
+- Backward compatibility policy: `always_run: false` on every hook guarantees no behavioural impact on consumers without matching files or without the relevant test directories.
+- Rollback plan: revert the three hook stanzas from the template and cut a patch blueprint release; consumers re-sync from the reverted template.
 
 ## Validation Strategy (Shift-Left)
-- Unit checks: `uv run python3 -m pytest tests/blueprint/test_touchpoints_contracts_hook.py` — asserts hook presence and all field values in the static YAML template.
-- Contract checks: N/A — this change defines a contract test hook, not contract tests themselves.
+- Unit checks: `uv run python3 -m pytest tests/blueprint/test_pre_push_hooks.py` — asserts all three hook IDs present with correct field values in the static YAML template.
+- Contract checks: N/A — this change defines pre-push hooks, not contract tests themselves.
 - Integration checks: `make quality-validate-bootstrap-template-drift` — validates no drift between the modified template and blueprint-managed derived files.
 - E2E checks: N/A — no user-facing flow.
 
@@ -90,4 +90,5 @@
 - Runbook updates: N/A — no new operational runbook required; the hook is documented in the upgrade notes.
 
 ## Risks and Mitigations
-- Risk 1 — `make touchpoints-test-contracts` does not exit 0 cleanly when contracts directory absent -> mitigation: verify this during Slice 3; if the target does not handle the absent-directory case, a `[ -d tests/contracts ] || exit 0` guard MUST be added to the make target before the hook is merged. This finding MUST be translated into a failing test per SDD-C-024.
+- Risk 1 — any of the three make targets does not exit 0 cleanly when the relevant test directory is absent -> mitigation: verify each target during Slice 5; if a target does not handle the absent-directory case, a guard MUST be added before the hook is merged, and the finding MUST be translated into a failing test per SDD-C-024.
+- Risk 2 — `backend-test-unit-pre-push` has a broader Python file scope (`apps/backend/|tests/backend/`) and runs pytest; on slow machines or large test suites this adds more push latency than the Vitest hooks -> mitigation: file-scoped trigger limits invocations to backend source changes; acceptable tradeoff given the postmortem evidence (PR #78).

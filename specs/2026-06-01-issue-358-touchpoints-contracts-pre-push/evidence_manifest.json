@@ -6,33 +6,33 @@
   "files": [
     {
       "path": "specs/2026-06-01-issue-358-touchpoints-contracts-pre-push/spec.md",
-      "sha256": "d0ba56201ff20cb7fc080f44a34c7509e16a1e64068973592171b20d8e29ab00",
-      "bytes": 9424
+      "sha256": "0e0196e9b272e0ccf0019d13589d3164ae51710674d75bb29ce80984403bc65f",
+      "bytes": 11038
     },
     {
       "path": "specs/2026-06-01-issue-358-touchpoints-contracts-pre-push/architecture.md",
-      "sha256": "3fc9616398a9f2c45043d03adae5a63c0b9257ed5865ff6e0b6278091a213a32",
-      "bytes": 4555
+      "sha256": "ecbf65e1aac2791d310772eb77890d427d1e52a6dfd40e2956dbc6825c0f24f2",
+      "bytes": 5059
     },
     {
       "path": "specs/2026-06-01-issue-358-touchpoints-contracts-pre-push/plan.md",
-      "sha256": "7e2b6c9d7926bbabbf73fa4331c95840c32e5fc05dee546f77324a388801013c",
-      "bytes": 5816
+      "sha256": "0ee4766dfcc788d315f762b62c0a98230551fc066f0a26dec823a64c189cb775",
+      "bytes": 5949
     },
     {
       "path": "specs/2026-06-01-issue-358-touchpoints-contracts-pre-push/tasks.md",
-      "sha256": "0a10c4ad301415daf7f97e3eb7df15b94f00755b57f33f751c6a92dc3c6bcb73",
-      "bytes": 3733
+      "sha256": "49cd0dc1ae7a73efd77d4ee1865868a0dbd1dc12711dfae114c0eadcfd6797d3",
+      "bytes": 4159
     },
     {
       "path": "specs/2026-06-01-issue-358-touchpoints-contracts-pre-push/traceability.md",
-      "sha256": "8c36be97875425987f6de60c67ebf4b385f9febc9c48c6558310085af6437564",
-      "bytes": 2642
+      "sha256": "d02900a93b1cc09c82cc2b5ba1bed4c1f67fbb56b4860076d32a7cf02c808796",
+      "bytes": 3119
     },
     {
       "path": "specs/2026-06-01-issue-358-touchpoints-contracts-pre-push/graph.json",
-      "sha256": "7815905b14ebdd798019e9d2918332d4a9de2726bb5baafde1ff6e7e29fa3d2c",
-      "bytes": 2434
+      "sha256": "4feadd426021f8601d372a2f79e4bb738594199757a1ad5fec258a476976bc22",
+      "bytes": 3298
     },
     {
       "path": "specs/2026-06-01-issue-358-touchpoints-contracts-pre-push/context_pack.md",
@@ -41,8 +41,8 @@
     },
     {
       "path": "docs/blueprint/architecture/decisions/ADR-issue-358-touchpoints-contracts-pre-push.md",
-      "sha256": "a3cb4d8298fb11c14f89dfbf33d47d34a8726c26c79b53aa640b65d17c81a90c",
-      "bytes": 4179
+      "sha256": "b51913b5b6bf173b7484824dbb70df40d233fe9183ad435f58d6cb29cd8f7305",
+      "bytes": 3978
     },
     {
       "path": "specs/2026-06-01-issue-358-touchpoints-contracts-pre-push/pr_context.md",

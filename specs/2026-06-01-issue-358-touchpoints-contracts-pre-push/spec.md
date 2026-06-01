@@ -40,15 +40,17 @@
 - E2E gate classification: N/A
 
 ## Objective
-- Business outcome: Consumers with Pact HTTP consumer contract tests gain a pre-push gate that catches contract regressions (broken request shapes, missing headers, FFI timing differences between macOS ARM64 and Linux x86_64) before they reach CI, reducing review latency and CI noise.
-- Success metric: `make touchpoints-test-contracts` exits 0 when no matching files are staged or when the contracts directory is absent; the hook ID is present in the template with all required fields after the blueprint upgrade.
+- Business outcome: Consumers gain three file-scoped pre-push gates that catch regressions (Vitest composable failures, Pact interaction failures, pytest DSL/query regressions) before they reach CI, reducing review latency and CI noise across all test lanes.
+- Success metric: All three hook IDs are present in the template with correct field values after blueprint upgrade; each invoked make target exits 0 when no matching files are staged or when the relevant test directory is absent.
 
 ## Normative Requirements
 
 ### Functional Requirements (Normative)
-- FR-001 The `touchpoints-test-contracts-pre-push` hook MUST be added to `scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml` with `id: touchpoints-test-contracts-pre-push`, `name: touchpoints contract tests (pre-push)`, `language: system`, `entry: make touchpoints-test-contracts`, `pass_filenames: false`, `stages: [pre-push]`, `files: ^(apps/touchpoints/.*\.(ts|vue|tsx)|apps/packages/api-client/src/.*\.ts)$`, and `always_run: false`.
-- FR-002 The hook MUST NOT execute when no files matching the `files` regex are staged for the push; `always_run: false` SHALL guarantee this behaviour, making the hook a no-op for consumers without matching touchpoints or api-client source files.
-- FR-003 Consumers that upgrade their `.pre-commit-config.yaml` from the updated template MUST automatically gain the pre-push contract gate without any manual configuration step beyond the standard blueprint upgrade flow.
+- FR-001 The `touchpoints-test-unit-pre-push` hook MUST be added to `scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml` with `id: touchpoints-test-unit-pre-push`, `name: touchpoints unit tests (pre-push)`, `language: system`, `entry: make touchpoints-test-unit`, `pass_filenames: false`, `stages: [pre-push]`, `files: ^apps/touchpoints/.*\.(ts|vue|tsx)$`, and `always_run: false`.
+- FR-002 The `touchpoints-test-contracts-pre-push` hook MUST be added to the same template with `id: touchpoints-test-contracts-pre-push`, `name: touchpoints contract tests (pre-push)`, `language: system`, `entry: make touchpoints-test-contracts`, `pass_filenames: false`, `stages: [pre-push]`, `files: ^(apps/touchpoints/.*\.(ts|vue|tsx)|apps/packages/api-client/src/.*\.ts)$`, and `always_run: false`. The `files` pattern MUST be broader than FR-001 to cover api-client source changes that can break Pact interactions independently of touchpoints UI code.
+- FR-003 The `backend-test-unit-pre-push` hook MUST be added to the same template with `id: backend-test-unit-pre-push`, `name: backend unit tests (pre-push)`, `language: system`, `entry: make backend-test-unit`, `pass_filenames: false`, `stages: [pre-push]`, `files: ^(apps/backend/|tests/backend/).*\.py$`, and `always_run: false`.
+- FR-004 Each hook MUST NOT execute when no files matching its respective `files` regex are staged for the push; `always_run: false` SHALL guarantee this behaviour, making each hook a no-op for consumers without matching source files.
+- FR-005 Consumers that upgrade their `.pre-commit-config.yaml` from the updated template MUST automatically gain all three pre-push gates without any manual configuration step beyond the standard blueprint upgrade flow.
 
 ### Non-Functional Requirements (Normative)
 - NFR-SEC-001 N/A — the hook invokes only `make touchpoints-test-contracts`, a local make target with no secret-handling or credential-exposure surface; no new authn/authz path is introduced.
@@ -58,18 +60,18 @@
 - NFR-A11Y-001 N/A — no user interface; this is a template file modification only.
 
 ## Normative Option Decision
-- Option A: Add the hook with `always_run: false` and the specific file glob `^(apps/touchpoints/.*\.(ts|vue|tsx)|apps/packages/api-client/src/.*\.ts)$`; hook is skipped automatically when no matching files are staged.
-- Option B: Add the hook with `always_run: true`; contract tests run on every push regardless of which files changed; simpler configuration but adds push latency for commits unrelated to touchpoints or api-client.
+- Option A: Add all three hooks (touchpoints-unit, touchpoints-contracts, backend-unit) with `always_run: false` and lane-specific file globs; each hook is skipped automatically when no matching files are staged.
+- Option B: Add only `touchpoints-test-contracts-pre-push` as the original issue filed, leaving the unit and backend hooks consumer-local; new consumers bootstrapping from the template would lack the unit pre-push gates.
 - Selected option: OPTION_A
-- Rationale: OPTION_A mirrors the pattern used by every other pre-push hook in the template (audit-version, lockfile-sync, docs-check-changed) which use file-scoped triggers rather than always-run. Push latency stays minimal for pushes that do not touch touchpoints or api-client source.
+- Rationale: OPTION_A ships the complete shift-left pattern as a single atomic template change. The unit and backend hooks are documented in dhe-marketplace with postmortems (PR #75, PR #78) that justify their presence; leaving them consumer-local means new consumers silently miss them. All three hooks follow the same `always_run: false` + file-scope pattern, so the template change is uniform. OPTION_B creates a template that is structurally incomplete relative to the known consumer need.
 
 ## Contract Changes (Normative)
 - Config/Env contract: none
 - API contract: none
 - OpenAPI / Pact contract path: none
 - Event contract: none
-- Make/CLI contract: none — `touchpoints-test-contracts` make target already exists in `make/platform.mk`; no new target is introduced
-- Docs contract: blueprint upgrade release notes MUST document the new hook and its `files` trigger pattern; a backport note is required for consumers with Pact contract tests running an earlier blueprint template version
+- Make/CLI contract: none — `touchpoints-test-unit`, `touchpoints-test-contracts`, and `backend-test-unit` make targets already exist in `make/platform.mk`; no new target is introduced
+- Docs contract: blueprint upgrade release notes MUST document all three new hooks with their `files` trigger patterns; a backport note is required for consumers running an earlier template version
 
 ## Blueprint Upstream Defect Escalation (Normative)
 - Upstream issue URL: none
@@ -78,21 +80,22 @@
 - Workaround review date: none
 
 ## Normative Acceptance Criteria
-- AC-001 [hook present in template with all required fields] — verified by T-101, which MUST assert that `scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml` contains a hook entry with `id: touchpoints-test-contracts-pre-push`, `entry: make touchpoints-test-contracts`, `stages: [pre-push]`, `files: ^(apps/touchpoints/.*\.(ts|vue|tsx)|apps/packages/api-client/src/.*\.ts)$`, `pass_filenames: false`, and `always_run: false`.
-- AC-002 [hook does not run on commit-stage and is absent from always-run hooks] — verified by T-102, which MUST assert that the hook definition sets `always_run: false` and that `pre-push` is the only declared stage, confirming commit-time flows are not blocked.
-- AC-003 [template drift check passes after hook addition] — verified by T-103, which MUST assert that `make quality-validate-bootstrap-template-drift` exits 0 after the hook is added to the template, confirming no drift is introduced between the modified template and any blueprint-managed derived file.
+- AC-001 [touchpoints-test-unit-pre-push present in template with all required fields] — verified by T-101, which MUST assert that `scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml` contains a hook with `id: touchpoints-test-unit-pre-push`, `entry: make touchpoints-test-unit`, `stages: [pre-push]`, `files: ^apps/touchpoints/.*\.(ts|vue|tsx)$`, `pass_filenames: false`, and `always_run: false`.
+- AC-002 [touchpoints-test-contracts-pre-push present in template with all required fields] — verified by T-102, which MUST assert that the template contains a hook with `id: touchpoints-test-contracts-pre-push`, `entry: make touchpoints-test-contracts`, `stages: [pre-push]`, `files: ^(apps/touchpoints/.*\.(ts|vue|tsx)|apps/packages/api-client/src/.*\.ts)$`, `pass_filenames: false`, and `always_run: false`.
+- AC-003 [backend-test-unit-pre-push present in template with all required fields] — verified by T-103, which MUST assert that the template contains a hook with `id: backend-test-unit-pre-push`, `entry: make backend-test-unit`, `stages: [pre-push]`, `files: ^(apps/backend/|tests/backend/).*\.py$`, `pass_filenames: false`, and `always_run: false`.
+- AC-004 [no hook runs on commit-stage] — verified by T-104, which MUST assert that all three hook definitions set `always_run: false` and declare `stages: [pre-push]` only, confirming commit-time flows are not blocked.
+- AC-005 [template drift check passes after all three hooks are added] — verified by T-105, which MUST assert that `make quality-validate-bootstrap-template-drift` exits 0 after the template modification, confirming no drift is introduced.
 
 ## Informative Notes (Non-Normative)
-- Context: Two regression classes motivate this gate — logic regressions (broken Pact interactions caught only by the contract lane, which starts a Pact mock server; the unit lane does not) and environment-dependent failures (FFI timing differences between macOS ARM64 developer machines and Linux x86_64 CI runners). Without a pre-push gate these regressions first appear as CI failures on the remote branch. Note: a grep of the current blueprint repository found no existing `touchpoints-test-unit-pre-push` hook in the template; the issue describes it as an existing companion, but it is possibly removed or lives in a consumer-local config outside the seeded template.
-- Tradeoffs: File-scoped trigger (OPTION_A) adds no push latency for unrelated changes; the tradeoff is that a broken matcher injected via a dependency update (with no touchpoints source file touched) would not be caught by this gate alone.
+- Context: Issue #358 was filed by an agent in the context of the `sbonoc/dhe-marketplace` consumer repo. Investigation of that repo confirmed that `touchpoints-test-unit-pre-push` and `backend-test-unit-pre-push` exist consumer-locally and are not seeded by the blueprint template. Both carry PR postmortem comments (PR #75, PR #78) documenting real regressions they caught. Expanding scope to include all three hooks is the complete fix; shipping only the contracts hook would leave new consumers with an asymmetric template missing the unit gates. Three regression classes are addressed: Vitest composable failures (touchpoints-unit), Pact mock-server interaction failures and FFI timing differences (touchpoints-contracts), and pytest DSL/query regressions (backend-unit).
+- Tradeoffs: File-scoped trigger (OPTION_A) adds no push latency for unrelated changes; the tradeoff is that a regression injected via a dependency update (with no source file touched) would not be caught by any of these gates.
 - Clarifications: none
 
 ## Explicit Exclusions
-- Adding `touchpoints-test-unit-pre-push` to the template if currently absent: the issue describes the unit hook as an existing companion; if verification finds it is absent, that is a separate work item.
-- Modifying the `touchpoints-test-contracts` make target: the target is declared correct in `make/platform.mk`; target implementation changes are out of scope.
+- Modifying any of the three make targets (`touchpoints-test-unit`, `touchpoints-test-contracts`, `backend-test-unit`): all targets are declared correct in `make/platform.mk`; target implementation changes are out of scope.
 - Modifying `blueprint/contract.yaml`: the issue explicitly states no contract.yaml impact.
-- Adding a pre-push hook for `backend-test-contracts`: the issue is scoped to the touchpoints (consumer frontend) contract lane only.
+- Adding `backend-test-contracts-pre-push` or `touchpoints-test-integration-pre-push` hooks: no consumer postmortem or active request recorded; these are separate work items if needed.
 
 ## Potential Deferred Proposals
-- Add `touchpoints-test-unit-pre-push` to template if absent: the issue references this as an existing companion hook; if verification finds it is not in the current template, adding it is a separate work item with its own spec.
-- Add `backend-test-contracts-pre-push` hook: the same dual-regression-class argument applies to backend Pact provider tests; no active consumer request recorded.
+- Add `backend-test-contracts-pre-push` hook: same file-scoped pre-push pattern; no active consumer postmortem recorded for Pact provider test regressions slipping through pre-push.
+- Add `touchpoints-test-integration-pre-push` hook: applies if a consumer documents integration-lane regressions that pre-push would catch; no current postmortem evidence.

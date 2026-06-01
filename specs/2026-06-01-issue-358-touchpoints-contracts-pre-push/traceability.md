@@ -4,16 +4,20 @@
 
 | Requirement ID | Control IDs | WCAG SC | Design Element | Implementation Path(s) | Test Evidence | Documentation Evidence | Operational Evidence |
 |---|---|---|---|---|---|---|---|
-| FR-001 | SDD-C-005, SDD-C-008 | | Hook stanza in template YAML | `scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml` | T-101 | ADR-issue-358-touchpoints-contracts-pre-push.md | |
-| FR-002 | SDD-C-005, SDD-C-008 | | `always_run: false` field; file-glob trigger | same file | T-102 | | |
-| FR-003 | SDD-C-011 | | Blueprint upgrade flow; template as seeded source | upgrade process | T-103 | upgrade release notes / backport note | |
+| FR-001 | SDD-C-005, SDD-C-008 | | `touchpoints-test-unit-pre-push` stanza in template | `scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml` | T-101 | ADR-issue-358 | |
+| FR-002 | SDD-C-005, SDD-C-008 | | `touchpoints-test-contracts-pre-push` stanza in template | same file | T-102 | ADR-issue-358 | |
+| FR-003 | SDD-C-005, SDD-C-008 | | `backend-test-unit-pre-push` stanza in template | same file | T-103 | ADR-issue-358 | |
+| FR-004 | SDD-C-005 | | `always_run: false` + file-glob on all three hooks | same file | T-104 | | |
+| FR-005 | SDD-C-011 | | Blueprint upgrade flow; template as seeded source | upgrade process | T-105 | upgrade release notes / backport note | |
 | NFR-SEC-001 | SDD-C-009 | | N/A — no secret/credential surface | none | | | |
 | NFR-OBS-001 | SDD-C-010 | | N/A — terminal output only | none | | | |
-| NFR-REL-001 | SDD-C-012 | | `always_run: false`; absent-directory guard in make target if needed | `make/platform.mk` (consumer) | T-104 (if finding) | | |
+| NFR-REL-001 | SDD-C-012 | | `always_run: false`; absent-directory guard if needed | `make/platform.mk` (consumer) | T-106 (if finding) | | |
 | NFR-OPS-001 | SDD-C-010, SDD-C-011 | | Upgrade documentation | `docs/blueprint/consumer/upgrade_summary.md` or equivalent | | upgrade notes | |
-| AC-001 | SDD-C-012 | | Hook presence + all required field values | `scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml` | T-101 | | |
-| AC-002 | SDD-C-012 | | `always_run: false`; `stages: [pre-push]` only | same file | T-102 | | |
-| AC-003 | SDD-C-012 | | Drift check exit code | `make quality-validate-bootstrap-template-drift` | T-103 (make exit 0) | | |
+| AC-001 | SDD-C-012 | | touchpoints-unit hook presence + all field values | `scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml` | T-101 | | |
+| AC-002 | SDD-C-012 | | touchpoints-contracts hook presence + all field values | same file | T-102 | | |
+| AC-003 | SDD-C-012 | | backend-unit hook presence + all field values | same file | T-103 | | |
+| AC-004 | SDD-C-012 | | `always_run: false`; `stages: [pre-push]` only on all hooks | same file | T-104 | | |
+| AC-005 | SDD-C-012 | | Drift check exit 0 | `make quality-validate-bootstrap-template-drift` | T-105 | | |
 
 ## Graph Linkage
 - Graph file: `graph.json`
@@ -22,6 +26,8 @@
   - FR-001
   - FR-002
   - FR-003
+  - FR-004
+  - FR-005
   - NFR-SEC-001
   - NFR-OBS-001
   - NFR-REL-001
@@ -29,6 +35,8 @@
   - AC-001
   - AC-002
   - AC-003
+  - AC-004
+  - AC-005
 
 ## Validation Summary
 - Required bundles executed: (to be completed during implementation)

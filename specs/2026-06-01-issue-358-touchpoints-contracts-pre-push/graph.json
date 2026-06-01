@@ -5,22 +5,32 @@
     {
       "id": "FR-001",
       "type": "requirement",
-      "summary": "Add touchpoints-test-contracts-pre-push hook to template with all required fields"
+      "summary": "Add touchpoints-test-unit-pre-push hook to template with all required fields"
     },
     {
       "id": "FR-002",
       "type": "requirement",
-      "summary": "Hook must be a no-op when no matching files are staged (always_run: false)"
+      "summary": "Add touchpoints-test-contracts-pre-push hook to template with broader files pattern covering api-client"
     },
     {
       "id": "FR-003",
       "type": "requirement",
-      "summary": "Consumers gain pre-push contract gate automatically after blueprint template upgrade"
+      "summary": "Add backend-test-unit-pre-push hook to template with Python file scope"
+    },
+    {
+      "id": "FR-004",
+      "type": "requirement",
+      "summary": "All three hooks must be no-ops when no matching files staged (always_run: false)"
+    },
+    {
+      "id": "FR-005",
+      "type": "requirement",
+      "summary": "Consumers gain all three pre-push gates automatically after blueprint template upgrade"
     },
     {
       "id": "NFR-SEC-001",
       "type": "requirement",
-      "summary": "N/A — hook invokes local make target only; no secret or credential surface introduced"
+      "summary": "N/A — hooks invoke local make targets only; no secret or credential surface introduced"
     },
     {
       "id": "NFR-OBS-001",
@@ -30,64 +40,52 @@
     {
       "id": "NFR-REL-001",
       "type": "requirement",
-      "summary": "Hook exits 0 when contracts directory absent or no matching files staged"
+      "summary": "Each hook exits 0 when relevant test directory absent or no matching files staged"
     },
     {
       "id": "NFR-OPS-001",
       "type": "requirement",
-      "summary": "Blueprint upgrade documentation includes backport note for consumers with Pact contract tests"
+      "summary": "Blueprint upgrade documentation includes backport note for all three hooks"
     },
     {
       "id": "AC-001",
       "type": "acceptance",
-      "summary": "Hook present in template with all required field values verified by unit test"
+      "summary": "touchpoints-test-unit-pre-push present in template with all required field values"
     },
     {
       "id": "AC-002",
       "type": "acceptance",
-      "summary": "Hook does not run on commit-stage; always_run: false and stages: [pre-push] confirmed"
+      "summary": "touchpoints-test-contracts-pre-push present in template with broader files pattern"
     },
     {
       "id": "AC-003",
       "type": "acceptance",
-      "summary": "make quality-validate-bootstrap-template-drift exits 0 after hook addition"
+      "summary": "backend-test-unit-pre-push present in template with Python file scope"
+    },
+    {
+      "id": "AC-004",
+      "type": "acceptance",
+      "summary": "All three hooks set always_run: false and stages: [pre-push] only"
+    },
+    {
+      "id": "AC-005",
+      "type": "acceptance",
+      "summary": "make quality-validate-bootstrap-template-drift exits 0 after all three hooks added"
     }
   ],
   "edges": [
-    {
-      "from": "FR-001",
-      "to": "AC-001",
-      "relation": "validated_by"
-    },
-    {
-      "from": "FR-002",
-      "to": "AC-002",
-      "relation": "validated_by"
-    },
-    {
-      "from": "FR-003",
-      "to": "AC-003",
-      "relation": "validated_by"
-    },
-    {
-      "from": "NFR-REL-001",
-      "to": "AC-002",
-      "relation": "constrains"
-    },
-    {
-      "from": "NFR-OPS-001",
-      "to": "AC-003",
-      "relation": "constrains"
-    },
-    {
-      "from": "FR-001",
-      "to": "FR-002",
-      "relation": "enables"
-    },
-    {
-      "from": "FR-001",
-      "to": "FR-003",
-      "relation": "enables"
-    }
+    {"from": "FR-001", "to": "AC-001", "relation": "validated_by"},
+    {"from": "FR-002", "to": "AC-002", "relation": "validated_by"},
+    {"from": "FR-003", "to": "AC-003", "relation": "validated_by"},
+    {"from": "FR-004", "to": "AC-004", "relation": "validated_by"},
+    {"from": "FR-005", "to": "AC-005", "relation": "validated_by"},
+    {"from": "NFR-REL-001", "to": "AC-004", "relation": "constrains"},
+    {"from": "NFR-OPS-001", "to": "AC-005", "relation": "constrains"},
+    {"from": "FR-001", "to": "FR-004", "relation": "enables"},
+    {"from": "FR-002", "to": "FR-004", "relation": "enables"},
+    {"from": "FR-003", "to": "FR-004", "relation": "enables"},
+    {"from": "FR-001", "to": "FR-005", "relation": "enables"},
+    {"from": "FR-002", "to": "FR-005", "relation": "enables"},
+    {"from": "FR-003", "to": "FR-005", "relation": "enables"}
   ]
 }
