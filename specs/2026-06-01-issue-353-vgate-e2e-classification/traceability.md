@@ -7,7 +7,7 @@
 | FR-001 | SDD-C-006 | — | Two new Implementation Stack Profile fields in spec.md (`has-user-facing-flow`, `E2E gate classification`) | `.spec-kit/templates/blueprint/spec.md`, `.spec-kit/templates/consumer/spec.md` | T-110, T-111 | FR-001 text in spec.md | — |
 | FR-002 | SDD-C-016, SDD-C-024 | — | `_check_vgate_classification` function | `scripts/bin/quality/check_sdd_assets.py` | T-101, T-102 | architecture.md flowchart | `make quality-sdd-check` output |
 | FR-004 | SDD-C-005 | — | `_VGATE_GATE_SINCE` forward-only guard | `scripts/bin/quality/check_sdd_assets.py` | T-106 | FR-004 text in spec.md | — |
-| FR-005 | SDD-C-008 | — | Wired into `_validate_work_item_specs` | `scripts/bin/quality/check_sdd_assets.py` | T-101..T-109 | — | `make quality-sdd-check` |
+| FR-005 | SDD-C-008 | — | Wired into `_validate_work_item_specs` | `scripts/bin/quality/check_sdd_assets.py` | T-101..T-109 | architecture.md § Application layer | `make quality-sdd-check` |
 | FR-006 | SDD-C-006 | — | Template field seeding (2 fields + definition comments) | `.spec-kit/templates/blueprint/spec.md`, `.spec-kit/templates/consumer/spec.md`, consumer init tmpl | T-110, T-111 | — | — |
 | FR-007 | SDD-C-011 | — | Playwright mandatory artifact rule with three MUSTs | `AGENTS.md`, `docs/blueprint/governance/spec_driven_development.md`, bootstrap mirror, `.agents/skills/blueprint-sdd-step05-implement/SKILL.md` | T-112 | AGENTS.md testing section + governance doc | — |
 | FR-008 | SDD-C-010 | — | Metric emission to stderr | `scripts/bin/quality/check_sdd_assets.py` | T-109 | NFR-OBS-001 in spec.md | stderr in CI |
@@ -21,10 +21,11 @@
 | AC-007 | SDD-C-024 | — | Non-playwright profiles exempt | `scripts/bin/quality/check_sdd_assets.py` | T-107 | AC-007 in spec.md | — |
 | AC-008 | SDD-C-024 | — | `has-user-facing-flow: false` exempt | `scripts/bin/quality/check_sdd_assets.py` | T-108 | AC-008 in spec.md | — |
 | AC-009 | SDD-C-010 | — | Metric emitted to stderr | `scripts/bin/quality/check_sdd_assets.py` | T-109 | AC-009 in spec.md | — |
-| AC-010 | SDD-C-006 | — | Blueprint template seeds three fields | `.spec-kit/templates/blueprint/spec.md` | T-110 | AC-010 in spec.md | — |
-| AC-011 | SDD-C-006 | — | Consumer template seeds three fields | `.spec-kit/templates/consumer/spec.md` | T-111 | AC-011 in spec.md | — |
+| AC-010 | SDD-C-006 | — | Blueprint template seeds two fields with signal-list comments | `.spec-kit/templates/blueprint/spec.md` | T-110 | AC-010 in spec.md | — |
+| AC-011 | SDD-C-006 | — | Consumer template seeds two fields with signal-list comments | `.spec-kit/templates/consumer/spec.md` | T-111 | AC-011 in spec.md | — |
 | AC-012 | SDD-C-011 | — | AGENTS.md rule present with three MUSTs | `AGENTS.md` | T-112 | AC-012 in spec.md | — |
 | AC-013 | SDD-C-011, SDD-C-017 | — | Step01 SKILL.md contains inference step, cross-check, and report line | `.agents/skills/blueprint-sdd-step01-intake/SKILL.md` | T-113 | AC-013 in spec.md | — |
+| AC-014 | SDD-C-024, SDD-C-012 | — | Absent V-gate fields produce a violation (covers NFR-OPS-001 + FR-002 absent-value clause) | `scripts/bin/quality/check_sdd_assets.py` | T-114 | AC-014 in spec.md | — |
 
 ## Graph Linkage
 - Graph file: `graph.json`
@@ -32,7 +33,7 @@
 - Node IDs referenced:
   - FR-001, FR-002, FR-004, FR-005, FR-006, FR-007, FR-008, FR-009
   - NFR-OBS-001, NFR-REL-001, NFR-OPS-001
-  - AC-001, AC-002, AC-006, AC-007, AC-008, AC-009, AC-010, AC-011, AC-012, AC-013
+  - AC-001, AC-002, AC-006, AC-007, AC-008, AC-009, AC-010, AC-011, AC-012, AC-013, AC-014
 
 ## Validation Summary
 - Required bundles executed: pending (pre-implementation)
@@ -48,5 +49,5 @@
 - Hardening review export: `hardening_review.md`
 
 ## Open Risks and Follow-Ups
-- Follow-up 1: Deferred proposals (`automation-target` future-date enforcement, Playwright test existence check, frontend-stack-mismatch heuristic warning, required escalation justification on past-target slugs) tracked in spec.md Potential Deferred Proposals section.
-- Follow-up 2: Largest residual risk (R-2 in `architecture.md`) is author silently setting `has-user-facing-flow: false` on a UI-bearing work item. Mitigated by template definition comment, paired-justification rule when `frontend-stack-profile != none`, AGENTS.md rule visibility, and code review. Deferred-proposal heuristic warning is the longer-term machine-side safety net.
+- Follow-up 1: Deferred proposals (Playwright test existence check, cross-repo V-gate classification audit report, frontend-stack-mismatch heuristic warning) tracked in spec.md Potential Deferred Proposals section.
+- Follow-up 2: Largest residual risk (R-2 in `architecture.md`) is author silently setting `has-user-facing-flow: false` on a UI-bearing work item. Primary mitigations: step01 intake inference (FR-009) pre-sets `true` from issue signals; signal-list inline comment in spec template (FR-006) gives manual authors the same checklist; frontend-stack cross-check flags the contradiction; AGENTS.md mandatory Playwright rule (FR-007) surfaces the obligation at implementation time. The deferred frontend-stack-mismatch heuristic warning is the longer-term machine-side safety net.

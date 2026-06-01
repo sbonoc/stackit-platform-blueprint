@@ -10,7 +10,7 @@
 ## Implementation
 
 ### Slice 1 — RED: write failing tests
-- [ ] T-001 Write `TestVgateClassification` test class in `tests/infra/test_sdd_asset_checker.py` covering T-101..T-109 (all failing)
+- [ ] T-001 Write `TestVgateClassification` test class in `tests/infra/test_sdd_asset_checker.py` covering T-101..T-109 and T-114 (all failing)
 - [ ] T-002 Write `TestVgateTemplateFields` test class in `tests/blueprint/test_quality_gating.py` covering T-110..T-113 (all failing)
 
 ### Slice 2 — GREEN: core check implementation
@@ -31,7 +31,7 @@
 - [ ] T-009e Update `.agents/skills/blueprint-sdd-step01-intake/SKILL.md` to add V-gate inference step in Discover (signal list, frontend-stack cross-check) and V-gate cross-check in Specify; add mandatory V-gate inference result line to Required Report Format
 
 ### Slice 5 — VERIFY
-- [ ] T-010 Run `uv run python3 -m pytest tests/infra/test_sdd_asset_checker.py tests/blueprint/test_quality_gating.py -v`; confirm all T-101..T-113 pass
+- [ ] T-010 Run `uv run python3 -m pytest tests/infra/test_sdd_asset_checker.py tests/blueprint/test_quality_gating.py -v`; confirm all T-101..T-114 pass
 - [ ] T-011 Run `make quality-sdd-check`; confirm zero new violations on full catalog
 - [ ] T-012 Capture test output and `quality-sdd-check` result as evidence in `traceability.md`
 
@@ -46,6 +46,7 @@
 - [ ] T-111 AC-011 — consumer spec template seeds both new fields with inline definition comments
 - [ ] T-112 AC-012 — `AGENTS.md` contains `has-user-facing-flow`, the full-user-journey clause, the rendered-state clause, and the automated-quality-gate/CI clause in the testing section
 - [ ] T-113 AC-013 — `.agents/skills/blueprint-sdd-step01-intake/SKILL.md` contains `has-user-facing-flow` in Discover phase, at least three signal keywords, `frontend-stack` cross-check in Specify phase, and `V-gate inference result` in Required Report Format
+- [ ] T-114 AC-014 — `_check_vgate_classification` returns at least one violation for a post-gate spec with playwright profile where `has-user-facing-flow` field is absent; same for absent `E2E gate classification`
 
 ## Accessibility Testing
 - [ ] T-A01 NFR-A11Y-001: N/A — no UI introduced by this work item

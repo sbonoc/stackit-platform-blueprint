@@ -11,7 +11,7 @@
 - Anti-abstraction gate:
   - Use the same field-parsing pattern already established in `_check_ac_format` (regex line scan). No new base classes or helpers.
 - Integration-first testing gate:
-  - Write all test cases (T-101..T-113) in RED state before any implementation code is written.
+  - Write all test cases (T-101..T-114) in RED state before any implementation code is written.
   - Tests use in-memory spec.md text fixtures; no filesystem mocks beyond what the existing test suite uses.
 - Positive-path filter/transform test gate:
   - Not applicable — this check is a classification validator, not a filter or payload-transform function.
@@ -20,7 +20,7 @@
 
 ## Delivery Slices
 
-1. Slice 1 (RED — tests): Write `TestVgateClassification` class in `tests/infra/test_sdd_asset_checker.py` covering AC-001..AC-009 (T-101..T-109). Write `TestVgateTemplateFields` class in `tests/blueprint/test_quality_gating.py` covering AC-010..AC-013 (T-110..T-113). All tests fail (nothing implemented yet).
+1. Slice 1 (RED — tests): Write `TestVgateClassification` class in `tests/infra/test_sdd_asset_checker.py` covering AC-001..AC-009 and AC-014 (T-101..T-109, T-114). Write `TestVgateTemplateFields` class in `tests/blueprint/test_quality_gating.py` covering AC-010..AC-013 (T-110..T-113). All tests fail (nothing implemented yet).
 
 2. Slice 2 (GREEN — core check): Implement `_check_vgate_classification(spec_text, slug)` in `check_sdd_assets.py`. Add `_VGATE_GATE_SINCE` constant. Wire into `_validate_work_item_specs`. Tests T-101..T-109 turn green.
 
@@ -36,7 +36,7 @@
 - Rollback plan: Revert the `check_sdd_assets.py` commit; gate behavior is immediately restored to pre-change state. Template changes can be reverted independently without breaking the check.
 
 ## Validation Strategy (Shift-Left)
-- Unit checks: pytest unit tests (T-101..T-113) covering all AC cases; run via `uv run python3 -m pytest tests/infra/test_sdd_asset_checker.py tests/blueprint/test_quality_gating.py`.
+- Unit checks: pytest unit tests (T-101..T-114) covering all AC cases; run via `uv run python3 -m pytest tests/infra/test_sdd_asset_checker.py tests/blueprint/test_quality_gating.py`.
 - Contract checks: `make quality-sdd-check` on full spec catalog — confirms no pre-existing spec is broken.
 - Integration checks: none required (check is pure Python, no service boundaries).
 - E2E checks: none (tooling change, no UI, no runtime components).
@@ -81,7 +81,7 @@
 - Hardening review file: `hardening_review.md`
 - Local smoke gate (HTTP route/filter changes): not applicable — no HTTP routes or filter logic.
 - Publish checklist:
-  - include requirement/contract coverage (FR-001..FR-009, NFR-OBS-001/REL-001/OPS-001, AC-001..AC-013)
+  - include requirement/contract coverage (FR-001..FR-009, NFR-OBS-001/REL-001/OPS-001, AC-001..AC-014)
   - include key reviewer files (check_sdd_assets.py, spec templates, AGENTS.md, blueprint-sdd-step01-intake/SKILL.md)
   - include validation evidence + rollback notes
 

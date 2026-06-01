@@ -22,7 +22,8 @@
     {"id": "AC-011", "type": "acceptance", "summary": "Consumer spec template seeds both new fields"},
     {"id": "AC-012", "type": "acceptance", "summary": "AGENTS.md contains has-user-facing-flow and all three MUST clauses in testing section"},
     {"id": "FR-009", "type": "requirement", "summary": "Step01 intake SKILL.md infers has-user-facing-flow from issue signals; annotates value; cross-checks frontend-stack; mandatory report line"},
-    {"id": "AC-013", "type": "acceptance", "summary": "Step01 SKILL.md contains inference step, frontend-stack cross-check, and V-gate inference result in report format"}
+    {"id": "AC-013", "type": "acceptance", "summary": "Step01 SKILL.md contains inference step, frontend-stack cross-check, and V-gate inference result in report format"},
+    {"id": "AC-014", "type": "acceptance", "summary": "Absent has-user-facing-flow or E2E gate classification field produces a gate violation"}
   ],
   "edges": [
     {"from": "FR-001", "to": "AC-010", "relation": "validated_by"},
