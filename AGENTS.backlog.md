@@ -47,6 +47,10 @@ To introduce a new tag, append a row here in the same commit that uses it.
 
 - [x] (done) Issue #312 — Observability CSI hardening: replace `blueprint-observability-auth` K8s Secret with Secrets Store CSI Driver delivery from STACKIT Secrets Manager. Closed by PR #329. — https://github.com/sbonoc/stackit-platform-blueprint/issues/312
 
+- [ ] (in-flight) P1 (Quality tooling): Issue #353 — V-gate E2E classification enforcement: `_check_vgate_classification` in `check_sdd_assets.py`; two new spec fields (`has-user-facing-flow`, `E2E gate classification`); step01 shift-left inference; AGENTS.md Playwright three-MUSTs rule. SPEC_READY=true. PR #357 — implementation starts Slice 1 (T-001, T-002: failing tests).
+      trigger: on-scope: quality
+      plan: specs/2026-06-01-issue-353-vgate-e2e-classification/plan.md
+
 ### P2 — Consumer upgrade flow
 
 - [ ] Issue #167 — dry-run mode (`BLUEPRINT_UPGRADE_DRY_RUN=true`): simulate all file mutations and output a unified diff without touching the working tree; same warnings and conflicts as a real apply.
