@@ -5,7 +5,7 @@
 - If required inputs are missing, add `BLOCKED_MISSING_INPUTS` in `spec.md` and keep the gate closed.
 
 ## Constitution Gates (Pre-Implementation)
-- Simplicity gate: Three YAML stanza additions to one template file plus one pytest unit test file. No abstractions introduced.
+- Simplicity gate: Five YAML stanza additions to one template file plus one pytest unit test file. No abstractions introduced.
 - Anti-abstraction gate: Direct YAML edits; no wrapper or helper introduced. Hook fields are spelled out explicitly per FR-001 through FR-003.
 - Integration-first testing gate: Unit tests (T-101 through T-104) assert all hook fields in the static YAML template — deterministic and environment-independent. Drift gate (T-105) uses `make quality-validate-bootstrap-template-drift` to verify no blueprint-managed file diverges.
 - Positive-path filter/transform test gate: N/A — no filter or payload-transform logic.

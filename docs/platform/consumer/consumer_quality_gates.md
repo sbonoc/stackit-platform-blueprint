@@ -61,7 +61,7 @@ Remove the override bodies from `make/platform.mk`. The stubs revert to `@true`
 
 ## Template-Seeded Pre-Push Hooks (added in blueprint 2026-06-01 / issue #358)
 
-Three file-scoped pre-push hooks were added to the bootstrap template. Consumers
+Five file-scoped pre-push hooks were added to the bootstrap template. Consumers
 on an earlier template version can backport them manually by adding the following
 stanzas to `.pre-commit-config.yaml` (in the `repo: local` section, before the
 `quality-consumer-pre-push` hook):
@@ -90,6 +90,22 @@ stanzas to `.pre-commit-config.yaml` (in the `repo: local` section, before the
   pass_filenames: false
   stages: [pre-push]
   files: ^(apps/backend/|tests/backend/).*\.py$
+  always_run: false
+- id: backend-test-contracts-pre-push
+  name: backend contract tests (pre-push)
+  language: system
+  entry: make backend-test-contracts
+  pass_filenames: false
+  stages: [pre-push]
+  files: ^(apps/backend/|tests/backend/).*\.py$
+  always_run: false
+- id: touchpoints-test-integration-pre-push
+  name: touchpoints integration tests (pre-push)
+  language: system
+  entry: make touchpoints-test-integration
+  pass_filenames: false
+  stages: [pre-push]
+  files: ^(apps/touchpoints/.*\.(ts|vue|tsx)|apps/packages/api-client/src/.*\.ts)$
   always_run: false
 ```
 

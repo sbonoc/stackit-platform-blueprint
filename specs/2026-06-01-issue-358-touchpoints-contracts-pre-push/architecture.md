@@ -12,9 +12,9 @@
 - Agent execution model: specialized-subagents-isolated-worktrees
 
 ## Problem Statement
-- What needs to change and why: `scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml` must gain three pre-push hooks (`touchpoints-test-unit-pre-push`, `touchpoints-test-contracts-pre-push`, `backend-test-unit-pre-push`). Issue #358 was filed from the `sbonoc/dhe-marketplace` consumer repo, where all three hooks exist consumer-locally with documented postmortems (PR #75, PR #78). Without them in the template, new consumers silently miss these shift-left gates.
+- What needs to change and why: `scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml` must gain five pre-push hooks (`touchpoints-test-unit-pre-push`, `touchpoints-test-contracts-pre-push`, `backend-test-unit-pre-push`, `backend-test-contracts-pre-push`, `touchpoints-test-integration-pre-push`). Issue #358 was filed from the `sbonoc/dhe-marketplace` consumer repo, where consumer-local pre-push hooks carry documented postmortems (PR #75, PR #78). Without them in the template, new consumers silently miss these shift-left gates.
 - Scope boundaries: The change is confined to a single YAML template file. No runtime code, make targets, or contract.yaml fields are added or modified.
-- Out of scope: The three invoked make targets (already correct in `make/platform.mk`); `blueprint/contract.yaml`; `backend-test-contracts-pre-push` hook (no postmortem evidence recorded).
+- Out of scope: The five invoked make targets (already correct in `make/platform.mk`); `blueprint/contract.yaml`.
 
 ## Bounded Contexts and Responsibilities
 - Blueprint template context: owns `scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml`; seeded into consumer repos during `make blueprint-init` or upgraded via the blueprint upgrade flow; blueprint maintainers are responsible for the hook definition and its field values.
@@ -27,7 +27,7 @@
 - Presentation/API/workflow boundaries: pre-commit hook pipeline — `git push` → pre-commit runs each hook in sequence → file-pattern check per hook → if matching files: invoke make target → pass/fail; if no matching files: skip.
 
 ## Integration and Dependency Edges
-- Upstream dependencies: `make touchpoints-test-unit`, `make touchpoints-test-contracts`, `make backend-test-unit` targets in consumer `make/platform.mk` (all already defined; no change required).
+- Upstream dependencies: `make touchpoints-test-unit`, `make touchpoints-test-contracts`, `make backend-test-unit`, `make backend-test-contracts`, `make touchpoints-test-integration` targets in consumer `make/platform.mk` (all already defined; no change required).
 - Downstream dependencies: consumer CI — the same lanes run in CI for gate symmetry; no new CI job is added by this change.
 - Data/API/event contracts touched: none.
 
@@ -38,7 +38,7 @@
 - Monitoring/alerting: none; hook failures surface as a blocked `git push` on the developer machine.
 
 ## Risks and Tradeoffs
-- Risk 1: Any of the three make targets may not exit 0 cleanly when the relevant test directory is absent. This MUST be verified during implementation (T-004/T-106). If a target does not handle the absent-directory case, a guard MUST be added before the hook is shipped.
+- Risk 1: Any of the five make targets may not exit 0 cleanly when the relevant test directory is absent. This MUST be verified during implementation (T-004/T-106). If a target does not handle the absent-directory case, a guard MUST be added before the hook is shipped.
 - Risk 2: `backend-test-unit-pre-push` runs pytest on Python file changes; on large test suites this adds more push latency than the Vitest hooks. The file-scoped trigger limits invocations to backend source changes; the postmortem evidence (PR #78) justifies the tradeoff.
 - Tradeoff 1: File-scoped triggers (`always_run: false`) mean a regression injected via a dependency update (where no source file is touched) is not caught by any of these gates. Accepted for push-latency symmetry with other template hooks.
 
@@ -57,7 +57,7 @@ flowchart TD
     F -->|non-0| H[push blocked\nregression detected]
 ```
 
-Caption: Each of the three hooks follows this flow independently. The `always_run: false` + file-glob pattern keeps push latency minimal when unrelated files are staged.
+Caption: Each of the five hooks follows this flow independently. The `always_run: false` + file-glob pattern keeps push latency minimal when unrelated files are staged.
 
 Hooks added (in template order):
 
@@ -66,3 +66,5 @@ Hooks added (in template order):
 | `touchpoints-test-unit-pre-push` | `make touchpoints-test-unit` | `^apps/touchpoints/.*\.(ts\|vue\|tsx)$` |
 | `touchpoints-test-contracts-pre-push` | `make touchpoints-test-contracts` | `^(apps/touchpoints/.*\.(ts\|vue\|tsx)\|apps/packages/api-client/src/.*\.ts)$` |
 | `backend-test-unit-pre-push` | `make backend-test-unit` | `^(apps/backend/\|tests/backend/).*\.py$` |
+| `backend-test-contracts-pre-push` | `make backend-test-contracts` | `^(apps/backend/\|tests/backend/).*\.py$` |
+| `touchpoints-test-integration-pre-push` | `make touchpoints-test-integration` | `^(apps/touchpoints/.*\.(ts\|vue\|tsx)\|apps/packages/api-client/src/.*\.ts)$` |

@@ -13,6 +13,8 @@
 - [x] T-003 Add `backend-test-unit-pre-push` hook stanza to the same template (FR-003)
 - [x] T-004 Verify all three make targets exit 0 when the relevant test directory is absent; add absent-directory guards if needed (NFR-REL-001, Risk 1)
 - [x] T-005 Add backport note to blueprint upgrade documentation describing all three hooks, their `files` triggers, and the make targets (NFR-OPS-001)
+- [x] T-006 Add `backend-test-contracts-pre-push` hook stanza to the same template (FR-006)
+- [x] T-007 Add `touchpoints-test-integration-pre-push` hook stanza to the same template (FR-007)
 
 ## Test Automation
 - [x] T-101 Write `tests/blueprint/test_pre_push_hooks.py` asserting `touchpoints-test-unit-pre-push` is present in the template YAML with correct `entry`, `language`, `pass_filenames`, `always_run`, `stages`, `files` values — written RED before Slice 2 (AC-001)
@@ -21,6 +23,8 @@
 - [x] T-104 Assert all three hook definitions set `always_run: false` and `stages: [pre-push]` only — confirming no commit-stage blocking (AC-004)
 - [x] T-105 Assert `make quality-validate-bootstrap-template-drift` exits 0 after all three hooks are added — capture exit code as evidence in traceability (AC-005)
 - [x] T-106 Translate any reproducible pre-PR finding from T-004 (absent-directory exit-code checks) into failing automated tests first, then fix; document any deterministic exception in publish artifacts (SDD-C-024) — N/A: all three targets exit 0 when directory absent; no finding to translate.
+- [x] T-108 Write test class for `backend-test-contracts-pre-push` asserting id, entry, language, pass_filenames, always_run, stages, files — written RED before stanza added (AC-006)
+- [x] T-109 Write test class for `touchpoints-test-integration-pre-push` asserting id, entry, language, pass_filenames, always_run, stages, files — written RED before stanza added (AC-007)
 
 ## Accessibility Testing (Normative — mark N/A with rationale for non-UI specs)
 - [x] T-A01 N/A — NFR-A11Y-001 is declared N/A in spec.md (template modification only, no UI)

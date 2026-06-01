@@ -20,12 +20,22 @@
     {
       "id": "FR-004",
       "type": "requirement",
-      "summary": "All three hooks must be no-ops when no matching files staged (always_run: false)"
+      "summary": "All five hooks must be no-ops when no matching files staged (always_run: false)"
     },
     {
       "id": "FR-005",
       "type": "requirement",
-      "summary": "Consumers gain all three pre-push gates automatically after blueprint template upgrade"
+      "summary": "Consumers gain all five pre-push gates automatically after blueprint template upgrade"
+    },
+    {
+      "id": "FR-006",
+      "type": "requirement",
+      "summary": "Add backend-test-contracts-pre-push hook to template with Python file scope matching FR-003"
+    },
+    {
+      "id": "FR-007",
+      "type": "requirement",
+      "summary": "Add touchpoints-test-integration-pre-push hook to template with files pattern matching FR-002"
     },
     {
       "id": "NFR-SEC-001",
@@ -50,7 +60,7 @@
     {
       "id": "NFR-OPS-001",
       "type": "requirement",
-      "summary": "Blueprint upgrade documentation includes backport note for all three hooks"
+      "summary": "Blueprint upgrade documentation includes backport note for all five hooks"
     },
     {
       "id": "AC-001",
@@ -70,12 +80,22 @@
     {
       "id": "AC-004",
       "type": "acceptance",
-      "summary": "All three hooks set always_run: false and stages: [pre-push] only"
+      "summary": "All five hooks set always_run: false and stages: [pre-push] only"
     },
     {
       "id": "AC-005",
       "type": "acceptance",
-      "summary": "make quality-validate-bootstrap-template-drift exits 0 after all three hooks added"
+      "summary": "make quality-validate-bootstrap-template-drift exits 0 after all five hooks added"
+    },
+    {
+      "id": "AC-006",
+      "type": "acceptance",
+      "summary": "backend-test-contracts-pre-push present in template with all required field values"
+    },
+    {
+      "id": "AC-007",
+      "type": "acceptance",
+      "summary": "touchpoints-test-integration-pre-push present in template with all required field values"
     }
   ],
   "edges": [
@@ -91,6 +111,14 @@
     {"from": "FR-003", "to": "FR-004", "relation": "enables"},
     {"from": "FR-001", "to": "FR-005", "relation": "enables"},
     {"from": "FR-002", "to": "FR-005", "relation": "enables"},
-    {"from": "FR-003", "to": "FR-005", "relation": "enables"}
+    {"from": "FR-003", "to": "FR-005", "relation": "enables"},
+    {"from": "FR-006", "to": "AC-006", "relation": "validated_by"},
+    {"from": "FR-007", "to": "AC-007", "relation": "validated_by"},
+    {"from": "FR-006", "to": "FR-004", "relation": "enables"},
+    {"from": "FR-007", "to": "FR-004", "relation": "enables"},
+    {"from": "FR-006", "to": "FR-005", "relation": "enables"},
+    {"from": "FR-007", "to": "FR-005", "relation": "enables"},
+    {"from": "NFR-REL-001", "to": "AC-006", "relation": "constrains"},
+    {"from": "NFR-REL-001", "to": "AC-007", "relation": "constrains"}
   ]
 }
