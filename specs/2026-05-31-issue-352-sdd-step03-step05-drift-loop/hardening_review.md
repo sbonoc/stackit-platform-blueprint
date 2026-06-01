@@ -16,7 +16,7 @@
 - SOLID: `_check_step03_complete_event()` is a single-responsibility function with a clear input/output contract. It does not mutate caller state.
 - Clean Architecture: function is a pure validator — reads from filesystem, returns `list[Violation]`, never writes. Side-effect (metric print to stderr) is explicit and isolated.
 - No new dependencies introduced; `json` stdlib already imported.
-- Test pyramid (74 tests total): `test_sdd_asset_checker.py` adds 5 new integration-style tests (AC-001..AC-005) using temp dirs; `test_quality_gating.py` adds 19 new unit tests (AC-006..AC-011). All pass. Pyramid ratios unchanged (within bounds).
+- Test pyramid (82 tests total): `test_sdd_asset_checker.py` adds 9 new integration-style tests (AC-001..AC-005 + `TestAcFormatScanner` AC-012 ×4) using temp dirs; `test_quality_gating.py` adds 23 new unit tests (AC-006..AC-011 + `TestProposalsShiftLeft` AC-013 ×4). All pass. Pyramid ratios unchanged (within bounds).
 - No stale TODOs, dead code, or placeholder text in implementation files.
 - Documentation drift check: `quality-docs-check-changed` and `quality-bootstrap-template-drift` both pass after template mirrors were synced.
 - CI template alignment: no CI pipeline files changed; existing gates remain unchanged.
@@ -33,5 +33,5 @@
 
 ## Proposals Only (Not Implemented)
 
-- Proposal 1 (deferred): Machine-enforced AC format scanner — FR-004 enforces the canonical AC form `AC-NNN [description] — verified by T-N, which MUST assert <exact condition>.` via SKILL.md guidance and human review at step03. A machine-readable parser in `check_sdd_assets.py` that rejects label-only ACs was explicitly deferred (ADR D-7): the cognitive overhead is low and the SKILL.md gate is adequate for now. A regex scanner could be added as a follow-on chore.
+- Proposal 1 (implemented — FR-013): Machine-enforced AC format scanner — the machine-readable parser in `check_sdd_assets.py::_check_ac_format` was originally deferred (ADR D-7) but reversed in this PR. The checker rejects any `^- AC-\d+` line outside a fenced code block that does not contain `MUST assert`, for post-gate slugs. ADR D-7 updated; FR-013 and AC-012 added to spec. The follow-on chore referenced in the original deferral is now closed.
 - Proposal 2 (deferred): Metric wiring to alerting — `sdd_step03_missing_spec_complete` is emitted to stderr only. Wiring to a Grafana dashboard or PagerDuty alert is not implemented — the gate is a blocking pre-merge check and does not need runtime alerting. Deferred as low-priority operational improvement.

@@ -460,3 +460,49 @@ class TestAgentsMandatoryGateStep03:
         assert "chore-with-no-specs" in content or "chore-no-specs" in content, (
             "AGENTS.md must list the chore-with-no-specs exempt track (AC-010 / FR-003)"
         )
+
+
+class TestProposalsShiftLeft:
+    """AC-013 / FR-014: proposals shift-left to step01 + scaffold + step07 two-bucket triage."""
+
+    STEP01_SKILL = REPO_ROOT / ".agents/skills/blueprint-sdd-step01-intake/SKILL.md"
+    STEP07_SKILL = REPO_ROOT / ".agents/skills/blueprint-sdd-step07-pr-packager/SKILL.md"
+    BLUEPRINT_SPEC_TMPL = REPO_ROOT / ".spec-kit/templates/blueprint/spec.md"
+    CONSUMER_SPEC_TMPL = REPO_ROOT / ".spec-kit/templates/consumer/spec.md"
+
+    def _step01(self) -> str:
+        return self.STEP01_SKILL.read_text(encoding="utf-8")
+
+    def _step07(self) -> str:
+        return self.STEP07_SKILL.read_text(encoding="utf-8")
+
+    def test_step01_contains_scope_exclusions_guidance(self) -> None:
+        """AC-013(a): step01 SKILL.md requires documenting scope exclusions / deferred proposals."""
+        content = self._step01()
+        assert "Potential Deferred Proposals" in content, (
+            "step01 SKILL.md must require a 'Potential Deferred Proposals' section (AC-013 / FR-014)"
+        )
+
+    def test_blueprint_scaffold_seeds_deferred_proposals_section(self) -> None:
+        """AC-013(b): blueprint spec.md template seeds ## Potential Deferred Proposals."""
+        content = self.BLUEPRINT_SPEC_TMPL.read_text(encoding="utf-8")
+        assert "Potential Deferred Proposals" in content, (
+            "blueprint spec.md template must seed '## Potential Deferred Proposals' (AC-013 / FR-014)"
+        )
+
+    def test_consumer_scaffold_seeds_deferred_proposals_section(self) -> None:
+        """AC-013(b): consumer spec.md template seeds ## Potential Deferred Proposals."""
+        content = self.CONSUMER_SPEC_TMPL.read_text(encoding="utf-8")
+        assert "Potential Deferred Proposals" in content, (
+            "consumer spec.md template must seed '## Potential Deferred Proposals' (AC-013 / FR-014)"
+        )
+
+    def test_step07_triage_distinguishes_two_buckets(self) -> None:
+        """AC-013(c): step07 SKILL.md triage guidance names both pre-planned and newly-discovered."""
+        content = self._step07()
+        assert "pre-planned" in content or "pre-plan" in content, (
+            "step07 SKILL.md must reference pre-planned exclusions bucket (AC-013 / FR-014)"
+        )
+        assert "newly-discovered" in content or "newly discovered" in content, (
+            "step07 SKILL.md must reference newly-discovered proposals bucket (AC-013 / FR-014)"
+        )

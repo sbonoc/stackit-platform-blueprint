@@ -2,7 +2,7 @@
   "manifest_version": 1,
   "work_item": "specs/2026-05-31-issue-352-sdd-step03-step05-drift-loop",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "2026-06-01T05:27:02Z",
+  "generated_at_utc": "2026-06-01T06:13:25Z",
   "files": [
     {
       "path": "specs/2026-05-31-issue-352-sdd-step03-step05-drift-loop/architecture.md",
@@ -16,18 +16,18 @@
     },
     {
       "path": "specs/2026-05-31-issue-352-sdd-step03-step05-drift-loop/evidence_manifest.json",
-      "sha256": "ecb0eea40122794ca8f062212e022ba451f6d0a543b88db3d7c15e65a071e7f7",
-      "bytes": 161
+      "sha256": "e85491a9873b21ad564f8b4ad4f2e0f2a44ebbd47b37b709710c05929a057924",
+      "bytes": 2250
     },
     {
       "path": "specs/2026-05-31-issue-352-sdd-step03-step05-drift-loop/graph.json",
-      "sha256": "ff5a5e04ca976dd34decee13de69eb7935bffa8ec30a5e82c3ac6eaddaa378fb",
-      "bytes": 4894
+      "sha256": "32d3c2f7179338c483b39a618a8fda7ff7349cf698e00972a6b467d258fc00f3",
+      "bytes": 5645
     },
     {
       "path": "specs/2026-05-31-issue-352-sdd-step03-step05-drift-loop/hardening_review.md",
-      "sha256": "d46b1a15fb3cdc78ff57691bb99f31475c4b1bdaf1713ac2fc9ace5697e92c9b",
-      "bytes": 3642
+      "sha256": "c3793c3660d4067a8082dcfba2bcc6f4eb9095acc5bbb62edff0878b644a59eb",
+      "bytes": 3698
     },
     {
       "path": "specs/2026-05-31-issue-352-sdd-step03-step05-drift-loop/plan.md",
@@ -36,23 +36,23 @@
     },
     {
       "path": "specs/2026-05-31-issue-352-sdd-step03-step05-drift-loop/pr_context.md",
-      "sha256": "08267e13de2adebed1bc0a01914efed591108b16c992220ae544d02eca3207ab",
-      "bytes": 7569
+      "sha256": "b2e39951a43f8234621035ed563934546cff92f6ebf4d3eeae0fd56cb0f30a50",
+      "bytes": 8872
     },
     {
       "path": "specs/2026-05-31-issue-352-sdd-step03-step05-drift-loop/spec.md",
-      "sha256": "1ba2789667e1edc8ea0006856ef695aaa522ab5cd082105dd449f75cbe5f8948",
-      "bytes": 17871
+      "sha256": "0aab1c19d14294116129155bb74db358bd1378f6e4b2224dcb9336eb67158c26",
+      "bytes": 20494
     },
     {
       "path": "specs/2026-05-31-issue-352-sdd-step03-step05-drift-loop/tasks.md",
-      "sha256": "0c779bdaffd039620f253a1c56d58158fe0ead77392f864b61102324714636c3",
-      "bytes": 5155
+      "sha256": "60e09e02a1bcafd1d664ef7c1a7b5ed9cd9eb33f6708d6ce116a85a213ea29cd",
+      "bytes": 6107
     },
     {
       "path": "specs/2026-05-31-issue-352-sdd-step03-step05-drift-loop/traceability.md",
-      "sha256": "be373b4a69841bceb2ea3188fb54e30176cbc34c08e4f1c117b410cdcd082a6a",
-      "bytes": 7404
+      "sha256": "09fd13946874f17559718ce97891012077f79e912f85b1740467a69dc718f5eb",
+      "bytes": 8748
     }
   ]
 }

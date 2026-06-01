@@ -29,7 +29,11 @@
     { "id": "AC-008", "type": "acceptance", "summary": "Per-profile examples table contains TS/Python/Kotlin/Go rows" },
     { "id": "AC-009", "type": "acceptance", "summary": "Vitest Browser Mode + Playwright escalation rule present" },
     { "id": "AC-010", "type": "acceptance", "summary": "AGENTS.md mandatory-gate phrase + exempt tokens present" },
-    { "id": "AC-011", "type": "acceptance", "summary": "step01 SKILL.md canonical AC guidance + scaffold templates seed canonical form" }
+    { "id": "AC-011", "type": "acceptance", "summary": "step01 SKILL.md canonical AC guidance + scaffold templates seed canonical form" },
+    { "id": "FR-013", "type": "requirement", "summary": "Machine-enforced AC format scanner — reject label-only ACs in spec.md" },
+    { "id": "FR-014", "type": "requirement", "summary": "Proposals shift-left — seed Potential Deferred Proposals section at step01" },
+    { "id": "AC-012", "type": "acceptance", "summary": "_check_ac_format emits violation for post-gate label-only AC line" },
+    { "id": "AC-013", "type": "acceptance", "summary": "step01 scope exclusions guidance + scaffold templates seed + step07 two-bucket triage" }
   ],
   "edges": [
     { "from": "FR-001", "to": "AC-010", "relation": "validated_by" },
@@ -52,6 +56,9 @@
     { "from": "NFR-OBS-001", "to": "AC-002", "relation": "constrains" },
     { "from": "NFR-OPS-001", "to": "AC-002", "relation": "constrains" },
     { "from": "NFR-REL-001", "to": "AC-002", "relation": "constrains" },
-    { "from": "NFR-A11Y-001", "to": "FR-008", "relation": "constrains" }
+    { "from": "NFR-A11Y-001", "to": "FR-008", "relation": "constrains" },
+    { "from": "FR-013", "to": "AC-012", "relation": "validated_by" },
+    { "from": "FR-014", "to": "AC-013", "relation": "validated_by" },
+    { "from": "FR-011", "to": "AC-012", "relation": "constrains" }
   ]
 }

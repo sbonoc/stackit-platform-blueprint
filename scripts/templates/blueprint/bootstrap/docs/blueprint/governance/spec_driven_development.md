@@ -100,8 +100,10 @@ AC-NNN [<describe what is verified>] — verified by T-N, which MUST assert <exa
 
 The assertion description MUST name a concrete, objectively verifiable condition. Label-only entries
 that use a verb without a postcondition (`covers`, `verifies`, `tests`) are rejected by the
-`blueprint-sdd-step03-spec-complete` gate. Scaffold templates seed ACs in this form; do not
-replace them with label-only stubs.
+`blueprint-sdd-step03-spec-complete` gate. In addition, `make quality-sdd-check` runs a machine
+check (`_check_ac_format` in `check_sdd_assets.py`) that flags any `^- AC-\d+` line in `spec.md`
+(outside fenced code blocks) that does not contain `MUST assert` — for work items with slug date
+≥ 2026-06-01. Scaffold templates seed ACs in this form; do not replace them with label-only stubs.
 
 ## Control and Stack Requirements in `spec.md`
 

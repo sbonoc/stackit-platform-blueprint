@@ -86,3 +86,6 @@
 
 ## Explicit Exclusions
 - Excluded item 1:
+
+## Potential Deferred Proposals
+- none

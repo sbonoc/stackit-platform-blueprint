@@ -16,6 +16,8 @@
 - [x] T-005 Slice 5 — FR-011 forward-only merge-date constant (`_SPEC_COMPLETE_GATE_SINCE = "2026-06-01"`) in check_sdd_assets.py; no `sdd-policy-snapshot` make target exists
 - [x] T-006 Cross-skill update — verified `CLAUDE.md` skill table caption text; no changes needed
 - [x] T-007 Generated SDD policy snapshot — no snapshot make target; AGENTS.md snapshot unchanged (gate is implementation detail not surfaced in snapshot)
+- [x] T-008 Slice 6 — `scripts/bin/quality/check_sdd_assets.py` `_check_ac_format` function + `_AC_LINE_RE` constant + wiring into `_validate_work_item_specs` (FR-013, AC-012); ADR D-7 reversed; forward-only guard applied
+- [x] T-009 Slice 7 — `step01-intake/SKILL.md` Discover-phase scope-exclusions bullet; `.spec-kit/templates/blueprint/spec.md` + `.spec-kit/templates/consumer/spec.md` `## Potential Deferred Proposals` section seeded; `step07-pr-packager/SKILL.md` two-bucket triage guidance; consumer-init mirror synced (FR-014, AC-013)
 
 ## Test Automation
 - [x] T-101 Slice 4 pytest cases — AC-001 happy path (spec-complete event present → exit 0)
@@ -29,6 +31,8 @@
 - [x] T-204 Slice 3 pytest case — AC-009 FR-009 Vitest Browser Mode satisfaction + Playwright escalation rule present
 - [x] T-205 Slice 1 pytest case — AC-010 AGENTS.md mandatory-gate phrase + exempt-track tokens present
 - [x] T-206 Slice 2 pytest case — AC-011 step01 SKILL.md canonical-form guidance present AND both scaffold templates seed AC-001 placeholder in canonical form (FR-012)
+- [x] T-106 Slice 6 pytest cases — `TestAcFormatScanner`: AC-012 happy path (canonical ACs pass), label-only violation, code-block skip, pre-gate slug exempt (FR-013, AC-012)
+- [x] T-207 Slice 7 pytest cases — `TestProposalsShiftLeft`: step01 scope-exclusions guidance present, both scaffold templates seed `## Potential Deferred Proposals`, step07 two-bucket triage language present (FR-014, AC-013)
 
 ## Accessibility Testing (Normative — mark N/A with rationale for non-UI specs)
 - [x] T-A01 N/A — governance change with no UI surface (per NFR-A11Y-001)

@@ -76,3 +76,6 @@
 - Tradeoffs:
 - Clarifications:
   - [NEEDS CLARIFICATION: replace or remove before `SPEC_READY=true`]
+
+## Potential Deferred Proposals
+- none

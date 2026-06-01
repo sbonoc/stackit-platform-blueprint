@@ -2,7 +2,7 @@
 
 ## Summary
 
-Closes the structural loop between SDD step03 (spec authoring) and step05 (implementation) that allowed spec-to-implementation drift to survive automated gates. Step03 is promoted from optional accelerator to **mandatory gate** enforced by `make quality-sdd-check` for `{none, bug-fix, refactor, chore, authorized-deviation}` tracks: the checker reads `artifacts/c7/<slug>.jsonl` and rejects any implementation-ready spec that lacks a `phase=spec-complete` event. Exempt: `upgrade` (automated pipeline, no human sign-off model) and `chore-with-no-specs` (no specs/ dir). A new AC authoring rule is added to step03 SKILL.md and seeded into both scaffold templates — every AC must follow the canonical form `AC-NNN [description] — verified by T-N, which MUST assert <exact condition>.`. Step05 SKILL.md gains four numbered guardrails (spec-value regression tests, union types for spec-enumerated fields, single source of truth for enum constants, mandatory automated rendered-output coverage) and a per-profile examples table (TypeScript / Python / Kotlin / Go). All changes are forward-only: existing work items with slug dates before 2026-06-01 are grandfathered by `_SPEC_COMPLETE_GATE_SINCE`.
+Closes the structural loop between SDD step03 (spec authoring) and step05 (implementation) that allowed spec-to-implementation drift to survive automated gates. Step03 is promoted from optional accelerator to **mandatory gate** enforced by `make quality-sdd-check` for `{none, bug-fix, refactor, chore, authorized-deviation}` tracks: the checker reads `artifacts/c7/<slug>.jsonl` and rejects any implementation-ready spec that lacks a `phase=spec-complete` event. Exempt: `upgrade` (automated pipeline, no human sign-off model) and `chore-with-no-specs` (no specs/ dir). A new AC authoring rule is added to step03 SKILL.md and seeded into both scaffold templates — every AC must follow the canonical form `AC-NNN [description] — verified by T-N, which MUST assert <exact condition>.`. Step05 SKILL.md gains four numbered guardrails (spec-value regression tests, union types for spec-enumerated fields, single source of truth for enum constants, mandatory automated rendered-output coverage) and a per-profile examples table (TypeScript / Python / Kotlin / Go). Two additional requirements were added during implementation: FR-013 reverses ADR D-7 and adds a machine-enforced AC format scanner (`_check_ac_format` in `check_sdd_assets.py`) that rejects label-only ACs at quality gate time; FR-014 shifts proposal documentation left to step01 and requires step07 triage to distinguish pre-planned exclusions from newly-discovered proposals. All changes are forward-only: existing work items with slug dates before 2026-06-01 are grandfathered by `_SPEC_COMPLETE_GATE_SINCE`.
 
 ## Requirement Coverage
 
@@ -20,35 +20,39 @@ Closes the structural loop between SDD step03 (spec authoring) and step05 (imple
 | FR-010 (per-profile table) | `step05-implement/SKILL.md` § Per-profile table | `test_quality_gating.py::TestStep05SkillPerProfileTable` (AC-008) |
 | FR-011 (forward-only guard) | `check_sdd_assets.py::_SPEC_COMPLETE_GATE_SINCE = "2026-06-01"` | `test_sdd_asset_checker.py::TestStep03CompleteEventGate` (indirect via AC-001) |
 | FR-012 (shift-left AC authoring) | `step01-intake/SKILL.md` Discover step 2 + both scaffold `spec.md` templates | `test_quality_gating.py::TestStep01SkillAcAuthoringGuidance`, `TestScaffoldTemplatesAcPlaceholder` (AC-011) |
+| FR-013 (machine AC format scanner) | `check_sdd_assets.py::_check_ac_format` + `_AC_LINE_RE` constant | `test_sdd_asset_checker.py::TestAcFormatScanner` (AC-012) |
+| FR-014 (proposals shift-left) | `step01-intake/SKILL.md` Discover scope-exclusions bullet + both scaffold `spec.md` templates `## Potential Deferred Proposals` + `step07-pr-packager/SKILL.md` two-bucket triage | `test_quality_gating.py::TestProposalsShiftLeft` (AC-013) |
 | NFR-OBS-001 (metric) | `check_sdd_assets.py` metric print to stderr | `test_sdd_asset_checker.py` AC-002 (violation triggers metric) |
 | NFR-SEC-001 | No auth surface; read-only filesystem check | N/A (no attack surface) |
 | NFR-REL-001, NFR-OPS-001 | Error handling in `_check_step03_complete_event` (malformed JSONL, OSError) | AC-002 extended coverage |
 | NFR-A11Y-001 | N/A — no UI surface | N/A |
-| AC-001..AC-011 | See traceability.md for full mapping | 74 tests total; all pass |
+| AC-001..AC-013 | See traceability.md for full mapping | 82 tests total; all pass |
 | Contract surfaces: | `AGENTS.md`, SKILL.md files (operator contract) | N/A |
-| Contract surfaces: | `check_sdd_assets.py` (quality gate contract) | 22 unit/integration tests |
+| Contract surfaces: | `check_sdd_assets.py` (quality gate contract) | 30 unit/integration tests |
 | Contract surfaces: | `spec.md` templates, consumer-init template | Drift test `test_consumer_init_sdd_assets_in_sync` |
 
 ## Key Reviewer Files
 
 - Primary files to review first:
-  - `scripts/bin/quality/check_sdd_assets.py` — new `_check_step03_complete_event()` + `_SPEC_COMPLETE_GATE_SINCE` constant (machine enforcement of the mandatory gate)
-  - `tests/infra/test_sdd_asset_checker.py` — AC-001..AC-005 gate tests (happy path, missing event, upgrade exemption, no-specs exemption, opted-out non-satisfaction)
+  - `scripts/bin/quality/check_sdd_assets.py` — new `_check_step03_complete_event()` + `_SPEC_COMPLETE_GATE_SINCE` constant + `_check_ac_format()` + `_AC_LINE_RE` (machine enforcement of the mandatory gate + AC format scanner)
+  - `tests/infra/test_sdd_asset_checker.py` — AC-001..AC-005 gate tests + `TestAcFormatScanner` (AC-012) — 4 tests for happy path, label-only violation, code-block skip, pre-gate exemption
   - `AGENTS.md` — item 14 added to `§ Mandatory Workflow` (normative policy)
   - `.agents/skills/blueprint-sdd-step03-spec-complete/SKILL.md` — new `## AC Authoring Rule (Normative — FR-004)` section
   - `.agents/skills/blueprint-sdd-step05-implement/SKILL.md` — Guardrails 16-19 + per-profile examples table
-  - `tests/blueprint/test_quality_gating.py` — AC-006..AC-011 coverage tests
+  - `.agents/skills/blueprint-sdd-step01-intake/SKILL.md` — Discover-phase scope-exclusions guidance (FR-014)
+  - `.agents/skills/blueprint-sdd-step07-pr-packager/SKILL.md` — two-bucket triage guidance (FR-014)
+  - `tests/blueprint/test_quality_gating.py` — AC-006..AC-011 + `TestProposalsShiftLeft` (AC-013) — 4 tests for scope-exclusions guidance, scaffold templates, step07 triage
   - `docs/blueprint/governance/spec_driven_development.md` — AC authoring rule section + step05 guardrails + step03 mandatory gate note
-  - `.spec-kit/templates/blueprint/spec.md`, `.spec-kit/templates/consumer/spec.md` — canonical AC placeholder seeded in both templates (FR-012)
+  - `.spec-kit/templates/blueprint/spec.md`, `.spec-kit/templates/consumer/spec.md` — canonical AC placeholder + `## Potential Deferred Proposals` section seeded in both templates (FR-012, FR-014)
 - High-risk files:
-  - `check_sdd_assets.py` forward-only guard (`_SPEC_COMPLETE_GATE_SINCE`) — string comparison relies on slug date-prefix format; non-date slugs skipped via regex guard
+  - `check_sdd_assets.py` forward-only guard (`_SPEC_COMPLETE_GATE_SINCE`) — string comparison relies on slug date-prefix format; non-date slugs skipped via regex guard (applied to both `_check_step03_complete_event` and `_check_ac_format`)
 
 ## Validation Evidence
 
 ```
 uv run python3 -m pytest tests/ --tb=short
-  → 1108 passed, 42 subtests passed in 124.98s (pre-push hook)
-  → New tests: 22 in test_sdd_asset_checker.py + 19 in test_quality_gating.py
+  → 1113 passed, 42 subtests passed (pre-push hook)
+  → New tests: 26 in test_sdd_asset_checker.py + 23 in test_quality_gating.py
 
 make quality-sdd-check
   → [quality-sdd-check] validated SDD assets, readiness gates, and language policy
@@ -83,5 +87,4 @@ make quality-spec-pr-ready
 
 ## Deferred Proposals
 
-- Machine-enforced AC format scanner — deferred per ADR D-7. A regex parser in `check_sdd_assets.py` that rejects label-only ACs was considered but deferred; SKILL.md guidance + human review at step03 is adequate for now.
-- Metric wiring to alerting — `sdd_step03_missing_spec_complete` stderr emission is sufficient for a pre-merge gate; Grafana/PagerDuty wiring is a low-priority follow-on.
+- Metric wiring to alerting — `sdd_step03_missing_spec_complete` stderr emission is sufficient for a pre-merge gate; Grafana/PagerDuty wiring is a low-priority follow-on. (ADR D-7 reversal implemented the machine AC scanner — that earlier deferral is closed.)

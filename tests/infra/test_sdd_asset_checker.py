@@ -1110,7 +1110,10 @@ class TestStep03CompleteEventGate(unittest.TestCase):
             "- NFR-REL-001 MUST define resilience and rollback behavior.",
             "- NFR-OPS-001 MUST define operability and diagnostics behavior.",
             "## Normative Acceptance Criteria",
-            "- AC-001 MUST be objectively testable.",
+            "- AC-001 [gate fixture] — verified by T-001, which MUST assert the checker exits 0.",
+            "",
+            "## Potential Deferred Proposals",
+            "- none",
             "",
             "## Informative Notes (Non-Normative)",
             "- Context: gate fixture.",
@@ -1218,6 +1221,127 @@ class TestStep03CompleteEventGate(unittest.TestCase):
                 any("spec-complete" in m for m in messages),
                 msg=f"expected spec-complete gate violation; got: {messages}",
             )
+
+
+class TestAcFormatScanner(unittest.TestCase):
+    """FR-013 / AC-012: _check_ac_format rejects label-only ACs in SPEC_READY=true work items."""
+
+    SLUG = "2026-06-01-ac-format-fixture"
+
+    def _make_spec_with_acs(self, repo_root: Path, ac_lines: list[str]) -> None:
+        """Create a minimal SPEC_READY=true work item whose AC section is replaced by ac_lines."""
+        gate_slug = TestStep03CompleteEventGate.SLUG
+        tmp = TestStep03CompleteEventGate()
+        tmp.SLUG = self.SLUG  # type: ignore[attr-defined]
+        work_item = tmp._make_spec_ready_work_item(repo_root)
+        # Re-write spec.md with the caller-supplied AC lines
+        spec_path = work_item / "spec.md"
+        original = spec_path.read_text(encoding="utf-8")
+        # Replace the canonical AC-001 line with the supplied lines
+        new_spec = original.replace(
+            "- AC-001 [gate fixture] — verified by T-001, which MUST assert the checker exits 0.",
+            "\n".join(ac_lines),
+        )
+        spec_path.write_text(new_spec, encoding="utf-8")
+        # Provide a C7 spec-complete event so the step03 gate doesn't block
+        c7_dir = repo_root / "artifacts" / "c7"
+        c7_dir.mkdir(parents=True, exist_ok=True)
+        import json as _json
+        event = {
+            "event_id": "ac-format-fixture",
+            "ticket_id": "1",
+            "phase": "spec-complete",
+            "persona": "human-engineer",
+            "model": "unknown",
+            "timestamp": "2026-06-01T10:00:00Z",
+            "outcome": "success",
+            "rerun_round": 0,
+            "owner_team": "platform-team",
+            "emitter": "local-cli",
+            "execution_mode": "human-assisted",
+        }
+        (c7_dir / f"{self.SLUG}.jsonl").write_text(_json.dumps(event) + "\n", encoding="utf-8")
+
+    def test_canonical_acs_pass(self) -> None:
+        """AC-012(a): valid ACs with MUST assert produce no violation."""
+        checker = _load_checker_module()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _write_valid_control_catalog(repo_root / ".spec-kit/control-catalog.md")
+            self._make_spec_with_acs(repo_root, [
+                "- AC-001 [happy path] — verified by T-101, which MUST assert exit code is 0.",
+                "- AC-002 [error path] — verified by T-102, which MUST assert stderr contains slug.",
+            ])
+            contract_raw = _contract_raw()
+            _, catalog_ids = checker._load_control_catalog(contract_raw=contract_raw, repo_root=repo_root)
+            violations = checker._validate_work_item_specs(contract_raw, repo_root, catalog_ids)
+            ac_violations = [v for v in violations if "label-only" in v.message]
+            self.assertEqual(ac_violations, [], msg=f"unexpected AC violations: {ac_violations}")
+
+    def test_label_only_ac_produces_violation(self) -> None:
+        """AC-012(b): label-only AC (no MUST assert) produces a violation naming the line."""
+        checker = _load_checker_module()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _write_valid_control_catalog(repo_root / ".spec-kit/control-catalog.md")
+            self._make_spec_with_acs(repo_root, [
+                "- AC-001 covers the authentication flow.",
+            ])
+            contract_raw = _contract_raw()
+            _, catalog_ids = checker._load_control_catalog(contract_raw=contract_raw, repo_root=repo_root)
+            violations = checker._validate_work_item_specs(contract_raw, repo_root, catalog_ids)
+            ac_violations = [v for v in violations if "label-only" in v.message]
+            self.assertTrue(
+                len(ac_violations) >= 1,
+                msg=f"expected label-only violation; got: {[v.message for v in violations]}",
+            )
+            self.assertTrue(
+                any("AC-001" in v.message for v in ac_violations),
+                msg=f"violation should name AC-001: {[v.message for v in ac_violations]}",
+            )
+
+    def test_ac_in_code_block_is_skipped(self) -> None:
+        """AC-012(c): label-only AC inside fenced code block produces no violation."""
+        checker = _load_checker_module()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _write_valid_control_catalog(repo_root / ".spec-kit/control-catalog.md")
+            self._make_spec_with_acs(repo_root, [
+                "```",
+                "- AC-001 covers authentication (example in code block)",
+                "```",
+                "- AC-001 [real AC] — verified by T-001, which MUST assert result is non-empty.",
+            ])
+            contract_raw = _contract_raw()
+            _, catalog_ids = checker._load_control_catalog(contract_raw=contract_raw, repo_root=repo_root)
+            violations = checker._validate_work_item_specs(contract_raw, repo_root, catalog_ids)
+            ac_violations = [v for v in violations if "label-only" in v.message]
+            self.assertEqual(ac_violations, [], msg=f"code-block AC should not trigger: {ac_violations}")
+
+    def test_pre_gate_slug_is_exempt(self) -> None:
+        """AC-012(d): slug date < 2026-06-01 is exempt from AC format check."""
+        checker = _load_checker_module()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _write_valid_control_catalog(repo_root / ".spec-kit/control-catalog.md")
+            # Build work item under the pre-gate slug directly
+            pre_slug = "2026-05-31-pre-gate-fixture"
+            tmp = TestStep03CompleteEventGate()
+            tmp.SLUG = pre_slug  # type: ignore[attr-defined]
+            work_item = tmp._make_spec_ready_work_item(repo_root)
+            spec_path = work_item / "spec.md"
+            original = spec_path.read_text(encoding="utf-8")
+            spec_path.write_text(original.replace(
+                "- AC-001 [gate fixture] — verified by T-001, which MUST assert the checker exits 0.",
+                "- AC-001 covers the authentication flow.",  # label-only, but pre-gate
+            ), encoding="utf-8")
+            # Provide spec-complete event for the pre-gate slug (not gated, but needed to pass step03 check)
+            # Since pre-gate slug < gate date, step03 gate also doesn't fire — no event needed
+            contract_raw = _contract_raw()
+            _, catalog_ids = checker._load_control_catalog(contract_raw=contract_raw, repo_root=repo_root)
+            violations = checker._validate_work_item_specs(contract_raw, repo_root, catalog_ids)
+            ac_violations = [v for v in violations if "label-only" in v.message]
+            self.assertEqual(ac_violations, [], msg=f"pre-gate slug should be exempt: {ac_violations}")
 
 
 if __name__ == "__main__":

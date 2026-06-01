@@ -96,6 +96,12 @@ The new gates apply only to work items whose spec-scaffold timestamp is on or af
 
 FR-004 mandates the AC authoring convention but does NOT mandate a regex check in `check_sdd_assets.py`. Reason: the assertion text is natural-language English; a regex would either accept too much (every AC ending with `which MUST assert ...` passes regardless of meaningfulness) or reject too much (forcing a brittle micro-format). The Architect sign-off at step03 is the right place for this judgment call — the SKILL.md text gives them the criterion to apply. Re-evaluate if real-world adoption shows the convention is being ignored.
 
+**REVERSED — FR-013 (same PR, post-review scope extension):** After shipping the mandatory step03 gate (FR-002) and reviewing the overall consistency of the check suite, the team reversed D-7. The decisive argument: every other SDD gate in `check_sdd_assets.py` is machine-enforced; leaving AC format as the sole human-only check creates an asymmetry spec authors notice and exploit. The narrow check (`MUST assert` must appear on any `^- AC-\d+` line, outside fenced code blocks) avoids the false-positive risk cited above — it is not a full natural-language parse, just a postcondition-presence check. The forward-only guard (`_SPEC_COMPLETE_GATE_SINCE = "2026-06-01"`) ensures retroactive impact is zero. Option E is now implemented as FR-013. See also D-8 below.
+
+### D-8 — Deferred-proposal documentation shifted left to step01 (FR-014)
+
+Deferred proposals were previously documented exclusively at step07 (pr-packager) after implementation was complete. This creates a recurring pattern where proposals discovered late — or consciously excluded during scoping — are first captured only at publish time, producing redundant triage work (the team re-evaluates at step07 something they already decided at intake). FR-014 shifts the *pre-planned exclusion* bucket to step01: the Discover phase requires a `## Potential Deferred Proposals` section in `spec.md` from the first draft. Step07 triage then distinguishes two buckets: pre-planned exclusions (already decided, just confirm disposition) and newly-discovered proposals (first encounter, full triage required). This parallels FR-012 (AC authoring shifted to step01) and is within scope of this work item because the same consistency argument applies.
+
 ## Options Considered
 
 ### Option A — Single closed-loop work item (chosen)
@@ -124,16 +130,20 @@ Force `blueprint-upgrade-*` make-target family runs to emit a `spec-complete` ev
 
 **Rejected:** the upgrade pipeline is automation-driven; no human Architect/Security/Operations sign-off occurs because no architectural decision is being made — the pipeline replays committed blueprint changes against the consumer's pinned ref. Forcing the gate would break every automated upgrade run with no quality benefit.
 
-### Option E — Machine-enforce the AC assertion-description regex (rejected for now)
+### Option E — Machine-enforce the AC assertion-description regex (implemented — FR-013)
 
-Add a regex check in `check_sdd_assets.py` that rejects ACs lacking `which MUST assert ...`.
+Add a regex check in `check_sdd_assets.py` that rejects ACs lacking `MUST assert`.
 
-**Rejected:** false-positive risk (legitimate ACs phrased slightly differently get rejected) and false-negative risk (`which MUST assert <vague nonsense>` passes the regex but fails the intent). The Architect sign-off is the right enforcement layer for a natural-language convention. Revisit if real-world adoption is poor.
+**Originally rejected** (D-7): false-positive risk and false-negative risk cited above.
+
+**IMPLEMENTED** after D-7 reversal: the check is narrowed to a postcondition-presence test (`MUST assert` literal on the AC bullet line, outside fenced code blocks). This is not a full natural-language parse — it simply verifies that any line starting with `- AC-\d+` declares a concrete assertion postcondition. The false-positive risk is low because `MUST assert` is already a normative-keyword phrase forbidden elsewhere in non-normative sections. Forward-only guard applies; pre-existing specs are exempt. Added as FR-013 with AC-012 coverage tests.
 
 ## Consequences
 
 - AGENTS.md `§ Mandatory Workflow` gains a new normative clause (≈5 lines) classifying step03 as a mandatory gate, listing the exempt tracks, and pointing to FR-002 enforcement.
-- `scripts/bin/quality/check_sdd_assets.py` gains one new check function and a small set of pytest cases. No new external dependencies.
+- `scripts/bin/quality/check_sdd_assets.py` gains two new check functions (`_check_step03_complete_event` — FR-002; `_check_ac_format` — FR-013) and a corresponding set of pytest cases. No new external dependencies.
+- FR-013 (D-7 reversal): machine-enforcement of AC canonical form adds a narrow postcondition-presence check (`MUST assert`) to `check_sdd_assets.py`. Forward-only guard applies.
+- FR-014 (D-8): step01 SKILL.md gains a scope-exclusions step; both scaffold templates seed `## Potential Deferred Proposals`; step07 SKILL.md triage is updated to distinguish pre-planned exclusions from newly-discovered proposals.
 - `.agents/skills/blueprint-sdd-step01-intake/SKILL.md` gains shift-left guidance (FR-012) requiring ACs to be authored in the canonical `verified by T-N, which MUST assert <exact condition>` form from the first draft. Both scaffold templates (`.spec-kit/templates/blueprint/spec.md`, `.spec-kit/templates/consumer/spec.md`) replace the legacy `AC-001 MUST be objectively testable.` placeholder with a canonical-form example so the scaffold itself teaches the pattern.
 - `.agents/skills/blueprint-sdd-step03-spec-complete/SKILL.md` gains an AC authoring section and a corresponding spec-complete gate checklist item. Step03 remains the rejection gate; step01 + scaffold templates are the shift-left teaching layer.
 - `.agents/skills/blueprint-sdd-step05-implement/SKILL.md` gains four new numbered guardrails (FR-005..FR-008), a per-profile examples table (FR-010), and the FR-009 escalation rule woven into the FR-008 guardrail body.

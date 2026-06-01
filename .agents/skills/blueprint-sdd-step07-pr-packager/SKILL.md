@@ -69,8 +69,17 @@ STEP 8 — PUBLISH ARTIFACTS
    - Deferred Proposals (non-implemented improvements with rationale)
 
 3. TRIAGE DEFERRED PROPOSALS (required for every proposal):
-   a. Collect all entries from "Proposals Only (Not Implemented)" in
-      hardening_review.md and "Deferred Proposals" in pr_context.md.
+   a. Collect proposals from two buckets — keep them separate in the triage table:
+      - **pre-planned exclusions**: entries in `## Potential Deferred Proposals`
+        in `spec.md` that were documented at step01. These were known scope boundaries
+        from the start; they typically land as `park` or `reject` with minimal debate.
+      - **newly-discovered proposals**: entries surfaced during implementation or
+        hardening review that were not named at step01. These require full triage
+        deliberation and are the primary input to the `hardening_review.md` Proposals
+        section and the `pr_context.md` Deferred Proposals section.
+      Also include any entries from "Proposals Only (Not Implemented)" in
+      hardening_review.md and "Deferred Proposals" in pr_context.md that do not
+      already appear in one of the two buckets above.
 
    b. Present a triage table to the user and WAIT for confirmation before acting:
       | # | Proposal | Recommendation | Rationale |

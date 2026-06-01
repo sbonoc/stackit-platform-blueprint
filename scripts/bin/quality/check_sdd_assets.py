@@ -129,6 +129,9 @@ def _template_doc_path(template_root: Path, doc_name: str) -> Path | None:
     return None
 
 
+_AC_LINE_RE: re.Pattern[str] = re.compile(r"^-\s+AC-\d+\b")
+
+
 def _split_table_cells(line: str) -> list[str]:
     stripped = line.strip()
     if not stripped.startswith("|"):
@@ -485,6 +488,44 @@ def _check_step03_complete_event(
         file=sys.stderr,
     )
     return [Violation(path=str(c7_path.relative_to(repo_root)), message=violation_msg)]
+
+
+def _check_ac_format(work_item_dir: Path, repo_root: Path) -> list[Violation]:
+    """FR-013: reject label-only ACs in spec.md for SPEC_READY=true, post-gate work items.
+
+    Any line matching ^- AC-\\d+ outside a fenced code block MUST contain 'MUST assert'.
+    Forward-only: slug date prefix must match YYYY-MM-DD and be >= _SPEC_COMPLETE_GATE_SINCE.
+    """
+    slug = work_item_dir.name
+    date_prefix = slug[:10]
+    if not re.match(r"^\d{4}-\d{2}-\d{2}$", date_prefix) or date_prefix < _SPEC_COMPLETE_GATE_SINCE:
+        return []
+
+    spec_path = work_item_dir / "spec.md"
+    if not spec_path.is_file():
+        return []
+
+    violations: list[Violation] = []
+    in_code_block = False
+    try:
+        for lineno, line in enumerate(spec_path.read_text(encoding="utf-8").splitlines(), start=1):
+            stripped = line.strip()
+            if stripped.startswith("```"):
+                in_code_block = not in_code_block
+                continue
+            if in_code_block:
+                continue
+            if _AC_LINE_RE.match(stripped) and "MUST assert" not in line:
+                violations.append(Violation(
+                    path=str(spec_path.relative_to(repo_root)),
+                    message=(
+                        f"line {lineno}: AC is label-only — add "
+                        f"'— verified by T-N, which MUST assert <condition>': {stripped[:120]}"
+                    ),
+                ))
+    except OSError:
+        pass
+    return violations
 
 
 def _validate_work_item_specs(
@@ -1571,6 +1612,7 @@ def _validate_work_item_specs(
         violations.extend(
             _check_step03_complete_event(work_item_dir, _bypass_exception_type, repo_root)
         )
+        violations.extend(_check_ac_format(work_item_dir, repo_root))
 
     return violations
 

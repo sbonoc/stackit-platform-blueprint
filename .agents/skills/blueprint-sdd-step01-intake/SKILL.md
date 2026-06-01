@@ -108,6 +108,13 @@ traceability table and metric audit trail.
      The assertion description MUST name a concrete, objectively verifiable condition —
      not a label verb (`covers`, `verifies`, `tests`) without a postcondition.
      Correct authoring here prevents rejection at the step03 spec-complete gate.
+   - Document conscious scope exclusions in the `## Potential Deferred Proposals`
+     section of `spec.md` from the first draft. Any idea, capability, or approach
+     that is in scope for a future work item but NOT this one MUST be listed here
+     so step07 triage can close it out explicitly.
+     Form: `- <brief title>: <rationale for deferral>`.
+     Pre-planned exclusions travel through review and arrive at step07 already named;
+     this prevents surprise proposals from stalling the publish phase.
 
 3. High-Level Architecture
    - Write bounded-context decisions and integration edges in architecture.md.
