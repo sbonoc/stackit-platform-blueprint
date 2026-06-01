@@ -9,81 +9,10 @@ as a failure (status=missing) instead of a warning (status=unavailable).
 """
 from __future__ import annotations
 
-import subprocess
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 AUDIT_VERSION_SH = REPO_ROOT / "scripts/bin/infra/audit_version.sh"
-
-_FUNC_EXTRACT = """
-is_transient_registry_error() {
-  local error_text="$1"
-  local lowered
-  lowered="$(printf '%s' "$error_text" | tr '[:upper:]' '[:lower:]')"
-"""
-
-def _call_is_transient(error_text: str) -> bool:
-    """Source just the function from audit_version.sh and invoke it with error_text."""
-    script = f"""
-set -euo pipefail
-source_path="{AUDIT_VERSION_SH}"
-# Extract and eval only the function definition; avoid sourcing the full script
-# (which runs side-effectful code and requires additional dependencies).
-func_body="$(awk '/^is_transient_registry_error\\(\\){{/,/^}}/' "$source_path")"
-if [[ -z "$func_body" ]]; then
-  # Fallback: the function may use a space before the brace
-  func_body="$(awk '/^is_transient_registry_error\\(\\) {{/,/^}}/' "$source_path")"
-fi
-eval "$func_body"
-if is_transient_registry_error {_q(error_text)}; then
-  echo "TRANSIENT"
-else
-  echo "PERMANENT"
-fi
-"""
-    # Build the script without shell quoting issues by passing via env
-    invoke = f"""
-set -euo pipefail
-source "{AUDIT_VERSION_SH}" 2>/dev/null || true
-# Re-define only the target function from the file to avoid running the audit
-func_body=$(grep -A100 '^is_transient_registry_error()' "{AUDIT_VERSION_SH}" | awk 'NR==1{{p=1}} p{{print}} /^}}$/{{exit}}')
-eval "$func_body"
-if is_transient_registry_error "$INPUT_TEXT"; then
-  echo "TRANSIENT"
-else
-  echo "PERMANENT"
-fi
-"""
-    result = subprocess.run(
-        ["bash", "-c", invoke],
-        capture_output=True,
-        text=True,
-        env={"INPUT_TEXT": error_text, "PATH": "/usr/local/bin:/usr/bin:/bin"},
-    )
-    return result.stdout.strip() == "TRANSIENT"
-
-
-def _is_transient(error_text: str) -> bool:
-    """Evaluate is_transient_registry_error purely via bash pattern matching."""
-    patterns_true = [
-        "502 bad gateway",
-        "503 service unavailable",
-        "504 gateway timeout",
-        "context deadline exceeded",
-        "client.timeout exceeded",
-        "i/o timeout",
-        "connection reset by peer",
-        "tls handshake timeout",
-        "too many requests",
-        "429",
-        " eof",
-        ":eof",
-        "unexpected eof",
-        "connection timed out",
-    ]
-    lowered = error_text.lower()
-    return any(p in lowered for p in patterns_true)
-
 
 class TestIsTransientRegistryErrorPatterns:
     """Verify that is_transient_registry_error covers all expected transient patterns.

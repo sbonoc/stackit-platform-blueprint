@@ -1553,6 +1553,22 @@ class TestVgateClassification(unittest.TestCase):
         violations = checker._check_vgate_classification(spec, self.POST_GATE)
         self.assertEqual(violations, [], "Recognized falsy 'false' must still be exempt (no regression)")
 
+    def test_na_e2e_classification_for_user_facing_with_playwright_is_violation(self) -> None:
+        """N/A is a valid field value (non-user-facing default) but not 'automated' — must be a violation."""
+        checker = _load_checker_module()
+        spec = (
+            "# Specification\n"
+            "## Implementation Stack Profile (Normative)\n"
+            f"- Test automation profile: {self._PLAYWRIGHT}\n"
+            "- Has user-facing flow: true\n"
+            "- E2E gate classification: N/A\n"
+        )
+        violations = checker._check_vgate_classification(spec, self.POST_GATE)
+        self.assertGreater(
+            len(violations), 0,
+            "has-user-facing-flow: true + playwright + E2E gate classification: N/A must be a violation",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
