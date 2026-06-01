@@ -1569,6 +1569,48 @@ class TestVgateClassification(unittest.TestCase):
             "has-user-facing-flow: true + playwright + E2E gate classification: N/A must be a violation",
         )
 
+    def test_out_of_section_e2e_classification_does_not_overwrite_profile(self) -> None:
+        """Codex P3: a bullet outside the Implementation Stack Profile section must not overwrite the
+        declared value. A compliant profile (automated) with an explanatory bullet later in prose
+        (e.g. '- E2E gate classification: manual MUST be rejected') must still produce no violation."""
+        checker = _load_checker_module()
+        spec = (
+            "# Specification\n"
+            "## Implementation Stack Profile (Normative)\n"
+            f"- Test automation profile: {self._PLAYWRIGHT}\n"
+            "- Has user-facing flow: true\n"
+            "- E2E gate classification: automated\n"
+            "\n"
+            "## Acceptance Criteria\n"
+            "- AC-001 — verified by T-101, which MUST assert that E2E gate classification: manual is rejected\n"
+            "- E2E gate classification: manual MUST be rejected when has-user-facing-flow is true\n"
+        )
+        violations = checker._check_vgate_classification(spec, self.POST_GATE)
+        self.assertEqual(
+            violations, [],
+            "Bullet outside the Implementation Stack Profile must not overwrite the declared 'automated' value",
+        )
+
+    def test_out_of_section_has_user_facing_flow_does_not_create_false_exemption(self) -> None:
+        """Codex P3: 'Has user-facing flow: false' outside the Implementation Stack Profile section must
+        not exempt a spec that correctly declares 'true' in the profile section."""
+        checker = _load_checker_module()
+        spec = (
+            "# Specification\n"
+            "## Implementation Stack Profile (Normative)\n"
+            f"- Test automation profile: {self._PLAYWRIGHT}\n"
+            "- Has user-facing flow: true\n"
+            "- E2E gate classification: manual\n"
+            "\n"
+            "## Requirements\n"
+            "- Has user-facing flow: false cases are exempt from the gate\n"
+        )
+        violations = checker._check_vgate_classification(spec, self.POST_GATE)
+        self.assertGreater(
+            len(violations), 0,
+            "'Has user-facing flow: false' outside the profile section must not create a false exemption",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

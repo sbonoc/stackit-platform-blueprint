@@ -549,7 +549,12 @@ def _check_vgate_classification(spec_text: str, slug: str) -> list[Violation]:
     if not re.match(r"^\d{4}-\d{2}-\d{2}$", date_prefix) or date_prefix < _VGATE_GATE_SINCE:
         return []
 
-    kv = _parse_bullet_kv(spec_text)
+    # Scope field parsing to the Implementation Stack Profile section only.
+    # Parsing the full document risks picking up same-named bullets in FR/AC prose
+    # or examples outside the profile, which would silently overwrite the declared values.
+    sections = _split_markdown_sections(spec_text)
+    profile_section = _find_section(sections, "Implementation Stack Profile")
+    kv = _parse_bullet_kv(profile_section.content if profile_section else "")
     profile = kv.get("test automation profile", "")
     if "playwright" not in profile.lower():
         return []
