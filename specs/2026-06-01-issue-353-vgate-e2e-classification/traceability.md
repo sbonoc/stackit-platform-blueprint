@@ -37,13 +37,14 @@
 
 ## Validation Summary
 - Required bundles executed: 2026-06-01
-- Result summary: **PASS** — 108/108 targeted tests pass (T-101..T-114, 2 Gap-1 hyphen-form regression tests, 2 Codex-P1 HTML-comment regression tests); `make quality-sdd-check` zero new violations; 21 transient-error pattern tests in `test_audit_version_transient_errors.py` (CI fix, independent of V-gate spec); pre-existing environment-dependent failures unrelated to this work item
-- Targeted test run: `uv run python3 -m pytest tests/infra/test_sdd_asset_checker.py tests/blueprint/test_quality_gating.py -v` → 108 passed in 1.50s
+- Result summary: **PASS** — 132/132 targeted tests pass (T-101..T-114, 2 Gap-1 hyphen-form regression tests, 2 Codex-P1 HTML-comment regression tests, 3 Codex-P2 unrecognized-value regression tests, 21 transient-error pattern tests); `make quality-sdd-check` zero new violations; pre-existing environment-dependent failures unrelated to this work item
+- Targeted test run: `uv run python3 -m pytest tests/infra/test_sdd_asset_checker.py tests/blueprint/test_quality_gating.py tests/infra/test_audit_version_transient_errors.py -v` → 132 passed in 1.29s
 - `make quality-sdd-check` → zero new violations on full catalog
 - `make quality-spec-pr-ready` → clean pass (plan.md gates, hardening_review.md proposals, pr_context.md structure all corrected)
 - Post-review gap fixes:
   - Gap 1 (hyphen-form field names): `_check_vgate_classification` accepts both `has user-facing flow` and `has-user-facing-flow`; 2 regression tests added
   - Codex P1 (inline HTML comment on inferred values): `_parse_bullet_kv` strips `<!-- ... -->` before returning values; 2 regression tests added (`test_inline_html_comment_on_true_value_is_stripped`, `test_inline_html_comment_on_true_value_passes_when_automated`)
+  - Codex P2 (unrecognized has-user-facing-flow values): `_check_vgate_classification` now distinguishes recognized falsy (`_VGATE_FLOW_FALSE_VALUES`) from unrecognized values (typos, placeholders); unrecognized values produce a gate violation; 3 regression tests added
   - CI transient error (quay.io EOF): `is_transient_registry_error` in `audit_version.sh` extended with EOF and connection-timed-out patterns; 21 unit tests added in `test_audit_version_transient_errors.py`
 - Documentation validation:
   - `make docs-build` — blocked by pre-existing pnpm version mismatch (pnpm@11.4.0 active vs @10.32.1 required); pre-existing environment issue, not introduced by this work item

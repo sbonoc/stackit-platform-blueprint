@@ -1506,6 +1506,53 @@ class TestVgateClassification(unittest.TestCase):
         violations = checker._check_vgate_classification(spec_inline_comment_pass, self.POST_GATE)
         self.assertEqual(violations, [], "Inline HTML comment on 'true' + automated classification should produce no violations")
 
+    def test_typo_value_for_has_user_facing_flow_produces_violation(self) -> None:
+        """Codex P2: a typo like 'ture' is not truthy and not a recognized falsy — must be a violation."""
+        checker = _load_checker_module()
+        spec = (
+            "# Specification\n"
+            "## Implementation Stack Profile (Normative)\n"
+            f"- Test automation profile: {self._PLAYWRIGHT}\n"
+            "- Has user-facing flow: ture\n"
+            "- E2E gate classification: automated\n"
+        )
+        violations = checker._check_vgate_classification(spec, self.POST_GATE)
+        self.assertGreater(len(violations), 0, "Typo value 'ture' must produce a V-gate violation, not silently exempt")
+        self.assertTrue(
+            any("unrecognized value" in v.message for v in violations),
+            "Violation message must mention 'unrecognized value'",
+        )
+
+    def test_placeholder_value_for_has_user_facing_flow_produces_violation(self) -> None:
+        """Codex P2: a placeholder like 'N/A' is not truthy and not a recognized falsy — must be a violation."""
+        checker = _load_checker_module()
+        spec = (
+            "# Specification\n"
+            "## Implementation Stack Profile (Normative)\n"
+            f"- Test automation profile: {self._PLAYWRIGHT}\n"
+            "- Has user-facing flow: N/A\n"
+            "- E2E gate classification: automated\n"
+        )
+        violations = checker._check_vgate_classification(spec, self.POST_GATE)
+        self.assertGreater(len(violations), 0, "Placeholder 'N/A' must produce a V-gate violation, not silently exempt")
+        self.assertTrue(
+            any("unrecognized value" in v.message for v in violations),
+            "Violation message must mention 'unrecognized value'",
+        )
+
+    def test_recognized_false_value_is_exempt(self) -> None:
+        """Codex P2 control: canonical 'false' is still exempt (regression guard)."""
+        checker = _load_checker_module()
+        spec = (
+            "# Specification\n"
+            "## Implementation Stack Profile (Normative)\n"
+            f"- Test automation profile: {self._PLAYWRIGHT}\n"
+            "- Has user-facing flow: false\n"
+            "- E2E gate classification: automated\n"
+        )
+        violations = checker._check_vgate_classification(spec, self.POST_GATE)
+        self.assertEqual(violations, [], "Recognized falsy 'false' must still be exempt (no regression)")
+
 
 if __name__ == "__main__":
     unittest.main()
