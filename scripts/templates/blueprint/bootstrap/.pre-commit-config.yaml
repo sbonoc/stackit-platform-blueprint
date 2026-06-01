@@ -105,6 +105,14 @@ repos:
         stages: [pre-push]
         files: ^apps/touchpoints/.*\.(ts|vue|tsx)$
         always_run: false
+      - id: touchpoints-test-contracts-pre-push
+        name: touchpoints contract tests (pre-push)
+        language: system
+        entry: make touchpoints-test-contracts
+        pass_filenames: false
+        stages: [pre-push]
+        files: ^(apps/touchpoints/.*\.(ts|vue|tsx)|apps/packages/api-client/src/.*\.ts)$
+        always_run: false
       - id: quality-consumer-pre-push
         name: consumer pre-push quality gate
         language: system
