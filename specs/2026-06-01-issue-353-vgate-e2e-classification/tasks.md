@@ -19,9 +19,9 @@
 - [x] T-005 Wire `_check_vgate_classification` into `_validate_work_item_specs`; emit `sdd_vgate_manual_e2e_violation` metric to stderr on violation
 
 ### Slice 3 — GREEN: template seeding
-- [ ] T-006 Update `.spec-kit/templates/blueprint/spec.md` Implementation Stack Profile to seed `has-user-facing-flow` and `E2E gate classification` fields with inline HTML-comment definitions (form/wizard/multi-step; allowed values: `automated` | `manual`)
-- [ ] T-007 Update `.spec-kit/templates/consumer/spec.md` Implementation Stack Profile to seed the same two fields with the same inline definition comments
-- [ ] T-008 Run `uv run python3 scripts/bin/sdd/sync_consumer_init_sdd_assets.py` to mirror consumer template into init tmpl
+- [x] T-006 Update `.spec-kit/templates/blueprint/spec.md` Implementation Stack Profile to seed `has-user-facing-flow` and `E2E gate classification` fields with inline HTML-comment definitions (form/wizard/multi-step; allowed values: `automated` | `manual`)
+- [x] T-007 Update `.spec-kit/templates/consumer/spec.md` Implementation Stack Profile to seed the same two fields with the same inline definition comments
+- [x] T-008 Run `uv run python3 scripts/bin/sdd/sync_consumer_init_sdd_assets.py` to mirror consumer template into init tmpl
 
 ### Slice 4 — GREEN: AGENTS.md rule
 - [ ] T-009 Add mandatory Playwright E2E artifact rule to AGENTS.md testing and quality section, keyed on `has-user-facing-flow: true`, including all three MUST clauses verbatim (full user journey, rendered DOM/screen state, wired to automated quality gate / CI) and the user-facing-flow definition (form, wizard, multi-step interaction) (FR-007)

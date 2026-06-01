@@ -34,6 +34,17 @@
 - Local provisioning stack: crossplane-plus-helm
 - Runtime identity baseline: eso-plus-argocd-plus-keycloak
 - Local-first exception rationale: none
+- Has user-facing flow: false
+  <!-- Signal list — set true if the issue or FR text mentions ANY of: form, wizard, modal,
+       dialog, page, screen, UI, frontend, browser, user journey, onboarding, dashboard,
+       button, input, component, flow, checkout, login, signup, profile, settings, view,
+       layout, render, display; labels: frontend, ui, ux, web, accessibility; any frontend
+       framework name. A non-none frontend-stack-profile always implies true. -->
+- E2E gate classification: N/A
+  <!-- Allowed values: automated | manual | N/A
+       automated: Playwright tests cover the full user journey and are wired to CI.
+       manual: no Playwright tests — only valid when has-user-facing-flow: false.
+       N/A: no user-facing flow; gate does not apply. -->
 
 ## Objective
 - Outcome:
