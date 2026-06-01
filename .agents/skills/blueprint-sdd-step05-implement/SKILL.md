@@ -186,7 +186,7 @@ dependencies. These are mandatory defaults — deviate only with documented rati
 18. Single source of truth for enum constants (FR-007): spec-enumerated value sets MUST
     be defined as a named constant in one canonical location per stack (TypeScript `as const`
     array/object, Python module-level `Literal` or tuple, Kotlin companion-object set,
-    Go `const` block). All template option arrays, composable/store defaults, validation
+    Go `const` block for scalars or package-level `var` slice for enumerated sets). All template option arrays, composable/store defaults, validation
     logic, and test fixtures MUST import the constant — inline literal repetition MUST NOT
     appear in more than one source file. Inline literal repetition is a checklist failure.
 19. Mandatory automated rendered-output coverage for critical user journeys (FR-008): every

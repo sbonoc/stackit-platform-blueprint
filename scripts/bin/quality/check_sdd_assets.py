@@ -65,7 +65,8 @@ _C7_STEP_SKILLS: tuple[tuple[str, str], ...] = (
     ("blueprint-sdd-step07-pr-packager", "pr-packager"),
 )
 
-# FR-011: gate only applies to work items whose slug date prefix >= this value.
+# FR-011: gate only applies to work items whose slug date prefix >= this value (the merge date
+# of the commit that introduced the gate; items predating it are grandfathered).
 _SPEC_COMPLETE_GATE_SINCE: str = "2026-06-01"
 
 _BYPASS_ALLOWED_VALUES: frozenset[str] = frozenset(
@@ -727,6 +728,10 @@ def _validate_work_item_specs(
             continue
 
         if bypass_active:
+            # Bypass-track items (bug-fix, refactor, chore, authorized-deviation, upgrade) with
+            # a valid authorized-by are explicitly authorized to skip the full SDD lifecycle,
+            # including step03. They do not emit spec-complete C7 events and must not be subject
+            # to the FR-002 gate. This is intentional: the bypass track IS the exemption.
             _tasks_path_pre = work_item_dir / "tasks.md"
             if _tasks_path_pre.is_file():
                 _tasks_pre_content = _tasks_path_pre.read_text(encoding="utf-8", errors="surrogateescape")

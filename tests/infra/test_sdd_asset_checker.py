@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import contextlib
 import importlib.util
+import io
 import json
 from pathlib import Path
 import sys
@@ -1155,7 +1157,7 @@ class TestStep03CompleteEventGate(unittest.TestCase):
             self.assertEqual(gate_violations, [], msg=[v.message for v in violations])
 
     def test_spec_ready_without_spec_complete_event_produces_violation(self) -> None:
-        """AC-002: SPEC_READY=true + no spec-complete event in JSONL → violation."""
+        """AC-002: SPEC_READY=true + no spec-complete event in JSONL → violation + metric on stderr."""
         checker = _load_checker_module()
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)
@@ -1164,25 +1166,38 @@ class TestStep03CompleteEventGate(unittest.TestCase):
 
             contract_raw = _contract_raw()
             _, catalog_ids = checker._load_control_catalog(contract_raw=contract_raw, repo_root=repo_root)
-            violations = checker._validate_work_item_specs(contract_raw, repo_root, catalog_ids)
+            stderr_buf = io.StringIO()
+            with contextlib.redirect_stderr(stderr_buf):
+                violations = checker._validate_work_item_specs(contract_raw, repo_root, catalog_ids)
             messages = [v.message for v in violations]
             self.assertTrue(
                 any("spec-complete" in m for m in messages),
                 msg=f"expected spec-complete gate violation; got: {messages}",
             )
+            stderr_output = stderr_buf.getvalue()
+            self.assertIn(
+                "sdd_step03_missing_spec_complete",
+                stderr_output,
+                msg=f"expected NFR-OBS-001 metric on stderr; got: {stderr_output!r}",
+            )
 
     def test_upgrade_bypass_exempt_from_spec_complete_gate(self) -> None:
-        """AC-003: SPEC_READY_EXCEPTION=upgrade → gate skipped, no gate violation."""
+        """AC-003: SPEC_READY_EXCEPTION=upgrade (post-gate slug, SPEC_READY=true) → no gate violation.
+
+        Uses a slug >= _SPEC_COMPLETE_GATE_SINCE so the forward-only guard does NOT skip the
+        check. With authorized-by set, bypass_active=True and the gate is correctly skipped.
+        No spec-complete C7 event is written — proving the upgrade track is exempt.
+        """
         checker = _load_checker_module()
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)
             _write_valid_control_catalog(repo_root / ".spec-kit/control-catalog.md")
-            _write_work_item(repo_root)
-            spec_path = repo_root / "specs/2026-04-15-fixture/spec.md"
+            self._make_spec_ready_work_item(repo_root)
+            spec_path = repo_root / f"specs/{self.SLUG}/spec.md"
             content = spec_path.read_text(encoding="utf-8")
             content = content.replace(
-                "- ADR status: proposed",
-                "- ADR status: proposed\n- SPEC_READY_EXCEPTION: upgrade\n- authorized-by: fixture-user",
+                "- ADR status: approved",
+                "- ADR status: approved\n- SPEC_READY_EXCEPTION: upgrade\n- authorized-by: fixture-user",
             )
             spec_path.write_text(content, encoding="utf-8")
 
