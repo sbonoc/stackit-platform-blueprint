@@ -619,3 +619,19 @@ class TestVgateTemplateFields:
         assert "V-gate inference result" in content, (
             "step01 SKILL.md must contain 'V-gate inference result' in Required Report Format (AC-013 / FR-009)"
         )
+
+    def test_step05_skill_vgate_guardrail_does_not_teach_bypass_via_false_flag(self) -> None:
+        """step05 SKILL.md V-gate guardrail must not instruct agents to lower has-user-facing-flow
+        to false in order to avoid the gate — that misclassifies the spec and defeats the gate.
+        The guardrail must instead direct agents to write the required Playwright tests."""
+        step05 = REPO_ROOT / ".agents/skills/blueprint-sdd-step05-implement/SKILL.md"
+        content = step05.read_text(encoding="utf-8")
+        # Must contain the corrective "Do NOT lower" instruction
+        assert "Do NOT lower" in content, (
+            "step05 SKILL.md V-gate guardrail must contain 'Do NOT lower' to prevent agents from "
+            "setting has-user-facing-flow: false to bypass the gate (Codex finding — SKILL.md v-gate guidance bug)"
+        )
+        # Must not contain the erroneous bypass recipe
+        assert "set `has-user-facing-flow: false`" not in content, (
+            "step05 SKILL.md must not instruct agents to set has-user-facing-flow: false to avoid the gate"
+        )
