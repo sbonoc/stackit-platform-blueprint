@@ -3,26 +3,26 @@
 ## Spec Readiness Gate (Blocking)
 <!-- SPEC_PRODUCT_READY=true: intake gate — Product sign-off only; unlocks agent ADR drafting.
      SPEC_READY=true: implementation gate — all sign-offs required; unlocks coding. -->
-- SPEC_READY: false
-- SPEC_PRODUCT_READY: false
+- SPEC_READY: true
+- SPEC_PRODUCT_READY: true
 - Open questions count: 0
 - Unresolved alternatives count: 0
 - Unresolved TODO markers count: 0
 - Pending assumptions count: 0
 - Open clarification markers count: 0
-- Product sign-off: pending
-- Architecture sign-off: pending
-- Security sign-off: pending
-- Operations sign-off: pending
+- Product sign-off: approved
+- Architecture sign-off: approved
+- Security sign-off: approved
+- Operations sign-off: approved
 - Missing input blocker token: none
 - ADR path: docs/blueprint/architecture/decisions/ADR-issue-353-vgate-e2e-classification.md
-- ADR status: proposed
+- ADR status: approved
 - SPEC_READY_EXCEPTION: none
 - authorized-by: none
 
 ## Applicable Guardrail Controls (Normative)
 - Applicable control IDs: SDD-C-003, SDD-C-004, SDD-C-005, SDD-C-006, SDD-C-008, SDD-C-009, SDD-C-010, SDD-C-011, SDD-C-012, SDD-C-016, SDD-C-017, SDD-C-019, SDD-C-020, SDD-C-021, SDD-C-024
-- Control exception rationale: SDD-C-001 not applicable (no BLOCKED_MISSING_INPUTS lifecycle — open questions are design choices, not missing business inputs). SDD-C-002 not applicable (this work item IS a gate; the control applies by following it, not by citing it). SDD-C-007 not applicable (no bounded-context or DDD concerns — tooling-only change). SDD-C-013 not applicable (no managed service provisioned). SDD-C-014 not applicable (Python scripting change; no K8s/Crossplane/ESO components). SDD-C-015 not applicable (no app delivery workflow scope). SDD-C-018 not applicable (not a consumer upstream-defect workaround). SDD-C-022 not applicable (no HTTP routes or API endpoints). SDD-C-023 not applicable (no filter or payload-transform logic).
+- Control exception rationale: SDD-C-001 not applicable (no missing-inputs blocker lifecycle — open questions are design choices, not missing business inputs). SDD-C-002 not applicable (this work item IS a gate; the control applies by following it, not by citing it). SDD-C-007 not applicable (no bounded-context or DDD concerns — tooling-only change). SDD-C-013 not applicable (no managed service provisioned). SDD-C-014 not applicable (Python scripting change; no K8s/Crossplane/ESO components). SDD-C-015 not applicable (no app delivery workflow scope). SDD-C-018 not applicable (not a consumer upstream-defect workaround). SDD-C-022 not applicable (no HTTP routes or API endpoints). SDD-C-023 not applicable (no filter or payload-transform logic).
 
 ## Implementation Stack Profile (Normative)
 - Backend stack profile: python_scripting_plus_bash

@@ -1,9 +1,10 @@
 # ADR — V-gate E2E Classification Enforcement (issue #353)
 
-- Status: proposed
+- Status: approved
 - Date: 2026-06-01
 - Deciders: platform-team
 - Spec: specs/2026-06-01-issue-353-vgate-e2e-classification/spec.md
+- ADR technical decision sign-off: approved
 
 ## Context
 
@@ -19,8 +20,6 @@ Five design questions must be resolved before implementation begins.
 
 **Trade-off:** False negatives (author forgets to set `has-user-facing-flow: true`) are bounded by code review and template seeding. Heuristics trade predictability for coverage, which is the wrong trade here.
 
-**Status:** proposed.
-
 ## Decision D-2 — Profile scope: contains "playwright" vs exact string match
 
 **Decided:** The check applies to any spec whose test automation profile string contains the substring `playwright` (Option A from Q-2).
@@ -28,8 +27,6 @@ Five design questions must be resolved before implementation begins.
 **Rationale:** The check intent is "Playwright is available as the E2E tool for this work item." That intent is expressed by any profile string that names playwright — the canonical `pytest_vitest_playwright_pact` and any custom profile string a consumer team might define. An exact match would silently exempt custom profiles carrying Playwright, defeating the enforcement.
 
 **Trade-off:** Substring match is slightly more permissive. A profile named `playwright_custom_v2` would trigger the check; this is correct — if you name playwright in your profile, the rule applies.
-
-**Status:** proposed.
 
 ## Decision D-3 — Two classification values vs three (`manual-with-target` rejected)
 
@@ -39,8 +36,6 @@ Five design questions must be resolved before implementation begins.
 
 **Trade-off:** There is no machine-sanctioned deferred-automation path for post-gate work items. Teams must choose: automate now, or declare the flow not yet ready. This is intentional — the rule's value is precisely that it does not offer a comfortable middle option.
 
-**Status:** proposed.
-
 ## Decision D-4 — Forward-only guard (`_VGATE_GATE_SINCE`)
 
 **Decided:** The V-gate classification check applies only to work items whose slug date is on or after `_VGATE_GATE_SINCE` (the merge date of this PR). Pre-existing specs are grandfathered.
@@ -49,8 +44,6 @@ Five design questions must be resolved before implementation begins.
 
 **Trade-off:** Existing specs with permanently-manual E2E gates are not corrected. Considered acceptable; the check prevents future accumulation.
 
-**Status:** proposed.
-
 ## Decision D-5 — Shift-left inference of `has-user-facing-flow` at step01 intake
 
 **Decided:** The step01 intake SKILL.md MUST include a named signal list and inference step that pre-sets `has-user-facing-flow` from the issue content before the author sees the spec for the first time.
@@ -58,8 +51,6 @@ Five design questions must be resolved before implementation begins.
 **Rationale:** The largest residual failure mode (R-2) is an author passively accepting `has-user-facing-flow: false` as the default without considering whether the work item has a user-facing flow. A passive default is invisible — authors don't engage with it. An agent-inferred `true` with an annotation comment is visible — the author must consciously override it to `false` and explain why. This changes the cognitive load from opt-in (remember to set `true`) to opt-out (override an active inference), which is the correct posture for a security/quality control. The frontend-stack cross-check adds a second signal: a non-`none` frontend stack profile with `has-user-facing-flow: false` is always a contradiction and MUST surface a clarification block.
 
 **Trade-off:** The inference is heuristic — it will produce false positives (issue mentions "login page" in a description context where there is no new UI) and false negatives (UI work with no keyword signals). These are acceptable: false positives prompt the author to actively set `false` with a comment (good forcing function); false negatives fall through to the quality gate (enforcement backstop). The signal list is intentionally broad to minimise false negatives.
-
-**Status:** proposed.
 
 ## Consequences
 
