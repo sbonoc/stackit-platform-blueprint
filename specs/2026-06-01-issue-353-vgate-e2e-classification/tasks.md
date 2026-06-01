@@ -11,7 +11,7 @@
 
 ### Slice 1 — RED: write failing tests
 - [ ] T-001 Write `TestVgateClassification` test class in `tests/infra/test_sdd_asset_checker.py` covering T-101..T-109 (all failing)
-- [ ] T-002 Write `TestVgateTemplateFields` test class in `tests/blueprint/test_quality_gating.py` covering T-110..T-112 (all failing)
+- [ ] T-002 Write `TestVgateTemplateFields` test class in `tests/blueprint/test_quality_gating.py` covering T-110..T-113 (all failing)
 
 ### Slice 2 — GREEN: core check implementation
 - [ ] T-003 Add `_VGATE_GATE_SINCE` constant to `check_sdd_assets.py`
@@ -31,7 +31,7 @@
 - [ ] T-009e Update `.agents/skills/blueprint-sdd-step01-intake/SKILL.md` to add V-gate inference step in Discover (signal list, frontend-stack cross-check) and V-gate cross-check in Specify; add mandatory V-gate inference result line to Required Report Format
 
 ### Slice 5 — VERIFY
-- [ ] T-010 Run `uv run python3 -m pytest tests/infra/test_sdd_asset_checker.py tests/blueprint/test_quality_gating.py -v`; confirm all T-101..T-112 pass
+- [ ] T-010 Run `uv run python3 -m pytest tests/infra/test_sdd_asset_checker.py tests/blueprint/test_quality_gating.py -v`; confirm all T-101..T-113 pass
 - [ ] T-011 Run `make quality-sdd-check`; confirm zero new violations on full catalog
 - [ ] T-012 Capture test output and `quality-sdd-check` result as evidence in `traceability.md`
 

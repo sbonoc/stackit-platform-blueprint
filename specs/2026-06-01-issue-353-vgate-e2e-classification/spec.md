@@ -41,7 +41,7 @@
 
 ## Objective
 - Business outcome: Consumer teams can no longer silently classify a user-facing feature's E2E gate as `manual` and pass every automated quality check. Any work item scoped to a user-facing flow must carry an `automated` E2E gate classification; the quality gate enforces this before the PR can be marked ready. The enforcement is shifted left to intake: the step01 intake agent infers `has-user-facing-flow` from the issue at the earliest possible point, so the author must consciously override a signal-driven `true` rather than passively accepting a `false` default.
-- Success metric: `make quality-sdd-check` fails with a clear error when a post-gate-date spec declares `has-user-facing-flow: true` with a playwright-capable test profile and `E2E gate classification: manual`; it passes for `automated` and for valid `manual-with-target` with a present `E2E automation target` date.
+- Success metric: `make quality-sdd-check` fails with a clear error when a post-gate-date spec declares `has-user-facing-flow: true` with a playwright-capable test profile and `E2E gate classification: manual` (or absent); it passes for `automated`. The step01 intake report includes a V-gate inference result line on every new work item.
 
 ## Normative Requirements
 
@@ -71,7 +71,7 @@
   - A) Explicit `has-user-facing-flow` flag in the spec Implementation Stack Profile. Deterministic, machine-checkable, requires conscious opt-in.
   - B) Heuristic keyword scan of FR text for terms like "form", "wizard", "multi-step". No new field required.
 - Selected option: A
-- Rationale: Explicit flags are deterministic, unit-testable, and follow the same pattern already used by `SPEC_READY_EXCEPTION`. Heuristics produce unpredictable gate behavior on edge-case FR phrasings and are difficult to cover with tests. Author-omission risk (R-2) is mitigated by template seeding plus a paired-justification rule (NFR-OPS-001 companion in template comment).
+- Rationale: Explicit flags are deterministic, unit-testable, and follow the same pattern already used by `SPEC_READY_EXCEPTION`. Heuristics produce unpredictable gate behavior on edge-case FR phrasings and are difficult to cover with tests. Author-omission risk (R-2) is mitigated by the step01 intake agent inference (FR-009), the signal-list template comment (FR-006), and the frontend-stack cross-check — all of which are designed to surface the field before the author can miss it.
 
 ### Q-2 — V-gate rule profile scope
 
@@ -95,8 +95,8 @@
 - OpenAPI / Pact contract path: none
 - Event contract: none
 - Make/CLI contract: No new make targets. `make quality-sdd-check` behavior extended — now also runs `_check_vgate_classification` for every work item in the catalog.
-- Docs contract: `AGENTS.md` testing section MUST be updated (FR-007). Blueprint and consumer spec templates MUST be updated (FR-006). Consumer init template mirror MUST be synced via `sync_consumer_init_sdd_assets.py` after consumer template update. `docs/blueprint/governance/spec_driven_development.md` MUST be updated to document the new V-gate classification fields and rule (mirrored to `scripts/templates/blueprint/bootstrap/docs/blueprint/governance/spec_driven_development.md`). `.agents/skills/blueprint-sdd-step05-implement/SKILL.md` MUST reference the V-gate enforcement at implementation time.
-- Blueprint contract (`blueprint/contract.yaml`): No change. The V-gate fields live in `spec.md` (per-work-item state), not in `blueprint/contract.yaml` (repo-level capability declaration). The four fields describe what a single work item commits to for its E2E gate, not a repo-wide capability advertised to consumers. Encoding the V-gate enum at the contract layer was considered and rejected — it would require every consumer to opt into the V-gate enum even when no user-facing flow exists in the consumer's scope, and it would couple the per-work-item classification to a repo-level schema change. Reconsider only if multiple consumer repos need to express different default classifications repo-wide.
+- Docs contract: `AGENTS.md` testing section MUST be updated (FR-007). Blueprint and consumer spec templates MUST be updated (FR-006). Consumer init template mirror MUST be synced via `sync_consumer_init_sdd_assets.py` after consumer template update. `docs/blueprint/governance/spec_driven_development.md` MUST be updated to document the two new V-gate classification fields and the enforcement rule (mirrored to `scripts/templates/blueprint/bootstrap/docs/blueprint/governance/spec_driven_development.md`). `.agents/skills/blueprint-sdd-step05-implement/SKILL.md` MUST reference the V-gate enforcement at implementation time. `.agents/skills/blueprint-sdd-step01-intake/SKILL.md` MUST be updated with the V-gate inference step, frontend-stack cross-check, and mandatory intake-report line (FR-009).
+- Blueprint contract (`blueprint/contract.yaml`): No change. The V-gate fields live in `spec.md` (per-work-item state), not in `blueprint/contract.yaml` (repo-level capability declaration). The two fields describe what a single work item commits to for its E2E gate, not a repo-wide capability advertised to consumers. Encoding the V-gate enum at the contract layer was considered and rejected — it would require every consumer to opt into the V-gate enum even when no user-facing flow exists in their scope, and it would couple per-work-item classification to a repo-level schema change. Reconsider only if multiple consumer repos need to express different default classifications repo-wide.
 
 ## Blueprint Upstream Defect Escalation (Normative)
 - Upstream issue URL: none
