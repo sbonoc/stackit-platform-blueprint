@@ -20,7 +20,9 @@
     {"id": "AC-009", "type": "acceptance", "summary": "Metric emitted to stderr on violation"},
     {"id": "AC-010", "type": "acceptance", "summary": "Blueprint spec template seeds both new fields"},
     {"id": "AC-011", "type": "acceptance", "summary": "Consumer spec template seeds both new fields"},
-    {"id": "AC-012", "type": "acceptance", "summary": "AGENTS.md contains has-user-facing-flow and all three MUST clauses in testing section"}
+    {"id": "AC-012", "type": "acceptance", "summary": "AGENTS.md contains has-user-facing-flow and all three MUST clauses in testing section"},
+    {"id": "FR-009", "type": "requirement", "summary": "Step01 intake SKILL.md infers has-user-facing-flow from issue signals; annotates value; cross-checks frontend-stack; mandatory report line"},
+    {"id": "AC-013", "type": "acceptance", "summary": "Step01 SKILL.md contains inference step, frontend-stack cross-check, and V-gate inference result in report format"}
   ],
   "edges": [
     {"from": "FR-001", "to": "AC-010", "relation": "validated_by"},
@@ -40,6 +42,8 @@
     {"from": "NFR-REL-001", "to": "AC-002", "relation": "constrains"},
     {"from": "NFR-OPS-001", "to": "AC-001", "relation": "constrains"},
     {"from": "NFR-OPS-001", "to": "AC-002", "relation": "constrains"},
-    {"from": "FR-004", "to": "FR-002", "relation": "guards"}
+    {"from": "FR-004", "to": "FR-002", "relation": "guards"},
+    {"from": "FR-009", "to": "AC-013", "relation": "validated_by"},
+    {"from": "FR-009", "to": "FR-002", "relation": "guards"}
   ]
 }

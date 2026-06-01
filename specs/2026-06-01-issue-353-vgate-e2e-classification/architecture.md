@@ -17,11 +17,13 @@
 - Out of scope: Playwright test content or existence validation; retroactive enforcement on pre-gate specs; consumer repo audits.
 
 ## Bounded Contexts and Responsibilities
-- Quality gate tooling (`check_sdd_assets.py`): Owns the `_check_vgate_classification` function. Reads spec.md fields, applies the rule, emits violations and metric to stderr.
-- Spec templates (`.spec-kit/templates/blueprint/spec.md`, `.spec-kit/templates/consumer/spec.md`): Seed the three new Implementation Stack Profile fields for every new work item scaffold.
-- Governance documentation (`AGENTS.md`): Documents the mandatory Playwright E2E artifact rule so authors understand what `has-user-facing-flow: true` commits them to.
+- Intake skill (`.agents/skills/blueprint-sdd-step01-intake/SKILL.md`): Shift-left control — infers `has-user-facing-flow` from issue signals at the earliest possible point. Annotates the inferred value in the spec and flags it in the intake report. Cross-checks `frontend-stack-profile` consistency. This is the primary defence against R-2 (silent false default).
+- Quality gate tooling (`check_sdd_assets.py`): Owns `_check_vgate_classification`. Reads spec.md fields, applies the binary rule (`automated` passes; anything else is a violation when `has-user-facing-flow: true` + playwright profile), emits violations and metric to stderr. This is the enforcement layer — it catches the cases the intake inference missed or the author overrode.
+- Spec templates (`.spec-kit/templates/blueprint/spec.md`, `.spec-kit/templates/consumer/spec.md`): Seed both new Implementation Stack Profile fields with inline definition comments carrying the signal list, so manual authors have the same checklist as the intake agent.
+- Governance documentation (`AGENTS.md`): Documents the mandatory Playwright E2E artifact rule (three MUSTs) so authors understand what `has-user-facing-flow: true` commits them to at implementation time.
 
 ## High-Level Component Design
+- Shift-left layer (step01 intake): `blueprint-sdd-step01-intake/SKILL.md` inference step — reads issue text, runs signal scan, writes `has-user-facing-flow` with annotation comment, cross-checks `frontend-stack-profile`. No code; agent-executed at intake time.
 - Domain layer: Rule logic in `_check_vgate_classification(spec_text: str, slug: str) -> list[str]` — pure function, no I/O, returns violation strings.
 - Application layer: `_validate_work_item_specs` calls `_check_vgate_classification` per work item and collects violations. Metric emitted to stderr after all violations collected.
 - Infrastructure adapters: Spec text read from filesystem (existing pattern in `check_sdd_assets.py`). No new I/O paths introduced.
@@ -68,3 +70,21 @@ flowchart TD
 ```
 
 Caption: Decision tree executed by `_check_vgate_classification` for each work item in the catalog. The forward-only guard and the profile/flag conditions provide three independent exemption exits before the classification rule is evaluated. There is no deferred-automation path — only `automated` passes.
+
+```mermaid
+flowchart LR
+    I[GitHub Issue filed] --> S1[Step 01 intake agent]
+    S1 -->|scans title + description + labels| INF{UI/flow signals found?}
+    INF -- yes --> T[has-user-facing-flow: true\n + annotation comment]
+    INF -- no --> F[has-user-facing-flow: false\n + annotation comment]
+    T --> FSC{frontend-stack-profile != none?}
+    FSC -- consistent --> SPEC[spec.md written]
+    FSC -- contradiction: false + non-none stack --> WARN[NEEDS CLARIFICATION block added]
+    WARN --> SPEC
+    F --> SPEC
+    SPEC --> QG[make quality-sdd-check\n_check_vgate_classification]
+    QG -->|automated or exempt| PASS[gate passes]
+    QG -->|manual + user-facing + playwright| FAIL[violation emitted to stderr]
+```
+
+Caption: End-to-end V-gate lifecycle showing the two-layer defence. The step01 intake agent (shift-left) infers `has-user-facing-flow` from issue signals so authors must consciously override a signal-driven value. The quality gate (`_check_vgate_classification`) is the enforcement backstop that catches cases where the author overrode or skipped the inference.

@@ -9,7 +9,7 @@
 
 The blueprint `vitest_playwright_pact` test automation profile names Playwright as the E2E tool, but no governance rule prevents a consumer team from classifying the E2E gate for a user-facing flow as permanently `manual`. Because `make quality-sdd-check` has no corresponding check, this classification passes silently — browser-rendering defects accumulate undetected until a human manually tests the exact flow or a user reports the failure.
 
-Four design questions must be resolved before implementation begins.
+Five design questions must be resolved before implementation begins.
 
 ## Decision D-1 — Explicit flag vs heuristic detection for user-facing flows
 
@@ -51,10 +51,21 @@ Four design questions must be resolved before implementation begins.
 
 **Status:** proposed.
 
+## Decision D-5 — Shift-left inference of `has-user-facing-flow` at step01 intake
+
+**Decided:** The step01 intake SKILL.md MUST include a named signal list and inference step that pre-sets `has-user-facing-flow` from the issue content before the author sees the spec for the first time.
+
+**Rationale:** The largest residual failure mode (R-2) is an author passively accepting `has-user-facing-flow: false` as the default without considering whether the work item has a user-facing flow. A passive default is invisible — authors don't engage with it. An agent-inferred `true` with an annotation comment is visible — the author must consciously override it to `false` and explain why. This changes the cognitive load from opt-in (remember to set `true`) to opt-out (override an active inference), which is the correct posture for a security/quality control. The frontend-stack cross-check adds a second signal: a non-`none` frontend stack profile with `has-user-facing-flow: false` is always a contradiction and MUST surface a clarification block.
+
+**Trade-off:** The inference is heuristic — it will produce false positives (issue mentions "login page" in a description context where there is no new UI) and false negatives (UI work with no keyword signals). These are acceptable: false positives prompt the author to actively set `false` with a comment (good forcing function); false negatives fall through to the quality gate (enforcement backstop). The signal list is intentionally broad to minimise false negatives.
+
+**Status:** proposed.
+
 ## Consequences
 
 - `check_sdd_assets.py` gains a new `_check_vgate_classification` function and `_VGATE_GATE_SINCE` constant.
-- Both spec templates gain two new Implementation Stack Profile fields (`has-user-facing-flow`, `E2E gate classification`); all future scaffolds will seed them.
+- Both spec templates gain two new Implementation Stack Profile fields (`has-user-facing-flow`, `E2E gate classification`); all future scaffolds will seed them with the signal list in the inline comment.
 - `AGENTS.md` gains a mandatory Playwright E2E artifact rule scoped to `has-user-facing-flow: true`, with three explicit MUST clauses (full user journey, rendered DOM/screen state, wired to automated CI gate).
+- `blueprint-sdd-step01-intake/SKILL.md` gains a V-gate inference step (signal list + frontend-stack cross-check) and a mandatory intake-report line item — shifting enforcement left to the moment an issue is first processed.
 - Consumer teams starting new work items with a user-facing flow must set `E2E gate classification: automated` and deliver a Playwright test within the same work item. There is no machine-sanctioned deferred path.
 - No retroactive changes to any existing spec, consumer repo, or CI workflow.

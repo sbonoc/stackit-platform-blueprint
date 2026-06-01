@@ -11,6 +11,7 @@
 | FR-006 | SDD-C-006 | — | Template field seeding (2 fields + definition comments) | `.spec-kit/templates/blueprint/spec.md`, `.spec-kit/templates/consumer/spec.md`, consumer init tmpl | T-110, T-111 | — | — |
 | FR-007 | SDD-C-011 | — | Playwright mandatory artifact rule with three MUSTs | `AGENTS.md`, `docs/blueprint/governance/spec_driven_development.md`, bootstrap mirror, `.agents/skills/blueprint-sdd-step05-implement/SKILL.md` | T-112 | AGENTS.md testing section + governance doc | — |
 | FR-008 | SDD-C-010 | — | Metric emission to stderr | `scripts/bin/quality/check_sdd_assets.py` | T-109 | NFR-OBS-001 in spec.md | stderr in CI |
+| FR-009 | SDD-C-011, SDD-C-017 | — | Step01 intake V-gate inference (signal list, frontend-stack cross-check, mandatory report line) | `.agents/skills/blueprint-sdd-step01-intake/SKILL.md` | T-113 | FR-009 text in spec.md | intake report output |
 | NFR-OBS-001 | SDD-C-010 | — | Violation messages include slug + field + value | `scripts/bin/quality/check_sdd_assets.py` | T-109 | NFR-OBS-001 text | stderr |
 | NFR-REL-001 | SDD-C-012 | — | Pure function, no side effects | `scripts/bin/quality/check_sdd_assets.py` | T-101..T-108 | NFR-REL-001 text | — |
 | NFR-OPS-001 | SDD-C-012 | — | Exception-safe field parsing | `scripts/bin/quality/check_sdd_assets.py` | T-101..T-109 | NFR-OPS-001 text | — |
@@ -22,15 +23,16 @@
 | AC-009 | SDD-C-010 | — | Metric emitted to stderr | `scripts/bin/quality/check_sdd_assets.py` | T-109 | AC-009 in spec.md | — |
 | AC-010 | SDD-C-006 | — | Blueprint template seeds three fields | `.spec-kit/templates/blueprint/spec.md` | T-110 | AC-010 in spec.md | — |
 | AC-011 | SDD-C-006 | — | Consumer template seeds three fields | `.spec-kit/templates/consumer/spec.md` | T-111 | AC-011 in spec.md | — |
-| AC-012 | SDD-C-011 | — | AGENTS.md rule present | `AGENTS.md` | T-112 | AC-012 in spec.md | — |
+| AC-012 | SDD-C-011 | — | AGENTS.md rule present with three MUSTs | `AGENTS.md` | T-112 | AC-012 in spec.md | — |
+| AC-013 | SDD-C-011, SDD-C-017 | — | Step01 SKILL.md contains inference step, cross-check, and report line | `.agents/skills/blueprint-sdd-step01-intake/SKILL.md` | T-113 | AC-013 in spec.md | — |
 
 ## Graph Linkage
 - Graph file: `graph.json`
 - Every `FR-###`, `NFR-*-###`, and `AC-###` listed in this file MUST have a corresponding node in `graph.json`.
 - Node IDs referenced:
-  - FR-001, FR-002, FR-004, FR-005, FR-006, FR-007, FR-008
+  - FR-001, FR-002, FR-004, FR-005, FR-006, FR-007, FR-008, FR-009
   - NFR-OBS-001, NFR-REL-001, NFR-OPS-001
-  - AC-001, AC-002, AC-006, AC-007, AC-008, AC-009, AC-010, AC-011, AC-012
+  - AC-001, AC-002, AC-006, AC-007, AC-008, AC-009, AC-010, AC-011, AC-012, AC-013
 
 ## Validation Summary
 - Required bundles executed: pending (pre-implementation)

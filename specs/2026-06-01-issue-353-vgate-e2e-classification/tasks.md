@@ -45,6 +45,7 @@
 - [ ] T-110 AC-010 — blueprint spec template seeds both new fields with inline definition comments
 - [ ] T-111 AC-011 — consumer spec template seeds both new fields with inline definition comments
 - [ ] T-112 AC-012 — `AGENTS.md` contains `has-user-facing-flow`, the full-user-journey clause, the rendered-state clause, and the automated-quality-gate/CI clause in the testing section
+- [ ] T-113 AC-013 — `.agents/skills/blueprint-sdd-step01-intake/SKILL.md` contains `has-user-facing-flow` in Discover phase, at least three signal keywords, `frontend-stack` cross-check in Specify phase, and `V-gate inference result` in Required Report Format
 
 ## Accessibility Testing
 - [ ] T-A01 NFR-A11Y-001: N/A — no UI introduced by this work item
