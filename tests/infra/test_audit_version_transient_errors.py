@@ -47,11 +47,16 @@ class TestIsTransientRegistryErrorPatterns:
             "quay.io drops TCP silently during partial outages and docker emits EOF"
         )
 
-    def test_unexpected_eof_pattern_covered(self) -> None:
-        """Unexpected EOF: occurs when the registry sends partial headers then closes."""
+    def test_eof_pattern_broad_enough_to_cover_unexpected_eof(self) -> None:
+        """The eof pattern must be broad enough to match 'unexpected eof' strings.
+        Previously a separate *'unexpected eof'* line existed; the consolidated *'eof'*
+        pattern subsumes it — verify the extracted pattern contains 'eof'."""
         patterns = self._patterns_in_script()
-        assert any("unexpected eof" in p for p in patterns), (
-            "is_transient_registry_error must cover 'unexpected eof'"
+        # The broad *"eof"* pattern subsumes space-prefix, colon-prefix, and unexpected-eof
+        # variants; any pattern containing 'eof' satisfies this requirement.
+        assert any("eof" in p for p in patterns), (
+            "is_transient_registry_error must cover 'eof' broadly enough to match "
+            "'unexpected eof', bare 'EOF', and URL-context '...EOF' strings"
         )
 
     def test_connection_timed_out_pattern_covered(self) -> None:
@@ -104,8 +109,16 @@ class TestTransientPatternSemantics:
 
     # --- EOF variants (the pattern that caused the CI regression) ---
 
-    def test_eof_bare_is_transient(self) -> None:
-        """docker manifest inspect returns 'EOF' on silent TCP drop from quay.io."""
+    def test_eof_bare_string_only_is_transient(self) -> None:
+        """Codex P5: docker can return exactly 'EOF' with no URL or context prefix.
+        The earlier *' eof'* pattern (space required) missed this case; the
+        consolidated *'eof'* pattern covers it."""
+        assert self._check("EOF"), (
+            "Bare 'EOF' response (no space or colon prefix) must be classified as transient"
+        )
+
+    def test_eof_with_url_context_is_transient(self) -> None:
+        """Go http-client wraps io.EOF as 'Get \"URL\": EOF' — the most common form."""
         assert self._check('Error response from daemon: Get "https://quay.io/v2/": EOF')
 
     def test_eof_in_url_path_is_transient(self) -> None:
