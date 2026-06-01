@@ -213,7 +213,7 @@ def _parse_bullet_kv(content: str) -> dict[str, str]:
         if not match:
             continue
         key = match.group(1).strip().lower()
-        value = match.group(2).strip()
+        value = re.sub(r"<!--.*?-->", "", match.group(2)).strip()
         values[key] = value
     return values
 

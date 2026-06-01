@@ -1480,6 +1480,32 @@ class TestVgateClassification(unittest.TestCase):
         violations = checker._check_vgate_classification(spec_hyphen_fail, self.POST_GATE)
         self.assertGreater(len(violations), 0, "Hyphen-form fields with manual classification should produce a violation")
 
+    def test_inline_html_comment_on_true_value_is_stripped(self) -> None:
+        """Codex P1: step01 appends '<!-- inferred ... -->' on the same line; gate must still fire."""
+        checker = _load_checker_module()
+        spec_inline_comment = (
+            "# Specification\n"
+            "## Implementation Stack Profile (Normative)\n"
+            f"- Test automation profile: {self._PLAYWRIGHT}\n"
+            "- Has user-facing flow: true <!-- inferred from intake: form — confirm before SPEC_READY -->\n"
+            "- E2E gate classification: manual\n"
+        )
+        violations = checker._check_vgate_classification(spec_inline_comment, self.POST_GATE)
+        self.assertGreater(len(violations), 0, "Inline HTML comment on 'true' must not mask a manual classification violation")
+
+    def test_inline_html_comment_on_true_value_passes_when_automated(self) -> None:
+        """Inline HTML comment on has-user-facing-flow: true must not suppress a valid automated classification."""
+        checker = _load_checker_module()
+        spec_inline_comment_pass = (
+            "# Specification\n"
+            "## Implementation Stack Profile (Normative)\n"
+            f"- Test automation profile: {self._PLAYWRIGHT}\n"
+            "- Has user-facing flow: true <!-- inferred from intake: wizard — confirm before SPEC_READY -->\n"
+            "- E2E gate classification: automated\n"
+        )
+        violations = checker._check_vgate_classification(spec_inline_comment_pass, self.POST_GATE)
+        self.assertEqual(violations, [], "Inline HTML comment on 'true' + automated classification should produce no violations")
+
 
 if __name__ == "__main__":
     unittest.main()
