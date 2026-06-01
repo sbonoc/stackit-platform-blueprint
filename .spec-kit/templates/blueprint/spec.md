@@ -45,8 +45,9 @@
 - E2E gate classification: N/A
   <!-- Allowed values: automated | manual | N/A
        automated: Playwright tests cover the full user journey and are wired to CI.
-       manual: no Playwright tests — only valid when has-user-facing-flow: false.
-       N/A: no user-facing flow; gate does not apply. -->
+       manual: gate violation when has-user-facing-flow: true and test profile contains playwright;
+               only valid when has-user-facing-flow: false.
+       N/A: no user-facing flow; gate does not apply (default when has-user-facing-flow: false). -->
 
 ## Objective
 - Business outcome:

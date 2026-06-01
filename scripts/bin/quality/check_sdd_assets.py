@@ -553,6 +553,8 @@ def _check_vgate_classification(spec_text: str, slug: str) -> list[Violation]:
 
     has_flow_raw = kv.get("has user-facing flow")
     if has_flow_raw is None:
+        has_flow_raw = kv.get("has-user-facing-flow")
+    if has_flow_raw is None:
         print(
             f"[METRIC] name=sdd_vgate_manual_e2e_violation value=1 work_item={slug}",
             file=sys.stderr,
@@ -569,6 +571,8 @@ def _check_vgate_classification(spec_text: str, slug: str) -> list[Violation]:
         return []
 
     e2e_class_raw = kv.get("e2e gate classification")
+    if e2e_class_raw is None:
+        e2e_class_raw = kv.get("e2e-gate-classification")
     if e2e_class_raw is None:
         print(
             f"[METRIC] name=sdd_vgate_manual_e2e_violation value=1 work_item={slug}",

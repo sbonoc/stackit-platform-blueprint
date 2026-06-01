@@ -1454,6 +1454,32 @@ class TestVgateClassification(unittest.TestCase):
         violations = checker._check_vgate_classification(spec, self.POST_GATE)
         self.assertGreater(len(violations), 0, "Expected violation for absent E2E gate classification")
 
+    def test_hyphen_form_has_user_facing_flow_is_recognized(self) -> None:
+        """Gap-1 fix: prose form 'has-user-facing-flow' (hyphens) must be treated identically to 'Has user-facing flow' (spaces)."""
+        checker = _load_checker_module()
+        spec_hyphen_pass = (
+            "# Specification\n"
+            "## Implementation Stack Profile (Normative)\n"
+            f"- Test automation profile: {self._PLAYWRIGHT}\n"
+            "- has-user-facing-flow: true\n"
+            "- e2e-gate-classification: automated\n"
+        )
+        violations = checker._check_vgate_classification(spec_hyphen_pass, self.POST_GATE)
+        self.assertEqual(violations, [], "Hyphen-form fields with valid values should produce no violations")
+
+    def test_hyphen_form_violation_still_detected(self) -> None:
+        """Gap-1 fix: hyphen-form 'has-user-facing-flow: true' + manual classification is still a violation."""
+        checker = _load_checker_module()
+        spec_hyphen_fail = (
+            "# Specification\n"
+            "## Implementation Stack Profile (Normative)\n"
+            f"- Test automation profile: {self._PLAYWRIGHT}\n"
+            "- has-user-facing-flow: true\n"
+            "- e2e-gate-classification: manual\n"
+        )
+        violations = checker._check_vgate_classification(spec_hyphen_fail, self.POST_GATE)
+        self.assertGreater(len(violations), 0, "Hyphen-form fields with manual classification should produce a violation")
+
 
 if __name__ == "__main__":
     unittest.main()
