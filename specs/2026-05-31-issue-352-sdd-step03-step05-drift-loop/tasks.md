@@ -31,30 +31,30 @@
 - [x] T-206 Slice 2 pytest case — AC-011 step01 SKILL.md canonical-form guidance present AND both scaffold templates seed AC-001 placeholder in canonical form (FR-012)
 
 ## Accessibility Testing (Normative — mark N/A with rationale for non-UI specs)
-- [ ] T-A01 N/A — governance change with no UI surface (per NFR-A11Y-001)
-- [ ] T-A02 N/A — governance change with no UI surface
-- [ ] T-A03 N/A — governance change with no UI surface
-- [ ] T-A04 N/A — governance change with no UI surface
-- [ ] T-A05 N/A — governance change with no UI surface
+- [x] T-A01 N/A — governance change with no UI surface (per NFR-A11Y-001)
+- [x] T-A02 N/A — governance change with no UI surface
+- [x] T-A03 N/A — governance change with no UI surface
+- [x] T-A04 N/A — governance change with no UI surface
+- [x] T-A05 N/A — governance change with no UI surface
 
 ## Validation and Release Readiness
-- [ ] T-301 Run `make quality-sdd-check` against this work item's own `specs/` directory — MUST pass after slice 5
-- [ ] T-302 Run `make quality-hooks-fast` at each slice boundary; capture pass/fail in `pr_context.md`
-- [ ] T-303 Run `make docs-build` and `make docs-smoke`
-- [ ] T-304 Confirm no stale TODOs/dead code/drift
-- [ ] T-305 Run `make quality-hardening-review`
+- [x] T-301 Run `make quality-sdd-check` against this work item's own `specs/` directory — MUST pass after slice 5
+- [x] T-302 Run `make quality-hooks-fast` at each slice boundary; capture pass/fail in `pr_context.md`
+- [x] T-303 Run `make docs-build` and `make docs-smoke`
+- [x] T-304 Confirm no stale TODOs/dead code/drift
+- [x] T-305 Run `make quality-hardening-review`
 
 ## Publish
-- [ ] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
-- [ ] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
-- [ ] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
+- [x] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
+- [x] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
+- [x] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
 
 ## App Onboarding Minimum Targets (Normative)
 <!-- App onboarding impact: no-impact per plan.md. Literal make-target tokens preserved
      below so the SDD asset checker recognizes the section; no new make-target wiring is
      produced by this work item. -->
-- [ ] A-001 `apps-bootstrap` and `apps-smoke` are implemented and verified for the affected app scope (no-impact)
-- [ ] A-002 Backend app lanes (`backend-test-unit`, `backend-test-integration`, `backend-test-contracts`, `backend-test-e2e`) are available (no-impact)
-- [ ] A-003 Frontend app lanes (`touchpoints-test-unit`, `touchpoints-test-integration`, `touchpoints-test-contracts`, `touchpoints-test-e2e`) are available (no-impact)
-- [ ] A-004 Aggregate gates (`test-unit-all`, `test-integration-all`, `test-contracts-all`, `test-e2e-all-local`) are available (no-impact)
-- [ ] A-005 Port-forward operational wrappers (`infra-port-forward-start`, `infra-port-forward-stop`, `infra-port-forward-cleanup`) are available (no-impact)
+- [x] A-001 `apps-bootstrap` and `apps-smoke` are implemented and verified for the affected app scope (no-impact)
+- [x] A-002 Backend app lanes (`backend-test-unit`, `backend-test-integration`, `backend-test-contracts`, `backend-test-e2e`) are available (no-impact)
+- [x] A-003 Frontend app lanes (`touchpoints-test-unit`, `touchpoints-test-integration`, `touchpoints-test-contracts`, `touchpoints-test-e2e`) are available (no-impact)
+- [x] A-004 Aggregate gates (`test-unit-all`, `test-integration-all`, `test-contracts-all`, `test-e2e-all-local`) are available (no-impact)
+- [x] A-005 Port-forward operational wrappers (`infra-port-forward-start`, `infra-port-forward-stop`, `infra-port-forward-cleanup`) are available (no-impact)

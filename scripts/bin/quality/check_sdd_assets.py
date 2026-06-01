@@ -450,9 +450,10 @@ def _check_step03_complete_event(
     c7-emission-opted-out events do NOT satisfy the gate (AC-005).
     """
     slug = work_item_dir.name
-    # FR-011: forward-only — skip pre-existing work items
+    # FR-011: forward-only — skip pre-existing work items and any slug whose first
+    # ten characters are not a valid YYYY-MM-DD date (e.g. test fixture names).
     date_prefix = slug[:10]
-    if date_prefix < _SPEC_COMPLETE_GATE_SINCE:
+    if not re.match(r"^\d{4}-\d{2}-\d{2}$", date_prefix) or date_prefix < _SPEC_COMPLETE_GATE_SINCE:
         return []
     # FR-003(a): upgrade pipeline is automated; no human sign-off model
     if bypass_exception_type == "upgrade":

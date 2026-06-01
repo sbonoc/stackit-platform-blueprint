@@ -5,16 +5,16 @@
 - If required inputs are missing, add `BLOCKED_MISSING_INPUTS` in `spec.md` and keep the gate closed.
 
 ## Constitution Gates (Pre-Implementation)
-- Simplicity gate:
+- Simplicity gate: one new check function in `check_sdd_assets.py`; SKILL.md edits are text-only; no new module hierarchy or authoring tooling
   - One new check function in `check_sdd_assets.py`; no new module hierarchy.
   - SKILL.md edits are text-only; no new authoring tooling.
-- Anti-abstraction gate:
+- Anti-abstraction gate: reuse `_PHASES` enum and existing `[METRIC]` log format; no inline re-declarations or structured metric envelope
   - Reuse the existing `_PHASES` enum constant from `scripts/lib/sdd/c7_emit.py` rather than re-declaring `"spec-complete"` inline.
   - Reuse the existing `[METRIC] name=...` log format rather than introducing a structured JSON metric envelope.
-- Integration-first testing gate:
+- Integration-first testing gate: new check exercised against fixture JSONL files in a tmp work-item directory; no live blueprint fixture mutated
   - The new check is exercised against fixture JSONL files in a tmp work-item directory, mirroring the existing `test_sdd_asset_checker.py` patterns. No live blueprint fixture is mutated.
 - Positive-path filter/transform test gate: N/A — no filter or payload-transform logic in this work item.
-- Finding-to-test translation gate:
+- Finding-to-test translation gate: any deterministic pre-PR failure MUST become a failing automated test before the fix lands; exceptions documented in publish artifacts
   - Any deterministic failure observed during pre-PR `make quality-hooks-fast` MUST be translated into a failing automated test before the fix lands. Documented in this plan's Validation Strategy.
 
 ## Delivery Slices
