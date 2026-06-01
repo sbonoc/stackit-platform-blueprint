@@ -21,4 +21,5 @@
 - N/A axe-core WCAG 2.1 AA scan evidence: NFR-A11Y-001 — no user interface; no axe scan required.
 
 ## Proposals Only (Not Implemented)
-- None — both previously deferred proposals (`backend-test-contracts-pre-push`, `touchpoints-test-integration-pre-push`) were promoted to normative scope and implemented in this PR (FR-006, FR-007, AC-006, AC-007).
+- none
+  <!-- Both previously deferred proposals (backend-test-contracts-pre-push, touchpoints-test-integration-pre-push) were promoted to normative scope and implemented in this PR as FR-006 and FR-007. -->
