@@ -11,9 +11,9 @@ emits-phase: agent-pr-review
 ## When to Use
 
 Invoked at the end of every persona run, regardless of outcome
-(`success | rejected | retried`). The skill produces a cleanup report the
-orchestrator uses to release the workspace pod and emit the `agent-stop`
-label per the #336 webhook handler contract.
+(`success | rejected | retried | human-handoff`). The skill produces a
+cleanup report the orchestrator uses to release the workspace pod and emit
+the `agent-stop` label per the #336 webhook handler contract.
 
 ## Actor
 
@@ -25,7 +25,7 @@ visible without reading any skill runbook.
 
 - The current persona's run identifier and the work-item ticket id.
 - The structured outcome of the persona run drawn from the enum
-  `success | rejected | retried`.
+  `success | rejected | retried | human-handoff`.
 - The list of skill invocations the persona made during the run.
 
 ## Steps
@@ -77,6 +77,7 @@ properties:
       - success
       - rejected
       - retried
+      - human-handoff
   persistent_artifacts:
     type: array
     description: Paths or identifiers that MUST persist beyond the run.
