@@ -59,7 +59,7 @@ The factory skill surface gains EXACTLY ten new skills under `.agents/skills/`:
 | `blueprint-human-review-prep` | Documentation Keeper | Formats Draft PR for the human merge gate: spec-vs-changes diff + reviewer checklist. |
 | `blueprint-sdd-step08-agent-pr-review` | All 4 reviewer personas | Drives the new `agent-pr-review` phase. |
 | `blueprint-pr-review-respond` | All 4 reviewer personas | Parses implementation-round review comments and routes fix requests back to the implementer; bounded by Phase 0 reject-rerun cap. |
-| `blueprint-agent-stop-cleanup` | All personas | Pairs with the `agent-stop` label; cleans up workspace, journals kill reason, posts comment. |
+| `blueprint-agent-stop-cleanup` | All personas | Releases workspace resources at the end of every persona run; journals run outcome and posts a cleanup comment. The `agent-stop` GitHub label is a human-triggered abort signal — this skill does not emit it. |
 
 Every new `SKILL.md` carries a `## Required Output Schema` section with a fenced ```yaml jsonschema``` block per the parent persona/skill contract ADR (clause 3 — skills declare their output contract). Every persona file and every new `SKILL.md` carries `blueprint-version: <semver>` in YAML front-matter per `docs/blueprint/autonomous-factory/design-contracts.md` § Upstream-candidate front-matter convention. All 20 files are enumerated as `stable` + `extensible` rows in `docs/blueprint/autonomous-factory/design-contracts.md` § Contract C8 § Category (c).
 
