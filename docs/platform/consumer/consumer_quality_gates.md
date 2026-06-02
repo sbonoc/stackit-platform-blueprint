@@ -81,7 +81,7 @@ stanzas to `.pre-commit-config.yaml` (in the `repo: local` section, before the
   entry: make touchpoints-test-contracts
   pass_filenames: false
   stages: [pre-push]
-  files: ^(apps/touchpoints/.*\.(ts|vue|tsx)|apps/packages/api-client/src/.*\.ts)$
+  files: ^(apps/touchpoints/.*\.(ts|vue|tsx)|apps/packages/api-client/src/.*\.ts|tests/touchpoints/contracts/.*\.py)$
   always_run: false
 - id: backend-test-unit-pre-push
   name: backend unit tests (pre-push)

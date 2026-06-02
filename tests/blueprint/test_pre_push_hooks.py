@@ -103,12 +103,18 @@ class TestTouchpointsContractsPrePushHook:
 
     def test_files_pattern(self) -> None:
         hook = _load_hooks().get("touchpoints-test-contracts-pre-push", {})
-        assert hook.get("files") == r"^(apps/touchpoints/.*\.(ts|vue|tsx)|apps/packages/api-client/src/.*\.ts)$"
+        assert hook.get("files") == r"^(apps/touchpoints/.*\.(ts|vue|tsx)|apps/packages/api-client/src/.*\.ts|tests/touchpoints/contracts/.*\.py)$"
 
     def test_files_pattern_covers_api_client(self) -> None:
         hook = _load_hooks().get("touchpoints-test-contracts-pre-push", {})
         assert "apps/packages/api-client/src/" in hook.get("files", ""), (
             "files pattern must cover api-client source changes (FR-002)"
+        )
+
+    def test_files_pattern_covers_pytest_contracts(self) -> None:
+        hook = _load_hooks().get("touchpoints-test-contracts-pre-push", {})
+        assert "tests/touchpoints/contracts/" in hook.get("files", ""), (
+            "files pattern must cover tests/touchpoints/contracts/*.py — make touchpoints-test-contracts runs a pytest lane there (FR-002)"
         )
 
     def test_always_run(self) -> None:

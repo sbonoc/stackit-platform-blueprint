@@ -64,7 +64,7 @@ Hooks added (in template order):
 | Hook ID | Make target | Files scope |
 |---|---|---|
 | `touchpoints-test-unit-pre-push` | `make touchpoints-test-unit` | `^apps/touchpoints/.*\.(ts\|vue\|tsx)$` |
-| `touchpoints-test-contracts-pre-push` | `make touchpoints-test-contracts` | `^(apps/touchpoints/.*\.(ts\|vue\|tsx)\|apps/packages/api-client/src/.*\.ts)$` |
+| `touchpoints-test-contracts-pre-push` | `make touchpoints-test-contracts` | `^(apps/touchpoints/.*\.(ts\|vue\|tsx)\|apps/packages/api-client/src/.*\.ts\|tests/touchpoints/contracts/.*\.py)$` |
 | `backend-test-unit-pre-push` | `make backend-test-unit` | `^(apps/backend/\|tests/backend/).*\.py$` |
 | `backend-test-contracts-pre-push` | `make backend-test-contracts` | `^(apps/backend/\|tests/backend/).*\.py$` |
 | `touchpoints-test-integration-pre-push` | `make touchpoints-test-integration` | `^(apps/touchpoints/.*\.(ts\|vue\|tsx)\|apps/packages/api-client/src/.*\.ts)$` |

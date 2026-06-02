@@ -111,7 +111,7 @@ repos:
         entry: make touchpoints-test-contracts
         pass_filenames: false
         stages: [pre-push]
-        files: ^(apps/touchpoints/.*\.(ts|vue|tsx)|apps/packages/api-client/src/.*\.ts)$
+        files: ^(apps/touchpoints/.*\.(ts|vue|tsx)|apps/packages/api-client/src/.*\.ts|tests/touchpoints/contracts/.*\.py)$
         always_run: false
       - id: backend-test-unit-pre-push
         name: backend unit tests (pre-push)

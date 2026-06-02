@@ -5,7 +5,7 @@
 | Requirement ID | Control IDs | WCAG SC | Design Element | Implementation Path(s) | Test Evidence | Documentation Evidence | Operational Evidence |
 |---|---|---|---|---|---|---|---|
 | FR-001 | SDD-C-005, SDD-C-008 | | `touchpoints-test-unit-pre-push` stanza in template | `scripts/templates/blueprint/bootstrap/.pre-commit-config.yaml` | T-101 | ADR-issue-358 | |
-| FR-002 | SDD-C-005, SDD-C-008 | | `touchpoints-test-contracts-pre-push` stanza in template | same file | T-102 | ADR-issue-358 | |
+| FR-002 | SDD-C-005, SDD-C-008 | | `touchpoints-test-contracts-pre-push` stanza in template; files pattern covers TS source, api-client, and tests/touchpoints/contracts/*.py | same file | T-102 | ADR-issue-358 | |
 | FR-003 | SDD-C-005, SDD-C-008 | | `backend-test-unit-pre-push` stanza in template | same file | T-103 | ADR-issue-358 | |
 | FR-004 | SDD-C-005 | | `always_run: false` + file-glob on all five hooks | same file | T-104 | ADR-issue-358 D-2; `consumer_quality_gates.md` backport note | |
 | FR-005 | SDD-C-011 | | Blueprint upgrade flow; template as seeded source | upgrade process | T-105 | upgrade release notes / backport note | |
