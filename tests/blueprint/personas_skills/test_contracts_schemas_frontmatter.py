@@ -3,10 +3,12 @@
 AC-003: Every new SKILL.md contains EXACTLY ONE ## Required Output Schema
         heading followed by EXACTLY ONE fenced ```yaml jsonschema``` block
         whose body parses as valid JSON Schema (draft-07 or later).
+AC-004: Each of the 20 paths (10 personas + 10 new skills) appears as a row
+        in `docs/blueprint/autonomous-factory/design-contracts.md` § Contract
+        C8 § Category (c) with stability tier `stable`, extensibility tier
+        `extensible`, and owning ticket `#333`.
 AC-005: Every persona + every new SKILL.md carries blueprint-version
         front-matter matching the semver pattern.
-
-AC-004 (Contract C8 enumeration) is added in slice 4.
 """
 
 from __future__ import annotations
@@ -20,9 +22,18 @@ from jsonschema import Draft7Validator
 from tests.blueprint.personas_skills._roster import (
     NEW_SKILL_NAMES,
     PERSONA_NAMES,
+    REPO_ROOT,
     new_skill_path,
     persona_path,
 )
+
+DESIGN_CONTRACTS = (
+    REPO_ROOT / "docs" / "blueprint" / "autonomous-factory" / "design-contracts.md"
+)
+CATEGORY_C_HEADING_RE = re.compile(
+    r"^###\s+Category\s+\(c\)[^\n]*$", re.MULTILINE
+)
+NEXT_SECTION_RE = re.compile(r"^###\s+", re.MULTILINE)
 
 SEMVER_RE = re.compile(r"^\d+\.\d+\.\d+(-[\w.]+)?$")
 
@@ -102,3 +113,48 @@ def test_new_skill_yaml_jsonschema_body_parses_as_valid_json_schema(name: str) -
     )
     # Validate the schema itself against the Draft 7 meta-schema.
     Draft7Validator.check_schema(schema)
+
+
+# -------- AC-004 — Contract C8 § Category (c) enumeration --------------------
+
+def _category_c_block() -> str:
+    text = DESIGN_CONTRACTS.read_text(encoding="utf-8")
+    heading = CATEGORY_C_HEADING_RE.search(text)
+    assert heading is not None, (
+        "design-contracts.md MUST contain a '### Category (c)' heading"
+    )
+    start = heading.end()
+    next_section = NEXT_SECTION_RE.search(text, pos=start)
+    end = next_section.start() if next_section else len(text)
+    return text[start:end]
+
+
+_C8_PATHS: list[str] = (
+    [f".agents/personas/{name}.md" for name in PERSONA_NAMES]
+    + [f".agents/skills/{name}/" for name in NEW_SKILL_NAMES]
+)
+
+
+@pytest.mark.parametrize("surface_path", _C8_PATHS)
+def test_category_c_row_present_with_stable_extensible_owned_by_333(
+    surface_path: str,
+) -> None:
+    block = _category_c_block()
+    matching_rows = [
+        line for line in block.splitlines()
+        if line.startswith("|") and f"`{surface_path}`" in line
+    ]
+    assert matching_rows, (
+        f"design-contracts.md § Contract C8 § Category (c) MUST contain a row "
+        f"for surface item `{surface_path}`"
+    )
+    row = matching_rows[0]
+    assert "`stable`" in row, (
+        f"row for `{surface_path}` MUST carry stability tier `stable`: {row!r}"
+    )
+    assert "`extensible`" in row, (
+        f"row for `{surface_path}` MUST carry extensibility tier `extensible`: {row!r}"
+    )
+    assert "#333" in row, (
+        f"row for `{surface_path}` MUST carry owning ticket `#333`: {row!r}"
+    )
