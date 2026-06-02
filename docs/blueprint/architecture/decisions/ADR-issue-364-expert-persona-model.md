@@ -219,6 +219,17 @@ The 10 skill runbooks shipped by #360 / PR #362 are re-homed onto this branch wi
 
 The other nine skill runbooks (triage-size, decompose-light, spec-author, plan-slicer, implement, document-sync, pr-package, agent-stop-cleanup, traceability-keeper) require only the `Actor` and `Composition` text fixes — no schema changes.
 
+### 8.1 Persona vs `AGENTS.md` precedence
+
+`AGENTS.md` was authored for a singular agent and contains two distinct flavors of instruction. The expert-panel model requires they be treated differently when a persona is dispatched:
+
+- **Procedural / governance rules** (SDD lifecycle, sign-off policy, quality-hooks usage, contract precedence, branch naming, validation bundles, DoD, MUST-NOT-self-approve, etc.): apply **uniformly to every dispatched expert without exception**. These are *how to act*, not *who you are*. Boundary Hawk and Documentation Discipline both follow the sign-off policy verbatim.
+- **Identity / worldview content** (currently scoped under `AGENTS.md § Role and Philosophy`): does **NOT** apply to dispatched experts. Each persona's `PERSONA.md § Worldview` is the **sole identity source** for that expert during dispatch. The operator-default identity in `AGENTS.md` applies only when no persona is loaded (e.g., during `blueprint-consumer-ops`, `blueprint-consumer-upgrade`, ad-hoc operator sessions).
+
+This separation prevents the panel's 8 worldviews from collapsing toward a shared "Architect + Principal Engineer" identity floor inherited from `AGENTS.md`. Without this precedence rule, every dispatched expert would inherit the operator-default worldview underneath its own, weakening the per-expert distinctiveness the panel exists to provide (e.g., Data Privacy's data-as-liability framing would dilute into "well-designed data handling"; Security Paranoid's threat-actor lens would soften into "secure-by-default conventions").
+
+**Enforcement:** the precedence is declared in `AGENTS.md § Role and Philosophy` (scoping note added in this work item). Any future `AGENTS.md` edit that introduces new identity content MUST flag it and either (a) exempt dispatched experts explicitly, or (b) add the equivalent guidance as a per-persona heuristic in each affected `PERSONA.md`. There is no scripted check for this today; the discipline relies on ADR review.
+
 ## 9. C7 amendment shape (FR-007)
 
 The `outcome.details` object on every C7 event MAY contain an additive optional `expert_verdicts: Array<ExpertVerdictSummary>` where `ExpertVerdictSummary` is:
