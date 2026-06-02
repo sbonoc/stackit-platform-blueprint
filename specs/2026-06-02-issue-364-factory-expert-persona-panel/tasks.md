@@ -8,7 +8,7 @@
 - [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
 
 ## Implementation
-- [ ] T-001 Update contract/governance surfaces: AGENTS.md persona section retitle + rewrite; `docs/blueprint/autonomous-factory/design-contracts.md` § C3 reshape with the SDD-step × expert matrix; `MEMORY.md` index + the three project memory files reflect the post-#364 model.
+- [ ] T-001 Update contract/governance surfaces: AGENTS.md persona section retitle + rewrite (operator-default scope note per ADR-issue-364 § 8.1); `docs/blueprint/autonomous-factory/design-contracts.md` § C3 reshape with the SDD-step × expert matrix AND removal of the old persona `Activation Triggers` / `Skills Invoked` prose (FR-002); design-contracts § C8 Category (c) persona-list rows replaced with the 8 expert-slug rows (FR-009); design-contracts § C7 `persona` field description and surrounding emission-mechanism prose updated to align with skill-as-actor + `expert_verdicts[]` attribution (FR-010); `MEMORY.md` index + the three project memory files reflect the post-#364 model.
 - [ ] T-002 Author 8 expert-persona files at `.agents/personas/<slug>/PERSONA.md` with the 6 required sections and none of the forbidden sections (FR-001). The `data-privacy` persona MUST carry the distinguishing posture per FR-001 (data minimization, lawful basis, retention, subject rights as first-order concerns; push-back triggers distinct from `security-paranoid`).
 - [ ] T-003 Re-home 10 skill runbooks from PR #362 onto this branch with persona-coupling language stripped (FR-006 a, b); reshape `blueprint-sdd-step08-agent-pr-review/SKILL.md` to take panel-input and emit a per-expert verdict array (FR-006 c).
 - [ ] T-004 Author `docs/blueprint/architecture/decisions/ADR-issue-364-expert-persona-model.md` with the supersession + amendment clauses, the JSON Schema for the verdict object, the flowchart-TD three-layer diagram, and the sequence-diagram of parallel-then-merge convergence. Cross-reference design-contracts § C3 by relative path (FR-002, FR-003, FR-004).
@@ -23,6 +23,10 @@
 - [ ] T-103 Author shell-based AC-003 assertion (design-contracts § C3 header + table header exact match + ADR cross-reference path).
 - [ ] T-104 Author shell-based AC-004 assertion (`grep -rE "...(persona)" .agents/skills/blueprint-*/SKILL.md` returns zero).
 - [ ] T-105 Author shell-based AC-005 assertion (parse pr_context.md "Cross-Ticket Amendments" URLs; `gh api` HTTP-200 each).
+- [ ] T-108 Author shell-based AC-008 assertion (grep design-contracts.md for absence of the 10 old stage-persona paths AND presence of the 8 expert-slug `.agents/personas/<slug>/PERSONA.md` paths).
+- [ ] T-109 Author shell-based AC-009 assertion (grep design-contracts.md § C7 for absence of the legacy substrings `the persona file basename (matches Contract C3 microagent name)` and `wraps each persona invocation`, AND presence of `skill basename` rewording in the `persona` field description block).
+- [ ] T-110 Author shell-based AC-010 assertion (`uv run python3 scripts/lib/docs/sync_blueprint_template_docs.py --check` exits 0; if no `--check` flag, fall back to `diff -u` between live design-contracts.md and the bootstrap-template mirror, asserting zero diff).
+- [ ] T-111 Author shell-based AC-011 assertion (extract `## Required Output Schema` block from `.agents/skills/blueprint-sdd-step08-agent-pr-review/SKILL.md`; assert absence of `reviewer_persona`, presence of `expert_slug` AND presence of `expert_verdicts`).
 - [ ] T-103-pos N/A — no filter/payload-transform logic in this ticket. Documented in `pr_context.md` Validation Evidence.
 - [ ] T-104-trans N/A — no deterministic pre-PR smoke failure surface. Quality gates (T-106) are the deterministic check.
 - [ ] T-105-bnd N/A — no boundary/integration test surface; dispatch boundary tests are owned by #361.

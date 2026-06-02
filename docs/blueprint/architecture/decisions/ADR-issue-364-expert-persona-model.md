@@ -203,9 +203,13 @@ Every dispatched expert MUST return a verdict object conforming to:
 ## 7. Supersession + amendment (FR-005)
 
 - `ADR-issue-360-factory-personas-skills-roster.md`: `Status: superseded by ADR-issue-364-expert-persona-model.md`. First paragraph rewritten to point readers here. The salvageable artifacts (skill runbooks minus persona-coupling; C7 schema fixes; CLAUDE.md step08 row) carry forward via this ADR's outputs.
-- `ADR-issue-337-persona-skill-contract.md`: `Amended by ADR-issue-364-expert-persona-model.md` (clause 3 composition rule extended to expert personas).
-- `ADR-issue-337-c7-emission-mechanism.md`: `Amended by ADR-issue-364-expert-persona-model.md` (additive optional `outcome.details.expert_verdicts[]`).
+- `ADR-issue-337-persona-skill-contract.md`: `Amended by ADR-issue-364-expert-persona-model.md` (clause 3 composition rule extended to expert personas; identity-source rule added per § 8.1 — `PERSONA.md § Worldview` is the sole identity source for a dispatched expert, with `AGENTS.md § Role and Philosophy` scoped to operator-default mode).
+- `ADR-issue-337-c7-emission-mechanism.md`: `Amended by ADR-issue-364-expert-persona-model.md` (additive optional `outcome.details.expert_verdicts[]`; AND the `persona` field description for `emitter: orchestrator` events plus surrounding emission-mechanism prose realigned from *persona invocation* / *persona file basename* wording to *skill invocation* / *SDD step skill basename* wording, since the expert-panel dispatch model no longer has a 1:1 persona-per-phase relation — eleven-field minimum schema, `event_id` derivation, and sealed three-emitter rule remain unchanged).
 - `ADR-issue-337-reviewer-model-heterogeneity.md`: `Amended by ADR-issue-364-expert-persona-model.md` (per-expert model assignment; FR-008 audit invariant becomes panel-disjointness).
+
+Non-ADR governance file also amended by this work item (listed here so the FR-005 amendment ledger is complete):
+
+- `AGENTS.md § Role and Philosophy`: retitled and scoped to **operator-default mode**; a *Persona precedence* paragraph is added that defers identity to the loaded `PERSONA.md § Worldview` during dispatch while keeping all procedural / governance rules (SDD lifecycle, sign-off policy, quality-hooks usage, contract precedence, branch naming, validation bundles) applicable to every dispatched expert. See § 8.1 for the rationale.
 
 Unchanged: `ADR-issue-337-triage-size-threshold.md`, `ADR-issue-337-light-decomposition-policy.md`, `ADR-issue-337-trigger-authorization-model.md`.
 
@@ -259,7 +263,7 @@ The `agent-stop` GitHub label semantics from `ADR-issue-337-trigger-authorizatio
 
 ## 11. Future work (explicit; out of scope here)
 
-- **Compliance / regulatory-audit expert** as 9th panel member: held until a clear regulatory-audit work surface (separate from data-privacy and security) emerges. Adding it now would muddy the data-privacy posture without distinct push-back triggers.
+- **Compliance / regulatory-audit expert** as 9th panel member: held until a clear regulatory-audit work surface (separate from data-privacy and security) emerges. Adding it now would muddy the data-privacy posture without distinct push-back triggers. **Decision recorded (2026-06-02):** also rejected the alternative shape of *absorbing* the compliance lens into Data Privacy under this work item. Rationale: (a) Data Privacy is sharply scoped as data-as-liability (minimization, residency, lawful basis, retention, subject rights) and absorbing ISO 27001 / C5 / SOC 2 control-matrix concerns would blur its dynamic step02 trigger surface; (b) the bulk of compliance push-backs already shadow four existing experts — Security Paranoid (controls), Operability/SRE (incident response, change management), Documentation Discipline (audit trail / evidence currency), and Data Privacy (subject obligations); (c) stretching one persona's scope to dodge the 8-expert ceiling is functionally the same drift the ceiling exists to prevent. Future sessions: do not re-litigate the merge; if a real compliance gap surfaces, either sharpen one of the four cross-cutting experts in a separate ticket or earn the 9th slot via the distinct-triggers bar above.
 - **Expert-panel consultation for human-driven local SDD sessions** (`local-cli` emitter from #347): solo operators driving SDD locally continue without panel dispatch. A future opt-in local invocation (no make target proposed today) is held as a separate ticket if user demand emerges.
 - **Per-expert prompt-cache discipline** (separate prompt caches per expert worldview to prevent contamination): surfaces during #361 orchestrator implementation if cache contamination shows up in observability.
 - **Embedding-based finding-text dedup** for the convergence merger: MVP uses string-equality dedup; upgrade if naive dedup proves insufficient. #361 follow-up.
