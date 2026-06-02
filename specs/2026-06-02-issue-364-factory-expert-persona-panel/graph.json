@@ -1,0 +1,42 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-06-02-issue-364-factory-expert-persona-panel",
+  "nodes": [
+    { "id": "FR-001", "type": "requirement", "summary": "8 expert-persona files with required 6 sections and no forbidden sections; data-privacy distinguishing posture" },
+    { "id": "FR-002", "type": "requirement", "summary": "SDD-step x expert matrix single-sourced in design-contracts C3" },
+    { "id": "FR-003", "type": "requirement", "summary": "Three convergence patterns defined in ADR with default = parallel-then-merge" },
+    { "id": "FR-004", "type": "requirement", "summary": "Always-respond verdict contract with empty-findings sentinel embedded as JSON Schema" },
+    { "id": "FR-005", "type": "requirement", "summary": "ADR-issue-360 superseded; three #337 ADRs amended with Amended-by lines" },
+    { "id": "FR-006", "type": "requirement", "summary": "10 skill runbooks re-homed with persona-coupling stripped; agent-pr-review reshaped for panel-input" },
+    { "id": "FR-007", "type": "requirement", "summary": "C7 outcome.details.expert_verdicts[] additive optional field" },
+    { "id": "FR-008", "type": "requirement", "summary": "Cross-ticket amendments posted in step06: #333 #361 #335 #336 #342 #343 #332; close #360 + PR #362" },
+    { "id": "NFR-SEC-001", "type": "requirement", "summary": "Bot-authored expert verdicts; SoD preserved; two human gates remain sole approvals" },
+    { "id": "NFR-OBS-001", "type": "requirement", "summary": "C7 emission discipline preserved; expert_verdicts[] additive only" },
+    { "id": "NFR-REL-001", "type": "requirement", "summary": "Atomic single-PR rollout; revert leaves repository on pre-pivot stage-persona model" },
+    { "id": "NFR-OPS-001", "type": "requirement", "summary": "Merge commit passes quality-sdd-check, hooks-fast, hooks-slow; bootstrap template mirrors resynced" },
+    { "id": "NFR-A11Y-001", "type": "requirement", "summary": "N/A no user-facing UI surface" },
+    { "id": "AC-001", "type": "acceptance", "summary": "8 PERSONA.md files exist with 6 sections and zero forbidden sections; data-privacy posture substrings present" },
+    { "id": "AC-002", "type": "acceptance", "summary": "ADR-issue-364 exists with supersession and three amendment substrings" },
+    { "id": "AC-003", "type": "acceptance", "summary": "Design-contracts C3 contains matrix table with exact header; ADR cross-references by relative path" },
+    { "id": "AC-004", "type": "acceptance", "summary": "Skill runbooks contain zero stage-persona language; grep returns zero matches" },
+    { "id": "AC-005", "type": "acceptance", "summary": "pr_context Cross-Ticket Amendments section lists all required URLs returning HTTP-200" },
+    { "id": "AC-006", "type": "acceptance", "summary": "Quality gates exit 0 on merge commit head" },
+    { "id": "AC-007", "type": "acceptance", "summary": "MEMORY.md and three project memory files reflect post-#364 model; skip-if-absent" }
+  ],
+  "edges": [
+    { "from": "FR-001", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-003", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-002", "relation": "validated_by" },
+    { "from": "FR-004", "to": "AC-002", "relation": "validated_by" },
+    { "from": "FR-005", "to": "AC-002", "relation": "validated_by" },
+    { "from": "FR-006", "to": "AC-004", "relation": "validated_by" },
+    { "from": "FR-007", "to": "AC-002", "relation": "validated_by" },
+    { "from": "FR-008", "to": "AC-005", "relation": "validated_by" },
+    { "from": "NFR-SEC-001", "to": "AC-002", "relation": "constrains" },
+    { "from": "NFR-OBS-001", "to": "AC-002", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "AC-006", "relation": "constrains" },
+    { "from": "NFR-OPS-001", "to": "AC-006", "relation": "validated_by" },
+    { "from": "NFR-A11Y-001", "to": "AC-001", "relation": "constrains" },
+    { "from": "FR-001", "to": "AC-007", "relation": "validated_by" }
+  ]
+}
