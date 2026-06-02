@@ -181,7 +181,7 @@ Default `model_per_expert` baseline absent any per-step override. #335 ships the
 | `product-pragmatist` | Opus | Lead voice at step01 (most upstream, highest propagation cost if wrong); scope misalignment caught at intake is 10-100× cheaper than at step08; inferring unstated business constraints from sparse input requires deep judgment under ambiguity |
 | `boundary-hawk` | Opus | Multi-hop architectural reasoning across files (coupling chain: X→Y→Z); bounded-context drift is subtle and late-expensive — same stakes tier as `security-paranoid` |
 | `security-paranoid` | Opus | Threat-modelling + adversarial reasoning — high-stakes; cost justified |
-| `data-privacy` | Sonnet | Regulatory-pattern matching + retention reasoning — moderate |
+| `data-privacy` | Opus | Multi-hop data-flow reasoning under regulatory ambiguity (lawful basis, retention paths, cross-field combination effects, jurisdiction tracing); consequence of a missed violation equals security — regulatory enforcement + subject rights breach |
 | `test-quality-sceptic` | Sonnet | Fixture-vs-assertion reasoning — moderate; high volume across steps |
 | `operability-sre` | Sonnet | Runbook + observability reasoning — moderate |
 | `documentation-discipline` | Sonnet | Lead voice at step06 (semantic doc authoring, not just structural presence); Haiku is a permitted down-tier override at step01 and step08 where the check is structural-only |
@@ -192,20 +192,19 @@ Tier rationale notes:
 - `product-pragmatist` is at Opus because it is the lead voice at step01 — the most upstream point in the SDD lifecycle where a missed scope misalignment propagates through all downstream expert work. The reasoning task (inferring unstated business constraints, judging scope proportionality against a vaguely-stated outcome, arbitrating priority conflicts at step02) requires deep judgment under ambiguity, not structured checklist verification.
 - `boundary-hawk` is at Opus because detecting leaky abstractions and bounded-context drift requires multi-hop semantic reasoning chains across multiple files simultaneously — structurally identical to `security-paranoid`'s threat-model chains, and equally late-expensive when missed. `boundary-hawk` appears in 6 of 8 SDD steps; systematic under-tiering would affect the majority of expert review cycles.
 - `documentation-discipline` is at Sonnet (not Haiku) because it is the **lead voice at step06** — the document-sync step whose entire purpose is producing semantically accurate documentation after implementation. Haiku misses subtle semantic drift (description correct before the refactor, wrong in a non-obvious way after). Haiku is a permitted down-tier **override** at step01 and step08 where documentation-discipline performs structural-presence checks rather than semantic authoring.
-- `data-privacy` is at Sonnet as the default baseline. At **step05 (sequential-lens), the orchestrator MUST override to Opus**: privacy analysis mid-implementation requires tracing data flows across service boundaries, retention paths, and third-party integrations — multi-hop reasoning at the same stakes tier as security.
+- `data-privacy` is at Opus because privacy analysis is multi-hop reasoning under regulatory ambiguity — not a checklist. To catch a violation the expert must trace data origin, flow, retention path, cross-field combination effects, and applicable jurisdiction before concluding whether a lawful basis holds. A missed violation carries the same consequence tier as a missed security flaw (enforcement action, subject rights breach, regulatory fine). The step05 Haiku-or-Sonnet override that appeared in earlier drafts of this ADR is removed: if the baseline was already right, no override would be needed.
 
-The Opus tier covers **the four experts whose errors are most expensive to catch late**: the product-scope expert (step01 lead), the architecture-boundary expert, the security expert, and the privacy expert under implementation load (step05). The Sonnet tier covers pattern-based reasoning (test quality, operability, docs authoring, performance patterns) where the judgment ceiling is lower and the volume is high.
+The Opus tier covers **the five experts whose errors are most expensive to catch late**: product scope (step01 lead), architecture boundaries, security, privacy, and data-flow reasoning. The Sonnet tier covers pattern-based reasoning (test quality, operability, docs authoring, performance patterns) where the judgment ceiling is lower and the volume is high.
 
-**Named per-step overrides (MUST be applied; not optional):**
+**Named per-step override (MUST be applied; not optional):**
 
 | Expert | Step | Override tier | Reason |
 |---|---|---|---|
-| `data-privacy` | step05 | Opus | Multi-hop data-flow tracing during implementation; regulatory consequence equals security |
-| `documentation-discipline` | step01, step08 | Haiku | Structural-presence check only; no semantic authoring role |
+| `documentation-discipline` | step01, step08 | Haiku | Structural-presence check only at those steps; no semantic authoring role |
 
-All other per-step deviations from the baseline table are **optional** cost-tier adjustments shipped with #335. The MUST overrides above are normative and MUST be reflected in the orchestrator's dispatch configuration.
+All other per-step deviations from the baseline table are **optional** cost-tier adjustments shipped with #335. The MUST override above is normative and MUST be reflected in the orchestrator's dispatch configuration.
 
-The panel-disjointness audit invariant (from amended `ADR-issue-337-reviewer-model-heterogeneity.md`) MUST be satisfied: within a single step's panel, no two experts MAY share the same LiteLLM routing key for the same `(ticket_id, phase, rerun_round)` tuple. Step03's panel-of-1 trivially satisfies this; step01 and step08 (all-8) MUST be configured with at least 2 distinct routing keys across the 8 experts; in practice the Sonnet/Opus tier mix (4 Sonnet, 4 Opus baseline — with documentation-discipline overriding to Haiku at step01/step08) satisfies this automatically.
+The panel-disjointness audit invariant (from amended `ADR-issue-337-reviewer-model-heterogeneity.md`) MUST be satisfied: within a single step's panel, no two experts MAY share the same LiteLLM routing key for the same `(ticket_id, phase, rerun_round)` tuple. Step03's panel-of-1 trivially satisfies this; step01 and step08 (all-8) MUST be configured with at least 2 distinct routing keys across the 8 experts; in practice the Sonnet/Opus tier mix (3 Sonnet, 5 Opus baseline — with documentation-discipline overriding to Haiku at step01/step08) satisfies this automatically.
 
 ### 4.4 Step08 lead-rotation algorithm
 
