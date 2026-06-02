@@ -76,6 +76,13 @@ The persona is activated when EXACTLY ONE OF the following conditions holds:
 - The persona MUST NOT directive-invoke other skills inside skill runbooks;
   skill composition is a persona-layer responsibility per the persona/skill
   contract ADR clause 3.
+- Reviewer model heterogeneity (per
+  `docs/blueprint/architecture/decisions/ADR-issue-337-reviewer-model-heterogeneity.md`):
+  the architecture-reviewer persona MUST run on a different model family than
+  the implementer persona that produced the change under review. The runtime
+  reviewer-rotation picker that enforces this constraint is owned by Child B
+  (issue #361) and is out of scope for this persona file; this persona only
+  documents the convention.
 
 ## Review Dimensions
 

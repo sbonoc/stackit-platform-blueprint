@@ -90,10 +90,15 @@ The persona is activated when EXACTLY ONE OF the following conditions holds:
 
 ## Definition of Done (DoD)
 
-- A triage-size record exists for the ticket, captured as the structured
-  output the orchestrator wraps in the first `phase: intake` C7 event.
-- When triage classified the ticket as `large-decomposable`, every child
-  ticket has its own spec directory grounded in the parent spec with the
-  bounded-context boundary type cited explicitly.
-- `plan.md` lists dependency-ordered slices that map to the FRs / ACs from
+- The `blueprint-ticket-triage-size` skill is invoked first on every ticket
+  before any other tech-lead skill runs; skipping the triage step is forbidden.
+- The `blueprint-ticket-decompose-light` skill is invoked whenever the triage
+  skill classifies the ticket as `large-decomposable`; this conditional MUST
+  hold per cycle without exception.
+- Every sub-ticket grounds in the parent spec and cites its bounded-context
+  boundary type explicitly in the child spec.
+- Sub-ticket fan-out MUST NOT exceed the maximum defined in the Phase 0 ADR on
+  light decomposition policy
+  (`docs/blueprint/architecture/decisions/ADR-issue-337-light-decomposition-policy.md`).
+- `plan.md` lists dependency-ordered slices that map to the FRs and ACs from
   `spec.md` without orphans.
