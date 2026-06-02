@@ -38,7 +38,7 @@ implementer persona that produced the change under review; the orchestrator
 - The packaged PR body authored by the PR packager.
 - The work-item `traceability.md` and `graph.json`.
 
-## Steps
+## Workflow
 
 1. Read the PR diff and the reviewer persona's review-dimension set.
 2. Generate findings, one entry per concrete observation, tagged with
@@ -49,12 +49,26 @@ implementer persona that produced the change under review; the orchestrator
 5. Return the structured payload described in `## Required Output Schema`
    below.
 
-## Composition
+## Guardrails
 
-This skill MUST NOT directive-invoke any other skill. Each reviewer persona
-invokes this skill independently and may subsequently invoke
-`blueprint-pr-review-respond` per its own persona definition when follow-up
-reviewer comments arrive on the open PR.
+This skill MUST NOT directive-invoke any other skill (FR-016 composition
+ban). Each reviewer persona invokes this skill independently and may
+subsequently invoke `blueprint-pr-review-respond` per its own persona
+definition when follow-up reviewer comments arrive on the open PR.
+
+## Required Report Format
+
+Return:
+
+1. Reviewer persona name (one of `security-reviewer`,
+   `architecture-reviewer`, `contract-reviewer`, `test-coverage-reviewer`).
+2. Findings count grouped by severity (`must-fix`, `warn`, `info`).
+3. For each finding: id, dimension, severity, `file:line`, description, and
+   optional remediation suggestion.
+4. Cross-context impact reporting payload (architecture-reviewer only):
+   bounded contexts touched, downstream consumers impacted, contract-surface
+   deltas, rollback risk.
+5. Confirmation that every finding is anchored to a concrete diff location.
 
 ## Required Output Schema
 
