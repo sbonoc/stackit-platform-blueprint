@@ -101,6 +101,117 @@ The matrix at the time of this ADR (informative — for sign-off readers; author
 
 Tunable per-step over time without amending this ADR — the matrix in C3 is authoritative and the only place it lives.
 
+### 4.1 Dispatch-table schema (orchestrator contract for #361)
+
+The orchestrator MUST consume a dispatch table whose rows conform to the following JSON Schema. This is the runtime contract the #361 orchestrator builds against; the C3 matrix is the human-readable single source from which this table is derived.
+
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DispatchTableRow",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["step", "skill", "expert_panel", "convergence_mode", "model_per_expert"],
+  "properties": {
+    "step": {
+      "type": "string",
+      "enum": ["step01", "step02", "step03", "step04", "step05", "step06", "step07", "step08"]
+    },
+    "skill": {
+      "type": "string",
+      "description": "Skill directory basename under .agents/skills/ (e.g., blueprint-sdd-step01-intake)"
+    },
+    "expert_panel": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "product-pragmatist",
+          "boundary-hawk",
+          "security-paranoid",
+          "data-privacy",
+          "test-quality-sceptic",
+          "operability-sre",
+          "documentation-discipline",
+          "performance-cost-aware"
+        ]
+      },
+      "uniqueItems": true,
+      "description": "Static panel; step02 SHALL emit an empty array and rely on the dynamic-scope contract in §4.2 to populate at runtime."
+    },
+    "convergence_mode": {
+      "type": "string",
+      "enum": ["parallel-then-merge", "sequential-lens", "structured-disagreement"]
+    },
+    "model_per_expert": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "description": "LiteLLM routing key (e.g., anthropic/claude-haiku-4-5, anthropic/claude-sonnet-4-6, anthropic/claude-opus-4-7)"
+      },
+      "description": "Map of expert_slug -> LiteLLM routing key. Default baseline in §4.3. Missing key falls back to baseline."
+    },
+    "lead_voice": {
+      "type": ["string", "null"],
+      "description": "Static lead for parallel-then-merge; null for step02 (computed at dispatch per §4.2) and step08 (rotates per §4.4)."
+    }
+  }
+}
+```
+
+### 4.2 Step02 routing algorithm (dynamic panel)
+
+Implementation contract for #361. The orchestrator MUST:
+
+1. **Tokenize** the question text into lowercase word tokens, stripping punctuation, of length ≥ 4.
+2. **Load** the `## Push-back Triggers` section of each `.agents/personas/<slug>/PERSONA.md`. Extract trigger phrases (one per markdown list item; the substring up to the first em-dash, colon, or period).
+3. **Match**: for each expert, count case-insensitive substring matches between any trigger phrase and the question's tokenized text. Match is per-phrase, not per-token — multi-word phrases like `lawful basis` MUST match the contiguous substring, not the bag-of-tokens.
+4. **Floor**: if zero experts match, dispatch `product-pragmatist` only.
+5. **Multi-match**: every expert with ≥ 1 match is dispatched.
+6. **Lead voice**: if the question was raised by a bot persona at step08, the lead is that originating `expert_slug` (recorded in the prior step's `outcome.details.expert_verdicts[]`); otherwise the lead is `product-pragmatist`.
+
+The match algorithm is intentionally simple (substring, not embedding) so its behaviour is deterministic and reproducible in the audit log. Upgrade to embedding-match is a #361 follow-up if substring proves insufficient.
+
+### 4.3 Per-expert model tier baseline (default contract for #335)
+
+Default `model_per_expert` baseline absent any per-step override. #335 ships the LiteLLM routing keys; this ADR pins the **tier assignment** so heterogeneity (per amended `ADR-issue-337-reviewer-model-heterogeneity.md`) is meaningful from day one:
+
+| Expert | Default tier | Rationale |
+|---|---|---|
+| `product-pragmatist` | Sonnet | Scope judgment + outcome framing — moderate reasoning load |
+| `boundary-hawk` | Sonnet | Cross-file dependency reasoning — moderate-to-high |
+| `security-paranoid` | Opus | Threat-modelling + adversarial reasoning — high-stakes; cost justified |
+| `data-privacy` | Sonnet | Regulatory-pattern matching + retention reasoning — moderate |
+| `test-quality-sceptic` | Sonnet | Fixture-vs-assertion reasoning — moderate; high volume across steps |
+| `operability-sre` | Sonnet | Runbook + observability reasoning — moderate |
+| `documentation-discipline` | Haiku | Drift detection + heading-presence checks — bulk-pattern matching; cheap |
+| `performance-cost-aware` | Sonnet | Hot-path + N+1 + retry-bound reasoning — moderate |
+
+**Step01 + step08 (all-8 fan-outs)** MAY override down-tier (e.g., Haiku for product-pragmatist on step01 token volume) per the orchestrator's cost-tier configuration. **Step05 sequential-lens** MAY override up-tier on `security-paranoid` and `data-privacy` rounds where reasoning depth matters. Overrides ship with #335; the baseline above is the default the orchestrator MUST apply when no override is present.
+
+The panel-disjointness audit invariant (from amended `ADR-issue-337-reviewer-model-heterogeneity.md`) MUST be satisfied: within a single step's panel, no two experts MAY share the same LiteLLM routing key for the same `(ticket_id, phase, rerun_round)` tuple. Step03's panel-of-1 trivially satisfies this; step01 and step08 (all-8) MUST be configured with at least 2 distinct routing keys across the 8 experts; in practice the Haiku/Sonnet/Opus tier mix satisfies this automatically.
+
+### 4.4 Step08 lead-rotation algorithm
+
+For step08 (panel of all 8, convergence mode `parallel-then-merge` with structured-disagreement fallback), the **lead voice** for each rerun round MUST rotate deterministically. Algorithm:
+
+1. List the 8 expert slugs in matrix order: `product-pragmatist, boundary-hawk, security-paranoid, data-privacy, test-quality-sceptic, operability-sre, documentation-discipline, performance-cost-aware`.
+2. `lead_index = rerun_round mod 8`. Round 0 (first dispatch) → `product-pragmatist`; round 1 → `boundary-hawk`; … round 7 → `performance-cost-aware`; round 8 wraps to `product-pragmatist`.
+3. The lead voice is the slug at `lead_index`. The lead's verdict and findings are presented **first** in the merged step08 output and are the authored voice in any human-facing summary; this does not change the verdict-priority rule (`block > revise > pass`) — all 8 verdicts remain present in `outcome.details.expert_verdicts[]`.
+4. `rerun_round` is derived from C7's existing `rerun_round` counter on the prior step08 emission for the same `ticket_id`. First dispatch is `rerun_round = 0`.
+
+Rationale: deterministic rotation satisfies the heterogeneity-aware demand (no single expert dominates the agent-PR-review voice across reruns) without requiring the orchestrator to track lead-rotation state outside C7.
+
+### 4.5 Lead-voice semantics (universal)
+
+The `lead_voice` is **draft author** of the merged step output, not a tie-breaker or verdict-promoter:
+
+- The lead expert authors the prose framing of any human-facing artifact produced by the step (e.g., the step08 review-comment markdown).
+- All experts' verdicts and findings remain present in `outcome.details.expert_verdicts[]` with equal weight.
+- The verdict-merge rule (`block > revise > pass`) is independent of lead voice: a `block` from a non-lead expert still blocks the step.
+- Tie-breaking among `block` verdicts with conflicting demands is handled by structured-disagreement (§ 5), not by lead voice.
+- Lead voice has zero effect on C7 emission semantics — `persona` in C7 is the skill basename, not the lead slug (per FR-010).
+
 ## 5. Convergence patterns (FR-003)
 
 Three patterns; default = (1).
@@ -133,11 +244,39 @@ sequenceDiagram
     Note over Orch: Emit C7 with outcome.details.expert_verdicts[]
 ```
 
-**Pattern 1 — parallel-then-merge** (default). Experts review the skill's draft in parallel; merger applies priority `block > revise > pass` and dedupes findings (string-equality dedup at MVP; embedding-dedup is a #361 follow-up).
+**Pattern 1 — parallel-then-merge** (default). Experts review the skill's draft in parallel; merger applies the merge semantics in § 5.1.
 
-**Pattern 2 — sequential-lens** (`step05` only). Experts apply in order: `test-quality-sceptic` → `security-paranoid` → `data-privacy` → `performance-cost-aware` → `boundary-hawk`. Each round receives the prior round's revised draft. Used where a later lens must observe the effect of an earlier lens (e.g., a security fix may introduce a performance regression).
+**Pattern 2 — sequential-lens** (`step05` only). Experts apply in order: `test-quality-sceptic` → `security-paranoid` → `data-privacy` → `performance-cost-aware` → `boundary-hawk`. Each round receives the prior round's revised draft. Used where a later lens must observe the effect of an earlier lens (e.g., a security fix may introduce a performance regression). Sequential rounds still emit one verdict per expert per round; the merge semantics in § 5.1 apply to the final round's collected verdicts.
 
-**Pattern 3 — structured-disagreement** (`step08` only, on conflicting `block` verdicts). When two experts emit `block` with mutually exclusive demands (revealed by the merger detecting contradictory finding categories), the orchestrator surfaces the disagreement to the human at the **existing two gates** (spec sign-off, PR merge). **No new gate** is introduced. (Step03 is excluded — its panel size of 1 makes block-conflict mechanically impossible; any disagreement at the spec-sign-off gate is reasoned out between human approvers, not bot experts.)
+**Pattern 3 — structured-disagreement** (`step08` only, on conflicting `block` verdicts). Detection and surfacing per § 5.2. Step03 is excluded — its panel size of 1 makes block-conflict mechanically impossible; any disagreement at the spec-sign-off gate is reasoned out between human approvers, not bot experts.
+
+### 5.1 Merge semantics
+
+The merger MUST execute the following steps in order:
+
+1. **Verdict priority** — final step verdict = `block` if any expert returned `block`; else `revise` if any returned `revise`; else `pass`. Priority is total: `block > revise > pass`.
+2. **Finding aggregation** — concatenate all `findings[]` from all experts, preserving each finding's `expert_slug` provenance (added at merge time by the orchestrator from the verdict envelope).
+3. **Finding dedup (MVP — string-equality)** — two findings are duplicates iff their `(category, summary)` tuples match byte-for-byte. The kept finding MUST be the lower-`expert_slug`-sort-order one; the dropped finding's `expert_slug` is appended to the kept finding's `co_reporters: Array<expert_slug>` field. (No embedding-similarity dedup at MVP; flagged in § 11 Future Work.)
+4. **Severity escalation** — when duplicates collapse, the kept finding's `severity` MUST be the maximum across all collapsed copies (`critical > high > medium > low > info`).
+5. **Stable ordering** — emitted findings MUST be sorted by `(severity descending, category ascending, expert_slug ascending)` so audit consumers see a deterministic ordering for the same input panel.
+6. **Conflict tagging** — see § 5.2.
+
+The merger is pure (no side effects on inputs). It MUST be deterministic for a fixed verdict-set input so reruns produce identical output absent expert-reasoning drift.
+
+### 5.2 Structured-disagreement detection (step08 only)
+
+Disagreement is detected at the merge boundary, not at the expert boundary. The orchestrator MUST flag structured-disagreement when **all** of the following hold on a single step08 dispatch:
+
+- ≥ 2 experts returned `block`.
+- The blocking experts' findings collide on at least one **shared finding category** (e.g., two `block` verdicts both list a `category: rollback-strategy` finding) AND the colliding findings' `summary` fields disagree (one demands "ship behind feature flag", the other demands "ship without flag to reduce surface").
+
+When detected, the orchestrator MUST:
+
+1. Append a `conflict_summary` block to the merged step08 output naming the colliding `expert_slug` pair(s) and the colliding `category`.
+2. Surface the disagreement at the **PR merge gate** (one of the two existing human gates) via a PR comment using the gate phrase `EXPERT_CONFLICT: surfaced` so the human approver knows their judgment is the disambiguator. (Spec sign-off — the other existing human gate — is at step03 where the panel size of 1 makes this case unreachable.)
+3. **No new gate** is introduced. Resolution mechanic: the human approver writes a PR comment containing the phrase `EXPERT_CONFLICT: resolved` plus a reasoned note; the orchestrator treats that phrase as the disambiguator and the step08 rerun proceeds with the human-chosen direction.
+
+Conflict-detection logic ships in #361; this ADR pins the contract.
 
 ## 6. Always-respond verdict contract (FR-004)
 
@@ -199,6 +338,27 @@ Every dispatched expert MUST return a verdict object conforming to:
 ```
 
 **Empty-findings sentinel:** when the expert has no concern, `findings` MUST be the empty array `[]` and `verdict` MUST be `pass`. Silent omission of a verdict from a dispatched expert MUST cause the orchestrator to fail the step and emit C7 `outcome: rejected` with `rejection_reason: missing-expert-verdict`. This makes "expert was skipped wrongly" structurally distinguishable from "expert ran and had nothing to say" in the audit log.
+
+### 6.1 Verdict failure modes (orchestrator handling)
+
+For every dispatched expert, the orchestrator MUST classify the verdict outcome into exactly one of the following cases and act accordingly:
+
+| Case | Detection | Action |
+|---|---|---|
+| **Valid verdict** | Response parses against schema in § 6; `verdict` ∈ {`pass`, `revise`, `block`}; `findings[]` schema-valid | Pass to merger |
+| **Schema-malformed** | Response parses as JSON but fails JSON Schema validation against § 6 | Retry once with a schema-reminder injection; on second failure, treat as `missing-expert-verdict` |
+| **Unparseable** | Response is not valid JSON (e.g., truncated, prose-only) | Retry once with format-reminder injection; on second failure, treat as `missing-expert-verdict` |
+| **Timeout** | Expert call exceeds the per-step expert-call timeout (default = 120s; tunable per #335) | Retry once; on second timeout, treat as `missing-expert-verdict` |
+| **Provider error** | LiteLLM returns non-200 (rate limit, 5xx, auth) | Retry per LiteLLM retry policy from #335; on exhaustion, treat as `missing-expert-verdict` |
+| **Silent omission** | Expert was dispatched but no response arrived (orchestrator bug) | Treat as `missing-expert-verdict` immediately |
+
+`missing-expert-verdict` outcomes MUST cause the orchestrator to:
+
+1. Emit C7 with `outcome: rejected` and `rejection_reason: missing-expert-verdict`.
+2. Include in `outcome.details.expert_verdicts[]` a stub entry `{expert_slug, verdict: "block", findings_count: 0}` with severity `critical` and category `panel-incomplete`, so audit consumers can distinguish "expert produced empty findings (pass)" from "expert produced nothing (panel-incomplete)".
+3. **Not** auto-retry the whole step — the rerun is the human's decision after seeing the rejected C7 event.
+
+The intent: dispatch-time failures are never silently swallowed; the audit trail always shows whether the panel completed.
 
 ## 7. Supersession + amendment (FR-005)
 

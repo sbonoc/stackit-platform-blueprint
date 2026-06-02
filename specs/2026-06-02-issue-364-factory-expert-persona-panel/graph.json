@@ -12,6 +12,8 @@
     { "id": "FR-008", "type": "requirement", "summary": "Cross-ticket amendments posted in step06: #333 #361 #335 #336 #342 #343 #332; close #360 + PR #362" },
     { "id": "FR-009", "type": "requirement", "summary": "Design-contracts C8 Category (c) persona-list rows replaced with 8 expert-slug PERSONA.md rows" },
     { "id": "FR-010", "type": "requirement", "summary": "Design-contracts C7 persona field description and emission-mechanism prose realigned from persona-as-actor to skill-as-actor + expert_verdicts attribution" },
+    { "id": "FR-011", "type": "requirement", "summary": "Delete 10 old flat persona files in same merge commit that introduces 8 expert-slug directories; consumer/ subdir preserved" },
+    { "id": "FR-012", "type": "requirement", "summary": "AGENTS.md Role and Philosophy heading carries operator-default scope qualifier; Persona precedence paragraph in body; no second unscoped Role/Persona heading" },
     { "id": "NFR-SEC-001", "type": "requirement", "summary": "Bot-authored expert verdicts; SoD preserved; two human gates remain sole approvals" },
     { "id": "NFR-OBS-001", "type": "requirement", "summary": "C7 emission discipline preserved; expert_verdicts[] additive only" },
     { "id": "NFR-REL-001", "type": "requirement", "summary": "Atomic single-PR rollout; revert leaves repository on pre-pivot stage-persona model" },
@@ -27,7 +29,11 @@
     { "id": "AC-008", "type": "acceptance", "summary": "Design-contracts C8 (c) persona-list rows replaced; zero matches for 10 old slugs, presence of 8 expert slugs" },
     { "id": "AC-009", "type": "acceptance", "summary": "Design-contracts C7 persona field semantics aligned with expert-panel model; legacy substrings absent, skill-basename wording present" },
     { "id": "AC-010", "type": "acceptance", "summary": "Bootstrap template mirror in sync with live design-contracts.md (sync_blueprint_template_docs.py --check exits 0 or diff is empty)" },
-    { "id": "AC-011", "type": "acceptance", "summary": "Step08 skill output schema reshaped: reviewer_persona removed; expert_slug + expert_verdicts present" }
+    { "id": "AC-011", "type": "acceptance", "summary": "Step08 skill output schema reshaped: reviewer_persona removed; expert_slug + expert_verdicts present" },
+    { "id": "AC-012", "type": "acceptance", "summary": "Each PERSONA.md body prose contains zero references to other 7 expert slugs (compositional independence)" },
+    { "id": "AC-013", "type": "acceptance", "summary": "The 10 old flat persona files at .agents/personas/ root deleted; consumer/ subdir preserved" },
+    { "id": "AC-014", "type": "acceptance", "summary": "All 8 SDD-step SKILL.md files have Required Output Schema section; zero stage-persona slug strings in schema; expert_verdicts/expert_slug present for panel >= 2" },
+    { "id": "AC-015", "type": "acceptance", "summary": "AGENTS.md has exactly one Role and Philosophy heading with operator-default qualifier; Persona precedence paragraph present; no second unscoped heading" }
   ],
   "edges": [
     { "from": "FR-001", "to": "AC-001", "relation": "validated_by" },
@@ -41,6 +47,10 @@
     { "from": "FR-009", "to": "AC-008", "relation": "validated_by" },
     { "from": "FR-010", "to": "AC-009", "relation": "validated_by" },
     { "from": "FR-006", "to": "AC-011", "relation": "validated_by" },
+    { "from": "FR-001", "to": "AC-012", "relation": "validated_by" },
+    { "from": "FR-011", "to": "AC-013", "relation": "validated_by" },
+    { "from": "FR-006", "to": "AC-014", "relation": "validated_by" },
+    { "from": "FR-012", "to": "AC-015", "relation": "validated_by" },
     { "from": "NFR-SEC-001", "to": "AC-002", "relation": "constrains" },
     { "from": "NFR-OBS-001", "to": "AC-002", "relation": "constrains" },
     { "from": "NFR-REL-001", "to": "AC-006", "relation": "constrains" },

@@ -14,6 +14,8 @@
 | FR-008 | SDD-C-007, SDD-C-018 | N/A | Plan slice 6 (fan-out checklist) | GH comments on #333, #361, #335, #336, #342, #343, #332; close-with-reference #360 + PR #362 | `pr_context.md` AC-005 URL list + `gh api` HTTP-200 each | `pr_context.md` Cross-Ticket Amendments section | N/A |
 | FR-009 | SDD-C-005, SDD-C-007 | N/A | spec §FR-009 (C8 (c) persona-list rows) | `docs/blueprint/autonomous-factory/design-contracts.md` § C8 (c) | `pr_context.md` AC-008 grep block | design-contracts § C8 (c) diff | N/A |
 | FR-010 | SDD-C-005, SDD-C-007, SDD-C-010 | N/A | spec §FR-010 (C7 persona-field semantics) | `docs/blueprint/autonomous-factory/design-contracts.md` § C7 | `pr_context.md` AC-009 grep block | design-contracts § C7 diff + ADR-issue-337-c7-emission-mechanism amendment | C7 events post-merge carry skill-basename `persona` field |
+| FR-011 | SDD-C-005, SDD-C-008 | N/A | spec §FR-011 (old flat persona deletion) | `.agents/personas/` (10 old files removed) | `pr_context.md` AC-013 grep block | spec §FR-011 + ADR-issue-364 § 11 (no re-litigation guard) | N/A |
+| FR-012 | SDD-C-005, SDD-C-007 | N/A | spec §FR-012 (AGENTS.md scope qualifier) | `AGENTS.md § Role and Philosophy (operator-default — …)` | `pr_context.md` AC-015 grep block | ADR-issue-364 § 8.1 + § 7 amendment ledger | N/A |
 | NFR-SEC-001 | SDD-C-009, SDD-C-014 | N/A | ADR §10 (SoD posture) | ADR-issue-364 §10 (bot-authored verdicts; two-gate invariant) | `pr_context.md` AC-002 substring block | ADR-issue-364 §10 + AGENTS.md sign-off policy unchanged | Sign-off log post-merge |
 | NFR-OBS-001 | SDD-C-010 | N/A | ADR §9 (C7 invariants preserved) | ADR-issue-337-c7-emission-mechanism amendment (additive only) | `pr_context.md` AC-002 substring block | ADR amendment diff | C7 event log post-merge |
 | NFR-REL-001 | SDD-C-008, SDD-C-018 | N/A | Plan §Rollback | Single PR atomic merge | `pr_context.md` Rollback section | plan.md Change Strategy | Revert verified by re-run of quality bundle on revert commit (if invoked) |
@@ -30,6 +32,10 @@
 | AC-009 | SDD-C-012, SDD-C-005 | N/A | spec.md AC-009 | shell + grep | `pr_context.md` AC-009 block | `pr_context.md` | design-contracts § C7 diff |
 | AC-010 | SDD-C-012, SDD-C-006 | N/A | spec.md AC-010 | `uv run python3 scripts/lib/docs/sync_blueprint_template_docs.py --check` or `diff -u` | `pr_context.md` AC-010 block | `pr_context.md` | mirror sync verified at PR-ready |
 | AC-011 | SDD-C-012, SDD-C-005 | N/A | spec.md AC-011 | shell + grep | `pr_context.md` AC-011 block | `pr_context.md` | step08 SKILL.md `## Required Output Schema` diff |
+| AC-012 | SDD-C-012, SDD-C-005 | N/A | spec.md AC-012 | shell + grep | `pr_context.md` AC-012 block | `pr_context.md` | 8 PERSONA.md diffs |
+| AC-013 | SDD-C-012, SDD-C-008 | N/A | spec.md AC-013 | `git ls-files` + grep | `pr_context.md` AC-013 block | `pr_context.md` | `.agents/personas/` diff |
+| AC-014 | SDD-C-012, SDD-C-005 | N/A | spec.md AC-014 | shell + grep loop | `pr_context.md` AC-014 block | `pr_context.md` | 8 SDD-step SKILL.md diffs |
+| AC-015 | SDD-C-012, SDD-C-007 | N/A | spec.md AC-015 | shell + grep | `pr_context.md` AC-015 block | `pr_context.md` | AGENTS.md heading diff |
 
 ## Graph Linkage
 - Graph file: `graph.json`
@@ -45,6 +51,8 @@
   - FR-008
   - FR-009
   - FR-010
+  - FR-011
+  - FR-012
   - NFR-SEC-001
   - NFR-OBS-001
   - NFR-REL-001
@@ -61,6 +69,10 @@
   - AC-009
   - AC-010
   - AC-011
+  - AC-012
+  - AC-013
+  - AC-014
+  - AC-015
 
 ## Validation Summary
 - Required bundles executed: `make quality-sdd-check`, `make quality-hooks-fast`, `make quality-hooks-slow`, `make docs-build`, `make docs-smoke`, `make quality-hardening-review` (planned for step07; not yet executed at intake).
