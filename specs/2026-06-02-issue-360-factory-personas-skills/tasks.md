@@ -1,18 +1,18 @@
 # Tasks
 
 ## Gate Checks (Required Before Implementation)
-- [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`
-- [ ] G-002 Confirm open questions and unresolved alternatives are `0`
-- [ ] G-003 Confirm required sign-offs are approved
-- [ ] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
-- [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
+- [x] G-001 Confirm `SPEC_READY=true` in `spec.md` — confirmed: `SPEC_READY: true` on line 6 of spec.md
+- [x] G-002 Confirm open questions and unresolved alternatives are `0` — confirmed: `Open questions count: 0`; OQ-1, OQ-2, OQ-3 all resolved
+- [x] G-003 Confirm required sign-offs are approved — confirmed: Product, Architecture, Security, Operations all `approved`
+- [x] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs — confirmed: SDD-C-001 through SDD-C-021 enumerated
+- [x] G-005 Confirm `Implementation Stack Profile` section is fully populated — confirmed: all fields present, no unresolved clarification placeholders
 
 ## Implementation
 - [x] T-001 Author the 6 implementer persona files under `.agents/personas/<name>.md` (`po-analyst`, `architect`, `tech-lead`, `implementer`, `devsecops-qa`, `doc-keeper`) per the persona template contract and FR-001 / FR-005 / FR-006 / FR-007 / FR-008 / FR-009 / FR-010 / FR-011 / FR-012 — slice 1 scaffolded the template skeleton and persona content; FR-009 DoD already met by slice 1 wording; slice 3 expanded the tech-lead DoD to satisfy FR-010 with four separate bullet items
 - [x] T-002 Author the 4 reviewer persona files under `.agents/personas/<name>.md` (`security-reviewer`, `architecture-reviewer`, `contract-reviewer`, `test-coverage-reviewer`) including non-overlapping `## Review Dimensions` (FR-013) and the architecture-reviewer's `## Cross-Context Impact Reporting` template (FR-014) — slice 1 scaffolded the reviewer template + single-bullet dimensions + cross-context template fields; slice 3 added the FR-018 / AC-015 reviewer-model-heterogeneity statement (with the ADR path citation) under `## Strict Guardrails` on each of the 4 reviewer personas
 - [x] T-003 Author the 10 new skill directories with `SKILL.md` runbooks under `.agents/skills/<skill-name>/` per FR-002 / FR-003 / FR-005 / FR-006 / FR-008 / FR-015 / FR-016 — slice 2 authored all 10 SKILL.md files with front-matter (`blueprint-version`, `extensibility-tier`, `emits-phase`), `## Composition` block stating FR-016 ban, and `## Required Output Schema` Draft-07 yaml jsonschema fence
 - [x] T-004 Update `docs/blueprint/autonomous-factory/design-contracts.md` § Contract C8 § Category (c) — add 20 new rows (10 personas + 10 skills), each `stable` + `extensible`, owning ticket `#333` (FR-004) — slice 4 added all 20 rows (10 new skill paths + 10 persona paths) between the existing step07 row and the legacy collective `.agents/personas/` row, each carrying `stable` + `extensible` + `#333` and the consumer-shadow phrasing
-- [ ] T-005 Update consumer-facing docs/diagrams when contracts/behavior change — N/A for this child (no consumer-facing how-to changes; inheritance is via existing C8 machinery)
+- [x] T-005 N/A: no consumer-facing doc or diagram changes required — persona/skill inheritance flows via existing C8 machinery, not per-ticket how-to updates
 - [x] T-006 Add EXACTLY ONE row to `CLAUDE.md` § Skills slash-command table for `/blueprint-sdd-step08-agent-pr-review` per FR-019 (Actor: `Software Engineer`; runbook path: `.agents/skills/blueprint-sdd-step08-agent-pr-review/SKILL.md`). MUST NOT add any other rows. — slice 4 inserted the row between the step07 row and the traceability-keeper row (Steps cell: `10`) per the existing step-numbering convention
 - [x] T-007 Backfill `## Required Output Schema` section containing EXACTLY ONE fenced ```yaml jsonschema``` block on each of the 8 existing SDD skill `SKILL.md` files listed in FR-020; add `blueprint-version` front-matter where missing — slice 2 backfilled all 8 files (`blueprint-sdd-step01-intake` through `blueprint-sdd-step07-pr-packager` + `blueprint-sdd-traceability-keeper`); step02 description string was quoted to recover YAML parseability after adding the new key
 
@@ -29,23 +29,23 @@
 - [x] T-110 Add `tests/blueprint/personas_skills/test_existing_skills_output_schema_backfill.py` covering AC-017 — assert each of the 8 existing skill `SKILL.md` files from FR-020 contains EXACTLY ONE `## Required Output Schema` heading followed by EXACTLY ONE fenced ```yaml jsonschema``` block parsing as valid JSON Schema (draft-07 or later) AND each file's YAML front-matter contains a `blueprint-version` key matching the semver pattern — slice 2 added the T-110 suite and backfilled the 8 existing skill files green
 
 ## Accessibility Testing (Normative — mark N/A with rationale for non-UI specs)
-- [ ] T-A01 N/A — NFR-A11Y-001 declared N/A in `spec.md`; this work item ships no UI surface (governance docs + persona/skill markdown files only). No axe-core scan, no keyboard operability test, no focus-indicator test, no programmatic-label test.
+- [x] T-A01 N/A — NFR-A11Y-001 declared N/A in `spec.md`; this work item ships no UI surface (governance docs + persona/skill markdown files only). No axe-core scan, no keyboard operability test, no focus-indicator test, no programmatic-label test.
 
 ## Validation and Release Readiness
-- [ ] T-201 Run `make quality-sdd-check` and `uv run python3 -m pytest tests/blueprint/personas_skills/` and capture results in `traceability.md`
-- [ ] T-202 Attach evidence (test output, file listings) to `traceability.md`
-- [ ] T-203 Confirm no stale TODOs / dead code / drift; in particular verify FR-008 holds across all 20 new files
-- [ ] T-204 Run documentation validation (`make docs-build` and `make docs-smoke`)
-- [ ] T-205 Run hardening review validation bundle (`make quality-hardening-review`) and ensure `hardening_review.md` is clean before handoff
+- [x] T-201 Run `make quality-sdd-check` and `uv run python3 -m pytest tests/blueprint/personas_skills/` and capture results in `traceability.md` — PASS: 589 personas_skills tests green; quality-sdd-check PASS; results recorded in traceability.md § Validation Summary
+- [x] T-202 Attach evidence (test output, file listings) to `traceability.md` — done: traceability.md § Validation Summary contains exact command output and pass/fail verdicts
+- [x] T-203 Confirm no stale TODOs / dead code / drift; in particular verify FR-008 holds across all 20 new files — confirmed: T-103 (no placeholders/secrets) green for all 20 files; make quality-sdd-check verifies no unresolved markers; 0 TODOs found
+- [x] T-204 Run documentation validation (`make docs-build` and `make docs-smoke`) — PASS: docs build complete; docs smoke status=success
+- [x] T-205 Run hardening review validation bundle (`make quality-hardening-review`) and ensure `hardening_review.md` is clean before handoff — PASS: status=success; hardening_review.md updated with concrete findings and no pending proposals
 
 ## Publish
-- [ ] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section
-- [ ] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes
-- [ ] P-003 Ensure PR description follows repository template headings and references `pr_context.md`
+- [x] P-001 Update `hardening_review.md` with repository-wide findings fixed and proposals-only section — done: 3 findings documented (step08 structural sections, bootstrap-template drift, step02 YAML parse fix); proposals section updated to "None" with rationale
+- [x] P-002 Update `pr_context.md` with requirement/contract coverage, key reviewer files, validation evidence, and rollback notes — done: all 6 sections populated including full 25-row requirement coverage table, cross-context impact block, and concrete validation output
+- [x] P-003 Ensure PR description follows repository template headings and references `pr_context.md` — done via step07 PR description update
 
 ## App Onboarding Minimum Targets (Normative)
-- [ ] A-001 N/A — `apps-bootstrap` and `apps-smoke` are not affected by this work item; declared `App onboarding impact: no-impact` in `plan.md`
-- [ ] A-002 N/A — backend app lanes `backend-test-unit`, `backend-test-integration`, `backend-test-contracts`, `backend-test-e2e` are unaffected
-- [ ] A-003 N/A — frontend app lanes `touchpoints-test-unit`, `touchpoints-test-integration`, `touchpoints-test-contracts`, `touchpoints-test-e2e` are unaffected
-- [ ] A-004 N/A — aggregate gates `test-unit-all`, `test-integration-all`, `test-contracts-all`, `test-e2e-all-local` are unaffected
-- [ ] A-005 N/A — port-forward operational wrappers `infra-port-forward-start`, `infra-port-forward-stop`, `infra-port-forward-cleanup` are unaffected
+- [x] A-001 N/A — `apps-bootstrap` and `apps-smoke` are not affected by this work item; declared `App onboarding impact: no-impact` in `plan.md`
+- [x] A-002 N/A — backend app lanes `backend-test-unit`, `backend-test-integration`, `backend-test-contracts`, `backend-test-e2e` are unaffected
+- [x] A-003 N/A — frontend app lanes `touchpoints-test-unit`, `touchpoints-test-integration`, `touchpoints-test-contracts`, `touchpoints-test-e2e` are unaffected
+- [x] A-004 N/A — aggregate gates `test-unit-all`, `test-integration-all`, `test-contracts-all`, `test-e2e-all-local` are unaffected
+- [x] A-005 N/A — port-forward operational wrappers `infra-port-forward-start`, `infra-port-forward-stop`, `infra-port-forward-cleanup` are unaffected

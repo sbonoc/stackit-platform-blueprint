@@ -5,19 +5,15 @@
 - If required inputs are missing, add `BLOCKED_MISSING_INPUTS` in `spec.md` and keep the gate closed.
 
 ## Constitution Gates (Pre-Implementation)
-- Simplicity gate:
-  - 20 markdown files following a fixed template; no abstractions, no helpers, no shared partials.
+- Simplicity gate: 20 markdown files following a fixed template; no abstractions, no shared partials, no runtime code.
   - No runtime code introduced; reuse the existing `.agents/skills/` and `.agents/personas/` discovery mechanisms unchanged.
-- Anti-abstraction gate:
-  - Author content directly inside each `.md` file. Do not introduce a templating engine, persona-rendering script, or shared YAML fragment.
+- Anti-abstraction gate: content authored directly in each `.md` file; no templating engine, persona-rendering script, or shared YAML fragment.
   - Tests live as direct pytest functions reading files with `pathlib.Path`, not as a custom validation framework.
-- Integration-first testing gate:
-  - For this content-only ticket the integration surface is "the orchestrator (Child B) can parse our files". The closest proxy here is: JSON-schema parsing of every `## Required Output Schema` block + YAML-front-matter parsing of every file. T-102 covers both.
-- Positive-path filter/transform test gate:
-  - N/A — no filter or payload-transform logic introduced.
-- Finding-to-test translation gate:
-  - Any reproducible pre-PR finding (e.g., persona file missing a DoD bullet) MUST be expressed as a failing pytest assertion in T-104 / T-105 first, then the persona file is edited until green.
-  - If a deterministic automation path does not exist (e.g., subjective wording feedback from a human reviewer), record the exception rationale, owner, and follow-up trigger in `pr_context.md`.
+- Integration-first testing gate: JSON-schema parsing of every `## Required Output Schema` block + YAML-front-matter parsing of every file (T-102) is the integration proxy.
+  - For this content-only ticket the integration surface is "the orchestrator (Child B) can parse our files".
+- Positive-path filter/transform test gate: N/A — no filter or payload-transform logic introduced.
+- Finding-to-test translation gate: any reproducible pre-PR finding MUST be a failing pytest assertion first, then the persona/skill file is edited until green.
+  - If a deterministic automation path does not exist, record the exception rationale, owner, and follow-up trigger in `pr_context.md`.
 
 ## Delivery Slices
 1. **Slice 1 — Persona scaffolding + template skeleton + sign-off-role absence (red→green).** Write T-101 (file existence + count), T-108 (persona template skeleton: 9 common section headings in exact order + non-empty content + reviewer-only `## Review Dimensions` + architecture-reviewer-only `## Cross-Context Impact Reporting`), and T-105-partial (sign-off-role absence only — skill-path resolution assertion is written but left red until Slice 2 creates skill directories) as failing tests. Author the 6 implementer personas and the 4 reviewer personas; each `## Skills Invoked` section lists the planned skill paths (which do not exist yet and will not resolve until Slice 2). T-101 and T-108 go green; T-105 skill-path resolution remains red → promoted to green at the end of Slice 2. Includes FR-001, FR-005, FR-006, FR-008, FR-012, FR-017. **Dependency:** none (first slice).
@@ -60,7 +56,7 @@
 - Notes: this work item adds no new Make targets and does not change any existing app-delivery Make target. SDD-C-015 does not apply.
 
 ## Documentation Plan (Document Phase)
-- Blueprint docs updates:
+- Blueprint docs updates: design-contracts.md C8 enumeration (20 rows) + ADR-issue-360-factory-personas-skills-roster.md + CLAUDE.md Skills table (1 row).
   - `docs/blueprint/autonomous-factory/design-contracts.md` § Contract C8 § Category (c) — add 20 new rows (10 personas + 10 skills).
   - `docs/blueprint/architecture/decisions/ADR-issue-360-factory-personas-skills-roster.md` — new ADR (see `## Decision`).
 - Consumer docs updates: none. The persona/skill files inherit automatically via existing C8 machinery; no consumer-facing how-to is changed by this ticket. (Consumer-facing how-to for invoking personas is owned by Child B once the orchestrator ships.)
