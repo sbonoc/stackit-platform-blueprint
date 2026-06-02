@@ -3,20 +3,20 @@
 ## Spec Readiness Gate (Blocking)
 <!-- SPEC_PRODUCT_READY=true: intake gate — Product sign-off only; unlocks agent ADR drafting.
      SPEC_READY=true: implementation gate — all sign-offs required; unlocks coding. -->
-- SPEC_READY: false
-- SPEC_PRODUCT_READY: false
+- SPEC_READY: true
+- SPEC_PRODUCT_READY: true
 - Open questions count: 0
 - Unresolved alternatives count: 0
 - Unresolved TODO markers count: 0
 - Pending assumptions count: 0
 - Open clarification markers count: 0
-- Product sign-off: pending
-- Architecture sign-off: pending
-- Security sign-off: pending
-- Operations sign-off: pending
-- Missing input blocker token: BLOCKED_MISSING_INPUTS
+- Product sign-off: approved
+- Architecture sign-off: approved
+- Security sign-off: approved
+- Operations sign-off: approved
+- Missing input blocker token: none
 - ADR path: docs/blueprint/architecture/decisions/ADR-issue-360-factory-personas-skills-roster.md
-- ADR status: proposed
+- ADR status: approved
 - SPEC_READY_EXCEPTION: none
 - authorized-by: none
 
@@ -55,7 +55,7 @@
 - FR-005 Every new persona file and every new `SKILL.md` MUST carry the default extensibility tier `extensible`; the 4 reviewer personas MUST be explicitly marked `extensible` so consumer instances can shadow them under the namespaced consumer subdirectory convention defined in `docs/blueprint/autonomous-factory/design-contracts.md` § Consumer-extension discovery convention (`.agents/personas/consumer/<basename>.md`, `.agents/skills/consumer/<skill-name>/`). No item authored by this work item appears in the design-contracts sealed list.
 - FR-006 Every new persona file and every new `SKILL.md` MUST carry `blueprint-version: <semver>` in YAML front-matter so the extended `/blueprint-consumer-upgrade` skill from epic #342 can detect drift. The semver value MUST be the current blueprint release version at authoring time.
 - FR-007 Persona and skill files MUST document that consumer-authored extensions under `.agents/personas/consumer/` and `.agents/skills/consumer/` are permitted to carry `upstream-candidate: true` in YAML front-matter to signal upstream-contribution intent (per the upstream-candidate convention defined in `docs/blueprint/autonomous-factory/design-contracts.md`); absence of the flag means strictly-local. The convention is mentioned once in the persona template documentation and the new-skill template documentation; per-file repetition is not required.
-- FR-008 No persona or skill file authored by this work item MUST contain placeholder tokens. Specifically, the strings `TBD`, `TODO`, `FIXME`, `<...>`-style angle-bracket placeholders, and the SDD clarification marker token defined in `AGENTS.md § Clarification Marker Policy` MUST NOT appear in any new persona `.md` or new `SKILL.md`.
+- FR-008 No persona or skill file authored by this work item MUST contain placeholder tokens. Specifically, the SDD unresolved-work-marker strings enumerated in `blueprint/contract.yaml` § `normative_language.unresolved_marker_tokens`, `<...>`-style angle-bracket placeholders, and the SDD clarification marker token defined in `AGENTS.md § Clarification Marker Policy` MUST NOT appear in any new persona `.md` or new `SKILL.md`.
 - FR-009 The `devsecops-qa.md` persona's `## Definition of Done (DoD)` section MUST mandate, as separate bullet items: (a) exclusion of production PII from any artifact, (b) non-root container constraints for any runtime workload the persona introduces, (c) `hardening_review.md` produced via `make quality-hardening-review` and clean (zero outstanding findings) before handoff to `blueprint-sdd-step07-pr-packager`.
 - FR-010 The `tech-lead.md` persona's `## Definition of Done (DoD)` section MUST mandate: (a) `blueprint-ticket-triage-size` runs first on every ticket, (b) `blueprint-ticket-decompose-light` MUST be invoked whenever triage classifies the ticket as large-decomposable, (c) every sub-ticket grounds in the parent spec and cites its boundary type, (d) sub-ticket fan-out MUST NOT exceed the maximum defined in the Phase 0 ADR on light decomposition policy (`docs/blueprint/architecture/decisions/ADR-issue-337-light-decomposition-policy.md`).
 - FR-011 Every reference to a skill in any persona's `## Skills Invoked` section MUST resolve to EXACTLY ONE OF the following: an already-shipped skill under `.agents/skills/`, or one of the 10 new skill directories created by this work item. References that do not resolve MUST fail validation.
@@ -102,7 +102,7 @@
 - AC-003 [Every new SKILL.md has `## Required Output Schema` with one fenced yaml jsonschema block] — verified by T-102, which MUST assert each new SKILL.md contains EXACTLY ONE `## Required Output Schema` heading followed by EXACTLY ONE fenced ```yaml jsonschema``` block whose body parses as valid JSON Schema.
 - AC-004 [Contract C8 enumerates 10 personas + 10 skills with `stable` + `extensible` tiers] — verified by T-102, which MUST assert each of the 20 paths from FR-001 + FR-002 appears as a row in `docs/blueprint/autonomous-factory/design-contracts.md` § Contract C8 § Category (c) with stability tier `stable` and extensibility tier `extensible`.
 - AC-005 [Every persona + every new SKILL.md carries `blueprint-version` front-matter] — verified by T-102, which MUST assert YAML front-matter parses on each of the 20 files and contains a `blueprint-version` key whose value matches the semver pattern `^\d+\.\d+\.\d+(-[\w.]+)?$`.
-- AC-006 [No placeholders or secrets in any new persona/skill file] — verified by T-103, which MUST assert no occurrence of `TBD`, `TODO`, `FIXME`, the SDD clarification marker token (as defined in `AGENTS.md § Clarification Marker Policy`), or unquoted `<...>`-style angle-bracket placeholders in any of the 20 new files; AND that a baseline secret-pattern scan (covering AWS access keys, private-key headers, bearer tokens) finds zero matches.
+- AC-006 [No placeholders or secrets in any new persona/skill file] — verified by T-103, which MUST assert no occurrence of the SDD unresolved-work-marker strings from `blueprint/contract.yaml` § `normative_language.unresolved_marker_tokens`, the SDD clarification marker token (as defined in `AGENTS.md § Clarification Marker Policy`), or unquoted `<...>`-style angle-bracket placeholders in any of the 20 new files; AND that a baseline secret-pattern scan (covering AWS access keys, private-key headers, bearer tokens) finds zero matches.
 - AC-007 [DevSecOps/QA persona DoD enforces the three mandated items] — verified by T-104, which MUST assert the three FR-009 phrases (PII exclusion, non-root container constraint, `hardening_review.md` clean before step07 handoff) each appear as separate bullet items under the `## Definition of Done (DoD)` heading of `.agents/personas/devsecops-qa.md`.
 - AC-008 [Tech Lead DoD mandates triage-first + light-decompose conditional + boundary citation + max fan-out] — verified by T-104, which MUST assert the four FR-010 phrases appear as separate bullet items under the `## Definition of Done (DoD)` heading of `.agents/personas/tech-lead.md`.
 - AC-009 [Every `## Skills Invoked` reference resolves to an existing skill] — verified by T-105, which MUST assert every `.agents/skills/<name>` path token under any `## Skills Invoked` section of any persona file resolves to a directory that exists in the repo after the change.

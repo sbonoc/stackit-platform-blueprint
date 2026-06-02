@@ -1,7 +1,9 @@
 # ADR: Factory Personas + Skills Roster (Child A of #333)
 
-**Status:** proposed
+**Status:** approved
 **Date:** 2026-06-02
+**Approved:** 2026-06-02
+**ADR technical decision sign-off:** approved (sbonoc, PR #362)
 **Issue:** #360 (Child A of #333)
 **Spec:** `specs/2026-06-02-issue-360-factory-personas-skills/`
 **Parent ADR:** [`ADR-issue-337-persona-skill-contract.md`](ADR-issue-337-persona-skill-contract.md)
