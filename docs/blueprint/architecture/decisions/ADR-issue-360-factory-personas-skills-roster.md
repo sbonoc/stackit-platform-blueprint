@@ -105,7 +105,7 @@ Add `product-ai`, `architect-ai-signoff`, `security-ai`, `operations-ai` persona
 - `#338`'s triage/decomposition data feed has a documented schema (defined in the `## Required Output Schema` of `blueprint-ticket-triage-size` and `blueprint-ticket-decompose-light`) to consume once Child B persists the events.
 - The new `agent-pr-review` phase is documented and ready for Child B to wire into the orchestrator state machine.
 - Consumer instances that adopt the autonomous factory inherit the entire 20-file surface identically via the existing blueprint `contract.yaml` mechanism (Contract C3 identical convention; C8 enumeration). Consumer shadows under `.agents/personas/consumer/` and `.agents/skills/consumer/` remain permitted per `docs/blueprint/autonomous-factory/design-contracts.md` § Consumer-extension discovery convention, with `upstream-candidate: true` front-matter for contribution-intent signalling per the same document § Upstream-candidate front-matter convention.
-- Two follow-up proposals are recorded in `spec.md § Potential Deferred Proposals` (CLAUDE.md slash-command table update; retroactive `## Required Output Schema` for existing 7 SDD step skills). Both trigger on Child B merge.
+- ~~Two follow-up proposals are recorded in `spec.md § Potential Deferred Proposals`~~ Both prior follow-up proposals were resolved in-scope on 2026-06-02 by reviewer comment on PR #362: OQ-1 (B) — CLAUDE.md gains EXACTLY ONE new slash-command row for `/blueprint-sdd-step08-agent-pr-review` (FR-019); OQ-2 (B) — the 8 existing SDD skill `SKILL.md` files (`step01`–`step07` + `traceability-keeper`) gain `## Required Output Schema` sections (FR-020). The remaining 9 new skills stay persona-invoked-only (no slash-command rows).
 
 ## References
 

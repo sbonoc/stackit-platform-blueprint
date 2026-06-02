@@ -42,14 +42,18 @@
 | AC-013 | SDD-C-012 | n/a | tests/blueprint/personas_skills/test_no_skill_invokes_skill.py | tests/blueprint/personas_skills/test_no_skill_invokes_skill.py | T-107 | n/a | n/a |
 | AC-014 | SDD-C-012 | n/a | tests/blueprint/personas_skills/test_persona_template_structure.py | tests/blueprint/personas_skills/test_persona_template_structure.py | T-108 | ADR-issue-360-factory-personas-skills-roster.md | n/a |
 | AC-015 | SDD-C-012 | n/a | tests/blueprint/personas_skills/test_reviewer_personas.py (extended) | tests/blueprint/personas_skills/test_reviewer_personas.py (extended) | T-106 (extended) | ADR-issue-337-reviewer-model-heterogeneity.md | n/a |
+| FR-019 | SDD-C-004 | n/a | architecture.md Integration edges (CLAUDE.md edit) | `CLAUDE.md` (Skills table row addition) | T-109 | spec.md § Make/CLI contract; spec.md § Open Questions OQ-1 resolution | n/a |
+| FR-020 | SDD-C-004, SDD-C-005 | n/a | architecture.md Context B (extended to existing 8 skill files) | the 8 existing skill `SKILL.md` files listed in FR-020 | T-110 | spec.md § Docs contract; spec.md § Open Questions OQ-2 resolution | n/a |
+| AC-016 | SDD-C-012 | n/a | tests/blueprint/personas_skills/test_claude_md_slash_command_row.py | tests/blueprint/personas_skills/test_claude_md_slash_command_row.py | T-109 | n/a | n/a |
+| AC-017 | SDD-C-012 | n/a | tests/blueprint/personas_skills/test_existing_skills_output_schema_backfill.py | tests/blueprint/personas_skills/test_existing_skills_output_schema_backfill.py | T-110 | n/a | n/a |
 
 ## Graph Linkage
 - Graph file: `graph.json`
 - Every `FR-###`, `NFR-*-###`, and `AC-###` listed in this file MUST have a corresponding node in `graph.json`.
 - Node IDs referenced:
-  - FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-007, FR-008, FR-009, FR-010, FR-011, FR-012, FR-013, FR-014, FR-015, FR-016, FR-017, FR-018
+  - FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-007, FR-008, FR-009, FR-010, FR-011, FR-012, FR-013, FR-014, FR-015, FR-016, FR-017, FR-018, FR-019, FR-020
   - NFR-SEC-001, NFR-OBS-001, NFR-REL-001, NFR-OPS-001, NFR-A11Y-001
-  - AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009, AC-010, AC-011, AC-012, AC-013, AC-014, AC-015
+  - AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009, AC-010, AC-011, AC-012, AC-013, AC-014, AC-015, AC-016, AC-017
 
 ## Validation Summary
 - Required bundles executed: pending (T-201)
