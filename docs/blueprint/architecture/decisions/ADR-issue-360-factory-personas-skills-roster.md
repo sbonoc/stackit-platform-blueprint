@@ -54,11 +54,11 @@ The factory skill surface gains EXACTLY ten new skills under `.agents/skills/`:
 | `blueprint-ticket-decompose-light` | Tech Lead | Conditional on triage = large-decomposable: slice into 2–5 sub-tickets along bounded-context / layer / feature-behaviour boundaries (per Phase 0 light-decomposition ADR). |
 | `blueprint-agent-secret-scan` | DevSecOps / QA | Pre-execution scan; fails fast on prod credential or PII patterns. |
 | `blueprint-agent-handoff` | All implementer personas | Explicit baton-pass; structured handoff note into PR body. |
-| `blueprint-spec-revision-handoff` | All implementer personas | Later-persona-to-earlier-persona revision request during spec phase; tracks resolution. |
+| `blueprint-spec-revision-handoff` | Tech Lead | Routes a child ticket back to a fresh po-analyst when a parent-spec grounding gap is detected; other personas MUST NOT invoke this skill. |
 | `blueprint-spec-review-prep` | PO / Analyst | Spec-quality artifact for the spec gate reviewers. |
-| `blueprint-human-review-prep` | DevSecOps / QA | Formats Draft PR for the human merge gate: spec-vs-changes diff + reviewer checklist. |
+| `blueprint-human-review-prep` | Documentation Keeper | Formats Draft PR for the human merge gate: spec-vs-changes diff + reviewer checklist. |
 | `blueprint-sdd-step08-agent-pr-review` | All 4 reviewer personas | Drives the new `agent-pr-review` phase. |
-| `blueprint-pr-review-respond` | Implementer | Parses review comments and re-implements deltas; bounded by Phase 0 reject-rerun cap. |
+| `blueprint-pr-review-respond` | All 4 reviewer personas | Parses implementation-round review comments and routes fix requests back to the implementer; bounded by Phase 0 reject-rerun cap. |
 | `blueprint-agent-stop-cleanup` | All personas | Pairs with the `agent-stop` label; cleans up workspace, journals kill reason, posts comment. |
 
 Every new `SKILL.md` carries a `## Required Output Schema` section with a fenced ```yaml jsonschema``` block per the parent persona/skill contract ADR (clause 3 — skills declare their output contract). Every persona file and every new `SKILL.md` carries `blueprint-version: <semver>` in YAML front-matter per `docs/blueprint/autonomous-factory/design-contracts.md` § Upstream-candidate front-matter convention. All 20 files are enumerated as `stable` + `extensible` rows in `docs/blueprint/autonomous-factory/design-contracts.md` § Contract C8 § Category (c).

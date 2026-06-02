@@ -64,7 +64,7 @@ The persona is activated when EXACTLY ONE OF the following conditions holds:
   merge gate) picks up the contract-delta findings.
 - Termination handoff: every persona run terminates via
   `.agents/skills/blueprint-agent-stop-cleanup/` so the runtime can reclaim
-  the workspace and emit the `agent-stop` label per the #336 contract.
+  the workspace per the #336 contract.
 
 ## Strict Guardrails
 

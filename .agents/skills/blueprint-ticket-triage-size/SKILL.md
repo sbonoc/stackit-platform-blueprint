@@ -39,8 +39,12 @@ responsibility per `ADR-issue-337-persona-skill-contract.md` clause 3.
 3. Identify the bounded-context candidates the ticket touches, drawn from
    the bounded-context catalogue.
 4. Return the structured output described in `## Required Output Schema`
-   below. The orchestrator wraps the return value into the C7 envelope and
-   writes the `phase: intake` event to the durable bus.
+   below. When classification is NOT `large-decomposable`, the orchestrator
+   emits the `phase: intake` C7 event immediately on this skill's return.
+   When classification IS `large-decomposable`, emission is deferred until
+   `blueprint-ticket-decompose-light` also returns so the two outputs are
+   combined into a single `phase: intake` event per the sealed one-event-per-
+   phase-boundary rule (ADR-issue-337-c7-emission-mechanism.md).
 
 ## Composition
 
@@ -52,8 +56,12 @@ not inside any skill runbook.
 
 ## Required Output Schema
 
-The orchestrator emits a `phase: intake` C7 lifecycle event on skill completion;
-the structured payload below is the `outcome.details` carried on that event.
+The orchestrator emits a `phase: intake` C7 lifecycle event after the
+tech-lead persona's full intake phase is complete. When classification is
+NOT `large-decomposable`, this skill's output is the sole `outcome.details`
+payload. When `large-decomposable`, the output is combined with the
+`blueprint-ticket-decompose-light` output into the single event emitted
+after both skills return.
 
 ```yaml jsonschema
 $schema: "http://json-schema.org/draft-07/schema#"

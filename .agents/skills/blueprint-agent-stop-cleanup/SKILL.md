@@ -1,9 +1,8 @@
 ---
 name: blueprint-agent-stop-cleanup
-description: Terminate a persona run, reclaim its workspace, and emit the agent-stop label so the runtime can clean up under the issue #336 contract.
+description: Terminate a persona run and release its workspace resources so the runtime can clean up under the issue #336 contract.
 blueprint-version: 1.0.0
 extensibility-tier: extensible
-emits-phase: agent-pr-review
 ---
 
 # Blueprint Agent Stop Cleanup
@@ -12,8 +11,10 @@ emits-phase: agent-pr-review
 
 Invoked at the end of every persona run, regardless of outcome
 (`success | rejected | retried | human-handoff`). The skill produces a
-cleanup report the orchestrator uses to release the workspace pod and emit
-the `agent-stop` label per the #336 webhook handler contract.
+cleanup report the orchestrator uses to release the workspace pod per the
+#336 webhook handler contract. The `agent-stop` GitHub label is a
+human-triggered abort signal, not an orchestrator output — the orchestrator
+MUST NOT apply it during normal cleanup.
 
 ## Actor
 
@@ -38,7 +39,7 @@ visible without reading any skill runbook.
    pod, the OpenHands session handle, the persona's working directory).
 4. Return the structured payload described in `## Required Output Schema`
    below. The orchestrator acts on the payload to release the workspace
-   and emit the `agent-stop` label per the #336 contract.
+   per the #336 contract.
 
 ## Composition
 
@@ -48,10 +49,11 @@ request only.
 
 ## Required Output Schema
 
-The orchestrator emits the persona's last C7 lifecycle event on skill
-completion (the phase value matches the persona's terminating phase, e.g.,
-`agent-pr-review` for reviewer personas); the structured payload below is
-the `outcome.details` carried on that event.
+The orchestrator emits the persona's terminating C7 lifecycle event on
+skill completion; the `phase` value matches the invoking persona's current
+phase (e.g. `agent-pr-review` for the 4 reviewer personas, `implement` for
+the implementer persona). The structured payload below is the
+`outcome.details` carried on that event.
 
 ```yaml jsonschema
 $schema: "http://json-schema.org/draft-07/schema#"
@@ -102,7 +104,4 @@ properties:
             - other
         identifier:
           type: string
-  agent_stop_label_requested:
-    type: boolean
-    description: True when the orchestrator MUST emit the `agent-stop` label per the #336 contract.
 ```

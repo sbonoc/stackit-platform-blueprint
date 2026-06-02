@@ -70,15 +70,17 @@ The persona is activated when EXACTLY ONE OF the following conditions holds:
 ## Collaboration & Handoffs
 
 - Upstream handoff IN: the trigger handler (issue #336 webhook handler) supplies the ticket envelope.
-- Downstream handoff OUT (large-decomposable tickets): the persona invokes the
-  `tech-lead` persona via `.agents/skills/blueprint-spec-revision-handoff/` when
-  a parent spec must be split.
+- Spec revision IN: when the `tech-lead` persona detects a parent-spec grounding
+  gap in a decomposed child, it routes the child ticket back to a fresh
+  `po-analyst` invocation via `.agents/skills/blueprint-spec-revision-handoff/`.
+  The po-analyst is the RECIPIENT of this request; it MUST NOT invoke
+  `blueprint-spec-revision-handoff` directly.
 - Downstream handoff OUT (implementation): the `implementer` persona picks up
   once `SPEC_READY=true`; the po-analyst persona MUST NOT itself author
   implementation code.
 - Termination handoff: every persona run terminates via
   `.agents/skills/blueprint-agent-stop-cleanup/` so the runtime can reclaim
-  the workspace and emit the `agent-stop` label per the #336 contract.
+  the workspace per the #336 contract.
 
 ## Strict Guardrails
 
