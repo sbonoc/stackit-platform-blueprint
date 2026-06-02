@@ -73,5 +73,4 @@
 - Hardening review export: `hardening_review.md`
 
 ## Open Risks and Follow-Ups
-- Follow-up 1: Resolve OQ-1 (slash-command table row for `blueprint-sdd-step08-agent-pr-review`) when Child B (`#361`) merges.
-- Follow-up 2: Resolve OQ-2 (retroactive `## Required Output Schema` for the existing 7 SDD step skills) when Child B (`#361`) merges.
+- None. OQ-1 (CLAUDE.md step08 slash-command row) resolved by T-006/T-109 in this PR. OQ-2 (retroactive Required Output Schema backfill) resolved by T-007/T-110 in this PR.
