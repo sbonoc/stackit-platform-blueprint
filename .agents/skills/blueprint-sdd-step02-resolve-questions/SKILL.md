@@ -1,6 +1,7 @@
 ---
 name: blueprint-sdd-step02-resolve-questions
-description: Execute SDD Step 3 — scaffold if not already done, read PR comments from reviewers (PO, Architect, etc.), replace [NEEDS CLARIFICATION: ...] blocks in artifacts with resolved decisions, update the Open Questions table in the PR description, commit, and post a confirmation comment. Repeats until open question count reaches zero and SPEC_PRODUCT_READY is recorded. Can be invoked by any project stakeholder.
+description: "Execute SDD Step 3 — scaffold if not already done, read PR comments from reviewers (PO, Architect, etc.), replace [NEEDS CLARIFICATION: ...] blocks in artifacts with resolved decisions, update the Open Questions table in the PR description, commit, and post a confirmation comment. Repeats until open question count reaches zero and SPEC_PRODUCT_READY is recorded. Can be invoked by any project stakeholder."
+blueprint-version: 1.0.0
 ---
 
 # Blueprint SDD Step 02 — Open Question Resolution Loop
@@ -143,6 +144,91 @@ make quality-sdd-check
 
 - Resolution checklist: `references/resolution_checklist.md`
 
+
+## Required Output Schema
+
+The structured payload below is the resolution-round report the skill returns
+to the orchestrator and carries on the `phase: resolve-questions` C7 lifecycle event.
+
+```yaml jsonschema
+$schema: "http://json-schema.org/draft-07/schema#"
+title: BlueprintSddStep02ResolveQuestionsOutput
+description: Structured resolution-round report produced at the end of SDD step 02.
+type: object
+additionalProperties: false
+required:
+  - ticket_id
+  - scaffold_status
+  - pr_comments_read
+  - questions_resolved_this_round
+  - questions_remaining
+  - signoffs_recorded
+  - sdd_check_marker_count_before
+  - sdd_check_marker_count_after
+  - confirmation_comment_posted
+  - traceability_result
+properties:
+  ticket_id:
+    type: string
+  scaffold_status:
+    type: string
+    enum:
+      - auto-run
+      - already-existed
+  pr_comments_read:
+    type: integer
+    minimum: 0
+  questions_resolved_this_round:
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - decision_summary
+      properties:
+        id:
+          type: string
+        decision_summary:
+          type: string
+  questions_remaining:
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - description
+      properties:
+        id:
+          type: string
+        description:
+          type: string
+  signoffs_recorded:
+    type: array
+    items:
+      type: string
+      enum:
+        - product
+        - architecture
+        - security
+        - operations
+  sdd_check_marker_count_before:
+    type: integer
+    minimum: 0
+  sdd_check_marker_count_after:
+    type: integer
+    minimum: 0
+  commit_sha:
+    type: string
+  confirmation_comment_posted:
+    type: boolean
+  traceability_result:
+    type: string
+    enum:
+      - clean
+      - gaps-found
+```
 
 ## C7 Emission
 

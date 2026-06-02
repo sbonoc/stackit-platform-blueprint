@@ -1,6 +1,7 @@
 ---
 name: blueprint-sdd-step01-intake
 description: Execute SDD Steps 1 and 2 — scaffold the work item if not already done, populate all artifacts with real content (Discover → Plan), and open the intake Draft PR with a live Open Questions table. Can be invoked by any project stakeholder. Consolidates the retired intake-decompose, po-spec, and clarification-gate skills.
+blueprint-version: 1.0.0
 ---
 
 # Blueprint SDD Step 01 — Intake + Draft PR
@@ -282,6 +283,123 @@ make quality-sdd-check
 
 - Intake checklist: `references/intake_checklist.md`
 
+
+## Required Output Schema
+
+The structured payload below is the intake report the skill returns to the
+orchestrator and carries on the `phase: intake` C7 lifecycle event.
+
+```yaml jsonschema
+$schema: "http://json-schema.org/draft-07/schema#"
+title: BlueprintSddStep01IntakeOutput
+description: Structured intake report produced at the end of SDD step 01.
+type: object
+additionalProperties: false
+required:
+  - ticket_id
+  - scaffold_status
+  - source_documents
+  - requirement_counts
+  - sdd_controls
+  - adr_path
+  - v_gate
+  - open_questions_count
+  - sdd_check_result
+  - draft_pr_url
+properties:
+  ticket_id:
+    type: string
+  scaffold_status:
+    type: string
+    enum:
+      - auto-run
+      - already-existed
+  source_documents:
+    type: array
+    items:
+      type: string
+  requirement_counts:
+    type: object
+    additionalProperties: false
+    required:
+      - req
+      - nfr
+      - ac
+    properties:
+      req:
+        type: integer
+        minimum: 0
+      nfr:
+        type: integer
+        minimum: 0
+      ac:
+        type: integer
+        minimum: 0
+  sdd_controls:
+    type: array
+    items:
+      type: string
+  adr_path:
+    type: string
+  adr_diagram_types:
+    type: array
+    items:
+      type: string
+  v_gate:
+    type: object
+    additionalProperties: false
+    required:
+      - has_user_facing_flow
+      - signal
+    properties:
+      has_user_facing_flow:
+        type: boolean
+      signal:
+        type: string
+  open_questions_count:
+    type: integer
+    minimum: 0
+  open_questions:
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - description
+      properties:
+        id:
+          type: string
+        description:
+          type: string
+  sdd_check_result:
+    type: string
+    enum:
+      - pass
+      - fail
+  surfaced_backlog_proposals:
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      required:
+        - title
+        - trigger
+        - recommended_action
+      properties:
+        title:
+          type: string
+        trigger:
+          type: string
+        recommended_action:
+          type: string
+          enum:
+            - incorporate
+            - promote-to-issue
+            - reject
+  draft_pr_url:
+    type: string
+```
 
 ## C7 Emission
 

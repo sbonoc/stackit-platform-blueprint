@@ -1,6 +1,7 @@
 ---
 name: blueprint-sdd-step05-implement
 description: Execute SDD Step 6 — implement the work item in TDD slices following plan.md, writing failing tests first then making them green, committing each slice to the existing Draft PR branch. Uses stack-agnostic Make targets derived from the spec's Implementation Stack Profile.
+blueprint-version: 1.0.0
 ---
 
 # Blueprint SDD Step 05 — Implement
@@ -341,6 +342,97 @@ After all slices:
 
 - Implementation checklist: `references/implement_checklist.md`
 
+
+## Required Output Schema
+
+The structured payload below is the implementation report the skill returns
+to the orchestrator and carries on the `phase: implement` C7 lifecycle event.
+
+```yaml jsonschema
+$schema: "http://json-schema.org/draft-07/schema#"
+title: BlueprintSddStep05ImplementOutput
+description: Structured implementation report produced at the end of SDD step 05.
+type: object
+additionalProperties: false
+required:
+  - ticket_id
+  - stack_profile
+  - test_commands
+  - slices
+  - validation_bundle_result
+  - traceability_result
+properties:
+  ticket_id:
+    type: string
+  stack_profile:
+    type: object
+    additionalProperties: false
+    required:
+      - backend
+      - frontend
+      - test_automation
+    properties:
+      backend:
+        type: string
+      frontend:
+        type: string
+      test_automation:
+        type: string
+  test_commands:
+    type: array
+    items:
+      type: string
+  slices:
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - tests_written_count
+        - red_confirmed
+        - implementation_files
+        - regression_result
+        - commit_sha
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        tests_written_count:
+          type: integer
+          minimum: 0
+        red_confirmed:
+          type: boolean
+        implementation_files:
+          type: array
+          items:
+            type: string
+        regression_result:
+          type: string
+          enum:
+            - pass
+            - fail
+        tasks_completed:
+          type: array
+          items:
+            type: string
+        commit_sha:
+          type: string
+  validation_bundle_result:
+    type: string
+    enum:
+      - pass
+      - fail
+      - not-applicable
+  exception_rationale:
+    type: string
+  traceability_result:
+    type: string
+    enum:
+      - clean
+      - gaps-found
+```
 
 ## C7 Emission
 

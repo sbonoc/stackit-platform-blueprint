@@ -1,6 +1,7 @@
 ---
 name: blueprint-sdd-step04-plan-slicer
 description: Execute SDD Step 5 (optional) — refine the approved plan into dependency-ordered implementation slices with explicit owners, validation strategy per slice, and backlog synchronisation. Skip for straightforward work items where plan.md from Step 1 is sufficient.
+blueprint-version: 1.0.0
 ---
 
 # Blueprint SDD Step 04 — Plan Slicer (Optional)
@@ -85,6 +86,80 @@ make quality-hooks-fast
 
 - Slice checklist: `references/plan_slice_checklist.md`
 
+
+## Required Output Schema
+
+The structured payload below is the plan-refinement report the skill returns
+to the orchestrator and carries on the `phase: plan-slicer` C7 lifecycle event.
+
+```yaml jsonschema
+$schema: "http://json-schema.org/draft-07/schema#"
+title: BlueprintSddStep04PlanSlicerOutput
+description: Structured plan-refinement report produced at the end of SDD step 04.
+type: object
+additionalProperties: false
+required:
+  - ticket_id
+  - refinement_needed
+  - slices
+  - backlog_updates_performed
+  - traceability_result
+properties:
+  ticket_id:
+    type: string
+  refinement_needed:
+    type: boolean
+  refinement_rationale:
+    type: string
+  slices:
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+        - owner
+        - depends_on
+        - validation_strategy
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        owner:
+          type: string
+        depends_on:
+          type: array
+          items:
+            type: string
+        validation_strategy:
+          type: string
+  backlog_updates_performed:
+    type: array
+    items:
+      type: string
+  commit_sha:
+    type: string
+  critical_risks:
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      required:
+        - description
+        - mitigation
+      properties:
+        description:
+          type: string
+        mitigation:
+          type: string
+  traceability_result:
+    type: string
+    enum:
+      - clean
+      - gaps-found
+```
 
 ## C7 Emission
 

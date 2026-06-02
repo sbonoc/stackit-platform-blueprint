@@ -1,6 +1,7 @@
 ---
 name: blueprint-sdd-step03-spec-complete
 description: Execute SDD Step 4 — collect Architecture, Security, and Operations sign-offs, validate and finalise the ADR, flip SPEC_READY=true, and commit to the existing Draft PR branch. Renamed and adjusted from blueprint-sdd-spec-complete to fit the single-PR lifecycle model.
+blueprint-version: 1.0.0
 ---
 
 # Blueprint SDD Step 03 — Spec Complete
@@ -170,6 +171,87 @@ make quality-sdd-check-all
 
 - Spec completion checklist: `references/spec_complete_checklist.md`
 
+
+## Required Output Schema
+
+The structured payload below is the spec-complete report the skill returns to
+the orchestrator and carries on the `phase: spec-complete` C7 lifecycle event.
+
+```yaml jsonschema
+$schema: "http://json-schema.org/draft-07/schema#"
+title: BlueprintSddStep03SpecCompleteOutput
+description: Structured spec-complete report produced at the end of SDD step 03.
+type: object
+additionalProperties: false
+required:
+  - ticket_id
+  - adr_review_decision
+  - mermaid_validation_result
+  - signoffs
+  - spec_ready
+  - sdd_check_result
+  - traceability_result
+properties:
+  ticket_id:
+    type: string
+  adr_review_decision:
+    type: string
+    enum:
+      - confirm
+      - adjust
+      - override
+  adr_review_rationale:
+    type: string
+  mermaid_validation_result:
+    type: string
+    enum:
+      - pass
+      - fail
+      - not-applicable
+  signoffs:
+    type: object
+    additionalProperties: false
+    required:
+      - product
+      - architecture
+      - security
+      - operations
+    properties:
+      product:
+        type: string
+        enum:
+          - approved
+          - pending
+      architecture:
+        type: string
+        enum:
+          - approved
+          - pending
+      security:
+        type: string
+        enum:
+          - approved
+          - pending
+      operations:
+        type: string
+        enum:
+          - approved
+          - pending
+  spec_ready:
+    type: boolean
+  sdd_check_result:
+    type: string
+    enum:
+      - pass
+      - fail
+  commit_sha:
+    type: string
+  traceability_result:
+    type: string
+    enum:
+      - clean
+      - gaps-found
+```
 
 ## C7 Emission
 

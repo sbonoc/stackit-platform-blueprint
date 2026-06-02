@@ -1,6 +1,7 @@
 ---
 name: blueprint-sdd-step06-document-sync
 description: Execute SDD Step 7 — update blueprint and consumer docs for changed behavior, sync bootstrap template mirrors, update skill runbooks, and validate docs build/smoke checks. Renamed from blueprint-sdd-document-sync.
+blueprint-version: 1.0.0
 ---
 
 # Blueprint SDD Step 06 — Document + Operate
@@ -97,6 +98,58 @@ Return:
 
 - Document phase checklist: `references/document_phase_checklist.md`
 
+
+## Required Output Schema
+
+The structured payload below is the document-sync report the skill returns to
+the orchestrator and carries on the `phase: document-sync` C7 lifecycle event.
+
+```yaml jsonschema
+$schema: "http://json-schema.org/draft-07/schema#"
+title: BlueprintSddStep06DocumentSyncOutput
+description: Structured document-sync report produced at the end of SDD step 06.
+type: object
+additionalProperties: false
+required:
+  - ticket_id
+  - docs_paths_updated
+  - bootstrap_template_sync_result
+  - docs_check_result
+  - traceability_result
+properties:
+  ticket_id:
+    type: string
+  docs_paths_updated:
+    type: array
+    items:
+      type: string
+  bootstrap_template_sync_result:
+    type: string
+    enum:
+      - pass
+      - fail
+      - skipped
+  docs_check_result:
+    type: string
+    enum:
+      - pass
+      - fail
+  runbook_updates:
+    type: array
+    items:
+      type: string
+  skill_runbook_updates:
+    type: array
+    items:
+      type: string
+  commit_sha:
+    type: string
+  traceability_result:
+    type: string
+    enum:
+      - clean
+      - gaps-found
+```
 
 ## C7 Emission
 
