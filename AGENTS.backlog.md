@@ -49,6 +49,8 @@ To introduce a new tag, append a row here in the same commit that uses it.
 
 - [x] (done) P1 (Quality tooling): Issue #353 — V-gate E2E classification enforcement: `_check_vgate_classification` in `check_sdd_assets.py`; two new spec fields (`has-user-facing-flow`, `E2E gate classification`); step01 shift-left inference; AGENTS.md Playwright three-MUSTs rule. Closed by PR #357. — https://github.com/sbonoc/stackit-platform-blueprint/pull/357
 
+- [ ] P1 (Factory — Epic #332 Child A): Issue #360 — **IN IMPLEMENTATION** (SPEC_READY=true, PR #362). Author 10 factory personas + 10 SDD/factory skill runbooks + retroactive `## Required Output Schema` backfill on 8 existing SDD skills + CLAUDE.md step08 slash-command row. Spec: `specs/2026-06-02-issue-360-factory-personas-skills/`. Branch: `feature/2026-06-02-issue-360-factory-personas-skills`. — https://github.com/sbonoc/stackit-platform-blueprint/pull/362
+
 ### P2 — Consumer upgrade flow
 
 - [ ] Issue #167 — dry-run mode (`BLUEPRINT_UPGRADE_DRY_RUN=true`): simulate all file mutations and output a unified diff without touching the working tree; same warnings and conflicts as a real apply.
