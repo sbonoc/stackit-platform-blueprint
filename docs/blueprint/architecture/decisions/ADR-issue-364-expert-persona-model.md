@@ -179,7 +179,7 @@ Default `model_per_expert` baseline absent any per-step override. #335 ships the
 | Expert | Default tier | Rationale |
 |---|---|---|
 | `product-pragmatist` | Sonnet | Scope judgment + outcome framing — moderate reasoning load |
-| `boundary-hawk` | Sonnet | Cross-file dependency reasoning — moderate-to-high |
+| `boundary-hawk` | Opus | Multi-hop architectural reasoning across files (coupling chain: X→Y→Z); bounded-context drift is subtle and late-expensive — same stakes tier as `security-paranoid` |
 | `security-paranoid` | Opus | Threat-modelling + adversarial reasoning — high-stakes; cost justified |
 | `data-privacy` | Sonnet | Regulatory-pattern matching + retention reasoning — moderate |
 | `test-quality-sceptic` | Sonnet | Fixture-vs-assertion reasoning — moderate; high volume across steps |
@@ -187,9 +187,11 @@ Default `model_per_expert` baseline absent any per-step override. #335 ships the
 | `documentation-discipline` | Haiku | Drift detection + heading-presence checks — bulk-pattern matching; cheap |
 | `performance-cost-aware` | Sonnet | Hot-path + N+1 + retry-bound reasoning — moderate |
 
-**Step01 + step08 (all-8 fan-outs)** MAY override down-tier (e.g., Haiku for product-pragmatist on step01 token volume) per the orchestrator's cost-tier configuration. **Step05 sequential-lens** MAY override up-tier on `security-paranoid` and `data-privacy` rounds where reasoning depth matters. Overrides ship with #335; the baseline above is the default the orchestrator MUST apply when no override is present.
+Tier rationale note: `boundary-hawk` is upgraded to Opus because its reasoning task — detecting leaky abstractions and bounded-context drift across a codebase — requires multi-hop semantic reasoning chains across multiple files simultaneously. This is structurally identical to `security-paranoid`'s threat-model chains: subtle, high-stakes, and prohibitively expensive to correct after the fact. `boundary-hawk` also appears in 6 of 8 SDD steps (all except step03 and step02's dynamic selection), making it the second-most-deployed expert; systematic under-tiering would affect the majority of expert review cycles.
 
-The panel-disjointness audit invariant (from amended `ADR-issue-337-reviewer-model-heterogeneity.md`) MUST be satisfied: within a single step's panel, no two experts MAY share the same LiteLLM routing key for the same `(ticket_id, phase, rerun_round)` tuple. Step03's panel-of-1 trivially satisfies this; step01 and step08 (all-8) MUST be configured with at least 2 distinct routing keys across the 8 experts; in practice the Haiku/Sonnet/Opus tier mix satisfies this automatically.
+**Step01 + step08 (all-8 fan-outs)** MAY override down-tier (e.g., Haiku for product-pragmatist on step01 token volume) per the orchestrator's cost-tier configuration. **Step05 sequential-lens** MAY override up-tier on `data-privacy` rounds where regulatory-reasoning depth matters. Overrides ship with #335; the baseline above is the default the orchestrator MUST apply when no override is present.
+
+The panel-disjointness audit invariant (from amended `ADR-issue-337-reviewer-model-heterogeneity.md`) MUST be satisfied: within a single step's panel, no two experts MAY share the same LiteLLM routing key for the same `(ticket_id, phase, rerun_round)` tuple. Step03's panel-of-1 trivially satisfies this; step01 and step08 (all-8) MUST be configured with at least 2 distinct routing keys across the 8 experts; in practice the Haiku/Sonnet/Opus tier mix (1 Haiku, 5 Sonnet, 2 Opus) satisfies this automatically.
 
 ### 4.4 Step08 lead-rotation algorithm
 
