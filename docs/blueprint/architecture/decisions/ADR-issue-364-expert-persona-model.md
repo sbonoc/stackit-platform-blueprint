@@ -1,6 +1,6 @@
 # ADR-issue-364 — Factory Expert Persona Model (panel of standing experts, dispatched per SDD step)
 
-- Status: proposed
+- Status: accepted
 - Date: 2026-06-02
 - Deciders: bonos (solo operator)
 - Work item: issue #364 — `feature/2026-06-02-issue-364-factory-expert-persona-panel`

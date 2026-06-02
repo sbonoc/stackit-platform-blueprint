@@ -3,22 +3,22 @@
 ## Spec Readiness Gate (Blocking)
 <!-- SPEC_PRODUCT_READY=true: intake gate — Product sign-off only; unlocks agent ADR drafting.
      SPEC_READY=true: implementation gate — all sign-offs required; unlocks coding. -->
-- SPEC_READY: false
-- SPEC_PRODUCT_READY: false
+- SPEC_READY: true
+- SPEC_PRODUCT_READY: true
 - Open questions count: 0
 - Unresolved alternatives count: 0
 - Unresolved TODO markers count: 0
 - Pending assumptions count: 0
 - Open clarification markers count: 0
-- Product sign-off: pending
-- Architecture sign-off: pending
-- Security sign-off: pending
-- Operations sign-off: pending
-- Missing input blocker token: BLOCKED_MISSING_INPUTS
+- Product sign-off: approved
+- Architecture sign-off: approved
+- Security sign-off: approved
+- Operations sign-off: approved
+- Missing input blocker token: none
 - ADR path: docs/blueprint/architecture/decisions/ADR-issue-364-expert-persona-model.md
-- ADR status: proposed
+- ADR status: approved
 - SPEC_READY_EXCEPTION: none
-- authorized-by: none
+- authorized-by: bonos
 
 ## Applicable Guardrail Controls (Normative)
 - Applicable control IDs: SDD-C-001, SDD-C-002, SDD-C-003, SDD-C-004, SDD-C-005, SDD-C-006, SDD-C-007, SDD-C-008, SDD-C-009, SDD-C-010, SDD-C-011, SDD-C-012, SDD-C-013, SDD-C-014, SDD-C-015, SDD-C-016, SDD-C-017, SDD-C-018, SDD-C-019, SDD-C-020, SDD-C-021
@@ -108,7 +108,7 @@
 - AC-008 [C8 § (c) persona-list rows replaced with expert slugs] — verified by T-108, which MUST assert two grep predicates against `docs/blueprint/autonomous-factory/design-contracts.md`: (a) `grep -E "\.agents/personas/(po-analyst|architect|tech-lead|implementer|devsecops-qa|doc-keeper|security-reviewer|architecture-reviewer|contract-reviewer|test-coverage-reviewer)\.md"` MUST return zero matches in the file; (b) for each slug in `{product-pragmatist, boundary-hawk, security-paranoid, data-privacy, test-quality-sceptic, operability-sre, documentation-discipline, performance-cost-aware}` the substring `.agents/personas/<slug>/PERSONA.md` MUST appear at least once in the file (verifies FR-009).
 - AC-009 [C7 `persona` field semantics aligned with expert-panel model] — verified by T-109, which MUST assert against `docs/blueprint/autonomous-factory/design-contracts.md` § C7: (a) the substring `the persona file basename (matches Contract C3 microagent name)` MUST NOT appear; (b) the substring `wraps each persona invocation` MUST NOT appear; (c) the rewording referencing the SDD step skill basename (substring `skill basename` case-insensitive) MUST appear in the `persona` field description block (verifies FR-010).
 - AC-011 [Step08 skill output schema reshaped to panel-input contract] — verified by T-111, which MUST assert against `.agents/skills/blueprint-sdd-step08-agent-pr-review/SKILL.md` `## Required Output Schema` block: (a) the substring `reviewer_persona` MUST NOT appear (the old stage-persona enum is removed); (b) the substring `expert_slug` MUST appear at least once (the new per-expert verdict array key from FR-004 is present); (c) the substring `expert_verdicts` MUST appear at least once (the per-expert verdict array name aligned with C7 `outcome.details.expert_verdicts[]` from FR-007). Together these verify FR-006(c)'s structural reshape, not just stray-string removal.
-- AC-010 [Bootstrap template mirror in sync] — verified by T-110, which MUST run `uv run python3 scripts/lib/docs/sync_blueprint_template_docs.py --check` (or, if the script lacks `--check`, MUST diff `scripts/templates/blueprint/bootstrap/docs/blueprint/autonomous-factory/design-contracts.md` against `docs/blueprint/autonomous-factory/design-contracts.md` and assert no drift) and MUST exit 0 on the head of this branch immediately before merge (verifies NFR-OPS-001's mirror-resync clause; closes the C3/C8(c)/C7 drift surface introduced by FR-002/FR-009/FR-010 reaching only the live file but not the mirror). **Mirror scope MUST cover** (a) `docs/blueprint/autonomous-factory/design-contracts.md`; (b) every file under `.agents/personas/<slug>/` for slug ∈ `{product-pragmatist, boundary-hawk, security-paranoid, data-privacy, test-quality-sceptic, operability-sre, documentation-discipline, performance-cost-aware}`; (c) every file under `.agents/skills/blueprint-*/` touched in this PR. If the sync script does not currently mirror personas or skills, T-110 MUST surface that gap as a failure (so this PR expands the sync script, or files a deterministic exception in `pr_context.md` with a follow-up owner).
+- AC-010 [Bootstrap template mirror in sync] — verified by T-110, which MUST assert that `uv run python3 scripts/lib/docs/sync_blueprint_template_docs.py --check` exits 0 (or, if the script lacks `--check`, MUST assert that `diff -u scripts/templates/blueprint/bootstrap/docs/blueprint/autonomous-factory/design-contracts.md docs/blueprint/autonomous-factory/design-contracts.md` produces zero output) on the head of this branch immediately before merge (verifies NFR-OPS-001's mirror-resync clause; closes the C3/C8(c)/C7 drift surface introduced by FR-002/FR-009/FR-010 reaching only the live file but not the mirror). **Mirror scope MUST cover** (a) `docs/blueprint/autonomous-factory/design-contracts.md`; (b) every file under `.agents/personas/<slug>/` for slug ∈ `{product-pragmatist, boundary-hawk, security-paranoid, data-privacy, test-quality-sceptic, operability-sre, documentation-discipline, performance-cost-aware}`; (c) every file under `.agents/skills/blueprint-*/` touched in this PR. If the sync script does not currently mirror personas or skills, T-110 MUST surface that gap as a failure (so this PR expands the sync script, or files a deterministic exception in `pr_context.md` with a follow-up owner).
 - AC-012 [PERSONA.md compositional independence] — verified by T-112, which MUST assert that for each PERSONA.md file under `.agents/personas/<expert-slug>/`, the body prose contains zero references to the other 7 expert slugs (case-insensitive whole-word match on the slug strings `product-pragmatist`, `boundary-hawk`, `security-paranoid`, `data-privacy`, `test-quality-sceptic`, `operability-sre`, `documentation-discipline`, `performance-cost-aware` excluding the file's own slug). The H1 title line `# <Expert Title>` and any markdown frontmatter MUST be excluded from the grep range (those are permitted to contain a slug-like word in the title). Verifies the compositional-independence clause of FR-001.
 - AC-013 [Old flat persona files deleted] — verified by T-113, which MUST assert that `git ls-files .agents/personas/` returns zero matches for any of the 10 paths `po-analyst.md`, `architect.md`, `tech-lead.md`, `implementer.md`, `devsecops-qa.md`, `doc-keeper.md`, `security-reviewer.md`, `architecture-reviewer.md`, `contract-reviewer.md`, `test-coverage-reviewer.md` at the repo root of `.agents/personas/`. Verifies FR-011. The check MUST NOT recurse into `.agents/personas/consumer/` (consumer shadow space, preserved per FR-011).
 - AC-014 [Skill runbook output-schema sanity, all SDD-step runbooks] — verified by T-114, which MUST assert that for each SKILL.md under `.agents/skills/blueprint-sdd-step0[1-8]-*/SKILL.md`: (a) a `## Required Output Schema` section heading is present; (b) zero occurrences of legacy stage-persona slug strings in the schema block (whole-word match against the same slug list as AC-004); (c) where the skill is dispatched to a panel ≥ 2 (per ADR § 4 matrix — every SDD step except step03), the schema block MUST mention at least one of the two strings `expert_verdicts`, `expert_slug` to confirm the per-expert verdict array is part of the contract. Extends AC-011's step08-only check to all 8 SDD-step runbooks (verifies FR-006 a/b/c are structurally satisfied across the whole SDD lane, not only step08).
