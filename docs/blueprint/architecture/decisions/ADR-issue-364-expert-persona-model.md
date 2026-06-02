@@ -200,7 +200,7 @@ The Opus tier covers **the five experts whose errors are most expensive to catch
 
 | Expert | Step | Override tier | Reason |
 |---|---|---|---|
-| `documentation-discipline` | step01, step08 | Haiku | Structural-presence check only at those steps; no semantic authoring role |
+| `documentation-discipline` | step01, step03, step08 | Haiku | Structural-presence check only at those steps (spec-section completeness at step03; heading/ADR-currency checks at step01/step08); no semantic authoring role |
 
 All other per-step deviations from the baseline table are **optional** cost-tier adjustments shipped with #335. The MUST override above is normative and MUST be reflected in the orchestrator's dispatch configuration.
 
