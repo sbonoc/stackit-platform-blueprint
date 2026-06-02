@@ -410,6 +410,26 @@ Every consumer-shipped module wrapper enumerated in this category MUST default t
 | `.agents/skills/blueprint-sdd-step05-implement/` | `stable` | `extensible` | #333 |
 | `.agents/skills/blueprint-sdd-step06-document-sync/` | `stable` | `extensible` | #333 |
 | `.agents/skills/blueprint-sdd-step07-pr-packager/` | `stable` | `extensible` | #333 |
+| `.agents/skills/blueprint-sdd-step08-agent-pr-review/` | `stable` | `extensible` (consumer may shadow under `.agents/skills/consumer/`) | #333 |
+| `.agents/skills/blueprint-ticket-triage-size/` | `stable` | `extensible` (consumer may shadow under `.agents/skills/consumer/`) | #333 |
+| `.agents/skills/blueprint-ticket-decompose-light/` | `stable` | `extensible` (consumer may shadow under `.agents/skills/consumer/`) | #333 |
+| `.agents/skills/blueprint-agent-secret-scan/` | `stable` | `extensible` (consumer may shadow under `.agents/skills/consumer/`) | #333 |
+| `.agents/skills/blueprint-agent-handoff/` | `stable` | `extensible` (consumer may shadow under `.agents/skills/consumer/`) | #333 |
+| `.agents/skills/blueprint-spec-revision-handoff/` | `stable` | `extensible` (consumer may shadow under `.agents/skills/consumer/`) | #333 |
+| `.agents/skills/blueprint-spec-review-prep/` | `stable` | `extensible` (consumer may shadow under `.agents/skills/consumer/`) | #333 |
+| `.agents/skills/blueprint-human-review-prep/` | `stable` | `extensible` (consumer may shadow under `.agents/skills/consumer/`) | #333 |
+| `.agents/skills/blueprint-pr-review-respond/` | `stable` | `extensible` (consumer may shadow under `.agents/skills/consumer/`) | #333 |
+| `.agents/skills/blueprint-agent-stop-cleanup/` | `stable` | `extensible` (consumer may shadow under `.agents/skills/consumer/`) | #333 |
+| `.agents/personas/po-analyst.md` | `stable` | `extensible` (consumer may shadow under `.agents/personas/consumer/`) | #333 |
+| `.agents/personas/architect.md` | `stable` | `extensible` (consumer may shadow under `.agents/personas/consumer/`) | #333 |
+| `.agents/personas/tech-lead.md` | `stable` | `extensible` (consumer may shadow under `.agents/personas/consumer/`) | #333 |
+| `.agents/personas/implementer.md` | `stable` | `extensible` (consumer may shadow under `.agents/personas/consumer/`) | #333 |
+| `.agents/personas/devsecops-qa.md` | `stable` | `extensible` (consumer may shadow under `.agents/personas/consumer/`) | #333 |
+| `.agents/personas/doc-keeper.md` | `stable` | `extensible` (consumer may shadow under `.agents/personas/consumer/`) | #333 |
+| `.agents/personas/security-reviewer.md` | `stable` | `extensible` (consumer may shadow under `.agents/personas/consumer/`) | #333 |
+| `.agents/personas/architecture-reviewer.md` | `stable` | `extensible` (consumer may shadow under `.agents/personas/consumer/`) | #333 |
+| `.agents/personas/contract-reviewer.md` | `stable` | `extensible` (consumer may shadow under `.agents/personas/consumer/`) | #333 |
+| `.agents/personas/test-coverage-reviewer.md` | `stable` | `extensible` (consumer may shadow under `.agents/personas/consumer/`) | #333 |
 | `.agents/personas/` (blueprint persona files) | `stable` | `extensible` (consumer may shadow under `.agents/personas/consumer/`) | #333 |
 
 ### Category (d) — GitHub App Manifest and Reusable Actions Workflows
