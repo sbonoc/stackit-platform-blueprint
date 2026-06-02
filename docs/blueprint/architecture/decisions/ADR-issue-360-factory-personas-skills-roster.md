@@ -5,7 +5,7 @@
 **Issue:** #360 (Child A of #333)
 **Spec:** `specs/2026-06-02-issue-360-factory-personas-skills/`
 **Parent ADR:** [`ADR-issue-337-persona-skill-contract.md`](ADR-issue-337-persona-skill-contract.md)
-**Extensibility classification (#339 C8 FR-017):** `extensible` (the persona/skill files themselves are extensible per the C8 default; the persona/skill *contract* in the parent ADR remains `sealed`).
+**Extensibility classification:** `extensible` (the persona/skill files themselves are extensible per the design-contracts § Extensibility tier dimension default; the persona/skill *contract* in the parent ADR remains `sealed`).
 
 ## Context
 
@@ -59,7 +59,16 @@ The factory skill surface gains EXACTLY ten new skills under `.agents/skills/`:
 | `blueprint-pr-review-respond` | Implementer | Parses review comments and re-implements deltas; bounded by Phase 0 reject-rerun cap. |
 | `blueprint-agent-stop-cleanup` | All personas | Pairs with the `agent-stop` label; cleans up workspace, journals kill reason, posts comment. |
 
-Every new `SKILL.md` carries a `## Required Output Schema` section with a fenced ```yaml jsonschema``` block per #337 FR-019. Every persona file and every new `SKILL.md` carries `blueprint-version: <semver>` in YAML front-matter per #339 FR-020. All 20 files are enumerated as `stable` + `extensible` rows in `docs/blueprint/autonomous-factory/design-contracts.md` § Contract C8 § Category (c).
+Every new `SKILL.md` carries a `## Required Output Schema` section with a fenced ```yaml jsonschema``` block per the parent persona/skill contract ADR (clause 3 — skills declare their output contract). Every persona file and every new `SKILL.md` carries `blueprint-version: <semver>` in YAML front-matter per `docs/blueprint/autonomous-factory/design-contracts.md` § Upstream-candidate front-matter convention. All 20 files are enumerated as `stable` + `extensible` rows in `docs/blueprint/autonomous-factory/design-contracts.md` § Contract C8 § Category (c).
+
+### Naming-convention reading for clause 4 (resolves OQ-3)
+
+Clause 4 of the parent ADR (`ADR-issue-337-persona-skill-contract.md`) reads: "no AI persona maps 1:1 to a human canonical sign-off role" — meaning no AI persona implies sign-off authority. Two readings were considered for whether persona *names* (`tech-lead`, `devsecops-qa`, `architect`, `po-analyst`, `doc-keeper`) violate that clause:
+
+- **Strict-naming reading (rejected).** Any persona whose name string overlaps with a recognised human role title violates clause 4 and MUST be renamed (for example `tech-lead` → `decomposer`, `architect` → `cross-context-planner`).
+- **Work-domain reading (adopted).** Clause 4 is violated only when a persona *takes* a canonical sign-off action — that is, emits one of the four canonical sign-off phrases defined in `AGENTS.md § Sign-off Phrases (Deterministic)` or otherwise asserts sign-off authority in its Definition of Done or Strict Guardrails. Persona names that overlap with human role titles are permitted as long as the persona's responsibilities and guardrails make explicit that the persona MUST NOT sign off and the human canonical sign-off remains with the human reviewer.
+
+The work-domain reading is the one that operates in this ADR and across the 10 persona files. It is consistent with the rejection of Option D below ("`architect-ai-signoff`" being rejected precisely because the suffix `-signoff` encodes sign-off authority — not because the persona name overlapped with the human role "architect"). FR-012 + T-105 enforce the adopted reading mechanically: T-105 scans every persona file's Definition of Done and Strict Guardrails sections and fails if it finds any of the four canonical sign-off phrases or any text that asserts sign-off authority. Name overlap alone does not trigger T-105.
 
 ## Options Considered
 
@@ -95,14 +104,14 @@ Add `product-ai`, `architect-ai-signoff`, `security-ai`, `operations-ai` persona
 - `#342`'s extended `/blueprint-consumer-upgrade` can detect drift on each of the 20 files via the `blueprint-version` front-matter.
 - `#338`'s triage/decomposition data feed has a documented schema (defined in the `## Required Output Schema` of `blueprint-ticket-triage-size` and `blueprint-ticket-decompose-light`) to consume once Child B persists the events.
 - The new `agent-pr-review` phase is documented and ready for Child B to wire into the orchestrator state machine.
-- Consumer instances that adopt the autonomous factory inherit the entire 20-file surface identically via the existing blueprint `contract.yaml` mechanism (Contract C3 identical convention; C8 enumeration). Consumer shadows under `.agents/personas/consumer/` and `.agents/skills/consumer/` remain permitted per FR-018, with `upstream-candidate: true` front-matter for contribution-intent signalling per FR-020.
+- Consumer instances that adopt the autonomous factory inherit the entire 20-file surface identically via the existing blueprint `contract.yaml` mechanism (Contract C3 identical convention; C8 enumeration). Consumer shadows under `.agents/personas/consumer/` and `.agents/skills/consumer/` remain permitted per `docs/blueprint/autonomous-factory/design-contracts.md` § Consumer-extension discovery convention, with `upstream-candidate: true` front-matter for contribution-intent signalling per the same document § Upstream-candidate front-matter convention.
 - Two follow-up proposals are recorded in `spec.md § Potential Deferred Proposals` (CLAUDE.md slash-command table update; retroactive `## Required Output Schema` for existing 7 SDD step skills). Both trigger on Child B merge.
 
 ## References
 
 - Parent ADR: [`ADR-issue-337-persona-skill-contract.md`](ADR-issue-337-persona-skill-contract.md)
 - Related ADRs: [`ADR-issue-337-light-decomposition-policy.md`](ADR-issue-337-light-decomposition-policy.md), [`ADR-issue-337-triage-size-threshold.md`](ADR-issue-337-triage-size-threshold.md), [`ADR-issue-337-reviewer-model-heterogeneity.md`](ADR-issue-337-reviewer-model-heterogeneity.md), [`ADR-issue-337-reject-rerun-cap.md`](ADR-issue-337-reject-rerun-cap.md)
-- Design contracts: `docs/blueprint/autonomous-factory/design-contracts.md` § C3, § C7, § C8, § FR-017, § FR-018, § FR-020
+- Design contracts: `docs/blueprint/autonomous-factory/design-contracts.md` § C3, § C7, § C8, § Extensibility tier dimension, § Consumer-extension discovery convention, § Upstream-candidate front-matter convention
 - Spec: `specs/2026-06-02-issue-360-factory-personas-skills/spec.md`
 - Issue: #360 (Child A of #333); sibling Child B: `#361`
 - `AGENTS.md § Sign-off Policy` and § Sign-off Phrases (Deterministic)

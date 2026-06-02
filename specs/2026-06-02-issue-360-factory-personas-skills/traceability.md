@@ -20,6 +20,8 @@
 | FR-014 | SDD-C-004 | n/a | ADR § Decision (reviewer half — architecture-reviewer note) | `.agents/personas/architecture-reviewer.md` § Cross-Context Impact Reporting | T-106 | n/a | n/a |
 | FR-015 | SDD-C-004 | n/a | architecture.md Integration edges (#338 dependency) | `.agents/skills/blueprint-ticket-triage-size/SKILL.md` | T-102 | ADR-issue-337-triage-size-threshold.md | n/a |
 | FR-016 | SDD-C-007 | n/a | parent ADR clause 3 | each new `SKILL.md` | T-107 | ADR-issue-337-persona-skill-contract.md (clause 3) | n/a |
+| FR-017 | SDD-C-004 | n/a | architecture.md Context A; persona template contract from #360 issue body | each of the 10 persona files | T-108 | ADR-issue-360-factory-personas-skills-roster.md | n/a |
+| FR-018 | SDD-C-004 | n/a | reviewer-half table in ADR § Decision | the 4 reviewer persona files | T-106 (extended) | ADR-issue-337-reviewer-model-heterogeneity.md | n/a |
 | NFR-SEC-001 | SDD-C-009 | n/a | architecture.md NFA Security | the 20 new files | T-103 | n/a | `blueprint-agent-secret-scan` SKILL.md (runtime layer for future executions) |
 | NFR-OBS-001 | SDD-C-010 | n/a | architecture.md NFA Observability | each persona file (SDD Cycle Stakes); each new SKILL.md (## Required Output Schema or adjacent section) | T-101 (presence) | n/a | C7 phase enum (sealed under the design-contracts sealed list) |
 | NFR-REL-001 | SDD-C-007 | n/a | architecture.md NFA Reliability | each persona file (`## Skills Invoked` ordering) | T-105 | n/a | rollback = git revert |
@@ -38,14 +40,16 @@
 | AC-011 | SDD-C-012 | n/a | tests/blueprint/personas_skills/test_reviewer_personas.py | tests/blueprint/personas_skills/test_reviewer_personas.py | T-106 | n/a | n/a |
 | AC-012 | SDD-C-012 | n/a | tests/blueprint/personas_skills/test_reviewer_personas.py | tests/blueprint/personas_skills/test_reviewer_personas.py | T-106 | n/a | n/a |
 | AC-013 | SDD-C-012 | n/a | tests/blueprint/personas_skills/test_no_skill_invokes_skill.py | tests/blueprint/personas_skills/test_no_skill_invokes_skill.py | T-107 | n/a | n/a |
+| AC-014 | SDD-C-012 | n/a | tests/blueprint/personas_skills/test_persona_template_structure.py | tests/blueprint/personas_skills/test_persona_template_structure.py | T-108 | ADR-issue-360-factory-personas-skills-roster.md | n/a |
+| AC-015 | SDD-C-012 | n/a | tests/blueprint/personas_skills/test_reviewer_personas.py (extended) | tests/blueprint/personas_skills/test_reviewer_personas.py (extended) | T-106 (extended) | ADR-issue-337-reviewer-model-heterogeneity.md | n/a |
 
 ## Graph Linkage
 - Graph file: `graph.json`
 - Every `FR-###`, `NFR-*-###`, and `AC-###` listed in this file MUST have a corresponding node in `graph.json`.
 - Node IDs referenced:
-  - FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-007, FR-008, FR-009, FR-010, FR-011, FR-012, FR-013, FR-014, FR-015, FR-016
+  - FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-007, FR-008, FR-009, FR-010, FR-011, FR-012, FR-013, FR-014, FR-015, FR-016, FR-017, FR-018
   - NFR-SEC-001, NFR-OBS-001, NFR-REL-001, NFR-OPS-001, NFR-A11Y-001
-  - AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009, AC-010, AC-011, AC-012, AC-013
+  - AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009, AC-010, AC-011, AC-012, AC-013, AC-014, AC-015
 
 ## Validation Summary
 - Required bundles executed: pending (T-201)

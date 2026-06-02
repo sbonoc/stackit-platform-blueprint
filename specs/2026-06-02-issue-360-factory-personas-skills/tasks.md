@@ -20,8 +20,9 @@
 - [ ] T-103 Add `tests/blueprint/personas_skills/test_no_placeholders_no_secrets.py` covering AC-006 (no placeholder tokens + zero baseline secret-pattern matches across the 20 new files)
 - [ ] T-104 Add `tests/blueprint/personas_skills/test_dod_phrases.py` covering AC-007 (DevSecOps/QA DoD three mandated items) + AC-008 (Tech Lead DoD four mandated items)
 - [ ] T-105 Add `tests/blueprint/personas_skills/test_persona_invocation_safety.py` covering AC-009 (every `## Skills Invoked` reference resolves) + AC-010 (no persona claims human sign-off role)
-- [ ] T-106 Add `tests/blueprint/personas_skills/test_reviewer_personas.py` covering AC-011 (reviewer-dimension non-overlap) + AC-012 (architecture-reviewer Cross-Context Impact Reporting template fields present)
+- [ ] T-106 Add `tests/blueprint/personas_skills/test_reviewer_personas.py` covering AC-011 (reviewer-dimension non-overlap), AC-012 (architecture-reviewer Cross-Context Impact Reporting template fields present), and AC-015 (each of the 4 reviewer persona files contains the reviewer-model-heterogeneity statement AND cites `ADR-issue-337-reviewer-model-heterogeneity.md` by path)
 - [ ] T-107 Add `tests/blueprint/personas_skills/test_no_skill_invokes_skill.py` covering AC-013 (no new SKILL.md directive-invokes another skill)
+- [ ] T-108 Add `tests/blueprint/personas_skills/test_persona_template_structure.py` covering AC-014 — assert each of the 10 persona files contains the 9 common section headings from FR-017 in EXACTLY the specified order, the 4 reviewer persona files additionally contain `## Review Dimensions`, `.agents/personas/architecture-reviewer.md` additionally contains `## Cross-Context Impact Reporting`, and each required section has at least one non-blank line of content between its heading and the next heading
 
 ## Accessibility Testing (Normative — mark N/A with rationale for non-UI specs)
 - [ ] T-A01 N/A — NFR-A11Y-001 declared N/A in `spec.md`; this work item ships no UI surface (governance docs + persona/skill markdown files only). No axe-core scan, no keyboard operability test, no focus-indicator test, no programmatic-label test.

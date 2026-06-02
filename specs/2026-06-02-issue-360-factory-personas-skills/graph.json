@@ -18,6 +18,8 @@
     { "id": "FR-014", "type": "requirement", "summary": "Architecture-reviewer ## Cross-Context Impact Reporting template with required fields" },
     { "id": "FR-015", "type": "requirement", "summary": "blueprint-ticket-triage-size SKILL.md documents classification + boundary candidates + decompose handoff" },
     { "id": "FR-016", "type": "requirement", "summary": "No new SKILL.md directive-invokes another skill" },
+    { "id": "FR-017", "type": "requirement", "summary": "Every persona file contains the 9 common section headings in order; reviewers add Review Dimensions; architecture-reviewer adds Cross-Context Impact Reporting" },
+    { "id": "FR-018", "type": "requirement", "summary": "Each reviewer persona documents the reviewer-model-heterogeneity convention and cites the heterogeneity ADR" },
     { "id": "NFR-SEC-001", "type": "requirement", "summary": "No secrets or PII in any new file; baseline scan zero matches" },
     { "id": "NFR-OBS-001", "type": "requirement", "summary": "Every persona declares its C7 phase enum value(s); every new skill declares phase emitted on completion" },
     { "id": "NFR-REL-001", "type": "requirement", "summary": "Persona/skill invocation graph is reproducible and deterministic" },
@@ -35,7 +37,9 @@
     { "id": "AC-010", "type": "acceptance", "summary": "No persona claims human sign-off role" },
     { "id": "AC-011", "type": "acceptance", "summary": "Reviewer dimensions non-overlapping" },
     { "id": "AC-012", "type": "acceptance", "summary": "Architecture-reviewer Cross-Context Impact Reporting template present" },
-    { "id": "AC-013", "type": "acceptance", "summary": "No new SKILL.md directive-invokes another skill" }
+    { "id": "AC-013", "type": "acceptance", "summary": "No new SKILL.md directive-invokes another skill" },
+    { "id": "AC-014", "type": "acceptance", "summary": "Persona template skeleton present and non-empty in all 10 personas" },
+    { "id": "AC-015", "type": "acceptance", "summary": "Reviewer model heterogeneity convention documented in each reviewer persona" }
   ],
   "edges": [
     { "from": "FR-001", "to": "AC-001", "relation": "validated_by" },
@@ -54,6 +58,8 @@
     { "from": "FR-014", "to": "AC-012", "relation": "validated_by" },
     { "from": "FR-015", "to": "AC-003", "relation": "validated_by" },
     { "from": "FR-016", "to": "AC-013", "relation": "validated_by" },
+    { "from": "FR-017", "to": "AC-014", "relation": "validated_by" },
+    { "from": "FR-018", "to": "AC-015", "relation": "validated_by" },
     { "from": "NFR-SEC-001", "to": "AC-006", "relation": "constrains" },
     { "from": "NFR-OBS-001", "to": "AC-003", "relation": "constrains" },
     { "from": "NFR-OBS-001", "to": "AC-001", "relation": "constrains" },
