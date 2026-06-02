@@ -80,14 +80,24 @@ The matrix at the time of this ADR (informative — for sign-off readers; author
 
 | SDD step | Skill | Experts consulted | Lead voice | Convergence mode |
 |---|---|---|---|---|
-| step01 | `blueprint-sdd-step01-intake` | `product-pragmatist`, `boundary-hawk` | `product-pragmatist` | parallel-then-merge |
-| step02 | `blueprint-sdd-step02-resolve-questions` | `product-pragmatist` + ad-hoc by question domain | `product-pragmatist` | parallel-then-merge |
-| step03 | `blueprint-sdd-step03-spec-complete` | `product-pragmatist`, `boundary-hawk`, `security-paranoid`, `data-privacy`, `operability-sre`, `documentation-discipline` | `product-pragmatist` | parallel-then-merge (structured-disagreement on block conflicts) |
-| step04 | `blueprint-sdd-step04-plan-slicer` | `boundary-hawk`, `performance-cost-aware`, `operability-sre` | `boundary-hawk` | parallel-then-merge |
-| step05 | `blueprint-sdd-step05-implement` | `test-quality-sceptic`, `security-paranoid`, `data-privacy`, `performance-cost-aware`, `boundary-hawk` | `test-quality-sceptic` | sequential-lens |
-| step06 | `blueprint-sdd-step06-document-sync` | `documentation-discipline`, `product-pragmatist` | `documentation-discipline` | parallel-then-merge |
-| step07 | `blueprint-sdd-step07-pr-packager` | `documentation-discipline`, `operability-sre`, `test-quality-sceptic` | `documentation-discipline` | parallel-then-merge |
+| step01 | `blueprint-sdd-step01-intake` | **all 8** | `product-pragmatist` | parallel-then-merge |
+| step02 | `blueprint-sdd-step02-resolve-questions` | **dynamically scoped per question** (orchestrator selects experts whose worldview matches the question domain; floor = `product-pragmatist` for any question lacking domain signal); lead = the original questioner (if a bot persona) or `product-pragmatist` (if a human reviewer) | dynamic | parallel-then-merge |
+| step03 | `blueprint-sdd-step03-spec-complete` | `documentation-discipline` only | `documentation-discipline` | sequential-lens |
+| step04 | `blueprint-sdd-step04-plan-slicer` | `test-quality-sceptic`, `boundary-hawk`, `operability-sre`, `performance-cost-aware` | `test-quality-sceptic` | parallel-then-merge |
+| step05 | `blueprint-sdd-step05-implement` | `test-quality-sceptic`, `security-paranoid`, `data-privacy`, `boundary-hawk`, `performance-cost-aware` | `test-quality-sceptic` | sequential-lens |
+| step06 | `blueprint-sdd-step06-document-sync` | `documentation-discipline`, `boundary-hawk`, `product-pragmatist` | `documentation-discipline` | parallel-then-merge |
+| step07 | `blueprint-sdd-step07-pr-packager` | `documentation-discipline`, `operability-sre`, `test-quality-sceptic`, `boundary-hawk` | `documentation-discipline` | parallel-then-merge |
 | step08 | `blueprint-sdd-step08-agent-pr-review` | **all 8** | rotating per round (heterogeneity-aware) | parallel-then-merge (structured-disagreement on block conflicts) |
+
+**Dispatch principle:** experts cluster where artifacts are **born or substantially mutated** (step01, step02, step05, step08), not where sign-offs are recorded (step03). Catching a design flaw at step01 is 10–100× cheaper than catching it at step08.
+
+**Per-step dispatch sizes:** 8 / dynamic / 1 / 4 / 5 / 3 / 4 / 8. Total expert-step instantiations: 33 + step02 average (assume ~3) ≈ 36. Step03 is intentionally minimal — the four human sign-offs (Product / Architecture / Security / Operations) already covered the architectural lensing; `documentation-discipline` is a token-cheap "did we record cleanly" sanity check that keeps always-respond audit symmetry alive at every step.
+
+**Step02 dynamic-scope contract** (consumed by #361 orchestrator):
+- Input: the open-question text + the artifact section it targets (e.g., `spec.md § NFR-003`, `architecture.md § Bounded Contexts`).
+- Selection rule: orchestrator routes the question to the expert(s) whose `Push-back Triggers` section in their `PERSONA.md` matches keywords / domains in the question. Multiple matches → multiple experts. Zero matches → floor = `product-pragmatist`.
+- Lead voice: the original questioner if the question was raised by a bot persona at step08 (recorded in `outcome.details.expert_verdicts[].expert_slug`); otherwise `product-pragmatist`.
+- Implementation of the routing logic is owned by #361; this ADR specifies only the contract.
 
 Tunable per-step over time without amending this ADR — the matrix in C3 is authoritative and the only place it lives.
 
@@ -256,7 +266,7 @@ The `agent-stop` GitHub label semantics from `ADR-issue-337-trigger-authorizatio
 
 **Negative:**
 
-- Higher LLM call volume per step (1 skill + N expert reviews vs 1 stage-persona) — mitigated by matrix-capped panel sizes; step08 is the only all-8 fan-out.
+- Higher LLM call volume per step (1 skill + N expert reviews vs 1 stage-persona) — mitigated by matrix-capped panel sizes; step01 and step08 are the two all-8 fan-outs (artifact-authoring + full-PR-review judgment surfaces); step03 is minimised to 1 expert; total expert-step instantiations per work item ≈ 36.
 - Convergence merger is new code surface (in #361). Naive dedup may miss semantic duplicates.
 - 8-expert ceiling is now AT the limit on day one — discipline required to reject below-distinction proposals.
 - Higher spec-authoring complexity in this ticket so #361 inherits an implementation-ready contract.
