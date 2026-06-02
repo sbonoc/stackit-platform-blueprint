@@ -21,14 +21,14 @@
   - `docs/blueprint/architecture/decisions/ADR-issue-360-factory-personas-skills-roster.md` (Status: superseded)
   - `AGENTS.md` § persona section (retitle + rewrite)
   - `.agents/personas/<slug>/PERSONA.md` × 8 (new files)
-  - `.agents/skills/blueprint-*/SKILL.md` × 10 (re-homed with persona-coupling stripped; `blueprint-agent-pr-review` reshaped for panel-input)
+  - `.agents/skills/blueprint-*/SKILL.md` × 10 (re-homed with persona-coupling stripped; `blueprint-sdd-step08-agent-pr-review` reshaped for panel-input)
 
 ## Key Reviewer Files
 - Primary files to review first:
   - `docs/blueprint/architecture/decisions/ADR-issue-364-expert-persona-model.md` (full architectural shape)
   - `docs/blueprint/autonomous-factory/design-contracts.md` § C3 (dispatch matrix)
   - `.agents/personas/data-privacy/PERSONA.md` (new expert, distinguishing posture vs security-paranoid)
-  - `.agents/skills/blueprint-agent-pr-review/SKILL.md` (panel-input reshape)
+  - `.agents/skills/blueprint-sdd-step08-agent-pr-review/SKILL.md` (panel-input reshape)
 - High-risk files:
   - `docs/blueprint/architecture/decisions/ADR-issue-337-c7-emission-mechanism.md` (additive — must preserve eleven required fields + sealed three-emitter rule + event_id derivation)
   - `AGENTS.md` (persona section — must not break SoD posture or two-human-gates invariant)

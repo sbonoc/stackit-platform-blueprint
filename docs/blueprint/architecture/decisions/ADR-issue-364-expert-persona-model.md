@@ -82,7 +82,7 @@ The matrix at the time of this ADR (informative — for sign-off readers; author
 |---|---|---|---|---|
 | step01 | `blueprint-sdd-step01-intake` | **all 8** | `product-pragmatist` | parallel-then-merge |
 | step02 | `blueprint-sdd-step02-resolve-questions` | **dynamically scoped per question** (orchestrator selects experts whose worldview matches the question domain; floor = `product-pragmatist` for any question lacking domain signal); lead = the original questioner (if a bot persona) or `product-pragmatist` (if a human reviewer) | dynamic | parallel-then-merge |
-| step03 | `blueprint-sdd-step03-spec-complete` | `documentation-discipline` only | `documentation-discipline` | sequential-lens |
+| step03 | `blueprint-sdd-step03-spec-complete` | `documentation-discipline` only | `documentation-discipline` | sequential-lens (panel-of-1 — convergence is trivial) |
 | step04 | `blueprint-sdd-step04-plan-slicer` | `test-quality-sceptic`, `boundary-hawk`, `operability-sre`, `performance-cost-aware` | `test-quality-sceptic` | parallel-then-merge |
 | step05 | `blueprint-sdd-step05-implement` | `test-quality-sceptic`, `security-paranoid`, `data-privacy`, `boundary-hawk`, `performance-cost-aware` | `test-quality-sceptic` | sequential-lens |
 | step06 | `blueprint-sdd-step06-document-sync` | `documentation-discipline`, `boundary-hawk`, `product-pragmatist` | `documentation-discipline` | parallel-then-merge |
@@ -137,7 +137,7 @@ sequenceDiagram
 
 **Pattern 2 — sequential-lens** (`step05` only). Experts apply in order: `test-quality-sceptic` → `security-paranoid` → `data-privacy` → `performance-cost-aware` → `boundary-hawk`. Each round receives the prior round's revised draft. Used where a later lens must observe the effect of an earlier lens (e.g., a security fix may introduce a performance regression).
 
-**Pattern 3 — structured-disagreement** (`step03` + `step08` only, on conflicting `block` verdicts). When two experts emit `block` with mutually exclusive demands (revealed by the merger detecting contradictory finding categories), the orchestrator surfaces the disagreement to the human at the **existing two gates** (spec sign-off, PR merge). **No new gate** is introduced.
+**Pattern 3 — structured-disagreement** (`step08` only, on conflicting `block` verdicts). When two experts emit `block` with mutually exclusive demands (revealed by the merger detecting contradictory finding categories), the orchestrator surfaces the disagreement to the human at the **existing two gates** (spec sign-off, PR merge). **No new gate** is introduced. (Step03 is excluded — its panel size of 1 makes block-conflict mechanically impossible; any disagreement at the spec-sign-off gate is reasoned out between human approvers, not bot experts.)
 
 ## 6. Always-respond verdict contract (FR-004)
 
@@ -215,7 +215,7 @@ The 10 skill runbooks shipped by #360 / PR #362 are re-homed onto this branch wi
 
 - **`Actor` section**: cite the orchestrator + the expert panel via the matrix. MUST NOT name a stage-persona (no "po-analyst persona", "tech-lead persona", etc.). AC-004 grep enforces this.
 - **`Composition` section**: cite the orchestrator's dispatch table as the binding mechanism. Skills still MUST NOT directive-invoke other skills.
-- **`blueprint-agent-pr-review/SKILL.md` only**: `## Inputs` adds a panel-input parameter (`expert_slugs: Array<string>`) and `## Required Output Schema` adds a per-expert verdict array conforming to the schema in §6.
+- **`blueprint-sdd-step08-agent-pr-review/SKILL.md` only**: `## Inputs` adds a panel-input parameter (`expert_slugs: Array<string>`) and `## Required Output Schema` adds a per-expert verdict array conforming to the schema in §6.
 
 The other nine skill runbooks (triage-size, decompose-light, spec-author, plan-slicer, implement, document-sync, pr-package, agent-stop-cleanup, traceability-keeper) require only the `Actor` and `Composition` text fixes — no schema changes.
 
