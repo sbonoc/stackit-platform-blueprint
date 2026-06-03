@@ -11,8 +11,8 @@
 - Scope boundaries: This PR ships specs, ADR, 8 persona files, skill runbook edits, design-contracts § C3 reshape, AGENTS.md persona section update, MEMORY.md updates, and cross-ticket GH amendments. It does NOT ship runtime orchestrator code (#361), LiteLLM routing changes (#335), webhook FR-008 implementation (#336), or upgrade-process versioning extension (#342) — those land in their respective tickets via comment amendments posted in step06.
 
 ## Requirement Coverage
-- Requirement IDs covered: FR-001..FR-008, NFR-SEC-001, NFR-OBS-001, NFR-REL-001, NFR-OPS-001, NFR-A11Y-001
-- Acceptance criteria covered: AC-001..AC-007 (assertion evidence populated in step07)
+- Requirement IDs covered: FR-001..FR-012, NFR-SEC-001, NFR-OBS-001, NFR-REL-001, NFR-OPS-001, NFR-A11Y-001
+- Acceptance criteria covered: AC-001..AC-015 (assertion evidence populated in step07)
 - Contract surfaces changed:
   - `docs/blueprint/autonomous-factory/design-contracts.md` § C3 (matrix reshape)
   - `docs/blueprint/architecture/decisions/ADR-issue-337-c7-emission-mechanism.md` (additive `expert_verdicts[]` clause)

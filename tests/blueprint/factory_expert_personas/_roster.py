@@ -42,6 +42,7 @@ PERSONA_FORBIDDEN_SECTIONS: tuple[str, ...] = (
 
 STAGE_PERSONA_SLUGS: tuple[str, ...] = (
     "po-analyst",
+    "architect",
     "tech-lead",
     "qa-engineer",
     "implementer",

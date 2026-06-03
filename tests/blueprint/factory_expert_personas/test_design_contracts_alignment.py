@@ -71,6 +71,17 @@ def test_c3_cross_references_adr_issue_364() -> None:
     )
 
 
+def test_c3_header_text_matches_spec() -> None:
+    expected_header = (
+        "| SDD step | Skill | Experts consulted | Lead voice | Convergence mode |"
+    )
+    assert expected_header in _c3(), (
+        "design-contracts § C3 dispatch matrix header must match the exact 5-column "
+        "shape required by AC-003 / ADR-issue-364 § 4: "
+        f"{expected_header!r}"
+    )
+
+
 def test_c7_persona_field_carries_skill_basename_semantics() -> None:
     assert "draft-producing skill basename" in _c7(), (
         "design-contracts § C7 'persona' field description must carry the "

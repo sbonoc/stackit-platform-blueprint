@@ -194,7 +194,7 @@ Tier rationale notes:
 - `documentation-discipline` is at Sonnet (not Haiku) because it is the **lead voice at step06** — the document-sync step whose entire purpose is producing semantically accurate documentation after implementation. Haiku misses subtle semantic drift (description correct before the refactor, wrong in a non-obvious way after). Haiku is a permitted down-tier **override** at step01 and step08 where documentation-discipline performs structural-presence checks rather than semantic authoring.
 - `data-privacy` is at Opus because privacy analysis is multi-hop reasoning under regulatory ambiguity — not a checklist. To catch a violation the expert must trace data origin, flow, retention path, cross-field combination effects, and applicable jurisdiction before concluding whether a lawful basis holds. A missed violation carries the same consequence tier as a missed security flaw (enforcement action, subject rights breach, regulatory fine). The step05 Haiku-or-Sonnet override that appeared in earlier drafts of this ADR is removed: if the baseline was already right, no override would be needed.
 
-The Opus tier covers **the five experts whose errors are most expensive to catch late**: product scope (step01 lead), architecture boundaries, security, privacy, and data-flow reasoning. The Sonnet tier covers pattern-based reasoning (test quality, operability, docs authoring, performance patterns) where the judgment ceiling is lower and the volume is high.
+The Opus tier covers **the four experts whose errors are most expensive to catch late**: product scope (step01 lead), architecture boundaries, security, and privacy/data-flow reasoning. The Sonnet tier covers pattern-based reasoning (test quality, operability, docs authoring, performance patterns) where the judgment ceiling is lower and the volume is high.
 
 **Named per-step override (MUST be applied; not optional):**
 
@@ -204,7 +204,7 @@ The Opus tier covers **the five experts whose errors are most expensive to catch
 
 All other per-step deviations from the baseline table are **optional** cost-tier adjustments shipped with #335. The MUST override above is normative and MUST be reflected in the orchestrator's dispatch configuration.
 
-The panel-disjointness audit invariant (from amended `ADR-issue-337-reviewer-model-heterogeneity.md`) MUST be satisfied: within a single step's panel, no two experts MAY share the same LiteLLM routing key for the same `(ticket_id, phase, rerun_round)` tuple. Step03's panel-of-1 trivially satisfies this; step01 and step08 (all-8) MUST be configured with at least 2 distinct routing keys across the 8 experts; in practice the Sonnet/Opus tier mix (3 Sonnet, 5 Opus baseline — with documentation-discipline overriding to Haiku at step01/step08) satisfies this automatically.
+The panel-disjointness audit invariant (from amended `ADR-issue-337-reviewer-model-heterogeneity.md`) MUST be satisfied: within a single step's panel, no two experts MAY share the same LiteLLM routing key for the same `(ticket_id, phase, rerun_round)` tuple. Step03's panel-of-1 trivially satisfies this; step01 and step08 (all-8) MUST be configured with at least 2 distinct routing keys across the 8 experts; in practice the Sonnet/Opus tier mix (4 Sonnet, 4 Opus baseline — with documentation-discipline overriding to Haiku at step01/step08) satisfies this automatically.
 
 ### 4.4 Step08 lead-rotation algorithm
 
@@ -377,7 +377,7 @@ The intent: dispatch-time failures are never silently swallowed; the audit trail
 
 ## 7. Supersession + amendment (FR-005)
 
-- `ADR-issue-360-factory-personas-skills-roster.md`: `Status: superseded by ADR-issue-364-expert-persona-model.md`. First paragraph rewritten to point readers here. The salvageable artifacts (skill runbooks minus persona-coupling; C7 schema fixes; CLAUDE.md step08 row) carry forward via this ADR's outputs.
+- `ADR-issue-360-factory-personas-skills-roster.md`: `Status: superseded by ADR-issue-364-expert-persona-model.md`. First paragraph rewritten to point readers here. The salvageable artifacts (skill runbooks minus persona-coupling; C7 schema fixes) carry forward via this ADR's outputs.
 - `ADR-issue-337-persona-skill-contract.md`: `Amended by ADR-issue-364-expert-persona-model.md` (clause 3 composition rule extended to expert personas; identity-source rule added per § 8.1 — `PERSONA.md § Worldview` is the sole identity source for a dispatched expert, with `AGENTS.md § Role and Philosophy` scoped to operator-default mode).
 - `ADR-issue-337-c7-emission-mechanism.md`: `Amended by ADR-issue-364-expert-persona-model.md` (additive optional `outcome.details.expert_verdicts[]`; AND the `persona` field description for `emitter: orchestrator` events plus surrounding emission-mechanism prose realigned from *persona invocation* / *persona file basename* wording to *skill invocation* / *SDD step skill basename* wording, since the expert-panel dispatch model no longer has a 1:1 persona-per-phase relation — eleven-field minimum schema, `event_id` derivation, and sealed three-emitter rule remain unchanged).
 - `ADR-issue-337-reviewer-model-heterogeneity.md`: `Amended by ADR-issue-364-expert-persona-model.md` (per-expert model assignment; FR-008 audit invariant becomes panel-disjointness).

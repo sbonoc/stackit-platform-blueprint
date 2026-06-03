@@ -18,6 +18,7 @@ import pytest
 from tests.blueprint.factory_expert_personas._roster import (
     EXPERT_SLUGS,
     SDD_STEP_SKILL_NAMES,
+    SKILLS_DIR,
     STAGE_PERSONA_SLUGS,
     persona_path,
     skill_path,
@@ -26,6 +27,16 @@ from tests.blueprint.factory_expert_personas._roster import (
 STAGE_SLUG_REGEX = re.compile(
     r"\b(" + "|".join(re.escape(s) for s in STAGE_PERSONA_SLUGS) + r")\b"
 )
+
+
+def _all_blueprint_skill_paths() -> list[str]:
+    return sorted(
+        p.parent.name
+        for p in SKILLS_DIR.glob("blueprint-*/SKILL.md")
+    )
+
+
+ALL_BLUEPRINT_SKILL_NAMES: tuple[str, ...] = tuple(_all_blueprint_skill_paths())
 
 
 @pytest.mark.parametrize("slug", EXPERT_SLUGS)
@@ -46,5 +57,17 @@ def test_sdd_step_skill_carries_no_stage_persona_slug(skill: str) -> None:
         f"{skill}/SKILL.md references obsolete stage-persona slug(s) "
         f"{sorted(set(matches))!r} — strip per FR-006 (skill runbooks "
         f"MUST NOT couple to a stage-persona identity; orchestrator dispatches "
+        f"the panel via the Contract C3 matrix)"
+    )
+
+
+@pytest.mark.parametrize("skill", ALL_BLUEPRINT_SKILL_NAMES)
+def test_all_blueprint_skills_carry_no_stage_persona_slug(skill: str) -> None:
+    body = skill_path(skill).read_text()
+    matches = STAGE_SLUG_REGEX.findall(body)
+    assert not matches, (
+        f"{skill}/SKILL.md references obsolete stage-persona slug(s) "
+        f"{sorted(set(matches))!r} — strip per FR-006 (all blueprint-* skill "
+        f"runbooks MUST be free of stage-persona coupling; orchestrator dispatches "
         f"the panel via the Contract C3 matrix)"
     )

@@ -143,16 +143,16 @@ Every factory instance MUST map OpenHands microagents to personas by **name equa
 
 The single authoritative SDD-step × expert dispatch matrix is:
 
-| SDD step | Draft-producing skill | Experts consulted (lead voice in **bold**) | Convergence mode |
-|---|---|---|---|
-| step01 — intake | `blueprint-sdd-step01-intake` | **product-pragmatist**, boundary-hawk, security-paranoid, data-privacy, test-quality-sceptic, operability-sre, documentation-discipline, performance-cost-aware | parallel-then-merge |
-| step02 — resolve questions | `blueprint-sdd-step02-resolve-questions` | dynamic per question-text substring routing against each expert's `## Push-back Triggers` set (see ADR-issue-364 § 4.2); **lead voice** is the expert whose triggers match the active question | parallel-then-merge |
-| step03 — spec complete | `blueprint-sdd-step03-spec-complete` | **product-pragmatist** (solo) | n/a (solo) |
-| step04 — plan slicer | `blueprint-sdd-step04-plan-slicer` | **boundary-hawk**, product-pragmatist, operability-sre, performance-cost-aware | parallel-then-merge |
-| step05 — implement | `blueprint-sdd-step05-implement` | **boundary-hawk**, test-quality-sceptic, security-paranoid, performance-cost-aware, operability-sre | sequential-lens |
-| step06 — document sync | `blueprint-sdd-step06-document-sync` | **documentation-discipline**, product-pragmatist, boundary-hawk | parallel-then-merge |
-| step07 — pr packager | `blueprint-sdd-step07-pr-packager` | **documentation-discipline**, product-pragmatist, boundary-hawk, operability-sre | parallel-then-merge |
-| step08 — agent pr review | `blueprint-sdd-step08-agent-pr-review` | **boundary-hawk**, product-pragmatist, security-paranoid, data-privacy, test-quality-sceptic, operability-sre, documentation-discipline, performance-cost-aware | structured-disagreement |
+| SDD step | Skill | Experts consulted | Lead voice | Convergence mode |
+|---|---|---|---|---|
+| step01 | `blueprint-sdd-step01-intake` | all 8 | `product-pragmatist` | parallel-then-merge |
+| step02 | `blueprint-sdd-step02-resolve-questions` | dynamic per question-text substring routing against each expert's `## Push-back Triggers` set (see `../architecture/decisions/ADR-issue-364-expert-persona-model.md` § 4.2) | dynamic (see § 4.2) | parallel-then-merge |
+| step03 | `blueprint-sdd-step03-spec-complete` | `documentation-discipline` only | `documentation-discipline` | sequential-lens (panel-of-1) |
+| step04 | `blueprint-sdd-step04-plan-slicer` | `test-quality-sceptic`, `boundary-hawk`, `operability-sre`, `performance-cost-aware` | `test-quality-sceptic` | parallel-then-merge |
+| step05 | `blueprint-sdd-step05-implement` | `test-quality-sceptic`, `security-paranoid`, `data-privacy`, `boundary-hawk`, `performance-cost-aware` | `test-quality-sceptic` | sequential-lens |
+| step06 | `blueprint-sdd-step06-document-sync` | `documentation-discipline`, `boundary-hawk`, `product-pragmatist` | `documentation-discipline` | parallel-then-merge |
+| step07 | `blueprint-sdd-step07-pr-packager` | `documentation-discipline`, `operability-sre`, `test-quality-sceptic`, `boundary-hawk` | `documentation-discipline` | parallel-then-merge |
+| step08 | `blueprint-sdd-step08-agent-pr-review` | all 8 | rotating per round (heterogeneity-aware — see `../architecture/decisions/ADR-issue-364-expert-persona-model.md` § 4.4) | parallel-then-merge (structured-disagreement on `block` conflicts) |
 
 `ADR-issue-364-expert-persona-model.md` MUST reference this table by file path and section anchor and MUST NOT duplicate the table content; this section is the single source of truth for the dispatch matrix.
 
