@@ -10,15 +10,18 @@ emits-phase: intake
 
 ## When to Use
 
-This skill runs first on every accepted ticket, before any other persona-side
+This skill runs first on every accepted ticket, before any other SDD-step
 work begins. The orchestrator (issue #333, Child B) wraps the skill invocation
 and emits the resulting `phase: intake` C7 event.
 
 ## Actor
 
-Invoked by the `tech-lead` persona once per ticket. Other personas MUST NOT
-invoke this skill directly; skill composition is a persona-layer
-responsibility per `ADR-issue-337-persona-skill-contract.md` clause 3.
+Invoked by the orchestrator on behalf of the step01 expert panel (which by
+ADR-issue-364 § 4 dispatches the full 8-expert roster for intake) once per
+ticket. The expert-panel layer MUST NOT directive-invoke this skill;
+the orchestrator's dispatch table in design-contracts § C3 is the binding
+mechanism, per `ADR-issue-337-persona-skill-contract.md` clause 3 (as
+amended by `ADR-issue-364-expert-persona-model.md`).
 
 ## Inputs
 
@@ -49,15 +52,15 @@ responsibility per `ADR-issue-337-persona-skill-contract.md` clause 3.
 ## Composition
 
 This skill MUST NOT directive-invoke any other skill. When the classification
-is `large-decomposable`, the persona that invoked this skill (the `tech-lead`
-persona) will subsequently invoke `blueprint-ticket-decompose-light` per its
-own persona definition. The two skills are composed at the persona layer,
-not inside any skill runbook.
+is `large-decomposable`, the orchestrator subsequently invokes
+`blueprint-ticket-decompose-light` per the dispatch rules in
+design-contracts § C3. The two skills are composed at the orchestrator
+layer, not inside any skill runbook.
 
 ## Required Output Schema
 
 The orchestrator emits a `phase: intake` C7 lifecycle event after the
-tech-lead persona's full intake phase is complete. When classification is
+step01 expert panel's full intake phase is complete. When classification is
 NOT `large-decomposable`, this skill's output is the sole `outcome.details`
 payload. When `large-decomposable`, the output is combined with the
 `blueprint-ticket-decompose-light` output into the single event emitted
@@ -96,9 +99,10 @@ properties:
   rationale:
     type: string
     description: Single-paragraph justification for the chosen classification.
-  next_persona_hint:
+  next_skill_hint:
     type: string
     description: >-
-      Optional non-binding hint identifying the next persona the orchestrator
-      MAY invoke. The orchestrator is authoritative; this field is advisory.
+      Optional non-binding hint identifying the next SDD-step skill the
+      orchestrator should consider invoking. The orchestrator's dispatch
+      table is authoritative; this field is advisory.
 ```

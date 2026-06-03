@@ -1,6 +1,6 @@
 ---
 name: blueprint-human-review-prep
-description: Package the green branch and reviewer-persona findings into a structured payload the human merge reviewer can consume in one pass at the bounded-context human merge gate.
+description: Package the green branch and step08 expert-panel findings into a structured payload the human merge reviewer can consume in one pass at the bounded-context human merge gate.
 blueprint-version: 1.0.0
 extensibility-tier: extensible
 emits-phase: pr-packager
@@ -10,28 +10,31 @@ emits-phase: pr-packager
 
 ## When to Use
 
-Invoked after the four reviewer personas have completed the `agent-pr-review`
+Invoked after the step08 expert panel has completed the `agent-pr-review`
 phase and before the bounded-context human merge gate. The output is the
 attention map the human merge reviewer uses to decide whether to approve
 the PR.
 
 ## Actor
 
-Invoked by the `doc-keeper` persona. Other personas MUST NOT invoke this
-skill directly.
+Invoked by the orchestrator on behalf of the documentation-discipline
+expert at the end of the step08 panel cycle. The expert-panel layer MUST
+NOT directive-invoke this skill; the orchestrator's dispatch table is the
+binding mechanism.
 
 ## Inputs
 
 - The packaged PR body authored by `blueprint-sdd-step07-pr-packager`.
-- The findings lists filed by each of the four reviewer personas.
+- The per-expert verdict array (`expert_verdicts[]`) merged from the step08
+  panel invocations.
 - The hardening review file `hardening_review.md`.
 - The work-item `traceability.md` and `graph.json`.
 
 ## Steps
 
-1. Aggregate the reviewer-persona findings by severity and dimension.
-2. Append the cross-context impact reporting payload from the
-   `architecture-reviewer` persona to the structured output.
+1. Aggregate the step08 panel findings by severity and dimension.
+2. Append the cross-context impact reporting payload assembled by the
+   step08 boundary-hawk expert to the structured output.
 3. Surface any unresolved must-fix findings so the human merge reviewer
    can refuse merge until they are addressed or explicitly waived.
 4. Return the structured payload described in `## Required Output Schema`
@@ -54,42 +57,42 @@ $schema: "http://json-schema.org/draft-07/schema#"
 title: BlueprintHumanReviewPrep
 description: >-
   Attention map for the human merge reviewer at the bounded-context human
-  merge gate.
+  merge gate. Built from the step08 expert_verdicts[] array.
 type: object
 additionalProperties: false
 required:
   - ticket_id
-  - reviewer_findings
+  - expert_verdicts
   - cross_context_impact
   - unresolved_must_fix
 properties:
   ticket_id:
     type: string
-  reviewer_findings:
-    type: object
-    additionalProperties: false
-    required:
-      - security
-      - architecture
-      - contract
-      - test_coverage
-    properties:
-      security:
-        type: array
-        items:
-          type: object
-      architecture:
-        type: array
-        items:
-          type: object
-      contract:
-        type: array
-        items:
-          type: object
-      test_coverage:
-        type: array
-        items:
-          type: object
+  expert_verdicts:
+    type: array
+    description: >-
+      Per-expert verdict and findings array merged from the step08 panel
+      invocations, keyed by expert_slug per ADR-issue-364 § 6.
+    items:
+      type: object
+      additionalProperties: false
+      required:
+        - expert_slug
+        - verdict
+        - findings
+      properties:
+        expert_slug:
+          type: string
+        verdict:
+          type: string
+          enum:
+            - pass
+            - revise
+            - block
+        findings:
+          type: array
+          items:
+            type: object
   cross_context_impact:
     type: object
     additionalProperties: false
@@ -119,13 +122,13 @@ properties:
       type: object
       additionalProperties: false
       required:
-        - reviewer
+        - expert_slug
         - finding_id
         - file
         - line
         - description
       properties:
-        reviewer:
+        expert_slug:
           type: string
         finding_id:
           type: string

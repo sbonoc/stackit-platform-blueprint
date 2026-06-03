@@ -49,11 +49,11 @@ request only.
 
 ## Required Output Schema
 
-The orchestrator emits the persona's terminating C7 lifecycle event on
-skill completion; the `phase` value matches the invoking persona's current
-phase (e.g. `agent-pr-review` for the 4 reviewer personas, `implement` for
-the implementer persona). The structured payload below is the
-`outcome.details` carried on that event.
+The orchestrator emits the terminating C7 lifecycle event on skill
+completion; the `phase` value matches the SDD-step skill whose run is
+ending (e.g. `agent-pr-review` for step08 runs, `implement` for step05
+runs). The structured payload below is the `outcome.details` carried on
+that event.
 
 ```yaml jsonschema
 $schema: "http://json-schema.org/draft-07/schema#"

@@ -161,7 +161,7 @@ dependencies. These are mandatory defaults — deviate only with documented rati
     and MUST NOT be used as a substitute for this field-coverage assertion.
 14. Vue component test per rendering branch: for any Vue SFC rendering change (new
     component, modified template, or touched conditional branch), before marking the
-    slice done the implementer MUST enumerate which Vitest Browser Mode component test
+    slice done the step05 invocation MUST enumerate which Vitest Browser Mode component test
     covers each rendering branch touched — including fallback, degraded, and error paths.
     A slice MUST NOT be declared done if any rendering branch that was added or modified
     is absent from the component test suite.
@@ -432,6 +432,34 @@ properties:
     enum:
       - clean
       - gaps-found
+  expert_verdicts:
+    type: array
+    description: >-
+      Per-expert verdict array merged by the orchestrator from the step05
+      panel invocations (ADR-issue-364 § 4 dispatches a 5-expert panel at
+      step05 in sequential-lens convergence mode). Each row is keyed by
+      expert_slug per ADR-issue-364 § 6 and is carried on the C7
+      outcome.details.expert_verdicts[] field per FR-007.
+    items:
+      type: object
+      additionalProperties: false
+      required:
+        - expert_slug
+        - verdict
+        - findings
+      properties:
+        expert_slug:
+          type: string
+        verdict:
+          type: string
+          enum:
+            - pass
+            - revise
+            - block
+        findings:
+          type: array
+          items:
+            type: object
 ```
 
 ## C7 Emission

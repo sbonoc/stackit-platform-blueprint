@@ -45,6 +45,41 @@
   - Per-expert model assignment token cost — mitigated by matrix-capped panel sizes and Haiku-for-low-stakes guidance in heterogeneity ADR amendment.
 - Rollback strategy: Single-PR atomic merge. `git revert` of the merge commit is safe — the C7 `expert_verdicts[]` field is additive and optional, so existing consumers tolerate revert. PR #362 stays open until step06 of THIS ticket explicitly closes it; if THIS PR is closed without merge, the repo remains on the stage-persona model.
 
+## Cherry-Pick Ledger
+Procedural-contract sub-section per FR-006: salvage-of-record from PR #362.
+Each row records the path to the salvaged runbook, the originating PR #362
+commit-sha (or `(new on this branch)` when no #362 ancestor exists), and the
+stripping-edit commit-sha on this branch where persona-coupling language was
+removed and the `expert_verdicts`/`expert_slug` schema fragment added per
+FR-006(a)/(b)/(c). The stripping-edit commits land in slice 3 of this PR.
+
+| Runbook path | PR #362 commit-sha | Stripping-edit commit-sha on this branch |
+|---|---|---|
+| `.agents/skills/blueprint-sdd-step01-intake/SKILL.md` | (new on this branch) | populated at slice 3 commit |
+| `.agents/skills/blueprint-sdd-step02-resolve-questions/SKILL.md` | (new on this branch) | populated at slice 3 commit |
+| `.agents/skills/blueprint-sdd-step03-spec-complete/SKILL.md` | (new on this branch) | populated at slice 3 commit |
+| `.agents/skills/blueprint-sdd-step04-plan-slicer/SKILL.md` | (new on this branch) | populated at slice 3 commit |
+| `.agents/skills/blueprint-sdd-step05-implement/SKILL.md` | (new on this branch) | populated at slice 3 commit |
+| `.agents/skills/blueprint-sdd-step06-document-sync/SKILL.md` | (new on this branch) | populated at slice 3 commit |
+| `.agents/skills/blueprint-sdd-step07-pr-packager/SKILL.md` | (new on this branch) | populated at slice 3 commit |
+| `.agents/skills/blueprint-sdd-step08-agent-pr-review/SKILL.md` | (new on this branch) | populated at slice 3 commit |
+| `.agents/skills/blueprint-sdd-traceability-keeper/SKILL.md` | (new on this branch) | (no persona-coupling; no stripping needed) |
+| `.agents/skills/blueprint-agent-handoff/SKILL.md` | (new on this branch) | populated at slice 3 commit |
+| `.agents/skills/blueprint-agent-secret-scan/SKILL.md` | (new on this branch) | populated at slice 3 commit |
+| `.agents/skills/blueprint-agent-stop-cleanup/SKILL.md` | (new on this branch) | populated at slice 3 commit |
+| `.agents/skills/blueprint-human-review-prep/SKILL.md` | (new on this branch) | populated at slice 3 commit |
+| `.agents/skills/blueprint-pr-review-respond/SKILL.md` | (new on this branch) | populated at slice 3 commit |
+| `.agents/skills/blueprint-spec-review-prep/SKILL.md` | (new on this branch) | populated at slice 3 commit |
+| `.agents/skills/blueprint-spec-revision-handoff/SKILL.md` | (new on this branch) | populated at slice 3 commit |
+| `.agents/skills/blueprint-ticket-decompose-light/SKILL.md` | (new on this branch) | populated at slice 3 commit |
+| `.agents/skills/blueprint-ticket-triage-size/SKILL.md` | (new on this branch) | populated at slice 3 commit |
+
+Provenance note: The 18 SKILL.md files were authored fresh on this branch
+during prior step01/step02/step04 spec-scaffolding work (no PR #362 ancestor
+commits exist on this branch's history). PR #362 remains the upstream
+reference for any reader comparing the stage-persona and expert-persona
+runbook layouts; this PR's slice 3 commit is the authoritative stripped form.
+
 ## Cross-Ticket Amendments
 Populated in step06. URLs captured here are validated by AC-005 (`gh api` HTTP-200 per URL).
 

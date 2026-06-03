@@ -1,6 +1,6 @@
 ---
 name: blueprint-agent-secret-scan
-description: Scan a work-item branch diff for credentials, API tokens, private-key material, and PII; produce a structured findings list for the devsecops-qa persona.
+description: Scan a work-item branch diff for credentials, API tokens, private-key material, and PII; produce a structured findings list consumed by the security-paranoid and data-privacy experts during the hardening-review pass.
 blueprint-version: 1.0.0
 extensibility-tier: extensible
 emits-phase: implement
@@ -10,14 +10,20 @@ emits-phase: implement
 
 ## When to Use
 
-This skill runs as part of the hardening-review pass after the implementer
-persona reports all `plan.md` slices green. The devsecops-qa persona invokes
-the skill and integrates the findings into `hardening_review.md`.
+This skill runs as part of the hardening-review pass that the orchestrator
+schedules after step05 reports all `plan.md` slices green. The orchestrator
+invokes the skill on behalf of the security-paranoid and data-privacy
+experts (panel for the hardening-review pass per design-contracts § C3) and
+integrates the findings into `hardening_review.md`.
 
 ## Actor
 
-Invoked by the `devsecops-qa` persona. Other personas MUST NOT invoke this
-skill directly.
+Invoked by the orchestrator on behalf of the hardening-review expert panel
+(security-paranoid + data-privacy). The expert-panel layer MUST NOT
+directive-invoke this skill; the orchestrator's dispatch table is the
+binding mechanism per
+`ADR-issue-337-persona-skill-contract.md` (as amended by
+`ADR-issue-364-expert-persona-model.md`).
 
 ## Inputs
 
@@ -40,9 +46,9 @@ skill directly.
 
 ## Composition
 
-This skill MUST NOT directive-invoke any other skill. The devsecops-qa
-persona composes the secret-scan output with the other hardening-review
-inputs in its own persona definition.
+This skill MUST NOT directive-invoke any other skill. The orchestrator
+composes the secret-scan output with the other hardening-review inputs
+when assembling the hardening-review panel result.
 
 ## Required Output Schema
 

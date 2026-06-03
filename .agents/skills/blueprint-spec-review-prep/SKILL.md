@@ -17,8 +17,11 @@ Security, Operations) without itself granting any sign-off.
 
 ## Actor
 
-Invoked by the `po-analyst` persona. Other personas MUST NOT invoke this
-skill directly.
+Invoked by the orchestrator on behalf of the step03 expert (product-pragmatist,
+which is the solo persona for spec-complete per ADR-issue-364 § 4 dispatch
+matrix). The expert-panel layer MUST NOT directive-invoke this skill; the
+orchestrator's dispatch table in design-contracts § C3 is the binding
+mechanism.
 
 ## Inputs
 

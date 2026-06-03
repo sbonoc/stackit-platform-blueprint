@@ -12,14 +12,15 @@ emits-phase: intake
 
 This skill runs immediately after `blueprint-ticket-triage-size` when the
 triage classification is `large-decomposable`. It produces the child ticket
-envelopes the tech-lead persona will hand off to fresh po-analyst persona
+envelopes the orchestrator will hand off to fresh `blueprint-sdd-step01-intake`
 invocations for child-spec authoring.
 
 ## Actor
 
-Invoked by the `tech-lead` persona only when triage returned
-`classification: large-decomposable`. Other personas MUST NOT invoke this
-skill directly.
+Invoked by the orchestrator on behalf of the step01 expert panel only when
+triage returned `classification: large-decomposable`. The expert-panel
+layer MUST NOT directive-invoke this skill; the orchestrator's dispatch
+table in design-contracts § C3 is the binding mechanism.
 
 ## Inputs
 
@@ -43,15 +44,15 @@ skill directly.
 
 ## Composition
 
-This skill MUST NOT directive-invoke any other skill. The persona that
-invoked this skill (the `tech-lead` persona) will subsequently hand each
-child envelope to a fresh `po-analyst` persona invocation per its own
-persona definition.
+This skill MUST NOT directive-invoke any other skill. The orchestrator
+subsequently hands each child envelope to a fresh
+`blueprint-sdd-step01-intake` invocation per the dispatch rules in
+design-contracts § C3.
 
 ## Required Output Schema
 
 The orchestrator emits exactly ONE `phase: intake` C7 lifecycle event after
-the tech-lead persona's full intake phase is complete — that is, after BOTH
+the step01 panel's full intake phase is complete — that is, after BOTH
 `blueprint-ticket-triage-size` AND this skill have returned. This skill does
 NOT trigger a separate emission; its output is included alongside the
 triage-size output in the `outcome.details` of that single event.
@@ -107,6 +108,6 @@ properties:
     type: boolean
     description: >-
       True when the natural fan-out exceeded the policy cap; the excess MUST
-      be enumerated in rationale so the tech-lead persona can decide whether
-      to file follow-up tickets.
+      be enumerated in rationale so the orchestrator can decide whether to
+      file follow-up tickets.
 ```

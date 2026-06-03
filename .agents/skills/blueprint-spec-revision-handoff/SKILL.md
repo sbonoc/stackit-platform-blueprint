@@ -1,6 +1,6 @@
 ---
 name: blueprint-spec-revision-handoff
-description: Return a child ticket from the tech-lead persona to a fresh po-analyst persona invocation for spec revision when light decomposition uncovers a missing or ambiguous parent-spec section.
+description: Return a child ticket from a light-decomposition run back to a fresh SDD step01-intake invocation for spec revision when the child uncovers a missing or ambiguous parent-spec section.
 blueprint-version: 1.0.0
 extensibility-tier: extensible
 emits-phase: intake
@@ -17,8 +17,12 @@ required normative section.
 
 ## Actor
 
-Invoked by the `tech-lead` persona. Other personas MUST NOT invoke this
-skill directly.
+Invoked by the orchestrator on behalf of the step04 expert panel (which owns
+light-decomposition) when a grounding gap is surfaced. The expert-panel
+layer MUST NOT directive-invoke this skill; the orchestrator's dispatch
+table is the binding mechanism per
+`ADR-issue-337-persona-skill-contract.md` (as amended by
+`ADR-issue-364-expert-persona-model.md`).
 
 ## Inputs
 
@@ -29,17 +33,17 @@ skill directly.
 ## Steps
 
 1. Read the parent spec at the cited section.
-2. Identify the smallest revision the po-analyst persona MUST author to
-   resolve the grounding gap.
+2. Identify the smallest revision the next step01-intake invocation MUST
+   author to resolve the grounding gap.
 3. Return the structured payload described in `## Required Output Schema`
-   below. The orchestrator routes the payload to a fresh po-analyst
-   persona invocation.
+   below. The orchestrator routes the payload to a fresh
+   `blueprint-sdd-step01-intake` invocation against the parent spec.
 
 ## Composition
 
 This skill MUST NOT directive-invoke any other skill. The orchestrator
-routes the revision request to the po-analyst persona per its own
-persona definition.
+routes the revision request to a fresh `blueprint-sdd-step01-intake`
+invocation per the dispatch table in design-contracts § C3.
 
 ## Required Output Schema
 
@@ -51,7 +55,7 @@ that event.
 $schema: "http://json-schema.org/draft-07/schema#"
 title: BlueprintSpecRevisionHandoff
 description: >-
-  Payload requesting a po-analyst persona revision pass on a parent spec.
+  Payload requesting a fresh step01-intake revision pass on a parent spec.
 type: object
 additionalProperties: false
 required:
@@ -73,7 +77,7 @@ properties:
     description: Verbatim grounding citation that could not be resolved.
   proposed_revision_summary:
     type: string
-    description: One-paragraph description of the smallest revision the po-analyst MUST author.
+    description: One-paragraph description of the smallest revision the next step01-intake invocation MUST author.
   blocking:
     type: boolean
     description: True when the revision MUST land before any in-flight child ticket can resume.

@@ -13,18 +13,21 @@ emits-phase: agent-pr-review
 Invoked when a reviewer comment lands on an open Draft PR after the initial
 `blueprint-sdd-step08-agent-pr-review` pass. The skill classifies the
 comment, proposes a remediation action, and returns a response envelope the
-persona can post as a PR reply.
+orchestrator can post as a PR reply on behalf of the responding expert.
 
 ## Actor
 
-Invoked by the same reviewer persona that filed the original finding (one of
-`security-reviewer`, `architecture-reviewer`, `contract-reviewer`,
-`test-coverage-reviewer`).
+Invoked by the orchestrator on behalf of the same step08 expert that filed
+the original finding (drawn from the 8-expert roster locked by
+`ADR-issue-364-expert-persona-model.md`). The expert-panel layer MUST NOT
+directive-invoke this skill; the orchestrator's dispatch table is the
+binding mechanism.
 
 ## Inputs
 
 - The reviewer comment text and its PR-thread anchor (file path + line).
-- The original findings list the reviewer persona filed on this PR.
+- The original findings list the step08 expert filed on this PR.
+- The `expert_slug` the response is being authored under.
 - The current head commit SHA on the PR branch.
 
 ## Steps
@@ -41,10 +44,11 @@ Invoked by the same reviewer persona that filed the original finding (one of
 
 ## Composition
 
-This skill MUST NOT directive-invoke any other skill. The orchestrator and
-the reviewer persona compose follow-up actions (e.g., re-invoking the
-implementer persona) per the persona-layer composition rules in
-`ADR-issue-337-persona-skill-contract.md` clause 3.
+This skill MUST NOT directive-invoke any other skill. The orchestrator
+composes follow-up actions (e.g., re-dispatching the step05 panel for a
+revise pass) per the dispatch rules in
+`ADR-issue-337-persona-skill-contract.md` clause 3 (as amended by
+`ADR-issue-364-expert-persona-model.md`).
 
 ## Required Output Schema
 

@@ -159,6 +159,34 @@ properties:
     enum:
       - clean
       - gaps-found
+  expert_verdicts:
+    type: array
+    description: >-
+      Per-expert verdict array merged by the orchestrator from the step04
+      panel invocations (ADR-issue-364 § 4 dispatches a 4-expert panel at
+      step04 in parallel-then-merge mode). Each row is keyed by
+      expert_slug per ADR-issue-364 § 6 and is carried on the C7
+      outcome.details.expert_verdicts[] field per FR-007.
+    items:
+      type: object
+      additionalProperties: false
+      required:
+        - expert_slug
+        - verdict
+        - findings
+      properties:
+        expert_slug:
+          type: string
+        verdict:
+          type: string
+          enum:
+            - pass
+            - revise
+            - block
+        findings:
+          type: array
+          items:
+            type: object
 ```
 
 ## C7 Emission
