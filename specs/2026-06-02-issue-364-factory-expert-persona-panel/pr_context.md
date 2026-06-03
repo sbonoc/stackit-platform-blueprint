@@ -39,7 +39,7 @@
 - Artifact references: see `evidence_manifest.json`
 
 ## Risk and Rollback
-- Main risks:
+- Main risks: expert sprawl over time, convergence-merge dedup quality, and per-expert model assignment token cost.
   - Expert sprawl over time — mitigated by 8-expert ceiling pinned in ADR §3 (Future Work) and gated by distinct-push-back-triggers admission criterion.
   - Convergence-merge dedup quality — naive string-equality dedup may let semantic duplicates survive; mitigated by priority-order verdict aggregation (`block > revise > pass`); finding-text dedup is a follow-up owned by #361.
   - Per-expert model assignment token cost — mitigated by matrix-capped panel sizes and Haiku-for-low-stakes guidance in heterogeneity ADR amendment.

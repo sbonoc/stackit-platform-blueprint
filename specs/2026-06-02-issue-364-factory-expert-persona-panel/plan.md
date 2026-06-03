@@ -5,19 +5,19 @@
 - If required inputs are missing, add `BLOCKED_MISSING_INPUTS` in `spec.md` and keep the gate closed.
 
 ## Constitution Gates (Pre-Implementation)
-- Simplicity gate:
+- Simplicity gate: roster locked at 8 experts; persona files stay short and posture-only; matrix lives in exactly one file.
   - The expert roster is locked at **8** (product-pragmatist, boundary-hawk, security-paranoid, data-privacy, test-quality-sceptic, operability-sre, documentation-discipline, performance-cost-aware). The ceiling is occupied on day one. A 9th expert MUST demonstrate distinct push-back triggers none of the 8 cover, or MUST replace an underperforming existing expert after 30 days of no distinct findings.
   - Persona files MUST stay short and posture-only — no procedural step lists, no schemas, no DoD checklists. Each `## Push-back Triggers` section MUST list ≥6 distinct trigger phrases (one per list item); the count of phrases semantically overlapping with any other persona's triggers MUST NOT exceed 1 per persona.
   - The SDD-step × expert matrix lives in EXACTLY ONE file (design-contracts § C3); ADR cross-references rather than duplicates.
-- Anti-abstraction gate:
+- Anti-abstraction gate: dispatch contract is plain JSON Schema in the ADR; persona slugs are kebab-case directory names — no DSL, codegen, enum class, or registry singleton.
   - The dispatch contract is plain JSON Schema embedded in the ADR — no DSL, no codegen, no framework layer.
   - Persona slugs are kebab-case strings used as directory names — no enum class, no registry singleton.
-- Integration-first testing gate:
+- Integration-first testing gate: structural assertions only (grep + file-existence + ADR-text substrings); the dispatch boundary harness is owned by #361.
   - Verification is structural (grep + file-existence + ADR-text substring assertions). The "contract test" is `make quality-sdd-check` plus the AC-001 through AC-007 assertions in `tests/` or as shell snippets in `pr_context.md`.
   - Boundary tests for the dispatch contract (panel shape, convergence modes, empty-findings sentinel) are owned by #361 and ship there; this ticket records the contract, not the test harness.
-- Positive-path filter/transform test gate:
+- Positive-path filter/transform test gate: not applicable — no filter or payload-transform logic ships here.
   - N/A — this work item ships no filter or payload-transform logic. No runtime data flows through new code.
-- Finding-to-test translation gate:
+- Finding-to-test translation gate: capture any deterministic failure as a one-shot script in `evidence_manifest.json` and reference from `pr_context.md`.
   - If `make quality-sdd-check` or hooks surface a deterministic failure that is not satisfied by a structural assertion in AC-006, capture it as a one-shot script in `evidence_manifest.json` and reference from `pr_context.md`. No runtime code is added by this ticket, so the translation surface is limited to docs/schema/text checks.
 
 ## Delivery Slices
@@ -82,7 +82,7 @@ The slices are sequenced to keep each commit reviewable in isolation. Each slice
 - Notes: This work item ships specs, ADRs, persona files, skill runbook edits, and docs. No make targets added or changed.
 
 ## Documentation Plan (Document Phase)
-- Blueprint docs updates:
+- Blueprint docs updates: design-contracts § C3/C7/C8 reshape + new ADR-issue-364 + #337 amendments + AGENTS.md scoping + bootstrap template mirror.
   - `docs/blueprint/autonomous-factory/design-contracts.md` § C3 reshape (single-source the SDD-step × expert matrix).
   - `docs/blueprint/architecture/decisions/ADR-issue-364-expert-persona-model.md` (new ADR).
   - `docs/blueprint/architecture/decisions/ADR-issue-360-factory-personas-skills-roster.md` (Status flip).
@@ -92,7 +92,7 @@ The slices are sequenced to keep each commit reviewable in isolation. Each slice
   - `AGENTS.md` persona section retitle + rewrite.
   - `scripts/templates/blueprint/bootstrap/docs/blueprint/autonomous-factory/design-contracts.md` (mirror resync via `sync_blueprint_template_docs.py`).
 - Consumer docs updates: None at this layer — the C8 surface receives this via `/blueprint-consumer-upgrade` per #342's per-artifact versioning expansion (amended into #342 via comment from step06).
-- Mermaid diagrams updated:
+- Mermaid diagrams updated: ADR-issue-364 carries the flowchart and sequenceDiagram for the three-layer model and parallel-then-merge convergence.
   - ADR-issue-364 includes a `flowchart TD` of the three-layer model (SDD step → skill → expert panel).
   - ADR-issue-364 includes a `sequenceDiagram` showing parallel-then-merge convergence with empty-findings-sentinel responses.
 - Docs validation commands:
