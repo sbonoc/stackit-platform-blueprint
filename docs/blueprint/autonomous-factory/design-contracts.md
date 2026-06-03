@@ -139,11 +139,26 @@ Referenced by: #333, #336, #338
 
 ## Contract C3 — OpenHands Microagent ↔ Persona Mapping (Identical Convention)
 
-Every factory instance MUST map OpenHands microagents to personas by **name equality**: the microagent name MUST equal the persona file basename (without extension). Selection is governed by the persona's `## Activation Triggers` section (authoritative for when the microagent is selected). Execution scope is governed by the persona's `## Skills Invoked` section (authoritative for what the microagent is permitted to call).
+Every factory instance MUST map OpenHands microagents to personas by **name equality**: the microagent name MUST equal the persona file basename (without extension). The "persona" referenced in this contract's name now denotes the **expert-panel layer** locked by `../architecture/decisions/ADR-issue-364-expert-persona-model.md` — eight standing expert lenses whose persona files live at `.agents/personas/<expert-slug>/PERSONA.md` — not the deprecated stage-persona model that PR #362 prototyped. Skills are bound to SDD steps by the orchestrator's dispatch table below; the expert-panel layer MUST NOT directive-invoke skills (skill composition is a dispatch-layer responsibility per `ADR-issue-337-persona-skill-contract.md` clause 3, as amended by ADR-issue-364). Persona files contain **no** `## Activation Triggers` or `## Skills Invoked` sections; the orchestrator's dispatch table is the sole binding mechanism for when each expert is consulted and which skill produces each step's draft output.
 
-This convention is identical for the blueprint repo and every consumer repo. Consumer-authored personas live under the consumer namespace defined by Contract C8 § FR-018; blueprint-authored personas live under `.agents/personas/`.
+The single authoritative SDD-step × expert dispatch matrix is:
 
-Referenced by: #333, #335
+| SDD step | Draft-producing skill | Experts consulted (lead voice in **bold**) | Convergence mode |
+|---|---|---|---|
+| step01 — intake | `blueprint-sdd-step01-intake` | **product-pragmatist**, boundary-hawk, security-paranoid, data-privacy, test-quality-sceptic, operability-sre, documentation-discipline, performance-cost-aware | parallel-then-merge |
+| step02 — resolve questions | `blueprint-sdd-step02-resolve-questions` | dynamic per question-text substring routing against each expert's `## Push-back Triggers` set (see ADR-issue-364 § 4.2); **lead voice** is the expert whose triggers match the active question | parallel-then-merge |
+| step03 — spec complete | `blueprint-sdd-step03-spec-complete` | **product-pragmatist** (solo) | n/a (solo) |
+| step04 — plan slicer | `blueprint-sdd-step04-plan-slicer` | **boundary-hawk**, product-pragmatist, operability-sre, performance-cost-aware | parallel-then-merge |
+| step05 — implement | `blueprint-sdd-step05-implement` | **boundary-hawk**, test-quality-sceptic, security-paranoid, performance-cost-aware, operability-sre | sequential-lens |
+| step06 — document sync | `blueprint-sdd-step06-document-sync` | **documentation-discipline**, product-pragmatist, boundary-hawk | parallel-then-merge |
+| step07 — pr packager | `blueprint-sdd-step07-pr-packager` | **documentation-discipline**, product-pragmatist, boundary-hawk, operability-sre | parallel-then-merge |
+| step08 — agent pr review | `blueprint-sdd-step08-agent-pr-review` | **boundary-hawk**, product-pragmatist, security-paranoid, data-privacy, test-quality-sceptic, operability-sre, documentation-discipline, performance-cost-aware | structured-disagreement |
+
+`ADR-issue-364-expert-persona-model.md` MUST reference this table by file path and section anchor and MUST NOT duplicate the table content; this section is the single source of truth for the dispatch matrix.
+
+This convention is identical for the blueprint repo and every consumer repo. Consumer-authored expert personas live under the consumer namespace defined by Contract C8 § FR-018 (`.agents/personas/consumer/`); blueprint-authored expert personas live under `.agents/personas/<expert-slug>/PERSONA.md`.
+
+Referenced by: #333, #335, #361, #364
 
 ---
 
@@ -273,7 +288,7 @@ The minimum event field set is a named JSON schema with explicit types and nulla
     "ticket_id":        { "type": "string",  "description": "GitHub issue identifier (e.g., '339'). This is the canonical work-item identifier referenced as `ticket_id` throughout the C7 contract; FR-019 and ADR-issue-337-c7-emission-mechanism.md describe the same identifier — terminology is unified on `ticket_id` to match this schema field name (renaming is forbidden under FR-017(b))." },
     "parent_ticket_id": { "type": ["string", "null"], "description": "Parent issue identifier for decomposed children; null for top-level tickets." },
     "phase":            { "type": "string",  "enum": ["intake", "resolve-questions", "spec-complete", "plan-slicer", "implement", "document-sync", "pr-packager", "agent-pr-review", "c7-emission-opted-out"] },
-    "persona":          { "type": "string",  "description": "For `emitter: orchestrator` events: the persona file basename (matches Contract C3 microagent name). For `emitter: webhook-handler` events (which have no persona invocation — rerun-cap, bot-tick block, rotation-violation, etc.): the sealed sentinel string `webhook-handler`. For `emitter: local-cli` events: the SDD step skill basename invoked by the operator (e.g., `blueprint-sdd-step01-intake`, `blueprint-sdd-step05-implement`). The field stays `type: string` and required in all eleven-field events; the sentinel value preserves the sealed minimum schema while reflecting that the deterministic webhook handler emitter is itself the actor of record." },
+    "persona":          { "type": "string",  "description": "For `emitter: orchestrator` events: the **draft-producing skill basename** invoked at the phase boundary (e.g., `blueprint-sdd-step01-intake`, `blueprint-sdd-step05-implement`) — the SDD step is the sealed actor of record per ADR-issue-364 § 2 (the expert-panel layer is a lens, not the actor). Per-expert attribution is carried on the non-required extension field `outcome.details.expert_verdicts[]` (each row keyed by `expert_slug` per ADR-issue-364 § 6); see Contract C3 for the SDD-step × expert dispatch matrix. For `emitter: webhook-handler` events (which have no persona or skill invocation — rerun-cap, bot-tick block, rotation-violation, etc.): the sealed sentinel string `webhook-handler`. For `emitter: local-cli` events: the SDD step skill basename invoked by the operator (e.g., `blueprint-sdd-step01-intake`, `blueprint-sdd-step05-implement`). The field stays `type: string` and required in all eleven-field events; the sentinel value preserves the sealed minimum schema while reflecting that the deterministic webhook handler emitter is itself the actor of record. The field name `persona` is preserved verbatim (sealed under FR-017(b)) — the semantic shift from stage-persona basename to skill basename is captured here in the description, not in a rename." },
     "model":            { "type": "string",  "description": "For `emitter: orchestrator` events: the LLM model identifier resolved via LiteLLM (e.g., `claude-opus-4-7`). For `emitter: webhook-handler` events (which have no LLM invocation): the sealed sentinel string `n/a`. For `emitter: local-cli` events: the model identifier resolved from the operator environment via the priority chain `$CLAUDE_CODE_MODEL` → `$CODEX_MODEL` → `$CURSOR_MODEL`; if none of these env vars is set, the sealed sentinel string `unknown` is used. The field stays `type: string` and required in all eleven-field events; the sentinel value preserves the sealed minimum schema. Webhook-handler rotation-violation events MAY additionally carry the violating model identifier as the non-required extension field `violating_model` (permitted by `additionalProperties: true`) for audit traceability — this is NOT part of the eleven-field minimum." },
     "timestamp":        { "type": "string",  "format": "date-time", "description": "RFC 3339 UTC timestamp at emission." },
     "outcome":          { "type": "string",  "enum": ["success", "rejected", "retried", "human-handoff"] },
@@ -293,6 +308,7 @@ Consumers MUST NOT remove, rename, or change the type of any of the eleven minim
 | `execution_mode` | `string` enum (`autonomous` \| `human-assisted`) | All three emitter surfaces | Discriminator for downstream filtering and Grafana faceting. `orchestrator` and `webhook-handler` events carry `autonomous`; `local-cli` events carry `human-assisted`. |
 | `webhook_event_key` | `string` | `webhook-handler` only | Discriminator for the five-input `event_id` derivation; see § Emission idempotency. |
 | `violating_model` | `string` | `webhook-handler` only (rotation-violation events) | The model ID that triggered the FR-008 rotation-violation rejection. |
+| `outcome.details.expert_verdicts` | `array` of `object` | `orchestrator` and `local-cli` (when an expert panel was dispatched) | Per-expert verdict array merged by the orchestrator from the panel invocations dispatched for the phase per the Contract C3 dispatch matrix. Each row is keyed by `expert_slug` (enum per ADR-issue-364 § 6: `product-pragmatist` \| `boundary-hawk` \| `security-paranoid` \| `data-privacy` \| `test-quality-sceptic` \| `operability-sre` \| `documentation-discipline` \| `performance-cost-aware`) and carries `verdict` (enum `pass` \| `revise` \| `block`) plus an optional `findings` array. Aggregation precedence is `block` > `revise` > `pass` per ADR-issue-364 § 6. The field is additive — subscribers that predate ADR-issue-364 MUST tolerate events that omit it; subscribers MUST NOT reject events that omit it. |
 
 The `phase` enum carries one entry per blueprint SDD step in `.agents/skills/blueprint-sdd-step0N-<name>/` — stripping the `step0N-` prefix from the skill basename yields the enum value (e.g., `blueprint-sdd-step08-agent-pr-review` → `agent-pr-review`). The `agent-pr-review` entry is REQUIRED for the FR-008 reviewer-heterogeneity audit invariant, which pairs the C7 event with `phase: implement` (emitted by step05) and the C7 event with `phase: agent-pr-review` (emitted by step08) on the same `ticket_id` and asserts the `model` field on the `implement` event differs from the `model` field on the `agent-pr-review` event; a schema that lacks `agent-pr-review` makes the audit unimplementable. The audit predicate MUST reference C7 `phase` enum values, not the originating skill basenames — emitters write the unprefixed enum value into the `phase` field, so a predicate written against `step05-implement` or `step08-agent-pr-review` would never match a schema-valid event. Consumers MUST NOT remove any of these enum values; additions to the enum are out of scope for consumer overlays and require a #339 sign-off cycle. The reserved value `c7-emission-opted-out` is a `local-cli`-only pseudo-phase written by `OptOutAuditUseCase` when `BLUEPRINT_SDD_C7_EMIT=0`; it does not correspond to any SDD step skill and MUST NOT be used as the `phase` field on any orchestrator or webhook-handler event. Subscriber-side ingest (#350) MUST handle this value explicitly (e.g., route to an opt-out audit table rather than the main phase-boundary timeline).
 
@@ -345,7 +361,7 @@ Consumer repos MUST declare their own dashboard target. The blueprint's target M
 
 - (none — Q-4 retention/owner and Q-5 durable-bus platform pick RESOLVED in PR #345 on 2026-05-28; concrete dashboard URLs and panel inventories are tracked in [`instrumentation-plan.md`](instrumentation-plan.md) under `@sbonoc/factory-operations` ownership and do not require a C7 amendment.)
 
-Referenced by: #335, #336, #337
+Referenced by: #335, #336, #337, #364
 
 ---
 
@@ -421,17 +437,15 @@ Every consumer-shipped module wrapper enumerated in this category MUST default t
 | `.agents/skills/blueprint-human-review-prep/` | `stable` | `extensible` (consumer may shadow under `.agents/skills/consumer/`) | #333 |
 | `.agents/skills/blueprint-pr-review-respond/` | `stable` | `extensible` (consumer may shadow under `.agents/skills/consumer/`) | #333 |
 | `.agents/skills/blueprint-agent-stop-cleanup/` | `stable` | `extensible` (consumer may shadow under `.agents/skills/consumer/`) | #333 |
-| `.agents/personas/po-analyst.md` | `stable` | `extensible` (consumer may shadow under `.agents/personas/consumer/`) | #333 |
-| `.agents/personas/architect.md` | `stable` | `extensible` (consumer may shadow under `.agents/personas/consumer/`) | #333 |
-| `.agents/personas/tech-lead.md` | `stable` | `extensible` (consumer may shadow under `.agents/personas/consumer/`) | #333 |
-| `.agents/personas/implementer.md` | `stable` | `extensible` (consumer may shadow under `.agents/personas/consumer/`) | #333 |
-| `.agents/personas/devsecops-qa.md` | `stable` | `extensible` (consumer may shadow under `.agents/personas/consumer/`) | #333 |
-| `.agents/personas/doc-keeper.md` | `stable` | `extensible` (consumer may shadow under `.agents/personas/consumer/`) | #333 |
-| `.agents/personas/security-reviewer.md` | `stable` | `extensible` (consumer may shadow under `.agents/personas/consumer/`) | #333 |
-| `.agents/personas/architecture-reviewer.md` | `stable` | `extensible` (consumer may shadow under `.agents/personas/consumer/`) | #333 |
-| `.agents/personas/contract-reviewer.md` | `stable` | `extensible` (consumer may shadow under `.agents/personas/consumer/`) | #333 |
-| `.agents/personas/test-coverage-reviewer.md` | `stable` | `extensible` (consumer may shadow under `.agents/personas/consumer/`) | #333 |
-| `.agents/personas/` (blueprint persona files) | `stable` | `extensible` (consumer may shadow under `.agents/personas/consumer/`) | #333 |
+| `.agents/personas/product-pragmatist/PERSONA.md` | `stable` | `extensible` (consumer may shadow under `.agents/personas/consumer/`) | #364 |
+| `.agents/personas/boundary-hawk/PERSONA.md` | `stable` | `extensible` (consumer may shadow under `.agents/personas/consumer/`) | #364 |
+| `.agents/personas/security-paranoid/PERSONA.md` | `stable` | `extensible` (consumer may shadow under `.agents/personas/consumer/`) | #364 |
+| `.agents/personas/data-privacy/PERSONA.md` | `stable` | `extensible` (consumer may shadow under `.agents/personas/consumer/`) | #364 |
+| `.agents/personas/test-quality-sceptic/PERSONA.md` | `stable` | `extensible` (consumer may shadow under `.agents/personas/consumer/`) | #364 |
+| `.agents/personas/operability-sre/PERSONA.md` | `stable` | `extensible` (consumer may shadow under `.agents/personas/consumer/`) | #364 |
+| `.agents/personas/documentation-discipline/PERSONA.md` | `stable` | `extensible` (consumer may shadow under `.agents/personas/consumer/`) | #364 |
+| `.agents/personas/performance-cost-aware/PERSONA.md` | `stable` | `extensible` (consumer may shadow under `.agents/personas/consumer/`) | #364 |
+| `.agents/personas/` (blueprint expert-persona directory) | `stable` | `extensible` (consumer may shadow under `.agents/personas/consumer/`) | #364 |
 
 ### Category (d) — GitHub App Manifest and Reusable Actions Workflows
 

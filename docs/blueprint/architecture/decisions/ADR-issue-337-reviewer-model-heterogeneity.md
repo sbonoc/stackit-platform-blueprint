@@ -6,6 +6,7 @@
 **Spec:** `specs/2026-05-28-issue-337-factory-phase-0-foundations/` (FR-008)
 **Meta-ADR:** [`ADR-issue-337-factory-phase-0-foundations.md`](ADR-issue-337-factory-phase-0-foundations.md)
 **Extensibility classification (#339 C8 FR-017):** `sealed`.
+**Amended-by:** [`ADR-issue-364-expert-persona-model.md`](ADR-issue-364-expert-persona-model.md) — the FR-008 reviewer-heterogeneity audit invariant continues to pair the `phase: implement` C7 event with the `phase: agent-pr-review` event on the same `ticket_id` and assert distinct `model` values. Under the expert-panel model the AI PR reviewer is no longer a single stage-persona — it is an 8-expert panel dispatched by `blueprint-sdd-step08-agent-pr-review` (Contract C3 row 8, structured-disagreement convergence). The audit predicate operates on the `persona` (= skill basename) and `model` fields of the orchestrator-emitted events; per-expert model assignment within the panel is governed by ADR-issue-364 § 4 and may apply per-expert routing keys (e.g., Haiku for low-stakes lenses, Sonnet/Opus for high-stakes lenses) without affecting the pairing assertion. Per-expert capacity sizing and routing-key shape land in ticket #335.
 
 ## Context
 

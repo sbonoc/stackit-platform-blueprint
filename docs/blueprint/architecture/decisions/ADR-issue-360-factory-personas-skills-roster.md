@@ -1,9 +1,10 @@
 # ADR: Factory Personas + Skills Roster (Child A of #333)
 
-**Status:** approved
+**Status:** superseded
 **Date:** 2026-06-02
 **Approved:** 2026-06-02
 **ADR technical decision sign-off:** approved (sbonoc, PR #362)
+**Superseded-by:** [`ADR-issue-364-expert-persona-model.md`](ADR-issue-364-expert-persona-model.md) on 2026-06-03 — the stage-persona roster proposed here (10 personas, each invoking one or more skills, with a 1:1 persona↔skill coupling in some cases) is replaced by the three-layer model (SDD step / skill / expert persona). The 8 expert PERSONA.md files, the SDD-step × expert dispatch matrix, and the additive C7 `expert_verdicts[]` field land in PR #365 under issue #364; this ADR remains in the repository as architectural history but MUST NOT be cited as authority for new work. The cherry-pick ledger in PR #365 (`specs/2026-06-02-issue-364-factory-expert-persona-panel/pr_context.md` § Cherry-Pick Ledger) records the salvage map from PR #362's runbooks into this PR's stripped-form runbooks.
 **Issue:** #360 (Child A of #333)
 **Spec:** `specs/2026-06-02-issue-360-factory-personas-skills/`
 **Parent ADR:** [`ADR-issue-337-persona-skill-contract.md`](ADR-issue-337-persona-skill-contract.md)
