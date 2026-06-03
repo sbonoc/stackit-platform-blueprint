@@ -85,15 +85,15 @@ Populated in step06. URLs captured here are validated by AC-005 (`gh api` HTTP-2
 
 | Ticket | Action | Comment URL |
 |---|---|---|
-| #333 | Epic body retitle + scope amendment to factory-execution-layer framing | pending step06 |
-| #361 | Dispatch table contract update; empty-findings sentinel; per-expert C7 audit | pending step06 |
-| #335 | Per-expert LiteLLM routing key; capacity-sizing note | pending step06 |
-| #336 | FR-008 reformulated as panel-disjointness rule | pending step06 |
-| #342 | Per-artifact versioning extends to expert-persona files | pending step06 |
-| #343 | Phase 1 ingestion schema accounts for additive `expert_verdicts[]` | pending step06 |
-| #332 | Epic body framing update | pending step06 |
-| #360 | Close as superseded with reference to #364 + cherry-pick list | pending step06 |
-| PR #362 | Close as superseded with reference to this PR + cherry-pick list | pending step06 |
+| #333 | Epic body retitle + scope amendment to factory-execution-layer framing | https://github.com/sbonoc/stackit-platform-blueprint/issues/333#issuecomment-4609429813 |
+| #361 | Dispatch table contract update; empty-findings sentinel; per-expert C7 audit | https://github.com/sbonoc/stackit-platform-blueprint/issues/361#issuecomment-4609432549 |
+| #335 | Per-expert LiteLLM routing key; capacity-sizing note | https://github.com/sbonoc/stackit-platform-blueprint/issues/335#issuecomment-4609432659 |
+| #336 | FR-008 reformulated as panel-disjointness rule | https://github.com/sbonoc/stackit-platform-blueprint/issues/336#issuecomment-4609432786 |
+| #342 | Per-artifact versioning extends to expert-persona files | https://github.com/sbonoc/stackit-platform-blueprint/issues/342#issuecomment-4609435187 |
+| #343 | Phase 1 ingestion schema accounts for additive `expert_verdicts[]` | https://github.com/sbonoc/stackit-platform-blueprint/issues/343#issuecomment-4609435346 |
+| #332 | Epic body framing update | https://github.com/sbonoc/stackit-platform-blueprint/issues/332#issuecomment-4609435497 |
+| #360 | Close as superseded with reference to #364 + cherry-pick list | https://github.com/sbonoc/stackit-platform-blueprint/issues/360#issuecomment-4609437220 |
+| PR #362 | Close as superseded with reference to this PR + cherry-pick list | https://github.com/sbonoc/stackit-platform-blueprint/pull/362#issuecomment-4609502873 |
 
 ## Deferred Proposals
 - Proposal 1 (not implemented): Optional `make expert-review` for solo-operator local SDD sessions — held until user demand emerges; separate ticket if pursued.
