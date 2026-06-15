@@ -38,17 +38,21 @@ MUST NOT collapse to a single shared routing key) for the same
 the full statement. The pre-amendment implement-vs-review model-split
 framing is superseded — the FR-008 audit invariant still pairs the
 `phase: implement` C7 event with the `phase: agent-pr-review` event on the
-same `ticket_id`, but the predicate is re-expressed against the per-panel
-routing-key set carried as the C7 extension field
-`outcome_details.routing_keys` (per design-contracts § C7): the audit
-asserts BOTH (a) the implement event's aggregate `model` value is NOT a
-member of the agent-pr-review event's `outcome_details.routing_keys` set,
-AND (b) the agent-pr-review `outcome_details.routing_keys` set contains
-≥ 2 distinct values. Comparing the two events' aggregate `model` fields
-(the pre-amendment predicate) is insufficient under the panel model
-because the agent-pr-review event has one aggregate `model` field
-(carrying the lead voice's routing key per § 4.4 / § 4.5) but the panel
-has multiple per-expert routing keys. The orchestrator (Child B, #361)
+same `ticket_id`, but the predicate is re-expressed at the **model-family**
+layer against the per-panel routing-key set carried as the C7 extension
+field `outcome_details.routing_keys` (per design-contracts § C7 — see the
+`model_family(s)` normalization defined there). The audit asserts BOTH
+(a) `model_family(implement.model)` is NOT the sole family represented in
+`{model_family(k) : k ∈ agent-pr-review.outcome_details.routing_keys}`
+(i.e., the panel carries ≥ 1 routing key from a different family than
+implement), AND (b) the agent-pr-review `outcome_details.routing_keys` set
+contains ≥ 2 distinct families. Comparing the two events' aggregate
+`model` fields directly (the pre-amendment predicate) is unsatisfiable
+under the panel model because the agent-pr-review event has one aggregate
+`model` field (carrying the lead voice's routing key per § 4.4 / § 4.5)
+but the panel has multiple per-expert routing keys, and the strings live
+in different identifier spaces (minimum-schema family ID vs LiteLLM
+prefixed key). The orchestrator (Child B, #361)
 enforces the disjointness rule when assembling the panel for step08,
 populates `outcome_details.routing_keys` on the emitted event, and
 selects routing keys accordingly.
@@ -265,14 +269,45 @@ human-assisted equivalent and emits one event per step08 round — not one
 per expert invocation — so the audit pairing remains 1:1 with the
 `implement` event.
 
+First, author the extension-fields payload to a temporary JSON file. The
+payload MUST carry the three C7 extension fields the FR-008 audit
+(design-contracts § C7) depends on: `outcome_details.expert_verdicts[]`
+(compact summary, one row per dispatched expert), `outcome_details.routing_keys`
+(set of LiteLLM routing keys actually used across the panel), and
+`evidence_uri` (workspace artifact carrying the full per-finding payload).
+Reserved minimum-schema keys (e.g., `model`, `outcome`, `phase`) MUST NOT
+be shadowed.
+
 ```sh
+EXT_PAYLOAD="$(mktemp)"
+cat > "$EXT_PAYLOAD" <<'JSON'
+{
+  "outcome_details": {
+    "expert_verdicts": [
+      {"expert_slug": "product-pragmatist", "verdict": "pass", "findings_count": 0}
+    ],
+    "routing_keys": ["anthropic/claude-opus-4-7", "anthropic/claude-sonnet-4-6"]
+  },
+  "evidence_uri": "artifacts/c7/<work-item-slug>/agent-pr-review-round-0.json"
+}
+JSON
+
 uv run python3 scripts/bin/sdd/c7_emit.py emit \
   --ticket "$TICKET_ID" \
   --phase "agent-pr-review" \
   --skill "$SKILL_BASENAME" \
   --owner-team "$OWNER_TEAM" \
-  --slug "$WORK_ITEM_SLUG"
+  --slug "$WORK_ITEM_SLUG" \
+  --extension-json "$EXT_PAYLOAD"
+
+rm -f "$EXT_PAYLOAD"
 ```
+
+If the panel-incomplete reroute fires (ADR § 6.1), the same invocation
+shape applies with `--outcome rejected`, the `expert_verdicts[]` stub
+row carrying `verdict: "block"` and `findings_count: 0`, and the
+extension payload additionally carrying `rejection_reason:
+"missing-expert-verdict"` plus the artifact URI under `evidence_uri`.
 
 Stage and commit the emitted JSONL — this commit is part of the authorized
 skill workflow and must land immediately so the audit record is durable:
