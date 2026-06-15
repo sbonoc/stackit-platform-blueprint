@@ -178,3 +178,45 @@ outcome:
 ```
 
 per design-contracts § C7 and FR-007 of `ADR-issue-364-expert-persona-model.md`.
+
+## C7 Emission
+
+At the end of this step, emit a C7 lifecycle event so the FR-008
+reviewer-model-heterogeneity audit invariant (which pairs
+`phase: implement` with `phase: agent-pr-review` on the same `ticket_id`)
+holds for human-assisted runs as well as orchestrator runs. Resolve
+variable values from session context: `TICKET_ID` — the GitHub issue
+number; `SKILL_BASENAME` — the `name:` value from this SKILL.md
+frontmatter; `OWNER_TEAM` — the GitHub team slug owning this repository
+(e.g. `platform-team`); `WORK_ITEM_SLUG` — the spec directory basename.
+
+In the autonomous-factory bot path the orchestrator emits **one** event
+per step08 round after merging all per-expert payloads into
+`outcome.details.expert_verdicts[]` (per ADR-issue-364 § 4 and
+design-contracts § C7). The `local-cli` helper invoked below is the
+human-assisted equivalent and emits one event per step08 round — not one
+per expert invocation — so the audit pairing remains 1:1 with the
+`implement` event.
+
+```sh
+uv run python3 scripts/bin/sdd/c7_emit.py emit \
+  --ticket "$TICKET_ID" \
+  --phase "agent-pr-review" \
+  --skill "$SKILL_BASENAME" \
+  --owner-team "$OWNER_TEAM" \
+  --slug "$WORK_ITEM_SLUG"
+```
+
+Stage and commit the emitted JSONL — this commit is part of the authorized
+skill workflow and must land immediately so the audit record is durable:
+
+```sh
+git add "artifacts/c7/$WORK_ITEM_SLUG.jsonl"
+git diff --cached --quiet || {
+  git commit -m "chore($WORK_ITEM_SLUG): emit C7 lifecycle event"
+  git push
+}
+```
+
+Set `BLUEPRINT_SDD_C7_EMIT=0` to suppress; exactly one `c7-emission-opted-out` event is written per work-item slug (subsequent opted-out steps write nothing — the guard above skips the commit in that case).
+**The LLM MUST NOT write events directly — invoke the helper only.**
