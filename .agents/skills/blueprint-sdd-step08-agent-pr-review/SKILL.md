@@ -29,9 +29,17 @@ is the binding mechanism for which experts are consulted; the
 expert-panel layer MUST NOT directive-invoke this skill. The
 reviewer-model-heterogeneity ADR at
 `docs/blueprint/architecture/decisions/ADR-issue-337-reviewer-model-heterogeneity.md`
-requires that the reviewing experts run on a different model family than the
-expert who produced the step05 output under review; the orchestrator (Child B)
-enforces the model-rotation pick when assembling the panel for step08.
+(amended by `ADR-issue-364-expert-persona-model.md`) requires
+**panel-disjointness**: within a single step's panel, no two experts MAY
+share the same LiteLLM routing key for the same `(ticket_id, phase,
+rerun_round)` tuple. The pre-amendment implement-vs-review model-split
+framing is superseded — the FR-008 audit invariant still pairs the
+`phase: implement` C7 event with the `phase: agent-pr-review` event on the
+same `ticket_id` and asserts distinct `model` values, but the heterogeneity
+guarantee within step08 is now panel-disjointness, not the prior
+implement/review split. The orchestrator (Child B, #361) enforces the
+disjointness rule when assembling the panel for step08 and selects routing
+keys accordingly.
 
 ## Inputs
 
@@ -47,15 +55,21 @@ enforces the model-rotation pick when assembling the panel for step08.
 ## Workflow
 
 1. Read the PR diff and the expert's loaded persona sections.
-2. Generate findings, one entry per concrete observation, tagged with
-   severity drawn from the enum `must-fix | warn | info`.
-3. Anchor every finding to a concrete diff location (`file` + `line`).
-4. Compute a single per-expert verdict drawn from the enum `pass | revise |
+2. Generate findings, one entry per concrete observation, conforming to
+   the `ExpertVerdict.findings[]` shape pinned in
+   `ADR-issue-364-expert-persona-model.md` § 6: required keys `category`
+   and `summary`; optional keys `evidence_ref` (formatted as `path:line`
+   to anchor the finding to a concrete diff location) and `severity`
+   drawn from the enum `info | low | medium | high | critical`.
+3. Compute a single per-expert verdict drawn from the enum `pass | revise |
    block`, following the verdict priority rule defined in
    `ADR-issue-364-expert-persona-model.md` § 6 (block > revise > pass).
-5. Return the structured payload described in `## Required Output Schema`
+4. Return the structured payload described in `## Required Output Schema`
    below; the orchestrator merges per-expert payloads into the
-   structured-disagreement convergence output for step08.
+   structured-disagreement convergence output for step08 and validates
+   each finding against the ADR § 6 `ExpertVerdict` schema. Payloads that
+   diverge from that schema are rejected per ADR § 6.1 (treated as
+   `missing-expert-verdict`).
 
 ## Guardrails
 
@@ -70,13 +84,20 @@ field per `ADR-issue-337-c7-emission-mechanism.md` (amended by
 Return:
 
 1. The `expert_slug` this invocation was dispatched under.
-2. Findings count grouped by severity (`must-fix`, `warn`, `info`).
-3. For each finding: id, dimension (drawn from the expert's `## Push-back
-   Triggers` set), severity, `file:line`, description, and optional
-   remediation suggestion.
+2. Findings count grouped by severity (`info`, `low`, `medium`, `high`,
+   `critical`) — matches the ADR § 6 `ExpertVerdict.findings[].severity`
+   enum so the orchestrator can roll the count up into the C7
+   `outcome.details.expert_verdicts[].findings_count` field per
+   design-contracts § C7 without translation.
+3. For each finding: `category` (short tag drawn from the expert's
+   `## Push-back Triggers` set, suitable for grouping/dedup), `summary`
+   (one-sentence statement), and optional `evidence_ref` (formatted as
+   `path:line` to anchor the finding to a concrete diff location) and
+   `severity` per the enum above.
 4. The single per-expert verdict (`pass | revise | block`) computed by the
    verdict priority rule.
-5. Confirmation that every finding is anchored to a concrete diff location.
+5. Confirmation that every finding carries an `evidence_ref` anchoring it
+   to a concrete diff location.
 
 ## Required Output Schema
 
@@ -129,41 +150,44 @@ properties:
   findings:
     type: array
     description: >-
-      Per-finding list (may be empty when verdict is pass). Each finding is
-      anchored to a concrete diff location and tagged with severity.
+      Per-finding list (may be empty when verdict is pass). Shape pinned by
+      ADR-issue-364-expert-persona-model.md § 6 ExpertVerdict.findings[];
+      the orchestrator (#361) validates each entry against that schema
+      before merge per § 5.1 / § 6.1.
     items:
       type: object
       additionalProperties: false
       required:
-        - id
-        - dimension
-        - severity
-        - file
-        - line
-        - description
+        - category
+        - summary
       properties:
-        id:
-          type: string
-        dimension:
+        category:
           type: string
           description: >-
-            One of the expert's ## Push-back Triggers bullets, used as the
-            finding's classification dimension.
+            Short tag for grouping/dedup (e.g., missing-observability,
+            leaky-abstraction, retention-overshoot). Typically drawn from
+            the expert's ## Push-back Triggers set. The merger dedups
+            findings by (category, summary) tuple per § 5.1.
+        summary:
+          type: string
+          description: >-
+            One-sentence finding statement.
+        evidence_ref:
+          type: string
+          description: >-
+            Optional path:line (or other artifact reference) grounding
+            the finding in the diff under review.
         severity:
           type: string
           enum:
-            - must-fix
-            - warn
             - info
-        file:
-          type: string
-        line:
-          type: integer
-          minimum: 1
-        description:
-          type: string
-        remediation_suggestion:
-          type: string
+            - low
+            - medium
+            - high
+            - critical
+          description: >-
+            Severity ordering used by the merger's escalation rule
+            (critical > high > medium > low > info) per ADR § 5.1 step 4.
 ```
 
 The orchestrator MUST aggregate one such payload per dispatched expert into

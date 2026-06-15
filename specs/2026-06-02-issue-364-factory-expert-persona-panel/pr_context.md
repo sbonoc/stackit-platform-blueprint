@@ -55,24 +55,24 @@ FR-006(a)/(b)/(c). The stripping-edit commits land in slice 3 of this PR.
 
 | Runbook path | PR #362 commit-sha | Stripping-edit commit-sha on this branch |
 |---|---|---|
-| `.agents/skills/blueprint-sdd-step01-intake/SKILL.md` | (new on this branch) | populated at slice 3 commit |
-| `.agents/skills/blueprint-sdd-step02-resolve-questions/SKILL.md` | (new on this branch) | populated at slice 3 commit |
-| `.agents/skills/blueprint-sdd-step03-spec-complete/SKILL.md` | (new on this branch) | populated at slice 3 commit |
-| `.agents/skills/blueprint-sdd-step04-plan-slicer/SKILL.md` | (new on this branch) | populated at slice 3 commit |
-| `.agents/skills/blueprint-sdd-step05-implement/SKILL.md` | (new on this branch) | populated at slice 3 commit |
-| `.agents/skills/blueprint-sdd-step06-document-sync/SKILL.md` | (new on this branch) | populated at slice 3 commit |
-| `.agents/skills/blueprint-sdd-step07-pr-packager/SKILL.md` | (new on this branch) | populated at slice 3 commit |
-| `.agents/skills/blueprint-sdd-step08-agent-pr-review/SKILL.md` | (new on this branch) | populated at slice 3 commit |
+| `.agents/skills/blueprint-sdd-step01-intake/SKILL.md` | (new on this branch) | be866a22 |
+| `.agents/skills/blueprint-sdd-step02-resolve-questions/SKILL.md` | (new on this branch) | be866a22 |
+| `.agents/skills/blueprint-sdd-step03-spec-complete/SKILL.md` | (new on this branch) | be866a22 |
+| `.agents/skills/blueprint-sdd-step04-plan-slicer/SKILL.md` | (new on this branch) | be866a22 |
+| `.agents/skills/blueprint-sdd-step05-implement/SKILL.md` | (new on this branch) | be866a22 |
+| `.agents/skills/blueprint-sdd-step06-document-sync/SKILL.md` | (new on this branch) | be866a22 |
+| `.agents/skills/blueprint-sdd-step07-pr-packager/SKILL.md` | (new on this branch) | be866a22 |
+| `.agents/skills/blueprint-sdd-step08-agent-pr-review/SKILL.md` | (new on this branch) | be866a22 |
 | `.agents/skills/blueprint-sdd-traceability-keeper/SKILL.md` | (new on this branch) | (no persona-coupling; no stripping needed) |
-| `.agents/skills/blueprint-agent-handoff/SKILL.md` | (new on this branch) | populated at slice 3 commit |
-| `.agents/skills/blueprint-agent-secret-scan/SKILL.md` | (new on this branch) | populated at slice 3 commit |
-| `.agents/skills/blueprint-agent-stop-cleanup/SKILL.md` | (new on this branch) | populated at slice 3 commit |
-| `.agents/skills/blueprint-human-review-prep/SKILL.md` | (new on this branch) | populated at slice 3 commit |
-| `.agents/skills/blueprint-pr-review-respond/SKILL.md` | (new on this branch) | populated at slice 3 commit |
-| `.agents/skills/blueprint-spec-review-prep/SKILL.md` | (new on this branch) | populated at slice 3 commit |
-| `.agents/skills/blueprint-spec-revision-handoff/SKILL.md` | (new on this branch) | populated at slice 3 commit |
-| `.agents/skills/blueprint-ticket-decompose-light/SKILL.md` | (new on this branch) | populated at slice 3 commit |
-| `.agents/skills/blueprint-ticket-triage-size/SKILL.md` | (new on this branch) | populated at slice 3 commit |
+| `.agents/skills/blueprint-agent-handoff/SKILL.md` | (new on this branch) | be866a22 |
+| `.agents/skills/blueprint-agent-secret-scan/SKILL.md` | (new on this branch) | be866a22 |
+| `.agents/skills/blueprint-agent-stop-cleanup/SKILL.md` | (new on this branch) | be866a22 |
+| `.agents/skills/blueprint-human-review-prep/SKILL.md` | (new on this branch) | be866a22 |
+| `.agents/skills/blueprint-pr-review-respond/SKILL.md` | (new on this branch) | be866a22 |
+| `.agents/skills/blueprint-spec-review-prep/SKILL.md` | (new on this branch) | be866a22 |
+| `.agents/skills/blueprint-spec-revision-handoff/SKILL.md` | (new on this branch) | be866a22 |
+| `.agents/skills/blueprint-ticket-decompose-light/SKILL.md` | (new on this branch) | be866a22 |
+| `.agents/skills/blueprint-ticket-triage-size/SKILL.md` | (new on this branch) | be866a22 |
 
 Provenance note: The 18 SKILL.md files were authored fresh on this branch
 during prior step01/step02/step04 spec-scaffolding work (no PR #362 ancestor

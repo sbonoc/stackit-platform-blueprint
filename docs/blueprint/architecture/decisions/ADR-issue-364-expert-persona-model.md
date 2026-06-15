@@ -163,9 +163,9 @@ The orchestrator MUST consume a dispatch table whose rows conform to the followi
 
 Implementation contract for #361. The orchestrator MUST:
 
-1. **Tokenize** the question text into lowercase word tokens, stripping punctuation, of length ≥ 4.
-2. **Load** the `## Push-back Triggers` section of each `.agents/personas/<slug>/PERSONA.md`. Extract trigger phrases (one per markdown list item; the substring up to the first em-dash, colon, or period).
-3. **Match**: for each expert, count case-insensitive substring matches between any trigger phrase and the question's tokenized text. Match is per-phrase, not per-token — multi-word phrases like `lawful basis` MUST match the contiguous substring, not the bag-of-tokens.
+1. **Normalize** the question text into a single matchable string `Q`: lowercase the text, strip punctuation but preserve inter-word whitespace, collapse runs of whitespace to single spaces. (No tokenization — the contiguous string form is required by step 3.)
+2. **Load** the `## Push-back Triggers` section of each `.agents/personas/<slug>/PERSONA.md`. Extract trigger phrases (one per markdown list item; the substring up to the first em-dash, colon, or period). Apply the same lowercase + collapse-whitespace normalization to each trigger phrase.
+3. **Match**: for each expert, count case-insensitive **contiguous substring** matches between any of that expert's normalized trigger phrases and `Q`. Match is per-phrase, not per-token — multi-word phrases like `lawful basis` MUST appear as the contiguous substring `lawful basis` somewhere in `Q`; the bag-of-tokens shortcut is forbidden because it destroys phrase boundaries.
 4. **Floor**: if zero experts match, dispatch `product-pragmatist` only.
 5. **Multi-match**: every expert with ≥ 1 match is dispatched.
 6. **Lead voice**: if the question was raised by a bot persona at step08, the lead is that originating `expert_slug` (recorded in the prior step's `outcome.details.expert_verdicts[]`); otherwise the lead is `product-pragmatist`.
@@ -261,7 +261,7 @@ sequenceDiagram
 
 **Pattern 1 — parallel-then-merge** (default). Experts review the skill's draft in parallel; merger applies the merge semantics in § 5.1.
 
-**Pattern 2 — sequential-lens** (`step05` only). Experts apply in order: `test-quality-sceptic` → `security-paranoid` → `data-privacy` → `performance-cost-aware` → `boundary-hawk`. Each round receives the prior round's revised draft. Used where a later lens must observe the effect of an earlier lens (e.g., a security fix may introduce a performance regression). Sequential rounds still emit one verdict per expert per round; the merge semantics in § 5.1 apply to the final round's collected verdicts.
+**Pattern 2 — sequential-lens** (`step05` only). Experts apply in order: `test-quality-sceptic` → `security-paranoid` → `data-privacy` → `performance-cost-aware` → `boundary-hawk`. Each round receives the prior round's revised draft. Used where a later lens must observe the effect of an earlier lens (e.g., a security fix may introduce a performance regression). Sequential rounds still emit one verdict per expert per round; the merge semantics in § 5.1 apply to the final round's collected verdicts. (Step03 carries the `sequential-lens` label in the C3 matrix but is a degenerate panel-of-1 case where convergence is trivially satisfied — the label is a header-shape choice for matrix uniformity, not a second site of sequential application; the merge semantics still apply trivially to the single verdict.)
 
 **Pattern 3 — structured-disagreement** (`step08` only, on conflicting `block` verdicts). Detection and surfacing per § 5.2. Step03 is excluded — its panel size of 1 makes block-conflict mechanically impossible; any disagreement at the spec-sign-off gate is reasoned out between human approvers, not bot experts.
 

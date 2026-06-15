@@ -76,7 +76,7 @@
 
 ## Validation Summary
 - Required bundles executed (2026-06-03 at slice 7 commit `3c951090`): `make quality-sdd-check` PASS, `make quality-hooks-fast` PASS (11 checks), `make quality-hooks-slow` PASS, `make docs-build` PASS, `make docs-smoke` PASS, `make quality-hardening-review` PASS.
-- Result summary: All quality gates green. The 127 pytest assertions under `tests/blueprint/factory_expert_personas/` pass and constitute the structural contract for AC-001/AC-004/AC-008/AC-009/AC-010/AC-011/AC-012/AC-013/AC-014/AC-015. C7 implement lifecycle event recorded at `artifacts/c7/2026-06-02-issue-364-factory-expert-persona-panel.jsonl` (skill=`blueprint-sdd-step05-implement`, owner-team=`factory-core`, emitter=`local-cli`).
+- Result summary: All quality gates green. The 238 pytest assertions under `tests/blueprint/factory_expert_personas/` pass and constitute the structural contract for AC-001/AC-004/AC-005/AC-008/AC-009/AC-010/AC-011/AC-012/AC-013/AC-014/AC-015 (count grew from the 127 originally landed at slice 7 commit `3c951090` to 238 after commit `aa2f12e3` added five test modules closing pre-merge gaps for FR-001 distinctiveness, FR-001 compositional independence, FR-011/AC-013 deleted-file enforcement, FR-005 reciprocal `Amended-by`/`Superseded-by` lines, and FR-008/AC-005 amendment-URL HTTP-200). C7 implement lifecycle event recorded at `artifacts/c7/2026-06-02-issue-364-factory-expert-persona-panel.jsonl` (skill=`blueprint-sdd-step05-implement`, owner-team=`factory-core`, emitter=`local-cli`).
 - Documentation validation:
   - `make docs-build`
   - `make docs-smoke`
