@@ -30,9 +30,12 @@ expert-panel layer MUST NOT directive-invoke this skill. The
 reviewer-model-heterogeneity ADR at
 `docs/blueprint/architecture/decisions/ADR-issue-337-reviewer-model-heterogeneity.md`
 (amended by `ADR-issue-364-expert-persona-model.md`) requires
-**panel-disjointness**: within a single step's panel, no two experts MAY
-share the same LiteLLM routing key for the same `(ticket_id, phase,
-rerun_round)` tuple. The pre-amendment implement-vs-review model-split
+**panel-disjointness**: within a single step's panel, the set of LiteLLM
+routing keys actually used MUST contain at least 2 distinct values
+(pairwise uniqueness across all 8 experts is NOT required; the panel
+MUST NOT collapse to a single shared routing key) for the same
+`(ticket_id, phase, rerun_round)` tuple — see ADR-issue-364 § 4.3 for
+the full statement. The pre-amendment implement-vs-review model-split
 framing is superseded — the FR-008 audit invariant still pairs the
 `phase: implement` C7 event with the `phase: agent-pr-review` event on the
 same `ticket_id` and asserts distinct `model` values, but the heterogeneity
@@ -101,10 +104,18 @@ Return:
 
 ## Required Output Schema
 
-The orchestrator emits a `phase: agent-pr-review` C7 lifecycle event after
-merging the per-expert payloads from all dispatched experts; the structured
-payload below is one row in the merged `outcome.details.expert_verdicts[]`
-array carried on that event.
+The orchestrator merges the per-expert payloads from all dispatched
+experts into an internal panel-merge structure used to author workspace
+artifacts (referenced by the C7 event's `evidence_uri`), and then emits
+a single `phase: agent-pr-review` C7 lifecycle event carrying the
+**compact** per-expert summary array
+(`outcome.details.expert_verdicts[]` as `ExpertVerdictSummary` per
+ADR-issue-364 § 9 and design-contracts § C7). The per-expert payload
+schema below is the input to that merge — it is NOT the C7 row shape.
+The full `findings[]` array MUST NOT be inlined into the C7 event;
+dashboards and ingest pipelines query counts via the
+`findings_count` field on the compact row and load full payloads from
+the referenced workspace artifact when needed.
 
 ```yaml jsonschema
 $schema: "http://json-schema.org/draft-07/schema#"
@@ -112,18 +123,16 @@ title: BlueprintAgentPrReviewOutput
 description: >-
   Structured per-expert verdict and findings list produced by one expert-panel
   invocation during the SDD step08 agent PR review phase. The orchestrator
-  merges these into the panel-level expert_verdicts[] array carried on the
-  C7 agent-pr-review event.
+  consumes this shape, merges across experts, writes the full findings to a
+  workspace artifact, and emits the compact ExpertVerdictSummary row on the
+  C7 agent-pr-review event per ADR-issue-364 § 9.
 type: object
 additionalProperties: false
 required:
-  - ticket_id
   - expert_slug
   - verdict
   - findings
 properties:
-  ticket_id:
-    type: string
   expert_slug:
     type: string
     description: >-
@@ -191,14 +200,28 @@ properties:
 ```
 
 The orchestrator MUST aggregate one such payload per dispatched expert into
-the `expert_verdicts` array on the panel-level C7 event payload:
+an **internal** panel-merge structure (used to author the workspace
+artifact referenced by the C7 event's `evidence_uri`):
 
 ```yaml
+# orchestrator internal merge structure — NOT the C7 payload shape
+panel_merge:
+  expert_payloads:
+    - { expert_slug: ..., verdict: ..., findings: [...] }
+    - { expert_slug: ..., verdict: ..., findings: [...] }
+```
+
+The orchestrator then converts each row into the **compact**
+`ExpertVerdictSummary` shape (ADR-issue-364 § 9) and emits exactly that
+on the C7 event:
+
+```yaml
+# C7 event payload — compact summary only, MUST NOT carry the full findings array
 outcome:
   details:
     expert_verdicts:
-      - { expert_slug: ..., verdict: ..., findings: [...] }
-      - { expert_slug: ..., verdict: ..., findings: [...] }
+      - { expert_slug: ..., verdict: ..., findings_count: 0 }
+      - { expert_slug: ..., verdict: ..., findings_count: 3 }
 ```
 
 per design-contracts § C7 and FR-007 of `ADR-issue-364-expert-persona-model.md`.
