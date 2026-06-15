@@ -38,6 +38,47 @@ PERSONA_REQUIRED_SECTIONS: tuple[str, ...] = (
 PERSONA_FORBIDDEN_SECTIONS: tuple[str, ...] = (
     "## Activation Triggers",
     "## Skills Invoked",
+    "## Definition of Done",
+    "## Collaboration & Handoffs",
+    "## Strict Guardrails",
+    "## SDD Cycle Stakes",
+    "## Required Inputs",
+    "## Role Objective",
+)
+
+OLD_FLAT_PERSONA_FILES: tuple[str, ...] = (
+    "po-analyst.md",
+    "architect.md",
+    "tech-lead.md",
+    "implementer.md",
+    "devsecops-qa.md",
+    "doc-keeper.md",
+    "security-reviewer.md",
+    "architecture-reviewer.md",
+    "contract-reviewer.md",
+    "test-coverage-reviewer.md",
+)
+
+MIN_PUSH_BACK_TRIGGER_PHRASES: int = 6
+MAX_PAIRWISE_TRIGGER_OVERLAP: int = 1
+
+AMENDED_ADRS_WITH_BACKREF: tuple[str, ...] = (
+    "ADR-issue-337-persona-skill-contract.md",
+    "ADR-issue-337-c7-emission-mechanism.md",
+    "ADR-issue-337-reviewer-model-heterogeneity.md",
+)
+SUPERSEDED_ADR: str = "ADR-issue-360-factory-personas-skills-roster.md"
+
+CROSS_TICKET_AMENDMENT_TICKETS: tuple[str, ...] = (
+    "#333",
+    "#361",
+    "#335",
+    "#336",
+    "#342",
+    "#343",
+    "#332",
+    "#360",
+    "#362",
 )
 
 STAGE_PERSONA_SLUGS: tuple[str, ...] = (
