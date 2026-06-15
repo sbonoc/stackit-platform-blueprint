@@ -1,6 +1,6 @@
 ---
 name: blueprint-sdd-step08-agent-pr-review
-description: Produce a structured findings list against the work-item PR diff at SDD step 08; one invocation per expert from the dispatched expert panel, returning a per-expert verdict array aligned with C7 outcome.details.expert_verdicts[].
+description: Produce a structured findings list against the work-item PR diff at SDD step 08; one invocation per expert from the dispatched expert panel, returning a per-expert verdict array aligned with C7 outcome_details.expert_verdicts[].
 blueprint-version: 1.0.0
 extensibility-tier: extensible
 emits-phase: agent-pr-review
@@ -38,11 +38,20 @@ MUST NOT collapse to a single shared routing key) for the same
 the full statement. The pre-amendment implement-vs-review model-split
 framing is superseded — the FR-008 audit invariant still pairs the
 `phase: implement` C7 event with the `phase: agent-pr-review` event on the
-same `ticket_id` and asserts distinct `model` values, but the heterogeneity
-guarantee within step08 is now panel-disjointness, not the prior
-implement/review split. The orchestrator (Child B, #361) enforces the
-disjointness rule when assembling the panel for step08 and selects routing
-keys accordingly.
+same `ticket_id`, but the predicate is re-expressed against the per-panel
+routing-key set carried as the C7 extension field
+`outcome_details.routing_keys` (per design-contracts § C7): the audit
+asserts BOTH (a) the implement event's aggregate `model` value is NOT a
+member of the agent-pr-review event's `outcome_details.routing_keys` set,
+AND (b) the agent-pr-review `outcome_details.routing_keys` set contains
+≥ 2 distinct values. Comparing the two events' aggregate `model` fields
+(the pre-amendment predicate) is insufficient under the panel model
+because the agent-pr-review event has one aggregate `model` field
+(carrying the lead voice's routing key per § 4.4 / § 4.5) but the panel
+has multiple per-expert routing keys. The orchestrator (Child B, #361)
+enforces the disjointness rule when assembling the panel for step08,
+populates `outcome_details.routing_keys` on the emitted event, and
+selects routing keys accordingly.
 
 ## Inputs
 
@@ -78,7 +87,7 @@ keys accordingly.
 
 This skill MUST NOT directive-invoke any other skill (FR-016 composition
 ban). Each expert invocation is independent; the orchestrator merges the
-per-expert verdict arrays into the C7 `outcome.details.expert_verdicts[]`
+per-expert verdict arrays into the C7 `outcome_details.expert_verdicts[]`
 field per `ADR-issue-337-c7-emission-mechanism.md` (amended by
 `ADR-issue-364-expert-persona-model.md` § 9) and per design-contracts § C7.
 
@@ -90,7 +99,7 @@ Return:
 2. Findings count grouped by severity (`info`, `low`, `medium`, `high`,
    `critical`) — matches the ADR § 6 `ExpertVerdict.findings[].severity`
    enum so the orchestrator can roll the count up into the C7
-   `outcome.details.expert_verdicts[].findings_count` field per
+   `outcome_details.expert_verdicts[].findings_count` field per
    design-contracts § C7 without translation.
 3. For each finding: `category` (short tag drawn from the expert's
    `## Push-back Triggers` set, suitable for grouping/dedup), `summary`
@@ -109,7 +118,7 @@ experts into an internal panel-merge structure used to author workspace
 artifacts (referenced by the C7 event's `evidence_uri`), and then emits
 a single `phase: agent-pr-review` C7 lifecycle event carrying the
 **compact** per-expert summary array
-(`outcome.details.expert_verdicts[]` as `ExpertVerdictSummary` per
+(`outcome_details.expert_verdicts[]` as `ExpertVerdictSummary` per
 ADR-issue-364 § 9 and design-contracts § C7). The per-expert payload
 schema below is the input to that merge — it is NOT the C7 row shape.
 The full `findings[]` array MUST NOT be inlined into the C7 event;
@@ -216,12 +225,23 @@ The orchestrator then converts each row into the **compact**
 on the C7 event:
 
 ```yaml
-# C7 event payload — compact summary only, MUST NOT carry the full findings array
-outcome:
-  details:
-    expert_verdicts:
-      - { expert_slug: ..., verdict: ..., findings_count: 0 }
-      - { expert_slug: ..., verdict: ..., findings_count: 3 }
+# C7 event payload — compact summary only, MUST NOT carry the full findings array.
+# Note: `outcome` itself remains a sealed STRING enum (`success | rejected | retried | human-handoff`)
+# per the C7 minimum schema; the additive per-expert data lives on the sibling
+# top-level object `outcome_details`, not nested inside `outcome`.
+outcome: success
+outcome_details:
+  expert_verdicts:
+    - { expert_slug: ..., verdict: ..., findings_count: 0 }
+    - { expert_slug: ..., verdict: ..., findings_count: 3 }
+  # Routing-key set actually used across the dispatched panel for this
+  # (ticket_id, phase, rerun_round). Audit-of-record for FR-008 reviewer-
+  # heterogeneity under ADR-issue-364 § 4.3 panel-disjointness.
+  routing_keys:
+    - anthropic/claude-opus-4-7
+    - anthropic/claude-sonnet-4-6
+    - anthropic/claude-haiku-4-5
+evidence_uri: artifacts/c7/<work-item-slug>/agent-pr-review-round-0.json
 ```
 
 per design-contracts § C7 and FR-007 of `ADR-issue-364-expert-persona-model.md`.
@@ -239,7 +259,7 @@ frontmatter; `OWNER_TEAM` — the GitHub team slug owning this repository
 
 In the autonomous-factory bot path the orchestrator emits **one** event
 per step08 round after merging all per-expert payloads into
-`outcome.details.expert_verdicts[]` (per ADR-issue-364 § 4 and
+`outcome_details.expert_verdicts[]` (per ADR-issue-364 § 4 and
 design-contracts § C7). The `local-cli` helper invoked below is the
 human-assisted equivalent and emits one event per step08 round — not one
 per expert invocation — so the audit pairing remains 1:1 with the

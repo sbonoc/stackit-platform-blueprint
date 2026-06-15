@@ -8,7 +8,7 @@
 - Finding 1: populated at step07
 
 ## Observability and Diagnostics Changes
-- Metrics/logging/tracing updates: none directly in this PR; the additive C7 `outcome.details.expert_verdicts[]` field becomes queryable post-merge (e.g., "show everything Boundary Hawk blocked in the last 30 days"). Implementation of the emission lands under #361.
+- Metrics/logging/tracing updates: none directly in this PR; the additive C7 `outcome_details.expert_verdicts[]` field becomes queryable post-merge (e.g., "show everything Boundary Hawk blocked in the last 30 days"). Implementation of the emission lands under #361.
 - Operational diagnostics updates: none in this PR.
 
 ## Architecture and Code Quality Compliance

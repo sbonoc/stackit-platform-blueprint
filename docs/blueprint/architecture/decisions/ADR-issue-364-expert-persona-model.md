@@ -8,7 +8,7 @@
 This ADR **supersedes ADR-issue-360-factory-personas-skills-roster.md** in full, and **amends** three #337 ADRs:
 
 - `ADR-issue-337-persona-skill-contract.md` — amends clause 3 (composition): the **orchestrator** is the sole dispatcher of skills; **expert personas** also MUST NOT directive-invoke skills.
-- `ADR-issue-337-c7-emission-mechanism.md` — amends the `outcome.details` shape to permit an additive optional `expert_verdicts: Array<{ expert_slug, verdict, findings_count }>`; the eleven required fields, the sealed three-emitter rule, and the `event_id` derivation are unchanged.
+- `ADR-issue-337-c7-emission-mechanism.md` — amends the `outcome_details` shape to permit an additive optional `expert_verdicts: Array<{ expert_slug, verdict, findings_count }>`; the eleven required fields, the sealed three-emitter rule, and the `event_id` derivation are unchanged.
 - `ADR-issue-337-reviewer-model-heterogeneity.md` — amends the heterogeneity rule from "implement-vs-review model split" to **per-expert model assignment**; the FR-008 audit invariant becomes a panel-disjointness rule (formalized in #336's spec amendment landed alongside this ADR).
 
 ## 1. Context
@@ -28,7 +28,7 @@ flowchart TD
     Panel["Expert panel<br/>(standing lenses)<br/>emits structured verdicts on the draft"]
     Orchestrator["Orchestrator (#361)<br/>dispatch table: step → {skill, panel, convergence, model_per_expert}"]
     Merger["Convergence merger<br/>(parallel-then-merge default)"]
-    Output["Final step output<br/>+ per-expert verdicts in C7 outcome.details"]
+    Output["Final step output<br/>+ per-expert verdicts in C7 outcome_details"]
 
     SDDStep -->|invokes| Orchestrator
     Orchestrator -->|runs| Skill
@@ -96,7 +96,7 @@ The matrix at the time of this ADR (informative — for sign-off readers; author
 **Step02 dynamic-scope contract** (consumed by #361 orchestrator):
 - Input: the open-question text + the artifact section it targets (e.g., `spec.md § NFR-003`, `architecture.md § Bounded Contexts`).
 - Selection rule: orchestrator routes the question to the expert(s) whose `Push-back Triggers` section in their `PERSONA.md` matches keywords / domains in the question. Multiple matches → multiple experts. Zero matches → floor = `product-pragmatist`.
-- Lead voice: the original questioner if the question was raised by a bot persona at step08 (recorded in `outcome.details.expert_verdicts[].expert_slug`); otherwise `product-pragmatist`.
+- Lead voice: the original questioner if the question was raised by a bot persona at step08 (recorded in `outcome_details.expert_verdicts[].expert_slug`); otherwise `product-pragmatist`.
 - Implementation of the routing logic is owned by #361; this ADR specifies only the contract.
 
 Tunable per-step over time without amending this ADR — the matrix in C3 is authoritative and the only place it lives.
@@ -163,14 +163,15 @@ The orchestrator MUST consume a dispatch table whose rows conform to the followi
 
 Implementation contract for #361. The orchestrator MUST:
 
-1. **Normalize** the question text into a single matchable string `Q`: lowercase the text, strip punctuation but preserve inter-word whitespace, collapse runs of whitespace to single spaces. (No tokenization — the contiguous string form is required by step 3.)
+1. **Normalize** the question text into a single matchable string `Q`: lowercase the text, strip punctuation but preserve inter-word whitespace, collapse runs of whitespace to single spaces.
 2. **Load** the `## Push-back Triggers` section of each `.agents/personas/<slug>/PERSONA.md`. Extract trigger phrases (one per markdown list item; the substring up to the first em-dash, colon, or period). Apply the same lowercase + collapse-whitespace normalization to each trigger phrase, producing `T_e = {t_e_1, t_e_2, ...}` per expert `e`.
-3. **Match (bidirectional contiguous substring)**: for each expert `e`, count `Q`↔`T_e` matches as the number of trigger phrases `t` in `T_e` for which **either** `t` appears as a contiguous substring of `Q` **or** `Q` appears as a contiguous substring of `t`. The bidirectional rule is required because trigger phrases in `## Push-back Triggers` are written as full sentences (e.g., the `data-privacy` bullet "personal data collected without stated lawful basis for the specific purpose and the specific data category"), while questions raised at step02 are typically short (e.g., "what is the lawful basis?") — one-directional matching would miss the documented `lawful basis` case because the long phrase is not contained in the short question. Multi-word substrings like `lawful basis` MUST match contiguously in whichever direction applies; the bag-of-tokens shortcut is forbidden because it destroys phrase boundaries. (Short-but-too-generic substring matches — e.g., a 2-character `Q` matching every trigger phrase — are bounded by step 1's punctuation-strip + whitespace-collapse on `Q`: the minimum useful substring length is governed by how questions are actually phrased at step02, not by an arbitrary token-length floor.)
-4. **Floor**: if zero experts match, dispatch `product-pragmatist` only.
-5. **Multi-match**: every expert with ≥ 1 match is dispatched.
-6. **Lead voice**: if the question was raised by a bot persona at step08, the lead is that originating `expert_slug` (recorded in the prior step's `outcome.details.expert_verdicts[]`); otherwise the lead is `product-pragmatist`.
+3. **Bigram extraction.** Tokenize `Q` and each `t ∈ T_e` on whitespace into word-token sequences. Produce the **contiguous bigram set** `B(s) = {(w_i, w_{i+1}) : i = 0..len(s)-2}` for each normalized string `s` (i.e., every adjacent ordered word pair). A single-word string produces an empty bigram set and is treated as a no-match candidate (see step 5 floor).
+4. **Match (contiguous-bigram overlap)**: for each expert `e`, count matches as the size of the **intersection** between `B(Q)` and the union of `B(t)` for each `t ∈ T_e` — i.e., the number of distinct adjacent word pairs that appear contiguously in both the question and at least one trigger phrase. This routes the documented `data-privacy` case correctly: the question `"what is the lawful basis?"` produces bigrams `{(what, is), (is, the), (the, lawful), (lawful, basis)}` and the trigger phrase `"personal data collected without stated lawful basis for the specific purpose and the specific data category"` produces bigrams that include `(lawful, basis)` — the intersection is non-empty, so `data-privacy` matches. Bag-of-tokens (unigram) matching is forbidden because it loses phrase boundaries (e.g., `"the basis"` and `"the lawful"` would each match unigrams `the` / `basis` / `lawful` but neither is a phrase the persona is actually scoped to). Bigrams are the minimum n-gram that preserves phrase boundaries while remaining short enough to fire on real step02 question wording.
+5. **Floor**: if zero experts match (empty bigram-overlap for every expert, e.g., a one-word question or a question whose adjacent word pairs do not appear in any trigger phrase), dispatch `product-pragmatist` only.
+6. **Multi-match**: every expert with ≥ 1 match is dispatched.
+7. **Lead voice**: if the question was raised by a bot persona at step08, the lead is that originating `expert_slug` (recorded in the prior step's `outcome_details.expert_verdicts[]`); otherwise the lead is `product-pragmatist`.
 
-The match algorithm is intentionally simple (substring, not embedding) so its behaviour is deterministic and reproducible in the audit log. Upgrade to embedding-match is a #361 follow-up if substring proves insufficient.
+The match algorithm is intentionally simple (deterministic contiguous bigram overlap, no embedding model) so its behaviour is reproducible in the audit log. Upgrade to embedding-match is a #361 follow-up if the bigram-overlap rule proves insufficient on real step02 traffic (tracked under follow-up #368).
 
 ### 4.3 Per-expert model tier baseline (default contract for #335)
 
@@ -212,7 +213,7 @@ For step08 (panel of all 8, convergence mode `parallel-then-merge` with structur
 
 1. List the 8 expert slugs in matrix order: `product-pragmatist, boundary-hawk, security-paranoid, data-privacy, test-quality-sceptic, operability-sre, documentation-discipline, performance-cost-aware`.
 2. `lead_index = rerun_round mod 8`. Round 0 (first dispatch) → `product-pragmatist`; round 1 → `boundary-hawk`; … round 7 → `performance-cost-aware`; round 8 wraps to `product-pragmatist`.
-3. The lead voice is the slug at `lead_index`. The lead's verdict and findings are presented **first** in the merged step08 output and are the authored voice in any human-facing summary; this does not change the verdict-priority rule (`block > revise > pass`) — all 8 verdicts remain present in `outcome.details.expert_verdicts[]`.
+3. The lead voice is the slug at `lead_index`. The lead's verdict and findings are presented **first** in the merged step08 output and are the authored voice in any human-facing summary; this does not change the verdict-priority rule (`block > revise > pass`) — all 8 verdicts remain present in `outcome_details.expert_verdicts[]`.
 4. `rerun_round` is derived from C7's existing `rerun_round` counter on the prior step08 emission for the same `ticket_id`. First dispatch is `rerun_round = 0`.
 
 Rationale: deterministic rotation satisfies the heterogeneity-aware demand (no single expert dominates the agent-PR-review voice across reruns) without requiring the orchestrator to track lead-rotation state outside C7.
@@ -222,7 +223,7 @@ Rationale: deterministic rotation satisfies the heterogeneity-aware demand (no s
 The `lead_voice` is **draft author** of the merged step output, not a tie-breaker or verdict-promoter:
 
 - The lead expert authors the prose framing of any human-facing artifact produced by the step (e.g., the step08 review-comment markdown).
-- All experts' verdicts and findings remain present in `outcome.details.expert_verdicts[]` with equal weight.
+- All experts' verdicts and findings remain present in `outcome_details.expert_verdicts[]` with equal weight.
 - The verdict-merge rule (`block > revise > pass`) is independent of lead voice: a `block` from a non-lead expert still blocks the step.
 - Tie-breaking among `block` verdicts with conflicting demands is handled by structured-disagreement (§ 5), not by lead voice.
 - Lead voice has zero effect on C7 emission semantics — `persona` in C7 is the skill basename, not the lead slug (per FR-010).
@@ -256,7 +257,7 @@ sequenceDiagram
     end
     Orch->>Mrg: 5. Merge verdicts: priority block > revise > pass
     Mrg-->>Orch: 6. Final verdict + merged findings
-    Note over Orch: Emit C7 with outcome.details.expert_verdicts[]
+    Note over Orch: Emit C7 with outcome_details.expert_verdicts[]
 ```
 
 **Pattern 1 — parallel-then-merge** (default). Experts review the skill's draft in parallel; merger applies the merge semantics in § 5.1.
@@ -369,8 +370,8 @@ For every dispatched expert, the orchestrator MUST classify the verdict outcome 
 
 `missing-expert-verdict` outcomes MUST cause the orchestrator to:
 
-1. Emit C7 with `outcome: rejected` and `rejection_reason: missing-expert-verdict`.
-2. Include in `outcome.details.expert_verdicts[]` a stub `ExpertVerdictSummary` row `{expert_slug, verdict: "block", findings_count: 0}` — schema-valid against § 9's `additionalProperties: false` constraint. The "panel-incomplete" classification is carried on the event's sibling fields (`rejection_reason: missing-expert-verdict` from step 1 above) rather than inlined into the summary row. The full per-finding payload — including a single synthetic finding with `category: panel-incomplete` and `severity: critical` — MUST be written to the workspace artifact referenced by `evidence_uri`, so audit consumers can distinguish "expert produced empty findings (pass)" from "expert produced nothing (panel-incomplete)" by joining the compact summary (`verdict: block`, `findings_count: 0`) against the rejection reason and the artifact payload.
+1. Emit C7 with `outcome: rejected` and the sibling extension field `rejection_reason: missing-expert-verdict` (per the C7 extension vocabulary pinned in `../../autonomous-factory/design-contracts.md` § C7).
+2. Include in `outcome_details.expert_verdicts[]` a stub `ExpertVerdictSummary` row `{expert_slug, verdict: "block", findings_count: 0}` — schema-valid against § 9's `additionalProperties: false` constraint. The "panel-incomplete" classification is carried on the event's sibling fields (`rejection_reason: missing-expert-verdict` from step 1 above) rather than inlined into the summary row. The full per-finding payload — including a single synthetic finding with `category: panel-incomplete` and `severity: critical` — MUST be written to the workspace artifact referenced by the sibling extension field `evidence_uri` (also pinned in `../../autonomous-factory/design-contracts.md` § C7), so audit consumers can distinguish "expert produced empty findings (pass)" from "expert produced nothing (panel-incomplete)" by joining the compact summary (`verdict: block`, `findings_count: 0`) against the rejection reason and the artifact payload.
 3. **Not** auto-retry the whole step — the rerun is the human's decision after seeing the rejected C7 event.
 
 The intent: dispatch-time failures are never silently swallowed; the audit trail always shows whether the panel completed.
@@ -379,7 +380,7 @@ The intent: dispatch-time failures are never silently swallowed; the audit trail
 
 - `ADR-issue-360-factory-personas-skills-roster.md`: `Status: superseded by ADR-issue-364-expert-persona-model.md`. First paragraph rewritten to point readers here. The salvageable artifacts (skill runbooks minus persona-coupling; C7 schema fixes) carry forward via this ADR's outputs.
 - `ADR-issue-337-persona-skill-contract.md`: `Amended by ADR-issue-364-expert-persona-model.md` (clause 3 composition rule extended to expert personas; identity-source rule added per § 8.1 — `PERSONA.md § Worldview` is the sole identity source for a dispatched expert, with `AGENTS.md § Role and Philosophy` scoped to operator-default mode).
-- `ADR-issue-337-c7-emission-mechanism.md`: `Amended by ADR-issue-364-expert-persona-model.md` (additive optional `outcome.details.expert_verdicts[]`; AND the `persona` field description for `emitter: orchestrator` events plus surrounding emission-mechanism prose realigned from *persona invocation* / *persona file basename* wording to *skill invocation* / *SDD step skill basename* wording, since the expert-panel dispatch model no longer has a 1:1 persona-per-phase relation — eleven-field minimum schema, `event_id` derivation, and sealed three-emitter rule remain unchanged).
+- `ADR-issue-337-c7-emission-mechanism.md`: `Amended by ADR-issue-364-expert-persona-model.md` (additive optional `outcome_details.expert_verdicts[]`; AND the `persona` field description for `emitter: orchestrator` events plus surrounding emission-mechanism prose realigned from *persona invocation* / *persona file basename* wording to *skill invocation* / *SDD step skill basename* wording, since the expert-panel dispatch model no longer has a 1:1 persona-per-phase relation — eleven-field minimum schema, `event_id` derivation, and sealed three-emitter rule remain unchanged).
 - `ADR-issue-337-reviewer-model-heterogeneity.md`: `Amended by ADR-issue-364-expert-persona-model.md` (per-expert model assignment; FR-008 audit invariant becomes panel-disjointness).
 
 Non-ADR governance file also amended by this work item (listed here so the FR-005 amendment ledger is complete):
@@ -411,7 +412,7 @@ This separation prevents the panel's 8 worldviews from collapsing toward a share
 
 ## 9. C7 amendment shape (FR-007)
 
-The `outcome.details` object on every C7 event MAY contain an additive optional `expert_verdicts: Array<ExpertVerdictSummary>` where `ExpertVerdictSummary` is:
+C7 events MAY carry an additive optional **sibling top-level object** `outcome_details` (sibling of the sealed-string `outcome` field per `../../autonomous-factory/design-contracts.md` § C7 extension-field vocabulary). The `outcome_details` object MAY contain an additive optional `expert_verdicts: Array<ExpertVerdictSummary>` where `ExpertVerdictSummary` is:
 
 ```json
 {
@@ -426,7 +427,7 @@ The `outcome.details` object on every C7 event MAY contain an additive optional 
 }
 ```
 
-The full per-finding payload (`category`, `summary`, `evidence_ref`, `severity`) lives in workspace artifacts (referenced by the C7 event's existing `evidence_uri`), not inside the event itself, to keep events compact. Audit consumers can join the summary with the full payload via `(ticket_id, phase, rerun_round)`.
+The full per-finding payload (`category`, `summary`, `evidence_ref`, `severity`) lives in workspace artifacts (referenced by the C7 event's sibling extension field `evidence_uri` — see design-contracts § C7), not inside the event itself, to keep events compact. Audit consumers can join the summary with the full payload via `(ticket_id, phase, rerun_round)` and resolve the URI when the full findings are needed.
 
 Existing eleven required fields, sealed three-emitter rule, phase-enum-keyed audit predicates, and `event_id = sha256(ticket_id|phase|rerun_round|emitter)` derivation are unchanged.
 

@@ -48,7 +48,7 @@ invocation per the dispatch table in design-contracts § C3.
 ## Required Output Schema
 
 The orchestrator emits a `phase: intake` C7 lifecycle event on skill
-completion; the structured payload below is the `outcome.details` carried on
+completion; the structured payload below is the `outcome_details` carried on
 that event.
 
 ```yaml jsonschema

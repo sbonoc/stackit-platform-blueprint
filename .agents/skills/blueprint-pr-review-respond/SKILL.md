@@ -53,7 +53,7 @@ revise pass) per the dispatch rules in
 ## Required Output Schema
 
 The orchestrator emits a `phase: agent-pr-review` C7 lifecycle event on skill
-completion; the structured payload below is the `outcome.details` carried on
+completion; the structured payload below is the `outcome_details` carried on
 that event.
 
 ```yaml jsonschema

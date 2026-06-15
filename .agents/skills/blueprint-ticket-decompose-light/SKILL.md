@@ -55,7 +55,7 @@ The orchestrator emits exactly ONE `phase: intake` C7 lifecycle event after
 the step01 panel's full intake phase is complete — that is, after BOTH
 `blueprint-ticket-triage-size` AND this skill have returned. This skill does
 NOT trigger a separate emission; its output is included alongside the
-triage-size output in the `outcome.details` of that single event.
+triage-size output in the `outcome_details` of that single event.
 
 ```yaml jsonschema
 $schema: "http://json-schema.org/draft-07/schema#"

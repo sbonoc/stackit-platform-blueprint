@@ -394,7 +394,7 @@ properties:
       panel invocations (ADR-issue-364 § 4 dispatches a 4-expert panel at
       step07 in parallel-then-merge mode). Each row is keyed by
       expert_slug per ADR-issue-364 § 6 and is carried on the C7
-      outcome.details.expert_verdicts[] field per FR-007.
+      outcome_details.expert_verdicts[] field per FR-007.
     items:
       type: object
       additionalProperties: false

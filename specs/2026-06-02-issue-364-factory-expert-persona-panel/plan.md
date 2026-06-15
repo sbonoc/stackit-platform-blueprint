@@ -113,7 +113,7 @@ The slices are sequenced to keep each commit reviewable in isolation. Each slice
   - include Cross-Ticket Amendments section listing all comment URLs (AC-005)
 
 ## Operational Readiness
-- Logging/metrics/traces: No new runtime — the `expert_verdicts[]` field becomes a queryable C7 outcome.details key for post-merge audits ("Show me every block verdict by Boundary Hawk in last 30 days"). Documented in ADR-issue-337-c7-emission-mechanism.md amendment.
+- Logging/metrics/traces: No new runtime — the `expert_verdicts[]` field becomes a queryable C7 outcome_details key for post-merge audits ("Show me every block verdict by Boundary Hawk in last 30 days"). Documented in ADR-issue-337-c7-emission-mechanism.md amendment.
 - Alerts/ownership: No alerts added. Existing C7-derived alerts remain in scope.
 - Runbook updates: None required. Future #361 orchestrator runbook will cover panel-dispatch operability.
 

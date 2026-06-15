@@ -13,7 +13,7 @@
 - [x] T-003 Re-home 10 skill runbooks from PR #362 onto this branch with persona-coupling language stripped (FR-006 a, b); reshape `blueprint-sdd-step08-agent-pr-review/SKILL.md` to take panel-input and emit a per-expert verdict array (FR-006 c).
 - [x] T-004 Author `docs/blueprint/architecture/decisions/ADR-issue-364-expert-persona-model.md` with the supersession + amendment clauses, the JSON Schema for the verdict object, the flowchart-TD three-layer diagram, and the sequence-diagram of parallel-then-merge convergence. Cross-reference design-contracts § C3 by relative path (FR-002, FR-003, FR-004).
 - [x] T-005 Flip `Status: superseded by ADR-issue-364-expert-persona-model.md` on ADR-issue-360-factory-personas-skills-roster.md; add `Amended by ADR-issue-364-expert-persona-model.md` lines to the three #337 ADRs naming clause(s) amended (FR-005).
-- [x] T-006 Amend `ADR-issue-337-c7-emission-mechanism.md` with the additive `outcome.details.expert_verdicts[]` field clause (FR-007).
+- [x] T-006 Amend `ADR-issue-337-c7-emission-mechanism.md` with the additive `outcome_details.expert_verdicts[]` field clause (FR-007).
 - [x] T-007 Resync bootstrap template mirrors under `scripts/templates/blueprint/bootstrap/` via `uv run python3 scripts/lib/docs/sync_blueprint_template_docs.py` (NFR-OPS-001).
 - [x] T-008 Post cross-ticket amendment comments per FR-008: #333, #361, #335, #336, #342, #343, #332; close-with-reference #360 + PR #362. Capture all URLs in `pr_context.md` "Cross-Ticket Amendments" section.
 
@@ -69,7 +69,7 @@
 - [x] X-003 Post comment on #335 (per-expert LiteLLM routing key; capacity sizing note for higher concurrent-workspaces-per-step).
 - [x] X-004 Post comment on #336 (FR-008 model-rotation audit invariant reformulated as panel-disjointness rule).
 - [x] X-005 Post comment on #342 (per-artifact versioning extends to expert-persona files as a new artifact category).
-- [x] X-006 Post comment on #343 (Phase 1 ingestion schema accounts for additive `expert_verdicts[]` in C7 outcome.details).
+- [x] X-006 Post comment on #343 (Phase 1 ingestion schema accounts for additive `expert_verdicts[]` in C7 outcome_details).
 - [x] X-007 Post comment on #332 (epic body framing update reflecting new model).
 - [x] X-008 Close #360 as superseded with reference to #364 and cherry-pick list.
 - [x] X-009 Close PR #362 as superseded with reference to this PR and cherry-pick list.

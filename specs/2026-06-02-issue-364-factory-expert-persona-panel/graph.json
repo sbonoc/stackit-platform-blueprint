@@ -8,7 +8,7 @@
     { "id": "FR-004", "type": "requirement", "summary": "Always-respond verdict contract with empty-findings sentinel embedded as JSON Schema" },
     { "id": "FR-005", "type": "requirement", "summary": "ADR-issue-360 superseded; three #337 ADRs amended with Amended-by lines" },
     { "id": "FR-006", "type": "requirement", "summary": "10 skill runbooks re-homed with persona-coupling stripped; agent-pr-review reshaped for panel-input" },
-    { "id": "FR-007", "type": "requirement", "summary": "C7 outcome.details.expert_verdicts[] additive optional field" },
+    { "id": "FR-007", "type": "requirement", "summary": "C7 outcome_details.expert_verdicts[] additive optional field" },
     { "id": "FR-008", "type": "requirement", "summary": "Cross-ticket amendments posted in step06: #333 #361 #335 #336 #342 #343 #332; close #360 + PR #362" },
     { "id": "FR-009", "type": "requirement", "summary": "Design-contracts C8 Category (c) persona-list rows replaced with 8 expert-slug PERSONA.md rows" },
     { "id": "FR-010", "type": "requirement", "summary": "Design-contracts C7 persona field description and emission-mechanism prose realigned from persona-as-actor to skill-as-actor + expert_verdicts attribution" },

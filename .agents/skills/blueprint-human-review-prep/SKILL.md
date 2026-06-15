@@ -49,7 +49,7 @@ agent.
 ## Required Output Schema
 
 The orchestrator emits a `phase: pr-packager` C7 lifecycle event on skill
-completion; the structured payload below is the `outcome.details` carried on
+completion; the structured payload below is the `outcome_details` carried on
 that event.
 
 ```yaml jsonschema

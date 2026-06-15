@@ -235,7 +235,7 @@ properties:
       panel invocations (ADR-issue-364 § 4 dispatches a dynamic expert
       panel at step02 driven by question-text substring routing). Each row
       is keyed by expert_slug per ADR-issue-364 § 6 and is carried on the
-      C7 outcome.details.expert_verdicts[] field per FR-007.
+      C7 outcome_details.expert_verdicts[] field per FR-007.
     items:
       type: object
       additionalProperties: false

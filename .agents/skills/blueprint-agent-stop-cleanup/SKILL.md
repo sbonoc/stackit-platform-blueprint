@@ -52,7 +52,7 @@ request only.
 The orchestrator emits the terminating C7 lifecycle event on skill
 completion; the `phase` value matches the SDD-step skill whose run is
 ending (e.g. `agent-pr-review` for step08 runs, `implement` for step05
-runs). The structured payload below is the `outcome.details` carried on
+runs). The structured payload below is the `outcome_details` carried on
 that event.
 
 ```yaml jsonschema

@@ -61,7 +61,7 @@ layer, not inside any skill runbook.
 
 The orchestrator emits a `phase: intake` C7 lifecycle event after the
 step01 expert panel's full intake phase is complete. When classification is
-NOT `large-decomposable`, this skill's output is the sole `outcome.details`
+NOT `large-decomposable`, this skill's output is the sole `outcome_details`
 payload. When `large-decomposable`, the output is combined with the
 `blueprint-ticket-decompose-light` output into the single event emitted
 after both skills return.

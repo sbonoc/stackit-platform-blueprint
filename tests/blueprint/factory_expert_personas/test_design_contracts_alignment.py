@@ -90,9 +90,11 @@ def test_c7_persona_field_carries_skill_basename_semantics() -> None:
 
 
 def test_c7_documents_expert_verdicts_extension() -> None:
-    assert "outcome.details.expert_verdicts" in _c7(), (
+    assert "outcome_details.expert_verdicts" in _c7(), (
         "design-contracts § C7 must document the additive "
-        "outcome.details.expert_verdicts[] extension field (FR-007)"
+        "outcome_details.expert_verdicts[] sibling extension field "
+        "(FR-007; sibling of the sealed-string `outcome` per the C7 "
+        "extension-field naming convention)"
     )
 
 
