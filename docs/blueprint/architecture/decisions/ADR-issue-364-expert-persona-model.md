@@ -54,7 +54,7 @@ flowchart TD
 | # | Slug | Worldview tagline | Lens not held by others |
 |---|---|---|---|
 | 1 | `product-pragmatist` | Outcome over output; scope is a contract | Defends the *why*; rejects gold-plating |
-| 2 | `boundary-hawk` | Coupling is the first sin | Catches leaky abstractions and bounded-context drift |
+| 2 | `boundary-hawk` | Coupling is the first sin, at every scale | Catches leaky abstractions, bounded-context drift, and macro-architecture coupling (inter-service protocol, shared databases, DDD aggregate sizing, deployment topology assumptions) |
 | 3 | `security-paranoid` | Assume the adversary; trust nothing | Threat model + blast radius |
 | 4 | `data-privacy` | Data is a liability | Minimization, residency, lawful basis, retention, subject rights (distinct from `security-paranoid`'s attack-surface focus) |
 | 5 | `test-quality-sceptic` | What does this test actually prove? | Mocked-vs-real; empty-result assertions; coverage theatre |
