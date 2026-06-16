@@ -260,6 +260,31 @@ properties:
             type: object
 ```
 
+## C7 Extension Fields (step02-specific)
+
+Step02 dispatches a dynamic expert panel (ADR-issue-364 § 4 / § 4.2). When
+one or more experts were dispatched, populate the C7 extension fields before
+the canonical emission below. Author the extension payload to a temp file:
+
+```sh
+EXT_PAYLOAD="$(mktemp)"
+cat > "$EXT_PAYLOAD" <<'JSON'
+{
+  "outcome_details": {
+    "expert_verdicts": [
+      {"expert_slug": "data-privacy", "verdict": "pass", "findings_count": 0}
+    ]
+  },
+  "evidence_uri": "artifacts/c7/<work-item-slug>/resolve-questions-round-0.json"
+}
+JSON
+```
+
+Pass `--extension-json "$EXT_PAYLOAD"` to the canonical emission command below
+(add it after `--slug`), then `rm -f "$EXT_PAYLOAD"`. If no expert was
+dispatched (floor — `product-pragmatist` only), omit the extension payload and
+invoke the canonical command without `--extension-json`.
+
 ## C7 Emission
 
 At the end of this step, emit a C7 lifecycle event. Resolve variable values

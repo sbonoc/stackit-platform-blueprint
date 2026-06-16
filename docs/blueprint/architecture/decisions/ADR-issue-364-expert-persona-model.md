@@ -76,20 +76,9 @@ The authoritative matrix is in `../../autonomous-factory/design-contracts.md` §
 
 so silent drift between the C3 table and any consumer (orchestrator dispatch table, audit dashboard, persona-impact analyser) is grep-detectable.
 
-The matrix at the time of this ADR (informative — for sign-off readers; authoritative form lives in C3):
-
-| SDD step | Skill | Experts consulted | Lead voice | Convergence mode |
-|---|---|---|---|---|
-| step01 | `blueprint-sdd-step01-intake` | **all 8** | `product-pragmatist` | parallel-then-merge |
-| step02 | `blueprint-sdd-step02-resolve-questions` | **dynamically scoped per question** via the § 4.2 contiguous content-bigram overlap algorithm with a stopword filter (substring / keyword / domain matching are forbidden — see § 4.2 step 4); floor = `product-pragmatist` when no expert shares a content bigram with the normalized question; lead = the original questioner (if a bot persona) or `product-pragmatist` (if a human reviewer) | dynamic | parallel-then-merge |
-| step03 | `blueprint-sdd-step03-spec-complete` | `documentation-discipline` only | `documentation-discipline` | sequential-lens (panel-of-1 — convergence is trivial) |
-| step04 | `blueprint-sdd-step04-plan-slicer` | `test-quality-sceptic`, `boundary-hawk`, `operability-sre`, `performance-cost-aware` | `test-quality-sceptic` | parallel-then-merge |
-| step05 | `blueprint-sdd-step05-implement` | `test-quality-sceptic`, `security-paranoid`, `data-privacy`, `performance-cost-aware`, `boundary-hawk` (ordered — sequential-lens application order per § 5 Pattern 2) | `test-quality-sceptic` | sequential-lens |
-| step06 | `blueprint-sdd-step06-document-sync` | `documentation-discipline`, `boundary-hawk`, `product-pragmatist` | `documentation-discipline` | parallel-then-merge |
-| step07 | `blueprint-sdd-step07-pr-packager` | `documentation-discipline`, `operability-sre`, `test-quality-sceptic`, `boundary-hawk` | `documentation-discipline` | parallel-then-merge |
-| step08 | `blueprint-sdd-step08-agent-pr-review` | **all 8** | rotating per round (heterogeneity-aware) | parallel-then-merge (structured-disagreement on block conflicts) |
-
 **Dispatch principle:** experts cluster where artifacts are **born or substantially mutated** (step01, step02, step05, step08), not where sign-offs are recorded (step03). Catching a design flaw at step01 is 10–100× cheaper than catching it at step08.
+
+The authoritative dispatch table is in `../../autonomous-factory/design-contracts.md` § C3 — that section is the sole source of truth for step panels, expert ordering, lead voice, and convergence mode. Sign-off readers: consult § C3 directly; this ADR does not duplicate the table because any copy would create a second normative-looking surface that diverges from C3 on future amendments (the round-7 step05 ordering fix demonstrated this — updating two tables instead of one). The per-step algorithm details (§ 4.1–§ 4.5) and the convergence patterns (§ 5) in this ADR are the normative *contract* behind the C3 entries, not a redundant copy of those entries.
 
 **Per-step dispatch sizes:** 8 / dynamic / 1 / 4 / 5 / 3 / 4 / 8. Total expert-step instantiations: 33 + step02 average (assume ~3) ≈ 36. Step03 is intentionally minimal — the four human sign-offs (Product / Architecture / Security / Operations) already covered the architectural lensing; `documentation-discipline` is a token-cheap "did we record cleanly" sanity check that keeps always-respond audit symmetry alive at every step.
 
