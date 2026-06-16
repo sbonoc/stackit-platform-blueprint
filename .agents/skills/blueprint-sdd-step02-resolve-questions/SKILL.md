@@ -260,11 +260,16 @@ properties:
             type: object
 ```
 
-## C7 Extension Fields (step02-specific)
+## C7 Extension Fields and Emission (step02-specific)
 
-Step02 dispatches a dynamic expert panel (ADR-issue-364 § 4 / § 4.2). When
-one or more experts were dispatched, populate the C7 extension fields before
-the canonical emission below. Author the extension payload to a temp file:
+Step02 dispatches a dynamic expert panel (ADR-issue-364 § 4 / § 4.2). Every
+step02 local-cli C7 event MUST carry `outcome_details.expert_verdicts[]` regardless
+of whether dispatch was bigram-matched or floor-only. Use the complete emit
+sequence below instead of the generic `## C7 Emission` block at the bottom of
+this file (which is the fallback for steps without panel dispatch).
+
+**Bigram-matched dispatch:** author one row per dispatched expert into the payload,
+then emit:
 
 ```sh
 EXT_PAYLOAD="$(mktemp)"
@@ -278,17 +283,22 @@ cat > "$EXT_PAYLOAD" <<'JSON'
   "evidence_uri": "artifacts/c7/<work-item-slug>/resolve-questions-round-0.json"
 }
 JSON
+
+uv run python3 scripts/bin/sdd/c7_emit.py emit \
+  --ticket "$TICKET_ID" \
+  --phase "resolve-questions" \
+  --skill "$SKILL_BASENAME" \
+  --owner-team "$OWNER_TEAM" \
+  --slug "$WORK_ITEM_SLUG" \
+  --extension-json "$EXT_PAYLOAD"
+
+rm -f "$EXT_PAYLOAD"
 ```
 
-Pass `--extension-json "$EXT_PAYLOAD"` to the canonical emission command below
-(add it after `--slug`), then `rm -f "$EXT_PAYLOAD"`.
-
-In the floor case (zero content-bigram matches → `product-pragmatist` dispatched
-as floor-only per ADR-issue-364 § 4.2 step 6), `product-pragmatist` IS an expert
-invocation and its verdict MUST still appear in `outcome_details.expert_verdicts[]`
-so audit consumers can distinguish "floor-dispatch" from "no panel execution at
-all". Use the same temp-file pattern with a single `product-pragmatist` row before
-invoking the canonical emission command:
+**Floor case** (zero content-bigram matches → `product-pragmatist` dispatched as
+floor-only per ADR-issue-364 § 4.2 step 6): `product-pragmatist` IS an expert
+invocation and its verdict MUST appear so audit consumers can distinguish
+floor-dispatch from no panel execution:
 
 ```sh
 EXT_PAYLOAD_FLOOR="$(mktemp)"
@@ -302,11 +312,19 @@ cat > "$EXT_PAYLOAD_FLOOR" <<'JSON'
   "evidence_uri": "artifacts/c7/<work-item-slug>/resolve-questions-round-0.json"
 }
 JSON
+
+uv run python3 scripts/bin/sdd/c7_emit.py emit \
+  --ticket "$TICKET_ID" \
+  --phase "resolve-questions" \
+  --skill "$SKILL_BASENAME" \
+  --owner-team "$OWNER_TEAM" \
+  --slug "$WORK_ITEM_SLUG" \
+  --extension-json "$EXT_PAYLOAD_FLOOR"
+
+rm -f "$EXT_PAYLOAD_FLOOR"
 ```
 
-Pass `--extension-json "$EXT_PAYLOAD_FLOOR"` and `rm -f "$EXT_PAYLOAD_FLOOR"`.
-All step02 local-cli C7 events MUST carry `outcome_details.expert_verdicts[]`
-regardless of whether dispatch was floor-only or bigram-matched.
+Then stage and commit per the `## C7 Emission` block below.
 
 ## C7 Emission
 
