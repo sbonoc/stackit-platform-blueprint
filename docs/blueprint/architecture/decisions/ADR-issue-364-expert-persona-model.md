@@ -95,7 +95,7 @@ The matrix at the time of this ADR (informative — for sign-off readers; author
 
 **Step02 dynamic-scope contract** (consumed by #361 orchestrator):
 - Input: the open-question text + the artifact section it targets (e.g., `spec.md § NFR-003`, `architecture.md § Bounded Contexts`).
-- Selection rule: orchestrator routes the question to the expert(s) whose `Push-back Triggers` section in their `PERSONA.md` matches keywords / domains in the question. Multiple matches → multiple experts. Zero matches → floor = `product-pragmatist`.
+- Selection rule: orchestrator routes the question to the expert(s) whose `## Push-back Triggers` section in their `PERSONA.md` shares ≥ 1 **content bigram** with the normalized question text per the algorithm defined in § 4.2 (normalize → trigger-phrase extraction → bigram extraction → stopword filter → content-bigram overlap match). The earlier "keywords / domains" framing is superseded; substring and unigram matching are both forbidden under § 4.2 because they re-introduce the false-positive class (every short question dispatching every expert with a shared stopword pair) that the bigram + stopword algorithm exists to eliminate. Multiple matches → multiple experts. Zero matches → floor = `product-pragmatist` (per § 4.2 step 6).
 - Lead voice: the original questioner if the question was raised by a bot persona at step08 (recorded in `outcome_details.expert_verdicts[].expert_slug`); otherwise `product-pragmatist`.
 - Implementation of the routing logic is owned by #361; this ADR specifies only the contract.
 
