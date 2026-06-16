@@ -17,9 +17,10 @@ Security, Operations) without itself granting any sign-off.
 
 ## Actor
 
-Invoked by the orchestrator on behalf of the step03 expert (product-pragmatist,
-which is the solo persona for spec-complete per ADR-issue-364 § 4 dispatch
-matrix). The expert-panel layer MUST NOT directive-invoke this skill; the
+Invoked by the orchestrator on behalf of the step03 expert
+(`documentation-discipline` only, per the design-contracts § C3 dispatch
+matrix for `step03-spec-complete` — a panel-of-1 sequential-lens run).
+The expert-panel layer MUST NOT directive-invoke this skill; the
 orchestrator's dispatch table in design-contracts § C3 is the binding
 mechanism.
 

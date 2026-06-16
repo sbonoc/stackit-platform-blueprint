@@ -44,7 +44,7 @@ flowchart TD
 
 **Layer separation rules:**
 
-- **SDD step layer**: sealed. Changes require a separate ADR. Defines the lifecycle phases (`intake`, `spec`, `plan`, `implement`, `review`, `package`, `agent-pr-review`) and the C7 emission boundary.
+- **SDD step layer**: sealed. Changes require a separate ADR. Defines the lifecycle phases — using the canonical C7 `phase` enum values from design-contracts § C7: `intake`, `resolve-questions`, `spec-complete`, `plan-slicer`, `implement`, `document-sync`, `pr-packager`, `agent-pr-review` — and the C7 emission boundary. (The abbreviated informal names `spec`, `plan`, `review`, `package` are NOT valid C7 phase values and MUST NOT be used when emitting events.)
 - **Skill layer**: extensible. Each skill is a procedural verb invoked at one or more SDD steps; produces structured output to a `## Required Output Schema`. Skills MUST NOT directive-invoke other skills (carried forward from `ADR-issue-337-persona-skill-contract.md` clause 3).
 - **Expert persona layer**: extensible. Each expert is a `PERSONA.md` file holding a worldview, default heuristics, and push-back triggers. Experts MUST NOT directive-invoke skills. Experts MUST NOT cite each other in their persona files (compositional independence — the matrix in C3 is the sole binding mechanism).
 - **Orchestrator** (#361): binds steps to skills and experts via a single dispatch table `step → {skill, expert_panel, convergence_mode, model_per_expert}`. The orchestrator is the only component that "knows" the matrix at runtime.

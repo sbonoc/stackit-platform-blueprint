@@ -281,9 +281,32 @@ JSON
 ```
 
 Pass `--extension-json "$EXT_PAYLOAD"` to the canonical emission command below
-(add it after `--slug`), then `rm -f "$EXT_PAYLOAD"`. If no expert was
-dispatched (floor — `product-pragmatist` only), omit the extension payload and
-invoke the canonical command without `--extension-json`.
+(add it after `--slug`), then `rm -f "$EXT_PAYLOAD"`.
+
+In the floor case (zero content-bigram matches → `product-pragmatist` dispatched
+as floor-only per ADR-issue-364 § 4.2 step 6), `product-pragmatist` IS an expert
+invocation and its verdict MUST still appear in `outcome_details.expert_verdicts[]`
+so audit consumers can distinguish "floor-dispatch" from "no panel execution at
+all". Use the same temp-file pattern with a single `product-pragmatist` row before
+invoking the canonical emission command:
+
+```sh
+EXT_PAYLOAD_FLOOR="$(mktemp)"
+cat > "$EXT_PAYLOAD_FLOOR" <<'JSON'
+{
+  "outcome_details": {
+    "expert_verdicts": [
+      {"expert_slug": "product-pragmatist", "verdict": "pass", "findings_count": 0}
+    ]
+  },
+  "evidence_uri": "artifacts/c7/<work-item-slug>/resolve-questions-round-0.json"
+}
+JSON
+```
+
+Pass `--extension-json "$EXT_PAYLOAD_FLOOR"` and `rm -f "$EXT_PAYLOAD_FLOOR"`.
+All step02 local-cli C7 events MUST carry `outcome_details.expert_verdicts[]`
+regardless of whether dispatch was floor-only or bigram-matched.
 
 ## C7 Emission
 

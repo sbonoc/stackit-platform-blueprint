@@ -18,9 +18,12 @@ MUST NOT apply it during normal cleanup.
 
 ## Actor
 
-Invoked by every persona at the end of its run. The persona files declare
-this skill in `## Collaboration & Handoffs` so the termination handoff is
-visible without reading any skill runbook.
+Invoked by the orchestrator at the end of every expert-panel invocation round,
+regardless of outcome (success, rejection, or human-handoff). The orchestrator
+owns dispatch — the expert-panel layer MUST NOT directive-invoke this skill per
+ADR-issue-364 § 2 / ADR-issue-337-persona-skill-contract.md clause 3. Persona
+files MUST NOT declare this skill in `## Collaboration & Handoffs` or any other
+section (that section is forbidden by ADR-issue-364 § 3 FR-001).
 
 ## Inputs
 
