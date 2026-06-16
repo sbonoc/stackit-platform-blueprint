@@ -100,16 +100,24 @@ field per `ADR-issue-337-c7-emission-mechanism.md` (amended by
 Return:
 
 1. The `expert_slug` this invocation was dispatched under.
-2. Findings count grouped by severity (`info`, `low`, `medium`, `high`,
-   `critical`) — matches the ADR § 6 `ExpertVerdict.findings[].severity`
-   enum so the orchestrator can roll the count up into the C7
-   `outcome_details.expert_verdicts[].findings_count` field per
-   design-contracts § C7 without translation.
+2. The `findings` array conforming to the `ExpertVerdict.findings[]`
+   shape in ADR-issue-364 § 6 (i.e., each finding is an object with
+   required `category` and `summary`, optional `evidence_ref` and
+   `severity`). The orchestrator computes the C7
+   `outcome_details.expert_verdicts[].findings_count` integer (per
+   ADR-issue-364 § 9 / design-contracts § C7) as the **length** of
+   this array — the skill does NOT report a `findings_count`,
+   `count`, or severity-grouped count field, since adding any such
+   field would violate the `additionalProperties: false` constraint
+   on `BlueprintAgentPrReviewOutput` below. A human-readable severity
+   breakdown (e.g., `critical: 1, high: 0, medium: 3, low: 0, info: 0`)
+   MAY appear in prose surrounding the structured payload but MUST
+   NOT be added as a schema field on the structured output.
 3. For each finding: `category` (short tag drawn from the expert's
    `## Push-back Triggers` set, suitable for grouping/dedup), `summary`
    (one-sentence statement), and optional `evidence_ref` (formatted as
    `path:line` to anchor the finding to a concrete diff location) and
-   `severity` per the enum above.
+   `severity` drawn from the enum `info | low | medium | high | critical`.
 4. The single per-expert verdict (`pass | revise | block`) computed by the
    verdict priority rule.
 5. Confirmation that every finding carries an `evidence_ref` anchoring it

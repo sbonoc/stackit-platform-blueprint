@@ -233,9 +233,11 @@ properties:
     description: >-
       Per-expert verdict array merged by the orchestrator from the step02
       panel invocations (ADR-issue-364 § 4 dispatches a dynamic expert
-      panel at step02 driven by question-text substring routing). Each row
-      is keyed by expert_slug per ADR-issue-364 § 6 and is carried on the
-      C7 outcome_details.expert_verdicts[] field per FR-007.
+      panel at step02 driven by the § 4.2 contiguous content-bigram
+      overlap algorithm with stopword filtering; substring / keyword /
+      domain matching are forbidden). Each row is keyed by expert_slug
+      per ADR-issue-364 § 6 and is carried on the C7
+      outcome_details.expert_verdicts[] field per FR-007.
     items:
       type: object
       additionalProperties: false

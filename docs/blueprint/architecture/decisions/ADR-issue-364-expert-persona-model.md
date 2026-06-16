@@ -81,10 +81,10 @@ The matrix at the time of this ADR (informative — for sign-off readers; author
 | SDD step | Skill | Experts consulted | Lead voice | Convergence mode |
 |---|---|---|---|---|
 | step01 | `blueprint-sdd-step01-intake` | **all 8** | `product-pragmatist` | parallel-then-merge |
-| step02 | `blueprint-sdd-step02-resolve-questions` | **dynamically scoped per question** (orchestrator selects experts whose worldview matches the question domain; floor = `product-pragmatist` for any question lacking domain signal); lead = the original questioner (if a bot persona) or `product-pragmatist` (if a human reviewer) | dynamic | parallel-then-merge |
+| step02 | `blueprint-sdd-step02-resolve-questions` | **dynamically scoped per question** via the § 4.2 contiguous content-bigram overlap algorithm with a stopword filter (substring / keyword / domain matching are forbidden — see § 4.2 step 4); floor = `product-pragmatist` when no expert shares a content bigram with the normalized question; lead = the original questioner (if a bot persona) or `product-pragmatist` (if a human reviewer) | dynamic | parallel-then-merge |
 | step03 | `blueprint-sdd-step03-spec-complete` | `documentation-discipline` only | `documentation-discipline` | sequential-lens (panel-of-1 — convergence is trivial) |
 | step04 | `blueprint-sdd-step04-plan-slicer` | `test-quality-sceptic`, `boundary-hawk`, `operability-sre`, `performance-cost-aware` | `test-quality-sceptic` | parallel-then-merge |
-| step05 | `blueprint-sdd-step05-implement` | `test-quality-sceptic`, `security-paranoid`, `data-privacy`, `boundary-hawk`, `performance-cost-aware` | `test-quality-sceptic` | sequential-lens |
+| step05 | `blueprint-sdd-step05-implement` | `test-quality-sceptic`, `security-paranoid`, `data-privacy`, `performance-cost-aware`, `boundary-hawk` (ordered — sequential-lens application order per § 5 Pattern 2) | `test-quality-sceptic` | sequential-lens |
 | step06 | `blueprint-sdd-step06-document-sync` | `documentation-discipline`, `boundary-hawk`, `product-pragmatist` | `documentation-discipline` | parallel-then-merge |
 | step07 | `blueprint-sdd-step07-pr-packager` | `documentation-discipline`, `operability-sre`, `test-quality-sceptic`, `boundary-hawk` | `documentation-discipline` | parallel-then-merge |
 | step08 | `blueprint-sdd-step08-agent-pr-review` | **all 8** | rotating per round (heterogeneity-aware) | parallel-then-merge (structured-disagreement on block conflicts) |
