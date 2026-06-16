@@ -85,7 +85,11 @@ The authoritative dispatch table is in `../../autonomous-factory/design-contract
 **Step02 dynamic-scope contract** (consumed by #361 orchestrator):
 - Input: the open-question text + the artifact section it targets (e.g., `spec.md § NFR-003`, `architecture.md § Bounded Contexts`).
 - Selection rule: orchestrator routes the question to the expert(s) whose `## Push-back Triggers` section in their `PERSONA.md` shares ≥ 1 **content bigram** with the normalized question text per the algorithm defined in § 4.2 (normalize → trigger-phrase extraction → bigram extraction → stopword filter → content-bigram overlap match). The earlier "keywords / domains" framing is superseded; substring and unigram matching are both forbidden under § 4.2 because they re-introduce the false-positive class (every short question dispatching every expert with a shared stopword pair) that the bigram + stopword algorithm exists to eliminate. Multiple matches → multiple experts. Zero matches → floor = `product-pragmatist` (per § 4.2 step 6).
-- Lead voice: the original questioner if the question was raised by a bot persona at step08 (recorded in `outcome_details.expert_verdicts[].expert_slug`); otherwise `product-pragmatist`.
+- Lead voice: the originating expert whose `expert_slug` is recorded in `outcome_details.expert_verdicts[]` of the **prior step's C7 event** — not limited to step08 questions. Concretely: if `boundary-hawk` raised the open question at step01 (its `expert_slug` is present in the step01 C7 event's `outcome_details.expert_verdicts[]` with `verdict: revise` or `block`), the step02 dispatch for that question uses `boundary-hawk` as the lead voice. If the originating expert cannot be determined (e.g., the question was raised by a human in a PR comment, or no step01 C7 event is available), the lead defaults to `product-pragmatist`.
+- Verdict semantics at step02 are question-scoped (not step-scoped):
+  - `pass` — the expert accepts the proposed resolution; the question is closed.
+  - `revise` — the expert proposes a refinement; the orchestrator loops with the revised resolution text as the next round's input. The question count does not decrement until all dispatched experts return `pass`.
+  - `block` — the expert judges the question unresolvable without human clarification (no available resolution satisfies its push-back triggers). The orchestrator MUST treat a `block` verdict at step02 as a `human-handoff` outcome for that question: emit C7 with `outcome: human-handoff`, apply the `factory/needs-human-input` label to the PR, and halt automated step02 processing for the affected question. The question remains open; the factory resumes when a human posts a resolution in a PR comment and the operator re-invokes step02.
 - Implementation of the routing logic is owned by #361; this ADR specifies only the contract.
 
 Tunable per-step over time without amending this ADR — the matrix in C3 is authoritative and the only place it lives.
@@ -175,14 +179,14 @@ Default `model_per_expert` baseline absent any per-step override. #335 ships the
 | `data-privacy` | Opus | Multi-hop data-flow reasoning under regulatory ambiguity (lawful basis, retention paths, cross-field combination effects, jurisdiction tracing); consequence of a missed violation equals security — regulatory enforcement + subject rights breach |
 | `test-quality-sceptic` | Sonnet | Fixture-vs-assertion reasoning — moderate; high volume across steps |
 | `operability-sre` | Sonnet | Runbook + observability reasoning — moderate |
-| `documentation-discipline` | Sonnet | Lead voice at step06 (semantic doc authoring, not just structural presence); Haiku is a permitted down-tier override at step01 and step08 where the check is structural-only |
+| `documentation-discipline` | Sonnet | Lead voice at step06 (semantic doc authoring); Haiku is a permitted down-tier override at step01 and step08 where the check is structural-only. Step03 performs semantic checks (AC phrasing, ADR-status coherence, normative-language completeness) — Sonnet is required there. |
 | `performance-cost-aware` | Sonnet | Hot-path + N+1 + retry-bound reasoning — moderate |
 
 Tier rationale notes:
 
 - `product-pragmatist` is at Opus because it is the lead voice at step01 — the most upstream point in the SDD lifecycle where a missed scope misalignment propagates through all downstream expert work. The reasoning task (inferring unstated business constraints, judging scope proportionality against a vaguely-stated outcome, arbitrating priority conflicts at step02) requires deep judgment under ambiguity, not structured checklist verification.
 - `boundary-hawk` is at Opus because detecting leaky abstractions and bounded-context drift requires multi-hop semantic reasoning chains across multiple files simultaneously — structurally identical to `security-paranoid`'s threat-model chains, and equally late-expensive when missed. `boundary-hawk` appears in 6 of 8 SDD steps; systematic under-tiering would affect the majority of expert review cycles.
-- `documentation-discipline` is at Sonnet (not Haiku) because it is the **lead voice at step06** — the document-sync step whose entire purpose is producing semantically accurate documentation after implementation. Haiku misses subtle semantic drift (description correct before the refactor, wrong in a non-obvious way after). Haiku is a permitted down-tier **override** at step01 and step08 where documentation-discipline performs structural-presence checks rather than semantic authoring.
+- `documentation-discipline` is at Sonnet (not Haiku) because it is the **lead voice at step06** — the document-sync step whose entire purpose is producing semantically accurate documentation after implementation. Haiku misses subtle semantic drift (description correct before the refactor, wrong in a non-obvious way after). Haiku is a permitted down-tier **override** at step01 and step08 where documentation-discipline performs structural-presence checks rather than semantic authoring. At step03, documentation-discipline performs **semantic** checks — AC phrasing (observable outcome vs. engineering task), ADR-status accuracy, normative-language completeness — which require Sonnet; Haiku MUST NOT be applied at step03.
 - `data-privacy` is at Opus because privacy analysis is multi-hop reasoning under regulatory ambiguity — not a checklist. To catch a violation the expert must trace data origin, flow, retention path, cross-field combination effects, and applicable jurisdiction before concluding whether a lawful basis holds. A missed violation carries the same consequence tier as a missed security flaw (enforcement action, subject rights breach, regulatory fine). The step05 Haiku-or-Sonnet override that appeared in earlier drafts of this ADR is removed: if the baseline was already right, no override would be needed.
 
 The Opus tier covers **the four experts whose errors are most expensive to catch late**: product scope (step01 lead), architecture boundaries, security, and privacy/data-flow reasoning. The Sonnet tier covers pattern-based reasoning (test quality, operability, docs authoring, performance patterns) where the judgment ceiling is lower and the volume is high.
@@ -191,7 +195,7 @@ The Opus tier covers **the four experts whose errors are most expensive to catch
 
 | Expert | Step | Override tier | Reason |
 |---|---|---|---|
-| `documentation-discipline` | step01, step03, step08 | Haiku | Structural-presence check only at those steps (spec-section completeness at step03; heading/ADR-currency checks at step01/step08); no semantic authoring role |
+| `documentation-discipline` | step01, step08 | Haiku | Structural-presence check only at those steps (heading/ADR-currency checks); no semantic authoring role |
 
 All other per-step deviations from the baseline table are **optional** cost-tier adjustments shipped with #335. The MUST override above is normative and MUST be reflected in the orchestrator's dispatch configuration.
 
@@ -254,7 +258,7 @@ sequenceDiagram
 
 **Pattern 1 — parallel-then-merge** (default). Experts review the skill's draft in parallel; merger applies the merge semantics in § 5.1.
 
-**Pattern 2 — sequential-lens** (`step05` only). Experts apply in order: `test-quality-sceptic` → `security-paranoid` → `data-privacy` → `performance-cost-aware` → `boundary-hawk`. Each round receives the prior round's revised draft. Used where a later lens must observe the effect of an earlier lens (e.g., a security fix may introduce a performance regression). Sequential rounds still emit one verdict per expert per round; the merge semantics in § 5.1 apply to the final round's collected verdicts. (Step03 carries the `sequential-lens` label in the C3 matrix but is a degenerate panel-of-1 case where convergence is trivially satisfied — the label is a header-shape choice for matrix uniformity, not a second site of sequential application; the merge semantics still apply trivially to the single verdict.)
+**Pattern 2 — sequential-lens** (`step05` only). Experts apply in order: `test-quality-sceptic` → `security-paranoid` → `data-privacy` → `performance-cost-aware` → `boundary-hawk`. Each round receives the **cumulative findings of all prior experts** as additional read-only context alongside the original skill draft output. The draft itself is **not mutated** between rounds — each expert reads the same original draft plus the growing set of prior findings. "Revised draft" means "original draft + accumulated findings list" — no expert writes to the implementation workspace between rounds. This preserves reproducibility on retry (the same draft always enters each expert invocation) while ensuring later experts observe what earlier experts flagged (e.g., `boundary-hawk` can see the `security-paranoid` and `data-privacy` findings before forming its own verdict, catching cases where a security fix would introduce a coupling violation). Sequential rounds still emit one verdict per expert per round; the merge semantics in § 5.1 apply to the final round's collected verdicts. (Step03 carries the `sequential-lens` label in the C3 matrix but is a degenerate panel-of-1 case where convergence is trivially satisfied — the label is a header-shape choice for matrix uniformity, not a second site of sequential application; the merge semantics still apply trivially to the single verdict. The orchestrator MUST skip the sequential-round machinery for step03 and invoke `documentation-discipline` once.)
 
 **Pattern 3 — structured-disagreement** (`step08` only, on conflicting `block` verdicts). Detection and surfacing per § 5.2. Step03 is excluded — its panel size of 1 makes block-conflict mechanically impossible; any disagreement at the spec-sign-off gate is reasoned out between human approvers, not bot experts.
 
@@ -277,6 +281,8 @@ Disagreement is detected at the merge boundary, not at the expert boundary. The 
 
 - ≥ 2 experts returned `block`.
 - The blocking experts' findings collide on at least one **shared finding category** (e.g., two `block` verdicts both list a `category: rollback-strategy` finding) AND the colliding findings' `summary` fields disagree (one demands "ship behind feature flag", the other demands "ship without flag to reduce surface").
+
+**Contradiction detection algorithm (deterministic).** The §5.1 finding dedup rule (step 3) removes findings whose `(category, summary)` tuples match byte-for-byte. Any two block-verdict findings that survive dedup on the same `category` are therefore non-identical by construction and MUST be treated as conflicting. The orchestrator MUST NOT invoke an LLM to classify contradictions — dedup survival on the same category is the entire detection criterion. This keeps the conflict-detection path deterministic and auditable.
 
 When detected, the orchestrator MUST:
 
@@ -412,7 +418,19 @@ C7 events MAY carry an additive optional **sibling top-level object** `outcome_d
   "additionalProperties": false,
   "required": ["expert_slug", "verdict", "findings_count"],
   "properties": {
-    "expert_slug": { "type": "string" },
+    "expert_slug": {
+      "type": "string",
+      "enum": [
+        "product-pragmatist",
+        "boundary-hawk",
+        "security-paranoid",
+        "data-privacy",
+        "test-quality-sceptic",
+        "operability-sre",
+        "documentation-discipline",
+        "performance-cost-aware"
+      ]
+    },
     "verdict": { "type": "string", "enum": ["pass", "revise", "block"] },
     "findings_count": { "type": "integer", "minimum": 0 }
   }

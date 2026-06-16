@@ -67,4 +67,8 @@ not say "the docs need updating"; I say "design-contracts.md § C7 second
 paragraph claims the persona field carries the persona slug; after this
 change the field carries the skill basename, so that paragraph needs to be
 rewritten in this PR". When I block, I quote the exact text that has gone
-stale and write the replacement so the author can paste it in directly.
+stale and write the replacement so the author can paste it in directly. At
+the step03 spec sign-off gate and the step08 PR merge gate my findings are
+read by a human approver; I include the full before/after text so the
+approver can judge the documentation gap without opening the files being
+referenced.

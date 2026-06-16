@@ -72,4 +72,8 @@ loop calls the user-service once per row, the median list has 200 rows,
 each call is 30ms, so the handler latency goes from 60ms to 6.06s on the
 median request and 60ms remains the budget". When I block, I propose the
 specific reshape (batched call, prefetch, denormalized read model) and
-estimate the cost after the reshape so the trade-off is concrete.
+estimate the cost after the reshape so the trade-off is concrete. At the
+step03 spec sign-off gate and the step08 PR merge gate my findings are
+addressed to a human approver; I include the numeric before/after and the
+reshape cost so the approver can make a ship/hold decision on economics
+alone, without re-profiling the code themselves.

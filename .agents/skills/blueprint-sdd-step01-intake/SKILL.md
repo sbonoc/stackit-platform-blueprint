@@ -289,6 +289,15 @@ make quality-sdd-check
 The structured payload below is the intake report the skill returns to the
 orchestrator and carries on the `phase: intake` C7 lifecycle event.
 
+**Expert verdict attribution.** The 8-expert panel is dispatched by the
+orchestrator (#361), not by this skill. Per-expert verdicts (`expert_slug`,
+`verdict`, `findings[]` per ADR-issue-364 § 6) are produced by the separately
+dispatched expert invocations and merged by the orchestrator into
+`outcome_details.expert_verdicts[]` on the C7 event (ADR-issue-364 § 9). They
+are NOT a field this skill returns — the skill returns the intake report below.
+The orchestrator joins the skill output with the merged expert-verdict array
+before emitting the C7 event.
+
 ```yaml jsonschema
 $schema: "http://json-schema.org/draft-07/schema#"
 title: BlueprintSddStep01IntakeOutput
@@ -399,34 +408,6 @@ properties:
             - reject
   draft_pr_url:
     type: string
-  expert_verdicts:
-    type: array
-    description: >-
-      Per-expert verdict array merged by the orchestrator from the step01
-      panel invocations (ADR-issue-364 § 4 dispatches the full 8-expert
-      roster at step01 in parallel-then-merge mode). Each row is keyed by
-      expert_slug per ADR-issue-364 § 6 and is carried on the C7
-      outcome_details.expert_verdicts[] field per FR-007.
-    items:
-      type: object
-      additionalProperties: false
-      required:
-        - expert_slug
-        - verdict
-        - findings
-      properties:
-        expert_slug:
-          type: string
-        verdict:
-          type: string
-          enum:
-            - pass
-            - revise
-            - block
-        findings:
-          type: array
-          items:
-            type: object
 ```
 
 ## C7 Emission
@@ -436,6 +417,21 @@ from session context: `TICKET_ID` — the GitHub issue number; `SKILL_BASENAME`
 — the `name:` value from this SKILL.md frontmatter; `OWNER_TEAM` — the GitHub
 team slug owning this repository (e.g. `platform-team`); `WORK_ITEM_SLUG` —
 the spec directory basename.
+
+**Autonomous factory path (orchestrator #361):** the orchestrator emits the
+C7 event after merging all expert verdicts into `outcome_details.expert_verdicts[]`.
+It uses the `--extension-json` flag to attach the compact per-expert summary
+(one `ExpertVerdictSummary` row per dispatched expert, per ADR-issue-364 § 9)
+and `outcome_details.routing_keys` (per design-contracts § C7). The
+orchestrator MUST NOT emit the event before all verdicts are collected and
+merged.
+
+**Local-CLI path (human-assisted, `local-cli` emitter):** the operator runs
+this step without a panel. The `--extension-json` flag is omitted; the emitted
+event will not carry `outcome_details.expert_verdicts[]`. This is expected —
+expert-panel attribution is absent from local-CLI step events. If the
+operator ran expert consultations manually they MAY author the extension JSON
+and pass it via `--extension-json`, but this is not required.
 
 ```sh
 uv run python3 scripts/bin/sdd/c7_emit.py emit \

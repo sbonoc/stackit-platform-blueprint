@@ -19,8 +19,10 @@ Invoked after the PR body has been authored by
 `blueprint-sdd-step07-pr-packager` and before the human merge gate. The
 orchestrator dispatches the full 8-expert panel for step08 per the SDD-step ×
 expert matrix in `docs/blueprint/autonomous-factory/design-contracts.md` § C3
-(structured-disagreement convergence mode). Each invocation reviews the PR
-under exactly one expert lens and contributes one verdict to the panel array.
+(convergence mode: **parallel-then-merge**; structured-disagreement fires as a
+fallback only when ≥ 2 experts return `block` verdicts that share a finding
+category and survive dedup — see ADR-issue-364 § 5.2). Each invocation reviews
+the PR under exactly one expert lens and contributes one verdict to the panel array.
 
 ## Actor
 
@@ -31,11 +33,11 @@ reviewer-model-heterogeneity ADR at
 `docs/blueprint/architecture/decisions/ADR-issue-337-reviewer-model-heterogeneity.md`
 (amended by `ADR-issue-364-expert-persona-model.md`) requires
 **panel-disjointness**: within a single step's panel, the set of LiteLLM
-routing keys actually used MUST contain at least 2 distinct values
-(pairwise uniqueness across all 8 experts is NOT required; the panel
-MUST NOT collapse to a single shared routing key) for the same
-`(ticket_id, phase, rerun_round)` tuple — see ADR-issue-364 § 4.3 for
-the full statement. The pre-amendment implement-vs-review model-split
+routing keys actually used MUST contain at least 2 distinct **model families**
+(not string-equality — see ADR-issue-364 § 4.3 for the `model_family(s)`
+normalization; pairwise uniqueness across all 8 experts is NOT required, but
+the panel MUST NOT collapse to a single model family) for the same
+`(ticket_id, phase, rerun_round)` tuple. The pre-amendment implement-vs-review model-split
 framing is superseded — the FR-008 audit invariant still pairs the
 `phase: implement` C7 event with the `phase: agent-pr-review` event on the
 same `ticket_id`, but the predicate is re-expressed at the **model-family**

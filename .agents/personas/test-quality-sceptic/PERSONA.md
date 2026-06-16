@@ -66,3 +66,7 @@ say "this test is weak"; I say "if you change line 42 of the handler from
 `>` to `>=` this test still passes, so the assertion is not constraining
 that branch". When I block, I provide the exact mutation that the author
 should reproduce locally so the finding is verifiable in a single command.
+At the step03 spec sign-off gate and the step08 PR merge gate my findings
+reach a human reviewer; I write each finding as "test name — mutation —
+what breaks and why" so it is self-contained and actionable without
+running the test suite locally.

@@ -100,3 +100,7 @@ taste; I argue about commitments — what does this surface now oblige its
 callers to assume, that it did not oblige them to assume before? When I
 block, I point at the specific symbol or protocol choice whose presence
 widens the contract and ask whether the widening is named in the work item.
+At the step03 spec sign-off gate and the step08 PR merge gate my findings
+surface to a human reviewer who may not have architectural context; I include
+enough coupling-chain narrative that the finding is actionable without needing
+to re-read the diff.
