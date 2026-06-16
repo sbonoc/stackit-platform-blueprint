@@ -258,24 +258,28 @@ evidence_uri: artifacts/c7/<work-item-slug>/agent-pr-review-round-0.json
 
 per design-contracts § C7 and FR-007 of `ADR-issue-364-expert-persona-model.md`.
 
-## C7 Emission
+## C7 Emission (post-panel-merge — invoke exactly once per step08 round)
 
-At the end of this step, emit a C7 lifecycle event so the FR-008
-reviewer-model-heterogeneity audit invariant (which pairs
-`phase: implement` with `phase: agent-pr-review` on the same `ticket_id`)
-holds for human-assisted runs as well as orchestrator runs. Resolve
-variable values from session context: `TICKET_ID` — the GitHub issue
-number; `SKILL_BASENAME` — the `name:` value from this SKILL.md
-frontmatter; `OWNER_TEAM` — the GitHub team slug owning this repository
-(e.g. `platform-team`); `WORK_ITEM_SLUG` — the spec directory basename.
+**⚠️ CRITICAL: This block MUST be executed exactly once per step08 round,
+after all expert verdicts have been collected and merged. It is NOT invoked
+once per expert. The orchestrator dispatches this skill once per expert
+(up to 8 invocations), but C7 emission happens only once — after all 8
+verdicts are merged into the panel-level summary.**
 
-In the autonomous-factory bot path the orchestrator emits **one** event
-per step08 round after merging all per-expert payloads into
+In the autonomous-factory bot path the orchestrator merges all per-expert
+payloads first and then emits **one** `agent-pr-review` C7 event carrying
 `outcome_details.expert_verdicts[]` (per ADR-issue-364 § 4 and
-design-contracts § C7). The `local-cli` helper invoked below is the
-human-assisted equivalent and emits one event per step08 round — not one
-per expert invocation — so the audit pairing remains 1:1 with the
-`implement` event.
+design-contracts § C7). The `local-cli` helper below is the human-assisted
+equivalent: run it **once**, after completing all expert consultations for
+this step08 round and consolidating the findings. Running it once per expert
+invocation would produce 8 `agent-pr-review` events with duplicate
+`(ticket_id, phase, rerun_round, emitter)` tuples, breaking the FR-008
+implement↔review pairing and the event-id idempotency guarantee.
+
+Resolve variable values from session context: `TICKET_ID` — the GitHub issue
+number; `SKILL_BASENAME` — the `name:` value from this SKILL.md frontmatter;
+`OWNER_TEAM` — the GitHub team slug owning this repository (e.g. `platform-team`);
+`WORK_ITEM_SLUG` — the spec directory basename.
 
 First, author the extension-fields payload to a temporary JSON file. The
 payload MUST carry the three C7 extension fields the FR-008 audit
