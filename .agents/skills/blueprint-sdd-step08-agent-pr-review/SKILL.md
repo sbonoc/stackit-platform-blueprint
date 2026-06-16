@@ -281,6 +281,16 @@ number; `SKILL_BASENAME` — the `name:` value from this SKILL.md frontmatter;
 `OWNER_TEAM` — the GitHub team slug owning this repository (e.g. `platform-team`);
 `WORK_ITEM_SLUG` — the spec directory basename.
 
+**Prerequisite — helper version:** the `--extension-json` flag was added to
+`scripts/bin/sdd/c7_emit.py` in blueprint version `1.0.0` (issue #364). If
+your consumer repo seeded an older copy of the helper, the flag will not be
+recognised. Verify with
+`uv run python3 scripts/bin/sdd/c7_emit.py emit --help | grep extension-json`.
+If the flag is absent, update your seeded helper from the blueprint source
+before running this block, or omit `--extension-json` and emit the compact
+minimum-field event only (expert-verdict attribution will be absent from the
+C7 event until the helper is upgraded, degrading FR-008 audit coverage).
+
 First, author the extension-fields payload to a temporary JSON file. The
 payload MUST carry the three C7 extension fields the FR-008 audit
 (design-contracts § C7) depends on: `outcome_details.expert_verdicts[]`

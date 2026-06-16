@@ -268,6 +268,16 @@ of whether dispatch was bigram-matched or floor-only. Use the complete emit
 sequence below instead of the generic `## C7 Emission` block at the bottom of
 this file (which is the fallback for steps without panel dispatch).
 
+**Prerequisite — helper version:** the `--extension-json` flag was added to
+`scripts/bin/sdd/c7_emit.py` in blueprint version `1.0.0` (issue #364). If
+your consumer repo seeded an older copy of the helper, the flag will not be
+recognised and the command will exit with an argparse error. Verify with
+`uv run python3 scripts/bin/sdd/c7_emit.py emit --help | grep extension-json`.
+If the flag is absent, update your seeded helper from the blueprint source
+before running these commands, or fall back to the generic `## C7 Emission`
+block below (which omits expert-verdict attribution from the C7 event, keeping
+audit coverage degraded until the helper is upgraded).
+
 **Bigram-matched dispatch:** author one row per dispatched expert into the payload,
 then emit:
 
