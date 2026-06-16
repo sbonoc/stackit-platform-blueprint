@@ -28,8 +28,15 @@ binding mechanism per
 ## Inputs
 
 - The work-item branch diff against the base branch.
-- The repository-wide secret-pattern baseline (the same baseline used by the
-  test-suite scanners in `tests/blueprint/personas_skills/test_no_placeholders_no_secrets.py`).
+- The repository-wide secret-pattern baseline sourced from:
+  - `blueprint/contract.yaml` § `spec.normative_language.unresolved_marker_tokens` —
+    the canonical list of unresolved-work-marker tokens (e.g. `TBD`, `TBC`).
+  - `scripts/bin/quality/check_sdd_assets.py` — the normative placeholder and
+    secret-pattern definitions (angle-bracket placeholders, SDD unresolved-work
+    markers, and the baseline credential patterns) used by `make quality-sdd-check`.
+  - OWASP / regex patterns for secret material: AWS access keys (`AKIA[A-Z0-9]{16}`),
+    PEM private-key armor (`-----BEGIN.*PRIVATE KEY-----`), GitHub bearer tokens
+    (`ghp_[A-Za-z0-9]{36}`), Slack tokens (`xoxb-`).
 - The PII detection heuristics declared in the spec NFR-SEC block.
 
 ## Steps
