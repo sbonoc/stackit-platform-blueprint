@@ -31,6 +31,21 @@ from session context: `TICKET_ID` — the GitHub issue number; `SKILL_BASENAME`
 team slug owning this repository (e.g. `platform-team`); `WORK_ITEM_SLUG` —
 the spec directory basename.
 
+**Autonomous factory path (orchestrator #361):** the orchestrator emits the
+C7 event after merging all expert verdicts into `outcome_details.expert_verdicts[]`.
+It uses the `--extension-json` flag to attach the compact per-expert summary
+(one `ExpertVerdictSummary` row per dispatched expert, per ADR-issue-364 § 9)
+and `outcome_details.routing_keys` (per design-contracts § C7). The
+orchestrator MUST NOT emit the event before all verdicts are collected and
+merged.
+
+**Local-CLI path (human-assisted, `local-cli` emitter):** the operator runs
+this step without a panel. The `--extension-json` flag is omitted; the emitted
+event will not carry `outcome_details.expert_verdicts[]`. This is expected —
+expert-panel attribution is absent from local-CLI step events. If the
+operator ran expert consultations manually they MAY author the extension JSON
+and pass it via `--extension-json`, but this is not required.
+
 ```sh
 uv run python3 scripts/bin/sdd/c7_emit.py emit \\
   --ticket "$TICKET_ID" \\

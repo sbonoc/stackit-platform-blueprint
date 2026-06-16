@@ -5,7 +5,7 @@ import json
 import os
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Any, Literal, Optional
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -102,6 +102,15 @@ class EnvVarModelResolver:
 class EmitC7EventUseCase:
     """Build a LifecycleEvent envelope for a single SDD step execution."""
 
+    # Reserved minimum-schema keys that extension payloads MUST NOT shadow.
+    # Aligned with design-contracts.md § C7 sealed eleven-field set + the
+    # `execution_mode` extension this emitter always populates.
+    _RESERVED_KEYS = frozenset({
+        "event_id", "ticket_id", "parent_ticket_id", "phase", "persona",
+        "model", "timestamp", "outcome", "rerun_round", "owner_team",
+        "emitter", "execution_mode",
+    })
+
     def __init__(
         self,
         *,
@@ -113,11 +122,19 @@ class EmitC7EventUseCase:
         rerun_round: int,
         model_resolver: EnvVarModelResolver,
         parent_ticket_id: Optional[str] = None,
+        extension_fields: Optional[dict[str, Any]] = None,
     ) -> None:
         if phase not in _PHASES:
             raise ValueError(f"invalid phase {phase!r}; must be one of {sorted(_PHASES)}")
         if outcome not in _OUTCOMES:
             raise ValueError(f"invalid outcome {outcome!r}; must be one of {sorted(_OUTCOMES)}")
+        if extension_fields:
+            shadowed = sorted(set(extension_fields) & self._RESERVED_KEYS)
+            if shadowed:
+                raise ValueError(
+                    "extension_fields MUST NOT shadow reserved C7 minimum-schema keys: "
+                    f"{shadowed}"
+                )
         self._ticket_id = ticket_id
         self._phase = phase
         self._skill_basename = skill_basename
@@ -126,6 +143,7 @@ class EmitC7EventUseCase:
         self._rerun_round = rerun_round
         self._model_resolver = model_resolver
         self._parent_ticket_id = parent_ticket_id
+        self._extension_fields = dict(extension_fields) if extension_fields else {}
 
     def build(self) -> LifecycleEvent:
         model = self._model_resolver.resolve()
@@ -145,6 +163,7 @@ class EmitC7EventUseCase:
             owner_team=self._owner_team,
             emitter=_EMITTER,
             execution_mode=_EXECUTION_MODE,
+            **self._extension_fields,
         )
 
 

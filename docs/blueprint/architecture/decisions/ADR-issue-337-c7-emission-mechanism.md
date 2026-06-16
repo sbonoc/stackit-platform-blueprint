@@ -6,6 +6,7 @@
 **Spec:** `specs/2026-05-28-issue-337-factory-phase-0-foundations/` (FR-019)
 **Meta-ADR:** [`ADR-issue-337-factory-phase-0-foundations.md`](ADR-issue-337-factory-phase-0-foundations.md)
 **Extensibility classification (#339 C8 FR-017):** `sealed`.
+**Amended-by:** [`ADR-issue-364-expert-persona-model.md`](ADR-issue-364-expert-persona-model.md) — adds the non-required extension field `outcome_details.expert_verdicts[]` to C7 events. The eleven required fields, the three-emitter rule (`orchestrator` | `webhook-handler` | `local-cli`), and the `event_id` derivation are preserved verbatim — the amendment is purely additive (subscribers that omit the field MUST be tolerated). Per ADR-issue-364 § 2, the `persona` field on orchestrator-emitted events now carries the *draft-producing skill basename* (e.g., `blueprint-sdd-step01-intake`) rather than a stage-persona basename; per-expert attribution is carried on `outcome_details.expert_verdicts[]`. The field name `persona` is not renamed (FR-017(b) seal preserved); see `design-contracts.md` § C7 for the updated description.
 
 ## Context
 

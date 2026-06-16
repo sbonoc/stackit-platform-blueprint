@@ -1,6 +1,7 @@
 ---
 name: blueprint-sdd-step03-spec-complete
 description: Execute SDD Step 4 — collect Architecture, Security, and Operations sign-offs, validate and finalise the ADR, flip SPEC_READY=true, and commit to the existing Draft PR branch. Renamed and adjusted from blueprint-sdd-spec-complete to fit the single-PR lifecycle model.
+blueprint-version: 1.0.0
 ---
 
 # Blueprint SDD Step 03 — Spec Complete
@@ -171,6 +172,87 @@ make quality-sdd-check-all
 - Spec completion checklist: `references/spec_complete_checklist.md`
 
 
+## Required Output Schema
+
+The structured payload below is the spec-complete report the skill returns to
+the orchestrator and carries on the `phase: spec-complete` C7 lifecycle event.
+
+```yaml jsonschema
+$schema: "http://json-schema.org/draft-07/schema#"
+title: BlueprintSddStep03SpecCompleteOutput
+description: Structured spec-complete report produced at the end of SDD step 03.
+type: object
+additionalProperties: false
+required:
+  - ticket_id
+  - adr_review_decision
+  - mermaid_validation_result
+  - signoffs
+  - spec_ready
+  - sdd_check_result
+  - traceability_result
+properties:
+  ticket_id:
+    type: string
+  adr_review_decision:
+    type: string
+    enum:
+      - confirm
+      - adjust
+      - override
+  adr_review_rationale:
+    type: string
+  mermaid_validation_result:
+    type: string
+    enum:
+      - pass
+      - fail
+      - not-applicable
+  signoffs:
+    type: object
+    additionalProperties: false
+    required:
+      - product
+      - architecture
+      - security
+      - operations
+    properties:
+      product:
+        type: string
+        enum:
+          - approved
+          - pending
+      architecture:
+        type: string
+        enum:
+          - approved
+          - pending
+      security:
+        type: string
+        enum:
+          - approved
+          - pending
+      operations:
+        type: string
+        enum:
+          - approved
+          - pending
+  spec_ready:
+    type: boolean
+  sdd_check_result:
+    type: string
+    enum:
+      - pass
+      - fail
+  commit_sha:
+    type: string
+  traceability_result:
+    type: string
+    enum:
+      - clean
+      - gaps-found
+```
+
 ## C7 Emission
 
 At the end of this step, emit a C7 lifecycle event. Resolve variable values
@@ -178,6 +260,21 @@ from session context: `TICKET_ID` — the GitHub issue number; `SKILL_BASENAME`
 — the `name:` value from this SKILL.md frontmatter; `OWNER_TEAM` — the GitHub
 team slug owning this repository (e.g. `platform-team`); `WORK_ITEM_SLUG` —
 the spec directory basename.
+
+**Autonomous factory path (orchestrator #361):** the orchestrator emits the
+C7 event after merging all expert verdicts into `outcome_details.expert_verdicts[]`.
+It uses the `--extension-json` flag to attach the compact per-expert summary
+(one `ExpertVerdictSummary` row per dispatched expert, per ADR-issue-364 § 9)
+and `outcome_details.routing_keys` (per design-contracts § C7). The
+orchestrator MUST NOT emit the event before all verdicts are collected and
+merged.
+
+**Local-CLI path (human-assisted, `local-cli` emitter):** the operator runs
+this step without a panel. The `--extension-json` flag is omitted; the emitted
+event will not carry `outcome_details.expert_verdicts[]`. This is expected —
+expert-panel attribution is absent from local-CLI step events. If the
+operator ran expert consultations manually they MAY author the extension JSON
+and pass it via `--extension-json`, but this is not required.
 
 ```sh
 uv run python3 scripts/bin/sdd/c7_emit.py emit \

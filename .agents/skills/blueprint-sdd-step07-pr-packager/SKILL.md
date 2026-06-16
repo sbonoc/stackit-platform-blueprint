@@ -1,6 +1,7 @@
 ---
 name: blueprint-sdd-step07-pr-packager
 description: Execute SDD Steps 8 and 9 — fill pr_context.md and hardening_review.md, create GitHub issues for each deferred proposal, mark all tasks complete, pass all quality gates, mark the Draft PR as ready, and post the @codex review comment. Renamed and adjusted from blueprint-sdd-pr-packager to fit the single-PR lifecycle model.
+blueprint-version: 1.0.0
 ---
 
 # Blueprint SDD Step 07 — Publish + Mark PR Ready
@@ -236,6 +237,186 @@ Return:
 - PR packaging checklist: `references/pr_packaging_checklist.md`
 
 
+## Required Output Schema
+
+The structured payload below is the PR-packager report the skill returns to
+the orchestrator and carries on the `phase: pr-packager` C7 lifecycle event.
+
+```yaml jsonschema
+$schema: "http://json-schema.org/draft-07/schema#"
+title: BlueprintSddStep07PrPackagerOutput
+description: Structured PR-packager report produced at the end of SDD step 07.
+type: object
+additionalProperties: false
+required:
+  - ticket_id
+  - pr_context_completeness
+  - hardening_review_completeness
+  - deferred_proposals_filed
+  - backlog_entries_added
+  - all_tasks_checked
+  - hooks_result
+  - hardening_review_result
+  - pr_ready
+  - traceability_result
+properties:
+  ticket_id:
+    type: string
+  pr_context_completeness:
+    type: object
+    additionalProperties: false
+    required:
+      - summary
+      - requirement_coverage
+      - key_reviewer_files
+      - validation_evidence
+      - risk_and_rollback
+      - deferred_proposals
+    properties:
+      summary:
+        type: string
+        enum:
+          - populated
+          - missing
+      requirement_coverage:
+        type: string
+        enum:
+          - populated
+          - missing
+      key_reviewer_files:
+        type: string
+        enum:
+          - populated
+          - missing
+      validation_evidence:
+        type: string
+        enum:
+          - populated
+          - missing
+      risk_and_rollback:
+        type: string
+        enum:
+          - populated
+          - missing
+      deferred_proposals:
+        type: string
+        enum:
+          - populated
+          - missing
+  hardening_review_completeness:
+    type: object
+    additionalProperties: false
+    required:
+      - repository_wide_findings
+      - observability_changes
+      - architecture_compliance
+      - proposals_only
+    properties:
+      repository_wide_findings:
+        type: string
+        enum:
+          - populated
+          - missing
+      observability_changes:
+        type: string
+        enum:
+          - populated
+          - missing
+      architecture_compliance:
+        type: string
+        enum:
+          - populated
+          - missing
+      proposals_only:
+        type: string
+        enum:
+          - populated
+          - missing
+  deferred_proposals_filed:
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      required:
+        - title
+        - outcome
+      properties:
+        title:
+          type: string
+        outcome:
+          type: string
+          enum:
+            - file-issue
+            - park
+            - reject
+        issue_url:
+          type: string
+        trigger:
+          type: string
+        rationale:
+          type: string
+  backlog_entries_added:
+    type: integer
+    minimum: 0
+  all_tasks_checked:
+    type: boolean
+  unchecked_task_ids:
+    type: array
+    items:
+      type: string
+  hooks_result:
+    type: string
+    enum:
+      - pass
+      - fail
+  hardening_review_result:
+    type: string
+    enum:
+      - pass
+      - fail
+  commit_sha:
+    type: string
+  pr_ready:
+    type: boolean
+  pr_url:
+    type: string
+  codex_review_comment_posted:
+    type: boolean
+  traceability_result:
+    type: string
+    enum:
+      - clean
+      - gaps-found
+  expert_verdicts:
+    type: array
+    description: >-
+      Per-expert verdict array merged by the orchestrator from the step07
+      panel invocations (ADR-issue-364 § 4 dispatches a 4-expert panel at
+      step07 in parallel-then-merge mode). Each row is keyed by
+      expert_slug per ADR-issue-364 § 6 and is carried on the C7
+      outcome_details.expert_verdicts[] field per FR-007.
+    items:
+      type: object
+      additionalProperties: false
+      required:
+        - expert_slug
+        - verdict
+        - findings
+      properties:
+        expert_slug:
+          type: string
+        verdict:
+          type: string
+          enum:
+            - pass
+            - revise
+            - block
+        findings:
+          type: array
+          items:
+            type: object
+```
+
 ## C7 Emission
 
 At the end of this step, emit a C7 lifecycle event. Resolve variable values
@@ -243,6 +424,21 @@ from session context: `TICKET_ID` — the GitHub issue number; `SKILL_BASENAME`
 — the `name:` value from this SKILL.md frontmatter; `OWNER_TEAM` — the GitHub
 team slug owning this repository (e.g. `platform-team`); `WORK_ITEM_SLUG` —
 the spec directory basename.
+
+**Autonomous factory path (orchestrator #361):** the orchestrator emits the
+C7 event after merging all expert verdicts into `outcome_details.expert_verdicts[]`.
+It uses the `--extension-json` flag to attach the compact per-expert summary
+(one `ExpertVerdictSummary` row per dispatched expert, per ADR-issue-364 § 9)
+and `outcome_details.routing_keys` (per design-contracts § C7). The
+orchestrator MUST NOT emit the event before all verdicts are collected and
+merged.
+
+**Local-CLI path (human-assisted, `local-cli` emitter):** the operator runs
+this step without a panel. The `--extension-json` flag is omitted; the emitted
+event will not carry `outcome_details.expert_verdicts[]`. This is expected —
+expert-panel attribution is absent from local-CLI step events. If the
+operator ran expert consultations manually they MAY author the extension JSON
+and pass it via `--extension-json`, but this is not required.
 
 ```sh
 uv run python3 scripts/bin/sdd/c7_emit.py emit \

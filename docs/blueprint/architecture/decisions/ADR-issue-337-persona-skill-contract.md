@@ -6,6 +6,7 @@
 **Spec:** `specs/2026-05-28-issue-337-factory-phase-0-foundations/` (FR-002)
 **Meta-ADR:** [`ADR-issue-337-factory-phase-0-foundations.md`](ADR-issue-337-factory-phase-0-foundations.md)
 **Extensibility classification (#339 C8 FR-017):** `sealed`.
+**Amended-by:** [`ADR-issue-364-expert-persona-model.md`](ADR-issue-364-expert-persona-model.md) — the persona-as-actor framing in this ADR is replaced by the three-layer model (SDD step / skill / expert persona); SDD steps are the sealed actor of record, skills are procedural verbs bound to steps by the dispatch matrix, and `PERSONA.md` files are standing review lenses dispatched onto step boundaries (no 1:1 persona↔skill coupling). The SoD invariant (no AI persona maps 1:1 to a human canonical sign-off role) is preserved; ADR-issue-364 strengthens it by making the expert-panel layer compositional rather than identity-based.
 
 ## Context
 

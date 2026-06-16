@@ -1,6 +1,7 @@
 ---
 name: blueprint-sdd-step05-implement
 description: Execute SDD Step 6 — implement the work item in TDD slices following plan.md, writing failing tests first then making them green, committing each slice to the existing Draft PR branch. Uses stack-agnostic Make targets derived from the spec's Implementation Stack Profile.
+blueprint-version: 1.0.0
 ---
 
 # Blueprint SDD Step 05 — Implement
@@ -160,7 +161,7 @@ dependencies. These are mandatory defaults — deviate only with documented rati
     and MUST NOT be used as a substitute for this field-coverage assertion.
 14. Vue component test per rendering branch: for any Vue SFC rendering change (new
     component, modified template, or touched conditional branch), before marking the
-    slice done the implementer MUST enumerate which Vitest Browser Mode component test
+    slice done the step05 invocation MUST enumerate which Vitest Browser Mode component test
     covers each rendering branch touched — including fallback, degraded, and error paths.
     A slice MUST NOT be declared done if any rendering branch that was added or modified
     is absent from the component test suite.
@@ -342,6 +343,125 @@ After all slices:
 - Implementation checklist: `references/implement_checklist.md`
 
 
+## Required Output Schema
+
+The structured payload below is the implementation report the skill returns
+to the orchestrator and carries on the `phase: implement` C7 lifecycle event.
+
+```yaml jsonschema
+$schema: "http://json-schema.org/draft-07/schema#"
+title: BlueprintSddStep05ImplementOutput
+description: Structured implementation report produced at the end of SDD step 05.
+type: object
+additionalProperties: false
+required:
+  - ticket_id
+  - stack_profile
+  - test_commands
+  - slices
+  - validation_bundle_result
+  - traceability_result
+properties:
+  ticket_id:
+    type: string
+  stack_profile:
+    type: object
+    additionalProperties: false
+    required:
+      - backend
+      - frontend
+      - test_automation
+    properties:
+      backend:
+        type: string
+      frontend:
+        type: string
+      test_automation:
+        type: string
+  test_commands:
+    type: array
+    items:
+      type: string
+  slices:
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - tests_written_count
+        - red_confirmed
+        - implementation_files
+        - regression_result
+        - commit_sha
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        tests_written_count:
+          type: integer
+          minimum: 0
+        red_confirmed:
+          type: boolean
+        implementation_files:
+          type: array
+          items:
+            type: string
+        regression_result:
+          type: string
+          enum:
+            - pass
+            - fail
+        tasks_completed:
+          type: array
+          items:
+            type: string
+        commit_sha:
+          type: string
+  validation_bundle_result:
+    type: string
+    enum:
+      - pass
+      - fail
+      - not-applicable
+  exception_rationale:
+    type: string
+  traceability_result:
+    type: string
+    enum:
+      - clean
+      - gaps-found
+  expert_verdicts:
+    type: array
+    description: >-
+      Per-expert verdict array merged by the orchestrator from the step05
+      panel invocations (ADR-issue-364 § 4 dispatches a 5-expert panel at
+      step05 in sequential-lens convergence mode). Each row is keyed by
+      expert_slug per ADR-issue-364 § 6 and is carried on the C7
+      outcome_details.expert_verdicts[] field per FR-007.
+    items:
+      type: object
+      additionalProperties: false
+      required:
+        - expert_slug
+        - verdict
+        - findings
+      properties:
+        expert_slug:
+          type: string
+        verdict:
+          type: string
+          enum:
+            - pass
+            - revise
+            - block
+        findings:
+          type: array
+          items:
+            type: object
+```
+
 ## C7 Emission
 
 At the end of this step, emit a C7 lifecycle event. Resolve variable values
@@ -349,6 +469,21 @@ from session context: `TICKET_ID` — the GitHub issue number; `SKILL_BASENAME`
 — the `name:` value from this SKILL.md frontmatter; `OWNER_TEAM` — the GitHub
 team slug owning this repository (e.g. `platform-team`); `WORK_ITEM_SLUG` —
 the spec directory basename.
+
+**Autonomous factory path (orchestrator #361):** the orchestrator emits the
+C7 event after merging all expert verdicts into `outcome_details.expert_verdicts[]`.
+It uses the `--extension-json` flag to attach the compact per-expert summary
+(one `ExpertVerdictSummary` row per dispatched expert, per ADR-issue-364 § 9)
+and `outcome_details.routing_keys` (per design-contracts § C7). The
+orchestrator MUST NOT emit the event before all verdicts are collected and
+merged.
+
+**Local-CLI path (human-assisted, `local-cli` emitter):** the operator runs
+this step without a panel. The `--extension-json` flag is omitted; the emitted
+event will not carry `outcome_details.expert_verdicts[]`. This is expected —
+expert-panel attribution is absent from local-CLI step events. If the
+operator ran expert consultations manually they MAY author the extension JSON
+and pass it via `--extension-json`, but this is not required.
 
 ```sh
 uv run python3 scripts/bin/sdd/c7_emit.py emit \

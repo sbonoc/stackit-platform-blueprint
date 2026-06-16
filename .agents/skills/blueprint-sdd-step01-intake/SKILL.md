@@ -1,6 +1,7 @@
 ---
 name: blueprint-sdd-step01-intake
 description: Execute SDD Steps 1 and 2 — scaffold the work item if not already done, populate all artifacts with real content (Discover → Plan), and open the intake Draft PR with a live Open Questions table. Can be invoked by any project stakeholder. Consolidates the retired intake-decompose, po-spec, and clarification-gate skills.
+blueprint-version: 1.0.0
 ---
 
 # Blueprint SDD Step 01 — Intake + Draft PR
@@ -283,6 +284,132 @@ make quality-sdd-check
 - Intake checklist: `references/intake_checklist.md`
 
 
+## Required Output Schema
+
+The structured payload below is the intake report the skill returns to the
+orchestrator and carries on the `phase: intake` C7 lifecycle event.
+
+**Expert verdict attribution.** The 8-expert panel is dispatched by the
+orchestrator (#361), not by this skill. Per-expert verdicts (`expert_slug`,
+`verdict`, `findings[]` per ADR-issue-364 § 6) are produced by the separately
+dispatched expert invocations and merged by the orchestrator into
+`outcome_details.expert_verdicts[]` on the C7 event (ADR-issue-364 § 9). They
+are NOT a field this skill returns — the skill returns the intake report below.
+The orchestrator joins the skill output with the merged expert-verdict array
+before emitting the C7 event.
+
+```yaml jsonschema
+$schema: "http://json-schema.org/draft-07/schema#"
+title: BlueprintSddStep01IntakeOutput
+description: Structured intake report produced at the end of SDD step 01.
+type: object
+additionalProperties: false
+required:
+  - ticket_id
+  - scaffold_status
+  - source_documents
+  - requirement_counts
+  - sdd_controls
+  - adr_path
+  - v_gate
+  - open_questions_count
+  - sdd_check_result
+  - draft_pr_url
+properties:
+  ticket_id:
+    type: string
+  scaffold_status:
+    type: string
+    enum:
+      - auto-run
+      - already-existed
+  source_documents:
+    type: array
+    items:
+      type: string
+  requirement_counts:
+    type: object
+    additionalProperties: false
+    required:
+      - req
+      - nfr
+      - ac
+    properties:
+      req:
+        type: integer
+        minimum: 0
+      nfr:
+        type: integer
+        minimum: 0
+      ac:
+        type: integer
+        minimum: 0
+  sdd_controls:
+    type: array
+    items:
+      type: string
+  adr_path:
+    type: string
+  adr_diagram_types:
+    type: array
+    items:
+      type: string
+  v_gate:
+    type: object
+    additionalProperties: false
+    required:
+      - has_user_facing_flow
+      - signal
+    properties:
+      has_user_facing_flow:
+        type: boolean
+      signal:
+        type: string
+  open_questions_count:
+    type: integer
+    minimum: 0
+  open_questions:
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - description
+      properties:
+        id:
+          type: string
+        description:
+          type: string
+  sdd_check_result:
+    type: string
+    enum:
+      - pass
+      - fail
+  surfaced_backlog_proposals:
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      required:
+        - title
+        - trigger
+        - recommended_action
+      properties:
+        title:
+          type: string
+        trigger:
+          type: string
+        recommended_action:
+          type: string
+          enum:
+            - incorporate
+            - promote-to-issue
+            - reject
+  draft_pr_url:
+    type: string
+```
+
 ## C7 Emission
 
 At the end of this step, emit a C7 lifecycle event. Resolve variable values
@@ -290,6 +417,21 @@ from session context: `TICKET_ID` — the GitHub issue number; `SKILL_BASENAME`
 — the `name:` value from this SKILL.md frontmatter; `OWNER_TEAM` — the GitHub
 team slug owning this repository (e.g. `platform-team`); `WORK_ITEM_SLUG` —
 the spec directory basename.
+
+**Autonomous factory path (orchestrator #361):** the orchestrator emits the
+C7 event after merging all expert verdicts into `outcome_details.expert_verdicts[]`.
+It uses the `--extension-json` flag to attach the compact per-expert summary
+(one `ExpertVerdictSummary` row per dispatched expert, per ADR-issue-364 § 9)
+and `outcome_details.routing_keys` (per design-contracts § C7). The
+orchestrator MUST NOT emit the event before all verdicts are collected and
+merged.
+
+**Local-CLI path (human-assisted, `local-cli` emitter):** the operator runs
+this step without a panel. The `--extension-json` flag is omitted; the emitted
+event will not carry `outcome_details.expert_verdicts[]`. This is expected —
+expert-panel attribution is absent from local-CLI step events. If the
+operator ran expert consultations manually they MAY author the extension JSON
+and pass it via `--extension-json`, but this is not required.
 
 ```sh
 uv run python3 scripts/bin/sdd/c7_emit.py emit \

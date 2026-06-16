@@ -1,6 +1,7 @@
 ---
 name: blueprint-sdd-step02-resolve-questions
-description: Execute SDD Step 3 — scaffold if not already done, read PR comments from reviewers (PO, Architect, etc.), replace [NEEDS CLARIFICATION: ...] blocks in artifacts with resolved decisions, update the Open Questions table in the PR description, commit, and post a confirmation comment. Repeats until open question count reaches zero and SPEC_PRODUCT_READY is recorded. Can be invoked by any project stakeholder.
+description: "Execute SDD Step 3 — scaffold if not already done, read PR comments from reviewers (PO, Architect, etc.), replace [NEEDS CLARIFICATION: ...] blocks in artifacts with resolved decisions, update the Open Questions table in the PR description, commit, and post a confirmation comment. Repeats until open question count reaches zero and SPEC_PRODUCT_READY is recorded. Can be invoked by any project stakeholder."
+blueprint-version: 1.0.0
 ---
 
 # Blueprint SDD Step 02 — Open Question Resolution Loop
@@ -144,6 +145,197 @@ make quality-sdd-check
 - Resolution checklist: `references/resolution_checklist.md`
 
 
+## Required Output Schema
+
+The structured payload below is the resolution-round report the skill returns
+to the orchestrator and carries on the `phase: resolve-questions` C7 lifecycle event.
+
+```yaml jsonschema
+$schema: "http://json-schema.org/draft-07/schema#"
+title: BlueprintSddStep02ResolveQuestionsOutput
+description: Structured resolution-round report produced at the end of SDD step 02.
+type: object
+additionalProperties: false
+required:
+  - ticket_id
+  - scaffold_status
+  - pr_comments_read
+  - questions_resolved_this_round
+  - questions_remaining
+  - signoffs_recorded
+  - sdd_check_marker_count_before
+  - sdd_check_marker_count_after
+  - confirmation_comment_posted
+  - traceability_result
+properties:
+  ticket_id:
+    type: string
+  scaffold_status:
+    type: string
+    enum:
+      - auto-run
+      - already-existed
+  pr_comments_read:
+    type: integer
+    minimum: 0
+  questions_resolved_this_round:
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - decision_summary
+      properties:
+        id:
+          type: string
+        decision_summary:
+          type: string
+  questions_remaining:
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - description
+      properties:
+        id:
+          type: string
+        description:
+          type: string
+  signoffs_recorded:
+    type: array
+    items:
+      type: string
+      enum:
+        - product
+        - architecture
+        - security
+        - operations
+  sdd_check_marker_count_before:
+    type: integer
+    minimum: 0
+  sdd_check_marker_count_after:
+    type: integer
+    minimum: 0
+  commit_sha:
+    type: string
+  confirmation_comment_posted:
+    type: boolean
+  traceability_result:
+    type: string
+    enum:
+      - clean
+      - gaps-found
+  expert_verdicts:
+    type: array
+    description: >-
+      Per-expert verdict array merged by the orchestrator from the step02
+      panel invocations (ADR-issue-364 § 4 dispatches a dynamic expert
+      panel at step02 driven by the § 4.2 contiguous content-bigram
+      overlap algorithm with stopword filtering; substring / keyword /
+      domain matching are forbidden). Each row is keyed by expert_slug
+      per ADR-issue-364 § 6 and is carried on the C7
+      outcome_details.expert_verdicts[] field per FR-007.
+    items:
+      type: object
+      additionalProperties: false
+      required:
+        - expert_slug
+        - verdict
+        - findings
+      properties:
+        expert_slug:
+          type: string
+        verdict:
+          type: string
+          enum:
+            - pass
+            - revise
+            - block
+        findings:
+          type: array
+          items:
+            type: object
+```
+
+## C7 Extension Fields and Emission (step02-specific)
+
+Step02 dispatches a dynamic expert panel (ADR-issue-364 § 4 / § 4.2). Every
+step02 local-cli C7 event MUST carry `outcome_details.expert_verdicts[]` regardless
+of whether dispatch was bigram-matched or floor-only. Use the complete emit
+sequence below instead of the generic `## C7 Emission` block at the bottom of
+this file (which is the fallback for steps without panel dispatch).
+
+**Prerequisite — helper version:** the `--extension-json` flag was added to
+`scripts/bin/sdd/c7_emit.py` in blueprint version `1.0.0` (issue #364). If
+your consumer repo seeded an older copy of the helper, the flag will not be
+recognised and the command will exit with an argparse error. Verify with
+`uv run python3 scripts/bin/sdd/c7_emit.py emit --help | grep extension-json`.
+If the flag is absent, update your seeded helper from the blueprint source
+before running these commands, or fall back to the generic `## C7 Emission`
+block below (which omits expert-verdict attribution from the C7 event, keeping
+audit coverage degraded until the helper is upgraded).
+
+**Bigram-matched dispatch:** author one row per dispatched expert into the payload,
+then emit:
+
+```sh
+EXT_PAYLOAD="$(mktemp)"
+cat > "$EXT_PAYLOAD" <<'JSON'
+{
+  "outcome_details": {
+    "expert_verdicts": [
+      {"expert_slug": "data-privacy", "verdict": "pass", "findings_count": 0}
+    ]
+  },
+  "evidence_uri": "artifacts/c7/<work-item-slug>/resolve-questions-round-0.json"
+}
+JSON
+
+uv run python3 scripts/bin/sdd/c7_emit.py emit \
+  --ticket "$TICKET_ID" \
+  --phase "resolve-questions" \
+  --skill "$SKILL_BASENAME" \
+  --owner-team "$OWNER_TEAM" \
+  --slug "$WORK_ITEM_SLUG" \
+  --extension-json "$EXT_PAYLOAD"
+
+rm -f "$EXT_PAYLOAD"
+```
+
+**Floor case** (zero content-bigram matches → `product-pragmatist` dispatched as
+floor-only per ADR-issue-364 § 4.2 step 6): `product-pragmatist` IS an expert
+invocation and its verdict MUST appear so audit consumers can distinguish
+floor-dispatch from no panel execution:
+
+```sh
+EXT_PAYLOAD_FLOOR="$(mktemp)"
+cat > "$EXT_PAYLOAD_FLOOR" <<'JSON'
+{
+  "outcome_details": {
+    "expert_verdicts": [
+      {"expert_slug": "product-pragmatist", "verdict": "pass", "findings_count": 0}
+    ]
+  },
+  "evidence_uri": "artifacts/c7/<work-item-slug>/resolve-questions-round-0.json"
+}
+JSON
+
+uv run python3 scripts/bin/sdd/c7_emit.py emit \
+  --ticket "$TICKET_ID" \
+  --phase "resolve-questions" \
+  --skill "$SKILL_BASENAME" \
+  --owner-team "$OWNER_TEAM" \
+  --slug "$WORK_ITEM_SLUG" \
+  --extension-json "$EXT_PAYLOAD_FLOOR"
+
+rm -f "$EXT_PAYLOAD_FLOOR"
+```
+
+Then stage and commit per the `## C7 Emission` block below.
+
 ## C7 Emission
 
 At the end of this step, emit a C7 lifecycle event. Resolve variable values
@@ -151,6 +343,21 @@ from session context: `TICKET_ID` — the GitHub issue number; `SKILL_BASENAME`
 — the `name:` value from this SKILL.md frontmatter; `OWNER_TEAM` — the GitHub
 team slug owning this repository (e.g. `platform-team`); `WORK_ITEM_SLUG` —
 the spec directory basename.
+
+**Autonomous factory path (orchestrator #361):** the orchestrator emits the
+C7 event after merging all expert verdicts into `outcome_details.expert_verdicts[]`.
+It uses the `--extension-json` flag to attach the compact per-expert summary
+(one `ExpertVerdictSummary` row per dispatched expert, per ADR-issue-364 § 9)
+and `outcome_details.routing_keys` (per design-contracts § C7). The
+orchestrator MUST NOT emit the event before all verdicts are collected and
+merged.
+
+**Local-CLI path (human-assisted, `local-cli` emitter):** the operator runs
+this step without a panel. The `--extension-json` flag is omitted; the emitted
+event will not carry `outcome_details.expert_verdicts[]`. This is expected —
+expert-panel attribution is absent from local-CLI step events. If the
+operator ran expert consultations manually they MAY author the extension JSON
+and pass it via `--extension-json`, but this is not required.
 
 ```sh
 uv run python3 scripts/bin/sdd/c7_emit.py emit \

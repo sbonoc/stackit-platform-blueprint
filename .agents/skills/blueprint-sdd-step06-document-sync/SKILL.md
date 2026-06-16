@@ -1,6 +1,7 @@
 ---
 name: blueprint-sdd-step06-document-sync
 description: Execute SDD Step 7 — update blueprint and consumer docs for changed behavior, sync bootstrap template mirrors, update skill runbooks, and validate docs build/smoke checks. Renamed from blueprint-sdd-document-sync.
+blueprint-version: 1.0.0
 ---
 
 # Blueprint SDD Step 06 — Document + Operate
@@ -98,6 +99,86 @@ Return:
 - Document phase checklist: `references/document_phase_checklist.md`
 
 
+## Required Output Schema
+
+The structured payload below is the document-sync report the skill returns to
+the orchestrator and carries on the `phase: document-sync` C7 lifecycle event.
+
+```yaml jsonschema
+$schema: "http://json-schema.org/draft-07/schema#"
+title: BlueprintSddStep06DocumentSyncOutput
+description: Structured document-sync report produced at the end of SDD step 06.
+type: object
+additionalProperties: false
+required:
+  - ticket_id
+  - docs_paths_updated
+  - bootstrap_template_sync_result
+  - docs_check_result
+  - traceability_result
+properties:
+  ticket_id:
+    type: string
+  docs_paths_updated:
+    type: array
+    items:
+      type: string
+  bootstrap_template_sync_result:
+    type: string
+    enum:
+      - pass
+      - fail
+      - skipped
+  docs_check_result:
+    type: string
+    enum:
+      - pass
+      - fail
+  runbook_updates:
+    type: array
+    items:
+      type: string
+  skill_runbook_updates:
+    type: array
+    items:
+      type: string
+  commit_sha:
+    type: string
+  traceability_result:
+    type: string
+    enum:
+      - clean
+      - gaps-found
+  expert_verdicts:
+    type: array
+    description: >-
+      Per-expert verdict array merged by the orchestrator from the step06
+      panel invocations (ADR-issue-364 § 4 dispatches a 3-expert panel at
+      step06 in parallel-then-merge mode). Each row is keyed by
+      expert_slug per ADR-issue-364 § 6 and is carried on the C7
+      outcome_details.expert_verdicts[] field per FR-007.
+    items:
+      type: object
+      additionalProperties: false
+      required:
+        - expert_slug
+        - verdict
+        - findings
+      properties:
+        expert_slug:
+          type: string
+        verdict:
+          type: string
+          enum:
+            - pass
+            - revise
+            - block
+        findings:
+          type: array
+          items:
+            type: object
+```
+
 ## C7 Emission
 
 At the end of this step, emit a C7 lifecycle event. Resolve variable values
@@ -105,6 +186,21 @@ from session context: `TICKET_ID` — the GitHub issue number; `SKILL_BASENAME`
 — the `name:` value from this SKILL.md frontmatter; `OWNER_TEAM` — the GitHub
 team slug owning this repository (e.g. `platform-team`); `WORK_ITEM_SLUG` —
 the spec directory basename.
+
+**Autonomous factory path (orchestrator #361):** the orchestrator emits the
+C7 event after merging all expert verdicts into `outcome_details.expert_verdicts[]`.
+It uses the `--extension-json` flag to attach the compact per-expert summary
+(one `ExpertVerdictSummary` row per dispatched expert, per ADR-issue-364 § 9)
+and `outcome_details.routing_keys` (per design-contracts § C7). The
+orchestrator MUST NOT emit the event before all verdicts are collected and
+merged.
+
+**Local-CLI path (human-assisted, `local-cli` emitter):** the operator runs
+this step without a panel. The `--extension-json` flag is omitted; the emitted
+event will not carry `outcome_details.expert_verdicts[]`. This is expected —
+expert-panel attribution is absent from local-CLI step events. If the
+operator ran expert consultations manually they MAY author the extension JSON
+and pass it via `--extension-json`, but this is not required.
 
 ```sh
 uv run python3 scripts/bin/sdd/c7_emit.py emit \

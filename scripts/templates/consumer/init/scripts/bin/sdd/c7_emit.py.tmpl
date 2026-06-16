@@ -8,10 +8,19 @@ Usage:
         --skill <skill_basename> \\
         --owner-team <team_slug> \\
         [--outcome success|rejected|retried|human-handoff] \\
-        [--slug <work_item_slug>]
+        [--slug <work_item_slug>] \\
+        [--extension-json <path_or_inline_json>]
 
 The JSONL sink path defaults to artifacts/c7/<slug>.jsonl where <slug>
 is derived from the ticket_id unless --slug is provided.
+
+`--extension-json` accepts either (a) a filesystem path to a JSON file
+holding a single top-level object, or (b) an inline JSON object string
+beginning with `{`. The decoded object is merged into the emitted event
+as sibling top-level keys (per the C7 extension-field vocabulary in
+design-contracts.md § C7 — e.g., `outcome_details`, `evidence_uri`,
+`rejection_reason`). Keys that would shadow the eleven sealed minimum
+fields are rejected.
 
 Set BLUEPRINT_SDD_C7_EMIT=0 to suppress emission (one opt-out audit event
 is written instead).
@@ -19,6 +28,7 @@ is written instead).
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -36,6 +46,38 @@ from scripts.lib.sdd.c7_emit import (
 
 def _default_slug(ticket_id: str) -> str:
     return ticket_id
+
+
+def _load_extension_fields(source: str) -> dict:
+    """Decode the --extension-json argument (file path OR inline JSON).
+
+    An empty/missing value yields an empty dict. An inline value MUST start
+    with `{` (object); any other input is treated as a filesystem path.
+    Returns the decoded dict. Raises ValueError on malformed input — the
+    caller wraps the failure under NFR-REL-001.
+    """
+    if not source:
+        return {}
+    stripped = source.strip()
+    if stripped.startswith("{"):
+        raw = stripped
+    else:
+        path = Path(source)
+        if not path.is_file():
+            raise ValueError(
+                f"--extension-json path does not exist or is not a file: {source!r}"
+            )
+        raw = path.read_text(encoding="utf-8")
+    try:
+        decoded = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"--extension-json could not be parsed as JSON: {exc}") from exc
+    if not isinstance(decoded, dict):
+        raise ValueError(
+            "--extension-json MUST decode to a JSON object at top level; "
+            f"got {type(decoded).__name__}"
+        )
+    return decoded
 
 
 def cmd_emit(args: argparse.Namespace) -> int:
@@ -88,6 +130,8 @@ def cmd_emit(args: argparse.Namespace) -> int:
                 )
             return 0
 
+        extension_fields = _load_extension_fields(args.extension_json)
+
         rerun_round = reader.compute_rerun_round(args.ticket, args.phase)
         use_case = EmitC7EventUseCase(
             ticket_id=args.ticket,
@@ -97,6 +141,7 @@ def cmd_emit(args: argparse.Namespace) -> int:
             outcome=args.outcome,
             rerun_round=rerun_round,
             model_resolver=model_resolver,
+            extension_fields=extension_fields,
         )
         event = use_case.build()
         sink.append(event)
@@ -124,6 +169,13 @@ def main(argv: list[str] | None = None) -> int:
                         help="Phase outcome (default: success)")
     emit_p.add_argument("--slug", default="",
                         help="Work item slug for JSONL path (default: ticket_id)")
+    emit_p.add_argument("--extension-json", default="", dest="extension_json",
+                        help="Path to JSON file OR inline JSON object string carrying "
+                             "C7 extension fields (e.g. outcome_details, evidence_uri, "
+                             "rejection_reason) to merge into the emitted event. "
+                             "Inline JSON MUST start with `{`; anything else is treated "
+                             "as a filesystem path. Reserved minimum-schema keys MUST "
+                             "NOT be shadowed.")
 
     args = parser.parse_args(argv)
     if args.command == "emit":

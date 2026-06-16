@@ -36,4 +36,5 @@ when the context matches. They are also available as slash commands:
 | `/blueprint-sdd-step05-implement` | 6 | `.agents/skills/blueprint-sdd-step05-implement/SKILL.md` | Software Engineer |
 | `/blueprint-sdd-step06-document-sync` | 7 | `.agents/skills/blueprint-sdd-step06-document-sync/SKILL.md` | Software Engineer |
 | `/blueprint-sdd-step07-pr-packager` | 8–9 | `.agents/skills/blueprint-sdd-step07-pr-packager/SKILL.md` | Software Engineer |
+| `/blueprint-sdd-step08-agent-pr-review` | 10 | `.agents/skills/blueprint-sdd-step08-agent-pr-review/SKILL.md` | Software Engineer |
 | `/blueprint-sdd-traceability-keeper` | Cross-cutting | `.agents/skills/blueprint-sdd-traceability-keeper/SKILL.md` | Software Engineer |
