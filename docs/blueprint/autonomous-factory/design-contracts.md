@@ -526,7 +526,7 @@ Consumer-authored extensions MUST live under namespaced subdirectories so the Op
 
 Worked examples — one per artifact kind:
 
-**Persona shadow (extensible — consumer overrides blueprint persona).** A consumer repo wants its `architect` persona to require an additional acceptance criterion. The consumer creates `.agents/personas/consumer/architect.md` with the same basename. The loader resolves `architect` → `.agents/personas/consumer/architect.md` (consumer wins). The blueprint's `.agents/personas/architect.md` is shadowed for that consumer instance only. The shadow file MUST include `blueprint-baseline-sha:` in its front-matter, set to the SHA-256 of `.agents/personas/architect.md` at shadow creation time (required per Shadow baseline recording above).
+**Persona shadow (extensible — consumer overrides blueprint expert persona).** Under ADR-issue-364 all blueprint expert personas live at `.agents/personas/<expert-slug>/PERSONA.md` (directory layout, not flat files). The C3 dispatch contract uses the **expert directory basename** as the name-equality key (see § C3). A consumer repo wants its `security-paranoid` expert to add an extra sector-specific push-back trigger. The consumer creates `.agents/personas/consumer/security-paranoid/PERSONA.md` (preserving the `<expert-slug>` as a subdirectory under the consumer namespace). The loader resolves `security-paranoid` → `.agents/personas/consumer/security-paranoid/PERSONA.md` (consumer wins). The blueprint's `.agents/personas/security-paranoid/PERSONA.md` is shadowed for that consumer instance only. The shadow file MUST include `blueprint-baseline-sha:` in its front-matter, set to the SHA-256 of `.agents/personas/security-paranoid/PERSONA.md` at shadow creation time (required per Shadow baseline recording above). **Note:** the old flat `.agents/personas/architect.md` layout (from the stage-persona model superseded by ADR-issue-360 / ADR-issue-364) is REJECTED — consumers MUST use the directory layout `<expert-slug>/PERSONA.md` to match the name-equality rule in § C3.
 
 **Skill addition (extensible — net-new consumer-authored skill).** A consumer repo adds a domain-specific skill not present in the blueprint, e.g., `payments-pci-checklist`. The consumer creates `.agents/skills/consumer/payments-pci-checklist/SKILL.md`. The skill is loaded under its consumer namespace and surfaced as `/payments-pci-checklist`. No blueprint artifact is shadowed; the addition is purely additive.
 
@@ -550,12 +550,12 @@ Consumer-authored extensions under FR-018 MAY carry `upstream-candidate: true` i
 
 ```yaml
 ---
-id: persona-architect-consumer-override
+id: persona-security-paranoid-consumer-override
 artifact_kind: persona
 work_item_slug: consumer-domain-2026-05-28
 owner_team: "@consumer-org/architecture"
 schema_version: 1.0.0
-blueprint-baseline-sha: "<sha256-of-blueprint-personas-architect-md-at-shadow-creation-time>"
+blueprint-baseline-sha: "<sha256-of-blueprint-personas-security-paranoid-PERSONA-md-at-shadow-creation-time>"
 upstream-candidate: true
 ---
 ```

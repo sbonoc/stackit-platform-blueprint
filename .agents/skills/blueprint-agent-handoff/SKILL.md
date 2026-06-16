@@ -17,12 +17,13 @@ the next invocation needs in order to continue without re-deriving context.
 
 ## Actor
 
-Invoked by an SDD-step skill running on behalf of one expert from the
-dispatched panel. Other expert-panel members and downstream skills MUST NOT
-invoke this skill on behalf of an unrelated invocation; skill composition is
-the orchestrator's responsibility per
+Invoked by the orchestrator to checkpoint the current expert run and hand
+off execution to the next SDD-step skill or expert. The expert-panel layer
+and other skills MUST NOT directive-invoke this skill; skill composition is
+the orchestrator's responsibility exclusively per
 `ADR-issue-337-persona-skill-contract.md` clause 3 (as amended by
-`ADR-issue-364-expert-persona-model.md`).
+`ADR-issue-364-expert-persona-model.md`). The orchestrator acts on the
+returned handoff envelope to determine the next dispatch target.
 
 ## Inputs
 
