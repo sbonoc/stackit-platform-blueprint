@@ -5,11 +5,11 @@
      SPEC_READY=true: implementation gate — all sign-offs required; unlocks coding. -->
 - SPEC_READY: false
 - SPEC_PRODUCT_READY: false
-- Open questions count: 1
+- Open questions count: 0
 - Unresolved alternatives count: 0
 - Unresolved TODO markers count: 0
 - Pending assumptions count: 0
-- Open clarification markers count: 1
+- Open clarification markers count: 0
 - Product sign-off: pending
 - Architecture sign-off: pending
 - Security sign-off: pending
@@ -99,7 +99,7 @@
 - Context: Issue #368 is a direct post-#364 follow-up; the two operational risks (token-budget reality, step02 routing quality) were explicitly held out of #364's scope because they require runtime telemetry from #361 before designing against real data. This work lands those gaps before the first autonomous run. All deliverables are scoped to #361's implementation workspace.
 - Tradeoffs: The per-ticket roll-up on step08 (FR-003) requires the orchestrator to retain a running accumulator across all prior phase events for the same ticket_id. The alternative (query-time join) was rejected per NFR-OBS-001 (single-event queryability). The accumulator is bounded per-ticket and cleared on completion.
 - Clarifications:
-  - [NEEDS CLARIFICATION: What are the concrete per-ticket budget ceilings (P95 USD cost and P95 input token count) that FR-004 MUST pin in #361's spec? These values can only be established from real first-run telemetry. Options: A) Use placeholder ceilings at intake (e.g., $5 USD / 500K tokens) that are replaced by measured actuals after the first 3 autonomous runs — the audit predicate ships with the placeholder and is patched post-run. B) Ship the audit predicate structure without a hard ceiling, activating it only after measured data is available. Agent recommendation: Option A — ship with a conservative placeholder ceiling so the predicate executes from day one and produces a visible signal on first run; the ceiling is a configuration constant, not a schema change, so updating it post-run is a chore-track one-liner.]
+  - Budget ceiling decision (Q-1, resolved PR #371 comment by sbonoc, 2026-06-17): Option A selected — ship placeholder ceilings ($5 USD / 500K input tokens) in #361's spec so the audit predicate executes from day one and produces a visible signal on first run. The ceiling is a named Python constant in `c7_emit.py`; calibration to measured actuals after the first 3 autonomous runs is a one-liner chore commit, not a schema or ADR change. FR-004 and plan.md Slice 3 are updated to reflect this decision.
 
 ## Explicit Exclusions
 - Embedding-based router implementation: only the evidence-gathering fixture is in scope; the embedding-match router itself is a follow-up unblocked by fixture failure rates.
