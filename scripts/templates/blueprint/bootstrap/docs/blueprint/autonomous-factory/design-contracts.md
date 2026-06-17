@@ -2,7 +2,7 @@
 
 **Issue:** #339
 **Spec:** `specs/2026-05-28-issue-339-factory-design-contracts/`
-**ADR:** [`../architecture/decisions/ADR-issue-339-factory-design-contracts.md`](../architecture/decisions/ADR-issue-339-factory-design-contracts.md)
+**ADR:** `ADR-issue-339-factory-design-contracts.md`
 **Status:** approved
 **Factory contract version:** 1.0.0 (semver — see Contract C8 § Compatibility posture)
 
@@ -139,20 +139,20 @@ Referenced by: #333, #336, #338
 
 ## Contract C3 — OpenHands Microagent ↔ Persona Mapping (Identical Convention)
 
-Every factory instance MUST map OpenHands microagents to personas by **name equality**: the microagent name MUST equal the expert directory basename under `.agents/personas/` (i.e., the `<expert-slug>` segment of `.agents/personas/<expert-slug>/PERSONA.md`). The "persona" referenced in this contract's name now denotes the **expert-panel layer** locked by `../architecture/decisions/ADR-issue-364-expert-persona-model.md` — eight standing expert lenses whose persona files live at `.agents/personas/<expert-slug>/PERSONA.md` — not the deprecated stage-persona model that PR #362 prototyped. (Under the previous stage-persona layout the file basename without extension was the slug; with the per-expert directory layout (FR-001 of #364) the slug now lives as the directory basename, so the name-equality anchor is the directory basename — the literal file basename without extension is always `PERSONA` and is NOT used for routing.) Skills are bound to SDD steps by the orchestrator's dispatch table below; the expert-panel layer MUST NOT directive-invoke skills (skill composition is a dispatch-layer responsibility per `ADR-issue-337-persona-skill-contract.md` clause 3, as amended by ADR-issue-364). Persona files contain **no** `## Activation Triggers` or `## Skills Invoked` sections; the orchestrator's dispatch table is the sole binding mechanism for when each expert is consulted and which skill produces each step's draft output.
+Every factory instance MUST map OpenHands microagents to personas by **name equality**: the microagent name MUST equal the expert directory basename under `.agents/personas/` (i.e., the `<expert-slug>` segment of `.agents/personas/<expert-slug>/PERSONA.md`). The "persona" referenced in this contract's name now denotes the **expert-panel layer** locked by `ADR-issue-364-expert-persona-model.md` — eight standing expert lenses whose persona files live at `.agents/personas/<expert-slug>/PERSONA.md` — not the deprecated stage-persona model that PR #362 prototyped. (Under the previous stage-persona layout the file basename without extension was the slug; with the per-expert directory layout (FR-001 of #364) the slug now lives as the directory basename, so the name-equality anchor is the directory basename — the literal file basename without extension is always `PERSONA` and is NOT used for routing.) Skills are bound to SDD steps by the orchestrator's dispatch table below; the expert-panel layer MUST NOT directive-invoke skills (skill composition is a dispatch-layer responsibility per `ADR-issue-337-persona-skill-contract.md` clause 3, as amended by ADR-issue-364). Persona files contain **no** `## Activation Triggers` or `## Skills Invoked` sections; the orchestrator's dispatch table is the sole binding mechanism for when each expert is consulted and which skill produces each step's draft output.
 
 The single authoritative SDD-step × expert dispatch matrix is:
 
 | SDD step | Skill | Experts consulted | Lead voice | Convergence mode |
 |---|---|---|---|---|
 | step01 | `blueprint-sdd-step01-intake` | all 8 | `product-pragmatist` | parallel-then-merge |
-| step02 | `blueprint-sdd-step02-resolve-questions` | dynamic per question-text **contiguous content-bigram overlap** routing against each expert's `## Push-back Triggers` set, with a stopword filter applied so only content bigrams count (see `../architecture/decisions/ADR-issue-364-expert-persona-model.md` § 4.2 for the algorithm and the stopword set) | dynamic (see § 4.2) | parallel-then-merge |
+| step02 | `blueprint-sdd-step02-resolve-questions` | dynamic per question-text **contiguous content-bigram overlap** routing against each expert's `## Push-back Triggers` set, with a stopword filter applied so only content bigrams count (see `ADR-issue-364-expert-persona-model.md` § 4.2 for the algorithm and the stopword set) | dynamic (see § 4.2) | parallel-then-merge |
 | step03 | `blueprint-sdd-step03-spec-complete` | `documentation-discipline` only | `documentation-discipline` | sequential-lens (panel-of-1; orchestrator MUST skip sequential-round machinery — invoke `documentation-discipline` once and pass directly to merge) |
 | step04 | `blueprint-sdd-step04-plan-slicer` | `test-quality-sceptic`, `boundary-hawk`, `operability-sre`, `performance-cost-aware` | `test-quality-sceptic` | parallel-then-merge |
 | step05 | `blueprint-sdd-step05-implement` | `test-quality-sceptic`, `security-paranoid`, `data-privacy`, `performance-cost-aware`, `boundary-hawk` (ordered — sequential-lens application order per ADR-issue-364 § 5 Pattern 2) | `test-quality-sceptic` | sequential-lens |
 | step06 | `blueprint-sdd-step06-document-sync` | `documentation-discipline`, `boundary-hawk`, `product-pragmatist` | `documentation-discipline` | parallel-then-merge |
 | step07 | `blueprint-sdd-step07-pr-packager` | `documentation-discipline`, `operability-sre`, `test-quality-sceptic`, `boundary-hawk` | `documentation-discipline` | parallel-then-merge |
-| step08 | `blueprint-sdd-step08-agent-pr-review` | all 8 | rotating per round (heterogeneity-aware — see `../architecture/decisions/ADR-issue-364-expert-persona-model.md` § 4.4) | parallel-then-merge (structured-disagreement on `block` conflicts) |
+| step08 | `blueprint-sdd-step08-agent-pr-review` | all 8 | rotating per round (heterogeneity-aware — see `ADR-issue-364-expert-persona-model.md` § 4.4) | parallel-then-merge (structured-disagreement on `block` conflicts) |
 
 `ADR-issue-364-expert-persona-model.md` MUST reference this table by file path and section anchor and MUST NOT duplicate the table content; this section is the single source of truth for the dispatch matrix.
 
