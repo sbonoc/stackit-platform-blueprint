@@ -143,7 +143,9 @@ def lint_markdown_file(repo_root: Path, file_path: Path, make_targets: set[str])
                 rel = file_path
             if rel.is_relative_to(_CONSUMER_SHIPPED_AUTONOMOUS_FACTORY_DOCS):
                 link_path = raw_target.split("#", 1)[0]
-                if _CONSUMER_PRUNED_ADR_PATH_SEGMENT in link_path:
+                # Only flag local paths — external URLs are never pruned from consumer repos.
+                is_local = not link_path.startswith(("http://", "https://", "mailto:", "tel://"))
+                if is_local and _CONSUMER_PRUNED_ADR_PATH_SEGMENT in link_path:
                     issues.append(
                         LintIssue(
                             file_path,

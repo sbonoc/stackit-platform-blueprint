@@ -259,6 +259,27 @@ class DocsLintTests(unittest.TestCase):
             )
             self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
 
+    def test_consumer_pruned_adr_external_url_passes_in_autonomous_factory_doc(self) -> None:
+        # External https:// links to ADR paths must not be flagged — they are never pruned.
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _write(
+                repo_root / "docs/blueprint/autonomous-factory/design-contracts.md",
+                "[ADR](https://github.com/org/repo/blob/main/docs/blueprint/architecture/decisions/ADR-issue-339.md)\n",
+            )
+            result = run(
+                [
+                    sys.executable,
+                    str(LINTER),
+                    "--repo-root",
+                    str(repo_root),
+                    "--doc-glob",
+                    "docs/**/*.md",
+                ],
+                cwd=repo_root,
+            )
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()
