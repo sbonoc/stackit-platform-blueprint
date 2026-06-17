@@ -4,7 +4,7 @@
 **Date:** 2026-05-29
 **Issue:** #337
 **Spec:** `specs/2026-05-28-issue-337-factory-phase-0-foundations/` (FR-014)
-**Meta-ADR:** [`docs/blueprint/architecture/decisions/ADR-issue-337-factory-phase-0-foundations.md`](../architecture/decisions/ADR-issue-337-factory-phase-0-foundations.md)
+**Meta-ADR:** `ADR-issue-337-factory-phase-0-foundations.md`
 **Owner:** `@sbonoc/factory-operations`
 **Companion:** [`instrumentation-plan.md`](instrumentation-plan.md)
 
@@ -103,14 +103,14 @@ The single-row breakdown reflects that the blueprint repo is the sole factory op
 After the first 30 ticket cycles of live-factory operation (estimated 1–2 weeks at expected throughput), the `@sbonoc/factory-operations` team MUST re-evaluate these baselines in two dimensions:
 
 1. **Recompute the proxy metrics (b) and (d)** with the live-factory's formal `outcome: rejected` events (per the C7 sealed enum `success | rejected | retried | human-handoff`) and `defect-fix` labels — these will give the first directly-comparable numbers. If the divergence between forward measurement and backward proxy is large, document the gap and propose a baseline-revision PR.
-2. **Tune FR-007 ceilings and FR-009 thresholds** per the calibration path declared in [`ADR-issue-337-per-ticket-wall-clock-cost-ceiling.md`](../architecture/decisions/ADR-issue-337-per-ticket-wall-clock-cost-ceiling.md) and [`ADR-issue-337-triage-size-threshold.md`](../architecture/decisions/ADR-issue-337-triage-size-threshold.md), using the accumulated live-factory cost/duration/triage data.
+2. **Tune FR-007 ceilings and FR-009 thresholds** per the calibration path declared in `ADR-issue-337-per-ticket-wall-clock-cost-ceiling.md` and `ADR-issue-337-triage-size-threshold.md`, using the accumulated live-factory cost/duration/triage data.
 
 The calibration is mechanical (overlay updates) and does not require ADR amendment per the parameterized classifications declared in those ADRs.
 
 ## References
 
 - Spec: `specs/2026-05-28-issue-337-factory-phase-0-foundations/spec.md` § FR-014, § Clarifications Q-6, Q-7
-- Meta-ADR: [`docs/blueprint/architecture/decisions/ADR-issue-337-factory-phase-0-foundations.md`](../architecture/decisions/ADR-issue-337-factory-phase-0-foundations.md)
+- Meta-ADR: `ADR-issue-337-factory-phase-0-foundations.md`
 - Companion: [`instrumentation-plan.md`](instrumentation-plan.md) (defines the forward metrics these baselines are compared against)
 - Companion: [`triage-decomposition-data-feed.md`](triage-decomposition-data-feed.md) (the FR-015 retrospective classification of the same 100-PR window)
 - Source data: `gh pr list --base main --state merged --search "merged:2026-04-17..2026-05-29"` retrieved 2026-05-29

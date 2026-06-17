@@ -4,7 +4,7 @@
 **Date:** 2026-05-29
 **Issue:** #337
 **Spec:** `specs/2026-05-28-issue-337-factory-phase-0-foundations/` (FR-012, FR-013, FR-016)
-**Meta-ADR:** [`docs/blueprint/architecture/decisions/ADR-issue-337-factory-phase-0-foundations.md`](../architecture/decisions/ADR-issue-337-factory-phase-0-foundations.md)
+**Meta-ADR:** `ADR-issue-337-factory-phase-0-foundations.md`
 **Owner:** `@sbonoc/factory-operations`
 
 ## Purpose
@@ -18,7 +18,7 @@ The plan is the canonical owner of all telemetry decisions for the factory. Phas
 **P50 lead time from `agent-ready` label application to PR merge.**
 
 - **Measurement unit:** wall-clock minutes.
-- **Per-child / per-parent split:** measured per child issue independently for decomposed tickets (per [`ADR-issue-337-light-decomposition-policy.md`](../architecture/decisions/ADR-issue-337-light-decomposition-policy.md)); a parent-aggregate value (max child lead time) is also reported for decomposed parents so the integration-AC delay is visible.
+- **Per-child / per-parent split:** measured per child issue independently for decomposed tickets (per `ADR-issue-337-light-decomposition-policy.md`); a parent-aggregate value (max child lead time) is also reported for decomposed parents so the integration-AC delay is visible.
 - **Source-of-truth field:** `(pr.merged_at - issue.labeled_event.created_at)` derived from **GitHub Issues / PR events** — the `labeled` event with `label.name == 'agent-ready'` on the work-item issue (GitHub Issues API) and `pr.merged_at` on the resulting PR (GitHub Pulls API), joined by work-item ID. `#339 Contract C7` is NOT the source for this metric: the C7 eleven-field schema represents persona-phase emissions only (its `phase` enum is the eight SDD persona phases) and does not model GitHub-issue label-application or PR-merge events. Per the **Data Sources** rule below ("direct queries against GitHub events ... are permitted only when the same value cannot be derived from the C7 stream alone"), GitHub events are the correct source-of-truth here.
 - **Reporting cadence:** weekly P50 reported on the dashboard with rolling 7-day, 30-day, and 90-day windows.
 
@@ -31,7 +31,7 @@ The plan is the canonical owner of all telemetry decisions for the factory. Phas
 | Reviewer wall-time per PR (spec gate) | `≤ pre-factory baseline` | GitHub Pulls API + Issues comments: `(first_sign_off_comment.created_at - pr.created_at)` per PR. Sign-off comments are human-only per AGENTS.md and are NOT C7 events (C7 emission is exclusive to autonomous execution per `design-contracts.md` § C7 emission rule), so the source-of-truth MUST be GitHub events directly. | Sign-off comments = the four canonical phrases. |
 | Reviewer wall-time per PR (merge gate) | `≤ pre-factory baseline` | GitHub Pulls API + Issues comments: `(pr.merged_at - last_sign_off_comment.created_at)` per PR. Same rationale as the spec-gate row — human sign-off comments are not C7-emitted. | Captures the post-sign-off integration-review delay. |
 
-Any guardrail breach for two consecutive weekly reports MUST trigger an `@sbonoc/factory-operations` review of factory behavior in the affected dimension; the review outcome MUST be one of (a) tune ceiling values per [`ADR-issue-337-per-ticket-wall-clock-cost-ceiling.md`](../architecture/decisions/ADR-issue-337-per-ticket-wall-clock-cost-ceiling.md), (b) tune triage thresholds per [`ADR-issue-337-triage-size-threshold.md`](../architecture/decisions/ADR-issue-337-triage-size-threshold.md), (c) revert a specific ADR per NFR-REL-001, or (d) escalate to factory-architecture for design change.
+Any guardrail breach for two consecutive weekly reports MUST trigger an `@sbonoc/factory-operations` review of factory behavior in the affected dimension; the review outcome MUST be one of (a) tune ceiling values per `ADR-issue-337-per-ticket-wall-clock-cost-ceiling.md`, (b) tune triage thresholds per `ADR-issue-337-triage-size-threshold.md`, (c) revert a specific ADR per NFR-REL-001, or (d) escalate to factory-architecture for design change.
 
 ## Data Sources
 
@@ -39,8 +39,8 @@ Any guardrail breach for two consecutive weekly reports MUST trigger an `@sbonoc
 |---|---|---|
 | **GitHub Issues / PR events** | lifecycle stamps (label applications, PR opens/merges, issue closes); reviewer comment timestamps for wall-time computation; defect-fix label counts for defect rate | GitHub platform |
 | **GitHub Actions run logs** | CI evidence (which jobs ran, pass/fail status, duration); cross-correlation with C7 events when factory reruns are triggered by CI signal | GitHub platform |
-| **LiteLLM gateway usage logs** | model attribution (which model handled each persona invocation, prompt tokens, completion tokens, USD cost); enforced #339 NFR-SEC-001 exact-string bot-identity match | LiteLLM gateway (per [`ADR-issue-337-sovereignty-zdr-posture.md`](../architecture/decisions/ADR-issue-337-sovereignty-zdr-posture.md)) |
-| **#339 Contract C7 durable-bus lifecycle event stream** | canonical persona-phase event spine — every persona invocation (one event per phase transition with `phase`, `persona`, `outcome`, `rerun_round`, `owner_team`), every triage/decomposition decision, every rerun, and every ceiling-hit emits a C7 event with the eleven-field schema; this is the **system-of-record** for all factory-internal metrics that derive from persona-phase emissions | orchestrator service (#333) for phase-boundary events; webhook handler (#336) for GitHub-observable events (per [`ADR-issue-337-c7-emission-mechanism.md`](../architecture/decisions/ADR-issue-337-c7-emission-mechanism.md)) |
+| **LiteLLM gateway usage logs** | model attribution (which model handled each persona invocation, prompt tokens, completion tokens, USD cost); enforced #339 NFR-SEC-001 exact-string bot-identity match | LiteLLM gateway (per `ADR-issue-337-sovereignty-zdr-posture.md`) |
+| **#339 Contract C7 durable-bus lifecycle event stream** | canonical persona-phase event spine — every persona invocation (one event per phase transition with `phase`, `persona`, `outcome`, `rerun_round`, `owner_team`), every triage/decomposition decision, every rerun, and every ceiling-hit emits a C7 event with the eleven-field schema; this is the **system-of-record** for all factory-internal metrics that derive from persona-phase emissions | orchestrator service (#333) for phase-boundary events; webhook handler (#336) for GitHub-observable events (per `ADR-issue-337-c7-emission-mechanism.md`) |
 
 The **C7 event stream is the canonical event spine for persona-phase emissions.** GitHub Issues / PR events (label applications, PR opens/merges, sign-off comments) are NOT C7 events — they are external lifecycle stamps that the C7 schema does not model (the `phase` enum is the eight SDD persona phases; there is no `event_type` or `label` field). For metrics whose source-of-truth is a GitHub event (the primary metric and both reviewer-wall-time guardrail rows), the GitHub Issues / PR events source is authoritative. For metrics whose source-of-truth is a persona-phase emission (the first-review rejection rate and per-`owner_team` derivation), C7 is authoritative.
 
@@ -105,16 +105,16 @@ The weekly report MUST include:
 1. P50 lead time (primary metric) per `owner_team`.
 2. All four guardrail metrics per `owner_team`, with explicit pass/fail against the threshold.
 3. Top-3 ceiling-hit and rerun-cap-hit work items from the week, with C7 event-stream links.
-4. Triage class distribution from the week (counts of `small`/`medium`/`large-decomposable`/`escalate` per [`ADR-issue-337-triage-size-threshold.md`](../architecture/decisions/ADR-issue-337-triage-size-threshold.md)).
+4. Triage class distribution from the week (counts of `small`/`medium`/`large-decomposable`/`escalate` per `ADR-issue-337-triage-size-threshold.md`).
 
 Two consecutive weekly reports with the same guardrail breach MUST trigger the `@sbonoc/factory-operations` review described under **Guardrail Metrics** above.
 
 ## References
 
 - Spec: `specs/2026-05-28-issue-337-factory-phase-0-foundations/spec.md` § FR-012, § FR-013, § FR-016, § Clarifications Q-4, Q-5
-- Meta-ADR: [`docs/blueprint/architecture/decisions/ADR-issue-337-factory-phase-0-foundations.md`](../architecture/decisions/ADR-issue-337-factory-phase-0-foundations.md)
-- Related ADRs: [`ADR-issue-337-llm-model-router-policy.md`](../architecture/decisions/ADR-issue-337-llm-model-router-policy.md), [`ADR-issue-337-reviewer-model-heterogeneity.md`](../architecture/decisions/ADR-issue-337-reviewer-model-heterogeneity.md), [`ADR-issue-337-reject-rerun-cap.md`](../architecture/decisions/ADR-issue-337-reject-rerun-cap.md), [`ADR-issue-337-per-ticket-wall-clock-cost-ceiling.md`](../architecture/decisions/ADR-issue-337-per-ticket-wall-clock-cost-ceiling.md), [`ADR-issue-337-triage-size-threshold.md`](../architecture/decisions/ADR-issue-337-triage-size-threshold.md), [`ADR-issue-337-light-decomposition-policy.md`](../architecture/decisions/ADR-issue-337-light-decomposition-policy.md), [`ADR-issue-337-sovereignty-zdr-posture.md`](../architecture/decisions/ADR-issue-337-sovereignty-zdr-posture.md)
+- Meta-ADR: `ADR-issue-337-factory-phase-0-foundations.md`
+- Related ADRs: `ADR-issue-337-llm-model-router-policy.md`, `ADR-issue-337-reviewer-model-heterogeneity.md`, `ADR-issue-337-reject-rerun-cap.md`, `ADR-issue-337-per-ticket-wall-clock-cost-ceiling.md`, `ADR-issue-337-triage-size-threshold.md`, `ADR-issue-337-light-decomposition-policy.md`, `ADR-issue-337-sovereignty-zdr-posture.md`
 - Design contracts: [`design-contracts.md`](design-contracts.md) § Contract C7 (eleven-field lifecycle event schema, emission-transport rule, blueprint-instance subsection), § Contract C8 (consumer overlay schema)
 - Companion document: [`pre-factory-baselines.md`](pre-factory-baselines.md) (the baseline values these metrics MUST be measured against)
-- Phase 1 implementers: #333 (orchestrator service — phase-boundary C7 emission per [`ADR-issue-337-c7-emission-mechanism.md`](../architecture/decisions/ADR-issue-337-c7-emission-mechanism.md); persona/skill discovery; FR-008 reviewer-rotation picker), #334 (factory runtime — SKE foundation cluster consumption, ESO + Secrets Manager, **LogMe WORM at the 13-month SOC 2 retention floor — required for the C7 emission-transport replayability split documented above**, egress NetworkPolicy, factory bot identity, RabbitMQ Managed binding, metric-extractor sidecar), #335 (OpenHands + LiteLLM — runtime target only; NOT a C7 emitter), #336 (GitHub Actions webhooks — event sources AND webhook-side C7 emission for GitHub-observable events per [`ADR-issue-337-c7-emission-mechanism.md`](../architecture/decisions/ADR-issue-337-c7-emission-mechanism.md))
+- Phase 1 implementers: #333 (orchestrator service — phase-boundary C7 emission per `ADR-issue-337-c7-emission-mechanism.md`; persona/skill discovery; FR-008 reviewer-rotation picker), #334 (factory runtime — SKE foundation cluster consumption, ESO + Secrets Manager, **LogMe WORM at the 13-month SOC 2 retention floor — required for the C7 emission-transport replayability split documented above**, egress NetworkPolicy, factory bot identity, RabbitMQ Managed binding, metric-extractor sidecar), #335 (OpenHands + LiteLLM — runtime target only; NOT a C7 emitter), #336 (GitHub Actions webhooks — event sources AND webhook-side C7 emission for GitHub-observable events per `ADR-issue-337-c7-emission-mechanism.md`)
 - Phase 3 consumer: #338 (composition orchestration design — consumes the FR-015 data feed for evidence)

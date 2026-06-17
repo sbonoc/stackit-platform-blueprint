@@ -4,13 +4,13 @@
 **Date:** 2026-05-29
 **Issue:** #337
 **Spec:** `specs/2026-05-28-issue-337-factory-phase-0-foundations/` (FR-015)
-**Meta-ADR:** [`docs/blueprint/architecture/decisions/ADR-issue-337-factory-phase-0-foundations.md`](../architecture/decisions/ADR-issue-337-factory-phase-0-foundations.md)
+**Meta-ADR:** `ADR-issue-337-factory-phase-0-foundations.md`
 **Owner:** `@sbonoc/factory-operations`
 **Companion:** [`pre-factory-baselines.md`](pre-factory-baselines.md), [`instrumentation-plan.md`](instrumentation-plan.md)
 
 ## Purpose
 
-This document records what [`blueprint-ticket-triage-size`](../architecture/decisions/ADR-issue-337-triage-size-threshold.md) (FR-009 thresholds) **would have classified** each historical ticket cycle as, and — for `large-decomposable` rows — what boundary set [`blueprint-ticket-decompose-light`](../architecture/decisions/ADR-issue-337-light-decomposition-policy.md) (FR-010) **would have proposed**. It is the evidence base Phase 3 (#338) consumes when designing composition orchestration.
+This document records what `blueprint-ticket-triage-size` (FR-009 thresholds) **would have classified** each historical ticket cycle as, and — for `large-decomposable` rows — what boundary set `blueprint-ticket-decompose-light` (FR-010) **would have proposed**. It is the evidence base Phase 3 (#338) consumes when designing composition orchestration.
 
 ## Explicit Caveat (FR-015 normative requirement)
 
@@ -34,7 +34,7 @@ Per FR-009 the three threshold dimensions are bounded contexts touched, estimate
 | Estimated token cost | `tokens = (additions + deletions) × 15` | Multiplier of 15 = 3 tokens/line × 5× read-context factor (the model reads surrounding code to make the edit). Conservative; real read-context can be higher for large refactors. |
 | Estimated SDD step invocations | Fixed at 6 | All SDD-track PRs invoke approximately 6 steps (intake / resolve / complete / plan-slice / implement / package). Pre-SDD-bypass PRs ran fewer steps but the cost ceiling-relevant dimension (step count) is dominated by the SDD-track baseline. Bypass-track PRs are still subject to the same threshold check because forward factory runs against the same workflow. |
 
-Classification rule (AND-conjoined per [`ADR-issue-337-triage-size-threshold.md`](../architecture/decisions/ADR-issue-337-triage-size-threshold.md)):
+Classification rule (AND-conjoined per `ADR-issue-337-triage-size-threshold.md`):
 
 - `small` iff `ctx_estimate ≤ 1` AND `tokens ≤ 50_000`
 - `medium` iff `ctx_estimate ≤ 2` AND `tokens ≤ 150_000`
@@ -200,8 +200,8 @@ If, post-Phase-1, the live `large-decomposable` rate diverges from the retrospec
 ## References
 
 - Spec: `specs/2026-05-28-issue-337-factory-phase-0-foundations/spec.md` § FR-015, § Clarifications Q-7
-- Meta-ADR: [`docs/blueprint/architecture/decisions/ADR-issue-337-factory-phase-0-foundations.md`](../architecture/decisions/ADR-issue-337-factory-phase-0-foundations.md)
-- Related ADRs: [`ADR-issue-337-triage-size-threshold.md`](../architecture/decisions/ADR-issue-337-triage-size-threshold.md), [`ADR-issue-337-light-decomposition-policy.md`](../architecture/decisions/ADR-issue-337-light-decomposition-policy.md)
+- Meta-ADR: `ADR-issue-337-factory-phase-0-foundations.md`
+- Related ADRs: `ADR-issue-337-triage-size-threshold.md`, `ADR-issue-337-light-decomposition-policy.md`
 - Companion: [`pre-factory-baselines.md`](pre-factory-baselines.md) (same window, complementary baseline metrics), [`instrumentation-plan.md`](instrumentation-plan.md) (forward-measurement specification)
 - Source data: `gh pr list --base main --state merged --search "merged:2026-04-17..2026-05-29"` retrieved 2026-05-29
 - Phase 3 consumer: #338 (composition orchestration design)

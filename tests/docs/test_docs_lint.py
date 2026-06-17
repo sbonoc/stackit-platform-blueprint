@@ -215,6 +215,71 @@ class DocsLintTests(unittest.TestCase):
             )
             self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
 
+    def test_consumer_pruned_adr_hyperlink_fails_in_autonomous_factory_doc(self) -> None:
+        # A [text](../architecture/decisions/ADR-*.md) link in a consumer-shipped
+        # autonomous-factory doc must be rejected (issue #363 regression guard).
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _write(
+                repo_root / "docs/blueprint/autonomous-factory/design-contracts.md",
+                "**ADR:** [`ADR-issue-339-factory-design-contracts.md`](../architecture/decisions/ADR-issue-339-factory-design-contracts.md)\n",
+            )
+            result = run(
+                [
+                    sys.executable,
+                    str(LINTER),
+                    "--repo-root",
+                    str(repo_root),
+                    "--doc-glob",
+                    "docs/**/*.md",
+                ],
+                cwd=repo_root,
+            )
+            self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+            self.assertIn("consumer-pruned ADR hyperlink", result.stderr)
+
+    def test_consumer_pruned_adr_backtick_passes_in_autonomous_factory_doc(self) -> None:
+        # Bare backtick references to ADR filenames are NOT hyperlinks and must not be flagged.
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _write(
+                repo_root / "docs/blueprint/autonomous-factory/design-contracts.md",
+                "**ADR:** `ADR-issue-339-factory-design-contracts.md`\n",
+            )
+            result = run(
+                [
+                    sys.executable,
+                    str(LINTER),
+                    "--repo-root",
+                    str(repo_root),
+                    "--doc-glob",
+                    "docs/**/*.md",
+                ],
+                cwd=repo_root,
+            )
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+
+    def test_consumer_pruned_adr_external_url_passes_in_autonomous_factory_doc(self) -> None:
+        # External https:// links to ADR paths must not be flagged — they are never pruned.
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            _write(
+                repo_root / "docs/blueprint/autonomous-factory/design-contracts.md",
+                "[ADR](https://github.com/org/repo/blob/main/docs/blueprint/architecture/decisions/ADR-issue-339.md)\n",
+            )
+            result = run(
+                [
+                    sys.executable,
+                    str(LINTER),
+                    "--repo-root",
+                    str(repo_root),
+                    "--doc-glob",
+                    "docs/**/*.md",
+                ],
+                cwd=repo_root,
+            )
+            self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()

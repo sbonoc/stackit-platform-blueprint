@@ -23,6 +23,12 @@ DEFAULT_DOC_GLOBS = (
     "AGENTS.decisions.md",
     "docs/**/*.md",
 )
+# Consumer-shipped factory governance docs MUST NOT contain local hyperlinks that
+# resolve to ADR files, because those files are pruned from consumer repos on init.
+# The guard fires on any [text](path) where the path contains this sentinel segment.
+_CONSUMER_SHIPPED_AUTONOMOUS_FACTORY_DOCS = Path("docs/blueprint/autonomous-factory")
+_CONSUMER_PRUNED_ADR_PATH_SEGMENT = "architecture/decisions/ADR"
+
 # Only lint repository-owned Markdown. Built docs and vendored package READMEs
 # are useful locally, but they are not part of the blueprint contract surface.
 EXCLUDED_DOC_PREFIXES = (
@@ -126,6 +132,28 @@ def lint_markdown_file(repo_root: Path, file_path: Path, make_targets: set[str])
                 issues.append(
                     LintIssue(file_path, line_no, f"non-canonical governance file reference: {raw_target}")
                 )
+
+            # Guard: consumer-shipped factory governance docs must not contain local
+            # hyperlinks to ADR files — those are pruned from consumer repos on init,
+            # so the links are always broken in the consumer context even if they
+            # resolve in the blueprint repo (issue #363).
+            try:
+                rel = file_path.relative_to(repo_root)
+            except ValueError:
+                rel = file_path
+            if rel.is_relative_to(_CONSUMER_SHIPPED_AUTONOMOUS_FACTORY_DOCS):
+                link_path = raw_target.split("#", 1)[0]
+                # Only flag local paths — external URLs are never pruned from consumer repos.
+                is_local = not link_path.startswith(("http://", "https://", "mailto:", "tel://"))
+                if is_local and _CONSUMER_PRUNED_ADR_PATH_SEGMENT in link_path:
+                    issues.append(
+                        LintIssue(
+                            file_path,
+                            line_no,
+                            f"consumer-pruned ADR hyperlink in consumer-shipped doc: {raw_target} "
+                            f"(ADR files are pruned from consumer repos — use plain text or backtick identifier instead)",
+                        )
+                    )
 
         for code_match in INLINE_CODE_PATTERN.finditer(line):
             snippet = code_match.group(1).strip()
