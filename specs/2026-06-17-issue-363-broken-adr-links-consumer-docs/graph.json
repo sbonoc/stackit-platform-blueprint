@@ -1,0 +1,58 @@
+{
+  "graph_version": 1,
+  "work_item": "<YYYY-MM-DD>-<work-item-slug>",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "Deterministic functional requirement"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "Deterministic functional requirement"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "Security requirement"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "Observability requirement"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "Acceptance criterion"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "Acceptance criterion"
+    }
+  ],
+  "edges": [
+    {
+      "from": "FR-001",
+      "to": "AC-001",
+      "relation": "validated_by"
+    },
+    {
+      "from": "FR-002",
+      "to": "AC-002",
+      "relation": "validated_by"
+    },
+    {
+      "from": "NFR-SEC-001",
+      "to": "AC-001",
+      "relation": "constrains"
+    },
+    {
+      "from": "NFR-OBS-001",
+      "to": "AC-002",
+      "relation": "constrains"
+    }
+  ]
+}
