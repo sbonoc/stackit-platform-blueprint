@@ -8,10 +8,10 @@
 - [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
 
 ## Implementation
-- [ ] T-001 File the 4 child GitHub issues per FR-001: `#361.1` (dispatch + convergence + schema validator), `#361.2` (C7 emitter + bus publisher + reviewer-rotation picker), `#361.3` (OpenHands API client + RabbitMQ trigger subscriber + work loop — filed after `#335` + `#336` spec-complete per Q-1 recommendation), `#361.4` (Helm chart + NetworkPolicy + ESO + ServiceAccount + conditional-dispatch + ux-ui-designer expert). Each child issue body MUST cite this parent spec path and its boundary type per Contract C2.
+- [ ] T-001 File the 5 child GitHub issues per FR-001: `#361.1` (dispatch + convergence + schema validator + predicate-registry mechanism), `#361.2` (C7 emitter + bus publisher + reviewer-rotation picker), `#361.3` (OpenHands API client + RabbitMQ trigger subscriber + work loop — filed after `#335` + `#336` spec-complete per Q-1 recommendation), `#361.4` (Helm chart + NetworkPolicy + ESO + ServiceAccount), `#361.5` (ux-ui-designer PERSONA.md + C3 matrix wiring + AGENTS.backlog `#369` closure). Each child issue body MUST cite this parent spec path and its boundary type per Contract C2.
 - [ ] T-002 Add the `## Integration Acceptance Criteria` section to the parent `#361` issue body with the 5 cross-child checkboxes from AC-005 .. AC-009 per Contract C4.
-- [ ] T-003 Mark `AGENTS.backlog.md` entry for `#369` as `incorporated: issue-361.4` once `#361.4` merges (deferred to a follow-up document-sync pass).
-- [ ] T-004 No blueprint runtime code changes land in THIS work item — every code/Helm/PERSONA.md change is owned by one of the 4 children. This parent coordination work item lands only specs/, the ADR, and the GitHub issue updates listed above.
+- [ ] T-003 Mark `AGENTS.backlog.md` entry for `#369` as `incorporated: issue-361.5` once `#361.5` merges (deferred to a follow-up document-sync pass).
+- [ ] T-004 No blueprint runtime code changes land in THIS work item — every code/Helm/PERSONA.md change is owned by one of the 5 children. This parent coordination work item lands only specs/, the ADR, and the GitHub issue updates listed above.
 
 ## Test Automation
 - [ ] T-101 N/A at parent level — unit tests live in each child work item.

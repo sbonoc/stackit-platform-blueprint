@@ -24,17 +24,17 @@
 
 ## Delivery Slices
 
-The 4 child work items (`#361.1` … `#361.4`) each carry their own delivery slices in their own `spec.md` + `plan.md`. The parent slice plan below sequences the **parent coordination work** that lands in THIS work item only:
+The 5 child work items (`#361.1` … `#361.5`) each carry their own delivery slices in their own `spec.md` + `plan.md`. The parent slice plan below sequences the **parent coordination work** that lands in THIS work item only:
 
-1. Slice 1 (this work item) — author the parent coordination spec (this document set), file the 4 child GitHub issues (Q-1 resolution applies — `#361.1` + `#361.2` + `#361.4` filed at parent merge; `#361.3` filed after `#335` + `#336` reach spec-complete), open the parent Draft PR, attach the Integration AC checkboxes to the parent issue body.
+1. Slice 1 (this work item) — author the parent coordination spec (this document set), file the 5 child GitHub issues (Q-1 resolution applies — `#361.1` + `#361.2` + `#361.4` + `#361.5` filed at parent merge; `#361.3` filed after `#335` + `#336` reach spec-complete), open the parent Draft PR, attach the Integration AC checkboxes to the parent issue body.
 2. Slice 2 (deferred to each child) — each child runs its own SDD lifecycle (intake → spec-complete → plan-slicer → implement → document-sync → pr-packager → agent-pr-review) per `AGENTS.md`.
 
 ## Change Strategy
 - Migration/rollout sequence:
   1. Merge parent coordination PR (`#361`) — no runtime code; just spec, ADR, child issue refs.
-  2. Children `#361.1` + `#361.2` + `#361.4` run in parallel; merge order is `#361.1` first (pure core), then `#361.2` (depends on core), then `#361.4` (depends on both for the Helm chart's runtime image).
+  2. Children `#361.1` + `#361.2` + `#361.4` + `#361.5` run in parallel; merge order is `#361.1` first (pure core including predicate-registry mechanism), then `#361.2` (depends on core), then `#361.4` (depends on both for the Helm chart's runtime image) and `#361.5` (depends on `#361.1` for the predicate-registry mechanism that its C3 matrix rows reference).
   3. `#361.3` waits on `#335` + `#336` spec-complete; merges last.
-  4. Parent `#361` closes only when all 4 children merge AND every Integration AC checkbox is ticked by a human bounded-context reviewer per Contract C4.
+  4. Parent `#361` closes only when all 5 children merge AND every Integration AC checkbox is ticked by a human bounded-context reviewer per Contract C4.
 - Backward compatibility policy: The orchestrator is a new service with no prior surface; backward compatibility applies only to the additive C7 extension fields (subscribers MUST tolerate events that omit them, per § C7).
 - Rollback plan: Per-child Helm rollback for `#361.4`; per-child PR revert for `#361.1` / `#361.2` / `#361.3`. The parent coordination spec itself is content-only — revert the commit.
 
