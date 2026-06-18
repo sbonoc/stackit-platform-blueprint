@@ -26,7 +26,7 @@
    - Extend merger return value to include `merger_overhead` dict.
    - Accumulate per-expert token counts from LiteLLM `usage` block (sentinel -1 on missing).
    - Add `outcome_details.token_usage`, `outcome_details.merger_overhead`, `outcome_details.routing_keys` (all panels) to C7 envelope construction.
-   - At step08 emit time: read all prior phase events for the same `ticket_id` from `artifacts/c7/<slug>.jsonl`; sum per-expert `input_tokens` and `output_tokens` across all `outcome_details.token_usage` entries (treating -1 as 0); count total expert-step instantiations; emit as `outcome_details.ticket_token_summary`. Do NOT use an in-memory accumulator — JSONL read-back ensures reproducibility on retry.
+   - At step08 emit time, compute `ticket_token_summary` using the path appropriate for the emitter: **local-cli** — read all prior phase events from `artifacts/c7/<slug>.jsonl`, sum per-expert `input_tokens` and `output_tokens` (treating -1 as 0), count total expert-slug entries across all `token_usage` maps. **Orchestrator** — read from the per-ticket in-process token accumulator maintained across phase boundaries within the same work-loop (the orchestrator writes to the durable bus, not JSONL, so read-back is not available on the orchestrator path). Both paths emit the same `ticket_token_summary` shape.
 
 3. Slice 3 — `audit-cost` CLI sub-command (red: T-103 asserts CLI exits non-zero on over-budget → green: implement sub-command)
    - Add `audit-cost` sub-command to `scripts/bin/sdd/c7_emit.py`.
