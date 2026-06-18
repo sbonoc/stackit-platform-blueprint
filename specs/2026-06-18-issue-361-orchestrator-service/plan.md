@@ -24,6 +24,12 @@
 
 ## Delivery Slices
 
+**Step04 plan-slicer skip rationale (2026-06-18).** The `blueprint-sdd-step04-plan-slicer` skill was deliberately SKIPPED for this work item, per the skill's own runbook permission: "Skip this step for straightforward work items where `plan.md` from Step 1 is already clear and actionable." Three reasons:
+1. This parent coordination spec's actual implementation surface is small — 2 idempotent bash scripts + 1 pytest + the spec artifact set. No runtime orchestrator code lands here; all of that lives in the 5 children.
+2. The meaningful slicing already happened at parent intake — FR-001 and ADR § Decision table decompose `#361` into 5 children along layer/feature/governance-docs boundaries. Re-slicing the parent's own tiny implementation into more granular slices would be ceremony without information gain.
+3. Each child runs its own SDD lifecycle including its own step04 plan-slicer pass against its own scope; that is where dependency-ordered execution sequencing belongs.
+A `phase: plan-slicer` C7 audit event is emitted with `outcome: success` so the audit trail shows this step was considered and deliberately skipped, not forgotten.
+
 The 5 child work items (`#361.1` … `#361.5`) each carry their own delivery slices in their own `spec.md` + `plan.md`. The parent slice plan below sequences the **parent coordination work** that lands in THIS work item only:
 
 1. Slice 1 (this work item) — author the parent coordination spec (this document set), file the 5 child GitHub issues (Q-1 resolution applies — `#361.1` + `#361.2` + `#361.4` + `#361.5` filed at parent merge; `#361.3` filed after `#335` + `#336` reach spec-complete), open the parent Draft PR, attach the Integration AC checkboxes to the parent issue body.
