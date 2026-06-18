@@ -8,17 +8,19 @@
 - [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
 
 ## Implementation
-- [ ] T-001 File the 5 child GitHub issues per FR-001: `#361.1` (dispatch + convergence + schema validator + predicate-registry mechanism), `#361.2` (C7 emitter + bus publisher + reviewer-rotation picker), `#361.3` (OpenHands API client + RabbitMQ trigger subscriber + work loop — filed after `#335` + `#336` spec-complete per Q-1 recommendation), `#361.4` (Helm chart + NetworkPolicy + ESO + ServiceAccount), `#361.5` (ux-ui-designer PERSONA.md + C3 matrix wiring + AGENTS.backlog `#369` closure). Each child issue body MUST cite this parent spec path and its boundary type per Contract C2.
-- [ ] T-002 Add the `## Integration Acceptance Criteria` section to the parent `#361` issue body with the 5 cross-child checkboxes from AC-005 .. AC-009 per Contract C4.
-- [ ] T-003 Mark `AGENTS.backlog.md` entry for `#369` as `incorporated: issue-361.5` once `#361.5` merges (deferred to a follow-up document-sync pass).
-- [ ] T-004 No blueprint runtime code changes land in THIS work item — every code/Helm/PERSONA.md change is owned by one of the 5 children. This parent coordination work item lands only specs/, the ADR, and the GitHub issue updates listed above.
+- [ ] T-001 Author `specs/2026-06-18-issue-361-orchestrator-service/file_children.sh` per FR-014 (idempotent — files `#361.1`, `#361.2`, `#361.4`, `#361.5` via `gh issue create`; defers `#361.3` per Q-1). The human operator runs this script at parent merge time; this work item does NOT itself file the issues.
+- [ ] T-002 Author `specs/2026-06-18-issue-361-orchestrator-service/add_deferred_triggers.sh` per FR-015 (idempotent — appends `after: issue-335` + `after: issue-336` entries to `AGENTS.backlog.md` so `#361.3` filing surfaces mechanically when blockers resolve). The human operator runs this script at parent merge time alongside T-001.
+- [ ] T-003 Add the `## Integration Acceptance Criteria` section to the parent `#361` issue body with the 5 cross-child checkboxes from AC-005 .. AC-009 per Contract C4. The human operator updates the parent issue body at parent merge time.
+- [ ] T-004 Mark `AGENTS.backlog.md` entry for `#369` as `incorporated: issue-361.5` once `#361.5` merges (deferred to a follow-up document-sync pass).
+- [ ] T-005 No blueprint orchestrator runtime code lands in THIS work item — every code/Helm/PERSONA.md change is owned by one of the 5 children. This parent coordination work item lands only `specs/`, the ADR, the two helper scripts (FR-014/FR-015), and their pytest (T-110).
 
 ## Test Automation
-- [ ] T-101 N/A at parent level — unit tests live in each child work item.
-- [ ] T-102 N/A at parent level — contract tests live in each child work item.
+- [ ] T-101 N/A at parent level — orchestrator unit tests live in each child work item.
+- [ ] T-102 N/A at parent level — orchestrator contract tests live in each child work item.
 - [ ] T-103 N/A — no filter/payload-transform routes in this work item or in any child.
 - [ ] T-104 Translate any reproducible pre-PR smoke/`curl`/deterministic-check finding into a failing automated test first, then turn it green with the fix in the same child work item (or document deterministic exception in publish artifacts).
-- [ ] T-105 N/A at parent level — boundary/integration tests live in each child work item (AC-005 .. AC-009 land in `#361.3` or `#361.4`).
+- [ ] T-105 N/A at parent level — boundary/integration tests for orchestrator behavior live in each child work item (AC-005 .. AC-009 land in `#361.3` or `#361.4` or `#361.5`).
+- [ ] T-110 Author `tests/blueprint/test_issue_361_file_children_script.py` covering AC-010 + AC-011: stub `gh` CLI via `PATH` injection, assert `file_children.sh` first-run produces 4 issue-create calls with correct titles/bodies/labels and second-run produces zero; stub `AGENTS.backlog.md` via a temp file path, assert `add_deferred_triggers.sh` first-run appends 2 entries and second-run appends zero.
 
 ## Accessibility Testing (Normative — mark N/A with rationale for non-UI specs)
 - [ ] T-A01 NFR-A11Y-001 is declared "N/A — headless orchestrator service with no UI surface; operator observability is via Grafana authored downstream by `#350`" in `spec.md`.

@@ -128,6 +128,7 @@
         "tests/blueprint/test_consumer_init_sdd_asset_sync.py",
         "tests/blueprint/test_design_contracts_schema.py",
         "tests/blueprint/test_design_contracts_c7_extension_fields_issue368.py",
+        "tests/blueprint/test_issue_361_file_children_script.py",
         "tests/sdd/test_c7_emit_unit.py",
         "tests/sdd/test_c7_emit_contract.py",
         "tests/sdd/test_c7_emit_opt_out.py",

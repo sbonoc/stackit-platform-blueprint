@@ -1,0 +1,271 @@
+"""Idempotency + body-shape tests for the #361 parent helper scripts.
+
+Covers AC-010 (file_children.sh) and AC-011 (add_deferred_triggers.sh) per
+the parent spec at specs/2026-06-18-issue-361-orchestrator-service/.
+
+The gh CLI is stubbed via PATH injection: a generated shell stub records each
+invocation to a log file the test inspects. The AGENTS.backlog.md target is
+redirected via the BACKLOG_FILE environment variable that the script reads.
+"""
+
+from __future__ import annotations
+
+import os
+from pathlib import Path
+import shutil
+import stat
+import subprocess
+import unittest
+
+from tests._shared.helpers import REPO_ROOT
+
+
+SPEC_DIR = REPO_ROOT / "specs" / "2026-06-18-issue-361-orchestrator-service"
+FILE_CHILDREN_SCRIPT = SPEC_DIR / "file_children.sh"
+ADD_TRIGGERS_SCRIPT = SPEC_DIR / "add_deferred_triggers.sh"
+
+
+GH_STUB_TEMPLATE = r"""#!/usr/bin/env bash
+# Recording stub for gh used by tests. Logs every invocation, then implements
+# the minimal command surface the scripts under test require.
+set -euo pipefail
+
+LOG_FILE="${GH_STUB_LOG:?GH_STUB_LOG must be set}"
+EXISTING_TITLES_FILE="${GH_STUB_EXISTING_TITLES:-/dev/null}"
+
+# Record the invocation, one line per arg (newline-quoted so multi-line bodies
+# preserve their newlines as \n literals).
+{
+  printf 'INVOCATION\n'
+  for arg in "$@"; do
+    printf 'ARG\t%s\n' "${arg//$'\n'/\\n}"
+  done
+  printf 'END\n'
+} >> "$LOG_FILE"
+
+case "${1:-}" in
+  issue)
+    case "${2:-}" in
+      list)
+        # Emit every line from the existing-titles file (one title per line).
+        # The script filters via `grep -Fxq` against the title it expects.
+        cat "$EXISTING_TITLES_FILE"
+        exit 0
+        ;;
+      create)
+        # Print a fake URL so callers that capture stdout do not error.
+        printf 'https://github.com/example/repo/issues/%d\n' "$RANDOM"
+        exit 0
+        ;;
+    esac
+    ;;
+esac
+
+printf 'gh stub: unhandled command: %s\n' "$*" >&2
+exit 64
+"""
+
+
+def _write_gh_stub(tmpdir: Path, log_path: Path, existing_titles_path: Path) -> Path:
+    bin_dir = tmpdir / "bin"
+    bin_dir.mkdir()
+    gh_path = bin_dir / "gh"
+    gh_path.write_text(GH_STUB_TEMPLATE)
+    gh_path.chmod(gh_path.stat().st_mode | stat.S_IEXEC | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+    # The script will only ever look for `gh` on PATH; we also expose GH_BIN for
+    # explicit override paths.
+    return gh_path
+
+
+def _parse_invocations(log_path: Path) -> list[list[str]]:
+    """Split the recorded log into one list-of-args per invocation."""
+    invocations: list[list[str]] = []
+    current: list[str] | None = None
+    if not log_path.exists():
+        return invocations
+    for line in log_path.read_text().splitlines():
+        if line == "INVOCATION":
+            current = []
+        elif line == "END":
+            if current is not None:
+                invocations.append(current)
+                current = None
+        elif line.startswith("ARG\t") and current is not None:
+            current.append(line[len("ARG\t"):].replace("\\n", "\n"))
+    return invocations
+
+
+def _create_invocations(invocations: list[list[str]]) -> list[list[str]]:
+    return [args for args in invocations if len(args) >= 2 and args[0] == "issue" and args[1] == "create"]
+
+
+def _arg_value(args: list[str], flag: str) -> str | None:
+    for i, a in enumerate(args):
+        if a == flag and i + 1 < len(args):
+            return args[i + 1]
+    return None
+
+
+def _run_file_children(tmpdir: Path, log_path: Path, existing_titles_path: Path) -> subprocess.CompletedProcess[str]:
+    env = os.environ.copy()
+    env["GH_STUB_LOG"] = str(log_path)
+    env["GH_STUB_EXISTING_TITLES"] = str(existing_titles_path)
+    env["PATH"] = f"{tmpdir / 'bin'}:{env.get('PATH', '')}"
+    env["GH_BIN"] = str(tmpdir / "bin" / "gh")
+    return subprocess.run(
+        ["bash", str(FILE_CHILDREN_SCRIPT)],
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+
+def _run_add_triggers(backlog_file: Path) -> subprocess.CompletedProcess[str]:
+    env = os.environ.copy()
+    env["BACKLOG_FILE"] = str(backlog_file)
+    return subprocess.run(
+        ["bash", str(ADD_TRIGGERS_SCRIPT)],
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+
+class FileChildrenScriptTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.tmpdir = Path(self.enterContext(_tmp_dir()))
+        self.log_path = self.tmpdir / "gh_log.txt"
+        self.existing_titles_path = self.tmpdir / "existing_titles.txt"
+        self.existing_titles_path.write_text("")  # no pre-existing issues
+        _write_gh_stub(self.tmpdir, self.log_path, self.existing_titles_path)
+
+    def test_file_children_first_run(self) -> None:
+        result = _run_file_children(self.tmpdir, self.log_path, self.existing_titles_path)
+        self.assertEqual(result.returncode, 0, msg=result.stderr)
+
+        invocations = _parse_invocations(self.log_path)
+        create_calls = _create_invocations(invocations)
+
+        # AC-010 (a) — exactly 4 issue-create calls
+        self.assertEqual(
+            len(create_calls), 4,
+            msg=f"expected 4 issue-create calls, got {len(create_calls)}: {create_calls}",
+        )
+
+        # AC-010 (a) cont. — one call per child slug in {1,2,4,5}, none for 3
+        titles = [_arg_value(args, "--title") for args in create_calls]
+        expected_slugs = {"1", "2", "4", "5"}
+        found_slugs = set()
+        for title in titles:
+            self.assertIsNotNone(title, msg=f"create call missing --title: {create_calls}")
+            for slug in expected_slugs:
+                if f"(Child {slug} of #361)" in title:
+                    found_slugs.add(slug)
+        self.assertEqual(found_slugs, expected_slugs)
+        for title in titles:
+            self.assertNotIn(
+                "(Child 3 of #361)", title,
+                msg="AC-010 (a): #361.3 MUST NOT be filed by file_children.sh",
+            )
+
+        # AC-010 (b) — body cites parent spec path + boundary type + FR range
+        for args in create_calls:
+            body = _arg_value(args, "--body") or ""
+            self.assertIn(
+                "specs/2026-06-18-issue-361-orchestrator-service/", body,
+                msg="body must cite parent spec path",
+            )
+            self.assertIn("**Boundary type:**", body, msg="body must label boundary type")
+            self.assertIn("**FR range owned:**", body, msg="body must cite FR range")
+
+        # AC-010 (c) — four labels applied
+        for args in create_calls:
+            labels = _arg_value(args, "--label") or ""
+            self.assertEqual(
+                sorted(labels.split(",")),
+                sorted(["agent-ready", "enhancement", "infrastructure", "priority:p1"]),
+                msg=f"unexpected labels: {labels}",
+            )
+
+    def test_file_children_idempotent_second_run(self) -> None:
+        # First run as in test_file_children_first_run.
+        first = _run_file_children(self.tmpdir, self.log_path, self.existing_titles_path)
+        self.assertEqual(first.returncode, 0, msg=first.stderr)
+        first_create_count = len(_create_invocations(_parse_invocations(self.log_path)))
+        self.assertEqual(first_create_count, 4)
+
+        # Simulate the 4 issues now existing — populate the stub's title file.
+        # Extract titles from the recorded create calls.
+        first_titles = [
+            _arg_value(args, "--title")
+            for args in _create_invocations(_parse_invocations(self.log_path))
+        ]
+        self.existing_titles_path.write_text("\n".join(t for t in first_titles if t) + "\n")
+
+        # Clear the log so the second run's invocations are isolated.
+        self.log_path.write_text("")
+
+        second = _run_file_children(self.tmpdir, self.log_path, self.existing_titles_path)
+        # AC-010 (e) — exit code 0
+        self.assertEqual(second.returncode, 0, msg=second.stderr)
+
+        # AC-010 (d) — second run produces zero issue-create calls
+        second_create_calls = _create_invocations(_parse_invocations(self.log_path))
+        self.assertEqual(
+            len(second_create_calls), 0,
+            msg=f"idempotent re-run must create 0 issues, got {len(second_create_calls)}: {second_create_calls}",
+        )
+
+
+class AddDeferredTriggersScriptTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.tmpdir = Path(self.enterContext(_tmp_dir()))
+        self.backlog = self.tmpdir / "AGENTS.backlog.md"
+        # Seed with a minimal backlog file that the script can append to.
+        self.backlog.write_text("# Blueprint Backlog\n\n## Parked Proposals\n")
+
+    def test_add_deferred_triggers_first_run(self) -> None:
+        result = _run_add_triggers(self.backlog)
+        # AC-011 (c) — exit code 0
+        self.assertEqual(result.returncode, 0, msg=result.stderr)
+
+        content = self.backlog.read_text()
+        # AC-011 (a) — two entries with the literal trigger strings, both
+        # citing the parent spec path.
+        self.assertIn("trigger: after: issue-335", content)
+        self.assertIn("trigger: after: issue-336", content)
+        self.assertEqual(content.count("specs/2026-06-18-issue-361-orchestrator-service/"), 2)
+
+    def test_add_deferred_triggers_idempotent_second_run(self) -> None:
+        first = _run_add_triggers(self.backlog)
+        self.assertEqual(first.returncode, 0, msg=first.stderr)
+        after_first = self.backlog.read_text()
+
+        second = _run_add_triggers(self.backlog)
+        # AC-011 (c) — exit code 0
+        self.assertEqual(second.returncode, 0, msg=second.stderr)
+
+        # AC-011 (b) — second run appends zero new entries
+        after_second = self.backlog.read_text()
+        self.assertEqual(after_first, after_second)
+
+
+# Small helper to support `self.enterContext(_tmp_dir())` without unittest.TestCase.enterContext
+# typing fuss on older interpreters.
+from contextlib import contextmanager
+import tempfile
+
+
+@contextmanager
+def _tmp_dir():
+    d = tempfile.mkdtemp(prefix="issue361-")
+    try:
+        yield d
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+
+
+if __name__ == "__main__":
+    unittest.main()
