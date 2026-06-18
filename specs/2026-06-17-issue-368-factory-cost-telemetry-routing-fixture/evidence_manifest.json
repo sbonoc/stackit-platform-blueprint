@@ -1,7 +1,58 @@
 {
   "manifest_version": 1,
-  "work_item": "<YYYY-MM-DD>-<work-item-slug>",
+  "work_item": "specs/2026-06-17-issue-368-factory-cost-telemetry-routing-fixture",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "",
-  "files": []
+  "generated_at_utc": "2026-06-18T12:03:01Z",
+  "files": [
+    {
+      "path": "specs/2026-06-17-issue-368-factory-cost-telemetry-routing-fixture/architecture.md",
+      "sha256": "90953706f45c69263bdb080ec96ea5a80d740c23425d8c31c28d44f5439aeeba",
+      "bytes": 7720
+    },
+    {
+      "path": "specs/2026-06-17-issue-368-factory-cost-telemetry-routing-fixture/context_pack.md",
+      "sha256": "931fc22ddc0294cb12af80abfe5e36c3a608e8a5dbd80725ca261ca5919e8f21",
+      "bytes": 975
+    },
+    {
+      "path": "specs/2026-06-17-issue-368-factory-cost-telemetry-routing-fixture/evidence_manifest.json",
+      "sha256": "ecb0eea40122794ca8f062212e022ba451f6d0a543b88db3d7c15e65a071e7f7",
+      "bytes": 161
+    },
+    {
+      "path": "specs/2026-06-17-issue-368-factory-cost-telemetry-routing-fixture/graph.json",
+      "sha256": "4948f0432e675bc2bdecbb218e835e1b15171337e558d3860b24f7f9bea66227",
+      "bytes": 3944
+    },
+    {
+      "path": "specs/2026-06-17-issue-368-factory-cost-telemetry-routing-fixture/hardening_review.md",
+      "sha256": "9f1c41574c210eb14f7099f5fd49cbf6842bb93a4dfda2c45372d0b24fa8ba60",
+      "bytes": 4784
+    },
+    {
+      "path": "specs/2026-06-17-issue-368-factory-cost-telemetry-routing-fixture/plan.md",
+      "sha256": "690ba62b851d24eddf324eb10f875e575df4d6e9f8305e82023178c8fa53f8da",
+      "bytes": 9359
+    },
+    {
+      "path": "specs/2026-06-17-issue-368-factory-cost-telemetry-routing-fixture/pr_context.md",
+      "sha256": "2e06da3271063437e19fd8485c0ea74a3d8f74d39ba646089bd7d933417d4d6c",
+      "bytes": 9143
+    },
+    {
+      "path": "specs/2026-06-17-issue-368-factory-cost-telemetry-routing-fixture/spec.md",
+      "sha256": "c8d30cda7df236e20d9811c6a861d74c8882a92b21a2f831b478dfa908192d67",
+      "bytes": 13416
+    },
+    {
+      "path": "specs/2026-06-17-issue-368-factory-cost-telemetry-routing-fixture/tasks.md",
+      "sha256": "874f829ab24caaf06a19a932f52d7cf0cb42663d1b6f604a791b5d451e86428d",
+      "bytes": 4630
+    },
+    {
+      "path": "specs/2026-06-17-issue-368-factory-cost-telemetry-routing-fixture/traceability.md",
+      "sha256": "f24ac348370700a937b36ca10ed68f6bfa60ed0a0bd4d623404e3553d0450c93",
+      "bytes": 5224
+    }
+  ]
 }

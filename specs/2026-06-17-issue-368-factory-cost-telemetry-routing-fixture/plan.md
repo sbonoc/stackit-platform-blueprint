@@ -5,19 +5,11 @@
 - If required inputs are missing, add `BLOCKED_MISSING_INPUTS` in `spec.md` and keep the gate closed.
 
 ## Constitution Gates (Pre-Implementation)
-- Simplicity gate:
-  - Token-usage accumulation is a running dict keyed by `expert_slug`; no new service or database.
-  - The `audit-cost` sub-command reads existing JSONL files; no new storage.
-- Anti-abstraction gate:
-  - Extend the existing merger return value (dict) with `merger_overhead` keys — no new class.
-  - The routing fixture imports the production bigram-router function directly; no mock.
-- Integration-first testing gate:
-  - T-101 (unit: token-usage + merger-overhead on simulated panel event) written red before orchestrator code changes.
-  - T-104 (routing fixture) written against the production router function; the fixture itself IS the test.
-- Positive-path filter/transform test gate:
-  - FR-007 routing fixture: each row asserts a non-empty `expected_expert_set` for a valid question; at least 5 rows MUST assert multi-expert dispatch (positive-path for multi-match per ADR-issue-364 § 4.2 step 7).
-- Finding-to-test translation gate:
-  - If a routing fixture row fails under bigram routing, that failure IS the reproducible finding; the fixture itself is the deterministic check. No additional translation needed — the fixture constitutes T-104.
+- Simplicity gate: token-usage accumulation is a running dict keyed by `expert_slug`; no new service or database. The `audit-cost` sub-command reads existing JSONL files; no new storage.
+- Anti-abstraction gate: extend the existing merger return value (dict) with `merger_overhead` keys — no new class. The routing fixture imports the production bigram-router function directly; no mock.
+- Integration-first testing gate: T-101 (unit: token-usage + merger-overhead on simulated panel event) written red before orchestrator code changes. T-104 (routing fixture) written against the production router function; the fixture itself IS the test.
+- Positive-path filter/transform test gate: FR-007 routing fixture — each row asserts a non-empty `expected_expert_set` for a valid question; at least 5 rows MUST assert multi-expert dispatch (positive-path for multi-match per ADR-issue-364 § 4.2 step 7).
+- Finding-to-test translation gate: if a routing fixture row fails under bigram routing, that failure IS the reproducible finding; the fixture itself is the deterministic check. No additional translation needed — the fixture constitutes T-104.
 
 ## Delivery Slices
 

@@ -21,6 +21,7 @@ To introduce a new tag, append a row here in the same commit that uses it.
 | `c7-emission` | C7 lifecycle event emission surface: emitters, schema, JSONL sink, ingest, Grafana facets |
 | `a11y` | Accessibility conformance, WCAG gates, ACR scaffold, axe tooling |
 | `local-dx` | Local developer experience: `.env.local` auto-load, ArgoCD branch tracking, cluster context overrides |
+| `factory` | Autonomous software factory: orchestrator, expert panel, cost telemetry, routing, C7 lifecycle |
 
 ---
 
@@ -264,6 +265,24 @@ Surface automatically when the named scope is next touched. Do not promote to ac
 - [ ] (parked) proposal(issue-347-human-sdd-c7-symmetry): IDE-extension direct emission (VS Code / JetBrains) — extend helper beyond CLI-only to emit directly from editor extensions
       trigger: on-scope: c7-emission
       rationale: low urgency; validate local-cli CLI pattern first across real work items before adding IDE surface complexity
+
+### after: issue-368
+
+- [ ] (parked) proposal(issue-368-factory-cost-telemetry-routing-fixture): embedding-based router implementation — replace the bigram-overlap step02 routing algorithm with embedding-match when T-104 fixture failure rate ≥ 20% (see `test_step02_routing_fixture.EMBEDDING_UPGRADE_THRESHOLD`).
+      trigger: after: issue-368
+      rationale: evidence-gathering fixture (Slice 4, #361) is the trigger condition; embedding-match router ships only when the fixture proves bigram routing is insufficient; no implementation timeline until failure data exists
+
+### after: issue-350
+
+- [ ] (parked) proposal(issue-368-factory-cost-telemetry-routing-fixture): cost telemetry consumer dashboard — build a dashboard over `outcome_details.ticket_token_summary` and per-phase `outcome_details.token_usage` events in the C7 ingest pipeline.
+      trigger: after: issue-350
+      rationale: downstream of C7 ingest (#350); no consumer has requested a dashboard UI yet; surfaces when ingest is live and a consumer requests cost visibility
+
+### on-scope: factory
+
+- [ ] (parked) proposal(issue-368-factory-cost-telemetry-routing-fixture): per-expert prompt-cache efficiency — apply prompt-cache discipline (system prompt caching, aggressive cache-friendly message ordering) to Opus-tier expert invocations to reduce per-ticket token cost.
+      trigger: on-scope: factory
+      rationale: needs first-run telemetry baseline from outcome_details.token_usage to quantify benefit; see ADR-issue-364 § 11 Future Work; surfaces on next factory-scope work item after baseline is established
 
 ### after: consumer-app-descriptor-adoption
 
