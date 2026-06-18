@@ -168,7 +168,7 @@ Reviewers: Architecture + Product.
 
 Per parent spec FR-017: the PR body for this child MUST cite parent #361 as \`Tracks #361\` (informational). It MUST NOT use any GitHub auto-close keyword targeting #361 (\`Closes\` / \`Fixes\` / \`Resolves\` / etc.). Parent close is a deliberate human action after all 5 children merge AND the Contract C4 Integration AC checkboxes are ticked — never a side-effect of a child PR merge.
 
-The single permitted auto-close keyword on this child PR body is \`Closes #369\` — a different issue (the ux-ui-designer expert addition) that this child legitimately resolves.
+The #361.5 PR body MUST include the literal line \`Closes #369\` — this is the SINGLE permitted auto-close keyword in the entire #361 decomposition. #369 is a different issue (the ux-ui-designer expert addition tracked in AGENTS.backlog.md) that this child legitimately resolves. Omitting \`Closes #369\` leaves #369 open after merge — a known failure mode flagged at parent intake. The corresponding AGENTS.backlog entry MUST be marked \`(incorporated: issue-361.5)\` in the same PR.
 EOF
 }
 

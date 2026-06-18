@@ -262,12 +262,48 @@ class FileChildrenScriptTests(unittest.TestCase):
         )
 
 
+_BACKLOG_FIXTURE_WITH_EXISTING_336_SECTION = """\
+# Blueprint Backlog
+
+## Parked Proposals
+
+### on-scope: infra
+
+- [ ] (parked) proposal(some-other-ticket): an unrelated entry.
+      trigger: on-scope: infra
+      rationale: pre-existing entry the test should not touch.
+
+### after: issue-336
+
+- [ ] (parked) proposal(issue-337-factory-phase-0-foundations): pre-existing entry under after: issue-336.
+      trigger: after: issue-336
+      rationale: this entry MUST NOT be removed by the script; the new entry MUST be inserted under the same section.
+
+---
+
+## Long Horizon
+
+- [ ] Some long-horizon item that the script MUST NOT disturb.
+"""
+
+
+def _section_index(content: str, header: str) -> int:
+    """Return the line index of `header` in `content`, or -1 if absent."""
+    for i, line in enumerate(content.splitlines()):
+        if line == header:
+            return i
+    return -1
+
+
 class AddDeferredTriggersScriptTests(unittest.TestCase):
     def setUp(self) -> None:
         self.tmpdir = Path(self.enterContext(_tmp_dir()))
         self.backlog = self.tmpdir / "AGENTS.backlog.md"
-        # Seed with a minimal backlog file that the script can append to.
-        self.backlog.write_text("# Blueprint Backlog\n\n## Parked Proposals\n")
+        # Seed with a realistic backlog file that has a pre-existing
+        # `### after: issue-336` section (matching the real-repo state) AND
+        # a `## Long Horizon` section that MUST be respected as the
+        # boundary for new-section creation.
+        self.backlog.write_text(_BACKLOG_FIXTURE_WITH_EXISTING_336_SECTION)
 
     def test_add_deferred_triggers_first_run(self) -> None:
         result = _run_add_triggers(self.backlog)
@@ -285,6 +321,41 @@ class AddDeferredTriggersScriptTests(unittest.TestCase):
         self.assertIn("git rm", content)
         self.assertIn("file_children.sh", content)
         self.assertIn("add_deferred_triggers.sh", content)
+
+        # Section-placement: per FR-015 § injection convention, each new entry
+        # MUST land under its `### after: issue-NNN` section header, NOT
+        # appended at end of file or under `## Long Horizon`.
+        idx_335_header = _section_index(content, "### after: issue-335")
+        idx_336_header = _section_index(content, "### after: issue-336")
+        idx_long_horizon = _section_index(content, "## Long Horizon")
+        idx_335_entry = _section_index(
+            content,
+            "      trigger: after: issue-335",
+        )
+        idx_336_entry = _section_index(
+            content,
+            "      trigger: after: issue-336",
+        )
+
+        self.assertGreater(idx_335_header, -1, msg="`### after: issue-335` header MUST be created")
+        self.assertGreater(idx_336_header, -1, msg="`### after: issue-336` header MUST be preserved")
+        self.assertGreater(idx_long_horizon, -1, msg="`## Long Horizon` MUST be preserved")
+        self.assertGreater(idx_335_entry, -1, msg="`trigger: after: issue-335` entry MUST exist")
+        self.assertGreater(idx_336_entry, -1, msg="`trigger: after: issue-336` entry MUST exist")
+
+        # Each entry MUST appear after its own section header AND before the
+        # Long Horizon section.
+        self.assertGreater(idx_335_entry, idx_335_header)
+        self.assertGreater(idx_336_entry, idx_336_header)
+        self.assertLess(idx_335_entry, idx_long_horizon)
+        self.assertLess(idx_336_entry, idx_long_horizon)
+
+        # The pre-existing `### after: issue-336` entry must survive (the
+        # script appends, never replaces).
+        self.assertIn(
+            "proposal(issue-337-factory-phase-0-foundations): pre-existing entry under after: issue-336",
+            content,
+        )
 
     def test_no_deferred_trigger_rationale_auto_closes_parent(self) -> None:
         # AC-013 / FR-017 — the appended backlog text MUST embed the same
