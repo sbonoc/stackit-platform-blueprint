@@ -54,6 +54,7 @@
 
 ## Change Strategy
 - Migration/rollout sequence: Slice 1 (docs) → Slice 2 (orchestrator) → Slice 3 (CLI) → Slice 4 (fixture). Each slice is independently committable; downstream slices do not block upstream consumers.
+- Workspace boundary: Slice 1 (design-contracts.md + ADR) lands in this blueprint repo on this branch. Slices 2–4 land in #361's implementation workspace; the implementation PR for #361 references this spec.
 - Backward compatibility policy: all C7 extension fields are additive (`additionalProperties: true`); pre-#368 subscribers MUST tolerate events that include the new fields; post-#368 subscribers MUST tolerate events that omit them.
 - Rollback plan: revert design-contracts amendment (one table-section deletion); revert orchestrator merger changes (remove accumulation dict and emission key); delete `audit-cost` sub-command; delete routing fixture file. No schema migration required.
 
