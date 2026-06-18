@@ -17,7 +17,7 @@
 - Out of scope: Embedding-match router implementation; cost telemetry UI; prompt-cache discipline.
 
 ## Bounded Contexts and Responsibilities
-- Context A — Orchestrator (#361): owns C7 envelope construction, panel dispatch, verdict merger, and token-usage accumulation. Emits `outcome_details.token_usage`, `outcome_details.merger_overhead`, `outcome_details.ticket_token_summary`, and widens `outcome_details.routing_keys` scope to all panel-dispatched phases.
+- Context A — Orchestrator (#361): owns C7 envelope construction, panel dispatch, verdict merger, and token-usage accumulation. Emits `outcome_details.token_usage`, `outcome_details.merger_overhead`, `outcome_details.ticket_token_summary`, and widens `outcome_details.routing_keys` scope to all panel-dispatched phases. The `ticket_token_summary` roll-up MUST be computed at step08 emit time by reading all prior phase JSONL events for the same `ticket_id` from the local `artifacts/c7/<slug>.jsonl` file — NOT via an in-memory accumulator held across the orchestrator work loop. This design ensures the roll-up is reproducible on retry and does not require the orchestrator to maintain cross-phase in-process state.
 - Context B — C7 Emit helper (`scripts/bin/sdd/c7_emit.py`): gains `audit-cost` sub-command that reads persisted C7 events for a ticket_id, computes aggregated token cost against the declared ceiling, and exits non-zero if exceeded. Callable standalone (CLI) and from CI.
 - Context C — Routing fixture (`tests/blueprint/orchestrator/test_step02_routing_fixture.py`): parametrized pytest module; executes the production bigram-routing function against ≥ 25 curated question/expert-set pairs; exposes `EMBEDDING_UPGRADE_THRESHOLD = 0.20` and a docstring describing the unblock trigger.
 - Context D — Design-contracts § C7 (docs layer): extension-field vocabulary table updated with three new rows and `routing_keys` scope corrected; additive change, backward-compatible.
@@ -65,7 +65,7 @@ sequenceDiagram
     Merger-->>Orch: {verdict, merged_findings, merger_overhead}
     Orch->>C7: emit C7 with outcome_details.token_usage,\nmerger_overhead, routing_keys
     C7-->>Orch: event_id (written to JSONL)
-    note over Orch: on phase: agent-pr-review, add ticket_token_summary
+    note over Orch: on phase agent-pr-review (step08), read JSONL and emit ticket_token_summary
 ```
 
 Caption: Per-phase token-usage flow — orchestrator accumulates LiteLLM usage blocks per expert and writes them as C7 extension fields via the local-cli emitter.

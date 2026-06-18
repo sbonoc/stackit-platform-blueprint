@@ -6,7 +6,7 @@
 - [ ] G-003 Confirm required sign-offs are approved (Product, Architecture, Security, Operations)
 - [ ] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
 - [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
-- [ ] G-006 Confirm open question Q-1 (budget ceiling values) is resolved before Slice 3 implementation
+- [x] G-006 Q-1 (budget ceiling values) resolved — Option A: `COST_CEILING_USD = 5`, `TOKEN_CEILING_INPUT = 500_000` as placeholder Python constants with calibration comment (PR #371 comment by sbonoc, 2026-06-17; spec.md § FR-004 Clarifications)
 
 ## Implementation
 

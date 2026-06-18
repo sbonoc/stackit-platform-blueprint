@@ -6,8 +6,8 @@
 |---|---|---|---|---|---|---|---|
 | FR-001 | SDD-C-005 | N/A | `outcome_details.token_usage` C7 extension field | orchestrator merger + C7 envelope construction (Slice 2, T-004) | T-101 | design-contracts § C7 table row | C7 JSONL per-phase |
 | FR-002 | SDD-C-005 | N/A | `outcome_details.merger_overhead` C7 extension field | orchestrator merger return value (Slice 2, T-003, T-005) | T-101 | design-contracts § C7 table row | C7 JSONL per-phase |
-| FR-003 | SDD-C-005 | N/A | `outcome_details.ticket_token_summary` on step08 | orchestrator per-ticket accumulator (Slice 2, T-007) | T-102 | design-contracts § C7 table row | C7 JSONL step08 |
-| FR-004 | SDD-C-010 | N/A | Cost-ceiling audit predicate + ceiling constant | `c7_emit.py audit-cost` sub-command (Slice 3, T-008, T-009) | T-103 | ADR-issue-368 § ceiling-decision | CI exit code |
+| FR-003 | SDD-C-005 | N/A | `outcome_details.ticket_token_summary` on step08 | JSONL read-back at step08 emit time: sum `token_usage` across all prior phase events for `ticket_id` (Slice 2, T-007) | T-102 | design-contracts § C7 table row + architecture.md § Context A | C7 JSONL step08 |
+| FR-004 | SDD-C-010 | N/A | `audit-cost` sub-command; `COST_CEILING_USD = 5`, `TOKEN_CEILING_INPUT = 500_000` constants | `c7_emit.py audit-cost` sub-command (Slice 3, T-008, T-009) | T-103 | ADR-issue-368 § ceiling-decision + spec.md § FR-004 | CI exit code |
 | FR-005 | SDD-C-005 | N/A | `outcome_details.routing_keys` widened to all panel phases | orchestrator C7 envelope construction (Slice 2, T-006) | T-101 | design-contracts § C7 routing_keys row update | C7 JSONL per-phase |
 | FR-006 | SDD-C-012 | N/A | `test_step02_routing_fixture.py` ≥ 25 rows | Slice 4 (T-010) | T-104 | ADR-issue-368 § routing-fixture | — |
 | FR-007 | SDD-C-012 | N/A | Routing fixture calls production bigram algorithm | `test_step02_routing_fixture.py` imports production router (T-010) | T-104 | ADR-issue-368 § routing-fixture | — |

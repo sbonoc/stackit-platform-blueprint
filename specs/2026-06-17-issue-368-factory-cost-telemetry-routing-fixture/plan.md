@@ -27,13 +27,14 @@
      - Add row `outcome_details.merger_overhead` after `outcome_details.token_usage`.
      - Add row `outcome_details.ticket_token_summary` after `outcome_details.merger_overhead`.
      - Update `outcome_details.routing_keys` description: remove "`phase: agent-pr-review` only" restriction; replace with "all panel-dispatched phases with ≥ 2 experts".
-   - ADR-issue-368 drafted (proposed status).
+   - ADR-issue-368 is already committed and approved on this branch (status: approved); no draft work required in #361.
+   - Blueprint-repo deliverable: this slice is complete when design-contracts.md carries the three rows and T-201 grep passes on this branch.
 
 2. Slice 2 — Orchestrator token-usage accumulation and C7 emission (red: T-101 asserts extension fields present → green: orchestrator merger emits them)
    - Extend merger return value to include `merger_overhead` dict.
    - Accumulate per-expert token counts from LiteLLM `usage` block (sentinel -1 on missing).
    - Add `outcome_details.token_usage`, `outcome_details.merger_overhead`, `outcome_details.routing_keys` (all panels) to C7 envelope construction.
-   - Add `outcome_details.ticket_token_summary` accumulation logic for step08 close-out.
+   - At step08 emit time: read all prior phase events for the same `ticket_id` from `artifacts/c7/<slug>.jsonl`; sum per-expert `input_tokens` and `output_tokens` across all `outcome_details.token_usage` entries (treating -1 as 0); count total expert-step instantiations; emit as `outcome_details.ticket_token_summary`. Do NOT use an in-memory accumulator — JSONL read-back ensures reproducibility on retry.
 
 3. Slice 3 — `audit-cost` CLI sub-command (red: T-103 asserts CLI exits non-zero on over-budget → green: implement sub-command)
    - Add `audit-cost` sub-command to `scripts/bin/sdd/c7_emit.py`.
