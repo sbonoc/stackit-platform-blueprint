@@ -128,6 +128,8 @@ body_361_4() {
 
 Helm chart, NetworkPolicy, ESO ExternalSecret wiring, ServiceAccount. Reviewers: Security + Operations.
 
+**Helm chart path (per parent spec FR-010).** The chart lives at \`scripts/templates/infra/orchestrator/\` — NOT under \`scripts/templates/infra/module_wrappers/\`. The \`module_wrappers/\` subdirectory is reserved for Terraform module wrappers around STACKIT-managed services (\`dns\`, \`kms\`, \`secrets-manager\`, \`observability\`, etc.). The orchestrator is a cluster-resident Python Deployment, not a Terraform wrapper around a managed service — it is a sibling concept under \`infra/\`, not nested inside \`module_wrappers/\`.
+
 ## Blocked by
 
 - #361.1 — depends on the pure-Python core that the chart's runtime image bundles.
@@ -153,6 +155,8 @@ body_361_5() {
 ## Scope
 
 \`.agents/personas/ux-ui-designer/PERSONA.md\` (6-section template per ADR-issue-364 § 3); C3 matrix wiring at step01/04/05/08 gated by the FR-012 \`has-user-facing-flow\` predicate; \`AGENTS.backlog.md\` #369 entry marked \`(incorporated: issue-361.5)\`; architecture-sign-off exception to ADR-issue-364 expert-ceiling-of-8.
+
+**C3 matrix schema change (per parent spec FR-012).** This child is the first to introduce a non-\`none\` predicate value, and MUST therefore extend the design-contracts.md § C3 matrix table with a 6th column \`Predicate\` (after \`Convergence mode\`). For all 8 pre-existing rows authored at \`#339\` intake, fill the new column with the literal string \`none\`. For the new \`ux-ui-designer\` rows at step01/04/05/08, fill it with the predicate identifier consumed by \`#361.1\`'s \`PredicateRegistry\` (the first predicate is \`has-user-facing-flow\`). This schema change lands in this PR alongside the matrix-row additions.
 
 ## Blocked by
 
