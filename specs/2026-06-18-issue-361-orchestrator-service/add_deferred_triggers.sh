@@ -44,7 +44,7 @@ entry_335() {
 
 - [ ] (parked) proposal(issue-361-orchestrator-service): file #361.3 — RabbitMQ subscriber + OpenHands API client + work loop (trigger: after: issue-335)
       trigger: after: issue-335
-      rationale: #361.3 is the layer — external-runtime clients boundary of the #361 5-child decomposition. Filing deferred per Q-1 (Option B) until #335 reaches spec-complete so the runtime-client child's API contracts are concrete. Parent spec: ${PARENT_SPEC_PATH}. When filing, the #361.3 body MUST cite parent spec FR-016 — the PR scope MUST include \`git rm\` of \`${PARENT_SPEC_PATH}file_children.sh\` and \`${PARENT_SPEC_PATH}add_deferred_triggers.sh\` (verified by AC-012 / T-211 to be authored in #361.3).
+      rationale: #361.3 is the layer — external-runtime clients boundary of the #361 5-child decomposition. Filing deferred per Q-1 (Option B) until #335 reaches spec-complete so the runtime-client child's API contracts are concrete. Parent spec: ${PARENT_SPEC_PATH}. When filing, the #361.3 body MUST cite parent spec FR-016 — the PR scope MUST include \`git rm\` of \`${PARENT_SPEC_PATH}file_children.sh\` and \`${PARENT_SPEC_PATH}add_deferred_triggers.sh\` (verified by AC-012 / T-211 to be authored in #361.3). Per parent spec FR-017, the #361.3 PR body MUST cite parent #361 as \`Tracks #361\` (informational); GitHub auto-close keywords (\`Closes\` / \`Fixes\` / \`Resolves\`) MUST NOT target #361. Parent close is a deliberate human action after the Contract C4 Integration AC checkboxes are ticked.
 EOF
 }
 
@@ -53,7 +53,7 @@ entry_336() {
 
 - [ ] (parked) proposal(issue-361-orchestrator-service): file #361.3 — RabbitMQ subscriber + OpenHands API client + work loop (trigger: after: issue-336)
       trigger: after: issue-336
-      rationale: #361.3 is the layer — external-runtime clients boundary of the #361 5-child decomposition. Filing deferred per Q-1 (Option B) until #336 reaches spec-complete so the RabbitMQ trigger queue topology is concrete. Parent spec: ${PARENT_SPEC_PATH}. When filing, the #361.3 body MUST cite parent spec FR-016 — the PR scope MUST include \`git rm\` of \`${PARENT_SPEC_PATH}file_children.sh\` and \`${PARENT_SPEC_PATH}add_deferred_triggers.sh\` (verified by AC-012 / T-211 to be authored in #361.3).
+      rationale: #361.3 is the layer — external-runtime clients boundary of the #361 5-child decomposition. Filing deferred per Q-1 (Option B) until #336 reaches spec-complete so the RabbitMQ trigger queue topology is concrete. Parent spec: ${PARENT_SPEC_PATH}. When filing, the #361.3 body MUST cite parent spec FR-016 — the PR scope MUST include \`git rm\` of \`${PARENT_SPEC_PATH}file_children.sh\` and \`${PARENT_SPEC_PATH}add_deferred_triggers.sh\` (verified by AC-012 / T-211 to be authored in #361.3). Per parent spec FR-017, the #361.3 PR body MUST cite parent #361 as \`Tracks #361\` (informational); GitHub auto-close keywords (\`Closes\` / \`Fixes\` / \`Resolves\`) MUST NOT target #361. Parent close is a deliberate human action after the Contract C4 Integration AC checkboxes are ticked.
 EOF
 }
 

@@ -87,6 +87,10 @@ None — #360 closed 2026-06-03, so the \`## Required Output Schema\` jsonschema
 ## Notes for intake
 
 Per parent spec § Notes for Child Intake: this child's predicate-registry mechanism MUST be exercised with fixture predicates (e.g., \`always_true\`, \`always_false\`) in this child's own test suite. Do NOT reach into #361.5 mid-implementation for the first real predicate — the dependency direction is #361.5 → #361.1, not the reverse.
+
+## Closing
+
+Per parent spec FR-017: the PR body for this child MUST cite parent #361 as \`Tracks #361\` (informational). It MUST NOT use any GitHub auto-close keyword targeting #361 (\`Closes\` / \`Fixes\` / \`Resolves\` / etc.). Parent close is a deliberate human action after all 5 children merge AND the Contract C4 Integration AC checkboxes are ticked — never a side-effect of a child PR merge.
 EOF
 }
 
@@ -107,6 +111,10 @@ C7 event envelope construction, durable-bus publisher (RabbitMQ AMQP), reviewer-
 ## Notes for intake
 
 The reviewer-rotation picker reads from the bus (queries prior \`phase: implement\` event) but the read shape is tightly coupled to the write shape (both reference \`event_id\` derivation, both filter by \`phase\`). Keep both in this child; do not extract the read adapter to #361.1 unless a second consumer of bus-reads appears.
+
+## Closing
+
+Per parent spec FR-017: the PR body for this child MUST cite parent #361 as \`Tracks #361\` (informational). It MUST NOT use any GitHub auto-close keyword targeting #361 (\`Closes\` / \`Fixes\` / \`Resolves\` / etc.). Parent close is a deliberate human action after all 5 children merge AND the Contract C4 Integration AC checkboxes are ticked — never a side-effect of a child PR merge.
 EOF
 }
 
@@ -129,6 +137,10 @@ Helm chart, NetworkPolicy, ESO ExternalSecret wiring, ServiceAccount. Reviewers:
 ## Notes for intake
 
 ESO chart shape locked at parent intake (Q-4 Option A): one \`eso.clusterSecretStoreRef\` plus three independent \`eso.secretKeyRef.{bus,openhands,litellm}\` mounted at \`/var/run/secrets/orchestrator/{bus,openhands,litellm}\`.
+
+## Closing
+
+Per parent spec FR-017: the PR body for this child MUST cite parent #361 as \`Tracks #361\` (informational). It MUST NOT use any GitHub auto-close keyword targeting #361 (\`Closes\` / \`Fixes\` / \`Resolves\` / etc.). Parent close is a deliberate human action after all 5 children merge AND the Contract C4 Integration AC checkboxes are ticked — never a side-effect of a child PR merge.
 EOF
 }
 
@@ -142,8 +154,6 @@ body_361_5() {
 
 \`.agents/personas/ux-ui-designer/PERSONA.md\` (6-section template per ADR-issue-364 § 3); C3 matrix wiring at step01/04/05/08 gated by the FR-012 \`has-user-facing-flow\` predicate; \`AGENTS.backlog.md\` #369 entry marked \`(incorporated: issue-361.5)\`; architecture-sign-off exception to ADR-issue-364 expert-ceiling-of-8.
 
-**Closes #369** when this PR merges.
-
 ## Blocked by
 
 - #361.1 — depends on the predicate-registry mechanism the matrix row references.
@@ -153,6 +163,12 @@ body_361_5() {
 Per parent spec § Notes for Child Intake: the 9-vs-8 expert-ceiling exception MUST be authored as an ADR amendment, NOT informal PERSONA.md front-matter prose. Choose EXACTLY ONE OF: (a) a \`Status: amended\` note on \`ADR-issue-364-expert-persona-model.md\` with an Amendments section, OR (b) a new narrowly-scoped \`ADR-issue-361.5-ux-ui-designer-ceiling-exception.md\`. The PERSONA.md front-matter cites the chosen ADR by path; the ADR carries the normative rationale.
 
 Reviewers: Architecture + Product.
+
+## Closing
+
+Per parent spec FR-017: the PR body for this child MUST cite parent #361 as \`Tracks #361\` (informational). It MUST NOT use any GitHub auto-close keyword targeting #361 (\`Closes\` / \`Fixes\` / \`Resolves\` / etc.). Parent close is a deliberate human action after all 5 children merge AND the Contract C4 Integration AC checkboxes are ticked — never a side-effect of a child PR merge.
+
+The single permitted auto-close keyword on this child PR body is \`Closes #369\` — a different issue (the ux-ui-designer expert addition) that this child legitimately resolves.
 EOF
 }
 

@@ -1,7 +1,8 @@
 """Idempotency + body-shape tests for the #361 parent helper scripts.
 
-Covers AC-010 (file_children.sh) and AC-011 (add_deferred_triggers.sh) per
-the parent spec at specs/2026-06-18-issue-361-orchestrator-service/.
+Covers AC-010 (file_children.sh), AC-011 (add_deferred_triggers.sh), and
+AC-013 (no auto-close keyword targeting parent #361 in any generated body)
+per the parent spec at specs/2026-06-18-issue-361-orchestrator-service/.
 
 The gh CLI is stubbed via PATH injection: a generated shell stub records each
 invocation to a log file the test inspects. The AGENTS.backlog.md target is
@@ -12,12 +13,24 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+import re
 import shutil
 import stat
 import subprocess
 import unittest
 
 from tests._shared.helpers import REPO_ROOT
+
+
+# AC-013 — case-insensitive auto-close keyword regex targeting parent #361.
+# Matches any of: Close, Closes, Closed, Fix, Fixes, Fixed, Resolve, Resolves,
+# Resolved, immediately followed by #361 (word-boundary terminated to avoid
+# matching #361.1 / #361.2 / etc., which are child slugs, not auto-close
+# targets — GitHub itself parses "#361.1" as plain text, not an issue link).
+PARENT_AUTOCLOSE_REGEX = re.compile(
+    r"\b(close[ds]?|fix(?:e[ds])?|resolve[ds]?)\s+#361\b",
+    re.IGNORECASE,
+)
 
 
 SPEC_DIR = REPO_ROOT / "specs" / "2026-06-18-issue-361-orchestrator-service"
@@ -189,6 +202,36 @@ class FileChildrenScriptTests(unittest.TestCase):
                 msg=f"unexpected labels: {labels}",
             )
 
+    def test_no_child_body_auto_closes_parent(self) -> None:
+        # AC-013 / FR-017 — every generated child body MUST cite parent #361 as
+        # `Tracks #361` (informational only) and MUST NOT use any GitHub auto-
+        # close keyword targeting #361. `#361.5` legitimately uses
+        # `Closes #369` (a different issue) — that does not match the regex.
+        result = _run_file_children(self.tmpdir, self.log_path, self.existing_titles_path)
+        self.assertEqual(result.returncode, 0, msg=result.stderr)
+
+        create_calls = _create_invocations(_parse_invocations(self.log_path))
+        self.assertEqual(len(create_calls), 4)
+        for args in create_calls:
+            body = _arg_value(args, "--body") or ""
+            title = _arg_value(args, "--title") or ""
+            self.assertIn(
+                "Tracks #361", body,
+                msg=(
+                    f"AC-013: child {title!r} body MUST cite parent #361 as "
+                    f"`Tracks #361` (informational). Body: {body!r}"
+                ),
+            )
+            match = PARENT_AUTOCLOSE_REGEX.search(body)
+            self.assertIsNone(
+                match,
+                msg=(
+                    f"AC-013: child {title!r} body MUST NOT use any GitHub "
+                    f"auto-close keyword targeting parent #361. Matched: "
+                    f"{match.group(0) if match else None!r}. Body: {body!r}"
+                ),
+            )
+
     def test_file_children_idempotent_second_run(self) -> None:
         # First run as in test_file_children_first_run.
         first = _run_file_children(self.tmpdir, self.log_path, self.existing_titles_path)
@@ -242,6 +285,25 @@ class AddDeferredTriggersScriptTests(unittest.TestCase):
         self.assertIn("git rm", content)
         self.assertIn("file_children.sh", content)
         self.assertIn("add_deferred_triggers.sh", content)
+
+    def test_no_deferred_trigger_rationale_auto_closes_parent(self) -> None:
+        # AC-013 / FR-017 — the appended backlog text MUST embed the same
+        # no-auto-close rule for the #361.3 PR the operator drafts later.
+        result = _run_add_triggers(self.backlog)
+        self.assertEqual(result.returncode, 0, msg=result.stderr)
+
+        content = self.backlog.read_text()
+        match = PARENT_AUTOCLOSE_REGEX.search(content)
+        self.assertIsNone(
+            match,
+            msg=(
+                f"AC-013: deferred-trigger rationale MUST NOT use any GitHub "
+                f"auto-close keyword targeting parent #361. Matched: "
+                f"{match.group(0) if match else None!r}."
+            ),
+        )
+        # And it MUST positively instruct the operator to use `Tracks #361`.
+        self.assertIn("Tracks #361", content)
 
     def test_add_deferred_triggers_idempotent_second_run(self) -> None:
         first = _run_add_triggers(self.backlog)
