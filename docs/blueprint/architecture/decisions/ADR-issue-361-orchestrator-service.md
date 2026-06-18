@@ -1,6 +1,6 @@
 # ADR: Orchestrator Service (Child B of #333)
 
-**Status:** proposed
+**Status:** approved
 **Date:** 2026-06-18
 **Issue:** #361 (Child B of #333, Phase 1 of Epic #332)
 **Spec:** `specs/2026-06-18-issue-361-orchestrator-service/`
