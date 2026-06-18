@@ -3,6 +3,14 @@
 # AGENTS.backlog.md entries so #361.3 filing surfaces mechanically when its
 # blockers (#335 + #336 spec-complete) resolve.
 #
+# ## Lifecycle (per parent spec FR-016)
+# This script is single-purpose ephemera. It serves its function at parent
+# #361 PR merge (when the operator runs it once) and has zero residual value
+# thereafter. #361.3 (the canonically last-merging child) MUST include
+# `git rm` of this file in its own PR scope. Verified by AC-012 / T-211.
+# Do NOT extend this script for future decomposed parents — author a
+# parent-specific helper alongside that parent's spec instead.
+#
 # Per Q-1 (Option B): #361.3 is deferred from file_children.sh and surfaces
 # via the backlog after-trigger convention defined in AGENTS.backlog.md.
 #
@@ -36,7 +44,7 @@ entry_335() {
 
 - [ ] (parked) proposal(issue-361-orchestrator-service): file #361.3 — RabbitMQ subscriber + OpenHands API client + work loop (trigger: after: issue-335)
       trigger: after: issue-335
-      rationale: #361.3 is the layer — external-runtime clients boundary of the #361 5-child decomposition. Filing deferred per Q-1 (Option B) until #335 reaches spec-complete so the runtime-client child's API contracts are concrete. Parent spec: ${PARENT_SPEC_PATH}.
+      rationale: #361.3 is the layer — external-runtime clients boundary of the #361 5-child decomposition. Filing deferred per Q-1 (Option B) until #335 reaches spec-complete so the runtime-client child's API contracts are concrete. Parent spec: ${PARENT_SPEC_PATH}. When filing, the #361.3 body MUST cite parent spec FR-016 — the PR scope MUST include \`git rm\` of \`${PARENT_SPEC_PATH}file_children.sh\` and \`${PARENT_SPEC_PATH}add_deferred_triggers.sh\` (verified by AC-012 / T-211 to be authored in #361.3).
 EOF
 }
 
@@ -45,7 +53,7 @@ entry_336() {
 
 - [ ] (parked) proposal(issue-361-orchestrator-service): file #361.3 — RabbitMQ subscriber + OpenHands API client + work loop (trigger: after: issue-336)
       trigger: after: issue-336
-      rationale: #361.3 is the layer — external-runtime clients boundary of the #361 5-child decomposition. Filing deferred per Q-1 (Option B) until #336 reaches spec-complete so the RabbitMQ trigger queue topology is concrete. Parent spec: ${PARENT_SPEC_PATH}.
+      rationale: #361.3 is the layer — external-runtime clients boundary of the #361 5-child decomposition. Filing deferred per Q-1 (Option B) until #336 reaches spec-complete so the RabbitMQ trigger queue topology is concrete. Parent spec: ${PARENT_SPEC_PATH}. When filing, the #361.3 body MUST cite parent spec FR-016 — the PR scope MUST include \`git rm\` of \`${PARENT_SPEC_PATH}file_children.sh\` and \`${PARENT_SPEC_PATH}add_deferred_triggers.sh\` (verified by AC-012 / T-211 to be authored in #361.3).
 EOF
 }
 

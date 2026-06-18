@@ -2,6 +2,14 @@
 # file_children.sh — idempotent helper that files 4 of the 5 child GitHub
 # issues declared by FR-001 of the parent #361 spec.
 #
+# ## Lifecycle (per parent spec FR-016)
+# This script is single-purpose ephemera. It serves its function at parent
+# #361 PR merge (when the operator runs it once) and has zero residual value
+# thereafter. #361.3 (the canonically last-merging child) MUST include
+# `git rm` of this file in its own PR scope. Verified by AC-012 / T-211.
+# Do NOT extend this script for future decomposed parents — author a
+# parent-specific helper alongside that parent's spec instead.
+#
 # Per Q-1 (Option B): #361.3 is NOT filed here — it is deferred until #335 and
 # #336 reach spec-complete. The companion script add_deferred_triggers.sh
 # appends AGENTS.backlog.md entries that surface #361.3 filing mechanically

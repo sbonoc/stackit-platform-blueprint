@@ -17,6 +17,7 @@
     { "id": "FR-013", "type": "requirement", "summary": "Parent issue carries Integration AC per Contract C4; human bounded-context reviewer ticks" },
     { "id": "FR-014", "type": "requirement", "summary": "Author idempotent file_children.sh that files 4 child GitHub issues at parent merge (defers #361.3)" },
     { "id": "FR-015", "type": "requirement", "summary": "Author idempotent add_deferred_triggers.sh that appends after: issue-335 + after: issue-336 backlog entries" },
+    { "id": "FR-016", "type": "requirement", "summary": "#361.3 PR scope MUST git rm both helper scripts; ephemeral files MUST NOT remain after parent close" },
     { "id": "NFR-SEC-001", "type": "requirement", "summary": "Non-root distroless runtime; read-only root filesystem; ESO volume-mounted credentials only" },
     { "id": "NFR-OBS-001", "type": "requirement", "summary": "Structured JSON logs + Prometheus /metrics + per-expert token_usage on every panel event" },
     { "id": "NFR-REL-001", "type": "requirement", "summary": "Restart-safe via durable bus rebuild; rolling-update maxUnavailable: 0; helm rollback" },
@@ -32,7 +33,8 @@
     { "id": "AC-008", "type": "acceptance", "summary": "Integration AC — schema-validation failure surfaces through #336 reject-rerun cap" },
     { "id": "AC-009", "type": "acceptance", "summary": "Integration AC — conditional-dispatch predicate gates ux-ui-designer correctly (closes #369)" },
     { "id": "AC-010", "type": "acceptance", "summary": "file_children.sh is idempotent and produces 4 well-formed issue bodies (one per child slug, no #361.3)" },
-    { "id": "AC-011", "type": "acceptance", "summary": "add_deferred_triggers.sh is idempotent and appends 2 backlog entries (after: issue-335, after: issue-336)" }
+    { "id": "AC-011", "type": "acceptance", "summary": "add_deferred_triggers.sh is idempotent and appends 2 backlog entries (after: issue-335, after: issue-336)" },
+    { "id": "AC-012", "type": "acceptance", "summary": "#361.3 PR removes both helper scripts; neither file exists on main after #361.3 merges" }
   ],
   "edges": [
     { "from": "FR-001", "to": "AC-005", "relation": "validated_by" },
@@ -54,6 +56,7 @@
     { "from": "FR-013", "to": "AC-005", "relation": "validated_by" },
     { "from": "FR-014", "to": "AC-010", "relation": "validated_by" },
     { "from": "FR-015", "to": "AC-011", "relation": "validated_by" },
+    { "from": "FR-016", "to": "AC-012", "relation": "validated_by" },
     { "from": "NFR-SEC-001", "to": "AC-007", "relation": "constrains" },
     { "from": "NFR-SEC-001", "to": "AC-003", "relation": "constrains" },
     { "from": "NFR-OBS-001", "to": "AC-004", "relation": "constrains" },

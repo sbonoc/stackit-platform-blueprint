@@ -19,6 +19,7 @@
 | FR-013 | SDD-C-016 | N/A | ADR-issue-361 § Decision; Contract C4 | parent `#361` GitHub issue body updated at T-003 | parent Integration AC manual ticking by human bounded-context reviewer | `docs/blueprint/autonomous-factory/design-contracts.md` § C4 | parent close audit log |
 | FR-014 | SDD-C-005, SDD-C-016 | N/A | ADR-issue-361 § Decision (5-child table); Contract C2 (decomposed children layout) | `specs/2026-06-18-issue-361-orchestrator-service/file_children.sh` | `tests/blueprint/test_issue_361_file_children_script.py::test_file_children_first_run` + `::test_file_children_idempotent` (T-110, AC-010) | parent spec § FR-014; operator runbook in `pr_context.md` | gh API audit log of issue-create calls at parent merge |
 | FR-015 | SDD-C-005, SDD-C-016 | N/A | ADR-issue-361 § Decision; AGENTS.backlog mechanical-trigger convention | `specs/2026-06-18-issue-361-orchestrator-service/add_deferred_triggers.sh` | `tests/blueprint/test_issue_361_file_children_script.py::test_add_deferred_triggers_first_run` + `::test_add_deferred_triggers_idempotent` (T-110, AC-011) | parent spec § FR-015; `AGENTS.backlog.md` diff at parent merge | backlog diff in parent merge commit |
+| FR-016 | SDD-C-005, SDD-C-016 | N/A | parent spec § FR-016; `## Notes for Child Intake` (added in #361.3 body via FR-015 deferred-trigger backlog entry) | `git rm` of both helper scripts authored in `#361.3` PR diff | `tests/blueprint/test_issue_361_post_3_cleanup.py::test_helper_scripts_removed` (T-211, AC-012) authored in `#361.3` | parent spec § FR-016; script header `## Lifecycle` docstrings | absence of both files on `main` after `#361.3` merge |
 | NFR-SEC-001 | SDD-C-009 | N/A | `architecture.md` § Non-Functional Architecture Notes (Security) | `#361.4` Helm chart `securityContext` + ESO wiring | `#361.4` integration tests (AC-007 part b) | Helm chart `templates/deployment.yaml` securityContext block | pod spec audit |
 | NFR-OBS-001 | SDD-C-010 | N/A | `architecture.md` § Non-Functional Architecture Notes (Observability) | `#361.1` + `#361.2` + `#361.3` log helpers + `#361.2` metric registrations | per-child unit tests for log field presence | `docs/blueprint/autonomous-factory/orchestrator.md` § Observability | structured JSON logs + Prometheus `/metrics` scrape evidence |
 | NFR-REL-001 | SDD-C-011 | N/A | `architecture.md` § Non-Functional Architecture Notes (Reliability and rollback) | `#361.2` `TicketTokenAccumulator.rebuild_from_bus`; `#361.4` Helm `strategy.rollingUpdate` | `#361.2` unit tests for rebuild path; `#361.4` Helm rollback smoke | Helm chart `strategy.rollingUpdate` config | rolling-update logs |
@@ -35,14 +36,15 @@
 | AC-009 | SDD-C-012, SDD-C-016 | N/A | `architecture.md` § Domain layer (PredicateRegistry) + § Context E | `#361.5` cross-child integration test `T-205` | `T-205` integration suite | spec § AC-009 | `expert_verdicts[]` audit per predicate |
 | AC-010 | SDD-C-012 | N/A | parent helper script `file_children.sh` | `specs/2026-06-18-issue-361-orchestrator-service/file_children.sh` | `tests/blueprint/test_issue_361_file_children_script.py::test_file_children_first_run` + `::test_file_children_idempotent` (T-110) | parent spec § AC-010 | gh issue-create audit at parent merge |
 | AC-011 | SDD-C-012 | N/A | parent helper script `add_deferred_triggers.sh` | `specs/2026-06-18-issue-361-orchestrator-service/add_deferred_triggers.sh` | `tests/blueprint/test_issue_361_file_children_script.py::test_add_deferred_triggers_first_run` + `::test_add_deferred_triggers_idempotent` (T-110) | parent spec § AC-011 | AGENTS.backlog.md diff at parent merge |
+| AC-012 | SDD-C-012, SDD-C-016 | N/A | parent spec § FR-016 (script lifecycle binding) | `git rm` lines in `#361.3` PR | `tests/blueprint/test_issue_361_post_3_cleanup.py::test_helper_scripts_removed` (T-211) authored in `#361.3` | parent spec § AC-012 | absence of both files on `main` after `#361.3` merge |
 
 ## Graph Linkage
 - Graph file: `graph.json`
 - Every `FR-###`, `NFR-*-###`, and `AC-###` listed in this file MUST have a corresponding node in `graph.json`.
 - Node IDs referenced:
-  - FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-007, FR-008, FR-009, FR-010, FR-011, FR-012, FR-013, FR-014, FR-015
+  - FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-007, FR-008, FR-009, FR-010, FR-011, FR-012, FR-013, FR-014, FR-015, FR-016
   - NFR-SEC-001, NFR-OBS-001, NFR-REL-001, NFR-OPS-001, NFR-A11Y-001
-  - AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009, AC-010, AC-011
+  - AC-001, AC-002, AC-003, AC-004, AC-005, AC-006, AC-007, AC-008, AC-009, AC-010, AC-011, AC-012
 
 ## Validation Summary
 - Required bundles executed: `make quality-sdd-check`, `make quality-hardening-review`, `make docs-build`, `make docs-smoke`

@@ -233,10 +233,15 @@ class AddDeferredTriggersScriptTests(unittest.TestCase):
 
         content = self.backlog.read_text()
         # AC-011 (a) — two entries with the literal trigger strings, both
-        # citing the parent spec path.
+        # citing the parent spec path (>= 2 occurrences; each entry also
+        # cites the git rm paths per FR-016 lifecycle binding).
         self.assertIn("trigger: after: issue-335", content)
         self.assertIn("trigger: after: issue-336", content)
-        self.assertEqual(content.count("specs/2026-06-18-issue-361-orchestrator-service/"), 2)
+        self.assertGreaterEqual(content.count("specs/2026-06-18-issue-361-orchestrator-service/"), 2)
+        # FR-016 — both entries cite the git rm responsibility for #361.3.
+        self.assertIn("git rm", content)
+        self.assertIn("file_children.sh", content)
+        self.assertIn("add_deferred_triggers.sh", content)
 
     def test_add_deferred_triggers_idempotent_second_run(self) -> None:
         first = _run_add_triggers(self.backlog)
