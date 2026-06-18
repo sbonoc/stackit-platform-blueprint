@@ -2,7 +2,7 @@
   "graph_version": 1,
   "work_item": "2026-06-18-issue-361-orchestrator-service",
   "nodes": [
-    { "id": "FR-001", "type": "requirement", "summary": "Decompose #361 into 4 child work items along layer boundaries" },
+    { "id": "FR-001", "type": "requirement", "summary": "Decompose #361 into 5 child work items along layer/feature/governance-docs boundaries" },
     { "id": "FR-002", "type": "requirement", "summary": "Load SDD-step × expert dispatch matrix from § Contract C3 at startup" },
     { "id": "FR-003", "type": "requirement", "summary": "Implement three convergence modes: parallel-then-merge, sequential-lens, structured-disagreement" },
     { "id": "FR-004", "type": "requirement", "summary": "Validate skill output against SKILL.md ## Required Output Schema before C7 emission" },

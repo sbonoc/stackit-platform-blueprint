@@ -33,8 +33,38 @@ set -euo pipefail
 
 GH_BIN="${GH_BIN:-gh}"
 PARENT_SPEC_PATH="${PARENT_SPEC_PATH:-specs/2026-06-18-issue-361-orchestrator-service/}"
+EXPECTED_REPO="${EXPECTED_REPO:-sbonoc/stackit-platform-blueprint}"
 
 LABELS="agent-ready,enhancement,infrastructure,priority:p1"
+
+# Precondition checks — fail fast with clear stderr so the operator does not
+# silently file issues into the wrong repo or rely on swallowed gh failures.
+check_preconditions() {
+  # gh CLI present
+  if ! command -v "$GH_BIN" >/dev/null 2>&1; then
+    printf 'error: gh CLI not found on PATH (GH_BIN=%s)\n' "$GH_BIN" >&2
+    exit 2
+  fi
+  # gh authenticated against the expected repo's host
+  if ! "$GH_BIN" auth status >/dev/null 2>&1; then
+    printf 'error: gh CLI is not authenticated. Run `gh auth login` first.\n' >&2
+    exit 2
+  fi
+  # Working directory resolves to the expected repo. Bypass with PRECHECK_SKIP_REPO=1
+  # ONLY for the pytest stub harness (which has no real git repo context).
+  if [[ "${PRECHECK_SKIP_REPO:-0}" != "1" ]]; then
+    local actual_repo
+    actual_repo="$("$GH_BIN" repo view --json nameWithOwner --jq .nameWithOwner 2>/dev/null || true)"
+    if [[ -z "$actual_repo" ]]; then
+      printf 'error: gh could not resolve the current repo. Run from a clone of %s.\n' "$EXPECTED_REPO" >&2
+      exit 2
+    fi
+    if [[ "$actual_repo" != "$EXPECTED_REPO" ]]; then
+      printf 'error: gh resolves to repo %s but EXPECTED_REPO=%s. Refusing to file issues in the wrong repo.\n' "$actual_repo" "$EXPECTED_REPO" >&2
+      exit 2
+    fi
+  fi
+}
 
 child_title() {
   local slug="$1"
@@ -42,16 +72,43 @@ child_title() {
   printf 'feat(orchestrator): %s (Child %s of #361)' "$scope" "$slug"
 }
 
+# issue_exists returns:
+#   0 — issue with the exact title is present (skip create)
+#   1 — issue is absent (proceed to create)
+#   2 — gh issue list itself FAILED (do NOT proceed; the script exits 2 below)
+# Crucial: gh-list-failure MUST NOT be conflated with issue-absent. The
+# previous implementation swallowed `2>/dev/null` and treated any failure
+# as "absent", which silently filed duplicates if gh auth was stale at
+# re-run time. See PR #372 review finding 3.
+# issue_exists prints to stdout one of three tokens, never relies on $?:
+#   "present"  — issue with the exact title is on file (skip create)
+#   "absent"   — issue is not present (proceed to create)
+#   "failure"  — gh issue list itself FAILED (abort the script)
+# We use stdout because returning non-zero from a function under `set -e`
+# trips the trap before the caller can inspect $?. See PR #372 review
+# finding 3 — the previous implementation silently filed duplicates when
+# gh auth was stale.
 issue_exists() {
   local title="$1"
-  # gh issue list returns matching titles; use --search to scope by title.
-  # We compare exact title equality because --search is fuzzy.
-  "$GH_BIN" issue list \
+  local list_out
+  local list_rc=0
+  list_out="$("$GH_BIN" issue list \
+    --repo "$EXPECTED_REPO" \
     --state open \
     --search "in:title \"$title\"" \
     --json title \
-    --jq '.[].title' 2>/dev/null \
-    | grep -Fxq "$title"
+    --jq '.[].title' 2>&1)" || list_rc=$?
+  if [[ $list_rc -ne 0 ]]; then
+    printf 'error: `gh issue list` failed (exit %d) for title check: %s\n' "$list_rc" "$title" >&2
+    printf '%s\n' "$list_out" >&2
+    printf 'failure'
+    return 0
+  fi
+  if printf '%s\n' "$list_out" | grep -Fxq "$title"; then
+    printf 'present'
+  else
+    printf 'absent'
+  fi
 }
 
 file_child() {
@@ -59,12 +116,26 @@ file_child() {
   local scope="$2"
   local body="$3"
   local title
+  local state
   title="$(child_title "$slug" "$scope")"
-  if issue_exists "$title"; then
-    printf 'skip: child %s already filed (title match)\n' "$slug" >&2
-    return 0
-  fi
+  state="$(issue_exists "$title")"
+  case "$state" in
+    present)
+      printf 'skip: child %s already filed (title match)\n' "$slug" >&2
+      return 0
+      ;;
+    absent) ;;  # fall through to create
+    failure)
+      printf 'aborting: gh issue list failure cannot be conflated with "issue absent".\n' >&2
+      exit 2
+      ;;
+    *)
+      printf 'aborting: unexpected issue_exists output: %s\n' "$state" >&2
+      exit 2
+      ;;
+  esac
   "$GH_BIN" issue create \
+    --repo "$EXPECTED_REPO" \
     --title "$title" \
     --body "$body" \
     --label "$LABELS"
@@ -177,6 +248,7 @@ EOF
 }
 
 main() {
+  check_preconditions
   file_child '1' 'dispatch matrix loader + convergence engine + schema validator + predicate-registry mechanism' "$(body_361_1)"
   file_child '2' 'C7 emitter + bus publisher + reviewer-rotation picker' "$(body_361_2)"
   file_child '4' 'Helm chart + NetworkPolicy + ESO + ServiceAccount' "$(body_361_4)"

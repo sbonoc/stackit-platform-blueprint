@@ -45,6 +45,7 @@ set -euo pipefail
 
 LOG_FILE="${GH_STUB_LOG:?GH_STUB_LOG must be set}"
 EXISTING_TITLES_FILE="${GH_STUB_EXISTING_TITLES:-/dev/null}"
+GH_STUB_LIST_FAIL="${GH_STUB_LIST_FAIL:-0}"
 
 # Record the invocation, one line per arg (newline-quoted so multi-line bodies
 # preserve their newlines as \n literals).
@@ -57,9 +58,20 @@ EXISTING_TITLES_FILE="${GH_STUB_EXISTING_TITLES:-/dev/null}"
 } >> "$LOG_FILE"
 
 case "${1:-}" in
+  auth)
+    # auth status — succeed (the script only checks exit code).
+    exit 0
+    ;;
   issue)
     case "${2:-}" in
       list)
+        # Fault injection: when GH_STUB_LIST_FAIL=1 the stub simulates a real
+        # gh-list failure (e.g., stale auth, network down). The hardened
+        # script MUST detect this and abort rather than treat as "issue absent".
+        if [[ "$GH_STUB_LIST_FAIL" = "1" ]]; then
+          printf 'gh stub: simulated list failure\n' >&2
+          exit 1
+        fi
         # Emit every line from the existing-titles file (one title per line).
         # The script filters via `grep -Fxq` against the title it expects.
         cat "$EXISTING_TITLES_FILE"
@@ -119,12 +131,23 @@ def _arg_value(args: list[str], flag: str) -> str | None:
     return None
 
 
-def _run_file_children(tmpdir: Path, log_path: Path, existing_titles_path: Path) -> subprocess.CompletedProcess[str]:
+def _run_file_children(
+    tmpdir: Path,
+    log_path: Path,
+    existing_titles_path: Path,
+    *,
+    list_fail: bool = False,
+) -> subprocess.CompletedProcess[str]:
     env = os.environ.copy()
     env["GH_STUB_LOG"] = str(log_path)
     env["GH_STUB_EXISTING_TITLES"] = str(existing_titles_path)
+    env["GH_STUB_LIST_FAIL"] = "1" if list_fail else "0"
     env["PATH"] = f"{tmpdir / 'bin'}:{env.get('PATH', '')}"
     env["GH_BIN"] = str(tmpdir / "bin" / "gh")
+    # Skip the repo-identity check (tmpdir is not a clone of the real repo;
+    # the stub gh would still answer, but we want to assert the issue-create
+    # logic in isolation).
+    env["PRECHECK_SKIP_REPO"] = "1"
     return subprocess.run(
         ["bash", str(FILE_CHILDREN_SCRIPT)],
         env=env,
@@ -231,6 +254,28 @@ class FileChildrenScriptTests(unittest.TestCase):
                     f"{match.group(0) if match else None!r}. Body: {body!r}"
                 ),
             )
+
+    def test_file_children_aborts_on_gh_list_failure(self) -> None:
+        # Pre-signoff finding 3: a stale gh auth (gh-list returns non-zero)
+        # MUST NOT be silently treated as "issue absent". The hardened script
+        # exits 2 and creates zero issues.
+        result = _run_file_children(
+            self.tmpdir,
+            self.log_path,
+            self.existing_titles_path,
+            list_fail=True,
+        )
+        self.assertEqual(
+            result.returncode, 2,
+            msg=f"hardened script MUST exit 2 on gh-list failure; got {result.returncode}. stderr: {result.stderr}",
+        )
+        # Zero issue-create calls — the failure mode that previously silently
+        # filed duplicates.
+        create_calls = _create_invocations(_parse_invocations(self.log_path))
+        self.assertEqual(
+            len(create_calls), 0,
+            msg=f"gh-list failure MUST NOT produce any issue-create calls; got {len(create_calls)}: {create_calls}",
+        )
 
     def test_file_children_idempotent_second_run(self) -> None:
         # First run as in test_file_children_first_run.
