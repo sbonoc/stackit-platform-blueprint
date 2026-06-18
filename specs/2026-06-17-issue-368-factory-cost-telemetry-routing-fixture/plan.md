@@ -88,7 +88,7 @@
 - Notes: this work item adds test files and a CLI sub-command under #361; it does not add or change make targets in this blueprint repo.
 
 ## Documentation Plan (Document Phase)
-- Blueprint docs updates: design-contracts § C7 extension-field table (Slice 1); ADR-issue-368 (proposed → accepted after sign-off).
+- Blueprint docs updates: design-contracts § C7 extension-field table (Slice 1 — complete); ADR-issue-368 (status: approved — complete).
 - Consumer docs updates: none — extension fields are additive; consumer ingest subscribers need no change.
 - Mermaid diagrams updated: architecture.md diagrams in this spec; ADR-issue-368 will include the same flowchart + sequence diagrams.
 - Docs validation commands:
