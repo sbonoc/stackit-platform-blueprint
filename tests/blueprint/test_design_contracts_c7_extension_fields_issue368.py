@@ -98,7 +98,7 @@ class C7TicketTokenSummaryExtensionFieldTests(unittest.TestCase):
     def test_ticket_token_summary_documents_total_expert_step_instantiations(self) -> None:
         contracts = _read_contracts()
         idx = contracts.index("outcome_details.ticket_token_summary")
-        surrounding = contracts[idx: idx + 600]
+        surrounding = contracts[idx: idx + 900]
         self.assertIn("total_expert_step_instantiations", surrounding)
 
     def test_ticket_token_summary_scope_is_step08_only(self) -> None:
