@@ -3,20 +3,20 @@
 ## Spec Readiness Gate (Blocking)
 <!-- SPEC_PRODUCT_READY=true: intake gate — Product sign-off only; unlocks agent ADR drafting.
      SPEC_READY=true: implementation gate — all sign-offs required; unlocks coding. -->
-- SPEC_READY: false
-- SPEC_PRODUCT_READY: false
+- SPEC_READY: true
+- SPEC_PRODUCT_READY: true
 - Open questions count: 0
 - Unresolved alternatives count: 0
 - Unresolved TODO markers count: 0
 - Pending assumptions count: 0
 - Open clarification markers count: 0
-- Product sign-off: pending
-- Architecture sign-off: pending
-- Security sign-off: pending
-- Operations sign-off: pending
+- Product sign-off: approved
+- Architecture sign-off: approved
+- Security sign-off: approved
+- Operations sign-off: approved
 - Missing input blocker token: none
 - ADR path: docs/blueprint/architecture/decisions/ADR-issue-368-factory-cost-telemetry-routing-fixture.md
-- ADR status: proposed
+- ADR status: approved
 - SPEC_READY_EXCEPTION: none
 - authorized-by: none
 
@@ -36,7 +36,7 @@
 - Local provisioning stack: crossplane-plus-helm
 - Runtime identity baseline: eso-plus-argocd-plus-keycloak
 - Local-first exception rationale: none
-- Has user-facing flow: false <!-- inferred from intake: no UI/flow signals found — confirm before SPEC_READY -->
+- Has user-facing flow: false
 - E2E gate classification: N/A
 
 ## Objective
@@ -91,7 +91,7 @@
 - AC-003 [Step08 ticket roll-up] — verified by T-102, which MUST assert that after injecting synthetic per-phase token-usage events for a test ticket_id, the step08 roll-up `ticket_token_summary.total_input_tokens` equals the arithmetic sum of all per-expert input_tokens across all phases (excluding -1 sentinel values) for that ticket_id.
 - AC-004 [Cost-ceiling audit predicate] — verified by T-103, which MUST assert that `c7_emit.py audit-cost --ticket <synthetic-id>` exits with code 1 and emits `rejection_reason: cost-ceiling-exceeded` when injected with a `ticket_token_summary` that exceeds the declared ceiling, and exits with code 0 for a synthetic in-budget ticket.
 - AC-005 [routing_keys on all panel events] — verified by T-101, which MUST assert that panel-dispatched events at phases other than `agent-pr-review` also carry `outcome_details.routing_keys` as a non-empty list of LiteLLM routing-key strings.
-- AC-006 [Routing fixture ≥ 25 rows, all pass] — verified by T-104, which MUST run `uv run python3 -m pytest tests/blueprint/orchestrator/test_step02_routing_fixture.py` and assert exit code 0 with ≥ 25 parametrized test rows collected and zero failures on a clean HEAD of #361's implementation branch.
+- AC-006 [Routing fixture ≥ 25 rows, all pass] — verified by T-104, which MUST assert that `uv run python3 -m pytest tests/blueprint/orchestrator/test_step02_routing_fixture.py` exits with code 0, collects ≥ 25 parametrized test rows, and reports zero failures on a clean HEAD of #361's implementation branch.
 - AC-007 [Embedding-upgrade threshold constant] — verified by T-104, which MUST assert that `test_step02_routing_fixture.EMBEDDING_UPGRADE_THRESHOLD == 0.20` and that the module docstring contains the substring `embedding-match` so the trigger meaning is discoverable.
 - AC-008 [design-contracts § C7 table updated] — verified by T-201, which MUST assert that `docs/blueprint/autonomous-factory/design-contracts.md` contains the three new extension-field rows (`outcome_details.token_usage`, `outcome_details.merger_overhead`, `outcome_details.ticket_token_summary`) after the existing `outcome_details.routing_keys` row, and that the `outcome_details.routing_keys` row description no longer restricts scope to `phase: agent-pr-review` only.
 

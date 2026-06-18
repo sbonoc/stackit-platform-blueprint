@@ -1,8 +1,9 @@
 # ADR-issue-368 — Factory Cost Telemetry + Step02 Routing-Quality Fixture
 
-- Status: proposed
+- Status: approved
 - Date: 2026-06-17
 - Deciders: bonos (solo operator)
+- ADR technical decision sign-off: approved (sbonoc, PR #371 comment, 2026-06-18)
 - Work item: issue #368 — `feature/2026-06-17-issue-368-factory-cost-telemetry-routing-fixture`
 
 ## 1. Context
