@@ -1,18 +1,18 @@
 # Tasks
 
 ## Gate Checks (Required Before Implementation)
-- [ ] G-001 Confirm `SPEC_READY=true` in `spec.md`
-- [ ] G-002 Confirm open questions and unresolved alternatives are `0`
-- [ ] G-003 Confirm required sign-offs are approved (Product, Architecture, Security, Operations)
-- [ ] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
-- [ ] G-005 Confirm `Implementation Stack Profile` section is fully populated
+- [x] G-001 Confirm `SPEC_READY=true` in `spec.md`
+- [x] G-002 Confirm open questions and unresolved alternatives are `0`
+- [x] G-003 Confirm required sign-offs are approved (Product, Architecture, Security, Operations)
+- [x] G-004 Confirm `Applicable Guardrail Controls` section includes `SDD-C-###` IDs
+- [x] G-005 Confirm `Implementation Stack Profile` section is fully populated
 - [x] G-006 Q-1 (budget ceiling values) resolved — Option A: `COST_CEILING_USD = 5`, `TOKEN_CEILING_INPUT = 500_000` as placeholder Python constants with calibration comment (PR #371 comment by sbonoc, 2026-06-17; spec.md § FR-004 Clarifications)
 
 ## Implementation
 
 ### Slice 1 — Design-contracts § C7 amendment + ADR
-- [ ] T-001 Amend `docs/blueprint/autonomous-factory/design-contracts.md` § C7 extension-field vocabulary: add `outcome_details.token_usage`, `outcome_details.merger_overhead`, `outcome_details.ticket_token_summary` rows; update `outcome_details.routing_keys` scope description
-- [ ] T-002 Draft `docs/blueprint/architecture/decisions/ADR-issue-368-factory-cost-telemetry-routing-fixture.md` (status: proposed)
+- [x] T-001 Amend `docs/blueprint/autonomous-factory/design-contracts.md` § C7 extension-field vocabulary: add `outcome_details.token_usage`, `outcome_details.merger_overhead`, `outcome_details.ticket_token_summary` rows; update `outcome_details.routing_keys` scope description
+- [x] T-002 ADR-issue-368 committed and approved (status: approved)
 
 ### Slice 2 — Orchestrator token-usage accumulation
 - [ ] T-003 Extend verdict merger return value to include `merger_overhead` dict (`findings_before_dedup`, `findings_after_dedup`, `severity_escalation_events`)
@@ -45,7 +45,7 @@
 - [x] T-A05 N/A — no UI
 
 ## Validation and Release Readiness
-- [ ] T-201 Grep `docs/blueprint/autonomous-factory/design-contracts.md` for three new extension-field row names and corrected `routing_keys` scope; covers AC-008
+- [x] T-201 T-201 test suite (`test_design_contracts_c7_extension_fields_issue368.py`) — 22 assertions pass; covers AC-008
 - [ ] T-202 Attach evidence to traceability.md (test run outputs for T-101–T-104)
 - [ ] T-203 Confirm no stale TODOs/dead code/drift in design-contracts.md or ADR
 - [ ] T-204 Run documentation validation (`make docs-build` and `make docs-smoke`)
