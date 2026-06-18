@@ -44,7 +44,7 @@
 
 ## Integration and Dependency Edges
 - Upstream dependencies:
-  - `#336` (RabbitMQ trigger queue + webhook handler) — orchestrator is the subscriber. Spec-complete blocker for `#361.3`.
+  - `#336` (RabbitMQ trigger queue + webhook receiver + GitHub Actions workflows) — orchestrator is the subscriber. Per #336, the `trigger-accepted` publisher is an **in-cluster Python webhook-receiver service** that fronts the RabbitMQ queue; the GitHub Actions reusable workflows under `.github/workflows/factory-webhook-bridge.yml` POST to the receiver over authenticated HTTPS. GitHub-hosted Actions runners cannot reach the SKE-internal RabbitMQ directly (public RabbitMQ exposure is rejected by NFR-SEC-001 + the #334 egress NetworkPolicy). The orchestrator subscribes to the queue and is agnostic to the publisher topology — its contract is "consume from a RabbitMQ work queue", nothing upstream of that. Spec-complete blocker for `#361.3`.
   - `#335` (OpenHands Agent Server + LiteLLM gateway) — orchestrator is the API client. OpenHands is self-hosted in the SKE factory namespace per #335 — in-cluster Helm chart deployed via ArgoCD (sibling pattern to Keycloak); LiteLLM is the only true managed-external dependency (pre-existing enterprise gateway, accessed via HTTPS — #335 configures access, does NOT deploy LiteLLM). Spec-complete blocker for `#361.3`.
   - `#360` (personas + skill `SKILL.md` runbooks + `## Required Output Schema` jsonschema blocks) — orchestrator's `SchemaValidator` consumes these. CLOSED 2026-06-03 — unblocked.
   - `#334` (factory bot identity + ServiceAccount + ESO credentials) — orchestrator's pod identity. Spec-complete blocker for `#361.4`.

@@ -77,15 +77,19 @@ The parent `#361` issue body MUST carry an `## Integration Acceptance Criteria` 
 
 ### Sequence — work-item dispatch (Context A + B + C)
 
+Per #336 the trigger pipeline is two-hop: GitHub Actions reusable workflows POST to an in-cluster Python webhook-receiver service (the only component that can reach the SKE-internal RabbitMQ — direct publish from GitHub-hosted runners would require public RabbitMQ exposure, rejected by NFR-SEC-001 + the #334 egress NetworkPolicy). The receiver fronts the queue; the orchestrator subscribes downstream and is agnostic to the publisher topology.
+
 ```mermaid
 sequenceDiagram
-  participant WH as Webhook handler (#336)
+  participant GHA as GitHub Actions (#336)
+  participant WR as In-cluster webhook receiver (#336)
   participant Q as RabbitMQ trigger queue
   participant ORC as Orchestrator (this ADR)
   participant OH as OpenHands Agent Server (#335)
   participant BUS as Durable bus (C7 stream)
 
-  WH->>Q: publish trigger-accepted for ticket_id
+  GHA->>WR: POST trigger-accepted (HTTPS, authenticated)
+  WR->>Q: publish trigger-accepted for ticket_id
   ORC->>Q: subscribe and consume
   Q-->>ORC: trigger-accepted message
   ORC->>ORC: load_matrix from § C3
