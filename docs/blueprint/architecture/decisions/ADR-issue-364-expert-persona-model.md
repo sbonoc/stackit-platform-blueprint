@@ -302,9 +302,13 @@ Every dispatched expert MUST return a verdict object conforming to:
   "title": "ExpertVerdict",
   "type": "object",
   "additionalProperties": false,
-  "required": ["expert_slug", "verdict", "findings"],
+  "required": ["verdict", "findings"],
+  "oneOf": [
+    { "required": ["expert_slug_blueprint"] },
+    { "required": ["expert_slug_extension"] }
+  ],
   "properties": {
-    "expert_slug": {
+    "expert_slug_blueprint": {
       "type": "string",
       "enum": [
         "product-pragmatist",
@@ -317,6 +321,7 @@ Every dispatched expert MUST return a verdict object conforming to:
         "performance-cost-aware"
       ]
     },
+    "expert_slug_extension": { "type": "string" },
     "verdict": {
       "type": "string",
       "enum": ["pass", "revise", "block"]
@@ -351,6 +356,7 @@ Every dispatched expert MUST return a verdict object conforming to:
 }
 ```
 
+**Two-sub-enum slug field (amended 2026-06-19 per PR #372 6th-review).** The per-expert-verdict's slug identifier was migrated from a flat `expert_slug` field to the same two-sub-enum shape adopted by § 9 `ExpertVerdictSummary` and `../../autonomous-factory/design-contracts.md` § C7 F-12 (amended 2026-06-19): EXACTLY ONE OF `expert_slug_blueprint` (sealed at the blueprint-baseline roster, widened only via the `#339` sign-off cycle — currently 8 slugs, widened to 9 by `#361.5` when `usability-pragmatist` lands) OR `expert_slug_extension` (open string from the consumer overlay's allowlist for consumer-specific experts) MUST be populated per verdict object. The per-invocation expert output and the compact C7 summary row share this contract end-to-end so an `expert_slug_extension` consumer-overlay expert is structurally able to return a valid verdict (without the migration, `additionalProperties: false` would have rejected the only field shape an extension expert can use, leaving extension experts unable to ship at all). Pre-amendment expert outputs that carry a flat `expert_slug` field MUST be tolerated by the orchestrator's merge layer and treated identically to `expert_slug_blueprint` when the value matches the blueprint-baseline enum (backwards-compatibility rule mirroring the § 9 / § C7 F-12 amendment).
 **Empty-findings sentinel:** when the expert has no concern, `findings` MUST be the empty array `[]` and `verdict` MUST be `pass`. Silent omission of a verdict from a dispatched expert MUST cause the orchestrator to fail the step and emit C7 `outcome: rejected` with `rejection_reason: missing-expert-verdict`. This makes "expert was skipped wrongly" structurally distinguishable from "expert ran and had nothing to say" in the audit log.
 
 ### 6.1 Verdict failure modes (orchestrator handling)
