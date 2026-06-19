@@ -89,11 +89,20 @@ inject_into_section() {
     BEGIN {
       section_seen = 0
       in_section = 0
+      in_parked_proposals = 0
       printed_entry = 0
       section_header = ENVIRON["SECTION"]
       entry_text = ENVIRON["ENTRY"]
     }
     {
+      # Track whether we are inside the `## Parked Proposals` block, which
+      # owns the `### after: issue-NNN` subsections per FR-015 convention.
+      # The block opens at `## Parked Proposals` and closes at the next `---`
+      # separator (which precedes `## Long Horizon`).
+      if ($0 == "## Parked Proposals") {
+        in_parked_proposals = 1
+      }
+
       # Detect entry into our target section.
       if ($0 == section_header) {
         section_seen = 1
@@ -101,21 +110,32 @@ inject_into_section() {
         print
         next
       }
-      # While inside our section, look for the next ### / ## boundary.
+      # While inside our target section, look for the next ### / ## / ---
+      # boundary and inject the entry just before it.
       if (in_section && ($0 ~ /^### / || $0 ~ /^## / || $0 ~ /^---/)) {
-        # End of section reached. Inject entry just before this line.
         print entry_text
         printed_entry = 1
         in_section = 0
+        # Section just closed.
+        if ($0 ~ /^---/) {
+          in_parked_proposals = 0
+        }
         print
         next
       }
-      # If section not yet seen, look for Long Horizon header so we can
-      # create our own section just before it.
-      if (!section_seen && !printed_entry && $0 == "## Long Horizon") {
+      # If our target section is absent, create it just before the `---`
+      # separator that closes `## Parked Proposals`. Per Codex P2 finding
+      # on PR #372 re-review: the previous implementation looked for
+      # `## Long Horizon` as the insertion boundary, which placed the
+      # newly-created section AFTER the closing `---` separator (i.e.,
+      # visually outside Parked Proposals). Anchoring on the closing `---`
+      # of Parked Proposals keeps the new section inside that block per
+      # FR-015 convention.
+      if (!section_seen && !printed_entry && in_parked_proposals && $0 ~ /^---/) {
         print section_header
         print entry_text
         printed_entry = 1
+        in_parked_proposals = 0
         print
         next
       }
@@ -128,8 +148,8 @@ inject_into_section() {
         print entry_text
         printed_entry = 1
       }
-      # If we never saw the section header AND never saw ## Long Horizon,
-      # create the section at EOF as a last resort.
+      # If we never saw the section header AND never saw a closing `---`
+      # inside Parked Proposals, create the section at EOF as a last resort.
       if (!printed_entry) {
         print ""
         print section_header

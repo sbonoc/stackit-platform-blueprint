@@ -429,6 +429,45 @@ class AddDeferredTriggersScriptTests(unittest.TestCase):
         self.assertLess(idx_335_entry, idx_long_horizon)
         self.assertLess(idx_336_entry, idx_long_horizon)
 
+        # Codex P2 re-review of PR #372: the newly-created `### after: issue-335`
+        # section MUST land BEFORE the `---` separator that closes `## Parked
+        # Proposals` — NOT in the gap between `---` and `## Long Horizon`
+        # (which would be visually outside Parked Proposals and would defeat
+        # the FR-015 convention that these trigger sections live under
+        # `## Parked Proposals`).
+        lines = content.splitlines()
+        idx_parked_proposals = _section_index(content, "## Parked Proposals")
+        # Find the FIRST `---` separator that follows `## Parked Proposals`
+        # (the one that closes the block).
+        idx_closing_separator = -1
+        for i, line in enumerate(lines):
+            if i > idx_parked_proposals and line == "---":
+                idx_closing_separator = i
+                break
+        self.assertGreater(idx_parked_proposals, -1, msg="`## Parked Proposals` header MUST be preserved")
+        self.assertGreater(
+            idx_closing_separator, -1,
+            msg="`---` closing separator of Parked Proposals MUST be preserved",
+        )
+        self.assertGreater(
+            idx_335_header, idx_parked_proposals,
+            msg="newly-created `### after: issue-335` MUST land AFTER `## Parked Proposals`",
+        )
+        self.assertLess(
+            idx_335_header, idx_closing_separator,
+            msg=(
+                "Codex P2 PR #372: `### after: issue-335` MUST land BEFORE the "
+                f"`---` closing separator (saw header at line {idx_335_header}, "
+                f"separator at line {idx_closing_separator}). Otherwise the new "
+                f"section is visually outside `## Parked Proposals`, defeating "
+                f"FR-015 convention."
+            ),
+        )
+        self.assertLess(
+            idx_336_header, idx_closing_separator,
+            msg="pre-existing `### after: issue-336` MUST stay inside Parked Proposals",
+        )
+
         # The pre-existing `### after: issue-336` entry must survive (the
         # script appends, never replaces).
         self.assertIn(
