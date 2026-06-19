@@ -7,9 +7,7 @@
 
 ## Requirement Coverage
 - Requirement IDs covered: FR-001 .. FR-017 (17 FRs); NFR-SEC-001 / NFR-OBS-001 / NFR-REL-001 / NFR-OPS-001 / NFR-A11Y-001 (5 NFRs); AC-001 .. AC-013 (13 ACs).
-- Acceptance criteria covered:
-  - AC-010 + AC-011 + AC-013 verified by pytest at `tests/blueprint/test_issue_361_file_children_script.py` (7 test cases, all passing).
-  - AC-001 .. AC-009 + AC-012 are bound to child-owned tests with deterministic names (T-101..T-205, T-211) that will be authored inside each child's `tests/` directory at child-implementation time. The parent traceability matrix declares the contract.
+- Acceptance criteria covered: AC-001 .. AC-013 (13 ACs total) — AC-010 + AC-011 + AC-013 verified directly in this PR by 7 pytest cases at `tests/blueprint/test_issue_361_file_children_script.py` (all green); AC-001 .. AC-009 + AC-012 are bound to child-owned tests with deterministic names (T-101..T-205, T-211) authored inside each child's `tests/` directory at child-implementation time, and the parent traceability matrix declares the contract.
 - Contract surfaces changed:
   - `docs/blueprint/architecture/decisions/ADR-issue-361-orchestrator-service.md` (new).
   - `specs/2026-06-18-issue-361-orchestrator-service/file_children.sh` (new — operator-run at parent merge).
@@ -69,19 +67,14 @@ Manually edit the `#361` issue body via `gh issue edit 361` to add an `## Integr
   - `specs/2026-06-18-issue-361-orchestrator-service/add_deferred_triggers.sh` — awk-driven backlog injection; mistakes here corrupt `AGENTS.backlog.md` (committed file).
 
 ## Validation Evidence
-- Required commands executed:
-  - `make quality-sdd-check` — PASS (validated SDD assets, readiness gates, and language policy).
-  - `uv run python3 -m pytest tests/blueprint/test_issue_361_file_children_script.py` — 7 PASS / 0 FAIL.
+- Required commands executed: `make quality-sdd-check` — PASS (validated SDD assets, readiness gates, and language policy); `uv run python3 -m pytest tests/blueprint/test_issue_361_file_children_script.py` — 7 PASS / 0 FAIL; `make quality-hooks-fast` — PASS post-fix; `make quality-hooks-run` — strict gate PASS (`infra-audit-version`, `apps-audit-versions`, `blueprint-template-smoke` all PASS); `make quality-hardening-review` — PASS post-hardening_review.md authoring.
 - Result summary: All gates green at PR open. C7 lifecycle events emitted via `local-cli` helper (`scripts/bin/sdd/c7_emit.py`) for `phase: intake` and `phase: resolve-questions`; both committed to `artifacts/c7/2026-06-18-issue-361-orchestrator-service.jsonl`.
 - Artifact references:
   - `traceability.md` — 27-row requirement-to-delivery matrix (every FR/NFR/AC mapped to design + impl + test + docs + ops evidence).
   - `graph.json` — 35 nodes + edges per `validated_by` / `constrains` relations.
 
 ## Risk and Rollback
-- Main risks:
-  - **R1 — child-owned tests don't exist yet.** AC-001..AC-009 + AC-012 cite test names that children author at implementation time. Mitigated by FR-013 + Contract C4 human-tick of Integration AC at parent close (the AC IDs anchor on real tests at that point).
-  - **R2 — child runtime code paths are deferred to child intake.** Until each child runs its own SDD step01, the parent traceability cannot point at real implementation files. Mitigated by per-child intake (each child inherits the parent FR + adds its own concrete paths).
-  - **R3 — `#361.3` filing depends on #335 + #336 reaching spec-complete.** Mechanically triggered via `AGENTS.backlog.md` `after: issue-335` + `after: issue-336` entries authored by `add_deferred_triggers.sh`.
+- Main risks: (R1) child-owned tests don't exist yet — AC-001..AC-009 + AC-012 cite test names children author at implementation time; mitigated by FR-013 + Contract C4 human-tick of Integration AC at parent close (the AC IDs anchor on real tests at that point). (R2) child runtime code paths are deferred to child intake — until each child runs its own SDD step01, the parent traceability cannot point at real implementation files; mitigated by per-child intake inheriting the parent FR + adding concrete paths. (R3) `#361.3` filing depends on `#335` + `#336` reaching spec-complete — mechanically triggered via `AGENTS.backlog.md` `after: issue-335` + `after: issue-336` entries authored by `add_deferred_triggers.sh`. (R4) `#336` in-cluster webhook-receiver authentication policy is not yet pinned — captured in `AGENTS.backlog.md` § `### after: issue-336` (commit `713e7b2a`) + GitHub issue comment on `#336` recommending GitHub Actions OIDC (Actions→receiver path) + HMAC `X-Hub-Signature-256` with quarterly ESO rotation (GitHub webhook→receiver path); does not block `#361` parent or any of its 5 children but `#336` MUST resolve it before shipping any receiver code.
 - Rollback strategy: This PR ships only governance docs + two operator-run helper scripts + a pytest. Revert the merge commit. The helper scripts have no destructive side effects until the operator runs them — pre-merge revert is a clean no-op. If the helper scripts have already been run post-merge, the filed GitHub issues can be closed manually (titles all carry `(Child N of #361)` for unambiguous identification); the `AGENTS.backlog.md` entries can be removed by editing the file directly.
 
 ## Deferred Proposals

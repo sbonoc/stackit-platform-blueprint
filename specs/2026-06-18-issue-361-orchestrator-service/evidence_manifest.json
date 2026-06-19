@@ -1,7 +1,58 @@
 {
   "manifest_version": 1,
-  "work_item": "<YYYY-MM-DD>-<work-item-slug>",
+  "work_item": "specs/2026-06-18-issue-361-orchestrator-service",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "",
-  "files": []
+  "generated_at_utc": "2026-06-19T06:10:44Z",
+  "files": [
+    {
+      "path": "specs/2026-06-18-issue-361-orchestrator-service/architecture.md",
+      "sha256": "f21a778fde7452a02f9bb1d2f4b49e5d59ea8a824aba6235292a0adab6359ca3",
+      "bytes": 13097
+    },
+    {
+      "path": "specs/2026-06-18-issue-361-orchestrator-service/context_pack.md",
+      "sha256": "6397ef939f6a3880f14696dbc64e16b04596f7e2687c6bccecf4fe0ea22951ab",
+      "bytes": 906
+    },
+    {
+      "path": "specs/2026-06-18-issue-361-orchestrator-service/evidence_manifest.json",
+      "sha256": "ecb0eea40122794ca8f062212e022ba451f6d0a543b88db3d7c15e65a071e7f7",
+      "bytes": 161
+    },
+    {
+      "path": "specs/2026-06-18-issue-361-orchestrator-service/graph.json",
+      "sha256": "1720aae198d5a495a8672d73ac1d6c7b0696bf5ed08e02d7ba1aa484812f4081",
+      "bytes": 7433
+    },
+    {
+      "path": "specs/2026-06-18-issue-361-orchestrator-service/hardening_review.md",
+      "sha256": "946a90dfb77afd40edeaf28913896bd7c799d74c6ed5bd07fb5effc1ce4595c5",
+      "bytes": 6477
+    },
+    {
+      "path": "specs/2026-06-18-issue-361-orchestrator-service/plan.md",
+      "sha256": "bc1c21fa72b9db9430967eaa432d1656c3b9ab475ca6d674cb91976c6efce89a",
+      "bytes": 10213
+    },
+    {
+      "path": "specs/2026-06-18-issue-361-orchestrator-service/pr_context.md",
+      "sha256": "ca1313925ba1ef29d55ca0e60e0e7c260c5ae7e7394f77612566a0fab3299c6d",
+      "bytes": 10467
+    },
+    {
+      "path": "specs/2026-06-18-issue-361-orchestrator-service/spec.md",
+      "sha256": "c36ff58b5e39828c6c62416d982bff856dbf1edb7d8d30f25e938ecd7f5b5c39",
+      "bytes": 46803
+    },
+    {
+      "path": "specs/2026-06-18-issue-361-orchestrator-service/tasks.md",
+      "sha256": "25c930987a9a15c4bacf7704835302f2380e7fd8285ece5413985f82f09205b5",
+      "bytes": 7398
+    },
+    {
+      "path": "specs/2026-06-18-issue-361-orchestrator-service/traceability.md",
+      "sha256": "4e6846515ff9b5f0694e21c81099c35fbcb582948ccd276ddc4910e9f452b3f5",
+      "bytes": 12895
+    }
+  ]
 }

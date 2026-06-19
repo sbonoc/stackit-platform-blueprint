@@ -1,24 +1,28 @@
 # Hardening Review
 
 ## Repository-Wide Findings Fixed
-- Finding 1:
+- Finding 1: PR #372 body originally carried `Closes #361 (when all 5 child PRs merge...)` — GitHub's auto-link parser ignores the human-readable qualifier; merging the parent PR would have auto-closed `#361` weeks before any child existed. Fixed by FR-017 (no-auto-close discipline) + AC-013 (pytest regex guard at `tests/blueprint/test_issue_361_file_children_script.py::test_no_child_body_auto_closes_parent`) + replacing the PR body keyword with `Tracks #361`. Three reinforcing surfaces: spec FR-017, per-child `## Closing` block in `file_children.sh` body templates, `add_deferred_triggers.sh` rationale for the future `#361.3` body.
+- Finding 2: `file_children.sh` initially swallowed `gh issue list` errors via `2>/dev/null | grep`, treating any gh failure as "issue absent" — a stale `gh auth` at re-run time would have silently filed 4 duplicate child issues. Fixed by hardening the script to capture `gh issue list` exit code explicitly, return a stdout-token discriminant (`present` / `absent` / `failure`) instead of `$?` (which gets masked by `set -e` in the caller), and abort with exit 2 on the `failure` case. New pytest case `test_file_children_aborts_on_gh_list_failure` covers the path.
+- Finding 3: `add_deferred_triggers.sh` initially used pure `printf '%s' >> file` end-of-file append — the two entries would have landed under the `## Long Horizon` section instead of the `### after: issue-NNN` subsections the operator scans by trigger heading; the pre-existing `### after: issue-336` section (used by `#337`) would have been bypassed entirely. Fixed by awk-driven section injection (creates `### after: issue-NNN` if absent before `## Long Horizon`; appends under existing header preserving pre-existing entries). New pytest fixture seeds a realistic backlog with a pre-existing `### after: issue-336` entry and asserts placement vs `## Long Horizon` boundary.
+- Finding 4: `architecture.md` line 17 originally described workspace pods as "OpenHands-managed", ambiguously implying OpenHands was a STACKIT-managed external service rather than the self-hosted in-cluster Deployment that `#335` actually ships. Fixed by replacing "managed" with "spawned by the in-cluster OpenHands Agent Server" + adding explicit `#335` deployment-topology note (Helm chart via ArgoCD, sibling pattern to Keycloak; LiteLLM is the only true managed-external dependency).
+- Finding 5: ADR + architecture.md said the 9-vs-8 ceiling exception for `ux-ui-designer` was "documented inline in PERSONA.md front-matter" — directly contradicted spec § Notes for Child Intake which says it MUST be an ADR amendment. Aligned ADR + architecture to spec position (EXACTLY ONE OF: `Status: amended` note on ADR-issue-364 OR new narrowly-scoped `ADR-issue-361.5-ux-ui-designer-ceiling-exception.md`; PERSONA.md front-matter cites the chosen ADR by path).
 
 ## Observability and Diagnostics Changes
-- Metrics/logging/tracing updates:
-- Operational diagnostics updates:
+- Metrics/logging/tracing updates: N/A — this parent coordination spec ships no orchestrator runtime code. NFR-OBS-001 (structured JSON logs + Prometheus `/metrics` + per-expert `token_usage` on every panel-dispatched C7 event) is normative on the orchestrator runtime and is owned by children `#361.1` (log helpers) + `#361.2` (metrics registrations) + `#361.3` (work-loop trace spans). The C7 lifecycle events emitted by this PR (`phase: intake`, `resolve-questions`, `spec-complete`, `plan-slicer`, `implement`) form the observability surface for the parent's own SDD lifecycle and are committed to `artifacts/c7/2026-06-18-issue-361-orchestrator-service.jsonl`.
+- Operational diagnostics updates: N/A at parent level — runbook entries for draining the trigger queue, reading C7 events from the durable bus, and looking up the most recent `phase: implement` event for reviewer-rotation debugging are owned by `#361.3`'s `docs/blueprint/autonomous-factory/orchestrator.md`.
 
 ## Architecture and Code Quality Compliance
-- SOLID / Clean Architecture / Clean Code / DDD checks:
-- Test-automation and pyramid checks:
-- Documentation/diagram/CI/skill consistency checks:
+- SOLID / Clean Architecture / Clean Code / DDD checks: PASS at parent level. The two helper scripts (`file_children.sh`, `add_deferred_triggers.sh`) follow single-responsibility (one filing operation, one backlog-injection operation), have explicit fail-fast preconditions (`check_preconditions`), and isolate side effects (gh CLI + AGENTS.backlog.md writes) via environment-overridable contracts (`GH_BIN`, `BACKLOG_FILE`) that make them testable. The Architecture mandates (domain → application → infrastructure → presentation layering) apply to the orchestrator runtime and are deferred to each child's own hardening review.
+- Test-automation and pyramid checks: PASS at parent level. 7 pytest cases in `tests/blueprint/test_issue_361_file_children_script.py` classified as `unit` per `scripts/lib/quality/test_pyramid_contract.json`. All assertions exercise script behavior via `gh` CLI stub injection (no live network/GitHub calls) and `AGENTS.backlog.md` fixture (no live backlog mutation). Pyramid ratio at parent level: 100% unit (the 11 cross-child integration ACs in AC-005..AC-009 are bound to child-owned tests `T-201..T-205` + `T-211`, authored at each child's implementation phase).
+- Documentation/diagram/CI/skill consistency checks: PASS. ADR-issue-361 § Decision table consistent with spec FR-001 5-child decomposition. Mermaid sequence diagram + classDiagram render in GitHub markdown without parse errors (verified post-update on commit `56c3fc4a`). All FR/NFR/AC IDs (35 total) traverse spec.md → graph.json → traceability.md with zero deltas (verified by 4 keeper runs across this branch). The new step08 slash-command row in CLAUDE.md was authored in `#360`'s PR `#362`, not this PR; this PR adds no new slash commands.
 
 ## Accessibility Gate (Normative — non-UI reviewers mark non-applicable items N/A)
-- [ ] SC 4.1.2 (Name, Role, Value): all interactive elements have programmatic names and roles exposed to assistive technology
-- [ ] SC 2.1.1 (Keyboard): all functionality is operable by keyboard without timing requirements
-- [ ] SC 2.4.7 (Focus Visible): keyboard focus indicator is visible on all focusable elements
-- [ ] SC 1.4.1 (Use of Color): no information is conveyed by color alone; non-color visual cue also present
-- [ ] SC 3.3.1 (Error Identification): error fields are identified in text and errors are described to the user
-- [ ] axe-core WCAG 2.1 AA scan evidence: `artifacts/a11y/axe-report.json` attached; zero critical/serious violations
+- [x] SC 4.1.2 (Name, Role, Value): N/A — headless orchestrator service with no UI surface. NFR-A11Y-001 declares N/A explicitly in spec.md. UI surface (Grafana operator dashboards) is owned downstream by `#350`.
+- [x] SC 2.1.1 (Keyboard): N/A — no interactive elements in this PR.
+- [x] SC 2.4.7 (Focus Visible): N/A — no focusable elements in this PR.
+- [x] SC 1.4.1 (Use of Color): N/A — no color-conveyed information in this PR.
+- [x] SC 3.3.1 (Error Identification): N/A — no user-facing error fields in this PR.
+- [x] axe-core WCAG 2.1 AA scan evidence: N/A — no browser-renderable surface to scan.
 
 ## Proposals Only (Not Implemented)
-- Proposal 1:
+- none

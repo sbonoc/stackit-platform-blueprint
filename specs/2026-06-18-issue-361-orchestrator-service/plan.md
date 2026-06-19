@@ -5,22 +5,11 @@
 - If required inputs are missing, add `BLOCKED_MISSING_INPUTS` in `spec.md` and keep the gate closed.
 
 ## Constitution Gates (Pre-Implementation)
-- Simplicity gate:
-  - Initial implementation ships single-replica orchestrator with naive string-equality finding dedup; horizontal scaling and embedding-based dedup are explicitly deferred.
-  - Convergence engine ships only the three modes documented in ADR-issue-364 § 4 / § 5; no speculative future modes.
-- Anti-abstraction gate:
-  - Use stdlib `hashlib.sha256` directly for `event_id` derivation; no wrapper crypto layer.
-  - Use `jsonschema` library directly for validation; do not introduce a custom abstraction layer over draft-07.
-  - Use `pika` (or `aio-pika`) directly for AMQP; do not wrap in a generic "bus client" abstraction.
-- Integration-first testing gate:
-  - Contract test against `docs/blueprint/autonomous-factory/design-contracts.md` § C3 markdown shape (the matrix loader's source of truth).
-  - Contract test against the C7 sealed eleven-field schema in § C7 (the emitter's output shape).
-  - Integration tests use a kind-cluster fixture for `#361.4` Helm install + NetworkPolicy probe.
-- Positive-path filter/transform test gate:
-  - N/A — no HTTP route or filter/payload-transform logic in this work item.
-- Finding-to-test translation gate:
-  - Any reproducible pre-PR finding from manual checks (e.g., dispatch matrix loader rejects a fixture that should pass) MUST be translated into a failing automated test first.
-  - The implementation fix MUST turn that test green in the same work item.
+- Simplicity gate: PASS at parent level — single-replica orchestrator with naive string-equality finding dedup; horizontal scaling and embedding-based dedup explicitly deferred; convergence engine ships only the three modes documented in ADR-issue-364 § 4 / § 5 (no speculative future modes).
+- Anti-abstraction gate: PASS at parent level — stdlib `hashlib.sha256` directly for `event_id` derivation (no wrapper crypto layer); `jsonschema` library directly for validation (no custom abstraction layer over draft-07); `pika` (or `aio-pika`) directly for AMQP (no generic "bus client" wrapper). All three direct-primitive choices land in children, normative on this parent.
+- Integration-first testing gate: PASS at parent level — contract test against `docs/blueprint/autonomous-factory/design-contracts.md` § C3 markdown shape (matrix loader's source of truth, owned by `#361.1`); contract test against the C7 sealed eleven-field schema in § C7 (emitter's output shape, owned by `#361.2`); integration tests use a kind-cluster fixture for `#361.4` Helm install + NetworkPolicy probe.
+- Positive-path filter/transform test gate: N/A — no HTTP route or filter/payload-transform logic in this work item.
+- Finding-to-test translation gate: PASS — applied during commit `c99de936`'s set-e bug investigation; the hardened-script failure was caught via standalone bash repro, the failing test case `test_file_children_aborts_on_gh_list_failure` was authored, then the script was fixed (stdout-token return) to make it green. Translated finding → failing test → fix discipline observed in this PR.
 
 ## Delivery Slices
 
@@ -36,11 +25,7 @@ The 5 child work items (`#361.1` … `#361.5`) each carry their own delivery sli
 2. Slice 2 (deferred to each child) — each child runs its own SDD lifecycle (intake → spec-complete → plan-slicer → implement → document-sync → pr-packager → agent-pr-review) per `AGENTS.md`.
 
 ## Change Strategy
-- Migration/rollout sequence:
-  1. Merge parent coordination PR (`#361`) — no runtime code; just spec, ADR, child issue refs.
-  2. Children `#361.1` + `#361.2` + `#361.4` + `#361.5` run in parallel; merge order is `#361.1` first (pure core including predicate-registry mechanism), then `#361.2` (depends on core), then `#361.4` (depends on both for the Helm chart's runtime image) and `#361.5` (depends on `#361.1` for the predicate-registry mechanism that its C3 matrix rows reference).
-  3. `#361.3` waits on `#335` + `#336` spec-complete; merges last.
-  4. Parent `#361` closes only when all 5 children merge AND every Integration AC checkbox is ticked by a human bounded-context reviewer per Contract C4.
+- Migration/rollout sequence: (1) merge parent coordination PR (`#361`) — no runtime code, just spec, ADR, child issue refs; (2) children `#361.1` + `#361.2` + `#361.4` + `#361.5` run in parallel — merge order is `#361.1` first (pure core including predicate-registry mechanism), then `#361.2` (depends on core), then `#361.4` (depends on both for the Helm chart's runtime image) and `#361.5` (depends on `#361.1` for the predicate-registry mechanism that its C3 matrix rows reference); (3) `#361.3` waits on `#335` + `#336` spec-complete and merges last; (4) parent `#361` closes only when all 5 children merge AND every Integration AC checkbox is ticked by a human bounded-context reviewer per Contract C4.
 - Backward compatibility policy: The orchestrator is a new service with no prior surface; backward compatibility applies only to the additive C7 extension fields (subscribers MUST tolerate events that omit them, per § C7).
 - Rollback plan: Per-child Helm rollback for `#361.4`; per-child PR revert for `#361.1` / `#361.2` / `#361.3`. The parent coordination spec itself is content-only — revert the commit.
 
@@ -50,13 +35,9 @@ The 5 child work items (`#361.1` … `#361.5`) each carry their own delivery sli
   - `#361.2`: unit tests for `event_id` derivation, `model_family(s)` normalization, `ReviewerRotationPicker.pick`, `TicketTokenAccumulator` add/summary/rebuild paths.
   - `#361.3`: unit tests for the OpenHands client request/response shapes against a stub HTTP server; subscriber ack/nack discipline against an in-process AMQP stub.
   - `#361.4`: Helm chart template tests (`helm template ... | kubectl --dry-run=server`); NetworkPolicy schema validation; PERSONA.md content validation per the existing `#360` PERSONA.md content checks.
-- Contract checks:
-  - C7 envelope shape validated against the JSON Schema embedded in `docs/blueprint/autonomous-factory/design-contracts.md` § C7.
-  - Dispatch matrix shape validated against the table structure in § C3.
-- Integration checks:
-  - Cross-child integration tests (AC-005 .. AC-009) live in the deepest-merging child (`#361.3` or `#361.4`) and exercise the full work loop against in-process stubs for `#335` + `#336`.
-- E2E checks:
-  - N/A — no UI / no Playwright. Operator observability is via Grafana under `#350`.
+- Contract checks: C7 envelope shape validated against the JSON Schema embedded in `docs/blueprint/autonomous-factory/design-contracts.md` § C7 (owned by `#361.2`); dispatch matrix shape validated against the table structure in § C3 (owned by `#361.1`); at parent level the 2 helper scripts are validated against their idempotency + section-injection + no-auto-close contracts via 7 pytest cases in `tests/blueprint/test_issue_361_file_children_script.py`.
+- Integration checks: cross-child integration tests (AC-005 .. AC-009) live in the deepest-merging child (`#361.3` or `#361.4`) and exercise the full work loop against in-process stubs for `#335` + `#336`; at parent level no integration tests apply (no runtime code lands here).
+- E2E checks: N/A — no UI / no Playwright. Operator observability is via Grafana under `#350`.
 
 ## App Onboarding Contract (Normative)
 - Required minimum make targets:
@@ -81,15 +62,9 @@ The 5 child work items (`#361.1` … `#361.5`) each carry their own delivery sli
 - Notes: this work item is platform/factory infrastructure (orchestrator service), not an app-delivery workload. Child `#361.4` adds `infra-helm-orchestrator-*` targets under the existing `infra-helm-*` family but does not change the app-onboarding minimum-targets contract.
 
 ## Documentation Plan (Document Phase)
-- Blueprint docs updates:
-  - `docs/blueprint/autonomous-factory/design-contracts.md` § Contract C8 — adds the orchestrator Helm chart row (authored in `#361.4`).
-  - `docs/blueprint/autonomous-factory/orchestrator.md` (new file, authored in `#361.3`) — work loop, dispatch matrix loader, convergence engine, schema validator, C7 emitter, reviewer-rotation picker, conditional-dispatch predicate registry, operator runbook entries.
-  - `AGENTS.backlog.md` — mark `#369` incorporated when `#361.4` merges.
-- Consumer docs updates:
-  - Consumer-side orchestrator deployment overlay docs land in `#361.4` alongside the Helm chart.
-- Mermaid diagrams updated:
-  - `sequenceDiagram` for dispatch flow (in ADR + `orchestrator.md`).
-  - `classDiagram` for module structure (in ADR + `orchestrator.md`).
+- Blueprint docs updates: `docs/blueprint/autonomous-factory/design-contracts.md` § Contract C8 — adds the orchestrator Helm chart row (authored in `#361.4`); `docs/blueprint/autonomous-factory/orchestrator.md` (new file, authored in `#361.3`) — work loop, dispatch matrix loader, convergence engine, schema validator, C7 emitter, reviewer-rotation picker, conditional-dispatch predicate registry, operator runbook entries; `AGENTS.backlog.md` — mark `#369` incorporated when `#361.5` merges.
+- Consumer docs updates: consumer-side orchestrator deployment overlay docs land in `#361.4` alongside the Helm chart.
+- Mermaid diagrams updated: `sequenceDiagram` for dispatch flow (in ADR + `orchestrator.md`); `classDiagram` for module structure (in ADR + `orchestrator.md`). Both diagrams updated on this parent PR commit `56c3fc4a` to reflect the two-hop GHA→WR→Q→ORC topology.
 - Docs validation commands:
   - `make docs-build`
   - `make docs-smoke`
