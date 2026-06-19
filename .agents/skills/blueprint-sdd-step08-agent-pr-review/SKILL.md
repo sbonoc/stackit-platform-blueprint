@@ -152,26 +152,23 @@ description: >-
 type: object
 additionalProperties: false
 required:
-  - expert_slug
   - verdict
   - findings
+oneOf:
+  - required: [expert_slug_blueprint]
+  - required: [expert_slug_extension]
 properties:
-  expert_slug:
+  expert_slug_blueprint:
     type: string
     description: >-
-      Basename of the expert persona file under .agents/personas/. The enum
-      below lists the blueprint-baseline roster locked by ADR-issue-364-expert-persona-model.md
-      § 9 (the `expert_slug_blueprint` sealed enum — currently 8 slugs, widened
-      to 9 by issue #361.5 when `usability-pragmatist` lands). This per-invocation
-      input-payload field stays single-key for orchestrator-internal handoff;
-      consumer-overlay extension experts (`expert_slug_extension` per the design-contracts.md
-      § C7 F-12 amendment 2026-06-19) are out of scope of this closed-enum schema
-      and MUST be carried via an alternative input-payload variant authored under
-      the consumer's overlay shadow of this skill rather than against the
-      blueprint-baseline shape below. The orchestrator routes whichever input
-      arrives into the correct C7 sub-enum (`expert_slug_blueprint` or
-      `expert_slug_extension`) on the emitted ExpertVerdict / ExpertVerdictSummary
-      row.
+      Blueprint-baseline expert persona slug. EXACTLY ONE OF this field OR
+      `expert_slug_extension` MUST be populated per verdict (per the oneOf
+      constraint above). The enum below lists the sealed blueprint roster
+      locked by ADR-issue-364-expert-persona-model.md § 9 — currently 8 slugs,
+      widened to 9 by issue #361.5 when `usability-pragmatist` lands. Sealed
+      under the `#339` sign-off cycle (per design-contracts.md § C7 F-12
+      amended 2026-06-19); consumer overlays MUST NOT widen this enum and MUST
+      use `expert_slug_extension` for any consumer-specific expert.
     enum:
       - product-pragmatist
       - boundary-hawk
@@ -181,6 +178,23 @@ properties:
       - operability-sre
       - documentation-discipline
       - performance-cost-aware
+  expert_slug_extension:
+    type: string
+    description: >-
+      Consumer-overlay extension expert persona slug (open string) — additive
+      per the design-contracts.md § C7 F-12 amendment 2026-06-19 to avoid the
+      per-addition `#339` sign-off cost that compounds across Epic #332's
+      remaining roadmap. EXACTLY ONE OF this field OR `expert_slug_blueprint`
+      MUST be populated per verdict (per the oneOf constraint above). The
+      orchestrator validates the value against the consumer overlay's
+      allowlist loaded from `blueprint/contract.yaml`
+      § `factory_contract.expert_panel_extensions[]` at startup. The
+      orchestrator routes whichever sub-enum is populated into the matching
+      sub-enum on the emitted C7 ExpertVerdictSummary row. Pre-amendment
+      verdicts that carry a flat `expert_slug` field MUST be tolerated by
+      the orchestrator's merge layer and treated identically to
+      `expert_slug_blueprint` when the value matches the blueprint-baseline
+      enum (backwards-compatibility rule mirroring ADR-issue-364 § 6 + § 9).
   verdict:
     type: string
     description: >-
