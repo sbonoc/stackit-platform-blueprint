@@ -159,17 +159,15 @@ properties:
   expert_slug:
     type: string
     description: >-
-      Basename of the expert persona file under .agents/personas/, drawn from
-      the 8-expert roster locked by ADR-issue-364-expert-persona-model.md.
-    enum:
-      - product-pragmatist
-      - boundary-hawk
-      - security-paranoid
-      - data-privacy
-      - test-quality-sceptic
-      - operability-sre
-      - documentation-discipline
-      - performance-cost-aware
+      Basename of the expert persona file under .agents/personas/. Drawn from
+      EITHER the blueprint baseline roster locked by ADR-issue-364-expert-persona-model.md
+      § 9 (the `expert_slug_blueprint` sealed enum, listed below — currently 8 slugs,
+      widened to 9 by issue #361.5 when `usability-pragmatist` lands) OR the consumer
+      overlay's allowlist for consumer-specific experts (the `expert_slug_extension`
+      open string from design-contracts.md § C7 F-12 amendment 2026-06-19). This
+      input-payload field stays single-key for orchestrator-internal handoff; the
+      orchestrator routes the value into the correct sub-enum on the emitted C7 row
+      based on whether it matches the blueprint baseline or the consumer overlay.
   verdict:
     type: string
     description: >-
@@ -246,8 +244,11 @@ on the C7 event:
 outcome: success
 outcome_details:
   expert_verdicts:
-    - { expert_slug: ..., verdict: ..., findings_count: 0 }
-    - { expert_slug: ..., verdict: ..., findings_count: 3 }
+    # Per ADR-issue-364 § 9 + design-contracts § C7 F-12 amendment 2026-06-19,
+    # each row carries EXACTLY ONE of `expert_slug_blueprint` (sealed enum) OR
+    # `expert_slug_extension` (consumer overlay string), never both.
+    - { expert_slug_blueprint: product-pragmatist, verdict: pass,  findings_count: 0 }
+    - { expert_slug_blueprint: boundary-hawk,      verdict: revise, findings_count: 3 }
   # Routing-key set actually used across the dispatched panel for this
   # (ticket_id, phase, rerun_round). Audit-of-record for FR-008 reviewer-
   # heterogeneity under ADR-issue-364 § 4.3 panel-disjointness.
@@ -308,7 +309,7 @@ cat > "$EXT_PAYLOAD" <<'JSON'
 {
   "outcome_details": {
     "expert_verdicts": [
-      {"expert_slug": "product-pragmatist", "verdict": "pass", "findings_count": 0}
+      {"expert_slug_blueprint": "product-pragmatist", "verdict": "pass", "findings_count": 0}
     ],
     "routing_keys": ["anthropic/claude-opus-4-7", "anthropic/claude-sonnet-4-6"]
   },

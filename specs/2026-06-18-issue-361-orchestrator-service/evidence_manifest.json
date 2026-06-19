@@ -2,12 +2,12 @@
   "manifest_version": 1,
   "work_item": "specs/2026-06-18-issue-361-orchestrator-service",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "2026-06-19T11:25:46Z",
+  "generated_at_utc": "2026-06-19T12:01:13Z",
   "files": [
     {
       "path": "specs/2026-06-18-issue-361-orchestrator-service/architecture.md",
-      "sha256": "a5ad3952be488f1e9b868fcd4d8e0723dbaafd863f9b2624e907298f9f4f5bdb",
-      "bytes": 14048
+      "sha256": "71f7e207ddb1cfc66fbbdcd36956d892332c8fbc30e3ef0928311d023ae3b41a",
+      "bytes": 14447
     },
     {
       "path": "specs/2026-06-18-issue-361-orchestrator-service/context_pack.md",
@@ -16,7 +16,7 @@
     },
     {
       "path": "specs/2026-06-18-issue-361-orchestrator-service/evidence_manifest.json",
-      "sha256": "c2ab865093de6b205baf3dd6d02dba95908b543c1e1cede2b6639bf6f1f208c9",
+      "sha256": "62a459138c68a3bcd1cb8242d800d3f2c7620ff8071110ea609d0e26e57e2242",
       "bytes": 2166
     },
     {
@@ -41,8 +41,8 @@
     },
     {
       "path": "specs/2026-06-18-issue-361-orchestrator-service/spec.md",
-      "sha256": "4917a4c0c31c6c5a6a84b9f7fa139ba76010bf92784bd2680a2af7299c9cd03b",
-      "bytes": 60685
+      "sha256": "6e33122fb80240aa3abb572b361ec975f67119bdcd09fc5dfc671951c25f57c8",
+      "bytes": 61122
     },
     {
       "path": "specs/2026-06-18-issue-361-orchestrator-service/tasks.md",

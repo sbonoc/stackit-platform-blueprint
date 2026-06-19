@@ -498,6 +498,36 @@ class AddDeferredTriggersScriptTests(unittest.TestCase):
             content,
         )
 
+        # Claude PR #372 5th-review (drift #1): the rationale text on both
+        # generated entries MUST use the canonical boundary-type label
+        # `architectural-layer: infrastructure — external-runtime clients`
+        # (per ADR-issue-337-light-decomposition-policy § Allowed boundary
+        # types) and MUST NOT carry the earlier non-canonical shorthand
+        # `layer — external-runtime clients`. Without this guard, the helper
+        # script would generate backlog entries whose boundary-type vocabulary
+        # drifts from the canonical set the policy enforces elsewhere.
+        self.assertIn(
+            "architectural-layer: infrastructure — external-runtime clients",
+            content,
+            msg=(
+                "add_deferred_triggers.sh rationale MUST use the canonical "
+                "boundary-type label `architectural-layer: infrastructure — "
+                "external-runtime clients` per ADR-issue-337 § Allowed "
+                "boundary types (Claude PR #372 5th-review drift fix #1)."
+            ),
+        )
+        self.assertNotIn(
+            "is the layer — external-runtime clients boundary",
+            content,
+            msg=(
+                "add_deferred_triggers.sh rationale MUST NOT carry the "
+                "non-canonical shorthand `layer — external-runtime clients` "
+                "(Claude PR #372 5th-review drift fix #1; canonical form is "
+                "`architectural-layer: infrastructure — external-runtime "
+                "clients` per ADR-issue-337 § Allowed boundary types)."
+            ),
+        )
+
     def test_no_deferred_trigger_rationale_auto_closes_parent(self) -> None:
         # AC-013 / FR-017 — the appended backlog text MUST embed the same
         # no-auto-close rule for the #361.3 PR the operator drafts later.

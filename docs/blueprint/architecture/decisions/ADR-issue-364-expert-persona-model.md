@@ -416,9 +416,13 @@ C7 events MAY carry an additive optional **sibling top-level object** `outcome_d
 {
   "type": "object",
   "additionalProperties": false,
-  "required": ["expert_slug", "verdict", "findings_count"],
+  "required": ["verdict", "findings_count"],
+  "oneOf": [
+    { "required": ["expert_slug_blueprint"] },
+    { "required": ["expert_slug_extension"] }
+  ],
   "properties": {
-    "expert_slug": {
+    "expert_slug_blueprint": {
       "type": "string",
       "enum": [
         "product-pragmatist",
@@ -431,11 +435,14 @@ C7 events MAY carry an additive optional **sibling top-level object** `outcome_d
         "performance-cost-aware"
       ]
     },
+    "expert_slug_extension": { "type": "string" },
     "verdict": { "type": "string", "enum": ["pass", "revise", "block"] },
     "findings_count": { "type": "integer", "minimum": 0 }
   }
 }
 ```
+
+The two-sub-enum split (`expert_slug_blueprint` sealed at the blueprint baseline + `expert_slug_extension` for consumer-overlay allowlist entries) was introduced by the F-12 amendment 2026-06-19 to `../../autonomous-factory/design-contracts.md` § C7 — see that document for the additive-extension pattern rationale. Pre-amendment events that carry a flat `expert_slug` field MUST be tolerated by ingest pipelines and treated identically to `expert_slug_blueprint` when the value matches the blueprint baseline enum (backwards-compatibility rule); post-amendment emitters MUST emit one of the two new keys.
 
 The full per-finding payload (`category`, `summary`, `evidence_ref`, `severity`) lives in workspace artifacts (referenced by the C7 event's sibling extension field `evidence_uri` — see design-contracts § C7), not inside the event itself, to keep events compact. Audit consumers can join the summary with the full payload via `(ticket_id, phase, rerun_round)` and resolve the URI when the full findings are needed.
 
