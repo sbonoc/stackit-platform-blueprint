@@ -35,7 +35,14 @@ GH_BIN="${GH_BIN:-gh}"
 PARENT_SPEC_PATH="${PARENT_SPEC_PATH:-specs/2026-06-18-issue-361-orchestrator-service/}"
 EXPECTED_REPO="${EXPECTED_REPO:-sbonoc/stackit-platform-blueprint}"
 
-LABELS="agent-ready,enhancement,infrastructure,priority:p1"
+# Per Codex P1 (PR #372 review 2026-06-19): `agent-ready` is the trigger
+# that starts factory execution per ADR-issue-337-trigger-authorization-model.
+# Children that declare blockers (#361.2/#361.4/#361.5) MUST NOT carry
+# `agent-ready` at filing time — a human applies it when blockers clear.
+# Only #361.1 (unblocked) gets `agent-ready` at filing; everyone else gets
+# the common label set without it.
+LABELS_COMMON="enhancement,infrastructure,priority:p1"
+LABELS_UNBLOCKED="${LABELS_COMMON},agent-ready"
 
 # Precondition checks — fail fast with clear stderr so the operator does not
 # silently file issues into the wrong repo or rely on swallowed gh failures.
@@ -115,6 +122,7 @@ file_child() {
   local slug="$1"
   local scope="$2"
   local body="$3"
+  local labels="$4"  # caller-supplied label set (LABELS_UNBLOCKED or LABELS_COMMON)
   local title
   local state
   title="$(child_title "$slug" "$scope")"
@@ -138,7 +146,7 @@ file_child() {
     --repo "$EXPECTED_REPO" \
     --title "$title" \
     --body "$body" \
-    --label "$LABELS"
+    --label "$labels"
 }
 
 body_361_1() {
@@ -158,6 +166,10 @@ None — #360 closed 2026-06-03, so the \`## Required Output Schema\` jsonschema
 ## Notes for intake
 
 Per parent spec § Notes for Child Intake: this child's predicate-registry mechanism MUST be exercised with fixture predicates (e.g., \`always_true\`, \`always_false\`) in this child's own test suite. Do NOT reach into #361.5 mid-implementation for the first real predicate — the dependency direction is #361.5 → #361.1, not the reverse.
+
+## Activation
+
+This child is UNBLOCKED at filing time (its only dependency, #360, is already closed). The \`agent-ready\` label is applied at filing per ADR-issue-337-trigger-authorization-model — factory execution may start immediately.
 
 ## Closing
 
@@ -182,6 +194,10 @@ C7 event envelope construction, durable-bus publisher (RabbitMQ AMQP), reviewer-
 ## Notes for intake
 
 The reviewer-rotation picker reads from the bus (queries prior \`phase: implement\` event) but the read shape is tightly coupled to the write shape (both reference \`event_id\` derivation, both filter by \`phase\`). Keep both in this child; do not extract the read adapter to #361.1 unless a second consumer of bus-reads appears.
+
+## Activation
+
+**This child is BLOCKED at filing time** — it depends on #361.1 (pure-Python core). The \`agent-ready\` label is intentionally NOT applied at filing per ADR-issue-337-trigger-authorization-model + Codex P1 review on PR #372 (applying \`agent-ready\` would let factory execution start before the dependency contract is concrete). A human operator MUST apply \`agent-ready\` to this issue manually once #361.1 has merged.
 
 ## Closing
 
@@ -211,6 +227,10 @@ Helm chart, NetworkPolicy, ESO ExternalSecret wiring, ServiceAccount. Reviewers:
 
 ESO chart shape locked at parent intake (Q-4 Option A): one \`eso.clusterSecretStoreRef\` plus three independent \`eso.secretKeyRef.{bus,openhands,litellm}\` mounted at \`/var/run/secrets/orchestrator/{bus,openhands,litellm}\`.
 
+## Activation
+
+**This child is BLOCKED at filing time** — it depends on #361.1, #361.2, and #334 (factory bot identity + ESO ClusterSecretStore). The \`agent-ready\` label is intentionally NOT applied at filing per ADR-issue-337-trigger-authorization-model + Codex P1 review on PR #372. A human operator MUST apply \`agent-ready\` to this issue manually once #361.1 AND #361.2 have merged AND #334 has reached spec-complete.
+
 ## Closing
 
 Per parent spec FR-017: the PR body for this child MUST cite parent #361 as \`Tracks #361\` (informational). It MUST NOT use any GitHub auto-close keyword targeting #361 (\`Closes\` / \`Fixes\` / \`Resolves\` / etc.). Parent close is a deliberate human action after all 5 children merge AND the Contract C4 Integration AC checkboxes are ticked — never a side-effect of a child PR merge.
@@ -239,6 +259,10 @@ Per parent spec § Notes for Child Intake: the 9-vs-8 expert-ceiling exception M
 
 Reviewers: Architecture + Product.
 
+## Activation
+
+**This child is BLOCKED at filing time** — it depends on #361.1 (predicate-registry mechanism). The \`agent-ready\` label is intentionally NOT applied at filing per ADR-issue-337-trigger-authorization-model + Codex P1 review on PR #372. A human operator MUST apply \`agent-ready\` to this issue manually once #361.1 has merged.
+
 ## Closing
 
 Per parent spec FR-017: the PR body for this child MUST cite parent #361 as \`Tracks #361\` (informational). It MUST NOT use any GitHub auto-close keyword targeting #361 (\`Closes\` / \`Fixes\` / \`Resolves\` / etc.). Parent close is a deliberate human action after all 5 children merge AND the Contract C4 Integration AC checkboxes are ticked — never a side-effect of a child PR merge.
@@ -249,10 +273,14 @@ EOF
 
 main() {
   check_preconditions
-  file_child '1' 'dispatch matrix loader + convergence engine + schema validator + predicate-registry mechanism' "$(body_361_1)"
-  file_child '2' 'C7 emitter + bus publisher + reviewer-rotation picker' "$(body_361_2)"
-  file_child '4' 'Helm chart + NetworkPolicy + ESO + ServiceAccount' "$(body_361_4)"
-  file_child '5' 'ux-ui-designer PERSONA.md + C3 matrix wiring + #369 closure' "$(body_361_5)"
+  # #361.1 is unblocked (depends only on #360 which is closed) → agent-ready at filing.
+  file_child '1' 'dispatch matrix loader + convergence engine + schema validator + predicate-registry mechanism' "$(body_361_1)" "$LABELS_UNBLOCKED"
+  # #361.2/#361.4/#361.5 declare blockers → NO agent-ready at filing.
+  # The human operator applies `agent-ready` to each child manually once its
+  # blocker chain clears (per Codex P1 review feedback on PR #372).
+  file_child '2' 'C7 emitter + bus publisher + reviewer-rotation picker' "$(body_361_2)" "$LABELS_COMMON"
+  file_child '4' 'Helm chart + NetworkPolicy + ESO + ServiceAccount' "$(body_361_4)" "$LABELS_COMMON"
+  file_child '5' 'ux-ui-designer PERSONA.md + C3 matrix wiring + #369 closure' "$(body_361_5)" "$LABELS_COMMON"
 }
 
 main "$@"

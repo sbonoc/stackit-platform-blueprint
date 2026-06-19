@@ -24,9 +24,19 @@ from tests._shared.helpers import REPO_ROOT
 
 # AC-013 — case-insensitive auto-close keyword regex targeting parent #361.
 # Matches any of: Close, Closes, Closed, Fix, Fixes, Fixed, Resolve, Resolves,
-# Resolved, immediately followed by #361 (word-boundary terminated to avoid
-# matching #361.1 / #361.2 / etc., which are child slugs, not auto-close
-# targets — GitHub itself parses "#361.1" as plain text, not an issue link).
+# Resolved, immediately followed by `#361` with a trailing word boundary.
+#
+# Word-boundary scope (per Claude review on PR #372): `\b` after `1` followed
+# by `.` IS still a word boundary (`.` is non-word), so the regex matches
+# `Closes #361.5` as well as `Closes #361`. This is the desired (strict)
+# behavior — GitHub's own autolinker also resolves `#361.5` as a link to
+# issue #361, so any form `<keyword> #361.<N>` would also auto-close `#361`
+# at merge time. The earlier version of this comment incorrectly claimed
+# GitHub treats `#361.N` as plain text; it does not — fixing the comment to
+# reflect the regex's actual (and intentionally strict) coverage.
+#
+# No body in this PR's scope pairs an auto-close keyword with any `#361.N`
+# form today; the strict regex guards future drift in either direction.
 PARENT_AUTOCLOSE_REGEX = re.compile(
     r"\b(close[ds]?|fix(?:e[ds])?|resolve[ds]?)\s+#361\b",
     re.IGNORECASE,
@@ -207,23 +217,47 @@ class FileChildrenScriptTests(unittest.TestCase):
             )
 
         # AC-010 (b) — body cites parent spec path + boundary type + FR range
+        # + Activation section (Codex P1 PR #372: blocked-vs-unblocked rule must
+        # be explicit on every child body so the operator knows whether the
+        # agent-ready label is present).
         for args in create_calls:
             body = _arg_value(args, "--body") or ""
+            title = _arg_value(args, "--title") or ""
             self.assertIn(
                 "specs/2026-06-18-issue-361-orchestrator-service/", body,
                 msg="body must cite parent spec path",
             )
             self.assertIn("**Boundary type:**", body, msg="body must label boundary type")
             self.assertIn("**FR range owned:**", body, msg="body must cite FR range")
-
-        # AC-010 (c) — four labels applied
-        for args in create_calls:
-            labels = _arg_value(args, "--label") or ""
-            self.assertEqual(
-                sorted(labels.split(",")),
-                sorted(["agent-ready", "enhancement", "infrastructure", "priority:p1"]),
-                msg=f"unexpected labels: {labels}",
+            self.assertIn(
+                "## Activation", body,
+                msg=f"body {title!r} must carry an ## Activation section",
             )
+
+        # AC-010 (c) — per-child label policy (amended per Codex P1 review of
+        # PR #372): #361.1 is unblocked and gets `agent-ready` at filing;
+        # #361.2/#361.4/#361.5 declare blockers and do NOT get `agent-ready`
+        # at filing (a human applies it manually once each blocker chain
+        # clears, per ADR-issue-337-trigger-authorization-model).
+        common_labels = sorted(["enhancement", "infrastructure", "priority:p1"])
+        unblocked_labels = sorted([*common_labels, "agent-ready"])
+        for args in create_calls:
+            title = _arg_value(args, "--title") or ""
+            labels = sorted((_arg_value(args, "--label") or "").split(","))
+            if "(Child 1 of #361)" in title:
+                self.assertEqual(
+                    labels, unblocked_labels,
+                    msg=f"#361.1 (unblocked) MUST carry agent-ready at filing; got {labels}",
+                )
+            else:
+                self.assertEqual(
+                    labels, common_labels,
+                    msg=f"blocked child {title!r} MUST NOT carry agent-ready at filing; got {labels}",
+                )
+                self.assertNotIn(
+                    "agent-ready", labels,
+                    msg=f"blocked child {title!r} MUST NOT carry agent-ready (Codex P1 PR #372)",
+                )
 
     def test_no_child_body_auto_closes_parent(self) -> None:
         # AC-013 / FR-017 — every generated child body MUST cite parent #361 as
