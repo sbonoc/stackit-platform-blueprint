@@ -16,20 +16,28 @@
   - `scripts/lib/quality/test_pyramid_contract.json` (added test classification row).
   - `artifacts/c7/2026-06-18-issue-361-orchestrator-service.jsonl` (2 C7 events: `phase: intake` + `phase: resolve-questions`).
 
-## Operator Runbook (run at parent PR merge — per FR-014 + FR-015)
+## What this PR does NOT do (read this FIRST)
 
-Per FR-017, this PR (and every subsequent child PR) cites parent `#361` with `Tracks #361` — never `Closes #361`. Parent close is a deliberate human action AFTER all 5 children merge AND every Contract C4 Integration AC checkbox on the parent issue body is ticked.
+This PR is the parent **coordination spec** for `#361`. Two side effects that one might expect — and that this PR deliberately does NOT trigger:
 
-### Preconditions (verify BEFORE running either script)
-1. **gh CLI authenticated against this repo.** Confirm with:
+- **Child GitHub issues are NOT filed by merging this PR.** The 4 child issues (logical names `#361.1`, `#361.2`, `#361.4`, `#361.5`; `#361.3` is deferred per Q-1) are filed by a human operator running `bash specs/2026-06-18-issue-361-orchestrator-service/file_children.sh` AFTER this PR is merged to `main`. The script is idempotent. Reason for the deferral: filing children during the PR would create phantom issues if the PR is abandoned, and would risk drift between mid-review FR edits and already-filed issue bodies. Filing-after-merge guarantees children cite the final, signed-off spec.
+- **Parent `#361` is NOT auto-closed by merging this PR.** Per FR-017, this PR body uses `Tracks #361` (informational only) — never `Closes #361`. Per Contract C4, parent `#361` closes only as a deliberate human action AFTER all 5 child PRs merge AND every cross-child Integration AC checkbox on the `#361` issue body is ticked by a human bounded-context reviewer.
+
+## Operator Runbook (run AFTER PR #372 merges — per FR-014 + FR-015 + T-003)
+
+The runbook below is **idempotent** end-to-end — safe to re-run if any step fails partway through. Either the human operator or any agent (with `gh` auth in the operator's session) can execute it.
+
+### Preconditions (verify BEFORE running anything)
+1. **PR #372 is merged to `main`.** Confirm with `gh pr view 372 --json state --jq .state` — must print `MERGED`.
+2. **gh CLI authenticated against this repo.** Confirm with:
    ```bash
    gh auth status
-   gh repo view --json nameWithOwner
-   # Must print: {"nameWithOwner":"sbonoc/stackit-platform-blueprint"}
+   gh repo view --json nameWithOwner --jq .nameWithOwner
+   # Must print: sbonoc/stackit-platform-blueprint
    ```
    If `gh repo view` resolves to anything else, you are in the wrong working directory — `cd` to a clone of `sbonoc/stackit-platform-blueprint` and retry. The hardened script will refuse to run otherwise (exits 2 with a clear stderr message).
-2. **GitHub labels exist on the repo.** All four labels (`agent-ready`, `enhancement`, `infrastructure`, `priority:p1`) MUST already be defined on `sbonoc/stackit-platform-blueprint`. They have been confirmed present at PR open time but verify with `gh label list --json name --jq '.[].name'` if uncertain.
-3. **`main` is checked out and up-to-date** (the parent PR has just been merged):
+3. **GitHub labels exist on the repo.** All four labels (`agent-ready`, `enhancement`, `infrastructure`, `priority:p1`) MUST already be defined on `sbonoc/stackit-platform-blueprint`. Verify with `gh label list --json name --jq '.[].name' | sort` if uncertain.
+4. **`main` is checked out and up-to-date with the merge:**
    ```bash
    git checkout main && git pull
    ```
@@ -38,24 +46,80 @@ Per FR-017, this PR (and every subsequent child PR) cites parent `#361` with `Tr
 ```bash
 bash specs/2026-06-18-issue-361-orchestrator-service/file_children.sh
 ```
-Files EXACTLY 4 issues: `#361.1`, `#361.2`, `#361.4`, `#361.5`. Does NOT file `#361.3` (Q-1 deferred). The script is idempotent — re-running creates zero duplicates (it pre-checks by exact title match via `gh issue list`). On any `gh` failure the script exits 2 without filing duplicates; investigate the error message before re-running.
+**Behavior:** files EXACTLY 4 issues — `#361.1` (dispatch core), `#361.2` (C7 emitter + bus), `#361.4` (Helm chart), `#361.5` (`ux-ui-designer` + `#369` closure). Does NOT file `#361.3` (deferred per Q-1 — see Step 2 for how `#361.3` filing is mechanically surfaced later).
 
-### Step 2 — append #361.3 deferred triggers (`add_deferred_triggers.sh`)
+**Idempotency:** script pre-checks each child by exact title match via `gh issue list`. Re-runs create zero duplicates. On any `gh` failure (stale auth, network, search index lag) the script exits 2 without filing duplicates; investigate the stderr error message before re-running.
+
+**Verification after Step 1:**
+```bash
+gh issue list --search "in:title (Child of #361)" --state open --json number,title --jq '.[] | "\(.number)  \(.title)"'
+# Expected: 4 issues, one per Child 1/2/4/5, each titled `feat(orchestrator): <scope> (Child N of #361)`
+```
+Note the assigned GitHub issue numbers — they will be sequential (e.g., #373, #374, #375, #376) and are NOT the same as the logical names `#361.1`/`#361.2`/`#361.4`/`#361.5`. The script titles each issue `... (Child N of #361)` so the mapping is unambiguous.
+
+### Step 2 — append `#361.3` deferred-filing triggers (`add_deferred_triggers.sh`)
 ```bash
 bash specs/2026-06-18-issue-361-orchestrator-service/add_deferred_triggers.sh
 git add AGENTS.backlog.md
 git commit -m "chore(2026-06-18-issue-361): append #361.3 deferred-filing triggers per FR-015"
 git push
 ```
-Injects 2 entries into `AGENTS.backlog.md` under the matching `### after: issue-335` / `### after: issue-336` subsections (creating `### after: issue-335` if absent; preserving any pre-existing entries under `### after: issue-336`). Idempotent — re-running appends zero new entries.
+**Behavior:** injects EXACTLY 2 entries into `AGENTS.backlog.md` under `### after: issue-335` / `### after: issue-336` (creating `### after: issue-335` if absent, preserving any pre-existing entries under `### after: issue-336`). Each entry instructs the future operator to file `#361.3` and cites the FR-016 `git rm` + FR-017 `Tracks #361` obligations for that future PR.
 
-### Step 3 — add Integration AC to parent #361 issue body (per T-003 + FR-013)
-Manually edit the `#361` issue body via `gh issue edit 361` to add an `## Integration Acceptance Criteria` section containing the 5 cross-child checkboxes from `spec.md` § AC-005 through AC-009. Per Contract C4, the factory bot MUST NOT tick these — only a human bounded-context reviewer.
+**Idempotency:** script greps for each entry token before injecting. Re-runs append zero new entries.
 
-### Known operator footguns (review-acknowledged)
+**Verification after Step 2:**
+```bash
+grep -c "trigger: after: issue-335" AGENTS.backlog.md  # expect: 1
+grep -c "trigger: after: issue-336" AGENTS.backlog.md  # expect: ≥1 (was 1 pre-existing from #337; now 2)
+```
+
+### Step 3 — add Integration AC to parent `#361` issue body (per T-003 + FR-013 + Contract C4)
+This step is manual (no script — `gh issue edit` body editing is too freeform for a script-level guarantee).
+
+```bash
+gh issue edit 361 --body-file - <<'EOF'
+<original issue body>
+
+## Integration Acceptance Criteria
+
+The 5 checkboxes below are only satisfiable by cross-child behavior per Contract C4. The factory bot MUST NOT tick these — only a human bounded-context reviewer. Parent #361 closes only when all 5 children merge AND every box is ticked.
+
+- [ ] AC-005 — end-to-end work-item dispatch produces all 8 expected C7 phase events (verified by T-201 in #361.3)
+- [ ] AC-006 — reviewer-rotation picker selects a heterogeneous panel (verified by T-202 in #361.3)
+- [ ] AC-007 — orchestrator deploys via Helm, runs as non-root, NetworkPolicy denies public egress (verified by T-203 in #361.4)
+- [ ] AC-008 — schema-validation failure surfaces through the #336 reject-rerun cap path (verified by T-204 in #361.3)
+- [ ] AC-009 — conditional-dispatch predicate gates `ux-ui-designer` correctly on UI vs non-UI tickets (verified by T-205 in #361.5; closes #369)
+EOF
+```
+Replace `<original issue body>` with `gh issue view 361 --json body --jq .body` output before running. (Or just edit the issue body via the GitHub UI if that is more comfortable — the only requirement is that the 5 checkbox lines land in the issue body with the exact AC-005..AC-009 ID prefixes so cross-references stay searchable.)
+
+**Verification after Step 3:**
+```bash
+gh issue view 361 --json body --jq .body | grep -c "^- \[ \] AC-00"  # expect: 5
+```
+
+### Cumulative end-state after Steps 1+2+3
+- 4 new GitHub issues exist on `sbonoc/stackit-platform-blueprint` (the children).
+- `AGENTS.backlog.md` carries 2 new entries that will mechanically surface `#361.3` filing when `#335` + `#336` reach spec-complete.
+- `#361` issue body carries the 5-checkbox Integration AC section that gates parent close.
+- `#361` itself remains OPEN — closure waits for all 5 children merged + all 5 checkboxes ticked by a human.
+
+### What happens later (not part of this runbook, captured here for context)
+- Each child runs its own SDD lifecycle (step01..step08) on its own branch and Draft PR. When a child PR merges, its `Tracks #361` keeps `#361` open.
+- When `#335` + `#336` reach spec-complete, the parked backlog entries surface `#361.3` filing — at that point a human files `#361.3` as a standalone `gh issue create` (it is NOT in `file_children.sh`'s scope) and the `#361.3` body MUST cite FR-016 + FR-017 + include `git rm` of both helper scripts in its PR diff.
+- When all 5 children's PRs are merged and a human has ticked every AC-005..AC-009 box in the `#361` issue body, the same human closes `#361` manually (`gh issue close 361`). At that point, both helper scripts have already been `git rm`ed by `#361.3`'s PR, so the parent decomposition is fully cleaned up.
+
+### Rollback (if a step fails partway through)
+- **Step 1 partial fail (e.g., 2 of 4 filed before gh outage):** simply re-run `bash file_children.sh`. Idempotency pre-check via `gh issue list` skips already-created children. Zero duplicates.
+- **Step 2 partial fail (e.g., 1 of 2 entries injected before git push failed):** re-run the bash invocation; the grep-token pre-check skips the already-injected entry and injects only the missing one. Then re-commit and re-push.
+- **Step 3 fail (e.g., wrong body uploaded):** edit again via `gh issue edit 361`. The only durable error mode is the factory bot accidentally ticking a checkbox — manually un-tick.
+- **Disaster recovery (filed wrong-repo issues):** close them manually (`gh issue close <number> --reason "not planned"`). Titles all carry `(Child N of #361)` for unambiguous identification.
+
+### Known operator footguns (review-acknowledged, mitigated)
 - The hardened scripts refuse to run if `gh repo view` does not resolve to `sbonoc/stackit-platform-blueprint`. Override via `EXPECTED_REPO=...` only if you genuinely intend to file into a different repo (e.g., a consumer fork).
-- `file_children.sh` re-run within seconds of the first run MAY find that GitHub's title-search index hasn't caught up yet. The script's exact-grep filter prevents false positives, but if duplicates somehow land, close them manually before re-running.
-- The 4 children's GitHub issue numbers (`#373`, `#374`, etc. — whatever GitHub assigns) are NOT the same as the logical names `#361.1` / `#361.2` / `#361.4` / `#361.5` used in the spec. The script titles them `... (Child N of #361)` so the mapping is explicit.
+- `file_children.sh` re-run within seconds of the first run MAY find that GitHub's title-search index hasn't caught up yet. The script's exact-grep filter on `gh issue list` output prevents false positives in the "already exists" check; if duplicates somehow land, close them manually before re-running.
+- The 4 children's assigned GitHub issue numbers (whatever GitHub assigns next) are NOT the same as the logical names `#361.1` / `#361.2` / `#361.4` / `#361.5` used throughout the spec. The script titles them `... (Child N of #361)` so the mapping is explicit; everywhere in the spec/ADR/architecture documentation the logical names are used.
 
 ## Key Reviewer Files
 - Primary files to review first:
