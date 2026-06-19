@@ -159,15 +159,24 @@ properties:
   expert_slug:
     type: string
     description: >-
-      Basename of the expert persona file under .agents/personas/. Drawn from
-      EITHER the blueprint baseline roster locked by ADR-issue-364-expert-persona-model.md
-      § 9 (the `expert_slug_blueprint` sealed enum, listed below — currently 8 slugs,
-      widened to 9 by issue #361.5 when `usability-pragmatist` lands) OR the consumer
-      overlay's allowlist for consumer-specific experts (the `expert_slug_extension`
-      open string from design-contracts.md § C7 F-12 amendment 2026-06-19). This
-      input-payload field stays single-key for orchestrator-internal handoff; the
+      Basename of the expert persona file under .agents/personas/. The enum below
+      lists the blueprint baseline roster locked by ADR-issue-364-expert-persona-model.md
+      § 9 (the `expert_slug_blueprint` sealed enum — currently 8 slugs, widened to 9
+      by issue #361.5 when `usability-pragmatist` lands). Per the design-contracts.md
+      § C7 F-12 amendment 2026-06-19, consumer overlays MAY additionally populate the
+      `expert_slug_extension` open string for consumer-specific experts; this
+      input-payload field stays single-key for orchestrator-internal handoff and the
       orchestrator routes the value into the correct sub-enum on the emitted C7 row
       based on whether it matches the blueprint baseline or the consumer overlay.
+    enum:
+      - product-pragmatist
+      - boundary-hawk
+      - security-paranoid
+      - data-privacy
+      - test-quality-sceptic
+      - operability-sre
+      - documentation-discipline
+      - performance-cost-aware
   verdict:
     type: string
     description: >-
