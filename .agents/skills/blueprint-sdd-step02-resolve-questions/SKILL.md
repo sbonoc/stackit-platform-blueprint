@@ -242,12 +242,30 @@ properties:
       type: object
       additionalProperties: false
       required:
-        - expert_slug
         - verdict
         - findings
+      oneOf:
+        - required: [expert_slug_blueprint]
+        - required: [expert_slug_extension]
       properties:
-        expert_slug:
+        expert_slug_blueprint:
           type: string
+          description: >-
+            Blueprint-baseline expert persona slug (sealed enum from
+            ADR-issue-364 § 9). EXACTLY ONE OF this field OR
+            `expert_slug_extension` MUST be populated per row (oneOf above).
+            Pre-amendment verdicts that carried a flat `expert_slug` field
+            MUST be tolerated by the orchestrator's merge layer and treated
+            identically to `expert_slug_blueprint` when the value matches the
+            blueprint-baseline enum (backwards-compatibility rule per
+            design-contracts.md § C7 F-12 amended 2026-06-19).
+        expert_slug_extension:
+          type: string
+          description: >-
+            Consumer-overlay extension expert persona slug (open string from
+            the consumer overlay's allowlist; per design-contracts.md § C7
+            F-12 amendment 2026-06-19). EXACTLY ONE OF this field OR
+            `expert_slug_blueprint` MUST be populated per row.
         verdict:
           type: string
           enum:
@@ -287,7 +305,7 @@ cat > "$EXT_PAYLOAD" <<'JSON'
 {
   "outcome_details": {
     "expert_verdicts": [
-      {"expert_slug": "data-privacy", "verdict": "pass", "findings_count": 0}
+      {"expert_slug_blueprint": "data-privacy", "verdict": "pass", "findings_count": 0}
     ]
   },
   "evidence_uri": "artifacts/c7/<work-item-slug>/resolve-questions-round-0.json"
@@ -316,7 +334,7 @@ cat > "$EXT_PAYLOAD_FLOOR" <<'JSON'
 {
   "outcome_details": {
     "expert_verdicts": [
-      {"expert_slug": "product-pragmatist", "verdict": "pass", "findings_count": 0}
+      {"expert_slug_blueprint": "product-pragmatist", "verdict": "pass", "findings_count": 0}
     ]
   },
   "evidence_uri": "artifacts/c7/<work-item-slug>/resolve-questions-round-0.json"
