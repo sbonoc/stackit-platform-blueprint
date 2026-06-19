@@ -2,7 +2,7 @@
   "manifest_version": 1,
   "work_item": "specs/2026-06-18-issue-361-orchestrator-service",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "2026-06-19T12:01:13Z",
+  "generated_at_utc": "2026-06-19T12:25:47Z",
   "files": [
     {
       "path": "specs/2026-06-18-issue-361-orchestrator-service/architecture.md",
@@ -16,7 +16,7 @@
     },
     {
       "path": "specs/2026-06-18-issue-361-orchestrator-service/evidence_manifest.json",
-      "sha256": "62a459138c68a3bcd1cb8242d800d3f2c7620ff8071110ea609d0e26e57e2242",
+      "sha256": "59afb173ef5e0bbbce94b2c9f465070dd962920471ffbd6df6c3e9586c0de353",
       "bytes": 2166
     },
     {
@@ -41,8 +41,8 @@
     },
     {
       "path": "specs/2026-06-18-issue-361-orchestrator-service/spec.md",
-      "sha256": "6e33122fb80240aa3abb572b361ec975f67119bdcd09fc5dfc671951c25f57c8",
-      "bytes": 61122
+      "sha256": "d83aa3ad116f433226db8fb2a757e6180d82b7396c30b6d28cdb64cc6e747c8d",
+      "bytes": 61567
     },
     {
       "path": "specs/2026-06-18-issue-361-orchestrator-service/tasks.md",
