@@ -249,9 +249,13 @@ body_361_5() {
 
 ## Scope
 
-\`.agents/personas/ux-ui-designer/PERSONA.md\` (6-section template per ADR-issue-364 § 3); C3 matrix wiring at step01/04/05/08 gated by the FR-012 \`has-user-facing-flow\` predicate; \`AGENTS.backlog.md\` #369 entry marked \`(incorporated: issue-361.5)\`; architecture-sign-off exception to ADR-issue-364 expert-ceiling-of-8.
+**TRIPLE-DELIVERABLE — all three MUST land atomically in this PR** (per parent spec FR-012 + § Notes for Child Intake; raised by Codex P2 on PR #372 4th-review). Omitting any of the three leaves the orchestrator runtime broken between merges:
 
-**C3 matrix schema change (per parent spec FR-012).** This child is the first to introduce a non-\`none\` predicate value, and MUST therefore extend the design-contracts.md § C3 matrix table with a 6th column \`Predicate\` (after \`Convergence mode\`). For all 8 pre-existing rows authored at \`#339\` intake, fill the new column with the literal string \`none\`. For the new \`ux-ui-designer\` rows at step01/04/05/08, fill it with the predicate identifier consumed by \`#361.1\`'s \`PredicateRegistry\` (the first predicate is \`has-user-facing-flow\`). This schema change lands in this PR alongside the matrix-row additions.
+1. \`.agents/personas/ux-ui-designer/PERSONA.md\` (6-section template per ADR-issue-364 § 3) — the PERSONA file itself.
+2. **C3 matrix schema change + matrix rows.** Extend the design-contracts.md § C3 matrix table with a 6th column \`Predicate\` (after \`Convergence mode\`); for all 8 pre-existing rows authored at \`#339\` intake, fill the new column with the literal string \`none\`; add new \`ux-ui-designer\` rows at step01/04/05/08 with the \`has-user-facing-flow\` predicate identifier consumed by \`#361.1\`'s \`PredicateRegistry\`.
+3. **C7 \`expert_slug\` enum widening (CROSS-CUTTING; the deal-breaker if omitted).** Author the paired amendment to \`docs/blueprint/autonomous-factory/design-contracts.md\` § C7 widening the sealed \`outcome_details.expert_verdicts[].expert_slug\` enum from 8 to 9 (admitting \`ux-ui-designer\`) via the \`#339\` sign-off cycle. Per design-contracts.md F-12 clarification (line 456), the enum is sealed at 8 blueprint slugs and "Widening the enum unilaterally in a consumer instance MUST be rejected by the ingest pipeline's schema validation. A consumer that requires a domain-specific expert MUST... file a blueprint amendment via the #339 sign-off cycle to add the slug to the sealed enum." Without this amendment: the orchestrator's FR-002 loader rejects the new matrix row at startup AND the C7 emitter constructs events that fail schema validation.
+
+Also mark the \`AGENTS.backlog.md\` #369 entry as \`(incorporated: issue-361.5)\` and document the architecture-sign-off exception to ADR-issue-364 expert-ceiling-of-8 (per parent § Notes for Child Intake — ADR amendment, not inline PERSONA.md front-matter prose).
 
 ## Blocked by
 
