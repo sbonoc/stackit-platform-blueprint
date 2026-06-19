@@ -315,6 +315,21 @@ Surface automatically when the named scope is next touched. Do not promote to ac
       trigger: after: issue-361
       rationale: PR #372 is a parent coordination spec — merging it does NOT (by design) file child GitHub issues, append the deferred-trigger backlog entries, or update the parent `#361` issue body. All three side effects are deliberate operator actions held until the spec is signed off and merged so children cite the final FR text and no phantom issues exist if the PR were abandoned. Without this backlog reminder the post-merge state would silently drift: spec says 5 children exist; GitHub would still show only `#361` open. See FR-014 / FR-015 / T-003 / FR-017 / Contract C4 for the binding contracts and the rationale.
 
+- [ ] (parked) proposal(issue-361-orchestrator-service): horizontal-scaling for the orchestrator pod — v1 ships `replicas: 1` (single-writer to the per-ticket token accumulator). Multi-replica with a shared per-ticket lock service is deferred until throughput needs are observed. Re-evaluate at the next backlog triage session against real-world `outcome_details.token_usage` data from the orchestrator's first months in production.
+      trigger: triage: next-session
+      stale-after: 2
+      rationale: orchestrator-scoped (NOT factory-wide); needs throughput data that does not exist until the orchestrator ships. Parked at PR #372 step07 publish triage.
+
+- [ ] (parked) proposal(issue-361-orchestrator-service): orchestrator local-cluster smoke lane — the orchestrator's runtime depends on the OpenHands Agent Server (`#335`) and RabbitMQ trigger queue (`#336`) Helm charts. Until both ship reusable Helm charts under `scripts/templates/infra/`, the orchestrator's local-cluster smoke lane cannot pull them in. Author the local-cluster smoke lane (kind-cluster fixture + an `infra-helm-orchestrator-smoke` make target under the existing `infra-helm-*` family) once both blockers are resolved.
+      trigger: after: issue-336
+      rationale: hard-blocked on `#335` + `#336` shipping their Helm charts. `after: issue-336` is the later-resolving of the two blockers; entry surfaces only when both are done. Parked at PR #372 step07 publish triage.
+
+- [x] (rejected) proposal(issue-361-orchestrator-service): promote parent #361 coordination spec to a step04 plan-slicer execution — the 5-child decomposition declared at intake is the manual equivalent of `blueprint-ticket-decompose-light`. Once that skill ships (governance authored in `#360`, runtime owned by this work item across `#361.1`..`#361.5`), the parent decomposition could in principle be replayed through the skill for symmetry-of-evidence. Rejected at PR #372 step07 publish triage 2026-06-19 — cosmetic with no new value: the decomposition outcome is identical whether authored manually or via the skill. Consciously discarded.
+
+---
+
+## Long Horizon
+
 Ideas without a delivery commitment. Promote to active only when a concrete triggering use case exists.
 
 ### Blueprint and quality tooling
