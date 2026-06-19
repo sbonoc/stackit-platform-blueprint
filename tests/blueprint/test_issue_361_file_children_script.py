@@ -228,16 +228,25 @@ class FileChildrenScriptTests(unittest.TestCase):
                 msg="body must cite parent spec path",
             )
             self.assertIn("**Boundary type:**", body, msg="body must label boundary type")
-            # Codex P2 PR #372 3rd-review: boundary type MUST be canonical per
+            # Codex P2 PR #372 3rd-review + PR #372 strategic-alignment audit
+            # 2026-06-19: boundary type MUST be canonical per
             # ADR-issue-337-light-decomposition-policy "Allowed boundary types"
             # (EXACTLY ONE OF bounded-context / architectural-layer /
-            # user-visible-feature-behavior). All 5 children use
-            # architectural-layer (single-axis decomposition; mixed-axis is
-            # FORBIDDEN by the policy).
-            self.assertIn(
-                "`architectural-layer`", body,
-                msg=f"body {title!r} must use canonical boundary type `architectural-layer`",
-            )
+            # user-visible-feature-behavior). Per the strategic-audit
+            # re-classification, the parent decomposes along TWO axes via
+            # ADR-issue-337's multi-axis exception for manually-authored
+            # parent coordination specs: #361.1/.2/.3/.4 = architectural-layer
+            # (runtime); #361.5 = bounded-context (governance/expert-panel).
+            if "(Child 5 of #361)" in title:
+                self.assertIn(
+                    "`bounded-context`", body,
+                    msg=f"body {title!r} must use canonical boundary type `bounded-context`",
+                )
+            else:
+                self.assertIn(
+                    "`architectural-layer`", body,
+                    msg=f"body {title!r} must use canonical boundary type `architectural-layer`",
+                )
             self.assertIn(
                 "**Boundary value:**", body,
                 msg=f"body {title!r} must declare a Boundary value per ADR policy",

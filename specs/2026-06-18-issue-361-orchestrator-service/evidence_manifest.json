@@ -2,12 +2,12 @@
   "manifest_version": 1,
   "work_item": "specs/2026-06-18-issue-361-orchestrator-service",
   "generated_by": "spec-evidence-manifest",
-  "generated_at_utc": "2026-06-19T10:47:37Z",
+  "generated_at_utc": "2026-06-19T11:25:46Z",
   "files": [
     {
       "path": "specs/2026-06-18-issue-361-orchestrator-service/architecture.md",
-      "sha256": "747a119b4018a9c165db74842b3c59495ff3495a6a72c8c198afbfb08d609c33",
-      "bytes": 13912
+      "sha256": "a5ad3952be488f1e9b868fcd4d8e0723dbaafd863f9b2624e907298f9f4f5bdb",
+      "bytes": 14048
     },
     {
       "path": "specs/2026-06-18-issue-361-orchestrator-service/context_pack.md",
@@ -16,33 +16,33 @@
     },
     {
       "path": "specs/2026-06-18-issue-361-orchestrator-service/evidence_manifest.json",
-      "sha256": "4f5c803aa5ca32a76f1f96cdba44f479a13af622f91b5a707f9e5fd9fb1dad3b",
-      "bytes": 2165
+      "sha256": "c2ab865093de6b205baf3dd6d02dba95908b543c1e1cede2b6639bf6f1f208c9",
+      "bytes": 2166
     },
     {
       "path": "specs/2026-06-18-issue-361-orchestrator-service/graph.json",
-      "sha256": "1720aae198d5a495a8672d73ac1d6c7b0696bf5ed08e02d7ba1aa484812f4081",
-      "bytes": 7433
+      "sha256": "c851ddabbd3db44f7715af8110c097339e533b47ddb5126b2bcce2512ba4dfdd",
+      "bytes": 7445
     },
     {
       "path": "specs/2026-06-18-issue-361-orchestrator-service/hardening_review.md",
-      "sha256": "946a90dfb77afd40edeaf28913896bd7c799d74c6ed5bd07fb5effc1ce4595c5",
-      "bytes": 6477
+      "sha256": "ab8dca11fd7d346c65913ec463cfdf6cd3c609fcc584954c316cdf2b4df2ac80",
+      "bytes": 6489
     },
     {
       "path": "specs/2026-06-18-issue-361-orchestrator-service/plan.md",
-      "sha256": "bae21966e4ba201924fb8941f9b9358b99a3fe4219b56390f389e8d33cb47857",
-      "bytes": 10781
+      "sha256": "caf041dc4f9c5392d56eece8d40f432eb8bc4594e88e8c239257cc70ec9e8747",
+      "bytes": 10787
     },
     {
       "path": "specs/2026-06-18-issue-361-orchestrator-service/pr_context.md",
-      "sha256": "076ba48b95189a5dceb88b6c4e40e734f341b341cea978ea1fd5b32bc056cbe0",
-      "bytes": 19643
+      "sha256": "d2b5532d0b986cb44a0d28ce4b7c03a25e65fd08dce250fffdfe12d9465ba955",
+      "bytes": 19655
     },
     {
       "path": "specs/2026-06-18-issue-361-orchestrator-service/spec.md",
-      "sha256": "3bedfe5707c8626fb850a79bdd31a74fe63019e82e9b79d80a3baf772c661427",
-      "bytes": 51545
+      "sha256": "4917a4c0c31c6c5a6a84b9f7fa139ba76010bf92784bd2680a2af7299c9cd03b",
+      "bytes": 60685
     },
     {
       "path": "specs/2026-06-18-issue-361-orchestrator-service/tasks.md",
@@ -51,8 +51,8 @@
     },
     {
       "path": "specs/2026-06-18-issue-361-orchestrator-service/traceability.md",
-      "sha256": "aeb204c1de9fdaa1d389efb52255e1284025920a0f88b631f7aa7fd30ff626b0",
-      "bytes": 12939
+      "sha256": "a4d6a68cfccca7f225bf9bf81ff74f4b8d5798888a98a4b53aff24bb9e56f1d6",
+      "bytes": 12963
     }
   ]
 }

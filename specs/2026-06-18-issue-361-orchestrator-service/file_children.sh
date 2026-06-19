@@ -243,8 +243,8 @@ EOF
 body_361_5() {
   cat <<EOF
 **Parent:** #361 — orchestrator service coordination spec at \`${PARENT_SPEC_PATH}\`.
-**Boundary type:** \`architectural-layer\` per ADR-issue-337-light-decomposition-policy.
-**Boundary value:** \`interface — expert-panel persona contract\` (the PERSONA.md file IS the interface contract between the SDD step — sealed actor of record per ADR-issue-364 § 2 — and the standing review-lens layer).
+**Boundary type:** \`bounded-context\` per ADR-issue-337-light-decomposition-policy (the parent decomposition uses the multi-axis exception amended 2026-06-19; this child legitimately occupies the expert-panel bounded context distinct from the orchestrator runtime).
+**Boundary value:** \`expert-panel\` (the PERSONA.md authored here IS its own bounded context per ADR-issue-364's three-layer model — distinct review surface, distinct ownership team, distinct ADR-amendment authoring contract from the orchestrator runtime children).
 **FR range owned:** FR-012 (PERSONA.md + C3 matrix wiring + #369 closure — the predicate-registry mechanism itself is in #361.1).
 
 ## Scope
