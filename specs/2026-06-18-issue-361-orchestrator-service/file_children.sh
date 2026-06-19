@@ -152,7 +152,8 @@ file_child() {
 body_361_1() {
   cat <<EOF
 **Parent:** #361 — orchestrator service coordination spec at \`${PARENT_SPEC_PATH}\`.
-**Boundary type:** layer — pure-Python core (no I/O).
+**Boundary type:** \`architectural-layer\` per ADR-issue-337-light-decomposition-policy.
+**Boundary value:** \`domain/application — pure-Python core, no I/O\`.
 **FR range owned:** FR-002 (dispatch matrix loader), FR-003 (convergence engine — 3 modes), FR-004 (schema validator), FR-012 (predicate-registry mechanism only — first predicate ships in #361.5).
 
 ## Scope
@@ -180,7 +181,8 @@ EOF
 body_361_2() {
   cat <<EOF
 **Parent:** #361 — orchestrator service coordination spec at \`${PARENT_SPEC_PATH}\`.
-**Boundary type:** layer — emission and bus integration.
+**Boundary type:** \`architectural-layer\` per ADR-issue-337-light-decomposition-policy.
+**Boundary value:** \`infrastructure — emission and bus integration\`.
 **FR range owned:** FR-005 (C7 emitter + deterministic event_id), FR-006 (additive extension fields: expert_verdicts / routing_keys / token_usage / merger_overhead / ticket_token_summary), FR-007 (reviewer-rotation picker reading prior phase: implement event).
 
 ## Scope
@@ -208,7 +210,8 @@ EOF
 body_361_4() {
   cat <<EOF
 **Parent:** #361 — orchestrator service coordination spec at \`${PARENT_SPEC_PATH}\`.
-**Boundary type:** feature — deployment surface.
+**Boundary type:** \`architectural-layer\` per ADR-issue-337-light-decomposition-policy.
+**Boundary value:** \`infrastructure — deployment surface\`.
 **FR range owned:** FR-009 (ESO-mounted credentials, no env-var injection), FR-010 (reusable Helm chart at \`scripts/templates/infra/orchestrator/\` + Contract C8 row), FR-011 (egress NetworkPolicy), NFR-SEC-001 (non-root distroless + read-only root filesystem), NFR-OPS-001 (single-replica Deployment + probes).
 
 ## Scope
@@ -240,7 +243,8 @@ EOF
 body_361_5() {
   cat <<EOF
 **Parent:** #361 — orchestrator service coordination spec at \`${PARENT_SPEC_PATH}\`.
-**Boundary type:** governance-docs — expert-panel roster addition.
+**Boundary type:** \`architectural-layer\` per ADR-issue-337-light-decomposition-policy.
+**Boundary value:** \`interface — expert-panel persona contract\` (the PERSONA.md file IS the interface contract between the SDD step — sealed actor of record per ADR-issue-364 § 2 — and the standing review-lens layer).
 **FR range owned:** FR-012 (PERSONA.md + C3 matrix wiring + #369 closure — the predicate-registry mechanism itself is in #361.1).
 
 ## Scope
