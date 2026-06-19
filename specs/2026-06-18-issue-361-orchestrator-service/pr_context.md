@@ -46,7 +46,7 @@ The runbook below is **idempotent** end-to-end — safe to re-run if any step fa
 ```bash
 bash specs/2026-06-18-issue-361-orchestrator-service/file_children.sh
 ```
-**Behavior:** files EXACTLY 4 issues — `#361.1` (dispatch core), `#361.2` (C7 emitter + bus), `#361.4` (Helm chart), `#361.5` (`ux-ui-designer` + `#369` closure). Does NOT file `#361.3` (deferred per Q-1 — see Step 2 for how `#361.3` filing is mechanically surfaced later).
+**Behavior:** files EXACTLY 4 issues — `#361.1` (dispatch core), `#361.2` (C7 emitter + bus), `#361.4` (Helm chart), `#361.5` (`usability-pragmatist` + `#369` closure). Does NOT file `#361.3` (deferred per Q-1 — see Step 2 for how `#361.3` filing is mechanically surfaced later).
 
 **Idempotency:** script pre-checks each child by exact title match via `gh issue list`. Re-runs create zero duplicates. On any `gh` failure (stale auth, network, search index lag) the script exits 2 without filing duplicates; investigate the stderr error message before re-running.
 
@@ -89,7 +89,7 @@ The 5 checkboxes below are only satisfiable by cross-child behavior per Contract
 - [ ] AC-006 — reviewer-rotation picker selects a heterogeneous panel (verified by T-202 in #361.3)
 - [ ] AC-007 — orchestrator deploys via Helm, runs as non-root, NetworkPolicy denies public egress (verified by T-203 in #361.4)
 - [ ] AC-008 — schema-validation failure surfaces through the #336 reject-rerun cap path (verified by T-204 in #361.3)
-- [ ] AC-009 — conditional-dispatch predicate gates `ux-ui-designer` correctly on UI vs non-UI tickets (verified by T-205 in #361.5; closes #369)
+- [ ] AC-009 — conditional-dispatch predicate gates `usability-pragmatist` correctly on UI vs non-UI tickets (verified by T-205 in #361.5; closes #369)
 EOF
 ```
 Replace `<original issue body>` with `gh issue view 361 --json body --jq .body` output before running. (Or just edit the issue body via the GitHub UI if that is more comfortable — the only requirement is that the 5 checkbox lines land in the issue body with the exact AC-005..AC-009 ID prefixes so cross-references stay searchable.)

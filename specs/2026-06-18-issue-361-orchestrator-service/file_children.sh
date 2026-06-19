@@ -251,9 +251,9 @@ body_361_5() {
 
 **TRIPLE-DELIVERABLE — all three MUST land atomically in this PR** (per parent spec FR-012 + § Notes for Child Intake; raised by Codex P2 on PR #372 4th-review). Omitting any of the three leaves the orchestrator runtime broken between merges:
 
-1. \`.agents/personas/ux-ui-designer/PERSONA.md\` (6-section template per ADR-issue-364 § 3) — the PERSONA file itself.
-2. **C3 matrix schema change + matrix rows.** Extend the design-contracts.md § C3 matrix table with a 6th column \`Predicate\` (after \`Convergence mode\`); for all 8 pre-existing rows authored at \`#339\` intake, fill the new column with the literal string \`none\`; add new \`ux-ui-designer\` rows at step01/04/05/08 with the \`has-user-facing-flow\` predicate identifier consumed by \`#361.1\`'s \`PredicateRegistry\`.
-3. **C7 \`expert_slug\` enum widening (CROSS-CUTTING; the deal-breaker if omitted).** Author the paired amendment to \`docs/blueprint/autonomous-factory/design-contracts.md\` § C7 widening the sealed \`outcome_details.expert_verdicts[].expert_slug\` enum from 8 to 9 (admitting \`ux-ui-designer\`) via the \`#339\` sign-off cycle. Per design-contracts.md F-12 clarification (line 456), the enum is sealed at 8 blueprint slugs and "Widening the enum unilaterally in a consumer instance MUST be rejected by the ingest pipeline's schema validation. A consumer that requires a domain-specific expert MUST... file a blueprint amendment via the #339 sign-off cycle to add the slug to the sealed enum." Without this amendment: the orchestrator's FR-002 loader rejects the new matrix row at startup AND the C7 emitter constructs events that fail schema validation.
+1. \`.agents/personas/usability-pragmatist/PERSONA.md\` (6-section template per ADR-issue-364 § 3) — the PERSONA file itself.
+2. **C3 matrix schema change + matrix rows.** Extend the design-contracts.md § C3 matrix table with a 6th column \`Predicate\` (after \`Convergence mode\`); for all 8 pre-existing rows authored at \`#339\` intake, fill the new column with the literal string \`none\`; add new \`usability-pragmatist\` rows at step01/04/05/08 with the \`has-user-facing-flow\` predicate identifier consumed by \`#361.1\`'s \`PredicateRegistry\`.
+3. **C7 \`expert_slug\` enum widening (CROSS-CUTTING; the deal-breaker if omitted).** Author the paired amendment to \`docs/blueprint/autonomous-factory/design-contracts.md\` § C7 widening the sealed \`outcome_details.expert_verdicts[].expert_slug\` enum from 8 to 9 (admitting \`usability-pragmatist\`) via the \`#339\` sign-off cycle. Per design-contracts.md F-12 clarification (line 456), the enum is sealed at 8 blueprint slugs and "Widening the enum unilaterally in a consumer instance MUST be rejected by the ingest pipeline's schema validation. A consumer that requires a domain-specific expert MUST... file a blueprint amendment via the #339 sign-off cycle to add the slug to the sealed enum." Without this amendment: the orchestrator's FR-002 loader rejects the new matrix row at startup AND the C7 emitter constructs events that fail schema validation.
 
 Also mark the \`AGENTS.backlog.md\` #369 entry as \`(incorporated: issue-361.5)\` and document the architecture-sign-off exception to ADR-issue-364 expert-ceiling-of-8 (per parent § Notes for Child Intake — ADR amendment, not inline PERSONA.md front-matter prose).
 
@@ -263,7 +263,7 @@ Also mark the \`AGENTS.backlog.md\` #369 entry as \`(incorporated: issue-361.5)\
 
 ## Notes for intake
 
-Per parent spec § Notes for Child Intake: the 9-vs-8 expert-ceiling exception MUST be authored as an ADR amendment, NOT informal PERSONA.md front-matter prose. Choose EXACTLY ONE OF: (a) a \`Status: amended\` note on \`ADR-issue-364-expert-persona-model.md\` with an Amendments section, OR (b) a new narrowly-scoped \`ADR-issue-361.5-ux-ui-designer-ceiling-exception.md\`. The PERSONA.md front-matter cites the chosen ADR by path; the ADR carries the normative rationale.
+Per parent spec § Notes for Child Intake: the 9-vs-8 expert-ceiling exception MUST be authored as an ADR amendment, NOT informal PERSONA.md front-matter prose. Choose EXACTLY ONE OF: (a) a \`Status: amended\` note on \`ADR-issue-364-expert-persona-model.md\` with an Amendments section, OR (b) a new narrowly-scoped \`ADR-issue-361.5-usability-pragmatist-ceiling-exception.md\`. The PERSONA.md front-matter cites the chosen ADR by path; the ADR carries the normative rationale.
 
 Reviewers: Architecture + Product.
 
@@ -275,7 +275,7 @@ Reviewers: Architecture + Product.
 
 Per parent spec FR-017: the PR body for this child MUST cite parent #361 as \`Tracks #361\` (informational). It MUST NOT use any GitHub auto-close keyword targeting #361 (\`Closes\` / \`Fixes\` / \`Resolves\` / etc.). Parent close is a deliberate human action after all 5 children merge AND the Contract C4 Integration AC checkboxes are ticked — never a side-effect of a child PR merge.
 
-The #361.5 PR body MUST include the literal line \`Closes #369\` — this is the SINGLE permitted auto-close keyword in the entire #361 decomposition. #369 is a different issue (the ux-ui-designer expert addition tracked in AGENTS.backlog.md) that this child legitimately resolves. Omitting \`Closes #369\` leaves #369 open after merge — a known failure mode flagged at parent intake. The corresponding AGENTS.backlog entry MUST be marked \`(incorporated: issue-361.5)\` in the same PR.
+The #361.5 PR body MUST include the literal line \`Closes #369\` — this is the SINGLE permitted auto-close keyword in the entire #361 decomposition. #369 is a different issue (the usability-pragmatist expert addition tracked in AGENTS.backlog.md) that this child legitimately resolves. Omitting \`Closes #369\` leaves #369 open after merge — a known failure mode flagged at parent intake. The corresponding AGENTS.backlog entry MUST be marked \`(incorporated: issue-361.5)\` in the same PR.
 EOF
 }
 
@@ -288,7 +288,7 @@ main() {
   # blocker chain clears (per Codex P1 review feedback on PR #372).
   file_child '2' 'C7 emitter + bus publisher + reviewer-rotation picker' "$(body_361_2)" "$LABELS_COMMON"
   file_child '4' 'Helm chart + NetworkPolicy + ESO + ServiceAccount' "$(body_361_4)" "$LABELS_COMMON"
-  file_child '5' 'ux-ui-designer PERSONA.md + C3 matrix wiring + #369 closure' "$(body_361_5)" "$LABELS_COMMON"
+  file_child '5' 'usability-pragmatist PERSONA.md + C3 matrix wiring + #369 closure' "$(body_361_5)" "$LABELS_COMMON"
 }
 
 main "$@"

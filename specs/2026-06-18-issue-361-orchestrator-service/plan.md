@@ -88,6 +88,6 @@ The 5 child work items (`#361.1` … `#361.5`) each carry their own delivery sli
 
 ## Risks and Mitigations
 - Risk 1 -> mitigation: `#335` / `#336` server-contract drift between intake and `#361.3` start. Mitigation: Q-1 sequences `#361.3` filing after `#335` + `#336` spec-complete; parent integration AC (AC-005) is the cross-child gate that catches drift.
-- Risk 2 -> mitigation: `ux-ui-designer` expert raises the standing roster to 9 against the ADR-issue-364 ceiling of 8. Mitigation: FR-012 conditional-dispatch predicate gates the expert; architecture sign-off is the human approval surface for the ceiling exception.
+- Risk 2 -> mitigation: `usability-pragmatist` expert raises the standing roster to 9 against the ADR-issue-364 ceiling of 8. Mitigation: FR-012 conditional-dispatch predicate gates the expert; architecture sign-off is the human approval surface for the ceiling exception.
 - Risk 3 -> mitigation: At-least-once trigger delivery duplicates dispatches. Mitigation: deterministic `event_id = sha256(ticket_id|phase|rerun_round|emitter)` collapses duplicates at the bus; tested in AC-004.
 - Risk 4 -> mitigation: Schema-validation false positives during early skill iteration. Mitigation: validation failure surfaces through the `#336` reject-rerun cap (AC-008); the reject signal is a fast-feedback loop into skill authoring.
