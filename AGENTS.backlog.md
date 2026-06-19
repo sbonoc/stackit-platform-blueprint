@@ -309,9 +309,11 @@ Surface automatically when the named scope is next touched. Do not promote to ac
       trigger: after: issue-336
       rationale: NFR-SEC-001 dependency — the receiver is an internet-exposed authenticated endpoint and its auth surface MUST be pinned before #336 ships any code. Raised on PR #372 (parent intake of #361 orchestrator); orchestrator is downstream subscriber on RabbitMQ and never touches the receiver's auth surface, so the decision belongs squarely to #336's scope. ESO-managed secret pattern aligns with #312 observability-csi-hardening and #334 factory-bot-identity precedents. See PR #372 conversation for the investigation that drove these recommendations.
 
----
+### after: issue-361
 
-## Long Horizon
+- [ ] (parked) execute #361 parent-merge operator runbook — file 4 child issues (`#361.1` + `#361.2` + `#361.4` + `#361.5`) via `bash specs/2026-06-18-issue-361-orchestrator-service/file_children.sh`; append `#361.3` deferred-filing triggers via `bash specs/2026-06-18-issue-361-orchestrator-service/add_deferred_triggers.sh`; manually add the 5-checkbox `## Integration Acceptance Criteria` section to the `#361` issue body (per T-003 + FR-013 + Contract C4). Canonical runbook with per-step verification + rollback: `specs/2026-06-18-issue-361-orchestrator-service/pr_context.md § Operator Runbook`. Both scripts are idempotent; either the human operator or any agent with `gh` auth can execute the runbook end-to-end. Mark this entry `(done)` after Steps 1+2+3 complete.
+      trigger: after: issue-361
+      rationale: PR #372 is a parent coordination spec — merging it does NOT (by design) file child GitHub issues, append the deferred-trigger backlog entries, or update the parent `#361` issue body. All three side effects are deliberate operator actions held until the spec is signed off and merged so children cite the final FR text and no phantom issues exist if the PR were abandoned. Without this backlog reminder the post-merge state would silently drift: spec says 5 children exist; GitHub would still show only `#361` open. See FR-014 / FR-015 / T-003 / FR-017 / Contract C4 for the binding contracts and the rationale.
 
 Ideas without a delivery commitment. Promote to active only when a concrete triggering use case exists.
 
