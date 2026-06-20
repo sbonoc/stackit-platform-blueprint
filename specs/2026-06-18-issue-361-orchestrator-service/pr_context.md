@@ -61,7 +61,17 @@ Note the assigned GitHub issue numbers — they will be sequential (e.g., #373, 
 ```bash
 bash specs/2026-06-18-issue-361-orchestrator-service/add_deferred_triggers.sh
 git add AGENTS.backlog.md
-git commit -m "chore(2026-06-18-issue-361): append #361.3 deferred-filing triggers per FR-015"
+# Guard the commit on actual staged changes. add_deferred_triggers.sh is
+# idempotent (token-presence pre-check), so a re-run after a successful
+# first run is a no-op AND leaves nothing staged. Without this guard, a
+# retry that lands after a previous commit succeeded but `git push` failed
+# would fail with `nothing to commit` on the second commit attempt and a
+# set-e/scripted re-run would never reach `git push`. With the guard, the
+# retry skips the redundant commit and proceeds to push the existing
+# commit (per PR #372 9th-review Codex P2-2 retry-safety fix).
+if ! git diff --cached --quiet; then
+  git commit -m "chore(2026-06-18-issue-361): append #361.3 deferred-filing triggers per FR-015"
+fi
 git push
 ```
 **Behavior:** injects EXACTLY 2 entries into `AGENTS.backlog.md` under `### after: issue-335` / `### after: issue-336` (creating `### after: issue-335` if absent, preserving any pre-existing entries under `### after: issue-336`). Each entry instructs the future operator to file `#361.3` and cites the FR-016 `git rm` + FR-017 `Tracks #361` obligations for that future PR.

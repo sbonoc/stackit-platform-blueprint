@@ -72,17 +72,37 @@ properties:
     type: array
     description: >-
       Per-expert verdict and findings array merged from the step08 panel
-      invocations, keyed by expert_slug per ADR-issue-364 § 6.
+      invocations, keyed by expert_slug per ADR-issue-364 § 6 (two-sub-enum
+      form per the F-12 amendment 2026-06-19 — EXACTLY ONE OF
+      `expert_slug_blueprint` OR `expert_slug_extension` per row).
     items:
       type: object
       additionalProperties: false
       required:
-        - expert_slug
         - verdict
         - findings
+      oneOf:
+        - required: [expert_slug_blueprint]
+        - required: [expert_slug_extension]
       properties:
-        expert_slug:
+        expert_slug_blueprint:
           type: string
+          description: >-
+            Blueprint-baseline expert persona slug (sealed enum from
+            ADR-issue-364 § 9). EXACTLY ONE OF this field OR
+            `expert_slug_extension` MUST be populated per row (oneOf above).
+            Pre-amendment verdicts that carried a flat `expert_slug` field
+            MUST be tolerated by this packager and treated identically to
+            `expert_slug_blueprint` when the value matches the
+            blueprint-baseline enum (backwards-compatibility rule per
+            design-contracts.md § C7 F-12 amended 2026-06-19).
+        expert_slug_extension:
+          type: string
+          description: >-
+            Consumer-overlay extension expert persona slug (open string from
+            the consumer overlay's allowlist; per design-contracts.md § C7
+            F-12 amendment 2026-06-19). EXACTLY ONE OF this field OR
+            `expert_slug_blueprint` MUST be populated per row.
         verdict:
           type: string
           enum:
@@ -122,14 +142,29 @@ properties:
       type: object
       additionalProperties: false
       required:
-        - expert_slug
         - finding_id
         - file
         - line
         - description
+      oneOf:
+        - required: [expert_slug_blueprint]
+        - required: [expert_slug_extension]
       properties:
-        expert_slug:
+        expert_slug_blueprint:
           type: string
+          description: >-
+            Blueprint-baseline expert persona slug (sealed enum from
+            ADR-issue-364 § 9) — provenance of the finding. EXACTLY ONE OF
+            this field OR `expert_slug_extension` MUST be populated per row
+            (oneOf above). Pre-amendment findings that carried a flat
+            `expert_slug` field MUST be tolerated by this packager.
+        expert_slug_extension:
+          type: string
+          description: >-
+            Consumer-overlay extension expert persona slug (open string;
+            per design-contracts.md § C7 F-12 amendment 2026-06-19) —
+            provenance of the finding. EXACTLY ONE OF this field OR
+            `expert_slug_blueprint` MUST be populated per row.
         finding_id:
           type: string
         file:
