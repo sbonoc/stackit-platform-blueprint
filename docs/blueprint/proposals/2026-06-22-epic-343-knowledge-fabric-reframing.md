@@ -1,14 +1,19 @@
 ---
 id: proposal-2026-06-22-epic-343-knowledge-fabric-reframing
 title: "Reframe Epic #343 as Enterprise Knowledge Fabric"
-status: parked-future
+status: strawman-for-evaluation
 date: 2026-06-22
 owner_team: "@sbonoc/factory-architecture"
 related_epic: "#343"
 related_backlog_entry: "AGENTS.backlog.md § P1 — Next Up → FUTURE (Factory — Epic #343 reframing, ...)"
 supersedes: none
 superseded_by: none
+revisions:
+  - "v1 (this doc, body above the addendum) — initial strawman drafted 2026-06-22 from user-supplied brief"
+  - "v1-addendum (this doc, § Addendum 2026-06-22) — adversarial revisions same day after deeper challenge; demotes 6 load-bearing decisions to hypotheses; parks evidence-gate work"
 ---
+
+> **Status: `strawman-for-evaluation`, not a ratified decision.** This document captures a strategic DIRECTION proposed 2026-06-22 based on a user-supplied brief, plus same-day adversarial revisions in the addendum at the bottom. It is NOT a ratified architectural decision and MUST NOT be treated as one. Three of the v1 body's load-bearing decisions (Knowledge Compiler as a singular component, federation as a Phase-1 seam, MCP as a singular access layer) and one premise (that we have evidence "memory and reasoning" are factory bottlenecks) are demoted to hypotheses to validate via the evidence-gate work parked under `AGENTS.backlog.md § on-scope: quality`. Read the **§ Addendum (2026-06-22, same day) — Adversarial revisions** at the bottom before relying on any architectural claim in the body above it.
 
 # Strategic decision — reframe Epic #343 as Enterprise Knowledge Fabric
 
@@ -244,3 +249,109 @@ The C7 schema does NOT need to change to support Knowledge Objects. The Compiler
 - **Strategic decision recorded by:** Claude (Opus 4.7) under user (sbonoc) authorization, 2026-06-22. Reviewed by user before file creation.
 - **Motivated by Codex P2 review on PR #377:** Codex pointed out that the parked backlog entry referenced only agent-local memory and was not self-contained for future operators. This proposal doc closes that gap.
 - **Related backlog entry:** `AGENTS.backlog.md` § P1 — Next Up → `FUTURE (Factory — Epic #343 reframing, blocked_by: Epic #332 100% stable + Epic #343 promotion)`.
+
+---
+
+## Addendum (2026-06-22, same day) — Adversarial revisions
+
+Same day as the v1 body above was authored, an adversarial review surfaced that the v1 architecture is **structurally sound but architecturally over-committed for its evidence base**. Three load-bearing v1 decisions (Knowledge Compiler as a singular first-class component, federation as a Phase-1 seam, MCP as a singular access layer) and one premise (we have evidence that "memory and reasoning" are factory bottlenecks) are demoted from "decided" to "hypothesis to validate via Phase-0 evidence gate." One v1 decision (LLM-Wiki as projection pattern) survives the challenge unchanged. One entirely new direction (bifurcated architecture: SDD specs ARE Knowledge Objects, no separate envelope needed for human-curated sources) is added.
+
+The v1 body above is RETAINED VERBATIM for audit / decision-trail fidelity. The revisions below SUPERSEDE the v1 body for any future intake author — read this addendum FIRST when picking up the reframing work.
+
+### Six revisions vs. v1
+
+#### Revision 1 — Drop "Knowledge Compiler" as a singular first-class component; bifurcate by source-type
+
+**v1 framing:** one "Knowledge Compiler" Brain-side component that does entity extraction + relationship extraction + ownership resolution + provenance + ACL + freshness + confidence scoring for ALL sources uniformly.
+
+**Why this fails adversarial review:** the framing bundles wildly different concerns (LLM-based extraction vs. deterministic policy lookup) that run on wildly different infrastructure. It also commits to "confidence scoring" as a first-class concept before we know whether calibrated confidence is achievable on our actual artifact stream — every KG paper that promises this either hand-tunes a brittle heuristic, generates uncorrelated LLM numbers, or requires labeled training data we don't have.
+
+**v2 direction:** split into TWO components by source-type. Human-curated sources (SDD specs, ADRs, traceability matrices, evidence manifests) flow through an **SDD Indexer** — a tiny Python helper that parses existing front-matter + cross-references; NO extraction, NO confidence scoring, runs on git push hooks. Machine-generated sources (C7 events, GitHub events, Grafana incidents, Sentry incidents, Confluence) flow through a **Telemetry Compiler** — built on LlamaIndex or equivalent open-source ingestion framework; DOES do extraction, ACL attachment, freshness calculation; this is where the original "Compiler" concept earns its keep because the source lacks human curation.
+
+Bifurcation cost: the graph schema isn't perfectly uniform across sources (SDD-sourced nodes have different metadata than C7-sourced nodes). Some cross-source query patterns become awkward. **Accepted cost** — the alternative (force uniform schema by adding extraction friction over already-validated sources) is worse: it introduces hallucination risk, freshness lag, provenance dilution, and re-validation theater on artifacts humans already signed off.
+
+#### Revision 2 — Drop "Contract C9 — Knowledge Projection Contract" as a single contract; split it
+
+**v1 framing:** new Contract C9 — Knowledge Projection Contract that all sources project through.
+
+**Why this fails adversarial review:** see Revision 1. C9 inherits the same one-size-fits-all problem.
+
+**v2 direction:** split into TWO contracts.
+- **Tiny C2 extension** for human-curated sources — add `acl_scope` (default `owner_team`) and optionally `confidence` (default `human-curated: 1.0`) to SDD front-matter. Maybe 3 new optional fields. C2 stays the contract; the front-matter just gets richer.
+- **New C9 — Telemetry & External-Source Projection Contract** — only required for telemetry/external-source projections. Carries the original v1 C9 fields (artifact_id, artifact_kind, owner_team, bounded_context, schema_version, source_uri, source_commit, confidence, freshness, acl_scope) but ONLY for sources that lack human curation.
+
+#### Revision 3 — SDD specs ARE the Knowledge Objects (no new envelope for human-curated sources)
+
+**v1 framing:** every important artifact is transformed into a separate Knowledge Object envelope.
+
+**Why this fails adversarial review:** SDD specs are the only artifact in this system that has been read, edited, debated, and signed off by humans through the SDD HITL gate (draft PR review → merge). Every downstream transformation introduces hallucination risk, freshness lag, provenance dilution, and re-validation theater. The benefit a separate envelope gains (machine-friendly schema for cross-source unification) is REAL for telemetry/external sources but NOT real for SDD specs, which already have a curated home with strong front-matter.
+
+**v2 direction:** for SDD specs / ADRs / traceability matrices / evidence manifests, the artifact IS the Knowledge Object. SDD Indexer (per Revision 1) parses what's already there into graph-loadable form. Once a spec is merged through SDD review, it's authoritative; the Brain consumes it as-is. The "C9 as ingestion contract" framing folds into a small C2 front-matter extension (per Revision 2). For telemetry/external sources, the separate KO envelope earns its keep — they have no human-curation gate, so the new C9 contract + the Telemetry Compiler do the curation work.
+
+#### Revision 4 — Demote LLM-Wiki to Phase 5+ exploratory (not in MVP)
+
+**v1 framing:** LLM-Wiki listed in the recommended architecture as a primary view layer rendered from Knowledge Objects, with examples (service pages, team pages, capability pages, etc.).
+
+**Why this fails adversarial review:** all of v1's example pages already exist in some form (GitHub repo tree, CODEOWNERS, Grafana dashboards, ADR directory, Mermaid diagrams in specs, Sentry incident history, git log). LLM-Wiki re-renders them through a generative layer that adds hallucination risk + freshness lag in exchange for unclear benefit. Worse, v1's own "LLM-Wiki is NOT authoritative" rule defeats most LLM-Wiki use cases — if a reader has to verify against canonical sources anyway, the rendered view is negative value. Every "smart docs portal" effort I've observed (Confluence, custom Backstage wikis, internal portals) hits the same wall: nobody uses it because they don't trust it.
+
+**v2 direction:** drop LLM-Wiki from the MVP architecture entirely. Hold as Phase 5+ exploratory work, picked up ONLY IF at least one human user complains that graph traversal + vector search are insufficient. If that complaint never materializes, LLM-Wiki was never needed and the architecture stays smaller forever.
+
+#### Revision 5 — Demote federation to Phase 5+ (single-tenant MVP)
+
+**v1 framing:** every KO carries `owner_team` + `bounded_context` as a Phase-1 federation seam; Phase-5+ promotion to physical sharding.
+
+**Why this fails adversarial review:** STACKIT has ~1 multi-team customer of this system today. Federation is solving an N=many problem at N=1. Additionally, `bounded_context` is NEW load-bearing metadata that requires per-artifact judgment — recall how long the #361.5 decomposition argued over whether the boundary type was `bounded-context: expert-panel` or `architectural-layer: interface`. That argument scales O(N²) across teams. The "logical-then-physical federation" pattern is a well-known lie: once teams know their namespace exists, they accrete team-local extensions and resist later moves, turning the Phase-5 transition into a 6-month migration project even though it was "just labels."
+
+**v2 direction:** build single-tenant, single-namespace MVP. Add the federation seam only when N≥2 real consumers create a real ownership conflict. `owner_team` stays (it's already in C5/C6/C7 — free copying). `bounded_context` does NOT become a Knowledge Object required field.
+
+#### Revision 6 — Replace "MCP Layer" with "Access Layer (multi-protocol)"
+
+**v1 framing:** MCP Layer as the singular access surface for Factory Bots + Humans.
+
+**Why this fails adversarial review:** MCP is ~14 months old, immature, and primarily targets the Claude/Anthropic ecosystem. Pinning the Brain's long-term access surface to MCP couples our sovereignty-required platform to one vendor's protocol evolution. Additionally, MCP doesn't help human users (who need a web UI), and the factory agents already speak OpenHands' tool-use protocol. MCP is one implementation option, not an architecture.
+
+**v2 direction:** replace "MCP Layer" with "Access Layer" — likely 2–3 protocols in practice (HTTP/GraphQL for human-facing surfaces + tool-use protocol for agents + raw graph/vector query for power users). MCP becomes one implementation candidate alongside others; the choice is made at intake time based on what the agent runtime (OpenHands) supports natively.
+
+### Phase 0 evidence gate (BEFORE Epic #343 is promoted to active backlog)
+
+The reframing intake MUST NOT be the first work item under a promoted Epic #343. The first work item is an **evidence-gating spike** with the following exit criteria:
+
+1. **Three instrumentation tasks** (cheap; cost nothing to keep running once shipped):
+   - **Re-litigation proxy** — for each new SDD spec, run the spec's bigram set against bigrams in every prior merged spec/ADR (algorithm already documented in ADR-issue-364 § 4.2 for the dispatch matrix). Report overlap %. Run against the last 6 months of merged specs as backfill. **Promotion criterion:** if ≥ 30% of new specs have ≥ 30% overlap with prior decisions, re-litigation is a real problem worth solving.
+   - **Cross-reference distance** — for each merged PR, count the average directory traversals required to reach related decisions via repo grep. **Promotion criterion:** if average > 4 directories AND human navigation friction is reported anecdotally, navigation friction is real.
+   - **"Didn't know that existed" rate** — step03 sign-off survey adds one yes/no question: *"While drafting, did you find a prior decision you weren't aware of that changed your approach?"* **Promotion criterion:** if YES rate > 30% over 4 weeks of merged specs, awareness gap is real.
+
+2. **Backstage 1-week spike** — feed our actual SDD artifacts + C7 events + service catalog into a self-hosted Backstage instance on STACKIT SKE. Evaluate: service catalog fitness, TechDocs ingest, plugin maturity, integration cost. **Promotion criterion:** if ≥ 70% feature parity with the v1 vision is achievable in ≤ 2 weeks of integration work, adopt Backstage; otherwise revisit.
+
+3. **Spec-as-KO vs. separate-KO 1-week spike** — implement BOTH approaches against a fixed set of 5 real merged specs. Compare query patterns, freshness behavior, schema friction, and the "no second HITL gate" property. **Promotion criterion:** pick the approach with cleaner end-to-end behavior, NOT first-principles aesthetics.
+
+If ≥ 2 of the 3 instrumentation signals show real friction AND the Backstage spike shows acceptable parity AND the spec-as-KO spike confirms the bifurcated direction, the Brain investment is justified by current data and a v2 reframing intake is filed. Otherwise the Brain stays Draft and the proposal is revisited only when conditions change.
+
+### Concrete vendors / open-source components (sovereignty-respecting)
+
+After retracting the v1 build-vs-buy framing (which reached for proprietary alternatives like Sourcegraph Cody Enterprise + Glean that fail the sovereignty test), the actual reachable open-source stack is:
+
+| Concern | Component | License / Sovereignty |
+|---|---|---|
+| Service catalog + TechDocs + human-facing surface | **Backstage** (CNCF-incubated) | Apache 2.0, self-hostable on STACKIT SKE |
+| Graph storage | **Apache AGE on STACKIT-managed Postgres** | Apache 2.0, already in #343 Phase 0 candidate list |
+| Vector storage | **pgvector on STACKIT-managed Postgres** | PostgreSQL License, already in #343 Phase 0 candidate list |
+| Ingestion pipeline (telemetry sources only) | **LlamaIndex** | MIT, self-hostable, integrates with multiple LLMs |
+| LLM-workflow observability | **LangFuse** | MIT, self-hostable on STACKIT SKE |
+| Agent-facing access | **MCP server** (one of multiple Access Layer protocols) | Open spec, multiple implementations |
+| Human-facing access | **Backstage UI + GraphQL plugin** | Apache 2.0 |
+
+This stack reduces the custom-code surface to: (a) SDD Indexer (tiny Python helper), (b) Telemetry source connectors (one per source), (c) Backstage plugin for STACKIT-specific surfaces. Approximate MVP scope: **2–3 months for one engineer**, NOT 12 months for a team.
+
+### What this addendum does NOT do
+
+- **Does NOT remove the v1 body.** v1 stays for audit / decision-trail fidelity.
+- **Does NOT lock the v2 direction either.** v2 is still under evidence gate. The Phase-0 spike results may further revise.
+- **Does NOT amend the related backlog entry to v2 vocabulary.** That happens at Phase-0 completion, in the v2 reframing intake's own PR.
+- **Does NOT commit to Backstage adoption.** Backstage is one option that scored well in adversarial evaluation; the 1-week spike is the decision point.
+
+### Provenance for this addendum
+
+- **Adversarial review surfaced by:** user (sbonoc) explicitly requesting Claude (Opus 4.7) to "adopt an adversarial view" on the v1 body, 2026-06-22 same-day session.
+- **Six revisions ratified by:** user (sbonoc) responses to Question A (instrumentation), Question B (open-source vendor list), Question C (spec-as-KO is the right unit). Same-day session.
+- **No external brief amendment.** The user-supplied source brief is unchanged; the v2 direction is the project's own evolution of v1 after deeper challenge.
