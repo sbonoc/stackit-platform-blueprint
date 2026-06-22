@@ -237,7 +237,7 @@ The C7 schema does NOT need to change to support Knowledge Objects. The Compiler
 
 1. Confirm Epic #343 is being promoted from Draft to active backlog (or the user explicitly authorizes the reframing intake before promotion).
 2. Read this document end-to-end before drafting the intake.
-3. `make spec-scaffold SPEC_SLUG=YYYY-MM-DD-epic-343-knowledge-fabric-reframing`.
+3. `make spec-scaffold SPEC_SLUG=epic-343-knowledge-fabric-reframing` (the make target prepends the current date itself per `make help spec-scaffold` — pass the slug WITHOUT a date prefix to avoid the `specs/<date>-<date>-...` duplication that a literal date prefix would produce; use the optional `SPEC_DATE=<YYYY-MM-DD>` env var only if a non-default date is needed).
 4. Author the spec with FRs that introduce exactly four concepts: Knowledge Objects (C9), Knowledge Compiler, LLM-Wiki, federation principle. Do NOT re-litigate Phase 0 decisions already locked in `#343`'s issue body.
 5. Author the Contract C9 amendment to `design-contracts.md` — additive only (does NOT amend C2 or C7).
 6. Author ADRs for the three soft tensions in this document (federation phasing, LLM-Wiki feedback loop, Compiler emission boundary).
@@ -330,6 +330,8 @@ Per-signal "useful regardless of Brain" reasoning is documented in #378's body �
 - **Spec-as-KO vs. separate-KO 1-week spike** — implement BOTH approaches against a fixed set of 5 real merged specs. Compare query patterns, freshness behavior, schema friction, the "no second HITL gate" property, AND the cross-source query friction the bifurcation introduces (Addendum R3 accepts this cost as a known trade-off; the spike measures whether it lands closer to 5% friction or 40% friction). **Promotion criterion:** the bifurcated direction is empirically cleaner end-to-end, NOT just on aesthetics.
 
 **Calendar checkpoint — 2026-09-22 (90 days after this addendum was authored 2026-06-22).** Force a real decision on whatever evidence is available by that date. If ≥ 2 of 3 Strand-A signals from #378 + both Strand-B spikes pass criteria, Epic #343 is promoted and the v2 reframing intake is filed. If criteria not met, EXPLICITLY hold (Brain stays Draft; revisit at the next calendar checkpoint 2026-12-22 OR sooner if conditions change). Without the calendar checkpoint this gate becomes infinite ("we don't have enough data yet"); with one, indecision is itself a decision recorded on a fixed date.
+
+**Date-bearing decision tracker: issue #379** (`decision(epic-343-evidence-gate): 2026-09-22 calendar-checkpoint decision — promote Epic #343 or explicit hold`) is the load-bearing mechanism for the calendar checkpoint above. The backlog entry under `### on-scope: quality` is INFORMATIONAL — date-based triggers do NOT exist in the `AGENTS.backlog.md` trigger vocabulary (`after: <slug>`, `on-scope: <tag>`, `triage: next-session` per `docs/blueprint/governance/sdd_execution_guide.md`), so a pure-backlog date claim would surface only when a `quality`-scoped intake happens to land — NOT guaranteed near 2026-09-22 (per Codex P2 review on PR #377 round 3). Issue #379 carries the pre-flight checklist, the criteria checkboxes, and the explicit-hold-with-successor-tracker fallback.
 
 ### Concrete vendors / open-source components (sovereignty-respecting)
 
