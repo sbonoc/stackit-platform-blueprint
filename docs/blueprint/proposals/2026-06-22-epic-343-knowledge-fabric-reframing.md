@@ -80,55 +80,66 @@ Verified by direct scan of all 90+ ADRs in `docs/blueprint/architecture/decision
 
 ## Recommended architecture
 
+```mermaid
+flowchart TD
+    %% Source of Truth layer
+    GIT["Git / GitHub"]
+    OBS["Grafana / Sentry / Confluence"]
+
+    %% Factory side (write path)
+    ORCH["Orchestrator (#361)<br/>emits C7"]
+    WEBHOOK["Webhook Handler (#336)<br/>emits C7"]
+    BUS[("C7 Durable Bus<br/>RabbitMQ")]
+
+    %% Brain side (read + project path)
+    COMP["Knowledge Compiler<br/>(NEW Brain-side component)<br/>—<br/>entity + relationship extraction<br/>ACL + provenance attachment<br/>freshness + confidence scoring"]
+    KO["Knowledge Objects<br/>(Contract C9)"]
+    GRAPH[("Graph Projection<br/>Neo4j etc.")]
+    VECTOR[("Vector Projection<br/>pgvector")]
+    WIKI["LLM-Wiki Views<br/>(rendered on demand)"]
+    MCP{{"MCP Layer<br/>(read-only)"}}
+
+    %% Consumers
+    BOTS["Factory Bots"]
+    HUMANS["Humans"]
+
+    %% Factory canonical writes (solid)
+    ORCH -- "PR / commit / label" --> GIT
+    WEBHOOK -- "issue / label" --> GIT
+    ORCH -- "emit C7" --> BUS
+    WEBHOOK -- "emit C7" --> BUS
+
+    %% Brain ingestion (dotted = subscribe / observe, NOT write)
+    BUS -. "subscribe<br/>(1 of N source connectors)" .-> COMP
+    GIT -. "source connector<br/>(read-only)" .-> COMP
+    OBS -. "source connectors<br/>(read-only)" .-> COMP
+
+    %% Compiler output and projection (thick arrow = load-bearing edge)
+    COMP ==> KO
+    KO --> GRAPH
+    KO --> VECTOR
+    KO --> WIKI
+
+    %% Read-only serving
+    GRAPH --> MCP
+    VECTOR --> MCP
+    WIKI --> MCP
+    MCP --> BOTS
+    MCP --> HUMANS
+
+    %% Color by layer
+    classDef srcCls fill:#e3f2fd,stroke:#1976d2,color:#0d47a1
+    classDef factCls fill:#fff3e0,stroke:#f57c00,color:#bf360c
+    classDef brainCls fill:#f3e5f5,stroke:#7b1fa2,color:#4a148c
+    classDef consCls fill:#e8f5e9,stroke:#388e3c,color:#1b5e20
+
+    class GIT,OBS srcCls
+    class ORCH,WEBHOOK,BUS factCls
+    class COMP,KO,GRAPH,VECTOR,WIKI,MCP brainCls
+    class BOTS,HUMANS consCls
 ```
-                        ┌─────────────────────────────────────┐
-                        │      Git / GitHub / Grafana /       │
-                        │      Sentry / Confluence            │ ← Source of Truth
-                        └────────────────┬────────────────────┘
-                                         │
-                              (canonical writes)
-                                         │
-       ┌─────────────────────────────────┴─────────────────────────────────┐
-       │                                                                   │
-       ▼                                                                   ▼
-┌──────────────┐   ┌──────────────┐                          ┌──────────────────────┐
-│  Orchestrator│   │  Webhook     │                          │  Knowledge Compiler  │
-│   (#361)     │   │  Handler     │                          │  (NEW — Brain side)  │
-│              │   │  (#336)      │                          │  - entity extraction │
-│  Emits C7    │   │  Emits C7    │                          │  - relationship extr.│
-└──────┬───────┘   └──────┬───────┘                          │  - ACL attachment    │
-       │                  │                                  │  - provenance attach │
-       └────────┬─────────┘                                  │  - freshness calc    │
-                ▼                                            │  - confidence scoring│
-       ┌────────────────┐                                    └────────┬─────────────┘
-       │ C7 Durable Bus │ ← One source connector to the Compiler ────▶│
-       │ (RabbitMQ)     │                                             │
-       └────────────────┘                                             ▼
-                                                            ┌──────────────────────┐
-                                                            │  Knowledge Objects   │
-                                                            │  (Contract C9)       │
-                                                            └────────┬─────────────┘
-                                                                     │
-                                              ┌──────────────────────┼──────────────────────┐
-                                              ▼                      ▼                      ▼
-                                     ┌─────────────────┐   ┌─────────────────┐   ┌─────────────────┐
-                                     │ Graph Projection│   │Vector Projection│   │ LLM-Wiki Views  │
-                                     │  (Neo4j etc.)   │   │   (pgvector)    │   │  (rendered on   │
-                                     └────────┬────────┘   └────────┬────────┘   │   demand)       │
-                                              │                     │            └────────┬────────┘
-                                              └──────────┬──────────┘                     │
-                                                         ▼                                │
-                                                ┌─────────────────┐                       │
-                                                │   MCP Layer     │ ◀─────────────────────┘
-                                                │  (read-only)    │
-                                                └────────┬────────┘
-                                                         │
-                                          ┌──────────────┴──────────────┐
-                                          ▼                             ▼
-                                  ┌──────────────┐              ┌──────────────┐
-                                  │ Factory Bots │              │   Humans     │
-                                  └──────────────┘              └──────────────┘
-```
+
+**Edge semantics.** Solid arrows are CANONICAL WRITES (factory side writes to git + bus). Dotted arrows are SUBSCRIBE / OBSERVE (Brain side reads from canonical sources via source connectors; never writes back to git or bus). The thick arrow (`COMP ==> KO`) is the load-bearing edge: it identifies Knowledge Objects as the Compiler's primary output and the ingestion contract for everything downstream.
 
 **Federation seam.** Every Knowledge Object carries `owner_team` + `bounded_context`. At MVP they're labels in a single STACKIT-managed store. Phase 5+, they become physical sharding boundaries if scale demands.
 
@@ -142,8 +153,24 @@ Verified by direct scan of all 90+ ADRs in `docs/blueprint/architecture/decision
 
 **"Just richer ingestion" — keep Epic #343 as graph + vector + thicker normalization layer; skip Knowledge Objects as a first-class envelope.**
 
-```
-Canonical Sources → Ingestion Pipeline (normalization + ACL + freshness inline) → Graph + Vector → MCP
+```mermaid
+flowchart LR
+    SRC["Canonical Sources<br/>(Git / GitHub / Grafana / Sentry / Confluence)"]
+    PIPE["Ingestion Pipeline<br/>(normalization + ACL + freshness, all inline;<br/>no first-class Knowledge Object envelope)"]
+    STORE[("Graph + Vector Store")]
+    MCP{{"MCP Layer"}}
+
+    SRC -. "subscribe / observe" .-> PIPE
+    PIPE ==> STORE
+    STORE --> MCP
+
+    classDef srcCls fill:#e3f2fd,stroke:#1976d2,color:#0d47a1
+    classDef brainCls fill:#f3e5f5,stroke:#7b1fa2,color:#4a148c
+    classDef consCls fill:#e8f5e9,stroke:#388e3c,color:#1b5e20
+
+    class SRC srcCls
+    class PIPE,STORE brainCls
+    class MCP consCls
 ```
 
 | Dimension | Recommended (Knowledge Fabric) | Alternative (Richer Ingestion) |
