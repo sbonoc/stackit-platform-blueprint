@@ -97,7 +97,9 @@ properties:
       from the sealed enum below (per ADR-issue-364 § 9; amended only via
       the `#339` sign-off cycle). Mutually exclusive with `expert_slug_extension`
       (a handoff MAY populate AT MOST ONE of the two; populating both is a
-      contract violation enforced by the orchestrator's pre-dispatch validation).
+      contract violation enforced by the JSON Schema `not` constraint at the
+      top of this schema — rejected before the orchestrator's pre-dispatch
+      checks run, per PR #372 13th-review Codex P2-2).
       Omit BOTH when the handoff is to the full panel of the next step.
       Migrated 2026-06-20 per PR #372 11th-review Claude finding #2 (the
       pre-migration single `expert_slug` field with a closed 8-item enum

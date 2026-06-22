@@ -52,7 +52,7 @@ bash specs/2026-06-18-issue-361-orchestrator-service/file_children.sh
 
 **Verification after Step 1:**
 ```bash
-gh issue list --search "in:title (Child of #361)" --state open --json number,title --jq '.[] | "\(.number)  \(.title)"'
+gh issue list --search "in:title (Child of #361)" --state all --json number,title --jq '.[] | "\(.number)  \(.title)"'
 # Expected: 4 issues, one per Child 1/2/4/5, each titled `feat(orchestrator): <scope> (Child N of #361)`
 ```
 Note the assigned GitHub issue numbers — they will be sequential (e.g., #373, #374, #375, #376) and are NOT the same as the logical names `#361.1`/`#361.2`/`#361.4`/`#361.5`. The script titles each issue `... (Child N of #361)` so the mapping is unambiguous.

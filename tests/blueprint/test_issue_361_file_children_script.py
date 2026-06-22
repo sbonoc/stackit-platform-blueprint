@@ -38,7 +38,7 @@ from tests._shared.helpers import REPO_ROOT
 # No body in this PR's scope pairs an auto-close keyword with any `#361.N`
 # form today; the strict regex guards future drift in either direction.
 PARENT_AUTOCLOSE_REGEX = re.compile(
-    r"\b(close[ds]?|fix(?:e[ds])?|resolve[ds]?)\s+#361\b",
+    r"\b(close[ds]?|fix(?:e[ds])?|resolve[ds]?):?\s+#361\b",
     re.IGNORECASE,
 )
 
