@@ -53,6 +53,7 @@
 # ADRs, design contracts, architecture artifacts.
 /docs/blueprint/architecture/**                @sbonoc/factory-architecture
 /docs/blueprint/autonomous-factory/design-contracts.md  @sbonoc/factory-architecture
+/docs/blueprint/proposals/**                   @sbonoc/factory-architecture
 /specs/**/architecture.md                      @sbonoc/factory-architecture
 /specs/**/plan.md                              @sbonoc/factory-architecture
 /specs/**/tasks.md                             @sbonoc/factory-architecture
@@ -164,6 +165,15 @@
 
 # Gate-1 architecture for the architecture directory (broad)
 /docs/blueprint/architecture/**                                        @sbonoc/factory-architecture
+
+# Gate-1 architecture for strategic proposals targeting unpromoted/Draft
+# epics. Re-anchored here so the broad /docs/blueprint/** docs-team rule
+# above does NOT become the last match for proposal docs that are
+# normative for future SDD intakes (per Codex P2 review on PR #377 —
+# without this re-anchor, future edits to architecture-owned proposal
+# docs would route to the docs-bounded-context team instead of the
+# correct architecture reviewers).
+/docs/blueprint/proposals/**                                           @sbonoc/factory-architecture
 
 # Gate-2 factory bounded-context (narrower than architecture/** for ADRs;
 # co-located with autonomous-factory docs). Factory ADRs CO-OWN architecture
