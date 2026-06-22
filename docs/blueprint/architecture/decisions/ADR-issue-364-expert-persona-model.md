@@ -302,9 +302,13 @@ Every dispatched expert MUST return a verdict object conforming to:
   "title": "ExpertVerdict",
   "type": "object",
   "additionalProperties": false,
-  "required": ["expert_slug", "verdict", "findings"],
+  "required": ["verdict", "findings"],
+  "oneOf": [
+    { "required": ["expert_slug_blueprint"] },
+    { "required": ["expert_slug_extension"] }
+  ],
   "properties": {
-    "expert_slug": {
+    "expert_slug_blueprint": {
       "type": "string",
       "enum": [
         "product-pragmatist",
@@ -317,6 +321,7 @@ Every dispatched expert MUST return a verdict object conforming to:
         "performance-cost-aware"
       ]
     },
+    "expert_slug_extension": { "type": "string" },
     "verdict": {
       "type": "string",
       "enum": ["pass", "revise", "block"]
@@ -351,6 +356,7 @@ Every dispatched expert MUST return a verdict object conforming to:
 }
 ```
 
+**Two-sub-enum slug field (amended 2026-06-19 per PR #372 6th-review).** The per-expert-verdict's slug identifier was migrated from a flat `expert_slug` field to the same two-sub-enum shape adopted by § 9 `ExpertVerdictSummary` and `../../autonomous-factory/design-contracts.md` § C7 F-12 (amended 2026-06-19): EXACTLY ONE OF `expert_slug_blueprint` (sealed at the blueprint-baseline roster, widened only via the `#339` sign-off cycle — currently 8 slugs, widened to 9 by `#361.5` when `usability-pragmatist` lands) OR `expert_slug_extension` (open string from the consumer overlay's allowlist for consumer-specific experts) MUST be populated per verdict object. The per-invocation expert output and the compact C7 summary row share this contract end-to-end so an `expert_slug_extension` consumer-overlay expert is structurally able to return a valid verdict (without the migration, `additionalProperties: false` would have rejected the only field shape an extension expert can use, leaving extension experts unable to ship at all). Legacy flat-`expert_slug` payloads are OUT OF SCOPE of this per-invocation schema (no live producer emits the old form post-amendment; this is the per-invocation contract a dispatched expert MUST satisfy at runtime). Historical local-cli C7 events emitted before this amendment (visible in `artifacts/c7/*.jsonl`) are handled at the Central Brain (#343) ingest layer — see the `### after: epic-343-promote` legacy-payload normalization entry in `AGENTS.backlog.md` for the migration plan. Separation of concerns landed per PR #372 11th-review Codex P2-2 (the prior "merge-layer tolerance" wording was structurally impossible: `additionalProperties: false` rejects unknown fields before any merge-layer normalization can run).
 **Empty-findings sentinel:** when the expert has no concern, `findings` MUST be the empty array `[]` and `verdict` MUST be `pass`. Silent omission of a verdict from a dispatched expert MUST cause the orchestrator to fail the step and emit C7 `outcome: rejected` with `rejection_reason: missing-expert-verdict`. This makes "expert was skipped wrongly" structurally distinguishable from "expert ran and had nothing to say" in the audit log.
 
 ### 6.1 Verdict failure modes (orchestrator handling)
@@ -369,7 +375,7 @@ For every dispatched expert, the orchestrator MUST classify the verdict outcome 
 `missing-expert-verdict` outcomes MUST cause the orchestrator to:
 
 1. Emit C7 with `outcome: rejected` and the sibling extension field `rejection_reason: missing-expert-verdict` (per the C7 extension vocabulary pinned in `../../autonomous-factory/design-contracts.md` § C7).
-2. Include in `outcome_details.expert_verdicts[]` a stub `ExpertVerdictSummary` row `{expert_slug, verdict: "block", findings_count: 0}` — schema-valid against § 9's `additionalProperties: false` constraint. The "panel-incomplete" classification is carried on the event's sibling fields (`rejection_reason: missing-expert-verdict` from step 1 above) rather than inlined into the summary row. The full per-finding payload — including a single synthetic finding with `category: panel-incomplete` and `severity: critical` — MUST be written to the workspace artifact referenced by the sibling extension field `evidence_uri` (also pinned in `../../autonomous-factory/design-contracts.md` § C7), so audit consumers can distinguish "expert produced empty findings (pass)" from "expert produced nothing (panel-incomplete)" by joining the compact summary (`verdict: block`, `findings_count: 0`) against the rejection reason and the artifact payload.
+2. Include in `outcome_details.expert_verdicts[]` a stub `ExpertVerdictSummary` row `{expert_slug_blueprint: <missing-slug>, verdict: "block", findings_count: 0}` (or `{expert_slug_extension: <missing-slug>, ...}` when the missing expert is a consumer-overlay extension per the § 9 two-sub-enum schema) — schema-valid against § 9's `additionalProperties: false` + `oneOf` constraints. The "panel-incomplete" classification is carried on the event's sibling fields (`rejection_reason: missing-expert-verdict` from step 1 above) rather than inlined into the summary row. The full per-finding payload — including a single synthetic finding with `category: panel-incomplete` and `severity: critical` — MUST be written to the workspace artifact referenced by the sibling extension field `evidence_uri` (also pinned in `../../autonomous-factory/design-contracts.md` § C7), so audit consumers can distinguish "expert produced empty findings (pass)" from "expert produced nothing (panel-incomplete)" by joining the compact summary (`verdict: block`, `findings_count: 0`) against the rejection reason and the artifact payload.
 3. **Not** auto-retry the whole step — the rerun is the human's decision after seeing the rejected C7 event.
 
 The intent: dispatch-time failures are never silently swallowed; the audit trail always shows whether the panel completed.
@@ -416,9 +422,13 @@ C7 events MAY carry an additive optional **sibling top-level object** `outcome_d
 {
   "type": "object",
   "additionalProperties": false,
-  "required": ["expert_slug", "verdict", "findings_count"],
+  "required": ["verdict", "findings_count"],
+  "oneOf": [
+    { "required": ["expert_slug_blueprint"] },
+    { "required": ["expert_slug_extension"] }
+  ],
   "properties": {
-    "expert_slug": {
+    "expert_slug_blueprint": {
       "type": "string",
       "enum": [
         "product-pragmatist",
@@ -431,11 +441,14 @@ C7 events MAY carry an additive optional **sibling top-level object** `outcome_d
         "performance-cost-aware"
       ]
     },
+    "expert_slug_extension": { "type": "string" },
     "verdict": { "type": "string", "enum": ["pass", "revise", "block"] },
     "findings_count": { "type": "integer", "minimum": 0 }
   }
 }
 ```
+
+The two-sub-enum split (`expert_slug_blueprint` sealed at the blueprint baseline + `expert_slug_extension` for consumer-overlay allowlist entries) was introduced by the F-12 amendment 2026-06-19 to `../../autonomous-factory/design-contracts.md` § C7 — see that document for the additive-extension pattern rationale. Post-amendment emitters MUST emit one of the two new keys; legacy local-cli C7 events that carry the pre-amendment flat `expert_slug` field are handled at the Central Brain (#343) ingest layer per the `### after: epic-343-promote` legacy-payload normalization entry in `AGENTS.backlog.md`, NOT at this per-summary schema layer (per PR #372 11th-review Codex P2-2 separation-of-concerns fix).
 
 The full per-finding payload (`category`, `summary`, `evidence_ref`, `severity`) lives in workspace artifacts (referenced by the C7 event's sibling extension field `evidence_uri` — see design-contracts § C7), not inside the event itself, to keep events compact. Audit consumers can join the summary with the full payload via `(ticket_id, phase, rerun_round)` and resolve the URI when the full findings are needed.
 

@@ -72,17 +72,49 @@ properties:
     type: array
     description: >-
       Per-expert verdict and findings array merged from the step08 panel
-      invocations, keyed by expert_slug per ADR-issue-364 § 6.
+      invocations, keyed by expert_slug per ADR-issue-364 § 6 (two-sub-enum
+      form per the F-12 amendment 2026-06-19 — EXACTLY ONE OF
+      `expert_slug_blueprint` OR `expert_slug_extension` per row).
     items:
       type: object
       additionalProperties: false
       required:
-        - expert_slug
         - verdict
         - findings
+      oneOf:
+        - required: [expert_slug_blueprint]
+        - required: [expert_slug_extension]
       properties:
-        expert_slug:
+        expert_slug_blueprint:
           type: string
+          description: >-
+            Blueprint-baseline expert persona slug (sealed enum from
+            ADR-issue-364 § 9; amended only via the `#339` sign-off cycle).
+            EXACTLY ONE OF this field OR `expert_slug_extension` MUST be
+            populated per row (oneOf above). Legacy flat-`expert_slug`
+            tolerance is OUT OF SCOPE of this per-invocation schema (no
+            live producer emits the old form post-amendment); historical
+            local-cli C7 events that carry flat `expert_slug` are handled
+            at the Central Brain (#343) ingest layer via the
+            `### after: epic-343-promote` legacy-payload normalization
+            entry — not at this packager schema layer (per PR #372
+            11th-review Codex P2-2 separation-of-concerns fix).
+          enum:
+            - product-pragmatist
+            - boundary-hawk
+            - security-paranoid
+            - data-privacy
+            - test-quality-sceptic
+            - operability-sre
+            - documentation-discipline
+            - performance-cost-aware
+        expert_slug_extension:
+          type: string
+          description: >-
+            Consumer-overlay extension expert persona slug (open string from
+            the consumer overlay's allowlist; per design-contracts.md § C7
+            F-12 amendment 2026-06-19). EXACTLY ONE OF this field OR
+            `expert_slug_blueprint` MUST be populated per row.
         verdict:
           type: string
           enum:
@@ -122,14 +154,42 @@ properties:
       type: object
       additionalProperties: false
       required:
-        - expert_slug
         - finding_id
         - file
         - line
         - description
+      oneOf:
+        - required: [expert_slug_blueprint]
+        - required: [expert_slug_extension]
       properties:
-        expert_slug:
+        expert_slug_blueprint:
           type: string
+          description: >-
+            Blueprint-baseline expert persona slug (sealed enum from
+            ADR-issue-364 § 9; amended only via the `#339` sign-off cycle)
+            — provenance of the finding. EXACTLY ONE OF this field OR
+            `expert_slug_extension` MUST be populated per row (oneOf above).
+            Legacy flat-`expert_slug` tolerance is OUT OF SCOPE of this
+            per-finding schema and is handled at the Central Brain (#343)
+            ingest layer per the `### after: epic-343-promote`
+            legacy-payload normalization entry (per PR #372 11th-review
+            Codex P2-2 separation-of-concerns fix).
+          enum:
+            - product-pragmatist
+            - boundary-hawk
+            - security-paranoid
+            - data-privacy
+            - test-quality-sceptic
+            - operability-sre
+            - documentation-discipline
+            - performance-cost-aware
+        expert_slug_extension:
+          type: string
+          description: >-
+            Consumer-overlay extension expert persona slug (open string;
+            per design-contracts.md § C7 F-12 amendment 2026-06-19) —
+            provenance of the finding. EXACTLY ONE OF this field OR
+            `expert_slug_blueprint` MUST be populated per row.
         finding_id:
           type: string
         file:
