@@ -62,13 +62,19 @@ selects routing keys accordingly.
 ## Inputs
 
 - The full work-item PR diff against the base branch.
-- The single `expert_slug` this invocation is reviewing under (drawn from the
-  step08 panel-input parameter the orchestrator supplies).
+- The single expert slug this invocation is reviewing under — EXACTLY ONE OF
+  `expert_slug_blueprint` (sealed enum from ADR-issue-364 § 9) OR
+  `expert_slug_extension` (consumer-overlay open string per design-contracts.md
+  § C7 F-12) — drawn from the step08 panel-input parameter the orchestrator
+  supplies (the orchestrator routes the value into the correct sub-enum at
+  C7 emission time).
 - The packaged PR body authored by the PR packager.
 - The work-item `traceability.md` and `graph.json`.
 - The expert's `## Worldview`, `## Default Heuristics`, `## Push-back Triggers`,
   `## What I Notice That Others Miss`, and `## Quality Bar` sections loaded
-  from `.agents/personas/<expert_slug>/PERSONA.md`.
+  from `.agents/personas/<expert-slug>/PERSONA.md` (the directory basename
+  matches whichever sub-enum is populated; both forms use the same on-disk
+  PERSONA.md file naming convention).
 
 ## Workflow
 
@@ -101,7 +107,17 @@ field per `ADR-issue-337-c7-emission-mechanism.md` (amended by
 
 Return:
 
-1. The `expert_slug` this invocation was dispatched under.
+1. EXACTLY ONE OF `expert_slug_blueprint` (blueprint-baseline sealed enum;
+   the typical case for the 8 standing blueprint experts) OR
+   `expert_slug_extension` (consumer-overlay open string; only for
+   consumer-overlay experts authored against the F-12 amendment 2026-06-19)
+   identifying this invocation's dispatched expert. The flat `expert_slug`
+   field has been REPLACED — emitting it would trigger
+   `additionalProperties: false` on `BlueprintAgentPrReviewOutput` and be
+   rejected by FR-004 schema validation, producing an `outcome: rejected`
+   C7 event with `rejection_reason: schema-validation-failure` per the
+   amended Contract C7 row in `design-contracts.md` (per PR #372 12th-review
+   Codex P2-1 report-format-vs-schema drift fix).
 2. The `findings` array conforming to the `ExpertVerdict.findings[]`
    shape in ADR-issue-364 § 6 (i.e., each finding is an object with
    required `category` and `summary`, optional `evidence_ref` and
@@ -255,10 +271,12 @@ artifact referenced by the C7 event's `evidence_uri`):
 
 ```yaml
 # orchestrator internal merge structure — NOT the C7 payload shape
+# Each row carries EXACTLY ONE of `expert_slug_blueprint` (sealed enum) OR
+# `expert_slug_extension` (consumer overlay string), never both.
 panel_merge:
   expert_payloads:
-    - { expert_slug: ..., verdict: ..., findings: [...] }
-    - { expert_slug: ..., verdict: ..., findings: [...] }
+    - { expert_slug_blueprint: product-pragmatist, verdict: pass,   findings: [] }
+    - { expert_slug_blueprint: boundary-hawk,      verdict: revise, findings: [{ category: leaky-abstraction, summary: "..." }] }
 ```
 
 The orchestrator then converts each row into the **compact**

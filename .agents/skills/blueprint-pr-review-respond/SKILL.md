@@ -27,7 +27,10 @@ binding mechanism.
 
 - The reviewer comment text and its PR-thread anchor (file path + line).
 - The original findings list the step08 expert filed on this PR.
-- The `expert_slug` the response is being authored under.
+- The expert slug the response is being authored under — EXACTLY ONE OF
+  `expert_slug_blueprint` (sealed enum from ADR-issue-364 § 9) OR
+  `expert_slug_extension` (consumer-overlay open string per
+  design-contracts.md § C7 F-12 amended 2026-06-19).
 - The current head commit SHA on the PR branch.
 
 ## Steps
