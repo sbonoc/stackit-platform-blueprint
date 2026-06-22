@@ -99,9 +99,15 @@ issue_exists() {
   local title="$1"
   local list_out
   local list_rc=0
+  # --state all so the idempotency check still recognizes children that have
+  # already merged (and therefore been closed). Without --state all, a re-run
+  # of the script AFTER a previously-filed child closed would not see the
+  # existing issue and would file a duplicate (per PR #372 13th-review
+  # Codex P2-1). The exact-title grep below remains the sole authority for
+  # match; --state all only widens the search scope.
   list_out="$("$GH_BIN" issue list \
     --repo "$EXPECTED_REPO" \
-    --state open \
+    --state all \
     --search "in:title \"$title\"" \
     --json title \
     --jq '.[].title' 2>&1)" || list_rc=$?

@@ -72,6 +72,15 @@ required:
   - to_step
   - slice_id
   - summary
+# Mutual exclusion between the two optional slug sub-enums enforced at the
+# schema level (per PR #372 13th-review Codex P2-2). A handoff envelope MAY
+# populate AT MOST ONE of `expert_slug_blueprint` OR `expert_slug_extension`;
+# populating BOTH is a contract violation rejected by JSON Schema validation
+# before the orchestrator's pre-dispatch checks run, eliminating the
+# ambiguous-target failure mode where the orchestrator would have to choose
+# silently between two named expert targets.
+not:
+  required: [expert_slug_blueprint, expert_slug_extension]
 properties:
   ticket_id:
     type: string
