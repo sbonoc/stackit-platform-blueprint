@@ -81,12 +81,20 @@ properties:
   to_step:
     type: string
     description: SDD-step skill basename the orchestrator is requested to invoke next.
-  expert_slug:
+  expert_slug_blueprint:
     type: string
     description: >-
-      Optional expert slug from .agents/personas/ this handoff is directed at,
-      drawn from the 8-expert roster locked by ADR-issue-364. Omit when the
-      handoff is to the full panel of the next step.
+      Optional blueprint-baseline expert slug this handoff is directed at,
+      from the sealed enum below (per ADR-issue-364 § 9; amended only via
+      the `#339` sign-off cycle). Mutually exclusive with `expert_slug_extension`
+      (a handoff MAY populate AT MOST ONE of the two; populating both is a
+      contract violation enforced by the orchestrator's pre-dispatch validation).
+      Omit BOTH when the handoff is to the full panel of the next step.
+      Migrated 2026-06-20 per PR #372 11th-review Claude finding #2 (the
+      pre-migration single `expert_slug` field with a closed 8-item enum
+      blocked handoffs targeting either the 9th blueprint slug
+      `usability-pragmatist` from `#361.5` or any consumer-overlay
+      extension expert).
     enum:
       - product-pragmatist
       - boundary-hawk
@@ -96,6 +104,14 @@ properties:
       - operability-sre
       - documentation-discipline
       - performance-cost-aware
+  expert_slug_extension:
+    type: string
+    description: >-
+      Optional consumer-overlay extension expert slug this handoff is
+      directed at (open string from the consumer overlay's allowlist; per
+      design-contracts.md § C7 F-12 amendment 2026-06-19). Mutually
+      exclusive with `expert_slug_blueprint` (see above). Omit BOTH when
+      the handoff is to the full panel of the next step.
   slice_id:
     type: string
     description: Slice or checkpoint identifier from plan.md.

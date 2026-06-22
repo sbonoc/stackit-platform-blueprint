@@ -190,11 +190,13 @@ properties:
       allowlist loaded from `blueprint/contract.yaml`
       § `factory_contract.expert_panel_extensions[]` at startup. The
       orchestrator routes whichever sub-enum is populated into the matching
-      sub-enum on the emitted C7 ExpertVerdictSummary row. Pre-amendment
-      verdicts that carry a flat `expert_slug` field MUST be tolerated by
-      the orchestrator's merge layer and treated identically to
-      `expert_slug_blueprint` when the value matches the blueprint-baseline
-      enum (backwards-compatibility rule mirroring ADR-issue-364 § 6 + § 9).
+      sub-enum on the emitted C7 ExpertVerdictSummary row. Legacy
+      flat-`expert_slug` tolerance is OUT OF SCOPE of this per-invocation
+      schema (no live producer emits the old form post-amendment); historical
+      local-cli C7 events are handled at the Central Brain (#343) ingest
+      layer via the `### after: epic-343-promote` legacy-payload
+      normalization entry — not at this per-invocation schema layer
+      (per PR #372 11th-review Codex P2-2 separation-of-concerns fix).
   verdict:
     type: string
     description: >-

@@ -454,13 +454,25 @@ properties:
           type: string
           description: >-
             Blueprint-baseline expert persona slug (sealed enum from
-            ADR-issue-364 § 9). EXACTLY ONE OF this field OR
-            `expert_slug_extension` MUST be populated per row (oneOf above).
-            Pre-amendment verdicts that carried a flat `expert_slug` field
-            MUST be tolerated by the orchestrator's merge layer and treated
-            identically to `expert_slug_blueprint` when the value matches the
-            blueprint-baseline enum (backwards-compatibility rule per
-            design-contracts.md § C7 F-12 amended 2026-06-19).
+            ADR-issue-364 § 9; amended only via the `#339` sign-off cycle).
+            EXACTLY ONE OF this field OR `expert_slug_extension` MUST be
+            populated per row (oneOf above). Legacy flat-`expert_slug`
+            tolerance is OUT OF SCOPE of this per-invocation schema (no
+            live producer emits the old form post-amendment); historical
+            local-cli C7 events that carry flat `expert_slug` are handled
+            at the Central Brain (#343) ingest layer via the
+            `### after: epic-343-promote` legacy-payload normalization
+            entry — not at this per-invocation schema layer (per PR #372
+            11th-review Codex P2-2 separation-of-concerns fix).
+          enum:
+            - product-pragmatist
+            - boundary-hawk
+            - security-paranoid
+            - data-privacy
+            - test-quality-sceptic
+            - operability-sre
+            - documentation-discipline
+            - performance-cost-aware
         expert_slug_extension:
           type: string
           description: >-
