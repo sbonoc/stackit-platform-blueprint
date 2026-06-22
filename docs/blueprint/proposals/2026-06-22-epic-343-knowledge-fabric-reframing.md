@@ -314,18 +314,22 @@ Bifurcation cost: the graph schema isn't perfectly uniform across sources (SDD-s
 
 ### Phase 0 evidence gate (BEFORE Epic #343 is promoted to active backlog)
 
-The reframing intake MUST NOT be the first work item under a promoted Epic #343. The first work item is an **evidence-gating spike** with the following exit criteria:
+The reframing intake MUST NOT be the first work item under a promoted Epic #343. Instead, an evidence gate runs first, composed of TWO independent strands:
 
-1. **Three instrumentation tasks** (cheap; cost nothing to keep running once shipped):
-   - **Re-litigation proxy** — for each new SDD spec, run the spec's bigram set against bigrams in every prior merged spec/ADR (algorithm already documented in ADR-issue-364 § 4.2 for the dispatch matrix). Report overlap %. Run against the last 6 months of merged specs as backfill. **Promotion criterion:** if ≥ 30% of new specs have ≥ 30% overlap with prior decisions, re-litigation is a real problem worth solving.
-   - **Cross-reference distance** — for each merged PR, count the average directory traversals required to reach related decisions via repo grep. **Promotion criterion:** if average > 4 directories AND human navigation friction is reported anecdotally, navigation friction is real.
-   - **"Didn't know that existed" rate** — step03 sign-off survey adds one yes/no question: *"While drafting, did you find a prior decision you weren't aware of that changed your approach?"* **Promotion criterion:** if YES rate > 30% over 4 weeks of merged specs, awareness gap is real.
+**Strand A — Factory-observability signals (owned by issue #378 under Epic #332, NOT this gate).** The three instrumentation tasks were decoupled from this gate on 2026-06-22 because they produce signal useful regardless of whether the Brain ever ships. Issue #378 ships them under Epic #332 as factory observability; this evidence gate then CONSUMES the signal output as one of its inputs.
 
-2. **Backstage 1-week spike** — feed our actual SDD artifacts + C7 events + service catalog into a self-hosted Backstage instance on STACKIT SKE. Evaluate: service catalog fitness, TechDocs ingest, plugin maturity, integration cost. **Promotion criterion:** if ≥ 70% feature parity with the v1 vision is achievable in ≤ 2 weeks of integration work, adopt Backstage; otherwise revisit.
+- **Signal 1 — Re-litigation proxy.** For each new SDD spec, run the spec's bigram set against bigrams in every prior merged spec/ADR (algorithm already documented in `ADR-issue-364` § 4.2 for the dispatch matrix). Report overlap %. Backfill against last 6 months of merged specs. **Promotion criterion:** ≥ 30% of new specs have ≥ 30% overlap with prior decisions.
+- **Signal 2 — Cross-reference distance.** For each merged PR, count the average directory traversals required to reach related decisions via repo grep. **Promotion criterion:** average > 4 directories AND human navigation friction is reported anecdotally.
+- **Signal 3 — "Didn't know that existed" rate.** Step03 sign-off survey adds one yes/no question: *"While drafting, did you find a prior decision you weren't aware of that changed your approach?"* **Promotion criterion:** YES rate > 30% over 4 weeks of merged specs.
 
-3. **Spec-as-KO vs. separate-KO 1-week spike** — implement BOTH approaches against a fixed set of 5 real merged specs. Compare query patterns, freshness behavior, schema friction, and the "no second HITL gate" property. **Promotion criterion:** pick the approach with cleaner end-to-end behavior, NOT first-principles aesthetics.
+Per-signal "useful regardless of Brain" reasoning is documented in #378's body — that issue ships and emits to Grafana + JSONL audit logs independently of any Brain commitment.
 
-If ≥ 2 of the 3 instrumentation signals show real friction AND the Backstage spike shows acceptable parity AND the spec-as-KO spike confirms the bifurcated direction, the Brain investment is justified by current data and a v2 reframing intake is filed. Otherwise the Brain stays Draft and the proposal is revisited only when conditions change.
+**Strand B — Brain-specific spikes (owned by THIS gate).** Two 1-week spikes that only make sense once the Brain is being seriously considered:
+
+- **Backstage 1-week spike** — feed our actual SDD artifacts + C7 events + service catalog into a self-hosted Backstage instance on STACKIT SKE. Evaluate: service catalog fitness, TechDocs ingest, plugin maturity, integration cost. **Promotion criterion:** ≥ 70% feature parity with the v1 vision is achievable in ≤ 2 weeks of integration work.
+- **Spec-as-KO vs. separate-KO 1-week spike** — implement BOTH approaches against a fixed set of 5 real merged specs. Compare query patterns, freshness behavior, schema friction, the "no second HITL gate" property, AND the cross-source query friction the bifurcation introduces (Addendum R3 accepts this cost as a known trade-off; the spike measures whether it lands closer to 5% friction or 40% friction). **Promotion criterion:** the bifurcated direction is empirically cleaner end-to-end, NOT just on aesthetics.
+
+**Calendar checkpoint — 2026-09-22 (90 days after this addendum was authored 2026-06-22).** Force a real decision on whatever evidence is available by that date. If ≥ 2 of 3 Strand-A signals from #378 + both Strand-B spikes pass criteria, Epic #343 is promoted and the v2 reframing intake is filed. If criteria not met, EXPLICITLY hold (Brain stays Draft; revisit at the next calendar checkpoint 2026-12-22 OR sooner if conditions change). Without the calendar checkpoint this gate becomes infinite ("we don't have enough data yet"); with one, indecision is itself a decision recorded on a fixed date.
 
 ### Concrete vendors / open-source components (sovereignty-respecting)
 
