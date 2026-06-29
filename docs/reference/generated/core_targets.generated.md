@@ -50,6 +50,7 @@ This file is auto-generated. Do not edit it manually.
 | `quality-hooks-run` | Run pre-commit hooks and quality gates (set QUALITY_HOOKS_KEEP_GOING=true to aggregate all failures across both phases) |
 | `quality-root-dir-prelude-check` | Fail when shell entrypoints reintroduce inline ROOT_DIR resolver drift |
 | `quality-workaround-manifest-check` | Fail when workaround manifest action_path entries reference missing files |
+| `quality-pr-commit-autoclose-check` | Scan PR title/body and branch commits for auto-close keywords targeting must-not-auto-close issues |
 | `quality-infra-shell-source-graph-check` | Fail when infra helper source-edge contract drifts into caller-side implicit sourcing |
 | `quality-validate-bootstrap-template-drift` | Fail when blueprint-tracked root-level managed files drift from bootstrap template counterparts |
 | `quality-validate-contract-required-files` | Fail when any mode-aware required_files path from blueprint/contract.yaml is absent from the working tree |
