@@ -213,6 +213,43 @@ class TestScriptExitCodes:
 
 
 # ---------------------------------------------------------------------------
+# T-007 — NFR-PERF-001: fetch_pr_body_title called at most once per main() run
+# ---------------------------------------------------------------------------
+
+class TestSingleApiCall:
+    """T-007: main() must invoke fetch_pr_body_title exactly once (NFR-PERF-001)."""
+
+    def setup_method(self):
+        self.check = _load_module(_CHECK_SCRIPT, "check_pr_commit_autoclose_t007")
+
+    def test_fetch_called_once_when_pr_exists(self, monkeypatch):
+        pr_data = {"body": "Tracks #361\n", "title": "some title"}
+        call_count = []
+
+        def mock_fetch():
+            call_count.append(1)
+            return pr_data
+
+        monkeypatch.setattr(self.check, "fetch_pr_body_title", mock_fetch)
+        monkeypatch.setattr(self.check, "_get_commit_log", lambda: "")
+        self.check.main()
+        assert len(call_count) == 1, f"fetch_pr_body_title called {len(call_count)} times, expected 1"
+
+    def test_fetch_called_once_when_no_pr(self, monkeypatch, tmp_path):
+        call_count = []
+
+        def mock_fetch():
+            call_count.append(1)
+            return None
+
+        monkeypatch.setattr(self.check, "fetch_pr_body_title", mock_fetch)
+        monkeypatch.setattr(self.check, "_DEFAULT_CONFIG", tmp_path / "no-such.yml")
+        monkeypatch.setattr(self.check, "_get_commit_log", lambda: "")
+        self.check.main()
+        assert len(call_count) == 1, f"fetch_pr_body_title called {len(call_count)} times, expected 1"
+
+
+# ---------------------------------------------------------------------------
 # T-006 — AC-006: regression — existing per-spec test imports from shared module
 # ---------------------------------------------------------------------------
 

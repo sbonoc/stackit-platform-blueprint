@@ -150,15 +150,21 @@ def _int(val: str) -> int:
 # ---------------------------------------------------------------------------
 
 def main() -> int:
-    protected = get_protected_issues()
+    # Fetch once; reuse for both protected-issue parsing and surface scanning
+    # (NFR-PERF-001: at most one gh API call per invocation).
+    pr = fetch_pr_body_title()
+    if pr is not None:
+        protected = parse_protected_issues(pr.get("body") or "")
+    else:
+        protected = load_protected_from_config(_DEFAULT_CONFIG)
+
     if not protected:
         print("[autoclose-check] no protected issues — skipping (exit 0)", flush=True)
         return 0
 
     all_findings: list[dict[str, Any]] = []
 
-    # Scan PR title + body.
-    pr = fetch_pr_body_title()
+    # Scan PR title + body using the already-fetched dict (no second gh call).
     if pr is not None:
         title = pr.get("title") or ""
         body = pr.get("body") or ""
