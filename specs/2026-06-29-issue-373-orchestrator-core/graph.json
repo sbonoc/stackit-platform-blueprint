@@ -1,0 +1,89 @@
+{
+  "graph_version": 1,
+  "work_item": "2026-06-29-issue-373-orchestrator-core",
+  "nodes": [
+    {
+      "id": "FR-001",
+      "type": "requirement",
+      "summary": "Dispatch matrix loader reads § C3, validates skills/experts/predicates, fail-fast on any violation"
+    },
+    {
+      "id": "FR-002",
+      "type": "requirement",
+      "summary": "Convergence engine implements parallel-then-merge, sequential-lens, structured-disagreement"
+    },
+    {
+      "id": "FR-003",
+      "type": "requirement",
+      "summary": "Schema validator extracts YAML jsonschema from SKILL.md and validates payload; zero I/O side effects"
+    },
+    {
+      "id": "FR-004",
+      "type": "requirement",
+      "summary": "Predicate registry: named callable registry, always_true/false built-ins, immutable after evaluate"
+    },
+    {
+      "id": "NFR-SEC-001",
+      "type": "requirement",
+      "summary": "Zero credential/network access; two allowed file-path categories only"
+    },
+    {
+      "id": "NFR-OBS-001",
+      "type": "requirement",
+      "summary": "Typed exceptions with detail + context; zero stdout/stderr writes"
+    },
+    {
+      "id": "NFR-REL-001",
+      "type": "requirement",
+      "summary": "Loader fail-fast; validator idempotent; registry immutable after evaluate"
+    },
+    {
+      "id": "NFR-OPS-001",
+      "type": "requirement",
+      "summary": "Structured error fields on all exception types for operator diagnostic routing"
+    },
+    {
+      "id": "NFR-A11Y-001",
+      "type": "requirement",
+      "summary": "N/A — headless pure-Python library with no UI surface"
+    },
+    {
+      "id": "AC-001",
+      "type": "acceptance",
+      "summary": "Dispatch matrix loader: five sub-cases — fabricated skill, fabricated expert, extension allowlist acceptance, fabricated predicate, live canonical C3 step-set"
+    },
+    {
+      "id": "AC-002",
+      "type": "acceptance",
+      "summary": "Convergence engine: three modes — block aggregate, sequential invocation order, structured-disagreement escalation count"
+    },
+    {
+      "id": "AC-003",
+      "type": "acceptance",
+      "summary": "Schema validator: raises SchemaValidationError, returns ValidationFailure, no stdout/stderr write"
+    },
+    {
+      "id": "AC-004",
+      "type": "acceptance",
+      "summary": "Predicate registry: always_true, always_false, predicate=none coercion, load-time registry miss raises DispatchMatrixError"
+    }
+  ],
+  "edges": [
+    { "from": "FR-001", "to": "AC-001", "relation": "validated_by" },
+    { "from": "FR-002", "to": "AC-002", "relation": "validated_by" },
+    { "from": "FR-003", "to": "AC-003", "relation": "validated_by" },
+    { "from": "FR-004", "to": "AC-004", "relation": "validated_by" },
+    { "from": "FR-001", "to": "FR-004", "relation": "depends_on" },
+    { "from": "NFR-SEC-001", "to": "FR-001", "relation": "constrains" },
+    { "from": "NFR-SEC-001", "to": "FR-003", "relation": "constrains" },
+    { "from": "NFR-OBS-001", "to": "FR-001", "relation": "constrains" },
+    { "from": "NFR-OBS-001", "to": "FR-002", "relation": "constrains" },
+    { "from": "NFR-OBS-001", "to": "FR-003", "relation": "constrains" },
+    { "from": "NFR-OBS-001", "to": "FR-004", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "FR-001", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "FR-003", "relation": "constrains" },
+    { "from": "NFR-REL-001", "to": "FR-004", "relation": "constrains" },
+    { "from": "NFR-OPS-001", "to": "AC-001", "relation": "constrains" },
+    { "from": "NFR-OPS-001", "to": "AC-004", "relation": "constrains" }
+  ]
+}
