@@ -250,6 +250,63 @@ class TestSingleApiCall:
 
 
 # ---------------------------------------------------------------------------
+# T-008 — base-ref fallback: _resolve_base_ref() and _get_commit_log() warning
+# ---------------------------------------------------------------------------
+
+class TestBaseRefFallback:
+    """T-008: commit-log scan falls back gracefully when origin/main is absent."""
+
+    def setup_method(self):
+        self.check = _load_module(_CHECK_SCRIPT, "check_pr_commit_autoclose_t008")
+
+    def test_resolve_base_ref_returns_none_when_no_remote(self, monkeypatch):
+        # Simulate git rev-parse failing for all candidates
+        def mock_run(cmd, **kwargs):
+            m = MagicMock()
+            m.returncode = 128
+            m.stdout = ""
+            return m
+        monkeypatch.setattr(self.check.subprocess, "run", mock_run)
+        assert self.check._resolve_base_ref() is None
+
+    def test_get_commit_log_emits_warning_when_no_base_ref(self, monkeypatch, capsys):
+        monkeypatch.setattr(self.check, "_resolve_base_ref", lambda: None)
+        result = self.check._get_commit_log()
+        assert result == ""
+        captured = capsys.readouterr()
+        assert "WARNING" in captured.out
+        assert "commit-log scan skipped" in captured.out
+
+    def test_resolve_base_ref_prefers_origin_main(self, monkeypatch):
+        calls = []
+
+        def mock_run(cmd, **kwargs):
+            calls.append(cmd)
+            m = MagicMock()
+            # origin/main resolves, others would too but shouldn't be tried
+            m.returncode = 0
+            m.stdout = "abc123\n"
+            return m
+
+        monkeypatch.setattr(self.check.subprocess, "run", mock_run)
+        ref = self.check._resolve_base_ref()
+        assert ref == "origin/main"
+        assert len(calls) == 1  # stopped after first success
+
+    def test_resolve_base_ref_falls_back_to_origin_head(self, monkeypatch):
+        def mock_run(cmd, **kwargs):
+            m = MagicMock()
+            # origin/main fails, origin/HEAD succeeds
+            m.returncode = 0 if "origin/HEAD" in cmd else 128
+            m.stdout = "abc123\n"
+            return m
+
+        monkeypatch.setattr(self.check.subprocess, "run", mock_run)
+        ref = self.check._resolve_base_ref()
+        assert ref == "origin/HEAD"
+
+
+# ---------------------------------------------------------------------------
 # T-006 — AC-006: regression — existing per-spec test imports from shared module
 # ---------------------------------------------------------------------------
 

@@ -127,11 +127,47 @@ def scan_commit_log(log: str, protected: set[int]) -> list[dict[str, Any]]:
     return findings
 
 
+def _resolve_base_ref() -> str | None:
+    """Return the best available remote base ref for branch-since comparison.
+
+    Tries candidates in order: origin/main, origin/HEAD (resolved), origin/master.
+    Returns the first resolvable ref, or None when none resolve (e.g. no remote).
+    """
+    candidates = ["origin/main", "origin/HEAD", "origin/master"]
+    for ref in candidates:
+        try:
+            result = subprocess.run(
+                ["git", "rev-parse", "--verify", ref],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if result.returncode == 0:
+                return ref
+        except Exception:
+            pass
+    return None
+
+
 def _get_commit_log() -> str:
-    """Return git log for commits on branch since origin/main."""
+    """Return git log for commits on branch since the remote base ref.
+
+    Tries origin/main → origin/HEAD → origin/master in order. Emits an
+    informational message and returns "" (skips commit scan) if none resolve,
+    satisfying NFR-REL-001 (never block push on infrastructure gaps).
+    """
+    base = _resolve_base_ref()
+    if base is None:
+        print(
+            "[autoclose-check] WARNING: no remote base ref found "
+            "(origin/main, origin/HEAD, origin/master all unresolvable) — "
+            "commit-log scan skipped; only PR title/body scanned.",
+            flush=True,
+        )
+        return ""
     try:
         result = subprocess.run(
-            ["git", "log", "origin/main..HEAD", "--pretty=format:%H%n%s%n%b"],
+            ["git", "log", f"{base}..HEAD", "--pretty=format:%H%n%s%n%b"],
             capture_output=True,
             text=True,
             timeout=30,
