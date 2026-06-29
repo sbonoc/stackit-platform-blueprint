@@ -51,6 +51,7 @@ classDiagram
     }
     class SchemaValidator {
         +validate(payload, skill_basename, skills_dir) ValidationSuccess | ValidationFailure
+        +validate raises SchemaValidationError on parse/compile failure
         -_extract_schema_block(skill_md_text) dict
     }
     class PredicateRegistry {

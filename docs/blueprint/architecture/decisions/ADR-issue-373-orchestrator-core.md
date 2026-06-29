@@ -32,6 +32,18 @@ Ship the four core components as a pure-Python importable module at `scripts/lib
 
 `MatrixRow.predicate` is typed `str | None` in Pydantic v2. The literal string `"none"` is coerced to Python `None` by a field validator at parse time. Non-`"none"` strings are registry names validated at load time (not at dispatch time). This decision shifts the error surface from runtime dispatch to startup, matching the loader's fail-fast invariant.
 
+**Schema gap vs ADR-issue-364 § 4.1:** The `DispatchTableRow` JSON Schema in ADR-364 § 4.1 does not include a `predicate` property. The new `Predicate` column in the C3 matrix is authored by `#361.5` (per parent FR-012), which also carries the `#339` sign-off cycle to amend ADR-364 § 4.1. This child (`#361.1`) implements the `MatrixRow.predicate` field and registry-validation logic in advance; the field is nullable so it is backward-compatible with a matrix that has no `Predicate` column (rows without the column parse as `predicate=None`). ADR-364 § 4.1 amendment is a `#361.5` deliverable.
+
+### Schema validator — two distinct failure paths
+
+`SchemaValidator` distinguishes two failure paths to avoid the raise-then-return contradiction:
+
+- **Parse/compile failure** (missing fenced block, malformed YAML, invalid schema document): raises `SchemaValidationError(kind=..., detail=..., context=...)`. Caller does not receive a return value.
+- **Payload validation failure** (payload does not satisfy the compiled schema): returns `ValidationFailure(skill, evidence_ref, field_path, error_message)`. Does not raise.
+- **Success**: returns `ValidationSuccess(skill)`. Does not raise.
+
+The caller (#361.2) handles `SchemaValidationError` by logging the parse/compile failure and raising to the work-loop error handler; it handles `ValidationFailure` by constructing the C7 `outcome: rejected` event with `rejection_reason: schema-validation-failure`.
+
 ### Why Option A (dict-based predicate registry) over Option B (entry-point registry)
 
 - This child ships only fixture predicates. The first real predicate (`ui-fidelity-or-a11y`) ships in #361.5, which calls `registry.register(...)` before passing the registry to the loader. Entry-point packaging is premature.
