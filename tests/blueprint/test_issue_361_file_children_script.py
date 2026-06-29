@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-import re
 import shutil
 import stat
 import subprocess
@@ -21,26 +20,11 @@ import unittest
 
 from tests._shared.helpers import REPO_ROOT
 
+from scripts.lib.quality.autoclose_regex import build_pattern  # noqa: E402
 
-# AC-013 — case-insensitive auto-close keyword regex targeting parent #361.
-# Matches any of: Close, Closes, Closed, Fix, Fixes, Fixed, Resolve, Resolves,
-# Resolved, immediately followed by `#361` with a trailing word boundary.
-#
-# Word-boundary scope (per Claude review on PR #372): `\b` after `1` followed
-# by `.` IS still a word boundary (`.` is non-word), so the regex matches
-# `Closes #361.5` as well as `Closes #361`. This is the desired (strict)
-# behavior — GitHub's own autolinker also resolves `#361.5` as a link to
-# issue #361, so any form `<keyword> #361.<N>` would also auto-close `#361`
-# at merge time. The earlier version of this comment incorrectly claimed
-# GitHub treats `#361.N` as plain text; it does not — fixing the comment to
-# reflect the regex's actual (and intentionally strict) coverage.
-#
-# No body in this PR's scope pairs an auto-close keyword with any `#361.N`
-# form today; the strict regex guards future drift in either direction.
-PARENT_AUTOCLOSE_REGEX = re.compile(
-    r"\b(close[ds]?|fix(?:e[ds])?|resolve[ds]?):?\s+#361\b",
-    re.IGNORECASE,
-)
+# AC-013 — canonical regex for auto-close keywords targeting parent #361.
+# Sourced from scripts/lib/quality/autoclose_regex.py (NFR-MAINT-001).
+PARENT_AUTOCLOSE_REGEX = build_pattern(361)
 
 
 SPEC_DIR = REPO_ROOT / "specs" / "2026-06-18-issue-361-orchestrator-service"

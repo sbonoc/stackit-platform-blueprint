@@ -19,6 +19,13 @@ Parent issue #361 was auto-closed TWICE on 2026-06-22 when PR commit bodies narr
 5. tests/blueprint/test_quality_commit_autoclose.py — unit tests T-001..T-006.
 6. Bootstrap template sync — script + config land in template-synced paths.
 
+## Review Guide
+
+- Primary files to review first:
+  - scripts/lib/quality/autoclose_regex.py — canonical regex; single source of truth
+  - scripts/bin/quality/check_pr_commit_autoclose.py — CLI entrypoint and public API
+  - tests/blueprint/test_quality_commit_autoclose.py — T-001..T-006 unit tests
+
 ## Acceptance Gate
 
 uv run python3 -m pytest tests/blueprint/test_quality_commit_autoclose.py tests/blueprint/test_issue_361_file_children_script.py -q — MUST pass.
