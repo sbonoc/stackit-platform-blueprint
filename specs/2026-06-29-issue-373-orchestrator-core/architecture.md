@@ -33,9 +33,10 @@ classDiagram
         -_validate_skill(skill, skills_dir) None
         -_validate_expert(slug, blueprint_enum, allowlist) None
         -_validate_predicate(name, registry) None
+        -_validate_model_per_expert(panel, model_map) None
     }
     class MatrixRow {
-        +step: str
+        +step: Literal[step01..step08]
         +skill: str
         +expert_panel: list[str]
         +convergence_mode: Literal[...]
@@ -46,8 +47,11 @@ classDiagram
     class ConvergenceEngine {
         +parallel_then_merge(verdicts) MergeResult
         +sequential_lens(experts, initial_context) LensDelta
-        +structured_disagreement(verdicts) StructuredDisagreementResult
-        -_deduplicate(findings) list[str]
+        +structured_disagreement(verdicts, merge_result) StructuredDisagreementResult
+        -_annotate_provenance(verdicts) list[Finding]
+        -_deduplicate(findings) tuple[list[Finding], int]
+        -_escalate_severity(findings) tuple[list[Finding], int]
+        -_stable_sort(findings) list[Finding]
     }
     class SchemaValidator {
         +validate(payload, skill_basename, skills_dir) ValidationSuccess | ValidationFailure
@@ -63,15 +67,51 @@ classDiagram
     class WorkItemContext {
         +changed_paths: list[str]
         +has_user_facing_flow: bool
+        +model_config: ConfigDict(extra=allow)
+    }
+    class Finding {
+        +category: str
+        +summary: str
+        +evidence_ref: str | None
+        +severity: Literal[info..critical]
+        +expert_slug: str | None
+        +co_reporters: list[str]
+    }
+    class ExpertVerdict {
+        +expert_slug_blueprint: str | None
+        +expert_slug_extension: str | None
+        +verdict: Literal[pass, revise, block]
+        +findings: list[Finding]
+    }
+    class MergeResult {
+        +aggregate_verdict: Literal[pass, revise, block]
+        +findings: list[Finding]
+        +findings_before_dedup: int
+        +findings_after_dedup: int
+        +severity_escalation_events: int
+    }
+    class ConflictPair {
+        +expert_a: str
+        +expert_b: str
+        +category: str
+    }
+    class StructuredDisagreementResult {
+        +verdicts: list[ExpertVerdict]
+        +conflict_pairs: list[ConflictPair]
+        +severity_escalation_events: int
     }
     DispatchMatrixLoader --> MatrixRow
     DispatchMatrixLoader --> PredicateRegistry
     ConvergenceEngine --> ExpertVerdict
     ConvergenceEngine --> MergeResult
+    ConvergenceEngine --> StructuredDisagreementResult
+    ExpertVerdict --> Finding
+    MergeResult --> Finding
+    StructuredDisagreementResult --> ConflictPair
     PredicateRegistry --> WorkItemContext
 ```
 
-Caption: Component structure for the pure-Python orchestrator core module. No arrows cross the module boundary — all I/O is delegated to callers.
+Caption: Component structure for the pure-Python orchestrator core module. No arrows cross the module boundary — all I/O is delegated to callers. The Pydantic v2 models (MatrixRow, Finding, ExpertVerdict, MergeResult, ConflictPair, StructuredDisagreementResult, LensDelta, WorkItemContext) form the locked public API surface that #361.2/#361.3/#361.5 import and construct.
 
 - Domain layer: `DispatchMatrixLoader`, `ConvergenceEngine`, `SchemaValidator`, `PredicateRegistry`, `WorkItemContext`, `MatrixRow`, `ExpertVerdict`, `MergeResult`, `ValidationFailure`, `ValidationSuccess`
 - Application layer: `__init__.py` re-exports; no application service objects in this child — the application service is #361.3
