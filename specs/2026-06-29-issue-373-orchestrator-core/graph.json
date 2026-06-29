@@ -5,22 +5,22 @@
     {
       "id": "FR-001",
       "type": "requirement",
-      "summary": "Dispatch matrix loader reads § C3, validates skills/experts/predicates, fail-fast on any violation"
+      "summary": "Dispatch matrix loader reads § C3, validates skills/experts/predicates/model_per_expert pairing, fail-fast on any violation"
     },
     {
       "id": "FR-002",
       "type": "requirement",
-      "summary": "Convergence engine implements parallel-then-merge, sequential-lens, structured-disagreement"
+      "summary": "Convergence engine implements parallel-then-merge (with expert_slug provenance + co_reporters + stable sort), sequential-lens (immutable LensDelta), structured-disagreement (ConflictPair output)"
     },
     {
       "id": "FR-003",
       "type": "requirement",
-      "summary": "Schema validator extracts YAML jsonschema from SKILL.md and validates payload; zero I/O side effects"
+      "summary": "Schema validator extracts YAML jsonschema from SKILL.md; raises SchemaValidationError on parse/compile failure, returns ValidationFailure on payload validation failure; zero I/O side effects"
     },
     {
       "id": "FR-004",
       "type": "requirement",
-      "summary": "Predicate registry: named callable registry, always_true/false built-ins, immutable after evaluate"
+      "summary": "Predicate registry: named callable registry, always_true/false built-ins, immutable after evaluate, MatrixRow.predicate='none' coerces to None"
     },
     {
       "id": "NFR-SEC-001",
@@ -50,23 +50,31 @@
     {
       "id": "AC-001",
       "type": "acceptance",
-      "summary": "Dispatch matrix loader: five sub-cases — fabricated skill, fabricated expert, extension allowlist acceptance, fabricated predicate, live canonical C3 step-set"
+      "summary": "Dispatch matrix loader: six sub-cases — fabricated skill, fabricated expert blueprint slug, extension allowlist acceptance, live canonical C3 step-set, model_per_expert routing-key pairing, missing-routing-key fail"
     },
     {
       "id": "AC-002",
       "type": "acceptance",
-      "summary": "Convergence engine: three modes — block aggregate, sequential invocation order, structured-disagreement escalation count"
+      "summary": "Convergence engine: three modes — parallel_then_merge with expert_slug provenance + co_reporters + stable sort + findings list, sequential_lens immutability, structured_disagreement ConflictPair shape"
     },
     {
       "id": "AC-003",
       "type": "acceptance",
-      "summary": "Schema validator: raises SchemaValidationError, returns ValidationFailure, no stdout/stderr write"
+      "summary": "Schema validator: schema-block-missing raises, payload validation returns ValidationFailure, success returns ValidationSuccess, no stdout/stderr/file write"
     },
     {
       "id": "AC-004",
       "type": "acceptance",
-      "summary": "Predicate registry: always_true, always_false, predicate=none coercion, load-time registry miss raises DispatchMatrixError"
-    }
+      "summary": "Predicate registry: always_true, always_false, predicate=none coercion, load-time registry hit accepted, load-time registry miss raises DispatchMatrixError"
+    },
+    { "id": "MODEL-MatrixRow",                   "type": "data_model", "summary": "Pydantic v2 model: step, skill, expert_panel, convergence_mode, model_per_expert, lead_voice, predicate" },
+    { "id": "MODEL-Finding",                     "type": "data_model", "summary": "Pydantic v2 model: category, summary, evidence_ref, severity, expert_slug (added by merger), co_reporters (populated by merger during dedup)" },
+    { "id": "MODEL-ExpertVerdict",               "type": "data_model", "summary": "Pydantic v2 model conforming to ADR-364 § 6: expert_slug_blueprint XOR expert_slug_extension, verdict, findings" },
+    { "id": "MODEL-MergeResult",                 "type": "data_model", "summary": "Pydantic v2 model: aggregate_verdict, findings (deduped + escalated + sorted), findings_before_dedup, findings_after_dedup, severity_escalation_events" },
+    { "id": "MODEL-LensDelta",                   "type": "data_model", "summary": "Pydantic v2 model: prior_findings cumulative accumulator passed read-only between sequential-lens callables" },
+    { "id": "MODEL-ConflictPair",                "type": "data_model", "summary": "Pydantic v2 model: expert_a (lex-lower), expert_b (lex-higher), category" },
+    { "id": "MODEL-StructuredDisagreementResult","type": "data_model", "summary": "Pydantic v2 model: verdicts, conflict_pairs, severity_escalation_events (conflict-induced only)" },
+    { "id": "MODEL-WorkItemContext",             "type": "data_model", "summary": "Pydantic v2 model with extra=allow: changed_paths, has_user_facing_flow, plus consumer-extensible fields" }
   ],
   "edges": [
     { "from": "FR-001", "to": "AC-001", "relation": "validated_by" },
@@ -84,6 +92,19 @@
     { "from": "NFR-REL-001", "to": "FR-003", "relation": "constrains" },
     { "from": "NFR-REL-001", "to": "FR-004", "relation": "constrains" },
     { "from": "NFR-OPS-001", "to": "AC-001", "relation": "constrains" },
-    { "from": "NFR-OPS-001", "to": "AC-004", "relation": "constrains" }
+    { "from": "NFR-OPS-001", "to": "AC-004", "relation": "constrains" },
+    { "from": "FR-001", "to": "MODEL-MatrixRow",                     "relation": "produces" },
+    { "from": "FR-002", "to": "MODEL-Finding",                       "relation": "produces" },
+    { "from": "FR-002", "to": "MODEL-ExpertVerdict",                 "relation": "consumes" },
+    { "from": "FR-002", "to": "MODEL-MergeResult",                   "relation": "produces" },
+    { "from": "FR-002", "to": "MODEL-LensDelta",                     "relation": "produces" },
+    { "from": "FR-002", "to": "MODEL-ConflictPair",                  "relation": "produces" },
+    { "from": "FR-002", "to": "MODEL-StructuredDisagreementResult",  "relation": "produces" },
+    { "from": "FR-004", "to": "MODEL-WorkItemContext",               "relation": "consumes" },
+    { "from": "FR-004", "to": "MODEL-MatrixRow",                     "relation": "constrains" },
+    { "from": "MODEL-ExpertVerdict",                "to": "MODEL-Finding", "relation": "contains" },
+    { "from": "MODEL-MergeResult",                  "to": "MODEL-Finding", "relation": "contains" },
+    { "from": "MODEL-StructuredDisagreementResult", "to": "MODEL-ConflictPair", "relation": "contains" },
+    { "from": "MODEL-StructuredDisagreementResult", "to": "MODEL-ExpertVerdict", "relation": "contains" }
   ]
 }
