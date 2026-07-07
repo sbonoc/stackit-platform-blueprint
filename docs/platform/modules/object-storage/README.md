@@ -84,7 +84,7 @@ On success writes `artifacts/infra/object_storage_smoke.env`.
 | Provisioning | Bitnami MinIO Helm chart `17.0.21` | Foundation Terraform inline resources |
 | Execution class | `fallback_runtime` | `provider_backed` |
 | Credentials | Reconciled into K8s Secret `blueprint-object-storage-auth` | Provider-generated via `stackit_objectstorage_credential` |
-| Endpoint | `http://<release>.data.svc.cluster.local:9000` | `https://object-storage.<region>.onstackit.cloud` |
+| Endpoint | `http://<release>.data.svc.cluster.local:9000` | `https://object.storage.<region>.onstackit.cloud` |
 
 ## Destroy
 

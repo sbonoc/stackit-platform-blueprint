@@ -5,7 +5,7 @@ output "bucket_name" {
 
 output "endpoint_url" {
   description = "S3-compatible endpoint URL for the provisioned bucket region."
-  value       = "https://object-storage.${var.stackit_region}.onstackit.cloud"
+  value       = "https://object.storage.${var.stackit_region}.onstackit.cloud"
 }
 
 output "access_key" {

@@ -61,7 +61,7 @@ if tooling_is_execution_enabled; then
     echo "stackit_project_id=${STACKIT_PROJECT_ID}"
     echo "stackit_region=${STACKIT_REGION}"
     echo "environment=$(profile_environment)"
-    if [[ -n "${KEYCLOAK_ADMIN_PASSWORD:-}" ]]; then
+    if [[ -n "${KEYCLOAK_ADMIN_PASSWORD:-}" ]] && [[ "${KEYCLOAK_ADMIN_PASSWORD}" != *$'\n'* ]]; then
       echo "KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}"
     fi
   } >>"$secret_env_file"
