@@ -18,7 +18,10 @@ postgres_init_env() {
   set_default_env POSTGRES_IMAGE_REPOSITORY "$POSTGRES_LOCAL_IMAGE_REPOSITORY"
   set_default_env POSTGRES_IMAGE_TAG "$POSTGRES_LOCAL_IMAGE_TAG"
 
-  require_env_vars POSTGRES_INSTANCE_NAME POSTGRES_DB_NAME POSTGRES_USER POSTGRES_PASSWORD
+  require_env_vars POSTGRES_DB_NAME POSTGRES_USER
+  if ! is_stackit_profile; then
+    require_env_vars POSTGRES_PASSWORD
+  fi
 
   if [[ "$POSTGRES_EXTRA_ALLOWED_CIDRS" == *"0.0.0.0/0"* ]]; then
     log_fatal "POSTGRES_EXTRA_ALLOWED_CIDRS must not include 0.0.0.0/0"
@@ -28,7 +31,7 @@ postgres_init_env() {
 postgres_stackit_placeholder_host() {
   local region
   region="${STACKIT_REGION:-local}"
-  printf '%s.postgresql.%s.onstackit.cloud' "$POSTGRES_INSTANCE_NAME" "$region"
+  printf '%s.postgresql.%s.onstackit.cloud' "${POSTGRES_INSTANCE_NAME:-}" "$region"
 }
 
 postgres_username() {

@@ -5,7 +5,6 @@
 - Purpose: Provision managed object storage and expose canonical S3-compatible upload/download contract.
 - Enable flag: `OBJECT_STORAGE_ENABLED` (default: `false`)
 - Required inputs:
-  - `OBJECT_STORAGE_BUCKET_NAME`
 - Make targets:
   - `infra-object-storage-plan`
   - `infra-object-storage-apply`
@@ -23,7 +22,7 @@
 - Optional module Make targets are materialized by `make blueprint-render-makefile` (or `make blueprint-bootstrap`) when `OBJECT_STORAGE_ENABLED=true`.
 - Scaffolding paths are materialized by `make infra-bootstrap` only when `OBJECT_STORAGE_ENABLED=true`.
 - `stackit-*` profiles: managed by Terraform `foundation` layer (`infra/cloud/stackit/terraform/foundation`) with `OBJECT_STORAGE_ENABLED` contract flag.
-  - `OBJECT_STORAGE_BUCKET_NAME` is passed through as the canonical bucket contract.
+  - `OBJECT_STORAGE_BUCKET_NAME` is optional (v1.12.2+); when unset Terraform derives a unique per-environment name from `naming_prefix`. Override only when a pre-existing bucket must be targeted.
   - Access keys are provider-generated and resolved into runtime artifacts from foundation outputs after apply.
 - `local-*` profiles: Helm chart (`bitnami/minio`) using `infra/local/helm/object-storage/values.yaml`.
   - The local fallback uses explicit pinned `docker.io/bitnamilegacy/*` images instead of relying on drifting chart defaults; that registry name is a vendor namespace quirk, while the pinned tags still track the latest stable supported multi-arch line we validate in this repo.
@@ -36,7 +35,7 @@
 | Variable | Required | Default | Description |
 |---|---|---|---|
 | `OBJECT_STORAGE_ENABLED` | — | `false` | Enable/disable the module |
-| `OBJECT_STORAGE_BUCKET_NAME` | yes | — | Canonical bucket name provisioned on both lanes |
+| `OBJECT_STORAGE_BUCKET_NAME` | no | — | Canonical bucket name; Terraform derives it from `naming_prefix` when unset (v1.12.2+) |
 | `OBJECT_STORAGE_REGION` | no | `eu01` | STACKIT region; also written to runtime state on local lane |
 | `OBJECT_STORAGE_NAMESPACE` | no | `data` | Kubernetes namespace for local Helm release |
 | `OBJECT_STORAGE_HELM_RELEASE` | no | `blueprint-object-storage` | Helm release name (local lane) |

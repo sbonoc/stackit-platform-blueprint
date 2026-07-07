@@ -5,7 +5,6 @@
 - Purpose: Provision RabbitMQ for transactional and notification event flows.
 - Enable flag: `RABBITMQ_ENABLED` (default: `false`)
 - Required inputs:
-  - `RABBITMQ_INSTANCE_NAME`
 - Make targets:
   - `infra-rabbitmq-plan`
   - `infra-rabbitmq-apply`

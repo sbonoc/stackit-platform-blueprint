@@ -186,8 +186,9 @@ stackit_layer_var_args() {
   printf '%s\n' "-var=identity_aware_proxy_enabled=$(stackit_module_enabled_tf_bool identity-aware-proxy)"
 
   if is_module_enabled rabbitmq; then
-    require_env_vars RABBITMQ_INSTANCE_NAME
-    printf '%s\n' "-var=rabbitmq_instance_name=$RABBITMQ_INSTANCE_NAME"
+    if [[ -n "${RABBITMQ_INSTANCE_NAME:-}" ]]; then
+      printf '%s\n' "-var=rabbitmq_instance_name=$RABBITMQ_INSTANCE_NAME"
+    fi
     if [[ -n "${RABBITMQ_VERSION:-}" ]]; then
       printf '%s\n' "-var=rabbitmq_version=$RABBITMQ_VERSION"
     fi
@@ -197,15 +198,22 @@ stackit_layer_var_args() {
   fi
 
   if is_module_enabled opensearch; then
-    require_env_vars OPENSEARCH_INSTANCE_NAME OPENSEARCH_VERSION OPENSEARCH_PLAN_NAME
-    printf '%s\n' "-var=opensearch_instance_name=$OPENSEARCH_INSTANCE_NAME"
-    printf '%s\n' "-var=opensearch_version=$OPENSEARCH_VERSION"
-    printf '%s\n' "-var=opensearch_plan_name=$OPENSEARCH_PLAN_NAME"
+    if [[ -n "${OPENSEARCH_INSTANCE_NAME:-}" ]]; then
+      printf '%s\n' "-var=opensearch_instance_name=$OPENSEARCH_INSTANCE_NAME"
+    fi
+    if [[ -n "${OPENSEARCH_VERSION:-}" ]]; then
+      printf '%s\n' "-var=opensearch_version=$OPENSEARCH_VERSION"
+    fi
+    if [[ -n "${OPENSEARCH_PLAN_NAME:-}" ]]; then
+      printf '%s\n' "-var=opensearch_plan_name=$OPENSEARCH_PLAN_NAME"
+    fi
   fi
 
   if is_module_enabled postgres; then
-    require_env_vars POSTGRES_INSTANCE_NAME POSTGRES_DB_NAME POSTGRES_USER
-    printf '%s\n' "-var=postgres_instance_name=$POSTGRES_INSTANCE_NAME"
+    require_env_vars POSTGRES_DB_NAME POSTGRES_USER
+    if [[ -n "${POSTGRES_INSTANCE_NAME:-}" ]]; then
+      printf '%s\n' "-var=postgres_instance_name=$POSTGRES_INSTANCE_NAME"
+    fi
     printf '%s\n' "-var=postgres_db_name=$POSTGRES_DB_NAME"
     printf '%s\n' "-var=postgres_username=$POSTGRES_USER"
     if [[ -n "${POSTGRES_VERSION:-}" ]]; then
@@ -217,8 +225,9 @@ stackit_layer_var_args() {
   fi
 
   if is_module_enabled object-storage; then
-    require_env_vars OBJECT_STORAGE_BUCKET_NAME
-    printf '%s\n' "-var=object_storage_bucket_name=$OBJECT_STORAGE_BUCKET_NAME"
+    if [[ -n "${OBJECT_STORAGE_BUCKET_NAME:-}" ]]; then
+      printf '%s\n' "-var=object_storage_bucket_name=$OBJECT_STORAGE_BUCKET_NAME"
+    fi
   fi
 
   if is_module_enabled dns; then

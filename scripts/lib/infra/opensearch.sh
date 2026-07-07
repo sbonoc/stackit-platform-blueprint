@@ -12,9 +12,11 @@ source "$ROOT_DIR/scripts/lib/infra/fallback_runtime.sh"
 OPENSEARCH_LOCAL_ADMIN_USERNAME="admin"
 
 opensearch_seed_env_defaults() {
-  set_default_env OPENSEARCH_INSTANCE_NAME "marketplace-opensearch"
-  set_default_env OPENSEARCH_VERSION "2.17"
-  set_default_env OPENSEARCH_PLAN_NAME "stackit-opensearch-single"
+  # OPENSEARCH_INSTANCE_NAME is optional_env — Terraform derives it from naming_prefix when unset.
+  # Do NOT set a default here: that would silently satisfy stackit_layers.sh's conditional
+  # guard and emit the hardcoded placeholder as a -var= flag, colliding environments (#385).
+  set_default_env OPENSEARCH_VERSION "2"
+  set_default_env OPENSEARCH_PLAN_NAME "stackit-opensearch-2.17-replica"
   set_default_env OPENSEARCH_NAMESPACE "search"
   set_default_env OPENSEARCH_HELM_RELEASE "blueprint-opensearch"
   set_default_env OPENSEARCH_HELM_CHART "bitnami/opensearch"
@@ -27,7 +29,6 @@ opensearch_seed_env_defaults() {
 
 opensearch_init_env() {
   opensearch_seed_env_defaults
-  require_env_vars OPENSEARCH_INSTANCE_NAME OPENSEARCH_VERSION OPENSEARCH_PLAN_NAME
 }
 
 opensearch_password_secret_name() {
@@ -37,7 +38,7 @@ opensearch_password_secret_name() {
 opensearch_stackit_placeholder_host() {
   local region
   region="${STACKIT_REGION:-${BLUEPRINT_STACKIT_REGION:-eu01}}"
-  printf '%s.opensearch.%s.stackit.invalid' "$OPENSEARCH_INSTANCE_NAME" "$region"
+  printf '%s.opensearch.%s.stackit.invalid' "${OPENSEARCH_INSTANCE_NAME:-}" "$region"
 }
 
 opensearch_local_service_host() {

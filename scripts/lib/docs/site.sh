@@ -39,7 +39,11 @@ docs_pnpm_install() {
   _docs_assert_pnpm_version
   # The docs site is intentionally outside the frontend workspace package globs.
   # Force standalone install so CI clean runners do not skip docs dependencies.
-  run_cmd pnpm --dir "$DOCS_SITE_DIR" --ignore-workspace install --frozen-lockfile
+  # --ignore-scripts: pnpm@11 requires interactive approval for packages that run
+  # post-install build scripts (e.g. core-js). These polyfill-compilation scripts
+  # are not needed at install time — Webpack/Docusaurus bundles the polyfills at
+  # build time. Ignoring them avoids the interactive prompt in CI and local runs.
+  run_cmd pnpm --dir "$DOCS_SITE_DIR" --ignore-workspace install --frozen-lockfile --ignore-scripts
 }
 
 docs_pnpm_build() {

@@ -51,19 +51,22 @@ class InitRepoEnvTests(unittest.TestCase):
             non_sensitive = dict(non_sensitive_module_required_env_specs(REPO_ROOT, module_enablement))
             sensitive = dict(sensitive_module_required_env_specs(REPO_ROOT, module_enablement))
 
-        self.assertEqual(non_sensitive["POSTGRES_INSTANCE_NAME"], "blueprint-postgres")
+        # POSTGRES_INSTANCE_NAME and OBJECT_STORAGE_BUCKET_NAME are optional_env since v1.12.2
+        self.assertNotIn("POSTGRES_INSTANCE_NAME", non_sensitive)
+        self.assertNotIn("OBJECT_STORAGE_BUCKET_NAME", non_sensitive)
         self.assertEqual(non_sensitive["POSTGRES_DB_NAME"], "platform")
         self.assertEqual(non_sensitive["POSTGRES_USER"], "platform")
-        self.assertEqual(non_sensitive["OBJECT_STORAGE_BUCKET_NAME"], "marketplace-assets")
         self.assertEqual(non_sensitive["PUBLIC_ENDPOINTS_BASE_DOMAIN"], "apps.local")
         self.assertEqual(non_sensitive["IAP_UPSTREAM_URL"], "http://catalog.apps.svc.cluster.local:8080")
         self.assertEqual(non_sensitive["KEYCLOAK_ISSUER_URL"], "https://auth.example.invalid/realms/iap")
         self.assertEqual(non_sensitive["KEYCLOAK_CLIENT_ID"], "iap-client")
+        # POSTGRES_PASSWORD is optional_env since v1.12.2 — provider output on STACKIT
         self.assertNotIn("POSTGRES_PASSWORD", non_sensitive)
         self.assertNotIn("IAP_COOKIE_SECRET", non_sensitive)
         self.assertNotIn("KEYCLOAK_CLIENT_SECRET", non_sensitive)
 
-        self.assertEqual(sensitive["POSTGRES_PASSWORD"], "platform-password")
+        # POSTGRES_PASSWORD is no longer in sensitive_module_required_env_specs since v1.12.2
+        self.assertNotIn("POSTGRES_PASSWORD", sensitive)
         self.assertEqual(sensitive["IAP_COOKIE_SECRET"], "0123456789abcdef0123456789abcdef")
         self.assertEqual(sensitive["KEYCLOAK_CLIENT_SECRET"], "blueprint-client-secret")
         self.assertNotIn("KEYCLOAK_CLIENT_ID", sensitive)
@@ -158,7 +161,8 @@ class InitRepoEnvTests(unittest.TestCase):
 
         self.assertIn("STACKIT_SERVICE_ACCOUNT_KEY=", rendered)
         self.assertIn("STACKIT_TFSTATE_SECRET_ACCESS_KEY=", rendered)
-        self.assertIn("POSTGRES_PASSWORD=platform-password", rendered)
+        # POSTGRES_PASSWORD is optional_env since v1.12.2 — provider output on STACKIT; not in secrets example
+        self.assertNotIn("POSTGRES_PASSWORD=", rendered)
         self.assertIn("IAP_COOKIE_SECRET=0123456789abcdef0123456789abcdef", rendered)
         self.assertIn("KEYCLOAK_CLIENT_SECRET=blueprint-client-secret", rendered)
         self.assertNotIn("env-postgres-password", rendered)

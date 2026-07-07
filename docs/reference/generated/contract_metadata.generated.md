@@ -473,7 +473,6 @@
 - Enable flag: `OBJECT_STORAGE_ENABLED`
 
 ### Required Environment Variables
-- `OBJECT_STORAGE_BUCKET_NAME`
 
 ### Make Targets
 - `infra-object-storage-plan`
@@ -526,9 +525,6 @@
 - Enable flag: `OPENSEARCH_ENABLED`
 
 ### Required Environment Variables
-- `OPENSEARCH_INSTANCE_NAME`
-- `OPENSEARCH_VERSION`
-- `OPENSEARCH_PLAN_NAME`
 
 ### Make Targets
 - `infra-opensearch-plan`
@@ -553,10 +549,8 @@
 - Enable flag: `POSTGRES_ENABLED`
 
 ### Required Environment Variables
-- `POSTGRES_INSTANCE_NAME`
 - `POSTGRES_DB_NAME`
 - `POSTGRES_USER`
-- `POSTGRES_PASSWORD`
 
 ### Make Targets
 - `infra-postgres-plan`
@@ -601,7 +595,6 @@
 - Enable flag: `RABBITMQ_ENABLED`
 
 ### Required Environment Variables
-- `RABBITMQ_INSTANCE_NAME`
 
 ### Make Targets
 - `infra-rabbitmq-plan`

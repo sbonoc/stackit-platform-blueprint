@@ -22,9 +22,9 @@ spec:
       - secrets_manager_available
 
   inputs:
-    required_env:
-      - OBJECT_STORAGE_BUCKET_NAME
+    required_env: []
     optional_env:
+      - OBJECT_STORAGE_BUCKET_NAME
       - OBJECT_STORAGE_REGION
       - OBJECT_STORAGE_ENDPOINT
       - OBJECT_STORAGE_ACCESS_KEY

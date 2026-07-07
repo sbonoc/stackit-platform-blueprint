@@ -5,10 +5,8 @@
 - Purpose: Provision PostgreSQL and expose canonical DSN/credentials for runtime consumers.
 - Enable flag: `POSTGRES_ENABLED` (default: `false`)
 - Required inputs:
-  - `POSTGRES_INSTANCE_NAME`
   - `POSTGRES_DB_NAME`
   - `POSTGRES_USER`
-  - `POSTGRES_PASSWORD`
 - Make targets:
   - `infra-postgres-plan`
   - `infra-postgres-apply`
@@ -27,7 +25,7 @@
 - Optional module Make targets are materialized by `make blueprint-render-makefile` (or `make blueprint-bootstrap`) when `POSTGRES_ENABLED=true`.
 - Scaffolding paths are materialized by `make infra-bootstrap` only when `POSTGRES_ENABLED=true`.
 - `stackit-*` profiles: managed by Terraform `foundation` layer (`infra/cloud/stackit/terraform/foundation`) with `POSTGRES_ENABLED` contract flag.
-  - Canonical inputs `POSTGRES_INSTANCE_NAME`, `POSTGRES_DB_NAME`, `POSTGRES_USER`, and `POSTGRES_EXTRA_ALLOWED_CIDRS` are passed through to the foundation layer.
+  - Required inputs `POSTGRES_DB_NAME` and `POSTGRES_USER` are passed through to the foundation layer. `POSTGRES_INSTANCE_NAME` is optional (v1.12.2+); Terraform derives a unique per-environment name from `naming_prefix` when unset. `POSTGRES_EXTRA_ALLOWED_CIDRS` is optional and defaults to empty.
   - `POSTGRES_VERSION` defaults to `17` across local and STACKIT paths, and can be overridden explicitly when provider support changes.
   - Runtime artifacts resolve provider-generated host/port/password outputs after apply; dry-run mode keeps deterministic placeholders.
 - `local-*` profiles: Helm chart (`bitnami/postgresql`) using `infra/local/helm/postgres/values.yaml`.
@@ -46,7 +44,7 @@
 Credentials are delivered via a Kubernetes Secret named `blueprint-postgres-auth` (Secret key: `password`). No plaintext credentials appear in rendered Helm values or bootstrap templates.
 
 **Local lane apply flow:**
-1. `postgres_reconcile_runtime_secret` creates or updates Secret `blueprint-postgres-auth` in namespace `data` with the value of `POSTGRES_PASSWORD` before the Helm upgrade runs.
+1. `postgres_reconcile_runtime_secret` creates or updates Secret `blueprint-postgres-auth` in namespace `data` with the value of `POSTGRES_PASSWORD` before the Helm upgrade runs. `POSTGRES_PASSWORD` is required on local profiles; on STACKIT profiles it is provider-generated and not an input (v1.12.2+).
 2. The Bitnami postgresql chart mounts the Secret via `auth.existingSecret: blueprint-postgres-auth`.
 3. `postgres_delete_runtime_secret` removes the Secret on destroy.
 

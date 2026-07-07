@@ -373,15 +373,18 @@ class GovernanceInitRepoCases(RefactorContractBase):
             self.assertIn("OBJECT_STORAGE_ENABLED=true", defaults_env)
             self.assertIn("PUBLIC_ENDPOINTS_ENABLED=true", defaults_env)
             self.assertIn("IDENTITY_AWARE_PROXY_ENABLED=true", defaults_env)
-            self.assertIn("POSTGRES_INSTANCE_NAME=blueprint-postgres", defaults_env)
+            # POSTGRES_INSTANCE_NAME is optional_env since v1.12.2 — derives from naming_prefix
+            self.assertNotIn("POSTGRES_INSTANCE_NAME=", defaults_env)
             self.assertIn("POSTGRES_DB_NAME=platform", defaults_env)
             self.assertIn("POSTGRES_USER=platform", defaults_env)
-            self.assertIn("OBJECT_STORAGE_BUCKET_NAME=marketplace-assets", defaults_env)
+            # OBJECT_STORAGE_BUCKET_NAME is optional_env since v1.12.2 — derives from naming_prefix
+            self.assertNotIn("OBJECT_STORAGE_BUCKET_NAME=", defaults_env)
             self.assertIn("PUBLIC_ENDPOINTS_BASE_DOMAIN=apps.local", defaults_env)
             self.assertIn("IAP_UPSTREAM_URL=http://catalog.apps.svc.cluster.local:8080", defaults_env)
             self.assertIn("KEYCLOAK_ISSUER_URL=https://auth.example.invalid/realms/iap", defaults_env)
             self.assertIn("KEYCLOAK_CLIENT_ID=iap-client", defaults_env)
-            self.assertIn("POSTGRES_PASSWORD=platform-password", local_secrets_env)
+            # POSTGRES_PASSWORD is optional_env since v1.12.2 — provider output on STACKIT
+            self.assertNotIn("POSTGRES_PASSWORD=", local_secrets_env)
             self.assertIn("IAP_COOKIE_SECRET=0123456789abcdef0123456789abcdef", local_secrets_env)
             self.assertIn("KEYCLOAK_CLIENT_SECRET=blueprint-client-secret", local_secrets_env)
             self.assertNotIn("KEYCLOAK_CLIENT_ID=", local_secrets_env)
