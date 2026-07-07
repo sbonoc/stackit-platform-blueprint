@@ -16,6 +16,7 @@ spec:
         - feature/
         - fix/
         - hotfix/
+        - release/
         - chore/
         - docs/
         - refactor/
