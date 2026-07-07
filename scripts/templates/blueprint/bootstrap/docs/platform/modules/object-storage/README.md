@@ -5,7 +5,6 @@
 - Purpose: Provision managed object storage and expose canonical S3-compatible upload/download contract.
 - Enable flag: `OBJECT_STORAGE_ENABLED` (default: `false`)
 - Required inputs:
-  - `OBJECT_STORAGE_BUCKET_NAME`
 - Make targets:
   - `infra-object-storage-plan`
   - `infra-object-storage-apply`

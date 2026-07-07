@@ -5,9 +5,6 @@
 - Purpose: Provision managed OpenSearch and expose canonical endpoint/credentials for runtime consumers.
 - Enable flag: `OPENSEARCH_ENABLED` (default: `false`)
 - Required inputs:
-  - `OPENSEARCH_INSTANCE_NAME`
-  - `OPENSEARCH_VERSION`
-  - `OPENSEARCH_PLAN_NAME`
 - Make targets:
   - `infra-opensearch-plan`
   - `infra-opensearch-apply`
