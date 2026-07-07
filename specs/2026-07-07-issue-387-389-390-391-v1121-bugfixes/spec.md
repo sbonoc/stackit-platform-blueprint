@@ -46,7 +46,7 @@
 ### Functional Requirements (Normative)
 - FR-001 MUST correct the STACKIT object storage endpoint hostname from `object-storage.<region>.onstackit.cloud` to `object.storage.<region>.onstackit.cloud` in `scripts/lib/infra/object_storage.sh` (fixes #387).
 - FR-002 MUST ensure `KEYCLOAK_ADMIN_PASSWORD` is emitted exactly once into the seed env file; the Python script `stackit_runtime_secret_env.py` MUST NOT read it from the environment — the shell caller `stackit_foundation_seed_runtime_secret.sh` is the sole owner (fixes #391).
-- FR-003 MUST add `--force-conflicts` to the cert-manager Helm upgrade invocation so that Gardener's `gardenlet` field-manager claim on `timeoutSeconds` does not abort the upgrade on STACKIT SKE (fixes #390).
+- FR-003 MUST add `--server-side` and `--force-conflicts` to the cert-manager Helm upgrade invocation so that Gardener's `gardenlet` field-manager claim on `timeoutSeconds` does not abort the upgrade on STACKIT SKE; `--force-conflicts` is a no-op without `--server-side` (fixes #390).
 - FR-004 MUST seed the ESO `ClusterSecretStore` source secret `runtime-credentials-source` in the `security` namespace inside `stackit_foundation_seed_runtime_secret.sh`, alongside the existing `platform-foundation-contract` secret (fixes #389).
 
 ### Non-Functional Requirements (Normative)
