@@ -21,9 +21,9 @@ spec:
       - messaging_service_available
 
   inputs:
-    required_env:
-      - RABBITMQ_INSTANCE_NAME
+    required_env: []
     optional_env:
+      - RABBITMQ_INSTANCE_NAME
       - RABBITMQ_USERNAME
       - RABBITMQ_PASSWORD
       - RABBITMQ_PORT

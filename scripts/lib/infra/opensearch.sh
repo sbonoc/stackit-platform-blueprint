@@ -13,8 +13,8 @@ OPENSEARCH_LOCAL_ADMIN_USERNAME="admin"
 
 opensearch_seed_env_defaults() {
   set_default_env OPENSEARCH_INSTANCE_NAME "marketplace-opensearch"
-  set_default_env OPENSEARCH_VERSION "2.17"
-  set_default_env OPENSEARCH_PLAN_NAME "stackit-opensearch-single"
+  set_default_env OPENSEARCH_VERSION "2"
+  set_default_env OPENSEARCH_PLAN_NAME "stackit-opensearch-2.17-replica"
   set_default_env OPENSEARCH_NAMESPACE "search"
   set_default_env OPENSEARCH_HELM_RELEASE "blueprint-opensearch"
   set_default_env OPENSEARCH_HELM_CHART "bitnami/opensearch"
@@ -27,7 +27,6 @@ opensearch_seed_env_defaults() {
 
 opensearch_init_env() {
   opensearch_seed_env_defaults
-  require_env_vars OPENSEARCH_INSTANCE_NAME OPENSEARCH_VERSION OPENSEARCH_PLAN_NAME
 }
 
 opensearch_password_secret_name() {

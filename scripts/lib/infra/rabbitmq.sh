@@ -23,7 +23,6 @@ rabbitmq_seed_env_defaults() {
 
 rabbitmq_init_env() {
   rabbitmq_seed_env_defaults
-  require_env_vars RABBITMQ_INSTANCE_NAME
 }
 
 rabbitmq_password_secret_name() {
