@@ -225,7 +225,7 @@ class ObjectStorageSmokeScriptTests(unittest.TestCase):
 
     def test_smoke_passes_with_https_endpoint(self) -> None:
         rc = self._run_smoke(
-            "endpoint=https://object-storage.eu01.onstackit.cloud\n"
+            "endpoint=https://object.storage.eu01.onstackit.cloud\n"
             "bucket=marketplace-assets\n"
             "region=eu01\n"
         )
