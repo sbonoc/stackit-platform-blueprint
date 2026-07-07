@@ -26,20 +26,18 @@
 - Scaffolding paths are materialized by `make infra-bootstrap` only when `OPENSEARCH_ENABLED=true`.
 - `stackit-*` profiles: STACKIT foundation provisions a managed OpenSearch instance through `stackit_opensearch_instance` plus `stackit_opensearch_credential`, and wrappers read terraform outputs into the runtime contract.
 - `local-*` profiles: Helm chart (`bitnami/opensearch`) runs from a rendered values artifact derived from the scaffold contract in `infra/local/helm/opensearch/values.yaml`.
-  - OpenSearch managed-service version family: `2.17` (matching `OPENSEARCH_VERSION` default; image pinned in `scripts/lib/infra/versions.sh`).
-  - Local chart pin: `1.6.3` (Bitnami chart series 1.x, OpenSearch app version `2.19.1`). Chart 2.x targets OpenSearch 3.x and is incompatible with the 2.17/2.19 image line.
-  - Local image pin: `docker.io/bitnamilegacy/opensearch:2.19.1-debian-12-r4` — closest stable Bitnami tag to the STACKIT 2.17 family that the chart 1.6.3 templates support; multi-arch for amd64 CI nodes and arm64 Docker Desktop clusters.
+  - OpenSearch managed-service version family: `2` (STACKIT provider accepts the major version string; image pinned in `scripts/lib/infra/versions.sh`).
+  - Local chart pin: `1.6.3` (Bitnami chart series 1.x, OpenSearch app version `2.19.1`). Chart 2.x targets OpenSearch 3.x and is incompatible with the 2.19 image line.
+  - Local image pin: `docker.io/bitnamilegacy/opensearch:2.19.1-debian-12-r4` — closest stable Bitnami tag to the STACKIT OpenSearch 2.x family that chart 1.6.3 supports; multi-arch for amd64 CI nodes and arm64 Docker Desktop clusters.
 
 ## Local lane
 
 ```bash
 OPENSEARCH_ENABLED=true \
-OPENSEARCH_INSTANCE_NAME=marketplace-opensearch \
-OPENSEARCH_VERSION=2.17 \
-OPENSEARCH_PLAN_NAME=stackit-opensearch-single \
 make infra-opensearch-plan infra-opensearch-apply infra-opensearch-smoke
 ```
 
+- `OPENSEARCH_INSTANCE_NAME`, `OPENSEARCH_VERSION`, and `OPENSEARCH_PLAN_NAME` are optional (v1.12.2+) — defaults apply when unset.
 - Provisions `blueprint-opensearch` Helm release in the `search` namespace.
 - Writes `artifacts/infra/opensearch_runtime.env` with all 8 contract outputs.
 - Local service is reachable at `http://blueprint-opensearch.search.svc.cluster.local:9200` (the chart's client-facing Service, selector → coordinating-only pods).
@@ -71,12 +69,12 @@ Both values are set in `infra/local/helm/opensearch/values.yaml` (seed file) and
 
 ```bash
 OPENSEARCH_ENABLED=true \
-OPENSEARCH_INSTANCE_NAME=marketplace-opensearch \
-OPENSEARCH_VERSION=2.17 \
-OPENSEARCH_PLAN_NAME=stackit-opensearch-single \
 make infra-opensearch-plan infra-opensearch-apply infra-opensearch-smoke
 ```
 
+- `OPENSEARCH_INSTANCE_NAME` is optional (v1.12.2+); Terraform derives a unique per-environment name from `naming_prefix` when unset.
+- `OPENSEARCH_VERSION` defaults to `"2"` (major version string accepted by STACKIT provider).
+- `OPENSEARCH_PLAN_NAME` defaults to `"stackit-opensearch-2.17-replica"`.
 - `stackit-*` profile routes to `foundation_contract` driver — applies terraform foundation with `OPENSEARCH_ENABLED=true`.
 - `OPENSEARCH_HOST`, `OPENSEARCH_URI`, `OPENSEARCH_USERNAME`, and `OPENSEARCH_PASSWORD` are resolved from terraform outputs after apply.
 - `OPENSEARCH_DASHBOARD_URL` is resolved from `stackit_opensearch_instance.dashboard_url`.
@@ -84,7 +82,7 @@ make infra-opensearch-plan infra-opensearch-apply infra-opensearch-smoke
 
 ## Prerequisites
 - `OPENSEARCH_ENABLED=true` set in the calling environment.
-- `OPENSEARCH_INSTANCE_NAME`, `OPENSEARCH_VERSION`, `OPENSEARCH_PLAN_NAME` required for both lanes.
+- `OPENSEARCH_INSTANCE_NAME`, `OPENSEARCH_VERSION`, and `OPENSEARCH_PLAN_NAME` are optional (v1.12.2+); defaults apply when unset (see Env-var reference below).
 - Local lane: Docker Desktop Kubernetes running with at least 2 GB allocated to Kubernetes; `kubectl` context pointing to local cluster; Helm `bitnami` repo added (`helm repo add bitnami https://charts.bitnami.com/bitnami`).
   - Pin versions: `OPENSEARCH_HELM_CHART_VERSION_PIN=1.6.3`, `OPENSEARCH_LOCAL_IMAGE_TAG=2.19.1-debian-12-r4` declared in `scripts/lib/infra/versions.sh`.
 - STACKIT lane: `STACKIT_PROJECT_ID`, `STACKIT_SERVICE_ACCOUNT_TOKEN` set in the environment; STACKIT terraform provider `0.88.0`.
@@ -94,9 +92,9 @@ make infra-opensearch-plan infra-opensearch-apply infra-opensearch-smoke
 | Variable | Required | Default | Description |
 |---|---|---|---|
 | `OPENSEARCH_ENABLED` | no | `false` | Enable the module |
-| `OPENSEARCH_INSTANCE_NAME` | yes | `marketplace-opensearch` | Instance / Helm release name |
-| `OPENSEARCH_VERSION` | yes | `2.17` | Managed service / image family version |
-| `OPENSEARCH_PLAN_NAME` | yes | `stackit-opensearch-single` | STACKIT service plan (ignored for local) |
+| `OPENSEARCH_INSTANCE_NAME` | no | — | Instance name; Terraform derives it from `naming_prefix` when unset (v1.12.2+) |
+| `OPENSEARCH_VERSION` | no | `2` | Major version string accepted by STACKIT provider (v1.12.2+: was `2.17`) |
+| `OPENSEARCH_PLAN_NAME` | no | `stackit-opensearch-2.17-replica` | STACKIT service plan (v1.12.2+: was `stackit-opensearch-single`; ignored for local) |
 | `OPENSEARCH_NAMESPACE` | no | `search` | Kubernetes namespace (local lane only) |
 | `OPENSEARCH_HELM_RELEASE` | no | `blueprint-opensearch` | Helm release name (local lane only) |
 | `OPENSEARCH_HELM_CHART` | no | `bitnami/opensearch` | Helm chart reference (local lane only) |
