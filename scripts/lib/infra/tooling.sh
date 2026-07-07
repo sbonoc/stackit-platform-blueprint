@@ -809,12 +809,12 @@ run_helm_upgrade_install_force() {
       --create-namespace \
       --version "$chart_version" \
       --values "$values_file" \
-      --server-side \
+      --server-side=true \
       --force-conflicts
     return 0
   fi
 
-  log_info "dry-run helm upgrade --install --server-side --force-conflicts release=$release_name chart=$chart_ref version=$chart_version values=$values_file (set DRY_RUN=false to execute)"
+  log_info "dry-run helm upgrade --install --server-side=true --force-conflicts release=$release_name chart=$chart_ref version=$chart_version values=$values_file (set DRY_RUN=false to execute)"
 }
 
 run_helm_uninstall() {
