@@ -19,7 +19,8 @@ spec:
       - stackit_project_access
 
   inputs:
-    required_env:
+    required_env: []
+    optional_env:
       - OPENSEARCH_INSTANCE_NAME
       - OPENSEARCH_VERSION
       - OPENSEARCH_PLAN_NAME

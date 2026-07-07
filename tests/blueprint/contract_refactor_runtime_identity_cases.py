@@ -202,7 +202,8 @@ class RuntimeIdentityRefactorCases(RefactorContractBase):
         template = _read("scripts/templates/infra/bootstrap/infra/gitops/argocd/optional/public-endpoints.application.yaml.tmpl")
 
         self.assertIn("public_endpoints_wait_for_gateway_api_crds", deploy)
-        self.assertIn('run_manifest_apply "$gateway_manifest_path"', deploy)
+        # Gateway is GitOps-owned in argocd_application_chart mode — direct apply removed (fixes #395)
+        self.assertNotIn('run_manifest_apply "$gateway_manifest_path"', deploy)
         self.assertIn("gateway_api_wait_status=", deploy)
         self.assertIn("public_endpoints_gateway_api_crd_wait_total", _read("scripts/lib/infra/public_endpoints.sh"))
         self.assertIn("public_endpoints_gateway_api_crds_available", destroy)

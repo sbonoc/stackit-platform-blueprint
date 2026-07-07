@@ -34,7 +34,7 @@ argocd_application_chart)
   run_manifest_apply "$namespace_manifest_path"
   public_endpoints_wait_for_gateway_api_crds
   gateway_api_wait_status="ready"
-  run_manifest_apply "$gateway_manifest_path"
+  # Gateway is owned by GitOps (ArgoCD self-heals it); do not apply directly.
   # Apply TLS companion manifests rendered during apply phase.
   # cert-manager CRDs are available after the ArgoCD application chart deploys cert-manager.
   run_manifest_apply "$(public_endpoints_issuer_manifest_file)"

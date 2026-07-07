@@ -22,11 +22,11 @@ spec:
 
   inputs:
     required_env:
-      - POSTGRES_INSTANCE_NAME
       - POSTGRES_DB_NAME
       - POSTGRES_USER
-      - POSTGRES_PASSWORD
     optional_env:
+      - POSTGRES_INSTANCE_NAME
+      - POSTGRES_PASSWORD
       - POSTGRES_VERSION
       - POSTGRES_PORT
       - POSTGRES_EXTRA_ALLOWED_CIDRS

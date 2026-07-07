@@ -21,8 +21,6 @@ object_storage_init_env() {
   set_default_env OBJECT_STORAGE_CLIENT_IMAGE_REPOSITORY "$OBJECT_STORAGE_LOCAL_CLIENT_IMAGE_REPOSITORY"
   set_default_env OBJECT_STORAGE_CLIENT_IMAGE_TAG "$OBJECT_STORAGE_LOCAL_CLIENT_IMAGE_TAG"
   set_default_env OBJECT_STORAGE_ENDPOINT "$(object_storage_endpoint)"
-
-  require_env_vars OBJECT_STORAGE_BUCKET_NAME
 }
 
 object_storage_endpoint() {
