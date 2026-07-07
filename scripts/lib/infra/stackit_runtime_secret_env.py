@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import json
-import os
 from pathlib import Path
 import sys
 
@@ -81,10 +80,6 @@ def main() -> int:
         if rendered is None or rendered == "" or "\n" in rendered:
             continue
         lines.append(f"{secret_key}={rendered}")
-
-    keycloak_admin_password = os.environ.get("KEYCLOAK_ADMIN_PASSWORD", "")
-    if keycloak_admin_password and "\n" not in keycloak_admin_password:
-        lines.append(f"KEYCLOAK_ADMIN_PASSWORD={keycloak_admin_password}")
 
     output_env_file.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
     return 0
