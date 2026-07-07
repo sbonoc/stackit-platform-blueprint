@@ -124,7 +124,7 @@ run_helm_upgrade_install \
   "$EXTERNAL_SECRETS_HELM_CHART_VERSION" \
   "$external_secrets_values_file"
 
-run_helm_upgrade_install \
+run_helm_upgrade_install_force \
   "$CERT_MANAGER_HELM_RELEASE" \
   "$CERT_MANAGER_NAMESPACE" \
   "$CERT_MANAGER_HELM_CHART" \

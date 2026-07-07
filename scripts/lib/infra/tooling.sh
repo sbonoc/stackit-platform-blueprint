@@ -787,6 +787,35 @@ run_helm_upgrade_install() {
   log_info "dry-run helm upgrade --install release=$release_name chart=$chart_ref version=$chart_version values=$values_file (set DRY_RUN=false to execute)"
 }
 
+run_helm_upgrade_install_force() {
+  local release_name="$1"
+  local namespace="$2"
+  local chart_ref="$3"
+  local chart_version="$4"
+  local values_file="$5"
+
+  if [[ ! -f "$values_file" ]]; then
+    log_warn "helm values file not found; skipping values_file=$values_file"
+    return 0
+  fi
+
+  if tooling_is_execution_enabled; then
+    require_command helm
+    prepare_helm_repo_for_chart "$chart_ref"
+    run_helm_with_active_access upgrade --install \
+      "$release_name" \
+      "$chart_ref" \
+      --namespace "$namespace" \
+      --create-namespace \
+      --version "$chart_version" \
+      --values "$values_file" \
+      --force-conflicts
+    return 0
+  fi
+
+  log_info "dry-run helm upgrade --install --force-conflicts release=$release_name chart=$chart_ref version=$chart_version values=$values_file (set DRY_RUN=false to execute)"
+}
+
 run_helm_uninstall() {
   local release_name="$1"
   local namespace="$2"
