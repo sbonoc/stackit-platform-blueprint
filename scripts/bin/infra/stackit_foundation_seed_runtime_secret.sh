@@ -50,7 +50,8 @@ if tooling_is_execution_enabled; then
   secret_env_file="$(mktemp)"
   namespace_manifest_file="$(mktemp)"
   secret_manifest_file="$(mktemp)"
-  trap 'rm -f "$outputs_json_file" "$secret_env_file" "$namespace_manifest_file" "$secret_manifest_file"' EXIT
+  source_secret_manifest_file="$(mktemp)"
+  trap 'rm -f "$outputs_json_file" "$secret_env_file" "$namespace_manifest_file" "$secret_manifest_file" "$source_secret_manifest_file"' EXIT
 
   run_cmd_capture terraform -chdir="$foundation_dir" output -json >"$outputs_json_file"
 
@@ -77,6 +78,14 @@ if tooling_is_execution_enabled; then
     --from-env-file="$secret_env_file" \
     --dry-run=client -o yaml >"$secret_manifest_file"
   run_cmd kubectl apply -f "$secret_manifest_file"
+
+  run_cmd_capture kubectl create namespace "security" --dry-run=client -o yaml >"$namespace_manifest_file"
+  run_cmd kubectl apply -f "$namespace_manifest_file"
+
+  run_cmd_capture kubectl -n "security" create secret generic "runtime-credentials-source" \
+    --from-env-file="$secret_env_file" \
+    --dry-run=client -o yaml >"$source_secret_manifest_file"
+  run_cmd kubectl apply -f "$source_secret_manifest_file"
 
   seed_mode="kubectl-apply"
 fi
