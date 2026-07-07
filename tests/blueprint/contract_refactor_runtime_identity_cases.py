@@ -251,8 +251,10 @@ class RuntimeIdentityRefactorCases(RefactorContractBase):
         self.assertIn("keycloak_identity_contract_resolve_effective_realm_settings", langfuse_reconcile)
         self.assertIn("keycloak_optional_module_write_reconciled_state", langfuse_reconcile)
         self.assertIn("stackit_runtime_secret_env.py", foundation_seed)
-        self.assertIn('os.environ.get("KEYCLOAK_ADMIN_PASSWORD", "")', runtime_secret_env)
-        self.assertIn('lines.append(f"KEYCLOAK_ADMIN_PASSWORD={keycloak_admin_password}")', runtime_secret_env)
+        # KEYCLOAK_ADMIN_PASSWORD ownership moved to shell caller (fix #391 — duplicate-key bug).
+        # Python script must NOT read it from os.environ; shell script must be the sole emitter.
+        self.assertNotIn('os.environ.get("KEYCLOAK_ADMIN_PASSWORD", "")', runtime_secret_env)
+        self.assertIn('KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}', foundation_seed)
 
     def test_workflows_scaffolding_is_contract_conditional(self) -> None:
         contract = _read("blueprint/contract.yaml")
