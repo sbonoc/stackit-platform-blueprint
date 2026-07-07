@@ -1,9 +1,9 @@
 """Tests for v1.12.2 bugfixes (issues #383, #384, #385, #386, #366, #395).
 
-AC-001: POSTGRES_INSTANCE_NAME is optional_env in module contract
+AC-001: POSTGRES_INSTANCE_NAME is optional_env in module contract; set -u safe in postgres.sh and postgres_plan.sh
 AC-002: OBJECT_STORAGE_BUCKET_NAME is optional_env in module contract
 AC-003: RABBITMQ_INSTANCE_NAME is optional_env; seed_env_defaults does NOT set a default; stackit_layers.sh emits -var= only when non-empty
-AC-004: OPENSEARCH_INSTANCE_NAME is optional_env; seed_env_defaults does NOT set a default; OPENSEARCH_VERSION default is "2"; plan slug corrected
+AC-004: OPENSEARCH_INSTANCE_NAME is optional_env; seed_env_defaults does NOT set a default; OPENSEARCH_VERSION default is "2"; plan slug corrected; Terraform foundation variable defaults aligned
 AC-005: POSTGRES_PASSWORD optional on STACKIT profiles (postgres_init_env does not require it)
 AC-006: rabbitmq values files contain global.security.allowInsecureImages: true
 AC-007: public_endpoints_deploy.sh does NOT call run_manifest_apply for gateway in argocd_application_chart mode
@@ -26,6 +26,8 @@ _RABBITMQ_SH = REPO_ROOT / "scripts" / "lib" / "infra" / "rabbitmq.sh"
 _OPENSEARCH_SH = REPO_ROOT / "scripts" / "lib" / "infra" / "opensearch.sh"
 _POSTGRES_SH = REPO_ROOT / "scripts" / "lib" / "infra" / "postgres.sh"
 
+_POSTGRES_PLAN_SH = REPO_ROOT / "scripts" / "bin" / "infra" / "postgres_plan.sh"
+_TF_FOUNDATION_VARS = REPO_ROOT / "infra" / "cloud" / "stackit" / "terraform" / "foundation" / "variables.tf"
 _RABBITMQ_VALUES = REPO_ROOT / "infra" / "local" / "helm" / "rabbitmq" / "values.yaml"
 _RABBITMQ_BOOTSTRAP_VALUES = (
     REPO_ROOT
@@ -93,6 +95,38 @@ class AC001PostgresInstanceNameOptionalTests(unittest.TestCase):
         self.assertIsNone(
             unconditional_require,
             msg="AC-001: stackit_layers.sh must NOT unconditionally require POSTGRES_INSTANCE_NAME",
+        )
+
+
+    def test_postgres_placeholder_host_guards_instance_name_against_unset(self) -> None:
+        content = _POSTGRES_SH.read_text(encoding="utf-8")
+        # Bare $POSTGRES_INSTANCE_NAME in postgres_stackit_placeholder_host() crashes under
+        # set -u when the var is unset — same defect class fixed for rabbitmq/opensearch (#383).
+        self.assertNotIn(
+            '"$POSTGRES_INSTANCE_NAME"',
+            content,
+            msg=(
+                "AC-001: postgres_stackit_placeholder_host must NOT use bare $POSTGRES_INSTANCE_NAME "
+                "— crashes under set -u when var is unset (same defect as rabbitmq/opensearch in #385)"
+            ),
+        )
+        self.assertIn(
+            '"${POSTGRES_INSTANCE_NAME:-}"',
+            content,
+            msg="AC-001: postgres_stackit_placeholder_host must use ${POSTGRES_INSTANCE_NAME:-} for set -u safety",
+        )
+
+    def test_postgres_plan_script_guards_instance_name_against_unset(self) -> None:
+        content = _POSTGRES_PLAN_SH.read_text(encoding="utf-8")
+        self.assertNotIn(
+            '"instance_name=$POSTGRES_INSTANCE_NAME"',
+            content,
+            msg="AC-001: postgres_plan.sh must use '${POSTGRES_INSTANCE_NAME:-}' to guard set -u (#383)",
+        )
+        self.assertIn(
+            '"instance_name=${POSTGRES_INSTANCE_NAME:-}"',
+            content,
+            msg="AC-001: postgres_plan.sh must use '${POSTGRES_INSTANCE_NAME:-}' for set -u safety (#383)",
         )
 
 
@@ -267,6 +301,32 @@ class AC004OpensearchInstanceNameOptionalTests(unittest.TestCase):
                 "AC-004: opensearch_seed_env_defaults must NOT call set_default_env OPENSEARCH_INSTANCE_NAME "
                 "— the default would always satisfy stackit_layers.sh's conditional guard, emitting the "
                 "hardcoded placeholder as a -var= flag and colliding environments (#385)"
+            ),
+        )
+
+    def test_terraform_foundation_opensearch_version_default_aligned(self) -> None:
+        content = _TF_FOUNDATION_VARS.read_text(encoding="utf-8")
+        # Terraform foundation variable default must match the shell wrapper default so that
+        # direct `terraform apply` (without the shell wrapper) uses the same version as the
+        # make-target path. Pre-fix the Terraform default was "2.17" while shell emitted "2".
+        self.assertNotIn(
+            'default     = "2.17"',
+            content,
+            msg=(
+                "AC-004: Terraform foundation opensearch_version default must be '2', not '2.17' "
+                "— stale Terraform default causes divergence when applying without the shell wrapper"
+            ),
+        )
+
+    def test_terraform_foundation_opensearch_plan_name_default_aligned(self) -> None:
+        content = _TF_FOUNDATION_VARS.read_text(encoding="utf-8")
+        # Pre-fix the Terraform default was "stackit-opensearch-single".
+        self.assertNotIn(
+            'default     = "stackit-opensearch-single"',
+            content,
+            msg=(
+                "AC-004: Terraform foundation opensearch_plan_name default must not be 'stackit-opensearch-single' "
+                "— stale plan slug causes single-node provisioning when applying without the shell wrapper"
             ),
         )
 

@@ -389,13 +389,13 @@ variable "opensearch_instance_name" {
 variable "opensearch_version" {
   description = "Managed OpenSearch service version."
   type        = string
-  default     = "2.17"
+  default     = "2"
 }
 
 variable "opensearch_plan_name" {
   description = "Managed OpenSearch plan name."
   type        = string
-  default     = "stackit-opensearch-single"
+  default     = "stackit-opensearch-2.17-replica"
 }
 
 variable "public_endpoints_enabled" {

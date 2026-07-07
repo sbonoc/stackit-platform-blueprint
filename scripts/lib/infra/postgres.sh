@@ -31,7 +31,7 @@ postgres_init_env() {
 postgres_stackit_placeholder_host() {
   local region
   region="${STACKIT_REGION:-local}"
-  printf '%s.postgresql.%s.onstackit.cloud' "$POSTGRES_INSTANCE_NAME" "$region"
+  printf '%s.postgresql.%s.onstackit.cloud' "${POSTGRES_INSTANCE_NAME:-}" "$region"
 }
 
 postgres_username() {
