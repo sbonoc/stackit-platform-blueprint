@@ -6,7 +6,9 @@ source "$ROOT_DIR/scripts/lib/infra/versions.sh"
 source "$ROOT_DIR/scripts/lib/infra/fallback_runtime.sh"
 
 rabbitmq_seed_env_defaults() {
-  set_default_env RABBITMQ_INSTANCE_NAME "marketplace-rabbitmq"
+  # RABBITMQ_INSTANCE_NAME is optional_env — Terraform derives it from naming_prefix when unset.
+  # Do NOT set a default here: that would silently satisfy stackit_layers.sh's conditional
+  # guard and emit the hardcoded placeholder as a -var= flag, colliding environments (#385).
   set_default_env RABBITMQ_USERNAME "marketplace"
   set_default_env RABBITMQ_PASSWORD "marketplace-password"
   set_default_env RABBITMQ_PORT "5672"
@@ -36,7 +38,7 @@ rabbitmq_local_service_host() {
 rabbitmq_stackit_placeholder_host() {
   local region
   region="${STACKIT_REGION:-${BLUEPRINT_STACKIT_REGION:-eu01}}"
-  printf '%s.rabbitmq.%s.stackit.invalid' "$RABBITMQ_INSTANCE_NAME" "$region"
+  printf '%s.rabbitmq.%s.stackit.invalid' "${RABBITMQ_INSTANCE_NAME:-}" "$region"
 }
 
 rabbitmq_username() {

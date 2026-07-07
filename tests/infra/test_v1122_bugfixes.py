@@ -2,8 +2,8 @@
 
 AC-001: POSTGRES_INSTANCE_NAME is optional_env in module contract
 AC-002: OBJECT_STORAGE_BUCKET_NAME is optional_env in module contract
-AC-003: RABBITMQ_INSTANCE_NAME is optional_env; stackit_layers.sh emits -var= only when non-empty
-AC-004: OPENSEARCH_INSTANCE_NAME is optional_env; OPENSEARCH_VERSION default is "2"; plan slug corrected
+AC-003: RABBITMQ_INSTANCE_NAME is optional_env; seed_env_defaults does NOT set a default; stackit_layers.sh emits -var= only when non-empty
+AC-004: OPENSEARCH_INSTANCE_NAME is optional_env; seed_env_defaults does NOT set a default; OPENSEARCH_VERSION default is "2"; plan slug corrected
 AC-005: POSTGRES_PASSWORD optional on STACKIT profiles (postgres_init_env does not require it)
 AC-006: rabbitmq values files contain global.security.allowInsecureImages: true
 AC-007: public_endpoints_deploy.sh does NOT call run_manifest_apply for gateway in argocd_application_chart mode
@@ -174,6 +174,31 @@ class AC003RabbitmqInstanceNameOptionalTests(unittest.TestCase):
             msg="AC-003: stackit_layers.sh must NOT unconditionally require RABBITMQ_INSTANCE_NAME",
         )
 
+    def test_rabbitmq_seed_env_defaults_does_not_set_instance_name_default(self) -> None:
+        content = _RABBITMQ_SH.read_text(encoding="utf-8")
+        self.assertNotIn(
+            'set_default_env RABBITMQ_INSTANCE_NAME',
+            content,
+            msg=(
+                "AC-003: rabbitmq_seed_env_defaults must NOT call set_default_env RABBITMQ_INSTANCE_NAME "
+                "— the default would always satisfy stackit_layers.sh's conditional guard, emitting the "
+                "hardcoded placeholder as a -var= flag and colliding environments (#385)"
+            ),
+        )
+
+    def test_rabbitmq_plan_script_guards_instance_name_against_unset(self) -> None:
+        content = (REPO_ROOT / "scripts" / "bin" / "infra" / "rabbitmq_plan.sh").read_text(encoding="utf-8")
+        self.assertNotIn(
+            '"instance_name=$RABBITMQ_INSTANCE_NAME"',
+            content,
+            msg="AC-003: rabbitmq_plan.sh must use '${RABBITMQ_INSTANCE_NAME:-}' to guard set -u (#385)",
+        )
+        self.assertIn(
+            '"instance_name=${RABBITMQ_INSTANCE_NAME:-}"',
+            content,
+            msg="AC-003: rabbitmq_plan.sh must use '${RABBITMQ_INSTANCE_NAME:-}' for set -u safety (#385)",
+        )
+
 
 class AC004OpensearchInstanceNameOptionalTests(unittest.TestCase):
     """AC-004: OPENSEARCH_INSTANCE_NAME optional; version default '2'; plan slug corrected."""
@@ -231,6 +256,31 @@ class AC004OpensearchInstanceNameOptionalTests(unittest.TestCase):
             "OPENSEARCH_PLAN_NAME",
             content,
             msg="AC-004: opensearch.sh must define OPENSEARCH_PLAN_NAME default",
+        )
+
+    def test_opensearch_seed_env_defaults_does_not_set_instance_name_default(self) -> None:
+        content = _OPENSEARCH_SH.read_text(encoding="utf-8")
+        self.assertNotIn(
+            'set_default_env OPENSEARCH_INSTANCE_NAME',
+            content,
+            msg=(
+                "AC-004: opensearch_seed_env_defaults must NOT call set_default_env OPENSEARCH_INSTANCE_NAME "
+                "— the default would always satisfy stackit_layers.sh's conditional guard, emitting the "
+                "hardcoded placeholder as a -var= flag and colliding environments (#385)"
+            ),
+        )
+
+    def test_opensearch_plan_script_guards_instance_name_against_unset(self) -> None:
+        content = (REPO_ROOT / "scripts" / "bin" / "infra" / "opensearch_plan.sh").read_text(encoding="utf-8")
+        self.assertNotIn(
+            '"instance_name=$OPENSEARCH_INSTANCE_NAME"',
+            content,
+            msg="AC-004: opensearch_plan.sh must use '${OPENSEARCH_INSTANCE_NAME:-}' to guard set -u (#385)",
+        )
+        self.assertIn(
+            '"instance_name=${OPENSEARCH_INSTANCE_NAME:-}"',
+            content,
+            msg="AC-004: opensearch_plan.sh must use '${OPENSEARCH_INSTANCE_NAME:-}' for set -u safety (#385)",
         )
 
 
