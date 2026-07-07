@@ -27,7 +27,7 @@ object_storage_init_env() {
 
 object_storage_endpoint() {
   if is_stackit_profile; then
-    printf 'https://object-storage.%s.onstackit.cloud' "${STACKIT_REGION:-eu01}"
+    printf 'https://object.storage.%s.onstackit.cloud' "${STACKIT_REGION:-eu01}"
     return 0
   fi
   printf 'http://%s.%s.svc.cluster.local:9000' "$OBJECT_STORAGE_HELM_RELEASE" "$OBJECT_STORAGE_NAMESPACE"
