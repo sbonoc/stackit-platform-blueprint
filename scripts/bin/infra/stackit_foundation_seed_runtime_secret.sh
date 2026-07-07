@@ -102,6 +102,8 @@ state_file="$(
     "secret_namespace=$STACKIT_RUNTIME_CONTRACT_SECRET_NAMESPACE" \
     "secret_name=$STACKIT_RUNTIME_CONTRACT_SECRET_NAME" \
     "secret_key_count=$secret_key_count" \
+    "eso_source_secret_namespace=security" \
+    "eso_source_secret_name=runtime-credentials-source" \
     "timestamp_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 )"
 
