@@ -11,12 +11,15 @@
 
 from __future__ import annotations
 
+import json
 import re
 import unittest
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 _SITE_SH = REPO_ROOT / "scripts" / "lib" / "docs" / "site.sh"
+_DOCS_PACKAGE_JSON = REPO_ROOT / "docs" / "package.json"
+_CI_ACTION = REPO_ROOT / ".github" / "actions" / "prepare-blueprint-ci" / "action.yml"
 
 
 def _extract_function_block(content: str, func_name: str) -> str:
@@ -38,6 +41,51 @@ def _extract_function_block(content: str, func_name: str) -> str:
             if depth <= 0:
                 break
     return "\n".join(block_lines)
+
+
+class PnpmVersionSourcesAlignedTests(unittest.TestCase):
+    """docs/package.json#packageManager and the CI corepack prepare pin must agree.
+
+    The version mismatch that caused the CI failure on PR #399 slipped through
+    local quality gates because the developer's local pnpm (Homebrew) already
+    matched docs/package.json, while CI still pinned the old version via corepack.
+    This test reads both sources and asserts they carry the same semver so that
+    any future bump of one without the other fails in the unit suite before CI.
+    """
+
+    def _docs_pnpm_version(self) -> str:
+        data = json.loads(_DOCS_PACKAGE_JSON.read_text(encoding="utf-8"))
+        pkg_manager = data.get("packageManager", "")
+        # "pnpm@11.9.0" → "11.9.0"
+        if pkg_manager.startswith("pnpm@"):
+            return pkg_manager[len("pnpm@"):]
+        raise ValueError(f"packageManager field missing or not pnpm: {pkg_manager!r}")
+
+    def _ci_action_pnpm_version(self) -> str:
+        content = _CI_ACTION.read_text(encoding="utf-8")
+        # Match exactly: corepack prepare pnpm@<semver>
+        m = re.search(r"corepack\s+prepare\s+pnpm@([0-9]+\.[0-9]+\.[0-9]+)", content)
+        if not m:
+            raise ValueError(
+                f"corepack prepare pnpm@<version> not found in {_CI_ACTION}"
+            )
+        return m.group(1)
+
+    def test_docs_package_json_and_ci_action_pnpm_versions_match(self) -> None:
+        docs_ver = self._docs_pnpm_version()
+        ci_ver = self._ci_action_pnpm_version()
+        self.assertEqual(
+            docs_ver,
+            ci_ver,
+            msg=(
+                f"pnpm version mismatch between docs/package.json ({docs_ver}) "
+                f"and .github/actions/prepare-blueprint-ci/action.yml ({ci_ver}). "
+                "When bumping pnpm, update BOTH sources atomically. "
+                "This mismatch caused a CI failure on PR #399: local installs "
+                "passed because Homebrew pnpm matched docs/package.json, but CI "
+                "used the stale corepack pin and hit _docs_assert_pnpm_version."
+            ),
+        )
 
 
 class Issue272PnpmIgnoreWorkspaceTests(unittest.TestCase):

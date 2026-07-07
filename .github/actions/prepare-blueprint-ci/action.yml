@@ -18,10 +18,13 @@ runs:
       shell: bash
       run: |
         corepack enable
-        # Pin to the version declared in docs/package.json#packageManager so that
-        # Corepack does not resolve to a newer default (pnpm@11+ enforces strict
-        # version matching and won't auto-downgrade when invoked via Corepack).
-        corepack prepare pnpm@10.32.1 --activate
+        # Pin to the version declared in docs/package.json#packageManager.
+        # Keep this in sync with docs/package.json#packageManager — the
+        # test_docs_pnpm_version_sources_aligned test enforces the invariant
+        # so a future bump here without updating docs/package.json (or vice
+        # versa) will fail CI before the version mismatch can cause a runtime
+        # install failure.
+        corepack prepare pnpm@11.9.0 --activate
         pnpm --version
 
     # Setup uv binary before prereqs so that install_pre_commit() in prereqs.sh
