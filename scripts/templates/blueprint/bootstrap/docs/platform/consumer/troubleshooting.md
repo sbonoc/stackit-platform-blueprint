@@ -557,6 +557,28 @@ ready for review.
   make infra-stackit-foundation-fetch-kubeconfig
   ```
 
+## kubectl returns Unauthorized after infra-stackit-foundation-fetch-kubeconfig (blueprint v1.12.3+)
+
+`stackit_ske_kubeconfig` generates a client certificate with a ~1-hour TTL. Before
+v1.12.3, `make infra-stackit-foundation-fetch-kubeconfig` called `terraform apply`
+which — finding no config changes — returned the expired kubeconfig from state unchanged.
+
+**From v1.12.3 onwards this is fixed**: `infra-stackit-foundation-fetch-kubeconfig`
+force-taints `stackit_ske_kubeconfig.foundation[0]` before every apply in execute mode
+(`DRY_RUN=false`), so Terraform always regenerates the resource and its client certificate.
+Simply re-running the target is sufficient:
+
+```bash
+make infra-stackit-foundation-fetch-kubeconfig
+```
+
+**If you are on a blueprint version prior to v1.12.3**, apply the workaround manually:
+
+```bash
+terraform -chdir=infra/cloud/stackit/terraform/foundation taint "stackit_ske_kubeconfig.foundation[0]"
+make infra-stackit-foundation-fetch-kubeconfig
+```
+
 ## STACKIT foundation apply fails on transient PostgreSQL Flex `404 Not Found`
 - `infra-stackit-foundation-apply` retries a bounded number of times when STACKIT returns the known transient PostgreSQL Flex race:
   - `Requested instance with ID: ... cannot be found`
