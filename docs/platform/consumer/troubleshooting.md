@@ -557,26 +557,30 @@ ready for review.
   make infra-stackit-foundation-fetch-kubeconfig
   ```
 
-## kubectl returns Unauthorized after infra-stackit-foundation-fetch-kubeconfig (blueprint v1.12.3+)
+## kubectl returns Unauthorized after infra-stackit-foundation-refresh-kubeconfig (blueprint v1.12.4+)
 
-`stackit_ske_kubeconfig` generates a client certificate with a ~1-hour TTL. Before
-v1.12.3, `make infra-stackit-foundation-fetch-kubeconfig` called `terraform apply`
-which — finding no config changes — returned the expired kubeconfig from state unchanged.
+`stackit_ske_kubeconfig` generates a client certificate with a ~1-hour TTL. Because
+`terraform apply` is idempotent when no config changes are detected, it would return
+the expired kubeconfig from state unchanged on every subsequent refresh.
 
-**From v1.12.3 onwards this is fixed**: `infra-stackit-foundation-fetch-kubeconfig`
-force-taints `stackit_ske_kubeconfig.foundation[0]` before every apply in execute mode
+**From v1.12.4 onwards this is fixed**: `stackit_foundation_apply.sh` force-taints
+`stackit_ske_kubeconfig.foundation[0]` before every `terraform apply` in execute mode
 (`DRY_RUN=false`), so Terraform always regenerates the resource and its client certificate.
-Simply re-running the target is sufficient:
+Use the refresh target (which runs apply then fetches the output):
 
 ```bash
-make infra-stackit-foundation-fetch-kubeconfig
+make infra-stackit-foundation-refresh-kubeconfig
 ```
 
-**If you are on a blueprint version prior to v1.12.3**, apply the workaround manually:
+> **Note:** `make infra-stackit-foundation-fetch-kubeconfig` alone reads the kubeconfig
+> from Terraform state without running apply, so it will not produce a fresh certificate
+> if the state already contains an expired one. Use the refresh target above instead.
+
+**If you are on a blueprint version prior to v1.12.4**, apply the workaround manually:
 
 ```bash
 terraform -chdir=infra/cloud/stackit/terraform/foundation taint "stackit_ske_kubeconfig.foundation[0]"
-make infra-stackit-foundation-fetch-kubeconfig
+make infra-stackit-foundation-refresh-kubeconfig
 ```
 
 ## STACKIT foundation apply fails on transient PostgreSQL Flex `404 Not Found`

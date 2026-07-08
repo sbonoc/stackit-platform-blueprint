@@ -28,10 +28,16 @@ refresh target. This recovery path is not documented and not operator-discoverab
 
 ## Decision
 
-In `stackit_foundation_fetch_kubeconfig.sh`, when `tooling_is_execution_enabled` is
-true (i.e. `DRY_RUN=false`), force-taint `stackit_ske_kubeconfig.foundation[0]`
-before `terraform apply` so that Terraform always destroys and recreates the resource,
-regenerating the client certificate regardless of configuration drift.
+In `stackit_foundation_apply.sh`, when `tooling_is_execution_enabled` is true
+(i.e. `DRY_RUN=false`), force-taint `stackit_ske_kubeconfig.foundation[0]`
+**before** `terraform apply` so that Terraform always destroys and recreates the
+resource, regenerating the client certificate regardless of configuration drift.
+
+The taint is placed in the apply script — not in `stackit_foundation_fetch_kubeconfig.sh`,
+which only reads `terraform output` and never calls `terraform apply`. A taint without a
+subsequent apply in the same invocation is inert: it merely marks state for the next
+apply that happens to run, which could be arbitrarily later or never for standalone
+`make infra-stackit-foundation-fetch-kubeconfig` calls.
 
 The taint step is unconditionally skipped when `DRY_RUN=true` — dry-run mode MUST NOT
 perform any mutating Terraform operations.
@@ -39,14 +45,16 @@ perform any mutating Terraform operations.
 ```mermaid
 flowchart TD
     A[make infra-stackit-foundation-refresh-kubeconfig] --> B{DRY_RUN?}
-    B -- false --> C["terraform taint stackit_ske_kubeconfig.foundation[0]"]
-    C --> D[terraform apply]
-    D --> E[terraform output ske_kubeconfig]
-    E --> F[write kubeconfig to disk]
-    B -- true --> G[skip taint]
-    G --> H[write placeholder kubeconfig]
-    F --> I[chmod 600]
-    H --> I
+    B -- false --> C["stackit_foundation_apply.sh"]
+    C --> D["terraform taint stackit_ske_kubeconfig.foundation[0]"]
+    D --> E[terraform apply]
+    E --> F["stackit_foundation_fetch_kubeconfig.sh"]
+    F --> G[terraform output ske_kubeconfig]
+    G --> H[write kubeconfig to disk]
+    H --> I[chmod 600]
+    B -- true --> J[skip taint and apply]
+    J --> K[write placeholder kubeconfig]
+    K --> I
 ```
 
 ## Considered Alternatives

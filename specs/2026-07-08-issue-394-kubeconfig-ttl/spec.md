@@ -46,7 +46,7 @@
 ## Normative Requirements
 
 ### Functional Requirements (Normative)
-- FR-001 MUST force-taint `stackit_ske_kubeconfig.foundation[0]` before every `terraform apply` in `stackit_foundation_fetch_kubeconfig.sh` when `tooling_is_execution_enabled` is true, so that Terraform always re-generates the kubeconfig resource and its client certificate.
+- FR-001 MUST force-taint `stackit_ske_kubeconfig.foundation[0]` before every `terraform apply` in `stackit_foundation_apply.sh` when `tooling_is_execution_enabled` is true, so that Terraform always re-generates the kubeconfig resource and its client certificate.
 - FR-002 MUST NOT taint the resource when `DRY_RUN=true` (i.e. when `tooling_is_execution_enabled` returns false) — the taint step MUST be unconditionally skipped in dry-run mode.
 - FR-003 MUST log a structured `[INFO]` message before executing the taint so operators can observe the action in script output.
 

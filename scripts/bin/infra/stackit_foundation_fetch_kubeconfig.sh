@@ -61,10 +61,6 @@ if [[ -n "${STACKIT_KUBECONFIG_CONTENT_BASE64:-}" ]]; then
   fi
   content_source="provided_base64"
 elif tooling_is_execution_enabled; then
-  # Force-taint stackit_ske_kubeconfig.foundation[0] so Terraform always regenerates
-  # the resource and its client certificate, which expires after ~1 hour (issue #394).
-  log_info "force-tainting stackit_ske_kubeconfig.foundation[0] to ensure a fresh client certificate"
-  run_cmd terraform -chdir="$foundation_dir" taint "stackit_ske_kubeconfig.foundation[0]"
   terraform_backend_init "$foundation_dir" "$backend_file"
   if ! run_cmd_capture terraform -chdir="$foundation_dir" output -raw ske_kubeconfig >"$kubeconfig_output"; then
     log_fatal "unable to fetch terraform output ske_kubeconfig from $foundation_dir"
