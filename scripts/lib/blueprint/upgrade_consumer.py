@@ -50,6 +50,84 @@ ACTION_MERGE_REQUIRED = "merge-required"
 ACTION_SKIP = "skip"
 ACTION_CONFLICT = "conflict"
 
+_PRECOMMIT_CONFIG_PATH = ".pre-commit-config.yaml"
+
+
+class PrecommitYamlParseError(Exception):
+    """Raised when .pre-commit-config.yaml cannot be parsed for YAML-aware hook merge."""
+
+
+def _yaml_merge_precommit_hooks(source_content: str, target_content: str) -> str:
+    """Merge .pre-commit-config.yaml preserving consumer-only hook IDs.
+
+    Parses both source (blueprint) and target (consumer) YAML, identifies hook
+    entries present in target but absent from source, and appends them after the
+    last source hook.  Raises PrecommitYamlParseError on parse failure so the
+    caller can fall back to _three_way_merge.
+    """
+    def _parse(content: str, label: str) -> dict:
+        try:
+            parsed = yaml.safe_load(content)
+        except yaml.YAMLError as exc:
+            raise PrecommitYamlParseError(f"YAML parse error in {label}: {exc}") from exc
+        if not isinstance(parsed, dict):
+            raise PrecommitYamlParseError(f"{label} did not parse as a YAML mapping")
+        if "repos" not in parsed:
+            raise PrecommitYamlParseError(f"{label} has no 'repos' key; cannot identify hooks")
+        return parsed
+
+    source_parsed = _parse(source_content, "source")
+    target_parsed = _parse(target_content, "target")
+
+    def _hook_ids(parsed: dict) -> list[str]:
+        ids: list[str] = []
+        for repo in parsed.get("repos") or []:
+            if not isinstance(repo, dict):
+                continue
+            for hook in repo.get("hooks") or []:
+                if isinstance(hook, dict) and "id" in hook:
+                    ids.append(str(hook["id"]))
+        return ids
+
+    def _all_hooks(parsed: dict) -> list[dict]:
+        hooks: list[dict] = []
+        for repo in parsed.get("repos") or []:
+            if not isinstance(repo, dict):
+                continue
+            for hook in repo.get("hooks") or []:
+                if isinstance(hook, dict):
+                    hooks.append(hook)
+        return hooks
+
+    source_ids = set(_hook_ids(source_parsed))
+    target_hooks = _all_hooks(target_parsed)
+    consumer_only_hooks = [h for h in target_hooks if str(h.get("id", "")) not in source_ids]
+
+    if not consumer_only_hooks:
+        return source_content
+
+    # Build merged structure: source repos with consumer-only hooks appended.
+    merged = yaml.safe_load(source_content)
+    if not isinstance(merged, dict):
+        raise PrecommitYamlParseError("source did not parse as a YAML mapping after re-parse")
+
+    repos = merged.get("repos")
+    if not isinstance(repos, list) or not repos:
+        raise PrecommitYamlParseError("source has no repos list to append consumer hooks into")
+
+    # Append consumer-only hooks to the last repo block (the local hooks repo).
+    last_repo = repos[-1]
+    if not isinstance(last_repo, dict):
+        raise PrecommitYamlParseError("last repo entry in source is not a mapping")
+    hooks_list = last_repo.setdefault("hooks", [])
+    existing_ids = {str(h.get("id", "")) for h in hooks_list if isinstance(h, dict)}
+    for hook in consumer_only_hooks:
+        if str(hook.get("id", "")) not in existing_ids:
+            hooks_list.append(hook)
+            existing_ids.add(str(hook["id"]))
+
+    return yaml.dump(merged, default_flow_style=False, allow_unicode=True)
+
 OPERATION_CREATE = "create"
 OPERATION_UPDATE = "update"
 OPERATION_DELETE = "delete"
@@ -1826,10 +1904,11 @@ def _apply_entries(
     entries: list[UpgradeEntry],
     baseline_cache: dict[str, str | None],
     apply_enabled: bool,
-) -> tuple[list[ApplyResult], int, list[dict[str, str]]]:
+) -> tuple[list[ApplyResult], int, list[dict[str, str]], list[str]]:
     results: list[ApplyResult] = []
     applied_count = 0
     deduplication_log: list[dict[str, str]] = []
+    preserved_precommit_hooks: list[str] = []
 
     for entry in entries:
         source_path = source_repo / entry.path
@@ -1958,7 +2037,31 @@ def _apply_entries(
                 )
                 continue
 
-            merged_content, has_conflicts = _three_way_merge(baseline_content, target_content, source_content)
+            if entry.path == _PRECOMMIT_CONFIG_PATH:
+                try:
+                    merged_content = _yaml_merge_precommit_hooks(source_content, target_content)
+                    has_conflicts = False
+                    hook_ids = [
+                        line.strip().removeprefix("id:").strip()
+                        for line in merged_content.splitlines()
+                        if line.strip().startswith("id:")
+                        and line.strip().removeprefix("id:").strip() not in source_content
+                    ]
+                    if hook_ids:
+                        preserved_precommit_hooks.extend(hook_ids)
+                        print(
+                            f"[precommit-merge] preserved consumer hooks: {', '.join(hook_ids)}",
+                            file=sys.stderr,
+                        )
+                except PrecommitYamlParseError as exc:
+                    print(
+                        f"WARNING: YAML-aware precommit merge failed for {entry.path}: {exc}; "
+                        "falling back to git merge-file",
+                        file=sys.stderr,
+                    )
+                    merged_content, has_conflicts = _three_way_merge(baseline_content, target_content, source_content)
+            else:
+                merged_content, has_conflicts = _three_way_merge(baseline_content, target_content, source_content)
             if has_conflicts:
                 conflict_artifact = _write_conflict_artifact(
                     repo_root,
@@ -2047,7 +2150,7 @@ def _apply_entries(
             )
         )
 
-    return results, applied_count, deduplication_log
+    return results, applied_count, deduplication_log, preserved_precommit_hooks
 
 
 def _summarize_plan(
@@ -2120,6 +2223,7 @@ def _write_summary(
     results: list[ApplyResult],
     required_manual_actions: list[RequiredManualAction],
     entries: list[UpgradeEntry] | None = None,
+    preserved_precommit_hooks: list[str] | None = None,
 ) -> None:
     conflict_results = [result for result in results if result.result == "conflict"]
     lines = [
@@ -2156,6 +2260,13 @@ def _write_summary(
             for hint in ann.verification_hints:
                 lines.append(f"- {hint}")
             lines.append("")
+
+    lines.extend(["", "## Preserved Consumer Hooks", ""])
+    if preserved_precommit_hooks:
+        for hook_id in preserved_precommit_hooks:
+            lines.append(f"- `{hook_id}`")
+    else:
+        lines.append("no consumer-only hooks detected")
 
     lines.extend([
         "",
@@ -2415,7 +2526,7 @@ def main() -> int:
         _write_json(plan_path, plan_payload)
         print(f"upgrade-plan: {display_repo_path(repo_root, plan_path)}")
 
-        results, applied_count, deduplication_log = _apply_entries(
+        results, applied_count, deduplication_log, preserved_precommit_hooks = _apply_entries(
             repo_root=repo_root,
             source_repo=source_repo,
             entries=entries,
@@ -2474,6 +2585,7 @@ def main() -> int:
                 results=results,
                 required_manual_actions=required_manual_actions,
                 entries=entries,
+                preserved_precommit_hooks=preserved_precommit_hooks,
             )
             print(f"upgrade-reconcile-report: {display_repo_path(repo_root, reconcile_report_path)}")
             print(
@@ -2510,6 +2622,7 @@ def main() -> int:
             results=results,
             required_manual_actions=required_manual_actions,
             entries=entries,
+            preserved_precommit_hooks=preserved_precommit_hooks,
         )
         print(f"upgrade-apply: {display_repo_path(repo_root, apply_path)}")
         print(f"upgrade-summary: {display_repo_path(repo_root, summary_path)}")
