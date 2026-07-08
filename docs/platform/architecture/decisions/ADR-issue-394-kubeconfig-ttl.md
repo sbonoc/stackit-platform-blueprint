@@ -1,6 +1,7 @@
 # ADR: Force-Taint `stackit_ske_kubeconfig` on Every Refresh Run
 
-- **Status:** proposed
+- **Status:** approved
+- **ADR technical decision sign-off:** approved
 - **Issue:** [#394](https://github.com/sbonoc/stackit-platform-blueprint/issues/394)
 - **Date:** 2026-07-08
 - **Author:** bonos
