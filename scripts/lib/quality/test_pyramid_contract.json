@@ -23,6 +23,7 @@
         "tests/blueprint/test_consumer_app_descriptor_deprecations.py",
         "tests/blueprint/test_init_repo_env.py",
         "tests/blueprint/test_upgrade_consumer.py",
+        "tests/blueprint/test_upgrade_precommit_merge.py",
         "tests/blueprint/test_upgrade_semantic_annotator.py",
         "tests/blueprint/test_upgrade_fixture_matrix.py",
         "tests/blueprint/test_upgrade_consumer_wrapper.py",
