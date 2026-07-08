@@ -1,7 +1,8 @@
 # ADR: YAML-aware hook-preserving merge for `.pre-commit-config.yaml` during blueprint upgrade
 
-- **Status:** proposed
+- **Status:** approved
 - **Deciders:** bonos
+- **ADR technical decision sign-off:** approved
 - **Date:** 2026-07-08
 - **Issue:** https://github.com/sbonoc/stackit-platform-blueprint/issues/346
 

@@ -3,20 +3,20 @@
 ## Spec Readiness Gate (Blocking)
 <!-- SPEC_PRODUCT_READY=true: intake gate — Product sign-off only; unlocks agent ADR drafting.
      SPEC_READY=true: implementation gate — all sign-offs required; unlocks coding. -->
-- SPEC_READY: false
-- SPEC_PRODUCT_READY: false
+- SPEC_READY: true
+- SPEC_PRODUCT_READY: true
 - Open questions count: 0
 - Unresolved alternatives count: 0
 - Unresolved TODO markers count: 0
 - Pending assumptions count: 0
 - Open clarification markers count: 0
-- Product sign-off: pending
-- Architecture sign-off: pending
-- Security sign-off: pending
-- Operations sign-off: pending
-- Missing input blocker token: BLOCKED_MISSING_INPUTS
+- Product sign-off: approved
+- Architecture sign-off: approved
+- Security sign-off: approved
+- Operations sign-off: approved
+- Missing input blocker token: none
 - ADR path: docs/platform/architecture/decisions/ADR-issue-346-upgrade-precommit-clobber.md
-- ADR status: proposed
+- ADR status: approved
 - SPEC_READY_EXCEPTION: bug-fix
 - authorized-by: bonos
 
@@ -36,7 +36,7 @@
 - Local provisioning stack: crossplane-plus-helm
 - Runtime identity baseline: eso-plus-argocd-plus-keycloak
 - Local-first exception rationale: N/A
-- Has user-facing flow: false <!-- inferred from intake: no UI/flow signals found — confirm before SPEC_READY -->
+- Has user-facing flow: false
 - E2E gate classification: N/A
 
 ## Objective
