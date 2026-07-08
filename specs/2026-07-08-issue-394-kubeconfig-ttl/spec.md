@@ -68,7 +68,7 @@
 - API contract: none
 - OpenAPI / Pact contract path: none
 - Event contract: none
-- Make/CLI contract: `make infra-stackit-foundation-refresh-kubeconfig` behaviour changes: the underlying `stackit_foundation_fetch_kubeconfig.sh` script now runs `terraform taint stackit_ske_kubeconfig.foundation[0]` before `terraform apply` when `DRY_RUN=false`.
+- Make/CLI contract: `make infra-stackit-foundation-refresh-kubeconfig` behaviour changes: `stackit_foundation_apply.sh` now runs `terraform taint stackit_ske_kubeconfig.foundation[0]` before `terraform apply` when `DRY_RUN=false`.
 - Docs contract: `docs/platform/consumer/troubleshooting.md` — add note about forced taint under the kubeconfig TTL section; `docs/platform/architecture/decisions/ADR-issue-394-kubeconfig-ttl.md` — new ADR (status: proposed → approved at merge).
 
 ## Blueprint Upstream Defect Escalation (Normative)
