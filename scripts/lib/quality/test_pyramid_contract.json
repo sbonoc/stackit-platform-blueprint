@@ -139,7 +139,8 @@
         "tests/sdd/test_c7_jsonl_validator.py",
         "tests/infra/test_audit_version_transient_errors.py",
         "tests/blueprint/test_quality_commit_autoclose.py",
-        "tests/infra/test_v1122_bugfixes.py"
+        "tests/infra/test_v1122_bugfixes.py",
+        "tests/infra/test_kubeconfig_ttl_issue_394.py"
       ]
     },
     {

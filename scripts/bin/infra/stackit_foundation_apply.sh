@@ -56,6 +56,19 @@ stackit_foundation_apply_clear_transient_postgres_taint() {
   return "$untaint_status"
 }
 
+stackit_foundation_apply_taint_ske_kubeconfig() {
+  local terraform_dir="$1"
+  local backend_file="$2"
+  if ! tooling_is_execution_enabled; then
+    log_info "dry-run: skipping force-taint of stackit_ske_kubeconfig.foundation[0]"
+    return 0
+  fi
+  # Ensure the working directory is initialized before running a state-mutating command.
+  terraform_backend_init "$terraform_dir" "$backend_file"
+  log_info "force-tainting stackit_ske_kubeconfig.foundation[0] to ensure a fresh client certificate on next apply"
+  run_cmd terraform -chdir="$terraform_dir" taint "stackit_ske_kubeconfig.foundation[0]"
+}
+
 run_stackit_foundation_apply_with_retry() {
   local terraform_dir="$1"
   local backend_file="$2"
@@ -69,6 +82,10 @@ run_stackit_foundation_apply_with_retry() {
   local retry_reason="none"
   local output_file
   output_file="$(mktemp)"
+
+  # Force-taint stackit_ske_kubeconfig.foundation[0] before every apply so Terraform
+  # always regenerates the resource and its client certificate, which expires after ~1h (issue #394).
+  stackit_foundation_apply_taint_ske_kubeconfig "$terraform_dir" "$backend_file"
 
   while ((attempt <= max_attempts)); do
     : >"$output_file"
