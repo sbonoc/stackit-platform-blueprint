@@ -111,6 +111,12 @@ Surface automatically when the named scope is next touched. Do not promote to ac
 
 ### on-scope: infra
 
+- [ ] (parked) proposal(issue-394-kubeconfig-ttl): ServiceAccount token authentication — replace short-lived client-certificate kubeconfig with a SA token of configurable duration; eliminates the ~1 h Terraform resource TTL coupling entirely
+      trigger: on-scope: infra
+      rationale: STACKIT SKE SA-token provisioner not yet stable; no urgency now that force-taint is in place (PR #401)
+- [ ] (parked) proposal(issue-394-kubeconfig-ttl): kubeconfig expiry pre-flight check in smoke scripts — add openssl x509 -checkend guard in make infra-smoke to fail-fast before kubectl calls
+      trigger: on-scope: infra
+      rationale: operator-UX complement to force-taint fix; low urgency; surfaces when smoke scripts are next in scope (PR #401)
 - [ ] (parked) proposal(issue-383-384-385-386-366-395-v1122-bugfixes): OpenSearch plan slug auto-discovery — query STACKIT API at terraform plan time to fail-fast if the configured plan slug is unavailable
       trigger: on-scope: infra
       rationale: requires Terraform provider data source work; out of scope for a patch release; surfaces when any STACKIT OpenSearch work touches infra/cloud/stackit/terraform/foundation
