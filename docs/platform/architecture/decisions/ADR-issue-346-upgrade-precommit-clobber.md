@@ -27,16 +27,16 @@ The merge function:
 
 The function is called by `_apply_entries` before the existing `_three_way_merge` path whenever the path is `.pre-commit-config.yaml`.
 
-```
+```mermaid
 flowchart TD
-    A[entry.action == merge-required<br/>.pre-commit-config.yaml] --> B{yaml.safe_load<br/>source + target?}
+    A["entry.action == merge-required, .pre-commit-config.yaml"] --> B{"yaml.safe_load source and target?"}
     B -->|success| C[diff hook IDs]
-    C --> D{consumer-only<br/>hooks found?}
-    D -->|yes| E[append consumer hooks<br/>after last blueprint hook]
-    D -->|no| F[write source content<br/>verbatim]
+    C --> D{"consumer-only hooks found?"}
+    D -->|yes| E["append consumer hooks after last blueprint hook"]
+    D -->|no| F[write source content verbatim]
     E --> G[write merged content]
     B -->|parse error| H[WARNING to stderr]
-    H --> I[fall back to git merge-file<br/>3-way merge]
+    H --> I["fall back to git merge-file 3-way merge"]
 ```
 
 ## Consequences
