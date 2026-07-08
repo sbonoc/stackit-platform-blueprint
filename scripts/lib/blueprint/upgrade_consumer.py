@@ -57,13 +57,26 @@ class PrecommitYamlParseError(Exception):
     """Raised when .pre-commit-config.yaml cannot be parsed for YAML-aware hook merge."""
 
 
-def _yaml_merge_precommit_hooks(source_content: str, target_content: str) -> str:
+def _yaml_merge_precommit_hooks(
+    source_content: str,
+    target_content: str,
+    baseline_content: str | None = None,
+) -> tuple[str, list[str]]:
     """Merge .pre-commit-config.yaml preserving consumer-only hook IDs.
 
-    Parses both source (blueprint) and target (consumer) YAML, identifies hook
-    entries present in target but absent from source, and appends them after the
-    last source hook.  Raises PrecommitYamlParseError on parse failure so the
-    caller can fall back to _three_way_merge.
+    Parses source (blueprint), target (consumer), and optionally baseline YAML.
+    A hook is consumer-only when its `id` is absent from the NEW source AND was
+    also absent from the baseline — hooks that existed in the baseline but were
+    removed from the new source are blueprint-managed removals and must NOT be
+    re-inserted.
+
+    Consumer hooks are merged at the repo-block level: hooks under a source repo
+    are appended to that repo; consumer hooks that belong to an entirely new repo
+    block (not present in the source) trigger a PrecommitYamlParseError so the
+    caller falls back to _three_way_merge (unsupported shape).
+
+    Returns (merged_yaml_string, list_of_preserved_hook_ids).
+    Raises PrecommitYamlParseError on parse failure or unsupported shape.
     """
     def _parse(content: str, label: str) -> dict:
         try:
@@ -78,55 +91,81 @@ def _yaml_merge_precommit_hooks(source_content: str, target_content: str) -> str
 
     source_parsed = _parse(source_content, "source")
     target_parsed = _parse(target_content, "target")
+    baseline_parsed = _parse(baseline_content, "baseline") if baseline_content else None
 
-    def _hook_ids(parsed: dict) -> list[str]:
-        ids: list[str] = []
+    def _repo_hook_ids(parsed: dict) -> dict[str, set[str]]:
+        """Return {repo_url_or_local: {hook_id, ...}} for each repo block."""
+        result: dict[str, set[str]] = {}
         for repo in parsed.get("repos") or []:
             if not isinstance(repo, dict):
                 continue
+            key = str(repo.get("repo", "local"))
+            ids: set[str] = set()
             for hook in repo.get("hooks") or []:
                 if isinstance(hook, dict) and "id" in hook:
-                    ids.append(str(hook["id"]))
-        return ids
+                    ids.add(str(hook["id"]))
+            result.setdefault(key, set()).update(ids)
+        return result
 
-    def _all_hooks(parsed: dict) -> list[dict]:
-        hooks: list[dict] = []
-        for repo in parsed.get("repos") or []:
-            if not isinstance(repo, dict):
-                continue
-            for hook in repo.get("hooks") or []:
-                if isinstance(hook, dict):
-                    hooks.append(hook)
-        return hooks
+    source_repo_ids = _repo_hook_ids(source_parsed)
+    baseline_repo_ids = _repo_hook_ids(baseline_parsed) if baseline_parsed else {}
 
-    source_ids = set(_hook_ids(source_parsed))
-    target_hooks = _all_hooks(target_parsed)
-    consumer_only_hooks = [h for h in target_hooks if str(h.get("id", "")) not in source_ids]
+    # All hook IDs that the new source knows about (across all repos).
+    source_all_ids: set[str] = set().union(*source_repo_ids.values()) if source_repo_ids else set()
+    # All hook IDs that existed in the baseline (across all repos).
+    baseline_all_ids: set[str] = set().union(*baseline_repo_ids.values()) if baseline_repo_ids else set()
 
-    if not consumer_only_hooks:
-        return source_content
-
-    # Build merged structure: source repos with consumer-only hooks appended.
+    # Build merged structure from the new source.
     merged = yaml.safe_load(source_content)
     if not isinstance(merged, dict):
         raise PrecommitYamlParseError("source did not parse as a YAML mapping after re-parse")
-
     repos = merged.get("repos")
     if not isinstance(repos, list) or not repos:
         raise PrecommitYamlParseError("source has no repos list to append consumer hooks into")
 
-    # Append consumer-only hooks to the last repo block (the local hooks repo).
-    last_repo = repos[-1]
-    if not isinstance(last_repo, dict):
-        raise PrecommitYamlParseError("last repo entry in source is not a mapping")
-    hooks_list = last_repo.setdefault("hooks", [])
-    existing_ids = {str(h.get("id", "")) for h in hooks_list if isinstance(h, dict)}
-    for hook in consumer_only_hooks:
-        if str(hook.get("id", "")) not in existing_ids:
-            hooks_list.append(hook)
-            existing_ids.add(str(hook["id"]))
+    # Index source repos by their repo URL for matching.
+    source_repos_by_key: dict[str, dict] = {}
+    for repo in repos:
+        if isinstance(repo, dict):
+            source_repos_by_key[str(repo.get("repo", "local"))] = repo
 
-    return yaml.dump(merged, default_flow_style=False, allow_unicode=True)
+    preserved_ids: list[str] = []
+
+    for target_repo in target_parsed.get("repos") or []:
+        if not isinstance(target_repo, dict):
+            continue
+        repo_key = str(target_repo.get("repo", "local"))
+        for hook in target_repo.get("hooks") or []:
+            if not isinstance(hook, dict) or "id" not in hook:
+                continue
+            hook_id = str(hook["id"])
+            # Skip hooks already in the new source.
+            if hook_id in source_all_ids:
+                continue
+            # Skip hooks that existed in the baseline — they were removed intentionally.
+            if hook_id in baseline_all_ids:
+                continue
+            # This is a genuine consumer-only hook.
+            # It must live in a repo block that exists in the source.
+            if repo_key not in source_repos_by_key:
+                raise PrecommitYamlParseError(
+                    f"consumer hook '{hook_id}' belongs to repo '{repo_key}' which is "
+                    "absent from the new source; unsupported shape — falling back to 3-way merge"
+                )
+            dest_repo = source_repos_by_key[repo_key]
+            dest_hooks: list = dest_repo.setdefault("hooks", [])
+            existing_ids = {str(h.get("id", "")) for h in dest_hooks if isinstance(h, dict)}
+            if hook_id not in existing_ids:
+                dest_hooks.append(hook)
+                preserved_ids.append(hook_id)
+
+    if not preserved_ids:
+        return source_content, []
+
+    return (
+        yaml.dump(merged, default_flow_style=False, allow_unicode=True, sort_keys=False, width=4096),
+        preserved_ids,
+    )
 
 OPERATION_CREATE = "create"
 OPERATION_UPDATE = "update"
@@ -2039,14 +2078,10 @@ def _apply_entries(
 
             if entry.path == _PRECOMMIT_CONFIG_PATH:
                 try:
-                    merged_content = _yaml_merge_precommit_hooks(source_content, target_content)
+                    merged_content, hook_ids = _yaml_merge_precommit_hooks(
+                        source_content, target_content, baseline_content
+                    )
                     has_conflicts = False
-                    hook_ids = [
-                        line.strip().removeprefix("id:").strip()
-                        for line in merged_content.splitlines()
-                        if line.strip().startswith("id:")
-                        and line.strip().removeprefix("id:").strip() not in source_content
-                    ]
                     if hook_ids:
                         preserved_precommit_hooks.extend(hook_ids)
                         print(
