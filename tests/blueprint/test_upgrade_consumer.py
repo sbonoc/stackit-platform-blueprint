@@ -2845,7 +2845,7 @@ class TerraformBlockDeduplicationTests(unittest.TestCase):
             with mock.patch.object(
                 upgrade_consumer, "_three_way_merge", return_value=(_TF_IDENTICAL_DUPLICATE, False)
             ):
-                results, _, _dedup = upgrade_consumer._apply_entries(
+                results, _, _dedup, _ = upgrade_consumer._apply_entries(
                     repo_root,
                     source_repo,
                     [entry],
@@ -2885,7 +2885,7 @@ class TerraformBlockDeduplicationTests(unittest.TestCase):
             with mock.patch.object(
                 upgrade_consumer, "_three_way_merge", return_value=(_TF_NON_IDENTICAL_DUPLICATE, False)
             ):
-                results, _, _dedup = upgrade_consumer._apply_entries(
+                results, _, _dedup, _ = upgrade_consumer._apply_entries(
                     repo_root,
                     source_repo,
                     [entry],

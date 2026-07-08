@@ -49,10 +49,17 @@ Override bodies can call any Make target available in the repo.
   (blueprint-managed). Overrides live in `make/platform.mk` (consumer-owned).
   Blueprint upgrades never overwrite `platform.mk`, so overrides accumulate
   without merge conflicts.
-- **No pre-commit file edits required**: Adding hooks to `.pre-commit-config.yaml`
-  directly causes merge conflicts on upgrade. The `quality-consumer-pre-push` hook
-  calls `make quality-consumer-pre-push` — consumers extend the hook by overriding
-  the target, not by editing the YAML.
+- **Pre-commit hook additions survive upgrade (blueprint v1.12.3+)**: Consumer-added
+  hook entries in `.pre-commit-config.yaml` are automatically preserved during
+  `make blueprint-upgrade-consumer`. The upgrade engine identifies hook IDs absent
+  from the blueprint baseline and appends them verbatim after the last blueprint hook
+  in the merged output. The `upgrade_summary.md` artifact lists every preserved hook
+  ID so operators can verify the hook inventory after each upgrade.
+  The `quality-consumer-pre-push` Make-target pattern (override in `make/platform.mk`)
+  remains the recommended approach for simple pre-push extensions because it is
+  independent of YAML structure. Direct hook additions to `.pre-commit-config.yaml`
+  are also supported and upgrade-safe as of v1.12.3 — use this form when you need
+  file-scoped or stage-scoped `pre-commit` filtering that Make targets cannot provide.
 
 ## Rollback
 
