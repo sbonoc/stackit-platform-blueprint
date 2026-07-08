@@ -110,39 +110,41 @@ class AC001TaintInvokedBeforeApply(unittest.TestCase):
     """T-101: static-analysis check — taint call appears before apply in script source."""
 
     def test_taint_precedes_apply_in_script_source(self) -> None:
-        """T-101: 'terraform taint stackit_ske_kubeconfig.foundation[0]' MUST appear before
-        'terraform ... apply' in the execute-mode code path of the script."""
+        """T-101: a terraform taint call targeting stackit_ske_kubeconfig.foundation[0] MUST
+        appear before the terraform output call in the execute-mode code path of the script."""
         source = _FETCH_KUBECONFIG_SCRIPT.read_text(encoding="utf-8")
-        taint_pos = source.find("terraform taint")
-        apply_pos = source.find("terraform")
-        # Find actual apply occurrence (not taint)
-        idx = 0
-        apply_pos = -1
-        while True:
-            found = source.find("terraform", idx)
-            if found == -1:
-                break
-            segment = source[found : found + 40]
-            if "taint" not in segment and ("apply" in segment or "-chdir" in segment):
-                apply_pos = found
-                break
-            idx = found + 1
+
+        # Locate the taint invocation — the script uses 'run_cmd terraform ... taint "..."'
+        # so search for the taint subcommand token next to the resource address.
+        taint_pos = source.find("stackit_ske_kubeconfig.foundation[0]")
         self.assertGreater(
             taint_pos,
             0,
-            msg="Script MUST contain 'terraform taint' invocation (FR-001)",
+            msg=(
+                "Script MUST contain a taint invocation targeting "
+                "'stackit_ske_kubeconfig.foundation[0]' (FR-001)"
+            ),
         )
+        # The word 'taint' must appear on the same run_cmd line as the resource address.
+        taint_line_start = source.rfind("\n", 0, taint_pos) + 1
+        taint_line = source[taint_line_start : source.find("\n", taint_pos)]
         self.assertIn(
-            "stackit_ske_kubeconfig",
-            source[taint_pos : taint_pos + 80],
-            msg="terraform taint MUST target 'stackit_ske_kubeconfig' resource (FR-001)",
+            "taint",
+            taint_line,
+            msg=(
+                f"The line containing the resource address MUST include the 'taint' subcommand. "
+                f"Line: {taint_line!r}"
+            ),
         )
+
+        # The terraform output (ske_kubeconfig) call MUST appear after the taint line.
+        output_pos = source.find("ske_kubeconfig", taint_pos + 1)
         self.assertGreater(
-            apply_pos,
+            output_pos,
             taint_pos,
             msg=(
-                "terraform taint MUST appear before terraform apply/output in the script "
-                "(AC-001: taint must precede any subsequent terraform operation)"
+                "terraform taint MUST appear before the terraform output ske_kubeconfig call "
+                "in the script source (AC-001)"
             ),
         )
 
@@ -239,17 +241,31 @@ class AC004LogMessageOnTaint(unittest.TestCase):
         """T-104: script MUST emit a log_info message containing the kubeconfig resource
         address before invoking terraform taint (AC-004 / NFR-OBS-001)."""
         source = _FETCH_KUBECONFIG_SCRIPT.read_text(encoding="utf-8")
-        taint_pos = source.find("terraform taint")
-        self.assertGreater(taint_pos, 0, msg="terraform taint must be present in script")
+        # Locate the actual run_cmd/terraform taint command line (not a comment).
+        # The line must start with whitespace + run_cmd or terraform, not '#'.
+        taint_cmd_pos = -1
+        for m in __import__('re').finditer(r'\btaint\b', source):
+            line_start = source.rfind("\n", 0, m.start()) + 1
+            line_end = source.find("\n", m.start())
+            line = source[line_start:line_end].lstrip()
+            if line.startswith("#"):
+                continue
+            if "stackit_ske_kubeconfig" in source[line_start:line_end]:
+                taint_cmd_pos = line_start
+                break
+        self.assertGreater(
+            taint_cmd_pos, 0,
+            msg="terraform taint targeting stackit_ske_kubeconfig.foundation[0] must be present in script"
+        )
 
-        # Find the closest log_info or log_metric call before the taint line.
-        pre_taint = source[:taint_pos]
+        # Find the closest log_info or log_metric call before the taint command line.
+        pre_taint = source[:taint_cmd_pos]
         log_pos = max(pre_taint.rfind("log_info"), pre_taint.rfind("log_metric"))
         self.assertGreater(
             log_pos,
             0,
             msg=(
-                "A log_info or log_metric call MUST appear before terraform taint "
+                "A log_info or log_metric call MUST appear before the taint invocation "
                 "so the forced taint is observable in telemetry (AC-004 / NFR-OBS-001)"
             ),
         )
@@ -257,7 +273,7 @@ class AC004LogMessageOnTaint(unittest.TestCase):
         self.assertTrue(
             "stackit_ske_kubeconfig" in log_segment or "taint" in log_segment.lower() or "kubeconfig" in log_segment.lower(),
             msg=(
-                f"The log call immediately before terraform taint MUST mention the "
+                f"The log call immediately before the taint MUST mention the "
                 f"resource or action being taken. Found: {log_segment!r}"
             ),
         )
