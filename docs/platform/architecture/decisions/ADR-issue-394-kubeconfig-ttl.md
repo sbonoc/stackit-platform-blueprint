@@ -35,10 +35,10 @@ regenerating the client certificate regardless of configuration drift.
 The taint step is unconditionally skipped when `DRY_RUN=true` — dry-run mode MUST NOT
 perform any mutating Terraform operations.
 
-```
+```mermaid
 flowchart TD
     A[make infra-stackit-foundation-refresh-kubeconfig] --> B{DRY_RUN?}
-    B -- false --> C[terraform taint stackit_ske_kubeconfig.foundation 0]
+    B -- false --> C["terraform taint stackit_ske_kubeconfig.foundation[0]"]
     C --> D[terraform apply]
     D --> E[terraform output ske_kubeconfig]
     E --> F[write kubeconfig to disk]
