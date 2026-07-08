@@ -1,0 +1,23 @@
+repos:
+  - repo: local
+    hooks:
+      - id: bash-syntax
+        name: bash syntax check
+        language: system
+        entry: bash -n
+        types: [shell]
+      - id: blueprint-test-unit
+        name: blueprint unit tests (pre-push)
+        language: system
+        entry: make test-unit
+        stages: [pre-push]
+      - id: backend-test-unit-pre-push
+        name: backend unit tests (pre-push)
+        language: system
+        entry: make backend-test-unit
+        stages: [pre-push]
+      - id: quality-consumer-pre-push
+        name: consumer pre-push quality gate
+        language: system
+        entry: make quality-consumer-pre-push
+        stages: [pre-push]

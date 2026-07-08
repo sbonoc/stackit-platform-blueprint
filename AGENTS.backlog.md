@@ -65,6 +65,15 @@ To introduce a new tag, append a row here in the same commit that uses it.
       trigger: after: #167
       rationale: blocked on #167 upgrade tooling track; migration warning is a natural extension of the upgrade flow
 - [ ] Issue #168 — incremental tag-to-tag upgrade mode (`BLUEPRINT_UPGRADE_INCREMENTAL=true`): apply one release at a time with per-release changelog and resume support on conflict; batch mode remains the default.
+- [ ] (parked) proposal(issue-346-upgrade-precommit-clobber): incremental-upgrade hook tracking — consumer hooks added in intermediate releases tracked per-release
+      trigger: after: issue-168
+      rationale: blocked on incremental upgrade track; per-release hook provenance is a natural extension of #168
+- [ ] (parked) proposal(issue-346-upgrade-precommit-clobber): allowlist-based upgrade conflict triage override — allow contract.yaml to declare per-path triage preferences (required-file-merge-preferred) to generalise YAML-aware merge to other required files
+      trigger: on-scope: blueprint
+      rationale: requires contract schema change; out of scope for targeted bug fix; revisit when touching required-file conflict resolution
+- [ ] (parked) proposal(issue-346-upgrade-precommit-clobber): consumer migration guide for absorbed hooks — warn when a consumer hook that was previously explicit is now part of the blueprint baseline
+      trigger: on-scope: blueprint
+      rationale: useful upgrade UX improvement; revisit when touching upgrade operator experience
 - [ ] Issue #183 — stale reconcile report: detect when the report on disk was generated against a different source/target tag pair and auto-rebuild it; standalone postcheck usage is the remaining risk surface.
 - [ ] Issue #196 — automated template sync after version pin changes (`BLUEPRINT_UPGRADE_SYNC_TEMPLATES=true`).
 - [ ] Issue #218 — move upstream example app names out of `consumer_settings.py` into explicit consumer configuration.
