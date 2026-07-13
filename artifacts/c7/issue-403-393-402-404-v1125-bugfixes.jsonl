@@ -1,0 +1,1 @@
+{"event_id": "fb86c8a833299cc4fdd0720bfb239b4e873643c093e1d057f8f5b751fc256f9c", "ticket_id": "403", "parent_ticket_id": null, "phase": "intake", "persona": "blueprint-sdd-step01-intake", "model": "unknown", "timestamp": "2026-07-13T10:02:37Z", "outcome": "success", "rerun_round": 0, "owner_team": "platform-team", "emitter": "local-cli", "execution_mode": "human-assisted"}
